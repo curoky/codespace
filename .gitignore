@@ -1,0 +1,4 @@
+*.origin
+images/config/
+images/config.yaml
+images/script/output/
