@@ -1,0 +1,90 @@
+FROM homebrew/brew:latest as homebrew
+COPY script/setup-pkg-brew.sh setup-pkg-brew.sh
+COPY config/brew/Brewfile.linux /opt/dotbox/config/brew/Brewfile.linux
+RUN ./setup-pkg-brew.sh
+
+FROM ghcr.io/conda/conda-ci:master-linux-python3.10 as conda
+USER root
+COPY config/pip/requirements.txt requirements.txt
+RUN /opt/conda/bin/conda create -n py2 python=2 --yes \
+  && /opt/conda/envs/py2/bin/pip install --no-cache-dir -r requirements.txt \
+  && /opt/conda/bin/pip3 install --no-cache-dir -r requirements.txt \
+  && /opt/conda/bin/conda clean --all -y
+
+FROM ubuntu:22.04 as bundles
+COPY script/setup-bundles.sh setup-bundles.sh
+RUN apt-get update -qq \
+  && apt-get install -y -qq --no-install-recommends \
+    curl ca-certificates unzip tar \
+  && ./setup-bundles.sh /opt/bundles
+
+FROM ubuntu:22.04 as vcpkg
+RUN apt-get update -qq \
+  && apt-get install -y -qq --no-install-recommends \
+    ca-certificates git curl zip unzip tar \
+  && git clone https://github.com/microsoft/vcpkg /opt/vcpkg \
+  && cd /opt/vcpkg \
+  && ./bootstrap-vcpkg.sh -disableMetrics
+
+FROM golang:1.19.0-bullseye as golang
+COPY config/go/requirements.txt /opt/dotbox/config/go/requirements.txt
+COPY script/setup-pkg-go.sh /tmp/setup-pkg-go.sh
+RUN /tmp/setup-pkg-go.sh
+
+FROM ubuntu:22.04
+LABEL org.opencontainers.image.authors="cccuroky@gmail.com"
+
+ENV PATH=$PATH:/nix/var/nix/profiles/default/bin \
+  LANG=en_US.UTF-8 \
+  LANGUAGE=en_US.UTF-8 \
+  LC_ALL=en_US.UTF-8 \
+  HOMEBREW_NO_ANALYTICS=1 \
+  HOMEBREW_NO_AUTO_UPDATE=1 \
+  HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 \
+  DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -qq \
+  && apt-get install -y -qq --no-install-recommends \
+    sudo ca-certificates gcc g++ man iptables locales file git curl \
+    tzdata gnupg2 init systemd openssh-server rsyslog xxd zsh \
+    # cron xfce4 xfce4-goodies tightvncserver
+  && yes | unminimize \
+  && apt-get autoremove -y
+
+RUN curl -sSL https://get.docker.com/ | sh -s
+
+COPY ./script /opt/dotbox/script
+COPY ./site.yaml /opt/dotbox/site.yaml
+COPY ./config /opt/dotbox/config
+COPY ./config.yaml /opt/dotbox/config.yaml
+
+RUN apt-get install -y python3-pip ansible \
+  && pip3 install --no-cache-dir dotdrop \
+  && ansible-galaxy collection install community.general \
+  && ansible-playbook -vvv /opt/dotbox/site.yaml \
+  && rm -rf /root/.ansible \
+  && apt-get purge -y python3-apt ansible \
+  && apt-get autoremove -y
+
+USER cicada
+
+RUN curl -L https://nixos.org/nix/install | sh -s -- --daemon \
+  && sudo ln -sfn /nix/var/nix/profiles/default/lib/tmpfiles.d/nix-daemon.conf /etc/tmpfiles.d/nix-daemon.conf \
+  && sudo systemd-tmpfiles --create --prefix=/nix/var/nix \
+  && sudo systemctl link "/nix/var/nix/profiles/default/lib/systemd/system/nix-daemon.service" \
+  && sudo systemctl enable "/nix/var/nix/profiles/default/lib/systemd/system/nix-daemon.socket" \
+  && sudo /opt/dotbox/script/setup-pkg-nix.sh
+
+# rustup-init -y --no-modify-path --component rls
+RUN rustup toolchain install stable-x86_64-unknown-linux-gnu
+RUN rustup component add rls
+
+# Note: g=u doesn't really work. https://github.com/moby/buildkit/issues/1951
+COPY --chown=1000:1000 --chmod=g=u --from=homebrew /home/linuxbrew /home/linuxbrew
+COPY --chown=1000:1000 --chmod=g=u --from=conda /opt/conda /opt/conda
+COPY --chown=1000:1000 --chmod=g=u --from=bundles /opt/bundles /opt/bundles
+COPY --chown=1000:1000 --chmod=g=u --from=vcpkg /opt/vcpkg /opt/vcpkg
+COPY --chown=1000:1000 --chmod=g=u --from=golang /go/bin /home/cicada/go/bin
+
+USER root
+ENTRYPOINT ["/opt/dotbox/script/entrypoint.sh"]
