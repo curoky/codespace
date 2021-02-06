@@ -3,3 +3,5 @@ images/config/
 images/config.yaml
 images/script/output/
 config/rime/squirrel/user.yaml
+config/cargo/registry
+config/cargo/.package-cache

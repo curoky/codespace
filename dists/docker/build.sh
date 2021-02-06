@@ -16,6 +16,7 @@
 set -xeuo pipefail
 cd "$(dirname $0)" || exit 1
 
+rm -rf config.yaml config
 cp ../config.yaml config.yaml
 cp -r ../config config
 
