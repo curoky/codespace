@@ -13,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# os: ubuntu:21.04,ubuntu:22.04
 set -xeuo pipefail
 cd "$(dirname $0)" || exit 1
 
@@ -21,7 +20,6 @@ cp ../config.yaml config.yaml
 cp -r ../config config
 
 docker buildx build . --network=host --file Dockerfile.v2 "${@:1}" \
-  --build-arg SECRET=${BOOTSTRAP_TOKEN:-none} \
   --cache-to=type=inline \
   --cache-from=type=registry,ref=curoky/dotbox:ubuntu22.04 \
   --tag curoky/dotbox:ubuntu22.04
