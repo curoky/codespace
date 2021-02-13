@@ -21,4 +21,4 @@ jobs:
       - name: Build and push
         run: |
           export BOOTSTRAP_TOKEN=${{ secrets.BOOTSTRAP_TOKEN }}
-          ./images/build.sh --push --no-cache=${{ github.event_name == 'schedule' }}
+          ./images/build.sh --push --no-cache=1
