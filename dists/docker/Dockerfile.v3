@@ -8,7 +8,8 @@ USER root
 COPY config/pip/requirements.txt requirements.txt
 RUN /opt/conda/bin/conda create -n py2 python=2 --yes \
   && /opt/conda/envs/py2/bin/pip install --no-cache-dir -r requirements.txt \
-  && /opt/conda/bin/pip3 install --no-cache-dir -r requirements.txt \
+  && /opt/conda/bin/conda create -n py3 python=3 --yes \
+  && /opt/conda/envs/py3/bin/pip install --no-cache-dir -r requirements.txt \
   && /opt/conda/bin/conda clean --all -y
 
 FROM ubuntu:22.04 as bundles
