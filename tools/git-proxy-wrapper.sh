@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# Copyright 2021 curoky(cccuroky@gmail.com).
+# Copyright (c) 2018-2022 curoky(cccuroky@gmail.com).
+#
+# This file is part of dotbox.
+# See https://github.com/curoky/dotbox for further info.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.

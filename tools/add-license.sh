@@ -2,7 +2,7 @@
 # Copyright (c) 2018-2022 curoky(cccuroky@gmail.com).
 #
 # This file is part of dotbox.
-# See https://github.com/curoky/dotbox.git for further info.
+# See https://github.com/curoky/dotbox for further info.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ if [[ ! -d $PWD/.git ]]; then
   exit 1
 fi
 
-GitURL=$(git ls-remote --get-url | sed -e 's|git@github.com:|https://github.com/|')
+GitURL=$(git ls-remote --get-url | sed -e 's|git@github.com:|https://github.com/|' -e 's|\.git||')
 FirstCommitYear=$(git log --reverse --date="format:%Y" --format="format:%ad" | head -n 1)
 CurrentYear=$(date +'%Y')
 
