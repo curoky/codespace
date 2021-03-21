@@ -33,4 +33,5 @@ licenseheaders \
   --projurl=$GitURL \
   --settings=$HOME/dotbox/config/licenseheaders/license-settings.json \
   --exclude '*.yaml' '.md' \
+  --dir ${1:-.} \
   --years="$FirstCommitYear-$CurrentYear"
