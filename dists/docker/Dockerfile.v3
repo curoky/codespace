@@ -12,14 +12,14 @@ RUN /opt/conda/bin/conda create -n py2 python=2 --yes \
   && /opt/conda/envs/py3/bin/pip install --no-cache-dir -r requirements.txt \
   && /opt/conda/bin/conda clean --all -y
 
-FROM ubuntu:22.04 as bundles
+FROM ubuntu:22.10 as bundles
 COPY script/setup-bundles.sh setup-bundles.sh
 RUN apt-get update -qq \
   && apt-get install -y -qq --no-install-recommends \
     curl ca-certificates unzip tar \
   && ./setup-bundles.sh /opt/bundles
 
-FROM ubuntu:22.04 as vcpkg
+FROM ubuntu:22.10 as vcpkg
 RUN apt-get update -qq \
   && apt-get install -y -qq --no-install-recommends \
     ca-certificates git curl zip unzip tar \
@@ -32,7 +32,15 @@ COPY config/go/requirements.txt /opt/dotbox/config/go/requirements.txt
 COPY script/setup-pkg-go.sh /tmp/setup-pkg-go.sh
 RUN /tmp/setup-pkg-go.sh
 
-FROM ubuntu:22.04
+FROM ubuntu:22.10 as nixpkgs
+COPY script/setup-pkg-nix.sh /opt/dotbox/script/setup-pkg-nix.sh
+RUN apt-get update -qq \
+  && apt-get install -y -qq --no-install-recommends \
+    sudo ca-certificates curl xz-utils
+RUN curl -L https://nixos.org/nix/install | sh -s -- --daemon \
+  && sudo /opt/dotbox/script/setup-pkg-nix.sh
+
+FROM ubuntu:22.10
 LABEL org.opencontainers.image.authors="cccuroky@gmail.com"
 
 ENV PATH=$PATH:/nix/var/nix/profiles/default/bin \
@@ -60,7 +68,7 @@ COPY ./config /opt/dotbox/config
 COPY ./config.yaml /opt/dotbox/config.yaml
 
 RUN apt-get install -y python3-pip ansible \
-  && pip3 install --no-cache-dir dotdrop \
+  && pip3 install --no-cache-dir dotdrop 'resolvelib<0.6.0' \
   && ansible-galaxy collection install community.general \
   && ansible-playbook -vvv /opt/dotbox/site.yaml \
   && rm -rf /root/.ansible \
@@ -75,18 +83,20 @@ RUN curl -L https://nixos.org/nix/install | sh -s -- --daemon \
   && sudo systemd-tmpfiles --create --prefix=/nix/var/nix \
   && sudo systemctl link "/nix/var/nix/profiles/default/lib/systemd/system/nix-daemon.service" \
   && sudo systemctl enable "/nix/var/nix/profiles/default/lib/systemd/system/nix-daemon.socket" \
-  && sudo /opt/dotbox/script/setup-pkg-nix.sh
+  && sudo rm -rf /nix
 
 # rustup-init -y --no-modify-path --component rls
-RUN rustup toolchain install stable-x86_64-unknown-linux-gnu
-RUN rustup component add rls
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  # && rustup toolchain install stable-x86_64-unknown-linux-gnu \
+  # && $HOME/.cargo/bin/rustup component add rls
 
 # Note: g=u doesn't really work. https://github.com/moby/buildkit/issues/1951
 COPY --chown=1000:1000 --chmod=g=u --from=homebrew /home/linuxbrew /home/linuxbrew
 COPY --chown=1000:1000 --chmod=g=u --from=conda /opt/conda /opt/conda
 COPY --chown=1000:1000 --chmod=g=u --from=bundles /opt/bundles /opt/bundles
 COPY --chown=1000:1000 --chmod=g=u --from=vcpkg /opt/vcpkg /opt/vcpkg
-COPY --chown=1000:1000 --chmod=g=u --from=golang /go/bin /home/cicada/go/bin
+COPY --chown=1000:1000 --chmod=g=u --from=golang /root/go/bin /home/cicada/go/bin
+COPY --chown=1000:1000 --chmod=g=u --from=nixpkgs /nix /nix
 COPY --chown=1000:1000 --chmod=g=u --from=curoky/sidecar:spark /opt/hadoop /opt/hadoop
 COPY --chown=1000:1000 --chmod=g=u --from=curoky/sidecar:spark /opt/spark /opt/spark
 

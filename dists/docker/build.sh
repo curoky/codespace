@@ -25,6 +25,6 @@ cp -r ../config config
 
 docker buildx build . --network=host --file Dockerfile.v3 "${@:1}" \
   --cache-to=type=inline \
-  --cache-from=type=registry,ref=curoky/dotbox:ubuntu22.04 \
-  --tag curoky/dotbox:ubuntu22.04
+  --cache-from=type=registry,ref=curoky/dotbox:ubuntu22.10 \
+  --tag curoky/dotbox:ubuntu22.10
 # --output type=local,dest=$PWD/temp

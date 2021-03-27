@@ -35,6 +35,6 @@ jobs:
           context: images
           file: images/Dockerfile.v3
           push: true
-          # cache-from: type=registry,ref=curoky/dotbox:ubuntu22.04
+          # cache-from: type=registry,ref=curoky/dotbox:ubuntu22.10
           # cache-to: type=inline
-          tags: curoky/dotbox:ubuntu22.04
+          tags: curoky/dotbox:ubuntu22.10
