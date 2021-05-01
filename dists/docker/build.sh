@@ -19,11 +19,7 @@
 set -xeuo pipefail
 cd "$(dirname $0)" || exit 1
 
-rm -rf config.yaml config
-cp ../config.yaml config.yaml
-cp -r ../config config
-
-docker buildx build . --network=host --file Dockerfile.v3 "${@:1}" \
+docker buildx build .. --network=host --file Dockerfile.v3 "${@:1}" \
   --cache-to=type=inline \
   --cache-from=type=registry,ref=curoky/dotbox:ubuntu22.10 \
   --tag curoky/dotbox:ubuntu22.10

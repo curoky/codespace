@@ -1,19 +1,19 @@
 FROM homebrew/brew:latest as homebrew
-COPY script/setup-pkg-brew.sh setup-pkg-brew.sh
-COPY config/brew/Brewfile.linux /opt/dotbox/config/brew/Brewfile.linux
-RUN ./setup-pkg-brew.sh
+COPY images/script/setup-pkg-brew.sh setup-pkg-brew.sh
+COPY images/config/brew/Brewfile.linux Brewfile.linux
+RUN ./setup-pkg-brew.sh Brewfile.linux
 
 FROM ghcr.io/conda/conda-ci:master-linux-python3.10 as conda
 USER root
-COPY config/pip/requirements.txt requirements.txt
+COPY images/config/pip/requirements.txt requirements.txt
 RUN /opt/conda/bin/conda create -n py2 python=2 --yes \
   && /opt/conda/envs/py2/bin/pip install --no-cache-dir -r requirements.txt \
-  && /opt/conda/bin/conda create -n py3 python=3 --yes \
+  && /opt/conda/bin/conda create -n py3 python=3.11 -c conda-forge --yes \
   && /opt/conda/envs/py3/bin/pip install --no-cache-dir -r requirements.txt \
   && /opt/conda/bin/conda clean --all -y
 
 FROM ubuntu:22.10 as bundles
-COPY script/setup-bundles.sh setup-bundles.sh
+COPY images/script/setup-bundles.sh setup-bundles.sh
 RUN apt-get update -qq \
   && apt-get install -y -qq --no-install-recommends \
     curl ca-certificates unzip tar \
@@ -28,17 +28,17 @@ RUN apt-get update -qq \
   && ./bootstrap-vcpkg.sh -disableMetrics
 
 FROM golang:1.19.0-bullseye as golang
-COPY config/go/requirements.txt /opt/dotbox/config/go/requirements.txt
-COPY script/setup-pkg-go.sh /tmp/setup-pkg-go.sh
-RUN /tmp/setup-pkg-go.sh
+COPY images/config/go/requirements.txt requirements.txt
+COPY images/script/setup-pkg-go.sh setup-pkg-go.sh
+RUN ./setup-pkg-go.sh requirements.txt
 
 FROM ubuntu:22.10 as nixpkgs
-COPY script/setup-pkg-nix.sh /opt/dotbox/script/setup-pkg-nix.sh
+COPY images/script/setup-pkg-nix.sh setup-pkg-nix.sh
 RUN apt-get update -qq \
   && apt-get install -y -qq --no-install-recommends \
-    sudo ca-certificates curl xz-utils
-RUN curl -L https://nixos.org/nix/install | sh -s -- --daemon \
-  && sudo /opt/dotbox/script/setup-pkg-nix.sh
+    sudo ca-certificates curl xz-utils \
+  && curl -L https://nixos.org/nix/install | sh -s -- --daemon \
+  && sudo ./setup-pkg-nix.sh
 
 FROM ubuntu:22.10
 LABEL org.opencontainers.image.authors="cccuroky@gmail.com"
@@ -62,15 +62,12 @@ RUN apt-get update -qq \
 
 RUN curl -sSL https://get.docker.com/ | sh -s
 
-COPY ./script /opt/dotbox/script
-COPY ./site.yaml /opt/dotbox/site.yaml
-COPY ./config /opt/dotbox/config
-COPY ./config.yaml /opt/dotbox/config.yaml
+COPY ./ /opt/dotbox/
 
 RUN apt-get install -y python3-pip ansible \
   && pip3 install --no-cache-dir dotdrop 'resolvelib<0.6.0' \
   && ansible-galaxy collection install community.general \
-  && ansible-playbook -vvv /opt/dotbox/site.yaml \
+  && ansible-playbook -vvv /opt/dotbox/images/site.yaml \
   && rm -rf /root/.ansible \
   && pip3 uninstall -y dotdrop \
   && apt-get purge -y python3-pip ansible \
@@ -86,7 +83,7 @@ RUN curl -L https://nixos.org/nix/install | sh -s -- --daemon \
   && sudo rm -rf /nix
 
 # rustup-init -y --no-modify-path --component rls
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+RUN curl -sSf https://sh.rustup.rs | sh -s -- -y
   # && rustup toolchain install stable-x86_64-unknown-linux-gnu \
   # && $HOME/.cargo/bin/rustup component add rls
 
@@ -99,6 +96,7 @@ COPY --chown=1000:1000 --chmod=g=u --from=golang /root/go/bin /home/cicada/go/bi
 COPY --chown=1000:1000 --chmod=g=u --from=nixpkgs /nix /nix
 COPY --chown=1000:1000 --chmod=g=u --from=curoky/sidecar:spark /opt/hadoop /opt/hadoop
 COPY --chown=1000:1000 --chmod=g=u --from=curoky/sidecar:spark /opt/spark /opt/spark
+COPY --chown=1000:1000 --chmod=g=u --from=curoky/sidecar:flink /opt/flink /opt/flink
 
 USER root
-ENTRYPOINT ["/opt/dotbox/script/entrypoint.sh"]
+ENTRYPOINT ["/opt/dotbox/images/script/entrypoint.sh"]
