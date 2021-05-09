@@ -60,7 +60,7 @@ jobs:
 
       - uses: docker/build-push-action@v3
         with:
-          context: images
+          context: .
           file: images/Dockerfile.v3
           push: true
           no-cache: true
