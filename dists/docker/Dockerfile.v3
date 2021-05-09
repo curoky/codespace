@@ -97,6 +97,7 @@ COPY --chown=1000:1000 --chmod=g=u --from=nixpkgs /nix /nix
 COPY --chown=1000:1000 --chmod=g=u --from=curoky/sidecar:spark /opt/hadoop /opt/hadoop
 COPY --chown=1000:1000 --chmod=g=u --from=curoky/sidecar:spark /opt/spark /opt/spark
 COPY --chown=1000:1000 --chmod=g=u --from=curoky/sidecar:flink /opt/flink /opt/flink
+COPY --chown=1000:1000 --chmod=g=u --from=curoky/sidecar:hive /opt/hive /opt/hive
 
 USER root
 ENTRYPOINT ["/opt/dotbox/images/script/entrypoint.sh"]
