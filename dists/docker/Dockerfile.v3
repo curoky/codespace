@@ -5,9 +5,9 @@ RUN ./setup-pkg-brew.sh Brewfile.linux
 
 FROM ghcr.io/conda/conda-ci:master-linux-python3.10 as conda
 USER root
-COPY images/config/pip/requirements.txt requirements.txt
+COPY images/config/pip/*.txt .
 RUN /opt/conda/bin/conda create -n py2 python=2 --yes \
-  && /opt/conda/envs/py2/bin/pip install --no-cache-dir -r requirements.txt \
+  && /opt/conda/envs/py2/bin/pip install --no-cache-dir -r requirements-py2.txt \
   && /opt/conda/bin/conda create -n py3 python=3.11 -c conda-forge --yes \
   && /opt/conda/envs/py3/bin/pip install --no-cache-dir -r requirements.txt \
   && /opt/conda/bin/conda clean --all -y
