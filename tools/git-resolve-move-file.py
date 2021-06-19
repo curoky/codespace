@@ -20,11 +20,13 @@ generate script for git-mv-with-history
 Usage:
 $ gst | git-resolve-move-file.py
 '''
-import tempfile
-import typer
-import sys
+
 import re
+import sys
+import tempfile
 from pathlib import Path
+
+import typer
 
 app = typer.Typer()
 
@@ -44,7 +46,7 @@ def main():
         if res:
             content.append(f'git-mv-with-history {res.group(1)}={res.group(2)}')
     typer.secho(output.name)
-    Path(output.name).write_text('\n'.join(content))
+    Path(output.name).write_text('\n'.join(content), encoding='utf8')
 
 
 if __name__ == '__main__':
