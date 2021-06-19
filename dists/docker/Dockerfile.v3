@@ -3,13 +3,31 @@ COPY images/script/setup-pkg-brew.sh setup-pkg-brew.sh
 COPY images/config/brew/Brewfile.linux Brewfile.linux
 RUN ./setup-pkg-brew.sh Brewfile.linux
 
+FROM ubuntu:22.10 as homebrew2
+ENV HOMEBREW_NO_ANALYTICS=1 \
+  HOMEBREW_NO_AUTO_UPDATE=1 \
+  HOMEBREW_INSTALL_FROM_API=1 \
+  # HOMEBREW_STDERR=1 \
+  # HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 \
+  HOMEBREW_CC=gcc \
+  DEBIAN_FRONTEND=noninteractive \
+  PATH="/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.linuxbrew/sbin:${PATH}"
+COPY images/config/brew/Brewfile.linux Brewfile.linux
+COPY images/script/setup-pkg-brew.sh setup-pkg-brew.sh
+RUN apt-get update -qq \
+  && apt-get install -y -qq --no-install-recommends \
+    ca-certificates git curl zip unzip tar make g++ patch file less sudo \
+  && echo '#' >> /.dockerenv \
+  && bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)" \
+  && ./setup-pkg-brew.sh Brewfile.linux
+
 FROM ghcr.io/conda/conda-ci:master-linux-python3.10 as conda
 USER root
 COPY images/config/pip/*.txt .
 RUN /opt/conda/bin/conda create -n py2 python=2 --yes \
   && /opt/conda/envs/py2/bin/pip install --no-cache-dir -r requirements-py2.txt \
   && /opt/conda/bin/conda create -n py3 python=3.11 -c conda-forge --yes \
-  && /opt/conda/envs/py3/bin/pip install --no-cache-dir -r requirements.txt \
+  && /opt/conda/envs/py3/bin/pip install --no-cache-dir -r requirements-py3.txt \
   && /opt/conda/bin/conda clean --all -y
 
 FROM ubuntu:22.10 as bundles
@@ -47,9 +65,6 @@ ENV PATH=$PATH:/nix/var/nix/profiles/default/bin \
   LANG=en_US.UTF-8 \
   LANGUAGE=en_US.UTF-8 \
   LC_ALL=en_US.UTF-8 \
-  HOMEBREW_NO_ANALYTICS=1 \
-  HOMEBREW_NO_AUTO_UPDATE=1 \
-  HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1 \
   DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -qq \
@@ -83,12 +98,13 @@ RUN curl -L https://nixos.org/nix/install | sh -s -- --daemon \
   && sudo rm -rf /nix
 
 # rustup-init -y --no-modify-path --component rls
-RUN curl -sSf https://sh.rustup.rs | sh -s -- -y
+RUN curl -sSf https://sh.rustup.rs | sh -s -- -y \
+  && rm -rf ~/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/share/doc
   # && rustup toolchain install stable-x86_64-unknown-linux-gnu \
   # && $HOME/.cargo/bin/rustup component add rls
 
 # Note: g=u doesn't really work. https://github.com/moby/buildkit/issues/1951
-COPY --chown=1000:1000 --chmod=g=u --from=homebrew /home/linuxbrew /home/linuxbrew
+COPY --chown=1000:1000 --chmod=g=u --from=homebrew2 /home/linuxbrew /home/linuxbrew
 COPY --chown=1000:1000 --chmod=g=u --from=conda /opt/conda /opt/conda
 COPY --chown=1000:1000 --chmod=g=u --from=bundles /opt/bundles /opt/bundles
 COPY --chown=1000:1000 --chmod=g=u --from=vcpkg /opt/vcpkg /opt/vcpkg
