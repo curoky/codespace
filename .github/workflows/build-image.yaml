@@ -10,6 +10,7 @@ jobs:
   devbox:
     runs-on: ubuntu-latest
     steps:
+      - run: sudo apt-get update -y
       - run: >
           sudo apt purge -y azure-cli google-cloud-sdk mysql-* dotnet-* libllvm* llvm-* mongodb-*
           linux-azure-* powershell temurin-8-jdk firefox google-chrome-stable openjdk-*
