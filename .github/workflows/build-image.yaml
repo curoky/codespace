@@ -67,4 +67,4 @@ jobs:
           no-cache: true
           # cache-from: type=registry,ref=curoky/dotbox:ubuntu22.10
           # cache-to: type=inline
-          tags: curoky/dotbox:ubuntu22.10
+          tags: curoky/dotbox:ubuntu23.04
