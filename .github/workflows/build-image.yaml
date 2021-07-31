@@ -62,7 +62,7 @@ jobs:
       - uses: docker/build-push-action@v3
         with:
           context: .
-          file: images/Dockerfile.v3
+          file: images/Dockerfile
           push: true
           no-cache: true
           # cache-from: type=registry,ref=curoky/dotbox:ubuntu22.10
