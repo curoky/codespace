@@ -41,15 +41,15 @@ repos:
     hooks:
       - id: yapf
         additional_dependencies: [toml]
-  - repo: https://github.com/asottile/pyupgrade
-    rev: 'v3.3.2'
-    hooks:
-      - id: pyupgrade
-  - repo: https://github.com/PyCQA/isort
-    rev: '5.12.0'
-    hooks:
-      - id: isort
-        args: ['--line-length=100']
+  # - repo: https://github.com/asottile/pyupgrade
+  #   rev: 'v3.3.2'
+  #   hooks:
+  #     - id: pyupgrade
+  # - repo: https://github.com/PyCQA/isort
+  #   rev: '5.12.0'
+  #   hooks:
+  #     - id: isort
+  #       args: ['--line-length=100']
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     rev: 'v0.0.263'
     hooks:
