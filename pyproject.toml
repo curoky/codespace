@@ -19,3 +19,7 @@ target-version = "py311"
 docstring-quotes = "single"
 inline-quotes = "single"
 multiline-quotes = "single"
+
+[tool.yapf]
+based_on_style = "google"
+column_limit = 100
