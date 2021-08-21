@@ -15,11 +15,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-'''
+"""
 generate script for git-mv-with-history
 Usage:
 $ gst | git-resolve-move-file.py
-'''
+"""
 
 import re
 import sys
@@ -35,19 +35,19 @@ app = typer.Typer()
 def main():
     lines = sys.stdin.readlines()
     if not lines:
-        raise typer.Abort('read null from stdin!')
+        raise typer.Abort("read null from stdin!")
 
     output = tempfile.NamedTemporaryFile(delete=False)
     output.close()
 
     content = []
     for line in lines:
-        res = re.search(r'renamed:\s+([\S]+)\s*->\s*([\S]+)', line)
+        res = re.search(r"renamed:\s+([\S]+)\s*->\s*([\S]+)", line)
         if res:
-            content.append(f'git-mv-with-history {res.group(1)}={res.group(2)}')
+            content.append(f"git-mv-with-history {res.group(1)}={res.group(2)}")
     typer.secho(output.name)
-    Path(output.name).write_text('\n'.join(content), encoding='utf8')
+    Path(output.name).write_text("\n".join(content), encoding="utf8")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app()
