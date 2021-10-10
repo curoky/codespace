@@ -1,9 +1,9 @@
 name: Build images
 
 on:
-  push:
-  schedule:
-    - cron: '0 0 28 * *'
+  # push:
+  # schedule:
+  #   - cron: '0 0 28 * *'
   workflow_dispatch:
 
 jobs:
