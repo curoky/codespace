@@ -25,10 +25,11 @@ fi
 GitURL=$(git ls-remote --get-url | sed -e 's|git@github.com:|https://github.com/|' -e 's|\.git||')
 FirstCommitYear=$(git log --reverse --date="format:%Y" --format="format:%ad" | head -n 1)
 CurrentYear=$(date +'%Y')
+Owner="$(git config user.name)($(git config user.email))"
 
 licenseheaders \
   --tmpl=$HOME/dotbox/config/licenseheaders/apache-2.tmpl \
-  --owner='curoky(cccuroky@gmail.com)' \
+  --owner=$Owner \
   --projname=$(basename "$PWD") \
   --projurl=$GitURL \
   --settings=$HOME/dotbox/config/licenseheaders/license-settings.json \
