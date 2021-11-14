@@ -21,6 +21,6 @@ cd "$(dirname $0)" || exit 1
 
 docker buildx build .. --network=host --file Dockerfile "${@:1}" \
   --cache-to=type=inline \
-  --cache-from=type=registry,ref=curoky/dotbox:ubuntu23.04 \
-  --tag curoky/dotbox:ubuntu23.04
+  --cache-from=type=registry,ref=curoky/dotbox:ubuntu23.10 \
+  --tag curoky/dotbox:ubuntu23.10
 # --output type=local,dest=$PWD/temp
