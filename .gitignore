@@ -1,3 +1,4 @@
 config/rime/squirrel/user.yaml
 *.pyc
 /result*
+node_modules

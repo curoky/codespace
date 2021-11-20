@@ -36,15 +36,9 @@ repos:
   # >>>>>>>>>>>>>>>>>>>>> bash <<<<<<<<<<<<<<<<<<<< #
 
   # >>>>>>>>>>>>>>>>>>>>> python <<<<<<<<<<<<<<<<<<<< #
-  - repo: https://github.com/psf/black
-    rev: '23.12.1'
-    hooks:
-      - id: black
-      - id: black-jupyter
   - repo: https://github.com/nbQA-dev/nbQA
     rev: '1.7.1'
     hooks:
-      - id: nbqa-black
       - id: nbqa-ruff
         args: [--fix]
   - repo: https://github.com/charliermarsh/ruff-pre-commit
@@ -53,33 +47,6 @@ repos:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix, --no-cache]
   # >>>>>>>>>>>>>>>>>>>>> python <<<<<<<<<<<<<<<<<<<< #
-
-  # >>>>>>>>>>>>>>>>>>>>> c++ <<<<<<<<<<<<<<<<<<<< #
-  - repo: https://github.com/cheshirekow/cmake-format-precommit
-    rev: 'v0.6.13'
-    hooks:
-      - id: cmake-format
-  - repo: https://github.com/cpplint/cpplint
-    rev: '1.6.1'
-    hooks:
-      - id: cpplint
-        args: ['--linelength=100']
-  - repo: https://github.com/keith/pre-commit-buildifier
-    rev: '6.4.0'
-    hooks:
-      - id: buildifier
-  # - repo: https://github.com/cheshirekow/cmake-format-precommit
-  #   rev: 'v0.6.13'
-  #   hooks:
-  #     - id: cmake-format
-  # >>>>>>>>>>>>>>>>>>>>> c++ <<<<<<<<<<<<<<<<<<<< #
-
-  # >>>>>>>>>>>>>>>>>>>>> ruby <<<<<<<<<<<<<<<<<<<< #
-  # - repo: https://github.com/rubocop/rubocop
-  #   rev: 'v1.52.0'
-  #   hooks:
-  #     - id: rubocop
-  # >>>>>>>>>>>>>>>>>>>>> ruby <<<<<<<<<<<<<<<<<<<< #
 
   - repo: https://github.com/pre-commit/mirrors-clang-format
     rev: 'v17.0.6'
