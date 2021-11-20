@@ -42,7 +42,7 @@ repos:
       - id: nbqa-ruff
         args: [--fix]
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: 'v0.1.13'
+    rev: 'v0.1.14'
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix, --no-cache]
