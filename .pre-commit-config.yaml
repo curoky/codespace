@@ -2,7 +2,7 @@ default_stages: [commit]
 repos:
   # >>>>>>>>>>>>>>>>>>>>> basic <<<<<<<<<<<<<<<<<<<< #
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: 'v4.4.0'
+    rev: 'v4.5.0'
     hooks:
       - id: check-added-large-files
       - id: check-case-conflict
@@ -17,11 +17,11 @@ repos:
       - id: trailing-whitespace
       - id: sort-simple-yaml
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: 'v3.0.3'
+    rev: 'v4.0.0-alpha.8'
     hooks:
       - id: prettier
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: '3.8.2'
+    rev: 'v3.13.0'
     hooks:
       - id: commitizen
         stages: [commit-msg]
@@ -29,7 +29,7 @@ repos:
 
   # >>>>>>>>>>>>>>>>>>>>> bash <<<<<<<<<<<<<<<<<<<< #
   - repo: https://github.com/scop/pre-commit-shfmt
-    rev: 'v3.7.0-1'
+    rev: 'v3.7.0-4'
     hooks:
       - id: shfmt
         args: ['-w', '-i', '2', '-s', '-l', '-ci']
@@ -37,18 +37,18 @@ repos:
 
   # >>>>>>>>>>>>>>>>>>>>> python <<<<<<<<<<<<<<<<<<<< #
   - repo: https://github.com/psf/black
-    rev: '23.9.0'
+    rev: '23.12.1'
     hooks:
       - id: black
       - id: black-jupyter
   - repo: https://github.com/nbQA-dev/nbQA
-    rev: '1.7.0'
+    rev: '1.7.1'
     hooks:
       - id: nbqa-black
       - id: nbqa-ruff
         args: [--fix]
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: 'v0.0.287'
+    rev: 'v0.1.13'
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix, --no-cache]
@@ -65,7 +65,7 @@ repos:
       - id: cpplint
         args: ['--linelength=100']
   - repo: https://github.com/keith/pre-commit-buildifier
-    rev: '6.3.3'
+    rev: '6.4.0'
     hooks:
       - id: buildifier
   # - repo: https://github.com/cheshirekow/cmake-format-precommit
@@ -82,7 +82,7 @@ repos:
   # >>>>>>>>>>>>>>>>>>>>> ruby <<<<<<<<<<<<<<<<<<<< #
 
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: 'v16.0.6'
+    rev: 'v17.0.6'
     hooks:
       - id: clang-format
         'types_or': [c++, c, c#, cuda, java, objective-c, proto]
