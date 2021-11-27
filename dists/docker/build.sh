@@ -19,8 +19,11 @@
 set -xeuo pipefail
 cd "$(dirname $0)" || exit 1
 
-docker buildx build .. --network=host --file Dockerfile "${@:1}" \
-  --cache-to=type=inline \
-  --cache-from=type=registry,ref=curoky/dotbox:ubuntu23.10 \
-  --tag curoky/dotbox:ubuntu23.10
+base_image=${1:-'ubuntu23.10'} #debian9
+
+# --cache-to=type=inline \
+# --cache-from=type=registry,ref=curoky/dotbox:${base_image} \
+docker buildx build .. --network=host --file Dockerfile "${@:2}" \
+  --build-arg="BASE_IMAGE=${base_image}" \
+  --tag curoky/dotbox:${base_image}
 # --output type=local,dest=$PWD/temp
