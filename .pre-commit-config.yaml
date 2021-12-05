@@ -20,6 +20,7 @@ repos:
     rev: 'v4.0.0-alpha.8'
     hooks:
       - id: prettier
+        additional_dependencies: ['prettier@3.2.5']
   - repo: https://github.com/commitizen-tools/commitizen
     rev: 'v3.15.0'
     hooks:
