@@ -2,7 +2,7 @@
 # https://gist.github.com/eggbean/74db77c4f6404dd1f975bd6f048b86f8
 
 # If stdout isn't terminal, fallback to default ls.
-if [[ ! -t 1 ]] ; then
+if [[ ! -t 1 ]]; then
   exec /bin/ls "$@"
 fi
 
@@ -29,7 +29,7 @@ gpd=0
 col=1
 
 help() {
-    cat << EOF
+  cat <<EOF
   ${0##*/} options:
    -a  all
    -A  almost all
@@ -66,21 +66,33 @@ help() {
    -@  extended attributes and sizes *
     * not used in ls
 EOF
-    exit
+  exit
 }
 
-[[ "$*" =~ --help ]] && help
+[[ $* =~ --help ]] && help
 
 eza_opts=()
 
 while getopts ':aAbtucSI:rkhnsXL:MPNg1lFGRdDioOTxZ@' arg; do
   case $arg in
-    a) (( dot == 1 )) && eza_opts+=(-a) || eza_opts+=(-a -a) ;;
+    a) ((dot == 1)) && eza_opts+=(-a) || eza_opts+=(-a -a) ;;
     A) eza_opts+=(-a) ;;
-    t) eza_opts+=(-s modified); ((++rev)) ;;
-    u) eza_opts+=(-us accessed); ((++rev)) ;;
-    c) eza_opts+=(-Us created); ((++rev)) ;;
-    S) eza_opts+=(-s size); ((++rev)) ;;
+    t)
+      eza_opts+=(-s modified)
+      ((++rev))
+      ;;
+    u)
+      eza_opts+=(-us accessed)
+      ((++rev))
+      ;;
+    c)
+      eza_opts+=(-Us created)
+      ((++rev))
+      ;;
+    S)
+      eza_opts+=(-s size)
+      ((++rev))
+      ;;
     I) eza_opts+=(--ignore-glob="${OPTARG}") ;;
     r) ((++rev)) ;;
     k) ((--hru)) ;;
@@ -96,27 +108,31 @@ while getopts ':aAbtucSI:rkhnsXL:MPNg1lFGRdDioOTxZ@' arg; do
     g) ((++git)) ;;
     O) ((++ico)) ;;
     b) ((--meb)) ;;
-    1|l|F|G|R|d|D|i|T|x|Z|@) eza_opts+=(-"$arg") ;;
-    :) printf "%s: -%s switch requires a value\n" "${0##*/}" "${OPTARG}" >&2; exit 1
-       ;;
-    *) printf "Error: %s\n       --help for help\n" "${0##*/}" >&2; exit 1
-       ;;
+    1 | l | F | G | R | d | D | i | T | x | Z | @) eza_opts+=(-"$arg") ;;
+    :)
+      printf "%s: -%s switch requires a value\n" "${0##*/}" "${OPTARG}" >&2
+      exit 1
+      ;;
+    *)
+      printf "Error: %s\n       --help for help\n" "${0##*/}" >&2
+      exit 1
+      ;;
   esac
 done
 
 shift "$((OPTIND - 1))"
 
-(( rev == 1 )) && eza_opts+=(-r)
-(( fgp == 0 )) && eza_opts+=(-g)
-(( lnk == 0 )) && eza_opts+=(-H)
-(( hru <= 0 )) && eza_opts+=(-B)
-(( hed == 1 )) && eza_opts+=(-h)
-(( meb == 0 && hru > 0 )) && eza_opts+=(-b)
-(( col == 1 )) && eza_opts+=(--color=always) || eza_opts+=(--color=auto)
-(( nco == 1 )) && eza_opts+=(--color=never)
-(( gpd >= 1 )) && eza_opts+=(--group-directories-first)
-(( ico == 1 )) && eza_opts+=(--icons)
-(( git == 1 )) && \
+((rev == 1)) && eza_opts+=(-r)
+((fgp == 0)) && eza_opts+=(-g)
+((lnk == 0)) && eza_opts+=(-H)
+((hru <= 0)) && eza_opts+=(-B)
+((hed == 1)) && eza_opts+=(-h)
+((meb == 0 && hru > 0)) && eza_opts+=(-b)
+((col == 1)) && eza_opts+=(--color=always) || eza_opts+=(--color=auto)
+((nco == 1)) && eza_opts+=(--color=never)
+((gpd >= 1)) && eza_opts+=(--group-directories-first)
+((ico == 1)) && eza_opts+=(--icons)
+((git == 1)) &&
   [[ $(git -C "${*:-.}" rev-parse --is-inside-work-tree) == true ]] 2>/dev/null && eza_opts+=(--git)
 
 eza --color-scale "${eza_opts[@]}" "$@"

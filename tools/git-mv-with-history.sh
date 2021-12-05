@@ -49,7 +49,7 @@
 #
 
 function usage() {
-  echo "usage: `basename $0` [-d/--dry-run] [-v/--verbose] <srcname>=<destname> <...> <...>"
+  echo "usage: $(basename $0) [-d/--dry-run] [-v/--verbose] <srcname>=<destname> <...> <...>"
   [ -z "$1" ] || echo $1
 
   exit 1
@@ -60,33 +60,34 @@ function usage() {
 dryrun=0
 filter=""
 verbose=""
-repo=$(basename `git rev-parse --show-toplevel`)
+repo=$(basename $(git rev-parse --show-toplevel))
 
 while [[ $1 =~ ^\- ]]; do
   case $1 in
-    -d|--dry-run)
+    -d | --dry-run)
       dryrun=1
       ;;
 
-    -v|--verbose)
+    -v | --verbose)
       verbose="-v"
       ;;
 
     *)
       usage "invalid argument: $1"
+      ;;
   esac
 
   shift
 done
 
 for arg in $@; do
-  val=`echo $arg | grep -q '=' && echo 1 || echo 0`
-  src=`echo $arg | sed 's/\(.*\)=\(.*\)/\1/'`
-  dst=`echo $arg | sed 's/\(.*\)=\(.*\)/\2/'`
-  dir=`echo $dst | grep -q '/$' && echo $dst || dirname $dst`
+  val=$(echo $arg | grep -q '=' && echo 1 || echo 0)
+  src=$(echo $arg | sed 's/\(.*\)=\(.*\)/\1/')
+  dst=$(echo $arg | sed 's/\(.*\)=\(.*\)/\2/')
+  dir=$(echo $dst | grep -q '/$' && echo $dst || dirname $dst)
 
-  [ "$val" -ne 1  ] && usage
-  [ ! -e "$src"   ] && usage "error: $src does not exist"
+  [ "$val" -ne 1 ] && usage
+  [ ! -e "$src" ] && usage "error: $src does not exist"
 
   filter="$filter                            \n\
     if [ -e \"$src\" ]; then                 \n\
@@ -101,10 +102,10 @@ done
 
 [ -z "$filter" ] && usage
 
-if [[ $dryrun -eq 1 || ! -z $verbose ]]; then
+if [[ $dryrun -eq 1 || -n $verbose ]]; then
   echo
   echo "tree-filter to execute against $repo:"
   echo -e "$filter"
 fi
 
-[ $dryrun -eq 0 ] && git filter-branch -f --tree-filter "`echo -e $filter`"
+[ $dryrun -eq 0 ] && git filter-branch -f --tree-filter "$(echo -e $filter)"
