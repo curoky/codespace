@@ -19,7 +19,7 @@
 set -xeuo pipefail
 
 # $(readlink -f
-conf_path=${1:-/data/share/dotbox/images/base/conan/pip}
+conf_path=${1:-/data/share/dotbox/dists/docker/base/conan/pip}
 echo "use conf_path=$conf_path"
 
 function create_conda_env() {
