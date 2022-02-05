@@ -48,8 +48,8 @@ jobs:
 
       - uses: docker/build-push-action@v5
         with:
-          context: dists/docker/base/mamba
-          file: dists/docker/base/mamba/Dockerfile
+          context: dists/docker/base/conda
+          file: dists/docker/base/conda/Dockerfile
           push: true
           cache-from: type=registry,ref=curoky/dotbox:conda
           cache-to: type=inline
