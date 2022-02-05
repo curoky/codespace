@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  devbox:
+  stage:
     runs-on: ubuntu-latest
     steps:
       - name: Free Disk Space (Ubuntu)
@@ -31,9 +31,18 @@ jobs:
           context: dists/docker/base/debian
           file: dists/docker/base/debian/10.Dockerfile
           push: true
-          cache-from: type=registry,ref=curoky/dotbox:debian10
+          cache-from: type=registry,ref=curoky/dotbox:stage_debian10
           cache-to: type=inline
-          tags: curoky/dotbox:debian10
+          tags: curoky/dotbox:stage_debian10
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: dists/docker/base/ubuntu
+          file: dists/docker/base/ubuntu/24.04.Dockerfile
+          push: true
+          cache-from: type=registry,ref=curoky/dotbox:stage_ubuntu24.04
+          cache-to: type=inline
+          tags: curoky/dotbox:stage_ubuntu24.04
 
       - uses: docker/build-push-action@v5
         with:
@@ -42,33 +51,60 @@ jobs:
             nixpkg=third-party/nixpkgs
           file: dists/docker/base/nixpkg/Dockerfile
           push: true
-          cache-from: type=registry,ref=curoky/dotbox:nixpkg
+          cache-from: type=registry,ref=curoky/dotbox:stage_nixpkg
           cache-to: type=inline
-          tags: curoky/dotbox:nixpkg
+          tags: curoky/dotbox:stage_nixpkg
 
       - uses: docker/build-push-action@v5
         with:
           context: dists/docker/base/conda
           file: dists/docker/base/conda/Dockerfile
           push: true
-          cache-from: type=registry,ref=curoky/dotbox:conda
+          cache-from: type=registry,ref=curoky/dotbox:stage_conda
           cache-to: type=inline
-          tags: curoky/dotbox:conda
+          tags: curoky/dotbox:stage_conda
 
       - uses: docker/build-push-action@v5
         with:
           context: dists/docker/base/pipx
           file: dists/docker/base/pipx/Dockerfile
           push: true
-          cache-from: type=registry,ref=curoky/dotbox:pipx
+          cache-from: type=registry,ref=curoky/dotbox:stage_pipx
           cache-to: type=inline
-          tags: curoky/dotbox:pipx
-
+          tags: curoky/dotbox:stage_pipx
+  final:
+    runs-on: ubuntu-latest
+    needs: stage
+    strategy:
+      matrix:
+        version:
+          # - debian9
+          - debian10
+          - ubuntu24.04
+    steps:
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: false
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          username: curoky
+          password: ${{ secrets.DOCKER_TOKEN }}
       - uses: docker/build-push-action@v5
         with:
           context: .
           file: dists/docker/Dockerfile
           push: true
-          cache-from: type=registry,ref=curoky/dotbox:latest
+          cache-from: type=registry,ref=curoky/dotbox:${{ matrix.version }}
           cache-to: type=inline
-          tags: curoky/dotbox:latest
+          build-args: BASE_IMAGE=${{ matrix.version }}
+          tags: curoky/dotbox:${{ matrix.version }}

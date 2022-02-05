@@ -19,7 +19,7 @@
 set -xeuo pipefail
 cd "$(dirname $0)" || exit 1
 
-base_image=${1:-'ubuntu23.10'} #debian9
+base_image=${1:-'ubuntu24.04'} #debian9
 
 # --cache-to=type=inline \
 # --cache-from=type=registry,ref=curoky/dotbox:${base_image} \
