@@ -2,23 +2,18 @@ name: Build images
 
 on:
   push:
+    paths:
+      - .github/workflows/build-image.yaml
+      - dists/docker/**
+      - third-party/**
   workflow_dispatch:
 
 jobs:
   stage:
     runs-on: ubuntu-latest
     steps:
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-          swap-storage: false
       - uses: actions/checkout@v4
+      - run: tools/free-github-action-disk-space.sh
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
@@ -29,10 +24,19 @@ jobs:
       - uses: docker/build-push-action@v5
         with:
           context: dists/docker/base/debian
+          file: dists/docker/base/debian/9.Dockerfile
+          push: true
+          cache-from: type=registry,ref=curoky/dotbox:cache_stage_debian9
+          cache-to: type=registry,ref=curoky/dotbox:cache_stage_debian9,mode=max
+          tags: curoky/dotbox:stage_debian9
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: dists/docker/base/debian
           file: dists/docker/base/debian/10.Dockerfile
           push: true
-          cache-from: type=registry,ref=curoky/dotbox:stage_debian10
-          cache-to: type=inline
+          cache-from: type=registry,ref=curoky/dotbox:cache_stage_debian10
+          cache-to: type=registry,ref=curoky/dotbox:cache_stage_debian10,mode=max
           tags: curoky/dotbox:stage_debian10
 
       - uses: docker/build-push-action@v5
@@ -40,8 +44,8 @@ jobs:
           context: dists/docker/base/ubuntu
           file: dists/docker/base/ubuntu/24.04.Dockerfile
           push: true
-          cache-from: type=registry,ref=curoky/dotbox:stage_ubuntu24.04
-          cache-to: type=inline
+          cache-from: type=registry,ref=curoky/dotbox:cache_stage_ubuntu24.04
+          cache-to: type=registry,ref=curoky/dotbox:cache_stage_ubuntu24.04,mode=max
           tags: curoky/dotbox:stage_ubuntu24.04
 
       - uses: docker/build-push-action@v5
@@ -51,17 +55,18 @@ jobs:
             nixpkg=third-party/nixpkgs
           file: dists/docker/base/nixpkg/Dockerfile
           push: true
-          cache-from: type=registry,ref=curoky/dotbox:stage_nixpkg
-          cache-to: type=inline
+          cache-from: type=registry,ref=curoky/dotbox:cache_stage_nixpkg
+          cache-to: type=registry,ref=curoky/dotbox:cache_stage_nixpkg,mode=max
           tags: curoky/dotbox:stage_nixpkg
+          outputs: type=docker
 
       - uses: docker/build-push-action@v5
         with:
           context: dists/docker/base/conda
           file: dists/docker/base/conda/Dockerfile
           push: true
-          cache-from: type=registry,ref=curoky/dotbox:stage_conda
-          cache-to: type=inline
+          cache-from: type=registry,ref=curoky/dotbox:cache_stage_conda
+          cache-to: type=registry,ref=curoky/dotbox:cache_stage_conda,mode=max
           tags: curoky/dotbox:stage_conda
 
       - uses: docker/build-push-action@v5
@@ -69,8 +74,8 @@ jobs:
           context: dists/docker/base/pipx
           file: dists/docker/base/pipx/Dockerfile
           push: true
-          cache-from: type=registry,ref=curoky/dotbox:stage_pipx
-          cache-to: type=inline
+          cache-from: type=registry,ref=curoky/dotbox:cache_stage_pipx
+          cache-to: type=registry,ref=curoky/dotbox:cache_stage_pipx,mode=max
           tags: curoky/dotbox:stage_pipx
   final:
     runs-on: ubuntu-latest
@@ -78,22 +83,12 @@ jobs:
     strategy:
       matrix:
         version:
-          # - debian9
+          - debian9
           - debian10
           - ubuntu24.04
     steps:
-      - name: Free Disk Space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-          swap-storage: false
       - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
+      - run: tools/free-github-action-disk-space.sh
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
@@ -104,7 +99,7 @@ jobs:
           context: .
           file: dists/docker/Dockerfile
           push: true
-          cache-from: type=registry,ref=curoky/dotbox:${{ matrix.version }}
-          cache-to: type=inline
+          cache-from: type=registry,ref=curoky/dotbox:cache_${{ matrix.version }}
+          cache-to: type=registry,ref=curoky/dotbox:cache_${{ matrix.version }},mode=max
           build-args: BASE_IMAGE=${{ matrix.version }}
           tags: curoky/dotbox:${{ matrix.version }}
