@@ -41,6 +41,15 @@ jobs:
 
       - uses: docker/build-push-action@v5
         with:
+          context: dists/docker/base/debian
+          file: dists/docker/base/debian/12.Dockerfile
+          push: true
+          cache-from: type=registry,ref=curoky/dotbox:cache_stage_debian12
+          cache-to: type=registry,ref=curoky/dotbox:cache_stage_debian12,mode=max
+          tags: curoky/dotbox:stage_debian12
+
+      - uses: docker/build-push-action@v5
+        with:
           context: dists/docker/base/ubuntu
           file: dists/docker/base/ubuntu/24.04.Dockerfile
           push: true
@@ -84,7 +93,7 @@ jobs:
       matrix:
         version:
           - debian9
-          - debian10
+          - debian12
           - ubuntu24.04
     steps:
       - uses: actions/checkout@v4
