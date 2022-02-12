@@ -20,43 +20,6 @@ jobs:
         with:
           username: curoky
           password: ${{ secrets.DOCKER_TOKEN }}
-
-      - uses: docker/build-push-action@v5
-        with:
-          context: dists/docker/base/debian
-          file: dists/docker/base/debian/9.Dockerfile
-          push: true
-          cache-from: type=registry,ref=curoky/dotbox:cache_stage_debian9
-          cache-to: type=registry,ref=curoky/dotbox:cache_stage_debian9,mode=max
-          tags: curoky/dotbox:stage_debian9
-
-      - uses: docker/build-push-action@v5
-        with:
-          context: dists/docker/base/debian
-          file: dists/docker/base/debian/10.Dockerfile
-          push: true
-          cache-from: type=registry,ref=curoky/dotbox:cache_stage_debian10
-          cache-to: type=registry,ref=curoky/dotbox:cache_stage_debian10,mode=max
-          tags: curoky/dotbox:stage_debian10
-
-      - uses: docker/build-push-action@v5
-        with:
-          context: dists/docker/base/debian
-          file: dists/docker/base/debian/12.Dockerfile
-          push: true
-          cache-from: type=registry,ref=curoky/dotbox:cache_stage_debian12
-          cache-to: type=registry,ref=curoky/dotbox:cache_stage_debian12,mode=max
-          tags: curoky/dotbox:stage_debian12
-
-      - uses: docker/build-push-action@v5
-        with:
-          context: dists/docker/base/ubuntu
-          file: dists/docker/base/ubuntu/24.04.Dockerfile
-          push: true
-          cache-from: type=registry,ref=curoky/dotbox:cache_stage_ubuntu24.04
-          cache-to: type=registry,ref=curoky/dotbox:cache_stage_ubuntu24.04,mode=max
-          tags: curoky/dotbox:stage_ubuntu24.04
-
       - uses: docker/build-push-action@v5
         with:
           context: dists/docker/base/nixpkg
@@ -86,13 +49,62 @@ jobs:
           cache-from: type=registry,ref=curoky/dotbox:cache_stage_pipx
           cache-to: type=registry,ref=curoky/dotbox:cache_stage_pipx,mode=max
           tags: curoky/dotbox:stage_pipx
+
+  stage-debian:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version:
+          - 9
+          - 10
+          - 11
+          - 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          username: curoky
+          password: ${{ secrets.DOCKER_TOKEN }}
+      - uses: docker/build-push-action@v5
+        with:
+          context: dists/docker/base/debian
+          file: dists/docker/base/debian/${{ matrix.version }}.Dockerfile
+          push: true
+          cache-from: type=registry,ref=curoky/dotbox:cache_stage_debian${{ matrix.version }}
+          cache-to: type=registry,ref=curoky/dotbox:cache_stage_debian${{ matrix.version }},mode=max
+          tags: curoky/dotbox:stage_debian${{ matrix.version }}
+
+  stage-ubuntu:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          username: curoky
+          password: ${{ secrets.DOCKER_TOKEN }}
+      - uses: docker/build-push-action@v5
+        with:
+          context: dists/docker/base/ubuntu
+          file: dists/docker/base/ubuntu/24.04.Dockerfile
+          push: true
+          cache-from: type=registry,ref=curoky/dotbox:cache_stage_ubuntu24.04
+          cache-to: type=registry,ref=curoky/dotbox:cache_stage_ubuntu24.04,mode=max
+          tags: curoky/dotbox:stage_ubuntu24.04
+
   final:
     runs-on: ubuntu-latest
-    needs: stage
+    needs:
+      - stage
+      - stage-debian
+      - stage-ubuntu
     strategy:
       matrix:
         version:
           - debian9
+          - debian10
+          - debian11
           - debian12
           - ubuntu24.04
     steps:
