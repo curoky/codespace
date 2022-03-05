@@ -7,6 +7,12 @@ on:
       - dists/docker/**
       - third-party/**
   workflow_dispatch:
+    inputs:
+      disable_docker_cache:
+        description: 'disable docker cache'
+        default: false
+        required: false
+        type: boolean
 
 jobs:
   stage-nixpkg:
@@ -28,6 +34,7 @@ jobs:
           push: true
           cache-from: type=registry,ref=curoky/dotbox:cache_stage_nixpkg
           cache-to: type=registry,ref=curoky/dotbox:cache_stage_nixpkg,mode=max
+          no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
           tags: curoky/dotbox:stage_nixpkg
 
   stage-conda:
@@ -52,6 +59,7 @@ jobs:
           push: true
           cache-from: type=registry,ref=curoky/dotbox:cache_stage_conda
           cache-to: type=registry,ref=curoky/dotbox:cache_stage_conda,mode=max
+          no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
           tags: curoky/dotbox:stage_conda
 
   stage-debian:
@@ -77,6 +85,7 @@ jobs:
           push: true
           cache-from: type=registry,ref=curoky/dotbox:cache_stage_debian${{ matrix.version }}
           cache-to: type=registry,ref=curoky/dotbox:cache_stage_debian${{ matrix.version }},mode=max
+          no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
           tags: curoky/dotbox:stage_debian${{ matrix.version }}
 
   stage-ubuntu:
@@ -95,6 +104,7 @@ jobs:
           push: true
           cache-from: type=registry,ref=curoky/dotbox:cache_stage_ubuntu24.04
           cache-to: type=registry,ref=curoky/dotbox:cache_stage_ubuntu24.04,mode=max
+          no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
           tags: curoky/dotbox:stage_ubuntu24.04
 
   final:
@@ -127,5 +137,6 @@ jobs:
           push: true
           cache-from: type=registry,ref=curoky/dotbox:cache_${{ matrix.version }}
           cache-to: type=registry,ref=curoky/dotbox:cache_${{ matrix.version }},mode=max
+          no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
           build-args: BASE_IMAGE=${{ matrix.version }}
           tags: curoky/dotbox:${{ matrix.version }}
