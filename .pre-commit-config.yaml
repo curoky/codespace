@@ -21,11 +21,11 @@ repos:
     hooks:
       - id: prettier
         additional_dependencies: ['prettier@3.2.5']
-  - repo: https://github.com/commitizen-tools/commitizen
-    rev: 'v3.24.0'
-    hooks:
-      - id: commitizen
-        stages: [commit-msg]
+  # - repo: https://github.com/commitizen-tools/commitizen
+  #   rev: 'v3.24.0'
+  #   hooks:
+  #     - id: commitizen
+  #       stages: [commit-msg]
   # >>>>>>>>>>>>>>>>>>>>> basic <<<<<<<<<<<<<<<<<<<< #
 
   # >>>>>>>>>>>>>>>>>>>>> bash <<<<<<<<<<<<<<<<<<<< #

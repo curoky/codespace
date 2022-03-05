@@ -1,0 +1,66 @@
+# tap 'homebrew/cask-fonts'
+# tap 'curoky/dotbox', 'https://github.com/curoky/dotbox'
+
+# brew list --cask | xargs -n 1 | sort -u | awk '{ print "\x27"$1"\x27""," }'
+casks = [
+  'font-fira-code-nerd-font',
+  'font-ubuntu-mono-nerd-font',
+  'font-lxgw-wenkai',
+  'iina',
+  'istat-menus',
+  'snipaste',
+  'squirrel',
+  'drawio',
+  'google-drive',
+  'dupeguru',
+  'adrive',
+  'pika',
+  'miniconda',
+  'keepingyouawake',
+  'orbstack',
+  'db-browser-for-sqlite',
+
+  # 'obs',
+  # 'android-platform-tools',
+  # 'charles',
+  # 'chromedriver',
+  # 'dbeaver-community',
+  # 'disk-drill',
+  # 'flameshot',
+  # 'motrix',
+  # 'netnewswire',
+  # 'sketch',
+  # 'sqlitestudio',
+  # 'webtorrent',
+  # 'firefox',
+  # 'visual-studio-code',
+  # 'warp',
+  # 'google-chrome',
+]
+
+casks.each do |b|
+  cask b
+end
+
+brews = [
+  'pre-commit', 'prettier', 'black', 'shfmt', 'eslint', 'clang-format', 'ruff',
+  'python@3', 'openjdk',
+  # compression
+  'bzip2', 'xz', 'zstd', 'zip', 'unzip',
+  # network tools
+  'netcat', 'lsof', 'connect', 'inetutils',
+  # shell tools
+  'zsh', 'zsh-bundle', 'starship',
+  # text editor and tools
+  'gettext', 'm4', 'gpatch', 'vim', 'vim-bundle',
+  'eza', 'exa-wrapper', 'bat', 'the_silver_searcher', 'fzf',
+  # others
+  'wget', 'aria2', 'rsync', 'ncdu', 'dotdrop', 'smartmontools',
+  'go-task', 'krb5', 'parallel', 'fd', 'git',
+  'coreutils', 'rime-bundle', 'exiftool', 'gost',
+  'git-absorb', 'git-extras', 'git-lfs', 'git-mv-with-history', 'git-filter-repo',
+]
+
+brews.each do |b|
+  brew b
+end

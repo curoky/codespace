@@ -2,10 +2,6 @@ name: Build images
 
 on:
   push:
-    paths:
-      - .github/workflows/build-image.yaml
-      - dists/docker/**
-      - third-party/**
   workflow_dispatch:
     inputs:
       disable_docker_cache:
@@ -15,62 +11,10 @@ on:
         type: boolean
 
 jobs:
-  stage-nixpkg:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          username: curoky
-          password: ${{ secrets.DOCKER_TOKEN }}
-      - uses: docker/build-push-action@v5
-        with:
-          context: dists/docker/base/nixpkg
-          build-contexts: |
-            nixpkg=third-party/nixpkgs
-          file: dists/docker/base/nixpkg/Dockerfile
-          push: true
-          cache-from: type=registry,ref=curoky/dotbox:cache_stage_nixpkg
-          cache-to: type=registry,ref=curoky/dotbox:cache_stage_nixpkg,mode=max
-          no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
-          tags: curoky/dotbox:stage_nixpkg
-
-  stage-conda:
+  gcc:
     runs-on: ubuntu-latest
     needs:
-      - stage-nixpkg
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          username: curoky
-          password: ${{ secrets.DOCKER_TOKEN }}
-
-      - uses: docker/build-push-action@v5
-        with:
-          context: dists/docker/base/conda
-          build-contexts: |
-            pipx=dists/docker/base/pipx
-          file: dists/docker/base/conda/Dockerfile
-          push: true
-          cache-from: type=registry,ref=curoky/dotbox:cache_stage_conda
-          cache-to: type=registry,ref=curoky/dotbox:cache_stage_conda,mode=max
-          no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
-          tags: curoky/dotbox:stage_conda
-
-  stage-debian:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        version:
-          - 9
-          - 10
-          - 11
-          - 12
+      - minimal
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -80,48 +24,18 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
       - uses: docker/build-push-action@v5
         with:
-          context: dists/docker/base/debian
-          file: dists/docker/base/debian/${{ matrix.version }}.Dockerfile
+          context: docker/dist/gcc
+          file: docker/dist/gcc/Dockerfile
           push: true
-          cache-from: type=registry,ref=curoky/dotbox:cache_stage_debian${{ matrix.version }}
-          cache-to: type=registry,ref=curoky/dotbox:cache_stage_debian${{ matrix.version }},mode=max
+          cache-from: type=registry,ref=curoky/dotbox:__cache_gcc
+          cache-to: type=registry,ref=curoky/dotbox:__cache_gcc,mode=max
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
-          tags: curoky/dotbox:stage_debian${{ matrix.version }}
+          tags: curoky/dotbox:gcc
 
-  stage-ubuntu:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          username: curoky
-          password: ${{ secrets.DOCKER_TOKEN }}
-      - uses: docker/build-push-action@v5
-        with:
-          context: dists/docker/base/ubuntu
-          file: dists/docker/base/ubuntu/24.04.Dockerfile
-          push: true
-          cache-from: type=registry,ref=curoky/dotbox:cache_stage_ubuntu24.04
-          cache-to: type=registry,ref=curoky/dotbox:cache_stage_ubuntu24.04,mode=max
-          no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
-          tags: curoky/dotbox:stage_ubuntu24.04
-
-  final:
+  tf-gpu:
     runs-on: ubuntu-latest
     needs:
-      - stage-debian
-      - stage-ubuntu
-      - stage-nixpkg
-      - stage-conda
-    strategy:
-      matrix:
-        version:
-          - debian9
-          - debian10
-          - debian11
-          - debian12
-          - ubuntu24.04
+      - minimal
     steps:
       - uses: actions/checkout@v4
       - run: tools/free-github-action-disk-space.sh
@@ -132,11 +46,39 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
       - uses: docker/build-push-action@v5
         with:
-          context: .
-          file: dists/docker/Dockerfile
+          context: docker/dist/tf-gpu
+          file: docker/dist/tf-gpu/Dockerfile
           push: true
-          cache-from: type=registry,ref=curoky/dotbox:cache_${{ matrix.version }}
-          cache-to: type=registry,ref=curoky/dotbox:cache_${{ matrix.version }},mode=max
+          cache-from: type=registry,ref=curoky/dotbox:__cache_tf-gpu
+          cache-to: type=registry,ref=curoky/dotbox:__cache_tf-gpu,mode=max
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
-          build-args: BASE_IMAGE=${{ matrix.version }}
-          tags: curoky/dotbox:${{ matrix.version }}
+          tags: curoky/dotbox:tf-gpu
+
+  minimal:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - base_image: 'debian:11'
+            saved_image: 'debian11'
+          # - base_image: "debian:12"
+          #   saved_image: "debian12"
+          - base_image: 'ubuntu:24.04'
+            saved_image: 'ubuntu24.04'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          username: curoky
+          password: ${{ secrets.DOCKER_TOKEN }}
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/minimal/Dockerfile
+          push: true
+          cache-from: type=registry,ref=curoky/dotbox:__cache_minimal-${{ matrix.saved_image }}
+          cache-to: type=registry,ref=curoky/dotbox:__cache_minimal-${{ matrix.saved_image }},mode=max
+          no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
+          build-args: BASE_IMAGE=${{ matrix.base_image }}
+          tags: curoky/dotbox:minimal-${{ matrix.saved_image }}
