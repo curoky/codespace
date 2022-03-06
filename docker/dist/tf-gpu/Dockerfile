@@ -4,7 +4,7 @@ COPY --link --from=curoky/infra-image:cuda11.4-cudnn8 /usr/local/cuda-11.4 /usr/
 COPY --link --from=curoky/infra-image:cuda11.4-cudnn8 /usr/local/cudnn8-cu11.4 /usr/local/cudnn8-cu11.4
 COPY --link --from=curoky/infra-image:cuda12.3-cudnn8 /usr/local/cuda-12.3 /usr/local/cuda-12.3
 COPY --link --from=curoky/infra-image:cuda12.3-cudnn8 /usr/local/cudnn8-cu12.3 /usr/local/cudnn8-cu12.3
-COPY --link --from=curoky/infra-image:tensorflow2.5-cu11.4-cudnn8 /tmp/tensorflow_pkg/ /app/tensorflow_pkg
+# COPY --link --from=curoky/infra-image:tensorflow2.5-cu11.4-cudnn8 /tmp/tensorflow_pkg/ /app/tensorflow_pkg
 
 USER root
 RUN apt-get update -y \
