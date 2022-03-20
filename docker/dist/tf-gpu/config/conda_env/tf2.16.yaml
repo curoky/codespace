@@ -21,9 +21,9 @@ dependencies:
       # - scikit-learn
       # - scipy
       # - statsmodels
+      - tensorflow==2.16.1 # tensorflow[and-cuda]
       - tensorboard==2.16.*
-      - tensorboard-plugin-profile
+      - tensorboard-plugin-profile==2.15.1
       # - nvidia-cudnn-cu12
       # - tensorrt
-      - tensorflow==2.16.1 # tensorflow[and-cuda]
       - nvtabular
