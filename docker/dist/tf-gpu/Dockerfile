@@ -15,7 +15,6 @@ RUN apt-get update -y \
   && ln -s /app/conda/envs/py3/bin/python3 /usr/bin/python3
 
 USER x
-ENV PATH="$PATH:/home/x/.nix-profile/bin"
 
 COPY config config
 RUN nix-env -p /nix/var/nix/profiles/tf-gpu -iA \

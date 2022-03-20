@@ -7,7 +7,6 @@ RUN apt-get update -y \
     gcc-13 g++-13
 
 USER x
-ENV PATH="$PATH:/home/x/.nix-profile/bin"
 
 ## Setup tools from nixpkgs
 RUN nix-env -p /nix/var/nix/profiles/gcc -iA \
