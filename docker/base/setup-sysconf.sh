@@ -79,6 +79,7 @@ copy_path $CONF_PATH/linux/zoneinfo/Singapore /etc/localtime
 # env and rc file
 copy_path $CONF_PATH/linux/environment /etc/environment
 copy_path $CONF_PATH/zsh/etc/zshenv /etc/zshenv
+copy_path $CONF_PATH/zsh/etc/zshenv /etc/zsh/zshenv
 
 # setup locales from apt
 apt-get install -y locales
