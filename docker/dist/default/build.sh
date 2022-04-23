@@ -21,9 +21,6 @@ cd "$(dirname $0)" || exit 1
 
 base_image=${1:-'ubuntu24.04'} #debian9
 
-# --cache-to=type=inline \
-# --cache-from=type=registry,ref=curoky/dotbox:${base_image} \
 docker buildx build . --network=host --file Dockerfile "${@:2}" \
   --build-arg="BASE_IMAGE=${base_image}" \
-  --tag curoky/dotbox:gcc
-# --output type=local,dest=$PWD/temp
+  --tag curoky/dotbox:default

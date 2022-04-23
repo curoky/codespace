@@ -17,13 +17,9 @@
 # limitations under the License.
 
 set -xeuo pipefail
-cd "$(dirname $0)" || exit 1
 
-base_image=${1:-'ubuntu24.04'} #debian9
-
-# --cache-to=type=inline \
-# --cache-from=type=registry,ref=curoky/dotbox:${base_image} \
-docker buildx build . --network=host --file Dockerfile "${@:2}" \
-  --build-arg="BASE_IMAGE=${base_image}" \
-  --tag curoky/dotbox:gcc
-# --output type=local,dest=$PWD/temp
+docker buildx build . \
+  --build-context third-party=../../../third-party \
+  --file Dockerfile \
+  --network=host \
+  --tag curoky/dotbox:stage-nixpkg
