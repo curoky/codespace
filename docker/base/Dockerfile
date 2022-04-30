@@ -7,11 +7,12 @@ ENV PATH=$PATH:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin:/app/p
 
 COPY --chown=1000:1000 ./ /app/dotbox
 RUN ln -sf /app/dotbox ~/dotbox \
-  && /app/dotbox/docker/base/setup-sysconf.sh ~/dotbox/config \
-  && /app/dotbox/docker/base/setup-userconf.sh ~/dotbox/config \
-  && mkdir -p /data/workspace \
+  && /app/dotbox/docker/base/script/setup-sysconf.sh ~/dotbox/config \
+  && /app/dotbox/docker/base/script/setup-userconf.sh ~/dotbox/config \
+  && mkdir -p /data \
   && chown -R x:x /data
 
 USER x
 RUN ln -sf /app/dotbox ~/dotbox \
-  && /app/dotbox/docker/base/setup-userconf.sh ~/dotbox/config
+  && /app/dotbox/docker/base/script/setup-userconf.sh ~/dotbox/config \
+  && mkdir -p /data/workspace

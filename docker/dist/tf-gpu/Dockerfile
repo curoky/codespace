@@ -4,8 +4,10 @@ RUN nix-env -p /nix/var/nix/profiles/nvidia -iA -f nixpkgs/default.nix nsight-sy
 
 FROM docker.io/curoky/dotbox:stage-conda as stage-conda
 COPY config config
+COPY script/patch-tf2.5.sh patch-tf2.5.sh
 RUN ./setup-conda-env.sh config/conda_env/tf2.5.yaml 1 11.4 \
-  && ./setup-conda-env.sh config/conda_env/tf2.16.yaml 1 12.3
+  && ./setup-conda-env.sh config/conda_env/tf2.16.yaml 1 12.3 \
+  && ./patch-tf2.5.sh
 
 FROM curoky/dotbox:base-debian11
 
