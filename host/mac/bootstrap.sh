@@ -17,31 +17,32 @@
 # limitations under the License.
 set -xeuo pipefail
 
-function setup-brew() {
-  export NONINTERACTIVE=1
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-}
-
 function setup-dotfiles() {
   if [[ ! -f /opt/homebrew/bin/dotdrop ]]; then
     brew install dotdrop
   fi
   rm -rf ~/dotbox
   ln -s ~/workspace/dotbox ~/dotbox
-  dotdrop install --cfg=~/dotbox/config/config.yaml --force --profile=macos-user-final
+  dotdrop install --cfg=$HOME/dotbox/config/config.yaml --force --profile=macos
+}
+
+function setup-brew() {
+  export NONINTERACTIVE=1
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  eval "$(/opt/homebrew/bin/brew shellenv)"
 }
 
 function setup-brew-pkgs() {
   mkdir -p /opt/homebrew/Library/Taps/curoky/
+  rm -rf /opt/homebrew/Library/Taps/curoky/homebrew-tap
   ln -sf ~/dotbox/third-party/homebrew/ /opt/homebrew/Library/Taps/curoky/homebrew-tap
-  brew bundle --force --file ~/dotbox/dists/osx-host/conf/brew/Brewfile --cleanup --verbose
+  brew bundle --force --file ~/dotbox/host/mac/conf/brew/Brewfile.work --cleanup --verbose
   brew link krb5 --force
   brew cleanup --prune=all
 }
 
 function setup-conda-pkgs() {
-  ~/dotbox/dists/osx-host/setup-conda-pkgs.sh
+  ~/dotbox/host/mac/setup-conda-pkgs.sh
 }
 
 ####################### start ######################
