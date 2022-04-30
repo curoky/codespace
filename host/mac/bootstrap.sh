@@ -36,7 +36,7 @@ function setup-brew-pkgs() {
   mkdir -p /opt/homebrew/Library/Taps/curoky/
   rm -rf /opt/homebrew/Library/Taps/curoky/homebrew-tap
   ln -sf ~/dotbox/third-party/homebrew/ /opt/homebrew/Library/Taps/curoky/homebrew-tap
-  brew bundle --force --file ~/dotbox/host/mac/conf/brew/Brewfile.work --cleanup --verbose
+  brew bundle --force --file ~/dotbox/host/mac/conf/brew/Brewfile.personal --cleanup --verbose
   brew link krb5 --force
   brew cleanup --prune=all
 }
