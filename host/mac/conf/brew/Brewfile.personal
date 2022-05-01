@@ -7,7 +7,7 @@ casks = [
   'font-ubuntu-mono-nerd-font',
   'font-lxgw-wenkai',
   'iina',
-  'istat-menus',
+  'istat-menus@6',
   'snipaste',
   'squirrel',
   'drawio',
