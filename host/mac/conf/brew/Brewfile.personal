@@ -42,7 +42,7 @@ casks.each do |b|
 end
 
 brews = [
-  'pre-commit', 'prettier', 'black', 'shfmt', 'eslint', 'clang-format', 'ruff',
+  'pre-commit', 'prettier', 'shfmt', 'eslint', 'clang-format', 'ruff',
   'python@3', 'openjdk',
   # compression
   'bzip2', 'xz', 'zstd', 'zip', 'unzip',

@@ -9,10 +9,9 @@ COPY --chown=1000:1000 ./ /app/dotbox
 RUN ln -sf /app/dotbox ~/dotbox \
   && /app/dotbox/docker/base/script/setup-sysconf.sh ~/dotbox/config \
   && /app/dotbox/docker/base/script/setup-userconf.sh ~/dotbox/config \
-  && mkdir -p /data \
-  && chown -R x:x /data
+  && mkdir -p /workspace \
+  && chown -R x:x /workspace
 
 USER x
 RUN ln -sf /app/dotbox ~/dotbox \
-  && /app/dotbox/docker/base/script/setup-userconf.sh ~/dotbox/config \
-  && mkdir -p /data/workspace
+  && /app/dotbox/docker/base/script/setup-userconf.sh ~/dotbox/config
