@@ -19,5 +19,5 @@
 set -xeuo pipefail
 
 sed -i -e "s|third_party/gpus/cuda/include/||g" \
-  /app/conda/envs/tf2.5/lib/python3.8/site-packages/tensorflow/include/tensorflow/core/util/gpu_kernel_helper.h \
-  /app/conda/envs/tf2.5/lib/python3.8/site-packages/tensorflow/include/tensorflow/core/util/gpu_device_functions.h
+  /app/conda/envs/tf2.5/lib/python3.7/site-packages/tensorflow/include/tensorflow/core/util/gpu_kernel_helper.h \
+  /app/conda/envs/tf2.5/lib/python3.7/site-packages/tensorflow/include/tensorflow/core/util/gpu_device_functions.h
