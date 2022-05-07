@@ -23,4 +23,4 @@ base_image=${1:-'ubuntu24.04'} #debian9
 
 docker buildx build . --network=host --file Dockerfile "${@:2}" \
   --build-arg="BASE_IMAGE=${base_image}" \
-  --tag curoky/dotbox:default
+  --tag curoky/dotbox:default-${base_image}
