@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# Copyright (c) 2018-2024 curoky(cccuroky@gmail.com).
+#
+# This file is part of dotbox.
+# See https://github.com/curoky/dotbox for further info.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -xeuo pipefail
+
+VERSION=${1-'8.9.7.29_cuda11'}
+INSTALL_PATH=${2:-/opt/cudnn}
+
+mkdir -p $INSTALL_PATH
+echo "Installing cudnn $VERSION" >$INSTALL_PATH/version.txt
+if [[ $VERSION == 8.9.7.29_cuda11* ]]; then
+  curl -sSL https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-8.9.7.29_cuda11-archive.tar.xz |
+    tar -xv --xz -C $INSTALL_PATH --strip-components 1
+elif [[ $VERSION == 8.9.7.29_cuda12* ]]; then
+  curl -sSL https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-8.9.7.29_cuda12-archive.tar.xz |
+    tar -xv --xz -C $INSTALL_PATH --strip-components 1
+elif [[ $VERSION == 8.1.0.77_cuda11* ]]; then
+  curl -sSL https://developer.download.nvidia.com/compute/redist/cudnn/v8.1.0/cudnn-11.2-linux-x64-v8.1.0.77.tgz |
+    tar -xv --gzip -C $INSTALL_PATH --strip-components 1
+fi

@@ -3,7 +3,7 @@ name: tf2.5
 channels:
   - defaults
 dependencies:
-  - python=3.8
+  - python=3.7
   - pip
   - pip:
       # common

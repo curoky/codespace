@@ -18,6 +18,6 @@
 
 set -xeuo pipefail
 cd "$(dirname $0)" || exit 1
-
-docker buildx build . --network=host --file Dockerfile "${@:2}" \
-  --tag curoky/dotbox:tf-gpu
+version=${1:-2.5-cu11}
+docker buildx build . --network=host --file Dockerfile.tf$version "${@:2}" \
+  --tag curoky/dotbox:tf${version}

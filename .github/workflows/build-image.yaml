@@ -76,9 +76,6 @@ jobs:
           - name: default
             base_image: 'ubuntu:24.04'
             saved_image: default-ubuntu24.04
-          - name: tf-gpu
-            base_image: 'debian:11'
-            saved_image: tf-gpu
           - name: gcc
             base_image: 'debian:11'
             saved_image: gcc
@@ -87,8 +84,6 @@ jobs:
       - stage
     steps:
       - uses: actions/checkout@v4
-      - run: tools/free-github-action-disk-space.sh
-        if: ${{ matrix.name == 'tf-gpu' }}
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
@@ -104,3 +99,31 @@ jobs:
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
           build-args: BASE_IMAGE=${{ matrix.base_image }}
           tags: curoky/dotbox:${{ matrix.saved_image }}
+
+  dist-tf:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: tf2.5-cu11
+          - name: tf2.16-cu12
+    needs:
+      - base
+      - stage
+    steps:
+      - uses: actions/checkout@v4
+      - run: tools/free-github-action-disk-space.sh
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          username: curoky
+          password: ${{ secrets.DOCKER_TOKEN }}
+      - uses: docker/build-push-action@v5
+        with:
+          context: docker/dist/tf
+          file: docker/dist/tf/Dockerfile.${{ matrix.name }}
+          push: true
+          cache-from: type=registry,ref=curoky/dotbox:__cache_dist_${{ matrix.name }}
+          cache-to: type=registry,ref=curoky/dotbox:__cache_dist_${{ matrix.name }},mode=max
+          no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
+          tags: curoky/dotbox:${{ matrix.name }}

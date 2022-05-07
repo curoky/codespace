@@ -10,7 +10,7 @@ RUN ln -sf /app/dotbox ~/dotbox \
   && /app/dotbox/docker/base/script/setup-sysconf.sh ~/dotbox/config \
   && /app/dotbox/docker/base/script/setup-userconf.sh ~/dotbox/config \
   && mkdir -p /workspace \
-  && chown -R x:x /workspace
+  && chown x:x /workspace /app
 
 USER x
 RUN ln -sf /app/dotbox ~/dotbox \
