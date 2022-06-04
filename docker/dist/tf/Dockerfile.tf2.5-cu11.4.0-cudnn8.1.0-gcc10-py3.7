@@ -22,7 +22,7 @@ COPY --chown=1000:1000 --link --from=curoky/dotbox:stage-prebuilt /output /app/p
 COPY --chown=1000:1000 ./config/ /app/dotbox/docker/dist/tf/config/
 COPY --chown=1000:1000 ./script/ /app/dotbox/docker/dist/tf/script/
 
-COPY --link --from=nvidia/cuda:11.4.3-devel-ubuntu20.04 /usr/local/cuda-11.4 /usr/local/cuda-11.4
+COPY --link --from=curoky/dotbox:stage-cuda-11.4.0-470.42.01 /usr/local/cuda-11.4 /usr/local/cuda-11.4
 
 USER root
 RUN apt-get update -y \

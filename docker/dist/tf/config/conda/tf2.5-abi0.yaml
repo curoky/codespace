@@ -1,5 +1,5 @@
 # https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#create-env-file-manually
-name: tf2.5
+name: tf2.5-abi0
 channels:
   - defaults
 dependencies:

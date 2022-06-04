@@ -18,6 +18,6 @@
 
 set -xeuo pipefail
 cd "$(dirname $0)" || exit 1
-version=${1:-'tf2.5-cu11.4.3-cudnn8.1.0-gcc10-py3.7'}
-docker buildx build . --network=host --file Dockerfile.tf$version "${@:2}" \
-  --tag curoky/dotbox:tf${version}
+version=${1:-'tf2.5-cu11.4.0-cudnn8.1.0-gcc10-py3.7'}
+docker buildx build . --network=host --file Dockerfile.$version "${@:2}" \
+  --tag curoky/dotbox:${version}
