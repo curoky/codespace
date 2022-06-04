@@ -26,6 +26,12 @@ repos:
   #   hooks:
   #     - id: commitizen
   #       stages: [commit-msg]
+  - repo: https://github.com/curoky/dotbox
+    rev: '9765db91e5498035e3927b089746b8c350c19872'
+    hooks:
+      - id: check-git-author
+        args: [-n, curoky, -e, 'cccuroky@gmail.com']
+        stages: [commit-msg]
   # >>>>>>>>>>>>>>>>>>>>> basic <<<<<<<<<<<<<<<<<<<< #
 
   # >>>>>>>>>>>>>>>>>>>>> bash <<<<<<<<<<<<<<<<<<<< #
@@ -38,19 +44,19 @@ repos:
 
   # >>>>>>>>>>>>>>>>>>>>> python <<<<<<<<<<<<<<<<<<<< #
   - repo: https://github.com/nbQA-dev/nbQA
-    rev: '1.8.5'
+    rev: '1.8.7'
     hooks:
       - id: nbqa-ruff
         args: [--fix]
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: 'v0.4.2'
+    rev: 'v0.6.1'
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix, --no-cache]
   # >>>>>>>>>>>>>>>>>>>>> python <<<<<<<<<<<<<<<<<<<< #
 
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: 'v18.1.4'
+    rev: 'v18.1.8'
     hooks:
       - id: clang-format
         'types_or': [c++, c, c#, cuda, java, objective-c, proto]

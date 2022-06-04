@@ -1,0 +1,5 @@
+- id: check-git-author
+  name: check git author
+  entry: tools/check-author.sh
+  language: script
+  stages: [commit-msg]
