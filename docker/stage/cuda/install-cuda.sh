@@ -67,8 +67,8 @@ elif [[ $cuda_version == "12.3.2" ]] && [[ $driver_version == "545.23.08" ]]; th
     /usr/local/cuda-12.3/nsight-compute-2023.3.1 \
     /usr/local/cuda-12.3/libnvvp \
     /usr/local/cuda-12.3/nsightee_plugins \
-    /usr/local/cuda-11.4/nvvm \
-    /usr/local/cuda-11.4/compute-sanitizer
+    /usr/local/cuda-12.3/nvvm \
+    /usr/local/cuda-12.3/compute-sanitizer
 
 # elif [[ $version == "11.4-t" ]]; then
 #   curl -sSL -o /tmp/cuda_linux.run \
