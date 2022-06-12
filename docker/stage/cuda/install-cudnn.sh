@@ -18,18 +18,18 @@
 
 set -xeuo pipefail
 
-VERSION=${1-'8.9.7.29_cuda11'}
-INSTALL_PATH=${2:-/opt/cudnn}
+cudnn_version=${1-'8.9.7.29_cuda11'}
+install_path=${2:-/app/nvidia/cudnn}
 
-mkdir -p $INSTALL_PATH
-echo "Installing cudnn $VERSION" >$INSTALL_PATH/version.txt
-if [[ $VERSION == 8.9.7.29_cuda11* ]]; then
-  curl -sSL https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-8.9.7.29_cuda11-archive.tar.xz |
-    tar -xv --xz -C $INSTALL_PATH --strip-components 1
-elif [[ $VERSION == 8.9.7.29_cuda12* ]]; then
-  curl -sSL https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-8.9.7.29_cuda12-archive.tar.xz |
-    tar -xv --xz -C $INSTALL_PATH --strip-components 1
-elif [[ $VERSION == 8.1.0.77_cuda11* ]]; then
+mkdir -p $install_path
+echo "Installing cudnn $cudnn_version" >$install_path/version.txt
+if [[ $cudnn_version == 8.1.0.77_cuda11* ]]; then
   curl -sSL https://developer.download.nvidia.com/compute/redist/cudnn/v8.1.0/cudnn-11.2-linux-x64-v8.1.0.77.tgz |
-    tar -xv --gzip -C $INSTALL_PATH --strip-components 1
+    tar -xv --gzip -C $install_path --strip-components 1
+elif [[ $cudnn_version == 8.9.7.29_cuda11* ]]; then
+  curl -sSL https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-8.9.7.29_cuda11-archive.tar.xz |
+    tar -xv --xz -C $install_path --strip-components 1
+elif [[ $cudnn_version == 8.9.7.29_cuda12* ]]; then
+  curl -sSL https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-8.9.7.29_cuda12-archive.tar.xz |
+    tar -xv --xz -C $install_path --strip-components 1
 fi

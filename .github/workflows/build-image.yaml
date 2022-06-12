@@ -72,9 +72,18 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: 11.4.0-470.42.01
-            cuda_version: '11.4.0'
-            driver_version: '470.42.01'
+          - name: cu11.0.3-cudnn8.1.0
+            CUDA_VERSION: '11.0.3'
+            CUDA_DRIVER_VERSION: '450.51.06'
+            CUDNN_VERSION: '8.1.0.77_cuda11'
+          - name: cu11.4.0-cudnn8.1.0
+            CUDA_VERSION: '11.4.0'
+            CUDA_DRIVER_VERSION: '470.42.01'
+            CUDNN_VERSION: '8.1.0.77_cuda11'
+          - name: cu12.3.2-cudnn8.9.7
+            CUDA_VERSION: '12.3.2'
+            CUDA_DRIVER_VERSION: '545.23.08'
+            CUDNN_VERSION: '8.9.7.29_cuda12'
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -91,8 +100,9 @@ jobs:
           cache-to: type=registry,ref=curoky/dotbox:__cache_stage_cuda_${{ matrix.name }},mode=max
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
           build-args: |
-            CUDA_VERSION=${{ matrix.cuda_version }}
-            CUDA_DRIVER_VERSION=${{ matrix.driver_version }}
+            CUDA_VERSION=${{ matrix.CUDA_VERSION }}
+            CUDA_DRIVER_VERSION=${{ matrix.CUDA_DRIVER_VERSION }}
+            CUDNN_VERSION=${{ matrix.CUDNN_VERSION }}
           tags: curoky/dotbox:stage-cuda-${{ matrix.name }}
 
   dist:
@@ -135,8 +145,8 @@ jobs:
     strategy:
       matrix:
         include:
+          - name: tf2.5-cu11.0.3-cudnn8.1.0-gcc10-py3.7
           - name: tf2.5-cu11.4.0-cudnn8.1.0-gcc10-py3.7
-          - name: tf2.5-cu11.4.3-cudnn8.1.0-gcc10-py3.7
           - name: tf2.16-cu12.3.2-cudnn8.9.7-gcc10-py3.11
     needs:
       - base
