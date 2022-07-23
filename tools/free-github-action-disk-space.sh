@@ -22,38 +22,38 @@ set -x
 
 df -h
 
-sudo apt-get update -y
-sudo apt-get install -y ncdu
-# dump original disk info, too slow
-# sudo ncdu -o info.txt /
+# sudo apt-get update -y
+# sudo apt-get install -y ncdu
+# # dump original disk info, too slow
+# # sudo ncdu -o info.txt /
 
-# gcc
-for i in {4..14}; do
-  sudo apt-get purge -y {gcc,g++,cpp}-$i
-done
-sudo apt-get purge -y llvm* libllvm*
-df -h
+# # gcc
+# for i in {4..14}; do
+#   sudo apt-get purge -y {gcc,g++,cpp}-$i
+# done
+# sudo apt-get purge -y llvm* libllvm*
+# df -h
 
-# dpkg-query -W -f='${Installed-Size;8}  ${Package}\n' | sort -n
+# # dpkg-query -W -f='${Installed-Size;8}  ${Package}\n' | sort -n
 
-# database
-sudo apt-get purge -y mysql* postgresql* mongodb*
-df -h
+# # database
+# sudo apt-get purge -y mysql* postgresql* mongodb*
+# df -h
 
-# other apps
-sudo apt-get purge -y openjdk* php* powershell mono* nginx* r-* snapd temurin* podman \
-  aspnetcore* ant* apache2 azure* dotnet* firefox gh google* linux-azure* microsoft* \
-  libicu* heroku fonts* kubectl mercurial mssql* ruby* xdg* x11*
-df -h
+# # other apps
+# sudo apt-get purge -y openjdk* php* powershell mono* nginx* r-* snapd temurin* podman \
+#   aspnetcore* ant* apache2 azure* dotnet* firefox gh google* linux-azure* microsoft* \
+#   libicu* heroku fonts* kubectl mercurial mssql* ruby* xdg* x11*
+# df -h
 
-sudo apt-get autoremove
-df -h
+# sudo apt-get autoremove
+# df -h
 
-rustup self uninstall -y
-df -h
+# rustup self uninstall -y
+# df -h
 
-docker system prune -a -f
-df -h
+# docker system prune -a -f
+# df -h
 
 sudo rm -rf \
   /opt/hostedtoolcache \
