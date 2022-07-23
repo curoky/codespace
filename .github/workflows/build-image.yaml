@@ -9,6 +9,8 @@ on:
         default: false
         required: false
         type: boolean
+  schedule:
+    - cron: '0 0 * * 0'
 
 jobs:
   base:
@@ -45,6 +47,7 @@ jobs:
     strategy:
       matrix:
         name:
+          - cache
           - conda
           - nixpkg
           - prebuilt

@@ -27,7 +27,7 @@ repos:
   #     - id: commitizen
   #       stages: [commit-msg]
   - repo: https://github.com/curoky/dotbox
-    rev: '9765db91e5498035e3927b089746b8c350c19872'
+    rev: '2b531e5047815b6518e893a9bc0a04342b2d73d0'
     hooks:
       - id: check-git-author
         args: [-n, curoky, -e, 'cccuroky@gmail.com']
@@ -36,7 +36,7 @@ repos:
 
   # >>>>>>>>>>>>>>>>>>>>> bash <<<<<<<<<<<<<<<<<<<< #
   - repo: https://github.com/scop/pre-commit-shfmt
-    rev: 'v3.8.0-1'
+    rev: 'v3.9.0-1'
     hooks:
       - id: shfmt
         args: ['-w', '-i', '2', '-s', '-l', '-ci']
@@ -49,7 +49,7 @@ repos:
       - id: nbqa-ruff
         args: [--fix]
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: 'v0.6.1'
+    rev: 'v0.6.3'
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix, --no-cache]
