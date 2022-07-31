@@ -19,14 +19,26 @@ set -xeuo pipefail
 
 cuda_version=${1:-'11.4'}
 driver_version=${2:-'470.42.01'}
+binary_type=${3:-'dynamic'}
 
 function install_cuda() {
   chmod +x /tmp/cuda_linux.run
   /tmp/cuda_linux.run --silent --toolkit --override
   rm -f /tmp/cuda_linux.run
 }
+if [[ $cuda_version == "10.0.130" ]] && [[ $driver_version == "410.48" ]]; then
+  curl -sSL -o /tmp/cuda_linux.run \
+    https://developer.nvidia.com/compute/cuda/10.0/Prod/local_installers/cuda_10.0.130_410.48_linux
+  # http://developer.download.nvidia.com/compute/cuda/10.0/Prod/patches/1/cuda_10.0.130.1_linux.run
+  install_cuda
+  rm -rf \
+    /usr/local/cuda-10.0/NsightCompute-1.0 \
+    /usr/local/cuda-11.0/doc \
+    /usr/local/cuda-10.0/jre \
+    /usr/local/cuda-10.0/samples \
+    /usr/local/cuda-10.0/nsightee_plugins
 
-if [[ $cuda_version == "11.0.3" ]] && [[ $driver_version == "450.51.06" ]]; then
+elif [[ $cuda_version == "11.0.3" ]] && [[ $driver_version == "450.51.06" ]]; then
   curl -sSL -o /tmp/cuda_linux.run \
     https://developer.download.nvidia.com/compute/cuda/11.0.3/local_installers/cuda_11.0.3_450.51.06_linux.run
   install_cuda
@@ -98,3 +110,7 @@ fi
 #   && apt-get update \
 #   cuda-cudart-11-8 cuda-compat-11-8
 #   && apt-get install -y --no-install-recommends cuda-11-8
+
+if [[ $binary_type == "dynamic" ]]; then
+  find -L /usr/local/cuda -name "*.a" -exec rm -f {} \;
+fi

@@ -79,6 +79,10 @@ jobs:
     strategy:
       matrix:
         include:
+          - name: cu10.0.130-cudnn8.1.0
+            CUDA_VERSION: '10.0.130'
+            CUDA_DRIVER_VERSION: '410.48'
+            CUDNN_VERSION: '8.1.0.77_cuda11'
           - name: cu11.0.3-cudnn8.1.0
             CUDA_VERSION: '11.0.3'
             CUDA_DRIVER_VERSION: '450.51.06'
