@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.9.0
 FROM debian:bookworm-backports
 
 ARG CUDA_VERSION=11.4.0

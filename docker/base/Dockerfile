@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.9.0
 ARG BASE_IMAGE=ubuntu:24.04
 
 FROM $BASE_IMAGE

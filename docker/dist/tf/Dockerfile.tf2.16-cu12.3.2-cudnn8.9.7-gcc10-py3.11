@@ -1,8 +1,9 @@
-FROM curoky/dotbox:stage-nixpkg as stage-nixpkg
+# syntax=docker/dockerfile:1.9.0
+FROM curoky/dotbox:stage-nixpkg AS stage-nixpkg
 RUN nix-env -p /nix/var/nix/profiles/nvidia -iA -f nixpkgs/default.nix nsight-systems \
   && nix-collect-garbage
 
-FROM curoky/dotbox:stage-conda as stage-conda
+FROM curoky/dotbox:stage-conda AS stage-conda
 COPY config config
 RUN ./setup-conda-env.sh config/conda/tf2.16.yaml 1 12.3 8.9
 
