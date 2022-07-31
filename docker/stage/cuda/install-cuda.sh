@@ -40,8 +40,20 @@ if [[ $cuda_version == "11.0.3" ]] && [[ $driver_version == "450.51.06" ]]; then
     /usr/local/cuda-11.0/doc \
     /usr/local/cuda-11.0/libnvvp \
     /usr/local/cuda-11.0/nsightee_plugins \
-    /usr/local/cuda-11.0/nvvm \
     /usr/local/cuda-11.0/Sanitizer
+
+elif [[ $cuda_version == "11.2.0" ]] && [[ $driver_version == "460.27.04" ]]; then
+  curl -sSL -o /tmp/cuda_linux.run \
+    https://developer.download.nvidia.com/compute/cuda/11.2.0/local_installers/cuda_11.2.0_460.27.04_linux.run
+  install_cuda
+  rm -rf \
+    /usr/local/cuda-11.2/nsight-systems-2020.4.3/host-linux-x64 \
+    /usr/local/cuda-11.2/nsight-systems-2020.4.3/target-linux-armv8 \
+    /usr/local/cuda-11.2/nsight-compute-2020.3.0 \
+    /usr/local/cuda-11.2/doc \
+    /usr/local/cuda-11.2/libnvvp \
+    /usr/local/cuda-11.2/nsightee_plugins \
+    /usr/local/cuda-11.2/Sanitizer
 
 elif [[ $cuda_version == "11.4.0" ]] && [[ $driver_version == "470.42.01" ]]; then
   curl -sSL -o /tmp/cuda_linux.run \
@@ -52,8 +64,6 @@ elif [[ $cuda_version == "11.4.0" ]] && [[ $driver_version == "470.42.01" ]]; th
     /usr/local/cuda-11.4/nsight-systems-2021.2.4/target-linux-armv8 \
     /usr/local/cuda-11.4/nsight-compute-2021.2.0 \
     /usr/local/cuda-11.4/libnvvp \
-    /usr/local/cuda-11.4/nvvm \
-    /usr/local/cuda-11.4/nvvm-prev \
     /usr/local/cuda-11.4/nsightee_plugins \
     /usr/local/cuda-11.4/compute-sanitizer
 
@@ -67,7 +77,6 @@ elif [[ $cuda_version == "12.3.2" ]] && [[ $driver_version == "545.23.08" ]]; th
     /usr/local/cuda-12.3/nsight-compute-2023.3.1 \
     /usr/local/cuda-12.3/libnvvp \
     /usr/local/cuda-12.3/nsightee_plugins \
-    /usr/local/cuda-12.3/nvvm \
     /usr/local/cuda-12.3/compute-sanitizer
 
 # elif [[ $version == "11.4-t" ]]; then

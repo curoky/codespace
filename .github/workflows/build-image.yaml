@@ -36,6 +36,7 @@ jobs:
           context: .
           file: docker/base/Dockerfile
           push: true
+          provenance: mode=max
           cache-from: type=registry,ref=curoky/dotbox:__cache_base_${{ matrix.saved_image }}
           cache-to: type=registry,ref=curoky/dotbox:__cache_base_${{ matrix.saved_image }},mode=max
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
@@ -67,6 +68,7 @@ jobs:
             third-party=third-party
           file: docker/stage/${{ matrix.name }}/Dockerfile
           push: true
+          provenance: mode=max
           cache-from: type=registry,ref=curoky/dotbox:__cache_stage_${{ matrix.name }}
           cache-to: type=registry,ref=curoky/dotbox:__cache_stage_${{ matrix.name }},mode=max
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
@@ -80,6 +82,10 @@ jobs:
           - name: cu11.0.3-cudnn8.1.0
             CUDA_VERSION: '11.0.3'
             CUDA_DRIVER_VERSION: '450.51.06'
+            CUDNN_VERSION: '8.1.0.77_cuda11'
+          - name: cu11.2.0-cudnn8.1.0
+            CUDA_VERSION: '11.2.0'
+            CUDA_DRIVER_VERSION: '460.27.04'
             CUDNN_VERSION: '8.1.0.77_cuda11'
           - name: cu11.4.0-cudnn8.1.0
             CUDA_VERSION: '11.4.0'
@@ -101,6 +107,7 @@ jobs:
           context: docker/stage/cuda
           file: docker/stage/cuda/Dockerfile
           push: true
+          provenance: mode=max
           cache-from: type=registry,ref=curoky/dotbox:__cache_stage_cuda_${{ matrix.name }}
           cache-to: type=registry,ref=curoky/dotbox:__cache_stage_cuda_${{ matrix.name }},mode=max
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
@@ -130,6 +137,7 @@ jobs:
           context: docker/stage/prebuilt
           file: docker/stage/prebuilt/Dockerfile.${{ matrix.name }}
           push: true
+          provenance: mode=max
           cache-from: type=registry,ref=curoky/dotbox:__cache_stage_prebuilt_${{ matrix.name }}
           cache-to: type=registry,ref=curoky/dotbox:__cache_stage_prebuilt_${{ matrix.name }},mode=max
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
@@ -164,6 +172,7 @@ jobs:
           context: docker/dist/${{ matrix.name }}
           file: docker/dist/${{ matrix.name }}/Dockerfile
           push: true
+          provenance: mode=max
           cache-from: type=registry,ref=curoky/dotbox:__cache_dist_${{ matrix.saved_image }}
           cache-to: type=registry,ref=curoky/dotbox:__cache_dist_${{ matrix.saved_image }},mode=max
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
@@ -194,6 +203,7 @@ jobs:
           context: docker/dist/tf
           file: docker/dist/tf/Dockerfile.${{ matrix.name }}
           push: true
+          provenance: mode=max
           cache-from: type=registry,ref=curoky/dotbox:__cache_dist_${{ matrix.name }}
           cache-to: type=registry,ref=curoky/dotbox:__cache_dist_${{ matrix.name }},mode=max
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
