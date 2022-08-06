@@ -15,4 +15,5 @@ RUN ln -sf /app/dotbox ~/dotbox \
 
 USER x
 RUN ln -sf /app/dotbox ~/dotbox \
+  && ln -sf /app/prebuilt ~/prebuilt \
   && /app/dotbox/docker/base/script/setup-userconf.sh ~/dotbox/config

@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.9.0
 FROM debian:12 AS builder
 COPY --link --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /usr/local/cuda-12.3 /usr/local/cuda-12.3
 COPY --link --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /app/nvidia/cudnn /app/nvidia/cudnn
@@ -6,10 +7,8 @@ COPY ./installer .
 
 RUN ./install-basetool.sh \
   && ./install-bazelisk.sh \
-  && git clone --recurse-submodules --depth=1 -b v2.16.1 https://github.com/tensorflow/tensorflow
-RUN apt-get install -y gcc-11 g++-11 python3.11 python3.11-dev python3-pip
+  && apt-get install -y gcc-11 g++-11 python3.11 python3.11-dev python3-pip
 
-WORKDIR /tensorflow
 ENV TF_CUDA_VERSION=12.3 \
   TF_CUDNN_VERSION=8 \
   TF_CUDA_COMPUTE_CAPABILITIES="sm_75,compute_75,sm_80,compute_80,sm_86,compute_86" \
@@ -18,7 +17,9 @@ ENV TF_CUDA_VERSION=12.3 \
   CUDA_TOOLKIT_PATH=/usr/local/cuda-12.3 \
   CUDNN_INSTALL_PATH=/app/nvidia/cudnn
 
-RUN echo 'startup --host_jvm_args=-Djava.net.preferIPv6Addresses=true' >> .bazelrc
+RUN git clone --recurse-submodules --depth=1 -b v2.16.1 https://github.com/tensorflow/tensorflow
+WORKDIR /tensorflow
+# RUN echo 'startup --host_jvm_args=-Djava.net.preferIPv6Addresses=true' >> .bazelrc
 # RUN echo 'build --repo_env=TF_CUDA_COMPUTE_CAPABILITIES="compute_90"' >> .bazelrc
 # RUN ln -s /usr/bin/python3.11 /usr/bin/python
 RUN bazel build //tensorflow/tools/pip_package:build_pip_package \

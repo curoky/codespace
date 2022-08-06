@@ -7,10 +7,10 @@ COPY ./installer .
 
 RUN ./install-basetool.sh \
   && ./install-bazelisk.sh \
-  && git clone --recurse-submodules --depth=1 -b v2.5.0 https://github.com/tensorflow/tensorflow
-RUN apt-get install -y gcc-8 g++-8 python3.7 python3.7-dev python3-pip
+  && apt-get install -y gcc-8 g++-8 python3.7 python3.7-dev python3-pip \
+  && python3.7 -m pip install numpy==1.19.5 keras_preprocessing==1.1.2 \
+  && ln -sf /usr/bin/python3.7 /usr/bin/python
 
-WORKDIR /tensorflow
 ENV TF_CUDA_VERSION=11.0 \
   TF_CUDNN_VERSION=8.1.0 \
   TF_CUDA_COMPUTE_CAPABILITIES="sm_75,compute_75,sm_80,compute_80" \
@@ -19,9 +19,10 @@ ENV TF_CUDA_VERSION=11.0 \
   CUDA_TOOLKIT_PATH=/usr/local/cuda-11.0 \
   CUDNN_INSTALL_PATH=/app/nvidia/cudnn
 
-RUN echo 'startup --host_jvm_args=-Djava.net.preferIPv6Addresses=true' >> .bazelrc
-RUN python3.7 -m pip install numpy==1.19.5 keras_preprocessing==1.1.2
-RUN ln -sf /usr/bin/python3.7 /usr/bin/python
+RUN git clone --recurse-submodules --depth=1 -b v2.5.0 https://github.com/tensorflow/tensorflow
+WORKDIR /tensorflow
+RUN sed -i -e 's|zlib.net/zlib|zlib.net/fossils/zlib|g' tensorflow/workspace2.bzl
+# RUN echo 'startup --host_jvm_args=-Djava.net.preferIPv6Addresses=true' >> .bazelrc
 RUN bazel build //tensorflow/tools/pip_package:build_pip_package \
     --repo_env=WHEEL_NAME=tensorflow \
     --repo_env=PYTHON_BIN_PATH="/usr/bin/python3.7" \
