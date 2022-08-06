@@ -14,6 +14,9 @@ RUN ln -sf /app/dotbox ~/dotbox \
   && chown x:x /workspace /app
 
 USER x
-RUN ln -sf /app/dotbox ~/dotbox \
-  && ln -sf /app/prebuilt ~/prebuilt \
+RUN ln -s /app/dotbox ~/dotbox \
+  && ln -s /app/prebuilt ~/prebuilt \
+  && ln -s ~/.local/state/nix/profiles/profile ~/.nix-profile \
+  && mkdir ~/.nix-defexpr \
+  && ln -s ~/.local/state/nix/profiles/channels ~/.nix-defexpr/channels \
   && /app/dotbox/docker/base/script/setup-userconf.sh ~/dotbox/config
