@@ -33,7 +33,7 @@ if [[ $cuda_version == "10.0.130" ]] && [[ $driver_version == "410.48" ]]; then
   install_cuda
   rm -rf \
     /usr/local/cuda-10.0/NsightCompute-1.0 \
-    /usr/local/cuda-11.0/doc \
+    /usr/local/cuda-10.0/doc \
     /usr/local/cuda-10.0/jre \
     /usr/local/cuda-10.0/samples \
     /usr/local/cuda-10.0/nsightee_plugins
@@ -43,6 +43,7 @@ elif [[ $cuda_version == "11.0.3" ]] && [[ $driver_version == "450.51.06" ]]; th
     https://developer.download.nvidia.com/compute/cuda/11.0.3/local_installers/cuda_11.0.3_450.51.06_linux.run
   install_cuda
   rm -rf \
+    /usr/local/cuda-11.0/nsight-systems-2020.3.2 \
     /usr/local/cuda-11.0/nsight-systems-2020.3.2/host-linux-x64 \
     /usr/local/cuda-11.0/nsight-systems-2020.3.2/target-linux-armv8 \
     /usr/local/cuda-11.0/nsight-compute-2020.1.2 \
@@ -59,6 +60,7 @@ elif [[ $cuda_version == "11.2.0" ]] && [[ $driver_version == "460.27.04" ]]; th
     https://developer.download.nvidia.com/compute/cuda/11.2.0/local_installers/cuda_11.2.0_460.27.04_linux.run
   install_cuda
   rm -rf \
+    /usr/local/cuda-11.2/nsight-systems-2020.4.3 \
     /usr/local/cuda-11.2/nsight-systems-2020.4.3/host-linux-x64 \
     /usr/local/cuda-11.2/nsight-systems-2020.4.3/target-linux-armv8 \
     /usr/local/cuda-11.2/nsight-compute-2020.3.0 \
@@ -72,6 +74,7 @@ elif [[ $cuda_version == "11.4.0" ]] && [[ $driver_version == "470.42.01" ]]; th
     https://developer.download.nvidia.com/compute/cuda/11.4.0/local_installers/cuda_11.4.0_470.42.01_linux.run
   install_cuda
   rm -rf \
+    /usr/local/cuda-11.4/nsight-systems-2021.2.4 \
     /usr/local/cuda-11.4/nsight-systems-2021.2.4/host-linux-x64 \
     /usr/local/cuda-11.4/nsight-systems-2021.2.4/target-linux-armv8 \
     /usr/local/cuda-11.4/nsight-compute-2021.2.0 \
@@ -83,8 +86,8 @@ elif [[ $cuda_version == "12.3.2" ]] && [[ $driver_version == "545.23.08" ]]; th
   curl -sSL -o /tmp/cuda_linux.run \
     https://developer.download.nvidia.com/compute/cuda/12.3.2/local_installers/cuda_12.3.2_545.23.08_linux.run
   install_cuda
-
   rm -rf \
+    /usr/local/cuda-12.3/nsight-systems-2023.3.3 \
     /usr/local/cuda-12.3/nsight-systems-2023.3.3/host-linux-x64 \
     /usr/local/cuda-12.3/nsight-compute-2023.3.1 \
     /usr/local/cuda-12.3/libnvvp \

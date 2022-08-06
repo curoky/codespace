@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.9.0
+# syntax=docker/dockerfile:1.9-labs
 FROM curoky/dotbox:stage-nixpkg AS stage-nixpkg
 RUN nix-env -p /nix/var/nix/profiles/nvidia -iA -f nixpkgs/default.nix nsight-systems \
   && nix-collect-garbage
@@ -19,12 +19,11 @@ COPY --chown=1000:1000 --link --from=stage-nixpkg /home/x/.local/state/nix /root
 COPY --chown=1000:1000 --link --from=stage-conda /app/conda /app/conda
 COPY --chown=1000:1000 --link --from=stage-conda /app/pipx /app/pipx
 COPY --chown=1000:1000 --link --from=curoky/dotbox:stage-prebuilt /output /app/prebuilt
-COPY --chown=1000:1000 --link --from=curoky/dotbox:stage-cuda-cu11.4.0-cudnn8.1.0 /usr/local/cuda-11.4 /usr/local/cuda-11.4
-COPY --chown=1000:1000 --link --from=curoky/dotbox:stage-cuda-cu11.4.0-cudnn8.1.0 /app/nvidia/cudnn /app/nvidia/cudnn8.1-cu11
+COPY --chown=1000:1000 --exclude=**/*.a  --from=curoky/dotbox:stage-cuda-cu11.4.0-cudnn8.1.0 /usr/local/cuda-11.4 /usr/local/cuda-11.4
+COPY --chown=1000:1000 --exclude=**/*.a  --from=curoky/dotbox:stage-cuda-cu11.4.0-cudnn8.1.0 /app/nvidia/cudnn /app/nvidia/cudnn8.1-cu11
 
 COPY --chown=1000:1000 ./config/ /app/dotbox/docker/dist/tf/config/
 COPY --chown=1000:1000 ./script/ /app/dotbox/docker/dist/tf/script/
-
 
 USER root
 RUN apt-get update -y \
