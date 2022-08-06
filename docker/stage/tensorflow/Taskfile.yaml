@@ -1,0 +1,24 @@
+version: '3'
+
+tasks:
+  tf2.5-cu11.0:
+    cmds:
+      - >
+        docker buildx build .
+        --file Dockerfile.tf2.5.0-cu11.0.3-cudnn8.1.0-gcc8-py3.7
+        --network=host
+        --tag curoky/dotbox:stage-tf2.5.0-cu11.0.3-cudnn8.1.0-gcc8-py3.7
+  tf2.5-cu11.4:
+    cmds:
+      - >
+        docker buildx build .
+        --file Dockerfile.tf2.5.0-cu11.4.0-cudnn8.1.0-gcc8-py3.7
+        --network=host
+        --tag curoky/dotbox:stage-tf2.5.0-cu11.4.0-cudnn8.1.0-gcc8-py3.7
+  tf2.16-cu12.3:
+    cmds:
+      - >
+        docker buildx build .
+        --file Dockerfile.tf2.16.1-cu12.3.2-cudnn8.9.7-gcc11-py3.11
+        --network=host
+        --tag curoky/dotbox:stage-tf2.16.1-cu12.3.2-cudnn8.9.7-gcc11-py3.11
