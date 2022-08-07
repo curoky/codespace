@@ -52,8 +52,8 @@ jobs:
           - conda
           - nixpkg
           - prebuilt
-    # needs:
-    #   - stage-prebuilt
+    needs:
+      - stage-prebuilt
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -128,9 +128,12 @@ jobs:
         include:
           - name: llvm18
           - name: rust
+          - name: perl
+          - name: go
+          - name: py3
+          - name: haskell
     steps:
       - uses: actions/checkout@v4
-      - run: tools/free-github-action-disk-space.sh
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
@@ -146,6 +149,38 @@ jobs:
           cache-to: type=registry,ref=curoky/dotbox:__cache_stage_prebuilt_${{ matrix.name }},mode=max
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
           tags: curoky/dotbox:stage-prebuilt-${{ matrix.name }}
+  pack-prebuilt:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs:
+      - stage
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker pull curoky/dotbox:stage-prebuilt
+      - run: |
+          id=$(docker create curoky/dotbox:stage-prebuilt)
+          docker cp $id:/output - > output.tar
+          docker rm -v $id
+          gzip -k output.tar
+
+      - name: test setup config
+        run: |
+          tar -xvf output.tar
+          ./output/dotbox/docker/base/script/setup-userconf.sh ./output/dotbox/config
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        with:
+          name: output.tar.gz
+          path: output.tar.gz
+
+      - uses: svenstaro/upload-release-action@v2
+        with:
+          file: output.tar.gz
+          asset_name: output.tar.gz
+          tag: 'v1.0.0'
+          overwrite: true
 
   dist:
     runs-on: ubuntu-latest
