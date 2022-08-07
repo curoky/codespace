@@ -19,8 +19,8 @@
 set -xeuo pipefail
 
 cudnn_version=${1-'8.9.7.29_cuda11'}
-install_path=${2:-/app/nvidia/cudnn}
-binary_type=${3:-'dynamic'}
+cudnn_short_version="$(echo $cudnn_version | cut -d '.' -f 1,2)-cu$(echo $cudnn_version | grep -oP '\d\d$')" # cudnn8.9-cu12
+install_path=${2:-/app/nvidia/cudnn${cudnn_short_version}}
 
 mkdir -p $install_path
 echo "Installing cudnn $cudnn_version" >$install_path/version.txt
@@ -33,8 +33,4 @@ elif [[ $cudnn_version == 8.9.7.29_cuda11* ]]; then
 elif [[ $cudnn_version == 8.9.7.29_cuda12* ]]; then
   curl -sSL https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-8.9.7.29_cuda12-archive.tar.xz |
     tar -xv --xz -C $install_path --strip-components 1
-fi
-
-if [[ $binary_type == "dynamic" ]]; then
-  find -L $install_path -name "*.a" -exec rm -f {} \;
 fi

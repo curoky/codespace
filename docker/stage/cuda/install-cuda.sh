@@ -19,7 +19,6 @@ set -xeuo pipefail
 
 cuda_version=${1:-'11.4'}
 driver_version=${2:-'470.42.01'}
-binary_type=${3:-'dynamic'}
 
 function install_cuda() {
   chmod +x /tmp/cuda_linux.run
@@ -113,7 +112,3 @@ fi
 #   && apt-get update \
 #   cuda-cudart-11-8 cuda-compat-11-8
 #   && apt-get install -y --no-install-recommends cuda-11-8
-
-if [[ $binary_type == "dynamic" ]]; then
-  find -L /usr/local/cuda -name "*.a" -exec rm -f {} \;
-fi

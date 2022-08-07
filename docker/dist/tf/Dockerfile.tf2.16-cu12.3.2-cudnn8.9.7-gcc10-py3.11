@@ -16,7 +16,7 @@ COPY --chown=1000:1000 --link --from=stage-conda /app/conda /app/conda
 COPY --chown=1000:1000 --link --from=stage-conda /app/pipx /app/pipx
 COPY --chown=1000:1000 --link --from=curoky/dotbox:stage-prebuilt /output /app/prebuilt
 COPY --chown=1000:1000 --exclude=**/*.a --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /usr/local/cuda-12.3 /usr/local/cuda-12.3
-COPY --chown=1000:1000 --exclude=**/*.a --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /app/nvidia/cudnn /app/nvidia/cudnn8.9-cu12
+COPY --chown=1000:1000 --exclude=**/*.a --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /app/nvidia/cudnn8.9-cu12 /app/nvidia/cudnn8.9-cu12
 
 COPY --chown=1000:1000 ./config/ /app/dotbox/docker/dist/tf/config/
 COPY --chown=1000:1000 ./script/ /app/dotbox/docker/dist/tf/script/
