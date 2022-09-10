@@ -22,7 +22,7 @@ dependencies:
       # - scipy
       # - statsmodels
       # - tensorflow==2.5.0 # tensorflow[and-cuda]
-      - tensorflow @ file:///artifact/tensorflow-2.5.0-cp37-cp37m-linux_x86_64.whl
+      - tensorflow @ file:///output/tensorflow-2.5.0-cp37-cp37m-linux_x86_64.whl
       - tensorboard==2.5.*
       - tensorboard-plugin-profile==2.5.*
       # - nvidia-cudnn-cu11==8.9.6.50

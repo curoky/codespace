@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.9.0
 FROM debian:12 AS builder
 COPY --link --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /usr/local/cuda-12.3 /usr/local/cuda-12.3
-COPY --link --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /app/nvidia/cudnn /app/nvidia/cudnn
+COPY --link --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /app/nvidia/cudnn8.9-cu12 /app/nvidia/cudnn8.9-cu12
 
 COPY ./installer .
 
@@ -15,11 +15,11 @@ ENV TF_CUDA_VERSION=12.3 \
   TF_PYTHON_VERSION="3.11" \
   GCC_HOST_COMPILER_PATH=/usr/bin/gcc-11 \
   CUDA_TOOLKIT_PATH=/usr/local/cuda-12.3 \
-  CUDNN_INSTALL_PATH=/app/nvidia/cudnn
+  CUDNN_INSTALL_PATH=/app/nvidia/cudnn8.9-cu12
 
 RUN git clone --recurse-submodules --depth=1 -b v2.16.1 https://github.com/tensorflow/tensorflow
 WORKDIR /tensorflow
-# RUN echo 'startup --host_jvm_args=-Djava.net.preferIPv6Addresses=true' >> .bazelrc
+RUN echo 'startup --host_jvm_args=-Djava.net.preferIPv6Addresses=true' >> .bazelrc
 # RUN echo 'build --repo_env=TF_CUDA_COMPUTE_CAPABILITIES="compute_90"' >> .bazelrc
 # RUN ln -s /usr/bin/python3.11 /usr/bin/python
 RUN bazel build //tensorflow/tools/pip_package:build_pip_package \
@@ -31,11 +31,11 @@ RUN bazel build //tensorflow/tools/pip_package:build_pip_package \
     --config=noaws \
     --config=nogcp \
     --config=nohdfs \
-    --config=nonccl \
-  && ./bazel-bin/tensorflow/tools/pip_package/build_pip_package /artifact \
-  && ls -lah /artifact/tensorflow-2.16.1-cp311-cp311-linux_x86_64.whl \
+    --config=nonccl
+RUN ./bazel-bin/tensorflow/tools/pip_package/build_pip_package /output \
+  && ls -lah /output/tensorflow-2.16.1-cp311-cp311-linux_x86_64.whl \
   && rm -rf /root/.cache /tensorflow
 
 FROM debian:latest
 
-COPY --from=builder /artifact /artifact
+COPY --from=builder /output /output
