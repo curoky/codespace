@@ -152,6 +152,7 @@ jobs:
           cache-to: type=registry,ref=curoky/dotbox:__cache_stage_prebuilt_${{ matrix.name }},mode=max
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
           tags: curoky/dotbox:stage-prebuilt-${{ matrix.name }}
+
   pack-prebuilt:
     runs-on: ubuntu-latest
     permissions:
@@ -167,15 +168,13 @@ jobs:
           docker rm -v $id
           tar -xvf output.tar
           tar -czvf output.tar.gz ./output
-          rm -rf ./output/extra
-          rm -rf ./output/experimental
-          tar -czvf output-minimal.tar.gz ./output
 
-      - name: test setup config
+      - name: pack minimal
         run: |
-          rm -rf /output
-          tar -xvf output.tar
-          ./output/dotbox/docker/base/script/setup-userconf.sh ./output/dotbox/config
+          cp -r ./output ./output-minimal
+          rm -rf ./output-minimal/extra
+          rm -rf ./output-minimal/experimental
+          tar -czvf output-minimal.tar.gz ./output-minimal
 
       - uses: actions/upload-artifact@v4
         if: ${{ github.event_name == 'workflow_dispatch' }}
@@ -198,6 +197,9 @@ jobs:
           asset_name: output-minimal.tar.gz
           tag: 'v1.0.0'
           overwrite: true
+
+      - name: test
+        run: ./host/linux/installer/install-prebuilt.sh
 
   dist:
     runs-on: ubuntu-latest
