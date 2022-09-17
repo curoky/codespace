@@ -21,4 +21,9 @@ tasks:
     deps:
       - task: build
         vars:
-          version: tf2.16-cu12.3.2-cudnn8.9.7-gcc10-py3.11
+          version: tf2.16-cu12.3.2-cudnn8.9.7-gcc10-py3.12
+  tf2.17-cu12.3:
+    deps:
+      - task: build
+        vars:
+          version: tf2.16-cu12.3.2-cudnn8.9.7-gcc10-py3.12

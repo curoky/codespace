@@ -4,23 +4,18 @@ RUN nix-env -p /nix/var/nix/profiles/nvidia -iA -f nixpkgs/default.nix nsight-sy
   && nix-collect-garbage
 
 FROM curoky/dotbox:stage-conda AS stage-conda
-COPY --from=curoky/dotbox:stage-tf2.5.0-cu11.4.0-cudnn8.1.0-gcc8-py3.7 /output /output
 COPY config config
-RUN ./setup-conda-env.sh config/conda/tf2.5-abi0.yaml 1 11.0 8.1
-RUN ./setup-conda-env.sh config/conda/tf2.5-abi1.yaml 1 11.0 8.1
-COPY script/patch-tf2.5.sh patch-tf2.5.sh
-RUN ./patch-tf2.5.sh
+RUN ./setup-conda-env.sh config/conda/torch2.4.yaml 1 12.3 8.9
 
 FROM curoky/dotbox:base-debian11
 
 COPY --chown=1000:1000 --link --from=stage-nixpkg /nix /nix
 COPY --chown=1000:1000 --link --from=stage-nixpkg /home/x/.local/state/nix /home/x/.local/state/nix
-COPY --chown=1000:1000 --link --from=stage-nixpkg /home/x/.local/state/nix /root/.local/state/nix
 COPY --chown=1000:1000 --link --from=stage-conda /app/conda /app/conda
 COPY --chown=1000:1000 --link --from=stage-conda /app/pipx /app/pipx
 COPY --chown=1000:1000 --link --from=curoky/dotbox:stage-prebuilt /output /app/prebuilt
-COPY --chown=1000:1000 --exclude=**/*.a --from=curoky/dotbox:stage-cuda-cu11.0.3-cudnn8.1.0 /usr/local/cuda-11.0 /usr/local/cuda-11.0
-COPY --chown=1000:1000 --exclude=**/*.a --from=curoky/dotbox:stage-cuda-cu11.0.3-cudnn8.1.0 /app/nvidia/cudnn8.1-cu11 /app/nvidia/cudnn8.1-cu11
+COPY --chown=1000:1000 --exclude=**/*.a --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /usr/local/cuda-12.3 /usr/local/cuda-12.3
+COPY --chown=1000:1000 --exclude=**/*.a --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /app/nvidia/cudnn8.9-cu12 /app/nvidia/cudnn8.9-cu12
 
 COPY --chown=1000:1000 ./config/ /app/dotbox/docker/dist/tf/config/
 COPY --chown=1000:1000 ./script/ /app/dotbox/docker/dist/tf/script/

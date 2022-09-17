@@ -245,7 +245,8 @@ jobs:
         include:
           - name: tf2.5-cu11.0.3-cudnn8.1.0-gcc10-py3.7
           - name: tf2.5-cu11.4.0-cudnn8.1.0-gcc10-py3.7
-          - name: tf2.16-cu12.3.2-cudnn8.9.7-gcc10-py3.11
+          - name: tf2.16-cu12.3.2-cudnn8.9.7-gcc10-py3.12
+          - name: tf2.17-cu12.3.2-cudnn8.9.7-gcc10-py3.12
     needs:
       - base
       - stage
@@ -260,7 +261,7 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: docker/dist/tf
-          file: docker/dist/tf/Dockerfile.${{ matrix.name }}
+          file: docker/dist/tensorflow/Dockerfile.${{ matrix.name }}
           push: true
           provenance: mode=max
           cache-from: type=registry,ref=curoky/dotbox:__cache_dist_${{ matrix.name }}

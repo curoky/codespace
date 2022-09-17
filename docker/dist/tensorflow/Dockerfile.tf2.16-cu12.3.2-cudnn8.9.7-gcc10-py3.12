@@ -1,0 +1,31 @@
+# syntax=docker/dockerfile:1.9-labs
+FROM curoky/dotbox:stage-nixpkg AS stage-nixpkg
+RUN nix-env -p /nix/var/nix/profiles/nvidia -iA -f nixpkgs/default.nix nsight-systems \
+  && nix-collect-garbage
+
+FROM curoky/dotbox:stage-conda AS stage-conda
+COPY config config
+RUN ./setup-conda-env.sh config/conda/tf2.16.yaml 1 12.3 8.9
+
+FROM curoky/dotbox:base-debian11
+
+COPY --chown=1000:1000 --link --from=stage-nixpkg /nix /nix
+COPY --chown=1000:1000 --link --from=stage-nixpkg /home/x/.local/state/nix /home/x/.local/state/nix
+COPY --chown=1000:1000 --link --from=stage-conda /app/conda /app/conda
+COPY --chown=1000:1000 --link --from=stage-conda /app/pipx /app/pipx
+COPY --chown=1000:1000 --link --from=curoky/dotbox:stage-prebuilt /output /app/prebuilt
+COPY --chown=1000:1000 --exclude=**/*.a --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /usr/local/cuda-12.3 /usr/local/cuda-12.3
+COPY --chown=1000:1000 --exclude=**/*.a --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /app/nvidia/cudnn8.9-cu12 /app/nvidia/cudnn8.9-cu12
+
+COPY --chown=1000:1000 ./config/ /app/dotbox/docker/dist/tf/config/
+COPY --chown=1000:1000 ./script/ /app/dotbox/docker/dist/tf/script/
+
+USER root
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends \
+    gcc-10 g++-10 \
+  && /app/dotbox/docker/dist/default/script/setup-sys-change-default-gcc.sh 10 \
+  && ln -s /app/conda/envs/py3/bin/python3 /usr/bin/python \
+  && ln -s /app/conda/envs/py3/bin/python3 /usr/bin/python3
+
+ENTRYPOINT ["/app/dotbox/docker/dist/default/script/entrypoint.sh"]

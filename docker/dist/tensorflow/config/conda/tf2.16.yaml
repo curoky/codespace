@@ -1,0 +1,28 @@
+name: tf2.16
+channels:
+  - defaults
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+      # common
+      - ipykernel
+      - ipywidgets
+      - pydantic
+      - requests
+      - typer
+      # - python-snappy==0.6.1
+      # others
+      - numpy
+      - pandas
+      - plotly
+      - protobuf #==4.24.4
+      # - scikit-learn
+      # - scipy
+      # - statsmodels
+      - tensorflow==2.16.* # tensorflow[and-cuda]
+      - tensorboard==2.16.*
+      - tensorboard-plugin-profile==2.16.*
+      # - nvidia-cudnn-cu12
+      # - tensorrt
+      - nvtabular
