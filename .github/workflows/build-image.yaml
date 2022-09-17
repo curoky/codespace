@@ -177,7 +177,7 @@ jobs:
           tar -czvf output-minimal.tar.gz ./output-minimal
 
       - uses: actions/upload-artifact@v4
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+        # if: ${{ github.event_name == 'workflow_dispatch' }}
         with:
           name: output
           path: |
