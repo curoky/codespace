@@ -43,7 +43,7 @@ end
 
 brews = [
   'pre-commit', 'prettier', 'shfmt', 'eslint', 'clang-format', 'ruff',
-  'python@3', 'openjdk',
+  'openjdk',
   # compression
   'bzip2', 'xz', 'zstd', 'zip', 'unzip',
   # network tools
@@ -56,7 +56,7 @@ brews = [
   # others
   'wget', 'aria2', 'rsync', 'ncdu', 'dotdrop', 'smartmontools',
   'go-task', 'krb5', 'parallel', 'fd', 'git',
-  'coreutils', 'rime-bundle', 'exiftool', 'gost',
+  'coreutils', 'exiftool', 'gost',
   'git-absorb', 'git-extras', 'git-lfs', 'git-filter-repo',
 ]
 

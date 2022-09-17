@@ -26,34 +26,24 @@ function setup-dotfiles() {
   dotdrop install --cfg=$HOME/dotbox/config/config.yaml --force --profile=macos
 }
 
-function setup-brew() {
-  export NONINTERACTIVE=1
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-}
-
 function setup-brew-pkgs() {
-  mkdir -p /opt/homebrew/Library/Taps/curoky/
-  rm -rf /opt/homebrew/Library/Taps/curoky/homebrew-tap
-  ln -sf ~/dotbox/third-party/homebrew/ /opt/homebrew/Library/Taps/curoky/homebrew-tap
   brew bundle --force --file ~/dotbox/host/mac/conf/brew/Brewfile.personal --cleanup --verbose
   brew link krb5 --force
   brew cleanup --prune=all
 }
 
-function setup-conda-pkgs() {
-  ~/dotbox/host/mac/setup-conda-pkgs.sh
-}
-
 ####################### start ######################
 if [[ ! -f /opt/homebrew/bin/brew ]]; then
-  setup-brew
+  export NONINTERACTIVE=1
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
+
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
 setup-dotfiles
 setup-brew-pkgs
+./installer/install-prebuilt.sh
 
 if [[ ! -d /opt/homebrew/Caskroom/miniconda/base/envs/py3 ]]; then
-  setup-conda-pkgs
+  ./script/setup-conda-pkgs.sh
 fi

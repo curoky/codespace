@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.9.0
-FROM curoky/dotbox:stage-nixpkg AS   stage-nixpkg
+FROM curoky/dotbox:stage-nixpkg AS stage-nixpkg
 RUN nix-env -p /nix/var/nix/profiles/gcc -iA \
     nixpkgs.mold nixpkgs.lld_16 \
     nixpkgs.jemalloc nixpkgs.flamegraph \
