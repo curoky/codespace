@@ -49,15 +49,15 @@ brews = [
   # network tools
   'netcat', 'lsof', 'connect', 'inetutils',
   # shell tools
-  'zsh', 'zsh-bundle', 'starship', 'atuin',
+  'zsh', 'starship', 'atuin',
   # text editor and tools
-  'gettext', 'm4', 'gpatch', 'vim', 'vim-bundle',
-  'eza', 'exa-wrapper', 'bat', 'the_silver_searcher', 'fzf',
+  'gettext', 'm4', 'gpatch', 'vim',
+  'eza', 'bat', 'the_silver_searcher', 'fzf',
   # others
   'wget', 'aria2', 'rsync', 'ncdu', 'dotdrop', 'smartmontools',
   'go-task', 'krb5', 'parallel', 'fd', 'git',
   'coreutils', 'rime-bundle', 'exiftool', 'gost',
-  'git-absorb', 'git-extras', 'git-lfs', 'git-mv-with-history', 'git-filter-repo',
+  'git-absorb', 'git-extras', 'git-lfs', 'git-filter-repo',
 ]
 
 brews.each do |b|
