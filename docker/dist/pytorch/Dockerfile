@@ -9,15 +9,15 @@ RUN ./setup-conda-env.sh config/conda/torch2.4.yaml 1 12.3 8.9
 
 FROM curoky/dotbox:base-debian11
 
-COPY --chown=5230:5230 --link --from=stage-nixpkg /nix /nix
-COPY --chown=5230:5230 --link --from=stage-nixpkg /home/x/.local/state/nix /home/x/.local/state/nix
-COPY --chown=5230:5230 --link --from=stage-conda /app/conda /app/conda
-COPY --chown=5230:5230 --link --from=stage-conda /app/pipx /app/pipx
-COPY --chown=5230:5230 --exclude=**/*.a --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /usr/local/cuda-12.3 /usr/local/cuda-12.3
-COPY --chown=5230:5230 --exclude=**/*.a --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /app/nvidia/cudnn8.9-cu12 /app/nvidia/cudnn8.9-cu12
+COPY --chown=x:x --link --from=stage-nixpkg /nix /nix
+COPY --chown=x:x --link --from=stage-nixpkg /home/x/.local/state/nix /home/x/.local/state/nix
+COPY --chown=x:x --link --from=stage-conda /app/conda /app/conda
+COPY --chown=x:x --link --from=stage-conda /app/pipx /app/pipx
+COPY --chown=x:x --exclude=**/*.a --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /usr/local/cuda-12.3 /usr/local/cuda-12.3
+COPY --chown=x:x --exclude=**/*.a --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /app/nvidia/cudnn8.9-cu12 /app/nvidia/cudnn8.9-cu12
 
-COPY --chown=5230:5230 ./config/ /app/dotbox/docker/dist/tf/config/
-COPY --chown=5230:5230 ./script/ /app/dotbox/docker/dist/tf/script/
+COPY --chown=x:x ./config/ /app/dotbox/docker/dist/tf/config/
+COPY --chown=x:x ./script/ /app/dotbox/docker/dist/tf/script/
 
 USER root
 RUN apt-get update -y \
