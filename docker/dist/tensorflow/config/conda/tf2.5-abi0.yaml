@@ -1,4 +1,4 @@
-name: tf2.5-abi0
+name: tf2.5
 channels:
   - defaults
 dependencies:
