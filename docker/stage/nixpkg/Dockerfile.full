@@ -2,14 +2,14 @@ FROM debian:bookworm-backports
 
 RUN apt-get update -y \
   && apt-get install -y curl xz-utils sudo \
-  && groupadd -g 1000 -o x \
-  && useradd -m -u 1000 -g 1000 x \
+  && groupadd -g 5230 -o x \
+  && useradd -m -u 5230 -g 5230 x \
   && mkdir -m 0755 /nix \
   && chown x:x /nix
 
 USER x
 
-ENV PATH=$PATH:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin:/nix/var/nix/profiles/gcc13/bin \
+ENV PATH=$PATH:/nix/var/nix/profiles/default/bin:/nix/var/nix/profiles/gcc13/bin \
   NIXPKGS_ALLOW_UNFREE=1 \
   NIXPKGS_ALLOW_BROKEN=1
 
