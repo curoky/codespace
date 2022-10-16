@@ -5,7 +5,7 @@ RUN nix-env -p /nix/var/nix/profiles/gcc -iA \
     nixpkgs.jemalloc nixpkgs.flamegraph \
   && nix-collect-garbage
 
-FROM curoky/dotbox:base-ubuntu24.04
+FROM curoky/dotbox:base-debian11
 
 COPY --chown=x:x --link --from=stage-nixpkg /nix /nix
 COPY --chown=x:x --link --from=stage-nixpkg /home/x/.local/state/nix /home/x/.local/state/nix

@@ -19,7 +19,7 @@
 set -xeuo pipefail
 cd "$(dirname $0)" || exit 1
 
-base_image=${1:-'ubuntu:24.04'}
+base_image=${1:-'debian:11'}
 
 docker buildx build ../.. --network=host --file Dockerfile "${@:2}" \
   --build-arg="BASE_IMAGE=${base_image}" \

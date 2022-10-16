@@ -6,7 +6,7 @@ RUN nix-env -p /nix/var/nix/profiles/nvidia -iA -f nixpkgs/default.nix nsight-sy
 FROM curoky/dotbox:stage-conda AS stage-conda
 COPY --from=curoky/dotbox:stage-tf2.5.0-cu11.4.0-cudnn8.1.0-gcc8-py3.7 /output /output
 COPY config config
-RUN ./setup-conda-env.sh config/conda/tf2.5-abi1.yaml 1 11.4 8.1
+RUN setup-conda-env.sh config/conda/tf2.5-abi1.yaml 1 11.4 8.1
 COPY script/patch-tf2.5.sh patch-tf2.5.sh
 RUN ./patch-tf2.5.sh
 
@@ -26,7 +26,7 @@ USER root
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
     gcc-10 g++-10 \
-  && /app/dotbox/docker/base/script/setup-sys-change-default-gcc.sh 10 \
+  && /app/dotbox/docker/dist/gcc/script/setup-sys-change-default-gcc.sh 10 \
   && ln -s /app/conda/envs/py3/bin/python3 /usr/bin/python \
   && ln -s /app/conda/envs/py3/bin/python3 /usr/bin/python3
 
