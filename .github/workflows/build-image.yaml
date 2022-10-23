@@ -216,7 +216,7 @@ jobs:
           overwrite: true
 
       - name: test
-        run: ./host/linux/installer/bootstrap.sh
+        run: ./host/linux/bootstrap.sh
 
   dist:
     runs-on: ubuntu-latest
