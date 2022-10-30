@@ -22,7 +22,7 @@ dependencies:
       # - statsmodels
       - tensorflow==2.5.0 # tensorflow[and-cuda]
       - tensorboard==2.5.*
-      - tensorboard-plugin-profile==2.5.*
+      - tensorboard-plugin-profile==2.8.*
       # - nvidia-cudnn-cu11==8.9.6.50
       # - tensorrt-cu11
       # - tensorrt==8.6.1.post1
