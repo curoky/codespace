@@ -4,7 +4,7 @@ RUN nix-env -p /nix/var/nix/profiles/nvidia -iA -f nixpkgs/default.nix nsight-sy
   && nix-collect-garbage
 
 FROM curoky/dotbox:stage-conda AS stage-conda
-COPY --from=curoky/dotbox:stage-tf2.5.0-cu11.4.0-cudnn8.1.0-gcc8-py3.7 /output /output
+COPY --from=curoky/dotbox:stage-tf2.5.0-cu11.0.3-cudnn8.1.0-gcc8-py3.7 /output /output
 COPY config config
 RUN setup-conda-env.sh config/conda/tf2.5-abi1.yaml 1 11.0 8.1
 COPY script/patch-tf2.5.sh patch-tf2.5.sh
