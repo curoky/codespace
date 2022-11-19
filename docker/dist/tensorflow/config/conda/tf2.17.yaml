@@ -1,4 +1,4 @@
-name: tf2.16
+name: tf2.17
 channels:
   - defaults
 dependencies:
