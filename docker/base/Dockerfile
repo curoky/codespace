@@ -3,7 +3,7 @@ ARG BASE_IMAGE=ubuntu:24.04
 
 FROM $BASE_IMAGE
 
-ENV PATH=$PATH:/app/pipx/bin:/app/prebuilt/bin:/app/prebuilt/extra/bin:/nix/var/nix/profiles/default/bin \
+ENV PATH=$PATH:/app/pipx/bin:/app/prebuilt/bin:/nix/var/nix/profiles/default/bin \
   DEBIAN_FRONTEND=noninteractive
 
 COPY --chown=5230:5230 --link --from=curoky/dotbox:stage-prebuilt /output /app/prebuilt
@@ -27,4 +27,5 @@ RUN ln -s /app/dotbox ~/dotbox \
   && ln -s ~/.local/state/nix/profiles/profile ~/.nix-profile \
   && mkdir ~/.nix-defexpr \
   && ln -s ~/.local/state/nix/profiles/channels ~/.nix-defexpr/channels \
+  && find /app/prebuilt/extra/bin -exec ln -s {} /app/prebuilt/bin \; \
   && /app/dotbox/docker/base/script/setup-userconf.sh ~/dotbox/config
