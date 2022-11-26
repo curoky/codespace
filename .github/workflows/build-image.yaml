@@ -2,6 +2,11 @@ name: Build images
 
 on:
   push:
+    paths:
+      - '.github/workflows/build-image.yaml'
+      - 'docker/**'
+      - 'config/**'
+      - 'third-party/**'
   workflow_dispatch:
     inputs:
       disable_docker_cache:
