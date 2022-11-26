@@ -165,68 +165,6 @@ jobs:
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
           tags: curoky/dotbox:stage-prebuilt-${{ matrix.name }}
 
-  pack-prebuilt:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    needs:
-      - stage
-    steps:
-      - uses: actions/checkout@v4
-      - run: docker pull curoky/dotbox:stage-prebuilt
-      - run: |
-          id=$(docker create curoky/dotbox:stage-prebuilt)
-          docker cp $id:/output - > output.tar
-          docker rm -v $id
-          tar -xvf output.tar
-          tar -czvf output.tar.gz ./output
-
-      - name: pack minimal
-        run: |
-          cp -r ./output ./output-minimal
-          rm -rf ./output-minimal/extra
-          rm -rf ./output-minimal/experimental
-          tar -czvf output-minimal.tar.gz ./output-minimal
-
-      - name: pack osx
-        run: |
-          id=$(docker create curoky/dotbox:stage-prebuilt-mac)
-          docker cp $id:/output - > output-mac.tar
-          gzip output-mac.tar
-
-      - uses: actions/upload-artifact@v4
-        # if: ${{ github.event_name == 'workflow_dispatch' }}
-        with:
-          name: output
-          path: |
-            output.tar.gz
-            output-minimal.tar.gz
-            output-mac.tar.gz
-
-      - uses: svenstaro/upload-release-action@v2
-        with:
-          file: output.tar.gz
-          asset_name: output.tar.gz
-          tag: 'v1.0.0'
-          overwrite: true
-
-      - uses: svenstaro/upload-release-action@v2
-        with:
-          file: output-minimal.tar.gz
-          asset_name: output-minimal.tar.gz
-          tag: 'v1.0.0'
-          overwrite: true
-
-      - uses: svenstaro/upload-release-action@v2
-        with:
-          file: output-mac.tar.gz
-          asset_name: output-mac.tar.gz
-          tag: 'v1.0.0'
-          overwrite: true
-
-      - name: test
-        run: ./host/linux/bootstrap.sh
-
   dist:
     runs-on: ubuntu-latest
     strategy:
