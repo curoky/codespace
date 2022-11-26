@@ -26,3 +26,4 @@ dependencies:
       # - nvidia-cudnn-cu12
       # - tensorrt
       - nvtabular
+      - rapids-dask-dependency==24.2.0
