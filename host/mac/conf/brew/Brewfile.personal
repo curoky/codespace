@@ -1,3 +1,4 @@
+tap 'ecopastehub/ecopaste'
 # tap 'homebrew/cask-fonts'
 # tap 'curoky/dotbox', 'https://github.com/curoky/dotbox'
 
@@ -17,6 +18,7 @@ casks = [
   # 'pika',
   'miniconda',
   'keepingyouawake',
+  'ecopaste',
   # 'orbstack',
   # 'db-browser-for-sqlite',
 
