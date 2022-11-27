@@ -60,9 +60,7 @@ jobs:
           # - cache
           - conda
           - nixpkg
-          - prebuilt
-    needs:
-      - stage-prebuilt
+          # - prebuilt
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -129,42 +127,6 @@ jobs:
             CUDA_DRIVER_VERSION=${{ matrix.CUDA_DRIVER_VERSION }}
             CUDNN_VERSION=${{ matrix.CUDNN_VERSION }}
           tags: curoky/dotbox:stage-cuda-${{ matrix.name }}
-
-  stage-prebuilt:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - name: llvm18
-          - name: base
-          - name: base-big
-          - name: rust
-          - name: perl
-          - name: go
-          - name: py3
-          - name: haskell
-          - name: mac
-          - name: experimental
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          username: curoky
-          password: ${{ secrets.DOCKER_TOKEN }}
-      - uses: docker/build-push-action@v6
-        with:
-          context: docker/stage/prebuilt
-          file: docker/stage/prebuilt/Dockerfile.${{ matrix.name }}
-          push: true
-          build-contexts: |
-            third-party=third-party
-          provenance: mode=max
-          cache-from: type=registry,ref=curoky/dotbox:__cache_stage_prebuilt_${{ matrix.name }}
-          cache-to: type=registry,ref=curoky/dotbox:__cache_stage_prebuilt_${{ matrix.name }},mode=max
-          no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
-          tags: curoky/dotbox:stage-prebuilt-${{ matrix.name }}
-
   dist:
     runs-on: ubuntu-latest
     strategy:
