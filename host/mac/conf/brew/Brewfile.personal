@@ -42,22 +42,29 @@ casks.each do |b|
 end
 
 brews = [
-  'pre-commit', 'prettier', 'shfmt', 'eslint', 'clang-format', 'ruff',
-  'openjdk',
+  'pre-commit', 'prettier',  'eslint', 'clang-format', 'openjdk',
+  'wget', 'dotdrop', 'smartmontools',  'krb5', 'parallel', 'git',
+  'exiftool', 'git-extras', 'git-filter-repo',
+
+  # rust
+  'eza', 'bat', 'atuin', 'ruff', 'fd', 'git-absorb', 'starship',
+
+  # go
+  # 'git-lfs', 'gost', 'fzf', 'shfmt', 'go-task',
+
   # compression
-  'bzip2', 'xz', 'zstd', 'zip', 'unzip',
+  # 'bzip2', 'xz', 'zstd', 'zip', 'unzip',
   # network tools
-  'netcat', 'lsof', 'connect', 'inetutils',
+  # 'netcat', 'lsof', 'connect', 'inetutils',
   # shell tools
-  'zsh', 'starship', 'atuin',
   # text editor and tools
-  'gettext', 'm4', 'gpatch', 'vim',
-  'eza', 'bat', 'the_silver_searcher', 'fzf',
+  # 'gettext', 'm4', 'gpatch',
+  # 'the_silver_searcher',
   # others
-  'wget', 'aria2', 'rsync', 'ncdu', 'dotdrop', 'smartmontools',
-  'go-task', 'krb5', 'parallel', 'fd', 'git',
-  'coreutils', 'exiftool', 'gost',
-  'git-absorb', 'git-extras', 'git-lfs', 'git-filter-repo',
+  # 'aria2',
+  # 'rsync',
+  # 'ncdu',
+  # 'coreutils',
 ]
 
 brews.each do |b|
