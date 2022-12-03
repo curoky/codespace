@@ -30,6 +30,7 @@ casks = [
   # 'disk-drill',
   # 'flameshot',
   # 'motrix',
+  # 'netnewswire',
   # 'sketch',
   # 'sqlitestudio',
   # 'webtorrent',
