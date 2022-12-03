@@ -8,17 +8,18 @@ ENV PATH=$PATH:/app/pipx/bin:/app/prebuilt/bin:/nix/var/nix/profiles/default/bin
 
 RUN apt-get update -y && apt-get install -y sudo curl
 
-RUN curl -SL https://github.com/curoky/dotbox/releases/download/v1.0/prebuilt.linux_amd64.tar.gz -o prebuilt.tar.gz \
+RUN curl -SL https://github.com/curoky/dotbox/releases/download/v1.0/prebuilt.linux_x86_64.tar.gz -o prebuilt.tar.gz \
   && mkdir -p /app/prebuilt \
   && tar -xzf prebuilt.tar.gz -C /app/prebuilt --strip-components=1 \
+  && chown -R 5230:5230 /app/prebuilt \
   && rm -rf prebuilt.tar.gz
 
 COPY --chown=5230:5230 ./ /app/dotbox
 
 RUN ln -sf /app/dotbox ~/dotbox \
   && ln -s /app/prebuilt ~/prebuilt \
-  && ln -s /app/prebuilt/bin/zsh /usr/bin \
-  && ln -s /app/prebuilt/bin/wget /usr/bin \
+  && ln -s /app/prebuilt/pkgs/zsh/bin/zsh /usr/bin \
+  && ln -s /app/prebuilt/pkgs/wget/bin/wget /usr/bin \
   && /app/dotbox/docker/base/script/setup-sysconf.sh ~/dotbox/config \
   && /app/dotbox/docker/base/script/setup-userconf.sh ~/dotbox/config \
   && mkdir -p /workspace \
