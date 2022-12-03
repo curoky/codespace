@@ -42,7 +42,7 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 
 setup-dotfiles
 setup-brew-pkgs
-./installer/install-prebuilt.sh
+../../prebuilt/install.sh
 
 if [[ ! -d /opt/homebrew/Caskroom/miniconda/base/envs/py3 ]]; then
   ./script/setup-conda-pkgs.sh
