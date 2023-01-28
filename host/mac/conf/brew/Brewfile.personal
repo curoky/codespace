@@ -16,7 +16,7 @@ casks = [
   'dupeguru',
   'adrive',
   # 'pika',
-  'miniconda',
+  # 'miniconda',
   'keepingyouawake',
   'ecopaste',
   # 'orbstack',
