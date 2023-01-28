@@ -31,6 +31,8 @@ jobs:
             saved_image: 'debian12'
           - base_image: 'ubuntu:24.04'
             saved_image: 'ubuntu24.04'
+          - base_image: 'ubuntu:24.10'
+            saved_image: 'ubuntu24.10'
     needs:
       - stage
     steps:
@@ -51,6 +53,9 @@ jobs:
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
           build-args: BASE_IMAGE=${{ matrix.base_image }}
           tags: curoky/dotbox:base-${{ matrix.saved_image }}
+      - run: >
+          docker run --rm --env=CI=true -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive
+          curoky/dotbox:base-${{ matrix.saved_image }}
 
   stage:
     runs-on: ubuntu-latest
@@ -80,6 +85,9 @@ jobs:
           cache-to: type=registry,ref=curoky/dotbox:__cache_stage_${{ matrix.name }},mode=max
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
           tags: curoky/dotbox:stage-${{ matrix.name }}
+      - run: >
+          docker run --rm --env=CI=true -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive
+          curoky/dotbox:stage-${{ matrix.name }}
 
   stage-cuda:
     runs-on: ubuntu-latest
@@ -127,17 +135,15 @@ jobs:
             CUDA_DRIVER_VERSION=${{ matrix.CUDA_DRIVER_VERSION }}
             CUDNN_VERSION=${{ matrix.CUDNN_VERSION }}
           tags: curoky/dotbox:stage-cuda-${{ matrix.name }}
+      - run: >
+          docker run --rm --env=CI=true -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive
+          curoky/dotbox:stage-cuda-${{ matrix.name }}
+
   dist:
     runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
-          - name: default
-            base_image: 'debian11'
-            saved_image: default-debian11
-          - name: default
-            base_image: 'ubuntu24.04'
-            saved_image: default-ubuntu24.04
           - name: gcc
             base_image: 'debian12'
             saved_image: gcc
@@ -161,6 +167,9 @@ jobs:
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
           build-args: BASE_IMAGE=${{ matrix.base_image }}
           tags: curoky/dotbox:${{ matrix.saved_image }}
+      - run: >
+          docker run --rm --env=CI=true -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive
+          curoky/dotbox:${{ matrix.saved_image }}
 
   dist-tf:
     runs-on: ubuntu-latest
@@ -194,3 +203,7 @@ jobs:
           cache-to: type=registry,ref=curoky/dotbox:__cache_dist_${{ matrix.name }},mode=max
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
           tags: curoky/dotbox:${{ matrix.name }}
+      # no space left
+      # - run: >
+      #     docker run --rm --env=CI=true -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive
+      #     curoky/dotbox:${{ matrix.name }}

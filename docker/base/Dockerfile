@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.9.0
-ARG BASE_IMAGE=ubuntu:24.04
+ARG BASE_IMAGE=debian:12
 
 FROM $BASE_IMAGE
 
@@ -25,6 +25,11 @@ RUN ln -sf /app/dotbox ~/dotbox \
   && mkdir -p /workspace \
   && chown x:x /workspace /app
 
+COPY --chown=5230:5230 --link --from=curoky/dotbox:stage-conda /app/conda /app/conda
+COPY --chown=5230:5230 --link --from=curoky/dotbox:stage-conda /app/pipx /app/pipx
+COPY --chown=5230:5230 --link --from=curoky/dotbox:stage-nixpkg /nix /nix
+COPY --chown=5230:5230 --link --from=curoky/dotbox:stage-nixpkg /home/x/.local/state/nix /home/x/.local/state/nix
+
 USER x
 RUN ln -s /app/dotbox ~/dotbox \
   && ln -s /app/prebuilt ~/prebuilt \
@@ -32,3 +37,6 @@ RUN ln -s /app/dotbox ~/dotbox \
   && mkdir ~/.nix-defexpr \
   && ln -s ~/.local/state/nix/profiles/channels ~/.nix-defexpr/channels \
   && /app/dotbox/docker/base/script/setup-userconf.sh ~/dotbox/config
+
+USER root
+ENTRYPOINT ["/app/dotbox/docker/base/script/entrypoint.sh"]

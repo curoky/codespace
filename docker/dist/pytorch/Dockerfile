@@ -1,23 +1,9 @@
 # syntax=docker/dockerfile:1.9-labs
-FROM curoky/dotbox:stage-nixpkg AS stage-nixpkg
-RUN nix-env -p /nix/var/nix/profiles/nvidia -iA -f nixpkgs/default.nix nsight-systems \
-  && nix-collect-garbage
-
-FROM curoky/dotbox:stage-conda AS stage-conda
-COPY config config
-RUN setup-conda-env.sh config/conda/torch2.4.yaml 1 12.3 8.9
-
 FROM curoky/dotbox:base-debian11
 
-COPY --chown=5230:5230 --link --from=stage-nixpkg /nix /nix
-COPY --chown=5230:5230 --link --from=stage-nixpkg /home/x/.local/state/nix /home/x/.local/state/nix
-COPY --chown=5230:5230 --link --from=stage-conda /app/conda /app/conda
-COPY --chown=5230:5230 --link --from=stage-conda /app/pipx /app/pipx
 COPY --chown=5230:5230 --exclude=**/*.a --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /usr/local/cuda-12.3 /usr/local/cuda-12.3
 COPY --chown=5230:5230 --exclude=**/*.a --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /app/nvidia/cudnn8.9-cu12 /app/nvidia/cudnn8.9-cu12
-
-COPY --chown=5230:5230 ./config/ /app/dotbox/docker/dist/tf/config/
-COPY --chown=5230:5230 ./script/ /app/dotbox/docker/dist/tf/script/
+COPY --chown=5230:5230 ./config/ /app/dotbox/docker/dist/pytorch/config/
 
 USER root
 RUN apt-get update -y \
@@ -26,5 +12,13 @@ RUN apt-get update -y \
   && /app/dotbox/docker/dist/gcc/script/setup-sys-change-default-gcc.sh 10 \
   && ln -s /app/conda/envs/py3/bin/python3 /usr/bin/python \
   && ln -s /app/conda/envs/py3/bin/python3 /usr/bin/python3
+
+USER x
+ENV PATH=$PATH:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin:/app/conda/condabin:
+
+RUN nix-env -p /nix/var/nix/profiles/nvidia -iA -f nixpkgs/default.nix nsight-systems \
+  && nix-collect-garbage
+
+RUN setup-conda-env.sh /app/dotbox/docker/dist/pytorch/config/conda/torch2.4.yaml 1 12.3 8.9
 
 ENTRYPOINT ["/app/dotbox/docker/base/script/entrypoint.sh"]
