@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.9.0
-FROM curoky/dotbox:base-ubuntu24.04
+FROM curoky/dotbox:base-ubuntu24.10
 
 USER root
 RUN apt-get update -y \

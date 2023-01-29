@@ -25,12 +25,12 @@ jobs:
         include:
           - base_image: 'debian:10'
             saved_image: 'debian10'
-          - base_image: 'debian:11'
-            saved_image: 'debian11'
+          # - base_image: 'debian:11'
+          #   saved_image: 'debian11'
           - base_image: 'debian:12'
             saved_image: 'debian12'
-          - base_image: 'ubuntu:24.04'
-            saved_image: 'ubuntu24.04'
+          # - base_image: 'ubuntu:24.04'
+          #   saved_image: 'ubuntu24.04'
           - base_image: 'ubuntu:24.10'
             saved_image: 'ubuntu24.10'
     needs:
@@ -94,18 +94,18 @@ jobs:
     strategy:
       matrix:
         include:
-          - name: cu10.0.130-cudnn8.1.0
-            CUDA_VERSION: '10.0.130'
-            CUDA_DRIVER_VERSION: '410.48'
-            CUDNN_VERSION: '8.1.0.77_cuda11'
+          # - name: cu10.0.130-cudnn8.1.0
+          #   CUDA_VERSION: '10.0.130'
+          #   CUDA_DRIVER_VERSION: '410.48'
+          #   CUDNN_VERSION: '8.1.0.77_cuda11'
           - name: cu11.0.3-cudnn8.1.0
             CUDA_VERSION: '11.0.3'
             CUDA_DRIVER_VERSION: '450.51.06'
             CUDNN_VERSION: '8.1.0.77_cuda11'
-          - name: cu11.2.0-cudnn8.1.0
-            CUDA_VERSION: '11.2.0'
-            CUDA_DRIVER_VERSION: '460.27.04'
-            CUDNN_VERSION: '8.1.0.77_cuda11'
+          # - name: cu11.2.0-cudnn8.1.0
+          #   CUDA_VERSION: '11.2.0'
+          #   CUDA_DRIVER_VERSION: '460.27.04'
+          #   CUDNN_VERSION: '8.1.0.77_cuda11'
           - name: cu11.4.0-cudnn8.1.0
             CUDA_VERSION: '11.4.0'
             CUDA_DRIVER_VERSION: '470.42.01'
@@ -145,7 +145,6 @@ jobs:
       matrix:
         include:
           - name: gcc
-            base_image: 'debian12'
             saved_image: gcc
     needs:
       - base
@@ -165,7 +164,6 @@ jobs:
           cache-from: type=registry,ref=curoky/dotbox:__cache_dist_${{ matrix.saved_image }}
           cache-to: type=registry,ref=curoky/dotbox:__cache_dist_${{ matrix.saved_image }},mode=max
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
-          build-args: BASE_IMAGE=${{ matrix.base_image }}
           tags: curoky/dotbox:${{ matrix.saved_image }}
       - run: >
           docker run --rm --env=CI=true -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive
