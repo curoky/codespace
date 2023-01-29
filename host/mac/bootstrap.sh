@@ -28,7 +28,7 @@ function setup-dotfiles() {
 
 function setup-brew-pkgs() {
   brew bundle --force --file ~/dotbox/host/mac/conf/brew/Brewfile.personal --cleanup --verbose
-  brew link krb5 --force
+  # brew link krb5 --force
   brew cleanup --prune=all
 }
 
