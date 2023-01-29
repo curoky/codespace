@@ -42,5 +42,5 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 
 setup-dotfiles
 setup-brew-pkgs
-../../prebuilt/install.sh
+../../prebuilt/common/install-packed.sh
 ../../prebuilt/macos/install-conda.sh
