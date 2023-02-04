@@ -23,7 +23,8 @@ function setup-dotfiles() {
   fi
   rm -rf ~/dotbox
   ln -s ~/workspace/dotbox ~/dotbox
-  dotdrop install --cfg=$HOME/dotbox/config/config.yaml --force --profile=macos
+  ~/dotbox/config/setup.sh host-macos $HOME/dotbox/config
+  # dotdrop install --cfg=$HOME/dotbox/config/config.yaml --force --profile=macos
 }
 
 function setup-brew-pkgs() {
