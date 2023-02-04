@@ -19,6 +19,6 @@ ENV PATH=$PATH:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin:/app/c
 RUN nix-env -p /nix/var/nix/profiles/nvidia -iA -f nixpkgs/default.nix nsight-systems \
   && nix-collect-garbage
 
-RUN setup-conda-env.sh /app/dotbox/docker/dist/pytorch/config/conda/torch2.4.yaml 1 12.3 8.9
+RUN setup-conda-env.sh -e /app/dotbox/docker/dist/pytorch/config/conda/torch2.4.yaml --add_tf_env --cuda_version 12.3 --cudnn_version 8.9
 
 ENTRYPOINT ["/app/dotbox/docker/base/script/entrypoint.sh"]

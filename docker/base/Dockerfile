@@ -23,7 +23,7 @@ RUN ln -sf /app/dotbox ~/dotbox \
   && /app/dotbox/docker/base/script/setup-sysconf.sh ~/dotbox/config \
   && /app/dotbox/config/setup.sh docker ~/dotbox/config \
   && mkdir -p /workspace \
-  && chown x:x /workspace /app
+  && chown x:x /workspace /app /opt
 
 COPY --chown=5230:5230 --link --from=curoky/dotbox:stage-conda /app/conda /app/conda
 COPY --chown=5230:5230 --link --from=curoky/dotbox:stage-conda /app/pipx /app/pipx

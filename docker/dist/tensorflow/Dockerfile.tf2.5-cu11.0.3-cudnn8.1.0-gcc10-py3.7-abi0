@@ -20,7 +20,7 @@ ENV PATH=$PATH:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin:/app/c
 RUN nix-env -p /nix/var/nix/profiles/nvidia -iA -f /app/dotbox/third-party/nixpkgs/default.nix nsight-systems \
   && nix-collect-garbage
 
-RUN setup-conda-env.sh /app/dotbox/docker/dist/tensorflow/config/conda/tf2.5-abi0.yaml 1 11.0 8.1 \
+RUN setup-conda-env.sh -e /app/dotbox/docker/dist/tensorflow/config/conda/tf2.5-abi0.yaml --add_tf_env --cuda_version 11.0 --cudnn_version 8.1 \
   && /app/dotbox/docker/dist/tensorflow/script/patch-tf2.5.sh
 
 ENTRYPOINT ["/app/dotbox/docker/base/script/entrypoint.sh"]
