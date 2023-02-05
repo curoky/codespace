@@ -25,12 +25,12 @@ jobs:
         include:
           - base_image: 'debian:10'
             saved_image: 'debian10'
-          # - base_image: 'debian:11'
-          #   saved_image: 'debian11'
+          - base_image: 'debian:11'
+            saved_image: 'debian11'
           - base_image: 'debian:12'
             saved_image: 'debian12'
-          # - base_image: 'ubuntu:24.04'
-          #   saved_image: 'ubuntu24.04'
+          - base_image: 'ubuntu:24.04'
+            saved_image: 'ubuntu24.04'
           - base_image: 'ubuntu:24.10'
             saved_image: 'ubuntu24.10'
     needs:
