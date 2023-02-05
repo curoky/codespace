@@ -17,23 +17,6 @@
 # limitations under the License.
 set -xeuo pipefail
 
-function setup-dotfiles() {
-  if [[ ! -f /opt/homebrew/bin/dotdrop ]]; then
-    brew install dotdrop
-  fi
-  rm -rf ~/dotbox
-  ln -s ~/workspace/dotbox ~/dotbox
-  ~/dotbox/config/setup.sh host-macos $HOME/dotbox/config
-  # dotdrop install --cfg=$HOME/dotbox/config/config.yaml --force --profile=macos
-}
-
-function setup-brew-pkgs() {
-  brew bundle --force --file ~/dotbox/host/mac/conf/brew/Brewfile.personal --cleanup --verbose
-  # brew link krb5 --force
-  brew cleanup --prune=all
-}
-
-####################### start ######################
 if [[ ! -f /opt/homebrew/bin/brew ]]; then
   export NONINTERACTIVE=1
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -41,7 +24,13 @@ fi
 
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
-setup-dotfiles
-setup-brew-pkgs
+rm -rf ~/dotbox
+ln -s ~/workspace/dotbox ~/dotbox
+~/dotbox/config/setup.sh host-macos $HOME/dotbox/config
+
+brew bundle --force --file ~/dotbox/host/mac/conf/brew/Brewfile.personal --cleanup --verbose
+# brew link krb5 --force
+brew cleanup --prune=all
+
 ../../prebuilt/common/install-packed.sh
 ../../prebuilt/macos/install-conda.sh
