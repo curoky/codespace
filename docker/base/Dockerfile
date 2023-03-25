@@ -8,7 +8,7 @@ ENV PATH=$PATH:/app/pipx/bin:/app/prebuilt/bin:/nix/var/nix/profiles/default/bin
 
 RUN apt-get update -y && apt-get install -y sudo curl
 
-RUN curl -SL https://github.com/curoky/dotbox/releases/download/v1.0/prebuilt.linux-x86_64.tar.gz -o prebuilt.tar.gz \
+RUN curl -SL https://github.com/curoky/dotbox/releases/download/v1.0/prebuilt-sre-tools.linux-x86_64.tar.gz -o prebuilt.tar.gz \
   && mkdir -p /app/prebuilt \
   && tar -xzf prebuilt.tar.gz -C /app/prebuilt --strip-components=1 \
   && chown -R 5230:5230 /app/prebuilt \
