@@ -146,6 +146,8 @@ jobs:
         include:
           - name: gcc
             saved_image: gcc
+          - name: tabby
+            saved_image: tabby
     needs:
       - base
     steps:
