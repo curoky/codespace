@@ -5,7 +5,7 @@ USER root
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
     gcc-13 g++-13 \
-  && /app/dotbox/docker/dist/gcc/script/setup-sys-change-default-gcc.sh 13
+  && /home/x/app/dotbox/docker/dist/gcc/script/setup-sys-change-default-gcc.sh 13
 
 USER x
 ENV PATH=$PATH:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin: \
@@ -18,4 +18,4 @@ RUN nix-env -p /nix/var/nix/profiles/gcc -iA \
   && nix-collect-garbage
 
 USER root
-ENTRYPOINT ["/app/dotbox/docker/base/script/entrypoint.sh"]
+ENTRYPOINT ["/home/x/app/dotbox/docker/base/script/entrypoint.sh"]

@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.9.0
 FROM debian:12 AS builder
 COPY --link --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /usr/local/cuda-12.3 /usr/local/cuda-12.3
-COPY --link --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /app/nvidia/cudnn8.9-cu12 /app/nvidia/cudnn8.9-cu12
+COPY --link --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /home/x/app/nvidia/cudnn8.9-cu12 /home/x/app/nvidia/cudnn8.9-cu12
 
 COPY ./installer .
 
@@ -15,7 +15,7 @@ ENV TF_CUDA_VERSION=12.3 \
   TF_PYTHON_VERSION="3.11" \
   GCC_HOST_COMPILER_PATH=/usr/bin/gcc-11 \
   CUDA_TOOLKIT_PATH=/usr/local/cuda-12.3 \
-  CUDNN_INSTALL_PATH=/app/nvidia/cudnn8.9-cu12
+  CUDNN_INSTALL_PATH=/home/x/app/nvidia/cudnn8.9-cu12
 
 RUN git clone --recurse-submodules --depth=1 -b v2.16.1 https://github.com/tensorflow/tensorflow
 WORKDIR /tensorflow

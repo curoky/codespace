@@ -21,7 +21,7 @@ curl -sSL -o nsightsystems_linux.run \
   https://developer.nvidia.com/downloads/assets/tools/secure/nsight-systems/2024_1/nsightsystems-linux-public-2024.1.1.59-3380207.run
 # https://developer.nvidia.com/downloads/assets/tools/secure/nsight-systems/2023_2/nsightsystems-linux-public-2023.2.1.122-3259852.run
 chmod +x nsightsystems_linux.run
-./nsightsystems_linux.run --accept -- -targetpath=/app/nvidia/ns -noprompt
+./nsightsystems_linux.run --accept -- -targetpath=/home/x/app/nvidia/ns -noprompt
 rm -rf nsightsystems_linux.run
 
 # mkdir /opt/nvns

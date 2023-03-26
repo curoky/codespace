@@ -20,7 +20,7 @@ set -xeuo pipefail
 
 cudnn_version=${1-'8.9.7.29_cuda11'}
 cudnn_short_version="$(echo $cudnn_version | cut -d '.' -f 1,2)-cu$(echo $cudnn_version | grep -oP '\d\d$')" # cudnn8.9-cu12
-install_path=${2:-/app/nvidia/cudnn${cudnn_short_version}}
+install_path=${2:-/home/x/app/nvidia/cudnn${cudnn_short_version}}
 
 mkdir -p $install_path
 echo "Installing cudnn $cudnn_version" >$install_path/version.txt

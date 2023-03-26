@@ -2,25 +2,25 @@
 FROM curoky/dotbox:base-debian11
 
 COPY --chown=5230:5230 --from=curoky/dotbox:stage-cuda-cu11.4.0-cudnn8.1.0 /usr/local/cuda-11.4 /usr/local/cuda-11.4
-COPY --chown=5230:5230 --exclude=**/*.a  --from=curoky/dotbox:stage-cuda-cu11.4.0-cudnn8.1.0 /app/nvidia/cudnn8.1-cu11 /app/nvidia/cudnn8.1-cu11
-COPY --chown=5230:5230 ./config/ /app/dotbox/docker/dist/tf/config/
-COPY --chown=5230:5230 ./script/ /app/dotbox/docker/dist/tf/script/
+COPY --chown=5230:5230 --exclude=**/*.a  --from=curoky/dotbox:stage-cuda-cu11.4.0-cudnn8.1.0 /home/x/app/nvidia/cudnn8.1-cu11 /home/x/app/nvidia/cudnn8.1-cu11
+COPY --chown=5230:5230 ./config/ /home/x/app/dotbox/docker/dist/tf/config/
+COPY --chown=5230:5230 ./script/ /home/x/app/dotbox/docker/dist/tf/script/
 
 USER root
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
     gcc-10 g++-10 \
-  && /app/dotbox/docker/dist/gcc/script/setup-sys-change-default-gcc.sh 10 \
-  && ln -s /app/conda/envs/py3/bin/python3 /usr/bin/python \
-  && ln -s /app/conda/envs/py3/bin/python3 /usr/bin/python3
+  && /home/x/app/dotbox/docker/dist/gcc/script/setup-sys-change-default-gcc.sh 10 \
+  && ln -s /home/x/app/conda/envs/py3/bin/python3 /usr/bin/python \
+  && ln -s /home/x/app/conda/envs/py3/bin/python3 /usr/bin/python3
 
 USER x
-ENV PATH=$PATH:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin:/app/conda/condabin:
+ENV PATH=$PATH:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin:/home/x/app/conda/condabin:
 
-RUN nix-env -p /nix/var/nix/profiles/nvidia -iA -f /app/dotbox/third-party/nixpkgs/default.nix nsight-systems \
+RUN nix-env -p /nix/var/nix/profiles/nvidia -iA -f /home/x/app/dotbox/third-party/nixpkgs/default.nix nsight-systems \
   && nix-collect-garbage
 
-RUN setup-conda-env.sh -e /app/dotbox/docker/dist/tensorflow/config/conda/tf2.5-abi0.yaml --add_tf_env --cuda_version 11.4 --cudnn_version 8.1
-RUN /app/dotbox/docker/dist/tensorflow/script/patch-tf2.5.sh
+RUN setup-conda-env.sh -e /home/x/app/dotbox/docker/dist/tensorflow/config/conda/tf2.5-abi0.yaml --add_tf_env --cuda_version 11.4 --cudnn_version 8.1
+RUN /home/x/app/dotbox/docker/dist/tensorflow/script/patch-tf2.5.sh
 
-ENTRYPOINT ["/app/dotbox/docker/base/script/entrypoint.sh"]
+ENTRYPOINT ["/home/x/app/dotbox/docker/base/script/entrypoint.sh"]
