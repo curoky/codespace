@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # https://gist.github.com/eggbean/74db77c4f6404dd1f975bd6f048b86f8
 
+if ! command -v exa &>/dev/null; then
+  exec /bin/ls "$@"
+fi
 # If stdout isn't terminal, fallback to default ls.
 if [[ ! -t 1 ]]; then
   exec /bin/ls "$@"

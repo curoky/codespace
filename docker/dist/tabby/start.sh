@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/bash
 # Copyright (c) 2018-2024 curoky(cccuroky@gmail.com).
 #
 # This file is part of dotbox.
@@ -17,9 +17,13 @@
 # limitations under the License.
 set -xeuo pipefail
 
-curl -L -o /tmp/profile.sh https://github.com/curoky/dotbox/raw/dev/config/passkey/profile.gzip.sh
-
-bash /tmp/profile.sh $@
-
-# Usage
-# curl -sSL https://github.com/curoky/dotbox/raw/dev/tools/profile-installer.sh | bash -s -- --ssl-pass-src pass:xxx
+docker pull curoky/dotbox:tabby
+docker tag curoky/dotbox:tabby tabbyml/tabby
+docker rmi curoky/dotbox:tabby
+docker rm --force tabbyd
+mkdir -p $HOME/tabby/data
+# --chat-model Qwen2.5-Coder-32B-Instruct
+docker run -d --network=host --gpus all \
+  -v $HOME/tabby/data:/data \
+  --name tabbyd tabbyml/tabby \
+  serve --no-webserver --model Qwen2.5-Coder-14B --device cuda --port 5847 --host ::
