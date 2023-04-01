@@ -29,8 +29,8 @@ jobs:
             saved_image: 'debian11'
           - base_image: 'debian:12'
             saved_image: 'debian12'
-          - base_image: 'ubuntu:24.04'
-            saved_image: 'ubuntu24.04'
+          # - base_image: 'ubuntu:24.04'
+          #   saved_image: 'ubuntu24.04'
           - base_image: 'ubuntu:24.10'
             saved_image: 'ubuntu24.10'
     needs:
@@ -53,7 +53,9 @@ jobs:
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
           build-args: BASE_IMAGE=${{ matrix.base_image }}
           tags: curoky/dotbox:base-${{ matrix.saved_image }}
-      - run: >
+
+      - if: github.event_name == 'schedule'
+        run: >
           docker run --rm --env=CI=true -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive
           curoky/dotbox:base-${{ matrix.saved_image }}
 
@@ -85,7 +87,8 @@ jobs:
           cache-to: type=registry,ref=curoky/dotbox:__cache_stage_${{ matrix.name }},mode=max
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
           tags: curoky/dotbox:stage-${{ matrix.name }}
-      - run: >
+      - if: github.event_name == 'schedule'
+        run: >
           docker run --rm --env=CI=true -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive
           curoky/dotbox:stage-${{ matrix.name }}
 
@@ -135,7 +138,8 @@ jobs:
             CUDA_DRIVER_VERSION=${{ matrix.CUDA_DRIVER_VERSION }}
             CUDNN_VERSION=${{ matrix.CUDNN_VERSION }}
           tags: curoky/dotbox:stage-cuda-${{ matrix.name }}
-      - run: >
+      - if: github.event_name == 'schedule'
+        run: >
           docker run --rm --env=CI=true -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive
           curoky/dotbox:stage-cuda-${{ matrix.name }}
 
@@ -165,7 +169,8 @@ jobs:
           cache-to: type=registry,ref=curoky/dotbox:__cache_dist_${{ matrix.saved_image }},mode=max
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
           tags: curoky/dotbox:${{ matrix.saved_image }}
-      - run: >
+      - if: github.event_name == 'schedule'
+        run: >
           docker run --rm --env=CI=true -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive
           curoky/dotbox:${{ matrix.saved_image }}
 
