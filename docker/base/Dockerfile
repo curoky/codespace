@@ -18,10 +18,10 @@ COPY --chown=5230:5230 --link --from=curoky/dotbox:stage-conda /home/x/app/conda
 COPY --chown=5230:5230 --link --from=curoky/dotbox:stage-nixpkg /nix /nix
 COPY --chown=5230:5230 --link --from=curoky/dotbox:stage-nixpkg /home/x/.local/state/nix /home/x/.local/state/nix
 
-# setup prebuilt-sre-tools
-RUN curl -sSL -o /tmp/prebuilt-sre-tools.linux-x86_64.sh https://github.com/curoky/dotbox/releases/download/v1.0/prebuilt-sre-tools.linux-x86_64.zstd.sh \
-  && bash /tmp/prebuilt-sre-tools.linux-x86_64.sh \
-  && rm -rf /tmp/prebuilt-sre-tools.linux-x86_64.sh \
+# setup packed-sre-tools
+RUN curl -sSL -o /tmp/packed-sre-tools.linux-x86_64.sh https://github.com/curoky/dotbox/releases/download/v1.0/packed-sre-tools.linux-x86_64.zstd.sh \
+  && bash /tmp/packed-sre-tools.linux-x86_64.sh \
+  && rm -rf /tmp/packed-sre-tools.linux-x86_64.sh \
   && sudo ln -s /home/x/app/prebuilt/pkgs/zsh/bin/zsh /usr/bin \
   && sudo ln -s /home/x/app/prebuilt/pkgs/wget/bin/wget /usr/bin
 
