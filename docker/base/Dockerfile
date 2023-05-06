@@ -6,7 +6,7 @@ FROM $BASE_IMAGE
 ENV PATH=$PATH:/home/x/app/pipx/bin:/home/x/app/sre-tools/bin:/nix/var/nix/profiles/default/bin \
   DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update -y && apt-get install -y sudo curl zstd
+RUN apt-get update -y && apt-get install -y sudo curl zstd binutils
 
 COPY docker/base/script/setup-user.sh /tmp/setup-user.sh
 RUN /tmp/setup-user.sh
