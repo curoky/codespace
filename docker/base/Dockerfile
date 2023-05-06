@@ -23,7 +23,8 @@ RUN curl -sSL -o /tmp/sre-tools-installer.linux-x86_64.sh https://github.com/cur
   && bash /tmp/sre-tools-installer.linux-x86_64.sh \
   && rm -rf /tmp/sre-tools-installer.linux-x86_64.sh \
   && sudo ln -s /home/x/app/sre-tools/pkgs/zsh/bin/zsh /usr/bin \
-  && sudo ln -s /home/x/app/sre-tools/pkgs/wget/bin/wget /usr/bin
+  && sudo ln -s /home/x/app/sre-tools/pkgs/wget/bin/wget /usr/bin \
+  && sudo ln -s /home/x/app/sre-tools/bin/ssh /usr/bin
 
 # setup nixpkgs
 RUN mkdir ~/.nix-defexpr \

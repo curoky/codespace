@@ -13,8 +13,7 @@ ENV PATH=$PATH:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin: \
   NIXPKGS_ALLOW_BROKEN=1
 
 RUN nix-env -p /nix/var/nix/profiles/gcc -iA \
-    nixpkgs.mold nixpkgs.lld_16 \
-    nixpkgs.jemalloc nixpkgs.flamegraph \
+    nixpkgs.mold nixpkgs.jemalloc nixpkgs.flamegraph \
   && nix-collect-garbage
 
 USER root
