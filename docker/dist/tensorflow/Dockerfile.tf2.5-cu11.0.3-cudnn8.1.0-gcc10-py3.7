@@ -17,7 +17,7 @@ RUN apt-get update -y \
 USER x
 ENV PATH=$PATH:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin:/home/x/app/conda/condabin:
 
-RUN nix-env -p /nix/var/nix/profiles/nvidia -iA -f /home/x/app/dotbox/third-party/nixpkgs/default.nix nsight-systems \
+RUN nix-env -p /nix/var/nix/profiles/nvidia -iA -f /home/x/app/dotbox/docker/stage/nixpkg/pkgs/default.nix nsight-systems \
   && nix-collect-garbage
 
 RUN curl -sSL -o /tmp/tensorflow-2.5.0-cp37-cp37m-linux_x86_64.whl \

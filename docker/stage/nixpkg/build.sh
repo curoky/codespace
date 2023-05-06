@@ -19,7 +19,6 @@
 set -xeuo pipefail
 
 docker buildx build . \
-  --build-context third-party=../../../third-party \
   --file Dockerfile \
   --network=host \
   --tag curoky/dotbox:stage-nixpkg

@@ -6,7 +6,6 @@ on:
       - '.github/workflows/build-image.yaml'
       - 'docker/**'
       - 'config/**'
-      - 'third-party/**'
   workflow_dispatch:
     inputs:
       disable_docker_cache:
@@ -77,8 +76,6 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: docker/stage/${{ matrix.name }}
-          build-contexts: |
-            third-party=third-party
           file: docker/stage/${{ matrix.name }}/Dockerfile
           push: true
           provenance: mode=max
