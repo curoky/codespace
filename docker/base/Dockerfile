@@ -3,7 +3,7 @@ ARG BASE_IMAGE=debian:12
 
 FROM $BASE_IMAGE
 
-ENV PATH=$PATH:/home/x/app/pipx/bin:/home/x/app/sre-tools/bin:/nix/var/nix/profiles/default/bin \
+ENV PATH=$PATH:/home/x/app/pipx/bin:/home/x/app/sre-tools/bin:/nix/var/nix/profiles/default/bin:/home/x/app/conda/condabin \
   DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -y && apt-get install -y sudo curl zstd binutils

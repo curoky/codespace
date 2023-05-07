@@ -1,13 +1,24 @@
 # syntax=docker/dockerfile:1.9.0
 FROM debian:12 AS builder
+
+#### Common start ####
+RUN apt-get update -y \
+  && apt-get install -y \
+    curl wget git ncdu ca-certificates xz-utils patchelf
+# install gcc
+RUN apt-get install -y gcc-11 g++-11
+
+# install python
+RUN apt-get install -y python3.11 python3.11-dev python3-pip
+
+# install bazel
+RUN curl -sSL -o bazelisk https://github.com/bazelbuild/bazelisk/releases/download/v1.20.0/bazelisk-linux-amd64 \
+  && chmod +x bazelisk \
+  && mv bazelisk /usr/local/bin/bazel
+#### Common end ####
+
 COPY --link --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /usr/local/cuda-12.3 /usr/local/cuda-12.3
 COPY --link --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /home/x/app/nvidia/cudnn8.9-cu12 /home/x/app/nvidia/cudnn8.9-cu12
-
-COPY ./installer .
-
-RUN ./install-basetool.sh \
-  && ./install-bazelisk.sh \
-  && apt-get install -y gcc-11 g++-11 python3.11 python3.11-dev python3-pip
 
 ENV TF_CUDA_VERSION=12.3 \
   TF_CUDNN_VERSION=8 \
