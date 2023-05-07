@@ -3,10 +3,10 @@ ARG BASE_IMAGE=debian:12
 
 FROM $BASE_IMAGE
 
-ENV PATH=$PATH:/home/x/app/pipx/bin:/home/x/app/sre-tools/bin:/nix/var/nix/profiles/default/bin:/home/x/app/conda/condabin \
+ENV PATH=$PATH:/home/x/app/pipx/bin:/home/x/app/tools/bin:/nix/var/nix/profiles/default/bin:/home/x/app/conda/condabin \
   DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update -y && apt-get install -y sudo curl zstd binutils
+RUN apt-get update -y && apt-get install -y sudo curl binutils
 
 COPY docker/base/script/setup-user.sh /tmp/setup-user.sh
 RUN /tmp/setup-user.sh
@@ -18,13 +18,9 @@ COPY --chown=5230:5230 --link --from=curoky/dotbox:stage-conda /home/x/app/conda
 COPY --chown=5230:5230 --link --from=curoky/dotbox:stage-nixpkg /nix /nix
 COPY --chown=5230:5230 --link --from=curoky/dotbox:stage-nixpkg /home/x/.local/state/nix /home/x/.local/state/nix
 
-# setup packed-sre-tools
-RUN curl -sSL -o /tmp/sre-tools-installer.linux-x86_64.sh https://github.com/curoky/dotbox/releases/download/v1.0/sre-tools-installer.linux-x86_64.zstd.sh \
-  && bash /tmp/sre-tools-installer.linux-x86_64.sh \
-  && rm -rf /tmp/sre-tools-installer.linux-x86_64.sh \
-  && sudo ln -s /home/x/app/sre-tools/pkgs/zsh/bin/zsh /usr/bin \
-  && sudo ln -s /home/x/app/sre-tools/pkgs/wget/bin/wget /usr/bin \
-  && sudo ln -s /home/x/app/sre-tools/bin/ssh /usr/bin
+# install pkgs
+COPY docker/base/script/install-pkgs.sh /tmp/install-pkgs.sh
+RUN /tmp/install-pkgs.sh
 
 # setup nixpkgs
 RUN mkdir ~/.nix-defexpr \
