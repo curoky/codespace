@@ -32,5 +32,5 @@ brew bundle --force --file ~/dotbox/host/mac/conf/brew/Brewfile.personal --clean
 # brew link krb5 --force
 brew cleanup --prune=all
 
-curl -sSL https://github.com/curoky/dotbox/raw/dev/prepack/packed-sre-tools/online-installer.sh | bash
+curl -sSL https://github.com/curoky/dotbox/raw/dev/prepack/packed-tools/online-installer.sh | bash
 curl -sSL https://github.com/curoky/dotbox/raw/dev/prepack/packed-conda/darwin/online-installer.sh | bash
