@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright (c) 2018-2024 curoky(cccuroky@gmail.com).
+# Copyright (c) 2018-2025 curoky(cccuroky@gmail.com).
 #
 # This file is part of dotbox.
 # See https://github.com/curoky/dotbox for further info.
@@ -33,6 +33,6 @@ licenseheaders \
   --projname=$(basename "$PWD") \
   --projurl=$GitURL \
   --settings=$HOME/dotbox/config/licenseheaders/license-settings.json \
-  --exclude '*.yaml' '.md' \
+  --exclude '*.yaml' '.md' '*.gzip.sh' '*.zstd.sh' \
   --dir ${1:-.} \
   --years="$FirstCommitYear-$CurrentYear"
