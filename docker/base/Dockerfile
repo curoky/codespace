@@ -20,7 +20,10 @@ COPY --chown=5230:5230 --link --from=curoky/dotbox:stage-nixpkg /home/x/.local/s
 
 # install pkgs
 COPY docker/base/script/install-pkgs.sh /tmp/install-pkgs.sh
-RUN /tmp/install-pkgs.sh
+RUN /tmp/install-pkgs.sh \
+  && sudo ln -s /home/x/app/tools/store/zsh/bin/zsh /usr/bin \
+  && sudo ln -s /home/x/app/tools/store/wget/bin/wget /usr/bin \
+  && sudo ln -s /home/x/app/tools/store/openssh_gssapi/bin/ssh /usr/bin
 
 # setup nixpkgs
 RUN mkdir ~/.nix-defexpr \
