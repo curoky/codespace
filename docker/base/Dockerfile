@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.9.0
 ARG BASE_IMAGE=debian:12
 
-FROM debian:latest as stage_tools
+FROM debian:latest AS stage_tools
 RUN apt-get update -y && apt-get install -y curl zstd
 
 COPY docker/base/script/install-pkgs.sh /tmp/install-pkgs.sh
