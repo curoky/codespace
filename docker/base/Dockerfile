@@ -1,6 +1,13 @@
 # syntax=docker/dockerfile:1.9.0
 ARG BASE_IMAGE=debian:12
 
+FROM debian:latest as stage_tools
+RUN apt-get update -y && apt-get install -y curl zstd
+
+COPY docker/base/script/install-pkgs.sh /tmp/install-pkgs.sh
+
+RUN /tmp/install-pkgs.sh
+
 FROM $BASE_IMAGE
 
 ENV PATH=$PATH:/home/x/app/pipx/bin:/home/x/app/tools/bin:/nix/var/nix/profiles/default/bin:/home/x/app/conda/condabin \
@@ -17,11 +24,10 @@ USER x
 COPY --chown=5230:5230 --link --from=curoky/dotbox:stage-conda /home/x/app/conda /home/x/app/conda
 COPY --chown=5230:5230 --link --from=curoky/dotbox:stage-nixpkg /nix /nix
 COPY --chown=5230:5230 --link --from=curoky/dotbox:stage-nixpkg /home/x/.local/state/nix /home/x/.local/state/nix
+COPY --chown=5230:5230 --link --from=stage_tools /home/x/app/tools /home/x/app/tools
 
-# install pkgs
-COPY docker/base/script/install-pkgs.sh /tmp/install-pkgs.sh
-RUN /tmp/install-pkgs.sh \
-  && sudo ln -s /home/x/app/tools/store/zsh/bin/zsh /usr/bin \
+# setup tools
+RUN sudo ln -s /home/x/app/tools/store/zsh/bin/zsh /usr/bin \
   && sudo ln -s /home/x/app/tools/store/wget/bin/wget /usr/bin \
   && sudo ln -s /home/x/app/tools/store/openssh_gssapi/bin/ssh /usr/bin
 

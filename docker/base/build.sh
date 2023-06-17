@@ -23,4 +23,5 @@ base_image=${1:-'debian:12'}
 
 docker buildx build ../.. --network=host --file Dockerfile "${@:2}" \
   --build-arg="BASE_IMAGE=${base_image}" \
+  --no-cache \
   --tag curoky/dotbox:base-${base_image//:/}
