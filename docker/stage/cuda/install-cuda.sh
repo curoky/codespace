@@ -81,6 +81,19 @@ elif [[ $cuda_version == "11.4.0" ]] && [[ $driver_version == "470.42.01" ]]; th
     /usr/local/cuda-11.4/nsightee_plugins \
     /usr/local/cuda-11.4/compute-sanitizer
 
+elif [[ $cuda_version == "11.4.4" ]] && [[ $driver_version == "470.82.01" ]]; then
+  curl -sSL -o /tmp/cuda_linux.run \
+    https://developer.download.nvidia.com/compute/cuda/11.4.4/local_installers/cuda_11.4.4_470.82.01_linux.run
+  install_cuda
+  rm -rf \
+    /usr/local/cuda-11.4/nsight-systems-2021.3.2 \
+    /usr/local/cuda-11.4/nsight-systems-2021.3.2/host-linux-x64 \
+    /usr/local/cuda-11.4/nsight-systems-2021.3.2/target-linux-armv8 \
+    /usr/local/cuda-11.4/nsight-compute-2021.2.2 \
+    /usr/local/cuda-11.4/libnvvp \
+    /usr/local/cuda-11.4/nsightee_plugins \
+    /usr/local/cuda-11.4/compute-sanitizer
+
 elif [[ $cuda_version == "12.3.2" ]] && [[ $driver_version == "545.23.08" ]]; then
   curl -sSL -o /tmp/cuda_linux.run \
     https://developer.download.nvidia.com/compute/cuda/12.3.2/local_installers/cuda_12.3.2_545.23.08_linux.run

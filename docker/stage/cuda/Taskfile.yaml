@@ -31,13 +31,23 @@ tasks:
         --build-arg="CUDNN_VERSION=8.1.0.77_cuda11"
         --network=host
         --tag curoky/dotbox:stage-cuda-cu11.2.0-cudnn8.1.0
-  11.4:
+  11.4.0:
     cmds:
       - >
         docker buildx build .
         --file Dockerfile
         --build-arg="CUDA_VERSION=11.4.0"
         --build-arg="CUDA_DRIVER_VERSION=470.42.01"
+        --build-arg="CUDNN_VERSION=8.1.0.77_cuda11"
+        --network=host
+        --tag curoky/dotbox:stage-cuda-cu11.4.0-cudnn8.1.0
+  11.4.4:
+    cmds:
+      - >
+        docker buildx build .
+        --file Dockerfile
+        --build-arg="CUDA_VERSION=11.4.4"
+        --build-arg="CUDA_DRIVER_VERSION=470.82.01"
         --build-arg="CUDNN_VERSION=8.1.0.77_cuda11"
         --network=host
         --tag curoky/dotbox:stage-cuda-cu11.4.0-cudnn8.1.0
