@@ -15,7 +15,7 @@ RUN apt-get update -y \
 USER x
 COPY config /tmp/config
 COPY script /tmp/script
-RUN setup-conda-env.sh -e /tmp/config/conda/tf2.5-abi1.yaml --add_tf_env --cuda_version 11.0 --cudnn_version 8.1 \
+RUN setup-conda-env.sh -x -e /tmp/config/conda/tf2.5-abi1.yaml --add_tf_env --cuda_version 11.0 --cudnn_version 8.1 \
   && /tmp/script/patch-tf2.5.sh 1
 
 COPY --chown=5230:5230 --from=curoky/dotbox:stage-cuda-cu11.0.3-cudnn8.1.0 /usr/local/cuda-11.0 /usr/local/cuda-11.0

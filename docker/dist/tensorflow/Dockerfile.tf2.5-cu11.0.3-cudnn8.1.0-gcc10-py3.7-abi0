@@ -15,7 +15,7 @@ RUN apt-get update -y \
 USER x
 COPY config /tmp/config
 COPY script /tmp/script
-RUN setup-conda-env.sh -e /tmp/config/conda/tf2.5-abi0.yaml --add_tf_env --cuda_version 11.0 --cudnn_version 8.1 \
+RUN setup-conda-env.sh -x -e /tmp/config/conda/tf2.5-abi0.yaml --add_tf_env --cuda_version 11.0 --cudnn_version 8.1 \
   && /tmp/script/patch-tf2.5.sh 0
 
 
