@@ -211,7 +211,7 @@ jobs:
           # - name: tf2.17-cu12.3.2-cudnn8.9.7-gcc10-py3.12
     needs:
       - base
-      - stage-cuda
+      # - stage-cuda
     steps:
       - uses: actions/checkout@v4
       - run: tools/free-github-action-disk-space.sh

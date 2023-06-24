@@ -17,17 +17,18 @@ RUN curl -sSL -o bazelisk https://github.com/bazelbuild/bazelisk/releases/downlo
   && mv bazelisk /usr/local/bin/bazel
 #### Common end ####
 
-COPY --link --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /usr/local/cuda-12.3 /usr/local/cuda-12.3
-COPY --link --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /home/x/app/nvidia/cudnn8.9-cu12 /home/x/app/nvidia/cudnn8.9-cu12
+COPY --link --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /home/x/app/nvidia/cuda-12.3.2 /home/x/app/nvidia/cuda-12.3.2
+COPY --link --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /home/x/app/nvidia/cudnn8.9.7-cu12 /home/x/app/nvidia/cudnn8.9.7-cu12
 
 ENV TF_CUDA_VERSION=12.3 \
   TF_CUDNN_VERSION=8 \
   TF_CUDA_COMPUTE_CAPABILITIES="sm_75,compute_75,sm_80,compute_80,sm_86,compute_86" \
   TF_PYTHON_VERSION="3.11" \
   GCC_HOST_COMPILER_PATH=/usr/bin/gcc-11 \
-  CUDA_TOOLKIT_PATH=/usr/local/cuda-12.3 \
-  CUDNN_INSTALL_PATH=/home/x/app/nvidia/cudnn8.9-cu12
+  CUDA_TOOLKIT_PATH=/home/x/app/nvidia/cuda-12.3.2 \
+  CUDNN_INSTALL_PATH=/home/x/app/nvidia/cudnn8.9.7-cu12
 
+RUN ln -s /home/x/app/nvidia/cuda-12.3.2 /usr/local/cuda
 RUN git clone --recurse-submodules --depth=1 -b v2.16.1 https://github.com/tensorflow/tensorflow
 WORKDIR /tensorflow
 RUN echo 'startup --host_jvm_args=-Djava.net.preferIPv6Addresses=true' >> .bazelrc

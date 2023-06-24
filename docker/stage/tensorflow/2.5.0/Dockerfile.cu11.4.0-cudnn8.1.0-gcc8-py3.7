@@ -20,17 +20,18 @@ RUN curl -sSL -o bazelisk https://github.com/bazelbuild/bazelisk/releases/downlo
   && mv bazelisk /usr/local/bin/bazel
 #### Common end ####
 
-COPY --link --from=curoky/dotbox:stage-cuda-cu11.4.0-cudnn8.1.0 /usr/local/cuda-11.4 /usr/local/cuda-11.4
-COPY --link --from=curoky/dotbox:stage-cuda-cu11.4.0-cudnn8.1.0 /home/x/app/nvidia/cudnn8.1-cu11 /home/x/app/nvidia/cudnn8.1-cu11
+COPY --link --from=curoky/dotbox:stage-cuda-cu11.4.0-cudnn8.1.0 /home/x/app/nvidia/cuda-11.4.0 /home/x/app/nvidia/cuda-11.4.0
+COPY --link --from=curoky/dotbox:stage-cuda-cu11.4.0-cudnn8.1.0 /home/x/app/nvidia/cudnn8.1.0-cu11 /home/x/app/nvidia/cudnn8.1.0-cu11
 
 ENV TF_CUDA_VERSION=11.4 \
   TF_CUDNN_VERSION=8.1.0 \
   TF_CUDA_COMPUTE_CAPABILITIES="sm_75,compute_75,sm_80,compute_80,sm_86,compute_86" \
   # CC=/usr/bin/gcc-10 CXX=/usr/bin/g++-10 \
   GCC_HOST_COMPILER_PATH=/usr/bin/gcc-8 \
-  CUDA_TOOLKIT_PATH=/usr/local/cuda-11.4 \
-  CUDNN_INSTALL_PATH=/home/x/app/nvidia/cudnn8.1-cu11
+  CUDA_TOOLKIT_PATH=/home/x/app/nvidia/cuda-11.4.0 \
+  CUDNN_INSTALL_PATH=/home/x/app/nvidia/cudnn8.1.0-cu11
 
+RUN ln -s /home/x/app/nvidia/cuda-11.4.0 /usr/local/cuda
 RUN git clone --recurse-submodules --depth=1 -b v2.5.0 https://github.com/tensorflow/tensorflow
 WORKDIR /tensorflow
 RUN sed -i -e 's|zlib.net/zlib|zlib.net/fossils/zlib|g' tensorflow/workspace2.bzl

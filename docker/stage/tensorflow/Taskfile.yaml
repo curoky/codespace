@@ -1,7 +1,7 @@
 version: '3'
 
 tasks:
-  tf2.5-cu11.0-abi0:
+  tf2.5-cu11.0.3-abi0:
     cmds:
       - >
         docker buildx build .
@@ -9,7 +9,7 @@ tasks:
         --network=host
         --build-arg USE_CXX11_ABI=0
         --tag curoky/dotbox:stage-tf2.5.0-cu11.0.3-cudnn8.1.0-gcc8-py3.7-abi0
-  tf2.5-cu11.0-abi1:
+  tf2.5-cu11.0.3-abi1:
     cmds:
       - >
         docker buildx build .
@@ -17,7 +17,7 @@ tasks:
         --network=host
         --build-arg USE_CXX11_ABI=1
         --tag curoky/dotbox:stage-tf2.5.0-cu11.0.3-cudnn8.1.0-gcc8-py3.7-abi1
-  tf2.5-cu11.4-abi0:
+  tf2.5-cu11.4.0-abi0:
     cmds:
       - >
         docker buildx build .
@@ -25,7 +25,7 @@ tasks:
         --network=host
         --build-arg USE_CXX11_ABI=0
         --tag curoky/dotbox:stage-tf2.5.0-cu11.4.0-cudnn8.1.0-gcc8-py3.7-abi0
-  tf2.5-cu11.4-abi1:
+  tf2.5-cu11.4.0-abi1:
     cmds:
       - >
         docker buildx build .
@@ -33,7 +33,23 @@ tasks:
         --network=host
         --build-arg USE_CXX11_ABI=1
         --tag curoky/dotbox:stage-tf2.5.0-cu11.4.0-cudnn8.1.0-gcc8-py3.7-abi1
-  tf2.16-cu12.3:
+  tf2.5-cu11.4.4-abi0:
+    cmds:
+      - >
+        docker buildx build .
+        --file 2.5.0/Dockerfile.cu11.4.4-cudnn8.1.0-gcc8-py3.7
+        --network=host
+        --build-arg USE_CXX11_ABI=0
+        --tag curoky/dotbox:stage-tf2.5.0-cu11.4.4-cudnn8.1.0-gcc8-py3.7-abi0
+  tf2.5-cu11.4.4-abi1:
+    cmds:
+      - >
+        docker buildx build .
+        --file 2.5.0/Dockerfile.cu11.4.0-cudnn8.1.0-gcc8-py3.7
+        --network=host
+        --build-arg USE_CXX11_ABI=1
+        --tag curoky/dotbox:stage-tf2.5.0-cu11.4.4-cudnn8.1.0-gcc8-py3.7-abi1
+  tf2.16-cu12.3.2:
     cmds:
       - >
         docker buildx build .
