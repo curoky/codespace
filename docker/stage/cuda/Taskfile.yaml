@@ -1,34 +1,34 @@
 version: '3'
 
 tasks:
-  10.0:
+  10.0.130:
     cmds:
       - >
         docker buildx build .
         --file Dockerfile
         --build-arg="CUDA_VERSION=10.0.130"
         --build-arg="CUDA_DRIVER_VERSION=410.48"
-        --build-arg="CUDNN_VERSION=8.1.0.77_cuda11"
+        --build-arg="CUDNN_VERSION=8.1.0.77"
         --network=host
         --tag curoky/dotbox:stage-cuda-cu10.0.130-cudnn8.1.0
-  11.0:
+  11.0.3:
     cmds:
       - >
         docker buildx build .
         --file Dockerfile
         --build-arg="CUDA_VERSION=11.0.3"
         --build-arg="CUDA_DRIVER_VERSION=450.51.06"
-        --build-arg="CUDNN_VERSION=8.1.0.77_cuda11"
+        --build-arg="CUDNN_VERSION=8.1.0.77"
         --network=host
         --tag curoky/dotbox:stage-cuda-cu11.0.3-cudnn8.1.0
-  11.2:
+  11.2.0:
     cmds:
       - >
         docker buildx build .
         --file Dockerfile
         --build-arg="CUDA_VERSION=11.2.0"
         --build-arg="CUDA_DRIVER_VERSION=460.27.04"
-        --build-arg="CUDNN_VERSION=8.1.0.77_cuda11"
+        --build-arg="CUDNN_VERSION=8.1.0.77"
         --network=host
         --tag curoky/dotbox:stage-cuda-cu11.2.0-cudnn8.1.0
   11.4.0:
@@ -38,7 +38,7 @@ tasks:
         --file Dockerfile
         --build-arg="CUDA_VERSION=11.4.0"
         --build-arg="CUDA_DRIVER_VERSION=470.42.01"
-        --build-arg="CUDNN_VERSION=8.1.0.77_cuda11"
+        --build-arg="CUDNN_VERSION=8.1.0.77"
         --network=host
         --tag curoky/dotbox:stage-cuda-cu11.4.0-cudnn8.1.0
   11.4.4:
@@ -48,16 +48,16 @@ tasks:
         --file Dockerfile
         --build-arg="CUDA_VERSION=11.4.4"
         --build-arg="CUDA_DRIVER_VERSION=470.82.01"
-        --build-arg="CUDNN_VERSION=8.1.0.77_cuda11"
+        --build-arg="CUDNN_VERSION=8.1.0.77"
         --network=host
         --tag curoky/dotbox:stage-cuda-cu11.4.0-cudnn8.1.0
-  12.3:
+  12.3.2:
     cmds:
       - >
         docker buildx build .
         --file Dockerfile
         --build-arg="CUDA_VERSION=12.3.2"
         --build-arg="CUDA_DRIVER_VERSION=545.23.08"
-        --build-arg="CUDNN_VERSION=8.9.7.29_cuda12"
+        --build-arg="CUDNN_VERSION=8.9.7.29"
         --network=host
         --tag curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7
