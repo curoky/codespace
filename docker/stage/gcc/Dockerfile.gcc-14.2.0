@@ -1,0 +1,52 @@
+# https://github.com/docker-library/gcc/blob/master/14/Dockerfile
+
+FROM debian:buster-slim
+
+RUN apt-get update -y \
+	&& apt-get install -y --no-install-recommends \
+    # for install gcc
+    curl tar ca-certificates dpkg-dev flex gcc g++ file tzdata \
+    # for install binutils
+    make texinfo
+
+# install latest binutils
+RUN mkdir -p /opt/binutils/src \
+	&& curl -sSL https://ftpmirror.gnu.org/gnu/binutils/binutils-2.42.tar.gz | tar -x --gunzip -C /opt/binutils/src --strip-components 1 \
+  && mkdir -p /opt/binutils/build && cd /opt/binutils/build \
+  && /opt/binutils/src/configure --prefix=/home/x/app/binutils --disable-multilib \
+  && make -j$(nproc) && make install \
+  && find /home/x/app/binutils/bin/ -type f -exec ln -sf {} /usr/bin \; \
+  # && /opt/binutils/src/configure --prefix=/usr --disable-multilib \
+  # && make -j$(nproc) && make install \
+  && rm -rf /opt/binutils
+
+ENV GCC_VERSION 14.2.0
+
+RUN mkdir -p /opt/gcc/src \
+	&& curl -sSL https://ftpmirror.gnu.org/gcc/gcc-$GCC_VERSION/gcc-$GCC_VERSION.tar.xz | tar -x --xz -C /opt/gcc/src --strip-components 1 \
+  && cd /opt/gcc/src \
+	&& ./contrib/download_prerequisites \
+  && mkdir -p /opt/gcc/build && cd /opt/gcc/build \
+	&& /opt/gcc/src/configure \
+    # CXXFLAGS="-fPIC" CFLAGS="-fPIC" \
+    --prefix=/home/x/app/gcc/gcc-$GCC_VERSION \
+    # --with-sysroot=/home/x/app/gcc/gcc-14.2.0 \
+		--build="x86_64-linux-gnu" \
+		--disable-multilib \
+    --disable-nls \
+		--enable-languages=c,c++ \
+		'' \
+	&& make -j "$(nproc)" && make install-strip \
+  && rm -rf /opt/gcc
+
+# gcc installs .so files in /usr/local/lib64 (and /usr/local/lib)...
+# RUN set -ex; \
+# # this filename needs to sort higher than all the architecture filenames ("aarch64-...", "armeabi...", etc)
+# 	{ echo '/usr/local/lib64'; echo '/usr/local/lib'; } > /etc/ld.so.conf.d/000-local-lib.conf; \
+# 	ldconfig -v; \
+# 	# the libc created by gcc might be too old for a newer Debian
+# 	# check that the Debian libstdc++ doesn't have newer requirements than the gcc one
+# 	deb="$(readlink -ve /usr/lib/*/libstdc++.so* | head -1)"; \
+# 	gcc="$(readlink -ve /usr/local/lib*/libstdc++.so | head -1)"; \
+# # using LD_PRELOAD to make sure "abidiff" itself doesn't fail with the exact error we're trying to test for 😂😭
+# 	LD_PRELOAD="$deb" abidiff --no-added-syms "$deb" "$gcc"

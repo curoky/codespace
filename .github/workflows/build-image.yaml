@@ -26,10 +26,10 @@ jobs:
             saved_image: 'debian10'
           - base_image: 'debian:11'
             saved_image: 'debian11'
-          - base_image: 'debian:12'
-            saved_image: 'debian12'
-          - base_image: 'ubuntu:25.04'
-            saved_image: 'ubuntu25.04'
+          # - base_image: 'debian:12'
+          #   saved_image: 'debian12'
+          # - base_image: 'ubuntu:25.04'
+          #   saved_image: 'ubuntu25.04'
     needs:
       - stage
     steps:
@@ -95,10 +95,10 @@ jobs:
           #   CUDA_VERSION: '10.0.130'
           #   CUDA_DRIVER_VERSION: '410.48'
           #   CUDNN_VERSION: '8.1.0.77'
-          - name: cu11.0.3-cudnn8.1.0
-            CUDA_VERSION: '11.0.3'
-            CUDA_DRIVER_VERSION: '450.51.06'
-            CUDNN_VERSION: '8.1.0.77'
+          # - name: cu11.0.3-cudnn8.1.0
+          #   CUDA_VERSION: '11.0.3'
+          #   CUDA_DRIVER_VERSION: '450.51.06'
+          #   CUDNN_VERSION: '8.1.0.77'
           # - name: cu11.2.0-cudnn8.1.0
           #   CUDA_VERSION: '11.2.0'
           #   CUDA_DRIVER_VERSION: '460.27.04'
@@ -205,7 +205,7 @@ jobs:
         include:
           # - name: tf2.5-cu11.0.3-cudnn8.1.0-gcc10-py3.7
           # - name: tf2.5-cu11.0.3-cudnn8.1.0-gcc10-py3.7-abi0
-          - name: tf2.5-cu11.4.0-cudnn8.1.0-gcc10-py3.7-abi0
+          # - name: tf2.5-cu11.4.0-cudnn8.1.0-gcc10-py3.7-abi0
           - name: tf2.5-cu11.4.0-cudnn8.1.0-gcc10-py3.7-abi1
           - name: tf2.16-cu12.3.2-cudnn8.9.7-gcc10-py3.11
           # - name: tf2.17-cu12.3.2-cudnn8.9.7-gcc10-py3.12
