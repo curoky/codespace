@@ -7,27 +7,22 @@ tasks:
         docker buildx build .
         --network=host --file Dockerfile.{{.version}}
         --tag curoky/dotbox:{{.version}}
-  tf2.5-cu11.0:
+  tf2.5-cu11.0.3:
     deps:
       - task: build
         vars:
           version: tf2.5-cu11.0.3-cudnn8.1.0-gcc10-py3.7
-  tf2.5-cu11.4-abi0:
+  tf2.5-cu11.4.0:
     deps:
       - task: build
         vars:
-          version: tf2.5-cu11.4.0-cudnn8.1.0-gcc10-py3.7-abi0
-  tf2.5-cu11.4-abi1:
-    deps:
-      - task: build
-        vars:
-          version: tf2.5-cu11.4.0-cudnn8.1.0-gcc10-py3.7-abi1
-  tf2.16-cu12.3:
+          version: tf2.5-cu11.4.0-cudnn8.1.0-gcc10-py3.7
+  tf2.16-cu12.3.2:
     deps:
       - task: build
         vars:
           version: tf2.16-cu12.3.2-cudnn8.9.7-gcc10-py3.11
-  tf2.17-cu12.3:
+  tf2.17-cu12.3.2:
     deps:
       - task: build
         vars:
