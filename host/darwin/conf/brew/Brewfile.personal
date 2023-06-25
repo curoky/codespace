@@ -13,14 +13,21 @@ casks = [
   'google-drive',
   'dupeguru',
   'adrive',
+  'keepingyouawake',
+  'kap',
+  'input-source-pro',
+  'clash-verge-rev',
+  'obs',
+  'keycastr',
+  'cap',
+
   # 'pika',
   # 'miniconda',
-  'keepingyouawake',
-  'ecopaste',
+  # 'ecopaste',
   # 'orbstack',
   # 'db-browser-for-sqlite',
-
-  # 'obs',
+  # 'only-switch'
+  # 'stats'
   # 'android-platform-tools',
   # 'charles',
   # 'chromedriver',
@@ -45,7 +52,7 @@ end
 brews = [
   'pre-commit', 'prettier', 'eslint', 'clang-format', # 'openjdk',
   'wget', 'smartmontools', 'parallel', 'git',
-  'exiftool', 'git-filter-repo',
+  'exiftool', 'git-filter-repo', 'yazi'
 
   # rust
   'ruff', # 'eza', 'bat', 'atuin',  'fd', 'git-absorb', 'starship',
