@@ -26,8 +26,8 @@ jobs:
             saved_image: 'debian10'
           - base_image: 'debian:11'
             saved_image: 'debian11'
-          # - base_image: 'debian:12'
-          #   saved_image: 'debian12'
+          - base_image: 'debian:12'
+            saved_image: 'debian12'
           # - base_image: 'ubuntu:25.04'
           #   saved_image: 'ubuntu25.04'
     needs:
