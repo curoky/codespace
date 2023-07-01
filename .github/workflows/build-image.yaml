@@ -28,8 +28,16 @@ jobs:
             saved_image: 'debian11'
           - base_image: 'debian:12'
             saved_image: 'debian12'
-          # - base_image: 'ubuntu:25.04'
-          #   saved_image: 'ubuntu25.04'
+          - base_image: 'ubuntu:20.04'
+            saved_image: 'ubuntu20.04'
+          - base_image: 'ubuntu:22.04'
+            saved_image: 'ubuntu22.04'
+          # - base_image: 'ubuntu:23.04'
+          #   saved_image: 'ubuntu23.04'
+          - base_image: 'ubuntu:24.04'
+            saved_image: 'ubuntu24.04'
+          - base_image: 'ubuntu:25.04'
+            saved_image: 'ubuntu25.04'
     needs:
       - stage
     steps:
@@ -203,8 +211,8 @@ jobs:
     strategy:
       matrix:
         include:
-          # - name: tf2.5-cu11.0.3-cudnn8.1.0-gcc10-py3.7
-          - name: tf2.5-cu11.4.0-cudnn8.1.0-gcc10-py3.7
+          # - name: tf2.5-cu11.0.3-cudnn8.1.0-gcc8-py3.7
+          - name: tf2.5-cu11.4.0-cudnn8.1.0-gcc8-py3.7
           - name: tf2.16-cu12.3.2-cudnn8.9.7-gcc11-py3.11
           # - name: tf2.17-cu12.3.2-cudnn8.9.7-gcc10-py3.12
     needs:
