@@ -23,19 +23,41 @@ RUN curl -sSL -o bazelisk https://github.com/bazelbuild/bazelisk/releases/downlo
 COPY --link --from=curoky/dotbox:stage-cuda-cu11.4.0-cudnn8.1.0 /home/x/app/nvidia/cuda-11.4.0 /home/x/app/nvidia/cuda-11.4.0
 COPY --link --from=curoky/dotbox:stage-cuda-cu11.4.0-cudnn8.1.0 /home/x/app/nvidia/cudnn8.1.0-cu11 /home/x/app/nvidia/cudnn8.1.0-cu11
 
-ENV TF_CUDA_VERSION=11.4 \
-  TF_CUDNN_VERSION=8.1.0 \
-  TF_CUDA_COMPUTE_CAPABILITIES="sm_75,compute_75,sm_80,compute_80,sm_86,compute_86" \
-  # CC=/usr/bin/gcc-10 CXX=/usr/bin/g++-10 \
-  GCC_HOST_COMPILER_PATH=/usr/bin/gcc-8 \
-  CUDA_TOOLKIT_PATH=/home/x/app/nvidia/cuda-11.4.0 \
-  CUDNN_INSTALL_PATH=/home/x/app/nvidia/cudnn8.1.0-cu11
+# ENV TF_CUDA_VERSION=11.4 \
+#   TF_CUDNN_VERSION=8.1.0 \
+#   TF_CUDA_COMPUTE_CAPABILITIES="sm_75,compute_75,sm_80,compute_80,sm_86,compute_86" \
+#   # CC=/usr/bin/gcc-10 CXX=/usr/bin/g++-10 \
+#   GCC_HOST_COMPILER_PATH=/usr/bin/gcc-8 \
+#   CUDA_TOOLKIT_PATH=/home/x/app/nvidia/cuda-11.4.0 \
+#   CUDNN_INSTALL_PATH=/home/x/app/nvidia/cudnn8.1.0-cu11
 
-RUN ln -s /home/x/app/nvidia/cuda-11.4.0 /usr/local/cuda
 RUN git clone --recurse-submodules --depth=1 -b v2.5.0 https://github.com/tensorflow/tensorflow
 WORKDIR /tensorflow
 RUN sed -i -e 's|zlib.net/zlib|zlib.net/fossils/zlib|g' tensorflow/workspace2.bzl
-RUN echo 'startup --host_jvm_args=-Djava.net.preferIPv6Addresses=true' >> .bazelrc
+
+RUN cat <<EOF >> .bazelrc
+startup --host_jvm_args=-Djava.net.preferIPv6Addresses=true
+
+# for gcc
+build --action_env GCC_HOST_COMPILER_PATH="/usr/bin/gcc-8"
+
+build:opt --copt=-Wno-sign-compare
+build:opt --host_copt=-Wno-sign-compare
+
+# for python
+build --python_path="/usr/bin/python3.7"
+build --repo_env=PYTHON_BIN_PATH="/usr/bin/python3.7"
+# build --repo_env=WHEEL_NAME=tensorflow
+
+# for cudat
+build:cuda --action_env TF_CUDA_VERSION="11.4"
+build:cuda --action_env TF_CUDA_PATHS="/home/x/app/nvidia/cuda-11.4.0"
+build:cuda --action_env TF_CUDNN_VERSION="8" # or "8.1.0"
+build:cuda --action_env TF_CUDA_COMPUTE_CAPABILITIES="sm_75,compute_75,sm_80,compute_80,sm_86,compute_86"
+build:cuda --action_env CUDA_TOOLKIT_PATH="/home/x/app/nvidia/cuda-11.4.0"
+build:cuda --action_env CUDNN_INSTALL_PATH="/home/x/app/nvidia/cudnn8.1.0-cu11"
+
+EOF
 
 ARG USE_CXX11_ABI=0
 RUN bazel build //tensorflow/tools/pip_package:build_pip_package \

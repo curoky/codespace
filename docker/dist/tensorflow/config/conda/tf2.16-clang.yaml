@@ -1,0 +1,30 @@
+name: tf2.16
+channels:
+  - defaults
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+      # common
+      - ipykernel
+      - ipywidgets
+      - pydantic
+      - requests
+      - typer
+      # - python-snappy==0.6.1
+      # others
+      - numpy
+      - pandas
+      - plotly
+      - protobuf #==4.24.4
+      # - scikit-learn
+      # - scipy
+      # - statsmodels
+      # - tensorflow==2.16.1 # tensorflow[and-cuda]
+      - tensorflow @ https://github.com/curoky/dotbox/releases/download/v1.0/tensorflow-2.16.1_cu12.3.2_cudnn8.9.7_clang17-cp312-cp312-linux_x86_64.whl
+      - tensorboard==2.16.1
+      - tensorboard-plugin-profile==2.16.*
+      # - nvidia-cudnn-cu12
+      # - tensorrt
+      - nvtabular
+      - rapids-dask-dependency==24.2.0
