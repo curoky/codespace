@@ -1,0 +1,24 @@
+name: tf2.5-abi0
+channels:
+  - defaults
+dependencies:
+  - python=3.7
+  - pip
+  - pip:
+      - ipykernel
+      - ipywidgets
+      - pydantic
+      - requests
+      - typer
+      - numpy
+      - pandas
+      # - python-snappy==0.6.1
+      # - plotly
+      # - scikit-learn
+      # - scipy
+      # - statsmodels
+      # - tensorflow==2.5.0
+      - protobuf==3.20.*
+      - tensorflow @ https://github.com/curoky/dotbox/releases/download/v1.0/tensorflow-2.5.0_cu11.4.4_cudnn8.1.0_gcc8_abi0-cp37-cp37m-linux_x86_64.whl
+      - tensorboard==2.5.*
+      - tensorboard-plugin-profile==2.8.*

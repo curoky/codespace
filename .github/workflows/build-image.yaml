@@ -213,6 +213,7 @@ jobs:
         include:
           # - name: tf2.5-cu11.0.3-cudnn8.1.0-gcc8-py3.7
           - name: tf2.5-cu11.4.0-cudnn8.1.0-gcc8-py3.7
+          - name: tf2.5-cu11.4.4-cudnn8.1.0-gcc8-py3.7
           - name: tf2.16-cu12.3.2-cudnn8.9.7-gcc11-py3.11
           - name: tf2.16-cu12.3.2-cudnn8.9.7-clang17-py3.12
           - name: tf2.18-cu12.3.2-cudnn8.9.7-clang17-py3.12
