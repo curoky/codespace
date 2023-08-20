@@ -2,7 +2,7 @@
 FROM curoky/dotbox:base-debian11
 
 COPY --chown=5230:5230 --exclude=**/*.a --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /usr/local/cuda-12.3 /usr/local/cuda-12.3
-COPY --chown=5230:5230 --exclude=**/*.a --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /home/x/app/nvidia/cudnn8.9-cu12 /home/x/app/nvidia/cudnn8.9-cu12
+COPY --chown=5230:5230 --exclude=**/*.a --from=curoky/dotbox:stage-cuda-cu12.3.2-cudnn8.9.7 /opt/nvidia/cudnn8.9-cu12 /opt/nvidia/cudnn8.9-cu12
 COPY --chown=5230:5230 ./config/ /home/x/app/dotbox/docker/dist/pytorch/config/
 
 USER root

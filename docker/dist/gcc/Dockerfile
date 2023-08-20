@@ -7,7 +7,7 @@ USER x
 #     gcc-13 g++-13 \
 #   && /home/x/app/dotbox/docker/dist/gcc/script/setup-sys-change-default-gcc.sh 13
 
-COPY --chown=5230:5230 --from=curoky/dotbox:stage-gcc-14.2.0 /home/x/app/gcc/gcc-14.2.0 /home/x/app/gcc/gcc-14.2.0
+COPY --chown=5230:5230 --from=curoky/dotbox:stage-gcc-14.2.0 /opt/gcc/gcc-14.2.0 /opt/gcc/gcc-14.2.0
 COPY --chown=5230:5230 --from=curoky/dotbox:stage-gcc-14.2.0 /home/x/app/binutils /home/x/app/binutils
 
 COPY script/setup-custom-installed-gcc.sh /tmp/setup-custom-installed-gcc.sh

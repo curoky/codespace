@@ -22,7 +22,7 @@ cuda_version=${1:-}
 cuda_short_version="$(echo $cuda_version | cut -d '.' -f 1)"
 cudnn_version=${2:-'8.9.7.29'}
 cudnn_short_version="$(echo $cudnn_version | cut -d '.' -f 1,2,3)"
-install_path=${3:-/home/x/app/nvidia/cudnn${cudnn_short_version}-cu${cuda_short_version}}
+install_path=${3:-/opt/nvidia/cudnn${cudnn_short_version}-cu${cuda_short_version}}
 
 echo "cuda_version: $cuda_version"
 echo "cuda_short_version: $cuda_short_version"
