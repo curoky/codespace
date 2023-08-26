@@ -1,4 +1,4 @@
-name: tf2.17
+name: tf2.16
 channels:
   - defaults
   - https://repo.anaconda.com/pkgs/main
@@ -84,7 +84,7 @@ dependencies:
       - mdurl==0.1.2
       - merlin-core==23.8.0
       - merlin-dataloader==23.8.0
-      - ml-dtypes==0.4.1
+      - ml-dtypes==0.3.2
       - msgpack==1.1.0
       - multidict==6.4.4
       - namex==0.1.0
@@ -127,10 +127,10 @@ dependencies:
       - stack-data==0.6.3
       - stringcase==1.2.0
       - tblib==3.1.0
-      - tensorboard==2.17.1
+      - tensorboard==2.16.2
       - tensorboard-data-server==0.7.2
-      - tensorboard-plugin-profile==2.17.0
-      - tensorflow @ https://github.com/curoky/dotbox/releases/download/v1.0/tensorflow-2.17.1_cu12.3.2_cudnn8.9.7_clang17-cp312-cp312-linux_x86_64.whl
+      - tensorboard-plugin-profile==2.16.0
+      - tensorflow @ https://github.com/curoky/dotbox/releases/download/v1.0/tensorflow-2.16.2_cu12.3.2_cudnn8.9.7_clang17-cp312-cp312-linux_x86_64.whl
       - tensorflow-metadata==1.17.1
       - termcolor==3.1.0
       - toolz==1.0.0
@@ -147,4 +147,4 @@ dependencies:
       - wrapt==1.17.2
       - zict==3.0.0
       - zipp==3.23.0
-prefix: /opt/conda/envs/tf2.17
+prefix: /opt/conda/envs/tf2.16

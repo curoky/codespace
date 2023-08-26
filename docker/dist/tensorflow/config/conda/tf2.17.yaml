@@ -20,7 +20,8 @@ dependencies:
       # - scikit-learn
       # - scipy
       # - statsmodels
-      - tensorflow==2.17.* # tensorflow[and-cuda]
+      # - tensorflow==2.17.* # tensorflow[and-cuda]
+      - tensorflow @ https://github.com/curoky/dotbox/releases/download/v1.0/tensorflow-2.17.1_cu12.3.2_cudnn8.9.7_clang17-cp312-cp312-linux_x86_64.whl
       - tensorboard==2.17.*
       - tensorboard-plugin-profile==2.17.*
       # - nvidia-cudnn-cu12
