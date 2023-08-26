@@ -10,7 +10,7 @@ RUN /tmp/install-pkgs.sh
 
 FROM $BASE_IMAGE
 
-ENV PATH=$PATH:/opt/conda/pipx/bin:/home/x/app/tools/bin:/nix/var/nix/profiles/default/bin:/opt/conda/condabin \
+ENV PATH=$PATH:/opt/conda/pipx/bin:/opt/tools/bin:/nix/var/nix/profiles/default/bin:/opt/conda/condabin \
   DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -y && apt-get install -y sudo locales
@@ -24,13 +24,13 @@ USER x
 COPY --chown=5230:5230 --link --from=curoky/dotbox:stage-conda /opt/conda /opt/conda
 COPY --chown=5230:5230 --link --from=curoky/dotbox:stage-nixpkg /nix /nix
 COPY --chown=5230:5230 --link --from=curoky/dotbox:stage-nixpkg /home/x/.local/state/nix /home/x/.local/state/nix
-COPY --chown=5230:5230 --link --from=stage_tools /home/x/app/tools /home/x/app/tools
+COPY --chown=5230:5230 --link --from=stage_tools /opt/tools /opt/tools
 
 # setup tools
-RUN sudo ln -s /home/x/app/tools/store/zsh/bin/zsh /usr/bin \
-  && sudo ln -s /home/x/app/tools/store/wget/bin/wget /usr/bin \
-  && sudo ln -s /home/x/app/tools/store/curl/bin/curl /usr/bin \
-  && sudo ln -s /home/x/app/tools/store/openssh_gssapi/bin/ssh /usr/bin
+RUN sudo ln -s /opt/tools/store/zsh/bin/zsh /usr/bin \
+  && sudo ln -s /opt/tools/store/wget/bin/wget /usr/bin \
+  && sudo ln -s /opt/tools/store/curl/bin/curl /usr/bin \
+  && sudo ln -s /opt/tools/store/openssh_gssapi/bin/ssh /usr/bin
 
 # setup nixpkgs
 RUN mkdir ~/.nix-defexpr \

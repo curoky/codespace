@@ -10,11 +10,11 @@ RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
     gcc-10 g++-10 \
   && /home/x/app/dotbox/docker/dist/gcc/script/setup-sys-change-default-gcc.sh 10 \
-  && ln -s /home/x/app/conda/envs/py3/bin/python3 /usr/bin/python \
-  && ln -s /home/x/app/conda/envs/py3/bin/python3 /usr/bin/python3
+  && ln -s /opt/conda/envs/py3/bin/python3 /usr/bin/python \
+  && ln -s /opt/conda/envs/py3/bin/python3 /usr/bin/python3
 
 USER x
-ENV PATH=$PATH:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin:/home/x/app/conda/condabin:
+ENV PATH=$PATH:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin:/opt/conda/condabin:
 
 RUN nix-env -p /nix/var/nix/profiles/nvidia -iA -f nixpkgs/default.nix nsight-systems \
   && nix-collect-garbage

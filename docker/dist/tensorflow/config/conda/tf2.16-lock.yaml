@@ -142,4 +142,4 @@ dependencies:
       - wrapt==1.17.2
       - zict==3.0.0
       - zipp==3.21.0
-prefix: /home/x/app/conda/envs/tf2.16
+prefix: /opt/conda/envs/tf2.16

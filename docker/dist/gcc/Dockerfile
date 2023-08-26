@@ -8,13 +8,13 @@ USER x
 #   && /home/x/app/dotbox/docker/dist/gcc/script/setup-sys-change-default-gcc.sh 13
 
 COPY --chown=5230:5230 --from=curoky/dotbox:stage-gcc-14.2.0 /opt/gcc/gcc-14.2.0 /opt/gcc/gcc-14.2.0
-COPY --chown=5230:5230 --from=curoky/dotbox:stage-gcc-14.2.0 /home/x/app/binutils /home/x/app/binutils
+COPY --chown=5230:5230 --from=curoky/dotbox:stage-gcc-14.2.0 /opt/binutils /opt/binutils
 
 COPY script/setup-custom-installed-gcc.sh /tmp/setup-custom-installed-gcc.sh
 
 RUN sudo apt-get install -y libc6-dev \
   && sudo /tmp/setup-custom-installed-gcc.sh \
-  && sudo ln -s /home/x/app/conda/envs/py3/bin/python3 /usr/bin/python3
+  && sudo ln -s /opt/conda/envs/py3/bin/python3 /usr/bin/python3
 
 USER root
 ENTRYPOINT ["/home/x/app/dotbox/docker/base/script/entrypoint.sh"]
