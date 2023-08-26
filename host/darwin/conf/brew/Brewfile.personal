@@ -52,7 +52,8 @@ end
 brews = [
   'pre-commit', 'prettier', 'eslint', 'clang-format', # 'openjdk',
   'wget', 'smartmontools', 'parallel', 'git',
-  'exiftool', 'git-filter-repo', 'yazi'
+  'exiftool', 'git-filter-repo', 'yazi',
+  # 'krb5',
 
   # rust
   'ruff', # 'eza', 'bat', 'atuin',  'fd', 'git-absorb', 'starship',
