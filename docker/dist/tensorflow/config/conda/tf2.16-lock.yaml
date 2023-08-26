@@ -120,10 +120,10 @@ dependencies:
       - stack-data==0.6.3
       - stringcase==1.2.0
       - tblib==3.1.0
-      - tensorboard==2.16.1
+      - tensorboard==2.16.2
       - tensorboard-data-server==0.7.2
       - tensorboard-plugin-profile==2.16.0
-      - tensorflow==2.16.1
+      - tensorflow==2.16.2
       - tensorflow-io-gcs-filesystem==0.37.1
       - tensorflow-metadata==1.17.1
       - termcolor==3.0.1
