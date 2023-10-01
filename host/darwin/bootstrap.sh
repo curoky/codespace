@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Copyright (c) 2018-2025 curoky(cccuroky@gmail.com).
 #
-# This file is part of dotbox.
-# See https://github.com/curoky/dotbox for further info.
+# This file is part of devspace.
+# See https://github.com/curoky/devspace for further info.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,13 +24,13 @@ fi
 
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
-rm -rf ~/dotbox
-ln -s ~/workspace/dotbox ~/dotbox
-~/dotbox/config/setup.sh host-macos $HOME/dotbox/config
+rm -rf ~/devspace
+ln -s ~/workspace/devspace ~/devspace
+~/devspace/dotfiles/setup.sh host-macos $HOME/devspace/dotfiles
 
-brew bundle --force --file ~/dotbox/host/mac/conf/brew/Brewfile.personal --cleanup --verbose
+brew bundle --force --file ~/devspace/host/mac/conf/brew/Brewfile.personal --cleanup --verbose
 # brew link krb5 --force
 brew cleanup --prune=all
 
-curl -sSL https://github.com/curoky/dotbox/raw/dev/prepack/packed-tools/online-installer.sh | bash
-curl -sSL https://github.com/curoky/dotbox/raw/dev/prepack/packed-conda/darwin/online-installer.sh | bash
+curl -sSL https://github.com/curoky/devspace/raw/dev/prepack/packed-tools/online-installer.sh | bash
+curl -sSL https://github.com/curoky/devspace/raw/dev/prepack/packed-conda/darwin/online-installer.sh | bash

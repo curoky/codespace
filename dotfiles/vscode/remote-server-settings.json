@@ -1,0 +1,72 @@
+{
+  "C_Cpp.clang_format_path": "/opt/tools/store/clang-format_18/bin/clang-format-18",
+  "C_Cpp.codeAnalysis.maxConcurrentThreads": 32,
+  "C_Cpp.codeAnalysis.maxMemory": 50000,
+  "C_Cpp.intelliSense.maxCachedProcesses": 120,
+  "C_Cpp.intelliSense.maxMemory": 50000,
+  "C_Cpp.intelliSenseCacheSize": 51200,
+  "C_Cpp.intelliSenseMemoryLimit": 16384,
+  "C_Cpp.maxCachedProcesses": 120,
+  "C_Cpp.maxConcurrentThreads": 32,
+  "C_Cpp.maxMemory": 50000,
+  "[cpp]": {
+    "editor.tabSize": 2
+  },
+  "bazel.buildifierExecutable": "/opt/tools/store/buildifier/bin/buildifier",
+  "bazel.executable": "/opt/tools/store/bazelisk/bin/bazelisk",
+  "black-formatter.path": ["/nix/var/nix/profiles/default/bin/black"],
+  "clang-format.executable": "/opt/tools/store/clang-format_18/bin/clang-format-18",
+  "clang-format.fallbackStyle": "Google",
+  "cmake.cmakePath": "/nix/var/nix/profiles/default/bin/cmake",
+  "cmake.ctestPath": "/nix/var/nix/profiles/default/bin/ctest",
+  "cmakeFormat.exePath": "/nix/var/nix/profiles/default/bin/cmake-format",
+  "cpplint.cpplintPath": "/nix/var/nix/profiles/default/bin/cpplint",
+  "files.insertFinalNewline": false,
+  "files.trimFinalNewlines": false,
+  "files.trimTrailingWhitespace": false,
+  "files.watcherExclude": {
+    "**/build64_release/**": true
+  },
+  "git.path": "/nix/var/nix/profiles/default/bin/git",
+  "go.alternateTools": {
+    "go": "/nix/var/nix/profiles/default/bin/go"
+  },
+  "http.proxySupport": "off",
+  "java.configuration.runtimes": [
+    // {
+    //   "name": "JavaSE-1.8",
+    //   "path": "/nix/var/nix/profiles/jdk8/lib/openjdk"
+    // },
+    // {
+    //   "default": true,
+    //   "name": "JavaSE-11",
+    //   "path": "/nix/var/nix/profiles/jdk11/lib/openjdk"
+    // }
+    {
+      "default": true,
+      "name": "JavaSE-19",
+      "path": "/nix/var/nix/profiles/jdk19/lib/openjdk"
+    }
+  ],
+  "java.import.gradle.home": "/nix/var/nix/profiles/default",
+  "java.jdt.ls.java.home": "/nix/var/nix/profiles/jdk/lib/openjdk",
+  "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx16G -Xms4G",
+  "java.trace.server": "verbose",
+  "jupyter.widgetScriptSources": ["jsdelivr.com", "unpkg.com"],
+  "markdown-preview-enhanced.pandocPath": "/nix/var/nix/profiles/default/bin/pandoc",
+  "prettier.prettierPath": "/nix/var/nix/profiles/default/lib/node_modules/prettier/index.cjs",
+  "python.defaultInterpreterPath": "/app/conda/envs/py3/bin/python3",
+  // "python.formatting.yapfPath": "/nix/var/nix/profiles/default/bin/yapf",
+  "remote.autoForwardPortsSource": "output",
+  "ruby.interpreter.commandPath": "/nix/var/nix/profiles/default/bin/ruby",
+  "ruby.pathToBundler": "/nix/var/nix/profiles/default/bin/bundle",
+  "ruff.path": ["/opt/tools/store/ruff/bin/ruff"],
+  "ruff.interpreter": ["/opt/conda/bin/python3"],
+  // "ruby.useBundler": true,
+  "shellcheck.executablePath": "/nix/var/nix/profiles/default/bin/shellcheck",
+  "shellformat.path": "/opt/tools/store/shfmt/bin/shfmt",
+  "sqlite.sqlite3": "/nix/var/nix/profiles/default/bin/sqlite3",
+  "typescript.npm": "/nix/var/nix/profiles/default/bin/npm",
+  "xml.java.home": "/nix/var/nix/profiles/jdk/lib/openjdk",
+  "xml.server.vmargs": "-Xmx5G"
+}

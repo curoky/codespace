@@ -1,0 +1,92 @@
+
+format = """
+$time\
+$username\
+$directory\
+$hostname\
+$shlvl\
+$kubernetes\
+$git_branch\
+$git_commit\
+$git_state\
+$git_status\
+$hg_branch\
+$docker_context\
+$package\
+$cmake\
+$dart\
+$dotnet\
+$elixir\
+$elm\
+$erlang\
+$golang\
+$helm\
+$java\
+$julia\
+$kotlin\
+$nim\
+$nodejs\
+$ocaml\
+$perl\
+$php\
+$purescript\
+$python\
+$ruby\
+$rust\
+$swift\
+$terraform\
+$vagrant\
+$zig\
+$nix_shell\
+$conda\
+$memory_usage\
+$aws\
+$gcloud\
+$openstack\
+$crystal\
+$custom\
+$cmd_duration\
+$line_break\
+$lua\
+$jobs\
+$battery\
+$status\
+$character"""
+
+# Don't print a new line at the start of the prompt
+add_newline = false
+
+scan_timeout = 10
+
+# Replace the "❯" symbol in the prompt with "➜"
+[character]                            # The name of the module we are configuring is "character"
+success_symbol = "[>](bold green)"     # The "success_symbol" segment is being set to "➜" with the color "bold green"
+error_symbol = "[!](bold red)"
+# Disable the package module, hiding it from the prompt completely
+[package]
+disabled = true
+
+[time]
+disabled = false
+use_12hr = true
+format = '[$time]($style) '
+time_format = "%T"
+utc_time_offset = "+8"
+time_range = "00:00:00-23:59:59"
+
+[username]
+style_user = "blue bold"
+style_root = "red bold"
+format = "[@](bold 241)[$user]($style) "
+disabled = false
+show_always = true
+
+[directory]
+format = "[in](bold 241) [$path]($style)[$read_only]($read_only_style) "
+truncation_length = 5
+truncation_symbol = "…/"
+
+[hostname]
+ssh_only = false
+format =  "[at](bold 241) [$hostname](bold 164) "
+disabled = false

@@ -1,0 +1,12 @@
+[Unit]
+Description=Gost Proxy
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/tools/store/gost/bin/gost -C /etc/gost/daemon.json
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

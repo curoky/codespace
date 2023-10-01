@@ -1,0 +1,2 @@
+Acquire::http::Proxy "http://http.proxy.com:3128";
+Acquire::https::Proxy "http://http.proxy.com:3128";

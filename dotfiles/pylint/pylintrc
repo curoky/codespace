@@ -1,0 +1,20 @@
+[MASTER]
+jobs=6
+
+[MESSAGES CONTROL]
+disable=missing-module-docstring,
+  missing-function-docstring,
+  missing-class-docstring,
+  import-error,
+  protected-access,
+  invalid-name,
+  line-too-long,
+  too-few-public-methods,
+  exec-used,
+  duplicate-code,
+  consider-using-f-string,
+  unspecified-encoding,
+  pointless-string-statement,
+  useless-object-inheritance,
+  too-many-instance-attributes,
+  broad-except

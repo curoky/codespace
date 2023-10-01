@@ -1,0 +1,7 @@
+#python
+#import sys
+# https://sourceware.org/gdb/wiki/STLSupport
+#sys.path.insert(0, '/nix/var/nix/profiles/gcc13-lib/share/gcc-13.2.0/python')
+#from libstdcxx.v6.printers import register_libstdcxx_printers
+#register_libstdcxx_printers (None)
+#end

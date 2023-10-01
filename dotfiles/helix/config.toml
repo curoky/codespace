@@ -1,0 +1,10 @@
+theme = "solarized_light"
+
+[editor]
+scroll-lines = 1
+true-color = true
+
+[editor.cursor-shape]
+insert = "bar"
+normal = "bar"
+select = "bar"

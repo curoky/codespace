@@ -1,5 +1,5 @@
 default_stages: [pre-commit]
-exclude: '^config/passkey/profile.gzip.sh$'
+exclude: '^dotfiles/passkey/profile.gzip.sh$'
 repos:
   # >>>>>>>>>>>>>>>>>>>>> basic <<<<<<<<<<<<<<<<<<<< #
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -27,7 +27,7 @@ repos:
   #   hooks:
   #     - id: commitizen
   #       stages: [commit-msg]
-  - repo: https://github.com/curoky/dotbox
+  - repo: https://github.com/curoky/devspace
     rev: '2b531e5047815b6518e893a9bc0a04342b2d73d0'
     hooks:
       - id: check-git-author

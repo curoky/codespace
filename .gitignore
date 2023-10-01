@@ -1,4 +1,4 @@
-config/rime/squirrel/user.yaml
+dotfiles/rime/squirrel/user.yaml
 *.pyc
 node_modules
 Brewfile.lock.json

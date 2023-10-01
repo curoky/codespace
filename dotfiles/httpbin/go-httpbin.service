@@ -1,0 +1,12 @@
+[Unit]
+Description=Go Httpbin
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/curoky/go/bin/go-httpbin --port 3200
+Restart=no
+
+[Install]
+WantedBy=multi-user.target

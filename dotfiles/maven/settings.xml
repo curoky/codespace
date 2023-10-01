@@ -1,0 +1,3 @@
+<settings>
+  <localRepository>${env.HOME}/.cache/maven</localRepository>
+</settings>

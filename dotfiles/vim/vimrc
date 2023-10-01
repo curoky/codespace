@@ -1,0 +1,54 @@
+set nu
+set cursorline
+set autoread
+set confirm
+set hlsearch
+set mouse=a
+
+" tab
+set tabstop=2
+set shiftwidth=2
+set expandtab
+" https://unix.stackexchange.com/questions/186166/delete-key-doesnt-work-on-vim-insert-mode-for-deleting-previously-typed-conte
+" set backspace=indent,eol,start
+set backspace=2
+
+if isdirectory(expand('$HOME/app/tools/store/vim-extra/share/vim-plugin'))
+  let $plug_path=expand('$HOME/app/tools/store/vim-extra/share/vim-plugin')
+endif
+if isdirectory(expand('/opt/tools/store/vim-extra/share/vim-plugin'))
+  let $plug_path=expand('/opt/tools/store/vim-extra/share/vim-plugin')
+endif
+if !empty($VIM_PLUGIN_PATH)
+  let $plug_path=$VIM_PLUGIN_PATH
+endif
+set rtp+=$plug_path
+call plug#begin('$plug_path/plugged')
+Plug 'Raimondi/delimitMate'
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+Plug 'altercation/vim-colors-solarized'
+Plug 'Yggdroot/indentLine'
+Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-fugitive'
+Plug 'airblade/vim-gitgutter'
+Plug 'preservim/nerdtree'
+Plug 'Xuyuanp/nerdtree-git-plugin'
+call plug#end()
+
+" vim-airline
+" -> https://github.com/vim-airline/vim-airline/wiki/Screenshots
+let g:airline_theme="solarized"
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#formatter = 'unique_tail_improved'
+
+" airblade/vim-gitgutter
+set updatetime=500
+
+" theme
+syntax enable
+set background=light
+colorscheme solarized
+
+" key
+map <C-n> :NERDTreeToggle<CR>

@@ -1,0 +1,207 @@
+version: 3
+profiles: []
+hotkeys:
+  toggle-window: []
+  copy-current-path: []
+  ctrl-c:
+    - Ctrl-C
+  copy:
+    - ⌘-C
+  paste:
+    - ⌘-V
+  clear:
+    - ⌘-K
+  select-all:
+    - ⌘-A
+  zoom-in:
+    - ⌘-=
+    - ⌘-Shift-=
+  zoom-out:
+    - ⌘--
+    - ⌘-Shift--
+  reset-zoom:
+    - ⌘-0
+  home:
+    - ⌘-Left
+    - Home
+  end:
+    - ⌘-Right
+    - End
+  previous-word:
+    - ⌥-Left
+  next-word:
+    - ⌥-Right
+  delete-previous-word:
+    - ⌥-Backspace
+  delete-next-word:
+    - ⌥-Delete
+  search:
+    - ⌘-F
+  pane-focus-all:
+    - ⌘-Shift-I
+  restart-telnet-session: []
+  restart-ssh-session: []
+  launch-winscp: []
+  settings:
+    - ⌘-,
+  serial:
+    - Alt-K
+  restart-serial-session: []
+  new-window:
+    - ⌘-N
+  new-tab:
+    - ⌘-T
+  profile: {}
+  profile-selectors: {}
+  toggle-fullscreen:
+    - - ⌘-Enter
+  close-tab:
+    - ⌘-W
+  reopen-tab:
+    - ⌘-Shift-T
+  toggle-last-tab: []
+  rename-tab:
+    - ⌘-R
+  next-tab:
+    - Ctrl-Tab
+  previous-tab:
+    - Ctrl-Shift-Tab
+  move-tab-left:
+    - ⌘-Shift-Left
+  move-tab-right:
+    - ⌘-Shift-Right
+  rearrange-panes:
+    - ⌘-Shift
+  tab-1:
+    - ⌘-1
+  tab-2:
+    - ⌘-2
+  tab-3:
+    - ⌘-3
+  tab-4:
+    - ⌘-4
+  tab-5:
+    - ⌘-5
+  tab-6:
+    - ⌘-6
+  tab-7:
+    - ⌘-7
+  tab-8:
+    - ⌘-8
+  tab-9:
+    - ⌘-9
+  tab-10:
+    - ⌘-0
+  duplicate-tab: []
+  tab-11: []
+  tab-12: []
+  tab-13: []
+  tab-14: []
+  tab-15: []
+  tab-16: []
+  tab-17: []
+  tab-18: []
+  tab-19: []
+  tab-20: []
+  split-right:
+    - ⌘-Shift-D
+  split-bottom:
+    - ⌘-D
+  split-left: []
+  split-top: []
+  pane-nav-right:
+    - ⌘-⌥-Right
+  pane-nav-down:
+    - ⌘-⌥-Down
+  pane-nav-up:
+    - ⌘-⌥-Up
+  pane-nav-left:
+    - ⌘-⌥-Left
+  pane-nav-previous:
+    - ⌘-⌥-[
+  pane-nav-next:
+    - ⌘-⌥-]
+  pane-maximize:
+    - ⌘-⌥-Enter
+  close-pane:
+    - ⌘-Shift-W
+  profile-selector:
+    - ⌘-E
+  switch-profile:
+    - ⌘-Shift-E
+  scroll-to-bottom: []
+terminal:
+  searchOptions: {}
+  colorScheme:
+    name: Solarized Light
+    foreground: '#536870'
+    background: '#fcf4dc'
+    cursor: '#536870'
+    colors:
+      - '#002831'
+      - '#d11c24'
+      - '#738a05'
+      - '#a57706'
+      - '#2176c7'
+      - '#c61c6f'
+      - '#259286'
+      - '#eae3cb'
+      - '#001e27'
+      - '#bd3613'
+      - '#475b62'
+      - '#536870'
+      - '#708284'
+      - '#5956ba'
+      - '#819090'
+      - '#fcf4dc'
+  cursor: beam
+  frontend: xterm-webgl
+  copyOnSelect: true
+  autoOpen: true
+  customColorSchemes:
+    - name: Solarized Light
+      foreground: '#536870'
+      background: '#fcf4dc'
+      cursor: '#536870'
+      colors:
+        - '#002831'
+        - '#d11c24'
+        - '#738a05'
+        - '#a57706'
+        - '#2176c7'
+        - '#c61c6f'
+        - '#259286'
+        - '#eae3cb'
+        - '#001e27'
+        - '#bd3613'
+        - '#475b62'
+        - '#536870'
+        - '#708284'
+        - '#5956ba'
+        - '#819090'
+        - '#fcf4dc'
+  font: UbuntuMonoNerdFontCompleteM-Regular
+  fontSize: 24
+  hideCloseButton: true
+  background: colorScheme
+  warnOnMultilinePaste: false
+  ligatures: true
+ssh: {}
+configSync:
+  parts: {}
+clickableLinks:
+  modifier: metaKey
+appearance:
+  theme: Compact
+pluginBlacklist:
+  - community-color-schemes
+  - telnet
+  - serial
+  - ssh
+  - terminal
+enableWelcomeTab: false
+profileDefaults: {}
+enableAutomaticUpdates: false
+enableAnalytics: false
+hacks: {}
+recoverTabs: false

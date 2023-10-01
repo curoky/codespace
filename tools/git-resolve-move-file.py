@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # Copyright (c) 2018-2025 curoky(cccuroky@gmail.com).
 #
-# This file is part of dotbox.
-# See https://github.com/curoky/dotbox for further info.
+# This file is part of devspace.
+# See https://github.com/curoky/devspace for further info.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.

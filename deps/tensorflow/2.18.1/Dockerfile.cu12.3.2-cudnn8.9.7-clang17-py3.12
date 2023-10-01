@@ -1,0 +1,69 @@
+# syntax=docker/dockerfile:1.9.0
+FROM ubuntu:24.04 AS builder
+
+#### Common start ####
+RUN apt-get update -y \
+  && apt-get install -y \
+    curl wget git ncdu ca-certificates xz-utils patchelf
+
+# install clang
+RUN apt-get install -y clang-17 lld-17
+
+# install python
+RUN apt-get install -y python3.12 python3.12-dev python3-pip
+
+# install bazel
+RUN curl -sSL -o bazelisk https://github.com/bazelbuild/bazelisk/releases/download/v1.20.0/bazelisk-linux-amd64 \
+  && chmod +x bazelisk \
+  && mv bazelisk /usr/local/bin/bazel
+#### Common end ####
+
+RUN git clone --recurse-submodules --depth=1 -b v2.18.1 https://github.com/tensorflow/tensorflow
+WORKDIR /tensorflow
+
+RUN cat <<EOF >> .bazelrc
+startup --host_jvm_args=-Djava.net.preferIPv6Addresses=true
+
+# for clang
+build --repo_env=CC=/usr/lib/llvm-17/bin/clang
+build --repo_env=BAZEL_COMPILER=/usr/lib/llvm-17/bin/clang
+build --action_env CLANG_CUDA_COMPILER_PATH=/usr/lib/llvm-17/bin/clang
+build --action_env CLANG_COMPILER_PATH=/usr/lib/llvm-17/bin/clang
+build --copt=-Wno-gnu-offsetof-extensions
+
+# for python
+build --python_path="/usr/bin/python3.12"
+build --action_env PYTHON_BIN_PATH="/usr/bin/python3.12"
+build --action_env PYTHON_LIB_PATH="/usr/lib/python3.12/site-packages"
+build --repo_env=WHEEL_NAME=tensorflow
+# build --repo_env=USE_PYWRAP_RULES=1
+
+# for cuda
+build:cuda --action_env TF_NEED_CUDA=1
+build:cuda --action_env TF_CUDA_CLANG=1
+build:cuda --repo_env HERMETIC_CUDA_VERSION="12.3.2"
+build:cuda --repo_env HERMETIC_CUDNN_VERSION="9.3.0"
+build:cuda --repo_env HERMETIC_CUDA_COMPUTE_CAPABILITIES="sm_80,sm_86"
+# build:cuda --repo_env LOCAL_CUDA_PATH="/opt/nvidia/cuda-12.3.2"
+# build:cuda --repo_env LOCAL_CUDNN_PATH="/opt/nvidia/cudnn8.9.7-cu12"
+
+EOF
+
+RUN bazel build //tensorflow/tools/pip_package:wheel \
+    --config=v2 \
+    # --config=opt \
+    --config=avx_linux \
+    # --config=monolithic \
+    # --config=tensorrt \
+    --config=cuda_clang \
+    --config=cuda_wheel \
+    # --config=noaws \
+    --config=nogcp \
+    # --config=nohdfs \
+    --config=nonccl
+
+FROM debian:latest
+
+COPY --from=builder /tensorflow/bazel-bin/tensorflow/tools/pip_package/wheel_house/ /output
+
+RUN ls -lah /output/tensorflow-2.18.1-cp312-cp312-linux_x86_64.whl

@@ -1,0 +1,20 @@
+# https://github.com/goproxyio/goproxy
+# https://luanlengli.github.io/2020/03/04/%E9%83%A8%E7%BD%B2%E4%BC%81%E4%B8%9A%E5%86%85%E9%83%A8%E7%9A%84%20goproxy.io%20%E6%9C%8D%E5%8A%A1.html
+
+[Unit]
+Description=goproxy Service
+After=network.target
+Wants=network.target
+
+[Service]
+User=root
+Type=simple
+ExecStart=/home/linuxbrew/.linuxbrew/opt/goproxy/bin/goproxy -cacheDir=/tmp/goproxy -proxy=https://goproxy.io -listen=http.proxy.com:3101
+Restart=on-failure
+RestartSec=60
+# Don't restart in the case of configuration error
+RestartPreventExitStatus=23
+SuccessExitStatus=2
+
+[Install]
+WantedBy=multi-user.target
