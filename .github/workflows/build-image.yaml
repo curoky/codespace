@@ -123,9 +123,9 @@ jobs:
             CUDA_VERSION: '12.3.2'
             CUDA_DRIVER_VERSION: '545.23.08'
             CUDNN_VERSION: '8.9.7.29'
-          - name: cu12.4.0-cudnn8.9.7
-            CUDA_VERSION: '12.4.0'
-            CUDA_DRIVER_VERSION: '550.54.14'
+          - name: cu12.4.1-cudnn8.9.2
+            CUDA_VERSION: '12.4.1'
+            CUDA_DRIVER_VERSION: '550.54.15'
             CUDNN_VERSION: '8.9.2.26'
     steps:
       - uses: actions/checkout@v4
