@@ -3,4 +3,5 @@ config/rime/squirrel/user.yaml
 node_modules
 Brewfile.lock.json
 *.deb
+*.tar
 tmp
