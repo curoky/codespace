@@ -17,4 +17,4 @@ RUN sudo apt-get install -y libc6-dev \
   && sudo ln -s /opt/conda/envs/py3/bin/python3 /usr/bin/python3
 
 USER root
-ENTRYPOINT ["/home/x/app/devspace/docker/base/script/entrypoint.sh"]
+ENTRYPOINT ["/home/x/app/devspace/dist/images/base/script/entrypoint.sh"]

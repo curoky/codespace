@@ -3,8 +3,8 @@ name: Build devbox
 on:
   push:
     paths:
-      - '.github/workflows/build-devbox.yaml'
-      - 'devbox/**'
+      - '.github/workflows/dist-image.yaml'
+      - 'dist/images/**'
       - 'dotfiles/**'
   workflow_dispatch:
     inputs:
@@ -24,20 +24,20 @@ jobs:
         include:
           - base_image: 'debian:10'
             saved_image: 'debian10'
-          - base_image: 'debian:11'
-            saved_image: 'debian11'
-          - base_image: 'debian:12'
-            saved_image: 'debian12'
+          # - base_image: 'debian:11'
+          #   saved_image: 'debian11'
+          # - base_image: 'debian:12'
+          #   saved_image: 'debian12'
           - base_image: 'ubuntu:20.04'
             saved_image: 'ubuntu20.04'
-          - base_image: 'ubuntu:22.04'
-            saved_image: 'ubuntu22.04'
+          # - base_image: 'ubuntu:22.04'
+          #   saved_image: 'ubuntu22.04'
           # - base_image: 'ubuntu:23.04'
           #   saved_image: 'ubuntu23.04'
           - base_image: 'ubuntu:24.04'
             saved_image: 'ubuntu24.04'
-          - base_image: 'ubuntu:25.04'
-            saved_image: 'ubuntu25.04'
+          # - base_image: 'ubuntu:25.04'
+          #   saved_image: 'ubuntu25.04'
     needs:
       - stage
     steps:
@@ -50,7 +50,7 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
-          file: devbox/base/Dockerfile
+          file: dist/images/base/Dockerfile
           push: true
           provenance: mode=max
           cache-from: type=registry,ref=curoky/devspace:__cache_base_${{ matrix.saved_image }}
@@ -81,8 +81,8 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
       - uses: docker/build-push-action@v6
         with:
-          context: devbox/stage/${{ matrix.name }}
-          file: devbox/stage/${{ matrix.name }}/Dockerfile
+          context: dist/images/stage/${{ matrix.name }}
+          file: dist/images/stage/${{ matrix.name }}/Dockerfile
           push: true
           provenance: mode=max
           cache-from: type=registry,ref=curoky/devspace:__cache_stage_${{ matrix.name }}
@@ -112,8 +112,8 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
       - uses: docker/build-push-action@v6
         with:
-          context: devbox/dist/${{ matrix.name }}
-          file: devbox/dist/${{ matrix.name }}/Dockerfile
+          context: dist/images/${{ matrix.name }}
+          file: dist/images/${{ matrix.name }}/Dockerfile
           push: true
           provenance: mode=max
           cache-from: type=registry,ref=curoky/devspace:__cache_dist_${{ matrix.saved_image }}
@@ -142,8 +142,8 @@ jobs:
   #         password: ${{ secrets.DOCKER_TOKEN }}
   #     - uses: docker/build-push-action@v6
   #       with:
-  #         context: devbox/dist/${{ matrix.name }}
-  #         file: devbox/dist/${{ matrix.name }}/Dockerfile
+  #         context: dist/images/dist/${{ matrix.name }}
+  #         file: dist/images/dist/${{ matrix.name }}/Dockerfile
   #         push: true
   #         provenance: mode=max
   #         cache-from: type=registry,ref=curoky/devspace:__cache_dist_${{ matrix.saved_image }}
@@ -158,12 +158,12 @@ jobs:
         include:
           # - name: tf2.5-cu11.0.3-cudnn8.1.0-gcc8-py3.7
           - name: tf2.5-cu11.4.0-cudnn8.1.0-gcc8-py3.7
-          - name: tf2.5-cu11.4.4-cudnn8.1.0-gcc8-py3.7
+          # - name: tf2.5-cu11.4.4-cudnn8.1.0-gcc8-py3.7
           # - name: tf2.5-cu12.4.0-cudnn8.9.2-gcc8-py3.7
-          - name: tf2.16-cu12.3.2-cudnn8.9.7-gcc11-py3.11
-          - name: tf2.16-cu12.3.2-cudnn8.9.7-clang17-py3.12
-          - name: tf2.18-cu12.3.2-cudnn8.9.7-clang17-py3.12
+          # - name: tf2.16-cu12.3.2-cudnn8.9.7-gcc11-py3.11
+          # - name: tf2.16-cu12.3.2-cudnn8.9.7-clang17-py3.12
           # - name: tf2.17-cu12.3.2-cudnn8.9.7-gcc10-py3.12
+          - name: tf2.18-cu12.3.2-cudnn8.9.7-clang17-py3.12
     needs:
       - base
       # - stage-cuda
@@ -177,8 +177,8 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
       - uses: docker/build-push-action@v6
         with:
-          context: devbox/dist/tensorflow
-          file: devbox/dist/tensorflow/Dockerfile.${{ matrix.name }}
+          context: dist/images/dist/tensorflow
+          file: dist/images/dist/tensorflow/Dockerfile.${{ matrix.name }}
           push: true
           provenance: mode=max
           cache-from: type=registry,ref=curoky/devspace:__cache_dist_${{ matrix.name }}

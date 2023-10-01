@@ -4,7 +4,7 @@ ARG BASE_IMAGE=debian:12
 FROM debian:latest AS stage_tools
 RUN apt-get update -y && apt-get install -y curl zstd
 
-COPY docker/base/script/install-pkgs.sh /tmp/install-pkgs.sh
+COPY dist/images/base/script/install-pkgs.sh /tmp/install-pkgs.sh
 
 RUN /tmp/install-pkgs.sh
 
@@ -15,7 +15,7 @@ ENV PATH=$PATH:/opt/conda/pipx/bin:/opt/tools/bin:/nix/var/nix/profiles/default/
 
 RUN apt-get update -y && apt-get install -y sudo locales
 
-COPY docker/base/script/setup-user.sh /tmp/setup-user.sh
+COPY dist/images/base/script/setup-user.sh /tmp/setup-user.sh
 RUN /tmp/setup-user.sh
 
 USER x
@@ -27,7 +27,7 @@ COPY --chown=5230:5230 --link --from=curoky/devspace:stage-nixpkg /home/x/.local
 COPY --chown=5230:5230 --link --from=stage_tools /opt/tools /opt/tools
 
 # setup tools
-RUN sudo ln -s /opt/tools/store/zsh/bin/zsh /usr/bin \
+RUN sudo ln -s /opt/tools/store/zsh-bundle/bin/zsh /usr/bin \
   && sudo ln -s /opt/tools/store/wget/bin/wget /usr/bin \
   && sudo ln -s /opt/tools/store/curl/bin/curl /usr/bin \
   && sudo ln -s /opt/tools/store/openssh_gssapi/bin/ssh /usr/bin
@@ -49,7 +49,7 @@ RUN sudo mkdir -p /workspace \
 USER root
 RUN ln -sf /home/x/app ~/app \
   && ln -sf ~/app/devspace ~/devspace \
-  && bash ~/devspace/docker/base/script/setup-sysconf.sh ~/devspace/dotfiles \
+  && bash ~/devspace/dist/images/base/script/setup-sysconf.sh ~/devspace/dotfiles \
   && bash ~/devspace/dotfiles/setup.sh docker ~/devspace/dotfiles
 
-ENTRYPOINT ["/home/x/app/devspace/docker/base/script/entrypoint.sh"]
+ENTRYPOINT ["/home/x/app/devspace/dist/images/base/script/entrypoint.sh"]

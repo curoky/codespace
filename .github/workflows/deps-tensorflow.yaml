@@ -15,47 +15,47 @@ jobs:
     strategy:
       matrix:
         include:
-          # - image_name: prebuilt-tf2.5.0-cu11.0.3-cudnn8.1.0-gcc8-py3.7-abi0
+          # - image_name: deps-tf2.5.0-cu11.0.3-cudnn8.1.0-gcc8-py3.7-abi0
           #   whl_name_from: tensorflow-2.5.0-cp37-cp37m-linux_x86_64.whl
           #   whl_name_to: tensorflow-2.5.0_cu11.0.3_cudnn8.1.0_gcc8_abi0-cp37-cp37m-linux_x86_64.whl
 
-          # - image_name: prebuilt-tf2.5.0-cu11.0.3-cudnn8.1.0-gcc8-py3.7-abi1
+          # - image_name: deps-tf2.5.0-cu11.0.3-cudnn8.1.0-gcc8-py3.7-abi1
           #   whl_name_from: tensorflow-2.5.0-cp37-cp37m-linux_x86_64.whl
           #   whl_name_to: tensorflow-2.5.0-cu11.0.3_cudnn8.1.0_gcc8_abi1-cp37-cp37m-linux_x86_64.whl
 
-          - image_name: prebuilt-tf2.5.0-cu11.4.0-cudnn8.1.0-gcc8-py3.7-abi0
+          - image_name: deps-tf2.5.0-cu11.4.0-cudnn8.1.0-gcc8-py3.7-abi0
             whl_name_from: tensorflow-2.5.0-cp37-cp37m-linux_x86_64.whl
             whl_name_to: tensorflow-2.5.0_cu11.4.0_cudnn8.1.0_gcc8_abi0-cp37-cp37m-linux_x86_64.whl
 
-          - image_name: prebuilt-tf2.5.0-cu11.4.0-cudnn8.1.0-gcc8-py3.7-abi1
+          - image_name: deps-tf2.5.0-cu11.4.0-cudnn8.1.0-gcc8-py3.7-abi1
             whl_name_from: tensorflow-2.5.0-cp37-cp37m-linux_x86_64.whl
             whl_name_to: tensorflow-2.5.0_cu11.4.0_cudnn8.1.0_gcc8_abi1-cp37-cp37m-linux_x86_64.whl
 
-          - image_name: prebuilt-tf2.5.0-cu11.4.4-cudnn8.1.0-gcc8-py3.7-abi0
-            whl_name_from: tensorflow-2.5.0-cp37-cp37m-linux_x86_64.whl
-            whl_name_to: tensorflow-2.5.0_cu11.4.4_cudnn8.1.0_gcc8_abi0-cp37-cp37m-linux_x86_64.whl
+          # - image_name: deps-tf2.5.0-cu11.4.4-cudnn8.1.0-gcc8-py3.7-abi0
+          #   whl_name_from: tensorflow-2.5.0-cp37-cp37m-linux_x86_64.whl
+          #   whl_name_to: tensorflow-2.5.0_cu11.4.4_cudnn8.1.0_gcc8_abi0-cp37-cp37m-linux_x86_64.whl
 
-          - image_name: prebuilt-tf2.5.0-cu11.4.4-cudnn8.1.0-gcc8-py3.7-abi1
-            whl_name_from: tensorflow-2.5.0-cp37-cp37m-linux_x86_64.whl
-            whl_name_to: tensorflow-2.5.0_cu11.4.4_cudnn8.1.0_gcc8_abi1-cp37-cp37m-linux_x86_64.whl
+          # - image_name: deps-tf2.5.0-cu11.4.4-cudnn8.1.0-gcc8-py3.7-abi1
+          #   whl_name_from: tensorflow-2.5.0-cp37-cp37m-linux_x86_64.whl
+          #   whl_name_to: tensorflow-2.5.0_cu11.4.4_cudnn8.1.0_gcc8_abi1-cp37-cp37m-linux_x86_64.whl
 
-          # - image_name: prebuilt-tf2.5.0-cu12.4.0-cudnn8.9.2-gcc8-py3.7-abi1
+          # - image_name: deps-tf2.5.0-cu12.4.0-cudnn8.9.2-gcc8-py3.7-abi1
           #   whl_name_from: tensorflow-2.5.0-cp37-cp37m-linux_x86_64.whl
           #   whl_name_to: tensorflow-2.5.0_cu12.4.0_cudnn8.9.2_gcc8_abi1-cp37-cp37m-linux_x86_64.whl
 
-          - image_name: prebuilt-tf2.16.2-cu12.3.2-cudnn8.9.7-gcc11-py3.11
-            whl_name_from: tensorflow-2.16.2-cp311-cp311-linux_x86_64.whl
-            whl_name_to: tensorflow-2.16.2_cu12.3.2_cudnn8.9.7_gcc11-cp311-cp311-linux_x86_64.whl
+          # - image_name: deps-tf2.16.2-cu12.3.2-cudnn8.9.7-gcc11-py3.11
+          #   whl_name_from: tensorflow-2.16.2-cp311-cp311-linux_x86_64.whl
+          #   whl_name_to: tensorflow-2.16.2_cu12.3.2_cudnn8.9.7_gcc11-cp311-cp311-linux_x86_64.whl
 
-          - image_name: prebuilt-tf2.16.2-cu12.3.2-cudnn8.9.7-clang17-py3.12
-            whl_name_from: tensorflow-2.16.2-cp312-cp312-linux_x86_64.whl
-            whl_name_to: tensorflow-2.16.2_cu12.3.2_cudnn8.9.7_clang17-cp312-cp312-linux_x86_64.whl
+          # - image_name: deps-tf2.16.2-cu12.3.2-cudnn8.9.7-clang17-py3.12
+          #   whl_name_from: tensorflow-2.16.2-cp312-cp312-linux_x86_64.whl
+          #   whl_name_to: tensorflow-2.16.2_cu12.3.2_cudnn8.9.7_clang17-cp312-cp312-linux_x86_64.whl
 
-          - image_name: prebuilt-tf2.17.1-cu12.3.2-cudnn8.9.7-clang17-py3.12
-            whl_name_from: tensorflow-2.17.1-cp312-cp312-linux_x86_64.whl
-            whl_name_to: tensorflow-2.17.1_cu12.3.2_cudnn8.9.7_clang17-cp312-cp312-linux_x86_64.whl
+          # - image_name: deps-tf2.17.1-cu12.3.2-cudnn8.9.7-clang17-py3.12
+          #   whl_name_from: tensorflow-2.17.1-cp312-cp312-linux_x86_64.whl
+          #   whl_name_to: tensorflow-2.17.1_cu12.3.2_cudnn8.9.7_clang17-cp312-cp312-linux_x86_64.whl
 
-          - image_name: prebuilt-tf2.18.1-cu12.3.2-cudnn8.9.7-clang17-py3.12
+          - image_name: deps-tf2.18.1-cu12.3.2-cudnn8.9.7-clang17-py3.12
             whl_name_from: tensorflow-2.18.1-cp312-cp312-linux_x86_64.whl
             whl_name_to: tensorflow-2.18.1_cu12.3.2_cudnn8.9.7_clang17-cp312-cp312-linux_x86_64.whl
 
