@@ -108,6 +108,30 @@ elif [[ $cuda_version == "12.3.2" ]] && [[ $driver_version == "545.23.08" ]]; th
     /opt/nvidia/cuda-12.3.2/nsightee_plugins \
     /opt/nvidia/cuda-12.3.2/compute-sanitizer
 
+elif [[ $cuda_version == "12.4.0" ]] && [[ $driver_version == "550.54.14" ]]; then
+  curl -sSL -o /tmp/cuda_linux.run \
+    https://developer.download.nvidia.com/compute/cuda/12.4.0/local_installers/cuda_12.4.0_550.54.14_linux.run
+  install_cuda /opt/nvidia/cuda-12.4.0
+  rm -rf \
+    /opt/nvidia/cuda-12.4.0/nsight-systems-2023.4.4 \
+    /opt/nvidia/cuda-12.4.0/nsight-systems-2023.4.4/host-linux-x64 \
+    /opt/nvidia/cuda-12.4.0/nsight-compute-2024.1.0 \
+    /opt/nvidia/cuda-12.4.0/libnvvp \
+    /opt/nvidia/cuda-12.4.0/nsightee_plugins \
+    /opt/nvidia/cuda-12.4.0/compute-sanitizer
+
+elif [[ $cuda_version == "12.4.1" ]] && [[ $driver_version == "550.54.15" ]]; then
+  curl -sSL -o /tmp/cuda_linux.run \
+    https://developer.download.nvidia.com/compute/cuda/12.4.1/local_installers/cuda_12.4.1_550.54.15_linux.run
+  install_cuda /opt/nvidia/cuda-12.4.1
+  rm -rf \
+    /opt/nvidia/cuda-12.4.1/nsight-systems-2023.4.4 \
+    /opt/nvidia/cuda-12.4.1/nsight-systems-2023.4.4/host-linux-x64 \
+    /opt/nvidia/cuda-12.4.1/nsight-compute-2024.4.1 \
+    /opt/nvidia/cuda-12.4.1/libnvvp \
+    /opt/nvidia/cuda-12.4.1/nsightee_plugins \
+    /opt/nvidia/cuda-12.4.1/compute-sanitizer
+
 # elif [[ $version == "11.4-t" ]]; then
 #   curl -sSL -o /tmp/cuda_linux.run \
 #     https://us.download.nvidia.com/tesla/450.248.02/NVIDIA-Linux-x86_64-450.248.02.run

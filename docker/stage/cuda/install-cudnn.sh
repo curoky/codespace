@@ -39,6 +39,9 @@ if [[ $cudnn_version == 8.1.0.77 ]] && [[ $cuda_short_version == 11 ]]; then
 elif [[ $cudnn_version == 8.9.7.29 ]] && [[ $cuda_short_version == 11 ]]; then
   curl -sSL https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-8.9.7.29_cuda11-archive.tar.xz |
     tar -xv --xz -C $install_path --strip-components 1
+elif [[ $cudnn_version == 8.9.2.26 ]] && [[ $cuda_short_version == 12 ]]; then
+  curl -sSL https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-8.9.2.26_cuda12-archive.tar.xz |
+    tar -xv --xz -C $install_path --strip-components 1
 elif [[ $cudnn_version == 8.9.7.29 ]] && [[ $cuda_short_version == 12 ]]; then
   curl -sSL https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-8.9.7.29_cuda12-archive.tar.xz |
     tar -xv --xz -C $install_path --strip-components 1
