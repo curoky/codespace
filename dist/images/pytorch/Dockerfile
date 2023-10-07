@@ -9,7 +9,7 @@ USER root
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
     gcc-10 g++-10 \
-  && /home/x/app/devspace/docker/dist/gcc/script/setup-sys-change-default-gcc.sh 10 \
+  && /home/x/app/devspace/dist/images/gcc/script/setup-sys-change-default-gcc.sh 10 \
   && ln -s /opt/conda/envs/py3/bin/python3 /usr/bin/python \
   && ln -s /opt/conda/envs/py3/bin/python3 /usr/bin/python3
 

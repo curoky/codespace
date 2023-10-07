@@ -5,7 +5,7 @@ USER x
 # RUN apt-get update -y \
 #   && apt-get install -y --no-install-recommends \
 #     gcc-13 g++-13 \
-#   && /home/x/app/devspace/docker/dist/gcc/script/setup-sys-change-default-gcc.sh 13
+#   && /home/x/app/devspace/dist/images/gcc/script/setup-sys-change-default-gcc.sh 13
 
 COPY --chown=5230:5230 --from=curoky/devspace:deps-gcc-14.2.0 /opt/gcc/gcc-14.2.0 /opt/gcc/gcc-14.2.0
 COPY --chown=5230:5230 --from=curoky/devspace:deps-gcc-14.2.0 /opt/binutils /opt/binutils
