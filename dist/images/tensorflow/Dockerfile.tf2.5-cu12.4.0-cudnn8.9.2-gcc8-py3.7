@@ -20,7 +20,7 @@ RUN setup-conda-env.sh -x -e /tmp/config/conda/tf2.5-cu12.4.0-abi0-lock.yaml --a
   && setup-conda-env.sh -x -e /tmp/config/conda/tf2.5-cu12.4.0-abi1-lock.yaml --add_tf_env --cuda_version 12.4.0 --cudnn_version 8.9.2 \
   && /tmp/script/patch-tf2.5.sh 1
 
-COPY --chown=5230:5230 --from=curoky/devspace:stage-cuda-cu12.4.0-cudnn8.9.2 /opt/nvidia/cuda-12.4.0 /opt/nvidia/cuda-12.4.0
-COPY --chown=5230:5230 --exclude=**/*.a --from=curoky/devspace:stage-cuda-cu12.4.0-cudnn8.9.2 /opt/nvidia/cudnn8.9.2-cu12 /opt/nvidia/cudnn8.9.2-cu12
+COPY --chown=5230:5230 --from=curoky/devspace:deps-cuda-cu12.4.0-cudnn8.9.2 /opt/nvidia/cuda-12.4.0 /opt/nvidia/cuda-12.4.0
+COPY --chown=5230:5230 --exclude=**/*.a --from=curoky/devspace:deps-cuda-cu12.4.0-cudnn8.9.2 /opt/nvidia/cudnn8.9.2-cu12 /opt/nvidia/cudnn8.9.2-cu12
 
 ENTRYPOINT ["/home/x/app/devspace/dist/images/base/script/entrypoint.sh"]

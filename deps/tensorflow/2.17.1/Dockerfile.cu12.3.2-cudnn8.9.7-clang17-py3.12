@@ -18,8 +18,8 @@ RUN curl -sSL -o bazelisk https://github.com/bazelbuild/bazelisk/releases/downlo
   && mv bazelisk /usr/local/bin/bazel
 #### Common end ####
 
-COPY --link --from=curoky/devspace:stage-cuda-cu12.3.2-cudnn8.9.7 /opt/nvidia/cuda-12.3.2 /opt/nvidia/cuda-12.3.2
-COPY --link --from=curoky/devspace:stage-cuda-cu12.3.2-cudnn8.9.7 /opt/nvidia/cudnn8.9.7-cu12 /opt/nvidia/cudnn8.9.7-cu12
+COPY --link --from=curoky/devspace:deps-cuda-cu12.3.2-cudnn8.9.7 /opt/nvidia/cuda-12.3.2 /opt/nvidia/cuda-12.3.2
+COPY --link --from=curoky/devspace:deps-cuda-cu12.3.2-cudnn8.9.7 /opt/nvidia/cudnn8.9.7-cu12 /opt/nvidia/cudnn8.9.7-cu12
 
 RUN git clone --recurse-submodules --depth=1 -b v2.17.1 https://github.com/tensorflow/tensorflow
 WORKDIR /tensorflow
