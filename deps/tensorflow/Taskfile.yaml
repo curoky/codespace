@@ -74,6 +74,12 @@ tasks:
       --file 2.18.1/Dockerfile.cu12.3.2-cudnn8.9.7-clang17-py3.12
       --network=host
       --tag curoky/devspace:prebuilt-tf2.18.1-cu12.3.2-cudnn8.9.7-clang17-py3.12
+  tf2.18-cu12.4.1:
+    - >
+      docker buildx build .
+      --file 2.18.1/Dockerfile.cu12.4.1-cudnn9.1.1-clang17-py3.12
+      --network=host
+      --tag curoky/devspace:prebuilt-tf2.18.1-cu12.4.1-cudnn9.1.1-clang17-py3.12
 
   all:
     # - task: tf2.5-cu11.0.3-abi0
