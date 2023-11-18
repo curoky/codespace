@@ -59,6 +59,10 @@ jobs:
             whl_name_from: tensorflow-2.18.1-cp312-cp312-linux_x86_64.whl
             whl_name_to: tensorflow-2.18.1_cu12.3.2_cudnn8.9.7_clang17-cp312-cp312-linux_x86_64.whl
 
+          - image_name: deps-tf2.18.1-cu12.4.1-cudnn9.1.1-clang17-py3.12
+            whl_name_from: tensorflow-2.18.1-cp312-cp312-linux_x86_64.whl
+            whl_name_to: tensorflow-2.18.1_cu12.4.1_cudnn9.1.1_clang17-cp312-cp312-linux_x86_64.whl
+
     permissions:
       contents: write
     steps:
