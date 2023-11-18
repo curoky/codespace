@@ -16,7 +16,7 @@ USER x
 
 COPY config /tmp/config
 COPY script /tmp/script
-RUN setup-conda-env.sh -x -e /tmp/config/conda/tf2.18-cu12.3.2-lock.yaml --add_tf_env --cuda_version 12.3.2 --cudnn_version 8.9.7
+RUN setup-conda-env.sh -x -e /tmp/config/conda/tf2.18-cu12.4.1-lock.yaml --add_tf_env --cuda_version 12.3.2 --cudnn_version 8.9.7
 
 COPY --chown=5230:5230 --from=curoky/devspace:deps-cuda-cu12.3.2-cudnn8.9.7 /opt/nvidia/cuda-12.3.2 /opt/nvidia/cuda-12.3.2
 COPY --chown=5230:5230 --exclude=**/*.a --from=curoky/devspace:deps-cuda-cu12.3.2-cudnn8.9.7 /opt/nvidia/cudnn8.9.7-cu12 /opt/nvidia/cudnn8.9.7-cu12
