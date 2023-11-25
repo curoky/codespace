@@ -27,6 +27,7 @@ function install_cuda() {
   /tmp/cuda_linux.run --silent --toolkit --override --toolkitpath=$toolkitpath
   rm -f /tmp/cuda_linux.run
 }
+
 if [[ $cuda_version == "10.0.130" ]] && [[ $driver_version == "410.48" ]]; then
   curl -sSL -o /tmp/cuda_linux.run \
     https://developer.nvidia.com/compute/cuda/10.0/Prod/local_installers/cuda_10.0.130_410.48_linux
@@ -82,6 +83,19 @@ elif [[ $cuda_version == "11.4.0" ]] && [[ $driver_version == "470.42.01" ]]; th
     /opt/nvidia/cuda-11.4.0/libnvvp \
     /opt/nvidia/cuda-11.4.0/nsightee_plugins \
     /opt/nvidia/cuda-11.4.0/compute-sanitizer
+
+elif [[ $cuda_version == "11.4.1" ]] && [[ $driver_version == "470.57.02" ]]; then
+  curl -sSL -o /tmp/cuda_linux.run \
+    https://developer.download.nvidia.com/compute/cuda/11.4.1/local_installers/cuda_11.4.1_470.57.02_linux.run
+  install_cuda /opt/nvidia/cuda-11.4.1
+  rm -rf \
+    /opt/nvidia/cuda-11.4.1/nsight-systems-2021.2.4 \
+    /opt/nvidia/cuda-11.4.1/nsight-systems-2021.2.4/host-linux-x64 \
+    /opt/nvidia/cuda-11.4.1/nsight-systems-2021.2.4/target-linux-armv8 \
+    /opt/nvidia/cuda-11.4.1/nsight-compute-2021.2.1 \
+    /opt/nvidia/cuda-11.4.1/libnvvp \
+    /opt/nvidia/cuda-11.4.1/nsightee_plugins \
+    /opt/nvidia/cuda-11.4.1/compute-sanitizer
 
 elif [[ $cuda_version == "11.4.4" ]] && [[ $driver_version == "470.82.01" ]]; then
   curl -sSL -o /tmp/cuda_linux.run \

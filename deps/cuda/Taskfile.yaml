@@ -41,6 +41,16 @@ tasks:
         --build-arg="CUDNN_VERSION=8.1.0.77"
         --network=host
         --tag curoky/devspace:deps-cuda-cu11.4.0-cudnn8.1.0
+  11.4.1:
+    cmds:
+      - >
+        docker buildx build .
+        --file Dockerfile
+        --build-arg="CUDA_VERSION=11.4.1"
+        --build-arg="CUDA_DRIVER_VERSION=470.57.02"
+        --build-arg="CUDNN_VERSION=8.1.0.77"
+        --network=host
+        --tag curoky/devspace:deps-cuda-cu11.4.0-cudnn8.1.0
   11.4.4:
     cmds:
       - >
