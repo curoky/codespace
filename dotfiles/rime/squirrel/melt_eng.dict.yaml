@@ -8,5 +8,5 @@
 name: melt_eng
 version: '1'
 import_tables:
-  - ../../../../../app/tools/store/rime-bundle/share/rime-bundle/rime-ice/en_dicts/en_ext
-  - ../../../../../app/tools/store/rime-bundle/share/rime-bundle/rime-ice/en_dicts/en
+  - ../../../../../app/tools/store/rime-extra/share/rime-bundle/rime-ice/en_dicts/en_ext
+  - ../../../../../app/tools/store/rime-extra/share/rime-bundle/rime-ice/en_dicts/en

@@ -15,20 +15,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# ENV_PATHS=(
-#   "$HOMEBREW_PREFIX/opt/ruby/bin"
-#   "$HOME/app/tools/bin"
-#   "/opt/tools/bin"
-#   "/nix/var/nix/profiles/default/bin"
-# )
-# for p in "${ENV_PATHS[@]}"; do
-#   [[ -d $p ]] && export PATH=$p:$PATH
-# done
-
 ENV_PATHS=(
+  # "$HOMEBREW_PREFIX/opt/ruby/bin"
   "$HOME/app/tools/bin"
   "/opt/tools/bin"
   "/nix/var/nix/profiles/default/bin"
+)
+for p in "${ENV_PATHS[@]}"; do
+  [[ -d $p ]] && export PATH=$p:$PATH
+done
+
+ENV_PATHS=(
 
   "$HOME/.local/bin"
   "$HOME/.nix-profile/bin"
