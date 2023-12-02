@@ -141,10 +141,11 @@ elif [[ $cuda_version == "12.4.1" ]] && [[ $driver_version == "550.54.15" ]]; th
   rm -rf \
     /opt/nvidia/cuda-12.4.1/nsight-systems-2023.4.4 \
     /opt/nvidia/cuda-12.4.1/nsight-systems-2023.4.4/host-linux-x64 \
-    /opt/nvidia/cuda-12.4.1/nsight-compute-2024.4.1 \
+    /opt/nvidia/cuda-12.4.1/nsight-compute-2024.1.1 \
     /opt/nvidia/cuda-12.4.1/libnvvp \
     /opt/nvidia/cuda-12.4.1/nsightee_plugins \
     /opt/nvidia/cuda-12.4.1/compute-sanitizer
+  ln -s /opt/nvidia/cuda-12.4.1/extras/CUPTI/lib64/libcupti.so.12 /opt/nvidia/cuda-12.4.1/extras/CUPTI/lib64/libcupti.so.12.4.1
 
 # elif [[ $version == "11.4-t" ]]; then
 #   curl -sSL -o /tmp/cuda_linux.run \
