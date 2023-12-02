@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - '.github/workflows/dist-image.yaml'
-      - 'dist/images/**'
+      - 'dist/image/**'
       - 'dotfiles/**'
   workflow_dispatch:
     inputs:
@@ -50,7 +50,7 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
-          file: dist/images/base/Dockerfile
+          file: dist/image/base/Dockerfile
           push: true
           provenance: mode=max
           cache-from: type=registry,ref=curoky/devspace:__cache_base_${{ matrix.saved_image }}
@@ -81,8 +81,8 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
       - uses: docker/build-push-action@v6
         with:
-          context: dist/images/stage/${{ matrix.name }}
-          file: dist/images/stage/${{ matrix.name }}/Dockerfile
+          context: dist/image/stage/${{ matrix.name }}
+          file: dist/image/stage/${{ matrix.name }}/Dockerfile
           push: true
           provenance: mode=max
           cache-from: type=registry,ref=curoky/devspace:__cache_stage_${{ matrix.name }}
@@ -112,8 +112,8 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
       - uses: docker/build-push-action@v6
         with:
-          context: dist/images/${{ matrix.name }}
-          file: dist/images/${{ matrix.name }}/Dockerfile
+          context: dist/image/${{ matrix.name }}
+          file: dist/image/${{ matrix.name }}/Dockerfile
           push: true
           provenance: mode=max
           cache-from: type=registry,ref=curoky/devspace:__cache_dist_${{ matrix.saved_image }}
@@ -142,8 +142,8 @@ jobs:
   #         password: ${{ secrets.DOCKER_TOKEN }}
   #     - uses: docker/build-push-action@v6
   #       with:
-  #         context: dist/images/${{ matrix.name }}
-  #         file: dist/images/${{ matrix.name }}/Dockerfile
+  #         context: dist/image/${{ matrix.name }}
+  #         file: dist/image/${{ matrix.name }}/Dockerfile
   #         push: true
   #         provenance: mode=max
   #         cache-from: type=registry,ref=curoky/devspace:__cache_dist_${{ matrix.saved_image }}
@@ -178,8 +178,8 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
       - uses: docker/build-push-action@v6
         with:
-          context: dist/images/tensorflow
-          file: dist/images/tensorflow/Dockerfile.${{ matrix.name }}
+          context: dist/image/tensorflow
+          file: dist/image/tensorflow/Dockerfile.${{ matrix.name }}
           push: true
           provenance: mode=max
           cache-from: type=registry,ref=curoky/devspace:__cache_dist_${{ matrix.name }}

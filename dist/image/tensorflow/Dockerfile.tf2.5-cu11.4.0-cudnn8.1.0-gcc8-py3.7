@@ -8,7 +8,7 @@ USER root
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
     gcc-10 g++-10 \
-  && /home/x/app/devspace/dist/images/gcc/script/setup-sys-change-default-gcc.sh 10 \
+  && /home/x/app/devspace/dist/image/gcc/script/setup-sys-change-default-gcc.sh 10 \
   && ln -s /opt/conda/envs/py3/bin/python3 /usr/bin/python \
   && ln -s /opt/conda/envs/py3/bin/python3 /usr/bin/python3
 
@@ -23,4 +23,4 @@ RUN setup-conda-env.sh -x -e /tmp/config/conda/tf2.5-cu11.4.0-abi0-lock.yaml --a
 COPY --chown=5230:5230 --from=curoky/devspace:deps-cuda-cu11.4.0-cudnn8.1.0 /opt/nvidia/cuda-11.4.0 /opt/nvidia/cuda-11.4.0
 COPY --chown=5230:5230 --exclude=**/*.a --from=curoky/devspace:deps-cuda-cu11.4.0-cudnn8.1.0 /opt/nvidia/cudnn8.1.0-cu11 /opt/nvidia/cudnn8.1.0-cu11
 
-ENTRYPOINT ["/home/x/app/devspace/dist/images/base/script/entrypoint.sh"]
+ENTRYPOINT ["/home/x/app/devspace/dist/image/base/script/entrypoint.sh"]

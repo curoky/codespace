@@ -9,7 +9,7 @@ USER root
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
     gcc-10 g++-10 \
-  && /home/x/app/devspace/dist/images/gcc/script/setup-sys-change-default-gcc.sh 10 \
+  && /home/x/app/devspace/dist/image/gcc/script/setup-sys-change-default-gcc.sh 10 \
   && ln -s /opt/conda/envs/py3/bin/python3 /usr/bin/python \
   && ln -s /opt/conda/envs/py3/bin/python3 /usr/bin/python3
 
@@ -21,4 +21,4 @@ RUN nix-env -p /nix/var/nix/profiles/nvidia -iA -f nixpkgs/default.nix nsight-sy
 
 RUN setup-conda-env.sh -e /home/x/app/devspace/docker/dist/pytorch/config/conda/torch2.4.yaml --add_tf_env --cuda_version 12.3 --cudnn_version 8.9
 
-ENTRYPOINT ["/home/x/app/devspace/dist/images/base/script/entrypoint.sh"]
+ENTRYPOINT ["/home/x/app/devspace/dist/image/base/script/entrypoint.sh"]
