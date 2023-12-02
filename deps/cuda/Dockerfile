@@ -21,4 +21,4 @@ RUN apt-get update -y \
 COPY ./install-cuda.sh .
 RUN ./install-cuda.sh $CUDA_VERSION $CUDA_DRIVER_VERSION
 
-COPY --link --from=stage-cudnn /opt/nvidia/ /opt/nvidia/
+COPY --from=stage-cudnn /opt/nvidia/ /opt/nvidia/
