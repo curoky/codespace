@@ -20,7 +20,7 @@ RUN mkdir -p /tmp/binutils/src \
   # && make -j$(nproc) && make install \
   && rm -rf /tmp/binutils
 
-ARG GCC_VERSION=14.2.0
+ARG GCC_VERSION=15.1.0
 
 RUN mkdir -p /tmp/gcc/src \
 	&& curl -sSL https://ftpmirror.gnu.org/gcc/gcc-$GCC_VERSION/gcc-$GCC_VERSION.tar.xz | tar -x --xz -C /tmp/gcc/src --strip-components 1 \

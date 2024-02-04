@@ -20,7 +20,6 @@ jobs:
           - '11.5.0'
           - '12.4.0'
           - '13.4.0'
-          - '14.2.0'
           - '14.3.0'
           - '15.1.0'
     steps:
@@ -36,6 +35,8 @@ jobs:
           context: deps/gcc
           file: deps/gcc/Dockerfile
           push: true
+          build-args: |
+            GCC_VERSION=${{ matrix.version }}
           tags: curoky/devspace:deps-gcc-${{ matrix.version }}
 
       - if: github.event_name == 'schedule'
