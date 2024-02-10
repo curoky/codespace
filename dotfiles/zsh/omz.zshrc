@@ -61,8 +61,8 @@ export ZSH=/opt/tools/store/zsh-bundle/share/oh-my-zsh
 source "${ZSH}/oh-my-zsh.sh"
 
 #=-> conda
-if [[ -f ~/app/conda/bin/conda ]]; then
-  eval "$(~/app/conda/bin/conda shell.zsh hook 2>/dev/null)"
+if [[ -f ~/opt/conda/bin/conda ]]; then
+  eval "$(~/opt/conda/bin/conda shell.zsh hook 2>/dev/null)"
 fi
 if [[ -f /opt/homebrew/Caskroom/miniconda/base/bin/conda ]]; then
   eval "$(/opt/homebrew/Caskroom/miniconda/base/bin/conda shell.zsh hook 2>/dev/null)"
