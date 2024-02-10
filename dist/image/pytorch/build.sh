@@ -21,6 +21,6 @@ cd "$(dirname $0)" || exit 1
 
 # --cache-to=type=inline \
 # --cache-from=type=registry,ref=curoky/devspace:${base_image} \
-docker buildx build . --network=host --file Dockerfile "${@:2}" \
+docker build . --network=host --file Dockerfile "${@:2}" \
   --tag curoky/devspace:pytorch
 # --output type=local,dest=$PWD/temp

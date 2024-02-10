@@ -21,7 +21,7 @@ cd "$(dirname $0)" || exit 1
 
 base_image=${1:-'debian:12'}
 
-docker buildx build ../../.. --network=host --file Dockerfile "${@:2}" \
+docker build ../../.. --network=host --file Dockerfile "${@:2}" \
   --build-arg="BASE_IMAGE=${base_image}" \
   --no-cache \
   --tag curoky/devspace:base-${base_image//:/}

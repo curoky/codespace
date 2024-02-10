@@ -17,7 +17,7 @@
 # limitations under the License.
 set -xeuo pipefail
 
-docker buildx build . \
+docker build . \
   --file Dockerfile \
   --network=host \
   --build-arg="GCC_VERSION=14.2.0" \

@@ -18,7 +18,7 @@
 
 set -xeuo pipefail
 
-docker buildx build . \
+docker build . \
   --file Dockerfile \
   --network=host \
   --tag curoky/devspace:stage-nixpkg

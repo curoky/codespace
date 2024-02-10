@@ -4,7 +4,7 @@ tasks:
   build:
     cmds:
       - >
-        docker buildx build .
+        docker build .
         --network=host --file Dockerfile.{{.version}}
         --tag curoky/devspace:{{.version}}
   tf2.5-cu11.0.3:

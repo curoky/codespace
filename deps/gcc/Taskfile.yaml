@@ -3,7 +3,7 @@ version: '3'
 tasks:
   _build:
     cmds:
-      - docker buildx build .
+      - docker build .
         --file ./Dockerfile
         --network=host
         --build-arg="GCC_VERSION={{.version}}"

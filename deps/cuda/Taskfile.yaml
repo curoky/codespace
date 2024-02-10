@@ -4,7 +4,7 @@ tasks:
   10.0.130:
     cmds:
       - >
-        docker buildx build .
+        docker build .
         --file Dockerfile
         --build-arg="CUDA_VERSION=10.0.130"
         --build-arg="CUDA_DRIVER_VERSION=410.48"
@@ -14,7 +14,7 @@ tasks:
   11.0.3:
     cmds:
       - >
-        docker buildx build .
+        docker build .
         --file Dockerfile
         --build-arg="CUDA_VERSION=11.0.3"
         --build-arg="CUDA_DRIVER_VERSION=450.51.06"
@@ -24,7 +24,7 @@ tasks:
   11.2.0:
     cmds:
       - >
-        docker buildx build .
+        docker build .
         --file Dockerfile
         --build-arg="CUDA_VERSION=11.2.0"
         --build-arg="CUDA_DRIVER_VERSION=460.27.04"
@@ -34,7 +34,7 @@ tasks:
   11.4.0:
     cmds:
       - >
-        docker buildx build .
+        docker build .
         --file Dockerfile
         --build-arg="CUDA_VERSION=11.4.0"
         --build-arg="CUDA_DRIVER_VERSION=470.42.01"
@@ -44,7 +44,7 @@ tasks:
   11.4.1:
     cmds:
       - >
-        docker buildx build .
+        docker build .
         --file Dockerfile
         --build-arg="CUDA_VERSION=11.4.1"
         --build-arg="CUDA_DRIVER_VERSION=470.57.02"
@@ -54,7 +54,7 @@ tasks:
   11.4.4:
     cmds:
       - >
-        docker buildx build .
+        docker build .
         --file Dockerfile
         --build-arg="CUDA_VERSION=11.4.4"
         --build-arg="CUDA_DRIVER_VERSION=470.82.01"
@@ -64,7 +64,7 @@ tasks:
   12.3.2:
     cmds:
       - >
-        docker buildx build .
+        docker build .
         --file Dockerfile
         --build-arg="CUDA_VERSION=12.3.2"
         --build-arg="CUDA_DRIVER_VERSION=545.23.08"
@@ -74,7 +74,7 @@ tasks:
   12.4.0:
     cmds:
       - >
-        docker buildx build .
+        docker build .
         --file Dockerfile
         --build-arg="CUDA_VERSION=12.4.0"
         --build-arg="CUDA_DRIVER_VERSION=550.54.14"
@@ -84,7 +84,7 @@ tasks:
   12.4.1:
     cmds:
       - >
-        docker buildx build .
+        docker build .
         --file Dockerfile
         --build-arg="CUDA_VERSION=12.4.1"
         --build-arg="CUDA_DRIVER_VERSION=550.54.15"
