@@ -17,8 +17,10 @@
 # limitations under the License.
 set -xeuo pipefail
 
-find /opt/gcc/gcc-15.1.0/bin/ -type f -exec ln -sf {} /usr/bin \;
+version=${1:-15.1.0}
+
+find /opt/gcc/gcc-${version}/bin/ -type f -exec ln -sf {} /usr/bin \;
 find /opt/binutils/bin/ -type f -exec ln -sf {} /usr/bin \;
 
-echo '/opt/gcc/gcc-15.1.0/lib64' >>/etc/ld.so.conf.d/000-gcc15.conf
+echo "/opt/gcc/gcc-${version}/lib64" >>/etc/ld.so.conf.d/000-gcc.conf
 ldconfig -v

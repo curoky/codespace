@@ -99,5 +99,5 @@ elif [[ $SCENE == "host-linux" ]]; then
 
 elif [[ $SCENE == "docker" ]]; then
   link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.vscode-server/data/Machine/settings.json
-
+  link_path $CONF_PATH/bazel/bazelrc $HOME/.bazelrc
 fi
