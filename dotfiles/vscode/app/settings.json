@@ -27,7 +27,7 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[dockerfile]": {
-    "editor.defaultFormatter": "ms-azuretools.vscode-docker",
+    "editor.defaultFormatter": "ms-azuretools.vscode-containers",
     // "editor.defaultFormatter": "ms-azuretools.vscode-docker",
     "editor.formatOnSave": false
   },
@@ -481,5 +481,7 @@
   "chat.agent.enabled": false,
   "notebook.experimental.generate": false,
   "diffEditor.codeLens": true,
-  "docker.extension.enableComposeLanguageServer": false
+  "docker.extension.enableComposeLanguageServer": false,
+  "chat.mcp.discovery.enabled": false,
+  "chat.mcp.enabled": false
 }
