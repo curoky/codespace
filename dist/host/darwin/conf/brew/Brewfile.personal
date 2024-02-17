@@ -8,7 +8,7 @@ casks = [
   'iina',
   'istat-menus@6',
   'snipaste',
-  # 'squirrel',
+  # 'squirrel-app',
   # 'drawio',
   # 'google-drive',
   # 'dupeguru',
