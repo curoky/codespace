@@ -483,5 +483,6 @@
   "diffEditor.codeLens": true,
   "docker.extension.enableComposeLanguageServer": false,
   "chat.mcp.discovery.enabled": false,
-  "chat.mcp.enabled": false
+  "chat.mcp.enabled": false,
+  "git.repositoryScanIgnoredFolders": ["node_modules", "Archive"]
 }
