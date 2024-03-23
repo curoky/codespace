@@ -7,7 +7,7 @@ tasks:
         --file ./Dockerfile
         --network=host
         --build-arg="GCC_VERSION={{.version}}"
-        --tag curoky/devspace:prebuilt-gcc-{{.version}}
+        --tag curoky/devspace:deps-gcc-{{.version}}
   11.5.0:
     deps:
       - task: _build
@@ -23,30 +23,32 @@ tasks:
       - task: _build
         vars:
           version: 13.4.0
-  14.2.0:
-    deps:
-      - task: _build
-        vars:
-          version: 14.2.0
   14.3.0:
     deps:
       - task: _build
         vars:
           version: 14.3.0
-  15.1.0:
+  15.2.0:
     deps:
       - task: _build
         vars:
-          version: 15.1.0
+          version: 15.2.0
+  all_parallel:
+    deps:
+      - 11.5.0
+      - 12.4.0
+      - 13.4.0
+      - 14.3.0
+      - 15.2.0
   all:
     - task: 11.5.0
     - task: 12.4.0
     - task: 13.4.0
-    # - task: 14.2.0
     - task: 14.3.0
-    - task: 15.1.0
-    - docker push curoky/devspace:prebuilt-gcc-11.5.0
-    - docker push curoky/devspace:prebuilt-gcc-12.4.0
-    - docker push curoky/devspace:prebuilt-gcc-13.4.0
-    - docker push curoky/devspace:prebuilt-gcc-14.3.0
-    - docker push curoky/devspace:prebuilt-gcc-15.1.0
+    - task: 15.2.0
+  push:
+    - docker push curoky/devspace:deps-gcc-11.5.0
+    - docker push curoky/devspace:deps-gcc-12.4.0
+    - docker push curoky/devspace:deps-gcc-13.4.0
+    - docker push curoky/devspace:deps-gcc-14.3.0
+    - docker push curoky/devspace:deps-gcc-15.2.0

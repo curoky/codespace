@@ -22,6 +22,9 @@ jobs:
           - '13.4.0'
           - '14.3.0'
           - '15.1.0'
+        enable_2stage:
+          - 'true'
+          - 'false'
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
@@ -37,7 +40,8 @@ jobs:
           push: true
           build-args: |
             GCC_VERSION=${{ matrix.version }}
-          tags: curoky/devspace:deps-gcc-${{ matrix.version }}
+            ENABLE_2STAGE=${{ matrix.enable_2stage }}
+          tags: curoky/devspace:deps-gcc-${{ matrix.version }}-2stage_${{ matrix.enable_2stage }}
 
       - if: github.event_name == 'schedule'
         run: >

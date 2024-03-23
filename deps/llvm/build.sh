@@ -17,7 +17,7 @@
 # limitations under the License.
 set -xeuo pipefail
 
-version=21.1.0
+version=${1:-21.1.0}
 docker build . \
   --file Dockerfile \
   --network=host \

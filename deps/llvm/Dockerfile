@@ -1,3 +1,8 @@
+# https://github.com/llvm/llvm-project/blob/main/llvm/utils/docker/build_docker_image.sh
+# https://github.com/llvm/llvm-project/blob/main/llvm/docs/Docker.rst
+# https://llvm.org/docs/Docker.html
+# https://llvm.org/docs/AdvancedBuilds.html#bootstrap-builds
+
 FROM debian:buster-backports AS builder
 # FROM launcher.gcr.io/google/debian10:latest AS builder
 
@@ -10,10 +15,12 @@ RUN cat /etc/apt/sources.list \
 
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
-    # for install gcc
-    curl tar ca-certificates dpkg-dev flex gcc g++ file tzdata unzip
+    # basic tools
+    curl tar unzip ca-certificates file tzdata dpkg-dev \
+    # compiler tools
+    gcc g++ \
     # for install llvm
-    # libxml2-dev git
+    libxml2-dev git
 
 # install latest ninja
 RUN curl -sSL -o ninja-linux.zip "https://github.com/ninja-build/ninja/releases/download/v1.12.1/ninja-linux.zip" \
@@ -32,19 +39,40 @@ ENV PATH=${PATH}:/opt/python/python-3.12.11/bin \
 
 ARG LLVM_VERSION 21.1.0
 
-RUN mkdir -p /tmp/clang/src \
-  && curl -sSL https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-21.1.0.tar.gz | tar -x --gzip -C /tmp/clang/src --strip-components 1 \
-  && cd /tmp/clang/src \
-  && mkdir -p /tmp/clang/build && cd /tmp/clang/build \
-  && cmake -S "/tmp/clang/src/llvm" -B . \
-    -GNinja \
-    -DCMAKE_INSTALL_PREFIX="/opt/llvm" \
-    -DCMAKE_BUILD_TYPE="Release" \
-    -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra"
+RUN mkdir -p /tmp/llvm/src \
+  && curl -sSL https://github.com/llvm/llvm-project/archive/refs/tags/llvmorg-${LLVM_VERSION}.tar.gz | tar -x --gzip -C /tmp/llvm/src --strip-components 1 \
+  && cd /tmp/llvm/src \
+  && mkdir -p /tmp/llvm/build && cd /tmp/llvm/build
 
-RUN cd /tmp/clang/build  \
-  && ninja -j "$(nproc)" \
-  && rm -rf /tmp/clang
+ARG ENABLE_2STAGE=false
+
+RUN [ ${ENABLE_2STAGE} = "true" ] && cd /tmp/llvm/build \
+  && cmake -S "/tmp/llvm/src/llvm" -B . \
+    -GNinja \
+    -DCMAKE_INSTALL_PREFIX="/opt/llvm/llvm-${LLVM_VERSION}" \
+    -DCMAKE_BUILD_TYPE="Release" \
+    -DLLVM_TARGETS_TO_BUILD=Native \
+    -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld" \
+    -DLLVM_ENABLE_RUNTIMES="compiler-rt" \
+    -DLLVM_ENABLE_LTO=ON \
+    -DCLANG_ENABLE_BOOTSTRAP=ON \
+    -DCLANG_BOOTSTRAP_TARGETS="install-clang;install-clang-resource-headers" \
+    -DBOOTSTRAP_CMAKE_BUILD_TYPE=Release \
+  && cd /tmp/llvm/build \
+  && ninja stage2-install-clang stage2-install-clang-resource-headers || echo "Skipping"
+
+RUN [ ${ENABLE_2STAGE} = "false" ] && cd /tmp/llvm/build \
+  && cmake -S "/tmp/llvm/src/llvm" -B . \
+    -GNinja \
+    -DCMAKE_INSTALL_PREFIX="/opt/llvm/llvm-${LLVM_VERSION}" \
+    -DCMAKE_BUILD_TYPE="Release" \
+    -DLLVM_TARGETS_TO_BUILD=Native \
+    -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld" \
+    -DLLVM_ENABLE_RUNTIMES="compiler-rt" \
+    -DLLVM_ENABLE_LTO=ON \
+    -DBOOTSTRAP_CMAKE_BUILD_TYPE=Release \
+  && cd /tmp/llvm/build \
+  && ninja install-clang install-clang-resource-headers || echo "Skipping"
 
 FROM debian:stable-slim
 
