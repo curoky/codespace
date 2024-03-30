@@ -51,12 +51,19 @@ RUN [ ${ENABLE_2STAGE} = "true" ] && cd /tmp/llvm/build \
     -GNinja \
     -DCMAKE_INSTALL_PREFIX="/opt/llvm/llvm-${LLVM_VERSION}" \
     -DCMAKE_BUILD_TYPE="Release" \
+    -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+    -DCMAKE_C_FLAGS="-fPIC" \
+    -DCMAKE_CXX_FLAGS="-fPIC" \
+    -DBOOTSTRAP_CMAKE_POSITION_INDEPENDENT_CODE=ON \
+    -DBOOTSTRAP_CMAKE_C_FLAGS="-fPIC" \
+    -DBOOTSTRAP_CMAKE_CXX_FLAGS="-fPIC" \
     -DLLVM_TARGETS_TO_BUILD=Native \
     -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;lld" \
     -DLLVM_ENABLE_RUNTIMES="compiler-rt" \
     -DLLVM_ENABLE_LTO=ON \
     -DCLANG_ENABLE_BOOTSTRAP=ON \
     -DCLANG_BOOTSTRAP_TARGETS="install-clang;install-clang-resource-headers" \
+    -DCLANG_BOOTSTRAP_PASSTHROUGH="CMAKE_INSTALL_PREFIX;CMAKE_VERBOSE_MAKEFILE" \
     -DBOOTSTRAP_CMAKE_BUILD_TYPE=Release \
   && cd /tmp/llvm/build \
   && ninja stage2-install-clang stage2-install-clang-resource-headers || echo "Skipping"

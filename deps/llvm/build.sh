@@ -22,4 +22,5 @@ docker build . \
   --file Dockerfile \
   --network=host \
   --build-arg="LLVM_VERSION=$version" \
+  --build-arg="ENABLE_2STAGE=true" \
   --tag curoky/devspace:deps-llvm-$version
