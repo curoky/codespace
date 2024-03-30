@@ -85,7 +85,7 @@
     "editor.defaultFormatter": "vscode.typescript-language-features"
   },
   "[xml]": {
-    "editor.defaultFormatter": "DotJoshJohnson.xml"
+    "editor.defaultFormatter": "redhat.vscode-xml"
   },
   "[yaml]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -482,7 +482,12 @@
   "notebook.experimental.generate": false,
   "diffEditor.codeLens": true,
   "docker.extension.enableComposeLanguageServer": false,
-  "chat.mcp.discovery.enabled": false,
-  "chat.mcp.enabled": false,
-  "git.repositoryScanIgnoredFolders": ["node_modules", "Archive"]
+  "chat.mcp.discovery.enabled": {
+    "claude-desktop": false,
+    "windsurf": false,
+    "cursor-global": false,
+    "cursor-workspace": false
+  },
+  "git.repositoryScanIgnoredFolders": ["node_modules", "Archive"],
+  "chat.mcp.access": "none"
 }

@@ -54,6 +54,7 @@ brews = [
   'wget', 'smartmontools', 'parallel', 'git',
   'exiftool', 'git-filter-repo', 'yazi',
   # 'krb5',
+  'colima', 'docker', 'qemu',
 
   # rust
   'ruff', # 'eza', 'bat', 'atuin',  'fd', 'git-absorb', 'starship',
