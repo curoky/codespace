@@ -1,0 +1,8 @@
+pre-commit:
+  fail_on_changes: "always"
+  jobs:
+    - name: lint
+      run: shfmt -w -i 2 -s -l -ci {staged_files}
+      glob: '*.{sh}'
+      stage_fixed: false
+
