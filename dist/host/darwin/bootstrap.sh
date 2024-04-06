@@ -32,5 +32,5 @@ brew bundle --force --file ~/devspace/dist/host/darwin/conf/brew/Brewfile.person
 # brew link krb5 --force
 brew cleanup --prune=all
 
-curl -sSL https://github.com/curoky/devspace/raw/dev/deps/host-tools/tools/online-installer.sh | bash
-curl -sSL https://github.com/curoky/devspace/raw/dev/deps/host-tools/conda/online-installer.sh | bash
+curl -sSL https://github.com/curoky/devspace/raw/master/deps/host-tools/tools/online-installer.sh | bash
+curl -sSL https://github.com/curoky/devspace/raw/master/deps/host-tools/conda/online-installer.sh | bash
