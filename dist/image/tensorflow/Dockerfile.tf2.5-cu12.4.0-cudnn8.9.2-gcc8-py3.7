@@ -1,14 +1,14 @@
 # syntax=docker/dockerfile:1.9-labs
 FROM curoky/devspace:base-ubuntu20.04
 
-COPY --chown=5230:5230 ./config/ /home/x/app/devspace/docker/dist/tf/config/
-COPY --chown=5230:5230 ./script/ /home/x/app/devspace/docker/dist/tf/script/
+COPY --chown=5230:5230 ./config/ /opt/devspace/docker/dist/tf/config/
+COPY --chown=5230:5230 ./script/ /opt/devspace/docker/dist/tf/script/
 
 USER root
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
     gcc-10 g++-10 \
-  && /home/x/app/devspace/dist/image/gcc/script/setup-sys-change-default-gcc.sh 10 \
+  && /opt/devspace/dist/image/gcc/script/setup-sys-change-default-gcc.sh 10 \
   && ln -s /opt/conda/envs/py3/bin/python3 /usr/bin/python \
   && ln -s /opt/conda/envs/py3/bin/python3 /usr/bin/python3
 
@@ -23,4 +23,4 @@ RUN setup-conda-env.sh -x -e /tmp/config/conda/tf2.5-cu12.4.0-abi0-lock.yaml --a
 COPY --chown=5230:5230 --from=curoky/devspace:deps-cuda-cu12.4.0-cudnn8.9.2 /opt/nvidia/cuda-12.4.0 /opt/nvidia/cuda-12.4.0
 COPY --chown=5230:5230 --exclude=**/*.a --from=curoky/devspace:deps-cuda-cu12.4.0-cudnn8.9.2 /opt/nvidia/cudnn8.9.2-cu12 /opt/nvidia/cudnn8.9.2-cu12
 
-ENTRYPOINT ["/home/x/app/devspace/dist/image/base/script/entrypoint.sh"]
+ENTRYPOINT ["/opt/devspace/dist/image/base/script/entrypoint.sh"]

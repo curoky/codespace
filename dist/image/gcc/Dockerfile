@@ -13,7 +13,7 @@ USER x
 # RUN apt-get update -y \
 #   && apt-get install -y --no-install-recommends \
 #     gcc-13 g++-13 \
-#   && /home/x/app/devspace/dist/image/gcc/script/setup-sys-change-default-gcc.sh 13
+#   && /opt/devspace/dist/image/gcc/script/setup-sys-change-default-gcc.sh 13
 
 COPY --chown=5230:5230 --from=curoky/devspace:deps-gcc-13.4.0-2stage_true /opt/gcc/gcc-13.4.0 /opt/gcc/gcc-13.4.0
 COPY --chown=5230:5230 --from=curoky/devspace:deps-gcc-14.3.0-2stage_true /opt/gcc/gcc-14.3.0 /opt/gcc/gcc-14.3.0
@@ -27,4 +27,4 @@ RUN sudo apt-get install -y libc6-dev \
   && sudo ln -s /opt/conda/envs/py3/bin/python3 /usr/bin/python3
 
 USER root
-ENTRYPOINT ["/home/x/app/devspace/dist/image/base/script/entrypoint.sh"]
+ENTRYPOINT ["/opt/devspace/dist/image/base/script/entrypoint.sh"]

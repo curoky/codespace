@@ -13,7 +13,10 @@ FROM $BASE_IMAGE
 ENV PATH=$PATH:/opt/conda/pipx/bin:/opt/tools/bin:/nix/var/nix/profiles/default/bin:/opt/conda/condabin \
   DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update -y && apt-get install -y sudo locales
+ARG BASE_IMAGE
+COPY dist/image/base/script/patch-apt.sh /tmp/patch-apt.sh
+RUN /tmp/patch-apt.sh ${BASE_IMAGE} \
+  && apt-get update -y && apt-get install -y sudo locales
 
 COPY dist/image/base/script/setup-user.sh /tmp/setup-user.sh
 RUN /tmp/setup-user.sh
@@ -38,8 +41,8 @@ RUN mkdir ~/.nix-defexpr \
   && ln -s ~/.local/state/nix/profiles/profile ~/.nix-profile
 
 # setup devspace
-COPY --chown=5230:5230 ./ /home/x/app/devspace
-RUN ln -sf /home/x/app/devspace ~/devspace \
+COPY --chown=5230:5230 ./ /opt/devspace
+RUN ln -s /opt/devspace ~/devspace \
   && bash ~/devspace/dotfiles/setup.sh docker ~/devspace/dotfiles
 
 # other
@@ -47,9 +50,8 @@ RUN sudo mkdir -p /workspace \
   && sudo chown 5230:5230 /workspace /opt
 
 USER root
-RUN ln -sf /home/x/app ~/app \
-  && ln -sf ~/app/devspace ~/devspace \
+RUN ln -s /opt/devspace ~/devspace \
   && bash ~/devspace/dist/image/base/script/setup-sysconf.sh ~/devspace/dotfiles \
   && bash ~/devspace/dotfiles/setup.sh docker ~/devspace/dotfiles
 
-ENTRYPOINT ["/home/x/app/devspace/dist/image/base/script/entrypoint.sh"]
+ENTRYPOINT ["/opt/devspace/dist/image/base/script/entrypoint.sh"]
