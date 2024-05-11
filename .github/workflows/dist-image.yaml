@@ -1,4 +1,4 @@
-name: Build devbox
+name: dist image
 
 on:
   push:
