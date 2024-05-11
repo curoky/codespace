@@ -36,13 +36,13 @@ RUN mkdir -p /tmp/binutils/src \
 ARG GCC_VERSION=15.1.0
 
 RUN mkdir -p /tmp/gcc/src \
-  && curl -L https://ftpmirror.gnu.org/gcc/gcc-$GCC_VERSION/gcc-$GCC_VERSION.tar.xz | tar -x --xz -C /tmp/gcc/src --strip-components 1 \
+  && curl -L https://ftpmirror.gnu.org/gcc/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.xz | tar -x --xz -C /tmp/gcc/src --strip-components 1 \
   && cd /tmp/gcc/src \
   && ./contrib/download_prerequisites \
   && mkdir -p /tmp/gcc/build && cd /tmp/gcc/build \
   && /tmp/gcc/src/configure \
     # CXXFLAGS="-fPIC" CFLAGS="-fPIC" \
-    --prefix=/opt/gcc/gcc-$GCC_VERSION \
+    --prefix=/opt/gcc/gcc-${GCC_VERSION} \
     # --with-sysroot=/opt/gcc/gcc-14.2.0 \
     --build="x86_64-linux-gnu" \
     --disable-multilib \
