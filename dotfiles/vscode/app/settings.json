@@ -24,7 +24,15 @@
     "editor.defaultFormatter": "vscode.css-language-features"
   },
   "[dockercompose]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2,
+    "editor.autoIndent": "advanced",
+    "editor.quickSuggestions": {
+      "other": true,
+      "comments": false,
+      "strings": true
+    },
+    "editor.defaultFormatter": "redhat.vscode-yaml"
   },
   "[dockerfile]": {
     "editor.defaultFormatter": "ms-azuretools.vscode-containers",
@@ -37,22 +45,22 @@
     "editor.tabSize": 4
   },
   "[html]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    // "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[java]": {
     "editor.defaultFormatter": "xaver.clang-format"
   },
   "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    // "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    // "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "vscode.json-language-features"
   },
   "[markdown]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    // "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.quickSuggestions": {
       "comments": "on",
       "other": "on",
@@ -76,7 +84,7 @@
     "editor.tabSize": 4
   },
   "[shellscript]": {
-    "editor.defaultFormatter": "foxundermoon.shell-format"
+    "editor.defaultFormatter": "mads-hartmann.bash-ide-vscode"
   },
   "[starlark]": {
     "editor.tabSize": 4
@@ -88,7 +96,7 @@
     "editor.defaultFormatter": "redhat.vscode-xml"
   },
   "[yaml]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    // "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "autoDocstring.includeName": true,
   "bazel.buildifierExecutable": "/Users/x/app/tools/bin/buildifier",
@@ -108,7 +116,9 @@
   ],
   "bookmarks.saveBookmarksInProject": true,
   "cmake.buildDirectory": "${workspaceRoot}/_build",
-  "cmake.buildToolArgs": ["-k 1000"],
+  "cmake.buildToolArgs": [
+    "-k 1000"
+  ],
   "cmake.configureOnEdit": false,
   "cmake.configureOnOpen": false,
   "debug.console.fontFamily": "UbuntuMonoNFM",
@@ -300,7 +310,9 @@
   },
   "gitlens.ai.experimental.model": "openai:gpt-4",
   "gitlens.codeLens.enabled": false,
-  "gitlens.codeLens.scopes": ["document"],
+  "gitlens.codeLens.scopes": [
+    "document"
+  ],
   "gitlens.currentLine.enabled": false,
   "gitlens.defaultDateFormat": "YYYY-MM-D HH:mm:ss",
   "gitlens.defaultDateShortFormat": "YYYY-MM-D HH:mm:ss",
@@ -388,8 +400,12 @@
     "rubocop": true
   },
   "ruby.useLanguageServer": true,
-  "ruff.interpreter": ["/Users/x/app/conda/bin/python3"],
-  "ruff.path": ["/opt/homebrew/bin/ruff"],
+  "ruff.interpreter": [
+    "/Users/x/app/conda/bin/python3"
+  ],
+  "ruff.path": [
+    "/opt/homebrew/bin/ruff"
+  ],
   "rust-client.disableRustup": true,
   "rust-client.enableMultiProjectSetup": null,
   "rust.all_features": true,
@@ -415,7 +431,9 @@
   "tabby.settings.advanced": {
     "inlineCompletion.triggerMode": "manual"
   },
-  "task.slowProviderWarning": ["typescript"],
+  "task.slowProviderWarning": [
+    "typescript"
+  ],
   "telemetry.feedback.enabled": false,
   "telemetry.telemetryLevel": "off",
   "terminal.integrated.cursorBlinking": true,
@@ -473,7 +491,7 @@
   ],
   "xml.server.vmargs": "-Xmx1024M",
   "xml.symbols.maxItemsComputed": 400000,
-  "yaml.format.enable": false,
+  "yaml.format.enable": true,
   "yaml.format.singleQuote": true,
   "geminicodeassist.enableTelemetry": false,
   "docker.lsp.telemetry": "off",
@@ -488,6 +506,12 @@
     "cursor-global": false,
     "cursor-workspace": false
   },
-  "git.repositoryScanIgnoredFolders": ["node_modules", "Archive"],
-  "chat.mcp.access": "none"
+  "git.repositoryScanIgnoredFolders": [
+    "node_modules",
+    "Archive"
+  ],
+  "chat.mcp.access": "none",
+  "[github-actions-workflow]": {
+    "editor.defaultFormatter": "redhat.vscode-yaml"
+  }
 }
