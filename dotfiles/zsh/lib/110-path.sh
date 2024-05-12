@@ -31,9 +31,9 @@ ENV_PATHS=(
   "$HOME/.nix-profile/bin"
 
   "/opt/conda/condabin"
-  "/opt/conda/pipx/bin"
+  "/opt/pipx/bin"
   "$HOME/app/conda/condabin"
-  "$HOME/app/conda/pipx/bin"
+  # "$HOME/app/conda/pipx/bin"
   "$HOMEBREW_PREFIX/opt/ruby/bin"
 
   # "$HOME/.npm-global/bin"

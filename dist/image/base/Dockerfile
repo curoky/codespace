@@ -9,23 +9,23 @@ COPY dist/image/base/script/install-pkgs.sh /tmp/install-pkgs.sh
 
 RUN /tmp/install-pkgs.sh
 
-################################ stage/python environ ################################
-FROM debian:latest AS stage_python
-ENV PATH=${PATH}:/root/.local/bin
+# ################################ stage/python environ ################################
+# FROM debian:latest AS stage_python
+# ENV PATH=${PATH}:/root/.local/bin
 
-RUN apt-get update -y \
-  && apt-get -y install curl gcc g++ \
-    # just for monopoly
-    libpoppler-cpp-dev 
+# RUN apt-get update -y \
+#   && apt-get -y install curl gcc g++ \
+#     # just for monopoly
+#     libpoppler-cpp-dev
 
-RUN curl -L https://astral.sh/uv/install.sh | sh \
-  && id && ls -la /root/.local/bin
+# RUN curl -L https://astral.sh/uv/install.sh | sh \
+#   && id && ls -la /root/.local/bin
 
-COPY deps/uv-pipx /tmp/uv-pipx
-RUN /tmp/uv-pipx/install.sh
+# COPY deps/uv-pipx /tmp/uv-pipx
+# RUN /tmp/uv-pipx/install.sh
 
-COPY deps/uv-conda /tmp/uv-conda
-RUN /tmp/uv-conda/install.sh py3
+# COPY deps/uv-conda /tmp/uv-conda
+# RUN /tmp/uv-conda/install.sh py3
 
 ################################ stage/nixpkgs ################################
 FROM debian:latest AS stage_nixpkgs
@@ -85,6 +85,13 @@ RUN mkdir ~/.nix-defexpr \
 COPY --chown=5230:5230 ./ /opt/devspace
 RUN ln -s /opt/devspace ~/devspace \
   && bash ~/devspace/dotfiles/setup.sh docker ~/devspace/dotfiles
+
+# setup uv
+COPY dist/image/stage/uv/pipx /tmp/uv-pipx
+RUN /tmp/uv-pipx/install.sh
+
+COPY dist/image/stage/uv/conda /tmp/uv-conda
+RUN /tmp/uv-conda/install.sh py3
 
 # other
 RUN sudo mkdir -p /workspace \
