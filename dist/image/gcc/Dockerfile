@@ -15,8 +15,8 @@ USER x
 #     gcc-13 g++-13 \
 #   && /opt/devspace/dist/image/gcc/script/setup-sys-change-default-gcc.sh 13
 
-COPY --chown=5230:5230 --from=curoky/devspace:deps-gcc-13.4.0-2stage_true /opt/gcc/gcc-13.4.0 /opt/gcc/gcc-13.4.0
-COPY --chown=5230:5230 --from=curoky/devspace:deps-gcc-14.3.0-2stage_true /opt/gcc/gcc-14.3.0 /opt/gcc/gcc-14.3.0
+# COPY --chown=5230:5230 --from=curoky/devspace:deps-gcc-13.4.0-2stage_true /opt/gcc/gcc-13.4.0 /opt/gcc/gcc-13.4.0
+# COPY --chown=5230:5230 --from=curoky/devspace:deps-gcc-14.3.0-2stage_true /opt/gcc/gcc-14.3.0 /opt/gcc/gcc-14.3.0
 COPY --chown=5230:5230 --from=curoky/devspace:deps-gcc-15.1.0-2stage_true /opt/gcc/gcc-15.1.0 /opt/gcc/gcc-15.1.0
 COPY --chown=5230:5230 --from=curoky/devspace:deps-gcc-15.1.0-2stage_true /opt/binutils /opt/binutils
 
