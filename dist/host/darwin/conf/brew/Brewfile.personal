@@ -58,7 +58,7 @@ brews = [
   'colima', 'docker', 'qemu',
 
   # rust
-  'ruff', # 'eza', 'bat', 'atuin',  'fd', 'git-absorb', 'starship',
+  'uv', 'ruff', # 'eza', 'bat', 'atuin',  'fd', 'git-absorb', 'starship',
 
   # go
   # 'git-lfs', 'gost', 'fzf', 'shfmt', 'go-task',

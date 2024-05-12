@@ -1,3 +1,13 @@
+[project]
+name = "devspace"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "typer>=0.19.2",
+]
+
 [tool.ruff]
 select = ["E", "F", "B", "Q", "I", "UP"]
 line-length = 100

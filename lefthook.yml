@@ -8,7 +8,7 @@ pre-commit:
 
     - name: python
       # run: ruff check --force-exclude --fix, --exit-non-zero-on-fix, --no-cache {staged_files}
-      run: ruff format --no-cache --force-exclude {staged_files} 
+      run: ruff format --no-cache --force-exclude {staged_files}
       glob: '*.{py}'
       stage_fixed: false
 
