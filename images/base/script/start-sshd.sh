@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/usr/bin/env bash
 # Copyright (c) 2018-2025 curoky(cccuroky@gmail.com).
 #
 # This file is part of devspace.
@@ -17,13 +17,15 @@
 # limitations under the License.
 set -xeuo pipefail
 
-docker pull curoky/devspace:tabby
-docker tag curoky/devspace:tabby tabbyml/tabby
-docker rmi curoky/devspace:tabby
-docker rm --force tabbyd
-mkdir -p $HOME/tabby/data
-# --chat-model Qwen2.5-Coder-32B-Instruct
-docker run -d --network=host --gpus all \
-  -v $HOME/tabby/data:/data \
-  --name tabbyd tabbyml/tabby \
-  serve --no-webserver --model Qwen2.5-Coder-14B --device cuda --port 5847 --host ::
+SSHD_PORT=${1:-61000}
+
+sed -i -e "s/Port 61000/Port ${SSHD_PORT}/g" \
+  /opt/devspace/dotfiles/sshd/sshd_config.conf
+
+chmod 600 /opt/devspace/dotfiles/sshd/host-key/*
+
+mkdir -p /var/log
+# https://github.com/un-def/openssh-static-build/blob/master/run-sshd.sh#L30
+/opt/tools/store/openssh_gssapi/bin/sshd \
+  -f /opt/devspace/dotfiles/sshd/sshd_config.conf -e
+# -E /var/log/mysshd.log

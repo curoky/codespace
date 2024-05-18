@@ -15,13 +15,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 set -xeuo pipefail
-cd "$(dirname $0)" || exit 1
 
-base_image=${1:-'debian:10'}
+BASE_IMAGE=$1
 
-# --no-cache \
-docker build ../../.. --network=host --file Dockerfile "${@:2}" \
-  --build-arg="BASE_IMAGE=${base_image}" \
-  --tag docker.io/curoky/devspace:base-${base_image//:/}
+if [[ $BASE_IMAGE == "debian:10" ]]; then
+  sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list
+  # sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list.d/backports.list
+  sed -i 's/security.debian.org/archive.debian.org/g' /etc/apt/sources.list
+  sed -i '/stretch-updates/d' /etc/apt/sources.list
+  apt-get update -y
+fi

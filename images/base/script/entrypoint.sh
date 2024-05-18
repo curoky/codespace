@@ -15,22 +15,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 set -xeuo pipefail
 
-if [[ ! -f /opt/homebrew/bin/brew ]]; then
-  export NONINTERACTIVE=1
-  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-fi
+# /opt/devspace/images/base/script/link-path.sh
+# sudo -u x /home/x/devspace/dotfiles/setup.sh docker /home/x/devspace/dotfiles
+# chmod 600 /home/x/devspace/dotfiles/ssh/devbox.private.id_rsa
 
-eval "$(/opt/homebrew/bin/brew shellenv)"
+/opt/devspace/images/base/script/start-sshd.sh $SSHD_PORT
+sudo -u x bash /opt/devspace/tools/profile-installer.sh --ssl-pass-src pass:$PROFILE_PASS
+sudo -u x bash /home/x/.config/atuin/login-and-sync.sh &
 
-rm -rf ~/devspace
-ln -s ~/workspace/devspace ~/devspace
-~/devspace/dotfiles/setup.sh host-macos $HOME/devspace/dotfiles
+# sudo -u x bash -c 'cd /opt/devspace && pre-commit install-hooks' &
 
-brew bundle --force --file ~/devspace/dist/host/darwin/conf/brew/Brewfile.personal --cleanup --verbose
-# brew link krb5 --force
-brew cleanup --prune=all
+# clean cache
+rm -rf /home/x/.cache/starship.plugin.zsh \
+  /home/x/.cache/conda.plugin.zsh \
+  /home/x/.cache/atuin.plugin.zsh
 
-curl -sSL https://github.com/curoky/devspace/raw/master/deps/host-tools/tools/online-installer.sh | bash
-curl -sSL https://github.com/curoky/devspace/raw/master/deps/host-tools/conda/online-installer.sh | bash
+while true; do sleep 86400; done
+# exec /lib/systemd/systemd

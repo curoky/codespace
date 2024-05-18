@@ -1,3 +1,6 @@
+# lefthook install
+# lefthook run pre-commit
+
 pre-commit:
   fail_on_changes: 'always'
   jobs:
