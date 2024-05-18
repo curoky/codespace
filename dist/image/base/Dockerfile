@@ -17,9 +17,6 @@ RUN apt-get update -y \
   && curl -sSL -o /tmp/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
   && bash /tmp/miniconda.sh -b -u -p /opt/conda
 
-ENV PATH=${PATH}:/opt/conda/condabin
-RUN conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main \
-  && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
 COPY dist/image/stage/conda/setup-conda-env.sh /opt/conda/condabin/setup-conda-env.sh
 
 # ################################ stage/python environ ################################
@@ -62,7 +59,7 @@ COPY dist/image/stage/conda/setup-conda-env.sh /opt/conda/condabin/setup-conda-e
 ################################ main ################################
 FROM $BASE_IMAGE
 
-ENV PATH=${PATH}:/opt/pipx/bin:/opt/tools/bin:/opt/conda/condabin \
+ENV PATH=${PATH}:/opt/tools/bin \
   DEBIAN_FRONTEND=noninteractive
 
 ARG BASE_IMAGE
@@ -96,6 +93,9 @@ RUN /tmp/uv-conda/install.sh py3
 
 # setup conda
 COPY --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
+ENV PATH=${PATH}:/opt/conda/condabin
+RUN conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main \
+  && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
 
 # setup devspace
 COPY --chown=5230:5230 ./ /opt/devspace

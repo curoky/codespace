@@ -24,4 +24,4 @@ base_image=${1:-'debian:10'}
 # --no-cache \
 docker build ../../.. --network=host --file Dockerfile "${@:2}" \
   --build-arg="BASE_IMAGE=${base_image}" \
-  --tag curoky/devspace:base-${base_image//:/}
+  --tag docker.io/curoky/devspace:base-${base_image//:/}
