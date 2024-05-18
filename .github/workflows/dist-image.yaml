@@ -28,6 +28,8 @@ jobs:
           #   saved_image: 'debian11'
           # - base_image: 'debian:12'
           #   saved_image: 'debian12'
+          - base_image: 'debian:13'
+            saved_image: 'debian13'
           - base_image: 'ubuntu:20.04'
             saved_image: 'ubuntu20.04'
           # - base_image: 'ubuntu:22.04'
