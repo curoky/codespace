@@ -9,7 +9,7 @@ COPY images/base/script/install-pkgs.sh /tmp/install-pkgs.sh
 RUN /tmp/install-pkgs.sh
 
 # ################################ stage/conda environ ################################
-FROM debian:stable-slim as stage_conda
+FROM debian:stable-slim AS stage_conda
 
 RUN apt-get update -y \
   && apt-get install -y curl gcc g++ git pkg-config \
