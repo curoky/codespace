@@ -138,7 +138,7 @@ pkgs=(
   # nixfmt-rfc-style
   # nixpkgs-fmt
   # numactl
-  # scc
+  scc
   # silver-searcher
 
   ##### experimental
@@ -148,14 +148,16 @@ pkgs=(
   perl
 )
 
-curl https://raw.githubusercontent.com/curoky/static-binaries/refs/heads/master/tools/multi-install.sh >/tmp/install.sh
+mkdir -p /opt/sbt/bin
+curl https://raw.githubusercontent.com/curoky/static-binaries/refs/heads/master/tools/sbt >/opt/sbt/bin/sbt
+chmod +x /opt/sbt/bin/sbt
 for pkg in "${pkgs[@]}"; do
-  bash /tmp/install.sh -n $pkg -i /opt/tools -l -p /opt/tools/ &
+  /opt/sbt/bin/sbt install $pkg &
 done
-bash /tmp/install.sh -n python311 -i /opt/tools &
+/opt/sbt/bin/sbt install python311 --nolink &
 wait
-rm -rf /opt/tools/downloads
+rm -rf /tmp/sbt
 
-ln -s -r /opt/tools/bin/bazelisk /opt/tools/bin/bazel
-ln -s -r /opt/tools/bin/clang-format-21 /opt/tools/bin/clang-format
-rm -rf /opt/tools/store/nettools/bin/hostname
+ln -s -r /opt/sbt/bin/bazelisk /opt/sbt/bin/bazel
+ln -s -r /opt/sbt/bin/clang-format-21 /opt/sbt/bin/clang-format
+rm -rf /opt/sbt/store/nettools/bin/hostname
