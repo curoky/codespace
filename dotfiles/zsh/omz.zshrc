@@ -57,7 +57,7 @@ fi
 source_if_exists ~/.nix-profile/etc/profile.d/nix.sh
 
 #=-> start oh-my-zsh
-export ZSH=/opt/tools/store/zsh-bundle/share/oh-my-zsh
+export ZSH=/opt/sbt/store/zsh-bundle/share/oh-my-zsh
 source "${ZSH}/oh-my-zsh.sh"
 
 #=-> conda

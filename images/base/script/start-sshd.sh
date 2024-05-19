@@ -26,6 +26,6 @@ chmod 600 /opt/devspace/dotfiles/sshd/host-key/*
 
 mkdir -p /var/log
 # https://github.com/un-def/openssh-static-build/blob/master/run-sshd.sh#L30
-/opt/tools/store/openssh_gssapi/bin/sshd \
+/opt/sbt/store/openssh_gssapi/bin/sshd \
   -f /opt/devspace/dotfiles/sshd/sshd_config.conf -e
 # -E /var/log/mysshd.log

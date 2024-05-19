@@ -21,7 +21,7 @@ COPY images/base/stage/conda/setup-conda-env.sh /opt/conda/condabin/setup-conda-
 ################################ main ################################
 FROM $BASE_IMAGE
 
-ENV PATH=${PATH}:/opt/tools/bin \
+ENV PATH=${PATH}:/opt/sbt/bin \
   DEBIAN_FRONTEND=noninteractive
 
 ARG BASE_IMAGE
@@ -36,10 +36,10 @@ USER x
 
 # setup tools
 COPY --chown=5230:5230 --link --from=stage_tools /opt/tools /opt/tools
-RUN sudo ln -s /opt/tools/store/zsh-bundle/bin/zsh /usr/bin \
-  && sudo ln -s /opt/tools/store/wget/bin/wget /usr/bin \
-  && sudo ln -s /opt/tools/store/curl/bin/curl /usr/bin \
-  && sudo ln -s /opt/tools/store/openssh_gssapi/bin/ssh /usr/bin
+RUN sudo ln -s /opt/sbt/store/zsh-bundle/bin/zsh /usr/bin \
+  && sudo ln -s /opt/sbt/store/wget/bin/wget /usr/bin \
+  && sudo ln -s /opt/sbt/store/curl/bin/curl /usr/bin \
+  && sudo ln -s /opt/sbt/store/openssh_gssapi/bin/ssh /usr/bin
 
 # setup nixpkgs
 ENV PATH=${PATH}:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin

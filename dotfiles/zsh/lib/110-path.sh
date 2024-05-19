@@ -18,7 +18,7 @@
 ENV_PATHS=(
   # "$HOMEBREW_PREFIX/opt/ruby/bin"
   "$HOME/app/tools/bin"
-  "/opt/tools/bin"
+  "/opt/sbt/bin"
   "/nix/var/nix/profiles/default/bin"
 )
 for p in "${ENV_PATHS[@]}"; do

@@ -16,8 +16,8 @@ set backspace=2
 if isdirectory(expand('$HOME/app/tools/store/vim-extra/share/vim-plugin'))
   let $plug_path=expand('$HOME/app/tools/store/vim-extra/share/vim-plugin')
 endif
-if isdirectory(expand('/opt/tools/store/vim-extra/share/vim-plugin'))
-  let $plug_path=expand('/opt/tools/store/vim-extra/share/vim-plugin')
+if isdirectory(expand('/opt/sbt/store/vim-extra/share/vim-plugin'))
+  let $plug_path=expand('/opt/sbt/store/vim-extra/share/vim-plugin')
 endif
 if !empty($VIM_PLUGIN_PATH)
   let $plug_path=$VIM_PLUGIN_PATH

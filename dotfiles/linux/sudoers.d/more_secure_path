@@ -1,4 +1,4 @@
-Defaults        secure_path="/opt/tools/bin:/nix/var/nix/profiles/default/bin:/opt/conda/pipx/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+Defaults        secure_path="/opt/sbt/bin:/nix/var/nix/profiles/default/bin:/opt/conda/pipx/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 
 # Cmnd_Alias  COMMANDS = /usr/bin/apt, /usr/bin/apt-get
