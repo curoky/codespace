@@ -19,20 +19,20 @@
 # export LOCALE_ARCHIVE=/app/tools/lib/locale/locale-archive
 
 #-> java
-if [[ -d /nix/var/nix/profiles/jdk19 ]]; then
-  export JAVA_HOME=/nix/var/nix/profiles/jdk19
-elif [[ -d /nix/var/nix/profiles/jdk ]]; then
-  export JAVA_HOME=/nix/var/nix/profiles/jdk
-elif [[ -d /opt/homebrew/opt/openjdk@17 ]]; then
-  export JAVA_HOME=/opt/homebrew/opt/openjdk@17
-fi
+# if [[ -d /nix/var/nix/profiles/jdk19 ]]; then
+#   export JAVA_HOME=/nix/var/nix/profiles/jdk19
+# elif [[ -d /nix/var/nix/profiles/jdk ]]; then
+#   export JAVA_HOME=/nix/var/nix/profiles/jdk
+# elif [[ -d /opt/homebrew/opt/openjdk@17 ]]; then
+#   export JAVA_HOME=/opt/homebrew/opt/openjdk@17
+# fi
 
 #-> cuda
-if [[ -d /usr/local/cuda-11.4 ]]; then
-  export CUDA_HOME=/usr/local/cuda-11.4
-elif [[ -d /nix/var/nix/profiles/cuda11_4 ]]; then
-  export CUDA_HOME=/nix/var/nix/profiles/cuda11_4
-fi
+# if [[ -d /usr/local/cuda-11.4 ]]; then
+#   export CUDA_HOME=/usr/local/cuda-11.4
+# elif [[ -d /nix/var/nix/profiles/cuda11_4 ]]; then
+#   export CUDA_HOME=/nix/var/nix/profiles/cuda11_4
+# fi
 
 #=-> Krb5
 # export KRB5_CONFIG=$CONFIG_HOME/krb5/krb5.conf
@@ -188,12 +188,12 @@ export TMUX_CONF_LOCAL=$CONFIG_HOME/tmux/tmux.conf.local
 # vscode-remote code command not found
 # https://www.v2ex.com/t/1080529#reply0
 # https://github.com/microsoft/vscode-remote-release/issues/6339
-export VS_SERVICES_DIR="$HOME/.vscode-server/cli/servers/"
-if [[ -f "${VS_SERVICES_DIR}/lru.json" ]]; then
-  vs_version=$(cat ${VS_SERVICES_DIR}/lru.json | awk -F '"' '{print $2}')
-  vscode_dir="${VS_SERVICES_DIR}/${vs_version}/server/bin/remote-cli"
-  export PATH=${vscode_dir}:${PATH}
-fi
+# export VS_SERVICES_DIR="$HOME/.vscode-server/cli/servers/"
+# if [[ -f "${VS_SERVICES_DIR}/lru.json" ]]; then
+#   vs_version=$(cat ${VS_SERVICES_DIR}/lru.json | awk -F '"' '{print $2}')
+#   vscode_dir="${VS_SERVICES_DIR}/${vs_version}/server/bin/remote-cli"
+#   export PATH=${vscode_dir}:${PATH}
+# fi
 
 #=-> [zsh-syntax-highlighting]
 ZSH_HIGHLIGHT_HIGHLIGHTERS+=(main brackets pattern cursor)

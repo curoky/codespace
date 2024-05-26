@@ -17,7 +17,6 @@
 
 ENV_PATHS=(
   # "$HOMEBREW_PREFIX/opt/ruby/bin"
-  "$HOME/app/tools/bin"
   "/opt/sbt/bin"
   "/nix/var/nix/profiles/default/bin"
 )
@@ -32,7 +31,7 @@ ENV_PATHS=(
 
   "/opt/conda/condabin"
   "/opt/pipx/bin"
-  "$HOME/app/conda/condabin"
+  # "$HOME/app/conda/condabin"
   # "$HOME/app/conda/pipx/bin"
   "$HOMEBREW_PREFIX/opt/ruby/bin"
 
@@ -50,9 +49,9 @@ done
 ENV_FPATHS=(
   "$HOMEBREW_PREFIX/completions/zsh"
 
-  "$HOME/app/tools/share/zsh/site-functions"
-  "$HOME/app/tools/store/zsh-bundle/share/oh-my-zsh/custom/plugins/zsh-completions/src"
-  "$HOME/app/tools/store/zsh-bundle/share/oh-my-zsh/custom/plugins/conda-zsh-completion"
+  "/opt/sbt/share/zsh/site-functions"
+  "/opt/sbt/store/zsh-bundle/share/oh-my-zsh/custom/plugins/zsh-completions/src"
+  "/opt/sbt/store/zsh-bundle/share/oh-my-zsh/custom/plugins/conda-zsh-completion"
 )
 
 for p in "${ENV_FPATHS[@]}"; do

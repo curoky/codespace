@@ -20,7 +20,7 @@ alias chx='chmod +x'
 alias fpath='print -l $fpath | sort'
 alias penv='env | sort'
 
-alias t='task'
+# alias t='task'
 
 alias ls=eza-wrapper.sh
 # ls, the common ones I use a lot shortened for rapid fire usage
@@ -57,18 +57,18 @@ function killit() {
 
 # alias l='ls -lFh --git'
 # alias la='ls -lFha --git'
-alias ping='ping -c 5'
-alias ping6='ping6 -c 5'
-alias clr='clear; echo Currently logged in on $TTY, as $USERNAME in directory $PWD.'
+# alias ping='ping -c 5'
+# alias ping6='ping6 -c 5'
+# alias clr='clear; echo Currently logged in on $TTY, as $USERNAME in directory $PWD.'
 alias path='print -l $path'
-alias mkdir='mkdir -pv'
+# alias mkdir='mkdir -pv'
 
-alias ta='tmux attach -t'
-alias tad='tmux attach -d -t'
-alias ts='tmux new-session -s'
-alias tl='tmux list-sessions'
-alias tksv='tmux kill-server'
-alias tkss='tmux kill-session -t'
+# alias ta='tmux attach -t'
+# alias tad='tmux attach -d -t'
+# alias ts='tmux new-session -s'
+# alias tl='tmux list-sessions'
+# alias tksv='tmux kill-server'
+# alias tkss='tmux kill-session -t'
 
 alias topme='top -U $UID'
 
@@ -97,7 +97,7 @@ alias prune_empty_dir="find . -type d -empty -delete"
 
 alias agf='ag --case-sensitive --word-regexp --hidden --silent -g'
 
-alias lint="pre-commit run --all-files"
+# alias lint="pre-commit run --all-files"
 
 alias ggpf='git push origin "$(git_current_branch)" --force'
 
@@ -106,8 +106,8 @@ alias dctemp="docker run --rm --tty --network=host --interactive --entrypoint /b
 # https://gist.github.com/elventear/7640982
 # alias wget="curl -O --retry 999 --retry-max-time 0 -C -"
 
-alias py3="conda activate py3"
-alias py2="conda activate py2"
+# alias py3="conda activate py3"
+# alias py2="conda activate py2"
 
 alias gccinfo="gcc -E -xc++ - -v"
 

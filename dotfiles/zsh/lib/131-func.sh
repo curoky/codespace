@@ -15,22 +15,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-function psgrepme() {
-  name=$(whoami)
-  psgrep ${1} | grep ${name:0:7} | grep -v "sshd: ${name:0:7}"
-}
+# function psgrepme() {
+#   name=$(whoami)
+#   psgrep ${1} | grep ${name:0:7} | grep -v "sshd: ${name:0:7}"
+# }
 
-function killwith() {
-  ps aux | grep -v "grep" | grep "$@" | awk '{print $2}' | xargs kill
-}
+# function killwith() {
+#   ps aux | grep -v "grep" | grep "$@" | awk '{print $2}' | xargs kill
+# }
 
-function killmewith() {
-  psme | grep -v "grep" | grep "$@" | awk '{print $2}' | xargs kill
-}
+# function killmewith() {
+#   psme | grep -v "grep" | grep "$@" | awk '{print $2}' | xargs kill
+# }
 
-function killwith9() {
-  ps aux | grep -v "grep" | grep "$@" | awk '{print $2}' | xargs kill -9
-}
+# function killwith9() {
+#   ps aux | grep -v "grep" | grep "$@" | awk '{print $2}' | xargs kill -9
+# }
 
 function dudir() {
   num=${1:-10}
@@ -43,57 +43,57 @@ function d() {
   cd $(dirs | xargs -n 1 | fzf | sed 's@^~@'"$HOME"'@')
 }
 
-function get_file_from_parent_dir() {
-  local now_path=$PWD
-  local filename=$1
+# function get_file_from_parent_dir() {
+#   local now_path=$PWD
+#   local filename=$1
 
-  while [[ ! -f "$now_path/$filename" && $now_path != "/" ]]; do
-    now_path=$(dirname "${now_path}")
-  done
+#   while [[ ! -f "$now_path/$filename" && $now_path != "/" ]]; do
+#     now_path=$(dirname "${now_path}")
+#   done
 
-  echo ${now_path}
-}
+#   echo ${now_path}
+# }
 
-function download_with_retries() {
-  # Due to restrictions of bash functions, positional arguments are used here.
-  # In case if you using latest argument NAME, you should also set value to all previous parameters.
-  # Example: download_with_retries $ANDROID_SDK_URL "." "android_sdk.zip"
-  local URL="$1"
-  local DEST="${2:-.}"
-  local NAME="${3:-${URL##*/}}"
+# function download_with_retries() {
+#   # Due to restrictions of bash functions, positional arguments are used here.
+#   # In case if you using latest argument NAME, you should also set value to all previous parameters.
+#   # Example: download_with_retries $ANDROID_SDK_URL "." "android_sdk.zip"
+#   local URL="$1"
+#   local DEST="${2:-.}"
+#   local NAME="${3:-${URL##*/}}"
 
-  echo "Downloading $URL..."
-  mkdir -p $DEST
-  i=20
-  while [ $i -gt 0 ]; do
-    ((i--))
-    wget $URL --output-document="$DEST/$NAME" \
-      --no-verbose
-    if $?; then
-      sleep 30
-    else
-      return 0
-    fi
-  done
+#   echo "Downloading $URL..."
+#   mkdir -p $DEST
+#   i=20
+#   while [ $i -gt 0 ]; do
+#     ((i--))
+#     wget $URL --output-document="$DEST/$NAME" \
+#       --no-verbose
+#     if $?; then
+#       sleep 30
+#     else
+#       return 0
+#     fi
+#   done
 
-  echo "Could not download $URL"
-  return 1
-}
+#   echo "Could not download $URL"
+#   return 1
+# }
 
-function github_latest_rel() {
-  local REPO="$1"
-  local SUFFIX="$2"
-  local DEST="${3:-.}"
-  local NAME="${4:-${URL##*/}}"
+# function github_latest_rel() {
+#   local REPO="$1"
+#   local SUFFIX="$2"
+#   local DEST="${3:-.}"
+#   local NAME="${4:-${URL##*/}}"
 
-  local URL
-  URL=$(
-    curl -sS https://api.github.com/repos/$REPO/releases/latest |
-      grep -Po "https[^\"]*$SUFFIX" |
-      head -n1
-  )
-  download_with_retries $URL $DEST $NAME
-}
+#   local URL
+#   URL=$(
+#     curl -sS https://api.github.com/repos/$REPO/releases/latest |
+#       grep -Po "https[^\"]*$SUFFIX" |
+#       head -n1
+#   )
+#   download_with_retries $URL $DEST $NAME
+# }
 
 function set-http-proxy() {
   local proxy="http://$1:$2"
@@ -125,27 +125,27 @@ function unset-http-proxy() {
   unset ALL_PROXY
 }
 
-function tighten-permissions() {
-  if [[ -d $1 ]]; then
-    find $1 -type d -exec chmod 700 {} \;
-    find $1 -type f -exec chmod 600 {} \;
-  fi
-}
+# function tighten-permissions() {
+#   if [[ -d $1 ]]; then
+#     find $1 -type d -exec chmod 700 {} \;
+#     find $1 -type f -exec chmod 600 {} \;
+#   fi
+# }
 
-function cleanup_history() {
-  # https://unix.stackexchange.com/questions/48713/how-can-i-remove-duplicates-in-my-bash-history-preserving-order
+# function cleanup_history() {
+#   # https://unix.stackexchange.com/questions/48713/how-can-i-remove-duplicates-in-my-bash-history-preserving-order
 
-  # tac $HISTFILE | awk '!a[$0]++' | tac > t; mv t $HISTFILE
-  # tac $HISTFILE | awk '!x[$0]++' | tac | sponge $HISTFILE
-  ruby -i -e 'puts readlines.reverse.uniq.reverse' $HISTFILE
-}
+#   # tac $HISTFILE | awk '!a[$0]++' | tac > t; mv t $HISTFILE
+#   # tac $HISTFILE | awk '!x[$0]++' | tac | sponge $HISTFILE
+#   ruby -i -e 'puts readlines.reverse.uniq.reverse' $HISTFILE
+# }
 
-function analyze-file-extension-name() {
-  # https://stackoverflow.com/questions/1842254/how-can-i-find-all-of-the-distinct-file-extensions-in-a-folder-hierarchy
-  # find . -type f -name "*.*" | rev | cut -d. -f1 | rev  | tr '[:upper:]' '[:lower:]' | sort | uniq --count | sort -rn
-  find . -type f | perl -ne 'print $1 if m/\.([^.\/]+)$/' | sort | uniq -c | sort -n
-}
+# function analyze-file-extension-name() {
+#   # https://stackoverflow.com/questions/1842254/how-can-i-find-all-of-the-distinct-file-extensions-in-a-folder-hierarchy
+#   # find . -type f -name "*.*" | rev | cut -d. -f1 | rev  | tr '[:upper:]' '[:lower:]' | sort | uniq --count | sort -rn
+#   find . -type f | perl -ne 'print $1 if m/\.([^.\/]+)$/' | sort | uniq -c | sort -n
+# }
 
-function mkcd takedir() {
-  mkdir -p $@ && cd ${@:$#}
-}
+# function mkcd takedir() {
+#   mkdir -p $@ && cd ${@:$#}
+# }

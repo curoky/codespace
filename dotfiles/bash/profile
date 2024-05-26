@@ -25,4 +25,4 @@ fi
 if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
 fi
-export PATH=$HOME/app/tools/bin:$PATH
+export PATH=/opt/sbt/bin/:$PATH
