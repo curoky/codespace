@@ -18,7 +18,7 @@
 export CONFIG_HOME=~/devspace/dotfiles
 export TOOLS_ROOT=/opt/sbt
 if [[ ! -d $TOOLS_ROOT ]]; then
-  export TOOLS_ROOT=$HOME/app/tools
+  export TOOLS_ROOT=$HOME/app/sbt
 fi
 
 for f in "$CONFIG_HOME"/zsh/lib/*.sh; do
@@ -58,4 +58,7 @@ source $XDG_CACHE_HOME/atuin.plugin.zsh
 if [[ ! -f $XDG_CACHE_HOME/conda.plugin.zsh ]] && command -v conda >/dev/null 2>&1; then
   conda shell.zsh hook 2>/dev/null > $XDG_CACHE_HOME/conda.plugin.zsh
 fi
-source $XDG_CACHE_HOME/conda.plugin.zsh
+
+if command -v conda >/dev/null 2>&1; then
+  source $XDG_CACHE_HOME/conda.plugin.zsh
+fi

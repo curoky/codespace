@@ -32,7 +32,7 @@ function copy_path() {
     rm -rf "$dst"
     # mv $dst ${dst}.bk
   fi
-  mkdir -p $(dirname "$dst")
+  mkdir -p "$(dirname "$dst")"
   cp -r "$src" "$dst"
   chmod 600 "$dst"
   echo "Copied $src to $dst"
@@ -53,12 +53,14 @@ function link_path() {
     rm -rf "$dst"
     # mv $dst ${dst}.bk
   fi
-  mkdir -p $(dirname "$dst")
+  mkdir -p "$(dirname "$dst")"
   ln -s "$src" "$dst"
   echo "Linked $src to $dst"
 }
 
-SCENE=${1}
+OS_NAME=$(uname -o)
+
+SCENE=${1:-docker}
 CONF_PATH=${2:-$HOME/devspace/dotfiles} # TODO: remove
 
 function common() {
@@ -83,8 +85,8 @@ function common() {
 
 common
 
-if [[ $SCENE == "host-macos" ]]; then
-  link_path $CONF_PATH/rime/squirrel $HOME/Library/Rime
+if [[ $OS_NAME == "Darwin" ]]; then
+  # link_path $CONF_PATH/rime/squirrel $HOME/Library/Rime
   link_path $CONF_PATH/snipaste/config.ini $HOME/.snipaste/config.ini
   link_path $CONF_PATH/vscode/app/snippets "$HOME/Library/Application Support/Code/User/snippets"
   link_path $CONF_PATH/vscode/app/keybindings.json "$HOME/Library/Application Support/Code/User/keybindings.json"
@@ -94,8 +96,8 @@ elif [[ $SCENE == "host-linux" ]]; then
   link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.vscode-server/data/Machine/settings.json
   rm -rf ~/.gitconfig
   rm -rf ~/.ssh/config
-  rm -rf ~/.gdbinit
-  rm -rf ~/.tabby-client
+  # rm -rf ~/.gdbinit
+  # rm -rf ~/.tabby-client
 
 elif [[ $SCENE == "docker" ]]; then
   link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.vscode-server/data/Machine/settings.json

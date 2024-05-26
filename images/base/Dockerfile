@@ -5,8 +5,8 @@ ARG BASE_IMAGE=debian:12
 FROM debian:latest AS stage_sbt
 RUN apt-get update -y && apt-get install -y curl zstd
 
-COPY images/base/script/install-pkgs.sh /tmp/install-pkgs.sh
-RUN /tmp/install-pkgs.sh
+COPY images/base/script/install-sbt-pkgs.sh /tmp/install-sbt-pkgs.sh
+RUN /tmp/install-sbt-pkgs.sh
 
 # ################################ stage/conda environ ################################
 FROM debian:stable-slim AS stage_conda

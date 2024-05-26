@@ -26,11 +26,11 @@ eval "$(/opt/homebrew/bin/brew shellenv)"
 
 rm -rf ~/devspace
 ln -s ~/workspace/devspace ~/devspace
-~/devspace/dotfiles/setup.sh host-macos $HOME/devspace/dotfiles
+~/devspace/dotfiles/setup.sh
 
 brew bundle --force --file ~/devspace/host/darwin/conf/brew/Brewfile.personal --cleanup --verbose
 # brew link krb5 --force
 brew cleanup --prune=all
 
-curl -sSL https://github.com/curoky/devspace/raw/master/deps/host-tools/tools/online-installer.sh | bash
-curl -sSL https://github.com/curoky/devspace/raw/master/deps/host-tools/conda/online-installer.sh | bash
+# curl -sSL https://github.com/curoky/devspace/raw/master/deps/host-tools/tools/online-installer.sh | bash
+# curl -sSL https://github.com/curoky/devspace/raw/master/deps/host-tools/conda/online-installer.sh | bash
