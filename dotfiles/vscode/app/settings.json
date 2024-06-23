@@ -303,7 +303,7 @@
   "python.analysis.inlayHints.variableTypes": true,
   "python.analysis.languageServerMode": "full",
   "python.analysis.typeCheckingMode": "standard",
-  "python.defaultInterpreterPath": "/opt/homebrew/bin/python3.13",
+  "python.defaultInterpreterPath": "/opt/homebrew/bin/python3",
   "python.languageServer": "Pylance",
   "python.terminal.activateEnvironment": false,
   "python.useEnvironmentsExtension": true,
