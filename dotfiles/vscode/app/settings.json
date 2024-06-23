@@ -102,7 +102,7 @@
     // "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "autoDocstring.includeName": true,
-  "bazel.buildifierExecutable": "/opt/sbt/bin/buildifier",
+  "bazel.buildifierExecutable": "/opt/sbt/store/buildifier/bin/buildifier",
   "bazel.buildifierFixOnFormat": true,
   "bazel.enableCodeLens": true,
   "bazel.queriesShareServer": true,
@@ -326,7 +326,7 @@
   // },
   // "ruby.useLanguageServer": true,
   "ruff.interpreter": [
-    "/Users/x/app/conda/bin/python3"
+    "/opt/homebrew/bin/python3.13"
   ],
   "ruff.path": [
     "/opt/homebrew/bin/ruff"
@@ -347,7 +347,7 @@
   "search.useGlobalIgnoreFiles": true,
   "security.workspace.trust.enabled": false,
   "shellformat.flag": "-i 2 -s -ci",
-  "shellformat.path": "/opt/sbt/bin/shfmt",
+  "shellformat.path": "/opt/sbt/store/shfmt/bin/shfmt",
   // "sql-formatter.uppercase": true,
   // "sqltools.useNodeRuntime": true,
   // "svg.preview.mode": "svg",
