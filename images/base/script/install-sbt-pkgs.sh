@@ -139,6 +139,7 @@ pkgs=(
   # nixpkgs-fmt
   # numactl
   scc
+  cloc
   # silver-searcher
 
   ##### experimental
