@@ -102,7 +102,7 @@
     // "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "autoDocstring.includeName": true,
-  "bazel.buildifierExecutable": "/Users/x/app/tools/bin/buildifier",
+  "bazel.buildifierExecutable": "/opt/sbt/bin/buildifier",
   "bazel.buildifierFixOnFormat": true,
   "bazel.enableCodeLens": true,
   "bazel.queriesShareServer": true,
@@ -303,7 +303,7 @@
   "python.analysis.inlayHints.variableTypes": true,
   "python.analysis.languageServerMode": "full",
   "python.analysis.typeCheckingMode": "standard",
-  "python.defaultInterpreterPath": "/opt/homebrew/bin/python3",
+  "python.defaultInterpreterPath": "/opt/homebrew/bin/python3.13",
   "python.languageServer": "Pylance",
   "python.terminal.activateEnvironment": false,
   "python.useEnvironmentsExtension": true,
@@ -347,7 +347,7 @@
   "search.useGlobalIgnoreFiles": true,
   "security.workspace.trust.enabled": false,
   "shellformat.flag": "-i 2 -s -ci",
-  "shellformat.path": "/Users/x/app/tools/bin/shfmt",
+  "shellformat.path": "/opt/sbt/bin/shfmt",
   // "sql-formatter.uppercase": true,
   // "sqltools.useNodeRuntime": true,
   // "svg.preview.mode": "svg",
@@ -372,7 +372,7 @@
   "terminal.integrated.fontWeight": "500",
   "terminal.integrated.gpuAcceleration": "on",
   "terminal.integrated.inheritEnv": false,
-  "terminal.integrated.scrollback": 10000,
+  "terminal.integrated.scrollback": 100000,
   "testMate.cpp.discovery.gracePeriodForMissing": 20,
   "testMate.cpp.discovery.runtimeLimit": 20,
   "testMate.cpp.log.logSentry": "enable",
@@ -421,5 +421,6 @@
   "chat.disableAIFeatures": true,
   "chat.instructionsFilesLocations": {
     ".github/instructions": true
-  }
+  },
+  "terminal.integrated.shellIntegration.history": 10000
 }

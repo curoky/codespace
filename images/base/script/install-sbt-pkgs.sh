@@ -149,7 +149,7 @@ pkgs=(
 )
 
 mkdir -p /opt/sbt/bin
-curl https://raw.githubusercontent.com/curoky/static-binaries/refs/heads/dev/tools/sbt >/opt/sbt/bin/sbt
+curl https://raw.githubusercontent.com/curoky/static-binaries/refs/heads/master/tools/sbt >/opt/sbt/bin/sbt
 chmod +x /opt/sbt/bin/sbt
 for pkg in "${pkgs[@]}"; do
   /opt/sbt/bin/sbt install $pkg &

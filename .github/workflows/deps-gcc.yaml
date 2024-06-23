@@ -43,11 +43,6 @@ jobs:
             ENABLE_2STAGE=${{ matrix.enable_2stage }}
           tags: curoky/devspace:deps-gcc-${{ matrix.version }}-2stage_${{ matrix.enable_2stage }}
 
-      - if: github.event_name == 'schedule'
-        run: >
-          docker run --rm --env=CI=true -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive
-          curoky/devspace:deps-gcc-${{ matrix.version }}
-
       - uses: mxschmitt/action-tmate@v3
         if: ${{ failure() }}
         timeout-minutes: 30

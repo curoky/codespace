@@ -63,6 +63,7 @@ pkgs=(
   # tmux
   tmux-extra
   lefthook
+  bazelisk
 
   # lxgw-wenkai
   # fira-code
@@ -82,9 +83,12 @@ sudo mkdir -p /opt/sbt
 sudo chown x:staff /opt/sbt
 
 mkdir -p /opt/sbt/bin
-curl https://raw.githubusercontent.com/curoky/static-binaries/refs/heads/dev/tools/sbt >/opt/sbt/bin/sbt
+curl https://raw.githubusercontent.com/curoky/static-binaries/refs/heads/master/tools/sbt >/opt/sbt/bin/sbt
 chmod +x /opt/sbt/bin/sbt
+/opt/sbt/bin/sbt install coreutils
 for pkg in "${pkgs[@]}"; do
   /opt/sbt/bin/sbt install $pkg & # --arch darwin-arm64 --prefix tmp/sbt
 done
 wait
+
+ln -sf /opt/sbt/bin/bazelisk /opt/sbt/bin/bazel
