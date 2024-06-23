@@ -31,6 +31,8 @@ ENV_PATHS=(
 
   "/opt/conda/condabin"
   "/opt/pipx/bin"
+  "/opt/rust/cargo/bin"
+
   # "$HOME/app/conda/condabin"
   # "$HOME/app/conda/pipx/bin"
   "$HOMEBREW_PREFIX/opt/ruby/bin"

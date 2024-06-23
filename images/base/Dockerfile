@@ -8,7 +8,7 @@ RUN apt-get update -y && apt-get install -y curl zstd
 COPY images/base/script/install-sbt-pkgs.sh /tmp/install-sbt-pkgs.sh
 RUN /tmp/install-sbt-pkgs.sh
 
-# ################################ stage/conda environ ################################
+################################# stage/conda environ ################################
 FROM debian:stable-slim AS stage_conda
 
 RUN apt-get update -y \
@@ -22,7 +22,8 @@ COPY images/base/stage/conda/setup-conda-env.sh /opt/conda/condabin/setup-conda-
 FROM $BASE_IMAGE
 
 ENV PATH=${PATH}:/opt/sbt/bin \
-  DEBIAN_FRONTEND=noninteractive
+  DEBIAN_FRONTEND=noninteractive \
+  SSL_CERT_FILE=/opt/sbt/store/cacert/etc/ssl/certs/ca-certificates.crt
 
 ARG BASE_IMAGE
 COPY images/base/script/patch-apt.sh /tmp/patch-apt.sh
@@ -47,12 +48,18 @@ RUN curl -L https://nixos.org/nix/install | sh -s -- --no-daemon \
   && nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs \
   && nix-channel --update
 
+# setup rust
+ENV CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup
+ENV PATH=${PATH}:/opt/rust/cargo/bin
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --profile minimal --no-modify-path --default-toolchain stable \
+  && rm -rf /opt/rust/rustup/toolchains/stable-x86_64-unknown-linux-gnu/share/doc
+
 # setup uv
 ENV PATH=${PATH}:/opt/pipx/bin
 COPY images/base/stage/uv/pipx /tmp/uv-pipx
-RUN /tmp/uv-pipx/install.sh && pipx install licenseheaders conan
-COPY images/base/stage/uv/conda /tmp/uv-conda
-RUN /tmp/uv-conda/install.sh py3
+RUN /tmp/uv-pipx/install.sh && pipx install licenseheaders
+# COPY images/base/stage/uv/conda /tmp/uv-conda
+# RUN /tmp/uv-conda/install.sh py3
 
 # setup conda
 COPY --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda

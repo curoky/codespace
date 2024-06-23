@@ -18,15 +18,11 @@
 
 set -xeuo pipefail
 
-# /opt/devspace/images/base/script/link-path.sh
-# sudo -u x /home/x/devspace/dotfiles/setup.sh docker /home/x/devspace/dotfiles
-# chmod 600 /home/x/devspace/dotfiles/ssh/devbox.private.id_rsa
-
 /opt/devspace/images/base/script/start-sshd.sh $SSHD_PORT
 sudo -u x bash /opt/devspace/tools/profile-installer.sh --ssl-pass-src pass:$PROFILE_PASS
 sudo -u x bash /home/x/.config/atuin/login-and-sync.sh &
 
-# sudo -u x bash -c 'cd /opt/devspace && pre-commit install-hooks' &
+sudo -u x bash /opt/devspace/images/base/script/backgroup-task.sh &
 
 # clean cache
 rm -rf /home/x/.cache/starship.plugin.zsh \
@@ -34,4 +30,3 @@ rm -rf /home/x/.cache/starship.plugin.zsh \
   /home/x/.cache/atuin.plugin.zsh
 
 while true; do sleep 86400; done
-# exec /lib/systemd/systemd
