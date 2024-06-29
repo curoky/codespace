@@ -124,6 +124,7 @@ pkgs=(
   zsh-bundle
   cronie
   p7zip
+  parallel
 
   ##### unneeded
   # aria2

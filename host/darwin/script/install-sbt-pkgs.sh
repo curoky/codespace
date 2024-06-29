@@ -64,6 +64,10 @@ pkgs=(
   tmux-extra
   lefthook
   bazelisk
+  uv
+  ruff
+  yazi
+  # git
 
   # lxgw-wenkai
   # fira-code

@@ -50,15 +50,14 @@ casks.each do |b|
 end
 
 brews = [
-  # 'pre-commit', 'prettier', 'eslint',
-  'clang-format', # 'openjdk',
-  'wget', 'smartmontools', 'parallel', 'git',
-  'exiftool', 'git-filter-repo', 'yazi',
+  # 'pre-commit', 'prettier', 'eslint', # 'openjdk',#'git', #'yazi',
+  'clang-format', 'wget', 'smartmontools', 'parallel', 'exiftool', 'git-filter-repo',
+
   # 'krb5',
   'colima', 'docker', 'qemu',
 
   # rust
-  'uv', 'ruff', # 'eza', 'bat', 'atuin',  'fd', 'git-absorb', 'starship',
+  #'uv', 'ruff', # 'eza', 'bat', 'atuin',  'fd', 'git-absorb', 'starship',
 
   # go
   # 'git-lfs', 'gost', 'fzf', 'shfmt', 'go-task',
