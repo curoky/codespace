@@ -6,8 +6,8 @@ on:
       - '.github/workflows/deps-python.yaml'
       - 'deps/python/**'
   workflow_dispatch:
-  schedule:
-    - cron: '0 0 * * 0'
+  # schedule:
+  #   - cron: '0 0 * * 0'
 
 jobs:
   build:

@@ -6,8 +6,8 @@ on:
       - '.github/workflows/deps-tensorflow.yaml'
       - 'deps/tensorflow/**'
   workflow_dispatch:
-  schedule:
-    - cron: '0 0 * * 0'
+  # schedule:
+  #   - cron: '0 0 * * 0'
 
 jobs:
   build:
