@@ -48,7 +48,7 @@ pkgs=(
   ncdu_1
   netcat
   openssl
-  rime-extra
+  # rime-extra
   rsync
   shfmt
   starship

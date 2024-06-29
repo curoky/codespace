@@ -14,6 +14,7 @@ casks = [
   # 'dupeguru',
   'adrive',
   'keepingyouawake',
+  'freefilesync',
   # 'kap',
   # 'input-source-pro',
   # 'clash-verge-rev',
@@ -51,10 +52,10 @@ end
 
 brews = [
   # 'pre-commit', 'prettier', 'eslint', # 'openjdk',#'git', #'yazi',
-  'clang-format', 'wget', 'smartmontools', 'parallel', 'exiftool', 'git-filter-repo',
+  'python@3', 'clang-format', 'wget', 'smartmontools', 'parallel', 'exiftool', 'git-filter-repo',
 
   # 'krb5',
-  'colima', 'docker', 'qemu',
+  # 'colima', 'docker', 'qemu',
 
   # rust
   #'uv', 'ruff', # 'eza', 'bat', 'atuin',  'fd', 'git-absorb', 'starship',

@@ -106,17 +106,6 @@
   "bazel.buildifierFixOnFormat": true,
   "bazel.enableCodeLens": true,
   "bazel.queriesShareServer": true,
-  "better-comments.tags": [
-    {
-      "backgroundColor": "transparent",
-      "bold": false,
-      "color": "#ca5b6a",
-      "italic": false,
-      "strikethrough": false,
-      "tag": "@curoky:",
-      "underline": false
-    }
-  ],
   "bookmarks.saveBookmarksInProject": true,
   "chat.agent.enabled": false,
   "chat.mcp.access": "none",
@@ -136,7 +125,7 @@
   "debug.console.fontSize": 18,
   "debug.inlineValues": "on",
   "diffEditor.codeLens": true,
-  "diffEditor.ignoreTrimWhitespace": true,
+  "diffEditor.ignoreTrimWhitespace": false,
   "diffEditor.maxComputationTime": 0,
   "docker.extension.dockerEngineAvailabilityPrompt": false,
   "docker.extension.enableComposeLanguageServer": false,
@@ -326,7 +315,7 @@
   // },
   // "ruby.useLanguageServer": true,
   "ruff.interpreter": [
-    "/opt/homebrew/bin/python3.13"
+    "/opt/homebrew/bin/python3"
   ],
   "ruff.path": [
     "/opt/homebrew/bin/ruff"
