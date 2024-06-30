@@ -55,9 +55,9 @@ pkgs=(
   zlib-ng
   zstd
   tmux
-  tmux-extra
+  tmux-plugs
   vim
-  vim-extra
+  vim-plugs
   ripgrep
   cmake
   git
@@ -121,7 +121,8 @@ pkgs=(
   shfmt
   starship
   tzdata
-  zsh-bundle
+  zsh
+  zsh-plugs
   cronie
   p7zip
   parallel
@@ -162,3 +163,9 @@ wait
 ln -s -r /opt/sbt/bin/bazelisk /opt/sbt/bin/bazel
 ln -s -r /opt/sbt/bin/clang-format-21 /opt/sbt/bin/clang-format
 rm -rf /opt/sbt/store/nettools/bin/hostname
+
+# option
+rm -rf /opt/sbt/store/cmake/share/cmake*/Help
+rm -rf /opt/sbt/store/cmake/share/doc
+rm -rf /opt/sbt/store/vim/share/vim/vim*/doc
+rm -rf /opt/sbt/store/protobuf*/lib
