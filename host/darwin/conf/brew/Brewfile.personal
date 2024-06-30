@@ -1,27 +1,34 @@
-tap 'ecopastehub/ecopaste'
+# tap 'ecopastehub/ecopaste'
 
 # brew list --cask | xargs -n 1 | sort -u | awk '{ print "\x27"$1"\x27""," }'
 casks = [
   'font-fira-code-nerd-font',
-  'font-ubuntu-mono-nerd-font',
   'font-lxgw-wenkai',
+  'font-ubuntu-mono-nerd-font',
+
+  'cap',
+  'clash-verge-rev',
+  'freefilesync',
+  'gimp',
   'iina',
   'istat-menus@6',
+  'keepingyouawake',
+  'finetune',
   'snipaste',
+  'sloth',
+  'localsend',
+  # 'flameshot',
+
+
+  # 'obs',
   # 'squirrel-app',
   # 'drawio',
   # 'google-drive',
   # 'dupeguru',
-  'adrive',
-  'keepingyouawake',
-  'freefilesync',
+  # 'adrive',
   # 'kap',
   # 'input-source-pro',
-  # 'clash-verge-rev',
-  # 'obs',
   # 'keycastr',
-  # 'cap',
-
   # 'pika',
   # 'miniconda',
   # 'ecopaste',
@@ -34,7 +41,6 @@ casks = [
   # 'chromedriver',
   # 'dbeaver-community',
   # 'disk-drill',
-  # 'flameshot',
   # 'motrix',
   # 'netnewswire',
   # 'sketch',
