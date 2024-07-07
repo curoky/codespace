@@ -9,6 +9,11 @@
 ehthumbs.db
 Thumbs.db
 
+# ignore macOS folder custon icon
+Icon[[:cntrl:]]
+Icon?
+Icon$'\r'
+
 # Other files #
 ###############
 *.pyc
