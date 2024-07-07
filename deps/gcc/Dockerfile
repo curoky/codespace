@@ -24,7 +24,7 @@ RUN apt-get update -y \
 
 # install latest binutils
 RUN mkdir -p /tmp/binutils/src \
-  && curl -sSL https://ftpmirror.gnu.org/gnu/binutils/binutils-2.42.tar.gz | tar -x --gunzip -C /tmp/binutils/src --strip-components 1 \
+  && curl -sSL https://ftp.gnu.org/gnu/binutils/binutils-2.42.tar.gz | tar -x --gunzip -C /tmp/binutils/src --strip-components 1 \
   && mkdir -p /tmp/binutils/build && cd /tmp/binutils/build \
   && /tmp/binutils/src/configure --prefix=/opt/binutils --disable-multilib \
   && make -j "$(nproc)" && make install \
@@ -36,7 +36,7 @@ RUN mkdir -p /tmp/binutils/src \
 ARG GCC_VERSION=15.1.0
 
 RUN mkdir -p /tmp/gcc/src \
-  && curl -L https://ftpmirror.gnu.org/gcc/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.xz | tar -x --xz -C /tmp/gcc/src --strip-components 1 \
+  && curl -L https://ftp.gnu.org/gnu/gcc/gcc-${GCC_VERSION}/gcc-${GCC_VERSION}.tar.xz | tar -x --xz -C /tmp/gcc/src --strip-components 1 \
   && cd /tmp/gcc/src \
   && ./contrib/download_prerequisites \
   && mkdir -p /tmp/gcc/build && cd /tmp/gcc/build \

@@ -61,10 +61,10 @@ jobs:
           build-args: BASE_IMAGE=${{ matrix.base_image }}
           tags: curoky/devspace:base-${{ matrix.saved_image }}
 
-      - if: github.event_name == 'schedule'
-        run: >
-          docker run --rm --env=CI=true -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive
-          curoky/devspace:base-${{ matrix.saved_image }}
+      # - if: github.event_name == 'schedule'
+      #   run: >
+      #     docker run --rm --env=CI=true -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive
+      #     curoky/devspace:base-${{ matrix.saved_image }}
 
   # stage:
   #   runs-on: ubuntu-latest
@@ -122,10 +122,10 @@ jobs:
           cache-to: type=registry,ref=curoky/devspace:__cache_dist_${{ matrix.saved_image }},mode=max
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
           tags: curoky/devspace:${{ matrix.saved_image }}
-      - if: github.event_name == 'schedule'
-        run: >
-          docker run --rm --env=CI=true -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive
-          curoky/devspace:${{ matrix.saved_image }}
+      # - if: github.event_name == 'schedule'
+      #   run: >
+      #     docker run --rm --env=CI=true -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive
+      #     curoky/devspace:${{ matrix.saved_image }}
 
   # dist-tabby:
   #   runs-on: ubuntu-latest
