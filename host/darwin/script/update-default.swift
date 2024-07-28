@@ -17,6 +17,7 @@ let config: [String: String] = [
 
     // Image types
     "public.image": "com.apple.Preview",
+    "public.heic": "com.apple.Preview",
     "public.camera-raw-image": "com.apple.Preview"
 ]
 
