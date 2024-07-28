@@ -46,7 +46,11 @@ RUN sudo ln -s /opt/sbt/store/zsh/bin/zsh /usr/bin \
 ENV PATH=${PATH}:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin
 RUN curl -L https://nixos.org/nix/install | sh -s -- --no-daemon \
   && nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs \
-  && nix-channel --update
+  && nix-channel --update \
+  && nix-env -iA nixpkgs.ollama-cpu \
+  && nix-env -iA nixpkgs.opencommit \
+  && nix-collect-garbage -d \
+  && nix-store --optimise
 
 # setup rust
 ENV CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup
@@ -67,6 +71,10 @@ ENV PATH=${PATH}:/opt/conda/condabin
 RUN conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main \
   && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
 
+# setup overlay
+COPY images/base/script/install-s6-overlay.sh /tmp/install-s6-overlay.sh
+RUN sudo /tmp/install-s6-overlay.sh
+
 # setup devspace
 COPY --chown=5230:5230 ./ /opt/devspace
 RUN bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles \
@@ -81,4 +89,8 @@ RUN bash /opt/devspace/images/base/script/setup-sysconf.sh /opt/devspace/dotfile
   && bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles \
   && ln -s /opt/devspace ~/devspace
 
-ENTRYPOINT ["/opt/devspace/images/base/script/entrypoint.sh"]
+RUN /opt/devspace/images/base/script/s6-init/init.sh
+
+# ENTRYPOINT ["/opt/devspace/images/base/script/legacy-init/entrypoint.sh"]
+
+ENTRYPOINT ["/init"]

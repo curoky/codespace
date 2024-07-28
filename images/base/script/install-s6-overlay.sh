@@ -17,16 +17,14 @@
 # limitations under the License.
 
 set -xeuo pipefail
+export PATH=$PATH:/opt/sbt/bin
 
-/opt/devspace/images/base/script/start-sshd.sh $SSHD_PORT
-sudo -u x bash /opt/devspace/tools/profile-installer.sh --ssl-pass-src pass:$PROFILE_PASS
-sudo -u x bash /home/x/.config/atuin/login-and-sync.sh &
+cd /tmp
+wget https://github.com/just-containers/s6-overlay/releases/download/v3.2.2.0/s6-overlay-x86_64.tar.xz
+wget https://github.com/just-containers/s6-overlay/releases/download/v3.2.2.0/s6-overlay-noarch.tar.xz
 
-sudo -u x bash /opt/devspace/images/base/script/backgroup-task.sh &
+mkdir -p /opt/s6-overlay
+tar -xf s6-overlay-x86_64.tar.xz -C /
+tar -xf s6-overlay-noarch.tar.xz -C /
 
-# clean cache
-rm -rf /home/x/.cache/starship.plugin.zsh \
-  /home/x/.cache/conda.plugin.zsh \
-  /home/x/.cache/atuin.plugin.zsh
-
-while true; do sleep 86400; done
+rm -rf s6-overlay-x86_64.tar.xz s6-overlay-noarch.tar.xz

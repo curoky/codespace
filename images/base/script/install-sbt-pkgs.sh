@@ -108,7 +108,7 @@ pkgs=(
   git-filter-repo
   git-lfs
   glibcLocales
-  gnupg-minimal
+  gnupg
   ninja
   openssh_gssapi
   procs
@@ -126,6 +126,7 @@ pkgs=(
   cronie
   p7zip
   parallel
+  nixfmt
 
   ##### unneeded
   # aria2
@@ -151,13 +152,28 @@ pkgs=(
   perl
 )
 
+pkgs_nolink=(
+  python311
+
+  s6
+  s6-rc
+  s6-linux-init
+  s6-linux-utils
+  s6-portable-utils
+  s6-networking
+  s6-dns
+  execline
+)
+
 mkdir -p /opt/sbt/bin
 curl https://raw.githubusercontent.com/curoky/static-binaries/refs/heads/master/tools/sbt >/opt/sbt/bin/sbt
 chmod +x /opt/sbt/bin/sbt
 for pkg in "${pkgs[@]}"; do
   /opt/sbt/bin/sbt install $pkg &
 done
-/opt/sbt/bin/sbt install python311 --nolink &
+for pkg in "${pkgs_nolink[@]}"; do
+  /opt/sbt/bin/sbt install --nolink $pkg &
+done
 wait
 
 ln -s -r /opt/sbt/bin/bazelisk /opt/sbt/bin/bazel

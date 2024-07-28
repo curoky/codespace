@@ -17,11 +17,17 @@
 # limitations under the License.
 
 set -xeuo pipefail
-cd "$(dirname $0)" || exit 1
 
-base_image=${1:-'debian:10'} #debian:10
+/opt/devspace/images/base/script/legacy-init/start-sshd.sh $SSHD_PORT
+sudo -u x ln -sf /home/x/.vscode-server/data/Machine/settings.json /workspace/.vscode-server/data/Machine/settings.json
+sudo -u x bash /opt/devspace/tools/profile-installer.sh --ssl-pass-src pass:$PROFILE_PASS
+sudo -u x bash /home/x/.config/atuin/login-and-sync.sh &
 
-# --no-cache \
-docker build ../.. --network=host --file Dockerfile "${@:2}" \
-  --build-arg="BASE_IMAGE=${base_image}" \
-  --tag docker.io/curoky/devspace:base-${base_image//:/} --pull=false # --log-level debug --progress plain
+sudo -u x bash /opt/devspace/images/base/script/legacy-init/backgroup-task.sh &
+
+# clean cache
+rm -rf /home/x/.cache/starship.plugin.zsh \
+  /home/x/.cache/conda.plugin.zsh \
+  /home/x/.cache/atuin.plugin.zsh
+
+while true; do sleep 86400; done

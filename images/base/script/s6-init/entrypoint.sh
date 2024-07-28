@@ -17,11 +17,21 @@
 # limitations under the License.
 
 set -xeuo pipefail
-cd "$(dirname $0)" || exit 1
 
-base_image=${1:-'debian:10'} #debian:10
+ln -sf /home/x/.vscode-server/data/Machine/settings.json /workspace/.vscode-server/data/Machine/settings.json
 
-# --no-cache \
-docker build ../.. --network=host --file Dockerfile "${@:2}" \
-  --build-arg="BASE_IMAGE=${base_image}" \
-  --tag docker.io/curoky/devspace:base-${base_image//:/} --pull=false # --log-level debug --progress plain
+/opt/devspace/tools/profile-installer.sh --ssl-pass-src pass:$(cat /var/run/s6/container_environment/PROFILE_PASS)
+/home/x/.config/atuin/login-and-sync.sh &
+
+export PATH=$PATH:/opt/rust/cargo/bin:/opt/sbt/bin
+/opt/devspace/images/base/stage/uv/conda/install.sh py3 &
+
+# clean cache
+rm -rf /home/x/.cache/starship.plugin.zsh \
+  /home/x/.cache/conda.plugin.zsh \
+  /home/x/.cache/atuin.plugin.zsh
+
+ollama pull llama3:8b &
+ollama pull mistral &
+
+wait
