@@ -18,6 +18,20 @@
 
 set -xeuo pipefail
 
+function link() {
+  local src_dir=$1
+  local dst_dir=$2
+  find "$src_dir" \( -type f -o -type l \) | while read -r file; do
+    rel_path="${file#$src_dir/}"
+    dest_file="$dst_dir/$rel_path"
+    mkdir -p "$(dirname "$dest_file")"
+    if [[ -L $dest_file ]] || [[ -f $dest_file ]]; then
+      rm "$dest_file"
+    fi
+    ln -s -r "$file" "$dest_file"
+  done
+}
+
 pkgs=(
   bzip2
   clang-format_18
@@ -179,6 +193,15 @@ wait
 ln -s -r /opt/sbt/bin/bazelisk /opt/sbt/bin/bazel
 ln -s -r /opt/sbt/bin/clang-format-21 /opt/sbt/bin/clang-format
 rm -rf /opt/sbt/store/nettools/bin/hostname
+
+link /opt/sbt/store/s6 /opt/sbt/profile/s6-overlay
+link /opt/sbt/store/s6-rc /opt/sbt/profile/s6-overlay
+link /opt/sbt/store/s6-dns /opt/sbt/profile/s6-overlay
+link /opt/sbt/store/s6-linux-init /opt/sbt/profile/s6-overlay
+link /opt/sbt/store/s6-linux-utils /opt/sbt/profile/s6-overlay
+link /opt/sbt/store/s6-networking /opt/sbt/profile/s6-overlay
+link /opt/sbt/store/s6-portable-utils /opt/sbt/profile/s6-overlay
+link /opt/sbt/store/execline /opt/sbt/profile/s6-overlay
 
 # option
 rm -rf /opt/sbt/store/cmake/share/cmake*/Help

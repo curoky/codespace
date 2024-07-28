@@ -31,7 +31,7 @@ rm -rf /home/x/.cache/starship.plugin.zsh \
   /home/x/.cache/conda.plugin.zsh \
   /home/x/.cache/atuin.plugin.zsh
 
-ollama pull llama3:8b &
-ollama pull mistral &
+# ollama pull llama3:8b &
+# ollama pull mistral &
 
 wait

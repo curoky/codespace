@@ -96,3 +96,6 @@ locale-gen
 # cp $CONF_PATH/linux/locale/locale.conf /etc/locale.conf
 # mkdir -p /usr/lib/locale
 # ln -sf /nix/var/nix/profiles/default/lib/locale/locale-archive /usr/lib/locale/locale-archive
+
+# setup s6-overlay
+copy_path $CONF_PATH/s6-overlay /etc/s6-overlay

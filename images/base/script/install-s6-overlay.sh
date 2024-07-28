@@ -24,7 +24,18 @@ wget https://github.com/just-containers/s6-overlay/releases/download/v3.2.2.0/s6
 wget https://github.com/just-containers/s6-overlay/releases/download/v3.2.2.0/s6-overlay-noarch.tar.xz
 
 mkdir -p /opt/s6-overlay
-tar -xf s6-overlay-x86_64.tar.xz -C /
-tar -xf s6-overlay-noarch.tar.xz -C /
+tar -xf s6-overlay-x86_64.tar.xz -C /opt/s6-overlay
+tar -xf s6-overlay-noarch.tar.xz -C /opt/s6-overlay
+
+for f in $(find /opt/s6-overlay -type f); do
+  if file --brief "$f" | grep -q 'text'; then
+    sed -e 's|/package|/opt/s6-overlay/package|g' -i"" "$f" || true
+    sed -e 's|/command|/opt/s6-overlay/command|g' -i"" "$f" || true
+  fi
+done
+
+sed -e 's|bin/sh -e|bin/bash -xe|g' -i"" /opt/s6-overlay/package/admin/s6-overlay-3.2.2.0/libexec/stage0
+sudo ln -sf /opt/s6-overlay/package /package
+# sed -e 's|exec|exec execlineb|g' -i"" /opt/s6-overlay/package/admin/s6-overlay-3.2.2.0/libexec/stage0
 
 rm -rf s6-overlay-x86_64.tar.xz s6-overlay-noarch.tar.xz

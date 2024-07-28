@@ -73,7 +73,7 @@ RUN conda tos accept --override-channels --channel https://repo.anaconda.com/pkg
 
 # setup overlay
 COPY images/base/script/install-s6-overlay.sh /tmp/install-s6-overlay.sh
-RUN sudo /tmp/install-s6-overlay.sh
+RUN /tmp/install-s6-overlay.sh
 
 # setup devspace
 COPY --chown=5230:5230 ./ /opt/devspace
@@ -89,8 +89,8 @@ RUN bash /opt/devspace/images/base/script/setup-sysconf.sh /opt/devspace/dotfile
   && bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles \
   && ln -s /opt/devspace ~/devspace
 
-RUN /opt/devspace/images/base/script/s6-init/init.sh
+RUN /opt/devspace/images/base/script/s6-init/setup.sh
 
 # ENTRYPOINT ["/opt/devspace/images/base/script/legacy-init/entrypoint.sh"]
 
-ENTRYPOINT ["/init"]
+ENTRYPOINT ["/opt/s6-overlay/init"]
