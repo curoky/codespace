@@ -23,8 +23,8 @@ ln -sf /home/x/.vscode-server/data/Machine/settings.json /workspace/.vscode-serv
 /opt/devspace/tools/profile-installer.sh --ssl-pass-src pass:$(cat /var/run/s6/container_environment/PROFILE_PASS)
 /home/x/.config/atuin/login-and-sync.sh &
 
-export PATH=$PATH:/opt/rust/cargo/bin:/opt/sbt/bin
-/opt/devspace/images/base/stage/uv/conda/install.sh py3 &
+# export PATH=$PATH:/opt/rust/cargo/bin:/opt/sbt/bin
+# /opt/devspace/images/base/stage/uv/conda/install.sh py3 &
 
 # clean cache
 rm -rf /home/x/.cache/starship.plugin.zsh \

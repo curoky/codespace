@@ -19,4 +19,4 @@ USER x
   # && sudo ln -s /opt/conda/envs/py3/bin/python3 /usr/bin/python3
 
 USER root
-ENTRYPOINT ["/init"]
+ENTRYPOINT ["/opt/s6-overlay/init"]
