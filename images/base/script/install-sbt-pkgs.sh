@@ -78,6 +78,7 @@ pkgs=(
   lefthook
   uv
   yazi
+  sqlite
 
   ####  too basic tool
   cacert
