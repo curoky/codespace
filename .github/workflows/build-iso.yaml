@@ -1,0 +1,54 @@
+name: Build ISO
+
+on:
+  push:
+    paths:
+      - '.github/workflows/build-iso.yaml'
+      - 'images/iso/**'
+  schedule:
+    - cron: '0 0 * * 0'
+
+jobs:
+  base:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: 'images/iso'
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          driver-opts: network=host
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: images/iso
+          file: images/iso/Dockerfile
+          # push: true
+          load: true
+          tags: curoky/devspace:live-build
+
+      - run: >
+          docker run --privileged --detach --name iso-builder
+          -v $(pwd)/build:/build
+          -v $(pwd)/script:/script
+          -v $(pwd)/config:/config
+          curoky/devspace:live-build tail -f /dev/null
+
+      - run: docker exec iso-builder /script/step-1-lb-config.sh
+      - run: docker exec iso-builder /script/step-2-lb-bootstrap.sh
+      - run: docker exec iso-builder /script/step-3-lb-chroot.sh
+      - run: docker exec iso-builder /script/step-4-lb-binary.sh
+      - run: ls -la build
+
+      - uses: svenstaro/upload-release-action@v2
+        with:
+          file: images/iso/build/live-image-arm64.hybrid.iso
+          asset_name: debian-13-xfce-arm64.hybrid.iso
+          tag: 'v1.0'
+          overwrite: true

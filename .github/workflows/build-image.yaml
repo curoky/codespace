@@ -3,7 +3,7 @@ name: Build images
 on:
   push:
     paths:
-      - '.github/workflows/dist-image.yaml'
+      - '.github/workflows/build-image.yaml'
       - 'images/**'
       - 'dotfiles/**'
   workflow_dispatch:

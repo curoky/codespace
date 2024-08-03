@@ -18,6 +18,7 @@
 
 set -xeuo pipefail
 
+mkdir -p /workspace/.vscode-server/data/Machine
 ln -sf /home/x/.vscode-server/data/Machine/settings.json /workspace/.vscode-server/data/Machine/settings.json
 
 /opt/devspace/tools/profile-installer.sh --ssl-pass-src pass:$(cat /var/run/s6/container_environment/PROFILE_PASS)
