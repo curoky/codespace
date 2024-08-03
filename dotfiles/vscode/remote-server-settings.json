@@ -12,10 +12,7 @@
   "[cpp]": {
     "editor.tabSize": 2
   },
-  "bazel.buildifierExecutable": "/opt/sbt/store/buildifier/bin/buildifier",
-  "bazel.executable": "/opt/sbt/store/bazelisk/bin/bazelisk",
   "clang-format.executable": "/opt/sbt/store/clang-format_18/bin/clang-format-18",
-  "clang-format.fallbackStyle": "Google",
   "cmake.cmakePath": "/opt/sbt/store/cmake/bin/cmake",
   "cmake.ctestPath": "/opt/sbt/store/cmake/bin/ctest",
   "cmakeFormat.exePath": "/nix/var/nix/profiles/default/bin/cmake-format",
@@ -29,7 +26,6 @@
   "go.alternateTools": {
     "go": "/nix/var/nix/profiles/default/bin/go"
   },
-  "http.proxySupport": "off",
   "java.configuration.runtimes": [
     // {
     //   "name": "JavaSE-1.8",
@@ -50,20 +46,17 @@
   "java.jdt.ls.java.home": "/nix/var/nix/profiles/jdk/lib/openjdk",
   "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx16G -Xms4G",
   "java.trace.server": "verbose",
-  "jupyter.widgetScriptSources": ["jsdelivr.com", "unpkg.com"],
   "markdown-preview-enhanced.pandocPath": "/nix/var/nix/profiles/default/bin/pandoc",
   "prettier.prettierPath": "/nix/var/nix/profiles/default/bin/prettier.cjs",
   "python.defaultInterpreterPath": "/opt/uv/py3/.venv/bin/python3",
   // "python.formatting.yapfPath": "/nix/var/nix/profiles/default/bin/yapf",
-  "remote.autoForwardPortsSource": "output",
   "ruby.interpreter.commandPath": "/nix/var/nix/profiles/default/bin/ruby",
   "ruby.pathToBundler": "/nix/var/nix/profiles/default/bin/bundle",
-  "ruff.path": ["/opt/sbt/store/ruff/bin/ruff"],
-  "ruff.interpreter": ["/opt/uv/py3/.venv/bin/python3"],
+  "ruff.interpreter": [
+    "/opt/uv/py3/.venv/bin/python3"
+  ],
   // "ruby.useBundler": true,
   "shellcheck.executablePath": "/nix/var/nix/profiles/default/bin/shellcheck",
-  "shellformat.path": "/opt/sbt/store/shfmt/bin/shfmt",
-  "sqlite.sqlite3": "/nix/var/nix/profiles/default/bin/sqlite3",
   "typescript.npm": "/nix/var/nix/profiles/default/bin/npm",
   "xml.java.home": "/nix/var/nix/profiles/jdk/lib/openjdk",
   "xml.server.vmargs": "-Xmx5G"

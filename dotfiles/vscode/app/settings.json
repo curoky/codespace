@@ -63,6 +63,7 @@
     "editor.defaultFormatter": "vscode.json-language-features"
   },
   "[markdown]": {
+    "editor.defaultFormatter": "yzhang.markdown-all-in-one",
     // "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.quickSuggestions": {
       "comments": "on",
@@ -105,9 +106,14 @@
   "bazel.buildifierExecutable": "/opt/sbt/store/buildifier/bin/buildifier",
   "bazel.buildifierFixOnFormat": true,
   "bazel.enableCodeLens": true,
+  "bazel.executable": "/opt/sbt/store/bazelisk/bin/bazelisk",
   "bazel.queriesShareServer": true,
   "bookmarks.saveBookmarksInProject": true,
   "chat.agent.enabled": false,
+  "chat.disableAIFeatures": true,
+  "chat.instructionsFilesLocations": {
+    ".github/instructions": true
+  },
   "chat.mcp.access": "none",
   "chat.mcp.discovery.enabled": {
     "claude-desktop": false,
@@ -115,6 +121,7 @@
     "cursor-workspace": false,
     "windsurf": false
   },
+  "clang-format.fallbackStyle": "Google",
   "cmake.buildDirectory": "${workspaceRoot}/_build",
   "cmake.buildToolArgs": [
     "-k 1000"
@@ -151,6 +158,7 @@
   "editor.lineHeight": 31,
   "editor.maxTokenizationLineLength": 2000,
   "editor.minimap.enabled": false,
+  "editor.smartSelect.selectSubwords": false,
   "editor.stickyScroll.enabled": true,
   "editor.suggest.preview": true,
   "editor.tabSize": 2,
@@ -200,6 +208,7 @@
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
   "files.trimTrailingWhitespace": true,
+  "geminicodeassist.displayInlineContextHint": false,
   "geminicodeassist.enableTelemetry": false,
   "git-graph.date.format": "ISO Date & Time",
   "git-graph.maxDepthOfRepoSearch": 4,
@@ -240,6 +249,8 @@
   "hdinsight.disableOpenSurveyLink": true,
   "hediet.vscode-drawio.codeLinkActivated": false,
   "hediet.vscode-drawio.theme": "automatic",
+  "http.proxySupport": "off",
+  "http.systemCertificatesNode": true,
   "java.configuration.runtimes": [
     {
       "name": "JavaSE-11",
@@ -266,6 +277,10 @@
   "jupyter.runStartupCommands": [
     "import sys"
     // "sys.path.insert(0, '')"
+  ],
+  "jupyter.widgetScriptSources": [
+    "jsdelivr.com",
+    "unpkg.com"
   ],
   "liveServer.settings.donotShowInfoMsg": true,
   "liveServer.settings.donotVerifyTags": true,
@@ -300,8 +315,15 @@
   "redhat.telemetry.enabled": false,
   "remote.SSH.connectTimeout": 36000,
   "remote.SSH.experimental.chat": false,
-  "remote.SSH.logLevel": "trace",
+  "remote.SSH.localServerDownload": "off",
   "remote.SSH.maxReconnectionAttempts": 8,
+  "remote.SSH.reconnectionGraceTime": 36000,
+  "remote.SSH.serverInstallPath": {
+    "my_h20_comp": "/workspace",
+    "my_h20_simp": "/workspace",
+    "sg_t4_simp": "/workspace"
+  },
+  "remote.autoForwardPortsSource": "output",
   "remote.downloadExtensionsLocally": true,
   "remote.tunnels.access.preventSleep": true,
   "rest-client.enableTelemetry": false,
@@ -318,7 +340,7 @@
     "/opt/homebrew/bin/python3"
   ],
   "ruff.path": [
-    "/opt/homebrew/bin/ruff"
+    "/opt/sbt/store/ruff/bin/ruff"
   ],
   "rust-client.disableRustup": true,
   "rust-client.enableMultiProjectSetup": null,
@@ -337,6 +359,7 @@
   "security.workspace.trust.enabled": false,
   "shellformat.flag": "-i 2 -s -ci",
   "shellformat.path": "/opt/sbt/store/shfmt/bin/shfmt",
+  "sqlite.sqlite3": "/opt/sbt/store/sqlite/bin/sqlite",
   // "sql-formatter.uppercase": true,
   // "sqltools.useNodeRuntime": true,
   // "svg.preview.mode": "svg",
@@ -361,7 +384,9 @@
   "terminal.integrated.fontWeight": "500",
   "terminal.integrated.gpuAcceleration": "on",
   "terminal.integrated.inheritEnv": false,
+  "terminal.integrated.initialHint": false,
   "terminal.integrated.scrollback": 100000,
+  "terminal.integrated.shellIntegration.history": 10000,
   "testMate.cpp.discovery.gracePeriodForMissing": 20,
   "testMate.cpp.discovery.runtimeLimit": 20,
   "testMate.cpp.log.logSentry": "enable",
@@ -407,9 +432,6 @@
   "xml.symbols.maxItemsComputed": 400000,
   "yaml.format.enable": true,
   "yaml.format.singleQuote": true,
-  "chat.disableAIFeatures": true,
-  "chat.instructionsFilesLocations": {
-    ".github/instructions": true
-  },
-  "terminal.integrated.shellIntegration.history": 10000
+  "python-envs.terminal.autoActivationType": "shellStartup",
+  "python-envs.terminal.showActivateButton": true
 }
