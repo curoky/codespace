@@ -57,7 +57,7 @@ jobs:
           provenance: mode=max
           cache-from: type=registry,ref=curoky/devspace:__cache_base_${{ matrix.saved_image }}
           cache-to: type=registry,ref=curoky/devspace:__cache_base_${{ matrix.saved_image }},mode=max
-          no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
+          no-cache: ${{ github.event_name == 'workflow_dispatch' || inputs.disable_docker_cache == true }}
           build-args: BASE_IMAGE=${{ matrix.base_image }}
           tags: curoky/devspace:base-${{ matrix.saved_image }}
 
@@ -89,7 +89,7 @@ jobs:
   #         provenance: mode=max
   #         cache-from: type=registry,ref=curoky/devspace:__cache_stage_${{ matrix.name }}
   #         cache-to: type=registry,ref=curoky/devspace:__cache_stage_${{ matrix.name }},mode=max
-  #         no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
+  #         no-cache: ${{ github.event_name == 'workflow_dispatch' || inputs.disable_docker_cache == true }}
   #         tags: curoky/devspace:stage-${{ matrix.name }}
   #     - if: github.event_name == 'schedule'
   #       run: >
@@ -120,7 +120,7 @@ jobs:
           provenance: mode=max
           cache-from: type=registry,ref=curoky/devspace:__cache_dist_${{ matrix.saved_image }}
           cache-to: type=registry,ref=curoky/devspace:__cache_dist_${{ matrix.saved_image }},mode=max
-          no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
+          no-cache: ${{ github.event_name == 'workflow_dispatch' || inputs.disable_docker_cache == true }}
           tags: curoky/devspace:${{ matrix.saved_image }}
       # - if: github.event_name == 'schedule'
       #   run: >
@@ -150,7 +150,7 @@ jobs:
   #         provenance: mode=max
   #         cache-from: type=registry,ref=curoky/devspace:__cache_dist_${{ matrix.saved_image }}
   #         cache-to: type=registry,ref=curoky/devspace:__cache_dist_${{ matrix.saved_image }},mode=max
-  #         no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
+  #         no-cache: ${{ github.event_name == 'workflow_dispatch' || inputs.disable_docker_cache == true }}
   #         tags: curoky/devspace:${{ matrix.saved_image }}
 
   # dist-tf:
@@ -186,7 +186,7 @@ jobs:
   #         provenance: mode=max
   #         cache-from: type=registry,ref=curoky/devspace:__cache_dist_${{ matrix.name }}
   #         cache-to: type=registry,ref=curoky/devspace:__cache_dist_${{ matrix.name }},mode=max
-  #         no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
+  #         no-cache: ${{ github.event_name == 'workflow_dispatch' || inputs.disable_docker_cache == true }}
   #         tags: curoky/devspace:${{ matrix.name }}
   #     # no space left
   #     # - run: >
