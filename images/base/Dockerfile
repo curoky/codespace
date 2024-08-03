@@ -63,8 +63,8 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --profile default --no-modify-p
 ENV PATH=${PATH}:/opt/pipx/bin
 COPY images/base/stage/uv/pipx /tmp/uv-pipx
 RUN /tmp/uv-pipx/install.sh && pipx install licenseheaders
-COPY images/base/stage/uv/conda /tmp/uv-conda
-RUN /tmp/uv-conda/install.sh py3
+# COPY images/base/stage/uv/conda /tmp/uv-conda
+# RUN /tmp/uv-conda/install.sh py3
 
 # setup conda
 COPY --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
