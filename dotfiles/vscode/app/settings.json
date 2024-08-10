@@ -116,6 +116,14 @@
     ".github/instructions": true
   },
   "chat.mcp.access": "none",
+  "chat.mcp.apps.enabled": false,
+  "chat.mcp.autostart": "never",
+  "chat.mcp.discovery.enabled": {
+    "claude-desktop": false,
+    "cursor-global": false,
+    "cursor-workspace": false,
+    "windsurf": false
+  },
   "clang-format.fallbackStyle": "Google",
   "cmake.buildDirectory": "${workspaceRoot}/_build",
   "cmake.buildToolArgs": [
