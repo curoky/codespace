@@ -53,7 +53,7 @@
   "ruby.interpreter.commandPath": "/nix/var/nix/profiles/default/bin/ruby",
   "ruby.pathToBundler": "/nix/var/nix/profiles/default/bin/bundle",
   "ruff.interpreter": [
-    "/opt/uv/py3/.venv/bin/python3"
+    "/opt/conda/bin/python3"
   ],
   // "ruby.useBundler": true,
   "shellcheck.executablePath": "/nix/var/nix/profiles/default/bin/shellcheck",
