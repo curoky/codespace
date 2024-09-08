@@ -79,6 +79,7 @@ pkgs=(
   uv
   yazi
   sqlite
+  gh
 
   ####  too basic tool
   cacert
