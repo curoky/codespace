@@ -2,14 +2,14 @@
 ARG BASE_IMAGE=debian:12
 
 ################################ stage/static tools ################################
-FROM debian:latest AS stage_sbt
+FROM docker.io/debian:latest AS stage_sbt
 RUN apt-get update -y && apt-get install -y curl zstd
 
 COPY images/base/script/install-sbt-pkgs.sh /tmp/install-sbt-pkgs.sh
 RUN /tmp/install-sbt-pkgs.sh
 
 ################################# stage/conda environ ################################
-FROM debian:stable-slim AS stage_conda
+FROM docker.io/debian:stable-slim AS stage_conda
 
 RUN apt-get update -y \
   && apt-get install -y curl gcc g++ git pkg-config \
@@ -19,7 +19,7 @@ RUN apt-get update -y \
 COPY images/base/stage/conda/setup-conda-env.sh /opt/conda/condabin/setup-conda-env.sh
 
 ################################ main ################################
-FROM $BASE_IMAGE
+FROM docker.io/$BASE_IMAGE
 
 ENV PATH=${PATH}:/opt/sbt/bin \
   DEBIAN_FRONTEND=noninteractive \
@@ -41,7 +41,8 @@ RUN sudo ln -s /opt/sbt/store/zsh/bin/zsh /usr/bin \
   && sudo ln -s /opt/sbt/store/wget/bin/wget /usr/bin \
   && sudo ln -s /opt/sbt/store/curl/bin/curl /usr/bin \
   && sudo ln -s /opt/sbt/store/openssh_gssapi/bin/ssh /usr/bin \
-  && sudo ln -s /opt/sbt/bin/openssl /usr/bin
+  && sudo ln -s /opt/sbt/store/xz/bin/xz /usr/bin \
+  && sudo ln -s /opt/sbt/store/openssl/bin/openssl /usr/bin
 
 # setup nixpkgs
 ENV PATH=${PATH}:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin
