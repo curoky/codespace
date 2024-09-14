@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.9.0
-FROM curoky/devspace:base-ubuntu25.10
+FROM ghcr.io/curoky/devspace:base-ubuntu25.10
 
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
