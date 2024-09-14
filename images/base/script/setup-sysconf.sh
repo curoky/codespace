@@ -99,3 +99,6 @@ locale-gen
 
 # setup s6-overlay
 copy_path $CONF_PATH/s6-overlay /etc/s6-overlay
+
+# setup other
+copy_path $CONF_PATH/nixpkgs/nix.conf /etc/nix/nix.conf

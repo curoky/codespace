@@ -34,10 +34,11 @@ function link() {
 
 pkgs=(
   bzip2
-  # clang-format_18
-  # clang-format_19
-  # clang-format_20
-  # clang-format_21
+  clang-format_18
+  clang-format_19
+  clang-format_20
+  clang-format_21
+  # clang-format_22
   connect
   dool
   ethtool
@@ -109,6 +110,7 @@ pkgs=(
   autoconf
   automake
   libtool
+  nixfmt
 
   #### only use in docker
   atuin
@@ -150,12 +152,9 @@ pkgs=(
   # coreutils
   # croc
   # dive
-  # gh
   # gost
   # iptables
   # lld_18
-  # nixfmt-rfc-style
-  # nixpkgs-fmt
   # numactl
   scc
   cloc
@@ -185,10 +184,10 @@ mkdir -p /opt/sbt/bin
 curl https://raw.githubusercontent.com/curoky/static-binaries/refs/heads/dev/tools/sbt >/opt/sbt/bin/sbt
 chmod +x /opt/sbt/bin/sbt
 for pkg in "${pkgs[@]}"; do
-  /opt/sbt/bin/sbt install $pkg &
+  /opt/sbt/bin/sbt install --version=3 $pkg &
 done
 for pkg in "${pkgs_nolink[@]}"; do
-  /opt/sbt/bin/sbt install --nolink $pkg &
+  /opt/sbt/bin/sbt install --version=3 --nolink $pkg &
 done
 wait
 
