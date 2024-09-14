@@ -436,5 +436,6 @@
   "yaml.format.enable": true,
   "yaml.format.singleQuote": true,
   "python-envs.terminal.autoActivationType": "shellStartup",
-  "python-envs.terminal.showActivateButton": true
+  "python-envs.terminal.showActivateButton": true,
+  "remote.SSH.logLevel": "trace"
 }
