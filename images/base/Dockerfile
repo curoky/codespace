@@ -39,9 +39,9 @@ USER x
 COPY --chown=5230:5230 --link --from=stage_sbt /opt/sbt /opt/sbt
 RUN sudo ln -s /opt/sbt/store/zsh/bin/zsh /usr/bin \
   && sudo ln -s /opt/sbt/store/wget/bin/wget /usr/bin \
-  && sudo ln -s /opt/sbt/store/curl/bin/curl /usr/bin \
-  && sudo ln -s /opt/sbt/store/openssh_gssapi/bin/ssh /usr/bin \
+  # && sudo ln -s /opt/sbt/store/curl/bin/curl /usr/bin \
   && sudo ln -s /opt/sbt/store/xz/bin/xz /usr/bin \
+  && sudo ln -s /opt/sbt/store/openssh_gssapi/bin/ssh /usr/bin \
   && sudo ln -s /opt/sbt/store/openssl/bin/openssl /usr/bin
 
 # setup nixpkgs

@@ -34,11 +34,7 @@ function link() {
 
 pkgs=(
   bzip2
-  clang-format_18
-  clang-format_19
-  clang-format_20
-  clang-format_21
-  # clang-format_22
+  clang-tools-22
   connect
   dool
   ethtool
@@ -169,6 +165,10 @@ pkgs=(
 
 pkgs_nolink=(
   python311
+  clang-tools-18
+  clang-tools-19
+  clang-tools-20
+  clang-tools-21
 
   s6
   s6-rc
@@ -181,7 +181,7 @@ pkgs_nolink=(
 )
 
 mkdir -p /opt/sbt/bin
-curl https://raw.githubusercontent.com/curoky/static-binaries/refs/heads/dev/tools/sbt >/opt/sbt/bin/sbt
+curl https://raw.githubusercontent.com/curoky/static-binaries/refs/heads/master/tools/sbt >/opt/sbt/bin/sbt
 chmod +x /opt/sbt/bin/sbt
 for pkg in "${pkgs[@]}"; do
   /opt/sbt/bin/sbt install --version=3 $pkg &
@@ -192,7 +192,7 @@ done
 wait
 
 ln -s -r /opt/sbt/bin/bazelisk /opt/sbt/bin/bazel
-ln -s -r /opt/sbt/bin/clang-format-21 /opt/sbt/bin/clang-format
+# ln -s -r /opt/sbt/bin/clang-format-21 /opt/sbt/bin/clang-format
 rm -rf /opt/sbt/store/nettools/bin/hostname
 
 link /opt/sbt/store/s6 /opt/sbt/profile/s6-overlay
