@@ -48,20 +48,20 @@ pkgs=(
   ncdu_1
   netcat
   openssl
-  # rime-plugs
+  # rime-plugins
   rsync
   shfmt
   starship
   unzip
-  vim-plugs
+  vim-plugins
   xz
   zip
-  zsh-plugs
+  zsh-plugins
   zstd
   buildifier
   ripgrep
   # tmux
-  # tmux-plugs
+  # tmux-plugins
   lefthook
   bazelisk
   uv

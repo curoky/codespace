@@ -70,9 +70,9 @@ pkgs=(
   zlib-ng
   zstd
   tmux
-  tmux-plugs
+  tmux-plugins
   vim
-  vim-plugs
+  vim-plugins
   ripgrep
   cmake
   git
@@ -140,7 +140,7 @@ pkgs=(
   starship
   tzdata
   zsh
-  zsh-plugs
+  zsh-plugins
   cronie
   p7zip
   parallel
