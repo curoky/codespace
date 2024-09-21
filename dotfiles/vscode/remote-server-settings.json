@@ -1,5 +1,5 @@
 {
-  "C_Cpp.clang_format_path": "/opt/sbt/store/clang-format_18/bin/clang-format-18",
+  "C_Cpp.clang_format_path": "/opt/sbt/store/clang-tools-18/bin/clang-format",
   "C_Cpp.codeAnalysis.maxConcurrentThreads": 32,
   "C_Cpp.codeAnalysis.maxMemory": 50000,
   "C_Cpp.intelliSense.maxCachedProcesses": 120,
@@ -12,7 +12,7 @@
   "[cpp]": {
     "editor.tabSize": 2
   },
-  "clang-format.executable": "/opt/sbt/store/clang-format_18/bin/clang-format-18",
+  "clang-format.executable": "/opt/sbt/store/clang-tools-18/bin/clang-format",
   "cmake.cmakePath": "/opt/sbt/store/cmake/bin/cmake",
   "cmake.ctestPath": "/opt/sbt/store/cmake/bin/ctest",
   "cmakeFormat.exePath": "/nix/var/nix/profiles/default/bin/cmake-format",
