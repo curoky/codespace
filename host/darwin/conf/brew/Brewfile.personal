@@ -17,8 +17,8 @@ casks = [
   'snipaste',
   'sloth',
   'localsend',
+  'resilio-sync',
   # 'flameshot',
-
 
   # 'obs',
   # 'squirrel-app',
@@ -58,7 +58,8 @@ end
 
 brews = [
   # 'pre-commit', 'prettier', 'eslint', # 'openjdk',#'git', #'yazi',
-  'python@3', 'clang-format', 'wget', 'smartmontools', 'parallel', 'exiftool', 'git-filter-repo',
+  'python@3', 'clang-format', 'wget', 'smartmontools', 'parallel', 'exiftool',
+  'prettier', 'node', 'go', 'ffmpeg',
 
   # 'krb5',
   # 'colima', 'docker', 'qemu',

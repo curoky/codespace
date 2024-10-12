@@ -141,9 +141,7 @@
   "docker.extension.enableComposeLanguageServer": false,
   "docker.languageserver.formatter.ignoreMultilineInstructions": true,
   "docker.lsp.telemetry": "off",
-  // "doxdocgen.generic.authorEmail": "cccuroky@gmail.com",
   // "http.proxy": "http://:3128",
-  // "doxdocgen.generic.authorName": "curoky",
   "editor.autoIndent": "advanced",
   "editor.bracketPairColorization.enabled": true,
   // "editor.codeActionsOnSave": {
