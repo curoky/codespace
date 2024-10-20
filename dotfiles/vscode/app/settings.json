@@ -436,5 +436,6 @@
   "python-envs.terminal.autoActivationType": "shellStartup",
   "python-envs.terminal.showActivateButton": true,
   "remote.SSH.logLevel": "trace",
-  "excalidraw.theme": "light"
+  "excalidraw.theme": "light",
+  "ruff.logLevel": "info"
 }

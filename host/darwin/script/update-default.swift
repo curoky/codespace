@@ -8,6 +8,7 @@ let config: [String: String] = [
     "public.plain-text": "com.microsoft.VSCode",
     "public.source-code": "com.microsoft.VSCode",
     "public.json": "com.microsoft.VSCode",
+    "public.toml": "com.microsoft.VSCode",
     "public.yaml": "com.microsoft.VSCode",
     "public.data": "com.microsoft.VSCode",
 

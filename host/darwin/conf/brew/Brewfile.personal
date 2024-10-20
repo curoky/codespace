@@ -18,6 +18,7 @@ casks = [
   'sloth',
   'localsend',
   'resilio-sync',
+  'input-source-pro'
   # 'flameshot',
 
   # 'obs',
@@ -27,7 +28,6 @@ casks = [
   # 'dupeguru',
   # 'adrive',
   # 'kap',
-  # 'input-source-pro',
   # 'keycastr',
   # 'pika',
   # 'miniconda',
