@@ -435,5 +435,6 @@
   "yaml.format.singleQuote": true,
   "python-envs.terminal.autoActivationType": "shellStartup",
   "python-envs.terminal.showActivateButton": true,
-  "remote.SSH.logLevel": "trace"
+  "remote.SSH.logLevel": "trace",
+  "excalidraw.theme": "light"
 }

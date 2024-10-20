@@ -41,7 +41,7 @@ pkgs=(
   gnused
   gnutar
   go-task
-  inetutils
+  # inetutils
   lsof
   m4
   makeself
@@ -68,6 +68,7 @@ pkgs=(
   ruff
   yazi
   # git
+  git-filter-repo
 
   # lxgw-wenkai
   # fira-code
