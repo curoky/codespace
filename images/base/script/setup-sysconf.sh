@@ -63,8 +63,8 @@ chsh -s /opt/sbt/bin/zsh root
 chsh -s /opt/sbt/bin/zsh x
 
 # add ca-certificates
-copy_path /opt/sbt/store/cacert/etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
-chmod 644 /etc/ssl/certs/ca-certificates.crt
+# copy_path /opt/sbt/store/cacert/etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+# chmod 644 /etc/ssl/certs/ca-certificates.crt
 
 # sudoers
 copy_path $CONF_PATH/linux/sudoers.d/more_secure_path /etc/sudoers.d/more_secure_path

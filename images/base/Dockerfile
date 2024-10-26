@@ -28,7 +28,7 @@ ENV PATH=${PATH}:/opt/sbt/bin \
 ARG BASE_IMAGE
 COPY images/base/script/patch-apt.sh /tmp/patch-apt.sh
 RUN /tmp/patch-apt.sh ${BASE_IMAGE} \
-  && apt-get update -y && apt-get install -y sudo locales
+  && apt-get update -y && apt-get install -y sudo locales ca-certificates
 
 COPY images/base/script/setup-user.sh /tmp/setup-user.sh
 RUN /tmp/setup-user.sh
@@ -41,8 +41,8 @@ RUN sudo ln -s /opt/sbt/store/zsh/bin/zsh /usr/bin \
   && sudo ln -s /opt/sbt/store/wget/bin/wget /usr/bin \
   # && sudo ln -s /opt/sbt/store/curl/bin/curl /usr/bin \
   && sudo ln -s /opt/sbt/store/xz/bin/xz /usr/bin \
-  && sudo ln -s /opt/sbt/store/openssh_gssapi/bin/ssh /usr/bin \
-  && sudo ln -s /opt/sbt/store/openssl/bin/openssl /usr/bin
+  # && sudo ln -s /opt/sbt/store/openssl/bin/openssl /usr/bin \
+  && sudo ln -s /opt/sbt/store/openssh_gssapi/bin/ssh /usr/bin
 
 # setup nixpkgs
 ENV PATH=${PATH}:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin
@@ -61,6 +61,13 @@ ENV CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup
 ENV PATH=${PATH}:/opt/rust/cargo/bin
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --profile default --no-modify-path --default-toolchain stable \
   && rustup component remove rust-docs
+
+# setup java
+RUN nix-env -iA nixpkgs.maven \
+  && nix-env -iA nixpkgs.jdk8_headless -p /nix/var/nix/profiles/jdk8 \
+  && nix-env -iA nixpkgs.jdk25_headless -p /nix/var/nix/profiles/jdk25 \
+  && nix-collect-garbage -d \
+  && nix-store --optimise
 
 # setup uv
 ENV PATH=${PATH}:/opt/pipx/bin

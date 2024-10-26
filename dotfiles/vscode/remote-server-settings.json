@@ -27,10 +27,10 @@
     "go": "/nix/var/nix/profiles/default/bin/go"
   },
   "java.configuration.runtimes": [
-    // {
-    //   "name": "JavaSE-1.8",
-    //   "path": "/nix/var/nix/profiles/jdk8/lib/openjdk"
-    // },
+    {
+      "name": "JavaSE-1.8",
+      "path": "/nix/var/nix/profiles/jdk8/lib/openjdk"
+    },
     // {
     //   "default": true,
     //   "name": "JavaSE-11",
@@ -38,12 +38,12 @@
     // }
     {
       "default": true,
-      "name": "JavaSE-19",
-      "path": "/nix/var/nix/profiles/jdk19/lib/openjdk"
+      "name": "JavaSE-25",
+      "path": "/nix/var/nix/profiles/jdk25/lib/openjdk"
     }
   ],
   "java.import.gradle.home": "/nix/var/nix/profiles/default",
-  "java.jdt.ls.java.home": "/nix/var/nix/profiles/jdk/lib/openjdk",
+  "java.jdt.ls.java.home": "/nix/var/nix/profiles/jdk25/lib/openjdk",
   "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx16G -Xms4G",
   "java.trace.server": "verbose",
   "markdown-preview-enhanced.pandocPath": "/nix/var/nix/profiles/default/bin/pandoc",
@@ -58,6 +58,6 @@
   // "ruby.useBundler": true,
   "shellcheck.executablePath": "/nix/var/nix/profiles/default/bin/shellcheck",
   "typescript.npm": "/nix/var/nix/profiles/default/bin/npm",
-  "xml.java.home": "/nix/var/nix/profiles/jdk/lib/openjdk",
+  "xml.java.home": "/nix/var/nix/profiles/jdk25/lib/openjdk",
   "xml.server.vmargs": "-Xmx5G",
 }
