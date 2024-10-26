@@ -437,5 +437,11 @@
   "python-envs.terminal.showActivateButton": true,
   "remote.SSH.logLevel": "trace",
   "excalidraw.theme": "light",
-  "ruff.logLevel": "info"
+  "ruff.logLevel": "info",
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/*.code-search": true,
+    "**/.eden-mono": true
+  }
 }
