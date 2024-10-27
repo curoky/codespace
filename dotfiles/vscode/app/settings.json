@@ -64,7 +64,7 @@
     "editor.defaultFormatter": "vscode.json-language-features"
   },
   "[markdown]": {
-    "editor.defaultFormatter": "yzhang.markdown-all-in-one",
+    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint",
     // "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.quickSuggestions": {
       "comments": "on",
@@ -318,7 +318,7 @@
   "remote.SSH.experimental.chat": false,
   "remote.SSH.localServerDownload": "off",
   "remote.SSH.maxReconnectionAttempts": 8,
-  "remote.SSH.reconnectionGraceTime": 36000,
+  "remote.SSH.reconnectionGraceTime": 360000,
   "remote.SSH.serverInstallPath": {
     "my_h20_comp": "/workspace",
     "my_h20_simp": "/workspace",
@@ -443,5 +443,8 @@
     "**/bower_components": true,
     "**/*.code-search": true,
     "**/.eden-mono": true
-  }
+  },
+  "xml.server.preferBinary": true,
+  "workbench.editor.useModal": "off",
+  "update.showReleaseNotes": false
 }
