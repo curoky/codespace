@@ -53,6 +53,7 @@ RUN curl -L https://nixos.org/nix/install | sh -s -- --no-daemon \
   && nix-env -iA nixpkgs.opencommit \
   && nix-env -iA nixpkgs.markdownlint-cli2 \
   && nix-env -iA nixpkgs.prettier \
+  && nix-env -iA nixpkgs.lemminx \
   && nix-collect-garbage -d \
   && nix-store --optimise
 
