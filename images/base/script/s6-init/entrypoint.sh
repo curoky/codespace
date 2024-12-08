@@ -18,11 +18,14 @@
 
 set -xeuo pipefail
 
+/opt/devspace/images/base/script/setup-proxy.sh
+
 mkdir -p /workspace/.vscode-server/data/Machine
 ln -sf /home/x/.vscode-server/data/Machine/settings.json /workspace/.vscode-server/data/Machine/settings.json
 ln -sf /home/x/.vscode-server/data/Machine/settings.json /home/x/.trae-server/data/Machine/settings.json
 
-/opt/devspace/tools/profile-installer.sh --ssl-pass-src pass:$(cat /var/run/s6/container_environment/PROFILE_PASS)
+# /opt/devspace/tools/profile-installer.sh --ssl-pass-src pass:$(cat /var/run/s6/container_environment/PROFILE_PASS)
+/opt/devspace/dotfiles/passkey/profile.gzip.sh --ssl-pass-src pass:$(cat /var/run/s6/container_environment/PROFILE_PASS)
 /home/x/.config/atuin/login-and-sync.sh &
 
 # export PATH=$PATH:/opt/rust/cargo/bin:/opt/sbt/bin
