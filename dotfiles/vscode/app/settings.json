@@ -427,7 +427,8 @@
   "workbench.startupEditor": "none",
   "workbench.view.alwaysShowHeaderActions": true,
   "xml.server.binary.trustedHashes": [
-    "3d9e771126ecadc94e645d7d2fa1ea98c50c9c283ffa9ddf39be665bd6cef445"
+    "3d9e771126ecadc94e645d7d2fa1ea98c50c9c283ffa9ddf39be665bd6cef445",
+    "0ba0adb68115248e110be22bfbdc79cb970ec5e6f62e9d69732ce68d15beecb6"
   ],
   "xml.server.vmargs": "-Xmx1024M",
   "xml.symbols.maxItemsComputed": 400000,
@@ -446,5 +447,7 @@
   },
   "xml.server.preferBinary": true,
   "workbench.editor.useModal": "off",
-  "update.showReleaseNotes": false
+  "update.showReleaseNotes": false,
+  "AI.toolcall.v2.command.allowList": "[\"python\"]",
+  "AI.rules.importClaudeMd": true
 }

@@ -60,4 +60,5 @@
   "typescript.npm": "/nix/var/nix/profiles/default/bin/npm",
   "xml.java.home": "/nix/var/nix/profiles/jdk25/lib/openjdk",
   "xml.server.vmargs": "-Xmx5G",
+  "xml.server.binary.path": "/home/x/.nix-profile/bin/lemminx"
 }
