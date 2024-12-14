@@ -33,16 +33,14 @@ jobs:
           #   saved_image: 'debian12'
           - base_image: 'debian:13'
             saved_image: 'debian13'
-          - base_image: 'ubuntu:20.04'
-            saved_image: 'ubuntu20.04'
+          # - base_image: 'ubuntu:20.04'
+          #   saved_image: 'ubuntu20.04'
           # - base_image: 'ubuntu:22.04'
           #   saved_image: 'ubuntu22.04'
-          # - base_image: 'ubuntu:23.04'
-          #   saved_image: 'ubuntu23.04'
-          - base_image: 'ubuntu:24.04'
-            saved_image: 'ubuntu24.04'
-          - base_image: 'ubuntu:25.10'
-            saved_image: 'ubuntu25.10'
+          # - base_image: 'ubuntu:24.04'
+          #   saved_image: 'ubuntu24.04'
+          - base_image: 'ubuntu:26.04'
+            saved_image: 'ubuntu26.04'
     # needs:
     #   - stage
     steps:
