@@ -18,7 +18,7 @@
 
 set -xeuo pipefail
 
-/opt/devspace/images/base/script/setup-proxy.sh
+sudo /opt/devspace/images/base/script/setup-proxy.sh
 
 mkdir -p /workspace/.vscode-server/data/Machine
 ln -sf /home/x/.vscode-server/data/Machine/settings.json /workspace/.vscode-server/data/Machine/settings.json
