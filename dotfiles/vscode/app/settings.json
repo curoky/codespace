@@ -320,9 +320,13 @@
   "remote.SSH.maxReconnectionAttempts": 8,
   "remote.SSH.reconnectionGraceTime": 360000,
   "remote.SSH.serverInstallPath": {
-    "my_h20_comp": "/workspace",
-    "my_h20_simp": "/workspace",
-    "sg_t4_simp": "/workspace"
+    "my2_h100_comp": "/workspace",
+    "my2_h100_simp": "/workspace",
+    "my3_h20_comp": "/workspace",
+    "my3_h20_simp": "/workspace",
+    "sg_t4_simp": "/workspace",
+    "sg_t4_comp": "/workspace",
+    "cn_boe_simp": "/workspace"
   },
   "remote.autoForwardPortsSource": "output",
   "remote.downloadExtensionsLocally": true,
