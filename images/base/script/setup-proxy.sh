@@ -8,8 +8,8 @@ function write_proxy() {
   echo "export HTTPS_PROXY=$1" >>$2
   echo "export all_proxy=$1" >>$2
   echo "export ALL_PROXY=$1" >>$2
-  echo "export no_proxy=localhost,127.0.0.1,192.168.0.0/16,10.0.0.0/8" >>$2
-  echo "export NO_PROXY=localhost,127.0.0.1,192.168.0.0/16,10.0.0.0/8" >>$2
+  echo "export no_proxy=localhost,127.0.0.1,192.168.0.0/16,10.0.0.0/8,releases.nixos.org" >>$2
+  echo "export NO_PROXY=localhost,127.0.0.1,192.168.0.0/16,10.0.0.0/8,releases.nixos.org" >>$2
 }
 
 if [[ -f /var/run/s6/container_environment/HTTP_PROXY ]]; then
