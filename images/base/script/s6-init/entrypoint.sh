@@ -18,10 +18,16 @@
 
 set -xeuo pipefail
 
+# clean cache
+rm -rf /home/x/.cache/starship.plugin.zsh \
+  /home/x/.cache/conda.plugin.zsh \
+  /home/x/.cache/atuin.plugin.zsh
+
 sudo /opt/devspace/images/base/script/setup-proxy.sh
 
 mkdir -p /workspace/.vscode-server/data/Machine
 ln -sf /home/x/.vscode-server/data/Machine/settings.json /workspace/.vscode-server/data/Machine/settings.json
+mkdir -p /home/x/.trae-server/data/Machine
 ln -sf /home/x/.vscode-server/data/Machine/settings.json /home/x/.trae-server/data/Machine/settings.json
 
 # /opt/devspace/tools/profile-installer.sh --ssl-pass-src pass:$(cat /var/run/s6/container_environment/PROFILE_PASS)
@@ -31,10 +37,6 @@ ln -sf /home/x/.vscode-server/data/Machine/settings.json /home/x/.trae-server/da
 # export PATH=$PATH:/opt/rust/cargo/bin:/opt/sbt/bin
 # /opt/devspace/images/base/stage/uv/conda/install.sh py3 &
 
-# clean cache
-rm -rf /home/x/.cache/starship.plugin.zsh \
-  /home/x/.cache/conda.plugin.zsh \
-  /home/x/.cache/atuin.plugin.zsh
 
 # ollama pull llama3:8b &
 # ollama pull mistral &

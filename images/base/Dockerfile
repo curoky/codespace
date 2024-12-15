@@ -40,6 +40,7 @@ COPY --chown=5230:5230 --link --from=stage_sbt /opt/sbt /opt/sbt
 RUN sudo ln -s /opt/sbt/store/zsh/bin/zsh /usr/bin \
   && sudo ln -s /opt/sbt/store/wget/bin/wget /usr/bin \
   # && sudo ln -s /opt/sbt/store/curl/bin/curl /usr/bin \
+  && sudo ln -s /opt/sbt/store/less/bin/less /usr/bin \
   && sudo ln -s /opt/sbt/store/xz/bin/xz /usr/bin \
   # && sudo ln -s /opt/sbt/store/openssl/bin/openssl /usr/bin \
   && sudo ln -s /opt/sbt/store/openssh_gssapi/bin/ssh /usr/bin
@@ -73,7 +74,9 @@ RUN nix-env -iA nixpkgs.maven \
 # setup uv
 ENV PATH=${PATH}:/opt/pipx/bin
 COPY images/base/stage/uv/pipx /tmp/uv-pipx
-RUN /tmp/uv-pipx/install.sh && pipx install licenseheaders
+RUN uv python install 3.14 \
+  && /tmp/uv-pipx/install.sh \
+  && pipx install licenseheaders
 # COPY images/base/stage/uv/conda /tmp/uv-conda
 # RUN /tmp/uv-conda/install.sh py3
 
