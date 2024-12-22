@@ -71,7 +71,17 @@ RUN nix-env -iA nixpkgs.maven \
   && nix-collect-garbage -d \
   && nix-store --optimise
 
-# setup uv
+# setup nodejs
+RUN nix-env -iA nixpkgs.nodejs_24 -p /nix/var/nix/profiles/nodejs-24 \
+  && nix-collect-garbage -d \
+  && nix-store --optimise
+
+# setup go
+RUN nix-env -iA nixpkgs.go_1_26 -p /nix/var/nix/profiles/go-1_26 \
+  && nix-collect-garbage -d \
+  && nix-store --optimise
+
+# setup pipx
 ENV PATH=${PATH}:/opt/pipx/bin
 COPY images/base/stage/uv/pipx /tmp/uv-pipx
 RUN uv python install 3.14 \
