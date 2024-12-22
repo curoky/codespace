@@ -214,7 +214,6 @@
   "git-graph.date.format": "ISO Date & Time",
   "git-graph.maxDepthOfRepoSearch": 4,
   "git.autofetch": true,
-  "git.blame.editorDecoration.enabled": true,
   "git.blame.statusBarItem.enabled": true,
   "git.confirmSync": false,
   "git.mergeEditor": false,
