@@ -94,7 +94,7 @@ if [[ $OS_NAME == "Darwin" ]]; then
 
   link_path $CONF_PATH/vscode/app/settings.json "$HOME/Library/Application Support/Trae/User/settings.json"
   link_path $CONF_PATH/vscode/app/keybindings.json "$HOME/Library/Application Support/Trae/User/keybindings.json"
-  link_path $CONF_PATH/vscode/app/snippets "$HOME/Library/Application Support/Code/Trae/snippets"
+  link_path $CONF_PATH/vscode/app/snippets "$HOME/Library/Application Support/Trae/User/snippets"
 
 elif [[ $SCENE == "host-linux" ]]; then
   link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.vscode-server/data/Machine/settings.json
