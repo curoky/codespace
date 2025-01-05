@@ -25,12 +25,11 @@ for p in "${ENV_PATHS[@]}"; do
 done
 
 ENV_PATHS=(
-
   "$HOME/.local/bin"
   "$HOME/.nix-profile/bin"
 
   "/opt/conda/condabin"
-  "/opt/pipx/bin"
+  # "/opt/pipx/bin"
   "/opt/rust/cargo/bin"
 
   # "$HOME/app/conda/condabin"
