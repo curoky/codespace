@@ -81,12 +81,19 @@ RUN nix-env -iA nixpkgs.go_1_26 -p /nix/var/nix/profiles/go-1_26 \
   && nix-collect-garbage -d \
   && nix-store --optimise
 
+# setup python & tools
+RUN uv python install --no-bin 3.9 3.10 3.11 3.12 3.13 3.14
+RUN uv tool install licenseheaders \
+  && uv tool install tensorboard --python 3.12 --with tensorboard-plugin-profile --with "setuptools==81.0.0"
+
 # setup pipx
-ENV PATH=${PATH}:/opt/pipx/bin
-COPY images/base/stage/uv/pipx /tmp/uv-pipx
-RUN uv python install 3.14 \
-  && /tmp/uv-pipx/install.sh \
-  && pipx install licenseheaders
+# ENV PATH=${PATH}:/opt/pipx/bin
+# COPY images/base/stage/uv/pipx /tmp/uv-pipx
+# RUN /tmp/uv-pipx/install.sh \
+#   && pipx install licenseheaders \
+#   && pipx install --python=3.12 tensorboard \
+#     && pipx inject tensorboard tensorboard-plugin-profile 'setuptools==81.0.0'
+
 # COPY images/base/stage/uv/conda /tmp/uv-conda
 # RUN /tmp/uv-conda/install.sh py3
 
