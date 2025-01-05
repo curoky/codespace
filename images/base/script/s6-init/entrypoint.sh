@@ -27,6 +27,13 @@ sudo /opt/devspace/images/base/script/setup-proxy.sh
 
 mkdir -p /workspace/.vscode-server/data/Machine
 ln -sf /home/x/.vscode-server/data/Machine/settings.json /workspace/.vscode-server/data/Machine/settings.json
+
+if [[ ! -d /workspace/.trae-server ]]; then
+  mkdir -p /workspace/.trae-server
+fi
+rm -rf /home/x/.trae-server
+ln -sf /workspace/.trae-server /home/x/.trae-server
+
 mkdir -p /home/x/.trae-server/data/Machine
 ln -sf /home/x/.vscode-server/data/Machine/settings.json /home/x/.trae-server/data/Machine/settings.json
 
