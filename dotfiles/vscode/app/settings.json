@@ -452,5 +452,6 @@
   "workbench.editor.useModal": "off",
   "update.showReleaseNotes": false,
   "AI.toolcall.v2.command.allowList": "[\"python\"]",
-  "AI.rules.importClaudeMd": true
+  "AI.rules.importClaudeMd": true,
+  "git.blame.editorDecoration.enabled": true
 }
