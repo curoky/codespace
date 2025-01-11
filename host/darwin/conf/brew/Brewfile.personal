@@ -18,7 +18,8 @@ casks = [
   'sloth',
   'localsend',
   'resilio-sync',
-  'input-source-pro'
+  'input-source-pro',
+
   # 'flameshot',
 
   # 'obs',
@@ -50,6 +51,7 @@ casks = [
   # 'visual-studio-code',
   # 'warp',
   # 'google-chrome',
+  # 'lyricsx', # https://github.com/ddddxxx/LyricsX
 ]
 
 casks.each do |b|
@@ -59,7 +61,7 @@ end
 brews = [
   # 'pre-commit', 'prettier', 'eslint', # 'openjdk',#'git', #'yazi',
   'python@3', 'clang-format', 'wget', 'smartmontools', 'parallel', 'exiftool',
-  'prettier', 'node', 'go', 'ffmpeg',
+  'prettier', 'node', 'go', 'ffmpeg', 'pnpm',
 
   # 'krb5',
   # 'colima', 'docker', 'qemu',

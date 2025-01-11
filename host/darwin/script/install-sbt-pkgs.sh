@@ -69,6 +69,7 @@ pkgs=(
   yazi
   # git
   git-filter-repo
+  biome
 
   # lxgw-wenkai
   # fira-code
