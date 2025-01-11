@@ -111,7 +111,7 @@
   "bazel.queriesShareServer": true,
   "bookmarks.saveBookmarksInProject": true,
   "chat.agent.enabled": false,
-  "chat.disableAIFeatures": true,
+  "chat.disableAIFeatures": false,
   "chat.instructionsFilesLocations": {
     ".github/instructions": true
   },
@@ -451,7 +451,7 @@
   "xml.server.preferBinary": true,
   "workbench.editor.useModal": "off",
   "update.showReleaseNotes": false,
-  "AI.toolcall.v2.command.allowList": "[\"python\"]",
+  "AI.toolcall.v2.command.allowList": "[\"python\",\"npm\",\"npx\",\"bazel\"]",
   "AI.rules.importClaudeMd": true,
   "git.blame.editorDecoration.enabled": true
 }
