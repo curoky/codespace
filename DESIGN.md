@@ -17,7 +17,7 @@ High-level design of `devspace` — a personal, opinionated development environm
 | --- | --- |
 | [dotfiles/](file:///workspace/devspace/dotfiles) | Per-tool configuration files (zsh, git, ssh, vscode, tmux, …) and a single dispatcher [setup.sh](file:///workspace/devspace/dotfiles/setup.sh). |
 | [host/](file:///workspace/devspace/host) | Per-OS bootstrap scripts ([darwin](file:///workspace/devspace/host/darwin/bootstrap.sh), [linux](file:///workspace/devspace/host/linux/bootstrap.sh), [win](file:///workspace/devspace/host/win/bootstrap.sh)) plus host-only assets (Brewfiles, conda lockfiles). |
-| [images/](file:///workspace/devspace/images) | Dockerfiles that produce the published `ghcr.io/curoky/devspace:*` images. [base/](file:///workspace/devspace/images/base) is the foundation; [gcc/](file:///workspace/devspace/images/gcc), [pytorch/](file:///workspace/devspace/images/pytorch), [tensorflow/](file:///workspace/devspace/images/tensorflow), [iso/](file:///workspace/devspace/images/iso) extend it. |
+| [images/](file:///workspace/devspace/images) | Dockerfiles that produce the published `ghcr.io/curoky/devspace:*` images. [base/](file:///workspace/devspace/images/base) is the foundation; [gcc/](file:///workspace/devspace/images/gcc), [gui/](file:///workspace/devspace/images/gui), [pytorch/](file:///workspace/devspace/images/pytorch), [tensorflow/](file:///workspace/devspace/images/tensorflow), [iso/](file:///workspace/devspace/images/iso) extend it. |
 | [deps/](file:///workspace/devspace/deps) | Independent builders for upstream dependencies (CUDA, GCC, LLVM, Python, TensorFlow, host-tools, tabby). Each subdir owns its `Dockerfile` / `Taskfile.yaml` / `build.sh`. |
 | [tools/](file:///workspace/devspace/tools) | Repo-local helper scripts used by CI, hooks, and ad-hoc maintenance (license headers, git history rewrites, GitHub Actions disk cleanup, …). |
 | [.github/workflows/](file:///workspace/devspace/.github/workflows) | CI: image build matrix, ISO build, dependency rebuilds, registry cleanup. |
@@ -53,7 +53,7 @@ Three layers:
      - `main` — final image, layered as: apt patch → user `x` (uid 5230) → static tools → nix → rust → java → node → go → python (uv) → conda → s6-overlay → dotfiles linked from `/opt/devspace`.
    - Entrypoint: [/opt/s6-overlay/init](file:///workspace/devspace/dotfiles/s6-overlay) (services declared in dotfiles).
    - Runs `dotfiles/setup.sh docker` twice (once as `x`, once as `root`) so both users get a consistent home.
-2. **dist** — [images/gcc](file:///workspace/devspace/images/gcc), [images/pytorch](file:///workspace/devspace/images/pytorch), [images/tensorflow](file:///workspace/devspace/images/tensorflow), [images/iso](file:///workspace/devspace/images/iso): downstream specializations layered on top of base.
+2. **dist** — [images/gcc](file:///workspace/devspace/images/gcc), [images/gui](file:///workspace/devspace/images/gui), [images/pytorch](file:///workspace/devspace/images/pytorch), [images/tensorflow](file:///workspace/devspace/images/tensorflow), [images/iso](file:///workspace/devspace/images/iso): downstream specializations layered on top of base.
 3. **deps** — [deps/](file:///workspace/devspace/deps): standalone builders that emit tarballs/images consumed by `dist` (or by external users). Each has its own `Taskfile.yaml` so it can be invoked independently of the main release pipeline.
 
 ### 3.3 Host bootstrap

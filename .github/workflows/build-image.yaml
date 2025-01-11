@@ -115,6 +115,8 @@ jobs:
         include:
           - name: gcc
             saved_image: gcc
+          - name: gui
+            saved_image: gui
     needs:
       - base
     steps:
