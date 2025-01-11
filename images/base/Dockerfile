@@ -73,11 +73,13 @@ RUN nix-env -iA nixpkgs.maven \
 
 # setup nodejs
 RUN nix-env -iA nixpkgs.nodejs_24 -p /nix/var/nix/profiles/nodejs-24 \
+  && nix-env -iA nixpkgs.nodejs_24 \
   && nix-collect-garbage -d \
   && nix-store --optimise
 
 # setup go
 RUN nix-env -iA nixpkgs.go_1_26 -p /nix/var/nix/profiles/go-1_26 \
+  && nix-env -iA nixpkgs.go_1_26 \
   && nix-collect-garbage -d \
   && nix-store --optimise
 
