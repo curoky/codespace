@@ -77,6 +77,7 @@ pkgs=(
   yazi
   sqlite
   gh
+  nil
 
   ####  too basic tool
   cacert

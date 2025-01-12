@@ -60,5 +60,13 @@
   "typescript.npm": "/nix/var/nix/profiles/default/bin/npm",
   "xml.java.home": "/nix/var/nix/profiles/jdk25/lib/openjdk",
   "xml.server.vmargs": "-Xmx5G",
-  "xml.server.binary.path": "/home/x/.nix-profile/bin/lemminx"
+  "xml.server.binary.path": "/home/x/.nix-profile/bin/lemminx",
+  "nix.formatterPath": "nixfmt",
+  "nix.serverPath": "/opt/sbt/store/nil/bin/nil",
+  "nix.enableLanguageServer": true,
+  "nix.serverSettings": {
+    "nil": {
+      "formatting": { "command": ["nixfmt"] }
+    }
+  }
 }

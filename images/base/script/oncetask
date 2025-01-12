@@ -18,6 +18,8 @@
 
 set -xeuo pipefail
 
+exec > >(sudo tee /var/log/oncetask.log) 2>&1
+
 # clean cache
 rm -rf /home/x/.cache/starship.plugin.zsh \
   /home/x/.cache/conda.plugin.zsh \
@@ -39,7 +41,7 @@ ln -sf /home/x/.vscode-server/data/Machine/settings.json /home/x/.trae-server/da
 
 # /opt/devspace/tools/profile-installer.sh --ssl-pass-src pass:"$PROFILE_PASS"
 /opt/devspace/dotfiles/passkey/profile.gzip.sh --ssl-pass-src pass:"$PROFILE_PASS"
-/home/x/.config/atuin/login-and-sync.sh &
+bash /home/x/.config/atuin/login-and-sync.sh &
 
 # export PATH=$PATH:/opt/rust/cargo/bin:/opt/sbt/bin
 # /opt/devspace/images/base/stage/uv/conda/install.sh py3 &
