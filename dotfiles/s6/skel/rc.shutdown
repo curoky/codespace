@@ -1,0 +1,6 @@
+#!/bin/sh -e
+
+# Run before halt/reboot/poweroff, before the supervision tree is torn down.
+# Bring every service down (matches the upstream s6-rc template line).
+
+exec s6-rc -v2 -bDa change

@@ -97,8 +97,8 @@ locale-gen
 # mkdir -p /usr/lib/locale
 # ln -sf /nix/var/nix/profiles/default/lib/locale/locale-archive /usr/lib/locale/locale-archive
 
-# setup s6-overlay
-copy_path $CONF_PATH/s6-overlay /etc/s6-overlay
+# setup s6
+copy_path $CONF_PATH/s6 /etc/s6
 
 # setup other
 copy_path $CONF_PATH/nixpkgs/nix.conf /etc/nix/nix.conf

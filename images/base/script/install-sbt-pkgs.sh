@@ -106,7 +106,6 @@ pkgs=(
   autoconf
   automake
   libtool
-  nixfmt
 
   #### only use in docker
   atuin
@@ -152,9 +151,9 @@ pkgs=(
   # iptables
   # lld_18
   # numactl
+  # silver-searcher
   scc
   cloc
-  # silver-searcher
 
   ##### experimental
   # bash
@@ -165,6 +164,7 @@ pkgs=(
 
 pkgs_nolink=(
   python311
+
   clang-tools-18
   clang-tools-19
   clang-tools-20
@@ -191,18 +191,18 @@ for pkg in "${pkgs_nolink[@]}"; do
 done
 wait
 
-ln -s -r /opt/sbt/bin/bazelisk /opt/sbt/bin/bazel
 # ln -s -r /opt/sbt/bin/clang-format-21 /opt/sbt/bin/clang-format
+ln -s -r /opt/sbt/bin/bazelisk /opt/sbt/bin/bazel
 rm -rf /opt/sbt/store/nettools/bin/hostname
 
-link /opt/sbt/store/s6 /opt/sbt/profile/s6-overlay
-link /opt/sbt/store/s6-rc /opt/sbt/profile/s6-overlay
-link /opt/sbt/store/s6-dns /opt/sbt/profile/s6-overlay
-link /opt/sbt/store/s6-linux-init /opt/sbt/profile/s6-overlay
-link /opt/sbt/store/s6-linux-utils /opt/sbt/profile/s6-overlay
-link /opt/sbt/store/s6-networking /opt/sbt/profile/s6-overlay
-link /opt/sbt/store/s6-portable-utils /opt/sbt/profile/s6-overlay
-link /opt/sbt/store/execline /opt/sbt/profile/s6-overlay
+link /opt/sbt/store/s6 /opt/sbt/profile/s6
+link /opt/sbt/store/s6-rc /opt/sbt/profile/s6
+link /opt/sbt/store/s6-dns /opt/sbt/profile/s6
+link /opt/sbt/store/s6-linux-init /opt/sbt/profile/s6
+link /opt/sbt/store/s6-linux-utils /opt/sbt/profile/s6
+link /opt/sbt/store/s6-networking /opt/sbt/profile/s6
+link /opt/sbt/store/s6-portable-utils /opt/sbt/profile/s6
+link /opt/sbt/store/execline /opt/sbt/profile/s6
 
 # option
 rm -rf /opt/sbt/store/cmake/share/cmake*/Help

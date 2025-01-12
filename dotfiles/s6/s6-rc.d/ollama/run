@@ -1,0 +1,12 @@
+#!/opt/sbt/profile/s6/bin/execlineb -P
+
+# longrun run script (execline). Load the container environment dumped by the
+# init, redirect output to the log, then exec the service.
+# Tunables (OLLAMA_HOST, OLLAMA_MODELS, OLLAMA_KEEP_ALIVE, ...) come from the
+# container environment; see `ollama serve --help`.
+s6-envdir -Lf -- /run/s6/container_environment
+
+fdmove -c 2 1
+redirfd -w 1 /var/log/ollama.log
+
+exec ollama serve

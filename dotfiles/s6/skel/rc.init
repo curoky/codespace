@@ -1,0 +1,38 @@
+#!/bin/sh -e
+
+# Stage 2: runs once the s6 supervision tree (s6-svscan) is up.
+# Based on the container + s6-rc path of the upstream s6-linux-init rc.init
+# template: initialize the service manager, then bring up the wanted runlevel.
+
+# rc.init is forked by stage 1 and does not reliably inherit the init's baked
+# PATH, so the s6 / execline tools (s6-rc-init, s6-rc, ...) would not be found.
+# Put the merged s6 profile on PATH explicitly.
+export PATH="/opt/sbt/profile/s6/bin:/opt/sbt/profile/s6/libexec:${PATH}"
+
+# DEBUG: trace every command; with maker's -1, this output is copied to init's
+# stderr (i.e. `docker logs`). Remove `set -x` and the echo markers once boot
+# is confirmed working.
+set -x
+echo "rc.init: stage 2 starting, runlevel=$1 args=$*"
+
+rl="$1"
+shift
+
+# 1. Early preparation (boot only): start the s6-rc service manager on the
+#    scandir, loading the database compiled at image build time.
+echo "rc.init: running s6-rc-init"
+s6-rc-init -c /etc/s6/db /run/service
+
+# 2. Start the wanted set of services by bringing up the bundle named after the
+#    runlevel. $rl defaults to "user" (set via the maker -D option). s6-rc-maker
+#    no longer ships a separate scripts/runlevel helper, so call s6-rc directly.
+echo "rc.init: bringing up runlevel $rl"
+s6-rc -v2 -up change "$rl"
+
+# 3. Container behaviour: run CMD if one was given, otherwise let the services
+#    keep running under the supervision tree.
+echo "rc.init: services up, CMD=$*"
+if test -z "$*" ; then return 0 ; fi
+"$@"
+echo $? > /run/s6-linux-init-container-results/exitcode
+halt

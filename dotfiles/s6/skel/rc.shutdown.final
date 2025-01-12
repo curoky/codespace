@@ -1,0 +1,5 @@
+#!/bin/sh -e
+
+# Last script run at shutdown, after the supervision tree has been torn down.
+
+exec true
