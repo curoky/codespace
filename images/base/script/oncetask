@@ -43,7 +43,7 @@ ln -sf /home/x/.vscode-server/data/Machine/settings.json /home/x/.trae-server/da
 /opt/devspace/dotfiles/passkey/profile.gzip.sh --ssl-pass-src pass:"$PROFILE_PASS"
 bash /home/x/.config/atuin/login-and-sync.sh &
 
-# export PATH=$PATH:/opt/rust/cargo/bin:/opt/sbt/bin
+# export PATH=$PATH:/opt/rust/cargo/bin:/opt/sb/bin
 # /opt/devspace/images/base/stage/uv/conda/install.sh py3 &
 
 

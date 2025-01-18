@@ -58,12 +58,12 @@ function link_path() {
 }
 
 # change login shell
-echo "/opt/sbt/bin/zsh" >>/etc/shells
-chsh -s /opt/sbt/bin/zsh root
-chsh -s /opt/sbt/bin/zsh x
+echo "/opt/sb/bin/zsh" >>/etc/shells
+chsh -s /opt/sb/bin/zsh root
+chsh -s /opt/sb/bin/zsh x
 
 # add ca-certificates
-# copy_path /opt/sbt/store/cacert/etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
+# copy_path /opt/sb/store/cacert/etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 # chmod 644 /etc/ssl/certs/ca-certificates.crt
 
 # sudoers

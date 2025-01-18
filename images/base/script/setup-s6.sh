@@ -17,8 +17,8 @@
 # limitations under the License.
 
 # Set up s6 as the container init using the binaries already compiled under
-# /opt/sbt/store/s6*. install-sbt-pkgs.sh merges every s6 / execline package
-# into the /opt/sbt/profile/s6 tree (bin/ + libexec/), which is what we put on
+# /opt/sb/store/s6*. install-sb-pkgs.sh merges every s6 / execline package
+# into the /opt/sb/profile/s6 tree (bin/ + libexec/), which is what we put on
 # the init's PATH.
 #
 # All s6 configuration (s6-rc service definitions, the s6-linux-init skel, and
@@ -28,7 +28,7 @@
 
 set -xeuo pipefail
 
-profile=/opt/sbt/profile/s6
+profile=/opt/sb/profile/s6
 # s6-rc resolves s6-rc-oneshot-run / s6-rc-fdholder-filler through PATH.
 export PATH="$profile/bin:$profile/libexec:$PATH"
 
@@ -74,10 +74,10 @@ rm -rf /etc/s6/init
 # s6-linux-init-maker bakes the absolute build-time paths of the binaries
 # (under /nix/store/<hash>-<pkg>-.../bin) into the generated init scripts.
 # Those paths do not exist in the final image, so rewrite each nix store
-# prefix to the matching /opt/sbt/store/<pkg> directory.
+# prefix to the matching /opt/sb/store/<pkg> directory.
 for prefix in $(grep -rhoE '/nix/store/[^/]+' /etc/s6/init | sort -u); do
   pkg=$(echo "$prefix" | sed -E 's|.*/[^-]+-([a-z0-9-]+?)-static-.*|\1|')
-  find /etc/s6/init -type f -exec sed -i "s|$prefix|/opt/sbt/store/$pkg|g" {} +
+  find /etc/s6/init -type f -exec sed -i "s|$prefix|/opt/sb/store/$pkg|g" {} +
 done
 
 # The generated bin/init invokes "s6-linux-init" by bare name, relying on PATH.

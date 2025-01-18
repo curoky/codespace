@@ -85,16 +85,16 @@ pkgs=(
   # ruff need link jemalloc
 )
 
-sudo mkdir -p /opt/sbt
-sudo chown x:staff /opt/sbt
+sudo mkdir -p /opt/sb
+sudo chown x:staff /opt/sb
 
-mkdir -p /opt/sbt/bin
-curl https://raw.githubusercontent.com/curoky/static-binaries/refs/heads/master/tools/sbt >/opt/sbt/bin/sbt
-chmod +x /opt/sbt/bin/sbt
-/opt/sbt/bin/sbt install coreutils
-for pkg in "${pkgs[@]}"; do
-  /opt/sbt/bin/sbt install $pkg & # --arch darwin-arm64 --prefix tmp/sbt
-done
-wait
+# Bootstrap the sb client into the prefix, then use it to install everything.
+mkdir -p /opt/sb/bin
+curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/client/install.sh |
+  bash -s -- --prefix /opt/sb/bin
 
-ln -sf /opt/sbt/bin/bazelisk /opt/sbt/bin/bazel
+# sb install takes many packages at once and parallelizes internally
+# (resolve + download), so no shell-level background/wait loop is needed.
+/opt/sb/bin/sb install --prefix /opt/sb "${pkgs[@]}"
+
+ln -sf /opt/sb/bin/bazelisk /opt/sb/bin/bazel

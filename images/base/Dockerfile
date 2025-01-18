@@ -2,11 +2,11 @@
 ARG BASE_IMAGE=debian:12
 
 ################################ stage/static tools ################################
-FROM docker.io/debian:latest AS stage_sbt
+FROM docker.io/debian:latest AS stage_sb
 RUN apt-get update -y && apt-get install -y curl zstd
 
-COPY images/base/script/install-sbt-pkgs.sh /tmp/install-sbt-pkgs.sh
-RUN /tmp/install-sbt-pkgs.sh
+COPY images/base/script/install-sb-pkgs.sh /tmp/install-sb-pkgs.sh
+RUN /tmp/install-sb-pkgs.sh
 
 ################################# stage/conda environ ################################
 FROM docker.io/debian:stable-slim AS stage_conda
@@ -21,9 +21,9 @@ COPY images/base/stage/conda/setup-conda-env.sh /opt/conda/condabin/setup-conda-
 ################################ main ################################
 FROM docker.io/$BASE_IMAGE
 
-ENV PATH=${PATH}:/opt/sbt/bin:/opt/sbt/profile/s6/bin:/opt/sbt/profile/s6/libexec \
+ENV PATH=${PATH}:/opt/sb/bin:/opt/sb/profile/s6/bin:/opt/sb/profile/s6/libexec \
   DEBIAN_FRONTEND=noninteractive \
-  SSL_CERT_FILE=/opt/sbt/store/cacert/etc/ssl/certs/ca-certificates.crt
+  SSL_CERT_FILE=/opt/sb/store/cacert/etc/ssl/certs/ca-certificates.crt
 
 ARG BASE_IMAGE
 COPY images/base/script/patch-apt.sh /tmp/patch-apt.sh
@@ -36,14 +36,14 @@ RUN /tmp/setup-user.sh
 USER x
 
 # setup tools
-COPY --chown=5230:5230 --link --from=stage_sbt /opt/sbt /opt/sbt
-RUN sudo ln -s /opt/sbt/store/zsh/bin/zsh /usr/bin \
-  && sudo ln -s /opt/sbt/store/wget/bin/wget /usr/bin \
-  # && sudo ln -s /opt/sbt/store/curl/bin/curl /usr/bin \
-  && sudo ln -s /opt/sbt/store/less/bin/less /usr/bin \
-  && sudo ln -s /opt/sbt/store/xz/bin/xz /usr/bin \
-  # && sudo ln -s /opt/sbt/store/openssl/bin/openssl /usr/bin \
-  && sudo ln -s /opt/sbt/store/openssh_gssapi/bin/ssh /usr/bin
+COPY --chown=5230:5230 --link --from=stage_sb /opt/sb /opt/sb
+RUN sudo ln -s /opt/sb/store/zsh/bin/zsh /usr/bin \
+  && sudo ln -s /opt/sb/store/wget/bin/wget /usr/bin \
+  # && sudo ln -s /opt/sb/store/curl/bin/curl /usr/bin \
+  && sudo ln -s /opt/sb/store/less/bin/less /usr/bin \
+  && sudo ln -s /opt/sb/store/xz/bin/xz /usr/bin \
+  # && sudo ln -s /opt/sb/store/openssl/bin/openssl /usr/bin \
+  && sudo ln -s /opt/sb/store/openssh_gssapi/bin/ssh /usr/bin
 
 # setup nixpkgs
 ENV PATH=${PATH}:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin
@@ -51,10 +51,10 @@ RUN curl -L https://nixos.org/nix/install | sh -s -- --no-daemon \
   && nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs \
   && nix-channel --update \
   && nix-env -iA nixpkgs.ollama-cpu \
-  && nix-env -iA nixpkgs.opencommit \
-  && nix-env -iA nixpkgs.markdownlint-cli2 \
-  && nix-env -iA nixpkgs.prettier \
   && nix-env -iA nixpkgs.lemminx \
+  # && nix-env -iA nixpkgs.opencommit \
+  # && nix-env -iA nixpkgs.markdownlint-cli2 \
+  # && nix-env -iA nixpkgs.prettier \
   && nix-collect-garbage -d \
   && nix-store --optimise
 

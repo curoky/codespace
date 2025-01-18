@@ -181,32 +181,31 @@ pkgs_nolink=(
   execline
 )
 
-mkdir -p /opt/sbt/bin
-curl https://raw.githubusercontent.com/curoky/static-binaries/refs/heads/master/tools/sbt >/opt/sbt/bin/sbt
-chmod +x /opt/sbt/bin/sbt
-for pkg in "${pkgs[@]}"; do
-  /opt/sbt/bin/sbt install --version=3 $pkg &
-done
-for pkg in "${pkgs_nolink[@]}"; do
-  /opt/sbt/bin/sbt install --version=3 --nolink $pkg &
-done
-wait
+# Bootstrap the sb client into the prefix, then use it to install everything.
+mkdir -p /opt/sb/bin
+curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/client/install.sh |
+  bash -s -- --prefix /opt/sb/bin
 
-# ln -s -r /opt/sbt/bin/clang-format-21 /opt/sbt/bin/clang-format
-ln -s -r /opt/sbt/bin/bazelisk /opt/sbt/bin/bazel
-rm -rf /opt/sbt/store/nettools/bin/hostname
+# sb install takes many packages at once and parallelizes internally
+# (resolve + download), so no shell-level background/wait loop is needed.
+/opt/sb/bin/sb install --prefix /opt/sb "${pkgs[@]}"
+/opt/sb/bin/sb install --prefix /opt/sb --link=false "${pkgs_nolink[@]}"
 
-link /opt/sbt/store/s6 /opt/sbt/profile/s6
-link /opt/sbt/store/s6-rc /opt/sbt/profile/s6
-link /opt/sbt/store/s6-dns /opt/sbt/profile/s6
-link /opt/sbt/store/s6-linux-init /opt/sbt/profile/s6
-link /opt/sbt/store/s6-linux-utils /opt/sbt/profile/s6
-link /opt/sbt/store/s6-networking /opt/sbt/profile/s6
-link /opt/sbt/store/s6-portable-utils /opt/sbt/profile/s6
-link /opt/sbt/store/execline /opt/sbt/profile/s6
+# ln -s -r /opt/sb/bin/clang-format-21 /opt/sb/bin/clang-format
+ln -s -r /opt/sb/bin/bazelisk /opt/sb/bin/bazel
+rm -rf /opt/sb/store/nettools/bin/hostname
+
+link /opt/sb/store/s6 /opt/sb/profile/s6
+link /opt/sb/store/s6-rc /opt/sb/profile/s6
+link /opt/sb/store/s6-dns /opt/sb/profile/s6
+link /opt/sb/store/s6-linux-init /opt/sb/profile/s6
+link /opt/sb/store/s6-linux-utils /opt/sb/profile/s6
+link /opt/sb/store/s6-networking /opt/sb/profile/s6
+link /opt/sb/store/s6-portable-utils /opt/sb/profile/s6
+link /opt/sb/store/execline /opt/sb/profile/s6
 
 # option
-rm -rf /opt/sbt/store/cmake/share/cmake*/Help
-rm -rf /opt/sbt/store/cmake/share/doc
-rm -rf /opt/sbt/store/vim/share/vim/vim*/doc
-rm -rf /opt/sbt/store/protobuf*/lib
+rm -rf /opt/sb/store/cmake/share/cmake*/Help
+rm -rf /opt/sb/store/cmake/share/doc
+rm -rf /opt/sb/store/vim/share/vim/vim*/doc
+rm -rf /opt/sb/store/protobuf*/lib
