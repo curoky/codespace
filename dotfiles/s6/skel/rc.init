@@ -7,7 +7,7 @@
 # rc.init is forked by stage 1 and does not reliably inherit the init's baked
 # PATH, so the s6 / execline tools (s6-rc-init, s6-rc, ...) would not be found.
 # Put the merged s6 profile on PATH explicitly.
-export PATH="/opt/sbt/profile/s6/bin:/opt/sbt/profile/s6/libexec:${PATH}"
+export PATH="/opt/sb/profile/s6/bin:/opt/sb/profile/s6/libexec:${PATH}"
 
 # DEBUG: trace every command; with maker's -1, this output is copied to init's
 # stderr (i.e. `docker logs`). Remove `set -x` and the echo markers once boot

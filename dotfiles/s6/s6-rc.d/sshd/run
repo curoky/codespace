@@ -1,4 +1,4 @@
-#!/opt/sbt/profile/s6/bin/execlineb -P
+#!/opt/sb/profile/s6/bin/execlineb -P
 
 # longrun run script (execline). Load the container environment dumped by the
 # init, then exec sshd with the wanted port.
@@ -19,7 +19,7 @@ foreground { chmod 600 $keys }
 # Override the listen port on the command line (-o) instead of editing the
 # config file, so the shipped sshd_config.conf stays untouched.
 # https://github.com/un-def/openssh-static-build/blob/master/run-sshd.sh#L30
-exec /opt/sbt/store/openssh_gssapi/bin/sshd -D
+exec /opt/sb/store/openssh_gssapi/bin/sshd -D
   -o Port=${SSHD_PORT}
   -f /opt/devspace/dotfiles/sshd/sshd_config.conf
   -E /var/log/sshd.log

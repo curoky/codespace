@@ -104,10 +104,10 @@
     // "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "autoDocstring.includeName": true,
-  "bazel.buildifierExecutable": "/opt/sbt/store/buildifier/bin/buildifier",
+  "bazel.buildifierExecutable": "/opt/sb/store/buildifier/bin/buildifier",
   "bazel.buildifierFixOnFormat": true,
   "bazel.enableCodeLens": true,
-  "bazel.executable": "/opt/sbt/store/bazelisk/bin/bazelisk",
+  "bazel.executable": "/opt/sb/store/bazelisk/bin/bazelisk",
   "bazel.queriesShareServer": true,
   "bookmarks.saveBookmarksInProject": true,
   "chat.agent.enabled": false,
@@ -344,7 +344,7 @@
     "/opt/homebrew/bin/python3"
   ],
   "ruff.path": [
-    "/opt/sbt/store/ruff/bin/ruff"
+    "/opt/sb/store/ruff/bin/ruff"
   ],
   "rust-client.disableRustup": true,
   "rust-client.enableMultiProjectSetup": null,
@@ -362,8 +362,8 @@
   "search.useGlobalIgnoreFiles": true,
   "security.workspace.trust.enabled": false,
   "shellformat.flag": "-i 2 -s -ci",
-  "shellformat.path": "/opt/sbt/store/shfmt/bin/shfmt",
-  "sqlite.sqlite3": "/opt/sbt/store/sqlite/bin/sqlite",
+  "shellformat.path": "/opt/sb/store/shfmt/bin/shfmt",
+  "sqlite.sqlite3": "/opt/sb/store/sqlite/bin/sqlite",
   // "sql-formatter.uppercase": true,
   // "sqltools.useNodeRuntime": true,
   // "svg.preview.mode": "svg",

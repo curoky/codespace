@@ -16,7 +16,7 @@
 # limitations under the License.
 
 export CONFIG_HOME=~/devspace/dotfiles
-export TOOLS_ROOT=/opt/sbt
+export TOOLS_ROOT=/opt/sb
 # if [[ ! -d $TOOLS_ROOT ]]; then
 #   export TOOLS_ROOT=$HOME/app/sbt
 # fi

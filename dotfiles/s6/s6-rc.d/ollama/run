@@ -1,4 +1,4 @@
-#!/opt/sbt/profile/s6/bin/execlineb -P
+#!/opt/sb/profile/s6/bin/execlineb -P
 
 # longrun run script (execline). Load the container environment dumped by the
 # init, redirect output to the log, then exec the service.

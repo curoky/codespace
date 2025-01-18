@@ -1,5 +1,5 @@
 {
-  "C_Cpp.clang_format_path": "/opt/sbt/store/clang-tools-18/bin/clang-format",
+  "C_Cpp.clang_format_path": "/opt/sb/store/clang-tools-18/bin/clang-format",
   "C_Cpp.codeAnalysis.maxConcurrentThreads": 32,
   "C_Cpp.codeAnalysis.maxMemory": 50000,
   "C_Cpp.intelliSense.maxCachedProcesses": 120,
@@ -12,9 +12,9 @@
   "[cpp]": {
     "editor.tabSize": 2
   },
-  "clang-format.executable": "/opt/sbt/store/clang-tools-18/bin/clang-format",
-  "cmake.cmakePath": "/opt/sbt/store/cmake/bin/cmake",
-  "cmake.ctestPath": "/opt/sbt/store/cmake/bin/ctest",
+  "clang-format.executable": "/opt/sb/store/clang-tools-18/bin/clang-format",
+  "cmake.cmakePath": "/opt/sb/store/cmake/bin/cmake",
+  "cmake.ctestPath": "/opt/sb/store/cmake/bin/ctest",
   "cmakeFormat.exePath": "/nix/var/nix/profiles/default/bin/cmake-format",
   "files.insertFinalNewline": false,
   "files.trimFinalNewlines": false,
@@ -22,7 +22,7 @@
   "files.watcherExclude": {
     "**/build64_release/**": true
   },
-  "git.path": "/opt/sbt/store/git/bin/git",
+  "git.path": "/opt/sb/store/git/bin/git",
   "go.alternateTools": {
     "go": "/nix/var/nix/profiles/default/bin/go"
   },
@@ -62,7 +62,7 @@
   "xml.server.vmargs": "-Xmx5G",
   "xml.server.binary.path": "/home/x/.nix-profile/bin/lemminx",
   "nix.formatterPath": "nixfmt",
-  "nix.serverPath": "/opt/sbt/store/nil/bin/nil",
+  "nix.serverPath": "/opt/sb/store/nil/bin/nil",
   "nix.enableLanguageServer": true,
   "nix.serverSettings": {
     "nil": {
