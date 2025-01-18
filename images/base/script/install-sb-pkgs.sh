@@ -142,6 +142,11 @@ pkgs=(
   parallel
   nixfmt
 
+  pnpm
+  prettier
+  markdownlint-cli2
+  # opencommit
+
   ##### unneeded
   # aria2
   # binutils
@@ -165,6 +170,7 @@ pkgs=(
 
 pkgs_nolink=(
   python311
+  nodejs-slim24
 
   clang-tools-18
   clang-tools-19
@@ -179,6 +185,17 @@ pkgs_nolink=(
   s6-networking
   s6-dns
   execline
+
+  # vscode go tools
+  gopls
+  delve
+  go-tools
+  gofumpt
+  golangci-lint
+  gomodifytags
+  gotests
+  gotools
+  impl
 )
 
 # Bootstrap the sb client into the prefix, then use it to install everything.
@@ -203,6 +220,16 @@ link /opt/sb/store/s6-linux-utils /opt/sb/profile/s6
 link /opt/sb/store/s6-networking /opt/sb/profile/s6
 link /opt/sb/store/s6-portable-utils /opt/sb/profile/s6
 link /opt/sb/store/execline /opt/sb/profile/s6
+
+link /opt/sb/store/gopls /opt/sb/profile/go
+link /opt/sb/store/delve /opt/sb/profile/go
+link /opt/sb/store/go-tools /opt/sb/profile/go
+link /opt/sb/store/gofumpt /opt/sb/profile/go
+link /opt/sb/store/golangci-lint /opt/sb/profile/go
+link /opt/sb/store/gomodifytags /opt/sb/profile/go
+link /opt/sb/store/gotests /opt/sb/profile/go
+link /opt/sb/store/gotools /opt/sb/profile/go
+link /opt/sb/store/impl /opt/sb/profile/go
 
 # option
 rm -rf /opt/sb/store/cmake/share/cmake*/Help
