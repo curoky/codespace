@@ -1,0 +1,11 @@
+{
+  "filesystem": {
+    "readWrite": [
+      "/nix",
+      "~/.nix-profile",
+      "~/.nix-defexpr",
+      "/etc/nix"
+    ],
+    "readOnly": []
+  }
+}

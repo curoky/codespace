@@ -451,7 +451,7 @@
   "xml.server.preferBinary": true,
   "workbench.editor.useModal": "off",
   "update.showReleaseNotes": false,
-  "AI.toolcall.v2.command.allowList": "[\"python\",\"npm\",\"npx\",\"bazel\"]",
+  "AI.toolcall.v2.command.allowList": "[\"python\",\"npm\",\"npx\",\"bazel\",\"nix\",\"nix-env\",\"nix-shell\",\"nix-channel\",\"grep\"]",
   "AI.rules.importClaudeMd": true,
   "git.blame.editorDecoration.enabled": true
 }
