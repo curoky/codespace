@@ -16,12 +16,12 @@ RUN apt-get update -y \
   && curl -sSL -o /tmp/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
   && bash /tmp/miniconda.sh -b -u -p /opt/conda
 
-COPY images/base/stage/conda/setup-conda-env.sh /opt/conda/condabin/setup-conda-env.sh
+COPY images/base/script/setup-conda-env.sh /opt/conda/condabin/setup-conda-env.sh
 
 ################################ main ################################
 FROM docker.io/$BASE_IMAGE
 
-ENV PATH=${PATH}:/opt/sb/bin:/opt/sb/profile/s6/bin:/opt/sb/profile/s6/libexec \
+ENV PATH=${PATH}:/opt/sb/bin \
   DEBIAN_FRONTEND=noninteractive \
   SSL_CERT_FILE=/opt/sb/store/cacert/etc/ssl/certs/ca-certificates.crt
 
@@ -121,4 +121,5 @@ RUN bash /opt/devspace/images/base/script/setup-sysconf.sh /opt/devspace/dotfile
 
 RUN bash /opt/devspace/images/base/script/setup-s6.sh
 
+ENV PATH=${PATH}:/opt/sb/profile/s6/bin:/opt/sb/profile/s6/libexec
 ENTRYPOINT ["/etc/s6/init/bin/init"]
