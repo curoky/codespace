@@ -70,7 +70,7 @@ brews = [
   'prettier',
   'node',
   'pnpm',
-  'ffmpeg',
+  # 'ffmpeg',
 
   # 'krb5',
   # 'colima', 'docker', 'qemu',

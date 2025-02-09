@@ -125,6 +125,7 @@ pkgs=(
   p7zip
   parallel
   nixfmt
+  zellij
 
   pnpm
   prettier
