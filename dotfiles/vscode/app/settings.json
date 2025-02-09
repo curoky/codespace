@@ -451,7 +451,7 @@
   "xml.server.preferBinary": true,
   "workbench.editor.useModal": "off",
   "update.showReleaseNotes": false,
-  "AI.toolcall.v2.command.allowList": "[\"python\",\"npm\",\"npx\",\"bazel\",\"nix\",\"nix-env\",\"nix-shell\",\"nix-channel\",\"grep\",\"ls\",\"echo\",\"head\",\"touch\",\"rm\",\"sleep\",\"tail\",\"cd\",\"cat\",\"python3\"]",
+  "AI.toolcall.v2.command.allowList": "[\"python\",\"npm\",\"npx\",\"bazel\",\"nix\",\"nix-env\",\"nix-shell\",\"nix-channel\",\"grep\",\"ls\",\"echo\",\"head\",\"touch\",\"rm\",\"sleep\",\"tail\",\"cd\",\"cat\",\"python3\",\"./result-wget/bin/wget\",\"mkdir\",\"cp\",\"chmod\",\"/tmp/ptest/parallel/bin/parallel\"]",
   "AI.rules.importClaudeMd": true,
   "git.blame.editorDecoration.enabled": true,
   "telemetry.editStats.enabled": false
