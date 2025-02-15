@@ -81,8 +81,10 @@ nolink_pkgs=(
   perl
 )
 
-sudo mkdir -p /opt/sb
-sudo chown x:staff /opt/sb
+if [[ ! -d /opt/sb ]]; then
+  sudo mkdir -p /opt/sb
+  sudo chown x:staff /opt/sb
+fi
 
 # Bootstrap the sb client into the prefix, then use it to install everything.
 mkdir -p /opt/sb/bin
