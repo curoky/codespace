@@ -57,6 +57,7 @@ function common() {
   link_path $CONF_PATH/procps/toprc $HOME/.config/procps/toprc
   link_path $CONF_PATH/starship/starship.toml $HOME/.config/starship.toml
   link_path $CONF_PATH/tmux/tmux.conf $HOME/.config/tmux/tmux.conf
+  link_path $CONF_PATH/zellij/config.kdl $HOME/.config/zellij/config.kdl
 
   # link_path $CONF_PATH/gdb/gdbinit $HOME/.gdbinit
   link_path $CONF_PATH/vim/vimrc $HOME/.vimrc
