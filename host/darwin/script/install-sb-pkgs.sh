@@ -59,6 +59,8 @@ pkgs=(
   parallel
   exiftool
   wget
+  prettier
+  pnpm
 
   # lxgw-wenkai
   # fira-code
