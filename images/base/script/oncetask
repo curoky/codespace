@@ -20,11 +20,16 @@ fi
 rm -rf /home/x/.trae-server
 ln -sf /workspace/.trae-server /home/x/.trae-server
 
+if [[ -d /workspace/ai-coding-config/.trae/rules ]]; then
+  rsync --partial --progress --archive --human-readable --rsh=ssh --delete --delete-excluded \
+    /workspace/ai-coding-config/.trae/rules/ /home/x/.trae/user_rules/
+fi
+
 mkdir -p /home/x/.trae-server/data/Machine
 ln -sf /home/x/.vscode-server/data/Machine/settings.json /home/x/.trae-server/data/Machine/settings.json
 
 # /opt/devspace/tools/profile-installer.sh --ssl-pass-src pass:"$PROFILE_PASS"
-/opt/devspace/dotfiles/passkey/profile.gzip.sh --ssl-pass-src pass:"$PROFILE_PASS"
+# /opt/devspace/dotfiles/passkey/profile.gzip.sh --ssl-pass-src pass:"$PROFILE_PASS"
 # bash /home/x/.config/atuin/login-and-sync.sh &
 
 # export PATH=$PATH:/opt/rust/cargo/bin:/opt/sb/bin
