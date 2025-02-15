@@ -5,20 +5,20 @@ casks = [
   'font-fira-code-nerd-font',
   'font-lxgw-wenkai',
   'font-ubuntu-mono-nerd-font',
+  'iina',
+  'istat-menus@6',
+  'snipaste',
+  'keepingyouawake',
+  'input-source-pro',
+  'freefilesync',
+  'resilio-sync',
 
   # 'cap',
   # 'clash-verge-rev',
-  'freefilesync',
   # 'gimp',
-  'iina',
-  'istat-menus@6',
-  'keepingyouawake',
   # 'finetune',
-  'snipaste',
   # 'sloth',
   # 'localsend',
-  'resilio-sync',
-  'input-source-pro',
 
   # 'flameshot',
 
@@ -59,16 +59,16 @@ casks.each do |b|
 end
 
 brews = [
-  # 'pre-commit', 'prettier', 'eslint', # 'openjdk',#'git', #'yazi',
   'clang-format',
+  'python@3',
+  'go',
+  'node',
+  # 'pre-commit', 'prettier', 'eslint', # 'openjdk',#'git', #'yazi',
   # 'wget',
   # 'smartmontools',
   # 'parallel',
   # 'exiftool',
-  'python@3',
-  'go',
   # 'prettier',
-  'node',
   # 'pnpm',
   # 'ffmpeg',
 
