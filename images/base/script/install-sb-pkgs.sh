@@ -127,6 +127,16 @@ pkgs=(
   nixfmt
   zellij
 
+  delve
+  golangci-lint
+  gofumpt
+  gotests
+  impl
+  gomodifytags
+  gotools
+  go-tools
+  go-outline
+
   pnpm
   prettier
   markdownlint-cli2

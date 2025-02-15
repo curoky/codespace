@@ -75,6 +75,12 @@ pkgs=(
 
 )
 
+# Installed but not linked into bin (avoid exposing their binaries).
+nolink_pkgs=(
+  nodejs-slim26
+  perl
+)
+
 sudo mkdir -p /opt/sb
 sudo chown x:staff /opt/sb
 
@@ -86,5 +92,8 @@ curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/hea
 # sb install takes many packages at once and parallelizes internally
 # (resolve + download), so no shell-level background/wait loop is needed.
 /opt/sb/bin/sb install --prefix /opt/sb "${pkgs[@]}"
+
+# nodejs-slim26 is installed but not linked into bin (avoid exposing its node/npm).
+/opt/sb/bin/sb install --prefix /opt/sb --link=false "${nolink_pkgs[@]}"
 
 ln -sf /opt/sb/bin/bazelisk /opt/sb/bin/bazel

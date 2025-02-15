@@ -24,7 +24,18 @@
   },
   "git.path": "/opt/sb/store/git/bin/git",
   "go.alternateTools": {
-    "go": "/nix/var/nix/profiles/default/bin/go"
+    "go": "/home/x/.nix-profile/bin/go",
+    "dlv": "/opt/sb/store/delve/bin/dlv",
+    "dlv-dap": "/opt/sb/store/delve/bin/dlv-dap",
+    "golangci-lint": "/opt/sb/store/golangci-lint/bin/golangci-lint",
+    "gofumpt": "/opt/sb/store/gofumpt/bin/gofumpt",
+    "gotests": "/opt/sb/store/gotests/bin/gotests",
+    "impl": "/opt/sb/store/impl/bin/impl",
+    "gomodifytags": "/opt/sb/store/gomodifytags/bin/gomodifytags",
+    "goimports": "/opt/sb/store/gotools/bin/goimports",
+    "staticcheck": "/opt/sb/store/go-tools/bin/staticcheck",
+    "go-outline": "/opt/sb/store/go-outline/bin/go-outline",
+    "gopls": "/opt/sb/store/gopls/bin/gopls"
   },
   "java.configuration.runtimes": [
     {
