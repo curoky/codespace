@@ -1,0 +1,198 @@
+# sb package manifest for the devspace base image.
+# Consumed by install-sb-pkgs.sh via `sb sync`.
+#
+#   packages.link:   linked into the prefix root (/opt/sb/{bin,lib,...}).
+#   packages.unlink: installed into the store only, not linked into the root.
+#   profiles:        installed into the store and aggregated under
+#                    /opt/sb/profile/<name>/ via relative symlinks.
+prefix: /opt/sb
+packages:
+  link:
+    # shell & terminal
+    - zsh
+    - zsh-plugins
+    - starship
+    - atuin
+    - tmux
+    - tmux-plugins
+    - zellij
+    - fzf
+    - yazi
+    # - bash
+
+    # editor
+    - vim
+    - vim-plugins
+
+    # file & text utilities
+    - ripgrep
+    - fd
+    - bat
+    - eza
+    - tree
+    - file
+    - less
+    - xxd
+    - jq
+    - diffutils
+    - findutils
+    - gawk
+    - gnugrep
+    - gnused
+    - gnutar
+    - gettext
+    # - silver-searcher
+    # - coreutils
+    # - man
+
+    # compression & archive
+    - gzip
+    - bzip2
+    - xz
+    - zstd
+    - zlib
+    - zlib-ng
+    - snappy
+    - zip
+    - unzip
+    - p7zip
+    - makeself
+
+    # networking
+    - curl
+    - wget
+    - rsync
+    - connect
+    - netcat
+    - nettools
+    - iproute2
+    - iputils
+    - ethtool
+    - miniserve
+    - openssh_gssapi
+    # - inetutils
+    # - aria2
+    # - croc
+    # - gost
+
+    # crypto & security
+    - openssl
+    - krb5
+    - gnupg
+    - cacert
+
+    # system & process
+    - procps
+    - procs
+    - strace
+    - lsof
+    - gdu
+    - ncdu_1
+    - dool
+    - libcap
+    - lsb-release
+    - tzdata
+    - glibcLocales
+    - cronie
+    - parallel
+    # - numactl
+    # - iptables
+    # - util-linux
+
+    # version control
+    - git
+    - gh
+    - git-absorb
+    - git-extras
+    - git-filter-repo
+    - git-lfs
+    - lefthook
+
+    # build tools
+    - cmake
+    - ninja
+    - gnumake
+    - gnupatch
+    - autoconf
+    - automake
+    - libtool
+    - m4
+    - pkg-config
+    - getopt
+    - bison
+    - flex
+    - patchelf
+    - go-task
+    - clang-tools-22
+    # - binutils
+    # - lld_18
+
+    # language toolchains & package managers
+    - uv
+    - pnpm
+    - bazelisk
+    - buildifier
+    - protobuf_24
+    - protobuf_25
+    - protobuf_28
+    - protobuf_3_8_0
+    - protobuf_3_9_2
+
+    # linters & formatters
+    - ruff
+    - shfmt
+    - nixfmt
+    - prettier
+    - markdownlint-cli2
+    - scc
+    - cloc
+    # - opencommit
+
+    # databases
+    - sqlite
+    - postgresql
+
+    # languages & debuggers
+    - perl
+    - gdb
+
+    # misc
+    - nil
+    - netron
+    - exiftool
+    # - dive
+
+  unlink:
+    - python311
+    - python314
+    - nodejs-slim24
+    - nodejs-slim26
+
+    - clang-tools-18
+    - clang-tools-19
+    - clang-tools-20
+    - clang-tools-21
+
+profiles:
+  s6:
+    - s6
+    - s6-rc
+    - s6-linux-init
+    - s6-linux-utils
+    - s6-portable-utils
+    - s6-networking
+    - s6-dns
+    - execline
+
+  # vscode go tools
+  go:
+    - gopls
+    - delve
+    - go-tools
+    - gofumpt
+    - golangci-lint
+    - gomodifytags
+    - gotests
+    - gotools
+    - impl
+    - go-outline

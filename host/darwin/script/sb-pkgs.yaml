@@ -1,0 +1,104 @@
+# sb package manifest for the darwin host.
+# Consumed by install-sb-pkgs.sh via `sb sync`.
+#
+#   packages.link:   linked into the prefix root (/opt/sb/{bin,lib,...}).
+#   packages.unlink: installed into the store only, not linked into the root.
+prefix: /opt/sb
+arch: darwin-arm64
+packages:
+  link:
+    # shell & terminal
+    - zsh-plugins
+    - starship
+    - atuin
+    - fzf
+    - yazi
+    # - zsh
+    # - tmux
+    # - tmux-plugins
+
+    # editor
+    - vim-plugins
+    # - vim
+
+    # file & text utilities
+    - ripgrep
+    - fd
+    - bat
+    - eza
+    - gawk
+    - gnugrep
+    - gnused
+    - gnutar
+    - gettext
+    - findutils
+    - coreutils
+
+    # compression & archive
+    - bzip2
+    - xz
+    - zstd
+    - zip
+    - unzip
+    - makeself
+
+    # networking
+    - wget
+    - rsync
+    - connect
+    - netcat
+    # - inetutils
+    # - aria2
+    # - gost
+
+    # crypto & security
+    - openssl
+
+    # system & process
+    - lsof
+    - gdu
+    - ncdu_1
+    - parallel
+    - smartmontools
+
+    # version control
+    - git-absorb
+    - git-extras
+    - git-lfs
+    - git-filter-repo
+    - lefthook
+    # - git
+
+    # build tools
+    - gnupatch
+    - m4
+    - getopt
+    - go-task
+    - bazelisk
+    - buildifier
+
+    # language toolchains & package managers
+    - uv
+    - pnpm
+
+    # linters & formatters
+    - shfmt
+    - ruff
+    - prettier
+    - biome
+    - cloc
+
+    # misc
+    - exiftool
+
+    # fonts (disabled)
+    # - lxgw-wenkai
+    # - fira-code
+    # - nerd-fonts.fira-code
+    # - nerd-fonts.ubuntu-mono
+    # - rime-plugins
+
+  # installed but not linked into bin (avoid exposing their binaries)
+  unlink:
+    - nodejs-slim26
+    - perl
