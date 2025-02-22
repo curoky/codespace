@@ -21,14 +21,11 @@ export PATH="$profile/bin:$profile/libexec:$PATH"
 rm -rf /etc/s6/db
 s6-rc-compile /etc/s6/db /etc/s6/s6-rc.d
 
-# s6-rc-compile emits the internal oneshot / fdholder run scripts with a
-# "#!/usr/bin/env execlineb -P" shebang. Debian 10's /usr/bin/env does not split
-# the shebang argument, so it looks for a program literally named "execlineb -P"
-# and fails. Insert -S so env splits the interpreter and its options.
-for run in /etc/s6/db/servicedirs/*/run; do
-  [ -f "$run" ] || continue
-  sed -i '1s|^#!/usr/bin/env execlineb|#!/usr/bin/env -S execlineb|' "$run"
-done
+# Note: s6-rc-compile emits its internal oneshot / fdholder run scripts with a
+# "#!/usr/bin/env -S execlineb -P" shebang. The "-S" (so Debian 10's /usr/bin/env
+# splits the interpreter from its options) is baked in at build time via the
+# execline package's EXECLINE_SHEBANGPREFIX (packages/execline/default.nix), so
+# no post-compile shebang rewrite is needed here.
 
 # Generate the container init (stage 1). At boot bin/init copies run-image into
 # /run (creating /run/service and /run/s6), dumps the container environment to
@@ -55,14 +52,12 @@ rm -rf /etc/s6/init
   -f /etc/s6/skel \
   /etc/s6/init
 
-# s6-linux-init-maker bakes the absolute build-time paths of the binaries
-# (under /nix/store/<hash>-<pkg>-.../bin) into the generated init scripts.
-# Those paths do not exist in the final image, so rewrite each nix store
-# prefix to the matching /opt/sb/store/<pkg> directory.
-for prefix in $(grep -rhoE '/nix/store/[^/]+' /etc/s6/init | sort -u); do
-  pkg=$(echo "$prefix" | sed -E 's|.*/[^-]+-([a-z0-9-]+?)-static-.*|\1|')
-  find /etc/s6/init -type f -exec sed -i "s|$prefix|/opt/sb/store/$pkg|g" {} +
-done
+# Note: s6-linux-init-maker no longer bakes any /nix/store path into the
+# generated init. execline's EXECLINE_EXTBINPREFIX (foreground/fdmove/eltest/...)
+# and EXECLINE_SHEBANGPREFIX are patched at build time (packages/execline via
+# packages/s6-linux-init), so the generated scripts reference execline tools by
+# bare name (resolved via the -p PATH) and use a "#!/usr/bin/env -S execlineb"
+# shebang. No post-generation /nix/store rewrite is needed here.
 
 # The generated bin/init invokes "s6-linux-init" by bare name, relying on PATH.
 # But bin/init is the container ENTRYPOINT, so at exec time PATH does not yet

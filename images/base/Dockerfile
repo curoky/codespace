@@ -5,8 +5,16 @@ ARG BASE_IMAGE=debian:12
 FROM docker.io/debian:latest AS stage_sb
 RUN apt-get update -y && apt-get install -y curl zstd
 
-COPY images/base/script/install-sb-pkgs.sh /tmp/install-sb-pkgs.sh
-RUN /tmp/install-sb-pkgs.sh
+COPY images/base/script/sb-pkgs.yaml /tmp/sb-pkgs.yaml
+RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/client/install.sh \
+    | bash -s -- --prefix /opt/sb/bin \
+  && /opt/sb/bin/sb sync /tmp/sb-pkgs.yaml \
+  && ln -s -r /opt/sb/bin/bazelisk /opt/sb/bin/bazel \
+  && rm -rf /opt/sb/store/nettools/bin/hostname \
+  && rm -rf /opt/sb/store/cmake/share/cmake*/Help \
+  && rm -rf /opt/sb/store/cmake/share/doc \
+  && rm -rf /opt/sb/store/vim/share/vim/vim*/doc \
+  && rm -rf /opt/sb/store/protobuf*/lib
 
 ################################# stage/conda environ ################################
 FROM docker.io/debian:stable-slim AS stage_conda
