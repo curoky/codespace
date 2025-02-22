@@ -126,6 +126,7 @@ pkgs=(
   parallel
   nixfmt
   zellij
+  postgresql
 
   delve
   golangci-lint
