@@ -9,17 +9,18 @@ redirfd -w 1 /var/log/sshd.stdout.log
 
 # Read SSHD_PORT from the now-loaded environment into an execline variable so it
 # can be substituted into the exec line below (execline expands $vars itself).
-importas -i SSHD_PORT SSHD_PORT
+# Default to 22 when unset so the codespace contract (sshd on container port 22)
+# holds without extra env; callers can still override SSHD_PORT.
+importas -D 22 SSHD_PORT SSHD_PORT
 
-# Tighten host-key permissions and make sure the log dir exists.
+# Make sure the log dir exists. Host keys live under /etc/ssh with 0600 set at
+# build time (setup-sysconf.sh), so no per-boot permission fixup is needed here.
 foreground { mkdir -p /var/log }
-elglob -0 keys /opt/devspace/dotfiles/sshd/host-key/*
-foreground { chmod 600 $keys }
 
 # Override the listen port on the command line (-o) instead of editing the
-# config file, so the shipped sshd_config.conf stays untouched.
+# config file, so the shipped sshd_config stays untouched.
 # https://github.com/un-def/openssh-static-build/blob/master/run-sshd.sh#L30
 exec /opt/sb/store/openssh_gssapi/bin/sshd -D
   -o Port=${SSHD_PORT}
-  -f /opt/devspace/dotfiles/sshd/sshd_config.conf
+  -f /etc/ssh/sshd_config
   -E /var/log/sshd.log

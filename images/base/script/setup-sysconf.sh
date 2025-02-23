@@ -14,6 +14,14 @@ chsh -s /opt/sb/bin/zsh x
 # sshd
 useradd --uid 200 -g 65534 --home-dir /run/sshd --create-home --shell /usr/sbin/nologin sshd
 mkdir -p /var/empty
+# Host keys are shipped under /etc/ssh (via rootfs) but git cannot preserve the
+# 0600 mode, so tighten the private keys here at build time; sshd refuses to
+# start with world-readable host keys.
+chmod 600 /etc/ssh/ssh_host_*_key
+
+# sudoers drop-in shipped via rootfs; git cannot preserve the 0440 mode sudo
+# requires, so tighten it here at build time.
+chmod 440 /etc/sudoers.d/more_secure_path
 
 # timezone: link to the tzdata-provided zoneinfo file
 ln -sf /usr/share/zoneinfo/Asia/Singapore /etc/localtime
