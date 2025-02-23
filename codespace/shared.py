@@ -1,0 +1,143 @@
+"""Shared protocol models and constants for the codespace client and agent.
+
+This module is the single source of truth for the wire contract between the
+macOS client and the Linux agent. Both sides import from here.
+"""
+
+import hashlib
+import re
+
+from pydantic import BaseModel, Field, field_validator
+
+# --- Constants ---------------------------------------------------------------
+
+# Container name prefix; scopes every podman operation the agent performs.
+CONTAINER_PREFIX = "codespace-"
+
+# Default login user inside the dev container (see DESIGN.md §3 image contract).
+DEFAULT_CONTAINER_USER = "dev"
+
+# Workspace mount point inside the dev container.
+WORKSPACE_MOUNT = "/workspace"
+
+# Label keys stored on the dev container; the agent is stateless and reads all
+# persistent metadata back from these labels. GitHub metadata (deploy key id)
+# is intentionally NOT stored here: the client owns all GitHub interaction and
+# rediscovers keys by title (see ``deploy_key_title``), so the agent never
+# touches GitHub or holds a token.
+LABEL_ID = "codespace.id"
+LABEL_REPO = "codespace.repo"
+LABEL_WORKSPACE = "codespace.workspace"
+LABEL_USER = "codespace.user"
+LABEL_IMAGE = "codespace.image"
+
+# Validation patterns.
+REPO_RE = re.compile(r"^[\w.-]+/[\w.-]+$")
+WORKSPACE_RE = re.compile(r"^[\w.-]+$")
+
+DEFAULT_WORKSPACE = "default"
+
+
+# --- Helpers -----------------------------------------------------------------
+
+
+def repo_slug(repo: str) -> str:
+    """Convert ``owner/name`` into a filesystem-friendly slug."""
+    return repo.replace("/", "-")
+
+
+def workspace_dir_name(repo: str, workspace: str) -> str:
+    """Compute the host workspace directory name for a (repo, workspace) pair.
+
+    A short hash suffix disambiguates slugs that would otherwise collide
+    (e.g. ``a/b-c`` vs ``a-b/c``). See DESIGN.md §7.
+    """
+    digest = hashlib.sha256(f"{repo}\0{workspace}".encode()).hexdigest()[:8]
+    return f"{CONTAINER_PREFIX}{repo_slug(repo)}-{workspace}-{digest}"
+
+
+def container_name(cs_id: str) -> str:
+    """Container name for a codespace id."""
+    return f"{CONTAINER_PREFIX}{cs_id}"
+
+
+def deploy_key_title(cs_id: str) -> str:
+    """GitHub deploy key title for a codespace id.
+
+    ``cs_id`` is the single cross-system correlation key: it lives on the
+    container label and in this key title, so the client can rediscover and
+    delete a codespace's deploy key by title without persisting its id.
+    """
+    return f"{CONTAINER_PREFIX}{cs_id}"
+
+
+# --- Wire models -------------------------------------------------------------
+
+
+class CreateRequest(BaseModel):
+    """POST /codespaces request body.
+
+    The client owns all GitHub interaction, so no token is sent to the agent.
+    ``image`` and ``user`` are supplied by the client rather than configured on
+    the agent, keeping host-independent choices on the caller side.
+    """
+
+    repo: str = Field(..., description="Target GitHub repo, 'owner/name'.")
+    login_pubkey: str = Field(..., description="Client SSH public key for login.")
+    image: str = Field(..., description="Dev image satisfying the DESIGN.md §3 contract.")
+    user: str = Field(DEFAULT_CONTAINER_USER, description="Login user inside the dev image.")
+    workspace: str = Field(DEFAULT_WORKSPACE, description="Workspace name for persistence.")
+
+    @field_validator("repo")
+    @classmethod
+    def _check_repo(cls, v: str) -> str:
+        if not REPO_RE.match(v):
+            raise ValueError("repo must match 'owner/name'")
+        return v
+
+    @field_validator("workspace")
+    @classmethod
+    def _check_workspace(cls, v: str) -> str:
+        if not WORKSPACE_RE.match(v):
+            raise ValueError("workspace must match [\\w.-]+")
+        return v
+
+    @field_validator("login_pubkey", "image", "user")
+    @classmethod
+    def _not_blank(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("must not be blank")
+        return v
+
+
+class Codespace(BaseModel):
+    """A managed codespace, returned by create/list.
+
+    ``deploy_public_key`` is only populated by ``create``: the agent generates
+    the keypair, keeps the private half (injected into the container) and hands
+    the public half back so the client can register it as a GitHub deploy key.
+    It is empty for ``list`` results.
+
+    The SSH host is *not* included: the agent only reports the ``port`` it can
+    observe from podman; the client supplies the reachable host itself (it is
+    the client-side view of where the host is, e.g. from ``--ssh-host``).
+    """
+
+    id: str
+    port: int
+    user: str
+    container_id: str
+    repo: str
+    workspace: str
+    workspace_dir: str
+    deploy_public_key: str | None = None
+    status: str | None = None
+
+
+class DeleteResponse(BaseModel):
+    ok: bool = True
+    workspace_removed: bool = False
+
+
+class ErrorResponse(BaseModel):
+    error: str

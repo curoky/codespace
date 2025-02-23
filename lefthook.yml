@@ -10,8 +10,19 @@ pre-commit:
       stage_fixed: false
 
     - name: python
-      # run: ruff check --force-exclude --fix, --exit-non-zero-on-fix, --no-cache {staged_files}
       run: ruff format --no-cache --force-exclude {staged_files}
+      glob: '*.{py}'
+      stage_fixed: false
+
+    - name: python-lint
+      run: ruff check --no-cache --force-exclude {staged_files}
+      glob: '*.{py}'
+      stage_fixed: false
+
+    - name: python-type
+      # mypy needs the whole package for cross-module inference, so it ignores
+      # {staged_files} and type-checks the project when any .py file is staged.
+      run: uv run mypy codespace/
       glob: '*.{py}'
       stage_fixed: false
 

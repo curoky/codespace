@@ -1,0 +1,44 @@
+name: CI codespace
+
+on:
+  push:
+    paths:
+      - '.github/workflows/ci-codespace.yaml'
+      - 'codespace/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'uv.lock'
+  pull_request:
+    paths:
+      - '.github/workflows/ci-codespace.yaml'
+      - 'codespace/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'uv.lock'
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Sync dependencies (locked)
+        run: uv sync --locked --dev
+
+      - name: Format check
+        run: uv run ruff format --check codespace/ tests/
+
+      - name: Lint
+        run: uv run ruff check codespace/ tests/
+
+      - name: Type check
+        run: uv run mypy codespace/
+
+      - name: Test
+        run: uv run pytest
