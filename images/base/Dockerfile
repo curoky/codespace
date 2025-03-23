@@ -38,13 +38,17 @@ COPY images/base/script/patch-apt.sh /tmp/patch-apt.sh
 RUN /tmp/patch-apt.sh ${BASE_IMAGE} \
   && apt-get update -y && apt-get install -y sudo locales ca-certificates
 
-COPY images/base/script/setup-user.sh /tmp/setup-user.sh
-RUN /tmp/setup-user.sh
+# Static tools and system config must be present before setup-sysconf.sh (it
+# runs `chsh` to the sb zsh and tightens perms on the rootfs-provided /etc/ssh &
+# /etc/sudoers.d files). Lay both down while still root, before `USER x`.
+COPY --link --from=stage_sb /opt/sb /opt/sb
+COPY images/base/rootfs/ /
+
+COPY images/base/script/setup-sysconf.sh /tmp/setup-sysconf.sh
+RUN /tmp/setup-sysconf.sh
 
 USER x
 
-# setup tools
-COPY --chown=5230:5230 --link --from=stage_sb /opt/sb /opt/sb
 RUN sudo ln -s /opt/sb/store/zsh/bin/zsh /usr/bin \
   && sudo ln -s /opt/sb/store/wget/bin/wget /usr/bin \
   # && sudo ln -s /opt/sb/store/curl/bin/curl /usr/bin \
@@ -60,9 +64,6 @@ RUN curl -L https://nixos.org/nix/install | sh -s -- --no-daemon \
   && nix-channel --update \
   && nix-env -iA nixpkgs.ollama-cpu \
   && nix-env -iA nixpkgs.lemminx \
-  # && nix-env -iA nixpkgs.opencommit \
-  # && nix-env -iA nixpkgs.markdownlint-cli2 \
-  # && nix-env -iA nixpkgs.prettier \
   && nix-collect-garbage -d \
   && nix-store --optimise
 
@@ -123,9 +124,7 @@ RUN sudo mkdir -p /workspace \
   && sudo chown 5230:5230 /workspace /opt
 
 USER root
-RUN rsync -a /opt/devspace/images/base/rootfs/ / \
-  && bash /opt/devspace/images/base/script/setup-sysconf.sh \
-  && bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles \
+RUN bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles \
   && ln -s /opt/devspace ~/devspace
 
 RUN bash /opt/devspace/images/base/script/setup-s6.sh

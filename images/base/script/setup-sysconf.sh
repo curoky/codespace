@@ -1,10 +1,22 @@
 #!/usr/bin/env bash
 set -xeuo pipefail
 
-# System configuration files now live under images/base/rootfs and are rsync'd
-# to their standard Debian/Ubuntu locations by the Dockerfile. This script only
-# performs the non-file command operations that cannot be expressed as a static
-# file tree.
+# User provisioning + system configuration. Runs at build time before `USER x`.
+# Static config files are laid down at their standard Debian/Ubuntu paths via
+# `COPY rootfs/ /` in the Dockerfile; this script performs the command-only
+# operations that cannot be expressed as a static file tree.
+
+# remove user ubuntu
+userdel ubuntu -r || echo "ignore userdel failed"
+
+# update user root
+echo "root:x123456" | chpasswd
+
+# add user x
+useradd --create-home --uid 5230 --user-group x
+echo "x:x123456" | chpasswd
+usermod -aG sudo x
+echo "x ALL=(ALL:ALL) NOPASSWD:ALL" >>/etc/sudoers.d/nopasswd_user
 
 # change login shell
 echo "/opt/sb/bin/zsh" >>/etc/shells
