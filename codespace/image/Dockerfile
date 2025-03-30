@@ -1,7 +1,7 @@
 # Reference development image for the codespace scheme.
 # Thin wrapper over the shared base image (images/base), which already satisfies
 # the minimal container contract in codespace/DESIGN.md §3:
-#   1. sshd listens on container port 22 (public-key auth, no passwords).
+#   1. sshd listens on SSHD_PORT, defaulting to 22 (public-key auth, no passwords).
 #   2. A non-root login user `x` with a writable home and ~/.ssh.
 #   3. A `/workspace` mount point writable by `x`.
 #   4. git and an ssh client available.

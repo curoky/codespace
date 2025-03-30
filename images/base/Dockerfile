@@ -45,17 +45,19 @@ COPY --link --from=stage_sb /opt/sb /opt/sb
 COPY images/base/rootfs/ /
 
 COPY images/base/script/setup-sysconf.sh /tmp/setup-sysconf.sh
-RUN /tmp/setup-sysconf.sh
+RUN /tmp/setup-sysconf.sh \
+  && mkdir -p /workspace \
+  && chown 5230:5230 /workspace /opt
+
+RUN ln -s /opt/sb/store/zsh/bin/zsh /usr/bin \
+  && ln -s /opt/sb/store/wget/bin/wget /usr/bin \
+  # && ln -s /opt/sb/store/curl/bin/curl /usr/bin \
+  && ln -s /opt/sb/store/less/bin/less /usr/bin \
+  && ln -s /opt/sb/store/xz/bin/xz /usr/bin \
+  # && ln -s /opt/sb/store/openssl/bin/openssl /usr/bin \
+  && ln -s /opt/sb/store/openssh_gssapi/bin/ssh /usr/bin
 
 USER x
-
-RUN sudo ln -s /opt/sb/store/zsh/bin/zsh /usr/bin \
-  && sudo ln -s /opt/sb/store/wget/bin/wget /usr/bin \
-  # && sudo ln -s /opt/sb/store/curl/bin/curl /usr/bin \
-  && sudo ln -s /opt/sb/store/less/bin/less /usr/bin \
-  && sudo ln -s /opt/sb/store/xz/bin/xz /usr/bin \
-  # && sudo ln -s /opt/sb/store/openssl/bin/openssl /usr/bin \
-  && sudo ln -s /opt/sb/store/openssh_gssapi/bin/ssh /usr/bin
 
 # setup nixpkgs
 ENV PATH=${PATH}:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin
@@ -119,9 +121,6 @@ COPY --chown=5230:5230 ./ /opt/devspace
 RUN bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles \
   && ln -s /opt/devspace ~/devspace
 
-# other
-RUN sudo mkdir -p /workspace \
-  && sudo chown 5230:5230 /workspace /opt
 
 USER root
 RUN bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles \

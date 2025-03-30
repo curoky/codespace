@@ -6,8 +6,11 @@ macOS client and the Linux agent. Both sides import from here.
 
 import hashlib
 import re
+from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
+
+type CreateOperationStatus = Literal["queued", "running", "succeeded", "failed"]
 
 # --- Constants ---------------------------------------------------------------
 
@@ -31,6 +34,7 @@ LABEL_REPO = "codespace.repo"
 LABEL_WORKSPACE = "codespace.workspace"
 LABEL_USER = "codespace.user"
 LABEL_IMAGE = "codespace.image"
+LABEL_PORT = "codespace.port"
 
 # Validation patterns.
 REPO_RE = re.compile(r"^[\w.-]+/[\w.-]+$")
@@ -170,6 +174,16 @@ class Codespace(BaseModel):
     workspace_dir: str
     deploy_keys: list[DeployKeyRef] = Field(default_factory=list)
     status: str | None = None
+
+
+class CreateOperation(BaseModel):
+    """Status for an asynchronous codespace creation operation."""
+
+    id: str
+    status: CreateOperationStatus
+    stage: str
+    codespace: Codespace | None = None
+    error: str | None = None
 
 
 class DeleteResponse(BaseModel):
