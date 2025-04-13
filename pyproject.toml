@@ -44,3 +44,6 @@ select = ["E", "F", "B", "Q", "I", "UP", "S", "SIM", "RUF", "PTH", "ANN", "C4", 
 "codespace/client/__main__.py" = ["B008"]
 # Tests may use assert and hardcoded dummy secrets.
 "codespace/tests/**" = ["S101", "S105", "S106"]
+
+[tool.mypy]
+exclude = ["^codespace/tests/"]

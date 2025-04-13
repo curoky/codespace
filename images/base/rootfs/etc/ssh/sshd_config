@@ -1,27 +1,24 @@
+#	$OpenBSD: sshd_config,v 1.105 2024/12/03 14:12:47 dtucker Exp $
 
 # This is the sshd server system-wide configuration file.  See
 # sshd_config(5) for more information.
 
-# This sshd was compiled with PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games
+# This sshd was compiled with PATH=/usr/bin:/bin:/usr/sbin:/sbin:/bin
 
 # The strategy used for options in the default sshd_config shipped with
 # OpenSSH is to specify options with their default value where
 # possible, but leave them commented.  Uncommented options override the
 # default value.
 
-# Port and ListenAddress options are not used when sshd is socket-activated,
-# which is now the default in Ubuntu.  See sshd_config(5) and
-# /usr/share/doc/openssh-server/README.Debian.gz for details.
-
-# Port is set from SSHD_PORT via `sshd -o Port=...` in the s6 run script.
-#Port 61000
+#Port 22
 #AddressFamily any
 #ListenAddress 0.0.0.0
 #ListenAddress ::
 
-HostKey /etc/ssh/ssh_host_rsa_key
-HostKey /etc/ssh/ssh_host_ecdsa_key
+#HostKey /etc/ssh/ssh_host_rsa_key
+#HostKey /etc/ssh/ssh_host_ecdsa_key
 HostKey /etc/ssh/ssh_host_ed25519_key
+HostKeyAlgorithms ssh-ed25519
 
 # Ciphers and keying
 #RekeyLimit default none
@@ -32,18 +29,17 @@ LogLevel INFO
 
 # Authentication:
 
-LoginGraceTime 30s
+#LoginGraceTime 2m
 PermitRootLogin no
 #StrictModes yes
-MaxAuthTries 3
+#MaxAuthTries 6
 #MaxSessions 10
 
 PubkeyAuthentication yes
 
-# Expect .ssh/authorized_keys2 to be disregarded by default in future.
-# Read the login user's own ~/.ssh/authorized_keys so injected keys (e.g. the
-# codespace agent's put_archive) authenticate.
-AuthorizedKeysFile .ssh/authorized_keys
+# The default is to check both .ssh/authorized_keys and .ssh/authorized_keys2
+# but this is overridden so installations will only check .ssh/authorized_keys
+AuthorizedKeysFile	.ssh/authorized_keys
 
 #AuthorizedPrincipalsFile none
 
@@ -58,12 +54,13 @@ AuthorizedKeysFile .ssh/authorized_keys
 # Don't read the user's ~/.rhosts and ~/.shosts files
 #IgnoreRhosts yes
 
-# To disable tunneled clear text passwords, change to no here!
+# To disable tunneled clear text passwords, change to "no" here!
 PasswordAuthentication no
 PermitEmptyPasswords no
 
-# Change to yes to enable challenge-response passwords (beware issues with
-# some PAM modules and threads)
+# Change to "no" to disable keyboard-interactive authentication.  Depending on
+# the system's configuration, this may involve passwords, challenge-response,
+# one-time passwords or some combination of these and other methods.
 KbdInteractiveAuthentication no
 
 # Kerberos options
@@ -87,7 +84,6 @@ KbdInteractiveAuthentication no
 # If you just want the PAM account and session checks to run without
 # PAM authentication, then enable this but set PasswordAuthentication
 # and KbdInteractiveAuthentication to 'no'.
-# This sshd build does not support PAM.
 #UsePAM no
 
 #AllowAgentForwarding yes
@@ -97,7 +93,7 @@ X11Forwarding no
 #X11DisplayOffset 10
 #X11UseLocalhost yes
 #PermitTTY yes
-PrintMotd no
+PrintMotd yes
 #PrintLastLog yes
 TCPKeepAlive yes
 #PermitUserEnvironment no
@@ -114,18 +110,12 @@ ClientAliveCountMax 1000000
 # no default banner path
 #Banner none
 
-# Allow client to pass locale environment variables
-AcceptEnv LANG LC_*
-
 # override default of no subsystems
-Subsystem  sftp  /opt/sb/store/openssh_gssapi/libexec/sftp-server
+Subsystem	sftp	/opt/sb/store/openssh_gssapi/libexec/sftp-server
 
 # Example of overriding settings on a per-user basis
 #Match User anoncvs
-#  X11Forwarding no
-#  AllowTcpForwarding no
-#  PermitTTY no
-#  ForceCommand cvs server
-
-# https://oracleonlinux-n.blogspot.com/2012/11/starting-sshd-privilege-separation-user.html
-# UsePrivilegeSeparation no
+#	X11Forwarding no
+#	AllowTcpForwarding no
+#	PermitTTY no
+#	ForceCommand cvs server

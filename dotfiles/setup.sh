@@ -66,6 +66,7 @@ function common() {
   copy_path $CONF_PATH/zsh/prune.zshrc $HOME/.zshrc
   copy_path $CONF_PATH/git/.gitconfig $HOME/.gitconfig
   copy_path $CONF_PATH/ssh/user.ssh_config $HOME/.ssh/config
+  copy_path $CONF_PATH/ssh/authorized_keys $HOME/.ssh/authorized_keys
 }
 
 common
