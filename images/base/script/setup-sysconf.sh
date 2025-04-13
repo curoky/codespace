@@ -38,9 +38,6 @@ chmod 440 /etc/sudoers.d/more_secure_path
 # timezone: link to the tzdata-provided zoneinfo file
 ln -sf /usr/share/zoneinfo/Asia/Singapore /etc/localtime
 
-# env and rc file
-ln -s /etc/zsh/zshenv /etc/zshenv
-
 # setup locales from apt
 echo "en_US.UTF-8 UTF-8" >/etc/locale.gen
 locale-gen
