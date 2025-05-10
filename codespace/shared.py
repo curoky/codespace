@@ -33,7 +33,6 @@ WORKSPACE_MOUNT = "/workspace"
 LABEL_ID = "codespace.id"
 LABEL_REPO = "codespace.repo"
 LABEL_PROVIDER = "codespace.provider"
-LABEL_GIT_SSH_HOST = "codespace.git_ssh_host"
 LABEL_TEMPLATE = "codespace.template"
 LABEL_INSTANCE = "codespace.instance"
 LABEL_USER = "codespace.user"
@@ -43,9 +42,6 @@ LABEL_PORT = "codespace.port"
 # Validation patterns.
 REPO_RE = re.compile(r"^[\w.-]+(?:/[\w.-]+)+$")
 WORKSPACE_RE = re.compile(r"^[\w.-]+$")
-ENV_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
-RESERVED_ENV_NAMES = frozenset({"SSHD_PORT"})
-
 DEFAULT_GIT_PROVIDER: GitProvider = "github"
 DEFAULT_GITHUB_SSH_HOST = "github.com"
 DEFAULT_GITLAB_SSH_HOST = "gitlab.com"
@@ -86,6 +82,15 @@ def deploy_key_title(cs_id: str) -> str:
     return f"{CONTAINER_PREFIX}{cs_id}"
 
 
+def default_git_host(provider: GitProvider) -> str:
+    """Return the official SSH host for a supported git provider."""
+    match provider:
+        case "github":
+            return DEFAULT_GITHUB_SSH_HOST
+        case "gitlab":
+            return DEFAULT_GITLAB_SSH_HOST
+
+
 # --- Wire models -------------------------------------------------------------
 
 
@@ -112,18 +117,10 @@ class CreateRequest(BaseModel):
     provider: GitProvider = Field(
         DEFAULT_GIT_PROVIDER, description="Git provider hosting the repo."
     )
-    git_ssh_host: str = Field(
-        DEFAULT_GITHUB_SSH_HOST,
-        description="SSH hostname used by git clone inside the container.",
-    )
     template: str = Field(DEFAULT_TEMPLATE, description="Template id for this instance.")
     instance: str = Field(DEFAULT_INSTANCE, description="Instance name under the template.")
     login_pubkey: str = Field(..., description="Client SSH public key for login.")
     image: str = Field(..., description="Dev image satisfying the DESIGN.md §3 contract.")
-    env: dict[str, str] = Field(
-        default_factory=dict,
-        description="Non-secret environment variables passed to the container process.",
-    )
 
     @field_validator("repo")
     @classmethod
@@ -131,14 +128,6 @@ class CreateRequest(BaseModel):
         if not REPO_RE.match(v):
             raise ValueError("repo must be a slash-separated path like 'owner/name'")
         return v
-
-    @field_validator("git_ssh_host")
-    @classmethod
-    def _check_git_ssh_host(cls, v: str) -> str:
-        value = v.strip()
-        if not value or "/" in value or ":" in value:
-            raise ValueError("git_ssh_host must be a hostname")
-        return value
 
     @field_validator("template", "instance")
     @classmethod
@@ -153,19 +142,6 @@ class CreateRequest(BaseModel):
         if not v.strip():
             raise ValueError("must not be blank")
         return v
-
-    @field_validator("env")
-    @classmethod
-    def _check_env(cls, value: dict[str, str]) -> dict[str, str]:
-        for key, env_value in value.items():
-            if not ENV_NAME_RE.match(key):
-                raise ValueError(f"invalid environment variable name: {key!r}")
-            if key in RESERVED_ENV_NAMES:
-                raise ValueError(f"environment variable {key!r} is reserved")
-            if "\x00" in env_value:
-                raise ValueError(f"environment variable {key!r} must not contain NUL")
-        return value
-
 
 class Codespace(BaseModel):
     """A managed codespace, returned by create/list.
@@ -186,7 +162,6 @@ class Codespace(BaseModel):
     container_id: str
     repo: str
     provider: GitProvider = DEFAULT_GIT_PROVIDER
-    git_ssh_host: str = DEFAULT_GITHUB_SSH_HOST
     template: str = DEFAULT_TEMPLATE
     instance: str = DEFAULT_INSTANCE
     workspace_dir: str
