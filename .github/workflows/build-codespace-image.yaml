@@ -1,11 +1,20 @@
-name: Build codespace-dev image
+name: Build codespace images
 
 on:
   push:
     paths:
       - '.github/workflows/build-codespace-image.yaml'
       - 'codespace/image/**'
+      - 'dotfiles/**'
+  schedule:
+    - cron: '0 0 * * 0'
   workflow_dispatch:
+    inputs:
+      disable_docker_cache:
+        description: 'disable docker cache'
+        default: false
+        required: false
+        type: boolean
 
 jobs:
   build:
@@ -13,6 +22,25 @@ jobs:
     permissions:
       contents: read
       packages: write
+    strategy:
+      matrix:
+        include:
+          - base_image: 'debian:10'
+            saved_image: 'debian10'
+          - base_image: 'debian:11'
+            saved_image: 'debian11'
+          - base_image: 'debian:12'
+            saved_image: 'debian12'
+          - base_image: 'debian:13'
+            saved_image: 'debian13'
+          # - base_image: 'ubuntu:20.04'
+          #   saved_image: 'ubuntu20.04'
+          # - base_image: 'ubuntu:22.04'
+          #   saved_image: 'ubuntu22.04'
+          # - base_image: 'ubuntu:24.04'
+          #   saved_image: 'ubuntu24.04'
+          - base_image: 'ubuntu:26.04'
+            saved_image: 'ubuntu26.04'
     steps:
       - uses: actions/checkout@v5
       - uses: docker/setup-buildx-action@v3
@@ -24,7 +52,15 @@ jobs:
 
       - uses: docker/build-push-action@v6
         with:
-          context: codespace/image
+          context: .
           file: codespace/image/Dockerfile
           push: true
-          tags: ghcr.io/curoky/devspace:codespace-image-debian12
+          provenance: false
+          cache-from: type=registry,ref=ghcr.io/curoky/devspace-cache:codespace-${{ matrix.saved_image }}
+          cache-to: type=registry,ref=ghcr.io/curoky/devspace-cache:codespace-${{ matrix.saved_image }},mode=max
+          no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
+          build-args: BASE_IMAGE=${{ matrix.base_image }}
+          tags: |
+            ghcr.io/curoky/devspace:base-${{ matrix.saved_image }}
+            ghcr.io/curoky/devspace:codespace-${{ matrix.saved_image }}
+          outputs: type=image,oci-mediatypes=true

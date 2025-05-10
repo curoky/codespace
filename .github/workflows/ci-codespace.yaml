@@ -5,14 +5,12 @@ on:
     paths:
       - '.github/workflows/ci-codespace.yaml'
       - 'codespace/**'
-      - 'tests/**'
       - 'pyproject.toml'
       - 'uv.lock'
   pull_request:
     paths:
       - '.github/workflows/ci-codespace.yaml'
       - 'codespace/**'
-      - 'tests/**'
       - 'pyproject.toml'
       - 'uv.lock'
   workflow_dispatch:
@@ -32,10 +30,10 @@ jobs:
         run: uv sync --locked --dev
 
       - name: Format check
-        run: uv run ruff format --check codespace/ tests/
+        run: uv run ruff format --check codespace/
 
       - name: Lint
-        run: uv run ruff check codespace/ tests/
+        run: uv run ruff check codespace/
 
       - name: Type check
         run: uv run mypy codespace/

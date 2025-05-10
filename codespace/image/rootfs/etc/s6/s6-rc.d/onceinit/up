@@ -2,4 +2,4 @@ redirfd -w 1 /var/log/onceinit.log
 s6-envdir -Lf -- /run/s6/container_environment
 s6-setuidgid x
 s6-env HOME=/home/x
-bash /opt/devspace/images/base/script/onceinit
+bash /opt/devspace/codespace/image/script/onceinit
