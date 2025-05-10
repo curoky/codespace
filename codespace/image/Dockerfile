@@ -108,6 +108,12 @@ COPY --chown=5230:5230 ./ /opt/devspace
 RUN bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles \
   && ln -s /opt/devspace ~/devspace
 
+# setup Trae user rules
+RUN git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-playbook \
+  && mkdir -p /home/x/.trae/user_rules \
+  && rsync -a --delete /tmp/agent-playbook/.trae/rules/ /home/x/.trae/user_rules/ \
+  && rm -rf /tmp/agent-playbook
+
 
 USER root
 RUN bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles \
