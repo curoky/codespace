@@ -7,7 +7,5 @@ set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/../../.."
 
-podman build \
-	-t ghcr.io/curoky/devspace:codespace-agent \
-	-f codespace/images/agent/Dockerfile \
-	.
+docker build . --network=host --file codespace/images/agent/Dockerfile \
+	--tag ghcr.io/curoky/devspace:codespace-agent

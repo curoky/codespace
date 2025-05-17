@@ -2,8 +2,8 @@ prefix: /opt/sb
 
 packages:
   link:
+    - uv
     - atuin
-    - cacert
 
 profiles:
   s6:

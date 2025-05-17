@@ -143,6 +143,7 @@ class CreateRequest(BaseModel):
             raise ValueError("must not be blank")
         return v
 
+
 class Codespace(BaseModel):
     """A managed codespace, returned by create/list.
 
