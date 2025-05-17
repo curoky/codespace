@@ -5,7 +5,7 @@ ARG BASE_IMAGE=debian:12
 FROM docker.io/debian:latest AS stage_sb
 RUN apt-get update -y && apt-get install -y curl zstd
 
-COPY codespace/image/script/sb-pkgs.yaml /tmp/sb-pkgs.yaml
+COPY codespace/images/dev/script/sb-pkgs.yaml /tmp/sb-pkgs.yaml
 RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/client/install.sh \
     | bash -s -- --prefix /opt/sb/bin \
   && /opt/sb/bin/sb sync /tmp/sb-pkgs.yaml \
@@ -24,7 +24,7 @@ RUN apt-get update -y \
   && curl -sSL -o /tmp/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
   && bash /tmp/miniconda.sh -b -u -p /opt/conda
 
-COPY codespace/image/script/setup-conda-env.sh /opt/conda/condabin/setup-conda-env.sh
+COPY codespace/images/dev/script/setup-conda-env.sh /opt/conda/condabin/setup-conda-env.sh
 
 ################################ main ################################
 FROM docker.io/$BASE_IMAGE
@@ -34,7 +34,7 @@ ENV PATH=${PATH}:/opt/sb/bin \
   SSL_CERT_FILE=/opt/sb/store/cacert/etc/ssl/certs/ca-certificates.crt
 
 ARG BASE_IMAGE
-COPY codespace/image/script/patch-apt.sh /tmp/patch-apt.sh
+COPY codespace/images/dev/script/patch-apt.sh /tmp/patch-apt.sh
 RUN /tmp/patch-apt.sh ${BASE_IMAGE} \
   && apt-get update -y && apt-get install -y sudo locales ca-certificates
 
@@ -42,10 +42,10 @@ RUN /tmp/patch-apt.sh ${BASE_IMAGE} \
 # runs `chsh` to the sb zsh and tightens perms on the rootfs-provided /etc/ssh &
 # /etc/sudoers.d files). Lay both down while still root, before `USER x`.
 COPY --link --from=stage_sb /opt/sb /opt/sb
-COPY codespace/image/rootfs/ /
+COPY codespace/images/dev/rootfs/ /
 
-COPY codespace/image/script/setup-sysconf.sh /tmp/setup-sysconf.sh
-COPY codespace/image/script/setup-s6.sh /tmp/setup-s6.sh
+COPY codespace/images/dev/script/setup-sysconf.sh /tmp/setup-sysconf.sh
+COPY codespace/images/dev/script/setup-s6.sh /tmp/setup-s6.sh
 RUN /tmp/setup-sysconf.sh \
   && mkdir -p /workspace \
   && chown 5230:5230 /workspace /opt \

@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - '.github/workflows/build-codespace-image.yaml'
-      - 'codespace/image/**'
+      - 'codespace/images/dev/**'
       - 'dotfiles/**'
   schedule:
     - cron: '0 0 * * 0'
@@ -53,7 +53,7 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
-          file: codespace/image/Dockerfile
+          file: codespace/images/dev/Dockerfile
           push: true
           provenance: false
           cache-from: type=registry,ref=ghcr.io/curoky/devspace-cache:codespace-${{ matrix.saved_image }}

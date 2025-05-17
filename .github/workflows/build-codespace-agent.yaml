@@ -28,6 +28,6 @@ jobs:
         with:
           # Build from the repo root so pyproject.toml/uv.lock are in context.
           context: .
-          file: codespace/agent/Dockerfile
+          file: codespace/images/agent/Dockerfile
           push: true
           tags: ghcr.io/curoky/devspace:codespace-agent
