@@ -12,6 +12,6 @@ rm -rf ~/devspace
 ln -s ~/workspace/devspace ~/devspace
 ~/devspace/dotfiles/setup.sh
 
-brew bundle --force --file ~/devspace/host/darwin/conf/brew/Brewfile.personal --cleanup --verbose
+brew bundle --force --file ~/devspace/host/darwin/conf/brew/Brewfile --cleanup --verbose
 # brew link krb5 --force
 brew cleanup --prune=all
