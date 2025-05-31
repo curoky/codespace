@@ -1,0 +1,12 @@
+#!/opt/sb/profile/s6/bin/execlineb -P
+
+# longrun run script (execline). Keep the atuin client sync daemon in the
+# foreground so s6 owns its lifecycle instead of relying on atuin autostart.
+s6-envdir -Lf -- /run/s6/container_environment
+
+fdmove -c 2 1
+redirfd -w 1 /var/log/atuin-daemon.log
+
+s6-setuidgid x
+s6-env HOME=/home/x
+exec /opt/sb/store/atuin/bin/atuin daemon start --show-logs --force

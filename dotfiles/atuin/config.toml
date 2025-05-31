@@ -44,8 +44,8 @@ sync_address = "http://127.0.0.1:8002"
 sync_frequency = "5m"
 
 ## which search mode to use
-## possible values: prefix, fulltext, fuzzy, skim
-search_mode = "fuzzy"
+## possible values: prefix, full-text, fuzzy, skim, daemon-fuzzy
+search_mode = "daemon-fuzzy"
 
 ## which filter mode to use by default
 ## possible values: "global", "host", "session", "session-preload", "directory", "workspace"
@@ -266,28 +266,28 @@ records = true
 
 [daemon]
 ## Enables using the daemon to sync.
-# enabled = false
+enabled = true
 
 ## Automatically start and manage the daemon when needed.
 ## Not compatible with `systemd_socket = true`.
-# autostart = false
+autostart = false
 
 ## How often the daemon should sync in seconds
-# sync_frequency = 300
+sync_frequency = 300
 
 ## The path to the unix socket used by the daemon (on unix systems)
 ## linux/mac: ~/.local/share/atuin/atuin.sock
 ## windows: Not Supported
-# socket_path = "~/.local/share/atuin/atuin.sock"
+socket_path = "~/.local/share/atuin/atuin.sock"
 
 ## The daemon pidfile used for lifecycle management.
 ## Defaults to the Atuin data directory.
-# pidfile_path = "~/.local/share/atuin/atuin-daemon.pid"
+pidfile_path = "~/.local/share/atuin/atuin-daemon.pid"
 
 ## Use systemd socket activation rather than opening the given path (the path must still be correct for the client)
 ## linux: false
 ## mac/windows: Not Supported
-# systemd_socket = false
+systemd_socket = false
 
 ## The port that should be used for TCP on non unix systems
 # tcp_port = 8889
