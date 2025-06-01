@@ -3,4 +3,4 @@ s6-envdir -Lf -- /run/s6/container_environment
 s6-setuidgid x
 s6-env HOME=/home/x
 foreground { /opt/sb/store/atuin/bin/atuin login -u x -p x -k "motor core badge round grit able winner jelly immune exist jacket ranch endless coyote leave that lucky abstract split achieve curtain boy barrel vault" }
-/opt/sb/store/atuin/bin/atuin sync --force
+/opt/sb/store/atuin/bin/atuin sync #--force
