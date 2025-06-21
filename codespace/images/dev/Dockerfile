@@ -54,18 +54,10 @@ RUN /tmp/setup-sysconf.sh \
   && ln -s /opt/sb/store/wget/bin/wget /usr/bin \
   && ln -s /opt/sb/store/less/bin/less /usr/bin \
   && ln -s /opt/sb/store/xz/bin/xz /usr/bin \
+  && ln -s /opt/sb/store/git/bin/git /usr/bin \
   && ln -s /opt/sb/store/openssh_gssapi/bin/ssh /usr/bin
 
 USER x
-
-# setup nixpkgs
-ENV PATH=${PATH}:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin
-RUN curl -L https://nixos.org/nix/install | sh -s -- --no-daemon \
-  && nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs \
-  && nix-channel --update \
-  && nix-env -iA nixpkgs.ollama-cpu nixpkgs.lemminx \
-  && nix-collect-garbage -d \
-  && nix-store --optimise
 
 # setup rust
 ENV CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup
@@ -73,22 +65,24 @@ ENV PATH=${PATH}:/opt/rust/cargo/bin
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --profile default --no-modify-path --default-toolchain stable \
   && rustup component remove rust-docs
 
-# setup java
-RUN nix-env -iA nixpkgs.maven \
+# setup nixpkgs
+ENV PATH=${PATH}:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin
+RUN curl -L https://nixos.org/nix/install | sh -s -- --no-daemon \
+  && nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs \
+  && nix-channel --update \
+  && nix-env -iA nixpkgs.ollama-cpu nixpkgs.lemminx \
+  # setup java
+  && nix-env -iA nixpkgs.maven \
   && nix-env -iA nixpkgs.jdk8_headless -p /nix/var/nix/profiles/jdk8 \
   && nix-env -iA nixpkgs.jdk25_headless -p /nix/var/nix/profiles/jdk25 \
-  && nix-collect-garbage -d \
-  && nix-store --optimise
-
-# setup nodejs
-RUN nix-env -iA nixpkgs.nodejs_24 -p /nix/var/nix/profiles/nodejs-24 \
+  # setup nodejs
   && nix-env -iA nixpkgs.nodejs_24 \
-  && nix-collect-garbage -d \
-  && nix-store --optimise
-
-# setup go
-RUN nix-env -iA nixpkgs.go_1_26 -p /nix/var/nix/profiles/go-1_26 \
+  && nix-env -iA nixpkgs.nodejs_24 -p /nix/var/nix/profiles/nodejs-24 \
+  # setup go
   && nix-env -iA nixpkgs.go_1_26 \
+  && nix-env -iA nixpkgs.go_1_26 -p /nix/var/nix/profiles/go-1_26 \
+  # setup gcc
+  && nix-env -iA nixpkgs.gcc15 \
   && nix-collect-garbage -d \
   && nix-store --optimise
 
@@ -113,6 +107,7 @@ RUN git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-play
   && mkdir -p /home/x/.trae/user_rules \
   && rsync -a --delete /tmp/agent-playbook/.trae/rules/ /home/x/.trae/user_rules/ \
   && rsync -a --delete /tmp/agent-playbook/.trae/skills/ /home/x/.trae/skills/ \
+  && cp /opt/devspace/codespace/images/dev/dev-environment.md /home/x/.trae/user_rules/ \
   && rm -rf /tmp/agent-playbook
 
 
