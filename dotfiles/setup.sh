@@ -76,6 +76,7 @@ if [[ $OS_NAME == "Darwin" ]]; then
   link_path $CONF_PATH/snipaste/config.ini $HOME/.snipaste/config.ini
   link_path $CONF_PATH/trae/sandbox.json $HOME/.trae/sandbox.json
   link_path $CONF_PATH/trae/traecli.yaml $HOME/.trae/traecli.yaml
+  link_path $CONF_PATH/trae/traecli.toml $HOME/.trae/traecli.toml
   link_path $CONF_PATH/vscode/app/snippets "$HOME/Library/Application Support/Code/User/snippets"
   link_path $CONF_PATH/vscode/app/keybindings.json "$HOME/Library/Application Support/Code/User/keybindings.json"
   link_path $CONF_PATH/vscode/app/settings.json "$HOME/Library/Application Support/Code/User/settings.json"
@@ -93,5 +94,6 @@ elif [[ $SCENE == "host-linux" ]]; then
 
 elif [[ $SCENE == "docker" ]]; then
   link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.vscode-server/data/Machine/settings.json
+  link_path $CONF_PATH/trae/traecli.yaml $HOME/.trae/traecli.yaml
   link_path $CONF_PATH/bazel/bazelrc $HOME/.bazelrc
 fi
