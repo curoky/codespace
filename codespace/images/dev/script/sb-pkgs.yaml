@@ -146,6 +146,7 @@ packages:
     - markdownlint-cli2
     - scc
     - cloc
+    - biome
     # - opencommit
 
     # databases
