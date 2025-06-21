@@ -1,7 +1,31 @@
-dotfiles/rime/squirrel/user.yaml
-*.pyc
-node_modules
-Brewfile.lock.json
+# VCS metadata (not needed at build time; changes on every commit and would
+# otherwise bust the `COPY ./ /opt/devspace` layer cache).
+.git
+
+# macOS cruft
+**/.DS_Store
+
+# Python virtualenvs & caches (regenerated in-image; ~170M of build context)
+.venv
+**/.venv
+**/__pycache__
+**/*.py[cod]
+.mypy_cache
+.pytest_cache
+.ruff_cache
+.coverage
+.coverage.*
+htmlcov
+
+# Node / frontend deps — nested under codespace/client/webui (~246M). The bare
+# `node_modules` pattern only matches the context root, so use `**/`.
+**/node_modules
+
+# Build outputs & packages
 *.deb
 *.tar
+Brewfile.lock.json
 tmp
+
+# Dotfiles-local, user-specific state
+dotfiles/rime/squirrel/user.yaml
