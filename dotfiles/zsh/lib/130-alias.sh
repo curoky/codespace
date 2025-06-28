@@ -5,19 +5,12 @@ alias penv='env | sort'
 
 # alias t='task'
 
-alias ls=eza-wrapper.sh
-# ls, the common ones I use a lot shortened for rapid fire usage
-alias l='ls -lFh'   #size,show type,human readable
-alias la='ls -lAFh' #long list,show almost all,show type,human readable
-alias lr='ls -tRFh' #sorted by date,recursive,show type,human readable
-alias lt='ls -ltFh' #long list,sorted by date,show type,human readable
-alias ll='ls -l'    #long list
-alias ldot='ls -ld .*'
-alias lS='ls -1FSsh'
-alias lart='ls -1Fcart'
-alias lrt='ls -1Fcrt'
-alias lsr='ls -lARFh' #Recursive list of files and directories
-alias lsn='ls -1'     #A column contains name of files and directories
+alias ls='eza --color-scale -g -H -b --color=always --git'                          # ls -> eza
+alias l='eza --color-scale -g -H -b --color=always --git -la'                       # long list, all files
+alias la='eza --color-scale -g -H -b --color=always --git -la'                       # long list, all files
+alias lsd='eza --color-scale -g -H -b --color=always --git -la --sort=modified'     # sort by date
+alias lsn='eza --color-scale -g -H -b --color=always --git -la --sort=name'         # sort by name
+alias lss='eza --color-scale -g -H -b --color=always --git -la --sort=size'         # sort by size
 
 alias grep='grep --color'
 alias sgrep='grep -R -n -H -C 5 --exclude-dir={.git,.svn,CVS} '
@@ -56,7 +49,7 @@ alias path='print -l $path'
 alias topme='top -U $UID'
 
 alias grep='grep --color'
-alias cat='bat'
+# alias cat='bat'
 
 alias rm='rm -i'
 alias cp='cp -i'
@@ -78,7 +71,9 @@ alias mirror="rsync --partial --progress --archive --human-readable --rsh=ssh --
 
 alias prune_empty_dir="find . -type d -empty -delete"
 
-alias agf='ag --case-sensitive --word-regexp --hidden --silent -g'
+# alias agf='ag --case-sensitive --word-regexp --hidden --silent -g'
+alias agf='rg --files --hidden --no-messages | rg --case-sensitive --word-regexp'
+
 
 # alias lint="pre-commit run --all-files"
 
