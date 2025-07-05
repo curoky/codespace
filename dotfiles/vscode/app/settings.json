@@ -455,5 +455,13 @@
   "git.blame.editorDecoration.enabled": true,
   "telemetry.editStats.enabled": false,
   "security.promptForRemoteFileProtocolHandling": false,
-  "AI.toolcall.v2.fileOp.allowPaths": "[\"/workspace/tmp\"]"
+  "AI.toolcall.v2.fileOp.allowPaths": "[\"/workspace/tmp\"]",
+  "yaml.disableSchemaDetection": [
+    "**/.github/workflows/*.yml",
+    "**/.github/workflows/*.yaml",
+    "**/.gitea/workflows/*.yml",
+    "**/.gitea/workflows/*.yaml",
+    "**/.forgejo/workflows/*.yml",
+    "**/.forgejo/workflows/*.yaml"
+  ]
 }
