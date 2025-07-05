@@ -35,7 +35,6 @@ LABEL_REPO = "codespace.repo"
 LABEL_PROVIDER = "codespace.provider"
 LABEL_TEMPLATE = "codespace.template"
 LABEL_INSTANCE = "codespace.instance"
-LABEL_USER = "codespace.user"
 LABEL_IMAGE = "codespace.image"
 LABEL_PORT = "codespace.port"
 
