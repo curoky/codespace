@@ -9,26 +9,19 @@ rm -rf /home/x/.cache/starship.plugin.zsh \
   /home/x/.cache/conda.plugin.zsh \
   /home/x/.cache/atuin.plugin.zsh
 
-sudo -E /opt/devspace/codespace/images/dev/script/setup-proxy.sh
+# sudo -E /opt/devspace/codespace/images/dev/script/setup-proxy.sh
 
-mkdir -p /workspace/.vscode-server/data/Machine
-ln -sf /home/x/.vscode-server/data/Machine/settings.json /workspace/.vscode-server/data/Machine/settings.json
-
-mkdir -p /workspace/.trae-server
-rm -rf /home/x/.trae-server
+mkdir -p /workspace/.trae-server /workspace/.trae
+rm -rf /home/x/.trae-server /home/x/.trae
 ln -sf /workspace/.trae-server /home/x/.trae-server
-mkdir -p /home/x/.trae-server/data/Machine
-ln -sf /home/x/.vscode-server/data/Machine/settings.json /home/x/.trae-server/data/Machine/settings.json
+ln -sf /workspace/.trae /home/x/.trae
 
-if [[ -d /workspace/ai-coding-config/.trae/rules ]]; then
-  mkdir -p /home/x/.trae/user_rules
-  rsync --partial --progress --archive --human-readable --rsh=ssh --delete --delete-excluded \
-    /workspace/ai-coding-config/.trae/rules/ /home/x/.trae/user_rules/
-fi
+bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles
 
-if [[ -f /workspace/passkey/run.sh ]]; then
-  bash /workspace/passkey/run.sh
-fi
+# mkdir -p /workspace/.vscode-server/data/Machine
+# ln -sf /home/x/.vscode-server/data/Machine/settings.json /workspace/.vscode-server/data/Machine/settings.json
+# mkdir -p /home/x/.trae-server/data/Machine
+# ln -sf /home/x/.vscode-server/data/Machine/settings.json /home/x/.trae-server/data/Machine/settings.json
 
 # /opt/devspace/tools/profile-installer.sh --ssl-pass-src pass:"$PROFILE_PASS"
 # /opt/devspace/dotfiles/passkey/profile.gzip.sh --ssl-pass-src pass:"$PROFILE_PASS"
