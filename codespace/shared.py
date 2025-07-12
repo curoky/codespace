@@ -1,7 +1,7 @@
 """Shared protocol models and constants for the codespace client and agent.
 
 This module is the single source of truth for the wire contract between the
-macOS client and the Linux agent. Both sides import from here.
+local client and the Linux agent. Both sides import from here.
 """
 
 import hashlib
@@ -93,15 +93,6 @@ def default_git_host(provider: GitProvider) -> str:
 # --- Wire models -------------------------------------------------------------
 
 
-class DeployKeyRef(BaseModel):
-    """A deploy public key the client must register on ``repo``."""
-
-    repo: str
-    provider: GitProvider = DEFAULT_GIT_PROVIDER
-    public_openssh: str
-    read_only: bool
-
-
 class CreateRequest(BaseModel):
     """POST /codespaces request body.
 
@@ -146,14 +137,14 @@ class CreateRequest(BaseModel):
 class Codespace(BaseModel):
     """A managed codespace, returned by create/list.
 
-    ``deploy_keys`` is only populated by ``create``: for the main repo (read
-    -write), the agent generates the keypair, keeps the private half (injected
-    into the container) and hands the public half back so the client can
-    register it as a GitHub deploy key. It is empty for ``list`` results.
+    ``deploy_public_key`` is only populated by ``create``: the agent generates
+    the repo deploy keypair, keeps the private half (injected into the
+    container) and hands the public half back so the client can register it as
+    a provider deploy key. It is ``None`` for ``list`` results.
 
     The SSH host is *not* included: the agent only reports the ``port`` it can
     observe from podman; the client supplies the reachable host itself (it is
-    the client-side view of where the host is, e.g. from ``--ssh-host``).
+    the client-side view of where the host is).
     """
 
     id: str
@@ -165,7 +156,7 @@ class Codespace(BaseModel):
     template: str = DEFAULT_TEMPLATE
     instance: str = DEFAULT_INSTANCE
     workspace_dir: str
-    deploy_keys: list[DeployKeyRef] = Field(default_factory=list)
+    deploy_public_key: str | None = None
     status: str | None = None
 
 
