@@ -64,9 +64,9 @@ function common() {
   # link_path $CONF_PATH/tabby-ml/config.toml $HOME/.tabby-client/agent/config.toml
 
   copy_path $CONF_PATH/zsh/prune.zshrc $HOME/.zshrc
-  copy_path $CONF_PATH/git/.gitconfig $HOME/.gitconfig
-  copy_path $CONF_PATH/ssh/user.ssh_config $HOME/.ssh/config
-  copy_path $CONF_PATH/ssh/authorized_keys $HOME/.ssh/authorized_keys
+  # copy_path $CONF_PATH/git/.gitconfig $HOME/.gitconfig
+  # copy_path $CONF_PATH/ssh/user.ssh_config $HOME/.ssh/config
+  # copy_path $CONF_PATH/ssh/authorized_keys $HOME/.ssh/authorized_keys
 }
 
 common
@@ -74,9 +74,11 @@ common
 if [[ $OS_NAME == "Darwin" ]]; then
   # link_path $CONF_PATH/rime/squirrel $HOME/Library/Rime
   link_path $CONF_PATH/snipaste/config.ini $HOME/.snipaste/config.ini
-  link_path $CONF_PATH/trae/sandbox.json $HOME/.trae/sandbox.json
+
   # link_path $CONF_PATH/trae/traecli.yaml $HOME/.trae/traecli.yaml
+  link_path $CONF_PATH/trae/sandbox.json $HOME/.trae/sandbox.json
   link_path $CONF_PATH/trae/traecli.toml $HOME/.trae/traecli.toml
+
   link_path $CONF_PATH/vscode/app/snippets "$HOME/Library/Application Support/Code/User/snippets"
   link_path $CONF_PATH/vscode/app/keybindings.json "$HOME/Library/Application Support/Code/User/keybindings.json"
   link_path $CONF_PATH/vscode/app/settings.json "$HOME/Library/Application Support/Code/User/settings.json"
@@ -84,6 +86,10 @@ if [[ $OS_NAME == "Darwin" ]]; then
   link_path $CONF_PATH/vscode/app/settings.json "$HOME/Library/Application Support/Trae/User/settings.json"
   link_path $CONF_PATH/vscode/app/keybindings.json "$HOME/Library/Application Support/Trae/User/keybindings.json"
   link_path $CONF_PATH/vscode/app/snippets "$HOME/Library/Application Support/Trae/User/snippets"
+
+  link_path $CONF_PATH/vscode/app/settings.json "$HOME/Library/Application Support/Trae CN/User/settings.json"
+  link_path $CONF_PATH/vscode/app/keybindings.json "$HOME/Library/Application Support/Trae CN/User/keybindings.json"
+  link_path $CONF_PATH/vscode/app/snippets "$HOME/Library/Application Support/Trae CN/User/snippets"
 
 elif [[ $SCENE == "host-linux" ]]; then
   link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.vscode-server/data/Machine/settings.json
@@ -94,6 +100,10 @@ elif [[ $SCENE == "host-linux" ]]; then
 
 elif [[ $SCENE == "docker" ]]; then
   link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.vscode-server/data/Machine/settings.json
-  link_path $CONF_PATH/trae/traecli.yaml $HOME/.trae/traecli.yaml
+
+  # link_path $CONF_PATH/trae/traecli.yaml $HOME/.trae/traecli.yaml
+  link_path $CONF_PATH/trae/sandbox.json $HOME/.trae/sandbox.json
+  link_path $CONF_PATH/trae/traecli.toml $HOME/.trae/traecli.toml
+
   link_path $CONF_PATH/bazel/bazelrc $HOME/.bazelrc
 fi
