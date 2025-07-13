@@ -10,27 +10,20 @@ rm -rf /home/x/.cache/starship.plugin.zsh \
   /home/x/.cache/atuin.plugin.zsh
 
 # sudo -E /opt/devspace/codespace/images/dev/script/setup-proxy.sh
+function link() {
+  local workspace_dir="/workspace/$1"
+  local home_dir="/home/x/$1"
+  mkdir -p "$workspace_dir"
+  rm -rf "$home_dir"
+  ln -sf "$workspace_dir" "$home_dir"
+}
 
-mkdir -p /workspace/.trae-server /workspace/.trae
-rm -rf /home/x/.trae-server /home/x/.trae
-ln -sf /workspace/.trae-server /home/x/.trae-server
-ln -sf /workspace/.trae /home/x/.trae
+link .vscode-server
+link .trae
+link .trae-cn
+link .trae-server
+link .trae-cn-server
 
 bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles
-
-# mkdir -p /workspace/.vscode-server/data/Machine
-# ln -sf /home/x/.vscode-server/data/Machine/settings.json /workspace/.vscode-server/data/Machine/settings.json
-# mkdir -p /home/x/.trae-server/data/Machine
-# ln -sf /home/x/.vscode-server/data/Machine/settings.json /home/x/.trae-server/data/Machine/settings.json
-
-# /opt/devspace/tools/profile-installer.sh --ssl-pass-src pass:"$PROFILE_PASS"
-# /opt/devspace/dotfiles/passkey/profile.gzip.sh --ssl-pass-src pass:"$PROFILE_PASS"
-# bash /home/x/.config/atuin/login-and-sync.sh &
-
-# export PATH=$PATH:/opt/rust/cargo/bin:/opt/sb/bin
-# /opt/devspace/codespace/images/dev/stage/uv/conda/install.sh py3 &
-
-# ollama pull llama3:8b &
-# ollama pull mistral &
 
 # wait
