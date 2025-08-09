@@ -67,9 +67,8 @@ function common() {
   copy_path $CONF_PATH/trae/traecli.toml $HOME/.trae/traecli.toml
   copy_path $CONF_PATH/trae/sandbox.json $HOME/.trae-cn/sandbox.json
   copy_path $CONF_PATH/trae/traecli.toml $HOME/.trae-cn/traecli.toml
-  # link_path $CONF_PATH/trae/traecli.yaml $HOME/.trae/traecli.yaml
 
-  copy_path $CONF_PATH/zsh/prune.zshrc $HOME/.zshrc
+  # copy_path $CONF_PATH/zsh/prune.zshrc $HOME/.zshrc
   # copy_path $CONF_PATH/git/.gitconfig $HOME/.gitconfig
   # copy_path $CONF_PATH/ssh/user.ssh_config $HOME/.ssh/config
   # copy_path $CONF_PATH/ssh/authorized_keys $HOME/.ssh/authorized_keys
@@ -93,13 +92,6 @@ if [[ $OS_NAME == "Darwin" ]]; then
   link_path $CONF_PATH/vscode/app/keybindings.json "$HOME/Library/Application Support/Trae CN/User/keybindings.json"
   link_path $CONF_PATH/vscode/app/snippets "$HOME/Library/Application Support/Trae CN/User/snippets"
 
-elif [[ $SCENE == "host-linux" ]]; then
-  link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.vscode-server/data/Machine/settings.json
-  rm -rf ~/.gitconfig
-  rm -rf ~/.ssh/config
-  # rm -rf ~/.gdbinit
-  # rm -rf ~/.tabby-client
-
 elif [[ $SCENE == "docker" ]]; then
   link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.vscode-server/data/Machine/settings.json
   link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.trae-server/data/Machine/settings.json
@@ -107,6 +99,7 @@ elif [[ $SCENE == "docker" ]]; then
 
   link_path $CONF_PATH/bazel/bazelrc $HOME/.bazelrc
 
+  copy_path $CONF_PATH/zsh/prune.zshrc $HOME/.zshrc
   copy_path $CONF_PATH/git/.gitconfig $HOME/.gitconfig
   copy_path $CONF_PATH/ssh/user.ssh_config $HOME/.ssh/config
 fi
