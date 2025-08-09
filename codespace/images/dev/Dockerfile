@@ -70,7 +70,7 @@ ENV PATH=${PATH}:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin
 RUN curl -L https://nixos.org/nix/install | sh -s -- --no-daemon \
   && nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs \
   && nix-channel --update \
-  && nix-env -iA nixpkgs.ollama-cpu nixpkgs.lemminx \
+  && nix-env -iA nixpkgs.ollama-cpu nixpkgs.lemminx nixpkgs.codex \
   # setup java
   && nix-env -iA nixpkgs.maven \
   && nix-env -iA nixpkgs.jdk8_headless -p /nix/var/nix/profiles/jdk8 \
