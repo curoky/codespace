@@ -103,11 +103,7 @@ RUN bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles \
   && ln -s /opt/devspace ~/devspace
 
 # setup Trae user rules
-RUN git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-playbook \
-  && bash /tmp/agent-playbook/install.sh \
-  && cp /opt/devspace/codespace/images/dev/dev-environment.md /home/x/.trae/user_rules/ \
-  && cp /opt/devspace/codespace/images/dev/dev-environment.md /home/x/.trae-cn/user_rules/ \
-  && rm -rf /tmp/agent-playbook
+RUN git clone --depth=1 https://github.com/curoky/agent-playbook /opt/agent-playbook
 
 USER root
 RUN bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles \
