@@ -1,12 +1,12 @@
-name: Build codespace-agent image
+name: Build codespace sidecar image
 
 on:
   push:
     paths:
-      - '.github/workflows/build-codespace-agent.yaml'
-      - 'codespace/**'
-      - 'pyproject.toml'
-      - 'uv.lock'
+      - '.github/workflows/build-codespace-sidecar.yaml'
+      - 'codespace/sidecar/**'
+      - 'codespace/images/dev/rootfs/etc/s6/skel/**'
+      - 'codespace/images/dev/script/setup-s6.sh'
   workflow_dispatch:
 
 jobs:
@@ -26,8 +26,8 @@ jobs:
 
       - uses: docker/build-push-action@v6
         with:
-          # Build from the repo root so pyproject.toml/uv.lock are in context.
           context: .
-          file: codespace/images/agent/Dockerfile
+          file: codespace/sidecar/Dockerfile
           push: true
-          tags: ghcr.io/curoky/devspace:codespace-agent
+          provenance: false
+          tags: ghcr.io/curoky/devspace:codespace-sidecar

@@ -2,7 +2,6 @@ prefix: /opt/sb
 
 packages:
   link:
-    - uv
     - atuin
 
 profiles:

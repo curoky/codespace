@@ -26,6 +26,11 @@ pre-commit:
       glob: '*.{py}'
       stage_fixed: false
 
+    - name: codespace-test
+      run: uv run pytest codespace/tests
+      glob: 'codespace/**/*.py'
+      stage_fixed: false
+
     - name: c/c++
       run: clang-format -i -style=file {staged_files}
       glob: '*.{c,cc,cpp,h,hpp}'
