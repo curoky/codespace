@@ -4,5 +4,5 @@ set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/../.."
 
-docker build . --network=host --file codespace/sidecar/Dockerfile \
+docker build . --network=host --file codespace/images/sidecar/Dockerfile \
   --tag ghcr.io/curoky/devspace:codespace-sidecar
