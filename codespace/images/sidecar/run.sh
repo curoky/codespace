@@ -2,20 +2,17 @@
 
 set -euo pipefail
 
-readonly container_name=codespace-sidecar
-readonly image=ghcr.io/curoky/devspace:codespace-sidecar
+podman pull ghcr.io/curoky/devspace:codespace-sidecar
 
-podman pull "${image}"
-
-if podman container exists "${container_name}"; then
-  podman rm -f "${container_name}" >/dev/null
+if podman container exists codespace-sidecar; then
+  podman rm -f codespace-sidecar >/dev/null
 fi
 
 podman run --detach \
-  --name "${container_name}" \
+  --name codespace-sidecar \
   --network host \
   --restart unless-stopped \
-  --env ATUIN_DB_URI="${ATUIN_DB_URI:?ATUIN_DB_URI is required}" \
-  "${image}"
+  --env ATUIN_DB_URI=postgres://postgres:ynX9XqoTIlmHingB@db.hwhoanatmtltozrvpfep.supabase.co:5432/postgres \
+  ghcr.io/curoky/devspace:codespace-sidecar
 
-echo "sidecar '${container_name}' started."
+echo "sidecar 'codespace-sidecar' started."
