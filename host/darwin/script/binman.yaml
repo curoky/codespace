@@ -1,5 +1,5 @@
-# sb package manifest for the darwin host.
-# Consumed by install-sb-pkgs.sh via `sb sync`.
+# binman package manifest for the darwin host.
+# Consumed by install-sb-pkgs.sh via `bm sync`.
 #
 #   packages.link:   linked into the prefix root (/opt/sb/{bin,lib,...}).
 #   packages.unlink: installed into the store only, not linked into the root.

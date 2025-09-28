@@ -4,10 +4,10 @@ RUN apt-get update -y \
   && apt-get install -y --no-install-recommends bash ca-certificates curl zstd \
   && rm -rf /var/lib/apt/lists/*
 
-COPY codespace/images/sidecar/sb-pkgs.yaml /tmp/sb-pkgs.yaml
-RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/client/install.sh \
+COPY codespace/images/sidecar/binman.yaml /tmp/binman.yaml
+RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
     | bash -s -- --prefix /opt/sb/bin \
-  && /opt/sb/bin/sb sync /tmp/sb-pkgs.yaml
+  && /opt/sb/bin/bm sync /tmp/binman.yaml
 
 ENV PATH="/opt/sb/bin:/opt/sb/profile/s6/bin:/opt/sb/profile/s6/libexec:$PATH"
 
