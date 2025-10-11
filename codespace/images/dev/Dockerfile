@@ -19,9 +19,16 @@ RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs
 ################################# stage/conda environ ################################
 FROM docker.io/debian:stable-slim AS stage_conda
 
-RUN apt-get update -y \
+ARG TARGETARCH
+RUN case "${TARGETARCH}" in \
+    amd64) miniconda_arch=x86_64 ;; \
+    arm64) miniconda_arch=aarch64 ;; \
+    *) echo "unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
+  esac \
+  && apt-get update -y \
   && apt-get install -y curl gcc g++ git pkg-config \
-  && curl -sSL -o /tmp/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh \
+  && curl -fsSL -o /tmp/miniconda.sh \
+    "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-${miniconda_arch}.sh" \
   && bash /tmp/miniconda.sh -b -u -p /opt/conda
 
 COPY codespace/images/dev/script/setup-conda-env.sh /opt/conda/condabin/setup-conda-env.sh
