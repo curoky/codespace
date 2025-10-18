@@ -121,7 +121,7 @@ packages:
     - getopt
     - bison
     - flex
-    - patchelf
+    # - patchelf
     - go-task
     - clang-tools-22
     # - binutils
@@ -132,11 +132,6 @@ packages:
     - pnpm
     - bazelisk
     - buildifier
-    - protobuf_24
-    - protobuf_25
-    - protobuf_28
-    - protobuf_3_8_0
-    - protobuf_3_9_2
 
     # linters & formatters
     - ruff
@@ -155,7 +150,7 @@ packages:
 
     # languages & debuggers
     - perl
-    - gdb
+    # - gdb
 
     # misc
     - nil
@@ -164,7 +159,7 @@ packages:
     # - dive
 
   unlink:
-    - python311
+    # - python311
     - python314
     - nodejs-slim24
     - nodejs-slim26
@@ -173,6 +168,12 @@ packages:
     - clang-tools-19
     - clang-tools-20
     - clang-tools-21
+
+    - protobuf_24
+    - protobuf_25
+    - protobuf_28
+    - protobuf_3_8_0
+    - protobuf_3_9_2
 
 profiles:
   s6:
