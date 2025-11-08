@@ -37,8 +37,8 @@ COPY codespace/images/dev/script/setup-conda-env.sh /opt/conda/condabin/setup-co
 FROM docker.io/$BASE_IMAGE
 
 ENV PATH=${PATH}:/opt/sb/bin \
-  DEBIAN_FRONTEND=noninteractive \
-  SSL_CERT_FILE=/opt/sb/store/cacert/etc/ssl/certs/ca-certificates.crt
+  DEBIAN_FRONTEND=noninteractive
+  # SSL_CERT_FILE=/opt/sb/store/cacert/etc/ssl/certs/ca-certificates.crt
 
 ARG BASE_IMAGE
 COPY codespace/images/dev/script/patch-apt.sh /tmp/patch-apt.sh
