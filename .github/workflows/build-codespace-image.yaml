@@ -58,6 +58,7 @@ jobs:
           push: true
           provenance: false
           platforms: linux/amd64,linux/arm64
+          network: host
           cache-from: type=registry,ref=ghcr.io/curoky/devspace-cache:codespace-${{ matrix.saved_image }}
           cache-to: type=registry,ref=ghcr.io/curoky/devspace-cache:codespace-${{ matrix.saved_image }},mode=max
           no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
