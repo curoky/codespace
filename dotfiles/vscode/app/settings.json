@@ -460,5 +460,8 @@
   "xml.symbols.maxItemsComputed": 400000,
   "yaml.disableSchemaDetection": [],
   "yaml.format.enable": true,
-  "yaml.format.singleQuote": true
+  "yaml.format.singleQuote": true,
+  "go.alternateTools": {
+    "gopls": "trae-gopls"
+  }
 }
