@@ -12,9 +12,11 @@ rm -rf ~/devspace
 ln -s ~/workspace/devspace ~/devspace
 ~/devspace/dotfiles/setup.sh
 
-brew bundle --force --file ~/devspace/host/darwin/conf/brew/Brewfile --cleanup --verbose
+brew bundle --force --file ~/devspace/codespace/host/darwin/Brewfile --cleanup --verbose
 # brew link krb5 --force
 brew cleanup --prune=all
+
+~/devspace/codespace/host/darwin/start-podman.sh
 
 launchctl bootout gui/"$(id -u)"/sh.atuin.daemon || true
 launchctl bootstrap gui/"$(id -u)" ~/Library/LaunchAgents/sh.atuin.daemon.plist
