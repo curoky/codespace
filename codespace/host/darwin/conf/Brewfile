@@ -13,17 +13,16 @@ casks = [
   'freefilesync',
   'resilio-sync',
   'secretive',
+  'obs',
+  'gimp',
+  'finetune',
 
   # 'cap',
   # 'clash-verge-rev',
-  # 'gimp',
-  # 'finetune',
   # 'sloth',
   # 'localsend',
-
   # 'flameshot',
 
-  # 'obs',
   # 'squirrel-app',
   # 'drawio',
   # 'google-drive',
