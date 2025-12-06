@@ -6,8 +6,9 @@ fdmove -c 2 1
 redirfd -w 1 /var/log/atuin-service.log
 
 importas ATUIN_DB_URI ATUIN_DB_URI
+importas -D "127.0.0.1" ATUIN_HOST ATUIN_HOST
 
-export ATUIN_HOST "127.0.0.1"
+export ATUIN_HOST "${ATUIN_HOST}"
 export ATUIN_PORT "8002"
 export ATUIN_OPEN_REGISTRATION "false"
 export ATUIN_DB_URI "${ATUIN_DB_URI}"
