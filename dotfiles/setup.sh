@@ -104,5 +104,4 @@ elif [[ $SCENE == "docker" ]]; then
 
   copy_path $CONF_PATH/zsh/prune.zshrc $HOME/.zshrc
   copy_path $CONF_PATH/git/.gitconfig $HOME/.gitconfig
-  copy_path $CONF_PATH/ssh/user.ssh_config $HOME/.ssh/config
 fi
