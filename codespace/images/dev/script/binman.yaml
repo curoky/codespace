@@ -6,7 +6,6 @@
 #   profiles:        installed into the store and aggregated under
 #                    /opt/sb/profile/<name>/ via relative symlinks.
 prefix: /opt/sb
-arch: linux-arm64
 packages:
   link:
     # shell & terminal

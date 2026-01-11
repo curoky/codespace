@@ -6,15 +6,9 @@ FROM docker.io/debian:latest AS stage_sb
 RUN apt-get update -y && apt-get install -y curl zstd
 
 COPY codespace/images/dev/script/binman.yaml /tmp/binman.yaml
-ARG TARGETARCH
-RUN case "${TARGETARCH}" in \
-    amd64) binman_arch=linux-x86_64 ;; \
-    arm64) binman_arch=linux-arm64 ;; \
-    *) echo "unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
-  esac \
-  && curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
-    | bash -s -- --prefix /opt/sb/bin --arch "${binman_arch}" \
-  && /opt/sb/bin/bm --arch "${binman_arch}" sync /tmp/binman.yaml \
+RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
+    | bash -s -- --prefix /opt/sb/bin \
+  && /opt/sb/bin/bm sync /tmp/binman.yaml \
   && ln -s -r /opt/sb/bin/bazelisk /opt/sb/bin/bazel \
   && rm -rf /opt/sb/store/nettools/bin/hostname \
   && rm -rf /opt/sb/store/cmake/share/cmake*/Help \
@@ -25,16 +19,10 @@ RUN case "${TARGETARCH}" in \
 ################################# stage/conda environ ################################
 FROM docker.io/debian:stable-slim AS stage_conda
 
-ARG TARGETARCH
-RUN case "${TARGETARCH}" in \
-    amd64) miniconda_arch=x86_64 ;; \
-    arm64) miniconda_arch=aarch64 ;; \
-    *) echo "unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
-  esac \
-  && apt-get update -y \
+RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates curl \
   && curl -fsSL -o /tmp/miniconda.sh \
-    "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-${miniconda_arch}.sh" \
+    "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-$(uname -m).sh" \
   && bash /tmp/miniconda.sh -b -u -p /opt/conda \
   && /opt/conda/bin/conda clean -afy \
   && rm -rf /tmp/miniconda.sh /var/lib/apt/lists/*
