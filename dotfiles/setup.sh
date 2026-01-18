@@ -91,6 +91,8 @@ if [[ $OS_NAME == "Darwin" ]]; then
   link_path $CONF_PATH/vscode/app/keybindings.json "$HOME/Library/Application Support/Trae CN/User/keybindings.json"
   link_path $CONF_PATH/vscode/app/snippets "$HOME/Library/Application Support/Trae CN/User/snippets"
 
+  link_path $CONF_PATH/warp/settings.toml $HOME/.warp/settings.toml
+
   link_path $CONF_PATH/launchctl/sh.atuin.daemon.plist "$HOME/Library/LaunchAgents/sh.atuin.daemon.plist"
   # copy_path $CONF_PATH/launchctl/sh.atuin.server.plist "$HOME/Library/LaunchAgents/sh.atuin.server.plist"
 

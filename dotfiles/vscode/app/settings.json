@@ -293,7 +293,7 @@
   "liveServer.settings.donotShowInfoMsg": true,
   "liveServer.settings.donotVerifyTags": true,
   "markdown-preview-enhanced.automaticallyShowPreviewOfMarkdownBeingEdited": false,
-  "markdown-preview-enhanced.liveUpdate": false,
+  "markdown-preview-enhanced.liveUpdate": true,
   "markdown.extension.toc.updateOnSave": false,
   "markdown.preview.fontSize": 21,
   "markdownlint.run": "onSave",
@@ -477,4 +477,6 @@
   "markdown.styles": [
     "/Users/x/workspace/devspace/dotfiles/vscode/markdown-preview.css"
   ],
+  "markdown-preview-enhanced.codeBlockTheme": "solarized-light.css",
+  "markdown-preview-enhanced.previewTheme": "solarized-light.css",
 }
