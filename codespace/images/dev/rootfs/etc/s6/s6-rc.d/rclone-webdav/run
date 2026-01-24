@@ -1,0 +1,19 @@
+#!/opt/sb/profile/s6/bin/execlineb -P
+
+s6-envdir -Lf -- /run/s6/container_environment
+
+fdmove -c 2 1
+redirfd -w 1 /var/log/rclone-webdav.log
+
+importas -D 127.0.0.1 WEBDAV_BIND SSHD_BIND
+
+s6-setuidgid x
+s6-env HOME=/home/x
+exec /opt/sb/store/rclone/bin/rclone serve webdav webdav:
+  --config /etc/rclone-webdav.conf
+  --addr ${WEBDAV_BIND}:8004
+  --disable-dir-list
+  --disable-zip
+  --dir-cache-time 0
+  --poll-interval 0
+  --stats 0
