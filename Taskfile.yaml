@@ -1,0 +1,82 @@
+version: '3'
+
+tasks:
+  default:
+    desc: 列出所有可用 task
+    cmds:
+      - task --list
+    silent: true
+
+  sync:
+    desc: 同步 Codespace Python 依赖
+    cmds:
+      - uv sync
+
+  start:
+    desc: 前台启动本地 Codespace 控制面
+    cmds:
+      - uv run python -m codespace.client
+
+  start:bg:
+    desc: 后台启动控制面
+    cmds:
+      - codespace/client/run.sh
+
+  fmt:
+    desc: 格式化 Codespace 代码
+    cmds:
+      - uv run ruff format codespace/client
+
+  fmt:check:
+    desc: 检查代码格式
+    cmds:
+      - uv run ruff format --check codespace/client
+
+  lint:
+    desc: Ruff lint 检查
+    cmds:
+      - uv run ruff check codespace/client
+
+  typecheck:
+    desc: Mypy 类型检查
+    cmds:
+      - uv run mypy codespace/client
+
+  test:
+    desc: 运行 Codespace 测试
+    cmds:
+      - uv run pytest codespace/client/tests
+
+  lock:check:
+    desc: 校验 uv.lock 与 pyproject 一致
+    cmds:
+      - uv lock --check
+
+  check:
+    desc: 运行全部验证（格式、lint、类型、测试、lock）
+    cmds:
+      - task: fmt:check
+      - task: lint
+      - task: typecheck
+      - task: test
+      - task: lock:check
+
+  cleanup:deploy-keys:
+    desc: 清理未使用的 deploy key（默认 dry-run，追加 -- --no-dry-run 实际删除）
+    cmds:
+      - uv run python -m codespace.client.tools.cleanup_deploy_keys {{.CLI_ARGS}}
+
+  cleanup:workspaces:
+    desc: 清理残留 workspace 目录（默认 dry-run，追加 -- --no-dry-run 实际删除）
+    cmds:
+      - uv run python -m codespace.client.tools.cleanup_workspaces {{.CLI_ARGS}}
+
+  image:dev:
+    desc: 构建 Codespace 开发镜像
+    cmds:
+      - codespace/images/dev/build.sh
+
+  image:sidecar:
+    desc: 构建 sidecar 镜像
+    cmds:
+      - codespace/images/sidecar/build.sh
