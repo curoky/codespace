@@ -4,9 +4,9 @@ on:
   push:
     paths:
       - '.github/workflows/build-codespace-sidecar.yaml'
-      - 'codespace/images/sidecar/**'
-      - 'codespace/images/dev/rootfs/etc/s6/skel/**'
-      - 'codespace/images/dev/script/setup-s6.sh'
+      - 'images/sidecar/**'
+      - 'images/dev/rootfs/etc/s6/skel/**'
+      - 'images/dev/script/setup-s6.sh'
   workflow_dispatch:
 
 jobs:
@@ -28,7 +28,7 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
-          file: codespace/images/sidecar/Dockerfile
+          file: images/sidecar/Dockerfile
           push: true
           provenance: false
           platforms: linux/amd64,linux/arm64

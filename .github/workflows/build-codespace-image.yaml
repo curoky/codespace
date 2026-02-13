@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - '.github/workflows/build-codespace-image.yaml'
-      - 'codespace/images/dev/**'
+      - 'images/dev/**'
       - 'dotfiles/**'
   schedule:
     - cron: '0 2 * * 0'
@@ -69,7 +69,7 @@ jobs:
         uses: docker/build-push-action@v7
         with:
           context: .
-          file: codespace/images/dev/Dockerfile
+          file: images/dev/Dockerfile
           push: true
           provenance: false
           platforms: linux/${{ matrix.platform.arch }}
