@@ -30,13 +30,13 @@ jobs:
         run: uv sync --locked --dev
 
       - name: Format check
-        run: uv run ruff format --check codespace/client
+        run: uv run ruff format --check codespace/controller
 
       - name: Lint
-        run: uv run ruff check codespace/client
+        run: uv run ruff check codespace/controller
 
       - name: Type check
-        run: uv run mypy codespace/client
+        run: uv run mypy codespace/controller
 
       - name: Test
         run: uv run pytest

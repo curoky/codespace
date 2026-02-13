@@ -1,0 +1,12 @@
+Include ~/.ssh/codespace/hosts/*.conf
+
+Host codespace-*
+  HostName 127.0.0.1
+  User x
+  IdentityFile ~/.ssh/codespace/login_key
+  IdentitiesOnly yes
+  HostKeyAlgorithms ssh-ed25519
+  HostKeyAlias codespace
+  StrictHostKeyChecking yes
+  UserKnownHostsFile ~/.ssh/codespace/known_hosts/codespace
+  UpdateHostKeys no
