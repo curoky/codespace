@@ -9,7 +9,7 @@ set -xeuo pipefail
 
 # sudo -E /opt/devspace/images/dev/script/setup-proxy.sh
 function link() {
-  local workspace_dir="/workspace/$1"
+  local workspace_dir="/workspace/.cache/$1"
   local home_dir="/home/x/$1"
   mkdir -p "$workspace_dir"
   rm -rf "$home_dir"
