@@ -41,6 +41,7 @@ packages:
     - gnused
     - gnutar
     - gettext
+    - graphviz
     # - silver-searcher
     # - coreutils
     # - man
