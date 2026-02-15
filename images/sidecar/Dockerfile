@@ -1,7 +1,7 @@
 FROM docker.io/debian:trixie-slim
 
 RUN apt-get update -y \
-  && apt-get install -y --no-install-recommends bash ca-certificates curl zstd \
+  && apt-get install -y --no-install-recommends bash ca-certificates curl tzdata zstd \
   && rm -rf /var/lib/apt/lists/*
 
 COPY images/sidecar/binman.yaml /tmp/binman.yaml

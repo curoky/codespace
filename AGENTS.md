@@ -120,7 +120,9 @@ images/sidecar/build.sh
    归属到 `5230:5230`。
 5. **网络边界**：环境 sshd 只绑定宿主 loopback；访问必须经过配置的 SSH host route。
 6. **共享服务**：每个 Codespace host 只有一个固定名称的 `codespace-sidecar`，不得附属于
-   project 或 instance。Atuin 仅通过宿主 `127.0.0.1:8002` 暴露。
+   project 或 instance。Atuin 仅通过宿主 `127.0.0.1:8002` 暴露。sidecar 内的 image-prewarm
+   定时任务是唯一允许 bind-mount 宿主 rootful Podman socket 的共享服务，仅用于按脚本内写死的
+   清单预拉镜像和清理 dangling 镜像，见 [`images/sidecar/AGENTS.md`](images/sidecar/AGENTS.md)。
 7. **平台选择**：project 的每个 `host` 条目 `platform` 只能省略或设为 `linux/amd64`、
    `linux/arm64`；省略时库存 label 使用 `native`。
 8. **文档语言**：仓库说明与约束文档使用中文；代码标识、命令、协议名和外部 API 保留原文。
@@ -134,8 +136,9 @@ images/sidecar/build.sh
   [`images/sidecar/AGENTS.md`](images/sidecar/AGENTS.md)；影响跨组件契约时同步本文。
 - 不修改 `images/dev/` 中与任务无关的 s6、Atuin client、Ollama、home-init 和 sshd。
 - Host 共享服务资产只能放在 `images/sidecar/`，不能进入 project 生命周期模块；sidecar
-  inventory 与 environment inventory 必须分离，也不得恢复 Python HTTP agent、Podman socket
-  或 workspace mount。
+  inventory 与 environment inventory 必须分离，也不得恢复 Python HTTP agent 或 workspace
+  mount。除 sidecar image-prewarm 定时任务经 bind mount 使用的宿主 rootful Podman socket
+  这一唯一例外外，不得恢复 Podman socket。
 - 本地控制面的 Python、静态资源、启动器和测试全部保留在 `controller/`。
 - 优先添加针对受影响模块的聚焦测试，不恢复兼容路径。
 - 不恢复已删除的兼容目录、远端 Python agent 或 Node Web 构建链。

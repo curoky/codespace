@@ -1,0 +1,10 @@
+# supercronic crontab for the codespace-sidecar image-prewarm task.
+# 5-field entries (no user column). Times are interpreted in CRON_TZ.
+PATH=/opt/sb/bin:/opt/sb/profile/s6/bin:/usr/bin:/bin
+CRON_TZ=Asia/Shanghai
+
+# Pull the hardcoded image list every 10 minutes so containers start from a warm cache.
+*/10 * * * * /opt/sidecar/image-prewarm.sh pull
+
+# Prune dangling images once a day at 08:00 Asia/Shanghai (UTC+8).
+0 8 * * * /opt/sidecar/image-prewarm.sh prune
