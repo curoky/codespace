@@ -9,7 +9,7 @@ if podman container exists codespace-sidecar; then
 fi
 
 # supercronic runs image-prewarm on a hardcoded schedule: it pulls a hardcoded
-# image list and prunes dangling images (see rootfs/opt/sidecar/crontab and
+# image list and prunes dangling images (see rootfs/etc/supercronic/crontab and
 # rootfs/opt/sidecar/image-prewarm.sh).
 podman run --detach \
 	--name codespace-sidecar \
