@@ -11,9 +11,9 @@ ENV_PATHS=(
   "$HOME/.local/bin"
   "$HOME/.nix-profile/bin"
 
-  "/opt/conda/condabin"
+  # "/opt/conda/condabin"
   # "/opt/pipx/bin"
-  "/opt/rust/cargo/bin"
+  # "/opt/rust/cargo/bin"
 
   # "$HOME/app/conda/condabin"
   # "$HOME/app/conda/pipx/bin"

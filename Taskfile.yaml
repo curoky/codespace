@@ -80,3 +80,13 @@ tasks:
     desc: 构建 sidecar 镜像
     cmds:
       - images/sidecar/build.sh
+
+  image:wsl:
+    desc: 构建 WSL 风味镜像（FROM dev 镜像）
+    cmds:
+      - images/wsl/build.sh
+
+  image:wsl:export:
+    desc: 导出 WSL 发行版 rootfs（devspace.wsl）
+    cmds:
+      - images/wsl/export.sh

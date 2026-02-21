@@ -32,13 +32,30 @@ function link_path() {
       return
     fi
   fi
-  if [[ -e $dst ]] || [[ -L $dst ]]; then
-    echo "Path $dst already exists, move it to backup"
-    rm -rf "$dst"
-    # mv $dst ${dst}.bk
-  fi
   mkdir -p "$(dirname "$dst")"
-  ln -s "$src" "$dst"
+  # A real file/dir occupying dst only happens on first provisioning (no
+  # concurrent reader yet), so removing it here is safe. In steady state dst is
+  # already our symlink and this branch is skipped.
+  if [[ -e $dst && ! -L $dst ]]; then
+    echo "Path $dst is a real file/dir, removing before linking"
+    rm -rf "$dst"
+  fi
+  # A symlink pointing at a directory would make the mv below descend into it
+  # (creating dst/<tmp>) instead of replacing the link. Those targets are the
+  # macOS-only snippets dirs, run once during host setup with no concurrent
+  # reader, so dropping the stale link first is safe here.
+  if [[ -L $dst && -d $dst ]]; then
+    rm -f "$dst"
+  fi
+  # Replace the (file) symlink atomically: create it under a sibling temp name,
+  # then rename(2) it over dst. rename is atomic, so a re-link (e.g. home-init
+  # re-running setup.sh) never leaves a window where dst is missing and a
+  # consumer like atuin falls back to its default (public) config. A
+  # PID-suffixed sibling keeps the temp on the same filesystem so the rename
+  # stays atomic, and this works on both GNU and BSD/macOS.
+  tmp="$dst.link-tmp.$$"
+  ln -sf "$src" "$tmp"
+  mv -f "$tmp" "$dst"
   echo "Linked $src to $dst"
 }
 
