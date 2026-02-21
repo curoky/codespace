@@ -21,6 +21,8 @@ type ImagePlatform = Literal["linux/amd64", "linux/arm64"]
 type PlatformSelection = Literal["native", "linux/amd64", "linux/arm64"]
 
 CONTAINER_USER = "x"
+CONTAINER_UID = 5230
+CONTAINER_GID = 5230
 WORKSPACE_MOUNT = "/workspace"
 # A bind-mount source requires the host's resolved absolute home path.
 WORKSPACE_DIR_NAME = "codespace"

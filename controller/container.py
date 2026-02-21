@@ -14,7 +14,10 @@ from podman.domain.containers import Container
 from podman.errors import PodmanError
 from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_fixed
 
+from controller.compose import Secret
 from controller.models import (
+    CONTAINER_GID,
+    CONTAINER_UID,
     WORKSPACE_MOUNT,
     Environment,
     EnvironmentSpec,
@@ -86,6 +89,11 @@ def create_container(
         for local, remote in spec.published_ports:
             ports[f"{remote}/tcp"] = local
 
+    secret_mounts, secret_env = _resolve_secrets(client, options.secrets or [])
+    env_collisions = sorted(environment.keys() & secret_env.keys())
+    if env_collisions:
+        raise ValueError(f"container.secrets env target also set in environment: {env_collisions}")
+
     mounts: list[dict[str, object]] = [
         {
             "type": "bind",
@@ -108,6 +116,10 @@ def create_container(
         run_kwargs["pids_limit"] = options.pids_limit
     if options.shm_size is not None:
         run_kwargs["shm_size"] = options.shm_size
+    if secret_mounts:
+        run_kwargs["secrets"] = secret_mounts
+    if secret_env:
+        run_kwargs["secret_env"] = secret_env
     created = client.containers.run(
         spec.image,
         name=spec.identity,
@@ -131,6 +143,47 @@ def create_container(
         raise TypeError(f"expected Container, got {type(created)}")
     wait_running(created)
     return created
+
+
+def _resolve_secrets(
+    client: PodmanClient,
+    secrets: list[Secret],
+) -> tuple[list[dict[str, object]], dict[str, str]]:
+    """Split configured secrets into podman-py mount and env parameters.
+
+    The control plane only references secrets by name: each ``source`` must
+    already be registered on the host with ``podman secret create``. Missing
+    secrets fail fast before the container is created. Mount secrets default to
+    the development user (``5230:5230``) with mode ``0o400`` so only ``x`` can
+    read the file.
+    """
+    mounts: list[dict[str, object]] = []
+    env: dict[str, str] = {}
+    for secret in secrets:
+        _require_secret_exists(client, secret.source)
+        if secret.mode == "env":
+            if secret.target is None:
+                raise ValueError(f"env secret {secret.source!r} has no target")
+            env[secret.target] = secret.source
+            continue
+        mount: dict[str, object] = {
+            "source": secret.source,
+            "uid": secret.uid if secret.uid is not None else CONTAINER_UID,
+            "gid": secret.gid if secret.gid is not None else CONTAINER_GID,
+            "mode": secret.file_mode if secret.file_mode is not None else 0o400,
+        }
+        if secret.target is not None:
+            mount["target"] = secret.target
+        mounts.append(mount)
+    return mounts, env
+
+
+def _require_secret_exists(client: PodmanClient, name: str) -> None:
+    if not client.secrets.exists(name):
+        raise RuntimeError(
+            f"Podman secret {name!r} is not registered on the host; "
+            "create it with `podman secret create` before starting the environment"
+        )
 
 
 def purge_workspace(

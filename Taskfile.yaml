@@ -71,6 +71,11 @@ tasks:
     cmds:
       - uv run python -m controller.tools.cleanup_workspaces {{.CLI_ARGS}}
 
+  secrets:sync:
+    desc: 将顶层 secrets 明文注册为各 host 的 Podman secret（默认 dry-run，追加 -- --no-dry-run 实际执行）
+    cmds:
+      - uv run python -m controller.tools.sync_secrets {{.CLI_ARGS}}
+
   image:dev:
     desc: 构建 Codespace 开发镜像
     cmds:

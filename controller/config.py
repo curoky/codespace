@@ -15,7 +15,7 @@ from pydantic import (
     model_validator,
 )
 
-from controller.compose import ServiceSpec, Volume
+from controller.compose import Secret, ServiceSpec, Volume
 from controller.models import (
     PODMAN_SOCKET,
     RESOURCE_ID_RE,
@@ -48,6 +48,13 @@ def _reject_reserved_env(value: dict[str, str] | None) -> dict[str, str] | None:
             f"container.environment must not set control-plane keys {sorted(reserved)}"
         )
     return value
+
+
+def _env_secret_targets(secrets: list[Secret] | None) -> list[str]:
+    """Return the environment variable names produced by ``mode: env`` secrets."""
+    if secrets is None:
+        return []
+    return [secret.target for secret in secrets if secret.mode == "env" and secret.target]
 
 
 def _mount_targets_overlap(left: str, right: str) -> bool:
@@ -96,6 +103,53 @@ class ContainerConfig(ServiceSpec):
         if value is not None and value not in ("host", "bridge"):
             raise ValueError("network_mode must be 'host' or 'bridge'")
         return value
+
+    @field_validator("secrets")
+    @classmethod
+    def _reject_reserved_secret_mount_targets(
+        cls,
+        value: list[Secret] | None,
+    ) -> list[Secret] | None:
+        if value is None:
+            return value
+        conflicts = sorted(
+            {
+                secret.target
+                for secret in value
+                if secret.mode == "mount"
+                and secret.target is not None
+                and any(
+                    _mount_targets_overlap(secret.target, reserved)
+                    for reserved in _RESERVED_MOUNT_TARGETS
+                )
+            }
+        )
+        if conflicts:
+            raise ValueError(
+                "container.secrets mount targets must not overlap control-plane mount targets "
+                f"{list(_RESERVED_MOUNT_TARGETS)}: {conflicts}"
+            )
+        return value
+
+    @model_validator(mode="after")
+    def _validate_env_secret_targets(self) -> Self:
+        """Env-mode secrets share the container environment namespace."""
+        targets = _env_secret_targets(self.secrets)
+        reserved = _RESERVED_ENV_KEYS & set(targets)
+        if reserved:
+            raise ValueError(
+                f"container.secrets env target must not use control-plane keys {sorted(reserved)}"
+            )
+        duplicates = sorted({name for name in targets if targets.count(name) > 1})
+        if duplicates:
+            raise ValueError(f"container.secrets env target must not repeat names: {duplicates}")
+        explicit = set(self.environment or {})
+        collisions = sorted(explicit & set(targets))
+        if collisions:
+            raise ValueError(
+                f"container.secrets env target collides with container.environment: {collisions}"
+            )
+        return self
 
     @property
     def is_bridge(self) -> bool:
@@ -259,6 +313,7 @@ class Config(BaseModel):
     hosts: dict[HostId, HostConfig]
     projects: dict[str, ProjectConfig]
     tokens: TokensConfig = Field(default_factory=TokensConfig, repr=False)
+    secrets: dict[NonBlankString, NonBlankString] = Field(default_factory=dict, repr=False)
 
     @field_validator("hosts", mode="before")
     @classmethod
@@ -307,6 +362,14 @@ class Config(BaseModel):
                     raise ValueError(
                         f"project {project_id!r} on host {entry.name!r} configures inherited "
                         f"host environment variables {collisions} in container.environment"
+                    )
+                secret_env = set(_env_secret_targets(resolved.secrets))
+                secret_collisions = sorted(inherited & secret_env)
+                if secret_collisions:
+                    raise ValueError(
+                        f"project {project_id!r} on host {entry.name!r} configures inherited "
+                        f"host environment variables {secret_collisions} as container.secrets "
+                        "env target"
                     )
         return self
 
