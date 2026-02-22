@@ -8,6 +8,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, Request
 from fastapi import Path as ApiPath
 
 from controller.models import (
+    ContainerLogsResult,
     CreateInstanceRequest,
     DashboardResponse,
     DeleteInstanceResult,
@@ -75,6 +76,23 @@ def dismiss_failed_operation(
     except RuntimeError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
     return {"dismissed": dismissed}
+
+
+@router.get("/api/projects/{project}/hosts/{host}/instances/{instance}/logs")
+def instance_logs(
+    project: ResourcePath,
+    host: HostPath,
+    instance: ResourcePath,
+    request: Request,
+) -> ContainerLogsResult:
+    service = _service(request)
+    try:
+        logs = service.logs(project, host, instance)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc.args[0])) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=409, detail=describe_error(exc)) from exc
+    return ContainerLogsResult(logs=logs)
 
 
 @router.delete("/api/projects/{project}/hosts/{host}/instances/{instance}")

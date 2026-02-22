@@ -29,6 +29,7 @@ _READY_TIMEOUT = 30.0
 _READY_INTERVAL = 0.25
 _EXEC_TIMEOUT = 60.0
 _PULL_TIMEOUT = 15 * 60.0
+_LOG_TAIL = 2000
 
 
 class _ContainerNotRunning(Exception):
@@ -257,6 +258,19 @@ def remove_workspace(
 
 def remove_container(container: Container) -> None:
     container.remove(force=True)
+
+
+def container_logs(container: Container, *, tail: int = _LOG_TAIL) -> str:
+    """Return the container's most recent combined stdout and stderr logs."""
+    result = container.logs(
+        stdout=True,
+        stderr=True,
+        stream=False,
+        timestamps=True,
+        tail=tail,
+    )
+    raw = result if isinstance(result, bytes) else b"".join(result)
+    return _decode_stream(raw)
 
 
 def execute(
