@@ -205,6 +205,9 @@ class CodespaceService:
                 self._require_repo(project),
                 self._require_provider(project),
             )
+        elif project.type == "git":
+            self._stage(creation, "cloning repository")
+            workspace.clone_git_url(container, self._require_git_url(project))
         else:
             self._stage(creation, "preparing open path")
             workspace.prepare_open_path(container, spec.open_path)
@@ -242,14 +245,16 @@ class CodespaceService:
             raise RuntimeError(f"environment {spec.identity!r} not found")
 
         if not force:
-            if is_repo:
+            if is_repo or project.type == "git":
                 if environment.status != "running":
                     status = environment.status or "unknown"
                     raise RuntimeError(
                         f"container {spec.identity!r} is {status}; "
                         "repository state cannot be inspected while it is not running"
                     )
-                return workspace.repo_git_state(container, self._require_repo(project))
+                if is_repo:
+                    return workspace.repo_git_state(container, self._require_repo(project))
+                return workspace.git_url_git_state(container, self._require_git_url(project))
             return RepoGitState()
 
         if is_repo and token is not None:
@@ -405,6 +410,12 @@ class CodespaceService:
         if project.repo is None:
             raise RuntimeError("repo project has no repo")
         return project.repo
+
+    @staticmethod
+    def _require_git_url(project: ProjectConfig) -> str:
+        if project.git_url is None:
+            raise RuntimeError("git project has no git_url")
+        return project.git_url
 
     def _token(self, provider_name: GitProvider) -> str:
         token = self._optional_token(provider_name)

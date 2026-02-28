@@ -121,7 +121,7 @@ function renderProjects(dashboard) {
     const header = element("div", "project-header");
     const info = element("div", "project-info");
     const name = element("h3", "", project.id);
-    const label = project.repo || project.open_path;
+    const label = project.repo || project.git_url || project.open_path;
     name.title = project.description ? `${label} — ${project.description}` : label;
 
     const title = element("div", "project-title");
@@ -321,7 +321,7 @@ async function deleteInstance(project, host, instance, purge, type, status) {
   deleteConfirmButton.disabled = true;
   deleteDialog.showModal();
 
-  if (type === "repo" && status !== "running") {
+  if ((type === "repo" || type === "git") && status !== "running") {
     deleteStatusElement.className = "delete-warning";
     deleteStatusElement.textContent = `Container is ${status}; repository state was not inspected. Deleting may lose unpushed or uncommitted work.`;
     deleteConfirmButton.disabled = false;

@@ -16,6 +16,7 @@ from controller.models import (
     GitProvider,
     RepoGitState,
     git_host,
+    git_url_target,
     repo_target,
 )
 
@@ -72,8 +73,17 @@ def inject_deploy_key(
 
 
 def clone_repo(container: Container, repo: str, provider: GitProvider) -> None:
-    """Clone a repository unless its checkout already exists."""
-    target = repo_target(repo)
+    """Clone a provider repository unless its checkout already exists."""
+    _clone_url(container, repo_target(repo), f"git@{git_host(provider)}:{repo}.git")
+
+
+def clone_git_url(container: Container, git_url: str) -> None:
+    """Clone a raw ``git@host:owner/name.git`` URL unless its checkout already exists."""
+    _clone_url(container, git_url_target(git_url), git_url)
+
+
+def _clone_url(container: Container, target: str, clone_url: str) -> None:
+    """Clone ``clone_url`` into ``target``, reusing a valid existing checkout."""
     present = execute(
         container,
         ["test", "-d", f"{target}/.git"],
@@ -112,7 +122,7 @@ def clone_repo(container: Container, repo: str, provider: GitProvider) -> None:
             "git",
             "clone",
             "--depth=1",
-            f"git@{git_host(provider)}:{repo}.git",
+            clone_url,
             temporary,
         ],
         user=CONTAINER_USER,
@@ -134,7 +144,15 @@ def clone_repo(container: Container, repo: str, provider: GitProvider) -> None:
 
 def repo_git_state(container: Container, repo: str) -> RepoGitState:
     """Return uncommitted and unpushed checkout state before deletion."""
-    target = repo_target(repo)
+    return checkout_git_state(container, repo_target(repo))
+
+
+def git_url_git_state(container: Container, git_url: str) -> RepoGitState:
+    """Return checkout state for a raw-URL ``git`` project before deletion."""
+    return checkout_git_state(container, git_url_target(git_url))
+
+
+def checkout_git_state(container: Container, target: str) -> RepoGitState:
     present = execute(
         container,
         ["test", "-d", f"{target}/.git"],

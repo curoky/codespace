@@ -31,3 +31,9 @@ projects:
     host:
       - name: local
         platform: linux/arm64
+
+  devspace2:
+    repo: git:git@curoky:devspace
+    host:
+      - name: local
+        platform: linux/arm64

@@ -49,6 +49,7 @@ def build(
                 type=project.type,
                 provider=project.provider,
                 repo=project.repo,
+                git_url=project.git_url,
                 image=config.project_image(project_id),
                 description=project.description,
                 open_path=config.project_open_path(project_id),

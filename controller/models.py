@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from controller.config import ContainerConfig, ProjectConfig
 
 type GitProvider = Literal["github", "gitlab"]
-type ProjectType = Literal["repo", "blank"]
+type ProjectType = Literal["repo", "blank", "git"]
 type OperationStatus = Literal["queued", "running", "failed"]
 type HostState = Literal["online", "offline"]
 type ImagePlatform = Literal["linux/amd64", "linux/arm64"]
@@ -33,6 +33,10 @@ SSH_PORT_COUNT = 10_000
 RESOURCE_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}$")
 HOST_RE = re.compile(r"^[a-z0-9][a-z0-9.-]{0,62}$")
 REPO_RE = re.compile(r"^[\w.-]+(?:/[\w.-]+)+$")
+# SCP-style ``git@host:owner/name.git`` or ``ssh://git@host[:port]/owner/name.git``.
+GIT_URL_RE = re.compile(
+    r"^(?:ssh://)?[\w.-]+@[a-z0-9][a-z0-9.-]*(?::\d+)?[:/][\w./~-]+?(?:\.git)?/?$"
+)
 
 PORT_MIN = 1
 PORT_MAX = 65_535
@@ -78,6 +82,7 @@ def _not_blank_token(value: str) -> str:
 type ResourceId = Annotated[str, Field(pattern=RESOURCE_ID_RE.pattern)]
 type HostId = Annotated[str, Field(pattern=HOST_RE.pattern)]
 type RepoPath = Annotated[str, Field(pattern=REPO_RE.pattern)]
+type GitUrl = Annotated[str, Field(pattern=GIT_URL_RE.pattern)]
 type NonBlankString = Annotated[str, AfterValidator(_not_blank)]
 type TokenString = Annotated[str, AfterValidator(_not_blank_token)]
 
@@ -87,6 +92,7 @@ LABEL_INSTANCE = "codespace.instance"
 LABEL_TYPE = "codespace.type"
 LABEL_REPO = "codespace.repo"
 LABEL_PROVIDER = "codespace.provider"
+LABEL_GIT_URL = "codespace.git-url"
 LABEL_IMAGE = "codespace.image"
 LABEL_PLATFORM = "codespace.platform"
 LABEL_SSH_PORT = "codespace.ssh-port"
@@ -140,6 +146,7 @@ class EnvironmentSpec:
             type=self.project.type,
             repo=self.project.repo,
             provider=self.project.provider,
+            git_url=self.project.git_url,
             image=self.image,
             platform=self.platform_label,
             ssh_port=self.ssh_port,
@@ -162,6 +169,8 @@ def environment_labels(spec: EnvironmentSpec) -> dict[str, str]:
     if spec.project.repo is not None and spec.project.provider is not None:
         labels[LABEL_REPO] = spec.project.repo
         labels[LABEL_PROVIDER] = spec.project.provider
+    if spec.project.git_url is not None:
+        labels[LABEL_GIT_URL] = spec.project.git_url
     return labels
 
 
@@ -192,8 +201,19 @@ def repo_target(repo: str) -> str:
     return f"{WORKSPACE_MOUNT}/{name}"
 
 
-def workspace_open_path(repo: str | None) -> str:
-    return repo_target(repo) if repo is not None else WORKSPACE_MOUNT
+def git_url_target(git_url: str) -> str:
+    """Derive the checkout directory for a raw ``git@host:owner/name.git`` URL."""
+    trimmed = git_url.rstrip("/").removesuffix(".git")
+    name = re.split(r"[/:]", trimmed)[-1]
+    return f"{WORKSPACE_MOUNT}/{name}"
+
+
+def workspace_open_path(repo: str | None, git_url: str | None = None) -> str:
+    if repo is not None:
+        return repo_target(repo)
+    if git_url is not None:
+        return git_url_target(git_url)
+    return WORKSPACE_MOUNT
 
 
 def trae_url(alias: str, open_path: str, *, scheme: str = "trae") -> str:
@@ -249,6 +269,7 @@ class Environment(BaseModel):
     type: ProjectType
     repo: str | None = None
     provider: GitProvider | None = None
+    git_url: str | None = None
     image: str
     platform: PlatformSelection
     ssh_port: int
@@ -264,6 +285,7 @@ class DashboardEnvironment(BaseModel):
     type: ProjectType
     repo: str | None = None
     provider: GitProvider | None = None
+    git_url: str | None = None
     image: str
     platform: PlatformSelection
     ssh_port: int
@@ -303,6 +325,7 @@ class ProjectSummary(BaseModel):
     type: ProjectType
     repo: str | None = None
     provider: GitProvider | None = None
+    git_url: str | None = None
     image: str
     description: str | None = None
     open_path: str
