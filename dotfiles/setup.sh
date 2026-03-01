@@ -68,24 +68,21 @@ CONF_PATH=${2:-$HOME/devspace/dotfiles} # TODO: remove default, verify all calle
 REPO_ROOT=$(cd "$(dirname "$CONF_PATH")" && pwd)
 ROOTFS_HOME="$REPO_ROOT/images/dev/rootfs/home/x"
 
-# Scene selection: explicit first arg wins; otherwise infer from the OS.
-# - docker:     dev container runtime (home-init). Static home configs are
-#               already baked via `COPY rootfs/ /`, so only the dirs that
-#               home-init relinks onto /workspace are (re)written here.
-# - host-linux: bare Linux host without the baked rootfs; provision the full set.
-# - darwin:     macOS host (default when run with no args by setup-homebrew.sh).
-SCENE=${1:-}
-if [[ -z $SCENE ]]; then
-  if [[ $(uname -s) == "Darwin" ]]; then
-    SCENE="darwin"
-  else
-    SCENE="host-linux"
-  fi
-fi
+OS_NAME=$(uname -o)
 
-# Cross-scene home configs, sourced from the baked container home. Skipped in
-# the docker scene where rootfs already put them at these paths.
-function shared_home() {
+function common() {
+
+  # trae 配置落在 home-init boot 时重链到 /workspace 的目录里，烤入会被清掉，
+  # 故仍从 dotfiles 于运行期补写。
+  copy_path $CONF_PATH/trae/sandbox.json $HOME/.trae/sandbox.json
+  copy_path $CONF_PATH/trae/traecli.toml $HOME/.trae/traecli.toml
+  copy_path $CONF_PATH/trae/sandbox.json $HOME/.trae-cn/sandbox.json
+  copy_path $CONF_PATH/trae/traecli.toml $HOME/.trae-cn/traecli.toml
+}
+
+common
+
+if [[ $OS_NAME == "Darwin" ]]; then
   link_path $ROOTFS_HOME/.config/atuin/config.toml $HOME/.config/atuin/config.toml
   link_path $ROOTFS_HOME/.config/bat/config $HOME/.config/bat/config
   link_path $ROOTFS_HOME/.config/conda/condarc $HOME/.config/conda/condarc
@@ -95,42 +92,6 @@ function shared_home() {
   link_path $ROOTFS_HOME/.config/tmux/tmux.conf $HOME/.config/tmux/tmux.conf
   link_path $ROOTFS_HOME/.config/zellij/config.kdl $HOME/.config/zellij/config.kdl
   link_path $ROOTFS_HOME/.vimrc $HOME/.vimrc
-}
-
-# Configs that land in dirs home-init relinks onto /workspace at boot; baking
-# them into rootfs would be wiped by that relink, so they are (re)applied at
-# runtime from dotfiles instead.
-function trae_runtime() {
-  copy_path $CONF_PATH/trae/sandbox.json $HOME/.trae/sandbox.json
-  copy_path $CONF_PATH/trae/traecli.toml $HOME/.trae/traecli.toml
-  copy_path $CONF_PATH/trae/sandbox.json $HOME/.trae-cn/sandbox.json
-  copy_path $CONF_PATH/trae/traecli.toml $HOME/.trae-cn/traecli.toml
-}
-
-function vscode_remote_runtime() {
-  link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.vscode-server/data/Machine/settings.json
-  link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.trae-server/data/Machine/settings.json
-  link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.trae-cn-server/data/Machine/settings.json
-}
-
-case $SCENE in
-docker)
-  trae_runtime
-  vscode_remote_runtime
-  ;;
-
-host-linux)
-  shared_home
-  trae_runtime
-  vscode_remote_runtime
-  link_path $ROOTFS_HOME/.bazelrc $HOME/.bazelrc
-  copy_path $CONF_PATH/zsh/prune.zshrc $HOME/.zshrc
-  copy_path $CONF_PATH/git/.gitconfig $HOME/.gitconfig
-  ;;
-
-darwin)
-  shared_home
-  trae_runtime
 
   # link_path $CONF_PATH/rime/squirrel $HOME/Library/Rime
   link_path $CONF_PATH/snipaste/config.ini $HOME/.snipaste/config.ini
@@ -151,10 +112,14 @@ darwin)
 
   link_path $CONF_PATH/launchctl/sh.atuin.daemon.plist "$HOME/Library/LaunchAgents/sh.atuin.daemon.plist"
   # copy_path $CONF_PATH/launchctl/sh.atuin.server.plist "$HOME/Library/LaunchAgents/sh.atuin.server.plist"
-  ;;
 
-*)
-  echo "Unknown scene: $SCENE (expected docker|host-linux|darwin)"
-  exit 1
-  ;;
-esac
+else
+  link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.vscode-server/data/Machine/settings.json
+  link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.trae-server/data/Machine/settings.json
+  link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.trae-cn-server/data/Machine/settings.json
+
+  # link_path $ROOTFS_HOME/.bazelrc $HOME/.bazelrc
+
+  # copy_path $CONF_PATH/zsh/prune.zshrc $HOME/.zshrc
+  # copy_path $CONF_PATH/git/.gitconfig $HOME/.gitconfig
+fi
