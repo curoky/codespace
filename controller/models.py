@@ -121,6 +121,7 @@ class EnvironmentSpec:
     container: ContainerConfig
     published_ports: tuple[tuple[int, int], ...]
     open_path: str
+    clone_path: str
 
     @property
     def identity(self) -> str:

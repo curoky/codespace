@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import posixpath
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Annotated, Literal, Self
 
 import yaml
 from pydantic import (
+    AfterValidator,
     BaseModel,
     ConfigDict,
     Field,
@@ -19,6 +20,7 @@ from controller.compose import Secret, ServiceSpec, Volume
 from controller.models import (
     PODMAN_SOCKET,
     RESOURCE_ID_RE,
+    WORKSPACE_MOUNT,
     EnvironmentSpec,
     GitProvider,
     GitUrl,
@@ -38,6 +40,19 @@ CONFIG_PATH = Path.home() / ".config" / "codespace" / "config.yaml"
 _RESERVED_ENV_KEYS = frozenset({"SSHD_PORT", "SSHD_BIND"})
 _RESERVED_MOUNT_TARGETS = ("/workspace", "/upload")
 type EnvironmentName = Annotated[str, Field(pattern=r"^[A-Za-z_][A-Za-z0-9_]*$")]
+
+
+def _require_under_workspace(value: PurePosixPath) -> PurePosixPath:
+    """Require a POSIX path strictly under the reserved workspace mount, without ``..``."""
+    if ".." in value.parts:
+        raise ValueError("path must not contain '..' segments")
+    if PurePosixPath(WORKSPACE_MOUNT) not in value.parents:
+        raise ValueError(f"path must be a directory under {WORKSPACE_MOUNT}")
+    return value
+
+
+# A container checkout directory: an absolute path strictly under ``/workspace``.
+type WorkspacePath = Annotated[PurePosixPath, AfterValidator(_require_under_workspace)]
 
 
 def _reject_reserved_env(value: dict[str, str] | None) -> dict[str, str] | None:
@@ -238,6 +253,7 @@ class ProjectConfig(BaseModel):
     description: NonBlankString | None = None
     image: NonBlankString | None = None
     open_path: NonBlankString | None = None
+    clone_path: WorkspacePath | None = None
     published_ports: list[str] | None = None
     container: ContainerConfig | None = None
 
@@ -310,11 +326,19 @@ class ProjectConfig(BaseModel):
             return self
         if self.repo is not None or self.provider is not None or self.git_url is not None:
             raise ValueError("blank project must not set 'repo', 'provider' or 'git_url'")
+        if self.clone_path is not None:
+            raise ValueError("blank project must not set 'clone_path'")
         return self
 
+    def resolved_clone_path(self) -> str:
+        """Return the checkout directory, defaulting to the workspace-derived target."""
+        if self.clone_path is not None:
+            return str(self.clone_path)
+        return workspace_open_path(self.repo, self.git_url)
+
     def resolved_open_path(self) -> str:
-        """Return the editor open path, defaulting per project type."""
-        return self.open_path or workspace_open_path(self.repo, self.git_url)
+        """Return the editor open path, defaulting to the checkout directory."""
+        return self.open_path or self.resolved_clone_path()
 
 
 class Config(BaseModel):
@@ -395,6 +419,10 @@ class Config(BaseModel):
         """Resolve one project's editor open path, defaulting per type."""
         return self.projects[project_id].resolved_open_path()
 
+    def project_clone_path(self, project_id: str) -> str:
+        """Resolve one project's checkout directory, defaulting per type."""
+        return self.projects[project_id].resolved_clone_path()
+
     def project_ports(self, project_id: str) -> list[tuple[int, int]]:
         """Resolve one project's published ``(local, remote)`` port mappings."""
         ports = self.projects[project_id].published_ports
@@ -423,6 +451,7 @@ class Config(BaseModel):
             container=self.resolved_container(project_id, host),
             published_ports=tuple(self.project_ports(project_id)),
             open_path=self.project_open_path(project_id),
+            clone_path=self.project_clone_path(project_id),
         )
 
     def seed_tokens(self) -> dict[GitProvider, str]:
