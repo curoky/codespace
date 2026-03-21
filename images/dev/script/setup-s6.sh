@@ -33,7 +33,7 @@ s6-rc-compile /etc/s6/db /etc/s6/s6-rc.d
 # /run/s6/container_environment (-s), starts s6-svscan, and runs scripts/rc.init
 # (stage 2), which brings up the services.
 # -C: container mode (SIGTERM -> orderly shutdown, no runlevel service, sync
-#     with the container manager, rc.init always gets the "user" runlevel).
+#     with the container manager, rc.init always gets the "user-final" runlevel).
 # -N: do not mount/unmount/remount /run. Docker already gives us a writable
 #     /run, and an unprivileged container has no CAP_SYS_ADMIN to mount a tmpfs;
 #     init still *writes* run-image, /run/service and the env dump into it.
@@ -47,7 +47,7 @@ rm -rf /etc/s6/init
   -V 2 \
   -B \
   -c /etc/s6/init \
-  -D user \
+  -D user-final \
   -p "$profile/bin:$profile/libexec:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
   -s /run/s6/container_environment \
   -f /etc/s6/skel \
