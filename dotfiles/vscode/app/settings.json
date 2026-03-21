@@ -479,4 +479,5 @@
   ],
   "markdown-preview-enhanced.codeBlockTheme": "solarized-light.css",
   "markdown-preview-enhanced.previewTheme": "solarized-light.css",
+  "accessibility.signalOptions.volume": 10,
 }

@@ -50,7 +50,7 @@ RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates curl \
   && rm -rf /var/lib/apt/lists/*
 
-COPY dotfiles/vscode/extensions.txt /tmp/extensions.txt
+COPY images/dev/script/extensions.txt /tmp/extensions.txt
 COPY images/dev/script/setup-vscode-extensions.sh /tmp/setup-vscode-extensions.sh
 RUN bash /tmp/setup-vscode-extensions.sh /tmp/extensions.txt /opt/vscode-extensions
 
