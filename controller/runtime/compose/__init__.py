@@ -10,7 +10,7 @@ isolated from the rest of the client: it holds no control-plane knowledge, so
 reserved-key rejection stays in the caller.
 """
 
-from controller.compose.models import (
+from controller.runtime.compose.models import (
     Secret,
     ServiceSpec,
     Ulimit,

@@ -3,15 +3,12 @@
 from __future__ import annotations
 
 import fcntl
-import os
 import shlex
-import stat
 import subprocess
-import tempfile
 import threading
 import time
 from collections.abc import Iterator
-from contextlib import contextmanager, suppress
+from contextlib import contextmanager
 from functools import cache
 from pathlib import Path
 
@@ -22,7 +19,8 @@ from controller.models import (
     WORKSPACE_DIR_NAME,
     Environment,
 )
-from controller.transport import SSHRoute
+from controller.runtime import remote
+from controller.runtime.transport import SSHRoute
 
 SSH_CONFIG_PATH = Path.home() / ".ssh" / "config"
 CODESPACE_DIR = Path.home() / ".ssh" / "codespace"
@@ -133,48 +131,14 @@ def _run_host(
     timeout: float,
     action: str,
 ) -> subprocess.CompletedProcess[str]:
-    command = ["ssh", "-o", "BatchMode=yes"]
-    if route.is_machine:
-        if route.port is None or route.identity_path is None:
-            raise RuntimeError(f"Podman Machine SSH route for {route.host!r} is incomplete")
-        machine_known_hosts = _machine_known_hosts(route)
-        machine_known_hosts.parent.mkdir(parents=True, exist_ok=True)
-        _ensure_mode(machine_known_hosts.parent, 0o700)
-        command.extend(
-            [
-                "-o",
-                "IdentitiesOnly=yes",
-                "-o",
-                "StrictHostKeyChecking=accept-new",
-                "-o",
-                f"UserKnownHostsFile={machine_known_hosts}",
-                "-i",
-                str(route.identity_path),
-                "-p",
-                str(route.port),
-                "root@127.0.0.1",
-            ]
-        )
-    else:
-        command.append(route.host)
-    command.append(remote_command)
-    try:
-        result = subprocess.run(  # noqa: S603
-            command,
-            check=True,
-            capture_output=True,
-            text=True,
-            stdin=subprocess.DEVNULL,
-            timeout=timeout,
-        )
-    except (OSError, subprocess.SubprocessError) as exc:
-        stderr = (
-            exc.stderr.strip()
-            if isinstance(exc, subprocess.CalledProcessError) and exc.stderr
-            else ""
-        )
-        raise RuntimeError(f"failed to {action} on host {route.host!r}: {stderr or exc}") from exc
-    return result
+    machine_known_hosts = _machine_known_hosts(route) if route.is_machine else None
+    return remote.run_host(
+        route,
+        remote_command,
+        timeout=timeout,
+        action=action,
+        machine_known_hosts=machine_known_hosts,
+    )
 
 
 def initialize(hosts: list[str]) -> None:
@@ -341,36 +305,11 @@ def _read_asset(path: Path) -> str:
 
 
 def _write(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    _ensure_mode(path.parent, 0o700)
-    if path.exists() and path.read_text(encoding="utf-8") == content:
-        _ensure_mode(path, 0o600)
-        return
-    temporary_name = ""
-    try:
-        with tempfile.NamedTemporaryFile(
-            "w",
-            encoding="utf-8",
-            dir=path.parent,
-            prefix=f".{path.name}.",
-            delete=False,
-        ) as temporary:
-            temporary_name = temporary.name
-            temporary.write(content)
-            temporary.flush()
-            os.fsync(temporary.fileno())
-        temporary_path = Path(temporary_name)
-        _ensure_mode(temporary_path, 0o600)
-        temporary_path.replace(path)
-    finally:
-        if temporary_name:
-            with suppress(FileNotFoundError):
-                Path(temporary_name).unlink()
+    remote.write_atomic(path, content)
 
 
 def _ensure_mode(path: Path, mode: int) -> None:
-    if stat.S_IMODE(path.stat().st_mode) != mode:
-        path.chmod(mode)
+    remote.ensure_mode(path, mode)
 
 
 @contextmanager

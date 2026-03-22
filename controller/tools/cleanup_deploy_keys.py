@@ -13,7 +13,7 @@ from rich.table import Table
 from controller import inventory, provider
 from controller.config import CONFIG_PATH, Config, load_config
 from controller.models import RESOURCE_ID_RE, GitProvider
-from controller.transport import PodmanTransport
+from controller.runtime.transport import PodmanTransport
 
 type Repository = tuple[GitProvider, str]
 type Route = tuple[str, str]
@@ -81,7 +81,7 @@ def _collect(
     active: set[str] = set()
     scanned_hosts: set[str] = set()
     errors: list[str] = []
-    transport = PodmanTransport(config.hosts)
+    transport = PodmanTransport({host: hc.endpoint() for host, hc in config.hosts.items()})
     tokens = config.seed_tokens()
 
     try:

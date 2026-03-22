@@ -14,7 +14,7 @@ from pydantic import (
     model_validator,
 )
 
-from controller.compose.syntax import (
+from controller.runtime.compose.syntax import (
     normalize_environment,
     normalize_secrets,
     normalize_ulimits,

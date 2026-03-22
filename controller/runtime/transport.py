@@ -12,10 +12,11 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from threading import Lock
+from typing import Literal
 
 from podman import PodmanClient
 
-from controller.config import HostConfig
+_PODMAN_SOCKET = "/run/podman/podman.sock"
 
 _START_TIMEOUT = 10.0
 _START_INTERVAL = 0.05
@@ -31,6 +32,20 @@ _SERVER_ALIVE_COUNT_MAX = 3
 
 class TransportError(RuntimeError):
     """Raised when a configured host cannot expose Podman or an SSH route."""
+
+
+@dataclass(frozen=True, slots=True)
+class HostEndpoint:
+    """Neutral Podman connection endpoint for one host."""
+
+    type: Literal["ssh", "podman-machine"] = "ssh"
+    podman_socket: str | None = None  # 仅 ssh 用; None 时默认 /run/podman/podman.sock
+    machine: str | None = None  # 仅 podman-machine 用
+
+    def resolved_podman_socket(self) -> str:
+        if self.type != "ssh":
+            raise ValueError("podman-machine socket is discovered from machine inspect")
+        return self.podman_socket or _PODMAN_SOCKET
 
 
 @dataclass(frozen=True, slots=True)
@@ -68,7 +83,7 @@ class PodmanTransport:
 
     def __init__(
         self,
-        hosts: Mapping[str, HostConfig],
+        hosts: Mapping[str, HostEndpoint],
         *,
         runtime_parent: Path | None = None,
         process_factory: ProcessFactory = subprocess.Popen,
@@ -137,7 +152,7 @@ class PodmanTransport:
             self._connections[host] = connection
             return connection
 
-    def _start_tunnel(self, host: str, options: HostConfig) -> _Connection:
+    def _start_tunnel(self, host: str, options: HostEndpoint) -> _Connection:
         socket_path = self._runtime_dir / f"{host}.sock"
         socket_path.unlink(missing_ok=True)
         remote_socket = options.resolved_podman_socket()
@@ -185,7 +200,7 @@ class PodmanTransport:
         self._stop(process)
         raise TransportError(f"SSH Podman tunnel for {host!r} did not create its socket")
 
-    def _connect_machine(self, host: str, options: HostConfig) -> _Connection:
+    def _connect_machine(self, host: str, options: HostEndpoint) -> _Connection:
         machine = options.machine
         if machine is None:
             raise TransportError(f"podman-machine host {host!r} has no machine name")

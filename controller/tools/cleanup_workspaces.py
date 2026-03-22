@@ -14,7 +14,7 @@ from rich.table import Table
 from controller import container, inventory, ssh
 from controller.config import CONFIG_PATH, Config, load_config
 from controller.models import RESOURCE_ID_RE
-from controller.transport import PodmanTransport
+from controller.runtime.transport import PodmanTransport
 
 type Usage = Literal["yes", "no", "unmanaged"]
 type Workspace = tuple[str, str, str]
@@ -32,7 +32,7 @@ def main(
 ) -> None:
     """Show host workspace directories and whether they have managed containers."""
     config = load_config(CONFIG_PATH)
-    transport = PodmanTransport(config.hosts)
+    transport = PodmanTransport({host: hc.endpoint() for host, hc in config.hosts.items()})
     try:
         workspaces, errors = _collect(config, transport)
         rows = [
