@@ -3,7 +3,7 @@
 # 把构建期预装的 VSCode 扩展播种到各 IDE 远端 server 的扩展目录。
 #
 # 背景：home-init.sh 启动时把 ~/.vscode-server、~/.trae-server、~/.trae-cn-server 软链到
-# 持久化的 /workspace/.cache，因此扩展不能烤进镜像的 ~/.vscode-server（首启会被 rm -rf
+# 持久化的 /cache，因此扩展不能烤进镜像的 ~/.vscode-server（首启会被 rm -rf
 # 清掉），只能在启动时按工作区播种。构建期的参考副本见 setup-vscode-extensions.sh。
 #
 # 用法：seed-vscode-extensions.sh <server_dir> [server_dir...]

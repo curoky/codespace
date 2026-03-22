@@ -9,11 +9,11 @@ set -xeuo pipefail
 
 # sudo -E /opt/devspace/images/dev/script/setup-proxy.sh
 function link() {
-  local workspace_dir="/workspace/.cache/$1"
+  local cache_dir="/cache/$1"
   local home_dir="/home/x/$1"
-  mkdir -p "$workspace_dir"
+  mkdir -p "$cache_dir"
   rm -rf "$home_dir"
-  ln -sf "$workspace_dir" "$home_dir"
+  ln -sf "$cache_dir" "$home_dir"
 }
 
 link .vscode-server

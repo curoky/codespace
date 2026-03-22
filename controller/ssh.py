@@ -15,9 +15,12 @@ from pathlib import Path
 from tenacity import Retrying, retry_if_exception_type, stop_after_delay, wait_fixed
 
 from controller.models import (
+    CACHE_DIR_NAME,
     CONTAINER_USER,
+    UPLOAD_DIR_NAME,
     WORKSPACE_DIR_NAME,
     Environment,
+    HostRoots,
 )
 from controller.runtime import remote
 from controller.runtime.transport import SSHRoute
@@ -45,34 +48,44 @@ _HOST_ENVIRONMENT_TIMEOUT = 15.0
 
 
 @cache
-def remote_workspace_root(route: SSHRoute) -> str:
-    """Resolve and create the absolute workspace root for one SSH route."""
+def _remote_root(route: SSHRoute, dir_name: str) -> str:
+    """Resolve and create one absolute host root directory for an SSH route."""
     # The fixed directory name is safe for expansion by the remote shell.
-    remote_command = (
-        f'mkdir -p -- "$HOME/{WORKSPACE_DIR_NAME}" && printf %s "$HOME/{WORKSPACE_DIR_NAME}"'
-    )
+    remote_command = f'mkdir -p -- "$HOME/{dir_name}" && printf %s "$HOME/{dir_name}"'
     result = _run_host(
         route,
         remote_command,
         timeout=_WORKSPACE_ROOT_TIMEOUT,
-        action="resolve workspace root",
+        action=f"resolve {dir_name} root",
     )
     root = result.stdout.strip()
     if not root.startswith("/"):
-        raise RuntimeError(f"host {route.host!r} returned a non-absolute workspace root: {root!r}")
+        raise RuntimeError(f"host {route.host!r} returned a non-absolute {dir_name} root: {root!r}")
     return root
 
 
-def prepare_workspace(route: SSHRoute, target: str) -> None:
-    """Create an environment workspace as the host login user."""
-    if not target.startswith("/"):
-        raise RuntimeError(f"refusing to prepare non-absolute workspace path: {target!r}")
-    remote_command = f"mkdir -p -- {shlex.quote(target)}"
+def remote_instance_roots(route: SSHRoute) -> HostRoots:
+    """Resolve and create the workspace, upload and cache roots for one SSH route."""
+    return HostRoots(
+        workspace=_remote_root(route, WORKSPACE_DIR_NAME),
+        upload=_remote_root(route, UPLOAD_DIR_NAME),
+        cache=_remote_root(route, CACHE_DIR_NAME),
+    )
+
+
+def prepare_instance_dirs(route: SSHRoute, targets: list[str]) -> None:
+    """Create one environment's instance directories as the host login user."""
+    if not targets:
+        return
+    for target in targets:
+        if not target.startswith("/"):
+            raise RuntimeError(f"refusing to prepare non-absolute instance path: {target!r}")
+    remote_command = "mkdir -p -- " + " ".join(shlex.quote(target) for target in targets)
     _run_host(
         route,
         remote_command,
         timeout=_WORKSPACE_PREPARE_TIMEOUT,
-        action=f"prepare workspace {target!r}",
+        action=f"prepare instance directories {targets!r}",
     )
 
 

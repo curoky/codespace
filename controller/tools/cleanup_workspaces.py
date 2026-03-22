@@ -79,11 +79,11 @@ def _collect(
         for future in as_completed(futures):
             host = futures[future]
             try:
-                root, paths, active = future.result()
+                scanned, active = future.result()
             except Exception as exc:
                 errors.append(f"{host}: {exc}")
                 continue
-            workspaces.extend((host, root, path, active) for path in paths)
+            workspaces.extend((host, root, path, active) for root, path in scanned)
     workspaces.sort(key=lambda item: (item[0], item[2]))
     return workspaces, errors
 
@@ -92,19 +92,23 @@ def _scan_host(
     config: Config,
     transport: PodmanTransport,
     host: str,
-) -> tuple[str, list[str], set[str]]:
+) -> tuple[list[tuple[str, str]], set[str]]:
     client = transport.client(host)
     route = transport.ssh_route(host)
     current = inventory.list_inventory(client, host, config)
     if current.errors:
         raise RuntimeError("; ".join(current.errors))
-    root = ssh.remote_workspace_root(route)
-    paths = ssh.list_workspaces(route, root)
-    active = {
-        f"{root}/{environment.project}/{environment.instance}"
-        for environment in current.environments
-    }
-    return root, paths, active
+    roots = ssh.remote_instance_roots(route)
+    scanned: list[tuple[str, str]] = []
+    active: set[str] = set()
+    for root in (roots.workspace, roots.upload, roots.cache):
+        for path in ssh.list_workspaces(route, root):
+            scanned.append((root, path))
+        active |= {
+            f"{root}/{environment.project}/{environment.instance}"
+            for environment in current.environments
+        }
+    return scanned, active
 
 
 def _usage(root: str, path: str, active: set[str]) -> Usage:

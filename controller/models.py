@@ -24,6 +24,11 @@ CONTAINER_USER = "x"
 CONTAINER_UID = 5230
 CONTAINER_GID = 5230
 WORKSPACE_MOUNT = "/workspace"
+# Each project instance also gets a persistent upload inbox and a build cache,
+# bind-mounted from their own host roots so they survive container recreation
+# and stay isolated per instance. Only /workspace is ever encrypted.
+UPLOAD_MOUNT = "/upload"
+CACHE_MOUNT = "/cache"
 # The host workspace is bind-mounted to the gocryptfs cipher directory; the
 # image mounts the decrypted plaintext at WORKSPACE_MOUNT at boot, so only
 # ciphertext ever reaches host disk while every /workspace consumer is unchanged.
@@ -35,8 +40,12 @@ WORKSPACE_CIPHER_MOUNT = "/workspace.enc"
 # via `encrypt_workspace`; a missing secret then fails container creation fast.
 WORKSPACE_CRYPT_SECRET = "workspace_crypt_key"  # noqa: S105 - secret name, not a value
 WORKSPACE_CRYPT_SECRET_ENV = "WORKSPACE_CRYPT_KEY"  # noqa: S105 - env var name, not a value
-# A bind-mount source requires the host's resolved absolute home path.
+# A bind-mount source requires the host's resolved absolute home path. Each
+# instance mount tree has its own host root directory below the login home so
+# workspace, upload and cache data can be listed, purged and backed up apart.
 WORKSPACE_DIR_NAME = "codespace"
+UPLOAD_DIR_NAME = "codespace-upload"
+CACHE_DIR_NAME = "codespace-cache"
 PODMAN_SOCKET = "/run/podman/podman.sock"
 SSH_PORT_START = 20_000
 SSH_PORT_COUNT = 10_000
@@ -120,6 +129,15 @@ MANDATORY_LABELS = (
 
 
 @dataclass(frozen=True, slots=True)
+class HostRoots:
+    """Absolute host root directories for one SSH route's instance mounts."""
+
+    workspace: str
+    upload: str
+    cache: str
+
+
+@dataclass(frozen=True, slots=True)
 class EnvironmentSpec:
     """Fully resolved inputs for one configured project instance."""
 
@@ -146,8 +164,9 @@ class EnvironmentSpec:
     def platform_label(self) -> PlatformSelection:
         return platform_label(self.platform)
 
-    def workspace_path(self, workspace_root: str) -> str:
-        return f"{workspace_root}/{self.project_id}/{self.instance}"
+    def instance_path(self, root: str) -> str:
+        """Return the ``<root>/<project>/<instance>`` host path for one mount root."""
+        return f"{root}/{self.project_id}/{self.instance}"
 
     def to_environment(self, container_id: str, *, status: str | None = None) -> Environment:
         return Environment(

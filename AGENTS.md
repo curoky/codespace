@@ -33,7 +33,7 @@
   直接烤入开发镜像的 `$HOME`，无需构建期 `setup.sh`。`dotfiles/` 只保留非容器场景专属配置（macOS 桌面
   编辑器、LaunchAgent、warp/snipaste/mpv，以及 host 专属的 zsh `prune.zshrc`、git `.gitconfig` 等）与容器运行期
   才能落位的模板（trae `sandbox.json`/`traecli.toml`、
-  vscode remote-server settings，它们所在目录会被 `home-init` 在 boot 时重链到 `/workspace`，烤入会被清掉）。
+  vscode remote-server settings，它们所在目录会被 `home-init` 在 boot 时重链到 `/cache`，烤入会被清掉）。
   `setup.sh` 主要服务 macOS host，按 scene（首参数 `docker`/`host-linux`/`darwin`，缺省按 OS 推断）分发：
   跨场景 home 配置从 `rootfs/home/x` 建软链（单一来源），场景专属配置从 `dotfiles/` 取；`docker` scene 只在
   运行期补写被重链目录内的模板。`link_path` 建软链，`copy_path` 以 `0600` 复制需独立权限的配置；`CONF_PATH`
@@ -83,8 +83,8 @@ images/sidecar/build.sh
    `ghcr.io/curoky/devspace:<name>`；缓存在 `ghcr.io/curoky/devspace-cache:*`。
 4. **服务管理**：开发容器以自建 s6 init 启动。新增服务放入 `images/dev/rootfs/etc/s6/s6-rc.d/` 并加入
    bundle；execline 脚本用 `s6-envdir -Lf -- /run/s6/container_environment` 读容器环境，该目录仅 root 和
-   `x` 可读。`workspace-init` 必须先于 `workspace-crypt` 完成，把 `/workspace` 与密文根 `/workspace.enc`
-   归属到 `5230:5230`；`workspace-crypt` 再先于 `sshd`、`home-init` 与 WebDAV 服务完成。
+   `x` 可读。`workspace-init` 必须先于 `workspace-crypt` 完成，把 `/workspace`、密文根 `/workspace.enc`、
+   `/upload` 与 `/cache` 都归属到 `5230:5230`；`workspace-crypt` 再先于 `sshd`、`home-init` 与 WebDAV 服务完成。
 5. **网络边界**：环境 sshd 只绑定宿主 loopback；访问必须经配置的 SSH host route。
 6. **共享服务**：每个 host 只有一个固定名称的 `codespace-sidecar`，不附属于 project/instance。Atuin 仅经
    宿主 `127.0.0.1:8002` 暴露。sidecar 的 image-prewarm 定时任务是唯一允许 bind-mount 宿主 rootful
@@ -96,7 +96,10 @@ images/sidecar/build.sh
    实例目录 bind 到密文根 `/workspace.enc` 并注入固定 secret `workspace_crypt_key`（env `WORKSPACE_CRYPT_KEY`，
    对齐 sidecar `atuin_db_uri` 模式，须经 `sync_secrets` 预注册，缺失即 fail-fast）；镜像侧 `workspace-crypt`
    据此用 gocryptfs 把明文挂到 `/workspace`。关闭时直接 bind 明文 `/workspace`、不注入 secret。加密依赖 FUSE
-   （`/dev/fuse`）。
+   （`/dev/fuse`）。加密仅作用于 `/workspace`；`/upload`、`/cache` 始终明文 bind 各自宿主根，不受影响。
+10. **数据挂载**：每个实例挂载三个宿主目录到 `/workspace`、`/upload`、`/cache`，分别落在独立宿主根
+    `~/codespace`、`~/codespace-upload`、`~/codespace-cache` 下的 `<project>/<instance>` 子目录（逐实例隔离，
+    不跨实例/项目共享）。三者均为控制面保留 mount target，用户卷不得占用。
 
 ## 变更规则
 
