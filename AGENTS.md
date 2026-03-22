@@ -83,7 +83,8 @@ images/sidecar/build.sh
    `ghcr.io/curoky/devspace:<name>`；缓存在 `ghcr.io/curoky/devspace-cache:*`。
 4. **服务管理**：开发容器以自建 s6 init 启动。新增服务放入 `images/dev/rootfs/etc/s6/s6-rc.d/` 并加入
    bundle；execline 脚本用 `s6-envdir -Lf -- /run/s6/container_environment` 读容器环境，该目录仅 root 和
-   `x` 可读。`workspace-init` 必须先于 `sshd` 和 `home-init` 完成，把 `/workspace` 归属到 `5230:5230`。
+   `x` 可读。`workspace-init` 必须先于 `workspace-crypt` 完成，把 `/workspace` 与密文根 `/workspace.enc`
+   归属到 `5230:5230`；`workspace-crypt` 再先于 `sshd`、`home-init` 与 WebDAV 服务完成。
 5. **网络边界**：环境 sshd 只绑定宿主 loopback；访问必须经配置的 SSH host route。
 6. **共享服务**：每个 host 只有一个固定名称的 `codespace-sidecar`，不附属于 project/instance。Atuin 仅经
    宿主 `127.0.0.1:8002` 暴露。sidecar 的 image-prewarm 定时任务是唯一允许 bind-mount 宿主 rootful
@@ -91,6 +92,11 @@ images/sidecar/build.sh
 7. **平台选择**：project 每个 `host` 条目 `platform` 只能省略或设为 `linux/amd64`、`linux/arm64`；
    省略时库存 label 用 `native`。
 8. **文档语言**：说明与约束文档用中文；代码标识、命令、协议名和外部 API 保留原文。
+9. **Workspace 加密**：逐 project 可选（控制面 project 字段 `encrypt_workspace`，默认关）。开启时控制面把 host
+   实例目录 bind 到密文根 `/workspace.enc` 并注入固定 secret `workspace_crypt_key`（env `WORKSPACE_CRYPT_KEY`，
+   对齐 sidecar `atuin_db_uri` 模式，须经 `sync_secrets` 预注册，缺失即 fail-fast）；镜像侧 `workspace-crypt`
+   据此用 gocryptfs 把明文挂到 `/workspace`。关闭时直接 bind 明文 `/workspace`、不注入 secret。加密依赖 FUSE
+   （`/dev/fuse`）。
 
 ## 变更规则
 

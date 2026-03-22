@@ -17,6 +17,9 @@ from podman.domain.containers import Container
 from controller.models import (
     CONTAINER_GID,
     CONTAINER_UID,
+    WORKSPACE_CIPHER_MOUNT,
+    WORKSPACE_CRYPT_SECRET,
+    WORKSPACE_CRYPT_SECRET_ENV,
     WORKSPACE_MOUNT,
     Environment,
     EnvironmentSpec,
@@ -77,6 +80,14 @@ def create_container(
             ports[f"{remote}/tcp"] = local
 
     secret_mounts, secret_env = _resolve_secrets(client, options.secrets or [])
+    # Encrypted projects bind the host instance dir to the gocryptfs cipher root
+    # and inject the fixed WORKSPACE_CRYPT_KEY (like the sidecar's atuin_db_uri);
+    # the image mounts the decrypted /workspace at boot. Plaintext projects bind
+    # the host dir straight to /workspace and inject nothing.
+    encrypt = spec.project.encrypt_workspace
+    if encrypt:
+        _require_secret_exists(client, WORKSPACE_CRYPT_SECRET)
+        secret_env[WORKSPACE_CRYPT_SECRET_ENV] = WORKSPACE_CRYPT_SECRET
     env_collisions = sorted(environment.keys() & secret_env.keys())
     if env_collisions:
         raise ValueError(f"container.secrets env target also set in environment: {env_collisions}")
@@ -85,7 +96,7 @@ def create_container(
         {
             "type": "bind",
             "source": spec.workspace_path(workspace_root),
-            "target": WORKSPACE_MOUNT,
+            "target": WORKSPACE_CIPHER_MOUNT if encrypt else WORKSPACE_MOUNT,
         }
     ]
     mounts.extend(

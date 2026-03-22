@@ -264,6 +264,7 @@ class ProjectConfig(BaseModel):
     open_path: NonBlankString | None = None
     clone_path: WorkspacePath | None = None
     published_ports: list[str] | None = None
+    encrypt_workspace: bool = False
     container: ContainerConfig | None = None
 
     @field_validator("host")
