@@ -3,6 +3,7 @@ let pollTimer = null;
 let projectHosts = new Map();
 
 const hostsElement = document.querySelector("#hosts");
+const hostsSummaryElement = document.querySelector("#hosts-summary");
 const projectsElement = document.querySelector("#projects");
 const pollStatusElement = document.querySelector("#poll-status");
 const instanceDialog = document.querySelector("#instance-dialog");
@@ -88,7 +89,20 @@ function render(dashboard) {
   }
 }
 
+// Status buckets that drive the per-environment status dot colour.
+const RUNNING_STATES = new Set(["running", "succeeded"]);
+const PENDING_STATES = new Set(["queued", "pending", "created", "paused"]);
+
+function classifyStatus(status) {
+  const value = (status || "unknown").toLowerCase();
+  if (RUNNING_STATES.has(value)) return "running";
+  if (PENDING_STATES.has(value)) return "pending";
+  return "stopped";
+}
+
 function renderHosts(hosts) {
+  const online = hosts.filter((host) => host.status === "online").length;
+  hostsSummaryElement.textContent = hosts.length ? `${online}/${hosts.length} online` : "";
   hostsElement.replaceChildren(
     ...hosts.map((host) => {
       const item = element("div", `host ${host.status}`);
@@ -98,7 +112,11 @@ function renderHosts(hosts) {
       identity.append(element("span", "status-dot"));
       identity.append(element("strong", "", host.id));
       item.append(identity);
-      item.append(element("span", "host-state", host.status));
+      // The colored dot and edge stripe already signal a healthy host, so only
+      // spell out the state text when it is worth reading: offline or degraded.
+      if (host.status !== "online") {
+        item.append(element("span", "host-state", host.status));
+      }
       item.append(element("span", "host-count", `${host.environment_count} env`));
 
       if (host.inventory_errors.length) {
@@ -111,6 +129,15 @@ function renderHosts(hosts) {
   );
 }
 
+// Compose the single-line project source, e.g. "github:curoky/devspace". The
+// provider and type are implied by this string, so they no longer need tags.
+function projectSource(project) {
+  if (project.repo) {
+    return project.provider ? `${project.provider}:${project.repo}` : project.repo;
+  }
+  return project.git_url || project.open_path;
+}
+
 function renderProjects(dashboard) {
   projectHosts = new Map(dashboard.projects.map((project) => [project.id, project.hosts]));
   const cards = dashboard.projects.map((project) => {
@@ -119,34 +146,29 @@ function renderProjects(dashboard) {
     const card = element("article", "project-card");
 
     const header = element("div", "project-header");
-    const info = element("div", "project-info");
     const name = element("h3", "", project.id);
-    const label = project.repo || project.git_url || project.open_path;
-    name.title = project.description ? `${label} — ${project.description}` : label;
+    const source = projectSource(project);
+    name.title = project.description ? `${source} — ${project.description}` : source;
 
+    // The header row carries the project identity inline: name then source
+    // path; the environments listed below already convey how many exist.
     const title = element("div", "project-title");
-    const metadata = element("div", "project-meta");
-    project.hosts.forEach((host) => {
-      const text = host.platform ? `${host.name} · ${host.platform}` : host.name;
-      metadata.append(element("span", "badge badge-host", text));
-    });
-    if (project.provider) {
-      metadata.append(element("span", "badge", project.provider));
-    }
-    metadata.append(element("span", "badge badge-type", project.type));
+    const sourceLine = element("span", "project-source", source);
+    sourceLine.title = project.description ? `${source} — ${project.description}` : source;
+    title.append(name, sourceLine);
 
-    const source = element("p", "project-source", project.description || label);
-    source.title = label;
-    title.append(name, source);
-
+    // The host chips double as the "quick create" action: clicking one queues a
+    // default instance on that host, so the standalone host tag is redundant.
     const headerActions = element("div", "project-header-actions");
     project.hosts.forEach((host) => {
-      const quickButton = actionButton(`Quick · ${host.name}`, "quick", {
+      const platformSuffix = host.platform ? ` · ${host.platform}` : "";
+      const quickButton = actionButton(`+ ${host.name}${platformSuffix}`, "quick", {
         project: project.id,
         host: host.name,
       });
-      quickButton.classList.add("compact");
-      quickButton.title = `Create instance named "${DEFAULT_INSTANCE}" on ${host.name}`;
+      quickButton.classList.remove("secondary");
+      quickButton.classList.add("compact", "host-action");
+      quickButton.title = `Create "${DEFAULT_INSTANCE}" instance on ${host.name}`;
       headerActions.append(quickButton);
     });
     const createButton = actionButton("New…", "new", { project: project.id });
@@ -154,10 +176,7 @@ function renderProjects(dashboard) {
     createButton.classList.add("compact", "primary");
     createButton.title = "Create a named instance on a chosen host";
     headerActions.append(createButton);
-    const controls = element("div", "project-controls");
-    controls.append(metadata, headerActions);
-    info.append(title, controls);
-    header.append(info);
+    header.append(title, headerActions);
     card.append(header);
 
     const list = element("div", "environment-list");
@@ -166,7 +185,7 @@ function renderProjects(dashboard) {
     if (!operations.length && !environments.length) {
       const empty = element("div", "empty");
       empty.append(element("strong", "", "No environments"));
-      empty.append(element("span", "muted", "Create a default or named instance to get started."));
+      empty.append(element("span", "muted", "Pick a host above to create one."));
       list.append(empty);
     }
     card.append(list);
@@ -199,6 +218,7 @@ function renderEnvironment(environment) {
   const row = element("div", "environment");
 
   const info = element("div", "environment-info");
+  info.append(element("span", `env-status-dot ${classifyStatus(environment.status)}`));
   info.append(element("span", "environment-title", environment.instance));
   info.append(
     element(
@@ -208,7 +228,9 @@ function renderEnvironment(environment) {
     ),
   );
   info.append(element("span", "badge badge-host", environment.host));
-  info.append(element("span", "badge badge-platform", environment.platform));
+  if (environment.platform && environment.platform !== "native") {
+    info.append(element("span", "badge badge-platform", environment.platform));
+  }
   const image = element("span", "environment-image", environment.image);
   image.title = environment.image;
   info.append(image);
