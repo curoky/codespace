@@ -12,7 +12,7 @@ from podman import PodmanClient
 from controller import container as containers
 from controller import dashboard as dashboard_state
 from controller import inventory, provider, ssh, workspace
-from controller.config import Config, ProjectConfig
+from controller.config import Config, GitProject, ProjectConfig, RepoProject
 from controller.models import (
     DashboardResponse,
     Environment,
@@ -97,8 +97,8 @@ class CodespaceService:
     def queue_create(self, project_id: str, host: str, instance: str) -> Operation:
         project = self._project(project_id)
         self._require_host(project, host)
-        if project.type == "repo":
-            self._token(self._require_provider(project))
+        if isinstance(project, RepoProject):
+            self._token(project.provider)
         return self.operations.create(host, project_id, instance)
 
     def dismiss_failed_operation(self, project_id: str, host: str, instance: str) -> bool:
@@ -134,11 +134,11 @@ class CodespaceService:
         spec = creation.spec
         project = spec.project
         host = spec.host
-        is_repo = project.type == "repo"
+        is_repo = isinstance(project, RepoProject)
 
         self._stage(creation, "checking inventory", status="running")
-        if is_repo:
-            creation.token = self._token(self._require_provider(project))
+        if isinstance(project, RepoProject):
+            creation.token = self._token(project.provider)
         creation.client = self.transport.client(host)
         creation.route = self.transport.ssh_route(host)
         current = inventory.list_inventory(creation.client, host, self.config)
@@ -190,16 +190,16 @@ class CodespaceService:
         self._stage(creation, "probing ssh")
         ssh.probe(environment, creation.route)
 
-        if is_repo:
+        if isinstance(project, RepoProject):
             if deploy_keypair is None:
                 raise RuntimeError("deploy key missing for repo project")
             if creation.token is None:
                 raise RuntimeError("provider token missing for repo project")
             self._stage(creation, "registering deploy key")
             provider.register(
-                self._require_provider(project),
+                project.provider,
                 creation.token,
-                self._require_repo(project),
+                project.repo,
                 spec.identity,
                 deploy_keypair.public_key,
             )
@@ -208,13 +208,13 @@ class CodespaceService:
             self._stage(creation, "cloning repository")
             workspace.clone_repo(
                 container,
-                self._require_repo(project),
-                self._require_provider(project),
+                project.repo,
+                project.provider,
                 spec.clone_path,
             )
-        elif project.type == "git":
+        elif isinstance(project, GitProject):
             self._stage(creation, "cloning repository")
-            workspace.clone_git_url(container, self._require_git_url(project), spec.clone_path)
+            workspace.clone_git_url(container, project.git_url, spec.clone_path)
         else:
             self._stage(creation, "preparing open path")
             workspace.prepare_open_path(container, spec.open_path)
@@ -231,8 +231,7 @@ class CodespaceService:
         project = self._project(project_id)
         self._require_host(project, host)
         spec = self.config.environment_spec(project_id, host, instance)
-        is_repo = project.type == "repo"
-        token = self._token(self._require_provider(project)) if is_repo else None
+        token = self._token(project.provider) if isinstance(project, RepoProject) else None
         client = self.transport.client(host)
         route = self.transport.ssh_route(host)
         current = inventory.list_inventory(client, host, self.config)
@@ -252,23 +251,23 @@ class CodespaceService:
             raise RuntimeError(f"environment {spec.identity!r} not found")
 
         if not force:
-            if is_repo or project.type == "git":
+            if isinstance(project, RepoProject | GitProject):
                 if environment.status != "running":
                     status = environment.status or "unknown"
                     raise RuntimeError(
                         f"container {spec.identity!r} is {status}; "
                         "repository state cannot be inspected while it is not running"
                     )
-                if is_repo:
+                if isinstance(project, RepoProject):
                     return workspace.repo_git_state(container, spec.clone_path)
                 return workspace.git_url_git_state(container, spec.clone_path)
             return RepoGitState()
 
-        if is_repo and token is not None:
+        if isinstance(project, RepoProject) and token is not None:
             provider.revoke(
-                self._require_provider(project),
+                project.provider,
                 token,
-                self._require_repo(project),
+                project.repo,
                 spec.identity,
             )
         if purge:
@@ -342,14 +341,17 @@ class CodespaceService:
 
     def _rollback_create(self, creation: _Creation) -> Exception | None:
         spec = creation.spec
+        project = spec.project
         if creation.deploy_key_registered:
             if creation.token is None:
                 return RuntimeError("provider token is unavailable; container retained")
+            if not isinstance(project, RepoProject):
+                return RuntimeError("deploy key registered for a non-repo project")
             try:
                 provider.revoke(
-                    self._require_provider(spec.project),
+                    project.provider,
                     creation.token,
-                    self._require_repo(spec.project),
+                    project.repo,
                     spec.identity,
                 )
             except Exception as exc:
@@ -405,24 +407,6 @@ class CodespaceService:
         if all(entry.name != host for entry in project.host):
             allowed = sorted(entry.name for entry in project.host)
             raise KeyError(f"host {host!r} is not configured for this project; allowed: {allowed}")
-
-    @staticmethod
-    def _require_provider(project: ProjectConfig) -> GitProvider:
-        if project.provider is None:
-            raise RuntimeError("repo project has no provider")
-        return project.provider
-
-    @staticmethod
-    def _require_repo(project: ProjectConfig) -> str:
-        if project.repo is None:
-            raise RuntimeError("repo project has no repo")
-        return project.repo
-
-    @staticmethod
-    def _require_git_url(project: ProjectConfig) -> str:
-        if project.git_url is None:
-            raise RuntimeError("git project has no git_url")
-        return project.git_url
 
     def _token(self, provider_name: GitProvider) -> str:
         token = self._optional_token(provider_name)

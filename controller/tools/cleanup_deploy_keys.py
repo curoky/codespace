@@ -11,7 +11,7 @@ from rich.console import Console
 from rich.table import Table
 
 from controller import inventory, provider
-from controller.config import CONFIG_PATH, Config, load_config
+from controller.config import CONFIG_PATH, Config, RepoProject, load_config
 from controller.models import RESOURCE_ID_RE, GitProvider
 from controller.runtime.transport import PodmanTransport
 
@@ -66,7 +66,7 @@ def main(
 def _repositories(config: Config) -> dict[Repository, list[Route]]:
     repositories: dict[Repository, list[Route]] = defaultdict(list)
     for project_id, project in config.projects.items():
-        if project.provider is None or project.repo is None:
+        if not isinstance(project, RepoProject):
             continue
         repository = (project.provider, project.repo)
         repositories[repository].extend((entry.name, project_id) for entry in project.host)
