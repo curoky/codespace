@@ -22,6 +22,6 @@ COPY images/wsl/rootfs/ /
 
 # The base image's s6-rc database was compiled without the `wsl` bundle. Rebuild
 # it in place so boot.sh's `s6-rc -up change wsl` resolves.
-RUN /opt/sb/profile/s6/bin/s6-rc-compile /etc/s6/db.new /etc/s6/s6-rc.d \
+RUN /opt/bm/profile/s6/bin/s6-rc-compile /etc/s6/db.new /etc/s6/s6-rc.d \
   && rm -rf /etc/s6/db \
   && mv /etc/s6/db.new /etc/s6/db

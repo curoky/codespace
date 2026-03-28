@@ -106,10 +106,10 @@
   "[yaml]": {
     // "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "bazel.buildifierExecutable": "/opt/sb/store/buildifier/bin/buildifier",
+  "bazel.buildifierExecutable": "/opt/bm/store/buildifier/bin/buildifier",
   "bazel.buildifierFixOnFormat": true,
   "bazel.enableCodeLens": true,
-  "bazel.executable": "/opt/sb/store/bazelisk/bin/bazelisk",
+  "bazel.executable": "/opt/bm/store/bazelisk/bin/bazelisk",
   "bazel.queriesShareServer": true,
   "bookmarks.saveBookmarksInProject": true,
   "chat.agent.enabled": false,
@@ -355,7 +355,7 @@
   ],
   "ruff.logLevel": "info",
   "ruff.path": [
-    "/opt/sb/store/ruff/bin/ruff"
+    "/opt/bm/store/ruff/bin/ruff"
   ],
   "rust-client.disableRustup": true,
   "rust-client.enableMultiProjectSetup": null,
@@ -380,8 +380,8 @@
   "security.promptForRemoteFileProtocolHandling": false,
   "security.workspace.trust.enabled": false,
   "shellformat.flag": "-i 2 -s -ci",
-  "shellformat.path": "/opt/sb/store/shfmt/bin/shfmt",
-  "sqlite.sqlite3": "/opt/sb/store/sqlite/bin/sqlite",
+  "shellformat.path": "/opt/bm/store/shfmt/bin/shfmt",
+  "sqlite.sqlite3": "/opt/bm/store/sqlite/bin/sqlite",
   // "sql-formatter.uppercase": true,
   // "sqltools.useNodeRuntime": true,
   // "svg.preview.mode": "svg",
@@ -461,16 +461,16 @@
   "yaml.format.enable": true,
   "yaml.format.singleQuote": true,
   "go.alternateTools": {
-    "dlv": "/opt/sb/store/delve/bin/dlv",
-    "dlv-dap": "/opt/sb/store/delve/bin/dlv-dap",
-    "golangci-lint": "/opt/sb/store/golangci-lint/bin/golangci-lint",
-    "gofumpt": "/opt/sb/store/gofumpt/bin/gofumpt",
-    "gotests": "/opt/sb/store/gotests/bin/gotests",
-    "impl": "/opt/sb/store/impl/bin/impl",
-    "gomodifytags": "/opt/sb/store/gomodifytags/bin/gomodifytags",
-    "goimports": "/opt/sb/store/gotools/bin/goimports",
-    "staticcheck": "/opt/sb/store/go-tools/bin/staticcheck",
-    "go-outline": "/opt/sb/store/go-outline/bin/go-outline",
+    "dlv": "/opt/bm/store/delve/bin/dlv",
+    "dlv-dap": "/opt/bm/store/delve/bin/dlv-dap",
+    "golangci-lint": "/opt/bm/store/golangci-lint/bin/golangci-lint",
+    "gofumpt": "/opt/bm/store/gofumpt/bin/gofumpt",
+    "gotests": "/opt/bm/store/gotests/bin/gotests",
+    "impl": "/opt/bm/store/impl/bin/impl",
+    "gomodifytags": "/opt/bm/store/gomodifytags/bin/gomodifytags",
+    "goimports": "/opt/bm/store/gotools/bin/goimports",
+    "staticcheck": "/opt/bm/store/go-tools/bin/staticcheck",
+    "go-outline": "/opt/bm/store/go-outline/bin/go-outline",
     "gopls": "trae-gopls"
   },
   "markdown.styles": [

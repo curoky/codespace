@@ -8,7 +8,7 @@
 
     <key>ProgramArguments</key>
     <array>
-        <string>/opt/sb/bin/atuin</string>
+        <string>/opt/bm/bin/atuin</string>
         <string>server</string>
         <string>start</string>
     </array>
@@ -25,7 +25,7 @@
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>
-        <string>/opt/sb/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <string>/opt/bm/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
         <!-- 与 codespace sidecar 的 s6 atuin-service 对齐（127.0.0.1:8002，关闭注册） -->
         <key>ATUIN_HOST</key>
         <string>127.0.0.1</string>

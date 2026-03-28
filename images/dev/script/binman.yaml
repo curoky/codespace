@@ -1,11 +1,11 @@
 # binman package manifest for the devspace base image.
 # Consumed by install-sb-pkgs.sh via `bm sync`.
 #
-#   packages.link:   linked into the prefix root (/opt/sb/{bin,lib,...}).
+#   packages.link:   linked into the prefix root (/opt/bm/{bin,lib,...}).
 #   packages.unlink: installed into the store only, not linked into the root.
 #   profiles:        installed into the store and aggregated under
-#                    /opt/sb/profile/<name>/ via relative symlinks.
-prefix: /opt/sb
+#                    /opt/bm/profile/<name>/ via relative symlinks.
+prefix: /opt/bm
 packages:
   link:
     # shell & terminal

@@ -1,4 +1,4 @@
-#!/opt/sb/profile/s6/bin/execlineb -P
+#!/opt/bm/profile/s6/bin/execlineb -P
 
 s6-envdir -Lf -- /run/s6/container_environment
 
@@ -13,7 +13,7 @@ s6-setuidgid x
 s6-env HOME=/home/x
 s6-env XDG_CONFIG_HOME=/run/copyparty-webdav
 s6-env PYTHONUNBUFFERED=1
-exec /opt/sb/store/copyparty/bin/copyparty
+exec /opt/bm/store/copyparty/bin/copyparty
   -i ${WEBDAV_BIND}
   -p 8005
   --dav-port 8005

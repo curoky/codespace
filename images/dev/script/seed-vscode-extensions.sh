@@ -38,12 +38,12 @@ function seed_extensions() {
   local ref_json="$REF_EXTENSIONS/extensions.json"
   if [[ -f $ref_json ]]; then
     local rewritten merged
-    rewritten="$(/opt/sb/bin/jq --arg dir "$target" \
+    rewritten="$(/opt/bm/bin/jq --arg dir "$target" \
       'map((.relativeLocation // (.location.path | sub(".*/"; ""))) as $rel
            | .relativeLocation = $rel
            | .location = {"$mid":1,"path":($dir + "/" + $rel),"scheme":"file"})' \
       "$ref_json")"
-    merged="$(/opt/sb/bin/jq -n \
+    merged="$(/opt/bm/bin/jq -n \
       --argjson existing "$existing" \
       --argjson ref "$rewritten" \
       '($existing | map(.identifier.id)) as $have

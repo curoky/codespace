@@ -23,9 +23,9 @@ chmod 700 /home/x/.ssh
 chmod 600 /home/x/.ssh/authorized_keys /home/x/.ssh/config /home/x/.ssh/known_hosts
 
 # change login shell
-echo "/opt/sb/bin/zsh" >>/etc/shells
-chsh -s /opt/sb/bin/zsh root
-chsh -s /opt/sb/bin/zsh x
+echo "/opt/bm/bin/zsh" >>/etc/shells
+chsh -s /opt/bm/bin/zsh root
+chsh -s /opt/bm/bin/zsh x
 
 # sshd
 useradd --uid 200 -g 65534 --home-dir /run/sshd --create-home --shell /usr/sbin/nologin sshd
@@ -51,6 +51,6 @@ locale-gen
 # CAP_SYS_ADMIN, and the binman static build ships fusermount3 without the setuid
 # bit. Without this, gocryptfs mount fails with "fusermount3: mount failed:
 # Operation not permitted" and sshd (which depends on workspace-crypt) never
-# starts. Set on the store target since /opt/sb/bin/fusermount3 is a symlink.
-chown root:root /opt/sb/store/fuse3/bin/fusermount3
-chmod u+s /opt/sb/store/fuse3/bin/fusermount3
+# starts. Set on the store target since /opt/bm/bin/fusermount3 is a symlink.
+chown root:root /opt/bm/store/fuse3/bin/fusermount3
+chmod u+s /opt/bm/store/fuse3/bin/fusermount3

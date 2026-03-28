@@ -8,7 +8,7 @@
 
     <key>ProgramArguments</key>
     <array>
-        <string>/opt/sb/bin/atuin</string>
+        <string>/opt/bm/bin/atuin</string>
         <string>daemon</string>
         <string>start</string>
         <string>--show-logs</string>
@@ -27,7 +27,7 @@
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>
-        <string>/opt/sb/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <string>/opt/bm/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
     </dict>
 
     <key>StandardOutPath</key>
