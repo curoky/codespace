@@ -2,7 +2,8 @@
 
 本文是仓库整体架构、目录职责、仓库级常用操作与跨组件契约的事实来源。子组件契约见
 [`controller/AGENTS.md`](controller/AGENTS.md)、[`images/dev/AGENTS.md`](images/dev/AGENTS.md)、
-[`images/sidecar/AGENTS.md`](images/sidecar/AGENTS.md)、[`images/wsl/AGENTS.md`](images/wsl/AGENTS.md)。
+[`images/sidecar/AGENTS.md`](images/sidecar/AGENTS.md)、[`images/wsl/AGENTS.md`](images/wsl/AGENTS.md)、
+[`images/llm/AGENTS.md`](images/llm/AGENTS.md)。
 修改本文覆盖的内容或某子组件契约时，必须在同一变更中同步更新对应 `AGENTS.md`。
 
 ## 目标
@@ -16,7 +17,7 @@
 | --- | --- |
 | `dotfiles/` | 非容器场景专属配置（macOS 桌面/host）与 host 入口 `setup.sh`；跨场景 home 配置见 `images/dev/rootfs/home/x/` |
 | `controller/` | 本地单进程控制面：配置、Podman transport、生命周期、API、Web UI、维护 CLI 和测试 |
-| `images/` | 开发镜像（`dev/`）、host 级共享服务镜像（`sidecar/`）与 WSL 发行版镜像（`wsl/`），各带子目录 `AGENTS.md` |
+| `images/` | 开发镜像（`dev/`）、host 级共享服务镜像（`sidecar/`）、WSL 发行版镜像（`wsl/`）与 host 级 LLM serving 镜像（`llm/`），各带子目录 `AGENTS.md` |
 | `host/` | macOS 主机支持（LaunchAgent、Podman/Colima 启动、Homebrew 与静态包） |
 | `tools/` | CI、hook 和仓库维护脚本 |
 | `.github/workflows/` | 测试、镜像构建、发布和 registry 清理 |
@@ -49,6 +50,7 @@
 - `ci-codespace.yaml`：Codespace 格式、lint、类型和测试检查。
 - `build-codespace-image.yaml`：原生 amd64/arm64 runner 构建并合并多架构开发镜像。
 - `build-codespace-sidecar.yaml`：发布 `ghcr.io/curoky/devspace:codespace-sidecar`。
+- `build-codespace-llm.yaml`：matrix 构建推送仅 amd64 的 `llm-vllm`、`llm-sglang` LLM serving 镜像。
 - `build-codespace-wsl.yaml`：以 dev 镜像为 base 二次处理，单 job 构建推送多架构 `codespace-wsl`，
   再按 arch 导出 `devspace-<arch>.wsl` artifact。
 - `delete-untagged-images.yaml`：清理 GHCR 无 tag 镜像。
@@ -122,7 +124,7 @@ $HOME/devspace/tools/setup-git-deploy-key.sh
 
 - [`controller/AGENTS.md`](controller/AGENTS.md)、[`images/dev/AGENTS.md`](images/dev/AGENTS.md)、
   [`images/dev/dev-environment.md`](images/dev/dev-environment.md)、[`images/sidecar/AGENTS.md`](images/sidecar/AGENTS.md)、
-  [`images/wsl/AGENTS.md`](images/wsl/AGENTS.md)。
+  [`images/wsl/AGENTS.md`](images/wsl/AGENTS.md)、[`images/llm/AGENTS.md`](images/llm/AGENTS.md)。
 - `docs/codespace-image-ghcr-timeout-investigation.md`：多架构镜像访问 GHCR 超时调查记录。
 
 ## 已知边界
