@@ -5,28 +5,25 @@
 # Model weights are never baked in: the ~172 GiB FP8 weights are resolved from a
 # bind-mounted Hugging Face cache (HF_HOME) and pulled on first start.
 #
-# Environment knobs (defaults tuned for a single 8x H100 node):
+# 针对实测 host GPU 拓扑（nvidia-smi）调优：8x NVIDIA H100 80GB HBM3、compute
+# capability 9.0（Hopper，原生 FP8 e4m3）、全互联 NVLink（NV18 / NVSwitch，
+# ~900 GB/s）、双 NUMA（GPU0-3→node0，GPU4-7→node1）。优化参数已按此拓扑写死，
+# 只有部署环境相关的 model/host/port 保留为环境变量。
+#
+# Environment knobs:
 #   LLM_MODEL        model id or local path (default Qwen/Qwen3.8-Flash-Next-FP8)
 #   LLM_HOST         bind address inside the container (default 0.0.0.0)
 #   LLM_PORT         OpenAI API port inside the container (default 8003)
-#   TP_SIZE          tensor-parallel size (default 8, matches 8x H100)
-#   MAX_MODEL_LEN    context window (default 262144, the native length)
-#   GPU_MEM_UTIL     gpu-memory-utilization (default 0.90)
 #   LLM_EXTRA_ARGS   extra flags appended verbatim to the engine command
 #
-# On 8x H100, FP8 must use TEP8 (TP8 + expert parallel) via --enable-expert-parallel,
-# not plain TP8, because of the 512-expert MoE layout. If GPU memory is tight,
-# offload the 51B N-gram table to host RAM via VLLM_PLE_CPU_OFFLOAD=1 and lower
-# MAX_MODEL_LEN.
+# 显存紧张时经 LLM_EXTRA_ARGS 降 --max-model-len / --gpu-memory-utilization，或设
+# VLLM_PLE_CPU_OFFLOAD=1 把 51B N-gram 表卸到主机内存（需大内存 host）。
 
 set -euo pipefail
 
 model="${LLM_MODEL:-Qwen/Qwen3.8-Flash-Next-FP8}"
 host="${LLM_HOST:-0.0.0.0}"
 port="${LLM_PORT:-8003}"
-tp_size="${TP_SIZE:-8}"
-max_model_len="${MAX_MODEL_LEN:-262144}"
-gpu_mem_util="${GPU_MEM_UTIL:-0.90}"
 
 read -r -a extra_args <<<"${LLM_EXTRA_ARGS:-}"
 
@@ -37,11 +34,22 @@ venv_bin="${LLM_VENV:-/opt/llm/venv}/bin"
 exec "${venv_bin}/vllm" serve "${model}" \
   --host "${host}" \
   --port "${port}" \
-  --tensor-parallel-size "${tp_size}" \
+  `# 8x H100 的 FP8 用 TP8 张量并行匹配 8 卡；全 NVLink mesh 下 all-reduce 廉价` \
+  --tensor-parallel-size 8 \
+  `# FP8 必须叠加 expert parallel（512 专家 MoE 布局要求），不能只用普通 TP8` \
   --enable-expert-parallel \
-  --max-model-len "${max_model_len}" \
-  --gpu-memory-utilization "${gpu_mem_util}" \
+  `# 使用模型原生 262144 上下文` \
+  --max-model-len 262144 \
+  `# 静态显存占比 0.90，OOM 时优先经 LLM_EXTRA_ARGS 调小此值或上下文` \
+  --gpu-memory-utilization 0.90 \
+  `# 开启前缀缓存复用相同 prompt 前缀，提升多轮/共享前缀场景吞吐` \
   --enable-prefix-caching \
+  `# 分块 prefill：限制长 prompt 单步 prefill token 数，避免在较紧的 80GB 卡上撑爆 activation 显存并改善 prefill/decode 交织延迟` \
+  --enable-chunked-prefill \
+  --max-num-batched-tokens 8192 \
+  `# 并发上限：640GB 显存 + FP8 权重留出较大 KV 空间，提高最大并发序列数以充分利用吞吐` \
+  --max-num-seqs 256 \
+  `# Qwen3 系列的工具调用（含自动选择）与推理内容解析器` \
   --enable-auto-tool-choice \
   --tool-call-parser qwen3_coder \
   --reasoning-parser qwen3 \

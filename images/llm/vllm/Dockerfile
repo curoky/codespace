@@ -15,11 +15,13 @@
 FROM docker.io/debian:trixie-slim
 
 # CUDA userspace runtime is provided by the NVIDIA Container Toolkit at run time
-# (mounted from the host driver); the image only needs Python, the CUDA runtime
-# libraries pulled in by the vLLM wheel, and basic tooling.
+# (mounted from the host driver). uv builds its own CPython venv (no system
+# python3 needed) and the CUDA runtime libs come from the vLLM wheels; the image
+# only needs bash (serve.sh), TLS certs, curl (binman installer), zstd (binman
+# unpacks .tar.zst) and libgomp1 (OpenMP runtime for torch).
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
-    bash ca-certificates curl tzdata zstd python3 python3-venv libgomp1 \
+    bash ca-certificates curl zstd libgomp1 \
   && rm -rf /var/lib/apt/lists/*
 
 COPY images/llm/vllm/binman.yaml /tmp/binman.yaml
