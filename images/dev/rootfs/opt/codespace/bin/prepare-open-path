@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Create the editor open path if missing.
+#
+# Called by the control plane after checkout so the configured open_path exists
+# before the IDE attaches.
+set -euo pipefail
+
+if [[ $# -ne 1 ]]; then
+  echo "usage: prepare-open-path <path>" >&2
+  exit 2
+fi
+
+mkdir -p -- "$1"

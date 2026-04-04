@@ -4,33 +4,24 @@ from __future__ import annotations
 
 from threading import Lock
 
-from controller.models import Operation, OperationStatus, environment_id
+from controller.models import DeploymentOperation, Operation, OperationStatus
 
 
-class OperationStore:
-    """Keep the current operation for each project instance on each host."""
+class OperationStore[OperationModel: (Operation, DeploymentOperation)]:
+    """Track one operation per host and deterministic resource ID."""
 
     def __init__(self) -> None:
-        self._operations: dict[tuple[str, str, str], Operation] = {}
+        self._operations: dict[tuple[str, str], OperationModel] = {}
         self._lock = Lock()
 
-    def create(self, host: str, project: str, instance: str) -> Operation:
-        """Replace failed state and queue an operation for one identity."""
-        operation = Operation(
-            id=environment_id(host, project, instance),
-            host=host,
-            project=project,
-            instance=instance,
-            status="queued",
-            stage="queued",
-        )
-        key = (host, project, instance)
+    def create(self, operation: OperationModel) -> OperationModel:
+        """Replace failed state while rejecting concurrent work."""
+        key = (operation.host, operation.id)
         with self._lock:
             existing = self._operations.get(key)
             if existing is not None and existing.status in {"queued", "running"}:
                 raise RuntimeError(
-                    f"operation already running for project {project!r} instance {instance!r} "
-                    f"on host {host!r}"
+                    f"operation already running for {operation.id!r} on host {operation.host!r}"
                 )
             self._operations[key] = operation
         return operation
@@ -38,50 +29,38 @@ class OperationStore:
     def update(
         self,
         host: str,
-        project: str,
-        instance: str,
+        resource_id: str,
         *,
         status: OperationStatus | None = None,
         stage: str | None = None,
         error: str | None = None,
     ) -> None:
-        """Update only supplied fields on an existing operation."""
-        key = (host, project, instance)
         with self._lock:
-            operation = self._operations[key]
-            updates: dict[str, object] = {}
-            if status is not None:
-                updates["status"] = status
-            if stage is not None:
-                updates["stage"] = stage
-            if error is not None:
-                updates["error"] = error
-            self._operations[key] = operation.model_copy(update=updates)
+            operation = self._operations[(host, resource_id)]
+            updates = {
+                key: value
+                for key, value in {"status": status, "stage": stage, "error": error}.items()
+                if value is not None
+            }
+            self._operations[(host, resource_id)] = operation.model_copy(update=updates)
 
-    def remove(self, host: str, project: str, instance: str) -> None:
-        """Remove a successful operation once inventory is authoritative."""
+    def remove(self, host: str, resource_id: str) -> None:
         with self._lock:
-            self._operations.pop((host, project, instance), None)
+            self._operations.pop((host, resource_id), None)
 
-    def dismiss_failed(self, host: str, project: str, instance: str) -> bool:
-        """Remove a failed operation without allowing active work to be hidden."""
-        key = (host, project, instance)
+    def dismiss_failed(self, host: str, resource_id: str) -> bool:
         with self._lock:
+            key = (host, resource_id)
             operation = self._operations.get(key)
             if operation is None:
                 return False
             if operation.status != "failed":
                 raise RuntimeError(
-                    f"operation for project {project!r} instance {instance!r} "
-                    f"on host {host!r} is still {operation.status}"
+                    f"operation for {resource_id!r} on host {host!r} is still {operation.status}"
                 )
             del self._operations[key]
             return True
 
-    def list(self) -> list[Operation]:
-        """Return operations in stable host, project and instance order."""
+    def list(self) -> list[OperationModel]:
         with self._lock:
-            return sorted(
-                self._operations.values(),
-                key=lambda operation: (operation.host, operation.project, operation.instance),
-            )
+            return [operation for _, operation in sorted(self._operations.items())]

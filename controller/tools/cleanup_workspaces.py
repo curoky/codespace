@@ -105,7 +105,7 @@ def _scan_host(
         for path in ssh.list_workspaces(route, root):
             scanned.append((root, path))
         active |= {
-            f"{root}/{environment.project}/{environment.instance}"
+            f"{root}/{environment.workspace}/{environment.instance}"
             for environment in current.environments
         }
     return scanned, active
@@ -140,7 +140,7 @@ def _delete(
                 _delete_host,
                 transport,
                 host,
-                config.default_image,
+                config.workspaces.defaults.image,
                 paths,
             ): host
             for host, paths in grouped.items()

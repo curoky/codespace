@@ -11,17 +11,27 @@ from podman import PodmanClient
 
 from controller import container as containers
 from controller import dashboard as dashboard_state
+from controller import deployment as deployment_ops
 from controller import inventory, provider, ssh, workspace
-from controller.config import Config, GitProject, ProjectConfig, RepoProject
-from controller.models import (
-    DashboardResponse,
-    Environment,
+from controller.config import (
+    Config,
     EnvironmentSpec,
+    GitWorkspace,
+    RepoWorkspace,
+    WorkspaceConfig,
+)
+from controller.models import (
+    CONTAINER_USER,
+    DashboardResponse,
+    DeploymentOperation,
     GitProvider,
     HostStatus,
     Operation,
     OperationStatus,
     RepoGitState,
+    deployment_id,
+    environment_id,
+    git_host,
 )
 from controller.operations import OperationStore
 from controller.runtime.transport import PodmanTransport, SSHRoute
@@ -60,17 +70,20 @@ class CodespaceService:
         config: Config,
         *,
         transport: PodmanTransport | None = None,
-        operations: OperationStore | None = None,
+        operations: OperationStore[Operation] | None = None,
+        deployment_operations: OperationStore[DeploymentOperation] | None = None,
     ) -> None:
         self.config = config
         self.transport = transport or PodmanTransport(
-            {host: hc.endpoint() for host, hc in config.hosts.items()}
+            {host: options.endpoint() for host, options in config.hosts.items()}
         )
-        self.operations = operations or OperationStore()
-        self._tokens: dict[GitProvider, str] = {}
+        self.operations: OperationStore[Operation] = operations or OperationStore()
+        self.deployment_operations: OperationStore[DeploymentOperation] = (
+            deployment_operations or OperationStore()
+        )
+        self._tokens = config.seed_tokens()
         self._token_lock = Lock()
-        self._tokens.update(config.seed_tokens())
-        ssh.initialize(list(self.config.hosts))
+        ssh.initialize(list(config.hosts))
 
     def close(self) -> None:
         self.transport.close()
@@ -87,29 +100,50 @@ class CodespaceService:
             }
 
     def dashboard(self) -> DashboardResponse:
+        with ThreadPoolExecutor(max_workers=len(self.config.hosts)) as executor:
+            inventories = dict(
+                zip(
+                    self.config.hosts,
+                    executor.map(self._host_inventory, self.config.hosts),
+                    strict=True,
+                )
+            )
         return dashboard_state.build(
             self.config,
-            self._all_host_inventories(),
+            inventories,
             operations=self.operations.list(),
+            deployment_operations=self.deployment_operations.list(),
             tokens=self.token_status(),
         )
 
-    def queue_create(self, project_id: str, host: str, instance: str) -> Operation:
-        project = self._project(project_id)
-        self._require_host(project, host)
-        if isinstance(project, RepoProject):
-            self._token(project.provider)
-        return self.operations.create(host, project_id, instance)
+    def queue_create(self, workspace_id: str, host: str, instance: str) -> Operation:
+        ws = self._workspace(workspace_id)
+        self._require_host(ws, host)
+        if isinstance(ws, RepoWorkspace):
+            self._token(ws.provider)
+        return self.operations.create(
+            Operation(
+                id=environment_id(host, workspace_id, instance),
+                host=host,
+                workspace=workspace_id,
+                instance=instance,
+                status="queued",
+                stage="queued",
+            )
+        )
 
-    def dismiss_failed_operation(self, project_id: str, host: str, instance: str) -> bool:
-        project = self._project(project_id)
-        self._require_host(project, host)
-        return self.operations.dismiss_failed(host, project_id, instance)
+    def dismiss_failed_operation(self, workspace_id: str, host: str, instance: str) -> bool:
+        ws = self._workspace(workspace_id)
+        self._require_host(ws, host)
+        return self.operations.dismiss_failed(
+            host,
+            environment_id(host, workspace_id, instance),
+        )
 
-    def create(self, project_id: str, host: str, instance: str) -> None:
-        project = self._project(project_id)
-        self._require_host(project, host)
-        creation = _Creation(spec=self.config.environment_spec(project_id, host, instance))
+    def create(self, workspace_id: str, host: str, instance: str) -> None:
+        ws = self._workspace(workspace_id)
+        self._require_host(ws, host)
+        creation = _Creation(spec=self.config.environment_spec(workspace_id, host, instance))
         try:
             self._create(creation)
         except Exception as exc:
@@ -120,33 +154,35 @@ class CodespaceService:
                 message = f"{message}; rollback stopped: {describe_error(rollback_error)}"
             self.operations.update(
                 host,
-                project_id,
-                instance,
+                creation.spec.identity,
                 status="failed",
                 stage="failed",
                 error=message,
             )
             return
-
-        self.operations.remove(host, project_id, instance)
+        self.operations.remove(host, creation.spec.identity)
 
     def _create(self, creation: _Creation) -> None:
         spec = creation.spec
-        project = spec.project
+        ws = spec.workspace
         host = spec.host
-        is_repo = isinstance(project, RepoProject)
 
         self._stage(creation, "checking inventory", status="running")
-        if isinstance(project, RepoProject):
-            creation.token = self._token(project.provider)
+        if isinstance(ws, RepoWorkspace):
+            creation.token = self._token(ws.provider)
         creation.client = self.transport.client(host)
         creation.route = self.transport.ssh_route(host)
         current = inventory.list_inventory(creation.client, host, self.config)
         self._reject_inventory_errors(host, current)
-        self._reject_duplicate_and_collision(
-            current.environments,
-            spec,
-        )
+        for environment in current.environments:
+            if environment.workspace == spec.workspace_id and environment.instance == spec.instance:
+                raise RuntimeError(f"environment {spec.identity!r} already exists")
+            if environment.ssh_port == spec.ssh_port:
+                raise RuntimeError(
+                    f"SSH port collision on host {spec.host!r}: "
+                    f"{spec.identity!r} and {environment.id!r} both map to {spec.ssh_port}; "
+                    "choose a different instance name"
+                )
 
         host_environment: dict[str, str] = {}
         environment_names = self.config.host_config(host).environment
@@ -155,7 +191,7 @@ class CodespaceService:
             host_environment = ssh.read_host_environment(creation.route, environment_names)
 
         deploy_keypair = None
-        if is_repo:
+        if isinstance(ws, RepoWorkspace):
             self._stage(creation, "generating deploy key")
             deploy_keypair = workspace.generate_deploy_keypair()
 
@@ -186,38 +222,39 @@ class CodespaceService:
             self._stage(creation, "injecting deploy key")
             workspace.inject_deploy_key(container, deploy_keypair.private_key)
 
-        environment = spec.to_environment(container.id, status="running")
         self._stage(creation, "probing ssh")
-        ssh.probe(environment, creation.route)
+        ssh.probe(spec.to_environment(container.id, status="running"), creation.route)
 
-        if isinstance(project, RepoProject):
+        if isinstance(ws, RepoWorkspace):
             if deploy_keypair is None:
-                raise RuntimeError("deploy key missing for repo project")
+                raise RuntimeError("deploy key missing for repo workspace")
             if creation.token is None:
-                raise RuntimeError("provider token missing for repo project")
+                raise RuntimeError("provider token missing for repo workspace")
             self._stage(creation, "registering deploy key")
             provider.register(
-                project.provider,
+                ws.provider,
                 creation.token,
-                project.repo,
+                ws.repo,
                 spec.identity,
                 deploy_keypair.public_key,
             )
             creation.deploy_key_registered = True
-
             self._stage(creation, "cloning repository")
-            workspace.clone_repo(
+            workspace.clone(
                 container,
-                project.repo,
-                project.provider,
+                f"git@{git_host(ws.provider)}:{ws.repo}.git",
                 spec.clone_path,
             )
-        elif isinstance(project, GitProject):
+        elif isinstance(ws, GitWorkspace):
             self._stage(creation, "cloning repository")
-            workspace.clone_git_url(container, project.git_url, spec.clone_path)
+            workspace.clone(container, ws.git_url, spec.clone_path)
         else:
             self._stage(creation, "preparing open path")
-            workspace.prepare_open_path(container, spec.open_path)
+            containers.execute_checked(
+                container,
+                ["/opt/codespace/bin/prepare-open-path", spec.open_path],
+                user=CONTAINER_USER,
+            )
 
         self._stage(creation, "writing ssh config")
         refreshed = inventory.list_inventory(creation.client, host, self.config)
@@ -225,13 +262,13 @@ class CodespaceService:
         ssh.write_host(host, refreshed.environments, creation.route)
 
     def delete(
-        self, project_id: str, host: str, instance: str, *, purge: bool, force: bool = False
+        self, workspace_id: str, host: str, instance: str, *, purge: bool, force: bool = False
     ) -> RepoGitState:
         """Inspect when unforced; otherwise delete the environment."""
-        project = self._project(project_id)
-        self._require_host(project, host)
-        spec = self.config.environment_spec(project_id, host, instance)
-        token = self._token(project.provider) if isinstance(project, RepoProject) else None
+        ws = self._workspace(workspace_id)
+        self._require_host(ws, host)
+        spec = self.config.environment_spec(workspace_id, host, instance)
+        token = self._token(ws.provider) if isinstance(ws, RepoWorkspace) else None
         client = self.transport.client(host)
         route = self.transport.ssh_route(host)
         current = inventory.list_inventory(client, host, self.config)
@@ -240,7 +277,7 @@ class CodespaceService:
             (
                 item
                 for item in current.environments
-                if item.project == project_id and item.instance == instance
+                if item.workspace == workspace_id and item.instance == instance
             ),
             None,
         )
@@ -251,32 +288,24 @@ class CodespaceService:
             raise RuntimeError(f"environment {spec.identity!r} not found")
 
         if not force:
-            if isinstance(project, RepoProject | GitProject):
+            if isinstance(ws, RepoWorkspace | GitWorkspace):
                 if environment.status != "running":
                     status = environment.status or "unknown"
                     raise RuntimeError(
                         f"container {spec.identity!r} is {status}; "
                         "repository state cannot be inspected while it is not running"
                     )
-                if isinstance(project, RepoProject):
-                    return workspace.repo_git_state(container, spec.clone_path)
-                return workspace.git_url_git_state(container, spec.clone_path)
+                return workspace.checkout_git_state(container, spec.clone_path)
             return RepoGitState()
 
-        if isinstance(project, RepoProject) and token is not None:
-            provider.revoke(
-                project.provider,
-                token,
-                project.repo,
-                spec.identity,
-            )
+        if isinstance(ws, RepoWorkspace) and token is not None:
+            provider.revoke(ws.provider, token, ws.repo, spec.identity)
         if purge:
-            roots = ssh.remote_instance_roots(route)
             containers.purge_workspace(
                 client,
                 container,
                 environment,
-                roots,
+                ssh.remote_instance_roots(route),
             )
         containers.remove_container(container)
 
@@ -285,21 +314,89 @@ class CodespaceService:
         ssh.write_host(host, refreshed.environments, route)
         return RepoGitState()
 
-    def logs(self, project_id: str, host: str, instance: str) -> str:
-        """Return the recent podman logs for one managed container."""
-        project = self._project(project_id)
-        self._require_host(project, host)
-        spec = self.config.environment_spec(project_id, host, instance)
-        client = self.transport.client(host)
-        container = inventory.find_container(client, spec, self.config)
+    def logs(self, workspace_id: str, host: str, instance: str) -> str:
+        ws = self._workspace(workspace_id)
+        self._require_host(ws, host)
+        spec = self.config.environment_spec(workspace_id, host, instance)
+        container = inventory.find_container(self.transport.client(host), spec, self.config)
         if container is None:
             raise RuntimeError(f"environment {spec.identity!r} not found")
         return containers.container_logs(container)
 
-    def _all_host_inventories(self) -> dict[str, dashboard_state.HostInventory]:
-        with ThreadPoolExecutor(max_workers=len(self.config.hosts)) as executor:
-            inventories = executor.map(self._host_inventory, self.config.hosts)
-            return dict(zip(self.config.hosts, inventories, strict=True))
+    def queue_deploy(self, deployment: str, host: str) -> DeploymentOperation:
+        self._require_deployment_host(deployment, host)
+        return self.deployment_operations.create(
+            DeploymentOperation(
+                id=deployment_id(deployment),
+                host=host,
+                deployment=deployment,
+                status="queued",
+                stage="queued",
+            )
+        )
+
+    def dismiss_failed_deployment_operation(self, deployment: str, host: str) -> bool:
+        self._require_deployment_host(deployment, host)
+        return self.deployment_operations.dismiss_failed(host, deployment_id(deployment))
+
+    def deploy(self, deployment: str, host: str) -> None:
+        spec = self.config.deployment_spec(deployment, host)
+        try:
+            deployment_ops.reconcile(
+                self.transport.client(host),
+                self.transport.ssh_route(host),
+                spec,
+                stage=lambda stage: self.deployment_operations.update(
+                    spec.host,
+                    spec.identity,
+                    status="running",
+                    stage=stage,
+                ),
+            )
+        except Exception as exc:
+            logger.exception("failed to deploy {}", spec.identity)
+            self.deployment_operations.update(
+                host,
+                spec.identity,
+                status="failed",
+                stage="failed",
+                error=describe_error(exc),
+            )
+            return
+        self.deployment_operations.remove(host, spec.identity)
+
+    def clean_deployment(self, deployment: str, host: str, *, purge: bool = False) -> bool:
+        self._require_deployment_host(deployment, host)
+        spec = self.config.deployment_spec(deployment, host)
+        return deployment_ops.teardown(
+            self.transport.client(host),
+            self.transport.ssh_route(host),
+            spec,
+            self.config,
+            purge=purge,
+            stage=lambda _stage: None,
+        )
+
+    def deployment_logs(self, deployment: str, host: str) -> str:
+        self._require_deployment_host(deployment, host)
+        container = inventory.find_deployment_container(
+            self.transport.client(host),
+            deployment,
+            host,
+            self.config,
+        )
+        if container is None:
+            raise RuntimeError(f"deployment {deployment!r} not found on host {host!r}")
+        return containers.container_logs(container)
+
+    def _require_deployment_host(self, deployment: str, host: str) -> None:
+        if deployment not in self.config.deployments:
+            raise KeyError(f"unknown deployment: {deployment}")
+        allowed = self.config.deployment_hosts(deployment)
+        if host not in allowed:
+            raise KeyError(
+                f"host {host!r} does not declare deployment {deployment!r}; allowed: {allowed}"
+            )
 
     def _host_inventory(self, host: str) -> dashboard_state.HostInventory:
         try:
@@ -308,52 +405,36 @@ class CodespaceService:
             current = inventory.list_inventory(client, host, self.config)
             if not current.errors:
                 ssh.write_host(host, current.environments, route)
+            deployments = inventory.list_deployments(client, host, self.config)
+            errors = current.errors + deployments.errors
             return dashboard_state.HostInventory(
                 status=HostStatus(
                     id=host,
                     status="online",
                     environment_count=len(current.environments),
-                    inventory_errors=current.errors,
-                    error="; ".join(current.errors) if current.errors else None,
+                    inventory_errors=errors,
+                    error="; ".join(errors) if errors else None,
                 ),
                 environments=current.environments,
+                deployments=deployments,
             )
         except Exception as exc:
             return dashboard_state.HostInventory(
                 status=HostStatus(id=host, status="offline", error=describe_error(exc)),
                 environments=[],
+                deployments=None,
             )
-
-    def _reject_duplicate_and_collision(
-        self,
-        environments: list[Environment],
-        spec: EnvironmentSpec,
-    ) -> None:
-        for environment in environments:
-            if environment.project == spec.project_id and environment.instance == spec.instance:
-                raise RuntimeError(f"environment {spec.identity!r} already exists")
-            if environment.ssh_port == spec.ssh_port:
-                raise RuntimeError(
-                    f"SSH port collision on host {spec.host!r}: "
-                    f"{spec.identity!r} and {environment.id!r} both map to {spec.ssh_port}; "
-                    "choose a different instance name"
-                )
 
     def _rollback_create(self, creation: _Creation) -> Exception | None:
         spec = creation.spec
-        project = spec.project
+        ws = spec.workspace
         if creation.deploy_key_registered:
             if creation.token is None:
                 return RuntimeError("provider token is unavailable; container retained")
-            if not isinstance(project, RepoProject):
-                return RuntimeError("deploy key registered for a non-repo project")
+            if not isinstance(ws, RepoWorkspace):
+                return RuntimeError("deploy key registered for a non-repo workspace")
             try:
-                provider.revoke(
-                    project.provider,
-                    creation.token,
-                    project.repo,
-                    spec.identity,
-                )
+                provider.revoke(ws.provider, creation.token, ws.repo, spec.identity)
             except Exception as exc:
                 if creation.client is not None and creation.container_created:
                     try:
@@ -370,11 +451,7 @@ class CodespaceService:
         if not creation.container_created or creation.client is None:
             return None
         try:
-            container = inventory.find_container(
-                creation.client,
-                spec,
-                self.config,
-            )
+            container = inventory.find_container(creation.client, spec, self.config)
             if container is not None:
                 containers.remove_container(container)
         except Exception as exc:
@@ -390,33 +467,31 @@ class CodespaceService:
     ) -> None:
         self.operations.update(
             creation.spec.host,
-            creation.spec.project_id,
-            creation.spec.instance,
+            creation.spec.identity,
             status=status,
             stage=stage,
         )
 
-    def _project(self, project_id: str) -> ProjectConfig:
+    def _workspace(self, workspace_id: str) -> WorkspaceConfig:
         try:
-            return self.config.projects[project_id]
+            return self.config.workspaces.items[workspace_id]
         except KeyError as exc:
-            raise KeyError(f"unknown project: {project_id}") from exc
+            raise KeyError(f"unknown workspace: {workspace_id}") from exc
 
     @staticmethod
-    def _require_host(project: ProjectConfig, host: str) -> None:
-        if all(entry.name != host for entry in project.host):
-            allowed = sorted(entry.name for entry in project.host)
-            raise KeyError(f"host {host!r} is not configured for this project; allowed: {allowed}")
+    def _require_host(ws: WorkspaceConfig, host: str) -> None:
+        if all(entry.name != host for entry in ws.host):
+            allowed = sorted(entry.name for entry in ws.host)
+            raise KeyError(
+                f"host {host!r} is not configured for this workspace; allowed: {allowed}"
+            )
 
     def _token(self, provider_name: GitProvider) -> str:
-        token = self._optional_token(provider_name)
+        with self._token_lock:
+            token = self._tokens.get(provider_name)
         if token is None:
             raise RuntimeError(f"{provider_name} token is not set")
         return token
-
-    def _optional_token(self, provider_name: GitProvider) -> str | None:
-        with self._token_lock:
-            return self._tokens.get(provider_name)
 
     @staticmethod
     def _reject_inventory_errors(host: str, current: inventory.Inventory) -> None:

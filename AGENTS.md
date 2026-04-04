@@ -25,7 +25,7 @@
 | `pyproject.toml`、`uv.lock` | Codespace Python 运行时、依赖和开发工具 |
 | `Taskfile.yaml` | 仓库级 `task` 入口，收纳启动、验证、清理和构建常用命令 |
 | `lefthook.yml` | pre-commit 与 commit-msg hook |
-| `config.yaml` | 控制面配置示例 |
+| `config.yaml` | 可入库的控制面共享 base 配置；私有入口为 git-ignored 的 `config.extend.yaml` |
 | `deprecated/` | 已废弃、不再维护的历史内容，仅供归档参考 |
 
 ## 组件设计
@@ -40,10 +40,12 @@
   运行期补写被重链目录内的模板。`link_path` 建软链，`copy_path` 以 `0600` 复制需独立权限的配置；`CONF_PATH`
   默认 `$HOME/devspace/dotfiles`，可由第二参数覆盖。`dotfiles/archive/` 只存未启用历史配置，不被加载。
 - **镜像**：`images/dev/` 构建 Codespace 基础与参考开发镜像，`images/sidecar/` 构建 host 级共享服务镜像，
-  `images/wsl/` 以 dev 镜像为 `FROM` 二次处理出 WSL2 rootfs。契约见各子目录 `AGENTS.md`。
+  `images/llm/` 构建 host 级 LLM serving 镜像，`images/wsl/` 以 dev 镜像为 `FROM` 二次处理出 WSL2 rootfs。契约见各子目录 `AGENTS.md`。
 - **控制面**：`controller/` 是完整本地单进程控制面（配置、Podman transport、生命周期、Git provider、
   SSH 投影、FastAPI、原生 Web UI 和测试），入口 `uv run python -m controller`。它通过 system OpenSSH
-  转发远端 rootful Podman socket，或直连已运行的 rootful Podman Machine，不部署远端 HTTP agent。
+  转发远端 rootful Podman socket，或直连已运行的 rootful Podman Machine，不部署远端 HTTP agent。除逐 workspace
+  的开发 environment 外，它还原生管理 host 级 **deployment**（sidecar、LLM serving 等自包含镜像）：这类容器无
+  workspace/SSH 投影/git checkout，由 `hosts.<host>.deployments` 选择部署到哪些 host，UI 上同样点 Deploy/Clean。
 
 ### CI 与发布
 
@@ -91,20 +93,26 @@ $HOME/devspace/tools/setup-git-deploy-key.sh
    `x` 可读。`workspace-init` 必须先于 `workspace-crypt` 完成，把 `/workspace`、密文根 `/workspace.enc`、
    `/upload` 与 `/cache` 都归属到 `5230:5230`；`workspace-crypt` 再先于 `sshd`、`home-init` 与 WebDAV 服务完成。
 5. **网络边界**：环境 sshd 只绑定宿主 loopback；访问必须经配置的 SSH host route。
-6. **共享服务**：每个 host 只有一个固定名称的 `codespace-sidecar`，不附属于 project/instance。Atuin 仅经
+6. **共享服务**：每个 host 只有一个固定名称的 `codespace-sidecar`，不附属于 workspace/instance。Atuin 仅经
    宿主 `127.0.0.1:8002` 暴露。sidecar 的 image-prewarm 定时任务是唯一允许 bind-mount 宿主 rootful
-   Podman socket 的共享服务，仅按脚本内写死清单预拉镜像与清理 dangling 镜像。
-7. **平台选择**：project 每个 `host` 条目 `platform` 只能省略或设为 `linux/amd64`、`linux/arm64`；
+   Podman socket 的共享服务，仅按脚本内写死清单预拉镜像与清理 dangling 镜像。sidecar 现由控制面作为
+   deployment（`deployments.sidecar`）原生管理，但仍保留手动 `run-*.sh` 与带外 `deploy_sidecar` CLI 等价路径。
+7. **平台选择**：workspace 每个 `host` 条目 `platform` 只能省略或设为 `linux/amd64`、`linux/arm64`；
    省略时库存 label 用 `native`。
 8. **文档语言**：说明与约束文档用中文；代码标识、命令、协议名和外部 API 保留原文。
-9. **Workspace 加密**：逐 project 可选（控制面 project 字段 `encrypt_workspace`，默认关）。开启时控制面把 host
+9. **Workspace 加密**：逐 workspace 可选（控制面 workspace 字段 `encrypt_workspace`，默认关）。开启时控制面把 host
    实例目录 bind 到密文根 `/workspace.enc` 并注入固定 secret `workspace_crypt_key`（env `WORKSPACE_CRYPT_KEY`，
    对齐 sidecar `atuin_db_uri` 模式，须经 `sync_secrets` 预注册，缺失即 fail-fast）；镜像侧 `workspace-crypt`
    据此用 gocryptfs 把明文挂到 `/workspace`。关闭时直接 bind 明文 `/workspace`、不注入 secret。加密依赖 FUSE
    （`/dev/fuse`）。加密仅作用于 `/workspace`；`/upload`、`/cache` 始终明文 bind 各自宿主根，不受影响。
 10. **数据挂载**：每个实例挂载三个宿主目录到 `/workspace`、`/upload`、`/cache`，分别落在独立宿主根
-    `~/codespace`、`~/codespace-upload`、`~/codespace-cache` 下的 `<project>/<instance>` 子目录（逐实例隔离，
-    不跨实例/项目共享）。三者均为控制面保留 mount target，用户卷不得占用。
+    `~/codespace`、`~/codespace-upload`、`~/codespace-cache` 下的 `<workspace>/<instance>` 子目录（逐实例隔离，
+    不跨实例/workspace 共享）。三者均为控制面保留 mount target，用户卷不得占用。
+11. **Deployment**：host 级自包含部署容器（sidecar、LLM serving 等），与开发 environment 明确区分：容器名
+    确定性 `codespace-<id>`、只带 `codespace.deployment*` label（**绝不带 `codespace.managed`**，与 environment
+    inventory 用不相交 filter），无 workspace/SSH 投影/git checkout/provider 凭据。哪些 host 跑它由
+    `hosts.<host>.deployments` 决定（host 选 deployment）。持久数据落在独立宿主根 `~/codespace-deployment/<id>`，
+    config volume 用 `${DEPLOYMENT_DATA}` 占位符引用；镜像自装产物、运行形态在 `deployments.<id>.container` 声明。
 
 ## 变更规则
 
@@ -114,7 +122,7 @@ $HOME/devspace/tools/setup-git-deploy-key.sh
   涉及开发镜像更新 [`images/dev/AGENTS.md`](images/dev/AGENTS.md)，涉及 sidecar 更新
   [`images/sidecar/AGENTS.md`](images/sidecar/AGENTS.md)；影响跨组件契约时同步本文。
 - 不修改与任务无关的 s6、Atuin client、Ollama、home-init、sshd。
-- Host 共享服务资产只放 `images/sidecar/`，不进 project 生命周期模块；sidecar inventory 与 environment
+- Host 共享服务资产只放 `images/sidecar/`，不进 workspace 生命周期模块；sidecar inventory 与 environment
   inventory 必须分离。除 sidecar image-prewarm 的宿主 Podman socket 例外外，不得恢复 Podman socket、
   Python HTTP agent 或 workspace mount。
 - 本地控制面的 Python、静态资源、启动器和测试全保留在 `controller/`。

@@ -15,3 +15,6 @@ htmlcov/
 node_modules/
 
 *.log
+
+# Private control-plane entrypoint (layers secrets onto config.yaml).
+/config.extend.yaml

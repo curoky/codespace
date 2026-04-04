@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Clone a git URL into a target checkout, reusing a valid existing one.
+#
+# Called by the control plane (controller/workspace.py) as user `x`. Keeps the
+# full checkout semantics in the image so the Python side stays a thin glue
+# layer: reuse an intact checkout, treat a marked empty repository as done,
+# refuse to clobber a non-checkout target, then clone into a sibling temp dir
+# and move it into place atomically. The empty-repository marker string is a
+# contract shared with git-state and must stay byte-for-byte identical.
+set -euo pipefail
+
+if [[ $# -ne 2 ]]; then
+  echo "usage: git-checkout <clone_url> <target>" >&2
+  exit 2
+fi
+
+clone_url=$1
+target=$2
+marker="codespace-empty-repository"
+
+if [[ -d "${target}/.git" ]]; then
+  if git -C "${target}" rev-parse --verify HEAD >/dev/null 2>&1; then
+    exit 0
+  fi
+  if [[ -f "${target}/.git/${marker}" ]]; then
+    exit 0
+  fi
+  rm -rf -- "${target}"
+elif [[ -e "${target}" ]]; then
+  echo "repository target exists but is not a checkout: ${target}" >&2
+  exit 1
+fi
+
+mkdir -p -- "$(dirname -- "${target}")"
+temporary="${target}.codespace-clone"
+rm -rf -- "${temporary}"
+git clone --depth=1 "${clone_url}" "${temporary}"
+if ! git -C "${temporary}" rev-parse --verify HEAD >/dev/null 2>&1; then
+  touch "${temporary}/.git/${marker}"
+fi
+mv -- "${temporary}" "${target}"

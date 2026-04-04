@@ -11,7 +11,7 @@ from rich.console import Console
 from rich.table import Table
 
 from controller import inventory, provider
-from controller.config import CONFIG_PATH, Config, RepoProject, load_config
+from controller.config import CONFIG_PATH, Config, RepoWorkspace, load_config
 from controller.models import RESOURCE_ID_RE, GitProvider
 from controller.runtime.transport import PodmanTransport
 
@@ -65,11 +65,11 @@ def main(
 
 def _repositories(config: Config) -> dict[Repository, list[Route]]:
     repositories: dict[Repository, list[Route]] = defaultdict(list)
-    for project_id, project in config.projects.items():
-        if not isinstance(project, RepoProject):
+    for workspace_id, ws in config.workspaces.items.items():
+        if not isinstance(ws, RepoWorkspace):
             continue
-        repository = (project.provider, project.repo)
-        repositories[repository].extend((entry.name, project_id) for entry in project.host)
+        repository = (ws.provider, ws.repo)
+        repositories[repository].extend((entry.name, workspace_id) for entry in ws.host)
     return repositories
 
 
@@ -136,8 +136,8 @@ def _usage(title: str, routes: list[Route], active: set[str], scanned_hosts: set
         return "yes"
     matching_hosts = {
         host
-        for host, project in routes
-        if title.startswith(prefix := f"codespace-{host}-{project}-")
+        for host, workspace in routes
+        if title.startswith(prefix := f"codespace-{host}-{workspace}-")
         and RESOURCE_ID_RE.fullmatch(title.removeprefix(prefix))
     }
     if matching_hosts - scanned_hosts:
