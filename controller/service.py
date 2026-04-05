@@ -21,7 +21,6 @@ from controller.config import (
     WorkspaceConfig,
 )
 from controller.models import (
-    CONTAINER_USER,
     DashboardResponse,
     DeploymentOperation,
     GitProvider,
@@ -190,11 +189,6 @@ class CodespaceService:
             self._stage(creation, "reading host environment")
             host_environment = ssh.read_host_environment(creation.route, environment_names)
 
-        deploy_keypair = None
-        if isinstance(ws, RepoWorkspace):
-            self._stage(creation, "generating deploy key")
-            deploy_keypair = workspace.generate_deploy_keypair()
-
         self._stage(creation, f"pulling image {spec.image}")
         containers.pull_image(creation.client, spec.image, spec.platform)
 
@@ -221,15 +215,17 @@ class CodespaceService:
             host_environment,
         )
 
-        if deploy_keypair is not None:
-            self._stage(creation, "injecting deploy key")
-            workspace.inject_deploy_key(container, deploy_keypair.private_key)
+        deploy_public_key = None
+        if isinstance(ws, RepoWorkspace):
+            self._stage(creation, "generating deploy key")
+            deploy_public_key = workspace.generate_deploy_key(container)
 
         self._stage(creation, "probing ssh")
         ssh.probe(spec.to_environment(container.id, status="running"), creation.route)
 
+        clone_url: str | None = None
         if isinstance(ws, RepoWorkspace):
-            if deploy_keypair is None:
+            if deploy_public_key is None:
                 raise RuntimeError("deploy key missing for repo workspace")
             if creation.token is None:
                 raise RuntimeError("provider token missing for repo workspace")
@@ -239,25 +235,22 @@ class CodespaceService:
                 creation.token,
                 ws.repo,
                 spec.identity,
-                deploy_keypair.public_key,
+                deploy_public_key,
             )
             creation.deploy_key_registered = True
             self._stage(creation, "cloning repository")
-            workspace.clone(
-                container,
-                f"git@{git_host(ws.provider)}:{ws.repo}.git",
-                spec.clone_path,
-            )
+            clone_url = f"git@{git_host(ws.provider)}:{ws.repo}.git"
         elif isinstance(ws, GitWorkspace):
             self._stage(creation, "cloning repository")
-            workspace.clone(container, ws.git_url, spec.clone_path)
+            clone_url = ws.git_url
         else:
             self._stage(creation, "preparing open path")
-            containers.execute_checked(
-                container,
-                ["/opt/codespace/bin/prepare-open-path", spec.open_path],
-                user=CONTAINER_USER,
-            )
+        workspace.bootstrap(
+            container,
+            clone_url=clone_url,
+            clone_path=spec.clone_path,
+            open_path=spec.open_path,
+        )
 
         self._stage(creation, "writing ssh config")
         refreshed = inventory.list_inventory(creation.client, host, self.config)

@@ -385,7 +385,6 @@ class DeploymentSummary(BaseModel):
 
     id: str
     image: str
-    description: str | None = None
     hosts: list[DeploymentHostStatus]
 
 

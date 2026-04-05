@@ -444,7 +444,6 @@ class DeploymentConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     image: NonBlankString
-    description: NonBlankString | None = None
     published_ports: PublishedPorts | None = None
     container: ContainerConfig | None = None
 

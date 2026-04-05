@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Create the editor open path for one workspace.
+#
+# Usage: codespace-workspace-open-path <open-path>
+
+set -euo pipefail
+
+main() {
+  if [[ $# -ne 1 ]]; then
+    echo "usage: codespace-workspace-open-path <open-path>" >&2
+    return 2
+  fi
+
+  mkdir -p -- "$1"
+}
+
+main "$@"

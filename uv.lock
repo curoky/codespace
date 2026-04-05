@@ -318,7 +318,6 @@ name = "devspace"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "cryptography" },
     { name = "fastapi" },
     { name = "loguru" },
     { name = "podman" },
@@ -344,7 +343,6 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "cryptography", specifier = ">=44.0.0" },
     { name = "fastapi", specifier = ">=0.115.0" },
     { name = "loguru", specifier = ">=0.7.2" },
     { name = "podman", specifier = ">=5.0.0" },

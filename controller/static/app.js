@@ -233,9 +233,7 @@ function renderDeployments(dashboard) {
     const title = element("div", "workspace-title");
     title.append(element("h3", "", deployment.id));
     const image = element("span", "workspace-source", deployment.image);
-    image.title = deployment.description
-      ? `${deployment.image} — ${deployment.description}`
-      : deployment.image;
+    image.title = deployment.image;
     title.append(image);
     header.append(title);
     card.append(header);

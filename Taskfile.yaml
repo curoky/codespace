@@ -23,19 +23,22 @@ tasks:
       - controller/run.sh
 
   fmt:
-    desc: 格式化 Codespace 代码
+    desc: 格式化 Codespace Python 与 workspace helper
     cmds:
       - uv run ruff format controller
+      - shfmt -w -i 2 -s -ci images/dev/rootfs/opt/codespace/bin/codespace-* images/dev/tests/*.bats
 
   fmt:check:
-    desc: 检查代码格式
+    desc: 检查 Python 与 workspace helper 格式
     cmds:
       - uv run ruff format --check controller
+      - shfmt -d -i 2 -s -ci images/dev/rootfs/opt/codespace/bin/codespace-* images/dev/tests/*.bats
 
   lint:
-    desc: Ruff lint 检查
+    desc: Ruff 与 ShellCheck lint
     cmds:
       - uv run ruff check controller
+      - shellcheck images/dev/rootfs/opt/codespace/bin/codespace-* images/dev/tests/*.bats
 
   typecheck:
     desc: Mypy 类型检查
@@ -43,9 +46,10 @@ tasks:
       - uv run mypy controller
 
   test:
-    desc: 运行 Codespace 测试
+    desc: 运行 Codespace Python 与 workspace helper 测试
     cmds:
       - uv run pytest controller/tests
+      - bats images/dev/tests/*.bats
 
   lock:check:
     desc: 校验 uv.lock 与 pyproject 一致
