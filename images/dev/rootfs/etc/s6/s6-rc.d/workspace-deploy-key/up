@@ -1,0 +1,5 @@
+redirfd -w 2 /var/log/workspace-deploy-key.log
+s6-envdir -Lf -- /run/s6/container_environment
+s6-setuidgid x
+s6-env HOME=/home/x
+/opt/codespace/bin/codespace-deploy-key

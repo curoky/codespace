@@ -88,10 +88,6 @@ class ProviderReadyRequest(AgentModel):
     generation: str = Field(pattern=r"^[0-9a-f]{32}$")
 
 
-class PublicKeyResult(AgentModel):
-    public_key: str = Field(min_length=1)
-
-
 class GitState(AgentModel):
     unpushed: bool
     uncommitted: bool

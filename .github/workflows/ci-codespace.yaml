@@ -57,6 +57,7 @@ jobs:
             --config pyproject.toml \
             controller \
             images/dev/rootfs/opt/codespace/codespace_agent \
+            images/dev/rootfs/opt/codespace/workspace_bootstrap.py \
             images/dev/rootfs/opt/codespace/workspace_agent.py
           shfmt -d -i 2 -s -ci \
             images/dev/rootfs/opt/codespace/bin/codespace-* \
@@ -68,6 +69,7 @@ jobs:
             --config pyproject.toml \
             controller \
             images/dev/rootfs/opt/codespace/codespace_agent \
+            images/dev/rootfs/opt/codespace/workspace_bootstrap.py \
             images/dev/rootfs/opt/codespace/workspace_agent.py
           shellcheck \
             images/dev/rootfs/opt/codespace/bin/codespace-* \
@@ -78,12 +80,13 @@ jobs:
           MYPYPATH=images/dev/rootfs/opt/codespace uv run mypy \
             controller \
             images/dev/rootfs/opt/codespace/codespace_agent \
+            images/dev/rootfs/opt/codespace/workspace_bootstrap.py \
             images/dev/rootfs/opt/codespace/workspace_agent.py
           uv run \
             --project images/dev/rootfs/opt/codespace \
             --locked \
             python -c \
-            "import sys; sys.path.insert(0, 'images/dev/rootfs/opt/codespace'); import codespace_agent, workspace_agent"
+            "import sys; sys.path.insert(0, 'images/dev/rootfs/opt/codespace'); import codespace_agent, workspace_agent, workspace_bootstrap"
 
       - name: Test
         run: |

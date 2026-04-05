@@ -14,7 +14,6 @@ def main() -> None:
     CONTROL_DIR.mkdir(parents=True, exist_ok=True)
     agent = WorkspaceAgent(AgentRequest.load(REQUEST_PATH))
     server, server_socket = build_server(agent)
-    agent.start()
     try:
         server.run(sockets=[server_socket])
     finally:

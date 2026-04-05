@@ -97,8 +97,10 @@ $HOME/devspace/tools/setup-git-deploy-key.sh
    bundle；execline 脚本用 `s6-envdir -Lf -- /run/s6/container_environment` 读容器环境，该目录仅 root 和
    `x` 可读。`workspace-init` 必须先于 `workspace-crypt` 完成，把 `/workspace`、密文根 `/workspace.enc`、
    `/upload` 与 `/cache` 都归属到 `5230:5230`；`workspace-crypt` 再先于 `sshd`、`home-init` 与 WebDAV 服务完成。
-   `workspace-agent` 同样依赖 `workspace-crypt`，读取 `/run/codespace-control/request.json` 并在同目录监听
-   `agent.sock`；其 Python runtime依赖由 `images/dev/rootfs/opt/codespace/` 下的独立 uv项目锁定。
+   `workspace-deploy-key` 依赖 `workspace-crypt`，对所有 workspace 无条件生成或复用 container-local deploy key；
+   `workspace-bootstrap` 依赖它，读取 `/run/codespace-control/request.json` 并自动执行 checkout/open-path；
+   `workspace-agent` 依赖 `workspace-crypt`，在同目录监听 `agent.sock` 提供控制协议。两个 Python进程的 runtime
+   依赖由 `images/dev/rootfs/opt/codespace/` 下的独立 uv项目锁定。
 5. **网络边界**：环境 sshd 只绑定宿主 loopback；访问必须经配置的 SSH host route。
 6. **共享服务**：每个 host 只有一个固定名称的 `codespace-sidecar`，不附属于 workspace/instance。Atuin 仅经
    宿主 loopback 暴露，端口由 `ATUIN_PORT` 配置（默认 `8002`）。sidecar 的 image-prewarm 定时任务是唯一允许
@@ -115,8 +117,9 @@ $HOME/devspace/tools/setup-git-deploy-key.sh
 10. **数据挂载**：host 数据统一位于 `~/codespace`。每个实例使用
     `workspaces/<workspace>/<instance>/`，其 `workspace`、`upload`、`cache` 子目录分别挂载到容器内
     `/workspace`、`/upload`、`/cache`；`control` 子目录挂载到 `/run/codespace-control`，保存启动 request、
-    provider-ready generation 和 agent UDS。四者逐实例隔离，且均为控制面保留 mount target。Agent UDS只经
-    OpenSSH StreamLocal转发到控制面，不发布 TCP端口；provider token不得进入容器，deploy private key不得离开容器。
+    bootstrap status、provider-ready generation 和 agent UDS。四者逐实例隔离，且均为
+    控制面保留 mount target。Agent UDS只经 OpenSSH StreamLocal转发到控制面，不发布 TCP端口；provider
+    token不得进入容器，deploy private key不得离开容器。
 11. **Deployment**：host 级自包含部署容器（sidecar、LLM serving 等），与开发 environment 明确区分：容器名
     确定性 `codespace-<id>`、只带 `codespace.deployment*` label（**绝不带 `codespace.managed`**，与 environment
     inventory 用不相交 filter），无 workspace/SSH 投影/git checkout/provider 凭据。哪些 host 跑它由
