@@ -95,9 +95,12 @@ $HOME/devspace/tools/setup-git-deploy-key.sh
    `ghcr.io/curoky/devspace:<name>`；缓存在 `ghcr.io/curoky/devspace-cache:*`。
 4. **服务管理**：开发容器以自建 s6 init 启动。新增服务放入 `images/dev/rootfs/etc/s6/s6-rc.d/` 并加入
    bundle；execline 脚本用 `s6-envdir -Lf -- /run/s6/container_environment` 读容器环境，该目录仅 root 和
-   `x` 可读。`workspace-init` 必须先于 `workspace-crypt` 完成，把 `/workspace`、密文根 `/workspace.enc`、
-   `/upload`、`/cache` 与五个持久化 IDE home mount 都归属到 `5230:5230`；`workspace-crypt` 再先于
-   `sshd`、异步 `home-init` 与 WebDAV 服务。默认 `user-final` 只含通用镜像服务；控制面创建 environment
+   `x` 可读。每个 s6 任务的 `up`/`run` 只做 `exec` 到 `/opt/codespace/bin/` 编排脚本的纯壳，逻辑在 helper 里。
+   `workspace-init` 是唯一 workspace 就绪门控 oneshot：其编排脚本先以 root 把 `/workspace`、密文根
+   `/workspace.enc`、`/upload`、`/cache` 与五个持久化 IDE home mount 都归属到 `5230:5230`，再降权到 `x`
+   完成加密挂载（原 `workspace-crypt` 已并入）。`workspace-init` 先于
+   `sshd`、异步 `home-init`（Git 全局身份也在此异步写入，原 `gitconfig-init` 已并入）与 WebDAV 服务。
+   默认 `user-final` 只含通用镜像服务；控制面创建 environment
    时固定注入 `DEVSPACE_RUNLEVEL=managed-workspace`，额外启动 `workspace-deploy-key`、受监督的
    `workspace-bootstrap` 和 `workspace-agent`。后两者依赖 deploy key，agent 在 control目录监听
    `agent.sock`，其 Python runtime依赖由 `images/dev/rootfs/opt/codespace/` 下的独立 uv项目锁定。
@@ -111,8 +114,8 @@ $HOME/devspace/tools/setup-git-deploy-key.sh
 8. **文档语言**：说明与约束文档用中文；代码标识、命令、协议名和外部 API 保留原文。
 9. **Workspace 加密**：逐 workspace 可选（控制面 workspace 字段 `encrypt_workspace`，默认关）。开启时控制面把 host
    实例目录 bind 到密文根 `/workspace.enc` 并注入固定 secret `workspace_crypt_key`（env `WORKSPACE_CRYPT_KEY`，
-   对齐 sidecar `atuin_db_uri` 模式，须经 `sync_secrets` 预注册，缺失即 fail-fast）；镜像侧 `workspace-crypt`
-   据此用 gocryptfs 把明文挂到 `/workspace`。关闭时直接 bind 明文 `/workspace`、不注入 secret。加密依赖 FUSE
+   对齐 sidecar `atuin_db_uri` 模式，须经 `sync_secrets` 预注册，缺失即 fail-fast）；镜像侧 `workspace-init`
+   据此（经 `workspace-crypt` helper）用 gocryptfs 把明文挂到 `/workspace`。关闭时直接 bind 明文 `/workspace`、不注入 secret。加密依赖 FUSE
    （`/dev/fuse`）。加密仅作用于实例的 `workspace/` 子目录；`upload/`、`cache/` 始终明文，不受影响。
 10. **数据挂载**：host 数据统一位于 `~/codespace`。每个实例使用
     `workspaces/<workspace>/<instance>/`，其 `workspace`、`upload`、`cache` 子目录分别挂载到容器内

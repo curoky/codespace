@@ -1,7 +1,0 @@
-redirfd -w 1 /var/log/gitconfig-init.log
-fdmove -c 2 1
-s6-envdir -Lf -- /run/s6/container_environment
-s6-setuidgid x
-s6-env HOME=/home/x
-foreground { git config --global user.name curoky }
-git config --global user.email cccuroky@gmail.com

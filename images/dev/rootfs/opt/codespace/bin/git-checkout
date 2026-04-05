@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Clone a Git repository into one workspace path.
 #
-# Usage: codespace-git-checkout <clone-url> <clone-path>
+# Usage: git-checkout <clone-url> <clone-path>
 
 set -euo pipefail
 
@@ -9,7 +9,7 @@ readonly EMPTY_REPOSITORY_MARKER="codespace-empty-repository"
 
 main() {
   if [[ $# -ne 2 ]]; then
-    echo "usage: codespace-git-checkout <clone-url> <clone-path>" >&2
+    echo "usage: git-checkout <clone-url> <clone-path>" >&2
     return 2
   fi
 

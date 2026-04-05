@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Generate or reuse the repository deploy key.
 #
-# Usage: codespace-deploy-key
+# Usage: deploy-key
 #
 # Requires OpenSSH.
 
@@ -9,7 +9,7 @@ set -euo pipefail
 
 main() {
   if [[ $# -ne 0 ]]; then
-    echo "usage: codespace-deploy-key" >&2
+    echo "usage: deploy-key" >&2
     return 2
   fi
 
