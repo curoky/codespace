@@ -21,7 +21,6 @@ from pydantic import (
 from controller.models import (
     CACHE_MOUNT,
     CONTROL_MOUNT,
-    DEVSPACE_RUNLEVEL_ENV,
     HOME_CACHE_MOUNTS,
     LABEL_DEPLOYMENT,
     LABEL_DEPLOYMENT_ID,
@@ -72,7 +71,6 @@ _RESERVED_ENV_KEYS = frozenset(
     {
         "SSHD_PORT",
         "SSHD_BIND",
-        DEVSPACE_RUNLEVEL_ENV,
         WORKSPACE_TYPE_ENV,
         WORKSPACE_CLONE_URL_ENV,
         WORKSPACE_CLONE_PATH_ENV,
