@@ -1,8 +1,9 @@
-"""Podman clients and SSH routes for remote hosts and local Podman machines."""
+"""Podman clients and Unix socket tunnels for remote hosts and Podman machines."""
 
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import json
 import shutil
 import subprocess
@@ -11,7 +12,7 @@ import time
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from threading import Lock
+from threading import Lock, Thread
 from typing import Literal
 
 from podman import PodmanClient
@@ -73,13 +74,22 @@ class _Connection:
         return self.socket_path.exists() and (self.process is None or self.process.poll() is None)
 
 
+@dataclass(slots=True)
+class _Tunnel:
+    socket_path: Path
+    process: subprocess.Popen[bytes]
+
+    def is_running(self) -> bool:
+        return self.socket_path.exists() and self.process.poll() is None
+
+
 ProcessFactory = Callable[..., subprocess.Popen[bytes]]
 ClientFactory = Callable[..., PodmanClient]
 RunFactory = Callable[..., subprocess.CompletedProcess[str]]
 
 
 class PodmanTransport:
-    """Reuse one Podman connection per configured SSH host or local machine."""
+    """Own reusable Podman connections and SSH tunnels for configured hosts."""
 
     def __init__(
         self,
@@ -97,7 +107,9 @@ class PodmanTransport:
         self._client_factory = client_factory
         self._run_factory = run_factory
         self._connections: dict[str, _Connection] = {}
+        self._tunnels: dict[tuple[str, str], _Tunnel] = {}
         self._locks = {host: Lock() for host in hosts}
+        self._tunnel_lock = Lock()
         self._closed = False
 
     @property
@@ -120,11 +132,36 @@ class PodmanTransport:
             raise TransportError(f"unknown host: {host}")
         return self._connection(host).route
 
+    def forward_socket(self, host: str, remote_socket: str) -> Path:
+        """Return a local Unix socket forwarded to one absolute host socket."""
+        if self._closed:
+            raise TransportError("Podman transport is closed")
+        if not remote_socket.startswith("/"):
+            raise TransportError(f"remote Unix socket must be absolute: {remote_socket!r}")
+        route = self.ssh_route(host)
+        key = (host, remote_socket)
+        with self._tunnel_lock:
+            tunnel = self._tunnels.get(key)
+            if tunnel is not None and tunnel.is_running():
+                return tunnel.socket_path
+            if tunnel is not None:
+                self._stop(tunnel.process)
+                tunnel.socket_path.unlink(missing_ok=True)
+            digest = hashlib.sha256(f"{host}\0{remote_socket}".encode()).hexdigest()[:16]
+            socket_path = self._runtime_dir / f"agent-{digest}.sock"
+            tunnel = self._start_streamlocal_tunnel(route, remote_socket, socket_path)
+            self._tunnels[key] = tunnel
+            return tunnel.socket_path
+
     def close(self) -> None:
         """Close Podman clients, SSH children, and the runtime directory."""
         if self._closed:
             return
         self._closed = True
+        tunnels = list(self._tunnels.values())
+        self._tunnels.clear()
+        for tunnel in tunnels:
+            self._stop(tunnel.process)
         connections = list(self._connections.values())
         self._connections.clear()
         for connection in connections:
@@ -154,11 +191,32 @@ class PodmanTransport:
 
     def _start_tunnel(self, host: str, options: HostEndpoint) -> _Connection:
         socket_path = self._runtime_dir / f"{host}.sock"
-        socket_path.unlink(missing_ok=True)
         remote_socket = options.resolved_podman_socket()
+        route = SSHRoute(host=host)
+        tunnel = self._start_streamlocal_tunnel(route, remote_socket, socket_path)
+        client = self._client_factory(
+            base_url=f"unix://{socket_path}",
+            timeout=_CLIENT_TIMEOUT,
+        )
+        return _Connection(
+            socket_path=socket_path,
+            client=client,
+            route=route,
+            process=tunnel.process,
+        )
+
+    def _start_streamlocal_tunnel(
+        self,
+        route: SSHRoute,
+        remote_socket: str,
+        socket_path: Path,
+    ) -> _Tunnel:
+        socket_path.unlink(missing_ok=True)
         command = [
             "ssh",
             "-N",
+            "-o",
+            "BatchMode=yes",
             "-o",
             "ExitOnForwardFailure=yes",
             "-o",
@@ -167,10 +225,31 @@ class PodmanTransport:
             f"ServerAliveInterval={_SERVER_ALIVE_INTERVAL}",
             "-o",
             f"ServerAliveCountMax={_SERVER_ALIVE_COUNT_MAX}",
-            "-L",
-            f"{socket_path}:{remote_socket}",
-            host,
         ]
+        if route.is_machine:
+            if route.port is None or route.identity_path is None:
+                raise TransportError(f"Podman Machine SSH route for {route.host!r} is incomplete")
+            command.extend(
+                [
+                    "-o",
+                    "IdentitiesOnly=yes",
+                    "-o",
+                    "StrictHostKeyChecking=accept-new",
+                    "-o",
+                    f"UserKnownHostsFile={self._runtime_dir / f'machine-{route.host}.known_hosts'}",
+                    "-i",
+                    str(route.identity_path),
+                    "-p",
+                    str(route.port),
+                ]
+            )
+        command.extend(
+            [
+                "-L",
+                f"{socket_path}:{remote_socket}",
+                "root@127.0.0.1" if route.is_machine else route.host,
+            ]
+        )
         process = self._process_factory(
             command,
             stdin=subprocess.DEVNULL,
@@ -179,26 +258,23 @@ class PodmanTransport:
         )
         deadline = time.monotonic() + _START_TIMEOUT
         while time.monotonic() < deadline:
-            if socket_path.exists():
-                client = self._client_factory(
-                    base_url=f"unix://{socket_path}",
-                    timeout=_CLIENT_TIMEOUT,
-                )
-                return _Connection(
-                    socket_path=socket_path,
-                    client=client,
-                    route=SSHRoute(host=host),
-                    process=process,
-                )
             if process.poll() is not None:
                 stderr = process.stderr.read() if process.stderr is not None else b""
                 message = stderr.decode("utf-8", "replace").strip()
+                socket_path.unlink(missing_ok=True)
                 raise TransportError(
-                    f"SSH Podman tunnel for {host!r} failed: {message or 'ssh exited'}"
+                    f"SSH Unix socket tunnel for {route.host!r} failed: {message or 'ssh exited'}"
                 )
+            if socket_path.exists():
+                if process.stderr is not None:
+                    Thread(target=process.stderr.read, daemon=True).start()
+                return _Tunnel(socket_path=socket_path, process=process)
             time.sleep(_START_INTERVAL)
         self._stop(process)
-        raise TransportError(f"SSH Podman tunnel for {host!r} did not create its socket")
+        socket_path.unlink(missing_ok=True)
+        raise TransportError(
+            f"SSH Unix socket tunnel for {route.host!r} did not create {socket_path}"
+        )
 
     def _connect_machine(self, host: str, options: HostEndpoint) -> _Connection:
         machine = options.machine

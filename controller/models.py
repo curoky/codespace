@@ -21,10 +21,11 @@ CONTAINER_USER = "x"
 CONTAINER_UID = 5230
 CONTAINER_GID = 5230
 WORKSPACE_MOUNT = "/workspace"
-# Each workspace instance also gets a persistent upload inbox and build cache.
-# All three bind mounts are sibling directories below one instance root.
+# Each workspace instance also gets a persistent upload inbox, build cache and
+# private control socket directory. All mounts are siblings below one instance root.
 UPLOAD_MOUNT = "/upload"
 CACHE_MOUNT = "/cache"
+CONTROL_MOUNT = "/run/codespace-control"
 # The host workspace is bind-mounted to the gocryptfs cipher directory; the
 # image mounts the decrypted plaintext at WORKSPACE_MOUNT at boot, so only
 # ciphertext ever reaches host disk while every /workspace consumer is unchanged.
@@ -142,6 +143,7 @@ class InstancePaths:
     workspace: str
     upload: str
     cache: str
+    control: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -166,6 +168,7 @@ class HostDataPaths:
             workspace=f"{root}{WORKSPACE_MOUNT}",
             upload=f"{root}{UPLOAD_MOUNT}",
             cache=f"{root}{CACHE_MOUNT}",
+            control=f"{root}/control",
         )
 
     def deployment(self, deployment: str) -> str:

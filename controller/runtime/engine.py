@@ -1,29 +1,25 @@
-"""Provider-neutral Podman image, container and exec primitives.
+"""Provider-neutral Podman image and container primitives.
 
 This module holds no control-plane knowledge: it exposes reusable container
-engine operations (image pull, container run, exec, logs, removal and a helper
-container to delete a directory) that callers drive with already-resolved
-parameters. Codespace-specific semantics (labels, workspace mounts, reserved
-environment keys, default ownership) live in the business layer.
+engine operations (image pull, container run, logs, removal and a helper container
+to delete a directory) that callers drive with already-resolved parameters.
+Codespace-specific semantics (labels, workspace mounts, reserved environment keys,
+default ownership) live in the business layer.
 """
 
 from __future__ import annotations
 
-import json
 import posixpath
 from collections.abc import Iterator
-from dataclasses import dataclass
 from typing import Any, cast
 
 from podman import PodmanClient
-from podman.api.output_utils import demux_output
 from podman.domain.containers import Container
 from podman.errors import PodmanError
 from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_fixed
 
 _READY_TIMEOUT = 30.0
 _READY_INTERVAL = 0.25
-_EXEC_TIMEOUT = 60.0
 _PULL_TIMEOUT = 15 * 60.0
 _LOG_TAIL = 2000
 
@@ -32,13 +28,6 @@ type ImagePlatform = str
 
 class _ContainerNotRunning(Exception):
     pass
-
-
-@dataclass(frozen=True, slots=True)
-class CommandResult:
-    code: int
-    stdout: str
-    stderr: str
 
 
 def pull_image(client: PodmanClient, image: str, platform: ImagePlatform | None) -> None:
@@ -143,72 +132,6 @@ def container_logs(container: Container, *, tail: int = _LOG_TAIL) -> str:
     )
     raw = result if isinstance(result, bytes) else b"".join(result)
     return _decode_stream(raw)
-
-
-def execute(
-    container: Container,
-    command: list[str],
-    *,
-    user: str,
-    timeout: float = _EXEC_TIMEOUT,
-) -> CommandResult:
-    """Execute a command with separate stdout and stderr streams."""
-    client = container.client
-    if client is None:
-        raise RuntimeError("container has no Podman API client")
-    identity = str(container.id or container.name)
-    response = client.post(
-        f"/containers/{identity}/exec",
-        data=json.dumps(
-            {
-                "AttachStderr": True,
-                "AttachStdin": False,
-                "AttachStdout": True,
-                "Cmd": command,
-                "Env": None,
-                "Privileged": False,
-                "Tty": False,
-                "WorkingDir": None,
-                "User": user,
-            }
-        ),
-    )
-    response.raise_for_status()
-    payload = response.json()
-    exec_id = payload.get("Id") if isinstance(payload, dict) else None
-    if not isinstance(exec_id, str) or not exec_id:
-        raise RuntimeError(f"exec {command!r} returned no exec ID")
-
-    started = client.post(
-        f"/exec/{exec_id}/start",
-        data=json.dumps({"Detach": False, "Tty": False}),
-        timeout=timeout,
-    )
-    started.raise_for_status()
-    inspected = client.get(f"/exec/{exec_id}/json")
-    inspected.raise_for_status()
-    inspected_payload = inspected.json()
-    exit_code = inspected_payload.get("ExitCode") if isinstance(inspected_payload, dict) else None
-    stdout_raw, stderr_raw = demux_output(started.content)
-    stdout = _decode_stream(stdout_raw)
-    stderr = _decode_stream(stderr_raw)
-    if not isinstance(exit_code, int):
-        raise RuntimeError(f"exec {command!r} returned no exit code: {stderr or stdout}")
-    return CommandResult(code=exit_code, stdout=stdout, stderr=stderr)
-
-
-def execute_checked(
-    container: Container,
-    command: list[str],
-    *,
-    user: str,
-    timeout: float = _EXEC_TIMEOUT,
-) -> None:
-    result = execute(container, command, user=user, timeout=timeout)
-    if result.code != 0:
-        raise RuntimeError(
-            f"exec {command!r} failed ({result.code}): {result.stderr or result.stdout}"
-        )
 
 
 def wait_running(container: Container) -> None:

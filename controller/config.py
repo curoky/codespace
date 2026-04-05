@@ -19,6 +19,7 @@ from pydantic import (
 )
 
 from controller.models import (
+    CONTROL_MOUNT,
     LABEL_DEPLOYMENT,
     LABEL_DEPLOYMENT_ID,
     LABEL_GIT_URL,
@@ -59,7 +60,7 @@ CONFIG_PATH = Path.home() / "devspace" / "config.extend.yaml"
 
 # Derived per container and forbidden in passthrough environment values.
 _RESERVED_ENV_KEYS = frozenset({"SSHD_PORT", "SSHD_BIND"})
-_RESERVED_MOUNT_TARGETS = ("/workspace", "/upload", "/cache")
+_RESERVED_MOUNT_TARGETS = ("/workspace", "/upload", "/cache", CONTROL_MOUNT)
 type EnvironmentName = Annotated[str, Field(pattern=r"^[A-Za-z_][A-Za-z0-9_]*$")]
 
 

@@ -19,6 +19,7 @@ from controller.models import (
     CACHE_MOUNT,
     CONTAINER_GID,
     CONTAINER_UID,
+    CONTROL_MOUNT,
     DEPLOYMENT_DATA_PLACEHOLDER,
     UPLOAD_MOUNT,
     WORKSPACE_CIPHER_MOUNT,
@@ -32,22 +33,16 @@ from controller.models import (
 from controller.runtime import engine
 from controller.runtime.compose import Secret, ServiceSpec, Volume
 from controller.runtime.engine import (
-    CommandResult,
     container_logs,
-    execute,
-    execute_checked,
     pull_image,
     remove_container,
     wait_running,
 )
 
 __all__ = [
-    "CommandResult",
     "container_logs",
     "create_container",
     "create_deployment_container",
-    "execute",
-    "execute_checked",
     "pull_image",
     "purge_workspace",
     "remove_container",
@@ -112,6 +107,11 @@ def create_container(
             "type": "bind",
             "source": paths.cache,
             "target": CACHE_MOUNT,
+        },
+        {
+            "type": "bind",
+            "source": paths.control,
+            "target": CONTROL_MOUNT,
         },
     ]
     mounts.extend(
