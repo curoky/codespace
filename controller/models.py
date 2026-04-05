@@ -20,12 +20,22 @@ type PlatformSelection = Literal["native", "linux/amd64", "linux/arm64"]
 CONTAINER_USER = "x"
 CONTAINER_UID = 5230
 CONTAINER_GID = 5230
+CONTAINER_HOME = f"/home/{CONTAINER_USER}"
 WORKSPACE_MOUNT = "/workspace"
 # Each workspace instance also gets a persistent upload inbox, build cache and
 # private control socket directory. All mounts are siblings below one instance root.
 UPLOAD_MOUNT = "/upload"
 CACHE_MOUNT = "/cache"
 CONTROL_MOUNT = "/run/codespace-control"
+# IDE state remains grouped below the instance cache directory on the host, but
+# is mounted at each tool's canonical home path inside the container.
+HOME_CACHE_MOUNTS = (
+    (".vscode-server", f"{CONTAINER_HOME}/.vscode-server"),
+    (".trae", f"{CONTAINER_HOME}/.trae"),
+    (".trae-cn", f"{CONTAINER_HOME}/.trae-cn"),
+    (".trae-server", f"{CONTAINER_HOME}/.trae-server"),
+    (".trae-cn-server", f"{CONTAINER_HOME}/.trae-cn-server"),
+)
 # The host workspace is bind-mounted to the gocryptfs cipher directory; the
 # image mounts the decrypted plaintext at WORKSPACE_MOUNT at boot, so only
 # ciphertext ever reaches host disk while every /workspace consumer is unchanged.
@@ -37,6 +47,12 @@ WORKSPACE_CIPHER_MOUNT = "/workspace.enc"
 # via `encrypt_workspace`; a missing secret then fails container creation fast.
 WORKSPACE_CRYPT_SECRET = "workspace_crypt_key"  # noqa: S105 - secret name, not a value
 WORKSPACE_CRYPT_SECRET_ENV = "WORKSPACE_CRYPT_KEY"  # noqa: S105 - env var name, not a value
+WORKSPACE_TYPE_ENV = "CODESPACE_WORKSPACE_TYPE"
+WORKSPACE_CLONE_URL_ENV = "CODESPACE_CLONE_URL"
+WORKSPACE_CLONE_PATH_ENV = "CODESPACE_CLONE_PATH"
+WORKSPACE_OPEN_PATH_ENV = "CODESPACE_OPEN_PATH"
+DEVSPACE_RUNLEVEL_ENV = "DEVSPACE_RUNLEVEL"
+MANAGED_WORKSPACE_RUNLEVEL = "managed-workspace"
 HOST_DATA_DIR_NAME = "codespace"
 WORKSPACES_DATA_DIR_NAME = "workspaces"
 DEPLOYMENTS_DATA_DIR_NAME = "deployments"
@@ -144,6 +160,10 @@ class InstancePaths:
     upload: str
     cache: str
     control: str
+
+    @property
+    def home_cache_mounts(self) -> tuple[tuple[str, str], ...]:
+        return tuple((f"{self.cache}/{name}", target) for name, target in HOME_CACHE_MOUNTS)
 
 
 @dataclass(frozen=True, slots=True)

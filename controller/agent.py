@@ -7,11 +7,11 @@ import json
 import socket
 import time
 from pathlib import Path
-from typing import Literal, Self
+from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
+from pydantic import BaseModel, ConfigDict, ValidationError
 
-from controller.models import RepoGitState, WorkspaceType
+from controller.models import RepoGitState
 
 type AgentState = Literal["starting", "awaiting-provider", "ready", "failed"]
 
@@ -28,32 +28,11 @@ class AgentUnavailable(AgentError):
     """Raised when the workspace agent socket cannot be reached."""
 
 
-class WorkspaceAgentRequest(BaseModel):
-    """Immutable bootstrap request written before the container starts."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    generation: str = Field(pattern=r"^[0-9a-f]{32}$")
-    workspace_type: WorkspaceType
-    clone_url: str | None = None
-    clone_path: str
-    open_path: str
-
-    @model_validator(mode="after")
-    def _validate_clone_url(self) -> Self:
-        if self.workspace_type == "blank" and self.clone_url is not None:
-            raise ValueError("blank workspace must not define clone_url")
-        if self.workspace_type != "blank" and self.clone_url is None:
-            raise ValueError(f"{self.workspace_type} workspace requires clone_url")
-        return self
-
-
 class AgentStatus(BaseModel):
-    """Current state of one agent generation."""
+    """Current state of the container workspace bootstrap."""
 
     model_config = ConfigDict(extra="forbid")
 
-    generation: str = Field(pattern=r"^[0-9a-f]{32}$")
     state: AgentState
     public_key: str | None = None
     error: str | None = None
@@ -77,30 +56,15 @@ class WorkspaceAgentClient:
     def __init__(
         self,
         socket_path: Path,
-        generation: str | None = None,
         *,
         timeout: float = _DEFAULT_TIMEOUT,
     ) -> None:
         self._socket_path = socket_path
-        self._generation = generation
         self._timeout = timeout
 
     def status(self) -> AgentStatus:
         try:
             return AgentStatus.model_validate(self._request("GET", "/status"))
-        except ValidationError as exc:
-            raise AgentError("workspace agent returned an invalid status") from exc
-
-    def provider_ready(self) -> AgentStatus:
-        if self._generation is None:
-            raise AgentError("provider-ready requires an expected generation")
-        payload = self._request(
-            "POST",
-            "/provider-ready",
-            {"generation": self._generation},
-        )
-        try:
-            return AgentStatus.model_validate(payload)
         except ValidationError as exc:
             raise AgentError("workspace agent returned an invalid status") from exc
 
@@ -117,8 +81,6 @@ class WorkspaceAgentClient:
         timeout: float,
     ) -> AgentStatus:
         """Wait for one desired state, retrying only socket availability."""
-        if self._generation is None:
-            raise AgentError("waiting for bootstrap requires an expected generation")
         deadline = time.monotonic() + timeout
         last_unavailable: AgentUnavailable | None = None
         while time.monotonic() < deadline:
@@ -127,11 +89,6 @@ class WorkspaceAgentClient:
             except AgentUnavailable as exc:
                 last_unavailable = exc
             else:
-                if status.generation != self._generation:
-                    raise AgentError(
-                        f"workspace agent generation mismatch: expected "
-                        f"{self._generation!r}, got {status.generation!r}"
-                    )
                 if status.state == "failed":
                     raise AgentError(status.error or "workspace agent bootstrap failed")
                 if status.state in states:
@@ -147,13 +104,10 @@ class WorkspaceAgentClient:
         self,
         method: str,
         target: str,
-        payload: dict[str, str] | None = None,
     ) -> object:
-        body = None if payload is None else json.dumps(payload, separators=(",", ":"))
-        headers = {"Content-Type": "application/json"} if body is not None else {}
         connection = _UnixHTTPConnection(self._socket_path, self._timeout)
         try:
-            connection.request(method, target, body=body, headers=headers)
+            connection.request(method, target)
             response = connection.getresponse()
             raw = response.read(_RESPONSE_LIMIT + 1)
         except (OSError, http.client.HTTPException) as exc:

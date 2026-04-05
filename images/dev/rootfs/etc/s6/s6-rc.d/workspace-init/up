@@ -2,3 +2,8 @@ foreground { chown 5230:5230 /workspace }
 foreground { chown 5230:5230 /workspace.enc }
 foreground { chown 5230:5230 /upload }
 foreground { chown 5230:5230 /cache }
+foreground { chown 5230:5230 /home/x/.vscode-server }
+foreground { chown 5230:5230 /home/x/.trae }
+foreground { chown 5230:5230 /home/x/.trae-cn }
+foreground { chown 5230:5230 /home/x/.trae-server }
+foreground { chown 5230:5230 /home/x/.trae-cn-server }

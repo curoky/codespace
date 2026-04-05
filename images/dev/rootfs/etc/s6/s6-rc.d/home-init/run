@@ -3,6 +3,6 @@
 s6-envdir -Lf -- /run/s6/container_environment
 
 fdmove -c 2 1
-redirfd -w 1 /var/log/workspace-bootstrap.log
+redirfd -w 1 /var/log/home-init.log
 
-exec /opt/codespace/bin/codespace-workspace-bootstrap
+exec /opt/codespace/bin/codespace-home-init

@@ -19,7 +19,10 @@ from pydantic import (
 )
 
 from controller.models import (
+    CACHE_MOUNT,
     CONTROL_MOUNT,
+    DEVSPACE_RUNLEVEL_ENV,
+    HOME_CACHE_MOUNTS,
     LABEL_DEPLOYMENT,
     LABEL_DEPLOYMENT_ID,
     LABEL_GIT_URL,
@@ -34,7 +37,13 @@ from controller.models import (
     LABEL_WORKSPACE,
     PODMAN_SOCKET,
     RESOURCE_ID_RE,
+    UPLOAD_MOUNT,
+    WORKSPACE_CIPHER_MOUNT,
+    WORKSPACE_CLONE_PATH_ENV,
+    WORKSPACE_CLONE_URL_ENV,
     WORKSPACE_MOUNT,
+    WORKSPACE_OPEN_PATH_ENV,
+    WORKSPACE_TYPE_ENV,
     Environment,
     GitProvider,
     GitUrl,
@@ -59,8 +68,25 @@ from controller.runtime.transport import HostEndpoint
 CONFIG_PATH = Path.home() / "devspace" / "config.extend.yaml"
 
 # Derived per container and forbidden in passthrough environment values.
-_RESERVED_ENV_KEYS = frozenset({"SSHD_PORT", "SSHD_BIND"})
-_RESERVED_MOUNT_TARGETS = ("/workspace", "/upload", "/cache", CONTROL_MOUNT)
+_RESERVED_ENV_KEYS = frozenset(
+    {
+        "SSHD_PORT",
+        "SSHD_BIND",
+        DEVSPACE_RUNLEVEL_ENV,
+        WORKSPACE_TYPE_ENV,
+        WORKSPACE_CLONE_URL_ENV,
+        WORKSPACE_CLONE_PATH_ENV,
+        WORKSPACE_OPEN_PATH_ENV,
+    }
+)
+_RESERVED_MOUNT_TARGETS = (
+    WORKSPACE_MOUNT,
+    WORKSPACE_CIPHER_MOUNT,
+    UPLOAD_MOUNT,
+    CACHE_MOUNT,
+    CONTROL_MOUNT,
+    *(target for _name, target in HOME_CACHE_MOUNTS),
+)
 type EnvironmentName = Annotated[str, Field(pattern=r"^[A-Za-z_][A-Za-z0-9_]*$")]
 
 

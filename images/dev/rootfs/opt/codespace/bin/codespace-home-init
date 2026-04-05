@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# Initialize the persisted development home and publish managed-workspace state.
+#
+# Usage: codespace-home-init
+#
+# Requires Bash and s6.
+
+set -Eeuo pipefail
+
+readonly control_dir="/run/codespace-control"
+readonly ready_path="${control_dir}/home.ready"
+readonly failed_path="${control_dir}/home.failed"
+
+is_managed_workspace() {
+  [[ -n ${CODESPACE_WORKSPACE_TYPE-} ]]
+}
+
+write_marker() {
+  local path=$1
+  local content=$2
+  local temporary
+
+  temporary=$(mktemp "${path}.XXXXXX")
+  printf '%s\n' "${content}" >"${temporary}"
+  chmod 0600 "${temporary}"
+  mv -f -- "${temporary}" "${path}"
+}
+
+settle() {
+  exec s6-pause
+}
+
+fail() {
+  local status=$?
+  trap - ERR
+  local message="home initialization failed (${status})"
+
+  if is_managed_workspace; then
+    write_marker "${failed_path}" "${message}"
+  fi
+  echo "${message}" >&2
+  settle
+}
+
+main() {
+  if [[ $# -ne 0 ]]; then
+    echo "usage: codespace-home-init" >&2
+    return 2
+  fi
+
+  trap fail ERR
+  if is_managed_workspace; then
+    if [[ -f ${ready_path} ]]; then
+      settle
+    fi
+    rm -f -- "${failed_path}"
+  fi
+
+  s6-setuidgid x env HOME=/home/x \
+    bash /opt/devspace/images/dev/script/home-init.sh
+
+  if is_managed_workspace; then
+    write_marker "${ready_path}" "ready"
+  fi
+  settle
+}
+
+main "$@"

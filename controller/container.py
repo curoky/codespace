@@ -1,8 +1,8 @@
 """Codespace container semantics layered over the Podman engine.
 
-This module owns the control-plane-specific translation: reserved environment
-injection (``SSHD_PORT``/``SSHD_BIND``), the reserved workspace mount, default
-secret ownership (``5230:5230``, ``0o400``) and canonical labels. The reusable
+This module owns the control-plane-specific translation: managed runlevel and
+reserved environment injection, reserved workspace mounts, default secret
+ownership (``5230:5230``, ``0o400``) and canonical labels. The reusable
 container primitives live in :mod:`controller.runtime.engine`.
 """
 
@@ -21,14 +21,21 @@ from controller.models import (
     CONTAINER_UID,
     CONTROL_MOUNT,
     DEPLOYMENT_DATA_PLACEHOLDER,
+    DEVSPACE_RUNLEVEL_ENV,
+    MANAGED_WORKSPACE_RUNLEVEL,
     UPLOAD_MOUNT,
     WORKSPACE_CIPHER_MOUNT,
+    WORKSPACE_CLONE_PATH_ENV,
+    WORKSPACE_CLONE_URL_ENV,
     WORKSPACE_CRYPT_SECRET,
     WORKSPACE_CRYPT_SECRET_ENV,
     WORKSPACE_MOUNT,
+    WORKSPACE_OPEN_PATH_ENV,
+    WORKSPACE_TYPE_ENV,
     Environment,
     ImagePlatform,
     InstancePaths,
+    git_host,
 )
 from controller.runtime import engine
 from controller.runtime.compose import Secret, ServiceSpec, Volume
@@ -69,8 +76,18 @@ def create_container(
     environment = {
         **inherited_environment,
         **configured_environment,
+        DEVSPACE_RUNLEVEL_ENV: MANAGED_WORKSPACE_RUNLEVEL,
+        WORKSPACE_TYPE_ENV: spec.workspace.type,
+        WORKSPACE_CLONE_PATH_ENV: spec.clone_path,
+        WORKSPACE_OPEN_PATH_ENV: spec.open_path,
         "SSHD_PORT": str(spec.ssh_port),
     }
+    if spec.workspace.repo is not None and spec.workspace.provider is not None:
+        environment[WORKSPACE_CLONE_URL_ENV] = (
+            f"git@{git_host(spec.workspace.provider)}:{spec.workspace.repo}.git"
+        )
+    elif spec.workspace.git_url is not None:
+        environment[WORKSPACE_CLONE_URL_ENV] = spec.workspace.git_url
     ports: dict[str, object] = {}
     if options.is_bridge:
         environment["SSHD_BIND"] = "0.0.0.0"  # noqa: S104
@@ -84,6 +101,8 @@ def create_container(
     # the image mounts the decrypted /workspace at boot. Plaintext workspaces bind
     # the host dir straight to /workspace and inject nothing. /upload and /cache
     # always bind sibling plaintext directories below the same instance root.
+    # IDE state stays below the host cache and is also mounted at each tool's
+    # canonical home directory.
     encrypt = spec.workspace.encrypt_workspace
     if encrypt:
         _require_secret_exists(client, WORKSPACE_CRYPT_SECRET)
@@ -108,12 +127,22 @@ def create_container(
             "source": paths.cache,
             "target": CACHE_MOUNT,
         },
+    ]
+    for source, target in paths.home_cache_mounts:
+        mounts.append(
+            {
+                "type": "bind",
+                "source": source,
+                "target": target,
+            }
+        )
+    mounts.append(
         {
             "type": "bind",
             "source": paths.control,
             "target": CONTROL_MOUNT,
-        },
-    ]
+        }
+    )
     mounts.extend(
         {
             "type": "bind",
