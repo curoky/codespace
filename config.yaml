@@ -2,7 +2,7 @@
 #
 # The private entrypoint ~/devspace/config.extend.yaml points here with
 # `extends: config.yaml` and layers hosts, workspaces.items, tokens and secrets
-# on top (see controller/AGENTS.md "配置"). Mappings deep-merge key by key with
+# on top (see controller/AGENTS.md "配置约束"). Mappings deep-merge key by key with
 # the private layer winning; scalars and lists are replaced. This base therefore
 # declares only the shared development defaults and the deployment catalog; it is
 # a fragment and is not expected to validate on its own.
@@ -25,7 +25,7 @@ workspaces:
 # Deployment catalog: self-contained images with no repository checkout. Which
 # hosts run each entry is declared the other way round, by the private layer's
 # `hosts.<host>.deployments: [<id>, ...]`. A `${DEPLOYMENT_DATA}` volume source
-# resolves to the deployment's managed data root ~/codespace-deployment/<id>.
+# resolves to the managed data directory ~/codespace/deployments/<id>.
 deployments:
   sidecar:
     image: ghcr.io/curoky/devspace:codespace-sidecar
@@ -61,7 +61,7 @@ deployments:
       ipc: host
       devices:
         - nvidia.com/gpu=all
-      # ${DEPLOYMENT_DATA} resolves to ~/codespace-deployment/llm-vllm; the ~172
+      # ${DEPLOYMENT_DATA} resolves to ~/codespace/deployments/llm-vllm; the ~172
       # GiB FP8 weights land there on first start, isolated per deployment.
       volumes:
         - ${DEPLOYMENT_DATA}:/root/.cache/huggingface

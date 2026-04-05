@@ -15,13 +15,12 @@ from pathlib import Path
 from tenacity import Retrying, retry_if_exception_type, stop_after_delay, wait_fixed
 
 from controller.models import (
-    CACHE_DIR_NAME,
     CONTAINER_USER,
-    DEPLOYMENT_DIR_NAME,
-    UPLOAD_DIR_NAME,
-    WORKSPACE_DIR_NAME,
+    DEPLOYMENTS_DATA_DIR_NAME,
+    HOST_DATA_DIR_NAME,
+    WORKSPACES_DATA_DIR_NAME,
     Environment,
-    HostRoots,
+    HostDataPaths,
 )
 from controller.runtime import remote
 from controller.runtime.transport import SSHRoute
@@ -42,78 +41,65 @@ LOGIN_KEY_ASSET = SSH_ASSETS_DIR / "login_key"
 _LOCK = threading.RLock()
 _PROBE_TIMEOUT = 30.0
 _PROBE_INTERVAL = 0.5
-_WORKSPACE_ROOT_TIMEOUT = 15.0
-_WORKSPACE_PREPARE_TIMEOUT = 15.0
-_WORKSPACE_LIST_TIMEOUT = 30.0
+_DATA_ROOT_TIMEOUT = 15.0
+_PREPARE_TIMEOUT = 15.0
+_INSTANCE_LIST_TIMEOUT = 30.0
 _HOST_ENVIRONMENT_TIMEOUT = 15.0
 
 
 @cache
-def _remote_root(route: SSHRoute, dir_name: str) -> str:
-    """Resolve and create one absolute host root directory for an SSH route."""
-    # The fixed directory name is safe for expansion by the remote shell.
-    remote_command = f'mkdir -p -- "$HOME/{dir_name}" && printf %s "$HOME/{dir_name}"'
+def remote_data_paths(route: SSHRoute) -> HostDataPaths:
+    """Resolve and create the canonical data root for one host."""
+    remote_command = (
+        f'mkdir -p -- "$HOME/{HOST_DATA_DIR_NAME}/{WORKSPACES_DATA_DIR_NAME}" '
+        f'"$HOME/{HOST_DATA_DIR_NAME}/{DEPLOYMENTS_DATA_DIR_NAME}" '
+        f'&& printf %s "$HOME/{HOST_DATA_DIR_NAME}"'
+    )
     result = _run_host(
         route,
         remote_command,
-        timeout=_WORKSPACE_ROOT_TIMEOUT,
-        action=f"resolve {dir_name} root",
+        timeout=_DATA_ROOT_TIMEOUT,
+        action="resolve codespace data root",
     )
     root = result.stdout.strip()
     if not root.startswith("/"):
-        raise RuntimeError(f"host {route.host!r} returned a non-absolute {dir_name} root: {root!r}")
-    return root
+        raise RuntimeError(
+            f"host {route.host!r} returned a non-absolute codespace data root: {root!r}"
+        )
+    return HostDataPaths(root=root)
 
 
-def remote_instance_roots(route: SSHRoute) -> HostRoots:
-    """Resolve and create the workspace, upload and cache roots for one SSH route."""
-    return HostRoots(
-        workspace=_remote_root(route, WORKSPACE_DIR_NAME),
-        upload=_remote_root(route, UPLOAD_DIR_NAME),
-        cache=_remote_root(route, CACHE_DIR_NAME),
-    )
-
-
-def remote_deployment_root(route: SSHRoute) -> str:
-    """Resolve and create the deployment data root ``~/codespace-deployment``.
-
-    Deployments keep their managed state below this root, isolated per id, just
-    as environments keep theirs below the workspace/upload/cache roots.
-    """
-    return _remote_root(route, DEPLOYMENT_DIR_NAME)
-
-
-def prepare_instance_dirs(route: SSHRoute, targets: list[str]) -> None:
-    """Create one environment's instance directories as the host login user."""
+def prepare_directories(route: SSHRoute, targets: list[str]) -> None:
+    """Create absolute host directories as the login user."""
     if not targets:
         return
     for target in targets:
         if not target.startswith("/"):
-            raise RuntimeError(f"refusing to prepare non-absolute instance path: {target!r}")
+            raise RuntimeError(f"refusing to prepare non-absolute path: {target!r}")
     remote_command = "mkdir -p -- " + " ".join(shlex.quote(target) for target in targets)
     _run_host(
         route,
         remote_command,
-        timeout=_WORKSPACE_PREPARE_TIMEOUT,
-        action=f"prepare instance directories {targets!r}",
+        timeout=_PREPARE_TIMEOUT,
+        action=f"prepare directories {targets!r}",
     )
 
 
-def list_workspaces(route: SSHRoute, workspace_root: str) -> list[str]:
-    """List ``<workspace>/<instance>`` directories below a workspace root."""
-    if not workspace_root.startswith("/"):
-        raise RuntimeError(f"refusing to list non-absolute workspace root: {workspace_root!r}")
+def list_instances(route: SSHRoute, workspaces_root: str) -> list[str]:
+    """List ``<workspace>/<instance>`` directories below the workspaces root."""
+    if not workspaces_root.startswith("/"):
+        raise RuntimeError(f"refusing to list non-absolute workspace root: {workspaces_root!r}")
     result = _run_host(
         route,
-        (f"find {shlex.quote(workspace_root)} -mindepth 2 -maxdepth 2 -type d -print0"),
-        timeout=_WORKSPACE_LIST_TIMEOUT,
-        action=f"list workspaces below {workspace_root!r}",
+        (f"find {shlex.quote(workspaces_root)} -mindepth 2 -maxdepth 2 -type d -print0"),
+        timeout=_INSTANCE_LIST_TIMEOUT,
+        action=f"list instances below {workspaces_root!r}",
     )
-    prefix = workspace_root.rstrip("/") + "/"
-    workspaces = [path for path in result.stdout.split("\0") if path]
-    if any(not path.startswith(prefix) for path in workspaces):
-        raise RuntimeError(f"host {route.host!r} returned a workspace outside {workspace_root!r}")
-    return sorted(workspaces)
+    prefix = workspaces_root.rstrip("/") + "/"
+    instances = [path for path in result.stdout.split("\0") if path]
+    if any(not path.startswith(prefix) for path in instances):
+        raise RuntimeError(f"host {route.host!r} returned an instance outside {workspaces_root!r}")
+    return sorted(instances)
 
 
 def read_host_environment(route: SSHRoute, names: list[str]) -> dict[str, str]:

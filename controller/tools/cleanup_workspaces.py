@@ -98,16 +98,13 @@ def _scan_host(
     current = inventory.list_inventory(client, host, config)
     if current.errors:
         raise RuntimeError("; ".join(current.errors))
-    roots = ssh.remote_instance_roots(route)
-    scanned: list[tuple[str, str]] = []
-    active: set[str] = set()
-    for root in (roots.workspace, roots.upload, roots.cache):
-        for path in ssh.list_workspaces(route, root):
-            scanned.append((root, path))
-        active |= {
-            f"{root}/{environment.workspace}/{environment.instance}"
-            for environment in current.environments
-        }
+    data_paths = ssh.remote_data_paths(route)
+    root = data_paths.workspaces
+    scanned = [(root, path) for path in ssh.list_instances(route, root)]
+    active = {
+        data_paths.instance(environment.workspace, environment.instance).root
+        for environment in current.environments
+    }
     return scanned, active
 
 
@@ -164,7 +161,7 @@ def _delete_host(
     errors: list[str] = []
     for root, path in workspaces:
         try:
-            container.remove_workspace(client, image, root, path)
+            container.remove_data_directory(client, image, root, path)
             deleted += 1
         except Exception as exc:
             errors.append(f"{path}: {exc}")

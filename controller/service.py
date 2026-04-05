@@ -199,13 +199,16 @@ class CodespaceService:
         containers.pull_image(creation.client, spec.image, spec.platform)
 
         self._stage(creation, "preparing workspace")
-        roots = ssh.remote_instance_roots(creation.route)
-        ssh.prepare_instance_dirs(
+        paths = ssh.remote_data_paths(creation.route).instance(
+            spec.workspace_id,
+            spec.instance,
+        )
+        ssh.prepare_directories(
             creation.route,
             [
-                spec.instance_path(roots.workspace),
-                spec.instance_path(roots.upload),
-                spec.instance_path(roots.cache),
+                paths.workspace,
+                paths.upload,
+                paths.cache,
             ],
         )
 
@@ -214,7 +217,7 @@ class CodespaceService:
         container = containers.create_container(
             creation.client,
             spec,
-            roots,
+            paths,
             host_environment,
         )
 
@@ -301,11 +304,12 @@ class CodespaceService:
         if isinstance(ws, RepoWorkspace) and token is not None:
             provider.revoke(ws.provider, token, ws.repo, spec.identity)
         if purge:
+            paths = ssh.remote_data_paths(route).instance(workspace_id, instance)
             containers.purge_workspace(
                 client,
                 container,
                 environment,
-                ssh.remote_instance_roots(route),
+                paths,
             )
         containers.remove_container(container)
 

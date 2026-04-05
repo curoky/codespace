@@ -21,9 +21,8 @@ CONTAINER_USER = "x"
 CONTAINER_UID = 5230
 CONTAINER_GID = 5230
 WORKSPACE_MOUNT = "/workspace"
-# Each workspace instance also gets a persistent upload inbox and a build cache,
-# bind-mounted from their own host roots so they survive container recreation
-# and stay isolated per instance. Only /workspace is ever encrypted.
+# Each workspace instance also gets a persistent upload inbox and build cache.
+# All three bind mounts are sibling directories below one instance root.
 UPLOAD_MOUNT = "/upload"
 CACHE_MOUNT = "/cache"
 # The host workspace is bind-mounted to the gocryptfs cipher directory; the
@@ -37,20 +36,11 @@ WORKSPACE_CIPHER_MOUNT = "/workspace.enc"
 # via `encrypt_workspace`; a missing secret then fails container creation fast.
 WORKSPACE_CRYPT_SECRET = "workspace_crypt_key"  # noqa: S105 - secret name, not a value
 WORKSPACE_CRYPT_SECRET_ENV = "WORKSPACE_CRYPT_KEY"  # noqa: S105 - env var name, not a value
-# A bind-mount source requires the host's resolved absolute home path. Each
-# instance mount tree has its own host root directory below the login home so
-# workspace, upload and cache data can be listed, purged and backed up apart.
-WORKSPACE_DIR_NAME = "codespace"
-UPLOAD_DIR_NAME = "codespace-upload"
-CACHE_DIR_NAME = "codespace-cache"
-# Deployments (host-level, self-contained images) keep their persistent data in
-# their own root below the login home, isolated per deployment id, so weights
-# and state can be listed and purged apart from environment mounts.
-DEPLOYMENT_DIR_NAME = "codespace-deployment"
+HOST_DATA_DIR_NAME = "codespace"
+WORKSPACES_DATA_DIR_NAME = "workspaces"
+DEPLOYMENTS_DATA_DIR_NAME = "deployments"
 # A ``${DEPLOYMENT_DATA}`` prefix in a deployment volume source is replaced with
-# that deployment's resolved data root (``<login-home>/codespace-deployment/<id>``)
-# just before container creation, mirroring how environment mounts derive their
-# host source from the login home.
+# that deployment's resolved data directory just before container creation.
 DEPLOYMENT_DATA_PLACEHOLDER = "${DEPLOYMENT_DATA}"
 PODMAN_SOCKET = "/run/podman/podman.sock"
 SSH_PORT_START = 20_000
@@ -144,12 +134,42 @@ MANDATORY_DEPLOYMENT_LABELS = (
 
 
 @dataclass(frozen=True, slots=True)
-class HostRoots:
-    """Absolute host root directories for one SSH route's instance mounts."""
+class InstancePaths:
+    """Absolute paths for one environment below a host data root."""
 
+    root: str
+    workspaces_root: str
     workspace: str
     upload: str
     cache: str
+
+
+@dataclass(frozen=True, slots=True)
+class HostDataPaths:
+    """Canonical data layout below one host's ``~/codespace`` directory."""
+
+    root: str
+
+    @property
+    def workspaces(self) -> str:
+        return f"{self.root}/{WORKSPACES_DATA_DIR_NAME}"
+
+    @property
+    def deployments(self) -> str:
+        return f"{self.root}/{DEPLOYMENTS_DATA_DIR_NAME}"
+
+    def instance(self, workspace: str, instance: str) -> InstancePaths:
+        root = f"{self.workspaces}/{workspace}/{instance}"
+        return InstancePaths(
+            root=root,
+            workspaces_root=self.workspaces,
+            workspace=f"{root}{WORKSPACE_MOUNT}",
+            upload=f"{root}{UPLOAD_MOUNT}",
+            cache=f"{root}{CACHE_MOUNT}",
+        )
+
+    def deployment(self, deployment: str) -> str:
+        return f"{self.deployments}/{deployment}"
 
 
 def environment_id(host: str, workspace: str, instance: str) -> str:
