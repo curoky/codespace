@@ -1,68 +1,34 @@
 #!/usr/bin/env bash
-# Initialize the persisted development home and publish managed-workspace state.
+# Initialize the persisted development home for one workspace.
 #
 # Usage: home-init
 #
-# Requires Bash and s6.
+# 由 home-init s6 oneshot 以用户 x 调用，线性执行：
+#   1. sudo chown  把五个持久化 IDE home mount 归属到 5230:5230（`x` 有 NOPASSWD sudo）
+#   2. 无条件生成或复用容器内 deploy key（私钥不出容器，控制面只读公钥）
+#   3. 耗时 home 初始化：扩展播种、docker scene dotfiles、agent playbook 与 user rules
+# 成功返回即视为 home 初始化完成，workspace-bootstrap 与 workspace-agent 依赖本服务；
+# 任一步失败都让脚本非零退出、oneshot 失败，排查读 /var/log/home-init.log。
 
-set -Eeuo pipefail
+set -euo pipefail
 
-readonly control_dir="/run/codespace-control"
-readonly ready_path="${control_dir}/home.ready"
-readonly failed_path="${control_dir}/home.failed"
+# 五个 IDE home mount 由控制面按实例 bind 宿主目录，rootful Podman 透传所有权。
+sudo chown 5230:5230 \
+  /home/x/.vscode-server /home/x/.trae /home/x/.trae-cn \
+  /home/x/.trae-server /home/x/.trae-cn-server
 
-is_managed_workspace() {
-  [[ -n ${CODESPACE_WORKSPACE_TYPE-} ]]
-}
+# 无条件生成或复用 deploy key；私钥留容器内，控制面只读对应公钥。
+install -d -m 0700 -- /home/x/.ssh
+if [[ ! -f /home/x/.ssh/repo_id_ed25519 ]]; then
+  ssh-keygen -q -t ed25519 -N "" -C codespace -f /home/x/.ssh/repo_id_ed25519
+fi
+chmod 0600 /home/x/.ssh/repo_id_ed25519
 
-write_marker() {
-  local path=$1
-  local content=$2
-  local temporary
+# 把构建期预装的扩展播种到各 IDE 远端 server 持久化目录。
+/opt/codespace/bin/seed-vscode-extensions \
+  /home/x/.vscode-server /home/x/.trae-server /home/x/.trae-cn-server
 
-  temporary=$(mktemp "${path}.XXXXXX")
-  printf '%s\n' "${content}" >"${temporary}"
-  chmod 0600 "${temporary}"
-  mv -f -- "${temporary}" "${path}"
-}
-
-settle() {
-  exec s6-pause
-}
-
-fail() {
-  local status=$?
-  trap - ERR
-  local message="home initialization failed (${status})"
-
-  if is_managed_workspace; then
-    write_marker "${failed_path}" "${message}"
-  fi
-  echo "${message}" >&2
-  settle
-}
-
-main() {
-  if [[ $# -ne 0 ]]; then
-    echo "usage: home-init" >&2
-    return 2
-  fi
-
-  trap fail ERR
-  if is_managed_workspace; then
-    if [[ -f ${ready_path} ]]; then
-      settle
-    fi
-    rm -f -- "${failed_path}"
-  fi
-
-  s6-setuidgid x env HOME=/home/x \
-    /opt/codespace/bin/home-setup
-
-  if is_managed_workspace; then
-    write_marker "${ready_path}" "ready"
-  fi
-  settle
-}
-
-main "$@"
+bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles
+bash /opt/agent-playbook/install.sh
+cp /opt/devspace/images/dev/dev-environment.md /home/x/.trae/user_rules/
+cp /opt/devspace/images/dev/dev-environment.md /home/x/.trae-cn/user_rules/

@@ -47,10 +47,11 @@ echo "en_US.UTF-8 UTF-8" >/etc/locale.gen
 locale-gen
 
 # fusermount3 (binman fuse3) needs setuid root so the unprivileged user `x` can
-# mount FUSE: workspace-crypt runs gocryptfs under `s6-setuidgid x`, which drops
-# CAP_SYS_ADMIN, and the binman static build ships fusermount3 without the setuid
-# bit. Without this, gocryptfs mount fails with "fusermount3: mount failed:
-# Operation not permitted" and sshd (which depends on workspace-crypt) never
+# mount FUSE: workspace-init runs gocryptfs as `x` (so ciphertext files land
+# owned by 5230:5230), which lacks CAP_SYS_ADMIN, and the binman static build
+# ships fusermount3 without the setuid bit. Without this, gocryptfs mount fails
+# with "fusermount3: mount failed: Operation not permitted" and sshd (which
+# depends on workspace-init) never
 # starts. Set on the store target since /opt/bm/bin/fusermount3 is a symlink.
 chown root:root /opt/bm/store/fuse3/bin/fusermount3
 chmod u+s /opt/bm/store/fuse3/bin/fusermount3

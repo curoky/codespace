@@ -97,8 +97,6 @@ def reset_control_state(route: SSHRoute, control_path: str) -> None:
             "agent.sock",
             "bootstrap.failed",
             "bootstrap.ready",
-            "home.failed",
-            "home.ready",
             "provider-ready",
         )
     )

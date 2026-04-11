@@ -8,6 +8,8 @@
 prefix: /opt/bm
 packages:
   link:
+    - shellcheck
+    - bats
     # shell & terminal
     - zsh
     - zsh-plugins
