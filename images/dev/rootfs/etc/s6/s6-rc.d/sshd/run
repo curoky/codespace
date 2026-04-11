@@ -1,7 +1,5 @@
 #!/opt/bm/profile/s6/bin/execlineb -P
 
-# longrun run script (execline). Load the container environment dumped by the
-# init, then exec sshd with the wanted port.
 s6-envdir -Lf -- /run/s6/container_environment
 
 fdmove -c 2 1

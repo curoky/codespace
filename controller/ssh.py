@@ -95,8 +95,6 @@ def reset_control_state(route: SSHRoute, control_path: str) -> None:
         shlex.quote(f"{control_path}/{name}")
         for name in (
             "agent.sock",
-            "bootstrap.failed",
-            "bootstrap.ready",
             "provider-ready",
         )
     )
