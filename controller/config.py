@@ -34,7 +34,6 @@ from controller.models import (
     LABEL_SSH_PORT,
     LABEL_TYPE,
     LABEL_WORKSPACE,
-    PODMAN_SOCKET,
     RESOURCE_ID_RE,
     UPLOAD_MOUNT,
     WORKSPACE_CIPHER_MOUNT,
@@ -106,6 +105,11 @@ def _env_secret_targets(secrets: list[Secret] | None) -> list[str]:
     if secrets is None:
         return []
     return [secret.target for secret in secrets if secret.mode == "env" and secret.target]
+
+
+def _duplicates(values: list[str]) -> list[str]:
+    """Return the sorted set of values that appear more than once."""
+    return sorted({value for value in values if values.count(value) > 1})
 
 
 def _mount_targets_overlap(left: str, right: str) -> bool:
@@ -215,7 +219,7 @@ class ContainerConfig(ServiceSpec):
             raise ValueError(
                 f"container.secrets env target must not use control-plane keys {sorted(reserved)}"
             )
-        duplicates = sorted({name for name in targets if targets.count(name) > 1})
+        duplicates = _duplicates(targets)
         if duplicates:
             raise ValueError(f"container.secrets env target must not repeat names: {duplicates}")
         explicit = set(self.environment or {})
@@ -236,9 +240,7 @@ class HostConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    type: Literal["ssh", "podman-machine"] = "ssh"
     podman_socket: str | None = None
-    machine: NonBlankString | None = None
     environment: list[EnvironmentName] = Field(default_factory=list)
     deployments: list[NonBlankString] = Field(default_factory=list)
     container: ContainerConfig | None = None
@@ -253,7 +255,7 @@ class HostConfig(BaseModel):
     @field_validator("deployments")
     @classmethod
     def _validate_deployments(cls, value: list[str]) -> list[str]:
-        duplicates = sorted({name for name in value if value.count(name) > 1})
+        duplicates = _duplicates(value)
         if duplicates:
             raise ValueError(f"deployments must not repeat: {duplicates}")
         return value
@@ -261,7 +263,7 @@ class HostConfig(BaseModel):
     @field_validator("environment")
     @classmethod
     def _validate_environment(cls, value: list[str]) -> list[str]:
-        duplicates = sorted({name for name in value if value.count(name) > 1})
+        duplicates = _duplicates(value)
         if duplicates:
             raise ValueError(f"environment must not contain duplicates: {duplicates}")
         reserved = _RESERVED_ENV_KEYS & set(value)
@@ -269,33 +271,9 @@ class HostConfig(BaseModel):
             raise ValueError(f"environment must not inherit control-plane keys {sorted(reserved)}")
         return value
 
-    @model_validator(mode="after")
-    def _validate_type_fields(self) -> Self:
-        if self.type == "ssh":
-            if self.machine is not None:
-                raise ValueError("machine is only valid for podman-machine hosts")
-            return self
-        if self.machine is None:
-            raise ValueError("machine is required for podman-machine hosts")
-        if self.podman_socket is not None:
-            raise ValueError("podman_socket is not valid for podman-machine hosts")
-        if self.environment:
-            raise ValueError("environment is only valid for SSH hosts")
-        return self
-
-    def resolved_podman_socket(self) -> str:
-        """Return the remote socket used by an SSH host."""
-        if self.type != "ssh":
-            raise ValueError("podman-machine socket is discovered from machine inspect")
-        return self.podman_socket or PODMAN_SOCKET
-
     def endpoint(self) -> HostEndpoint:
         """Return the neutral Podman endpoint for this host."""
-        return HostEndpoint(
-            type=self.type,
-            podman_socket=self.podman_socket,
-            machine=self.machine,
-        )
+        return HostEndpoint(podman_socket=self.podman_socket)
 
 
 class TokensConfig(BaseModel):
@@ -344,7 +322,7 @@ class _BaseWorkspace(BaseModel):
     def _validate_host(cls, value: list[WorkspaceHost]) -> list[WorkspaceHost]:
         if not value:
             raise ValueError("host must list at least one target host")
-        duplicates = sorted({e.name for e in value if [x.name for x in value].count(e.name) > 1})
+        duplicates = _duplicates([entry.name for entry in value])
         if duplicates:
             raise ValueError(f"host must not list a host more than once: {duplicates}")
         return value

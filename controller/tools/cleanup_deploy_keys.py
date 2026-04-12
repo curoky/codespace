@@ -3,17 +3,16 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from typing import Annotated, Literal
 
 import typer
 from rich.console import Console
-from rich.table import Table
 
 from controller import inventory, provider
 from controller.config import CONFIG_PATH, Config, RepoWorkspace, load_config
 from controller.models import RESOURCE_ID_RE, GitProvider
 from controller.runtime.transport import PodmanTransport
+from controller.tools import support
 
 type Repository = tuple[GitProvider, str]
 type Route = tuple[str, str]
@@ -41,16 +40,19 @@ def main(
             usage = _usage(key.title, repositories[repository], active, scanned_hosts)
             rows.append((repository, key, usage))
 
-    table = Table()
-    table.add_column("Repository", overflow="fold")
-    table.add_column("Deploy key", overflow="fold")
-    table.add_column("In use", no_wrap=True)
-    for (provider_name, repo), key, usage in rows:
-        table.add_row(f"{provider_name}:{repo}", key.title, usage)
-    console.print(table)
-
-    for error in errors:
-        console.print(f"[yellow]Warning:[/yellow] {error}")
+    support.render_table(
+        console,
+        [
+            {"header": "Repository", "overflow": "fold"},
+            {"header": "Deploy key", "overflow": "fold"},
+            {"header": "In use", "no_wrap": True},
+        ],
+        [
+            (f"{provider_name}:{repo}", key.title, usage)
+            for (provider_name, repo), key, usage in rows
+        ],
+    )
+    support.print_warnings(console, errors)
 
     unused = [(repository, key) for repository, key, usage in rows if usage == "no"]
     if not no_dry_run:
@@ -58,8 +60,7 @@ def main(
         return
 
     deleted, delete_errors = _delete(config, unused)
-    for error in delete_errors:
-        console.print(f"[red]Error:[/red] {error}")
+    support.print_errors(console, delete_errors)
     console.print(f"Deleted {deleted} unused key(s).")
 
 
@@ -77,7 +78,6 @@ def _collect(
     config: Config,
     repositories: dict[Repository, list[Route]],
 ) -> tuple[dict[Repository, list[provider.DeployKey]], set[str], set[str], list[str]]:
-    keys: dict[Repository, list[provider.DeployKey]] = {}
     active: set[str] = set()
     scanned_hosts: set[str] = set()
     errors: list[str] = []
@@ -85,41 +85,33 @@ def _collect(
     tokens = config.seed_tokens()
 
     try:
-        with ThreadPoolExecutor() as executor:
-            host_futures = {
-                executor.submit(_list_inventory, transport, config, host): host
-                for host in config.hosts
-            }
-            repository_futures: dict[Future[list[provider.DeployKey]], Repository] = {}
-            for repository in repositories:
-                provider_name, repo = repository
-                token = tokens.get(provider_name)
-                if token is None:
-                    errors.append(f"{provider_name}:{repo}: token is not configured")
-                    continue
-                repository_futures[
-                    executor.submit(provider.list_deploy_keys, provider_name, token, repo)
-                ] = repository
+        inventories, host_failures = support.fan_out(
+            config.hosts, lambda host: _list_inventory(transport, config, host)
+        )
+        for host, current in inventories:
+            if current.errors:
+                errors.append(f"{host}: {'; '.join(current.errors)}")
+                continue
+            scanned_hosts.add(host)
+            active.update(environment.id for environment in current.environments)
+        errors.extend(f"{host}: {exc}" for host, exc in host_failures)
 
-            for host_future in as_completed(host_futures):
-                host = host_futures[host_future]
-                try:
-                    current = host_future.result()
-                except Exception as exc:
-                    errors.append(f"{host}: {exc}")
-                    continue
-                if current.errors:
-                    errors.append(f"{host}: {'; '.join(current.errors)}")
-                    continue
-                scanned_hosts.add(host)
-                active.update(environment.id for environment in current.environments)
-
-            for repository_future in as_completed(repository_futures):
-                repository = repository_futures[repository_future]
-                try:
-                    keys[repository] = repository_future.result()
-                except Exception as exc:
-                    errors.append(f"{repository[0]}:{repository[1]}: {exc}")
+        listable = [
+            repository for repository in repositories if tokens.get(repository[0]) is not None
+        ]
+        errors.extend(
+            f"{provider_name}:{repo}: token is not configured"
+            for provider_name, repo in repositories
+            if tokens.get(provider_name) is None
+        )
+        listed, key_failures = support.fan_out(
+            listable,
+            lambda repository: provider.list_deploy_keys(
+                repository[0], tokens[repository[0]], repository[1]
+            ),
+        )
+        keys = dict(listed)
+        errors.extend(f"{repository[0]}:{repository[1]}: {exc}" for repository, exc in key_failures)
     finally:
         transport.close()
     return keys, active, scanned_hosts, errors
@@ -153,27 +145,17 @@ def _delete(
     for repository, key in unused:
         grouped[repository].append(key.id)
 
-    errors: list[str] = []
-    deleted = 0
     tokens = config.seed_tokens()
-    with ThreadPoolExecutor() as executor:
-        futures = {
-            executor.submit(
-                provider.delete_deploy_keys,
-                provider_name,
-                tokens[provider_name],
-                repo,
-                key_ids,
-            ): (provider_name, repo, len(key_ids))
-            for (provider_name, repo), key_ids in grouped.items()
-        }
-        for future in as_completed(futures):
-            provider_name, repo, count = futures[future]
-            try:
-                future.result()
-                deleted += count
-            except Exception as exc:
-                errors.append(f"{provider_name}:{repo}: {exc}")
+    _results, failures = support.fan_out(
+        grouped,
+        lambda repository: provider.delete_deploy_keys(
+            repository[0], tokens[repository[0]], repository[1], grouped[repository]
+        ),
+    )
+    deleted = sum(len(grouped[repository]) for repository in grouped) - sum(
+        len(grouped[repository]) for repository, _exc in failures
+    )
+    errors = [f"{repository[0]}:{repository[1]}: {exc}" for repository, exc in failures]
     return deleted, errors
 
 

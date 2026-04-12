@@ -1,8 +1,8 @@
 """Provider-neutral remote command execution and atomic local file writes.
 
 These primitives carry no Codespace layout knowledge: :func:`run_host` runs one
-command over an SSH route (either a configured SSH host or a Podman Machine),
-and :func:`write_atomic`/:func:`ensure_mode` manage local files with strict
+command over an SSH route by reusing the host's ControlMaster, and
+:func:`write_atomic`/:func:`ensure_mode` manage local files with strict
 permissions. Callers own every path and route the operations act on.
 """
 
@@ -15,7 +15,7 @@ import tempfile
 from contextlib import suppress
 from pathlib import Path
 
-from controller.runtime.transport import SSHRoute
+from controller.runtime.transport import SSHRoute, ssh_base_options
 
 
 def run_host(
@@ -24,42 +24,10 @@ def run_host(
     *,
     timeout: float,
     action: str,
-    machine_known_hosts: Path | None = None,
     input_text: str | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    """Run one command over an SSH route and return the completed process.
-
-    For a Podman Machine route the caller must provide ``machine_known_hosts``;
-    its parent directory is created with ``0o700`` before use.
-    """
-    command = ["ssh", "-o", "BatchMode=yes"]
-    if route.is_machine:
-        if route.port is None or route.identity_path is None:
-            raise RuntimeError(f"Podman Machine SSH route for {route.host!r} is incomplete")
-        if machine_known_hosts is None:
-            raise RuntimeError(
-                f"Podman Machine SSH route for {route.host!r} requires a known_hosts path"
-            )
-        machine_known_hosts.parent.mkdir(parents=True, exist_ok=True)
-        ensure_mode(machine_known_hosts.parent, 0o700)
-        command.extend(
-            [
-                "-o",
-                "IdentitiesOnly=yes",
-                "-o",
-                "StrictHostKeyChecking=accept-new",
-                "-o",
-                f"UserKnownHostsFile={machine_known_hosts}",
-                "-i",
-                str(route.identity_path),
-                "-p",
-                str(route.port),
-                "root@127.0.0.1",
-            ]
-        )
-    else:
-        command.append(route.host)
-    command.append(remote_command)
+    """Run one command over an SSH route and return the completed process."""
+    command = ["ssh", *ssh_base_options(route.control_path), route.host, remote_command]
     try:
         result = subprocess.run(  # noqa: S603
             command,

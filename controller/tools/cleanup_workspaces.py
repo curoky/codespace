@@ -3,18 +3,17 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import PurePosixPath
 from typing import Annotated, Literal
 
 import typer
 from rich.console import Console
-from rich.table import Table
 
 from controller import container, inventory, ssh
 from controller.config import CONFIG_PATH, Config, load_config
 from controller.models import RESOURCE_ID_RE
 from controller.runtime.transport import PodmanTransport
+from controller.tools import support
 
 type Usage = Literal["yes", "no", "unmanaged"]
 type Workspace = tuple[str, str, str]
@@ -40,16 +39,16 @@ def main(
             for host, root, path, active in workspaces
         ]
 
-        table = Table()
-        table.add_column("Host")
-        table.add_column("Workspace", overflow="fold")
-        table.add_column("In use", no_wrap=True)
-        for host, _root, path, usage in rows:
-            table.add_row(host, path, usage)
-        console.print(table)
-
-        for error in errors:
-            console.print(f"[yellow]Warning:[/yellow] {error}")
+        support.render_table(
+            console,
+            [
+                {"header": "Host"},
+                {"header": "Workspace", "overflow": "fold"},
+                {"header": "In use", "no_wrap": True},
+            ],
+            [(host, path, usage) for host, _root, path, usage in rows],
+        )
+        support.print_warnings(console, errors)
 
         unused = [(host, root, path) for host, root, path, usage in rows if usage == "no"]
         if not no_dry_run:
@@ -59,8 +58,7 @@ def main(
             return
 
         deleted, delete_errors = _delete(config, transport, unused)
-        for error in delete_errors:
-            console.print(f"[red]Error:[/red] {error}")
+        support.print_errors(console, delete_errors)
         console.print(f"Deleted {deleted} unused workspace(s).")
     finally:
         transport.close()
@@ -70,22 +68,16 @@ def _collect(
     config: Config,
     transport: PodmanTransport,
 ) -> tuple[list[tuple[str, str, str, set[str]]], list[str]]:
-    workspaces: list[tuple[str, str, str, set[str]]] = []
-    errors: list[str] = []
-    with ThreadPoolExecutor() as executor:
-        futures = {
-            executor.submit(_scan_host, config, transport, host): host for host in config.hosts
-        }
-        for future in as_completed(futures):
-            host = futures[future]
-            try:
-                scanned, active = future.result()
-            except Exception as exc:
-                errors.append(f"{host}: {exc}")
-                continue
-            workspaces.extend((host, root, path, active) for root, path in scanned)
+    scanned_by_host, failures = support.fan_out(
+        config.hosts, lambda host: _scan_host(config, transport, host)
+    )
+    workspaces = [
+        (host, root, path, active)
+        for host, (scanned, active) in scanned_by_host
+        for root, path in scanned
+    ]
     workspaces.sort(key=lambda item: (item[0], item[2]))
-    return workspaces, errors
+    return workspaces, [f"{host}: {exc}" for host, exc in failures]
 
 
 def _scan_host(
@@ -129,24 +121,15 @@ def _delete(
     for host, root, path in workspaces:
         grouped[host].append((root, path))
 
+    results, _failures = support.fan_out(
+        grouped,
+        lambda host: _delete_host(transport, host, config.workspaces.defaults.image, grouped[host]),
+    )
     deleted = 0
     errors: list[str] = []
-    with ThreadPoolExecutor() as executor:
-        futures = {
-            executor.submit(
-                _delete_host,
-                transport,
-                host,
-                config.workspaces.defaults.image,
-                paths,
-            ): host
-            for host, paths in grouped.items()
-        }
-        for future in as_completed(futures):
-            host = futures[future]
-            host_deleted, host_errors = future.result()
-            deleted += host_deleted
-            errors.extend(f"{host}: {error}" for error in host_errors)
+    for host, (host_deleted, host_errors) in results:
+        deleted += host_deleted
+        errors.extend(f"{host}: {error}" for error in host_errors)
     return deleted, errors
 
 
@@ -163,7 +146,7 @@ def _delete_host(
         try:
             container.remove_data_directory(client, image, root, path)
             deleted += 1
-        except Exception as exc:
+        except Exception as exc:  # a per-workspace failure surfaces in the report
             errors.append(f"{path}: {exc}")
     return deleted, errors
 

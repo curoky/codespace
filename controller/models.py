@@ -57,7 +57,6 @@ DEPLOYMENTS_DATA_DIR_NAME = "deployments"
 # A ``${DEPLOYMENT_DATA}`` prefix in a deployment volume source is replaced with
 # that deployment's resolved data directory just before container creation.
 DEPLOYMENT_DATA_PLACEHOLDER = "${DEPLOYMENT_DATA}"
-PODMAN_SOCKET = "/run/podman/podman.sock"
 SSH_PORT_START = 20_000
 SSH_PORT_COUNT = 10_000
 
@@ -260,10 +259,6 @@ class RepoGitState(BaseModel):
     unpushed: bool = False
     uncommitted: bool = False
     detail: list[str] = Field(default_factory=list)
-
-    @property
-    def blocks_delete(self) -> bool:
-        return self.unpushed or self.uncommitted
 
 
 class DeleteInstanceResult(BaseModel):

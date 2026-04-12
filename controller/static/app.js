@@ -199,7 +199,9 @@ function renderWorkspaces(dashboard) {
     card.append(header);
 
     const list = element("div", "environment-list");
-    operations.forEach((operation) => list.append(renderOperation(operation)));
+    operations.forEach((operation) =>
+      list.append(renderOperation(operation, operation.instance, operation)),
+    );
     environments.forEach((environment) => list.append(renderEnvironment(environment)));
     if (!operations.length && !environments.length) {
       const empty = element("div", "empty");
@@ -254,7 +256,12 @@ function renderDeployments(dashboard) {
 }
 
 function renderDeploymentHost(deployment, host) {
-  if (host.operation) return renderDeploymentOperation(deployment, host.operation);
+  if (host.operation) {
+    return renderOperation(host.operation, host.operation.host, {
+      deployment: deployment.id,
+      host: host.operation.host,
+    });
+  }
 
   const row = element("div", "environment");
   const info = element("div", "environment-info");
@@ -292,37 +299,17 @@ function renderDeploymentHost(deployment, host) {
   return row;
 }
 
-function renderDeploymentOperation(deployment, operation) {
+// One in-flight operation row, shared by environments and deployments. The
+// caller supplies the title (instance or host name) and the dataset used to
+// dismiss it, since those differ between the two callers.
+function renderOperation(operation, title, dismissTarget) {
   const row = element("div", `operation ${operation.status}`);
   const heading = element("div", "operation-heading");
-  heading.append(element("div", "environment-title", operation.host));
+  heading.append(element("div", "environment-title", title));
   const actions = element("div", "operation-heading-actions");
   actions.append(element("span", `status-badge ${operation.status}`, operation.status));
   if (operation.status === "failed") {
-    const dismissButton = actionButton("×", "dismiss-operation", {
-      deployment: deployment.id,
-      host: operation.host,
-    });
-    dismissButton.classList.add("icon", "operation-dismiss");
-    dismissButton.setAttribute("aria-label", "Dismiss failed operation");
-    dismissButton.title = "Dismiss failed operation";
-    actions.append(dismissButton);
-  }
-  heading.append(actions);
-  row.append(heading);
-  row.append(element("div", "environment-subtitle", operation.stage));
-  if (operation.error) row.append(element("p", "host-error", operation.error));
-  return row;
-}
-
-function renderOperation(operation) {
-  const row = element("div", `operation ${operation.status}`);
-  const heading = element("div", "operation-heading");
-  heading.append(element("div", "environment-title", operation.instance));
-  const actions = element("div", "operation-heading-actions");
-  actions.append(element("span", `status-badge ${operation.status}`, operation.status));
-  if (operation.status === "failed") {
-    const dismissButton = actionButton("×", "dismiss-operation", operation);
+    const dismissButton = actionButton("×", "dismiss-operation", dismissTarget);
     dismissButton.classList.add("icon", "operation-dismiss");
     dismissButton.setAttribute("aria-label", "Dismiss failed operation");
     dismissButton.title = "Dismiss failed operation";
