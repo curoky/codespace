@@ -24,7 +24,6 @@ def run_host(
     *,
     timeout: float,
     action: str,
-    input_text: str | None = None,
 ) -> subprocess.CompletedProcess[str]:
     """Run one command over an SSH route and return the completed process."""
     command = ["ssh", *ssh_base_options(route.control_path), route.host, remote_command]
@@ -34,8 +33,7 @@ def run_host(
             check=True,
             capture_output=True,
             text=True,
-            stdin=subprocess.DEVNULL if input_text is None else None,
-            input=input_text,
+            stdin=subprocess.DEVNULL,
             timeout=timeout,
         )
     except (OSError, subprocess.SubprocessError) as exc:

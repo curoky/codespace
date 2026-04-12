@@ -64,16 +64,11 @@ def create_container(
 ) -> Container:
     """Create and start a configured development container."""
     options = spec.container
-    configured_environment = options.environment or {}
-    inherited_environment = host_environment or {}
-    collisions = sorted(inherited_environment.keys() & configured_environment.keys())
-    if collisions:
-        raise ValueError(
-            f"host environment variables also set in container.environment: {collisions}"
-        )
+    # Config validation already rejects host/container env collisions at load
+    # time (config._validate_workspaces), so the two maps merge cleanly here.
     environment = {
-        **inherited_environment,
-        **configured_environment,
+        **(host_environment or {}),
+        **(options.environment or {}),
         WORKSPACE_TYPE_ENV: spec.workspace.type,
         WORKSPACE_CLONE_PATH_ENV: spec.clone_path,
         WORKSPACE_OPEN_PATH_ENV: spec.open_path,
@@ -273,9 +268,8 @@ def create_deployment_container(
             ports[f"{remote}/tcp"] = local
 
     secret_mounts, secret_env = _resolve_secrets(client, options.secrets or [])
-    env_collisions = sorted(environment.keys() & secret_env.keys())
-    if env_collisions:
-        raise ValueError(f"container.secrets env target also set in environment: {env_collisions}")
+    # ContainerConfig._validate_env_secret_targets already rejects env-secret /
+    # environment collisions when the deployment config is resolved.
 
     mounts = [_deployment_mount(volume, data_path) for volume in options.volumes or []]
 

@@ -53,14 +53,8 @@ class _UnixHTTPConnection(http.client.HTTPConnection):
 class WorkspaceAgentClient:
     """Call the fixed workspace agent API through a local Unix socket."""
 
-    def __init__(
-        self,
-        socket_path: Path,
-        *,
-        timeout: float = _DEFAULT_TIMEOUT,
-    ) -> None:
+    def __init__(self, socket_path: Path) -> None:
         self._socket_path = socket_path
-        self._timeout = timeout
 
     def status(self) -> AgentStatus:
         try:
@@ -105,7 +99,7 @@ class WorkspaceAgentClient:
         method: str,
         target: str,
     ) -> object:
-        connection = _UnixHTTPConnection(self._socket_path, self._timeout)
+        connection = _UnixHTTPConnection(self._socket_path, _DEFAULT_TIMEOUT)
         try:
             connection.request(method, target)
             response = connection.getresponse()
