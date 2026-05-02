@@ -1,4 +1,12 @@
-"""Pydantic models for the supported Compose service subset."""
+"""A small subset of the Compose service schema forwarded to ``podman run``.
+
+Models only the container fields the control plane cares about (``cap_add``,
+``security_opt``, ``pids_limit``, ``ulimits``, ``volumes``, ``environment``,
+``secrets``, ...) using Compose field names and both short and long syntaxes.
+Every field is optional so one ``ServiceSpec`` serves as both base and override
+layer; ``merged_with`` does the shallow key-level layering. No control-plane
+knowledge lives here.
+"""
 
 from __future__ import annotations
 
@@ -12,13 +20,6 @@ from pydantic import (
     ConfigDict,
     Field,
     model_validator,
-)
-
-from controller.runtime.compose.syntax import (
-    normalize_environment,
-    normalize_secrets,
-    normalize_ulimits,
-    normalize_volumes,
 )
 
 _ENV_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -37,12 +38,7 @@ def _absolute_path(value: str) -> str:
 
 
 def _mount_source(value: str) -> str:
-    """Validate a bind-mount source.
-
-    A source is either an absolute host path or a Compose-style ``${VAR}``
-    placeholder that the control plane resolves before container creation
-    (e.g. ``${DEPLOYMENT_DATA}`` for a deployment's managed data root).
-    """
+    """A bind-mount source: an absolute host path or a ``${VAR}`` placeholder."""
     if value.startswith(("/", "${")):
         return value
     raise ValueError("volume source must be an absolute path or a ${...} placeholder")
@@ -51,6 +47,66 @@ def _mount_source(value: str) -> str:
 NonBlankString = Annotated[str, AfterValidator(_not_blank)]
 AbsolutePath = Annotated[str, AfterValidator(_absolute_path)]
 MountSource = Annotated[str, AfterValidator(_mount_source)]
+
+
+def normalize_volumes(value: object) -> object:
+    """Expand ``source:target[:ro|rw]`` bind mounts."""
+    if not isinstance(value, list):
+        return value
+    return [_normalize_volume(item) for item in value]
+
+
+def _normalize_volume(item: object) -> object:
+    if not isinstance(item, str):
+        return item
+    parts = item.split(":")
+    if len(parts) not in (2, 3):
+        raise ValueError(f"volume {item!r} must be 'source:target' or 'source:target:ro|rw'")
+    source, target = parts[0], parts[1]
+    read_only = False
+    if len(parts) == 3:
+        mode = parts[2]
+        if mode not in ("ro", "rw"):
+            raise ValueError(f"volume {item!r} mode must be 'ro' or 'rw', got {mode!r}")
+        read_only = mode == "ro"
+    return {"type": "bind", "source": source, "target": target, "read_only": read_only}
+
+
+def normalize_environment(value: object) -> object:
+    """Convert ``KEY=value`` list entries to a mapping."""
+    if not isinstance(value, list):
+        return value
+    result: dict[str, str] = {}
+    for entry in value:
+        if not isinstance(entry, str) or "=" not in entry:
+            raise ValueError(f"environment entry {entry!r} must be 'KEY=value'")
+        key, _, val = entry.partition("=")
+        if not key:
+            raise ValueError(f"environment entry {entry!r} has an empty key")
+        result[key] = val
+    return result
+
+
+def normalize_ulimits(value: object) -> object:
+    """Expand scalar ulimits to equal soft and hard values."""
+    if not isinstance(value, dict):
+        return value
+    return {name: _normalize_ulimit(limit) for name, limit in value.items()}
+
+
+def _normalize_ulimit(limit: object) -> object:
+    if isinstance(limit, bool):
+        raise ValueError("ulimit value must be an integer or a {soft, hard} mapping")
+    if isinstance(limit, int):
+        return {"soft": limit, "hard": limit}
+    return limit
+
+
+def normalize_secrets(value: object) -> object:
+    """Expand bare ``name`` secret references to mount entries."""
+    if not isinstance(value, list):
+        return value
+    return [{"source": item, "mode": "mount"} if isinstance(item, str) else item for item in value]
 
 
 class Ulimit(BaseModel):
@@ -74,12 +130,11 @@ class Volume(BaseModel):
 
 
 class Secret(BaseModel):
-    """Normalized reference to a Podman secret registered on the host.
+    """A reference to a Podman secret the host operator pre-created.
 
-    The control plane never holds the secret material: ``source`` names a secret
-    the host operator pre-created with ``podman secret create``. ``mode: mount``
-    exposes it as a file (default ``/run/secrets/<source>``); ``mode: env``
-    injects it as the environment variable named by ``target``.
+    The control plane never holds the material: ``source`` names the secret;
+    ``mode: mount`` exposes it as a file, ``mode: env`` injects the env var named
+    by ``target``.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -139,7 +194,6 @@ class ServiceSpec(BaseModel):
         """Apply shallow override layers left to right and revalidate."""
         merged = self.model_dump(exclude_none=True)
         for override in overrides:
-            if override is None:
-                continue
-            merged.update(override.model_dump(exclude_none=True))
+            if override is not None:
+                merged.update(override.model_dump(exclude_none=True))
         return self.__class__.model_validate(merged)

@@ -1,17 +1,19 @@
-"""Podman clients and Unix socket tunnels over system SSH.
+"""Podman clients, SSH tunnels and remote command / atomic file primitives.
 
-One OpenSSH ControlMaster is kept per host. The master process holds the Podman
-API socket forward; per-instance agent sockets are added to that master with
-``ssh -O forward`` and dropped when the master is stopped. Command execution
-(the ``remote`` module) and the SSH login probe reuse the same control socket,
-so a single base option set describes every SSH invocation.
+One OpenSSH ControlMaster is kept per host: the master process holds the Podman
+API socket forward; per-instance agent sockets are added with ``ssh -O forward``.
+Command execution and the SSH login probe reuse the same control socket, so a
+single base option set describes every SSH invocation. The ``run_host`` /
+``write_atomic`` / ``ensure_mode`` helpers carry no Codespace layout knowledge.
 """
 
 from __future__ import annotations
 
 import contextlib
 import hashlib
+import os
 import shutil
+import stat
 import subprocess
 import tempfile
 import time
@@ -26,12 +28,10 @@ _PODMAN_SOCKET = "/run/podman/podman.sock"
 
 _START_TIMEOUT = 10.0
 _START_INTERVAL = 0.05
-# Cap every Podman call so a half-dead tunnel fails fast instead of hanging a
-# create operation forever. Image pulls stream, so this bounds inter-chunk gaps
-# rather than the whole download.
+# Cap every Podman call so a half-dead tunnel fails fast instead of hanging.
+# Image pulls stream, so this bounds inter-chunk gaps, not the whole download.
 _CLIENT_TIMEOUT = 60.0
-# Let SSH drop a silently-broken master on its own; the dead process then fails
-# is_running() and the next client() call rebuilds it.
+# Let SSH drop a silently-broken master; the next client() call rebuilds it.
 _SERVER_ALIVE_INTERVAL = 15
 _SERVER_ALIVE_COUNT_MAX = 3
 
@@ -64,6 +64,67 @@ def ssh_base_options(control_path: Path | None) -> list[str]:
     if control_path is not None:
         options += ["-o", f"ControlPath={control_path}"]
     return options
+
+
+def run_host(
+    route: SSHRoute,
+    remote_command: str,
+    *,
+    timeout: float,
+    action: str,
+) -> subprocess.CompletedProcess[str]:
+    """Run one command over an SSH route and return the completed process."""
+    command = ["ssh", *ssh_base_options(route.control_path), route.host, remote_command]
+    try:
+        return subprocess.run(  # noqa: S603
+            command,
+            check=True,
+            capture_output=True,
+            text=True,
+            stdin=subprocess.DEVNULL,
+            timeout=timeout,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        stderr = (
+            exc.stderr.strip()
+            if isinstance(exc, subprocess.CalledProcessError) and exc.stderr
+            else ""
+        )
+        raise RuntimeError(f"failed to {action} on host {route.host!r}: {stderr or exc}") from exc
+
+
+def write_atomic(path: Path, content: str) -> None:
+    """Write ``content`` to ``path`` atomically with ``0o700`` dir/``0o600`` file modes."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    ensure_mode(path.parent, 0o700)
+    if path.exists() and path.read_text(encoding="utf-8") == content:
+        ensure_mode(path, 0o600)
+        return
+    temporary_name = ""
+    try:
+        with tempfile.NamedTemporaryFile(
+            "w",
+            encoding="utf-8",
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            delete=False,
+        ) as temporary:
+            temporary_name = temporary.name
+            temporary.write(content)
+            temporary.flush()
+            os.fsync(temporary.fileno())
+        temporary_path = Path(temporary_name)
+        ensure_mode(temporary_path, 0o600)
+        temporary_path.replace(path)
+    finally:
+        if temporary_name:
+            with contextlib.suppress(FileNotFoundError):
+                Path(temporary_name).unlink()
+
+
+def ensure_mode(path: Path, mode: int) -> None:
+    if stat.S_IMODE(path.stat().st_mode) != mode:
+        path.chmod(mode)
 
 
 @dataclass(slots=True)

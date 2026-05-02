@@ -14,6 +14,7 @@ from pathlib import Path
 
 from tenacity import Retrying, retry_if_exception_type, stop_after_delay, wait_fixed
 
+from controller import transport
 from controller.models import (
     CONTAINER_USER,
     DEPLOYMENTS_DATA_DIR_NAME,
@@ -22,8 +23,7 @@ from controller.models import (
     Environment,
     HostDataPaths,
 )
-from controller.runtime import remote
-from controller.runtime.transport import SSHRoute, ssh_base_options
+from controller.transport import SSHRoute, ssh_base_options
 
 SSH_CONFIG_PATH = Path.home() / ".ssh" / "config"
 CODESPACE_DIR = Path.home() / ".ssh" / "codespace"
@@ -101,7 +101,7 @@ def reset_control_state(route: SSHRoute, control_path: str) -> None:
     remote_command = (
         f"set -eu; mkdir -p -- {directory}; chmod 0700 -- {directory}; rm -f -- {stale_paths}"
     )
-    remote.run_host(
+    transport.run_host(
         route,
         remote_command,
         timeout=_CONTROL_WRITE_TIMEOUT,
@@ -175,7 +175,7 @@ def _run_host(
     timeout: float,
     action: str,
 ) -> subprocess.CompletedProcess[str]:
-    return remote.run_host(route, remote_command, timeout=timeout, action=action)
+    return transport.run_host(route, remote_command, timeout=timeout, action=action)
 
 
 def initialize(hosts: list[str]) -> None:
@@ -309,11 +309,11 @@ def _read_asset(path: Path) -> str:
 
 
 def _write(path: Path, content: str) -> None:
-    remote.write_atomic(path, content)
+    transport.write_atomic(path, content)
 
 
 def _ensure_mode(path: Path, mode: int) -> None:
-    remote.ensure_mode(path, mode)
+    transport.ensure_mode(path, mode)
 
 
 @contextmanager
