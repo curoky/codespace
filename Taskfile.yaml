@@ -115,7 +115,7 @@ tasks:
   image:sidecar:
     desc: 构建 sidecar 镜像
     cmds:
-      - images/sidecar/build.sh
+      - images/deployments/sidecar/build.sh
 
   image:wsl:
     desc: 构建 WSL 风味镜像（FROM dev 镜像）

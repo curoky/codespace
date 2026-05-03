@@ -4,7 +4,8 @@ on:
   push:
     paths:
       - '.github/workflows/build-codespace-llm.yaml'
-      - 'images/llm/**'
+      - 'images/deployments/vllm/**'
+      - 'images/deployments/sglang/**'
       - 'images/dev/rootfs/etc/s6/skel/**'
       - 'images/dev/script/setup-s6.sh'
   schedule:
@@ -35,7 +36,7 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
-          file: images/llm/${{ matrix.engine }}/Dockerfile
+          file: images/deployments/${{ matrix.engine }}/Dockerfile
           push: true
           provenance: false
           platforms: linux/amd64
