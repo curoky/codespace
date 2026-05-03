@@ -8,10 +8,14 @@
 # (Debian has no CUDA runtime and no vLLM). The ~172 GiB FP8 weights are NOT baked
 # in; they are resolved at run time from a bind-mounted Hugging Face cache.
 #
-# WARNING (day-0 architecture): the stable PyPI vLLM may not yet include the
-# Qwen3.8-Flash-Next architecture. Pin VLLM_VERSION to a build that does (the
-# official recipe uses a dedicated tag / nightly). If startup fails with an
-# unknown-architecture error, bump VLLM_VERSION.
+# day-0 architecture: Qwen3.8-Flash-Next (architecture Qwen4ExpForConditionalGeneration)
+# is NOT in any stable PyPI vLLM release, and the official recipe explicitly states
+# "PyPI installation is not supported" -- it ships only the dedicated
+# vllm/vllm-openai:qwen38-flash-next image (labelled "vLLM 0.28.0+ / nightly").
+# Model support landed on main in PR #53896 (commit pinned by VLLM_COMMIT below);
+# we therefore install a pinned nightly wheel from vLLM's per-commit index instead
+# of a tagged release wheel. Bump VLLM_COMMIT once the architecture ships in a
+# stable release, after which this can revert to a release wheel.
 FROM docker.io/debian:trixie-slim
 
 # CUDA userspace runtime is provided by the NVIDIA Container Toolkit at run time
@@ -34,25 +38,26 @@ RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs
 # nominally allows 3.10-3.13, but the prebuilt CUDA/flashinfer/xformers wheels
 # only cover up to 3.12; 3.13 fails to build.
 #
-# VLLM_VERSION pins the current stable release; bump it (or the day-0 override
-# below) to a build that carries the Qwen3.8-Flash-Next architecture.
+# VLLM_COMMIT pins the vLLM main commit whose nightly wheel carries the
+# Qwen3.8-Flash-Next architecture (PR #53896, merged 2026-08-31). Nightly wheels
+# live at https://wheels.vllm.ai/<commit>; the wheel's on-disk version is a
+# placeholder, so we resolve it by index, not by a release URL. Bump the commit
+# to pick up later fixes, or revert to a release wheel once the architecture ships.
 #
-# CUDA_TAG selects the CUDA build of vLLM. Since v0.20.0 the default PyPI `vllm`
-# wheel (which carries the compiled vllm._C) links CUDA 13 (libcudart.so.13,
-# needs host driver >=580), but the target 8x H100 node runs an older CUDA 12.x
-# driver (535 / CUDA 12.2). `--torch-backend` only swaps the torch wheel, NOT the
-# vllm wheel, so it alone still pulls the cu13 vllm._C and fails at import with
-# `libcudart.so.13: cannot open shared object file`. We therefore install vLLM's
-# CUDA-specific release wheel from GitHub (vllm-<ver>+<cuda>-...whl) and resolve
-# torch from the matching PyTorch index. manylinux_2_28 + x86_64 because the LLM
-# images are amd64-only. Override CUDA_TAG=cu130 for a CUDA 13 host.
-ARG VLLM_VERSION=0.23.0
-ARG CUDA_TAG=cu129
+# CUDA_TAG selects the torch CUDA backend. Nightly vLLM wheels are compiled only
+# against CUDA 12.8 (there is no separate cu129 nightly variant), so we resolve
+# torch from the cu128 PyTorch index. The target 8x H100 node runs an older CUDA
+# 12.x driver (535 / CUDA 12.2), which runs cu128 wheels fine -- this avoids the
+# cu13 default that would fail at import with `libcudart.so.13: cannot open shared
+# object file`. Override CUDA_TAG=cu130 for a CUDA 13 host.
+ARG VLLM_COMMIT=e126687a9a828d513c01a07cd69f025f27d63280
+ARG CUDA_TAG=cu128
 ENV LLM_VENV=/opt/llm/venv
 RUN /opt/bm/bin/uv venv "${LLM_VENV}" --python 3.12 \
   && /opt/bm/bin/uv pip install --python "${LLM_VENV}/bin/python" \
-    --index-strategy unsafe-best-match \
-    "https://github.com/vllm-project/vllm/releases/download/v${VLLM_VERSION}/vllm-${VLLM_VERSION}+${CUDA_TAG}-cp38-abi3-manylinux_2_28_$(uname -m).whl" \
+    --prerelease=allow \
+    vllm \
+    --extra-index-url "https://wheels.vllm.ai/${VLLM_COMMIT}" \
     --extra-index-url "https://download.pytorch.org/whl/${CUDA_TAG}"
 
 ENV PATH="/opt/llm/venv/bin:/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:$PATH"

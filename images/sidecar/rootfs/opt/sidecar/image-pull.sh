@@ -1,25 +1,23 @@
 #!/usr/bin/env bash
 
-# Pull a fixed image list and prune dangling images on the host so development
-# containers start from a warm local cache. Invoked by supercronic per the
-# schedule in /etc/supercronic/crontab; each subcommand runs once and exits.
+# Pull a fixed image list on the host so development containers start from a
+# warm local cache. Invoked by supercronic per the schedule in
+# /etc/supercronic/crontab; runs once and exits.
 #
-# Usage: image-prewarm.sh {pull|prune}
-#   pull   pull every image in the hardcoded PREWARM_IMAGES list
-#   prune  prune dangling (untagged) images
+# Usage: image-pull.sh
 #
 # The image list is hardcoded below (PREWARM_IMAGES); edit it here to change
-# what gets warmed. The pull/prune schedule lives in /etc/supercronic/crontab.
-# The remaining knobs come from the container environment (dumped by s6 into
+# what gets warmed. The pull schedule lives in /etc/supercronic/crontab. The
+# remaining knobs come from the container environment (dumped by s6 into
 # /run/s6/container_environment and loaded by the execline run script):
 #
 #   PODMAN_SOCKET            host rootful Podman socket bind-mounted into the
 #                            sidecar (default /run/podman/podman.sock)
 #   PREWARM_TIMEOUT_SECONDS  per-request curl timeout in seconds (default 900)
 #
-# The sidecar only pulls images and prunes dangling layers; it never removes
-# tagged images, so images referenced by managed containers are always safe.
-# Only the host native platform is warmed.
+# The sidecar only pulls images; it never removes tagged images, so images
+# referenced by managed containers are always safe. Only the host native
+# platform is warmed.
 
 set -uo pipefail
 
@@ -36,7 +34,7 @@ timeout_seconds="${PREWARM_TIMEOUT_SECONDS:-900}"
 api_base="http://d/v4.0.0/libpod"
 
 log() {
-  echo "$(date -Is) image-prewarm: $*"
+  echo "$(date -Is) image-pull: $*"
 }
 
 curl_api() {
@@ -68,21 +66,4 @@ pull_all() {
   done
 }
 
-prune_dangling() {
-  local output
-  # No filters and no all=true prunes only dangling (untagged) images.
-  if ! output=$(curl_api -X POST "${api_base}/images/prune" 2>&1); then
-    log "prune dangling images failed: ${output}"
-    return 1
-  fi
-  log "pruned dangling images"
-}
-
-case "${1:-}" in
-  pull) pull_all ;;
-  prune) prune_dangling || true ;;
-  *)
-    log "usage: ${0##*/} {pull|prune}"
-    exit 2
-    ;;
-esac
+pull_all
