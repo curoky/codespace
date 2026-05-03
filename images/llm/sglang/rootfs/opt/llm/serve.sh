@@ -28,6 +28,15 @@ read -r -a extra_args <<<"${LLM_EXTRA_ARGS:-}"
 # not include it, so reference the venv binary explicitly.
 venv_bin="${LLM_VENV:-/opt/llm/venv}/bin"
 
+# sgl-deep-gemm JIT-compiles FP8 kernels at import time and requires a real CUDA
+# Toolkit (nvcc + headers). The image installs it under /usr/local/cuda-12.9 (see
+# Dockerfile); export CUDA_HOME/PATH here as a belt-and-suspenders fallback in
+# case the s6 environment snapshot does not carry the Dockerfile ENV through to
+# this process. Without CUDA_HOME, `import deep_gemm` aborts with
+# `AssertionError` from find_cuda_home().
+export CUDA_HOME="${CUDA_HOME:-/usr/local/cuda-12.9}"
+export PATH="${CUDA_HOME}/bin:${PATH}"
+
 exec "${venv_bin}/python" -m sglang.launch_server \
   --model-path "${model}" \
   --host "${host}" \

@@ -58,7 +58,7 @@ def run_command(
 ) -> subprocess.CompletedProcess[str]:
     """Run a helper or Git command as the unprivileged container user."""
     try:
-        return subprocess.run(
+        return subprocess.run(  # noqa: S603
             command,
             check=check,
             capture_output=True,
@@ -101,7 +101,9 @@ class WorkspaceAgent:
         self._error: str | None = None
 
     def start_bootstrap(self) -> threading.Thread:
-        thread = threading.Thread(target=self.run_bootstrap, name="workspace-bootstrap", daemon=True)
+        thread = threading.Thread(
+            target=self.run_bootstrap, name="workspace-bootstrap", daemon=True
+        )
         thread.start()
         return thread
 

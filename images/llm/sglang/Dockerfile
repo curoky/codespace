@@ -14,6 +14,20 @@
 # PR ref; bump it (or point at a later tag) once the architecture ships in a
 # release, after which the source build can revert to `uv pip install sglang`.
 # This is a CUDA build; do not use it for AMD GPUs (use the official ROCm image).
+#
+# CUDA Toolkit stage: SGLang's FP8 path pulls in sgl-deep-gemm, whose kernels are
+# JIT-compiled at import time -- its find_cuda_home() asserts a real CUDA install
+# with nvcc is present, otherwise `import deep_gemm` fails with
+# `AssertionError: cuda_home is not None`. The NVIDIA Container Toolkit only
+# injects the host *driver* (libcuda.so) at run time, and the inference wheels
+# only ship the CUDA *runtime* libs -- neither provides the nvcc compiler or dev
+# headers deep_gemm needs to build kernels. We pull the full toolkit from NVIDIA's
+# official CUDA devel image and COPY just /usr/local/cuda-<ver> into the final
+# image (no driver, no distro libs). Keep the CUDA version aligned with CUDA_TAG
+# below. The devel image is ubuntu-based but the toolkit dir is OS-agnostic.
+ARG CUDA_DEVEL_IMAGE=docker.io/nvidia/cuda:12.9.1-devel-ubuntu24.04
+FROM ${CUDA_DEVEL_IMAGE} AS cuda
+
 FROM docker.io/debian:trixie-slim
 
 # CUDA userspace runtime is provided by the NVIDIA Container Toolkit at run time
@@ -26,6 +40,15 @@ RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
     bash ca-certificates curl git zstd libgomp1 \
   && rm -rf /var/lib/apt/lists/*
+
+# CUDA Toolkit (nvcc + headers + build libs) copied from the official devel image
+# above, for sgl-deep-gemm's JIT compilation. CUDA_HOME_DIR must match the devel
+# image's CUDA version. Only the toolkit dir is copied; the run-time CUDA libs
+# still come from the wheels and the host driver.
+ARG CUDA_HOME_DIR=/usr/local/cuda-12.9
+COPY --from=cuda "${CUDA_HOME_DIR}" "${CUDA_HOME_DIR}"
+ENV CUDA_HOME="${CUDA_HOME_DIR}"
+ENV PATH="${CUDA_HOME_DIR}/bin:$PATH"
 
 COPY images/llm/sglang/binman.yaml /tmp/binman.yaml
 RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
