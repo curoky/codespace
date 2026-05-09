@@ -1,0 +1,5 @@
+prefix: /opt/bm
+
+packages:
+  link:
+    - uv
