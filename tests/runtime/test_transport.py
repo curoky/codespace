@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import hashlib
+import os
 import stat
 import subprocess
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from threading import Event
 
 from codespace.runtime.transport import HostEndpoint, PodmanTransport
 
@@ -89,18 +93,21 @@ def test_transport_uses_control_master_and_private_runtime(tmp_path: Path) -> No
     returned = transport.client("home")
 
     command = commands[0]
+    digest = hashlib.sha256(b"home").hexdigest()[:16]
+    control_path = transport.runtime_dir / f"control-{digest}.sock"
+    podman_socket_path = transport.runtime_dir / f"podman-{digest}.sock"
     assert command[:2] == ["ssh", "-N"]
     assert "BatchMode=yes" in command
-    assert f"ControlPath={transport.runtime_dir}/home.control" in command
+    assert f"ControlPath={control_path}" in command
     assert "ControlMaster=yes" in command
     assert command[-3:] == [
         "-L",
-        f"{transport.runtime_dir}/home.sock:/run/podman/podman.sock",
+        f"{podman_socket_path}:/run/podman/podman.sock",
         "home",
     ]
     assert "StrictHostKeyChecking=no" not in command
     assert returned is clients[0]
-    assert clients[0].base_url == f"unix://{transport.runtime_dir}/home.sock"
+    assert clients[0].base_url == f"unix://{podman_socket_path}"
     assert clients[0].timeout == 60.0
     assert stat.S_IMODE(transport.runtime_dir.stat().st_mode) == 0o700
 
@@ -109,6 +116,32 @@ def test_transport_uses_control_master_and_private_runtime(tmp_path: Path) -> No
     assert processes[0].terminated is True
     assert clients[0].closed is True
     assert not transport.runtime_dir.exists()
+
+
+def test_transport_default_socket_paths_fit_macos_limit() -> None:
+    commands: list[list[str]] = []
+    host = "h" * 63
+    transport = PodmanTransport(
+        {host: HostEndpoint()},
+        process_factory=_master_factory([], commands),
+        client_factory=FakeClient,  # type: ignore[arg-type]
+    )
+
+    try:
+        transport.client(host)
+
+        command = commands[0]
+        control_option = next(value for value in command if value.startswith("ControlPath="))
+        control_path = control_option.split("=", 1)[1]
+        podman_socket_path = command[command.index("-L") + 1].split(":", 1)[0]
+        assert transport.runtime_dir.parent == Path("/tmp")
+        # OpenSSH binds through ``<ControlPath>.<16 random chars>``.
+        assert len(os.fsencode(f"{control_path}.{'x' * 16}")) < 104
+        assert len(os.fsencode(podman_socket_path)) < 104
+        assert host not in control_path
+        assert host not in podman_socket_path
+    finally:
+        transport.close()
 
 
 def test_transport_reuses_live_master_and_rebuilds_dead_master(tmp_path: Path) -> None:
@@ -142,6 +175,60 @@ def test_transport_reuses_live_master_and_rebuilds_dead_master(tmp_path: Path) -
     assert clients[1].closed is True
 
 
+def test_transport_serializes_master_startup_across_hosts(tmp_path: Path) -> None:
+    first_factory_entered = Event()
+    release_first_factory = Event()
+    second_call_started = Event()
+    second_factory_entered = Event()
+    processes: list[FakeProcess] = []
+
+    def process_factory(command: list[str], **_kwargs: object) -> FakeProcess:
+        host = command[-1]
+        if host == "first":
+            first_factory_entered.set()
+            assert release_first_factory.wait(timeout=2)
+        else:
+            second_factory_entered.set()
+        control = next(token for token in command if token.startswith("ControlPath="))
+        Path(control.split("=", 1)[1]).touch()
+        process = FakeProcess()
+        processes.append(process)
+        return process
+
+    transport = PodmanTransport(
+        {"first": HostEndpoint(), "second": HostEndpoint()},
+        runtime_parent=tmp_path,
+        process_factory=process_factory,
+        client_factory=FakeClient,  # type: ignore[arg-type]
+    )
+
+    def connect_second() -> object:
+        second_call_started.set()
+        return transport.client("second")
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        first = executor.submit(transport.client, "first")
+        first_started = first_factory_entered.wait(timeout=2)
+        if not first_started:
+            release_first_factory.set()
+        assert first_started
+
+        second = executor.submit(connect_second)
+        second_started = second_call_started.wait(timeout=2)
+        try:
+            assert second_started
+            assert not second_factory_entered.wait(timeout=0.1)
+        finally:
+            release_first_factory.set()
+
+        first.result(timeout=2)
+        second.result(timeout=2)
+
+    assert second_factory_entered.is_set()
+    transport.close()
+    assert all(process.terminated for process in processes)
+
+
 def test_transport_forwards_per_host_remote_socket(tmp_path: Path) -> None:
     commands: list[list[str]] = []
 
@@ -154,7 +241,8 @@ def test_transport_forwards_per_host_remote_socket(tmp_path: Path) -> None:
 
     transport.client("boe")
 
-    assert commands[0][-2] == f"{transport.runtime_dir}/boe.sock:/tmp/podmanxd.sock"
+    digest = hashlib.sha256(b"boe").hexdigest()[:16]
+    assert commands[0][-2] == (f"{transport.runtime_dir}/podman-{digest}.sock:/tmp/podmanxd.sock")
 
     transport.close()
 

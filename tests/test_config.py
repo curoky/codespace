@@ -86,8 +86,13 @@ def test_config_rejects_unknown_top_level_fields(
         Config.model_validate({**config.model_dump(), **unknown})
 
 
-def test_project_placement_layers_replace_mappings(config: Config) -> None:
+def test_project_layers_apply_host_defaults_and_replace_mappings(config: Config) -> None:
     data = config.model_dump()
+    data["hosts"]["home"]["container"] = {
+        "environment": {"HOST": "1"},
+        "devices": ["/dev/fuse"],
+        "pids_limit": 64,
+    }
     data["projects"]["codespace"]["container"] = {
         "environment": {"PROJECT": "1"},
         "cap_add": ["NET_RAW"],
@@ -102,13 +107,28 @@ def test_project_placement_layers_replace_mappings(config: Config) -> None:
     resolved = parsed.resolved_project_container("codespace", "home")
 
     assert resolved.environment == {"PLACEMENT": "1"}
+    assert resolved.devices == ["/dev/fuse"]
     assert resolved.cap_add == ["NET_RAW"]
     assert resolved.pids_limit == 128
     assert parsed.project_image("codespace", "home") == "workspace:placement"
 
 
-def test_service_placement_layers_after_service(config: Config) -> None:
+def test_project_placement_platform_overrides_host_default(config: Config) -> None:
     data = config.model_dump()
+    data["projects"]["codespace"]["hosts"]["home"]["platform"] = "linux/amd64"
+
+    parsed = Config.model_validate(data)
+
+    assert parsed.project_platform("codespace", "home") == "linux/amd64"
+    assert parsed.workspace_spec("codespace", "home", "default").platform == "linux/amd64"
+
+
+def test_service_layers_apply_host_defaults_before_service(config: Config) -> None:
+    data = config.model_dump()
+    data["hosts"]["home"]["container"] = {
+        "devices": ["/dev/fuse"],
+        "pids_limit": 64,
+    }
     data["services"]["support"]["container"]["environment"] = {"BASE": "1"}
     data["services"]["support"]["hosts"]["home"] = {
         "image": "support:pinned",
@@ -116,17 +136,23 @@ def test_service_placement_layers_after_service(config: Config) -> None:
     }
 
     parsed = Config.model_validate(data)
+    resolved = parsed.resolved_service_container("support", "home")
 
     assert parsed.service_image("support", "home") == "support:pinned"
-    assert parsed.resolved_service_container("support", "home").environment == {"PLACEMENT": "1"}
+    assert resolved.environment == {"PLACEMENT": "1"}
+    assert resolved.devices == ["/dev/fuse"]
+    assert resolved.pids_limit == 64
 
 
-def test_named_container_mappings_reject_short_syntax(config: Config) -> None:
+def test_config_accepts_compose_volume_short_syntax(config: Config) -> None:
     data = config.model_dump()
-    data["project_defaults"]["container"]["volumes"] = ["/host/path:/container/path"]
+    data["project_defaults"]["container"]["volumes"] = ["/host/path:/opt/data:ro"]
 
-    with pytest.raises(ValidationError):
-        Config.model_validate(data)
+    parsed = Config.model_validate(data)
+
+    assert parsed.project_defaults.container.volumes is not None
+    assert parsed.project_defaults.container.volumes[0].source == "/host/path"
+    assert parsed.project_defaults.container.volumes[0].read_only is True
 
 
 def test_ports_require_bridge_network(config: Config) -> None:
@@ -149,12 +175,13 @@ def test_project_rejects_reserved_environment_and_mounts(config: Config) -> None
 
     volume = config.model_dump()
     volume["projects"]["codespace"]["container"] = {
-        "volumes": {
-            "bad": {
+        "volumes": [
+            {
+                "type": "bind",
                 "source": "/host/data",
                 "target": "/workspace/generated",
             }
-        }
+        ]
     }
     with pytest.raises(ValidationError, match="overlaps reserved"):
         Config.model_validate(volume)

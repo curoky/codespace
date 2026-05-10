@@ -4,7 +4,7 @@
 # with zero jobs. Add 5-field entries there to schedule work.
 s6-envdir -Lf -- /run/s6/container_environment
 
-fdmove -c 2 1
 redirfd -w 1 /var/log/supercronic.log
+fdmove -c 2 1
 
 exec supercronic /etc/supercronic/crontab
