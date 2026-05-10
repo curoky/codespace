@@ -1,5 +1,9 @@
 version: '3'
 
+vars:
+  WORKSPACE_AGENT: platform/container/workspace/agent
+  WORKSPACE_IMAGE: platform/container/workspace
+
 tasks:
   default:
     desc: 列出所有可用 task
@@ -8,121 +12,139 @@ tasks:
     silent: true
 
   sync:
-    desc: 同步 Codespace Python 依赖
+    desc: 按 lock 同步控制面与 Workspace Agent 依赖
     cmds:
-      - uv sync
-      - uv sync --project images/dev/rootfs/opt/codespace --locked --no-dev
+      - uv sync --locked
+      - uv sync --project {{.WORKSPACE_AGENT}} --locked --no-dev
 
-  start:
-    desc: 前台启动本地 Codespace 控制面
+  serve:
+    desc: 前台启动控制面
     cmds:
-      - uv run python -m controller
+      - uv run codespace serve
 
-  start:bg:
+  serve:bg:
     desc: 后台启动控制面
     cmds:
-      - controller/run.sh
+      - scripts/run-control-plane.sh
 
-  fmt:
-    desc: 格式化 Codespace Python 与 workspace helper
+  format:
+    desc: 格式化 Python 与 Shell
     cmds:
-      - >-
-        uv run ruff format --config pyproject.toml
-        controller
-        images/dev/rootfs/opt/codespace/workspace_agent.py
-      - >-
-        shfmt -w -i 2 -s -ci
-        images/dev/rootfs/opt/codespace/bin/*
-        images/dev/tests/*.bats
+      - uv run ruff format src tests {{.WORKSPACE_AGENT}}/agent.py
+      - git ls-files -z '*.sh' '*.bats' | xargs -0 shfmt -w -i 2 -ci
 
-  fmt:check:
-    desc: 检查 Python 与 workspace helper 格式
+  format:check:
+    desc: 检查 Python 与 Shell 格式
     cmds:
-      - >-
-        uv run ruff format --check --config pyproject.toml
-        controller
-        images/dev/rootfs/opt/codespace/workspace_agent.py
-      - >-
-        shfmt -d -i 2 -s -ci
-        images/dev/rootfs/opt/codespace/bin/*
-        images/dev/tests/*.bats
+      - uv run ruff format --check src tests {{.WORKSPACE_AGENT}}/agent.py
+      - git ls-files -z '*.sh' '*.bats' | xargs -0 shfmt -d -i 2 -ci
 
   lint:
-    desc: Ruff 与 ShellCheck lint
+    desc: 运行 Ruff 与 ShellCheck
     cmds:
-      - >-
-        uv run ruff check --config pyproject.toml
-        controller
-        images/dev/rootfs/opt/codespace/workspace_agent.py
-      - >-
-        shellcheck
-        images/dev/rootfs/opt/codespace/bin/*
-        images/dev/tests/*.bats
+      - uv run ruff check src tests {{.WORKSPACE_AGENT}}/agent.py
+      - git ls-files -z '*.sh' '*.bats' | xargs -0 shellcheck
 
   typecheck:
-    desc: Mypy 类型检查
+    desc: 运行 strict Mypy
     cmds:
+      - MYPYPATH={{.WORKSPACE_AGENT}} uv run mypy src/codespace {{.WORKSPACE_AGENT}}/agent.py
       - >-
-        MYPYPATH=images/dev/rootfs/opt/codespace uv run mypy
-        controller
-        images/dev/rootfs/opt/codespace/workspace_agent.py
-      - >-
-        uv run --project images/dev/rootfs/opt/codespace --locked python
-        -c "import sys; sys.path.insert(0, 'images/dev/rootfs/opt/codespace');
-        import workspace_agent"
+        cd {{.WORKSPACE_AGENT}} &&
+        uv run --locked python -c "import agent"
 
   test:
-    desc: 运行 Codespace Python 与 workspace helper 测试
+    desc: 运行控制面与 Workspace image 测试
     cmds:
-      - uv run pytest controller/tests
-      - bats images/dev/tests/*.bats
+      - uv run pytest
+      - bats {{.WORKSPACE_IMAGE}}/tests/*.bats
 
   lock:check:
-    desc: 校验控制面与 workspace agent 的 uv lock
+    desc: 校验两个 uv lock
     cmds:
       - uv lock --check
-      - uv lock --project images/dev/rootfs/opt/codespace --check
+      - uv lock --project {{.WORKSPACE_AGENT}} --check
 
   check:
-    desc: 运行全部验证（格式、lint、类型、测试、lock）
+    desc: 运行完整本地与 CI 检查
     cmds:
-      - task: fmt:check
+      - task: format:check
       - task: lint
       - task: typecheck
       - task: test
       - task: lock:check
 
-  cleanup:deploy-keys:
-    desc: 清理未使用的 deploy key（默认 dry-run，追加 -- --no-dry-run 实际删除）
-    cmds:
-      - uv run python -m controller.tools.cleanup_deploy_keys {{.CLI_ARGS}}
-
-  cleanup:workspaces:
-    desc: 清理残留 workspace 目录（默认 dry-run，追加 -- --no-dry-run 实际删除）
-    cmds:
-      - uv run python -m controller.tools.cleanup_workspaces {{.CLI_ARGS}}
-
   secrets:sync:
-    desc: 将顶层 secrets 明文注册为各 host 的 Podman secret（默认 dry-run，追加 -- --no-dry-run 实际执行）
+    desc: 同步 Podman secrets，默认 dry-run
     cmds:
-      - uv run python -m controller.tools.sync_secrets {{.CLI_ARGS}}
+      - uv run codespace secrets sync {{.CLI_ARGS}}
 
-  image:dev:
-    desc: 构建 Codespace 开发镜像
+  workspaces:prune:
+    desc: 清理残留 Workspace 数据，默认 dry-run
     cmds:
-      - images/dev/build.sh
+      - uv run codespace workspaces prune {{.CLI_ARGS}}
 
-  image:sidecar:
-    desc: 构建 sidecar 镜像
+  deploy-keys:prune:
+    desc: 清理未使用的 deploy keys，默认 dry-run
     cmds:
-      - images/deployments/sidecar/build.sh
+      - uv run codespace deploy-keys prune {{.CLI_ARGS}}
 
-  image:wsl:
-    desc: 构建 WSL 风味镜像（FROM dev 镜像）
+  platform:workspace:
+    desc: 构建 Workspace image
     cmds:
-      - images/wsl/build.sh
+      - platform/container/workspace/build.sh {{.CLI_ARGS}}
 
-  image:wsl:export:
-    desc: 导出 WSL 发行版 rootfs（devspace.wsl）
+  platform:support:
+    desc: 构建 support Service image
     cmds:
-      - images/wsl/export.sh
+      - platform/container/services/support/build.sh {{.CLI_ARGS}}
+
+  platform:vllm:
+    desc: 构建 vLLM Service image
+    cmds:
+      - platform/container/services/vllm/build.sh {{.CLI_ARGS}}
+
+  platform:sglang:
+    desc: 构建 SGLang Service image
+    cmds:
+      - platform/container/services/sglang/build.sh {{.CLI_ARGS}}
+
+  platform:framework:pytorch:
+    desc: 构建 PyTorch framework image
+    cmds:
+      - platform/container/frameworks/pytorch/build.sh {{.CLI_ARGS}}
+
+  platform:framework:vllm:
+    desc: 构建 vLLM framework image
+    cmds:
+      - platform/container/frameworks/vllm/build.sh {{.CLI_ARGS}}
+
+  platform:framework:sglang:
+    desc: 构建 SGLang framework image
+    cmds:
+      - platform/container/frameworks/sglang/build.sh {{.CLI_ARGS}}
+
+  platform:wsl:
+    desc: 构建 WSL image
+    cmds:
+      - platform/wsl/build.sh {{.CLI_ARGS}}
+
+  platform:wsl:export:
+    desc: 导出 WSL rootfs
+    cmds:
+      - platform/wsl/export.sh {{.CLI_ARGS}}
+
+  platform:macos:install:
+    desc: 安装 macOS host 配置
+    cmds:
+      - platform/macos/install.sh {{.CLI_ARGS}}
+
+  platform:macos:atuin-server:
+    desc: 安装 macOS host 配置并启用本地 Atuin server
+    cmds:
+      - platform/macos/install.sh --with-atuin-server
+
+  platform:linux:install:
+    desc: 安装 Linux host 配置
+    cmds:
+      - platform/linux/install.sh {{.CLI_ARGS}}

@@ -1,0 +1,71 @@
+prefix: /opt/bm
+arch: darwin-arm64
+packages:
+  link:
+    - zsh-plugins
+    - starship
+    - atuin
+    - fzf
+    - yazi
+    - vim-plugins
+    - ripgrep
+    - fd
+    - bat
+    - eza
+    - gawk
+    - gnugrep
+    - gnused
+    - gnutar
+    - gettext
+    - findutils
+    - coreutils
+    - bzip2
+    - xz
+    - zstd
+    - zip
+    - unzip
+    - makeself
+    - wget
+    - rsync
+    - connect
+    - netcat
+    - openssl
+    - lsof
+    - gdu
+    - ncdu_1
+    - parallel
+    - smartmontools
+    - git-absorb
+    - git-extras
+    - git-lfs
+    - git-filter-repo
+    - lefthook
+    - gnupatch
+    - m4
+    - getopt
+    - go-task
+    - bazelisk
+    - buildifier
+    - uv
+    - pnpm
+    - shfmt
+    - ruff
+    - prettier
+    - biome
+    - cloc
+    - exiftool
+  unlink:
+    - nodejs-slim26
+    - perl
+profiles:
+  go:
+    - gopls
+    - delve
+    - go-tools
+    - gofumpt
+    - golangci-lint
+    - gomodifytags
+    - gotests
+    - gotools
+    - impl
+    - go-outline

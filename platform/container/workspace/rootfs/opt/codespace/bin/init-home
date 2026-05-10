@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# home-init s6 oneshot (runs as x): prepare persistent IDE mounts, generate or
+# reuse the deploy key, then seed editor extensions, runtime templates, Agent
+# playbook, and user rules. workspace-agent depends on this service.
+# Log: /var/log/home-init.log.
+
+set -euo pipefail
+
+readonly SHARE_DIR=/opt/codespace/share
+
+sudo chown 5230:5230 \
+  /home/x/.vscode-server /home/x/.trae /home/x/.trae-cn \
+  /home/x/.trae-server /home/x/.trae-cn-server
+
+# The private key stays inside the Workspace; the control plane reads only the
+# public key.
+install -d -m 0700 -- /home/x/.ssh
+if [[ ! -f /home/x/.ssh/repo_id_ed25519 ]]; then
+  ssh-keygen -q -t ed25519 -N "" -C codespace -f /home/x/.ssh/repo_id_ed25519
+fi
+chmod 0600 /home/x/.ssh/repo_id_ed25519
+
+/opt/codespace/bin/seed-editor-extensions \
+  /home/x/.vscode-server /home/x/.trae-server /home/x/.trae-cn-server
+
+install -d -m 0700 -- /home/x/.trae /home/x/.trae-cn
+install -m 0600 -- "${SHARE_DIR}/trae/sandbox.json" /home/x/.trae/sandbox.json
+install -m 0600 -- "${SHARE_DIR}/trae/traecli.toml" /home/x/.trae/traecli.toml
+install -m 0600 -- "${SHARE_DIR}/trae/sandbox.json" /home/x/.trae-cn/sandbox.json
+install -m 0600 -- "${SHARE_DIR}/trae/traecli.toml" /home/x/.trae-cn/traecli.toml
+
+for server_dir in /home/x/.vscode-server /home/x/.trae-server /home/x/.trae-cn-server; do
+  install -d -m 0755 -- "${server_dir}/data/Machine"
+  install -m 0600 -- \
+    "${SHARE_DIR}/vscode/remote-settings.json" \
+    "${server_dir}/data/Machine/settings.json"
+done
+
+bash "${SHARE_DIR}/agent-playbook/install.sh"
+
+install -d -m 0755 -- /home/x/.trae/user_rules /home/x/.trae-cn/user_rules
+install -m 0644 -- "${SHARE_DIR}/agent-rules.md" /home/x/.trae/user_rules/workspace.md
+install -m 0644 -- "${SHARE_DIR}/agent-rules.md" /home/x/.trae-cn/user_rules/workspace.md

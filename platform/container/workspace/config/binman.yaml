@@ -1,0 +1,191 @@
+# binman package manifest for the codespace Workspace image.
+# Consumed by the Workspace Dockerfile via `bm sync`.
+#
+#   packages.link:   linked into the prefix root (/opt/bm/{bin,lib,...}).
+#   packages.unlink: installed into the store only, not linked into the root.
+#   profiles:        installed into the store and aggregated under
+#                    /opt/bm/profile/<name>/ via relative symlinks.
+prefix: /opt/bm
+packages:
+  link:
+    - shellcheck
+    - bats
+    # shell & terminal
+    - zsh
+    - zsh-plugins
+    - starship
+    - atuin
+    - tmux
+    - tmux-plugins
+    - zellij
+    - fzf
+    - yazi
+
+    # editor
+    - vim
+    - vim-plugins
+
+    # file & text utilities
+    - ripgrep
+    - fd
+    - bat
+    - eza
+    - tree
+    - file
+    - less
+    - xxd
+    - jq
+    - diffutils
+    - findutils
+    - gawk
+    - gnugrep
+    - gnused
+    - gnutar
+    - gettext
+    - graphviz
+
+    # compression & archive
+    - gzip
+    - bzip2
+    - xz
+    - zstd
+    - zlib
+    - zlib-ng
+    - snappy
+    - zip
+    - unzip
+    - 7zz
+    - makeself
+    - libarchive
+
+    # networking
+    - curl
+    - wget
+    - rsync
+    - netcat
+    - nettools
+    - iproute2
+    - iputils
+    - ethtool
+    - miniserve
+    - rclone
+    - copyparty
+    - openssh_gssapi
+
+    # crypto & security
+    - openssl
+    - krb5
+    - gnupg
+    - cacert
+    # fuse3 提供 fusermount3，gocryptfs 挂载 /workspace 时经 PATH 调用它（gocryptfs
+    # 包有意不自带 fusermount，其 go-fuse 优先找 fusermount3 再回退 fusermount）。
+    - fuse3
+    - gocryptfs
+
+    # system & process
+    - procps
+    - procs
+    - strace
+    - lsof
+    - gdu
+    - ncdu_1
+    - dool
+    - libcap
+    - lsb-release
+    - tzdata
+    - glibcLocales
+    - cronie
+    - supercronic
+    - parallel
+
+    # version control
+    - git
+    - gh
+    - git-absorb
+    - git-extras
+    - git-filter-repo
+    - git-lfs
+    - lefthook
+
+    # build tools
+    - cmake
+    - ninja
+    - gnumake
+    - gnupatch
+    - autoconf
+    - automake
+    - libtool
+    - m4
+    - pkgconf
+    - bison
+    - flex
+    - go-task
+    - clang-tools-22
+
+    # language toolchains & package managers
+    - uv
+    - pnpm
+    - bazelisk
+    - buildifier
+
+    # linters & formatters
+    - ruff
+    - shfmt
+    - nixfmt
+    - prettier
+    - markdownlint-cli2
+    - scc
+    - cloc
+
+    # databases
+    - sqlite
+    - postgresql
+
+    # languages & debuggers
+    - perl
+
+    # misc
+    - nil
+    - netron
+    - exiftool
+    - podman5
+
+  unlink:
+    - python314
+    - nodejs-slim24
+    - nodejs-slim26
+
+    - clang-tools-18
+    - clang-tools-19
+    - clang-tools-20
+    - clang-tools-21
+
+    - protobuf_24
+    - protobuf_25
+    - protobuf_28
+    - protobuf_3_8_0
+    - protobuf_3_9_2
+
+profiles:
+  s6:
+    - s6
+    - s6-rc
+    - s6-linux-init
+    - s6-linux-utils
+    - s6-portable-utils
+    - s6-networking
+    - s6-dns
+    - execline
+
+  # vscode go tools
+  go:
+    - gopls
+    - delve
+    - go-tools
+    - gofumpt
+    - golangci-lint
+    - gotests
+    - gotools
+    - impl
+    - golint
+    - revive

@@ -1,0 +1,18 @@
+key_path = "~/.config/atuin/key"
+auto_sync = true
+update_check = false
+sync_address = "http://127.0.0.1:8002"
+sync_frequency = "5m"
+search_mode = "daemon-fuzzy"
+enter_accept = true
+
+[sync]
+records = true
+
+[daemon]
+enabled = true
+autostart = false
+sync_frequency = 300
+socket_path = "~/.local/share/atuin/atuin.sock"
+pidfile_path = "~/.local/share/atuin/atuin-daemon.pid"
+systemd_socket = false

@@ -1,6 +1,6 @@
-# VCS metadata (not needed at build time; changes on every commit and would
-# otherwise bust the `COPY ./ /opt/devspace` layer cache).
+# Repository metadata is not part of image inputs.
 .git
+.trae
 
 # macOS cruft
 **/.DS_Store
@@ -23,8 +23,6 @@ htmlcov
 # Build outputs & packages
 *.deb
 *.tar
+*.wsl
 Brewfile.lock.json
 tmp
-
-# Dotfiles-local, user-specific state
-dotfiles/rime/squirrel/user.yaml

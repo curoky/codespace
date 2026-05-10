@@ -474,7 +474,7 @@
     "gopls": "trae-gopls"
   },
   "markdown.styles": [
-    "/Users/x/workspace/devspace/dotfiles/vscode/markdown-preview.css"
+    "${env:HOME}/.config/vscode/markdown-preview.css"
   ],
   "markdown-preview-enhanced.codeBlockTheme": "solarized-light.css",
   "markdown-preview-enhanced.previewTheme": "solarized-light.css",
