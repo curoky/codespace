@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Provision the macOS host and install Codespace-managed dotfiles.
+# Provision the macOS host and install Codespace-managed home configuration.
 # Usage: install.sh [--with-atuin-server]
 # Requires Bash 3.2 or newer, curl, sudo, and Apple Silicon macOS.
 
@@ -93,17 +93,16 @@ install_binman() {
   ln -sfn /opt/bm/bin/bazelisk /opt/bm/bin/bazel
 }
 
-install_dotfiles() {
-  local dotfiles="$1"
-  local script_dir="$2"
-  local workspace_home="$3"
+install_home_config() {
+  local macos_home="$1"
+  local workspace_home="$2"
 
-  copy_path "$dotfiles/git/macos.gitconfig" "$HOME/.gitconfig" 0600
-  copy_path "$dotfiles/git/user.gitconfig" "$HOME/.config/git/user.gitconfig" 0600
-  link_path "$dotfiles/git/ignore" "$HOME/.config/git/ignore"
-  copy_path "$dotfiles/ssh/macos.config" "$HOME/.ssh/config" 0600
+  copy_path "$macos_home/.gitconfig" "$HOME/.gitconfig" 0600
+  copy_path "$macos_home/.config/git/user.gitconfig" "$HOME/.config/git/user.gitconfig" 0600
+  link_path "$macos_home/.config/git/ignore" "$HOME/.config/git/ignore"
+  copy_path "$macos_home/.ssh/config" "$HOME/.ssh/config" 0600
 
-  link_path "$dotfiles/zsh/macos.zshrc" "$HOME/.zshrc"
+  link_path "$macos_home/.zshrc" "$HOME/.zshrc"
   link_path "$workspace_home/.config/zsh/environment.zsh" "$HOME/.config/zsh/environment.zsh"
   link_path "$workspace_home/.config/zsh/paths.zsh" "$HOME/.config/zsh/paths.zsh"
   link_path "$workspace_home/.config/zsh/aliases.zsh" "$HOME/.config/zsh/aliases.zsh"
@@ -118,17 +117,16 @@ install_dotfiles() {
   link_path "$workspace_home/.config/tmux/tmux.conf" "$HOME/.config/tmux/tmux.conf"
   link_path "$workspace_home/.vimrc" "$HOME/.vimrc"
 
-  link_path "$dotfiles/mpv/mpv.conf" "$HOME/.config/mpv/mpv.conf"
-  link_path "$dotfiles/snipaste/config.ini" "$HOME/.snipaste/config.ini"
+  link_path "$macos_home/.config/mpv/mpv.conf" "$HOME/.config/mpv/mpv.conf"
+  link_path "$macos_home/.snipaste/config.ini" "$HOME/.snipaste/config.ini"
 
-  local editor_root
-  for editor_root in \
-    "$HOME/Library/Application Support/Code/User" \
-    "$HOME/Library/Application Support/Trae/User" \
-    "$HOME/Library/Application Support/Trae CN/User"; do
-    link_path "$dotfiles/vscode/app/settings.json" "$editor_root/settings.json"
-    link_path "$dotfiles/vscode/app/keybindings.json" "$editor_root/keybindings.json"
-    link_path "$dotfiles/vscode/app/snippets" "$editor_root/snippets"
+  local editor editor_source editor_target
+  for editor in Code Trae "Trae CN"; do
+    editor_source="$macos_home/Library/Application Support/$editor/User"
+    editor_target="$HOME/Library/Application Support/$editor/User"
+    link_path "$editor_source/settings.json" "$editor_target/settings.json"
+    link_path "$editor_source/keybindings.json" "$editor_target/keybindings.json"
+    link_path "$editor_source/snippets" "$editor_target/snippets"
   done
 
   copy_path "$workspace_home/.trae/sandbox.json" "$HOME/.trae/sandbox.json" 0600
@@ -175,22 +173,24 @@ main() {
     shift
   done
 
-  local script_dir repo_root dotfiles workspace_home
+  local script_dir repo_root macos_home workspace_home
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
   repo_root="$(cd "$script_dir/../.." && pwd -P)"
-  dotfiles="$repo_root/dotfiles"
+  macos_home="$script_dir/rootfs/Users/x"
   workspace_home="$repo_root/platform/container/workspace/rootfs/home/x"
   TEMP_DIR="$(mktemp -d)"
   trap cleanup EXIT
 
-  install_homebrew "$script_dir" "$TEMP_DIR"
-  install_binman "$script_dir" "$TEMP_DIR"
-  install_dotfiles "$dotfiles" "$script_dir" "$workspace_home"
-  swift "$script_dir/scripts/set-default-apps.swift"
-  load_launch_agent sh.atuin.daemon "$script_dir/launch-agents/atuin-daemon.plist"
-  if [[ "$with_atuin_server" == true ]]; then
-    load_launch_agent sh.atuin.server "$script_dir/launch-agents/atuin-server.plist"
-  fi
+  # install_homebrew "$script_dir" "$TEMP_DIR"
+  # install_binman "$script_dir" "$TEMP_DIR"
+  install_home_config "$macos_home" "$workspace_home"
+  # swift "$script_dir/scripts/set-default-apps.swift"
+  # load_launch_agent sh.atuin.daemon "$macos_home/Library/LaunchAgents/sh.atuin.daemon.plist"
+  # if [[ "$with_atuin_server" == true ]]; then
+    # load_launch_agent sh.atuin.server "$macos_home/Library/LaunchAgents/sh.atuin.server.plist"
+  # fi
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  main "$@"
+fi
