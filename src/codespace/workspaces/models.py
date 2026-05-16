@@ -26,11 +26,16 @@ UPLOAD_MOUNT = "/upload"
 CACHE_MOUNT = "/cache"
 CONTROL_MOUNT = "/run/codespace-control"
 HOME_CACHE_MOUNTS = (
-    (".vscode-server", f"{CONTAINER_HOME}/.vscode-server"),
-    (".trae", f"{CONTAINER_HOME}/.trae"),
-    (".trae-cn", f"{CONTAINER_HOME}/.trae-cn"),
-    (".trae-server", f"{CONTAINER_HOME}/.trae-server"),
-    (".trae-cn-server", f"{CONTAINER_HOME}/.trae-cn-server"),
+    (".vscode-server/bin", f"{CONTAINER_HOME}/.vscode-server/bin"),
+    (".vscode-server/extensions", f"{CONTAINER_HOME}/.vscode-server/extensions"),
+    (".trae/bin", f"{CONTAINER_HOME}/.trae/bin"),
+    (".trae/extensions", f"{CONTAINER_HOME}/.trae/extensions"),
+    (".trae-cn/bin", f"{CONTAINER_HOME}/.trae-cn/bin"),
+    (".trae-cn/extensions", f"{CONTAINER_HOME}/.trae-cn/extensions"),
+    (".trae-server/bin", f"{CONTAINER_HOME}/.trae-server/bin"),
+    (".trae-server/extensions", f"{CONTAINER_HOME}/.trae-server/extensions"),
+    (".trae-cn-server/bin", f"{CONTAINER_HOME}/.trae-cn-server/bin"),
+    (".trae-cn-server/extensions", f"{CONTAINER_HOME}/.trae-cn-server/extensions"),
 )
 WORKSPACE_KEY_SECRET = "codespace_workspace_key"  # noqa: S105 - secret identifier
 WORKSPACE_KEY_ENV = "CODESPACE_WORKSPACE_KEY"

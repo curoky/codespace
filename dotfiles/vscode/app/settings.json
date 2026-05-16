@@ -473,9 +473,6 @@
     "go-outline": "/opt/bm/store/go-outline/bin/go-outline",
     "gopls": "trae-gopls"
   },
-  "markdown.styles": [
-    "${env:HOME}/.config/vscode/markdown-preview.css"
-  ],
   "markdown-preview-enhanced.codeBlockTheme": "solarized-light.css",
   "markdown-preview-enhanced.previewTheme": "solarized-light.css",
   "accessibility.signalOptions.volume": 10,

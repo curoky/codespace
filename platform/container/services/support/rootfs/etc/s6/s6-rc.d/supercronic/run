@@ -2,9 +2,7 @@
 
 s6-envdir -Lf -- /run/s6/container_environment
 
-fdmove -c 2 1
 redirfd -w 1 /var/log/supercronic.log
-
-foreground { mkdir -p /var/log }
+fdmove -c 2 1
 
 exec /opt/bm/store/supercronic/bin/supercronic /etc/supercronic/crontab

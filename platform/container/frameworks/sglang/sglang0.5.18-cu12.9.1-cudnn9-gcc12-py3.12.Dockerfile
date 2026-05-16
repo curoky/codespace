@@ -1,16 +1,12 @@
 # SGLang built from source for 8x H100 (SM 9.0) against CUDA 12.9.
 #
-# 与 platform/container/frameworks/AGENTS.md 公共契约一致：从源码编译的开发依赖镜像，产出可
-# `import sglang` 的可运行镜像（无 s6、无 serving entrypoint）。与 platform/container/services/ 的
-# serving 镜像刻意区分。
+# 产出可直接 `import sglang` 的 framework image，不包含 s6 或 serving entrypoint。
 #
-# 版本组合（即文件名声明）：sglang v0.5.18，CUDA 12.9.1，gcc-12，Python 3.12，
-# 依赖 torch==2.13.0（v0.5.18 的 pyproject 所 pin）。本机 driver 535 经 CUDA 12
-# minor 前向兼容跑 cu12.9。
+# Target driver 535 can run this CUDA 12.9 image through minor-version
+# compatibility.
 #
-# 装配决策：与 pytorch Dockerfile 一致，在 cuda(Ubuntu 24.04) devel stage 内完成
-# 安装（glibc 与 toolkit 匹配，避开 debian:trixie 的 nvcc/glibc 头文件冲突），
-# 产出 venv 再 COPY 进 debian:trixie-slim final。
+# 在匹配 toolkit 的 Ubuntu builder 中安装，避免 Debian final 的 glibc header 与
+# nvcc 冲突；final stage 只接收 venv 和精简后的 toolkit。
 #
 # 从源码编译 vs 装 wheel：clone v0.5.18 tag 后从 python/ 源码 editable 安装 sglang
 # 主包；GPU kernel（sglang-kernel / sgl-deep-gemm）与 torch 三件套从 cu129 官方索引
@@ -37,10 +33,8 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/opt/uv sh
 
 # 源码构建 sglang 主包并装入独立 venv，随后按官方 cu129 recipe 强制重装 cu129 对齐
 # 的 torch 三件套与 GPU kernel，最后清理 cu13 冗余 wheel（sglang 依赖默认拉 cu13，
-# 一台 driver-535/CUDA-12 主机永远加载不了 cu13，需 driver>=580）。cu13 清理逻辑与
-# platform/container/services/sglang/Dockerfile 保持一致：卸载 13.x/_cu13 的 nvidia 包（保留
-# nvidia_ml_py），删独占的 nvidia/cu13 树，再回装 cu12 的 cudnn/cusparselt/nccl/
-# nvshmem 修复 torch，最后断言 torch 仍报 CUDA 12.x。
+# 一台 driver-535/CUDA-12 Host 无法加载 cu13）。卸载错误 backend 后回装目标
+# backend 的共享 library，并断言 torch 最终使用 CUDA 12。
 ARG SGLANG_REF=v0.5.18
 ARG CUDA_TAG=cu129
 ARG TORCH_SPEC="torch==2.13.0 torchvision==0.28.0 torchaudio==2.11.0"

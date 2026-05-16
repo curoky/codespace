@@ -26,8 +26,7 @@ RUN apt-get update -y \
 COPY platform/container/workspace/scripts/install-conda-environment.sh /opt/conda/condabin/install-conda-environment
 
 ################################# stage/rust ################################
-# rustup 装到自包含的 /opt/rust，与 main 的 nix/python 步骤并行构建；rust 工具链改动
-# 不再让下游 nix/python/conda/Workspace 层失效。
+# 在独立 stage 中生成自包含的 Rust toolchain，避免耦合 main stage 的其他 toolchain。
 FROM docker.io/debian:stable-slim AS stage_rust
 ENV CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup
 ENV PATH=/opt/rust/cargo/bin:${PATH}
@@ -38,8 +37,7 @@ RUN apt-get update -y \
   && rm -rf /var/lib/apt/lists/*
 
 ################################ stage/vscode extensions ################################
-# 只依赖 extensions.txt 与安装脚本，与 rust/nix/python 步骤并行构建；无关的仓库
-# 改动不再触发几分钟的扩展重装。throwaway 的 code-server 二进制留在本 stage 不入 final image。
+# 生成 editor extension template；一次性的 code-server 不进入 final image。
 FROM docker.io/debian:stable-slim AS stage_vscode_ext
 
 RUN apt-get update -y \
@@ -68,18 +66,8 @@ COPY platform/container/workspace/rootfs/ /
 COPY platform/container/workspace/scripts/configure-system.sh /tmp/configure-system.sh
 COPY platform/container/workspace/scripts/install-s6.sh /tmp/install-s6.sh
 RUN /tmp/configure-system.sh \
-  && install -d -o 5230 -g 5230 -m 0755 \
-    /workspace \
-    /workspace.enc \
-    /cache \
-    /home/x/.vscode-server \
-    /home/x/.trae \
-    /home/x/.trae-cn \
-    /home/x/.trae-server \
-    /home/x/.trae-cn-server \
-  && install -d -o 5230 -g 5230 -m 0700 /upload \
   && chown 5230:5230 /opt \
-  && chown -R 5230:5230 /opt/codespace \
+  && chown -R 5230:5230 /home/x /opt/codespace \
   && chmod -R +x /opt/codespace/bin \
   && /tmp/install-s6.sh \
   && ln -s /opt/bm/store/zsh/bin/zsh /usr/bin \
@@ -89,28 +77,9 @@ RUN /tmp/configure-system.sh \
   && ln -s /opt/bm/store/git/bin/git /usr/bin \
   && ln -s /opt/bm/store/openssh_gssapi/bin/ssh /usr/bin
 
-# Workspace home configuration is owned by rootfs/home/x. Reusable zsh
-# fragments and commands remain explicit inputs from host dotfiles.
-COPY --chown=5230:5230 \
-  dotfiles/zsh/aliases.zsh \
-  dotfiles/zsh/environment.zsh \
-  dotfiles/zsh/functions.zsh \
-  dotfiles/zsh/git.zsh \
-  dotfiles/zsh/paths.zsh \
-  /home/x/.config/zsh/
-COPY --chown=5230:5230 --chmod=0755 dotfiles/bin/eza-wrapper /home/x/.local/bin/eza-wrapper
-
 # Agent runtime and immutable templates use a product-owned prefix; no source
 # checkout is embedded in the image.
 COPY --chown=5230:5230 platform/container/workspace/agent/ /opt/codespace/agent/
-COPY --chown=5230:5230 platform/container/workspace/agent-rules.md /opt/codespace/share/agent-rules.md
-COPY --chown=5230:5230 dotfiles/trae/sandbox.json /opt/codespace/share/trae/sandbox.json
-COPY --chown=5230:5230 dotfiles/trae/traecli.toml /opt/codespace/share/trae/traecli.toml
-COPY --chown=5230:5230 dotfiles/vscode/remote/settings.json /opt/codespace/share/vscode/remote-settings.json
-COPY --chown=5230:5230 dotfiles/vscode/markdown-preview.css /opt/codespace/share/dotfiles/vscode/markdown-preview.css
-RUN chown -R 5230:5230 /home/x /opt/codespace \
-  && chmod 0700 /home/x/.ssh \
-  && chmod 0600 /home/x/.ssh/authorized_keys /home/x/.ssh/config /home/x/.ssh/known_hosts
 
 USER x
 
@@ -139,15 +108,13 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
   && nix-store --optimise
 
 # setup rust
-# COPY 放在 nix 之后：rust 工具链改动不会让上面昂贵的 nix 层失效。
 ENV CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup
 ENV PATH=${PATH}:/opt/rust/cargo/bin
 COPY --link --chown=5230:5230 --from=stage_rust /opt/rust /opt/rust
 
 # setup python & tools
-# uv 的成果物统一落到 /opt/uv：cache-dir 由 system 级 /etc/uv/uv.toml 固定（唯一
-# 支持写进配置文件的目录项，由 Workspace rootfs 烤入）；tool/python 的安装目录 uv
-# 没有对应 setting，只能用 UV_* ENV。ENV 与配置同层可靠，且被烤进后续所有层。
+# uv 的 cache、tool 与 Python 资产统一放在 /opt/uv；tool/python 目录只能通过
+# UV_* environment 配置。
 ENV UV_TOOL_DIR=/opt/uv/tools \
   UV_TOOL_BIN_DIR=/opt/uv/bin \
   UV_PYTHON_INSTALL_DIR=/opt/uv/python \
@@ -167,9 +134,11 @@ RUN conda tos accept --override-channels --channel https://repo.anaconda.com/pkg
 RUN UV_LINK_MODE=copy uv sync --project /opt/codespace/agent --locked --no-dev --python 3.14
 
 # setup Trae user rules
-RUN git clone --depth=1 https://github.com/curoky/agent-playbook /opt/codespace/share/agent-playbook
+RUN git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-playbook \
+  && HOME=/home/x bash /tmp/agent-playbook/install.sh \
+  && rm -rf /tmp/agent-playbook
 
-# Editor Remote 扩展参考副本（stage_vscode_ext 并行构建），运行期由 init-home 播种。
+# Editor Remote extension template，运行期由 home-init 播种。
 COPY --link --chown=5230:5230 --from=stage_vscode_ext /opt/editor-extensions /opt/codespace/share/editor-extensions
 
 USER root

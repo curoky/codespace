@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# workspace-init s6 oneshot (runs as x): chown the Workspace data, ciphertext
-# root and upload/cache to 5230:5230 (x has NOPASSWD sudo), then mount /workspace
-# via gocryptfs when CODESPACE_WORKSPACE_KEY is set, else use the plaintext bind.
-# Gates sshd/webdav. The five IDE home mounts are chowned by home-init instead.
+# workspace-init s6 oneshot (runs as x): prepare the Workspace data, ciphertext
+# root and upload/cache as private x-owned directories, then mount /workspace via
+# gocryptfs when CODESPACE_WORKSPACE_KEY is set, else use the plaintext bind.
+# Gates sshd/webdav. The IDE bin/extensions mounts are prepared by home-init.
 
 set -euo pipefail
 
-sudo chown 5230:5230 /workspace /workspace.enc /upload /cache
+sudo install -d -o 5230 -g 5230 -m 0700 -- /workspace /workspace.enc /upload /cache
 
 # gocryptfs 以 x 挂载：其 FUSE 守护进程用 x 身份读写密文根，落盘密文属主即 5230:5230。
 if [[ -z ${CODESPACE_WORKSPACE_KEY-} ]]; then

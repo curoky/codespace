@@ -9,5 +9,4 @@
 - Podman 与 Colima 启动命令相互独立，installer 不替用户选择 runtime。
 - LaunchAgent 不保存真实 credential。
 
-安装内容与命令以 installer、Brewfile、binman manifest 和 plist 为准；修改后运行
-根目录 `task check` 并校验 plist。
+修改 installer 或 LaunchAgent 后运行根目录 `task check` 并校验 plist。
