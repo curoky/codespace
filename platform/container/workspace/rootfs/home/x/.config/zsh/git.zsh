@@ -1,5 +1,10 @@
 alias fixup='git commit -v --no-verify --fixup'
 
+function init-git-user() {
+  git config --local user.name curoky
+  git config --local user.email cccuroky@gmail.com
+}
+
 function git-unshallow() {
   git fetch --tags
   git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'

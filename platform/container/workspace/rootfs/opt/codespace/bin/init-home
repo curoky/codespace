@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
-# home-init s6 oneshot (runs as x): prepare persistent IDE mounts, generate or
-# reuse the deploy key, then seed editor extensions. workspace-agent depends on
-# this service.
+# home-init s6 oneshot (runs as x): prepare shell and IDE state, generate or
+# reuse the deploy key, then seed editor extensions. sshd and workspace-agent
+# depend on this service.
 # Log: /var/log/home-init.log.
 
 set -euo pipefail
+
+install -d -m 0700 -- /home/x/.cache
+conda shell.zsh hook >/home/x/.cache/conda.plugin.zsh
+starship init zsh >/home/x/.cache/starship.plugin.zsh
+atuin init zsh --disable-up-arrow >/home/x/.cache/atuin.plugin.zsh
 
 sudo install -d -o 5230 -g 5230 -m 0700 -- \
   /home/x/.vscode-server/{bin,extensions} \
