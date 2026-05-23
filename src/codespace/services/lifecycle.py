@@ -115,7 +115,12 @@ class ServiceManager:
             )
         return removed
 
-    def logs(self, service: str, host_name: str) -> str:
+    def logs(
+        self,
+        service: str,
+        host_name: str,
+        source: str = container.CONTAINER_LOG_SOURCE,
+    ) -> container.LogSnapshot:
         self._service(service, host_name)
         spec = self.config.service_spec(service, host_name)
         client = self.transport.client(host_name)
@@ -125,7 +130,7 @@ class ServiceManager:
         running = inventory.find_container(client, spec)
         if running is None:
             raise RuntimeError(f"service {service!r} not found on host {host_name!r}")
-        return container.container_logs(running)
+        return container.container_log_snapshot(running, source)
 
     def _service(self, service: str, host_name: str) -> None:
         if service not in self.config.services:

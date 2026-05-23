@@ -2,7 +2,7 @@
 
 s6-envdir -Lf -- /run/s6/container_environment
 
-redirfd -w 1 /var/log/serve.log
+redirfd -w 1 /var/log/s6.serve.log
 fdmove -c 2 1
 
 exec /opt/codespace/sglang/serve.sh

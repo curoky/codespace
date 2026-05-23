@@ -4,7 +4,7 @@
 # instead of relying on atuin autostart.
 s6-envdir -Lf -- /run/s6/container_environment
 
-redirfd -w 1 /var/log/atuin-daemon.log
+redirfd -w 1 /var/log/s6.atuin-daemon.log
 fdmove -c 2 1
 
 s6-setuidgid x

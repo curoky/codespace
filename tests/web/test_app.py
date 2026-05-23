@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from codespace.config import Config
 from codespace.operations import Operation, OperationStore
+from codespace.runtime.container import LogSnapshot
 from codespace.web.app import create_app, router
 from codespace.web.models import DashboardResponse, HostStatus, ProjectHostSummary, ProjectSummary
 from codespace.workspaces.models import RepoGitState, workspace_identity
@@ -29,6 +30,7 @@ class FakeWorkspaceManager:
         self.operations = OperationStore()
         self.created: list[tuple[str, str, str]] = []
         self.deleted: list[tuple[str, str, str, bool, bool]] = []
+        self.log_sources: list[str] = []
         self.state = RepoGitState()
 
     def queue_create(self, project: str, host: str, workspace: str) -> Operation:
@@ -63,16 +65,28 @@ class FakeWorkspaceManager:
             self.deleted.append((project, host, workspace, purge, force))
         return self.state
 
-    def logs(self, _project: str, _host: str, workspace: str) -> str:
+    def logs(
+        self,
+        _project: str,
+        _host: str,
+        workspace: str,
+        source: str,
+    ) -> LogSnapshot:
         if workspace == "missing":
             raise RuntimeError("workspace not found")
-        return "log line\n"
+        self.log_sources.append(source)
+        return LogSnapshot(
+            source=source,
+            sources=("container", "s6.workspace-agent.log"),
+            logs="log line\n",
+        )
 
 
 class FakeServiceManager:
     def __init__(self) -> None:
         self.operations = OperationStore()
         self.applied: list[tuple[str, str]] = []
+        self.log_sources: list[str] = []
 
     def queue_apply(self, service: str, host: str) -> Operation:
         return self.operations.create(
@@ -95,8 +109,13 @@ class FakeServiceManager:
     def remove(self, _service: str, _host: str, *, purge: bool) -> bool:
         return True
 
-    def logs(self, _service: str, _host: str) -> str:
-        return "service log\n"
+    def logs(self, _service: str, _host: str, source: str) -> LogSnapshot:
+        self.log_sources.append(source)
+        return LogSnapshot(
+            source=source,
+            sources=("container", "s6.atuin-service.log"),
+            logs="service log\n",
+        )
 
 
 class FakeControl:
@@ -197,7 +216,12 @@ def test_workspace_routes_use_project_and_workspace_identity(
     assert created.json()["id"] == "codespace-workspace-home-codespace-debug"
     assert control.workspaces.created == [("codespace", "home", "debug")]
     assert deleted.json()["data_removed"] is True
-    assert logs.json() == {"logs": "log line\n"}
+    assert control.workspaces.log_sources == ["container"]
+    assert logs.json() == {
+        "source": "container",
+        "sources": ["container", "s6.workspace-agent.log"],
+        "logs": "log line\n",
+    }
 
 
 def test_service_routes_apply_log_and_remove(
@@ -206,13 +230,34 @@ def test_service_routes_apply_log_and_remove(
     client, control = app_client
 
     applied = client.post("/api/services/support/hosts/home/apply")
-    logs = client.get("/api/services/support/hosts/home/logs")
+    logs = client.get("/api/services/support/hosts/home/logs?source=s6.atuin-service.log")
     removed = client.request("DELETE", "/api/services/support/hosts/home?purge=true")
 
     assert applied.status_code == 202
     assert control.services.applied == [("support", "home")]
-    assert logs.json() == {"logs": "service log\n"}
+    assert control.services.log_sources == ["s6.atuin-service.log"]
+    assert logs.json() == {
+        "source": "s6.atuin-service.log",
+        "sources": ["container", "s6.atuin-service.log"],
+        "logs": "service log\n",
+    }
     assert removed.json() == {"removed": True, "data_removed": True}
+
+
+@pytest.mark.parametrize("source", ["../s6.atuin-service.log", "atuin-service.log"])
+def test_log_source_query_rejects_non_s6_files_and_paths(
+    app_client: tuple[TestClient, FakeControl],
+    source: str,
+) -> None:
+    client, control = app_client
+
+    response = client.get(
+        "/api/services/support/hosts/home/logs",
+        params={"source": source},
+    )
+
+    assert response.status_code == 422
+    assert control.services.log_sources == []
 
 
 def test_only_final_api_routes_exist(app_client: tuple[TestClient, FakeControl]) -> None:
