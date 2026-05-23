@@ -35,10 +35,10 @@ exec "${venv_bin}/python" -m sglang.launch_server \
   --mem-fraction-static 0.85 \
   `# 限制单步 prefill token 数，避免长 prompt 在较紧的 80GB 卡上撑爆 activation 显存` \
   --chunked-prefill-size 8192 \
-  `# GDN + QSA 混合架构必需：线性注意力层走 flashinfer 后端、SSM state 用 bfloat16（cookbook recipe）` \
+  `# GDN + QSA 混合架构必需：线性注意力层走 flashinfer 后端，FlashInfer initial state 使用 float32` \
   --linear-attn-prefill-backend flashinfer \
   --linear-attn-decode-backend flashinfer \
-  --mamba-ssm-dtype bfloat16 \
+  --mamba-ssm-dtype float32 \
   `# 并发上限；去掉该 flag 会回落到默认 48，此处提到 96 以充分利用 640GB 显存` \
   --max-running-requests 96 \
   `# NEXTN speculative decoding：复用 checkpoint 内置的 MTP head 提升吞吐（cookbook recipe）` \
