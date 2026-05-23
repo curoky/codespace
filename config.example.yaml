@@ -45,10 +45,8 @@ services:
       volumes:
         - /run/podman/podman.sock:/run/podman/podman.sock
       secrets:
-        atuin-database:
-          source: atuin_db_uri
-          mode: env
-          target: ATUIN_DB_URI
+        - source: atuin_db_uri
+          mode: 0400
 
   vllm:
     image: ghcr.io/curoky/codespace:service-vllm

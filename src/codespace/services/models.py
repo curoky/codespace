@@ -12,7 +12,6 @@ LABEL_KIND = "codespace.kind"
 LABEL_SERVICE = "codespace.service"
 LABEL_IMAGE = "codespace.image"
 SERVICE_KIND = "service"
-SERVICE_DATA_PLACEHOLDER = "${SERVICE_DATA}"
 
 
 def service_identity(service: str) -> str:

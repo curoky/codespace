@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # workspace-init s6 oneshot (runs as x): prepare the Workspace data, ciphertext
 # root and upload/cache as private x-owned directories, then mount /workspace via
-# gocryptfs when CODESPACE_WORKSPACE_KEY is set, else use the plaintext bind.
+# gocryptfs when its secret is mounted, else use the plaintext bind.
 # Gates sshd/webdav. The IDE bin/extensions mounts are prepared by home-init.
 
 set -euo pipefail
@@ -9,10 +9,12 @@ set -euo pipefail
 sudo install -d -o 5230 -g 5230 -m 0700 -- /workspace /workspace.enc /upload /cache
 
 # gocryptfs 以 x 挂载：其 FUSE 守护进程用 x 身份读写密文根，落盘密文属主即 5230:5230。
-if [[ -z ${CODESPACE_WORKSPACE_KEY-} ]]; then
-  echo "CODESPACE_WORKSPACE_KEY unset; Workspace encryption disabled, using plaintext /workspace"
+workspace_key_file=${1:-/run/secrets/codespace_workspace_key}
+if [[ ! -r ${workspace_key_file} ]]; then
+  echo "Workspace key secret unavailable; encryption disabled, using plaintext /workspace"
   exit 0
 fi
+printf -v workspace_key_command 'cat -- %q' "${workspace_key_file}"
 
 if grep -q " /workspace fuse.gocryptfs " /proc/mounts; then
   echo "gocryptfs already mounted at /workspace"
@@ -20,11 +22,7 @@ if grep -q " /workspace fuse.gocryptfs " /proc/mounts; then
 fi
 
 if [[ ! -e /workspace.enc/gocryptfs.conf ]]; then
-  # gocryptfs executes the extpass command later.
-  # shellcheck disable=SC2016
-  gocryptfs -init -extpass 'echo "${CODESPACE_WORKSPACE_KEY}"' /workspace.enc
+  gocryptfs -init -extpass "${workspace_key_command}" /workspace.enc
 fi
 
-# gocryptfs executes the extpass command later.
-# shellcheck disable=SC2016
-gocryptfs -extpass 'echo "${CODESPACE_WORKSPACE_KEY}"' -allow_other /workspace.enc /workspace
+gocryptfs -extpass "${workspace_key_command}" -allow_other /workspace.enc /workspace
