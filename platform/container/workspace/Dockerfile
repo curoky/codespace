@@ -91,19 +91,22 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
   && curl -fsSL https://nixos.org/nix/install | sh -s -- --no-daemon \
   && nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs \
   && nix-channel --update \
-  && nix-env -iA nixpkgs.ollama-cpu nixpkgs.lemminx nixpkgs.codex \
+  && nix-env -iA nixpkgs.ollama-cpu nixpkgs.lemminx nixpkgs.codex -p /nix/var/nix/profiles/default \
+  # setup formatters & linters
+  && nix-env -iA nixpkgs.markdownlint-cli2 nixpkgs.pnpm nixpkgs.prettier -p /nix/var/nix/profiles/default \
   # setup java
-  && nix-env -iA nixpkgs.maven \
+  && nix-env -iA nixpkgs.maven -p /nix/var/nix/profiles/default \
   && nix-env -iA nixpkgs.jdk8_headless -p /nix/var/nix/profiles/jdk8 \
   && nix-env -iA nixpkgs.jdk25_headless -p /nix/var/nix/profiles/jdk25 \
   # setup nodejs
-  && nix-env -iA nixpkgs.nodejs_24 \
+  && nix-env -iA nixpkgs.nodejs_24 -p /nix/var/nix/profiles/default \
   && nix-env -iA nixpkgs.nodejs_24 -p /nix/var/nix/profiles/nodejs-24 \
+  && nix-env -iA nixpkgs.nodejs_26 -p /nix/var/nix/profiles/nodejs-26 \
   # setup go
-  && nix-env -iA nixpkgs.go_1_26 \
+  && nix-env -iA nixpkgs.go_1_26 -p /nix/var/nix/profiles/default \
   && nix-env -iA nixpkgs.go_1_26 -p /nix/var/nix/profiles/go-1_26 \
   # setup gcc
-  && nix-env -iA nixpkgs.gcc15 \
+  && nix-env -iA nixpkgs.gcc15 -p /nix/var/nix/profiles/default \
   && nix-collect-garbage -d \
   && nix-store --optimise
 
@@ -122,6 +125,10 @@ ENV UV_TOOL_DIR=/opt/uv/tools \
 ENV PATH=${PATH}:/opt/uv/bin
 RUN uv python install --no-bin 3.9 3.10 3.11 3.12 3.13 3.14
 RUN uv tool install licenseheaders \
+  && uv tool install copyparty \
+  && uv tool install dool \
+  && uv tool install netron \
+  && uv tool install git-filter-repo \
   && uv tool install tensorboard --python 3.12 --with tensorboard-plugin-profile --with "setuptools==81.0.0"
 
 # setup conda

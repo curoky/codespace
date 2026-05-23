@@ -68,7 +68,6 @@ packages:
     - ethtool
     - miniserve
     - rclone
-    - copyparty
     - openssh_gssapi
 
     # crypto & security
@@ -88,7 +87,6 @@ packages:
     - lsof
     - gdu
     - ncdu_1
-    - dool
     - libcap
     - lsb-release
     - tzdata
@@ -102,7 +100,6 @@ packages:
     - gh
     - git-absorb
     - git-extras
-    - git-filter-repo
     - git-lfs
     - lefthook
 
@@ -123,7 +120,6 @@ packages:
 
     # language toolchains & package managers
     - uv
-    - pnpm
     - bazelisk
     - buildifier
 
@@ -131,8 +127,6 @@ packages:
     - ruff
     - shfmt
     - nixfmt
-    - prettier
-    - markdownlint-cli2
     - scc
     - cloc
 
@@ -145,15 +139,10 @@ packages:
 
     # misc
     - nil
-    - netron
     - exiftool
     - podman5
 
   unlink:
-    - python314
-    - nodejs-slim24
-    - nodejs-slim26
-
     - clang-tools-18
     - clang-tools-19
     - clang-tools-20
