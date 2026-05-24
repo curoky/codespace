@@ -106,7 +106,12 @@ jobs:
       packages: write
     strategy:
       matrix:
-        tag: [debian10, debian11, debian12, debian13, ubuntu26.04]
+        tag:
+          - debian10
+          # - debian11
+          - debian12
+          - debian13
+          - ubuntu26.04
     steps:
       - uses: docker/setup-buildx-action@v4
 
