@@ -174,6 +174,7 @@ class WorkspaceSpec:
             image=self.image,
             platform=self.platform_label,
             ssh_port=self.ssh_port,
+            encrypted=self.encrypted,
             container_id=container_id,
             status=status,
         )
@@ -204,6 +205,7 @@ class Workspace(BaseModel):
     image: str
     platform: PlatformSelection
     ssh_port: int
+    encrypted: bool
     container_id: str
     status: str | None = None
 
