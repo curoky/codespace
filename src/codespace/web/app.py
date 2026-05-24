@@ -17,8 +17,8 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from codespace.config import CONFIG_PATH, Config, load_config
 from codespace.control import ControlPlane
 from codespace.operations import Operation, describe_error
+from codespace.runtime.container import LogSnapshot
 from codespace.web.models import (
-    ContainerLogsResult,
     CreateWorkspaceRequest,
     DashboardResponse,
     DeleteWorkspaceResult,
@@ -81,13 +81,8 @@ def workspace_logs(
     workspace: ResourcePath,
     request: Request,
     source: LogSourceQuery = "container",
-) -> ContainerLogsResult:
-    snapshot = _control(request).workspaces.logs(project, host, workspace, source)
-    return ContainerLogsResult(
-        source=snapshot.source,
-        sources=list(snapshot.sources),
-        logs=snapshot.logs,
-    )
+) -> LogSnapshot:
+    return _control(request).workspaces.logs(project, host, workspace, source)
 
 
 @router.delete("/api/projects/{project}/hosts/{host}/workspaces/{workspace}")
@@ -143,13 +138,8 @@ def service_logs(
     host: HostPath,
     request: Request,
     source: LogSourceQuery = "container",
-) -> ContainerLogsResult:
-    snapshot = _control(request).services.logs(service, host, source)
-    return ContainerLogsResult(
-        source=snapshot.source,
-        sources=list(snapshot.sources),
-        logs=snapshot.logs,
-    )
+) -> LogSnapshot:
+    return _control(request).services.logs(service, host, source)
 
 
 @router.delete("/api/services/{service}/hosts/{host}")

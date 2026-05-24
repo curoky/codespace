@@ -9,7 +9,7 @@ import pytest
 
 from codespace.runtime.transport import SSHRoute
 from codespace.workspaces import ssh
-from codespace.workspaces.models import Workspace, workspace_ssh_port
+from codespace.workspaces.models import ProviderSource, Workspace, workspace_ssh_port
 
 
 @pytest.fixture
@@ -41,11 +41,11 @@ def _workspace(name: str = "debug") -> Workspace:
         project="codespace",
         workspace=name,
         host="home",
-        source="github",
-        repository="curoky/codespace",
+        source=ProviderSource(type="github", repository="curoky/codespace"),
         image="workspace:latest",
         platform="native",
         ssh_port=workspace_ssh_port(identity),
+        open_path="/workspace/codespace",
         encrypted=False,
         container_id=f"container-{name}",
         status="running",

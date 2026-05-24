@@ -16,7 +16,7 @@ from codespace.web.models import (
     ProjectHostSummary,
     ProjectSummary,
 )
-from codespace.workspaces.models import RepoGitState, Workspace, workspace_identity
+from codespace.workspaces.models import EmptySource, RepoGitState, Workspace, workspace_identity
 
 
 class FakeTokens:
@@ -148,9 +148,7 @@ class FakeControl:
                             image=self.config.project_defaults.image,
                         )
                     ],
-                    source="github",
-                    repository="curoky/codespace",
-                    checkout_path="/workspace/codespace",
+                    source=self.config.projects["codespace"].source,
                     open_path="/workspace/codespace",
                 )
             ],
@@ -191,24 +189,46 @@ def test_static_ui_uses_final_terminology(app_client: tuple[TestClient, FakeCont
     assert ".workspace-encryption-icon" in stylesheet
 
 
-def test_dashboard_workspace_exposes_container_encryption() -> None:
+def test_dashboard_workspace_exposes_container_encryption(
+    app_client: tuple[TestClient, FakeControl], monkeypatch: pytest.MonkeyPatch
+) -> None:
     workspace = Workspace(
         id="codespace-workspace-home-codespace-debug",
         project="codespace",
         workspace="debug",
         host="home",
-        source="empty",
+        source=EmptySource(type="empty"),
         image="workspace:latest",
         platform="native",
         ssh_port=22000,
+        open_path="/workspace",
         encrypted=True,
         container_id="container-id",
         status="running",
     )
 
-    dashboard_workspace = DashboardWorkspace.from_workspace(workspace, "/workspace")
+    dashboard_workspace = DashboardWorkspace.model_validate(workspace, from_attributes=True)
 
     assert dashboard_workspace.encrypted is True
+    serialized = dashboard_workspace.model_dump()
+    assert serialized["source"] == {"type": "empty"}
+    assert serialized["ssh_command"] == f"ssh {workspace.id}"
+    assert "/workspace?" in serialized["trae_url"]
+    assert serialized["trae_cn_url"].startswith("trae-cn://")
+    assert "container_id" not in serialized
+    assert "alias" not in serialized
+    client, control = app_client
+    dashboard = control.dashboard()
+    dashboard.workspaces = [dashboard_workspace]
+    monkeypatch.setattr(control, "dashboard", lambda: dashboard)
+
+    response = client.get("/api/dashboard")
+
+    assert response.status_code == 200
+    assert response.json()["workspaces"] == [serialized]
+    project = response.json()["projects"][0]
+    assert project["source"] == {"type": "github", "repository": "curoky/codespace"}
+    assert not {"repository", "git_url", "checkout_path"} & project.keys()
 
 
 def test_dashboard_and_token_endpoint_never_return_token(

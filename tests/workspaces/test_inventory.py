@@ -3,12 +3,13 @@
 from types import SimpleNamespace
 
 import pytest
+from pydantic import ValidationError
 
+from codespace.config import Config
 from codespace.workspaces import inventory
-from codespace.workspaces.models import WORKSPACE_CIPHER_MOUNT, WORKSPACE_MOUNT
 
 
-def _container(workspace_mounts: list[str]) -> SimpleNamespace:
+def _container(encrypted: str) -> SimpleNamespace:
     return SimpleNamespace(
         id="container-id",
         labels={
@@ -20,25 +21,65 @@ def _container(workspace_mounts: list[str]) -> SimpleNamespace:
             "codespace.image": "workspace:latest",
             "codespace.platform": "native",
             "codespace.ssh-port": "22000",
+            "codespace.open-path": "/workspace/codespace",
+            "codespace.encrypted": encrypted,
         },
-        attrs={
-            "State": {"Status": "running"},
-            "Mounts": [*workspace_mounts, "/upload", "/cache"],
-        },
+        attrs={"State": "running"},
     )
 
 
 @pytest.mark.parametrize(
-    ("mount", "expected"),
-    [(WORKSPACE_CIPHER_MOUNT, True), (WORKSPACE_MOUNT, False)],
+    ("encrypted", "expected"),
+    [("true", True), ("false", False)],
 )
-def test_read_workspace_reports_container_encryption(mount: str, expected: bool) -> None:
-    workspace = inventory.read_workspace(_container([mount]), "home")  # type: ignore[arg-type]
+def test_read_workspace_uses_only_labels(encrypted: str, expected: bool) -> None:
+    workspace = inventory.read_workspace(_container(encrypted), "home")  # type: ignore[arg-type]
 
     assert workspace.encrypted is expected
+    assert workspace.open_path == "/workspace/codespace"
+    assert workspace.status == "running"
 
 
-@pytest.mark.parametrize("mounts", [[], [WORKSPACE_MOUNT, WORKSPACE_CIPHER_MOUNT]])
-def test_read_workspace_rejects_ambiguous_workspace_mounts(mounts: list[str]) -> None:
-    with pytest.raises(ValueError, match="must mount exactly one"):
-        inventory.read_workspace(_container(mounts), "home")  # type: ignore[arg-type]
+@pytest.mark.parametrize("label", ["codespace.open-path", "codespace.encrypted"])
+def test_read_workspace_requires_metadata(label: str) -> None:
+    container = _container("false")
+    del container.labels[label]
+
+    with pytest.raises(KeyError, match=label):
+        inventory.read_workspace(container, "home")  # type: ignore[arg-type]
+
+
+def test_read_workspace_rejects_invalid_encryption_label() -> None:
+    with pytest.raises(KeyError):
+        inventory.read_workspace(_container("invalid"), "home")  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("project", ["codespace", "service-api", "scratch", "personal"])
+def test_created_labels_round_trip_inventory(config: Config, project: str) -> None:
+    host = config.project_hosts(project)[0]
+    spec = config.workspace_spec(project, host, "debug")
+    container = SimpleNamespace(id="container-id", labels=spec.labels(), attrs={"State": "running"})
+
+    assert inventory.read_workspace(container, host) == spec.to_workspace(  # type: ignore[arg-type]
+        "container-id", status="running"
+    )
+    assert inventory.read_workspace(container, host).source == config.projects[project].source  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    "labels",
+    [
+        {"codespace.source": "github"},
+        {"codespace.source": "git"},
+        {"codespace.source": "unknown"},
+        {"codespace.source": "empty", "codespace.repository": "owner/repo"},
+        {"codespace.source": "github", "codespace.repository": "invalid"},
+    ],
+)
+def test_inventory_rejects_incomplete_or_mismatched_sources(labels: dict[str, str]) -> None:
+    container = _container("false")
+    del container.labels["codespace.repository"]
+    container.labels.update(labels)
+
+    with pytest.raises(ValidationError):
+        inventory.read_workspace(container, "home")  # type: ignore[arg-type]

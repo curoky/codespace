@@ -8,6 +8,8 @@
 - 依赖方向为 `web -> control -> workspaces/services -> runtime`；`runtime/` 不依赖
   Config、manager 或 Web，Workspace 与 Service 不互相调用。
 - 配置只在入口读取并由 Pydantic 完整校验；解析后的 model 是运行期唯一配置来源。
+- Config 提供创建目标与 placement；已有容器元信息只读其 labels，运行状态只读
+  Podman。缺失必需 label 必须失败，不从 Config、mount 或 environment 补齐。
 - identity、label、路径、环境变量、API 与 CLI 不在说明文档中维护副本。
 - lifecycle failure 保留现场和 failed operation，不做隐式回滚。
 - 维护命令默认 dry-run，只有显式 `--apply` 才修改远端状态。

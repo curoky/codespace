@@ -13,7 +13,6 @@ from pydantic import AfterValidator, BaseModel, ConfigDict, Field
 from codespace.runtime.container import ContainerSpec, ImagePlatform
 
 type GitProvider = Literal["github", "gitlab"]
-type SourceType = Literal["github", "gitlab", "git", "empty"]
 type PlatformSelection = Literal["native", "linux/amd64", "linux/arm64"]
 
 CONTAINER_USER = "x"
@@ -43,6 +42,7 @@ SOURCE_TYPE_ENV = "CODESPACE_SOURCE_TYPE"
 CLONE_URL_ENV = "CODESPACE_CLONE_URL"
 CHECKOUT_PATH_ENV = "CODESPACE_CHECKOUT_PATH"
 OPEN_PATH_ENV = "CODESPACE_OPEN_PATH"
+ENCRYPTED_ENV = "CODESPACE_ENCRYPTED"
 SSHD_PORT_ENV = "SSHD_PORT"
 SSHD_BIND_ENV = "SSHD_BIND"
 
@@ -55,15 +55,9 @@ LABEL_GIT_URL = "codespace.git-url"
 LABEL_IMAGE = "codespace.image"
 LABEL_PLATFORM = "codespace.platform"
 LABEL_SSH_PORT = "codespace.ssh-port"
+LABEL_OPEN_PATH = "codespace.open-path"
+LABEL_ENCRYPTED = "codespace.encrypted"
 WORKSPACE_KIND = "workspace"
-MANDATORY_LABELS = (
-    LABEL_PROJECT,
-    LABEL_WORKSPACE,
-    LABEL_SOURCE,
-    LABEL_IMAGE,
-    LABEL_PLATFORM,
-    LABEL_SSH_PORT,
-)
 
 RESOURCE_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}$")
 HOST_RE = re.compile(r"^[a-z0-9][a-z0-9.-]{0,62}$")
@@ -116,6 +110,54 @@ def git_host(provider: GitProvider) -> str:
             return "gitlab.com"
 
 
+class ProviderSource(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    type: GitProvider
+    repository: RepositoryPath
+
+    @property
+    def clone_url(self) -> str:
+        return f"git@{git_host(self.type)}:{self.repository}.git"
+
+    @property
+    def checkout_name(self) -> str:
+        return self.repository.rsplit("/", 1)[-1].removesuffix(".git")
+
+
+class GitSource(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    type: Literal["git"]
+    url: GitUrl
+
+    @property
+    def clone_url(self) -> str:
+        return self.url
+
+    @property
+    def checkout_name(self) -> str:
+        trimmed = self.url.rstrip("/").removesuffix(".git")
+        return re.split(r"[/:]", trimmed)[-1]
+
+
+class EmptySource(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    type: Literal["empty"]
+
+    @property
+    def clone_url(self) -> None:
+        return None
+
+    @property
+    def checkout_name(self) -> None:
+        return None
+
+
+type Source = Annotated[ProviderSource | GitSource | EmptySource, Field(discriminator="type")]
+
+
 @dataclass(frozen=True, slots=True)
 class WorkspaceSpec:
     """Resolved Project placement and one requested Workspace identity."""
@@ -123,10 +165,7 @@ class WorkspaceSpec:
     project: str
     workspace: str
     host: str
-    source: SourceType
-    repository: str | None
-    git_url: str | None
-    clone_url: str | None
+    source: Source
     platform: ImagePlatform | None
     image: str
     container: ContainerSpec
@@ -151,29 +190,30 @@ class WorkspaceSpec:
             LABEL_KIND: WORKSPACE_KIND,
             LABEL_PROJECT: self.project,
             LABEL_WORKSPACE: self.workspace,
-            LABEL_SOURCE: self.source,
+            LABEL_SOURCE: self.source.type,
             LABEL_IMAGE: self.image,
             LABEL_PLATFORM: self.platform_label,
             LABEL_SSH_PORT: str(self.ssh_port),
+            LABEL_OPEN_PATH: self.open_path,
+            LABEL_ENCRYPTED: str(self.encrypted).lower(),
         }
-        if self.repository is not None:
-            labels[LABEL_REPOSITORY] = self.repository
-        if self.git_url is not None:
-            labels[LABEL_GIT_URL] = self.git_url
+        if isinstance(self.source, ProviderSource):
+            labels[LABEL_REPOSITORY] = self.source.repository
+        if isinstance(self.source, GitSource):
+            labels[LABEL_GIT_URL] = self.source.url
         return labels
 
-    def to_workspace(self, container_id: str, *, status: str | None = None) -> Workspace:
+    def to_workspace(self, container_id: str, *, status: str) -> Workspace:
         return Workspace(
             id=self.identity,
             project=self.project,
             workspace=self.workspace,
             host=self.host,
             source=self.source,
-            repository=self.repository,
-            git_url=self.git_url,
             image=self.image,
             platform=self.platform_label,
             ssh_port=self.ssh_port,
+            open_path=self.open_path,
             encrypted=self.encrypted,
             container_id=container_id,
             status=status,
@@ -199,15 +239,14 @@ class Workspace(BaseModel):
     project: str
     workspace: str
     host: str
-    source: SourceType
-    repository: str | None = None
-    git_url: str | None = None
+    source: Source
     image: str
     platform: PlatformSelection
     ssh_port: int
+    open_path: str
     encrypted: bool
     container_id: str
-    status: str | None = None
+    status: str
 
 
 def editor_url(alias: str, open_path: str, *, scheme: str = "trae") -> str:

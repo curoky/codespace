@@ -48,14 +48,15 @@ def test_source_union_and_default_paths(config: Config) -> None:
     direct = config.workspace_spec("personal", "home", "default")
     empty = config.workspace_spec("scratch", "home", "default")
 
-    assert managed.source == "github"
-    assert managed.repository == "curoky/codespace"
-    assert managed.clone_url == "git@github.com:curoky/codespace.git"
+    assert managed.source.model_dump() == {"type": "github", "repository": "curoky/codespace"}
+    assert managed.source.clone_url == "git@github.com:curoky/codespace.git"
     assert managed.checkout_path == "/workspace/codespace"
-    assert direct.source == "git"
-    assert direct.git_url == "git@github.com:curoky/codespace.git"
-    assert empty.source == "empty"
-    assert empty.clone_url is None
+    assert direct.source.model_dump() == {
+        "type": "git",
+        "url": "git@github.com:curoky/codespace.git",
+    }
+    assert empty.source.type == "empty"
+    assert empty.source.clone_url is None
     assert empty.checkout_path == "/workspace"
 
 
@@ -163,6 +164,55 @@ def test_service_accepts_managed_data_placeholder(config: Config) -> None:
     assert volumes[0].target == "/root/.cache/huggingface"
 
 
+def test_service_resolves_data_without_mutating_config(config: Config) -> None:
+    data = config.model_dump()
+    data["services"]["vllm"]["container"]["volumes"] = [
+        "${SERVICE_DATA}:/data:ro",
+        "/host/cache:/cache",
+        {"type": "bind", "source": "${SERVICE_DATA}", "target": "/models"},
+    ]
+    configured = Config.model_validate(data)
+    spec = configured.service_spec("vllm", "office")
+
+    resolved = spec.resolve_data_path("/home/x/codespace/services/vllm")
+
+    assert [volume.mount() for volume in resolved.volumes or []] == [
+        {
+            "type": "bind",
+            "source": "/home/x/codespace/services/vllm",
+            "target": "/data",
+            "read_only": True,
+        },
+        {"type": "bind", "source": "/host/cache", "target": "/cache", "read_only": False},
+        {
+            "type": "bind",
+            "source": "/home/x/codespace/services/vllm",
+            "target": "/models",
+            "read_only": False,
+        },
+    ]
+    assert [volume.source for volume in spec.container.volumes or []] == [
+        "${SERVICE_DATA}",
+        "/host/cache",
+        "${SERVICE_DATA}",
+    ]
+
+
+@pytest.mark.parametrize("kind, name", [("projects", "scratch"), ("services", "support")])
+@pytest.mark.parametrize("source", ["relative", "${OTHER_DATA}", "/${DATA}"])
+def test_config_rejects_invalid_mount_sources(
+    config: Config, kind: str, name: str, source: str
+) -> None:
+    data = config.model_dump()
+    data[kind][name]["container"] = {
+        "network_mode": "host",
+        "volumes": [f"{source}:/data"],
+    }
+
+    with pytest.raises(ValidationError):
+        Config.model_validate(data)
+
+
 def test_ports_require_bridge_network(config: Config) -> None:
     data = config.model_dump()
     data["projects"]["codespace"]["container"] = {
@@ -212,7 +262,7 @@ def test_service_data_placeholder_is_rejected_for_projects(config: Config) -> No
     data = config.model_dump()
     data["projects"]["codespace"]["container"] = {"volumes": ["${SERVICE_DATA}:/workspace/models"]}
 
-    with pytest.raises(ValidationError, match="must use an absolute source"):
+    with pytest.raises(ValidationError, match="absolute path"):
         Config.model_validate(data)
 
 
@@ -262,6 +312,8 @@ def test_workspace_identity_labels_and_paths(config: Config) -> None:
         LABEL_IMAGE: "ghcr.io/curoky/codespace:workspace-debian13",
         LABEL_PLATFORM: "linux/arm64",
         LABEL_SSH_PORT: str(spec.ssh_port),
+        "codespace.open-path": "/workspace/codespace",
+        "codespace.encrypted": "false",
     }
     assert paths.workspace("codespace", "debug").root == (
         "/home/x/codespace/workspaces/codespace/debug"
