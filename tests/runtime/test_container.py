@@ -8,7 +8,7 @@ from podman.errors import NotFound
 from pydantic import ValidationError
 
 from codespace.runtime import container
-from codespace.runtime.container import ContainerSpec, SecretSpec, VolumeSpec
+from codespace.runtime.container import ContainerSpec, PortSpec, SecretSpec, VolumeSpec
 
 
 @pytest.mark.parametrize("state", ["running", {"Status": "running"}])
@@ -230,7 +230,10 @@ def test_duplicate_port_target_is_rejected() -> None:
         )
 
 
-def test_create_container_translates_canonical_options(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize("host_ip", ["127.0.0.1", "10.88.0.1", "::1"])
+def test_create_container_translates_canonical_options(
+    monkeypatch: pytest.MonkeyPatch, host_ip: str
+) -> None:
     captured: dict[str, object] = {}
     fake = SimpleNamespace()
     client = SimpleNamespace(secrets=SimpleNamespace(exists=lambda _name: True))
@@ -245,7 +248,7 @@ def test_create_container_translates_canonical_options(monkeypatch: pytest.Monke
                 {
                     "target": 8000,
                     "published": 3000,
-                    "host_ip": "127.0.0.1",
+                    "host_ip": host_ip,
                 }
             ],
             "secrets": [{"source": "api_token", "mode": 0o400}],
@@ -273,10 +276,41 @@ def test_create_container_translates_canonical_options(monkeypatch: pytest.Monke
     assert result is fake
     options = captured["options"]
     assert isinstance(options, dict)
-    assert options["ports"] == {"8000/tcp": ("127.0.0.1", 3000)}
+    assert options["network_mode"] == "bridge"
+    assert "networks" not in options
+    assert options["ports"] == {"8000/tcp": (host_ip, 3000)}
     assert options["ipc_mode"] == "host"
     assert options["secrets"] == [{"source": "api_token", "uid": 0, "gid": 0, "mode": 0o400}]
     assert options["restart_policy"] == {"Name": "unless-stopped"}
+
+
+@pytest.mark.parametrize(
+    "host_ip", ["", "localhost", "host.containers.internal", "10.88.0.1/16", "999.1.1.1", 1234]
+)
+def test_port_host_ip_requires_an_ip_address(host_ip: object) -> None:
+    with pytest.raises(ValidationError):
+        PortSpec.model_validate({"target": 80, "published": 8080, "host_ip": host_ip})
+
+
+def test_host_network_does_not_prepare_bridge(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured: dict[str, object] = {}
+    monkeypatch.setattr(
+        container, "run_container", lambda _client, _image, options: captured.update(options)
+    )
+
+    container.create_container(
+        SimpleNamespace(),  # type: ignore[arg-type]
+        "image",
+        name="host-container",
+        spec=ContainerSpec(network_mode="host"),
+        environment={},
+        labels={},
+        mounts=[],
+    )
+
+    assert captured["network_mode"] == "host"
+    assert captured["ports"] == {}
+    assert "networks" not in captured
 
 
 def test_missing_secret_fails_before_container_creation() -> None:

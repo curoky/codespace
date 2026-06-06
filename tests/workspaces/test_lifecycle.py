@@ -214,11 +214,18 @@ def test_logs_reads_selected_container_source(
     assert calls == [(running, "s6.workspace-agent.log")]
 
 
+@pytest.mark.parametrize("network_mode", ["host", "bridge"])
 def test_workspace_container_uses_reserved_environment_and_mounts(
     config: Config,
     monkeypatch: pytest.MonkeyPatch,
+    network_mode: str,
 ) -> None:
-    spec = config.workspace_spec("codespace", "home", "debug")
+    data = config.model_dump()
+    data["projects"]["codespace"]["container"] = {
+        "network_mode": network_mode,
+        "environment": {"ATUIN_SYNC_ADDRESS": "http://host.containers.internal:8002"},
+    }
+    spec = Config.model_validate(data).workspace_spec("codespace", "home", "debug")
     captured: dict[str, object] = {}
     monkeypatch.setattr(
         lifecycle.container,
@@ -240,6 +247,14 @@ def test_workspace_container_uses_reserved_environment_and_mounts(
     assert environment["CODESPACE_OPEN_PATH"] == "/workspace/codespace"
     assert environment["CODESPACE_ENCRYPTED"] == "false"
     assert environment["CODESPACE_CLONE_URL"] == "git@github.com:curoky/codespace.git"
+    assert environment["ATUIN_SYNC_ADDRESS"] == "http://host.containers.internal:8002"
+    assert environment["SSHD_PORT"] == str(spec.ssh_port)
+    if network_mode == "bridge":
+        assert environment["SSHD_BIND"] == "0.0.0.0"  # noqa: S104
+        assert captured["extra_ports"] == {f"{spec.ssh_port}/tcp": ("127.0.0.1", spec.ssh_port)}
+    else:
+        assert "SSHD_BIND" not in environment
+        assert captured["extra_ports"] == {}
     targets = {mount["target"] for mount in captured["mounts"]}  # type: ignore[index]
     assert {"/workspace", "/upload", "/cache", "/run/codespace-control"} <= targets
     assert {
