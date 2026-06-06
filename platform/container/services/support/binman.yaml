@@ -2,7 +2,6 @@ prefix: /opt/bm
 
 packages:
   link:
-    - atuin
     - supercronic
 
 profiles:
