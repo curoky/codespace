@@ -11,7 +11,10 @@ echo "root:x123456" | chpasswd
 useradd --create-home --uid 5230 --user-group x
 echo "x:x123456" | chpasswd
 usermod -aG sudo x
-echo "x ALL=(ALL:ALL) NOPASSWD:ALL" >>/etc/sudoers.d/nopasswd_user
+
+# rootfs 的 COPY 先于本脚本执行，已以 root 建好 /home/x，故 useradd 不再改属主；
+# 显式把整个 home 归还 x，避免运行期（如 uv 写 ~/.cache）因 root 属主而权限拒绝。
+chown -R 5230:5230 /home/x
 
 install -d -o 5230 -g 5230 -m 0700 /home/x/.ssh
 
@@ -26,16 +29,39 @@ mkdir -p /var/empty
 # start with world-readable host keys.
 chmod 600 /etc/ssh/ssh_host_*_key
 
-# sudoers drop-in shipped via rootfs; Git cannot preserve the 0440 mode sudo
-# requires, so tighten it here at build time.
-chmod 440 /etc/sudoers.d/more_secure_path
+# sudoers shipped via rootfs; Git cannot preserve the 0440 mode sudo requires,
+# so tighten the main file and drop-in here at build time.
+chmod 440 /etc/sudoers /etc/sudoers.d/more_secure_path /etc/sudoers.d/nopasswd_user
+
+# sudo now comes from /opt/bm instead of apt, so set it setuid-root on the store
+# target (the profile entry is a symlink).
+chown root:root /opt/bm/store/sudo/bin/sudo
+chmod u+s /opt/bm/store/sudo/bin/sudo
 
 ln -sf /usr/share/zoneinfo/Asia/Singapore /etc/localtime
-
-echo "en_US.UTF-8 UTF-8" >/etc/locale.gen
-locale-gen
 
 # gocryptfs runs as x without CAP_SYS_ADMIN, so its fusermount3 helper must be
 # setuid root. Set the store target because the profile entry is a symlink.
 chown root:root /opt/bm/store/fuse3/bin/fusermount3
 chmod u+s /opt/bm/store/fuse3/bin/fusermount3
+
+# CA bundle now comes from /opt/bm (binman cacert) instead of apt
+# ca-certificates; point the Debian default path at it so consumers that read
+# the fixed location (openssl, curl, git, wget, python) resolve trust anchors.
+install -d /etc/ssl/certs
+cp /opt/bm/etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt
+
+# locale-archive comes from /opt/bm (binman glibcLocales, includes en_US.UTF-8)
+# instead of apt locales; point glibc's default lookup path at it so LANG /
+# LC_ALL resolve without any build-time locale-gen.
+install -d /usr/lib/locale
+cp /opt/bm/lib/locale/locale-archive /usr/lib/locale/locale-archive
+
+# Expose selected static tools under /usr/bin for consumers that do not inherit
+# /opt/bm/bin on PATH (sshd, sudo secure_path, git subprocess).
+ln -s /opt/bm/store/zsh/bin/zsh /usr/bin
+ln -s /opt/bm/store/wget/bin/wget /usr/bin
+ln -s /opt/bm/store/less/bin/less /usr/bin
+ln -s /opt/bm/store/xz/bin/xz /usr/bin
+ln -s /opt/bm/store/git/bin/git /usr/bin
+ln -s /opt/bm/store/openssh_gssapi/bin/ssh /usr/bin

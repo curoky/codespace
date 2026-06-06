@@ -81,6 +81,7 @@ packages:
     - gocryptfs
 
     # system & process
+    - sudo
     - procps
     - procs
     - strace

@@ -11,3 +11,6 @@ export UV_TOOL_DIR=/opt/uv/tools
 export UV_TOOL_BIN_DIR=/opt/uv/bin
 export UV_PYTHON_INSTALL_DIR=/opt/uv/python
 export UV_PYTHON_BIN_DIR=/opt/uv/bin
+
+# conda
+export CONDA_PLUGINS_AUTO_ACCEPT_TOS=yes
