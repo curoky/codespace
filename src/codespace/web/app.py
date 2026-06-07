@@ -10,7 +10,7 @@ from typing import Annotated, cast
 from fastapi import APIRouter, BackgroundTasks, FastAPI, Query, Request
 from fastapi import Path as ApiPath
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -83,6 +83,18 @@ def workspace_logs(
     source: LogSourceQuery = "container",
 ) -> LogSnapshot:
     return _control(request).workspaces.logs(project, host, workspace, source)
+
+
+@router.post("/api/projects/{project}/hosts/{host}/workspaces/{workspace}/tunnels/{port}")
+def open_workspace_tunnel(
+    project: ResourcePath,
+    host: HostPath,
+    workspace: ResourcePath,
+    port: Annotated[int, ApiPath(ge=1, le=65535)],
+    request: Request,
+) -> RedirectResponse:
+    local_port = _control(request).workspaces.open_tunnel(project, host, workspace, port)
+    return RedirectResponse(f"http://127.0.0.1:{local_port}/", status_code=303)
 
 
 @router.delete("/api/projects/{project}/hosts/{host}/workspaces/{workspace}")

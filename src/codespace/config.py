@@ -82,8 +82,17 @@ def _workspace_path(value: str) -> str:
     return str(path)
 
 
+def _unique_ports(ports: list[int]) -> list[int]:
+    if len(ports) != len(set(ports)):
+        raise ValueError("tunnel ports must be unique")
+    return ports
+
+
 type EnvironmentName = Annotated[str, AfterValidator(_environment_name)]
 type WorkspacePath = Annotated[str, AfterValidator(_workspace_path)]
+type TunnelPorts = Annotated[
+    list[Annotated[int, Field(strict=True, ge=1, le=65535)]], AfterValidator(_unique_ports)
+]
 
 
 class FrozenModel(BaseModel):
@@ -112,6 +121,7 @@ class ProjectPlacement(FrozenModel):
 
 class ProjectDefaults(FrozenModel):
     image: NonBlankString
+    tunnel_ports: TunnelPorts = Field(default_factory=list)
     container: ContainerSpec = Field(default_factory=ContainerSpec)
 
 
@@ -123,6 +133,7 @@ class ProjectConfig(FrozenModel):
     checkout_path: WorkspacePath | None = None
     open_path: WorkspacePath | None = None
     encrypted: bool = False
+    tunnel_ports: TunnelPorts | None = None
     container: ContainerSpec | None = None
 
     def resolved_checkout_path(self) -> str:
@@ -219,6 +230,10 @@ class Config(FrozenModel):
 
     def project_platform(self, project: str, host: str) -> ImagePlatform | None:
         return self.projects[project].hosts[host].platform or self.hosts[host].platform
+
+    def project_tunnel_ports(self, project: str) -> list[int]:
+        ports = self.projects[project].tunnel_ports
+        return self.project_defaults.tunnel_ports if ports is None else ports
 
     def service_image(self, service: str, host: str) -> str:
         configured = self.services[service]

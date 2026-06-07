@@ -10,9 +10,11 @@ hosts:
 
 project_defaults:
   image: ghcr.io/curoky/codespace:workspace-debian13
+  tunnel_ports: [8005]
   container:
-    environment:
-      ATUIN_SYNC_ADDRESS: http://host.containers.internal:8002
+    secrets:
+      - source: atuin_db_uri
+        mode: 0400
     cap_add: [NET_RAW, SYS_ADMIN]
     security_opt: [disable, seccomp=unconfined]
     pids_limit: -1
@@ -42,17 +44,8 @@ services:
     hosts:
       server: {}
     container:
-      ports:
-        # Use the Host's actual Podman bridge gateway, not its loopback address.
-        - { target: 8002, published: 8002, host_ip: 10.88.0.1 }
-      environment:
-        ATUIN_HOST: 0.0.0.0
-        ATUIN_PORT: "8002"
       volumes:
         - /run/podman/podman.sock:/run/podman/podman.sock
-      secrets:
-        - source: atuin_db_uri
-          mode: 0400
 
   vllm:
     image: ghcr.io/curoky/codespace:service-vllm

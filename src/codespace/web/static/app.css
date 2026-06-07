@@ -609,8 +609,8 @@ button.host-action {
 }
 
 .workspace-actions {
-  flex: 0 0 auto;
-  flex-wrap: nowrap;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
   margin-left: auto;
   gap: 5px;
 }
@@ -641,6 +641,20 @@ button.host-action {
   color: var(--success);
   background: var(--success-soft);
   border-color: transparent;
+}
+
+.tunnel-action button {
+  width: 100%;
+  gap: 5px;
+}
+
+.tunnel-action button::before {
+  content: "";
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  mask: url("/static/lucide-external-link.svg") center / contain no-repeat;
 }
 
 /* Operations -------------------------------------------------------------- */

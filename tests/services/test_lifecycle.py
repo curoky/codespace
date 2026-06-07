@@ -125,8 +125,8 @@ def test_logs_reads_selected_container_source(
 ) -> None:
     running = SimpleNamespace()
     snapshot = lifecycle.container.LogSnapshot(
-        source="s6.atuin-service.log",
-        sources=("container", "s6.atuin-service.log"),
+        source="s6.supercronic.log",
+        sources=("container", "s6.supercronic.log"),
         logs="service line\n",
     )
     calls: list[tuple[object, str]] = []
@@ -137,5 +137,5 @@ def test_logs_reads_selected_container_source(
         lambda actual, source: (calls.append((actual, source)), snapshot)[-1],
     )
 
-    assert manager.logs("support", "home", "s6.atuin-service.log") is snapshot
-    assert calls == [(running, "s6.atuin-service.log")]
+    assert manager.logs("support", "home", "s6.supercronic.log") is snapshot
+    assert calls == [(running, "s6.supercronic.log")]

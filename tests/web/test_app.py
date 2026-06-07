@@ -37,6 +37,7 @@ class FakeWorkspaceManager:
         self.created: list[tuple[str, str, str]] = []
         self.deleted: list[tuple[str, str, str, bool, bool]] = []
         self.log_sources: list[str] = []
+        self.tunnels_opened: list[tuple[str, str, str, int]] = []
         self.state = RepoGitState()
 
     def queue_create(self, project: str, host: str, workspace: str) -> Operation:
@@ -87,6 +88,12 @@ class FakeWorkspaceManager:
             logs="log line\n",
         )
 
+    def open_tunnel(self, project: str, host: str, workspace: str, port: int) -> int:
+        if workspace == "stopped":
+            raise RuntimeError("Tunnel requires a running Workspace")
+        self.tunnels_opened.append((project, host, workspace, port))
+        return 49123
+
 
 class FakeServiceManager:
     def __init__(self) -> None:
@@ -119,7 +126,7 @@ class FakeServiceManager:
         self.log_sources.append(source)
         return LogSnapshot(
             source=source,
-            sources=("container", "s6.atuin-service.log"),
+            sources=("container", "s6.supercronic.log"),
             logs="service log\n",
         )
 
@@ -150,6 +157,7 @@ class FakeControl:
                     ],
                     source=self.config.projects["codespace"].source,
                     open_path="/workspace/codespace",
+                    tunnel_ports=self.config.project_tunnel_ports("codespace"),
                 )
             ],
             workspaces=[],
@@ -273,27 +281,47 @@ def test_workspace_routes_use_project_and_workspace_identity(
     }
 
 
+def test_tunnel_route_redirects_and_reports_failure(
+    app_client: tuple[TestClient, FakeControl],
+) -> None:
+    client, control = app_client
+    path = "/api/projects/codespace/hosts/home/workspaces"
+
+    opened = client.post(f"{path}/debug/tunnels/8005", follow_redirects=False)
+    assert opened.status_code == 303
+    assert opened.headers["location"] == "http://127.0.0.1:49123/"
+    assert control.workspaces.tunnels_opened == [("codespace", "home", "debug", 8005)]
+
+    stopped = client.post(f"{path}/stopped/tunnels/8005")
+    assert stopped.status_code == 409
+    assert stopped.json() == {"error": "Tunnel requires a running Workspace"}
+    assert client.get(f"{path}/debug/tunnels/8005").status_code == 405
+    assert client.post(f"{path}/bad_name/tunnels/8005").status_code == 422
+    for port in ("0", "65536", "invalid"):
+        assert client.post(f"{path}/debug/tunnels/{port}").status_code == 422
+
+
 def test_service_routes_apply_log_and_remove(
     app_client: tuple[TestClient, FakeControl],
 ) -> None:
     client, control = app_client
 
     applied = client.post("/api/services/support/hosts/home/apply")
-    logs = client.get("/api/services/support/hosts/home/logs?source=s6.atuin-service.log")
+    logs = client.get("/api/services/support/hosts/home/logs?source=s6.supercronic.log")
     removed = client.request("DELETE", "/api/services/support/hosts/home?purge=true")
 
     assert applied.status_code == 202
     assert control.services.applied == [("support", "home")]
-    assert control.services.log_sources == ["s6.atuin-service.log"]
+    assert control.services.log_sources == ["s6.supercronic.log"]
     assert logs.json() == {
-        "source": "s6.atuin-service.log",
-        "sources": ["container", "s6.atuin-service.log"],
+        "source": "s6.supercronic.log",
+        "sources": ["container", "s6.supercronic.log"],
         "logs": "service log\n",
     }
     assert removed.json() == {"removed": True, "data_removed": True}
 
 
-@pytest.mark.parametrize("source", ["../s6.atuin-service.log", "atuin-service.log"])
+@pytest.mark.parametrize("source", ["../s6.supercronic.log", "supercronic.log"])
 def test_log_source_query_rejects_non_s6_files_and_paths(
     app_client: tuple[TestClient, FakeControl],
     source: str,
@@ -320,6 +348,7 @@ def test_only_final_api_routes_exist(app_client: tuple[TestClient, FakeControl])
         ("PUT", "/api/providers/{provider}/token"),
         ("POST", "/api/projects/{project}/workspaces"),
         ("GET", "/api/projects/{project}/hosts/{host}/workspaces/{workspace}/logs"),
+        ("POST", "/api/projects/{project}/hosts/{host}/workspaces/{workspace}/tunnels/{port}"),
         ("DELETE", "/api/projects/{project}/hosts/{host}/workspaces/{workspace}"),
         ("DELETE", "/api/projects/{project}/hosts/{host}/operations/{workspace}"),
         ("POST", "/api/services/{service}/hosts/{host}/apply"),
