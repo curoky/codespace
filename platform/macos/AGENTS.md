@@ -15,8 +15,8 @@
 - Workspace SSH client bundle 属于 macOS Host，完整存放在
   `rootfs/Users/x/.ssh/codespace/`。
 - secret、SSH config 等需要独立权限的文件使用 copy，其余配置使用 symlink。
-- shell integration 在安装期随本机工具生成到用户 data 目录，不能依赖可清理的 cache。
-- Brewfile 只管理声明的软件；installer 不卸载 manifest 外的应用或 Conda 前置依赖。
+- Starship 与 Atuin shell integration 直接使用 binman store 中的 package 资产。
+- Brewfile 只管理声明的软件；installer 不卸载 manifest 外的应用。
 - Atuin server 只通过 `--with-atuin-server` 显式启用；LaunchAgent 资产按相同 home
   相对路径存放在 `rootfs/Users/x/Library/LaunchAgents/`。
 - 本地 container runtime 固定为 rootful Podman；installer 不负责启动 machine。

@@ -13,21 +13,6 @@ setup() {
   export HOME TEST_EVENTS
   mkdir -p "$HOME" "$TEST_ROOT/bin"
 
-  cat >"$TEST_ROOT/bin/conda" <<'EOF'
-#!/usr/bin/env bash
-printf 'conda %s\n' "$*" >>"$TEST_EVENTS"
-printf '# conda plugin\n'
-EOF
-  cat >"$TEST_ROOT/bin/starship" <<'EOF'
-#!/usr/bin/env bash
-printf 'starship %s\n' "$*" >>"$TEST_EVENTS"
-printf '# starship plugin\n'
-EOF
-  cat >"$TEST_ROOT/bin/atuin" <<'EOF'
-#!/usr/bin/env bash
-printf 'atuin %s\n' "$*" >>"$TEST_EVENTS"
-printf '# atuin plugin\n'
-EOF
   cat >"$TEST_ROOT/bin/swift" <<'EOF'
 #!/usr/bin/env bash
 printf 'swift %s\n' "$*" >>"$TEST_EVENTS"
@@ -54,14 +39,6 @@ stub_external_provisioning() {
   }
   load_launch_agent() {
     printf 'launch-agent %s %s/Library/LaunchAgents/%s.plist\n' "$2" "$1" "$2" >>"$TEST_EVENTS"
-  }
-  starship() {
-    # shellcheck disable=SC2031 # This stub runs inside main's subshell.
-    [[ "$PATH" == /opt/bm/bin:* ]]
-    "$TEST_ROOT/bin/starship" "$@"
-  }
-  atuin() {
-    "$TEST_ROOT/bin/atuin" "$@"
   }
 }
 
@@ -110,18 +87,12 @@ file_mode() {
   done
 }
 
-@test "generates shell plugins during installation" {
+@test "consumes packaged shell integrations" {
   stub_external_provisioning
 
   run main
   [ "$status" -eq 0 ]
 
-  [ "$(<"$HOME/.local/share/codespace/conda.plugin.zsh")" = "# conda plugin" ]
-  [ "$(<"$HOME/.local/share/codespace/starship.plugin.zsh")" = "# starship plugin" ]
-  [ "$(<"$HOME/.local/share/codespace/atuin.plugin.zsh")" = "# atuin plugin" ]
-  grep -qx "conda shell.zsh hook" "$TEST_EVENTS"
-  grep -qx "starship init zsh" "$TEST_EVENTS"
-  grep -qx "atuin init zsh --disable-up-arrow" "$TEST_EVENTS"
   grep -Eq "^install-homebrew $MACOS_DIR /.*$" "$TEST_EVENTS"
   grep -Eq "^install-binman $MACOS_DIR /.*$" "$TEST_EVENTS"
   grep -Fqx "swift $MACOS_DIR/scripts/set-default-apps.swift" "$TEST_EVENTS"
@@ -137,10 +108,8 @@ file_mode() {
   [ ! -e "$temp_dir" ]
 
   local zshrc="$MACOS_HOME/.zshrc"
-  grep -Fqx "source \"\$XDG_DATA_HOME/codespace/conda.plugin.zsh\"" "$zshrc"
-  grep -Fqx "source \"\$XDG_DATA_HOME/codespace/starship.plugin.zsh\"" "$zshrc"
-  grep -Fqx "source \"\$XDG_DATA_HOME/codespace/atuin.plugin.zsh\"" "$zshrc"
-  run ! grep -Eq 'command -v (conda|starship|atuin)' "$zshrc"
+  grep -Fqx 'source "/opt/bm/store/starship/share/starship/init.zsh"' "$zshrc"
+  grep -Fqx 'source "/opt/bm/store/atuin/share/atuin/init.zsh"' "$zshrc"
 }
 
 @test "enables the local Atuin server explicitly" {
