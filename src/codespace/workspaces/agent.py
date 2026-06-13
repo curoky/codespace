@@ -70,11 +70,11 @@ class WorkspaceAgentClient:
 
     def wait_for(
         self,
-        states: set[AgentState],
+        state: AgentState,
         *,
         timeout: float,
     ) -> AgentStatus:
-        """Wait for one desired state, retrying only socket availability."""
+        """Wait for the desired state, retrying only socket availability."""
         deadline = time.monotonic() + timeout
         last_unavailable: AgentUnavailable | None = None
         while time.monotonic() < deadline:
@@ -85,13 +85,12 @@ class WorkspaceAgentClient:
             else:
                 if status.state == "failed":
                     raise AgentError(status.error or "workspace agent bootstrap failed")
-                if status.state in states:
+                if status.state == state:
                     return status
             time.sleep(_POLL_INTERVAL)
         detail = f": {last_unavailable}" if last_unavailable is not None else ""
-        expected = ", ".join(sorted(states))
         raise AgentUnavailable(
-            f"workspace agent did not reach [{expected}] within {timeout:g}s{detail}"
+            f"workspace agent did not reach {state!r} within {timeout:g}s{detail}"
         )
 
     def _request(

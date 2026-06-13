@@ -26,7 +26,7 @@ def register(
     repo: str,
     title: str,
     public_key: str,
-) -> int:
+) -> None:
     """Replace matching deploy keys and register one read-write key."""
     match provider:
         case "github":
@@ -35,12 +35,11 @@ def register(
                 for github_key in repository.get_keys():
                     if github_key.title == title:
                         github_key.delete()
-                created_github_key = repository.create_key(
+                repository.create_key(
                     title=title,
                     key=public_key,
                     read_only=False,
                 )
-                return int(created_github_key.id)
         case "gitlab":
             gitlab = python_gitlab.Gitlab(
                 private_token=token,
@@ -50,14 +49,13 @@ def register(
             for gitlab_key in project.keys.list(get_all=True):
                 if gitlab_key.title == title:
                     project.keys.delete(gitlab_key.id)
-            created_gitlab_key = project.keys.create(
+            project.keys.create(
                 {
                     "title": title,
                     "key": public_key,
                     "can_push": True,
                 }
             )
-            return int(created_gitlab_key.id)
 
 
 def revoke(

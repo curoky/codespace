@@ -8,7 +8,6 @@ environment and keeps the logic flat. The whole implementation lives here.
 from __future__ import annotations
 
 import os
-import signal
 import socket
 import subprocess
 import threading
@@ -117,10 +116,8 @@ class WorkspaceAgent:
                     self._sleep(PROVIDER_POLL_INTERVAL)
                 self._set_state("starting")
             if self.source_type != "empty":
-                if self.clone_url is None:
-                    raise RuntimeError("clone_url is required for checkout")
                 run_command(
-                    [CHECKOUT, self.clone_url, self.checkout_path],
+                    [CHECKOUT, cast("str", self.clone_url), self.checkout_path],
                     timeout=CHECKOUT_TIMEOUT,
                 )
             run_command(["mkdir", "-p", "--", self.open_path])
@@ -197,18 +194,12 @@ def build_server(
 
 
 def main() -> None:
-    # Managed Workspaces set CODESPACE_SOURCE_TYPE. Generic image runs have no
-    # control plane, so idle instead of bootstrapping and serving.
-    if not os.environ.get("CODESPACE_SOURCE_TYPE"):
-        print("CODESPACE_SOURCE_TYPE unset; Workspace Agent idle", flush=True)
-        signal.pause()
-        return
-    CONTROL_DIR.mkdir(parents=True, exist_ok=True)
+    source_type = cast("SourceType", os.environ["CODESPACE_SOURCE_TYPE"])
     agent = WorkspaceAgent(
-        source_type=cast("SourceType", os.environ["CODESPACE_SOURCE_TYPE"]),
+        source_type=source_type,
         checkout_path=os.environ["CODESPACE_CHECKOUT_PATH"],
         open_path=os.environ["CODESPACE_OPEN_PATH"],
-        clone_url=os.environ.get("CODESPACE_CLONE_URL") or None,
+        clone_url=None if source_type == "empty" else os.environ["CODESPACE_CLONE_URL"],
     )
     agent.start_bootstrap()
     server, server_socket = build_server(agent)

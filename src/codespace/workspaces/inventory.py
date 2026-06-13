@@ -19,13 +19,11 @@ from codespace.workspaces.models import (
     LABEL_PROJECT,
     LABEL_REPOSITORY,
     LABEL_SOURCE,
-    LABEL_SSH_PORT,
     LABEL_WORKSPACE,
     WORKSPACE_KIND,
     PlatformSelection,
     Source,
     Workspace,
-    workspace_identity,
 )
 
 _SOURCE: TypeAdapter[Source] = TypeAdapter(Source)
@@ -50,14 +48,12 @@ def read_workspace(container: Container, host: str) -> Workspace:
         if label in labels:
             source[field] = labels[label]
     return Workspace(
-        id=workspace_identity(host, project, workspace),
         project=project,
         workspace=workspace,
         host=host,
         source=_SOURCE.validate_python(source),
         image=labels[LABEL_IMAGE],
         platform=cast("PlatformSelection", labels[LABEL_PLATFORM]),
-        ssh_port=int(labels[LABEL_SSH_PORT]),
         open_path=labels[LABEL_OPEN_PATH],
         encrypted={"true": True, "false": False}[labels[LABEL_ENCRYPTED]],
         container_id=container.id,

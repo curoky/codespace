@@ -28,7 +28,7 @@ def prune(
     """Show all orphan Workspace directories, then optionally delete them."""
     target = console or Console()
     config = load_config(config_path)
-    transport = PodmanTransport({name: value.endpoint() for name, value in config.hosts.items()})
+    transport = PodmanTransport(config.hosts)
     try:
         candidates, errors = _collect(config, transport)
         rows = [

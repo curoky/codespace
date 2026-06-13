@@ -1,12 +1,9 @@
 """Tests for ControlPlane aggregation and Host failure isolation."""
 
-import pytest
-
 from codespace.config import Config
 from codespace.control import ControlPlane
 from codespace.runtime.transport import SSHRoute
 from codespace.services.models import Service
-from codespace.workspaces import ssh
 
 
 class FakeTransport:
@@ -17,12 +14,7 @@ class FakeTransport:
         return None
 
 
-def test_dashboard_isolates_host_failure(
-    config: Config,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setattr(ssh, "initialize", lambda _hosts: None)
-    monkeypatch.setattr(ssh, "write_host", lambda *_args: None)
+def test_dashboard_isolates_host_failure(config: Config) -> None:
     control = ControlPlane(config, transport=FakeTransport())  # type: ignore[arg-type]
     control.workspaces.inventory = lambda host: (
         [] if host == "home" else (_ for _ in ()).throw(RuntimeError("SSH down"))
@@ -41,14 +33,11 @@ def test_dashboard_isolates_host_failure(
     ]
 
 
-def test_dashboard_keeps_actual_metadata_when_config_changes(
-    config: Config, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_dashboard_keeps_actual_metadata_when_config_changes(config: Config) -> None:
     workspace = config.workspace_spec("codespace", "home", "debug").to_workspace(
         "workspace-id", status="running"
     )
     service = Service(
-        id="codespace-service-support",
         service="support",
         host="home",
         image="support:deployed",
@@ -60,8 +49,6 @@ def test_dashboard_keeps_actual_metadata_when_config_changes(
     data["project_defaults"]["tunnel_ports"] = [8005]
     data["projects"]["scratch"]["tunnel_ports"] = []
     data["services"]["support"]["image"] = "support:desired"
-    monkeypatch.setattr(ssh, "initialize", lambda _hosts: None)
-    monkeypatch.setattr(ssh, "write_host", lambda *_args: None)
     control = ControlPlane(Config.model_validate(data), transport=FakeTransport())  # type: ignore[arg-type]
     control.workspaces.inventory = lambda host: [workspace] if host == "home" else []
     control.services.inventory = lambda host: [service] if host == "home" else []

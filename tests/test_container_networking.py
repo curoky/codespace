@@ -10,6 +10,8 @@ import pytest
 
 _CONTAINER = Path(__file__).resolve().parents[1] / "platform/container"
 _WORKSPACE_ROOT = _CONTAINER / "workspace/rootfs"
+_WORKSPACE_AGENT = _CONTAINER / "workspace/agent/agent.py"
+_WSL_BOOT = Path(__file__).resolve().parents[1] / "platform/wsl/rootfs/opt/codespace/wsl/boot.sh"
 
 
 @pytest.mark.parametrize("service", ["vllm", "sglang"])
@@ -46,16 +48,36 @@ def test_inference_entrypoint_honors_bind_address(
 
 @pytest.mark.parametrize(
     ("service", "listen"),
-    [("rclone-webdav", "--addr ${SERVE_HOST}:8004"), ("copyparty-webdav", "-i ${SERVE_HOST}")],
+    [("rclone-webdav", "--addr 127.0.0.1:8004"), ("copyparty-webdav", "-i 127.0.0.1")],
 )
-def test_webdav_uses_configured_host_with_loopback_default(service: str, listen: str) -> None:
+def test_workspace_webdav_uses_fixed_loopback_listener(service: str, listen: str) -> None:
     script = (_WORKSPACE_ROOT / f"etc/s6/s6-rc.d/{service}/run").read_text()
 
-    import_host = "importas -D 127.0.0.1 SERVE_HOST SERVE_HOST"
-    assert import_host in script
-    assert script.index("s6-envdir -Lf -- /run/s6/container_environment") < script.index(
-        import_host
-    )
     assert listen in script
-    assert script.index(import_host) < script.index(listen)
+    assert "SERVE_HOST" not in script
     assert "SSHD_BIND" not in script
+
+
+def test_workspace_sshd_requires_managed_listener_environment() -> None:
+    script = (_WORKSPACE_ROOT / "etc/s6/s6-rc.d/sshd/run").read_text()
+
+    assert "importas SSHD_PORT SSHD_PORT" in script
+    assert "importas SSHD_BIND SSHD_BIND" in script
+    assert "importas -D" not in script
+
+
+def test_workspace_agent_requires_managed_bootstrap_environment() -> None:
+    source = _WORKSPACE_AGENT.read_text()
+
+    for name in ("CODESPACE_SOURCE_TYPE", "CODESPACE_CHECKOUT_PATH", "CODESPACE_OPEN_PATH"):
+        assert f'os.environ["{name}"]' in source
+    assert 'os.environ.get("CODESPACE_SOURCE_TYPE")' not in source
+    assert "signal.pause" not in source
+
+
+def test_wsl_declares_inherited_workspace_runtime_inputs() -> None:
+    script = _WSL_BOOT.read_text()
+
+    assert "container_environment/CODESPACE_ENCRYPTED" in script
+    assert "container_environment/SSHD_PORT" in script
+    assert "container_environment/SSHD_BIND" in script

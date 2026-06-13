@@ -12,7 +12,6 @@ from codespace.services.models import (
     LABEL_SERVICE,
     SERVICE_KIND,
     Service,
-    service_identity,
 )
 
 
@@ -30,7 +29,6 @@ def read_service(container: Container, host: str) -> Service:
     labels = container.labels
     service = labels[LABEL_SERVICE]
     return Service(
-        id=service_identity(service),
         service=service,
         host=host,
         image=labels[LABEL_IMAGE],

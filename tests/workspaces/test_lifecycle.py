@@ -46,12 +46,12 @@ class FakeAgent:
 
     def wait_for(
         self,
-        states: set[agent.AgentState],
+        state: agent.AgentState,
         *,
         timeout: float,
     ) -> agent.AgentStatus:
         del timeout
-        if "awaiting-provider" in states:
+        if state == "awaiting-provider":
             return agent.AgentStatus(state="awaiting-provider", public_key="PUBLIC")
         return agent.AgentStatus(state="ready")
 
@@ -73,7 +73,7 @@ def manager(config: Config, monkeypatch: pytest.MonkeyPatch) -> WorkspaceManager
 def test_queue_create_uses_final_identity(manager: WorkspaceManager) -> None:
     operation = manager.queue_create("codespace", "home", "debug")
 
-    assert operation.id == "codespace-workspace-home-codespace-debug"
+    assert operation.id == "codespace-workspace_home_codespace_debug"
     assert operation.kind == "workspace"
     assert operation.project == "codespace"
     assert operation.resource == "debug"
@@ -90,8 +90,7 @@ def test_create_runs_source_bootstrap_and_clears_operation(
     spec = config.workspace_spec(project, host, "debug")
     manager.queue_create(project, host, "debug")
     events: list[str] = []
-    inventories = iter([[], [spec.to_workspace("container-id", status="running")]])
-    monkeypatch.setattr(inventory, "list_workspaces", lambda *_args: next(inventories))
+    monkeypatch.setattr(inventory, "list_workspaces", lambda *_args: [])
     monkeypatch.setattr(lifecycle.host, "read_environment", lambda *_args: {"HTTP_PROXY": "proxy"})
     monkeypatch.setattr(
         lifecycle.host, "prepare_directories", lambda *_args: events.append("paths")
@@ -114,7 +113,6 @@ def test_create_runs_source_bootstrap_and_clears_operation(
     )
     monkeypatch.setattr(provider, "register", lambda *_args: events.append("register"))
     monkeypatch.setattr(ssh, "probe", lambda *_args: events.append("probe"))
-    monkeypatch.setattr(ssh, "write_host", lambda *_args: events.append("projection"))
 
     manager.create(project, host, "debug")
 
@@ -125,7 +123,6 @@ def test_create_runs_source_bootstrap_and_clears_operation(
         "create",
         *(["register", "ready"] if spec.source.type in {"github", "gitlab"} else []),
         "probe",
-        "projection",
     ]
     assert manager.operations.list() == []
 
@@ -162,6 +159,7 @@ def test_unforced_delete_returns_git_state_without_mutation(
     monkeypatch.setattr(
         lifecycle.container, "remove_container", lambda *_args: mutations.append("remove")
     )
+    manager._token = lambda _provider: (_ for _ in ()).throw(RuntimeError("token must not be read"))
 
     state = manager.delete("codespace", "home", "debug", purge=True)
 
@@ -182,7 +180,6 @@ def test_forced_purge_revokes_key_before_data_and_container(
         attrs={"State": {"Status": "running"}},
         stop=lambda **_kwargs: events.append("stop"),
     )
-    monkeypatch.setattr(inventory, "list_workspaces", lambda *_args: [])
     monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
     monkeypatch.setattr(provider, "revoke", lambda *_args: events.append("revoke"))
     monkeypatch.setattr(
@@ -195,13 +192,11 @@ def test_forced_purge_revokes_key_before_data_and_container(
         "remove_container",
         lambda *_args: events.append("container"),
     )
-    monkeypatch.setattr(ssh, "write_host", lambda *_args: events.append("projection"))
-
     manager.delete("codespace", "home", "debug", purge=True, force=True)
 
-    assert events == ["revoke", "stop", "data", "container", "projection"]
+    assert events == ["revoke", "stop", "data", "container"]
     assert manager.transport.closed_tcp == [  # type: ignore[attr-defined]
-        ("home", "codespace-workspace-home-codespace-debug")
+        ("home", "codespace-workspace-24831_home_codespace_debug")
     ]
 
 
@@ -266,33 +261,17 @@ def test_workspace_container_uses_reserved_environment_and_mounts(
     assert environment["SSHD_PORT"] == str(spec.ssh_port)
     if network_mode == "bridge":
         assert environment["SSHD_BIND"] == "0.0.0.0"  # noqa: S104
-        assert captured["extra_ports"] == {f"{spec.ssh_port}/tcp": ("127.0.0.1", spec.ssh_port)}
-    else:
-        assert "SSHD_BIND" not in environment
-        assert captured["extra_ports"] == {}
-    targets = {mount["target"] for mount in captured["mounts"]}  # type: ignore[index]
-    assert {"/workspace", "/upload", "/cache", "/run/codespace-control"} <= targets
-    assert {
-        f"/home/x/{home}/{child}"
-        for home in (
-            ".vscode-server",
-            ".trae",
-            ".trae-cn",
-            ".trae-server",
-            ".trae-cn-server",
-        )
-        for child in ("bin", "extensions")
-    } <= targets
-    assert (
-        not {
-            "/home/x/.vscode-server",
-            "/home/x/.trae",
-            "/home/x/.trae-cn",
-            "/home/x/.trae-server",
-            "/home/x/.trae-cn-server",
+        assert captured["spec"].ports[-1].model_dump() == {  # type: ignore[union-attr]
+            "target": spec.ssh_port,
+            "published": spec.ssh_port,
+            "host_ip": "127.0.0.1",
+            "protocol": "tcp",
         }
-        & targets
-    )
+    else:
+        assert environment["SSHD_BIND"] == "127.0.0.1"
+        assert captured["spec"].ports is None
+    targets = {mount["target"] for mount in captured["mounts"]}  # type: ignore[index]
+    assert targets == {"/workspace", "/upload", "/cache", "/run/codespace-control"}
 
 
 def test_encrypted_workspace_mounts_key_as_compose_secret(
@@ -343,16 +322,14 @@ def test_delete_uses_deployed_source_after_config_changes(
     manager.config = Config.model_validate(data)
     revoked: list[tuple[str, ...]] = []
     monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
-    monkeypatch.setattr(inventory, "list_workspaces", lambda *_args: [])
     monkeypatch.setattr(provider, "revoke", lambda *args: revoked.append(args))
     monkeypatch.setattr(lifecycle.container, "remove_container", lambda _container: None)
-    monkeypatch.setattr(ssh, "write_host", lambda *_args: None)
 
     assert manager.delete("codespace", "home", "debug", purge=False).uncommitted
     manager.delete("codespace", "home", "debug", purge=False, force=True)
 
     assert revoked == [
-        ("github", "token", "curoky/codespace", "codespace-workspace-home-codespace-debug")
+        ("github", "token", "curoky/codespace", "codespace-workspace_home_codespace_debug")
     ]
 
 
@@ -384,7 +361,7 @@ def test_tunnel_uses_configured_port_and_deployed_ssh_metadata(
     assert manager.transport.tcp_forwards == [  # type: ignore[attr-defined]
         (
             "home",
-            actual.id,
+            actual.ssh_alias,
             {
                 "port": port,
                 "options": ssh.connection_options(actual, SSHRoute(host="home")),

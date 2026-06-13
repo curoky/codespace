@@ -1,24 +1,21 @@
-"""Podman clients, SSH tunnels and remote command / atomic file primitives.
+"""Podman clients, SSH tunnels, and remote command primitives.
 
 One OpenSSH ControlMaster is kept per host: the master process holds the Podman
 API socket forward; per-Workspace agent sockets are added with ``ssh -O forward``.
 Command execution and the SSH login probe reuse the same control socket, so a
-single base option set describes every SSH invocation. The ``run_host`` /
-``write_atomic`` / ``ensure_mode`` helpers carry no Codespace layout knowledge.
+single base option set describes every SSH invocation.
 """
 
 from __future__ import annotations
 
 import contextlib
 import hashlib
-import os
 import shutil
 import socket
-import stat
 import subprocess
 import tempfile
 import time
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Collection
 from dataclasses import dataclass, field
 from pathlib import Path
 from threading import Lock
@@ -40,16 +37,6 @@ _SERVER_ALIVE_COUNT_MAX = 3
 
 class TransportError(RuntimeError):
     """Raised when a configured host cannot expose Podman or an SSH route."""
-
-
-@dataclass(frozen=True, slots=True)
-class HostEndpoint:
-    """Neutral Podman connection endpoint for one SSH host."""
-
-    podman_socket: str | None = None  # None falls back to /run/podman/podman.sock
-
-    def resolved_podman_socket(self) -> str:
-        return self.podman_socket or _PODMAN_SOCKET
 
 
 @dataclass(frozen=True, slots=True)
@@ -95,40 +82,6 @@ def run_host(
         raise RuntimeError(f"failed to {action} on host {route.host!r}: {stderr or exc}") from exc
 
 
-def write_atomic(path: Path, content: str) -> None:
-    """Write ``content`` to ``path`` atomically with ``0o700`` dir/``0o600`` file modes."""
-    path.parent.mkdir(parents=True, exist_ok=True)
-    ensure_mode(path.parent, 0o700)
-    if path.exists() and path.read_text(encoding="utf-8") == content:
-        ensure_mode(path, 0o600)
-        return
-    temporary_name = ""
-    try:
-        with tempfile.NamedTemporaryFile(
-            "w",
-            encoding="utf-8",
-            dir=path.parent,
-            prefix=f".{path.name}.",
-            delete=False,
-        ) as temporary:
-            temporary_name = temporary.name
-            temporary.write(content)
-            temporary.flush()
-            os.fsync(temporary.fileno())
-        temporary_path = Path(temporary_name)
-        ensure_mode(temporary_path, 0o600)
-        temporary_path.replace(path)
-    finally:
-        if temporary_name:
-            with contextlib.suppress(FileNotFoundError):
-                Path(temporary_name).unlink()
-
-
-def ensure_mode(path: Path, mode: int) -> None:
-    if stat.S_IMODE(path.stat().st_mode) != mode:
-        path.chmod(mode)
-
-
 @dataclass(slots=True)
 class _Master:
     """A live SSH ControlMaster holding the host's Podman socket forward."""
@@ -163,14 +116,14 @@ class PodmanTransport:
 
     def __init__(
         self,
-        hosts: Mapping[str, HostEndpoint],
+        hosts: Collection[str],
         *,
         runtime_parent: Path | None = None,
         process_factory: ProcessFactory = subprocess.Popen,
         client_factory: ClientFactory = PodmanClient,
         run_factory: RunFactory = subprocess.run,
     ) -> None:
-        self._hosts = dict(hosts)
+        self._hosts = frozenset(hosts)
         # OpenSSH adds a temporary suffix while binding; macOS limits Unix paths to 103 bytes.
         parent = runtime_parent if runtime_parent is not None else _DEFAULT_RUNTIME_PARENT
         self._runtime_dir = Path(tempfile.mkdtemp(prefix="codespace-", dir=parent))
@@ -223,7 +176,6 @@ class PodmanTransport:
     ) -> int:
         """Expose a remote loopback port over a managed SSH connection."""
         with self._locks[self._known(host)]:
-            self._known(host)
             key = (host, destination, port)
             existing = self._tcp_forwards.get(key)
             if existing is not None:
@@ -247,8 +199,6 @@ class PodmanTransport:
                 local_port = int(listener.getsockname()[1])
             command = [
                 "ssh",
-                "-F",
-                "/dev/null",
                 "-N",
                 *ssh_base_options(control_path),
                 "-o",
@@ -330,11 +280,11 @@ class PodmanTransport:
         # Hosts may share a GSSAPI ProxyJump whose credential cache cannot authenticate
         # concurrent SSH processes reliably. Only serialize the initial handshakes.
         with self._master_start_lock:
-            master = self._start_master(host, self._hosts[host])
+            master = self._start_master(host)
         self._masters[host] = master
         return master
 
-    def _start_master(self, host: str, options: HostEndpoint) -> _Master:
+    def _start_master(self, host: str) -> _Master:
         digest = hashlib.sha256(host.encode()).hexdigest()[:16]
         control_path = self._runtime_dir / f"control-{digest}.sock"
         socket_path = self._runtime_dir / f"podman-{digest}.sock"
@@ -355,7 +305,7 @@ class PodmanTransport:
             "-o",
             f"ServerAliveCountMax={_SERVER_ALIVE_COUNT_MAX}",
             "-L",
-            f"{socket_path}:{options.resolved_podman_socket()}",
+            f"{socket_path}:{_PODMAN_SOCKET}",
             host,
         ]
         process = self._process_factory(

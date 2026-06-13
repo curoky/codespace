@@ -10,7 +10,7 @@ from podman.domain.containers import Container
 from codespace.config import Config, ProjectConfig
 from codespace.operations import Operation, OperationStatus, OperationStore
 from codespace.runtime import container, host
-from codespace.runtime.container import SecretSpec
+from codespace.runtime.container import ContainerSpec, PortSpec, SecretSpec
 from codespace.runtime.transport import PodmanTransport
 from codespace.workspaces import agent, inventory, provider, ssh
 from codespace.workspaces.models import (
@@ -21,7 +21,6 @@ from codespace.workspaces.models import (
     CONTAINER_UID,
     CONTROL_MOUNT,
     ENCRYPTED_ENV,
-    HOME_CACHE_MOUNTS,
     LABEL_KIND,
     LABEL_PROJECT,
     LABEL_WORKSPACE,
@@ -132,7 +131,6 @@ class WorkspaceManager:
                 paths.workspace,
                 paths.upload,
                 paths.cache,
-                *(source for source, _target in paths.home_cache_mounts(HOME_CACHE_MOUNTS)),
                 paths.control,
             ],
         )
@@ -147,7 +145,7 @@ class WorkspaceManager:
         )
         if credentials is not None:
             source, token = credentials
-            status = agent_client.wait_for({"awaiting-provider"}, timeout=_AGENT_START_TIMEOUT)
+            status = agent_client.wait_for("awaiting-provider", timeout=_AGENT_START_TIMEOUT)
             if status.public_key is None:
                 raise RuntimeError("deploy key missing for repository source")
             self._stage(spec, "registering deploy key")
@@ -165,17 +163,10 @@ class WorkspaceManager:
             spec,
             "preparing open path" if spec.source.type == "empty" else "checking out source",
         )
-        agent_client.wait_for({"ready"}, timeout=_AGENT_READY_TIMEOUT)
+        agent_client.wait_for("ready", timeout=_AGENT_READY_TIMEOUT)
 
         self._stage(spec, "probing ssh")
         ssh.probe(spec.to_workspace(created.id, status="running"), route)
-
-        self._stage(spec, "writing ssh config")
-        ssh.write_host(
-            spec.host,
-            inventory.list_workspaces(client, spec.host),
-            route,
-        )
 
     def delete(
         self,
@@ -191,11 +182,6 @@ class WorkspaceManager:
         route = self.transport.ssh_route(host_name)
         running = self._container(project, host_name, workspace)
         actual = inventory.read_workspace(running, host_name)
-        credentials = (
-            (actual.source, self._token(actual.source.type))
-            if isinstance(actual.source, ProviderSource)
-            else None
-        )
 
         if not force:
             if actual.source.type != "empty":
@@ -211,12 +197,11 @@ class WorkspaceManager:
                 return agent_client.git_state()
             return RepoGitState()
 
-        if credentials is not None:
-            source, token = credentials
+        if isinstance(actual.source, ProviderSource):
             provider.revoke(
-                source.type,
-                token,
-                source.repository,
+                actual.source.type,
+                self._token(actual.source.type),
+                actual.source.repository,
                 actual.id,
             )
         if purge:
@@ -231,8 +216,7 @@ class WorkspaceManager:
                 platform=platform,
             )
         container.remove_container(running)
-        self.transport.close_tcp(host_name, actual.id)
-        ssh.write_host(host_name, inventory.list_workspaces(client, host_name), route)
+        self.transport.close_tcp(host_name, actual.ssh_alias)
         return RepoGitState()
 
     def open_tunnel(self, project: str, host_name: str, workspace: str, port: int) -> int:
@@ -246,7 +230,7 @@ class WorkspaceManager:
         route = self.transport.ssh_route(host_name)
         return self.transport.forward_tcp(
             host_name,
-            actual.id,
+            actual.ssh_alias,
             port=port,
             options=ssh.connection_options(actual, route),
             connection_id=actual.container_id,
@@ -314,6 +298,7 @@ def _create_workspace_container(
         OPEN_PATH_ENV: spec.open_path,
         ENCRYPTED_ENV: str(spec.encrypted).lower(),
         SSHD_PORT_ENV: str(spec.ssh_port),
+        SSHD_BIND_ENV: "0.0.0.0" if spec.container.is_bridge else "127.0.0.1",  # noqa: S104
     }
     if spec.source.clone_url is not None:
         environment[CLONE_URL_ENV] = spec.source.clone_url
@@ -339,16 +324,21 @@ def _create_workspace_container(
         },
         {"type": "bind", "source": paths.upload, "target": UPLOAD_MOUNT},
         {"type": "bind", "source": paths.cache, "target": CACHE_MOUNT},
+        {"type": "bind", "source": paths.control, "target": CONTROL_MOUNT},
     ]
-    mounts.extend(
-        {"type": "bind", "source": source, "target": target}
-        for source, target in paths.home_cache_mounts(HOME_CACHE_MOUNTS)
-    )
-    mounts.append({"type": "bind", "source": paths.control, "target": CONTROL_MOUNT})
-    extra_ports: dict[str, object] = {}
     if runtime_spec.is_bridge:
-        environment[SSHD_BIND_ENV] = "0.0.0.0"  # noqa: S104
-        extra_ports[f"{spec.ssh_port}/tcp"] = ("127.0.0.1", spec.ssh_port)
+        runtime_spec = runtime_spec.merged_with(
+            ContainerSpec(
+                ports=[
+                    *(runtime_spec.ports or []),
+                    PortSpec(
+                        target=spec.ssh_port,
+                        published=spec.ssh_port,
+                        host_ip="127.0.0.1",
+                    ),
+                ]
+            )
+        )
 
     return container.create_container(
         client,
@@ -359,5 +349,4 @@ def _create_workspace_container(
         labels=spec.labels(),
         mounts=mounts,
         platform=spec.platform,
-        extra_ports=extra_ports,
     )

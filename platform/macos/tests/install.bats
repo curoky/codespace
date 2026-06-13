@@ -6,14 +6,11 @@ setup_file() {
 
 setup() {
   MACOS_DIR="$(cd "$BATS_TEST_DIRNAME/.." && pwd -P)"
-  REPO_ROOT="$(cd "$MACOS_DIR/../.." && pwd -P)"
   MACOS_HOME="$MACOS_DIR/rootfs/Users/x"
-  WORKSPACE_HOME="$REPO_ROOT/platform/container/workspace/rootfs/home/x"
   TEST_ROOT="$(mktemp -d)"
   HOME="$TEST_ROOT/home"
-  XDG_CACHE_HOME="$TEST_ROOT/cache"
   TEST_EVENTS="$TEST_ROOT/events"
-  export HOME XDG_CACHE_HOME TEST_EVENTS
+  export HOME TEST_EVENTS
   mkdir -p "$HOME" "$TEST_ROOT/bin"
 
   cat >"$TEST_ROOT/bin/conda" <<'EOF'
@@ -31,6 +28,10 @@ EOF
 printf 'atuin %s\n' "$*" >>"$TEST_EVENTS"
 printf '# atuin plugin\n'
 EOF
+  cat >"$TEST_ROOT/bin/swift" <<'EOF'
+#!/usr/bin/env bash
+printf 'swift %s\n' "$*" >>"$TEST_EVENTS"
+EOF
   chmod +x "$TEST_ROOT/bin/"*
   PATH="$TEST_ROOT/bin:$PATH"
   export PATH
@@ -43,14 +44,52 @@ teardown() {
   rm -rf "$TEST_ROOT"
 }
 
-@test "installs managed home configuration from rootfs sources" {
-  run install_home_config "$MACOS_HOME" "$WORKSPACE_HOME"
+stub_external_provisioning() {
+  install_homebrew() {
+    printf 'install-homebrew %s %s\n' "$1" "$2" >>"$TEST_EVENTS"
+  }
+  # shellcheck disable=SC2329 # main invokes this stub unless the failure test replaces it.
+  install_binman() {
+    printf 'install-binman %s %s\n' "$1" "$2" >>"$TEST_EVENTS"
+  }
+  load_launch_agent() {
+    printf 'launch-agent %s %s/Library/LaunchAgents/%s.plist\n' "$2" "$1" "$2" >>"$TEST_EVENTS"
+  }
+  starship() {
+    # shellcheck disable=SC2031 # This stub runs inside main's subshell.
+    [[ "$PATH" == /opt/bm/bin:* ]]
+    "$TEST_ROOT/bin/starship" "$@"
+  }
+  atuin() {
+    "$TEST_ROOT/bin/atuin" "$@"
+  }
+}
+
+file_mode() {
+  if [[ "$(uname -s)" == Darwin ]]; then
+    stat -f "%Lp" "$1"
+  else
+    stat -c "%a" "$1"
+  fi
+}
+
+@test "installs managed home configuration from matching rootfs paths" {
+  run install_home_config "$MACOS_HOME"
   [ "$status" -eq 0 ]
 
   [ ! -L "$HOME/.gitconfig" ]
   cmp "$MACOS_HOME/.gitconfig" "$HOME/.gitconfig"
   [ ! -L "$HOME/.ssh/config" ]
   cmp "$MACOS_HOME/.ssh/config" "$HOME/.ssh/config"
+  cmp "$MACOS_HOME/.ssh/codespace/config" "$HOME/.ssh/codespace/config"
+  cmp "$MACOS_HOME/.ssh/codespace/login_key" "$HOME/.ssh/codespace/login_key"
+  cmp "$MACOS_HOME/.ssh/codespace/known_hosts/codespace" \
+    "$HOME/.ssh/codespace/known_hosts/codespace"
+  cmp "$MACOS_HOME/.ssh/codespace/proxy" "$HOME/.ssh/codespace/proxy"
+  [ "$(file_mode "$HOME/.ssh/codespace")" = 700 ]
+  [ "$(file_mode "$HOME/.ssh/codespace/login_key")" = 600 ]
+  [ "$(file_mode "$HOME/.ssh/codespace/known_hosts/codespace")" = 600 ]
+  [ "$(file_mode "$HOME/.ssh/codespace/proxy")" = 700 ]
 
   [ -L "$HOME/.config/git/ignore" ]
   [ "$HOME/.config/git/ignore" -ef "$MACOS_HOME/.config/git/ignore" ]
@@ -59,7 +98,7 @@ teardown() {
   [ -L "$HOME/.warp/settings.toml" ]
   [ "$HOME/.warp/settings.toml" -ef "$MACOS_HOME/.warp/settings.toml" ]
   [ -L "$HOME/.config/zsh/aliases.zsh" ]
-  [ "$HOME/.config/zsh/aliases.zsh" -ef "$WORKSPACE_HOME/.config/zsh/aliases.zsh" ]
+  [ "$HOME/.config/zsh/aliases.zsh" -ef "$MACOS_HOME/.config/zsh/aliases.zsh" ]
 
   local editor
   for editor in Code Trae "Trae CN"; do
@@ -72,21 +111,87 @@ teardown() {
 }
 
 @test "generates shell plugins during installation" {
+  stub_external_provisioning
+
   run main
   [ "$status" -eq 0 ]
 
-  [ "$(<"$XDG_CACHE_HOME/conda.plugin.zsh")" = "# conda plugin" ]
-  [ "$(<"$XDG_CACHE_HOME/starship.plugin.zsh")" = "# starship plugin" ]
-  [ "$(<"$XDG_CACHE_HOME/atuin.plugin.zsh")" = "# atuin plugin" ]
+  [ "$(<"$HOME/.local/share/codespace/conda.plugin.zsh")" = "# conda plugin" ]
+  [ "$(<"$HOME/.local/share/codespace/starship.plugin.zsh")" = "# starship plugin" ]
+  [ "$(<"$HOME/.local/share/codespace/atuin.plugin.zsh")" = "# atuin plugin" ]
   grep -qx "conda shell.zsh hook" "$TEST_EVENTS"
   grep -qx "starship init zsh" "$TEST_EVENTS"
   grep -qx "atuin init zsh --disable-up-arrow" "$TEST_EVENTS"
+  grep -Eq "^install-homebrew $MACOS_DIR /.*$" "$TEST_EVENTS"
+  grep -Eq "^install-binman $MACOS_DIR /.*$" "$TEST_EVENTS"
+  grep -Fqx "swift $MACOS_DIR/scripts/set-default-apps.swift" "$TEST_EVENTS"
+  grep -Fqx \
+    "launch-agent sh.atuin.daemon $MACOS_HOME/Library/LaunchAgents/sh.atuin.daemon.plist" \
+    "$TEST_EVENTS"
+  run grep -F "launch-agent sh.atuin.server " "$TEST_EVENTS"
+  [ "$status" -ne 0 ]
+
+  local temp_dir
+  temp_dir="$(awk '$1 == "install-homebrew" { print $3 }' "$TEST_EVENTS")"
+  [ -n "$temp_dir" ]
+  [ ! -e "$temp_dir" ]
 
   local zshrc="$MACOS_HOME/.zshrc"
-  grep -Fqx "source \"\$XDG_CACHE_HOME/conda.plugin.zsh\"" "$zshrc"
-  grep -Fqx "source \"\$XDG_CACHE_HOME/starship.plugin.zsh\"" "$zshrc"
-  grep -Fqx "source \"\$XDG_CACHE_HOME/atuin.plugin.zsh\"" "$zshrc"
+  grep -Fqx "source \"\$XDG_DATA_HOME/codespace/conda.plugin.zsh\"" "$zshrc"
+  grep -Fqx "source \"\$XDG_DATA_HOME/codespace/starship.plugin.zsh\"" "$zshrc"
+  grep -Fqx "source \"\$XDG_DATA_HOME/codespace/atuin.plugin.zsh\"" "$zshrc"
   run ! grep -Eq 'command -v (conda|starship|atuin)' "$zshrc"
+}
+
+@test "enables the local Atuin server explicitly" {
+  stub_external_provisioning
+
+  run main --with-atuin-server
+  [ "$status" -eq 0 ]
+
+  grep -Fqx \
+    "launch-agent sh.atuin.server $MACOS_HOME/Library/LaunchAgents/sh.atuin.server.plist" \
+    "$TEST_EVENTS"
+}
+
+@test "ships valid Atuin launch agents in the macOS rootfs" {
+  local label
+  for label in sh.atuin.daemon sh.atuin.server; do
+    local plist="$MACOS_HOME/Library/LaunchAgents/$label.plist"
+    [ -f "$plist" ]
+    grep -Fqx "  <string>$label</string>" "$plist"
+    grep -Fq "    <string>/opt/bm/bin/atuin</string>" "$plist"
+  done
+}
+
+@test "provisioning failure stops later steps and cleans temporary downloads" {
+  stub_external_provisioning
+  install_binman() {
+    printf '%s' "$2" >"$TEST_ROOT/download-dir"
+    return 7
+  }
+
+  run main
+
+  [ "$status" -eq 7 ]
+  [ ! -d "$(<"$TEST_ROOT/download-dir")" ]
+  [ ! -e "$HOME/.gitconfig" ]
+  run grep -F "launch-agent" "$TEST_EVENTS"
+  [ "$status" -ne 0 ]
+}
+
+@test "LaunchAgent loading uses the matching rootfs path" {
+  launchctl() {
+    printf '%s\n' "$*" >>"$TEST_EVENTS"
+  }
+
+  run load_launch_agent "$MACOS_HOME" sh.atuin.daemon
+
+  [ "$status" -eq 0 ]
+  local target="$HOME/Library/LaunchAgents/sh.atuin.daemon.plist"
+  [ "$target" -ef "$MACOS_HOME/Library/LaunchAgents/sh.atuin.daemon.plist" ]
+  grep -Fqx "bootstrap gui/$(id -u) $target" "$TEST_EVENTS"
+  grep -Fqx "kickstart -k gui/$(id -u)/sh.atuin.daemon" "$TEST_EVENTS"
 }
 
 @test "shares editor configuration within the macOS rootfs" {
