@@ -52,7 +52,7 @@ def test_probe_uses_preprovisioned_config_and_existing_host_connection(
             "-F",
             str(config),
             "-o",
-            f"Port={_workspace().ssh_port}",
+            f"Port={_workspace().ssh_host_port}",
             "-o",
             "ProxyCommand=ssh -o BatchMode=yes -o ControlPath=/tmp/host.sock -W %h:%p home",
             _workspace().ssh_alias,

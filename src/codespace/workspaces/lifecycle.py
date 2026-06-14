@@ -26,13 +26,12 @@ from codespace.workspaces.models import (
     LABEL_WORKSPACE,
     OPEN_PATH_ENV,
     SOURCE_TYPE_ENV,
-    SSHD_BIND_ENV,
-    SSHD_PORT_ENV,
     UPLOAD_MOUNT,
     WORKSPACE_CIPHER_MOUNT,
     WORKSPACE_KEY_SECRET,
     WORKSPACE_KIND,
     WORKSPACE_MOUNT,
+    WORKSPACE_SSH_PORT,
     GitProvider,
     ProviderSource,
     RepoGitState,
@@ -107,10 +106,10 @@ class WorkspaceManager:
         for existing in current:
             if existing.project == spec.project and existing.workspace == spec.workspace:
                 raise RuntimeError(f"workspace {spec.identity!r} already exists")
-            if existing.ssh_port == spec.ssh_port:
+            if existing.ssh_host_port == spec.ssh_host_port:
                 raise RuntimeError(
-                    f"SSH port collision on host {spec.host!r}: "
-                    f"{spec.identity!r} and {existing.id!r} both map to {spec.ssh_port}; "
+                    f"SSH forwarding port collision on host {spec.host!r}: "
+                    f"{spec.identity!r} and {existing.id!r} both map to {spec.ssh_host_port}; "
                     "choose a different workspace name"
                 )
 
@@ -297,8 +296,6 @@ def _create_workspace_container(
         CHECKOUT_PATH_ENV: spec.checkout_path,
         OPEN_PATH_ENV: spec.open_path,
         ENCRYPTED_ENV: str(spec.encrypted).lower(),
-        SSHD_PORT_ENV: str(spec.ssh_port),
-        SSHD_BIND_ENV: "0.0.0.0" if spec.container.is_bridge else "127.0.0.1",  # noqa: S104
     }
     if spec.source.clone_url is not None:
         environment[CLONE_URL_ENV] = spec.source.clone_url
@@ -326,19 +323,18 @@ def _create_workspace_container(
         {"type": "bind", "source": paths.cache, "target": CACHE_MOUNT},
         {"type": "bind", "source": paths.control, "target": CONTROL_MOUNT},
     ]
-    if runtime_spec.is_bridge:
-        runtime_spec = runtime_spec.merged_with(
-            ContainerSpec(
-                ports=[
-                    *(runtime_spec.ports or []),
-                    PortSpec(
-                        target=spec.ssh_port,
-                        published=spec.ssh_port,
-                        host_ip="127.0.0.1",
-                    ),
-                ]
-            )
+    runtime_spec = runtime_spec.merged_with(
+        ContainerSpec(
+            ports=[
+                *(runtime_spec.ports or []),
+                PortSpec(
+                    target=WORKSPACE_SSH_PORT,
+                    published=spec.ssh_host_port,
+                    host_ip="127.0.0.1",
+                ),
+            ]
         )
+    )
 
     return container.create_container(
         client,

@@ -1,18 +1,8 @@
 #!/opt/bm/profile/s6/bin/execlineb -P
 
-s6-envdir -Lf -- /run/s6/container_environment
-
-redirfd -w 1 /var/log/s6.sshd.stdout.log
+redirfd -w 1 /var/log/s6.sshd.log
 fdmove -c 2 1
 
-importas SSHD_PORT SSHD_PORT
-importas SSHD_BIND SSHD_BIND
-
-# Override the listen port and bind address on the command line instead of
-# editing the config file.
 # https://github.com/un-def/openssh-static-build/blob/master/run-sshd.sh#L30
-exec /opt/bm/store/openssh_gssapi/bin/sshd -D
-  -o Port=${SSHD_PORT}
-  -o ListenAddress=${SSHD_BIND}
+exec /opt/bm/store/openssh_gssapi/bin/sshd -D -e
   -f /etc/ssh/sshd_config
-  -E /var/log/s6.sshd.log

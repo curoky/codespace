@@ -32,8 +32,6 @@ CLONE_URL_ENV = "CODESPACE_CLONE_URL"
 CHECKOUT_PATH_ENV = "CODESPACE_CHECKOUT_PATH"
 OPEN_PATH_ENV = "CODESPACE_OPEN_PATH"
 ENCRYPTED_ENV = "CODESPACE_ENCRYPTED"
-SSHD_PORT_ENV = "SSHD_PORT"
-SSHD_BIND_ENV = "SSHD_BIND"
 
 LABEL_KIND = "codespace.kind"
 LABEL_PROJECT = "codespace.project"
@@ -53,8 +51,9 @@ REPOSITORY_RE = re.compile(r"^[\w.-]+(?:/[\w.-]+)+$")
 GIT_URL_RE = re.compile(
     r"^(?:ssh://)?[\w.-]+@[a-z0-9][a-z0-9.-]*(?::\d+)?[:/][\w./~-]+?(?:\.git)?/?$"
 )
-SSH_PORT_START = 20_000
-SSH_PORT_COUNT = 10_000
+WORKSPACE_SSH_PORT = 22
+SSH_HOST_PORT_START = 20_000
+SSH_HOST_PORT_COUNT = 10_000
 
 
 def _not_blank_token(value: str) -> str:
@@ -85,9 +84,9 @@ def workspace_identity(host: str, project: str, workspace: str) -> str:
     return f"codespace-workspace_{host}_{project}_{workspace}"
 
 
-def workspace_ssh_port(identity: str) -> int:
+def workspace_ssh_host_port(identity: str) -> int:
     digest_prefix = hashlib.sha256(identity.encode()).hexdigest()[:4]
-    return SSH_PORT_START + int(digest_prefix, 16) % SSH_PORT_COUNT
+    return SSH_HOST_PORT_START + int(digest_prefix, 16) % SSH_HOST_PORT_COUNT
 
 
 def platform_label(platform: ImagePlatform | None) -> PlatformSelection:
@@ -150,6 +149,12 @@ class EmptySource(BaseModel):
 type Source = Annotated[ProviderSource | GitSource | EmptySource, Field(discriminator="type")]
 
 
+class WorkspaceContainerSpec(ContainerSpec):
+    """Resolved container contract for every Workspace."""
+
+    network_mode: Literal["bridge"] = "bridge"
+
+
 @dataclass(frozen=True, slots=True)
 class WorkspaceSpec:
     """Resolved Project placement and one requested Workspace identity."""
@@ -160,7 +165,7 @@ class WorkspaceSpec:
     source: Source
     platform: ImagePlatform | None
     image: str
-    container: ContainerSpec
+    container: WorkspaceContainerSpec
     checkout_path: WorkspacePath
     open_path: WorkspacePath
     encrypted: bool
@@ -170,8 +175,8 @@ class WorkspaceSpec:
         return workspace_identity(self.host, self.project, self.workspace)
 
     @property
-    def ssh_port(self) -> int:
-        return workspace_ssh_port(self.identity)
+    def ssh_host_port(self) -> int:
+        return workspace_ssh_host_port(self.identity)
 
     @property
     def platform_label(self) -> PlatformSelection:
@@ -240,12 +245,14 @@ class Workspace(BaseModel):
         return workspace_identity(self.host, self.project, self.workspace)
 
     @property
-    def ssh_port(self) -> int:
-        return workspace_ssh_port(self.id)
+    def ssh_host_port(self) -> int:
+        return workspace_ssh_host_port(self.id)
 
     @property
     def ssh_alias(self) -> str:
-        return f"codespace-workspace-{self.ssh_port}_{self.host}_{self.project}_{self.workspace}"
+        return (
+            f"codespace-workspace-{self.ssh_host_port}_{self.host}_{self.project}_{self.workspace}"
+        )
 
 
 def editor_url(alias: str, open_path: str, *, scheme: str = "trae") -> str:

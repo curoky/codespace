@@ -58,12 +58,18 @@ def test_workspace_webdav_uses_fixed_loopback_listener(service: str, listen: str
     assert "SSHD_BIND" not in script
 
 
-def test_workspace_sshd_requires_managed_listener_environment() -> None:
+def test_workspace_sshd_uses_fixed_listener() -> None:
     script = (_WORKSPACE_ROOT / "etc/s6/s6-rc.d/sshd/run").read_text()
+    config = (_WORKSPACE_ROOT / "etc/ssh/sshd_config").read_text()
 
-    assert "importas SSHD_PORT SSHD_PORT" in script
-    assert "importas SSHD_BIND SSHD_BIND" in script
-    assert "importas -D" not in script
+    assert "SSHD_PORT" not in script
+    assert "SSHD_BIND" not in script
+    assert "redirfd -w 1 /var/log/s6.sshd.log" in script
+    assert "s6.sshd.stdout.log" not in script
+    assert "sshd -D -e" in script
+    assert "\n  -E " not in script
+    assert "\nPort 22\n" in config
+    assert "\nListenAddress 0.0.0.0\n" in config
 
 
 def test_workspace_agent_requires_managed_bootstrap_environment() -> None:
@@ -75,9 +81,9 @@ def test_workspace_agent_requires_managed_bootstrap_environment() -> None:
     assert "signal.pause" not in source
 
 
-def test_wsl_declares_inherited_workspace_runtime_inputs() -> None:
+def test_wsl_declares_inherited_workspace_runtime_input() -> None:
     script = _WSL_BOOT.read_text()
 
     assert "container_environment/CODESPACE_ENCRYPTED" in script
-    assert "container_environment/SSHD_PORT" in script
-    assert "container_environment/SSHD_BIND" in script
+    assert "SSHD_PORT" not in script
+    assert "SSHD_BIND" not in script
