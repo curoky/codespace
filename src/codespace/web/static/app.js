@@ -20,18 +20,12 @@ const deleteDetailElement = document.querySelector("#delete-detail");
 const deleteConfirmButton = document.querySelector("#delete-confirm");
 const logsStatusElement = document.querySelector("#logs-status");
 const logsOutputElement = document.querySelector("#logs-output");
-const logsSourceElement = document.querySelector("#logs-source");
 
 document.querySelector("#refresh-button").addEventListener("click", refresh);
 document.querySelector("#tokens-button").addEventListener("click", () => tokensDialog.showModal());
 document.querySelector("#workspace-form").addEventListener("submit", createWorkspace);
 document.querySelector("#tokens-form").addEventListener("submit", saveTokens);
 document.querySelector("#logs-refresh").addEventListener("click", loadLogs);
-logsSourceElement.addEventListener("change", () => {
-  if (pendingLogs === null) return;
-  pendingLogs.source = logsSourceElement.value;
-  loadLogs();
-});
 deleteConfirmButton.addEventListener("click", confirmDelete);
 deleteDialog.addEventListener("close", () => {
   pendingDelete = null;
@@ -46,14 +40,14 @@ document.querySelectorAll("[data-close]").forEach((button) => {
 projectsElement.addEventListener("click", async (event) => {
   const target = event.target.closest("[data-action]");
   if (!target) return;
-  const { action, project, workspace, host, command, source, status } = target.dataset;
+  const { action, project, workspace, host, command } = target.dataset;
   if (action === "new") openWorkspaceDialog(project);
   if (action === "quick") await submitWorkspace(project, host, DEFAULT_WORKSPACE);
   if (action === "delete") {
-    await deleteWorkspace(project, host, workspace, false, source, status);
+    await deleteWorkspace(project, host, workspace, false);
   }
   if (action === "purge") {
-    await deleteWorkspace(project, host, workspace, true, source, status);
+    await deleteWorkspace(project, host, workspace, true);
   }
   if (action === "logs") openWorkspaceLogsDialog(project, host, workspace);
   if (action === "dismiss-operation") {
@@ -80,21 +74,9 @@ async function api(path, options = {}) {
     ...options,
     headers: { "Content-Type": "application/json", ...(options.headers || {}) },
   });
-  if (!response.ok) {
-    let message = `Request failed (${response.status})`;
-    let body = null;
-    try {
-      body = await response.json();
-      message = body.error || message;
-    } catch {
-      // Keep the status-based message when the response is not JSON.
-    }
-    const error = new Error(message);
-    error.status = response.status;
-    error.body = body;
-    throw error;
-  }
-  return response.json();
+  const body = await response.json();
+  if (!response.ok) throw new Error(body.error);
+  return body;
 }
 
 async function refresh() {
@@ -148,7 +130,9 @@ function renderHosts(hosts) {
       identity.append(element("strong", "", host.id));
       item.append(identity);
       if (host.status !== "online") item.append(element("span", "host-state", host.status));
-      item.append(element("span", "host-count", `${host.workspace_count} workspaces`));
+      if (host.workspace_count !== null) {
+        item.append(element("span", "host-count", `${host.workspace_count} workspaces`));
+      }
       if (host.error) item.append(element("span", "host-error", host.error));
       return item;
     }),
@@ -267,7 +251,7 @@ function renderServices(dashboard) {
 
 function renderServiceHost(service, host, hostStatus) {
   const actual = host.container;
-  const status = hostStatus.status === "offline" ? "offline" : actual?.status ?? "missing";
+  const status = hostStatus.status !== "online" ? hostStatus.status : actual?.status ?? "missing";
   const state = classifyStatus(status);
   const row = element("div", "workspace");
   const info = element("div", "workspace-info");
@@ -341,8 +325,6 @@ function renderWorkspace(workspace, tunnelPorts) {
     project: workspace.project,
     workspace: workspace.workspace,
     host: workspace.host,
-    source: workspace.source.type,
-    status: workspace.status,
   };
   const actions = element("div", "workspace-actions");
   const traeLink = link("Open in Trae", workspace.trae_url);
@@ -501,8 +483,9 @@ async function dismissServiceOperation(button, service, host) {
   }
 }
 
-async function deleteWorkspace(project, host, workspace, purge, source, status) {
-  pendingDelete = { project, host, workspace, purge };
+async function deleteWorkspace(project, host, workspace, purge) {
+  const request = { project, host, workspace, purge };
+  pendingDelete = request;
   const scope = purge ? "container and Workspace data" : "container";
   document.querySelector("#delete-eyebrow").textContent = `Delete ${scope}`;
   document.querySelector("#delete-title").textContent = `${host}/${project}/${workspace}`;
@@ -513,16 +496,9 @@ async function deleteWorkspace(project, host, workspace, purge, source, status) 
   deleteConfirmButton.disabled = true;
   deleteDialog.showModal();
 
-  if (source !== "empty" && status !== "running") {
-    deleteStatusElement.className = "delete-warning";
-    deleteStatusElement.textContent = `Container is ${status}; repository state was not inspected. Deleting may lose work.`;
-    deleteConfirmButton.disabled = false;
-    return;
-  }
   try {
-    const result = await sendDelete(project, host, workspace, purge, false);
-    if (!deleteDialog.open || pendingDelete === null) return;
-    const state = result.state;
+    const state = await api(`${workspacePath(project, host, workspace)}/deletion-check`);
+    if (!deleteDialog.open || pendingDelete !== request) return;
     const reasons = [];
     if (state.unpushed) reasons.push("unpushed commits");
     if (state.uncommitted) reasons.push("uncommitted changes");
@@ -536,8 +512,9 @@ async function deleteWorkspace(project, host, workspace, purge, source, status) 
     }
     deleteConfirmButton.disabled = false;
   } catch (error) {
+    if (!deleteDialog.open || pendingDelete !== request) return;
     deleteStatusElement.className = "delete-warning";
-    deleteStatusElement.textContent = `Could not inspect repository state: ${error.message}.`;
+    deleteStatusElement.textContent = `Could not inspect repository state: ${error.message}. Deleting may lose work.`;
     deleteConfirmButton.disabled = false;
   }
 }
@@ -547,7 +524,7 @@ async function confirmDelete() {
   const { project, host, workspace, purge } = pendingDelete;
   deleteConfirmButton.disabled = true;
   try {
-    await sendDelete(project, host, workspace, purge, true);
+    await api(`${workspacePath(project, host, workspace)}?purge=${purge}`, { method: "DELETE" });
     deleteDialog.close();
     notify(`Deleted ${project}/${workspace} on ${host}`);
     await refresh();
@@ -558,11 +535,8 @@ async function confirmDelete() {
   }
 }
 
-function sendDelete(project, host, workspace, purge, force) {
-  return api(
-    `/api/projects/${encodeURIComponent(project)}/hosts/${encodeURIComponent(host)}/workspaces/${encodeURIComponent(workspace)}?purge=${purge}&force=${force}`,
-    { method: "DELETE" },
-  );
+function workspacePath(project, host, workspace) {
+  return `/api/projects/${encodeURIComponent(project)}/hosts/${encodeURIComponent(host)}/workspaces/${encodeURIComponent(workspace)}`;
 }
 
 function openWorkspaceLogsDialog(project, host, workspace) {
@@ -580,9 +554,8 @@ function openServiceLogsDialog(service, host) {
 }
 
 function showLogsDialog(title, path) {
-  pendingLogs = { title, path, source: "container" };
+  pendingLogs = { path };
   document.querySelector("#logs-title").textContent = title;
-  renderLogSources(["container"], "container");
   logsDialog.showModal();
   loadLogs();
 }
@@ -590,17 +563,13 @@ function showLogsDialog(title, path) {
 async function loadLogs() {
   if (pendingLogs === null) return;
   const request = pendingLogs;
-  const source = request.source;
   logsStatusElement.className = "muted";
   logsStatusElement.textContent = "Loading logs…";
   logsStatusElement.hidden = false;
   logsOutputElement.hidden = true;
   try {
-    const result = await api(
-      `${request.path}?source=${encodeURIComponent(source)}`,
-    );
-    if (pendingLogs !== request || request.source !== source || !logsDialog.open) return;
-    renderLogSources(result.sources, result.source);
+    const result = await api(request.path);
+    if (pendingLogs !== request || !logsDialog.open) return;
     const logs = result.logs;
     if (logs.trim()) {
       logsStatusElement.hidden = true;
@@ -611,23 +580,10 @@ async function loadLogs() {
       logsStatusElement.textContent = "No logs available.";
     }
   } catch (error) {
-    if (pendingLogs !== request || request.source !== source || !logsDialog.open) return;
+    if (pendingLogs !== request || !logsDialog.open) return;
     logsStatusElement.className = "delete-warning";
     logsStatusElement.textContent = error.message;
   }
-}
-
-function renderLogSources(sources, selected) {
-  logsSourceElement.replaceChildren(
-    ...sources.map((source) => {
-      const option = document.createElement("option");
-      option.value = source;
-      option.textContent = source === "container" ? "Container" : source;
-      return option;
-    }),
-  );
-  logsSourceElement.value = selected;
-  logsSourceElement.disabled = sources.length === 1;
 }
 
 async function saveTokens(event) {

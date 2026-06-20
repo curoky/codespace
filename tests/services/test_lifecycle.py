@@ -119,23 +119,18 @@ def test_remove_can_purge_service_data(
     assert events == ["container", "data"]
 
 
-def test_logs_reads_selected_container_source(
+def test_logs_reads_podman_output(
     manager: ServiceManager,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     running = SimpleNamespace()
-    snapshot = lifecycle.container.LogSnapshot(
-        source="s6.supercronic.log",
-        sources=("container", "s6.supercronic.log"),
-        logs="service line\n",
-    )
-    calls: list[tuple[object, str]] = []
+    calls: list[object] = []
     monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
     monkeypatch.setattr(
         lifecycle.container,
-        "container_log_snapshot",
-        lambda actual, source: (calls.append((actual, source)), snapshot)[-1],
+        "container_logs",
+        lambda actual: (calls.append(actual), "service line\n")[-1],
     )
 
-    assert manager.logs("support", "home", "s6.supercronic.log") is snapshot
-    assert calls == [(running, "s6.supercronic.log")]
+    assert manager.logs("support", "home") == "service line\n"
+    assert calls == [running]

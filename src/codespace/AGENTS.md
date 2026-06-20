@@ -8,6 +8,7 @@
 - 依赖方向为 `web -> control -> workspaces/services -> runtime`；`runtime/` 不依赖
   Config、manager 或 Web，Workspace 与 Service 不互相调用。
 - YAML 只在入口读取；Pydantic model 是运行期唯一配置来源。
+- container 覆盖层只由 Config 合并；runtime Spec 的集合不可为 `None`，network 必须确定。
 - Config 表达 desired placement；deployed metadata 只读 labels，状态只读 Podman。
 - 固定 filesystem、用户 home 与进程布局归 platform；控制面只传 placement 和实例输入。
 - Workspace 的 network mode 固定为 bridge；只有 Service 可在配置中选择网络模式。

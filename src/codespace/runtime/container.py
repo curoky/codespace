@@ -1,11 +1,10 @@
-"""Canonical container configuration and Podman runtime primitives."""
+"""Resolved container specifications and Podman runtime primitives."""
 
 from __future__ import annotations
 
 import posixpath
 import re
 from collections.abc import Iterator, Mapping, Sequence
-from dataclasses import dataclass
 from ipaddress import ip_address
 from pathlib import PurePosixPath
 from typing import Annotated, Any, Literal, Self, cast
@@ -28,12 +27,9 @@ _READY_TIMEOUT = 30.0
 _READY_INTERVAL = 0.25
 _PULL_TIMEOUT = 15 * 60.0
 _LOG_TAIL = 2000
-_LOG_FILE_LIMIT = 1024 * 1024
-_LOG_FILE_RE = re.compile(r"^s6\.[A-Za-z0-9][A-Za-z0-9._-]*\.log$", re.ASCII)
 _PORT_MIN = 1
 _PORT_MAX = 65_535
 _SECRET_NAME_RE = re.compile(r"^[a-zA-Z0-9._-]+$")
-CONTAINER_LOG_SOURCE = "container"
 
 
 def _not_blank(value: str) -> str:
@@ -90,15 +86,6 @@ type SecretMode = Annotated[
     AfterValidator(_secret_mode),
 ]
 type ImagePlatform = Literal["linux/amd64", "linux/arm64"]
-
-
-@dataclass(frozen=True, slots=True)
-class LogSnapshot:
-    """One bounded log view and the sources available in its container."""
-
-    source: str
-    sources: tuple[str, ...]
-    logs: str
 
 
 class UlimitSpec(BaseModel):
@@ -170,62 +157,65 @@ class PortSpec(BaseModel):
     protocol: Literal["tcp", "udp"] = "tcp"
 
 
-class ContainerSpec(BaseModel):
-    """Canonical, all-optional container layer.
+def _unique_options(values: list[str]) -> list[str]:
+    if len(values) != len(set(values)):
+        raise ValueError("must not contain duplicate values")
+    return values
 
-    Layers are merged by field. Lists and mappings replace the previous value
-    wholesale, which keeps placement resolution explicit and deterministic.
-    """
+
+def _unique_volumes(volumes: list[VolumeSpec]) -> list[VolumeSpec]:
+    keys = [(volume.type, volume.source, volume.target, volume.read_only) for volume in volumes]
+    if len(keys) != len(set(keys)):
+        raise ValueError("volumes must not contain duplicate values")
+    return volumes
+
+
+def _unique_ports(ports: list[PortSpec]) -> list[PortSpec]:
+    destinations: set[tuple[int, str]] = set()
+    for port in ports:
+        destination = (port.target, port.protocol)
+        if destination in destinations:
+            raise ValueError(
+                f"port target {port.target}/{port.protocol} is published more than once"
+            )
+        destinations.add(destination)
+    return ports
+
+
+type UniqueContainerOptions = Annotated[
+    list[ComposeNonBlankString], AfterValidator(_unique_options)
+]
+type ContainerVolumes = Annotated[list[VolumeSpec], AfterValidator(_unique_volumes)]
+type ContainerPorts = Annotated[list[PortSpec], AfterValidator(_unique_ports)]
+
+
+class ContainerSpec(BaseModel):
+    """Resolved placement with concrete collections and an explicit network mode."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    cap_add: list[ComposeNonBlankString] | None = None
-    security_opt: list[ComposeNonBlankString] | None = None
-    network_mode: Literal["host", "bridge"] | None = None
+    cap_add: UniqueContainerOptions = Field(default_factory=list)
+    security_opt: UniqueContainerOptions = Field(default_factory=list)
+    network_mode: Literal["host", "bridge"]
     ipc: ComposeNonBlankString | None = None
     pids_limit: StrictInt | None = None
-    ulimits: dict[UlimitName, UlimitSpec] | None = None
-    volumes: list[VolumeSpec] | None = None
-    environment: dict[NonBlankString, ComposeString] | None = None
-    secrets: list[SecretSpec] | None = None
-    devices: list[ComposeNonBlankString] | None = None
-    ports: list[PortSpec] | None = None
+    ulimits: dict[UlimitName, UlimitSpec] = Field(default_factory=dict)
+    volumes: ContainerVolumes = Field(default_factory=list)
+    environment: dict[NonBlankString, ComposeString] = Field(default_factory=dict)
+    secrets: list[SecretSpec] = Field(default_factory=list)
+    devices: list[ComposeNonBlankString] = Field(default_factory=list)
+    ports: ContainerPorts = Field(default_factory=list)
     shm_size: ComposeNonBlankString | None = None
 
     @model_validator(mode="after")
-    def _validate_sequences(self) -> Self:
-        for field_name in ("cap_add", "security_opt"):
-            values = getattr(self, field_name)
-            if values is not None and len(values) != len(set(values)):
-                raise ValueError(f"{field_name} must not contain duplicate values")
-
-        volume_keys = [
-            (volume.type, volume.source, volume.target, volume.read_only)
-            for volume in self.volumes or []
-        ]
-        if len(volume_keys) != len(set(volume_keys)):
-            raise ValueError("volumes must not contain duplicate values")
-
-        destinations: set[tuple[int, str]] = set()
-        for port in self.ports or []:
-            destination = (port.target, port.protocol)
-            if destination in destinations:
-                raise ValueError(
-                    f"port target {port.target}/{port.protocol} is published more than once"
-                )
-            destinations.add(destination)
+    def _validate_network(self) -> Self:
+        if self.ports and not self.is_bridge:
+            raise ValueError("ports may be published only in bridge mode")
         return self
 
     @property
     def is_bridge(self) -> bool:
         return self.network_mode == "bridge"
-
-    def merged_with(self, *overrides: ContainerSpec | None) -> Self:
-        merged = self.model_dump(exclude_none=True)
-        for override in overrides:
-            if override is not None:
-                merged.update(override.model_dump(exclude_none=True))
-        return self.__class__.model_validate(merged)
 
 
 def create_container(
@@ -241,27 +231,26 @@ def create_container(
     restart_policy: Mapping[str, object] | None = None,
 ) -> Container:
     """Create a detached container from a fully resolved canonical specification."""
-    secret_mounts = _resolve_secrets(client, spec.secrets or [])
+    secret_mounts = _resolve_secrets(client, spec.secrets)
     ports: dict[str, object] = {
-        f"{port.target}/{port.protocol}": (port.host_ip, port.published)
-        for port in spec.ports or []
+        f"{port.target}/{port.protocol}": (port.host_ip, port.published) for port in spec.ports
     }
     options: dict[str, Any] = {
         "name": name,
         "network_mode": spec.network_mode,
-        "cap_add": spec.cap_add or [],
-        "security_opt": spec.security_opt or [],
+        "cap_add": spec.cap_add,
+        "security_opt": spec.security_opt,
         "ulimits": [
             {"Name": resource, "Soft": limit.soft, "Hard": limit.hard}
-            for resource, limit in (spec.ulimits or {}).items()
+            for resource, limit in spec.ulimits.items()
         ],
         "environment": dict(environment),
-        "devices": spec.devices or [],
-        "ports": ports if spec.is_bridge else {},
+        "devices": spec.devices,
+        "ports": ports,
         "labels": dict(labels),
         "mounts": [
             *mounts,
-            *(volume.mount() for volume in spec.volumes or []),
+            *(volume.mount() for volume in spec.volumes),
         ],
     }
     if platform is not None:
@@ -319,7 +308,7 @@ def pull_image(client: PodmanClient, image: str, platform: ImagePlatform | None)
     try:
         events = cast("Iterator[dict[str, str]]", pull_client.images.pull(image, **kwargs))
         for event in events:
-            error = event.get("error") if isinstance(event, dict) else None
+            error = event.get("error")
             if error:
                 raise PodmanError(f"failed to pull {image}: {error}")
     finally:
@@ -367,10 +356,8 @@ def remove_data_directory(
         raise RuntimeError("expected a detached directory-removal container")
     try:
         exit_code = helper.wait()
-        if exit_code not in (0, None):
-            logs = helper.logs(stdout=True, stderr=True)
-            raw = logs if isinstance(logs, bytes) else b"".join(logs)
-            detail = raw.decode("utf-8", "replace").strip()
+        if exit_code != 0:
+            detail = container_logs(helper).strip()
             raise RuntimeError(f"failed to remove {target!r} ({exit_code}): {detail}")
     finally:
         helper.remove(force=True)
@@ -407,87 +394,8 @@ def container_logs(container: Container) -> str:
         timestamps=True,
         tail=_LOG_TAIL,
     )
-    raw = result if isinstance(result, bytes) else b"".join(result)
+    raw = b"".join(cast("Iterator[bytes]", result))
     return raw.decode("utf-8", "replace")
-
-
-def container_log_snapshot(
-    container: Container,
-    source: str = CONTAINER_LOG_SOURCE,
-) -> LogSnapshot:
-    if source != CONTAINER_LOG_SOURCE and not _LOG_FILE_RE.fullmatch(source):
-        raise RuntimeError(f"invalid container log source: {source!r}")
-
-    files = _container_log_files(container)
-    sources = (CONTAINER_LOG_SOURCE, *files)
-    if source not in sources:
-        raise RuntimeError(f"container log source {source!r} not found")
-
-    if source == CONTAINER_LOG_SOURCE:
-        logs = container_logs(container)
-    else:
-        logs = _container_file_logs(container, source)
-    return LogSnapshot(source=source, sources=sources, logs=logs)
-
-
-def _container_log_files(container: Container) -> tuple[str, ...]:
-    raw = _container_exec(
-        container,
-        [
-            "find",
-            "/var/log",
-            "-maxdepth",
-            "1",
-            "-type",
-            "f",
-            "-name",
-            "s6.*.log",
-            "-printf",
-            "%f\\0",
-        ],
-        action="list container log files",
-    )
-    files = []
-    for encoded in raw.split(b"\0"):
-        if not encoded:
-            continue
-        name = encoded.decode("utf-8", "replace")
-        if not _LOG_FILE_RE.fullmatch(name):
-            raise RuntimeError(f"container returned invalid log source: {name!r}")
-        files.append(name)
-    return tuple(sorted(set(files)))
-
-
-def _container_file_logs(container: Container, source: str) -> str:
-    raw = _container_exec(
-        container,
-        ["tail", f"--bytes={_LOG_FILE_LIMIT}", "--", f"/var/log/{source}"],
-        action=f"read container log source {source!r}",
-    )
-    return raw.decode("utf-8", "replace")
-
-
-def _container_exec(container: Container, command: list[str], *, action: str) -> bytes:
-    exit_code, output = container.exec_run(
-        command,
-        stdout=True,
-        stderr=True,
-        stream=False,
-        demux=True,
-    )
-    if not isinstance(output, tuple) or len(output) != 2:
-        raise TypeError(f"expected demultiplexed container exec output, got {type(output)}")
-    stdout, stderr = output
-    if stdout is not None and not isinstance(stdout, bytes):
-        raise TypeError(f"expected container exec stdout bytes, got {type(stdout)}")
-    if stderr is not None and not isinstance(stderr, bytes):
-        raise TypeError(f"expected container exec stderr bytes, got {type(stderr)}")
-    stdout = stdout or b""
-    stderr = stderr or b""
-    if exit_code != 0:
-        detail = (stderr or stdout).decode("utf-8", "replace").strip()
-        raise RuntimeError(f"failed to {action}: {detail or f'exit code {exit_code}'}")
-    return stdout
 
 
 class _ContainerNotRunning(Exception):
@@ -510,5 +418,4 @@ def wait_running(container: Container) -> None:
 def _reload_until_running(container: Container) -> None:
     container.reload()
     if container.status != "running":
-        name = str(getattr(container, "name", None) or container.id)
-        raise _ContainerNotRunning(f"container {name} did not reach running state")
+        raise _ContainerNotRunning(f"container {container.name} did not reach running state")

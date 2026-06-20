@@ -58,6 +58,12 @@ def test_workspace_webdav_uses_fixed_loopback_listener(service: str, listen: str
     assert "SSHD_BIND" not in script
 
 
+def test_workspace_copyparty_exposes_container_logs_read_only() -> None:
+    script = (_WORKSPACE_ROOT / "etc/s6/s6-rc.d/copyparty-webdav/run").read_text()
+
+    assert "-v /var/log:logs:r\n" in script
+
+
 def test_workspace_sshd_uses_fixed_listener() -> None:
     script = (_WORKSPACE_ROOT / "etc/s6/s6-rc.d/sshd/run").read_text()
     config = (_WORKSPACE_ROOT / "etc/ssh/sshd_config").read_text()
