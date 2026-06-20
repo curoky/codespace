@@ -2,15 +2,14 @@
 
 s6-envdir -Lf -- /run/s6/container_environment
 
-redirfd -w 1 /var/log/s6.rclone-webdav.log
+redirfd -w 1 /var/log/s6.rclone-http.log
 fdmove -c 2 1
 
 s6-setuidgid x
 s6-env HOME=/home/x
-exec /opt/bm/store/rclone/bin/rclone serve webdav files:
+exec /opt/bm/store/rclone/bin/rclone serve http files:
   --config /etc/rclone.conf
-  --addr 127.0.0.1:8004
-  --disable-dir-list
+  --addr 127.0.0.1:8007
   --disable-zip
   --dir-cache-time 0
   --poll-interval 0
