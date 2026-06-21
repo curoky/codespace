@@ -3,6 +3,7 @@
 # ruff: noqa: S104, S603, S607
 
 import configparser
+import mimetypes
 import os
 import subprocess
 from pathlib import Path
@@ -86,6 +87,12 @@ def test_workspace_rclone_services_share_combined_remote() -> None:
 
     http_script = (_WORKSPACE_ROOT / "etc/s6/s6-rc.d/rclone-http/run").read_text()
     assert "--disable-dir-list" not in http_script
+    assert '--response-header "Content-Disposition: inline"' in http_script
+
+    mime_types = mimetypes.read_mime_types(_WORKSPACE_ROOT / "etc/mime.types")
+    assert mime_types is not None
+    for extension in (".log", ".toml", ".yaml", ".py", ".go"):
+        assert mime_types[extension].startswith("text/")
 
 
 def test_workspace_copyparty_exposes_container_logs_read_only() -> None:

@@ -80,7 +80,7 @@ def workspace_logs(
     return ContainerLogsResponse(logs=logs)
 
 
-@router.post("/api/projects/{project}/hosts/{host}/workspaces/{workspace}/tunnels/{port}")
+@router.get("/api/projects/{project}/hosts/{host}/workspaces/{workspace}/tunnels/{port}")
 def open_workspace_tunnel(
     project: ResourcePath,
     host: HostPath,
