@@ -123,7 +123,8 @@ RUN sudo mkdir -p /workspace \
   && sudo chown 5230:5230 /workspace /opt
 
 USER root
-RUN bash /opt/devspace/images/base/script/setup-sysconf.sh /opt/devspace/dotfiles \
+RUN rsync -a /opt/devspace/images/base/rootfs/ / \
+  && bash /opt/devspace/images/base/script/setup-sysconf.sh \
   && bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles \
   && ln -s /opt/devspace ~/devspace
 
