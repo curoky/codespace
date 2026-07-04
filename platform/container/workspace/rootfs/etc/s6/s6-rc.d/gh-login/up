@@ -1,0 +1,13 @@
+redirfd -w 1 /var/log/s6.gh-login.log
+fdmove -c 2 1
+s6-envdir -Lf -- /run/s6/container_environment
+if { test -s /run/secrets/github_action_token }
+s6-setuidgid x
+s6-env HOME=/home/x
+redirfd -r 0 /run/secrets/github_action_token
+gh auth login
+  --hostname github.com
+  --git-protocol ssh
+  --skip-ssh-key
+  --insecure-storage
+  --with-token

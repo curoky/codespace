@@ -12,6 +12,10 @@ project_defaults:
     secrets:
       - source: atuin_db_uri
         mode: 0400
+      - source: github_action_token
+        uid: "5230"
+        gid: "5230"
+        mode: 0400
     cap_add: [NET_RAW, SYS_ADMIN]
     security_opt: [disable, seccomp=unconfined]
     pids_limit: -1
