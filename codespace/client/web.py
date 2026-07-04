@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from threading import Lock, Thread
 from typing import Literal
+from urllib.parse import quote
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
@@ -95,6 +96,7 @@ class DashboardCodespace(BaseModel):
     status: str | None = None
     ssh_command: str
     raw_ssh_command: str
+    vscode_url: str
     has_local_alias: bool
 
 
@@ -361,6 +363,7 @@ def _dashboard_codespace(agent_id: str, ssh_host: str, cs: shared.Codespace) -> 
     entry = ssh_config.find_entry(codespace_id=cs.id, agent_id=agent_id)
     alias = entry.alias if entry else None
     raw_ssh_command = f"ssh {cs.user}@{ssh_host} -p {cs.port}"
+    remote_authority = alias if alias else f"{cs.user}@{ssh_host}:{cs.port}"
     return DashboardCodespace(
         agent_id=agent_id,
         id=cs.id,
@@ -373,7 +376,17 @@ def _dashboard_codespace(agent_id: str, ssh_host: str, cs: shared.Codespace) -> 
         status=cs.status,
         ssh_command=f"ssh {alias}" if alias else raw_ssh_command,
         raw_ssh_command=raw_ssh_command,
+        vscode_url=_vscode_remote_ssh_url(remote_authority, shared.WORKSPACE_MOUNT),
         has_local_alias=alias is not None,
+    )
+
+
+def _vscode_remote_ssh_url(remote_authority: str, remote_path: str) -> str:
+    """Build a VS Code Remote-SSH deep link for a remote authority and path."""
+    return (
+        "vscode://vscode-remote/ssh-remote+"
+        f"{quote(remote_authority, safe='')}"
+        f"{quote(remote_path, safe='/')}"
     )
 
 

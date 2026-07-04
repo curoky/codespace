@@ -177,6 +177,9 @@ def test_dashboard_aggregates_agents(
     assert body["agents"][1]["ssh_host"] == "10.0.0.8"
     assert body["agents"][1]["ssh_proxy_host"] == "office-bastion"
     assert body["codespaces"][0]["raw_ssh_command"] == "ssh dev@10.0.0.5 -p 49207"
+    assert body["codespaces"][0]["vscode_url"] == (
+        "vscode://vscode-remote/ssh-remote+dev%4010.0.0.5%3A49207/workspace"
+    )
 
 
 def test_operation_lifecycle(app_client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:

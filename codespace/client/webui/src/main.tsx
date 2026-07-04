@@ -102,6 +102,7 @@ type Codespace = {
   status?: string | null;
   ssh_command: string;
   raw_ssh_command: string;
+  vscode_url: string;
   has_local_alias: boolean;
 };
 
@@ -534,6 +535,7 @@ function App() {
                         <Table.Td><Code className="ssh-code">{cs.ssh_command}</Code></Table.Td>
                         <Table.Td>
                           <Group justify="flex-end" gap="xs" wrap="nowrap">
+                            <Button size="compact-xs" component="a" href={cs.vscode_url}>VS Code</Button>
                             <Button size="compact-xs" variant="default" color="red" onClick={() => void deleteCodespace(cs, false)}>Delete</Button>
                             <Button size="compact-xs" color="red" onClick={() => void deleteCodespace(cs, true)}>Purge</Button>
                           </Group>
