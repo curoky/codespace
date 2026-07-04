@@ -4,66 +4,286 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Codespace Dashboard</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/static/css/app.css" />
   </head>
   <body>
-    <header class="app-header">
-      <div>
-        <h1>Codespace Dashboard</h1>
-        <p id="config-summary">加载配置中...</p>
-      </div>
-      <button id="refresh-button" type="button">Refresh</button>
-    </header>
+    <div class="app-shell">
+      <nav class="navbar navbar-expand-lg glass-nav sticky-top">
+        <div class="container-fluid px-4">
+          <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="#">
+            <span class="brand-orb"><i class="bi bi-terminal"></i></span>
+            Codespace Dashboard
+          </a>
+          <div class="d-flex align-items-center gap-2">
+            <span id="config-summary" class="badge text-bg-light rounded-pill px-3 py-2">
+              加载配置中...
+            </span>
+            <button id="refresh-button" class="btn btn-light btn-sm shadow-sm" type="button">
+              <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+            </button>
+          </div>
+        </div>
+      </nav>
 
-    <main>
-      <section id="global-error" class="error-banner hidden" role="alert"></section>
+      <main class="container-fluid px-4 py-4">
+        <section class="hero-card mb-4">
+          <div>
+            <p class="eyebrow mb-2">LOCAL CONTROL PLANE</p>
+            <h1 class="display-6 fw-bold mb-2">管理所有 Agent 上的开发容器</h1>
+            <p class="text-secondary mb-0">
+              从本地 YAML 配置加载多个 agent，统一创建、删除和连接 codespace。
+            </p>
+          </div>
+          <button id="create-button" class="btn btn-primary btn-lg shadow" type="button">
+            <i class="bi bi-plus-lg me-2"></i>Create Codespace
+          </button>
+        </section>
 
-      <section class="panel">
-        <h2>Agents</h2>
-        <div id="agent-summary" class="agent-grid"></div>
-      </section>
+        <section class="row g-3 mb-4" aria-label="Dashboard summary">
+          <div class="col-6 col-xl-3">
+            <div class="metric-card">
+              <span class="metric-icon text-bg-primary"><i class="bi bi-box-seam"></i></span>
+              <div>
+                <p class="metric-label">Codespaces</p>
+                <strong id="stat-codespaces">0</strong>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-xl-3">
+            <div class="metric-card">
+              <span class="metric-icon text-bg-success"><i class="bi bi-wifi"></i></span>
+              <div>
+                <p class="metric-label">Online Agents</p>
+                <strong id="stat-online-agents">0</strong>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-xl-3">
+            <div class="metric-card">
+              <span class="metric-icon text-bg-danger"><i class="bi bi-wifi-off"></i></span>
+              <div>
+                <p class="metric-label">Offline Agents</p>
+                <strong id="stat-offline-agents">0</strong>
+              </div>
+            </div>
+          </div>
+          <div class="col-6 col-xl-3">
+            <div class="metric-card">
+              <span class="metric-icon text-bg-info"><i class="bi bi-activity"></i></span>
+              <div>
+                <p class="metric-label">Running Ops</p>
+                <strong id="stat-running-ops">0</strong>
+              </div>
+            </div>
+          </div>
+        </section>
 
-      <section class="panel toolbar">
-        <label>Agent <select id="agent-filter"></select></label>
-        <label>Search <input id="search-input" type="search" /></label>
-        <button id="create-button" type="button">Create</button>
-      </section>
+        <section id="global-error" class="alert alert-warning d-none" role="alert"></section>
 
-      <section class="panel">
-        <h2>Codespaces</h2>
-        <div id="codespace-empty" class="empty hidden">暂无 codespace</div>
-        <table>
-          <thead>
-            <tr>
-              <th>Agent</th><th>Repo</th><th>Workspace</th><th>Alias</th><th>Status</th>
-              <th>SSH</th><th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="codespace-tbody"></tbody>
-        </table>
-      </section>
+        <div id="toast-area" class="toast-area" aria-live="polite" aria-atomic="true"></div>
 
-      <section class="panel">
-        <h2>Operations</h2>
-        <div id="operation-list"></div>
-      </section>
-    </main>
+        <section class="row g-4 mb-4">
+          <div class="col-12 col-xl-8">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-header bg-white border-0 pb-0">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <h2 class="h5 mb-1">Agents</h2>
+                    <p class="text-secondary small mb-0">在线状态和容器数量概览</p>
+                  </div>
+                  <i class="bi bi-hdd-network fs-3 text-primary"></i>
+                </div>
+              </div>
+              <div class="card-body">
+                <div id="agent-summary" class="agent-grid"></div>
+              </div>
+            </div>
+          </div>
 
-    <dialog id="create-dialog">
-      <form id="create-form" method="dialog">
-        <h2>Create Codespace</h2>
-        <div id="create-error" class="error-banner hidden" role="alert"></div>
-        <label>Agent <select id="create-agent" name="agent"></select></label>
-        <label>Repo <input id="create-repo" name="repo" required placeholder="owner/name" /></label>
-        <label>Workspace <input id="create-workspace" name="workspace" required /></label>
-        <label>Alias <input id="create-alias" name="alias" required /></label>
-        <label>Image <input id="create-image" name="image" required /></label>
-        <label>User <input id="create-user" name="user" required /></label>
-        <label>Extra repos <textarea id="create-extra-repos" name="extra_repos"></textarea></label>
-        <menu>
-          <button id="create-cancel" type="button">Cancel</button>
-          <button type="submit">Create</button>
-        </menu>
+          <div class="col-12 col-xl-4">
+            <div class="card border-0 shadow-sm h-100">
+              <div class="card-header bg-white border-0 pb-0">
+                <h2 class="h5 mb-1">Filters</h2>
+                <p class="text-secondary small mb-0">快速筛选 repo、workspace 或 alias</p>
+              </div>
+              <div class="card-body d-grid gap-3">
+                <label class="form-label mb-0">
+                  Agent
+                  <select id="agent-filter" class="form-select mt-1"></select>
+                </label>
+                <label class="form-label mb-0">
+                  Status
+                  <select id="status-filter" class="form-select mt-1">
+                    <option value="all">All</option>
+                    <option value="running">Running</option>
+                    <option value="stopped">Stopped</option>
+                    <option value="unknown">Unknown</option>
+                  </select>
+                </label>
+                <label class="form-label mb-0">
+                  Search
+                  <div class="input-group mt-1">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input
+                      id="search-input"
+                      class="form-control"
+                      type="search"
+                      placeholder="repo / workspace / alias"
+                    />
+                  </div>
+                </label>
+                <label class="form-label mb-0">
+                  Sort
+                  <select id="sort-select" class="form-select mt-1">
+                    <option value="agent">Agent</option>
+                    <option value="repo">Repository</option>
+                    <option value="workspace">Workspace</option>
+                    <option value="status">Status</option>
+                  </select>
+                </label>
+                <div class="d-flex justify-content-between align-items-center gap-2">
+                  <button id="clear-search-button" class="btn btn-outline-secondary btn-sm" type="button">
+                    <i class="bi bi-eraser me-1"></i>Clear filters
+                  </button>
+                  <label class="form-check form-switch small mb-0">
+                    <input id="auto-refresh-toggle" class="form-check-input" type="checkbox" checked />
+                    Auto refresh
+                  </label>
+                </div>
+                <p id="last-updated" class="text-secondary small mb-0">尚未刷新</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card border-0 shadow-sm mb-4">
+          <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+            <div>
+              <h2 class="h5 mb-1">Codespaces</h2>
+              <p class="text-secondary small mb-0">当前 agent 返回的容器列表</p>
+            </div>
+            <span class="badge text-bg-primary rounded-pill" id="codespace-count">0</span>
+          </div>
+          <div class="card-body p-0">
+            <div id="codespace-empty" class="empty-state d-none">
+              <i class="bi bi-inbox"></i>
+              <p class="mb-0">暂无 codespace</p>
+            </div>
+            <div class="table-responsive">
+              <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>Agent</th>
+                    <th>Repository</th>
+                    <th>Workspace</th>
+                    <th>Alias</th>
+                    <th>Status</th>
+                    <th>SSH</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="codespace-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="card border-0 shadow-sm">
+          <div class="card-header bg-white border-0">
+            <div class="d-flex justify-content-between align-items-center gap-2">
+              <div>
+                <h2 class="h5 mb-1">Operations</h2>
+                <p class="text-secondary small mb-0">创建任务和后台进度</p>
+              </div>
+              <button id="clear-operations-button" class="btn btn-outline-secondary btn-sm" type="button">
+                <i class="bi bi-check2-circle me-1"></i>Clear finished
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="operation-list" class="operation-list"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="create-dialog" class="create-dialog">
+      <form id="create-form" method="dialog" class="card border-0 shadow-lg modal-card">
+        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+          <div>
+            <h2 class="h4 mb-1">Create Codespace</h2>
+            <p class="text-secondary small mb-0">选择 agent 并填写仓库信息</p>
+          </div>
+          <button id="create-cancel" type="button" class="btn btn-light btn-sm">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+        <div class="card-body d-grid gap-3">
+          <div id="create-error" class="alert alert-danger d-none" role="alert"></div>
+          <div class="row g-3">
+            <label class="col-md-6 form-label">
+              Agent
+              <select id="create-agent" name="agent" class="form-select mt-1"></select>
+            </label>
+            <label class="col-md-6 form-label">
+              User
+              <input id="create-user" name="user" class="form-control mt-1" required />
+            </label>
+            <label class="col-md-6 form-label">
+              Repo
+              <input
+                id="create-repo"
+                name="repo"
+                class="form-control mt-1"
+                required
+                placeholder="owner/name"
+              />
+            </label>
+            <label class="col-md-6 form-label">
+              Workspace
+              <input id="create-workspace" name="workspace" class="form-control mt-1" required />
+            </label>
+            <label class="col-12 form-label">
+              Alias
+              <input id="create-alias" name="alias" class="form-control mt-1" required />
+            </label>
+            <label class="col-12 form-check form-switch ms-2">
+              <input id="create-auto-alias" class="form-check-input" type="checkbox" checked />
+              <span class="form-check-label">自动根据 agent、repo、workspace 生成 alias</span>
+            </label>
+            <label class="col-12 form-label">
+              Image
+              <input id="create-image" name="image" class="form-control mt-1" required />
+            </label>
+            <div id="create-agent-help" class="agent-help small text-secondary"></div>
+            <label class="col-12 form-label">
+              Extra repos
+              <textarea
+                id="create-extra-repos"
+                name="extra_repos"
+                class="form-control mt-1"
+                rows="3"
+                placeholder="owner/repo，每行一个或用逗号分隔"
+              ></textarea>
+            </label>
+          </div>
+        </div>
+        <div class="card-footer bg-white border-0 d-flex justify-content-end gap-2">
+          <button id="create-cancel-footer" type="button" class="btn btn-outline-secondary">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-rocket-takeoff me-2"></i>Create
+          </button>
+        </div>
       </form>
     </dialog>
 

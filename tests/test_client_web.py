@@ -67,6 +67,12 @@ def test_static_page_and_script_are_served(app_client: TestClient) -> None:
     assert script.status_code == 200
     assert "text/javascript" in script.headers["content-type"]
     assert "await request('/api/config')" in script.text
+    assert "Dashboard summary" in index.text
+    assert "status-filter" in index.text
+    assert "auto-refresh-toggle" in index.text
+    assert "filteredCodespaces" in script.text
+    assert "scheduleAutoRefresh" in script.text
+    assert "showToast" in script.text
 
 
 def test_dashboard_aggregates_agents(
