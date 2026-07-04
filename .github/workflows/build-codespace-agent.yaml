@@ -1,0 +1,29 @@
+name: Build codespace-agent image
+
+on:
+  push:
+    paths:
+      - '.github/workflows/build-codespace-agent.yaml'
+      - 'codespace/**'
+      - 'pyproject.toml'
+      - 'uv.lock'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          username: curoky
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          # Build from the repo root so pyproject.toml/uv.lock are in context.
+          context: .
+          file: codespace/agent/Dockerfile
+          push: true
+          tags: curoky/devspace:codespace-agent-latest
