@@ -7,6 +7,7 @@ stateless -- all metadata is read back from podman labels. See DESIGN.md §4/§6
 """
 
 import secrets
+from threading import Lock, Thread
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
@@ -41,6 +42,8 @@ def _workspace_host_dir(config: AgentConfig, repo: str, workspace: str) -> str:
 def create_app(config: AgentConfig) -> FastAPI:
     """Build the FastAPI app bound to ``config``."""
     app = FastAPI(title="codespace-agent")
+    operations: dict[str, shared.CreateOperation] = {}
+    operations_lock = Lock()
 
     @app.exception_handler(HTTPException)
     def _render_error(_request: object, exc: HTTPException) -> JSONResponse:
@@ -53,46 +56,44 @@ def create_app(config: AgentConfig) -> FastAPI:
     def _client() -> PodmanClient:
         return PodmanClient(base_url=config.podman_uri)
 
-    @app.post("/codespaces", status_code=201)
-    def create_codespace(req: shared.CreateRequest) -> shared.Codespace:
-        cs_id = secrets.token_hex(3)
-        workspace_host_dir = _workspace_host_dir(config, req.repo, req.workspace)
-        logger.info("creating codespace id={} repo={} workspace={}", cs_id, req.repo, req.workspace)
+    def _get_operation(operation_id: str) -> shared.CreateOperation | None:
+        with operations_lock:
+            return operations.get(operation_id)
 
-        # Generate deploy keypairs in memory: the private halves are injected
-        # into the container, the public halves are returned for the client to
-        # register with GitHub. The agent never sees a token. The main repo gets
-        # a read-write key; each extra repo gets its own read-only key.
-        main_keypair = keys.generate_deploy_keypair()
-        extra_keypairs = {repo: keys.generate_deploy_keypair() for repo in req.extra_repos}
+    def _set_operation(operation: shared.CreateOperation) -> None:
+        with operations_lock:
+            operations[operation.id] = operation
 
-        try:
-            with _client() as client:
-                info = podman_ops.create_container(
-                    client,
-                    cs_id=cs_id,
-                    image=req.image,
-                    repo=req.repo,
-                    workspace=req.workspace,
-                    user=req.user,
-                    workspace_host_dir=workspace_host_dir,
-                )
-                podman_ops.inject_credentials(
-                    client,
-                    cs_id=cs_id,
-                    user=req.user,
-                    private_key=main_keypair.private_openssh,
-                    login_pubkey=req.login_pubkey,
-                    extra_keys=[(repo, kp.private_openssh) for repo, kp in extra_keypairs.items()],
-                )
-        except Exception as exc:
-            logger.exception("provisioning codespace {} failed; rolling back", cs_id)
-            _rollback(config, cs_id)
-            raise HTTPException(
-                status_code=500, detail=f"failed to provision codespace: {exc}"
-            ) from exc
+    def _update_operation(
+        operation_id: str,
+        *,
+        status: shared.CreateOperationStatus | None = None,
+        stage: str | None = None,
+        codespace: shared.Codespace | None = None,
+        error: str | None = None,
+    ) -> None:
+        with operations_lock:
+            operation = operations[operation_id]
+            operations[operation_id] = operation.model_copy(
+                update={
+                    k: v
+                    for k, v in {
+                        "status": status,
+                        "stage": stage,
+                        "codespace": codespace,
+                        "error": error,
+                    }.items()
+                    if v is not None
+                }
+            )
 
-        logger.info("codespace {} ready on port {}", cs_id, info.port)
+    def _build_codespace(
+        cs_id: str,
+        req: shared.CreateRequest,
+        info: podman_ops.ContainerInfo,
+        main_keypair: keys.DeployKeypair,
+        extra_keypairs: dict[str, keys.DeployKeypair],
+    ) -> shared.Codespace:
         deploy_keys = [
             shared.DeployKeyRef(
                 repo=req.repo, public_openssh=main_keypair.public_openssh, read_only=False
@@ -113,6 +114,82 @@ def create_app(config: AgentConfig) -> FastAPI:
             deploy_keys=deploy_keys,
             status="running",
         )
+
+    def _provision_codespace(operation_id: str, cs_id: str, req: shared.CreateRequest) -> None:
+        workspace_host_dir = _workspace_host_dir(config, req.repo, req.workspace)
+        logger.info("creating codespace id={} repo={} workspace={}", cs_id, req.repo, req.workspace)
+
+        try:
+            with _client() as client:
+                _update_operation(operation_id, status="running", stage="checking workspace")
+                existing = podman_ops.find_container_by_workspace(client, req.repo, req.workspace)
+                if existing is not None:
+                    existing_id = podman_ops.read_label(existing, shared.LABEL_ID)
+                    raise RuntimeError(
+                        f"codespace already exists for repo/workspace (id={existing_id})"
+                    )
+
+                _update_operation(operation_id, stage="generating deploy keys")
+                main_keypair = keys.generate_deploy_keypair()
+                extra_keypairs = {repo: keys.generate_deploy_keypair() for repo in req.extra_repos}
+
+                _update_operation(operation_id, stage=f"pulling image {req.image}")
+                podman_ops.pull_image(client, req.image)
+
+                _update_operation(operation_id, stage="creating container")
+                info = podman_ops.create_container(
+                    client,
+                    cs_id=cs_id,
+                    image=req.image,
+                    repo=req.repo,
+                    workspace=req.workspace,
+                    user=req.user,
+                    workspace_host_dir=workspace_host_dir,
+                )
+
+                _update_operation(operation_id, stage="injecting credentials")
+                podman_ops.inject_credentials(
+                    client,
+                    cs_id=cs_id,
+                    user=req.user,
+                    private_key=main_keypair.private_openssh,
+                    login_pubkey=req.login_pubkey,
+                    extra_keys=[(repo, kp.private_openssh) for repo, kp in extra_keypairs.items()],
+                )
+        except Exception as exc:
+            logger.exception("provisioning codespace {} failed; rolling back", cs_id)
+            _rollback(config, cs_id)
+            _update_operation(operation_id, status="failed", stage="failed", error=str(exc))
+            return
+
+        codespace = _build_codespace(cs_id, req, info, main_keypair, extra_keypairs)
+        logger.info("codespace {} ready on port {}", cs_id, info.port)
+        _update_operation(
+            operation_id,
+            status="succeeded",
+            stage="ready",
+            codespace=codespace,
+        )
+
+    @app.post("/codespaces", status_code=202)
+    def create_codespace(req: shared.CreateRequest) -> shared.CreateOperation:
+        operation_id = secrets.token_hex(6)
+        cs_id = secrets.token_hex(3)
+        operation = shared.CreateOperation(id=operation_id, status="queued", stage="queued")
+        _set_operation(operation)
+        Thread(
+            target=_provision_codespace,
+            args=(operation_id, cs_id, req),
+            daemon=True,
+        ).start()
+        return _get_operation(operation_id) or operation
+
+    @app.get("/operations/{operation_id}")
+    def get_operation(operation_id: str) -> shared.CreateOperation:
+        operation = _get_operation(operation_id)
+        if operation is None:
+            raise HTTPException(status_code=404, detail="operation not found")
+        return operation
 
     @app.get("/codespaces")
     def list_codespaces() -> list[shared.Codespace]:

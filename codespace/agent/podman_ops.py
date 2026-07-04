@@ -26,9 +26,11 @@ from codespace import shared
 __all__ = [
     "ContainerInfo",
     "create_container",
+    "find_container_by_workspace",
     "get_container",
     "inject_credentials",
     "list_containers",
+    "pull_image",
     "purge_workspace",
     "read_label",
     "remove_container",
@@ -119,6 +121,11 @@ def create_container(
     if port is None:
         raise RuntimeError(f"container {container.name} has no host port mapping for 22/tcp")
     return ContainerInfo(container_id=container.id, port=port)
+
+
+def pull_image(client: PodmanClient, image: str) -> None:
+    """Ensure ``image`` is available locally, pulling it when needed."""
+    client.images.pull(image)
 
 
 def _exec_checked(container: Container, cmd: list[str], *, user: str | None = None) -> None:
@@ -284,6 +291,19 @@ def list_containers(client: PodmanClient) -> list[Container]:
         if name.startswith(shared.CONTAINER_PREFIX) and read_label(container, shared.LABEL_ID):
             managed.append(container)
     return managed
+
+
+def find_container_by_workspace(
+    client: PodmanClient, repo: str, workspace: str
+) -> Container | None:
+    """Return the managed container for a ``(repo, workspace)`` pair, if any."""
+    for container in list_containers(client):
+        if (
+            read_label(container, shared.LABEL_REPO) == repo
+            and read_label(container, shared.LABEL_WORKSPACE) == workspace
+        ):
+            return container
+    return None
 
 
 def get_container(client: PodmanClient, cs_id: str) -> Container | None:

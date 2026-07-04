@@ -27,17 +27,38 @@ def _codespace_payload(**overrides: object) -> dict:
     return data
 
 
+def _operation_payload(**overrides: object) -> dict:
+    data = {
+        "id": "op123",
+        "status": "succeeded",
+        "stage": "ready",
+        "codespace": _codespace_payload(),
+        "error": None,
+    }
+    data.update(overrides)
+    return data
+
+
 @pytest.fixture(autouse=True)
 def _stub_login_key(monkeypatch: pytest.MonkeyPatch) -> None:
     # Avoid spawning ssh-keygen; return a fixed pubkey. Default to no extra repos
     # so create tests are isolated (individual tests override EXTRA_REPOS).
     monkeypatch.setattr(cli, "_ensure_login_key", lambda alias: "ssh-ed25519 LOGIN")
     monkeypatch.setattr(cli, "EXTRA_REPOS", [])
+    monkeypatch.setattr(cli.time, "sleep", lambda _seconds: None)
 
 
 def test_create_success_registers_key_and_writes_config(monkeypatch: pytest.MonkeyPatch) -> None:
     calls: dict[str, object] = {}
-    monkeypatch.setattr(cli, "_request", lambda *a, **k: (201, _codespace_payload()))
+    requests: list[tuple[str, str]] = []
+
+    def _request(method: str, url: str, body: dict | None = None) -> tuple[int, dict]:
+        requests.append((method, url))
+        if method == "POST":
+            return 202, _operation_payload(codespace=None, status="queued", stage="queued")
+        return 200, _operation_payload()
+
+    monkeypatch.setattr(cli, "_request", _request)
     monkeypatch.setattr(
         cli.github,
         "register_deploy_key",
@@ -63,6 +84,10 @@ def test_create_success_registers_key_and_writes_config(monkeypatch: pytest.Monk
     )
 
     assert result.exit_code == 0
+    assert requests == [
+        ("POST", "http://h:8080/codespaces"),
+        ("GET", "http://h:8080/operations/op123"),
+    ]
     assert calls["registered"] == ("owner/name", "abc123", "ssh-ed25519 PUB", False)
     # upsert(alias, ssh_host, port, user, id, repos)
     assert calls["upserted"] == ("name-default", "10.0.0.5", 49207, "dev", "abc123", ["owner/name"])
@@ -77,7 +102,15 @@ def test_create_registers_extra_repo_readonly(monkeypatch: pytest.MonkeyPatch) -
             {"repo": "owner/dotfiles", "public_openssh": "ssh-ed25519 EXTRA", "read_only": True},
         ]
     )
-    monkeypatch.setattr(cli, "_request", lambda *a, **k: (201, payload))
+    monkeypatch.setattr(
+        cli,
+        "_request",
+        lambda method, url, body=None: (
+            (202, _operation_payload(codespace=None))
+            if method == "POST"
+            else (200, _operation_payload(codespace=payload))
+        ),
+    )
     monkeypatch.setattr(
         cli.github,
         "register_deploy_key",
@@ -109,7 +142,15 @@ def test_create_registers_extra_repo_readonly(monkeypatch: pytest.MonkeyPatch) -
 def test_create_rolls_back_when_registration_fails(monkeypatch: pytest.MonkeyPatch) -> None:
     deleted: list[str] = []
     removed: list[str] = []
-    monkeypatch.setattr(cli, "_request", lambda method, url, body=None: (201, _codespace_payload()))
+    monkeypatch.setattr(
+        cli,
+        "_request",
+        lambda method, url, body=None: (
+            (202, _operation_payload(codespace=None))
+            if method == "POST"
+            else (200, _operation_payload())
+        ),
+    )
     monkeypatch.setattr(cli, "_delete_remote", lambda agent, cs_id: deleted.append(cs_id))
     monkeypatch.setattr(cli, "_remove_login_key", lambda alias: removed.append(alias))
 
@@ -140,6 +181,8 @@ def test_create_rolls_back_when_registration_fails(monkeypatch: pytest.MonkeyPat
 
 def test_create_fails_when_agent_errors(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(cli, "_request", lambda *a, **k: (500, {"error": "podman down"}))
+    removed: list[str] = []
+    monkeypatch.setattr(cli, "_remove_login_key", lambda alias: removed.append(alias))
     result = runner.invoke(
         cli.app,
         [
@@ -156,6 +199,40 @@ def test_create_fails_when_agent_errors(monkeypatch: pytest.MonkeyPatch) -> None
     )
     assert result.exit_code == 1
     assert "podman down" in result.output
+    assert removed == ["name-default"]
+
+
+def test_create_fails_when_operation_fails(monkeypatch: pytest.MonkeyPatch) -> None:
+    removed: list[str] = []
+    monkeypatch.setattr(cli, "_remove_login_key", lambda alias: removed.append(alias))
+    monkeypatch.setattr(
+        cli,
+        "_request",
+        lambda method, url, body=None: (
+            (202, _operation_payload(codespace=None))
+            if method == "POST"
+            else (200, _operation_payload(status="failed", codespace=None, error="pull failed"))
+        ),
+    )
+
+    result = runner.invoke(
+        cli.app,
+        [
+            "create",
+            "--repo",
+            "owner/name",
+            "--agent",
+            "http://h:8080",
+            "--ssh-host",
+            "10.0.0.5",
+            "--token",
+            "tok",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "pull failed" in result.output
+    assert removed == ["name-default"]
 
 
 def test_delete_revokes_key_then_removes(monkeypatch: pytest.MonkeyPatch) -> None:

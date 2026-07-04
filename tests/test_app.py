@@ -3,6 +3,8 @@
 The agent no longer talks to GitHub, so only podman is stubbed.
 """
 
+import time
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -42,6 +44,17 @@ def _create_body() -> dict:
     }
 
 
+def _operation_result(client: TestClient, operation_id: str) -> dict:
+    for _ in range(20):
+        resp = client.get(f"/operations/{operation_id}")
+        assert resp.status_code == 200
+        body = resp.json()
+        if body["status"] in {"succeeded", "failed"}:
+            return body
+        time.sleep(0.01)
+    return body
+
+
 def test_create_success_returns_public_key(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -55,11 +68,15 @@ def test_create_success_returns_public_key(
         "create_container",
         lambda *a, **k: podman_ops.ContainerInfo(container_id="cid", port=49207),
     )
+    monkeypatch.setattr(podman_ops, "find_container_by_workspace", lambda *a: None)
+    monkeypatch.setattr(podman_ops, "pull_image", lambda *a: None)
     monkeypatch.setattr(podman_ops, "inject_credentials", lambda *a, **k: None)
 
     resp = client.post("/codespaces", json=_create_body())
-    assert resp.status_code == 201
-    body = resp.json()
+    assert resp.status_code == 202
+    operation = resp.json()
+    assert operation["id"]
+    body = _operation_result(client, operation["id"])["codespace"]
     assert body["id"]
     assert body["port"] == 49207
     assert body["deploy_keys"] == [
@@ -80,6 +97,8 @@ def test_create_provision_failure_rolls_back_and_returns_500(
         raise RuntimeError("podman down")
 
     monkeypatch.setattr(podman_ops, "create_container", _fail)
+    monkeypatch.setattr(podman_ops, "find_container_by_workspace", lambda *a: None)
+    monkeypatch.setattr(podman_ops, "pull_image", lambda *a: None)
 
     rolled_back: list[str] = []
     monkeypatch.setattr(
@@ -87,7 +106,10 @@ def test_create_provision_failure_rolls_back_and_returns_500(
     )
 
     resp = client.post("/codespaces", json=_create_body())
-    assert resp.status_code == 500
+    assert resp.status_code == 202
+    operation = _operation_result(client, resp.json()["id"])
+    assert operation["status"] == "failed"
+    assert operation["error"] == "podman down"
     assert rolled_back  # rollback attempted to find/remove the container
 
 
@@ -97,6 +119,30 @@ def test_create_rejects_invalid_repo(client: TestClient) -> None:
         json={"repo": "invalid", "login_pubkey": "ssh-ed25519 AAAA", "image": "img"},
     )
     assert resp.status_code == 422  # pydantic validation at the boundary
+
+
+def test_create_rejects_existing_repo_workspace(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    existing = object()
+    created: list[object] = []
+    monkeypatch.setattr(podman_ops, "find_container_by_workspace", lambda *a: existing)
+    monkeypatch.setattr(podman_ops, "read_label", lambda container, key: "abc123")
+    monkeypatch.setattr(podman_ops, "create_container", lambda *a, **k: created.append(k))
+    monkeypatch.setattr(podman_ops, "get_container", lambda *a: None)
+
+    resp = client.post("/codespaces", json=_create_body())
+    assert resp.status_code == 202
+    operation = _operation_result(client, resp.json()["id"])
+    assert operation["status"] == "failed"
+    assert operation["error"] == "codespace already exists for repo/workspace (id=abc123)"
+    assert created == []
+
+
+def test_get_operation_returns_404_for_missing_id(client: TestClient) -> None:
+    resp = client.get("/operations/missing")
+    assert resp.status_code == 404
+    assert resp.json() == {"error": "operation not found"}
 
 
 def test_list_codespaces(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:

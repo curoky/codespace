@@ -6,6 +6,7 @@ lives in :mod:`codespace.shared`.
 
 import contextlib
 import subprocess
+import time
 from pathlib import Path
 
 import httpx
@@ -24,6 +25,7 @@ KEY_DIR = Path.home() / ".ssh" / "codespace"
 # Repos every codespace gets read-only pull access to (e.g. shared configs).
 EXTRA_REPOS = ["curoky/ai-coding-config"]
 HTTP_TIMEOUT = 30
+CREATE_POLL_INTERVAL = 2.0
 
 
 # --- HTTP helpers ------------------------------------------------------------
@@ -49,6 +51,32 @@ def _fail(message: str) -> typer.Exit:
     """Print an error message and return an Exit to raise."""
     typer.secho(f"error: {message}", fg=typer.colors.RED, err=True)
     return typer.Exit(code=1)
+
+
+def _wait_create_operation(agent: str, operation_id: str) -> shared.Codespace:
+    """Poll an asynchronous create operation until it yields a codespace."""
+    url = f"{agent.rstrip('/')}/operations/{operation_id}"
+    last_stage = ""
+    with Console().status("creating codespace...") as status_view:
+        while True:
+            status_code, data = _request("GET", url)
+            if status_code != 200:
+                raise _fail(data.get("error", f"agent returned HTTP {status_code}"))
+
+            operation = shared.CreateOperation.model_validate(data)
+            if operation.stage != last_stage:
+                status_view.update(f"creating codespace: {operation.stage}")
+                last_stage = operation.stage
+
+            match operation.status:
+                case "queued" | "running":
+                    time.sleep(CREATE_POLL_INTERVAL)
+                case "succeeded":
+                    if operation.codespace is None:
+                        raise _fail("agent completed create without returning a codespace")
+                    return operation.codespace
+                case "failed":
+                    raise _fail(operation.error or "agent failed to provision codespace")
 
 
 # --- Key management ----------------------------------------------------------
@@ -130,10 +158,17 @@ def create(
     )
 
     status, data = _request("POST", f"{agent.rstrip('/')}/codespaces", body=payload.model_dump())
-    if status != 201:
+    if status != 202:
+        _remove_login_key(alias)
         raise _fail(data.get("error", f"agent returned HTTP {status}"))
 
-    cs = shared.Codespace.model_validate(data)
+    operation = shared.CreateOperation.model_validate(data)
+    try:
+        cs = _wait_create_operation(agent, operation.id)
+    except typer.Exit:
+        _remove_login_key(alias)
+        raise
+
     if not cs.deploy_keys:
         _delete_remote(agent, cs.id)
         _remove_login_key(alias)

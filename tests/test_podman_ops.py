@@ -211,6 +211,30 @@ def test_list_containers_filters_by_label() -> None:
     assert podman_ops.list_containers(client) == [labeled]
 
 
+def test_find_container_by_workspace_matches_repo_and_workspace() -> None:
+    container = _FakeContainer(
+        labels={
+            shared.LABEL_ID: "abc",
+            shared.LABEL_REPO: "owner/name",
+            shared.LABEL_WORKSPACE: "default",
+        }
+    )
+    client = _FakeClient(container)
+
+    assert podman_ops.find_container_by_workspace(client, "owner/name", "default") is container
+    assert podman_ops.find_container_by_workspace(client, "owner/name", "other") is None
+
+
+def test_pull_image_delegates_to_podman_images() -> None:
+    client = _FakeClient(_FakeContainer(labels={}))
+    pulled: list[str] = []
+    client.images = type("_Images", (), {"pull": lambda self, image: pulled.append(image)})()
+
+    podman_ops.pull_image(client, "codespace/dev:latest")
+
+    assert pulled == ["codespace/dev:latest"]
+
+
 def test_purge_workspace_runs_helper_container() -> None:
     client = _FakeClient(_FakeContainer(labels={}))
     podman_ops.purge_workspace(client, "/host/ws")
