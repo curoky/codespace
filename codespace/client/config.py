@@ -13,6 +13,7 @@ from codespace import shared
 CONFIG_ENV = "CODESPACE_CONFIG"
 DEFAULT_CONFIG_PATH = Path.home() / ".config" / "codespace" / "config.yaml"
 AGENT_ID_RE = re.compile(r"^[\w.-]+$")
+GITHUB_TOKEN_PREFIXES = ("github_pat_", "ghp_", "gho_", "ghu_", "ghs_", "ghr_")
 
 
 class AgentProfile(BaseModel):
@@ -226,4 +227,11 @@ def load_config(path: str | Path | None = None) -> WebConfig:
 
 def github_token(config: WebConfig) -> str | None:
     """Return the configured GitHub token from the environment, if present."""
+    if is_inline_github_token(config.github.token_env):
+        return config.github.token_env
     return os.environ.get(config.github.token_env)
+
+
+def is_inline_github_token(value: str) -> bool:
+    """Return whether a value looks like an inline GitHub token instead of an env var name."""
+    return value.startswith(GITHUB_TOKEN_PREFIXES)

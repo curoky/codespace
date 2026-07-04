@@ -16,6 +16,8 @@ from codespace.client.config import (
     WebConfig,
 )
 
+INLINE_TEST_TOKEN = "github_pat_example"
+
 
 def _config() -> WebConfig:
     return WebConfig(
@@ -74,8 +76,29 @@ def test_config_hides_token(app_client: TestClient) -> None:
 
     assert resp.status_code == 200
     body = resp.json()
-    assert body["github"] == {"token_env": "GITHUB_TOKEN", "has_token": True}
+    assert body["github"] == {
+        "token_env": "GITHUB_TOKEN",
+        "has_token": True,
+        "inline_token": False,
+    }
     assert "secret" not in str(body)
+
+
+def test_config_hides_inline_token(monkeypatch: pytest.MonkeyPatch) -> None:
+    config = _config().model_copy(update={"github": GithubConfig(token_env=INLINE_TEST_TOKEN)})
+    monkeypatch.setattr(web, "load_config", lambda path=None: config)
+    app_client = TestClient(web.create_app())
+
+    resp = app_client.get("/api/config")
+
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["github"] == {
+        "token_env": "inline GitHub credential",
+        "has_token": True,
+        "inline_token": True,
+    }
+    assert INLINE_TEST_TOKEN not in str(body)
 
 
 def test_config_returns_create_templates(app_client: TestClient) -> None:
@@ -178,6 +201,36 @@ def test_operation_lifecycle(app_client: TestClient, monkeypatch: pytest.MonkeyP
 
     assert op["status"] == "succeeded"
     assert op["codespace"]["id"] == "abc123"
+
+
+def test_create_accepts_inline_token_for_compatibility(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from codespace.client import service
+
+    config = _config().model_copy(update={"github": GithubConfig(token_env=INLINE_TEST_TOKEN)})
+    monkeypatch.setattr(web, "load_config", lambda path=None: config)
+
+    def _create(
+        self: service.CodespaceService,
+        agent_id: str,
+        req: service.CreateCodespaceInput,
+        *,
+        token: str,
+        progress: Callable[[str], None] | None = None,
+    ) -> shared.Codespace:
+        assert token == INLINE_TEST_TOKEN
+        return _codespace()
+
+    monkeypatch.setattr(service.CodespaceService, "create_codespace", _create)
+    app_client = TestClient(web.create_app())
+
+    resp = app_client.post(
+        "/api/agents/home/codespaces",
+        json={"repo": "owner/name", "alias": "home-name-default", "image": "img"},
+    )
+
+    assert resp.status_code == 200
 
 
 def test_create_without_github_token_logs_actionable_error(

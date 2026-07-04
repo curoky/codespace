@@ -34,7 +34,8 @@ const defaultAlias = (agent, repo, workspace) => agent && repo && workspace ? `$
 const isBusyOperation = (op) => op.status === 'queued' || op.status === 'running';
 const formatTime = (timestamp) => timestamp ? new Date(timestamp).toLocaleTimeString() : '尚未刷新';
 const normalizeStatus = (status) => String(status || 'unknown').toLowerCase();
-const tokenMissingMessage = () => `创建 codespace 需要 GitHub token。请在启动 Web GUI 前设置 ${state.config?.github?.token_env || 'GITHUB_TOKEN'}，或在 config.yaml 的 github.token_env 中指定环境变量名。`;
+const tokenSourceLabel = () => state.config?.github?.token_env || 'GITHUB_TOKEN';
+const tokenMissingMessage = () => `创建 codespace 需要 GitHub token。请在启动 Web GUI 前设置 ${tokenSourceLabel()}，或在 config.yaml 的 github.token_env 中指定环境变量名。`;
 
 async function loadAll() {
   try {
@@ -95,7 +96,7 @@ function renderConfig() {
   }
   el.classList.toggle('text-bg-warning', !state.config.github.has_token);
   el.classList.toggle('text-bg-light', state.config.github.has_token);
-  el.textContent = `Default: ${state.config.default_agent} · Token: ${state.config.github.has_token ? '已配置' : `未配置(${state.config.github.token_env})`}`;
+  el.textContent = `Default: ${state.config.default_agent} · Token: ${state.config.github.has_token ? '已配置' : `未配置(${tokenSourceLabel()})`}`;
 }
 
 function renderStats() {

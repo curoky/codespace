@@ -14,7 +14,7 @@ from pydantic import BaseModel, Field
 
 from codespace import shared
 from codespace.client import ssh_config
-from codespace.client.config import WebConfig, github_token, load_config
+from codespace.client.config import WebConfig, github_token, is_inline_github_token, load_config
 from codespace.client.service import CodespaceService, CreateCodespaceInput, DeleteCodespaceResult
 
 WebOperationStatus = Literal["queued", "running", "succeeded", "failed"]
@@ -25,6 +25,7 @@ GITHUB_ENV_MISSING_MESSAGE = (
     "before starting `python -m codespace.client web`, or configure github.token_env "
     "in config.yaml."
 )
+INLINE_AUTH_SOURCE_LABEL = "inline GitHub credential"
 
 
 class ConfigDefaultsSummary(BaseModel):
@@ -37,6 +38,7 @@ class ConfigDefaultsSummary(BaseModel):
 class ConfigGithubSummary(BaseModel):
     token_env: str
     has_token: bool
+    inline_token: bool = False
 
 
 class ConfigAgentSummary(BaseModel):
@@ -289,8 +291,9 @@ def _config_summary(config: WebConfig) -> ConfigSummary:
             extra_repos=config.defaults.extra_repos,
         ),
         github=ConfigGithubSummary(
-            token_env=config.github.token_env,
+            token_env=_safe_token_env_label(config),
             has_token=github_token(config) is not None,
+            inline_token=is_inline_github_token(config.github.token_env),
         ),
         agents=[
             ConfigAgentSummary(
@@ -317,6 +320,13 @@ def _config_summary(config: WebConfig) -> ConfigSummary:
             for template in config.templates.values()
         ],
     )
+
+
+def _safe_token_env_label(config: WebConfig) -> str:
+    """Return a UI-safe GitHub token source label without leaking inline tokens."""
+    if is_inline_github_token(config.github.token_env):
+        return INLINE_AUTH_SOURCE_LABEL
+    return config.github.token_env
 
 
 def _dashboard_codespace(

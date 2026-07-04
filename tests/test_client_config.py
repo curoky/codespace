@@ -162,3 +162,27 @@ agents:
     monkeypatch.setenv("MY_TOKEN", "secret")
 
     assert client_config.github_token(client_config.load_config(path)) == "secret"
+
+
+def test_github_token_accepts_inline_token_for_compatibility(tmp_path: Path) -> None:
+    path = tmp_path / "config.yaml"
+    token = "github_pat_example"
+    _write_config(
+        path,
+        f"""
+defaults:
+  agent: home
+  image: img
+github:
+  token_env: {token}
+agents:
+  home:
+    agent_url: http://h:8001
+    ssh_host: 10.0.0.5
+""",
+    )
+
+    cfg = client_config.load_config(path)
+
+    assert client_config.github_token(cfg) == token
+    assert client_config.is_inline_github_token(cfg.github.token_env) is True
