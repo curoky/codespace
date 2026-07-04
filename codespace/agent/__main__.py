@@ -12,6 +12,16 @@ from codespace.agent.app import AgentConfig, create_app
 app = typer.Typer(help="Lightweight self-hosted codespace agent (Podman-out-of-Podman).")
 
 
+@app.callback()
+def _main() -> None:
+    """Keep ``serve`` an explicit subcommand.
+
+    Without a callback, typer treats a single-command app as a bare program and
+    drops the subcommand name, so ``... serve`` would fail with "unexpected extra
+    argument (serve)". The callback forces multi-command mode.
+    """
+
+
 @app.command()
 def serve(
     workspace_root_host: str = typer.Option(
@@ -21,7 +31,7 @@ def serve(
     ),
     podman_uri: str = typer.Option(..., "--podman-uri", help="Podman service socket URI."),
     host: str = typer.Option("0.0.0.0", "--host", help="HTTP bind address."),
-    port: int = typer.Option(8080, "--port", help="HTTP bind port."),
+    port: int = typer.Option(8001, "--port", help="HTTP bind port."),
 ) -> None:
     """Run the agent HTTP service."""
     config = AgentConfig(

@@ -230,7 +230,7 @@ Host <alias>
 ## 6. 代理行为（Linux, PoP，完全无状态）
 
 `serve --workspace-root-host /host/codespace-workspaces \
-       --podman-uri unix:///run/podman/podman.sock [--host 0.0.0.0] [--port 8080]`
+       --podman-uri unix:///run/podman/podman.sock [--host 0.0.0.0] [--port 8001]`
 
 - **配置极简、仅 CLI**：agent 配置集中在 `AgentConfig`（pydantic `BaseModel`），仅保留两个
   **宿主机环境属性**且全部必填、无默认——`workspace_root_host`、`podman_uri`；启动时构造即
@@ -383,10 +383,10 @@ repo 专属的只读 key（git 取最长匹配前缀，主 repo 的 github.com U
 1. **构建镜像**：先构建 base（`bash images/base/build.sh debian:12`，产出
    `ghcr.io/curoky/devspace:base-debian12`），再 `podman build -t codespace/dev:latest
    codespace/image`（参考镜像 `FROM` 该 base，满足 §3 契约）。
-2. **启动 agent**：`bash codespace/agent/run-agent.sh`；`curl http://localhost:8080/codespaces`
+2. **启动 agent**：`bash codespace/agent/run-agent.sh`；`curl http://localhost:8001/codespaces`
    返回 `[]`。
 3. **创建**：`python -m codespace.client create --repo owner/name --workspace default
-   --token $TOKEN --agent http://<host>:8080 --alias test-cs`。
+   --token $TOKEN --agent http://<host>:8001 --alias test-cs`。
    - GitHub → Settings → Deploy keys 出现 `codespace-<id>`。
    - `~/.ssh/config` 出现托管块。
 4. **登录**：`ssh test-cs` 以登录用户进入容器。

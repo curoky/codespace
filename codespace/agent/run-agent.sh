@@ -13,13 +13,13 @@ fi
 
 podman run --detach \
 	--name codespace-agent \
-	-p 8080:8080 \
-	-v /run/podman/podman.sock:/run/podman/podman.sock \
+	-p 8001:8001 \
+	-v /tmp/podmanxd.sock:/tmp/podmanxd.sock \
 	ghcr.io/curoky/devspace:codespace-agent \
 	serve \
 	--host 0.0.0.0 \
-	--port 8080 \
-	--workspace-root-host /var/lib/codespace-workspaces \
-	--podman-uri unix:///run/podman/podman.sock
+	--port 8001 \
+	--workspace-root-host "${HOME}/codespace-workspaces" \
+	--podman-uri unix:///tmp/podmanxd.sock
 
-echo "agent 'codespace-agent' started on port 8080."
+echo "agent 'codespace-agent' started on port 8001."
