@@ -12,7 +12,12 @@ from codespace import shared
 
 
 def register_deploy_key(
-    token: str, repo: str, cs_id: str, public_openssh: str, *, read_only: bool = False
+    token: str,
+    repo: str,
+    cs_id: str,
+    public_openssh: str,
+    *,
+    read_only: bool = False,
 ) -> int:
     """Register ``public_openssh`` as a deploy key on ``repo``; return its id.
 

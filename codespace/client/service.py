@@ -13,11 +13,12 @@ from urllib.parse import urlparse, urlunparse
 
 import httpx
 from github import GithubException
+from httpx import HTTPError
 from pydantic import BaseModel, Field
 
 from codespace import shared
-from codespace.client import github, ssh_config
-from codespace.client.config import AgentProfile, WebConfig
+from codespace.client import github, gitlab, ssh_config
+from codespace.client.config import AgentProfile, WebConfig, default_git_ssh_host
 
 KEY_DIR = Path.home() / ".ssh" / "codespace"
 HTTP_TIMEOUT = 30.0
@@ -46,6 +47,8 @@ class CreateCodespaceInput(BaseModel):
     """Input for service-level create orchestration."""
 
     repo: str
+    provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER
+    git_ssh_host: str | None = None
     template: str = shared.DEFAULT_TEMPLATE
     instance: str = shared.DEFAULT_INSTANCE
     image: str
@@ -251,10 +254,57 @@ def remove_login_key(alias: str) -> None:
         path.unlink(missing_ok=True)
 
 
-def revoke_quietly(token: str, repo: str, cs_id: str) -> None:
+def revoke_quietly(
+    token: str,
+    repo: str,
+    cs_id: str,
+    *,
+    provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER,
+    gitlab_api_url: str = "https://gitlab.com",
+) -> None:
     """Best-effort deploy-key revocation used during create rollback."""
-    with contextlib.suppress(GithubException):
-        github.delete_deploy_key(token, repo, cs_id)
+    with contextlib.suppress(GithubException, HTTPError):
+        delete_provider_deploy_key(
+            token, repo, cs_id, provider=provider, gitlab_api_url=gitlab_api_url
+        )
+
+
+def register_provider_deploy_key(
+    token: str,
+    repo: str,
+    cs_id: str,
+    public_openssh: str,
+    *,
+    read_only: bool,
+    provider: shared.GitProvider,
+    gitlab_api_url: str,
+) -> int:
+    """Register a deploy key through the provider-specific client."""
+    match provider:
+        case "github":
+            return github.register_deploy_key(
+                token, repo, cs_id, public_openssh, read_only=read_only
+            )
+        case "gitlab":
+            return gitlab.register_deploy_key(
+                token, gitlab_api_url, repo, cs_id, public_openssh, read_only=read_only
+            )
+
+
+def delete_provider_deploy_key(
+    token: str,
+    repo: str,
+    cs_id: str,
+    *,
+    provider: shared.GitProvider,
+    gitlab_api_url: str,
+) -> bool:
+    """Delete a deploy key through the provider-specific client."""
+    match provider:
+        case "github":
+            return github.delete_deploy_key(token, repo, cs_id)
+        case "gitlab":
+            return gitlab.delete_deploy_key(token, gitlab_api_url, repo, cs_id)
 
 
 def delete_remote(agent_url: str, cs_id: str, *, purge: bool = False) -> shared.DeleteResponse:
@@ -406,12 +456,16 @@ class CodespaceService:
         registered: list[str] = []
         cs: shared.Codespace | None = None
         try:
+            provider = req.provider
+            git_ssh_host = req.git_ssh_host or _default_git_ssh_host(self.config, provider)
             if progress is not None:
                 progress("preparing login key")
             alias = instance_alias(agent_id, req.template, req.instance)
             login_pubkey = ensure_login_key(alias)
             payload = shared.CreateRequest(
                 repo=req.repo,
+                provider=provider,
+                git_ssh_host=git_ssh_host,
                 template=req.template,
                 instance=req.instance,
                 login_pubkey=login_pubkey,
@@ -431,8 +485,14 @@ class CodespaceService:
             for key in cs.deploy_keys:
                 if progress is not None:
                     progress(f"registering deploy key: {key.repo}")
-                github.register_deploy_key(
-                    token, key.repo, cs.id, key.public_openssh, read_only=key.read_only
+                register_provider_deploy_key(
+                    token,
+                    key.repo,
+                    cs.id,
+                    key.public_openssh,
+                    read_only=key.read_only,
+                    provider=key.provider,
+                    gitlab_api_url=_gitlab_api_url(self.config),
                 )
                 registered.append(key.repo)
 
@@ -451,12 +511,19 @@ class CodespaceService:
                 [key.repo for key in cs.deploy_keys],
                 agent_id=agent_id,
                 repo=cs.repo,
+                provider=cs.provider,
             )
             return cs
         except Exception:
             if cs is not None:
                 for repo in registered:
-                    revoke_quietly(token, repo, cs.id)
+                    revoke_quietly(
+                        token,
+                        repo,
+                        cs.id,
+                        provider=cs.provider,
+                        gitlab_api_url=_gitlab_api_url(self.config),
+                    )
                 with contextlib.suppress(Exception):
                     self.delete_remote(profile, cs.id)
             remove_login_key(instance_alias(agent_id, req.template, req.instance))
@@ -470,6 +537,7 @@ class CodespaceService:
         token: str | None,
         alias: str | None = None,
         repo: str | None = None,
+        provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER,
         purge: bool = False,
     ) -> DeleteCodespaceResult:
         """Delete a remote codespace and clean local/GitHub state."""
@@ -482,8 +550,15 @@ class CodespaceService:
             repos = [repo]
             warning = "local alias not found; only main repo deploy key was revoked"
         if token:
+            key_provider = entry.provider if entry else provider
             for repo_name in repos:
-                github.delete_deploy_key(token, repo_name, codespace_id)
+                delete_provider_deploy_key(
+                    token,
+                    repo_name,
+                    codespace_id,
+                    provider=key_provider,
+                    gitlab_api_url=_gitlab_api_url(self.config),
+                )
         elif repos:
             warning = "GitHub token is not available; skipped deploy key revocation"
         resp = self.delete_remote(profile, codespace_id, purge=purge)
@@ -505,3 +580,19 @@ class CodespaceService:
         if status != 200:
             raise ServiceError(agent_error(data, status))
         return shared.DeleteResponse.model_validate(data)
+
+
+def _default_git_ssh_host(
+    config: WebConfig | None, provider: shared.GitProvider
+) -> str:
+    if config is None:
+        return (
+            shared.DEFAULT_GITLAB_SSH_HOST
+            if provider == "gitlab"
+            else shared.DEFAULT_GITHUB_SSH_HOST
+        )
+    return default_git_ssh_host(config, provider)
+
+
+def _gitlab_api_url(config: WebConfig | None) -> str:
+    return config.gitlab.api_url if config is not None else "https://gitlab.com"

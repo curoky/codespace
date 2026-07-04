@@ -38,7 +38,7 @@ def test_create_request_accepts_valid_repo(repo: str) -> None:
     assert req.instance == shared.DEFAULT_INSTANCE
 
 
-@pytest.mark.parametrize("repo", ["noslash", "too/many/parts", "bad repo/name", ""])
+@pytest.mark.parametrize("repo", ["noslash", "bad repo/name", ""])
 def test_create_request_rejects_invalid_repo(repo: str) -> None:
     with pytest.raises(ValidationError):
         shared.CreateRequest(

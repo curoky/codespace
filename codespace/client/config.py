@@ -14,6 +14,7 @@ CONFIG_ENV = "CODESPACE_CONFIG"
 DEFAULT_CONFIG_PATH = Path.home() / ".config" / "codespace" / "config.yaml"
 AGENT_ID_RE = re.compile(r"^[\w.-]+$")
 GITHUB_TOKEN_PREFIXES = ("github_pat_", "ghp_", "gho_", "ghu_", "ghs_", "ghr_")
+GITLAB_TOKEN_PREFIXES = ("glpat-", "glabpat-")
 
 
 class AgentProfile(BaseModel):
@@ -72,7 +73,9 @@ class CreateTemplateConfig(BaseModel):
     id: str = ""
     description: str | None = None
     agent: str | None = None
+    provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER
     repo: str
+    git_ssh_host: str | None = None
     image: str | None = None
 
     @field_validator("id")
@@ -86,8 +89,18 @@ class CreateTemplateConfig(BaseModel):
     @classmethod
     def _check_repo(cls, value: str) -> str:
         if not shared.REPO_RE.match(value):
-            raise ValueError("repo must match 'owner/name'")
+            raise ValueError("repo must be a slash-separated path like 'owner/name'")
         return value
+
+    @field_validator("git_ssh_host")
+    @classmethod
+    def _check_git_ssh_host(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        stripped = value.strip()
+        if not stripped or "/" in stripped or ":" in stripped:
+            raise ValueError("git_ssh_host must be a hostname")
+        return stripped
 
     @field_validator("agent")
     @classmethod
@@ -117,11 +130,27 @@ class GithubConfig(BaseModel):
         return value
 
 
+class GitlabConfig(BaseModel):
+    """GitLab token/API lookup config."""
+
+    token_env: str = "GITLAB_TOKEN"  # noqa: S105 - this is an env var name, not a token
+    api_url: str = "https://gitlab.com"
+    ssh_host: str = shared.DEFAULT_GITLAB_SSH_HOST
+
+    @field_validator("token_env", "api_url", "ssh_host")
+    @classmethod
+    def _not_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("must not be blank")
+        return value.rstrip("/") if value.startswith(("http://", "https://")) else value
+
+
 class WebConfig(BaseModel):
     """Complete Web GUI configuration loaded from YAML."""
 
     defaults: DefaultsConfig
     github: GithubConfig = Field(default_factory=GithubConfig)
+    gitlab: GitlabConfig = Field(default_factory=GitlabConfig)
     agents: dict[str, AgentProfile]
     templates: dict[str, CreateTemplateConfig] = Field(default_factory=dict)
 
@@ -193,6 +222,36 @@ def github_token(config: WebConfig) -> str | None:
     return os.environ.get(config.github.token_env)
 
 
+def gitlab_token(config: WebConfig) -> str | None:
+    """Return the configured GitLab token from the environment, if present."""
+    if is_inline_gitlab_token(config.gitlab.token_env):
+        return config.gitlab.token_env
+    return os.environ.get(config.gitlab.token_env)
+
+
+def token_for_provider(config: WebConfig, provider: shared.GitProvider) -> str | None:
+    """Return the configured token for a git provider."""
+    match provider:
+        case "github":
+            return github_token(config)
+        case "gitlab":
+            return gitlab_token(config)
+
+
 def is_inline_github_token(value: str) -> bool:
     """Return whether a value looks like an inline GitHub token instead of an env var name."""
     return value.startswith(GITHUB_TOKEN_PREFIXES)
+
+
+def is_inline_gitlab_token(value: str) -> bool:
+    """Return whether a value looks like an inline GitLab token instead of an env var name."""
+    return value.startswith(GITLAB_TOKEN_PREFIXES)
+
+
+def default_git_ssh_host(config: WebConfig, provider: shared.GitProvider) -> str:
+    """Return the default SSH host for a git provider."""
+    match provider:
+        case "github":
+            return shared.DEFAULT_GITHUB_SSH_HOST
+        case "gitlab":
+            return config.gitlab.ssh_host

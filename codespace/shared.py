@@ -11,6 +11,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 type CreateOperationStatus = Literal["queued", "running", "succeeded", "failed"]
+type GitProvider = Literal["github", "gitlab"]
 
 # --- Constants ---------------------------------------------------------------
 
@@ -31,6 +32,8 @@ WORKSPACE_MOUNT = "/workspace"
 # touches GitHub or holds a token.
 LABEL_ID = "codespace.id"
 LABEL_REPO = "codespace.repo"
+LABEL_PROVIDER = "codespace.provider"
+LABEL_GIT_SSH_HOST = "codespace.git_ssh_host"
 LABEL_TEMPLATE = "codespace.template"
 LABEL_INSTANCE = "codespace.instance"
 LABEL_USER = "codespace.user"
@@ -38,9 +41,12 @@ LABEL_IMAGE = "codespace.image"
 LABEL_PORT = "codespace.port"
 
 # Validation patterns.
-REPO_RE = re.compile(r"^[\w.-]+/[\w.-]+$")
+REPO_RE = re.compile(r"^[\w.-]+(?:/[\w.-]+)+$")
 WORKSPACE_RE = re.compile(r"^[\w.-]+$")
 
+DEFAULT_GIT_PROVIDER: GitProvider = "github"
+DEFAULT_GITHUB_SSH_HOST = "github.com"
+DEFAULT_GITLAB_SSH_HOST = "gitlab.com"
 DEFAULT_TEMPLATE = "default"
 DEFAULT_INSTANCE = "default"
 
@@ -85,6 +91,7 @@ class DeployKeyRef(BaseModel):
     """A deploy public key the client must register on ``repo``."""
 
     repo: str
+    provider: GitProvider = DEFAULT_GIT_PROVIDER
     public_openssh: str
     read_only: bool
 
@@ -99,7 +106,14 @@ class CreateRequest(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    repo: str = Field(..., description="Target GitHub repo, 'owner/name'.")
+    repo: str = Field(..., description="Target repo path, e.g. 'owner/name'.")
+    provider: GitProvider = Field(
+        DEFAULT_GIT_PROVIDER, description="Git provider hosting the repo."
+    )
+    git_ssh_host: str = Field(
+        DEFAULT_GITHUB_SSH_HOST,
+        description="SSH hostname used by git clone inside the container.",
+    )
     template: str = Field(DEFAULT_TEMPLATE, description="Template id for this instance.")
     instance: str = Field(DEFAULT_INSTANCE, description="Instance name under the template.")
     login_pubkey: str = Field(..., description="Client SSH public key for login.")
@@ -109,8 +123,16 @@ class CreateRequest(BaseModel):
     @classmethod
     def _check_repo(cls, v: str) -> str:
         if not REPO_RE.match(v):
-            raise ValueError("repo must match 'owner/name'")
+            raise ValueError("repo must be a slash-separated path like 'owner/name'")
         return v
+
+    @field_validator("git_ssh_host")
+    @classmethod
+    def _check_git_ssh_host(cls, v: str) -> str:
+        value = v.strip()
+        if not value or "/" in value or ":" in value:
+            raise ValueError("git_ssh_host must be a hostname")
+        return value
 
     @field_validator("template", "instance")
     @classmethod
@@ -145,6 +167,8 @@ class Codespace(BaseModel):
     user: str
     container_id: str
     repo: str
+    provider: GitProvider = DEFAULT_GIT_PROVIDER
+    git_ssh_host: str = DEFAULT_GITHUB_SSH_HOST
     template: str = DEFAULT_TEMPLATE
     instance: str = DEFAULT_INSTANCE
     workspace_dir: str

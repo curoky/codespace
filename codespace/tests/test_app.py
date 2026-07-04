@@ -83,7 +83,12 @@ def test_create_success_returns_public_key(
     assert body["id"]
     assert body["port"] == 49207
     assert body["deploy_keys"] == [
-        {"repo": "owner/name", "public_openssh": "ssh-ed25519 PUB", "read_only": False}
+        {
+            "repo": "owner/name",
+            "provider": "github",
+            "public_openssh": "ssh-ed25519 PUB",
+            "read_only": False,
+        }
     ]
 
 

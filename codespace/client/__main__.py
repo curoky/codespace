@@ -8,16 +8,18 @@ import contextlib
 import subprocess
 import time
 from pathlib import Path
+from typing import cast
 
 import httpx
 import typer
 import uvicorn
 from github import GithubException
+from httpx import HTTPError
 from rich.console import Console
 from rich.table import Table
 
 from codespace import shared
-from codespace.client import github, ssh_config
+from codespace.client import github, gitlab, ssh_config
 from codespace.client import web as web_module
 
 app = typer.Typer(help="Lightweight self-hosted codespace client.")
@@ -123,7 +125,16 @@ def _ensure_login_key(alias: str) -> str:
 
 @app.command()
 def create(
-    repo: str = typer.Option(..., "--repo", help="Target GitHub repo, 'owner/name'."),
+    repo: str = typer.Option(..., "--repo", help="Target git repo path, e.g. 'owner/name'."),
+    provider: str = typer.Option(
+        shared.DEFAULT_GIT_PROVIDER, "--provider", help="Git provider: github or gitlab."
+    ),
+    git_ssh_host: str | None = typer.Option(
+        None, "--git-ssh-host", help="Git SSH host; defaults from provider."
+    ),
+    gitlab_api_url: str = typer.Option(
+        "https://gitlab.com", "--gitlab-api-url", help="GitLab API base URL."
+    ),
     agent: str = typer.Option(
         "http://0.0.0.0:8001", "--agent", help="Agent base URL (default local agent)."
     ),
@@ -131,7 +142,7 @@ def create(
         ..., "--ssh-host", help="Reachable host for ssh to the dev container."
     ),
     token: str = typer.Option(
-        ..., "--token", envvar="GITHUB_TOKEN", help="GitHub token (env GITHUB_TOKEN)."
+        ..., "--token", envvar="GITHUB_TOKEN", help="Git provider token (env GITHUB_TOKEN)."
     ),
     image: str = typer.Option(
         "ghcr.io/curoky/devspace:codespace-debian12",
@@ -148,10 +159,13 @@ def create(
     """
     if alias is None:
         alias = repo.split("/")[-1]
+    git_provider = _git_provider(provider)
 
     login_pubkey = _ensure_login_key(alias)
     payload = shared.CreateRequest(
         repo=repo,
+        provider=git_provider,
+        git_ssh_host=git_ssh_host or _default_git_ssh_host(git_provider),
         template=shared.DEFAULT_TEMPLATE,
         instance=shared.DEFAULT_INSTANCE,
         login_pubkey=login_pubkey,
@@ -180,13 +194,28 @@ def create(
     registered: list[str] = []
     for key in cs.deploy_keys:
         try:
-            github.register_deploy_key(
-                token, key.repo, cs.id, key.public_openssh, read_only=key.read_only
+            _register_provider_deploy_key(
+                token,
+                key.repo,
+                cs.id,
+                key.public_openssh,
+                read_only=key.read_only,
+                provider=key.provider,
+                gitlab_api_url=gitlab_api_url,
             )
             registered.append(key.repo)
-        except GithubException as exc:
+        except (GithubException, HTTPError) as exc:
             for done_repo in registered:
-                _revoke_quietly(token, done_repo, cs.id)
+                if git_provider == shared.DEFAULT_GIT_PROVIDER:
+                    _revoke_quietly(token, done_repo, cs.id)
+                else:
+                    _revoke_quietly(
+                        token,
+                        done_repo,
+                        cs.id,
+                        provider=git_provider,
+                        gitlab_api_url=gitlab_api_url,
+                    )
             _delete_remote(agent, cs.id)
             _remove_login_key(alias)
             raise _fail(
@@ -197,14 +226,34 @@ def create(
         _clone_remote(agent, cs.id)
     except typer.Exit:
         for done_repo in registered:
-            _revoke_quietly(token, done_repo, cs.id)
+            if git_provider == shared.DEFAULT_GIT_PROVIDER:
+                _revoke_quietly(token, done_repo, cs.id)
+            else:
+                _revoke_quietly(
+                    token,
+                    done_repo,
+                    cs.id,
+                    provider=git_provider,
+                    gitlab_api_url=gitlab_api_url,
+                )
         _delete_remote(agent, cs.id)
         _remove_login_key(alias)
         raise
 
-    ssh_config.upsert(
-        alias, ssh_host, cs.port, cs.user, cs.id, [key.repo for key in cs.deploy_keys]
-    )
+    if cs.provider == shared.DEFAULT_GIT_PROVIDER:
+        ssh_config.upsert(
+            alias, ssh_host, cs.port, cs.user, cs.id, [key.repo for key in cs.deploy_keys]
+        )
+    else:
+        ssh_config.upsert(
+            alias,
+            ssh_host,
+            cs.port,
+            cs.user,
+            cs.id,
+            [key.repo for key in cs.deploy_keys],
+            provider=cs.provider,
+        )
     typer.secho(f"codespace ready (id={cs.id}).", fg=typer.colors.GREEN)
     typer.echo(f"connect with: ssh {alias}")
 
@@ -214,10 +263,22 @@ def _delete_remote(agent: str, cs_id: str) -> None:
     _request("DELETE", f"{agent.rstrip('/')}/codespaces/{cs_id}")
 
 
-def _revoke_quietly(token: str, repo: str, cs_id: str) -> None:
+def _revoke_quietly(
+    token: str,
+    repo: str,
+    cs_id: str,
+    *,
+    provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER,
+    gitlab_api_url: str = "https://gitlab.com",
+) -> None:
     """Best-effort deploy-key revocation used during create rollback."""
-    with contextlib.suppress(GithubException):
-        github.delete_deploy_key(token, repo, cs_id)
+    with contextlib.suppress(GithubException, HTTPError):
+        if provider == shared.DEFAULT_GIT_PROVIDER and gitlab_api_url == "https://gitlab.com":
+            github.delete_deploy_key(token, repo, cs_id)
+        else:
+            _delete_provider_deploy_key(
+                token, repo, cs_id, provider=provider, gitlab_api_url=gitlab_api_url
+            )
 
 
 def _remove_login_key(alias: str) -> None:
@@ -256,7 +317,13 @@ def delete(
         "http://0.0.0.0:8001", "--agent", help="Agent base URL (default local agent)."
     ),
     token: str = typer.Option(
-        ..., "--token", envvar="GITHUB_TOKEN", help="GitHub token (env GITHUB_TOKEN)."
+        ..., "--token", envvar="GITHUB_TOKEN", help="Git provider token (env GITHUB_TOKEN)."
+    ),
+    gitlab_api_url: str = typer.Option(
+        "https://gitlab.com", "--gitlab-api-url", help="GitLab API base URL."
+    ),
+    provider: str = typer.Option(
+        shared.DEFAULT_GIT_PROVIDER, "--provider", help="Git provider: github or gitlab."
     ),
     cs_id: str | None = typer.Option(
         None, "--id", help="Codespace id; resolved from ssh config when omitted."
@@ -280,14 +347,18 @@ def delete(
     if not cs_id:
         raise _fail(f"cannot resolve codespace id for alias '{alias}'; pass --id")
     repos = list(repo) if repo else ssh_config.get_repos(alias)
+    git_provider = _git_provider(provider)
 
     # Revoke every deploy key first (client owns the token). Rediscovered by
     # title so it works even without stored key ids.
     if repos:
         for r in repos:
             try:
-                github.delete_deploy_key(token, r, cs_id)
-            except GithubException as exc:
+                if git_provider == shared.DEFAULT_GIT_PROVIDER:
+                    github.delete_deploy_key(token, r, cs_id)
+                else:
+                    gitlab.delete_deploy_key(token, gitlab_api_url, r, cs_id)
+            except (GithubException, HTTPError) as exc:
                 raise _fail(f"failed to revoke deploy key on {r}: {exc}") from exc
     else:
         typer.secho(
@@ -326,6 +397,50 @@ def web(
             err=True,
         )
     uvicorn.run(web_module.create_app(), host=host, port=port)
+
+
+def _default_git_ssh_host(provider: shared.GitProvider) -> str:
+    return (
+        shared.DEFAULT_GITLAB_SSH_HOST
+        if provider == "gitlab"
+        else shared.DEFAULT_GITHUB_SSH_HOST
+    )
+
+
+def _git_provider(value: str) -> shared.GitProvider:
+    if value not in {"github", "gitlab"}:
+        raise _fail("provider must be one of: github, gitlab")
+    return cast(shared.GitProvider, value)
+
+
+def _register_provider_deploy_key(
+    token: str,
+    repo: str,
+    cs_id: str,
+    public_openssh: str,
+    *,
+    read_only: bool,
+    provider: shared.GitProvider,
+    gitlab_api_url: str,
+) -> int:
+    if provider == "gitlab":
+        return gitlab.register_deploy_key(
+            token, gitlab_api_url, repo, cs_id, public_openssh, read_only=read_only
+        )
+    return github.register_deploy_key(token, repo, cs_id, public_openssh, read_only=read_only)
+
+
+def _delete_provider_deploy_key(
+    token: str,
+    repo: str,
+    cs_id: str,
+    *,
+    provider: shared.GitProvider,
+    gitlab_api_url: str,
+) -> bool:
+    if provider == "gitlab":
+        return gitlab.delete_deploy_key(token, gitlab_api_url, repo, cs_id)
+    return github.delete_deploy_key(token, repo, cs_id)
 
 
 if __name__ == "__main__":

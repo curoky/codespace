@@ -11,6 +11,8 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
+from codespace import shared
+
 SSH_CONFIG_PATH = Path.home() / ".ssh" / "config"
 
 
@@ -20,6 +22,7 @@ class SshConfigEntry(BaseModel, frozen=True):
     alias: str
     codespace_id: str | None = None
     repos: list[str] = Field(default_factory=list)
+    provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER
     agent_id: str | None = None
     repo: str | None = None
     host: str | None = None
@@ -45,6 +48,7 @@ def _render_block(
     *,
     agent_id: str | None = None,
     repo: str | None = None,
+    provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER,
 ) -> str:
     """Render the managed block for an alias.
 
@@ -56,6 +60,7 @@ def _render_block(
         _begin(alias),
         f"# codespace-id: {cs_id}",
         f"# codespace-repos: {','.join(repos)}",
+        f"# codespace-provider: {provider}",
     ]
     if agent_id:
         lines.append(f"# codespace-agent: {agent_id}")
@@ -112,6 +117,7 @@ def upsert(
     *,
     agent_id: str | None = None,
     repo: str | None = None,
+    provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER,
 ) -> None:
     """Insert or replace the managed block for ``alias``.
 
@@ -120,7 +126,9 @@ def upsert(
     """
     content = _strip_block(_read(), alias)
     content = content.rstrip("\n")
-    block = _render_block(alias, host, port, user, cs_id, repos, agent_id=agent_id, repo=repo)
+    block = _render_block(
+        alias, host, port, user, cs_id, repos, agent_id=agent_id, repo=repo, provider=provider
+    )
     new_content = f"{content}\n\n{block}\n" if content else f"{block}\n"
     _write(new_content)
 
@@ -164,6 +172,7 @@ def list_entries() -> list[SshConfigEntry]:
                 alias=alias,
                 codespace_id=_comment_from_body(body, "codespace-id"),
                 repos=_repos_from_body(body),
+                provider=_provider_from_body(body),
                 agent_id=_comment_from_body(body, "codespace-agent"),
                 repo=_comment_from_body(body, "codespace-repo"),
                 host=_directive_from_body(body, "HostName"),
@@ -212,6 +221,11 @@ def _directive_from_body(body: str, key: str) -> str | None:
 def _repos_from_body(body: str) -> list[str]:
     raw = _comment_from_body(body, "codespace-repos")
     return [repo for repo in raw.split(",") if repo] if raw else []
+
+
+def _provider_from_body(body: str) -> shared.GitProvider:
+    raw = _comment_from_body(body, "codespace-provider")
+    return "gitlab" if raw == "gitlab" else shared.DEFAULT_GIT_PROVIDER
 
 
 def _port_from_body(body: str) -> int | None:

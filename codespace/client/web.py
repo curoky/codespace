@@ -18,7 +18,16 @@ from pydantic import BaseModel
 
 from codespace import shared
 from codespace.client import ssh_config
-from codespace.client.config import WebConfig, github_token, is_inline_github_token, load_config
+from codespace.client.config import (
+    WebConfig,
+    default_git_ssh_host,
+    github_token,
+    gitlab_token,
+    is_inline_github_token,
+    is_inline_gitlab_token,
+    load_config,
+    token_for_provider,
+)
 from codespace.client.service import (
     CodespaceService,
     CreateCodespaceInput,
@@ -29,12 +38,13 @@ from codespace.client.service import (
 WebOperationStatus = Literal["queued", "running", "succeeded", "failed"]
 STATIC_DIR = Path(__file__).parent / "static"
 logger = logging.getLogger(__name__)
-GITHUB_ENV_MISSING_MESSAGE = (
-    "GitHub token is not available in the Web GUI process; set {token_env} "
-    "before starting `python -m codespace.client web`, or configure github.token_env "
+GIT_ENV_MISSING_MESSAGE = (
+    "{provider} token is not available in the Web GUI process; set {token_env} "
+    "before starting `python -m codespace.client web`, or configure {config_key}.token_env "
     "in config.yaml."
 )
-INLINE_AUTH_SOURCE_LABEL = "inline GitHub credential"
+INLINE_GITHUB_AUTH_SOURCE_LABEL = "inline GitHub credential"
+INLINE_GITLAB_AUTH_SOURCE_LABEL = "inline GitLab credential"
 
 
 class ConfigDefaultsSummary(BaseModel):
@@ -43,6 +53,14 @@ class ConfigDefaultsSummary(BaseModel):
 
 class ConfigGithubSummary(BaseModel):
     token_env: str
+    has_token: bool
+    inline_token: bool = False
+
+
+class ConfigGitlabSummary(BaseModel):
+    token_env: str
+    api_url: str
+    ssh_host: str
     has_token: bool
     inline_token: bool = False
 
@@ -59,7 +77,9 @@ class ConfigTemplateSummary(BaseModel):
     id: str
     description: str | None = None
     agent: str | None = None
+    provider: shared.GitProvider
     repo: str
+    git_ssh_host: str
     image: str | None = None
 
 
@@ -67,6 +87,7 @@ class ConfigSummary(BaseModel):
     default_agent: str
     defaults: ConfigDefaultsSummary
     github: ConfigGithubSummary
+    gitlab: ConfigGitlabSummary
     agents: list[ConfigAgentSummary]
     templates: list[ConfigTemplateSummary]
 
@@ -86,6 +107,8 @@ class DashboardCodespace(BaseModel):
     agent_id: str
     id: str
     repo: str
+    provider: shared.GitProvider
+    git_ssh_host: str
     template: str
     instance: str
     alias: str | None = None
@@ -101,6 +124,8 @@ class DashboardCodespace(BaseModel):
 
 class CreateCodespaceRequest(BaseModel):
     repo: str
+    provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER
+    git_ssh_host: str | None = None
     template: str = shared.DEFAULT_TEMPLATE
     instance: str = shared.DEFAULT_INSTANCE
     image: str
@@ -115,6 +140,8 @@ class WebOperation(BaseModel):
     agent_id: str
     alias: str
     repo: str
+    provider: shared.GitProvider
+    git_ssh_host: str | None = None
     template: str
     instance: str
     status: WebOperationStatus
@@ -149,6 +176,8 @@ class OperationStore:
             agent_id=agent_id,
             alias=instance_alias(agent_id, req.template, req.instance),
             repo=req.repo,
+            provider=req.provider,
+            git_ssh_host=req.git_ssh_host,
             template=req.template,
             instance=req.instance,
             status="queued",
@@ -268,9 +297,16 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
     def create_codespace(agent_id: str, req: CreateCodespaceRequest) -> CreateCodespaceResponse:
         if agent_id not in config.agents:
             raise HTTPException(status_code=404, detail="agent not found")
-        token = github_token(config)
+        token = token_for_provider(config, req.provider)
         if not token:
-            message = GITHUB_ENV_MISSING_MESSAGE.format(token_env=config.github.token_env)
+            token_env = (
+                config.github.token_env if req.provider == "github" else config.gitlab.token_env
+            )
+            message = GIT_ENV_MISSING_MESSAGE.format(
+                provider="GitHub" if req.provider == "github" else "GitLab",
+                token_env=token_env,
+                config_key=req.provider,
+            )
             logger.warning("Rejecting create codespace request for agent %s: %s", agent_id, message)
             raise HTTPException(status_code=400, detail=message)
         operation = operations.create(agent_id=agent_id, req=req)
@@ -299,10 +335,15 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
         purge: bool = Query(False),
         repo: str | None = Query(None),
     ) -> DeleteCodespaceResult:
-        token = github_token(config)
+        provider = _provider_for_delete(config, agent_id, codespace_id, repo)
+        token = token_for_provider(config, provider)
         try:
+            if provider == shared.DEFAULT_GIT_PROVIDER:
+                return service.delete_codespace(
+                    agent_id, codespace_id, token=token, repo=repo, purge=purge
+                )
             return service.delete_codespace(
-                agent_id, codespace_id, token=token, repo=repo, purge=purge
+                agent_id, codespace_id, token=token, repo=repo, provider=provider, purge=purge
             )
         except Exception as exc:
             raise HTTPException(status_code=500, detail=str(exc)) from exc
@@ -315,9 +356,16 @@ def _config_summary(config: WebConfig) -> ConfigSummary:
         default_agent=config.defaults.agent,
         defaults=ConfigDefaultsSummary(image=config.defaults.image),
         github=ConfigGithubSummary(
-            token_env=_safe_token_env_label(config),
+            token_env=_safe_github_token_env_label(config),
             has_token=github_token(config) is not None,
             inline_token=is_inline_github_token(config.github.token_env),
+        ),
+        gitlab=ConfigGitlabSummary(
+            token_env=_safe_gitlab_token_env_label(config),
+            api_url=config.gitlab.api_url,
+            ssh_host=config.gitlab.ssh_host,
+            has_token=gitlab_token(config) is not None,
+            inline_token=is_inline_gitlab_token(config.gitlab.token_env),
         ),
         agents=[
             ConfigAgentSummary(
@@ -334,7 +382,10 @@ def _config_summary(config: WebConfig) -> ConfigSummary:
                 id=template.id,
                 description=template.description,
                 agent=template.agent,
+                provider=template.provider,
                 repo=template.repo,
+                git_ssh_host=template.git_ssh_host
+                or default_git_ssh_host(config, template.provider),
                 image=template.image,
             )
             for template in config.templates.values()
@@ -342,11 +393,18 @@ def _config_summary(config: WebConfig) -> ConfigSummary:
     )
 
 
-def _safe_token_env_label(config: WebConfig) -> str:
+def _safe_github_token_env_label(config: WebConfig) -> str:
     """Return a UI-safe GitHub token source label without leaking inline tokens."""
     if is_inline_github_token(config.github.token_env):
-        return INLINE_AUTH_SOURCE_LABEL
+        return INLINE_GITHUB_AUTH_SOURCE_LABEL
     return config.github.token_env
+
+
+def _safe_gitlab_token_env_label(config: WebConfig) -> str:
+    """Return a UI-safe GitLab token source label without leaking inline tokens."""
+    if is_inline_gitlab_token(config.gitlab.token_env):
+        return INLINE_GITLAB_AUTH_SOURCE_LABEL
+    return config.gitlab.token_env
 
 
 def _dashboard_codespace(agent_id: str, ssh_host: str, cs: shared.Codespace) -> DashboardCodespace:
@@ -358,6 +416,8 @@ def _dashboard_codespace(agent_id: str, ssh_host: str, cs: shared.Codespace) -> 
         agent_id=agent_id,
         id=cs.id,
         repo=cs.repo,
+        provider=cs.provider,
+        git_ssh_host=cs.git_ssh_host,
         template=cs.template,
         instance=cs.instance,
         alias=alias,
@@ -370,6 +430,19 @@ def _dashboard_codespace(agent_id: str, ssh_host: str, cs: shared.Codespace) -> 
         trae_url=_trae_remote_ssh_url(remote_authority, repo=cs.repo),
         has_local_alias=alias is not None,
     )
+
+
+def _provider_for_delete(
+    config: WebConfig, agent_id: str, codespace_id: str, repo: str | None
+) -> shared.GitProvider:
+    entry = ssh_config.find_entry(codespace_id=codespace_id, agent_id=agent_id)
+    if entry is not None:
+        return entry.provider
+    if repo is not None:
+        for template in config.templates.values():
+            if template.repo == repo:
+                return template.provider
+    return shared.DEFAULT_GIT_PROVIDER
 
 
 def _repo_workspace_path(repo: str | None = None) -> str:

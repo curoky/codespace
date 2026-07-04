@@ -44,6 +44,13 @@ type ConfigSummary = {
     has_token: boolean;
     inline_token: boolean;
   };
+  gitlab: {
+    token_env: string;
+    api_url: string;
+    ssh_host: string;
+    has_token: boolean;
+    inline_token: boolean;
+  };
   agents: Array<{
     id: string;
     agent_url: string;
@@ -55,7 +62,9 @@ type ConfigSummary = {
     id: string;
     description?: string | null;
     agent?: string | null;
+    provider: 'github' | 'gitlab';
     repo: string;
+    git_ssh_host: string;
     image?: string | null;
   }>;
 };
@@ -85,6 +94,8 @@ type Codespace = {
   agent_id: string;
   id: string;
   repo: string;
+  provider: 'github' | 'gitlab';
+  git_ssh_host: string;
   template: string;
   instance: string;
   alias?: string | null;
@@ -102,6 +113,8 @@ type Operation = {
   agent_id: string;
   alias: string;
   repo: string;
+  provider: 'github' | 'gitlab';
+  git_ssh_host?: string | null;
   template: string;
   instance: string;
   status: OperationStatus;
@@ -115,6 +128,8 @@ type InstanceRow = {
   key: string;
   agent_id: string;
   repo: string;
+  provider: 'github' | 'gitlab';
+  git_ssh_host?: string | null;
   template: string;
   instance: string;
   alias?: string | null;
@@ -138,6 +153,8 @@ type FilterState = {
 type CreateForm = {
   agent: string;
   repo: string;
+  provider: 'github' | 'gitlab';
+  git_ssh_host: string;
   template: string;
   instance: string;
   image: string;
@@ -219,6 +236,8 @@ function App() {
   const [form, setForm] = useState<CreateForm>({
     agent: '',
     repo: '',
+    provider: 'github',
+    git_ssh_host: 'github.com',
     template: 'default',
     instance: 'default',
     image: '',
@@ -349,6 +368,8 @@ function App() {
         key: instanceKey(cs.agent_id, cs.template, cs.instance),
         agent_id: cs.agent_id,
         repo: cs.repo,
+        provider: cs.provider,
+        git_ssh_host: cs.git_ssh_host,
         template: cs.template,
         instance: cs.instance,
         alias: cs.alias,
@@ -371,6 +392,8 @@ function App() {
         key,
         agent_id: op.agent_id,
         repo: op.repo,
+        provider: op.provider,
+        git_ssh_host: op.git_ssh_host,
         template: op.template,
         instance: op.instance,
         alias: op.alias,
@@ -396,6 +419,8 @@ function App() {
       key: `${template.agent || config.default_agent}:${template.id}`,
       id: template.id,
       repo: template.repo,
+      provider: template.provider,
+      git_ssh_host: template.git_ssh_host,
       agent: template.agent || config.default_agent,
       description: template.description,
       image: template.image || config.defaults.image,
@@ -407,6 +432,8 @@ function App() {
         key: `${cs.agent_id}:${cs.template}`,
         id: cs.template,
         repo: cs.repo,
+        provider: cs.provider,
+        git_ssh_host: cs.git_ssh_host,
         agent: cs.agent_id,
         description: null,
         image: config.defaults.image,
@@ -449,9 +476,12 @@ function App() {
     const template = config.templates.find((item) => item.id === templateId);
     const agent = template?.agent || (filter.agent !== 'all' ? filter.agent : config.default_agent);
     const repo = template?.repo || '';
+    const provider = template?.provider || 'github';
     const nextForm: CreateForm = {
       agent,
       repo,
+      provider,
+      git_ssh_host: template?.git_ssh_host || (provider === 'gitlab' ? config.gitlab.ssh_host : 'github.com'),
       template: template?.id || 'default',
       instance: 'default',
       image: template?.image || config.defaults.image,
@@ -469,6 +499,8 @@ function App() {
     try {
       const payload = {
         repo: form.repo.trim(),
+        provider: form.provider,
+        git_ssh_host: form.git_ssh_host.trim() || null,
         template: form.template.trim(),
         instance: form.instance.trim(),
         image: form.image.trim(),
@@ -501,7 +533,7 @@ function App() {
   }
 
   async function deleteCodespace(cs: Codespace, purge: boolean) {
-    if (!window.confirm(purge ? '确认删除并 purge workspace？' : '确认删除 codespace？')) return;
+    if (!window.confirm(purge ? '确认删除容器，并同时删除 workspace 目录？' : '确认只删除容器？workspace 会保留。')) return;
     try {
       const result = await request<{ warning?: string | null }>(
         `/api/agents/${encodeURIComponent(cs.agent_id)}/codespaces/${encodeURIComponent(cs.id)}?repo=${encodeURIComponent(cs.repo)}${purge ? '&purge=true' : ''}`,
@@ -519,6 +551,13 @@ function App() {
   const selectedTemplate = createTemplateId
     ? config?.templates.find((template) => template.id === createTemplateId)
     : null;
+  const selectedProviderHasToken = form.provider === 'gitlab'
+    ? Boolean(config?.gitlab.has_token)
+    : Boolean(config?.github.has_token);
+  const selectedProviderTokenEnv = form.provider === 'gitlab'
+    ? config?.gitlab.token_env
+    : config?.github.token_env;
+  const allTokensReady = Boolean(config?.github.has_token && config?.gitlab.has_token);
 
   return (
     <MantineProvider defaultColorScheme="light" forceColorScheme="light">
@@ -526,8 +565,8 @@ function App() {
         <header className="topbar">
           <Group gap="sm" wrap="nowrap">
             <Title order={1} size="h4">Codespace</Title>
-            <Badge variant="light" color={config?.github.has_token ? 'gray' : 'yellow'}>
-              {config ? `${config.default_agent} · ${config.github.has_token ? 'token ok' : 'no token'}` : '加载配置中...'}
+            <Badge variant="light" color={allTokensReady ? 'gray' : 'yellow'}>
+              {config ? `${config.default_agent} · GitHub ${config.github.has_token ? 'ok' : 'missing'} · GitLab ${config.gitlab.has_token ? 'ok' : 'missing'}` : '加载配置中...'}
             </Badge>
           </Group>
           <Group gap="xs" className="toolbar">
@@ -552,10 +591,10 @@ function App() {
             <Paper withBorder radius="md" className="runtime-strip">
               <Group gap="sm" justify="space-between" align="center">
                 <Group gap="xs" className="runtime-strip-section">
-                  <Badge variant="light" color={config?.github.has_token ? 'green' : 'yellow'}>
-                    {config?.github.has_token ? 'Token ready' : 'Token missing'}
+                  <Badge variant="light" color={allTokensReady ? 'green' : 'yellow'}>
+                    {allTokensReady ? 'Token ready' : 'Token missing'}
                   </Badge>
-                  <Text size="xs" c="dimmed">{config?.github.has_token ? config.github.token_env : `set ${config?.github.token_env || 'GITHUB_TOKEN'}`}</Text>
+                  <Text size="xs" c="dimmed">GitHub: {config?.github.token_env || 'GITHUB_TOKEN'} · GitLab: {config?.gitlab.token_env || 'GITLAB_TOKEN'}</Text>
                   <Text size="xs" c="dimmed">Updated {formatTime(lastUpdated)}</Text>
                   <Checkbox size="xs" label="auto refresh" checked={autoRefresh} onChange={(event) => setAutoRefresh(event.currentTarget.checked)} />
                 </Group>
@@ -646,7 +685,12 @@ function App() {
                               </Box>
                             </Group>
                           </Table.Td>
-                          <Table.Td><Text fw={600}>{template.repo}</Text></Table.Td>
+                          <Table.Td>
+                            <Group gap="xs" wrap="nowrap">
+                              <Badge size="xs" variant="light">{template.provider}</Badge>
+                              <Text fw={600}>{template.repo}</Text>
+                            </Group>
+                          </Table.Td>
                           <Table.Td><Text c="dimmed" size="xs">template</Text></Table.Td>
                           <Table.Td><Badge variant="light"><NumberFormatter value={template.instances.length} /></Badge></Table.Td>
                           <Table.Td>
@@ -681,8 +725,8 @@ function App() {
                                     </Box>
                                     <Group gap="xs" wrap="nowrap" className="instance-actions">
                                       {isCodespace && <Button size="compact-xs" component="a" href={instance.trae_url}>Trae IDE</Button>}
-                                      {isCodespace && <Button size="compact-xs" variant="default" color="red" onClick={() => void deleteCodespace(instance, false)}>Delete</Button>}
-                                      {isCodespace && <Button size="compact-xs" color="red" onClick={() => void deleteCodespace(instance, true)}>Purge</Button>}
+                                      {isCodespace && <Button size="compact-xs" variant="default" color="red" onClick={() => void deleteCodespace(instance, false)}>Delete container</Button>}
+                                      {isCodespace && <Button size="compact-xs" color="red" onClick={() => void deleteCodespace(instance, true)}>Delete workspace</Button>}
                                     </Group>
                                   </Group>
                                 </Paper>
@@ -711,7 +755,7 @@ function App() {
           <form onSubmit={submitCreate}>
             <Stack>
               {createError && <Alert color="red">{createError}</Alert>}
-              {config && !config.github.has_token && <Alert color="yellow">创建 codespace 需要 GitHub token。请在启动 Web GUI 前设置 {config.github.token_env}。</Alert>}
+              {config && !selectedProviderHasToken && <Alert color="yellow">创建 {form.provider} codespace 需要 token。请在启动 Web GUI 前设置 {selectedProviderTokenEnv}。</Alert>}
               {selectedTemplate ? (
                 <Stack gap="sm">
                   <Paper withBorder radius="md" p="sm" className="create-summary">
@@ -724,6 +768,7 @@ function App() {
                     </Group>
                     <Group gap="xs" mt="xs">
                       <Code>{form.repo}</Code>
+                      <Badge variant="light">{form.provider}</Badge>
                       <Text size="xs" c="dimmed">{form.image}</Text>
                     </Group>
                   </Paper>
@@ -742,7 +787,22 @@ function App() {
                     <Select label="Agent" data={config?.agents.map((agent) => ({ value: agent.id, label: agent.id })) || []} value={form.agent} onChange={(value) => updateForm({ agent: value || '' })} required />
                   </Grid.Col>
                   <Grid.Col span={6}>
+                    <Select
+                      label="Provider"
+                      data={[{ value: 'github', label: 'GitHub' }, { value: 'gitlab', label: 'GitLab' }]}
+                      value={form.provider}
+                      onChange={(value) => {
+                        const provider = (value || 'github') as 'github' | 'gitlab';
+                        updateForm({ provider, git_ssh_host: provider === 'gitlab' ? (config?.gitlab.ssh_host || 'gitlab.com') : 'github.com' });
+                      }}
+                      required
+                    />
+                  </Grid.Col>
+                  <Grid.Col span={6}>
                     <TextInput label="Repo" placeholder="owner/name" value={form.repo} onChange={(event) => updateForm({ repo: event.currentTarget.value })} required />
+                  </Grid.Col>
+                  <Grid.Col span={6}>
+                    <TextInput label="Git SSH host" value={form.git_ssh_host} onChange={(event) => updateForm({ git_ssh_host: event.currentTarget.value })} required />
                   </Grid.Col>
                   <Grid.Col span={6}>
                     <TextInput label="Template" value={form.template} onChange={(event) => updateForm({ template: event.currentTarget.value })} required />

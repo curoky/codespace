@@ -106,7 +106,9 @@ def test_config_returns_create_templates(app_client: TestClient) -> None:
             "id": "api",
             "description": "Backend service environment",
             "agent": "office",
+            "provider": "github",
             "repo": "owner/api",
+            "git_ssh_host": "github.com",
             "image": "custom-img",
         }
     ]
