@@ -1,6 +1,7 @@
 """Reusable client-side orchestration for CLI and Web GUI."""
 
 import contextlib
+import ipaddress
 import socket
 import subprocess
 import time
@@ -103,7 +104,7 @@ class SshHttpTunnel:
                 "ServerAliveCountMax=2",
                 "-N",
                 "-L",
-                f"127.0.0.1:{local_port}:{target_host}:{target_port}",
+                f"127.0.0.1:{local_port}:{_ssh_forward_target_host(target_host)}:{target_port}",
                 self.profile.ssh_host,
             ],
             stdout=subprocess.PIPE,
@@ -138,6 +139,15 @@ def _local_agent_url(agent_url: str, local_port: int) -> str:
 def _agent_target_host(hostname: str) -> str:
     """Map wildcard agent hosts to loopback for SSH local forwarding."""
     return "127.0.0.1" if hostname in {"0.0.0.0", "::"} else hostname  # noqa: S104
+
+
+def _ssh_forward_target_host(hostname: str) -> str:
+    """Render a host token that is valid inside an OpenSSH ``-L`` specification."""
+    try:
+        address = ipaddress.ip_address(hostname)
+    except ValueError:
+        return hostname
+    return f"[{hostname}]" if address.version == 6 else hostname
 
 
 def _wait_for_agent(local_url: str) -> None:
