@@ -159,6 +159,8 @@ def create_app(config: AgentConfig) -> FastAPI:
                     login_pubkey=req.login_pubkey,
                     extra_keys=[(repo, kp.private_openssh) for repo, kp in extra_keypairs.items()],
                 )
+                _update_operation(operation_id, stage="waiting for ssh")
+                podman_ops.wait_for_ssh_ready(info.port)
         except Exception as exc:
             logger.exception("provisioning codespace {} failed; rolling back", cs_id)
             _rollback(config, cs_id)

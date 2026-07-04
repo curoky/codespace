@@ -80,6 +80,27 @@ def _wait_running(container: Container) -> None:
     raise RuntimeError(f"container {container.name} did not reach running state")
 
 
+def wait_for_ssh_ready(port: int) -> None:
+    """Poll localhost until the provisioned SSH port returns an SSH banner."""
+    deadline = time.monotonic() + _READY_TIMEOUT_S
+    last_error: str | None = None
+    while time.monotonic() < deadline:
+        for host in ("127.0.0.1", "::1"):
+            family = socket.AF_INET6 if ":" in host else socket.AF_INET
+            try:
+                with socket.socket(family, socket.SOCK_STREAM) as sock:
+                    sock.settimeout(_READY_INTERVAL_S)
+                    sock.connect((host, port))
+                    banner = sock.recv(64)
+                if banner.startswith(b"SSH-"):
+                    return
+                last_error = f"{host}:{port} returned {banner!r}"
+            except OSError as exc:
+                last_error = f"{host}:{port} {exc}"
+        time.sleep(_READY_INTERVAL_S)
+    raise RuntimeError(f"ssh on port {port} did not become ready: {last_error}")
+
+
 def _allocate_host_port() -> int:
     """Ask the kernel for a currently free host TCP port."""
     try:
