@@ -8,7 +8,7 @@ import hashlib
 import re
 from typing import Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 type CreateOperationStatus = Literal["queued", "running", "succeeded", "failed"]
 
@@ -107,15 +107,15 @@ class CreateRequest(BaseModel):
     """POST /codespaces request body.
 
     The client owns all GitHub interaction, so no token is sent to the agent.
-    ``image`` and ``user`` are supplied by the client rather than configured on
-    the agent, keeping host-independent choices on the caller side.
+    ``image`` is supplied by the client; the agent fixes the login user and
+    workspace internally so those fields are not part of the wire request.
     """
+
+    model_config = ConfigDict(extra="forbid")
 
     repo: str = Field(..., description="Target GitHub repo, 'owner/name'.")
     login_pubkey: str = Field(..., description="Client SSH public key for login.")
     image: str = Field(..., description="Dev image satisfying the DESIGN.md §3 contract.")
-    user: str = Field(DEFAULT_CONTAINER_USER, description="Login user inside the dev image.")
-    workspace: str = Field(DEFAULT_WORKSPACE, description="Workspace name for persistence.")
     extra_repos: list[str] = Field(
         default_factory=list,
         description="Extra repos granted read-only pull access (e.g. dotfiles).",
@@ -128,13 +128,6 @@ class CreateRequest(BaseModel):
             raise ValueError("repo must match 'owner/name'")
         return v
 
-    @field_validator("workspace")
-    @classmethod
-    def _check_workspace(cls, v: str) -> str:
-        if not WORKSPACE_RE.match(v):
-            raise ValueError("workspace must match [\\w.-]+")
-        return v
-
     @field_validator("extra_repos")
     @classmethod
     def _check_extra_repos(cls, v: list[str]) -> list[str]:
@@ -143,7 +136,7 @@ class CreateRequest(BaseModel):
                 raise ValueError(f"extra repo must match 'owner/name': {repo!r}")
         return v
 
-    @field_validator("login_pubkey", "image", "user")
+    @field_validator("login_pubkey", "image")
     @classmethod
     def _not_blank(cls, v: str) -> str:
         if not v.strip():

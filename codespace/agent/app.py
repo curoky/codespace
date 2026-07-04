@@ -110,25 +110,27 @@ def create_app(config: AgentConfig) -> FastAPI:
         return shared.Codespace(
             id=cs_id,
             port=info.port,
-            user=req.user,
+            user=shared.DEFAULT_CONTAINER_USER,
             container_id=info.container_id,
             repo=req.repo,
-            workspace=req.workspace,
-            workspace_dir=shared.workspace_dir_name(req.repo, req.workspace),
+            workspace=shared.DEFAULT_WORKSPACE,
+            workspace_dir=shared.workspace_dir_name(req.repo, shared.DEFAULT_WORKSPACE),
             deploy_keys=deploy_keys,
             status="running",
         )
 
     def _provision_codespace(operation_id: str, cs_id: str, req: shared.CreateRequest) -> None:
-        workspace_host_dir = _workspace_host_dir(config, req.repo, req.workspace)
+        workspace = shared.DEFAULT_WORKSPACE
+        user = shared.DEFAULT_CONTAINER_USER
+        workspace_host_dir = _workspace_host_dir(config, req.repo, workspace)
         logger.info(
             "creating codespace id={} operation={} repo={} workspace={} user={} image={} "
             "extra_repos={} workspace_dir={}",
             cs_id,
             operation_id,
             req.repo,
-            req.workspace,
-            req.user,
+            workspace,
+            user,
             req.image,
             len(req.extra_repos),
             workspace_host_dir,
@@ -138,7 +140,7 @@ def create_app(config: AgentConfig) -> FastAPI:
             with _client() as client:
                 logger.info("codespace {} operation {}: checking workspace", cs_id, operation_id)
                 _update_operation(operation_id, status="running", stage="checking workspace")
-                existing = podman_ops.find_container_by_workspace(client, req.repo, req.workspace)
+                existing = podman_ops.find_container_by_workspace(client, req.repo, workspace)
                 if existing is not None:
                     existing_id = podman_ops.read_label(existing, shared.LABEL_ID)
                     logger.warning(
@@ -167,8 +169,8 @@ def create_app(config: AgentConfig) -> FastAPI:
                     cs_id=cs_id,
                     image=req.image,
                     repo=req.repo,
-                    workspace=req.workspace,
-                    user=req.user,
+                    workspace=workspace,
+                    user=user,
                     workspace_host_dir=workspace_host_dir,
                 )
                 logger.info(
@@ -183,7 +185,7 @@ def create_app(config: AgentConfig) -> FastAPI:
                 podman_ops.inject_credentials(
                     client,
                     cs_id=cs_id,
-                    user=req.user,
+                    user=user,
                     private_key=main_keypair.private_openssh,
                     login_pubkey=req.login_pubkey,
                     extra_keys=[(repo, kp.private_openssh) for repo, kp in extra_keypairs.items()],

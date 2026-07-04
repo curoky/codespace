@@ -34,8 +34,6 @@ def test_create_request_accepts_valid_repo(repo: str) -> None:
         repo=repo, login_pubkey="ssh-ed25519 AAAA", image="codespace/dev:latest"
     )
     assert req.repo == repo
-    assert req.workspace == shared.DEFAULT_WORKSPACE
-    assert req.user == shared.DEFAULT_CONTAINER_USER
 
 
 @pytest.mark.parametrize("repo", ["noslash", "too/many/parts", "bad repo/name", ""])
@@ -56,13 +54,14 @@ def test_create_request_requires_image() -> None:
         shared.CreateRequest(repo="owner/name", login_pubkey="ssh-ed25519 AAAA")
 
 
-def test_create_request_rejects_invalid_workspace() -> None:
+@pytest.mark.parametrize("field", ["workspace", "user"])
+def test_create_request_rejects_removed_client_fields(field: str) -> None:
     with pytest.raises(ValidationError):
         shared.CreateRequest(
             repo="owner/name",
             login_pubkey="ssh-ed25519 AAAA",
             image="codespace/dev:latest",
-            workspace="bad workspace",
+            **{field: "removed"},
         )
 
 

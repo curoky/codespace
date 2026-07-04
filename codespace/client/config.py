@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Self
 
 import yaml  # type: ignore[import-untyped]
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from codespace import shared
 
@@ -51,18 +51,11 @@ class AgentProfile(BaseModel):
 class DefaultsConfig(BaseModel):
     """Default create form values."""
 
+    model_config = ConfigDict(extra="forbid")
+
     agent: str
     image: str
-    user: str = shared.DEFAULT_CONTAINER_USER
-    workspace: str = shared.DEFAULT_WORKSPACE
     extra_repos: list[str] = Field(default_factory=list)
-
-    @field_validator("workspace")
-    @classmethod
-    def _check_workspace(cls, value: str) -> str:
-        if not shared.WORKSPACE_RE.match(value):
-            raise ValueError("workspace must match [\\w.-]+")
-        return value
 
     @field_validator("extra_repos")
     @classmethod
@@ -72,7 +65,7 @@ class DefaultsConfig(BaseModel):
                 raise ValueError(f"extra repo must match 'owner/name': {repo!r}")
         return value
 
-    @field_validator("agent", "image", "user")
+    @field_validator("agent", "image")
     @classmethod
     def _not_blank(cls, value: str) -> str:
         if not value.strip():
@@ -83,14 +76,14 @@ class DefaultsConfig(BaseModel):
 class CreateTemplateConfig(BaseModel):
     """One preconfigured Web GUI create template."""
 
+    model_config = ConfigDict(extra="forbid")
+
     id: str = ""
     description: str | None = None
     agent: str | None = None
     repo: str
-    workspace: str | None = None
     alias: str | None = None
     image: str | None = None
-    user: str | None = None
     extra_repos: list[str] | None = None
 
     @field_validator("id")
@@ -105,13 +98,6 @@ class CreateTemplateConfig(BaseModel):
     def _check_repo(cls, value: str) -> str:
         if not shared.REPO_RE.match(value):
             raise ValueError("repo must match 'owner/name'")
-        return value
-
-    @field_validator("workspace")
-    @classmethod
-    def _check_workspace(cls, value: str | None) -> str | None:
-        if value is not None and not shared.WORKSPACE_RE.match(value):
-            raise ValueError("workspace must match [\\w.-]+")
         return value
 
     @field_validator("extra_repos")
@@ -131,7 +117,7 @@ class CreateTemplateConfig(BaseModel):
             raise ValueError("agent must match [\\w.-]+")
         return value
 
-    @field_validator("description", "alias", "image", "user")
+    @field_validator("description", "alias", "image")
     @classmethod
     def _not_blank_optional(cls, value: str | None) -> str | None:
         if value is not None and not value.strip():

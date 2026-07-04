@@ -142,16 +142,11 @@ Base URL：`http://<agent-host>:<port>`。Content-Type：`application/json`。
 {
   "repo": "owner/name",
   "image": "ghcr.io/you/dev:latest",
-  "user": "dev",
-  "workspace": "default",
   "login_pubkey": "ssh-ed25519 AAAA... user@mac",
   "extra_repos": ["owner/dotfiles"]
 }
 ```
 - `image`（必填）：满足 §3 契约的开发镜像，由 client 指定（agent 不再持有默认镜像）。
-- `user`（可选，默认 `dev`）：容器内登录用户，由 client 指定。
-- `workspace`（可选，默认 `default`）：同一 repo 下的独立工作区名，用于区分并行 codespace
-  及各自的持久化目录（见 §7）。
 - `extra_repos`（可选，默认 `[]`）：额外授予**只读**拉取权限的仓库（如 dotfiles）。每个额外
   repo 由 agent 单独生成一把只读 deploy keypair（见 §6/§8）。
 
@@ -177,6 +172,7 @@ Base URL：`http://<agent-host>:<port>`。Content-Type：`application/json`。
   各生成一把 deploy keypair 的**公钥**，client 收到后用自身 token 逐个注册为对应 repo 的
   GitHub deploy key（title 固定 `codespace-<id>`）。私钥留在容器内，绝不回传网络。
 - `workspace_dir`：宿主机工作区目录名，末尾 8 位 hash 后缀避免 slug 冲突（见 §7）。
+  `user` 与 `workspace` 均为 agent 内部固定值，不由 client 请求指定。
 
 ### `GET /codespaces`
 响应 `200`：受管 codespace 数组（通过容器名前缀 `codespace-` 发现），每项
@@ -189,17 +185,16 @@ Base URL：`http://<agent-host>:<port>`。Content-Type：`application/json`。
 由 client 在调用本接口前用自己的 token 吊销（见 §5/§8）。响应
 `200 {ok: true, workspace_removed?: bool}`。删除不存在的 codespace 也返回 `200`（幂等）。
 
-错误：校验失败（repo / image / workspace 格式、缺 pubkey）返回 `4xx {error}`；podman 失败
+错误：校验失败（repo / image 格式、缺 pubkey）返回 `4xx {error}`；podman 失败
 返回 `5xx {error}`。
 
 ## 5. 客户端行为（macOS）
 
 `create --repo owner/name [--agent http://<host>:<port>] --ssh-host <ip> --token $TOKEN
-        [--image ...] [--user dev] [--workspace default] [--alias <name>]`：
+        [--image ...] [--alias <name>]`：
 1. 生成无口令登录 keypair：`ssh-keygen -t ed25519 -f ~/.ssh/codespace/<alias> -N ""`
    （已存在则跳过）。额外 repo 列表取 client 的 `EXTRA_REPOS` 常量（剔除主 repo）。
-2. `POST /codespaces`，携带 repo / image / user / workspace / extra_repos / 登录公钥（**不含
-   token**）。
+2. `POST /codespaces`，携带 repo / image / extra_repos / 登录公钥（**不含 token**）。
 3. 用**自己的 token** 把响应里 `deploy_keys` 的每一项注册为对应 repo 的 GitHub deploy key
    （主 repo 读写、额外 repo 只读，title 均 `codespace-<id>`）。任一注册失败：吊销已注册的
    key + 调 `DELETE /codespaces/<id>` 回滚容器 + 删本地登录 key，避免孤儿。
@@ -238,9 +233,9 @@ Host <alias>
 
 - **配置极简、仅 CLI**：agent 配置集中在 `AgentConfig`（pydantic `BaseModel`），仅保留两个
   **宿主机环境属性**且全部必填、无默认——`workspace_root_host`、`podman_uri`；启动时构造即
-  校验（fail-fast），非法即退出。`image` / `user` / **SSH host** 等 caller 侧选择由 client
-  提供（SSH host 来自 client 的 `--ssh-host`），不在 agent 暴露；`--host`/`--port` 仅为 HTTP
-  绑定参数。
+  校验（fail-fast），非法即退出。`image` 由 client 请求指定，登录用户固定为
+  `shared.DEFAULT_CONTAINER_USER`，SSH host 来自 client 的 `--ssh-host`；`--host`/`--port` 仅为
+  HTTP 绑定参数。
 - **不接触 GitHub / 不持 token**：agent 无 PyGithub 依赖，全部 GitHub 交互在 client 侧。
 - **agent 完全无状态**：agent 容器**只挂载** `/run/podman/podman.sock`，**不挂载**任何
   工作区目录、状态目录或卷。所有持久信息都存放在 **podman**（容器 labels）和 **GitHub**
@@ -250,11 +245,10 @@ Host <alias>
 - deploy 私钥仅在请求处理期间存在于**内存**，注入后即丢弃，不落任何磁盘。
 
 ### 6.1 创建流程
-1. 校验请求（`repo` 正则 `^[\w.-]+/[\w.-]+$`、`image`/`user` 非空、`workspace` 正则
-   `^[\w.-]+$`、登录公钥非空）。
+1. 校验请求（`repo` 正则 `^[\w.-]+/[\w.-]+$`、`image` 非空、登录公钥非空）。
 2. `id = <短随机十六进制>`；计算工作区目录名
-   `ws = codespace-<repo-slug>-<workspace>-<hash8>`，其中 `repo-slug` 为 `owner/name` 的
-   `/`→`-`，`hash8` 为 `sha256("<repo>\0<workspace>")` 的前 8 位十六进制（避免 slug 冲突，
+   `ws = codespace-<repo-slug>-default-<hash8>`，其中 `repo-slug` 为 `owner/name` 的
+   `/`→`-`，`hash8` 为 `sha256("<repo>\0default")` 的前 8 位十六进制（避免 slug 冲突，
    见 §7）；宿主机路径 `<workspace_root_host>/<ws>`；同时向内核申请一个当前空闲的宿主机 TCP
    端口作为 `ssh_port`。
 3. **内存中**生成 deploy keypair（`cryptography` 生成 ed25519，导出 OpenSSH 格式，不写盘）；
@@ -272,7 +266,7 @@ Host <alias>
    - `mounts=[{"type":"bind","source":<workspace_HOST>/<ws>,"target":"/workspace"}]`：把宿主机
      工作区目录 bind 到容器 `/workspace`。**PoP 关键**：`source` 是**宿主机路径**字符串，由
      宿主机 podman service 解释；agent 在创建容器前确保目录存在。
-5. **put_archive 注入（见 §6.3）**：注入**不依赖 sshd 监听**，只需容器处于 running 且登录
+5. **put_archive 注入（见 §6.3）**：注入**不依赖 sshd 监听**，只需容器处于 running 且固定登录
    用户存在。agent 轮询容器状态达到 `running` 后即：
    - 先以 `-u 0`（root）执行 `chown -R <user> /workspace`，修正 bind 目录属主（保持 agent
      无状态，chown 在容器内完成）；
@@ -338,16 +332,16 @@ repo 专属的只读 key（git 取最长匹配前缀，主 repo 的 github.com U
 
 ## 7. 工作区持久化（bind mount 目录，无 agent 状态）
 
-- 每个 `(repo, workspace)` 对应宿主机一个固定目录
+- 每个 repo 对应宿主机一个固定目录
   `<workspace_root_host>/codespace-<repo-slug>-<workspace>-<hash8>`，以 bind mount 挂到
-  容器 `/workspace`。删除容器保留该目录，重建同名 workspace 即复用其中数据。
+  容器 `/workspace`。其中 `<workspace>` 固定为 `default`；删除容器保留该目录，重建同 repo 即
+  复用其中数据。
 - **命名与冲突**：`repo-slug` 把 `owner/name` 的 `/` 替换为 `-`，可读性好但可能撞名
-  （如 `a/b-c` 与 `a-b/c`）；故追加 `hash8 = sha256("<repo>\0<workspace>")[:8]` 后缀，
-  由 `(repo, workspace)` 唯一确定，既稳定可复用又避免串数据。
+  （如 `a/b-c` 与 `a-b/c`）；故追加 `hash8 = sha256("<repo>\0default")[:8]` 后缀，由 repo 与固定
+  workspace 唯一确定，既稳定可复用又避免串数据。
 - 目录属主在容器内由 `podman exec -u 0 chown -R <user> /workspace` 修正（§6.3），
   **不需要 agent 挂载或访问宿主机文件系统**。
-- **粒度**：按 `repo + workspace 名`——同一 repo 可用不同 `--workspace` 并行开多个互不
-  干扰的 codespace，各自独立持久化。
+- **粒度**：按 repo；同一 repo 只允许一个运行中的 codespace，重建会复用同一持久化目录。
 - **用 bind mount 目录而非 named volume**：便于宿主机侧直接访问/备份；PoP 下卷源为
   宿主机路径字符串，agent 不参与实际挂载。
 - 清理：`delete` 默认保留目录；`delete --purge` 用一次性 helper 容器删除（§6.2）。
@@ -389,15 +383,14 @@ repo 专属的只读 key（git 取最长匹配前缀，主 repo 的 github.com U
    -f codespace/image/Dockerfile .` 构建本地参考镜像。
 2. **启动 agent**：`bash codespace/agent/run-agent.sh`；`curl http://localhost:8001/codespaces`
    返回 `[]`。
-3. **创建**：`python -m codespace.client create --repo owner/name --workspace default
+3. **创建**：`python -m codespace.client create --repo owner/name
    --token $TOKEN --agent http://<host>:8001 --alias test-cs`。
    - GitHub → Settings → Deploy keys 出现 `codespace-<id>`。
    - `~/.ssh/config` 出现托管块。
 4. **登录**：`ssh test-cs` 以登录用户进入容器。
 5. **隔离**：容器内 `git clone git@github.com:owner/name.git` 成功且可 push；clone 其它
    仓库失败（无权限）。
-6. **持久化**：容器内 `/workspace` 写文件 → `delete`（不 purge）→ 再 `create` 同名
-   workspace → 文件仍在。
+6. **持久化**：容器内 `/workspace` 写文件 → `delete`（不 purge）→ 再 create 同 repo → 文件仍在。
 7. **删除**：`delete --alias test-cs --token $TOKEN`：容器被删、deploy key 消失、
    config 块与本地 key 移除；`--purge` 再删工作区目录。
 8. **lint/类型/测试**：`uv run ruff check codespace/`、`uv run ruff format --check`、

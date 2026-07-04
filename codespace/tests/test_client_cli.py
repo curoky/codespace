@@ -90,7 +90,7 @@ def test_create_success_registers_key_and_writes_config(monkeypatch: pytest.Monk
     ]
     assert calls["registered"] == ("owner/name", "abc123", "ssh-ed25519 PUB", False)
     # upsert(alias, ssh_host, port, user, id, repos)
-    assert calls["upserted"] == ("name-default", "10.0.0.5", 49207, "dev", "abc123", ["owner/name"])
+    assert calls["upserted"] == ("name", "10.0.0.5", 49207, "dev", "abc123", ["owner/name"])
 
 
 def test_create_registers_extra_repo_readonly(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -176,7 +176,7 @@ def test_create_rolls_back_when_registration_fails(monkeypatch: pytest.MonkeyPat
 
     assert result.exit_code == 1
     assert deleted == ["abc123"]  # container rolled back
-    assert removed == ["name-default"]  # local login key cleaned up
+    assert removed == ["name"]  # local login key cleaned up
 
 
 def test_create_fails_when_agent_errors(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -199,7 +199,7 @@ def test_create_fails_when_agent_errors(monkeypatch: pytest.MonkeyPatch) -> None
     )
     assert result.exit_code == 1
     assert "podman down" in result.output
-    assert removed == ["name-default"]
+    assert removed == ["name"]
 
 
 def test_create_fails_when_operation_fails(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -232,7 +232,7 @@ def test_create_fails_when_operation_fails(monkeypatch: pytest.MonkeyPatch) -> N
 
     assert result.exit_code == 1
     assert "pull failed" in result.output
-    assert removed == ["name-default"]
+    assert removed == ["name"]
 
 
 def test_delete_revokes_key_then_removes(monkeypatch: pytest.MonkeyPatch) -> None:

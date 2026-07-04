@@ -43,10 +43,8 @@ class CreateCodespaceInput(BaseModel):
     """Input for service-level create orchestration."""
 
     repo: str
-    workspace: str = shared.DEFAULT_WORKSPACE
     alias: str
     image: str
-    user: str = shared.DEFAULT_CONTAINER_USER
     extra_repos: list[str] = Field(default_factory=list)
 
 
@@ -120,9 +118,9 @@ class SshHttpTunnel:
         return process
 
 
-def default_alias(agent_id: str, repo: str, workspace: str) -> str:
+def default_alias(agent_id: str, repo: str) -> str:
     """Default Web GUI alias, namespaced by agent id."""
-    return f"{agent_id}-{repo.split('/')[-1]}-{workspace}"
+    return f"{agent_id}-{repo.split('/')[-1]}"
 
 
 def _free_local_port() -> int:
@@ -347,8 +345,6 @@ class CodespaceService:
                 repo=req.repo,
                 login_pubkey=login_pubkey,
                 image=req.image,
-                user=req.user,
-                workspace=req.workspace,
                 extra_repos=extra_repos,
             )
             if progress is not None:

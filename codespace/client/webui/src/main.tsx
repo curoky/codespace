@@ -41,8 +41,6 @@ type ConfigSummary = {
   default_agent: string;
   defaults: {
     image: string;
-    user: string;
-    workspace: string;
     extra_repos: string[];
   };
   github: {
@@ -62,10 +60,8 @@ type ConfigSummary = {
     description?: string | null;
     agent?: string | null;
     repo: string;
-    workspace?: string | null;
     alias?: string | null;
     image?: string | null;
-    user?: string | null;
     extra_repos?: string[] | null;
   }>;
 };
@@ -111,7 +107,6 @@ type Operation = {
   agent_id: string;
   alias: string;
   repo: string;
-  workspace: string;
   status: OperationStatus;
   stage: string;
   error?: string | null;
@@ -129,7 +124,6 @@ type FilterState = {
 type CreateForm = {
   agent: string;
   repo: string;
-  workspace: string;
   alias: string;
   image: string;
   extraRepos: string;
@@ -164,8 +158,8 @@ function repoName(repo: string): string {
   return repo.includes('/') ? repo.split('/').at(-1) || repo : repo;
 }
 
-function defaultAlias(agent: string, repo: string, workspace: string): string {
-  return agent && repo && workspace ? `${agent}-${repoName(repo)}-${workspace}` : '';
+function defaultAlias(agent: string, repo: string): string {
+  return agent && repo ? `${agent}-${repoName(repo)}` : '';
 }
 
 function normalizeStatus(status?: string | null): string {
@@ -210,7 +204,6 @@ function App() {
   const [form, setForm] = useState<CreateForm>({
     agent: '',
     repo: '',
-    workspace: '',
     alias: '',
     image: '',
     extraRepos: '',
@@ -343,7 +336,7 @@ function App() {
   function updateForm(patch: Partial<CreateForm>) {
     setForm((current) => {
       const next = { ...current, ...patch };
-      if (next.autoAlias) next.alias = defaultAlias(next.agent, next.repo.trim(), next.workspace.trim());
+      if (next.autoAlias) next.alias = defaultAlias(next.agent, next.repo.trim());
       return next;
     });
   }
@@ -353,13 +346,11 @@ function App() {
     const template = config.templates.find((item) => item.id === templateId);
     const agent = template?.agent || (filter.agent !== 'all' ? filter.agent : config.default_agent);
     const repo = template?.repo || '';
-    const workspace = template?.workspace || config.defaults.workspace;
     const autoAlias = !template?.alias;
     const nextForm: CreateForm = {
       agent,
       repo,
-      workspace,
-      alias: template?.alias || defaultAlias(agent, repo, workspace),
+      alias: template?.alias || defaultAlias(agent, repo),
       image: template?.image || config.defaults.image,
       extraRepos: (template?.extra_repos ?? config.defaults.extra_repos).join('\n'),
       autoAlias,
@@ -376,10 +367,8 @@ function App() {
     try {
       const payload = {
         repo: form.repo.trim(),
-        workspace: form.workspace.trim(),
         alias: form.alias.trim(),
         image: form.image.trim(),
-        user: config.defaults.user,
         extra_repos: form.extraRepos
           .split(/\n|,/)
           .map((item) => item.trim())
@@ -571,7 +560,7 @@ function App() {
                       <Text size="xs" c="blue">{template.repo}</Text>
                     </Group>
                     {template.description && <Text size="xs" c="dimmed" mt={4}>{template.description}</Text>}
-                    <Text size="xs" c="dimmed" mt={6}>{template.agent || config.default_agent} · {template.workspace || config.defaults.workspace}</Text>
+                    <Text size="xs" c="dimmed" mt={6}>{template.agent || config.default_agent}</Text>
                     <Button size="xs" fullWidth mt="xs" onClick={() => openCreate(template.id)}>Create</Button>
                   </Card>
                 )) : <Text c="dimmed" size="sm">暂无模板</Text>}
@@ -608,7 +597,7 @@ function App() {
                     <Group justify="space-between" align="flex-start">
                       <Box>
                         <Text fw={700}>{op.alias}</Text>
-                        <Text size="xs" c="dimmed">{op.repo} · {op.workspace} · {op.agent_id}</Text>
+                        <Text size="xs" c="dimmed">{op.repo} · {op.agent_id}</Text>
                       </Box>
                       <Badge color={statusColor(op.status)} variant="light">{op.status}</Badge>
                     </Group>
@@ -634,9 +623,6 @@ function App() {
                 </Grid.Col>
                 <Grid.Col span={6}>
                   <TextInput label="Repo" placeholder="owner/name" value={form.repo} onChange={(event) => updateForm({ repo: event.currentTarget.value })} required />
-                </Grid.Col>
-                <Grid.Col span={6}>
-                  <TextInput label="Workspace" value={form.workspace} onChange={(event) => updateForm({ workspace: event.currentTarget.value })} required />
                 </Grid.Col>
                 <Grid.Col span={6}>
                   <TextInput label="Alias" value={form.alias} onChange={(event) => updateForm({ alias: event.currentTarget.value, autoAlias: false })} required />

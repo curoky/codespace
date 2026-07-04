@@ -105,8 +105,6 @@ CODESPACE_CONFIG > ~/.config/codespace/config.yaml
 defaults:
   agent: home
   image: ghcr.io/curoky/devspace:codespace-debian12
-  user: x
-  workspace: default
   extra_repos:
     - curoky/ai-coding-config
 
@@ -131,16 +129,13 @@ templates:
     description: devspace 主仓库默认开发环境
     agent: home
     repo: curoky/devspace
-    workspace: default
-    alias: home-devspace-default
+    alias: home-devspace
 
   agent-lab:
     description: 使用 lab agent 和自定义镜像调试 agent
     agent: lab
     repo: curoky/devspace
-    workspace: agent
     image: ghcr.io/curoky/devspace:codespace-debian12
-    user: x
     extra_repos:
       - curoky/ai-coding-config
 ```
@@ -153,8 +148,6 @@ templates:
 | --- | --- | --- |
 | `agent` | 是 | 默认选中的 agent profile id |
 | `image` | 是 | 创建 codespace 的默认开发镜像 |
-| `user` | 否 | 容器登录用户，默认 `shared.DEFAULT_CONTAINER_USER` |
-| `workspace` | 否 | 默认 workspace，默认 `shared.DEFAULT_WORKSPACE` |
 | `extra_repos` | 否 | 默认额外只读 repo 列表 |
 
 #### `github`
@@ -184,10 +177,8 @@ GitHub token、SSH config 和 agent 创建流程。
 | `description` | 否 | UI 卡片描述 |
 | `agent` | 否 | 预选 agent id；不填则使用 `defaults.agent` |
 | `repo` | 是 | 目标 GitHub 仓库 `owner/name` |
-| `workspace` | 否 | 预填 workspace；不填则使用 `defaults.workspace` |
 | `alias` | 否 | 预填 SSH alias；不填则前端按默认规则自动生成 |
 | `image` | 否 | 预填 dev 镜像；不填则使用 `defaults.image` |
-| `user` | 否 | 预填容器登录用户；不填则使用 `defaults.user` |
 | `extra_repos` | 否 | 预填额外只读 repo 列表；不填则使用 `defaults.extra_repos` |
 
 ### 4.4 校验规则
@@ -196,15 +187,13 @@ GitHub token、SSH config 和 agent 创建流程。
 - 至少配置一个 agent。
 - `defaults.agent` 必须存在于 `agents`。
 - agent id 必须匹配 `^[\w.-]+$`，因为它会参与默认 SSH alias 生成。
-- `defaults.workspace` 必须匹配 `shared.WORKSPACE_RE`。
 - `defaults.extra_repos` 每项必须匹配 `shared.REPO_RE`。
 - 每个 `agent_url` 与 `ssh_host` 均不能为空。
 - template id 必须匹配 `^[\w.-]+$`。
 - `templates.<id>.repo` 必须匹配 `shared.REPO_RE`。
 - `templates.<id>.agent` 如设置，必须存在于 `agents`。
-- `templates.<id>.workspace` 如设置，必须匹配 `shared.WORKSPACE_RE`。
 - `templates.<id>.extra_repos` 每项必须匹配 `shared.REPO_RE`。
-- 模板的 `description`、`alias`、`image`、`user` 如设置则不能为空白字符串。
+- 模板的 `description`、`alias`、`image` 如设置则不能为空白字符串。
 - `github.token_env` 推荐保存环境变量名；如果误填明文 token，API 只返回脱敏来源标签和 `has_token`，不得返回 token 明文。
 
 YAML 解析建议使用 `PyYAML` 的 `yaml.safe_load`，再交给 Pydantic model 校验。
@@ -301,7 +290,7 @@ GET <agent_url>/codespaces
 2. `Create Templates` 模块的模板卡片，用于浏览完整模板信息后创建。
 
 两者都只执行「打开 create modal 并填充字段」，不会直接提交创建请求。用户仍可在 modal 中修改
-agent、repo、workspace、alias、image 和 extra repos。容器登录用户来自 `defaults.user`，不在 UI 中重复暴露。
+agent、repo、alias、image 和 extra repos。容器登录用户由 agent 固定使用 `shared.DEFAULT_CONTAINER_USER`。
 
 ### 6.5 Codespace Table
 
@@ -346,17 +335,17 @@ agent、repo、workspace、alias、image 和 extra repos。容器登录用户来
 
 ## 7. Alias 与 SSH 配置
 
-多 agent 场景下默认 alias 必须包含 agent id，避免不同 agent 上相同 repo/workspace 冲突：
+多 agent 场景下默认 alias 必须包含 agent id，避免不同 agent 上相同 repo 冲突：
 
 ```text
-<agent-id>-<repo-name>-<workspace>
+<agent-id>-<repo-name>
 ```
 
 示例：
 
 ```text
-home-devspace-default
-office-devspace-default
+home-devspace
+office-devspace
 ```
 
 Web 创建流程写入 `~/.ssh/config` 时，应在 Host block 中保存 agent 元数据，便于 Dashboard
@@ -391,8 +380,7 @@ Create Codespace
 
 Agent        [home ▼]
 Repo         [curoky/devspace]
-Workspace    [default]
-Alias        [home-devspace-default]
+Alias        [home-devspace]
 Image        [ghcr.io/curoky/devspace:codespace-debian12]
 Extra repos  [✓] curoky/ai-coding-config
 
@@ -405,12 +393,11 @@ Extra repos  [✓] curoky/ai-coding-config
 | --- | --- |
 | Agent | `defaults.agent` |
 | Repo | 空 |
-| Workspace | `defaults.workspace` |
-| Alias | `<agent-id>-<repo-name>-<workspace>` |
+| Alias | `<agent-id>-<repo-name>` |
 | Image | `defaults.image` |
 | Extra repos | `defaults.extra_repos` |
 
-当 agent / repo / workspace 改变且用户未手动编辑 alias 时，前端自动重新生成 alias。
+当 agent / repo 改变且用户未手动编辑 alias 时，前端自动重新生成 alias。
 
 ### 8.1 从模板创建
 
@@ -423,7 +410,7 @@ Dashboard 在 create 表单之外展示 `Create Templates` 卡片列表。模板
 2. 先加载 `defaults` 中的默认值和 agent 下拉选项。
 3. 再用模板字段覆盖对应表单项。
 4. 若模板提供 `alias`，关闭自动 alias 并使用模板值；否则保持自动 alias，并按
-   `<agent-id>-<repo-name>-<workspace>` 生成。
+   `<agent-id>-<repo-name>` 生成。
 5. 用户仍需点击 `Create` 才真正提交创建请求。
 
 模板字段 fallback 规则：
@@ -432,7 +419,6 @@ Dashboard 在 create 表单之外展示 `Create Templates` 卡片列表。模板
 | --- | --- | --- |
 | Agent | `agent` | `defaults.agent` |
 | Repo | `repo` | 无 fallback，模板必填 |
-| Workspace | `workspace` | `defaults.workspace` |
 | Alias | `alias` | 自动生成 |
 | Image | `image` | `defaults.image` |
 | Extra repos | `extra_repos` | `defaults.extra_repos` |
@@ -501,8 +487,6 @@ Web API 仅服务本地浏览器，不是远程公共 API。
   "default_agent": "home",
   "defaults": {
     "image": "ghcr.io/curoky/devspace:codespace-debian12",
-    "user": "x",
-    "workspace": "default",
     "extra_repos": ["curoky/ai-coding-config"]
   },
   "github": {
@@ -523,10 +507,8 @@ Web API 仅服务本地浏览器，不是远程公共 API。
       "description": "devspace 主仓库默认开发环境",
       "agent": "home",
       "repo": "curoky/devspace",
-      "workspace": "default",
-      "alias": "home-devspace-default",
+      "alias": "home-devspace",
       "image": null,
-      "user": null,
       "extra_repos": null
     }
   ]
@@ -555,12 +537,12 @@ Web API 仅服务本地浏览器，不是远程公共 API。
       "id": "abc123",
       "repo": "curoky/devspace",
       "workspace": "default",
-      "alias": "home-devspace-default",
+      "alias": "home-devspace",
       "ssh_host": "10.0.0.5",
       "port": 49207,
       "user": "x",
       "status": "running",
-      "ssh_command": "ssh home-devspace-default",
+      "ssh_command": "ssh home-devspace",
       "raw_ssh_command": "ssh x@10.0.0.5 -p 49207",
       "has_local_alias": true
     }
@@ -576,10 +558,8 @@ Web API 仅服务本地浏览器，不是远程公共 API。
 ```json
 {
   "repo": "curoky/devspace",
-  "workspace": "default",
-  "alias": "home-devspace-default",
+  "alias": "home-devspace",
   "image": "ghcr.io/curoky/devspace:codespace-debian12",
-  "user": "x",
   "extra_repos": ["curoky/ai-coding-config"]
 }
 ```
@@ -600,9 +580,8 @@ Web API 仅服务本地浏览器，不是远程公共 API。
 {
   "id": "web-op-123",
   "agent_id": "home",
-  "alias": "home-devspace-default",
+  "alias": "home-devspace",
   "repo": "curoky/devspace",
-  "workspace": "default",
   "status": "running",
   "stage": "agent: creating container",
   "error": null,
@@ -640,8 +619,6 @@ class AgentProfile(BaseModel):
 class DefaultsConfig(BaseModel):
     agent: str
     image: str
-    user: str = shared.DEFAULT_CONTAINER_USER
-    workspace: str = shared.DEFAULT_WORKSPACE
     extra_repos: list[str] = Field(default_factory=list)
 
 class GithubConfig(BaseModel):
@@ -652,10 +629,8 @@ class CreateTemplateConfig(BaseModel):
     description: str | None = None
     agent: str | None = None
     repo: str
-    workspace: str | None = None
     alias: str | None = None
     image: str | None = None
-    user: str | None = None
     extra_repos: list[str] | None = None
 
 class WebConfig(BaseModel):
@@ -673,10 +648,8 @@ class ConfigTemplateSummary(BaseModel):
     description: str | None = None
     agent: str | None = None
     repo: str
-    workspace: str | None = None
     alias: str | None = None
     image: str | None = None
-    user: str | None = None
     extra_repos: list[str] | None = None
 ```
 
@@ -710,7 +683,6 @@ class WebOperation(BaseModel):
     agent_id: str
     alias: str
     repo: str
-    workspace: str
     status: Literal["queued", "running", "succeeded", "failed"]
     stage: str
     agent_operation_id: str | None = None

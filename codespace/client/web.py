@@ -34,8 +34,6 @@ INLINE_AUTH_SOURCE_LABEL = "inline GitHub credential"
 
 class ConfigDefaultsSummary(BaseModel):
     image: str
-    user: str
-    workspace: str
     extra_repos: list[str]
 
 
@@ -58,10 +56,8 @@ class ConfigTemplateSummary(BaseModel):
     description: str | None = None
     agent: str | None = None
     repo: str
-    workspace: str | None = None
     alias: str | None = None
     image: str | None = None
-    user: str | None = None
     extra_repos: list[str] | None = None
 
 
@@ -102,10 +98,8 @@ class DashboardCodespace(BaseModel):
 
 class CreateCodespaceRequest(BaseModel):
     repo: str
-    workspace: str = shared.DEFAULT_WORKSPACE
     alias: str
     image: str
-    user: str = shared.DEFAULT_CONTAINER_USER
     extra_repos: list[str] = Field(default_factory=list)
 
 
@@ -118,7 +112,6 @@ class WebOperation(BaseModel):
     agent_id: str
     alias: str
     repo: str
-    workspace: str
     status: WebOperationStatus
     stage: str
     codespace: shared.Codespace | None = None
@@ -151,7 +144,6 @@ class OperationStore:
             agent_id=agent_id,
             alias=req.alias,
             repo=req.repo,
-            workspace=req.workspace,
             status="queued",
             stage="queued",
             created_at=now,
@@ -316,8 +308,6 @@ def _config_summary(config: WebConfig) -> ConfigSummary:
         default_agent=config.defaults.agent,
         defaults=ConfigDefaultsSummary(
             image=config.defaults.image,
-            user=config.defaults.user,
-            workspace=config.defaults.workspace,
             extra_repos=config.defaults.extra_repos,
         ),
         github=ConfigGithubSummary(
@@ -341,10 +331,8 @@ def _config_summary(config: WebConfig) -> ConfigSummary:
                 description=template.description,
                 agent=template.agent,
                 repo=template.repo,
-                workspace=template.workspace,
                 alias=template.alias,
                 image=template.image,
-                user=template.user,
                 extra_repos=template.extra_repos,
             )
             for template in config.templates.values()

@@ -124,14 +124,8 @@ def create(
         "--image",
         help="Dev image satisfying the §3 contract.",
     ),
-    user: str = typer.Option(
-        shared.DEFAULT_CONTAINER_USER, "--user", help="Login user inside the dev image."
-    ),
-    workspace: str = typer.Option(
-        shared.DEFAULT_WORKSPACE, "--workspace", help="Workspace name for persistence."
-    ),
     alias: str | None = typer.Option(
-        None, "--alias", help="SSH alias; defaults to repo name + workspace."
+        None, "--alias", help="SSH alias; defaults to repo name."
     ),
 ) -> None:
     """Create a codespace and register an ssh alias for it.
@@ -144,7 +138,7 @@ def create(
     key.
     """
     if alias is None:
-        alias = f"{repo.split('/')[-1]}-{workspace}"
+        alias = repo.split("/")[-1]
 
     # Fixed extra read-only repos, minus the main repo (avoid duplicate key).
     extra_repos = [r for r in EXTRA_REPOS if r != repo]
@@ -154,8 +148,6 @@ def create(
         repo=repo,
         login_pubkey=login_pubkey,
         image=image,
-        user=user,
-        workspace=workspace,
         extra_repos=extra_repos,
     )
 

@@ -40,10 +40,8 @@ def _config() -> WebConfig:
                 description="Backend service environment",
                 agent="office",
                 repo="owner/api",
-                workspace="backend",
                 alias="office-api-backend",
                 image="custom-img",
-                user="dev",
                 extra_repos=["owner/shared"],
             )
         },
@@ -110,10 +108,8 @@ def test_config_returns_create_templates(app_client: TestClient) -> None:
             "description": "Backend service environment",
             "agent": "office",
             "repo": "owner/api",
-            "workspace": "backend",
             "alias": "office-api-backend",
             "image": "custom-img",
-            "user": "dev",
             "extra_repos": ["owner/shared"],
         }
     ]
@@ -361,7 +357,6 @@ def test_prune_completed_keeps_only_busy_operations() -> None:
         agent_id="home",
         req=web.CreateCodespaceRequest(
             repo="curoky/devspace",
-            workspace="default",
             alias="queued",
             image="ghcr.io/curoky/devspace:codespace-debian12",
             user="x",
@@ -372,7 +367,6 @@ def test_prune_completed_keeps_only_busy_operations() -> None:
         agent_id="home",
         req=web.CreateCodespaceRequest(
             repo="curoky/devspace",
-            workspace="default",
             alias="failed",
             image="ghcr.io/curoky/devspace:codespace-debian12",
             user="x",
@@ -383,7 +377,6 @@ def test_prune_completed_keeps_only_busy_operations() -> None:
         agent_id="home",
         req=web.CreateCodespaceRequest(
             repo="curoky/devspace",
-            workspace="default",
             alias="succeeded",
             image="ghcr.io/curoky/devspace:codespace-debian12",
             user="x",

@@ -102,10 +102,8 @@ templates:
     description: Backend service environment
     agent: office
     repo: owner/api
-    workspace: backend
     alias: office-api-backend
     image: custom-img
-    user: dev
     extra_repos:
       - owner/shared
 """,
@@ -117,11 +115,34 @@ templates:
     assert template.id == "api"
     assert template.agent == "office"
     assert template.repo == "owner/api"
-    assert template.workspace == "backend"
     assert template.alias == "office-api-backend"
     assert template.image == "custom-img"
-    assert template.user == "dev"
     assert template.extra_repos == ["owner/shared"]
+
+
+@pytest.mark.parametrize("field", ["workspace", "user"])
+def test_load_config_rejects_removed_create_fields(tmp_path: Path, field: str) -> None:
+    path = tmp_path / "config.yaml"
+    _write_config(
+        path,
+        f"""
+defaults:
+  agent: home
+  image: img
+  {field}: removed
+agents:
+  home:
+    agent_url: http://h:8001
+    ssh_host: 10.0.0.5
+templates:
+  api:
+    repo: owner/api
+    {field}: removed
+""",
+    )
+
+    with pytest.raises(ValueError, match="Extra inputs are not permitted"):
+        client_config.load_config(path)
 
 
 def test_load_config_rejects_template_with_unknown_agent(tmp_path: Path) -> None:
