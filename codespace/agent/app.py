@@ -12,6 +12,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
 from loguru import logger
 from podman import PodmanClient
+from podman.errors import PodmanError
 from pydantic import BaseModel, Field
 
 from codespace import shared
@@ -144,5 +145,5 @@ def _rollback(config: AgentConfig, cs_id: str) -> None:
             container = podman_ops.get_container(client, cs_id)
             if container is not None:
                 podman_ops.remove_container(container)
-    except podman_ops.PodmanError as exc:
+    except PodmanError as exc:
         logger.error("rollback: failed to remove container for {}: {}", cs_id, exc)

@@ -1,8 +1,9 @@
 """Idempotent management of a marked block in ``~/.ssh/config``.
 
 Each codespace owns a block delimited by begin/end markers keyed on its alias.
-The codespace id is stored as a comment inside the block so ``delete`` can
-recover it without local state (see DESIGN.md §5).
+The codespace id and repo are stored as comments inside the block so ``delete``
+can recover them (and revoke the deploy key) without other local state
+(see DESIGN.md §5).
 """
 
 import re

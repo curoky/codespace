@@ -18,15 +18,13 @@ import time
 
 from podman import PodmanClient
 from podman.domain.containers import Container
-from podman.errors import NotFound, PodmanError
+from podman.errors import NotFound
 from pydantic import BaseModel, ConfigDict
 
 from codespace import shared
 
 __all__ = [
-    "Container",
     "ContainerInfo",
-    "PodmanError",
     "create_container",
     "get_container",
     "inject_credentials",
@@ -51,13 +49,13 @@ class ContainerInfo(BaseModel):
     port: int
 
 
-def _host_port(container: Container, container_port: str = "22/tcp") -> int:
-    """Resolve the host port mapped to ``container_port`` from an inspect."""
+def _host_port(container: Container, container_port: str = "22/tcp") -> int | None:
+    """Resolve the host port mapped to ``container_port``, or ``None`` if unmapped."""
     container.reload()
     ports = container.ports or {}
     bindings = ports.get(container_port)
     if not bindings:
-        raise RuntimeError(f"container has no host mapping for {container_port}")
+        return None
     return int(bindings[0]["HostPort"])
 
 
@@ -117,7 +115,10 @@ def create_container(
     if not isinstance(container, Container):  # pragma: no cover - defensive
         raise TypeError(f"expected Container from run(detach=True), got {type(container)}")
     _wait_running(container)
-    return ContainerInfo(container_id=container.id, port=_host_port(container))
+    port = _host_port(container)
+    if port is None:
+        raise RuntimeError(f"container {container.name} has no host port mapping for 22/tcp")
+    return ContainerInfo(container_id=container.id, port=port)
 
 
 def _exec_checked(container: Container, cmd: list[str], *, user: str | None = None) -> None:
@@ -217,10 +218,7 @@ def to_codespace(container: Container) -> shared.Codespace:
     and the SSH host is omitted: the agent reports only the observable ``port``;
     the client fills in the reachable host.
     """
-    try:
-        port = _host_port(container)
-    except RuntimeError:
-        port = 0
+    port = _host_port(container) or 0
     return shared.Codespace(
         id=read_label(container, shared.LABEL_ID),
         port=port,

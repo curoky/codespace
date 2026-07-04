@@ -120,3 +120,48 @@ def test_delete_missing_is_idempotent(client: TestClient, monkeypatch: pytest.Mo
     resp = client.request("DELETE", "/codespaces/nope")
     assert resp.status_code == 200
     assert resp.json() == {"ok": True, "workspace_removed": False}
+
+
+def test_delete_existing_removes_container(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    removed: list[object] = []
+    monkeypatch.setattr(podman_ops, "get_container", lambda client, cs_id: object())
+    monkeypatch.setattr(
+        podman_ops,
+        "read_label",
+        lambda container, key: {shared.LABEL_REPO: "owner/name", shared.LABEL_WORKSPACE: "default"}[
+            key
+        ],
+    )
+    monkeypatch.setattr(podman_ops, "remove_container", lambda c: removed.append(c))
+    purged: list[str] = []
+    monkeypatch.setattr(podman_ops, "purge_workspace", lambda client, d: purged.append(d))
+
+    resp = client.request("DELETE", "/codespaces/abc123")
+    assert resp.status_code == 200
+    assert resp.json() == {"ok": True, "workspace_removed": False}
+    assert len(removed) == 1  # container removed
+    assert purged == []  # no purge without ?purge=true
+
+
+def test_delete_with_purge_removes_workspace(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(podman_ops, "get_container", lambda client, cs_id: object())
+    monkeypatch.setattr(
+        podman_ops,
+        "read_label",
+        lambda container, key: {shared.LABEL_REPO: "owner/name", shared.LABEL_WORKSPACE: "default"}[
+            key
+        ],
+    )
+    monkeypatch.setattr(podman_ops, "remove_container", lambda c: None)
+    purged: list[str] = []
+    monkeypatch.setattr(podman_ops, "purge_workspace", lambda client, d: purged.append(d))
+
+    resp = client.request("DELETE", "/codespaces/abc123?purge=true")
+    assert resp.status_code == 200
+    assert resp.json() == {"ok": True, "workspace_removed": True}
+    # purge target is <workspace_root>/<workspace_dir>
+    assert purged == ["/var/lib/cs/" + shared.workspace_dir_name("owner/name", "default")]

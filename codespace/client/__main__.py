@@ -10,6 +10,8 @@ from pathlib import Path
 import httpx
 import typer
 from github import GithubException
+from rich.console import Console
+from rich.table import Table
 
 from codespace import shared
 from codespace.client import github, ssh_config
@@ -120,14 +122,16 @@ def create(
     cs = shared.Codespace.model_validate(data)
     if not cs.deploy_public_key:
         _delete_remote(agent, cs.id)
+        _remove_login_key(alias)
         raise _fail("agent did not return a deploy public key")
 
     # Register the deploy key with our own token; on failure roll back the
-    # container so no orphan is left behind.
+    # container and the local login key so no orphan is left behind.
     try:
         github.register_deploy_key(token, repo, cs.id, cs.deploy_public_key)
     except GithubException as exc:
         _delete_remote(agent, cs.id)
+        _remove_login_key(alias)
         raise _fail(f"failed to register deploy key (rolled back container): {exc}") from exc
 
     ssh_config.upsert(alias, ssh_host, cs.port, cs.user, cs.id, repo)
@@ -138,6 +142,12 @@ def create(
 def _delete_remote(agent: str, cs_id: str) -> None:
     """Best-effort request to delete a codespace container on the agent."""
     _request("DELETE", f"{agent.rstrip('/')}/codespaces/{cs_id}")
+
+
+def _remove_login_key(alias: str) -> None:
+    """Delete the local login keypair for ``alias`` (used to clean up rollbacks)."""
+    for path in (KEY_DIR / alias, KEY_DIR / f"{alias}.pub"):
+        path.unlink(missing_ok=True)
 
 
 @app.command(name="list")
@@ -153,13 +163,10 @@ def list_codespaces(
         raise _fail(data.get("error", f"agent returned HTTP {status}"))
 
     rows = [shared.Codespace.model_validate(item) for item in data]
-    headers = ("ID", "REPO", "WORKSPACE", "HOST", "PORT", "STATUS")
-    table = [headers] + [
-        (cs.id, cs.repo, cs.workspace, ssh_host, str(cs.port), cs.status or "-") for cs in rows
-    ]
-    widths = [max(len(row[i]) for row in table) for i in range(len(headers))]
-    for row in table:
-        typer.echo("  ".join(cell.ljust(widths[i]) for i, cell in enumerate(row)))
+    table = Table("ID", "REPO", "WORKSPACE", "HOST", "PORT", "STATUS")
+    for cs in rows:
+        table.add_row(cs.id, cs.repo, cs.workspace, ssh_host, str(cs.port), cs.status or "-")
+    Console().print(table)
 
 
 @app.command()
@@ -214,8 +221,7 @@ def delete(
 
     # Best-effort local cleanup regardless of remote result details.
     ssh_config.remove(alias)
-    for path in (KEY_DIR / alias, KEY_DIR / f"{alias}.pub"):
-        path.unlink(missing_ok=True)
+    _remove_login_key(alias)
 
     resp = shared.DeleteResponse.model_validate(data)
     suffix = " (workspace purged)" if resp.workspace_removed else ""

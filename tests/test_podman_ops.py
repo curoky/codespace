@@ -3,6 +3,8 @@
 import io
 import tarfile
 
+import pytest
+
 from codespace import shared
 from codespace.agent import podman_ops
 
@@ -17,7 +19,8 @@ class _FakeContainer:
         self.ports = {"22/tcp": [{"HostPort": "49207"}]} if ports is None else ports
         self.status = status
         self.id = "deadbeef"
-        self.name = labels.get(shared.LABEL_ID, "")
+        cs_id = labels.get(shared.LABEL_ID, "")
+        self.name = shared.container_name(cs_id) if cs_id else ""
 
     def reload(self) -> None:  # to_codespace -> _host_port calls reload()
         pass
@@ -71,3 +74,123 @@ def test_to_codespace_tolerates_missing_port() -> None:
     container = _FakeContainer(labels={shared.LABEL_ID: "x"}, ports={})
     cs = podman_ops.to_codespace(container)
     assert cs.port == 0
+
+
+# --- Orchestration tests with a fake podman client ---------------------------
+
+
+class _ExecContainer(_FakeContainer):
+    """Container stub recording exec/put_archive calls for injection tests."""
+
+    def __init__(self, labels: dict[str, str], home: str = "/home/dev") -> None:
+        super().__init__(labels)
+        self._home = home
+        self.execs: list[tuple[list[str], str | None]] = []
+        self.archives: list[tuple[str, bytes]] = []
+
+    def exec_run(self, cmd: list[str], *, user: str | None = None) -> tuple[int, bytes]:
+        self.execs.append((cmd, user))
+        if cmd[:2] == ["sh", "-c"]:  # HOME resolution
+            return 0, self._home.encode()
+        return 0, b""
+
+    def put_archive(self, path: str, data: bytes) -> bool:
+        self.archives.append((path, data))
+        return True
+
+
+class _FakeContainers:
+    def __init__(self, container: _FakeContainer | None = None) -> None:
+        self._container = container
+        self.runs: list[dict] = []
+        self.removed: list[str] = []
+
+    def run(self, image: str, **kwargs: object) -> "_FakeContainer | bytes | None":
+        self.runs.append({"image": image, **kwargs})
+        if kwargs.get("detach"):
+            return self._container
+        return b""
+
+    def get(self, name: str) -> _FakeContainer:
+        if self._container is None:
+            from podman.errors import NotFound
+
+            raise NotFound(name)
+        return self._container
+
+    def list(self, all: bool = False) -> list[_FakeContainer]:
+        return [self._container] if self._container else []
+
+
+class _FakeClient:
+    def __init__(self, container: _FakeContainer | None = None) -> None:
+        self.containers = _FakeContainers(container)
+
+
+def test_create_container_writes_labels_and_returns_port(monkeypatch: pytest.MonkeyPatch) -> None:
+    container = _FakeContainer(labels={shared.LABEL_ID: "abc"})
+    client = _FakeClient(container)
+    # create_container narrows the run() result with isinstance(_, Container);
+    # point that check at the fake so the stub is accepted.
+    monkeypatch.setattr(podman_ops, "Container", _FakeContainer)
+
+    info = podman_ops.create_container(
+        client,
+        cs_id="abc",
+        image="img",
+        repo="owner/name",
+        workspace="default",
+        user="dev",
+        workspace_host_dir="/host/ws",
+    )
+
+    assert info.port == 49207
+    run_kwargs = client.containers.runs[0]
+    assert run_kwargs["name"] == "codespace-abc"
+    assert run_kwargs["labels"][shared.LABEL_REPO] == "owner/name"
+    assert run_kwargs["mounts"][0]["source"] == "/host/ws"
+
+
+def test_inject_credentials_chowns_and_puts_archive() -> None:
+    container = _ExecContainer(labels={shared.LABEL_ID: "abc"})
+    client = _FakeClient(container)
+
+    podman_ops.inject_credentials(
+        client,
+        cs_id="abc",
+        user="dev",
+        private_key="PRIV",
+        login_pubkey="ssh-ed25519 LOGIN",
+    )
+
+    # workspace chown (root) happened before archive, ~/.ssh chown after.
+    assert (["chown", "-R", "dev:dev", "/workspace"], "0") in container.execs
+    assert container.archives  # credentials were written via put_archive
+    path, data = container.archives[0]
+    assert path == "/home/dev/.ssh"
+    names = _tar_names(data)
+    assert set(names) == {"repo_id_ed25519", "config", "authorized_keys"}
+
+
+def test_get_container_returns_none_when_absent() -> None:
+    client = _FakeClient(None)
+    assert podman_ops.get_container(client, "missing") is None
+
+
+def test_list_containers_filters_by_label() -> None:
+    labeled = _FakeContainer(labels={shared.LABEL_ID: "abc"})
+    client = _FakeClient(labeled)
+    assert podman_ops.list_containers(client) == [labeled]
+
+
+def test_purge_workspace_runs_helper_container() -> None:
+    client = _FakeClient(_FakeContainer(labels={}))
+    podman_ops.purge_workspace(client, "/host/ws")
+    run = client.containers.runs[0]
+    assert run["mounts"][0]["source"] == "/host/ws"
+    assert run["remove"] is True
+
+
+def _tar_names(data: bytes) -> list[str]:
+    with tarfile.open(fileobj=io.BytesIO(data), mode="r") as tar:
+        return tar.getnames()
