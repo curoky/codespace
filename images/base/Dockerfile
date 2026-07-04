@@ -47,14 +47,12 @@ COPY images/base/rootfs/ /
 COPY images/base/script/setup-sysconf.sh /tmp/setup-sysconf.sh
 RUN /tmp/setup-sysconf.sh \
   && mkdir -p /workspace \
-  && chown 5230:5230 /workspace /opt
-
-RUN ln -s /opt/sb/store/zsh/bin/zsh /usr/bin \
+  && chown 5230:5230 /workspace /opt \
+  && /opt/devspace/images/base/script/setup-s6.sh \
+  && ln -s /opt/sb/store/zsh/bin/zsh /usr/bin \
   && ln -s /opt/sb/store/wget/bin/wget /usr/bin \
-  # && ln -s /opt/sb/store/curl/bin/curl /usr/bin \
   && ln -s /opt/sb/store/less/bin/less /usr/bin \
   && ln -s /opt/sb/store/xz/bin/xz /usr/bin \
-  # && ln -s /opt/sb/store/openssl/bin/openssl /usr/bin \
   && ln -s /opt/sb/store/openssh_gssapi/bin/ssh /usr/bin
 
 USER x
@@ -64,8 +62,7 @@ ENV PATH=${PATH}:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin
 RUN curl -L https://nixos.org/nix/install | sh -s -- --no-daemon \
   && nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs \
   && nix-channel --update \
-  && nix-env -iA nixpkgs.ollama-cpu \
-  && nix-env -iA nixpkgs.lemminx \
+  && nix-env -iA nixpkgs.ollama-cpu nixpkgs.lemminx \
   && nix-collect-garbage -d \
   && nix-store --optimise
 
@@ -99,17 +96,6 @@ RUN uv python install --no-bin 3.9 3.10 3.11 3.12 3.13 3.14
 RUN uv tool install licenseheaders \
   && uv tool install tensorboard --python 3.12 --with tensorboard-plugin-profile --with "setuptools==81.0.0"
 
-# setup pipx
-# ENV PATH=${PATH}:/opt/pipx/bin
-# COPY images/base/stage/uv/pipx /tmp/uv-pipx
-# RUN /tmp/uv-pipx/install.sh \
-#   && pipx install licenseheaders \
-#   && pipx install --python=3.12 tensorboard \
-#     && pipx inject tensorboard tensorboard-plugin-profile 'setuptools==81.0.0'
-
-# COPY images/base/stage/uv/conda /tmp/uv-conda
-# RUN /tmp/uv-conda/install.sh py3
-
 # setup conda
 COPY --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
 ENV PATH=${PATH}:/opt/conda/condabin
@@ -125,8 +111,6 @@ RUN bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles \
 USER root
 RUN bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles \
   && ln -s /opt/devspace ~/devspace
-
-RUN bash /opt/devspace/images/base/script/setup-s6.sh
 
 ENV PATH=${PATH}:/opt/sb/profile/s6/bin:/opt/sb/profile/s6/libexec
 ENTRYPOINT ["/etc/s6/init/bin/init"]
