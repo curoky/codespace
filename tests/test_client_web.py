@@ -58,6 +58,17 @@ def test_config_hides_token(app_client: TestClient) -> None:
     assert "secret" not in str(body)
 
 
+def test_static_page_and_script_are_served(app_client: TestClient) -> None:
+    index = app_client.get("/")
+    script = app_client.get("/static/js/main.js")
+
+    assert index.status_code == 200
+    assert "Codespace Dashboard" in index.text
+    assert script.status_code == 200
+    assert "text/javascript" in script.headers["content-type"]
+    assert "await request('/api/config')" in script.text
+
+
 def test_dashboard_aggregates_agents(
     app_client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:

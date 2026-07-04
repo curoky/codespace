@@ -15,6 +15,7 @@ async function loadAll() {
   try {
     state.error = null;
     state.config = await request('/api/config');
+    render();
     await refreshDashboard();
   } catch (error) {
     state.error = error.message;
@@ -23,10 +24,16 @@ async function loadAll() {
 }
 
 async function refreshDashboard() {
-  state.dashboard = await request('/api/dashboard');
-  for (const op of state.dashboard.operations || []) state.operations.set(op.id, op);
-  render();
-  for (const op of state.operations.values()) if (op.status === 'queued' || op.status === 'running') pollOperation(op.id);
+  try {
+    state.error = null;
+    state.dashboard = await request('/api/dashboard');
+    for (const op of state.dashboard.operations || []) state.operations.set(op.id, op);
+    render();
+    for (const op of state.operations.values()) if (op.status === 'queued' || op.status === 'running') pollOperation(op.id);
+  } catch (error) {
+    state.error = error.message;
+    render();
+  }
 }
 
 function render() {

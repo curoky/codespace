@@ -4,6 +4,7 @@ import contextlib
 import subprocess
 import time
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 import httpx
@@ -16,6 +17,7 @@ from codespace.client.config import AgentProfile, WebConfig
 
 KEY_DIR = Path.home() / ".ssh" / "codespace"
 HTTP_TIMEOUT = 30.0
+DASHBOARD_TIMEOUT = 3.0
 CREATE_POLL_INTERVAL = 2.0
 ProgressCallback = Callable[[str], None]
 
@@ -57,10 +59,12 @@ def default_alias(agent_id: str, repo: str, workspace: str) -> str:
     return f"{agent_id}-{repo.split('/')[-1]}-{workspace}"
 
 
-def request(method: str, url: str, body: dict | None = None) -> tuple[int, dict]:
+def request(
+    method: str, url: str, body: dict | None = None, *, timeout: float = HTTP_TIMEOUT
+) -> tuple[int, dict]:
     """Perform an HTTP request and return ``(status, parsed_json)``."""
     try:
-        resp = httpx.request(method, url, json=body, timeout=HTTP_TIMEOUT)
+        resp = httpx.request(method, url, json=body, timeout=timeout)
     except httpx.RequestError as exc:
         raise ServiceError(f"cannot reach agent: {exc}") from exc
     try:
@@ -122,7 +126,9 @@ class CodespaceService:
         """List codespaces for one configured agent, converting errors to offline results."""
         profile = self.agent(agent_id)
         try:
-            status, data = request("GET", f"{profile.agent_url}/codespaces")
+            status, data = request(
+                "GET", f"{profile.agent_url}/codespaces", timeout=DASHBOARD_TIMEOUT
+            )
             if status != 200:
                 return AgentListResult(
                     agent=profile,
@@ -141,7 +147,17 @@ class CodespaceService:
         """List codespaces for all configured agents."""
         if self.config is None:
             return []
-        return [self.list_agent_codespaces(agent_id) for agent_id in self.config.agents]
+        max_workers = max(1, len(self.config.agents))
+        results: dict[str, AgentListResult] = {}
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {
+                executor.submit(self.list_agent_codespaces, agent_id): agent_id
+                for agent_id in self.config.agents
+            }
+            for future in as_completed(futures):
+                agent_id = futures[future]
+                results[agent_id] = future.result()
+        return [results[agent_id] for agent_id in self.config.agents]
 
     def wait_create_operation(
         self,
