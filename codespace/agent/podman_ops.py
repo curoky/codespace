@@ -19,6 +19,7 @@ import time
 from contextlib import suppress
 from pathlib import Path
 
+from loguru import logger
 from podman import PodmanClient
 from podman.domain.containers import Container
 from podman.errors import NotFound
@@ -75,6 +76,7 @@ def _wait_running(container: Container) -> None:
     while time.monotonic() < deadline:
         container.reload()
         if container.status == "running":
+            logger.info("container {} reached running state", container.name)
             return
         time.sleep(_READY_INTERVAL_S)
     raise RuntimeError(f"container {container.name} did not reach running state")
@@ -88,6 +90,7 @@ def wait_for_ssh_ready(port: int) -> None:
     At this stage the agent only needs to avoid returning before the port is
     listening; key/auth correctness is handled by the client-side SSH command.
     """
+    logger.info("waiting for ssh port {} to accept TCP connections", port)
     deadline = time.monotonic() + _READY_TIMEOUT_S
     last_error: str | None = None
     while time.monotonic() < deadline:
@@ -97,10 +100,12 @@ def wait_for_ssh_ready(port: int) -> None:
                 with socket.socket(family, socket.SOCK_STREAM) as sock:
                     sock.settimeout(_READY_INTERVAL_S)
                     sock.connect((host, port))
+                logger.info("ssh port {} accepted TCP connection via {}", port, host)
                 return
             except OSError as exc:
                 last_error = f"{host}:{port} {exc}"
         time.sleep(_READY_INTERVAL_S)
+    logger.warning("ssh port {} did not start listening: {}", port, last_error)
     raise RuntimeError(f"ssh port {port} did not start listening: {last_error}")
 
 
@@ -137,6 +142,16 @@ def create_container(
     agent-side state.
     """
     ssh_port = _allocate_host_port()
+    logger.info(
+        "starting container {} image={} repo={} workspace={} user={} ssh_port={} workspace_dir={}",
+        shared.container_name(cs_id),
+        image,
+        repo,
+        workspace,
+        user,
+        ssh_port,
+        workspace_host_dir,
+    )
     container = client.containers.run(
         image,
         name=shared.container_name(cs_id),
@@ -164,17 +179,26 @@ def create_container(
     if not isinstance(container, Container):  # pragma: no cover - defensive
         raise TypeError(f"expected Container from run(detach=True), got {type(container)}")
     _wait_running(container)
+    logger.info(
+        "container {} started id={} ssh_port={}",
+        shared.container_name(cs_id),
+        container.id,
+        ssh_port,
+    )
     return ContainerInfo(container_id=container.id, port=ssh_port)
 
 
 def ensure_workspace_dir(workspace_host_dir: str) -> None:
     """Create the workspace bind source directory before podman mounts it."""
+    logger.info("ensuring workspace directory exists: {}", workspace_host_dir)
     Path(workspace_host_dir).mkdir(parents=True, exist_ok=True)
 
 
 def pull_image(client: PodmanClient, image: str) -> None:
     """Ensure ``image`` is available locally, pulling it when needed."""
+    logger.info("pulling image {}", image)
     client.images.pull(image)
+    logger.info("image {} is ready", image)
 
 
 def _exec_checked(container: Container, cmd: list[str], *, user: str | None = None) -> None:
@@ -251,8 +275,15 @@ def inject_credentials(
     """
     extra_keys = extra_keys or []
     container = client.containers.get(shared.container_name(cs_id))
+    logger.info(
+        "injecting credentials into {} user={} extra_keys={}",
+        shared.container_name(cs_id),
+        user,
+        len(extra_keys),
+    )
 
     # 1) Correct ownership of the freshly bind-mounted workspace (root).
+    logger.info("fixing workspace ownership for {} user={}", shared.container_name(cs_id), user)
     _exec_checked(
         container,
         ["chown", "-R", f"{user}:{user}", shared.WORKSPACE_MOUNT],
@@ -265,6 +296,7 @@ def inject_credentials(
     if exit_code not in (0, None) or not home:
         raise RuntimeError(f"could not resolve home dir for user {user}")
     ssh_dir = f"{home}/.ssh"
+    logger.info("resolved home for {} in {}: {}", user, shared.container_name(cs_id), home)
 
     # Ensure ~/.ssh exists with correct perms/ownership before writing into it.
     _exec_checked(container, ["mkdir", "-p", "-m", "700", ssh_dir], user=user)
@@ -286,14 +318,26 @@ def inject_credentials(
     members.append(("config", "\n".join(ssh_config_blocks), 0o600))
 
     archive = _multi_member_tar(members)
+    logger.info(
+        "writing ssh credentials into {} files={} ssh_dir={}",
+        shared.container_name(cs_id),
+        len(members),
+        ssh_dir,
+    )
     if not container.put_archive(ssh_dir, archive):
         raise RuntimeError("failed to inject credentials via put_archive")
     # put_archive preserves the tar member ownership (root); re-own to the user.
     _exec_checked(container, ["chown", "-R", f"{user}:{user}", ssh_dir], user="0")
+    logger.info("ssh credentials injected into {}", shared.container_name(cs_id))
 
     # Extra repos also need a git insteadOf rewrite so plain github.com URLs
     # resolve to the per-repo alias (and thus the correct key).
     if extra_keys:
+        logger.info(
+            "writing git insteadOf rules into {} extra_repos={}",
+            shared.container_name(cs_id),
+            len(extra_keys),
+        )
         _write_git_insteadof(
             container, home=home, user=user, extra_repos=[r for r, _ in extra_keys]
         )

@@ -87,6 +87,10 @@ def create_app(config: AgentConfig) -> FastAPI:
                 }
             )
 
+    def _set_stage(operation_id: str, cs_id: str, stage: str) -> None:
+        logger.info("codespace {} operation {}: {}", cs_id, operation_id, stage)
+        _update_operation(operation_id, stage=stage)
+
     def _build_codespace(
         cs_id: str,
         req: shared.CreateRequest,
@@ -117,29 +121,47 @@ def create_app(config: AgentConfig) -> FastAPI:
 
     def _provision_codespace(operation_id: str, cs_id: str, req: shared.CreateRequest) -> None:
         workspace_host_dir = _workspace_host_dir(config, req.repo, req.workspace)
-        logger.info("creating codespace id={} repo={} workspace={}", cs_id, req.repo, req.workspace)
+        logger.info(
+            "creating codespace id={} operation={} repo={} workspace={} user={} image={} "
+            "extra_repos={} workspace_dir={}",
+            cs_id,
+            operation_id,
+            req.repo,
+            req.workspace,
+            req.user,
+            req.image,
+            len(req.extra_repos),
+            workspace_host_dir,
+        )
 
         try:
             with _client() as client:
+                logger.info("codespace {} operation {}: checking workspace", cs_id, operation_id)
                 _update_operation(operation_id, status="running", stage="checking workspace")
                 existing = podman_ops.find_container_by_workspace(client, req.repo, req.workspace)
                 if existing is not None:
                     existing_id = podman_ops.read_label(existing, shared.LABEL_ID)
+                    logger.warning(
+                        "codespace {} operation {}: duplicate repo/workspace found existing_id={}",
+                        cs_id,
+                        operation_id,
+                        existing_id,
+                    )
                     raise RuntimeError(
                         f"codespace already exists for repo/workspace (id={existing_id})"
                     )
 
-                _update_operation(operation_id, stage="generating deploy keys")
+                _set_stage(operation_id, cs_id, "generating deploy keys")
                 main_keypair = keys.generate_deploy_keypair()
                 extra_keypairs = {repo: keys.generate_deploy_keypair() for repo in req.extra_repos}
 
-                _update_operation(operation_id, stage="preparing workspace directory")
+                _set_stage(operation_id, cs_id, "preparing workspace directory")
                 podman_ops.ensure_workspace_dir(workspace_host_dir)
 
-                _update_operation(operation_id, stage=f"pulling image {req.image}")
+                _set_stage(operation_id, cs_id, f"pulling image {req.image}")
                 podman_ops.pull_image(client, req.image)
 
-                _update_operation(operation_id, stage="creating container")
+                _set_stage(operation_id, cs_id, "creating container")
                 info = podman_ops.create_container(
                     client,
                     cs_id=cs_id,
@@ -149,8 +171,15 @@ def create_app(config: AgentConfig) -> FastAPI:
                     user=req.user,
                     workspace_host_dir=workspace_host_dir,
                 )
+                logger.info(
+                    "codespace {} operation {}: container created id={} ssh_port={}",
+                    cs_id,
+                    operation_id,
+                    info.container_id,
+                    info.port,
+                )
 
-                _update_operation(operation_id, stage="injecting credentials")
+                _set_stage(operation_id, cs_id, "injecting credentials")
                 podman_ops.inject_credentials(
                     client,
                     cs_id=cs_id,
@@ -159,7 +188,7 @@ def create_app(config: AgentConfig) -> FastAPI:
                     login_pubkey=req.login_pubkey,
                     extra_keys=[(repo, kp.private_openssh) for repo, kp in extra_keypairs.items()],
                 )
-                _update_operation(operation_id, stage="waiting for ssh")
+                _set_stage(operation_id, cs_id, "waiting for ssh")
                 podman_ops.wait_for_ssh_ready(info.port)
         except Exception as exc:
             logger.exception("provisioning codespace {} failed; rolling back", cs_id)

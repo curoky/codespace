@@ -397,7 +397,7 @@ repo 专属的只读 key（git 取最长匹配前缀，主 repo 的 github.com U
    workspace → 文件仍在。
 7. **删除**：`delete --alias test-cs --token $TOKEN`：容器被删、deploy key 消失、
    config 块与本地 key 移除；`--purge` 再删工作区目录。
-8. **lint/类型/测试**：`uv run ruff check codespace/ tests/`、`uv run ruff format --check`、
+8. **lint/类型/测试**：`uv run ruff check codespace/`、`uv run ruff format --check`、
    `uv run mypy codespace/`、`uv run pytest` 全通过；shell 文件 `shfmt` 通过。
 
 ## 11. 安全考量与威胁模型（已知并被接受）

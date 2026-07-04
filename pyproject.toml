@@ -26,7 +26,7 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["codespace/tests"]
 pythonpath = ["."]
 addopts = "--cov=codespace --cov-report=term-missing"
 
@@ -43,4 +43,4 @@ select = ["E", "F", "B", "Q", "I", "UP", "S", "SIM", "RUF", "PTH", "ANN", "C4", 
 # typer uses function calls (typer.Option) in argument defaults by design.
 "codespace/client/__main__.py" = ["B008"]
 # Tests may use assert and hardcoded dummy secrets.
-"tests/**" = ["S101", "S105", "S106"]
+"codespace/tests/**" = ["S101", "S105", "S106"]
