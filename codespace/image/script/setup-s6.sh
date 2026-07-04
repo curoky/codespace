@@ -6,7 +6,7 @@
 # the init's PATH.
 #
 # All s6 configuration (s6-rc service definitions, the s6-linux-init skel, and
-# helper scripts) ships under images/base/rootfs/etc/s6 and is laid down at
+# helper scripts) ships under codespace/image/rootfs/etc/s6 and is laid down at
 # /etc/s6 by the Dockerfile's `COPY rootfs/ /`. This script must run after that
 # copy: it only compiles the s6-rc database and generates the container init
 # from the skel.

@@ -18,7 +18,7 @@ type CreateOperationStatus = Literal["queued", "running", "succeeded", "failed"]
 CONTAINER_PREFIX = "codespace-"
 
 # Default login user inside the dev container (see DESIGN.md §3 image contract).
-# The reference image (images/base) ships a pre-created login user `x` (uid 5230).
+# The reference image (codespace/image) ships a pre-created login user `x` (uid 5230).
 DEFAULT_CONTAINER_USER = "x"
 
 # Workspace mount point inside the dev container.

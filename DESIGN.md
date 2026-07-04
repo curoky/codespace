@@ -17,10 +17,10 @@ High-level design of `devspace` — a personal, opinionated development environm
 | --- | --- |
 | [dotfiles/](file:///workspace/devspace/dotfiles) | Per-tool configuration files (zsh, git, ssh, vscode, tmux, …) and a single dispatcher [setup.sh](file:///workspace/devspace/dotfiles/setup.sh). |
 | [host/](file:///workspace/devspace/host) | Per-OS bootstrap scripts ([darwin](file:///workspace/devspace/host/darwin/bootstrap.sh), [linux](file:///workspace/devspace/host/linux/bootstrap.sh), [win](file:///workspace/devspace/host/win/bootstrap.sh)) plus host-only assets (Brewfiles, conda lockfiles). |
-| [images/](file:///workspace/devspace/images) | Dockerfiles that produce the published `ghcr.io/curoky/devspace:*` images. [base/](file:///workspace/devspace/images/base) is the foundation; [gcc/](file:///workspace/devspace/images/gcc), [gui/](file:///workspace/devspace/images/gui), [pytorch/](file:///workspace/devspace/images/pytorch), [tensorflow/](file:///workspace/devspace/images/tensorflow), [iso/](file:///workspace/devspace/images/iso) extend it. |
+| [images/](file:///workspace/devspace/images) | Dockerfiles for non-codespace `ghcr.io/curoky/devspace:*` image variants. [gcc/](file:///workspace/devspace/images/gcc), [gui/](file:///workspace/devspace/images/gui), [pytorch/](file:///workspace/devspace/images/pytorch), [tensorflow/](file:///workspace/devspace/images/tensorflow), [iso/](file:///workspace/devspace/images/iso) extend the published base images. |
 | [deps/](file:///workspace/devspace/deps) | Independent builders for upstream dependencies (CUDA, GCC, LLVM, Python, TensorFlow, host-tools, tabby). Each subdir owns its `Dockerfile` / `Taskfile.yaml` / `build.sh`. |
 | [tools/](file:///workspace/devspace/tools) | Repo-local helper scripts used by CI, hooks, and ad-hoc maintenance (license headers, git history rewrites, GitHub Actions disk cleanup, …). |
-| [codespace/](file:///workspace/devspace/codespace) | Codespace agent/client implementation plus the local Web GUI source and built static assets. |
+| [codespace/](file:///workspace/devspace/codespace) | Codespace agent/client implementation, local Web GUI source and built static assets, and the self-contained reference development image under [codespace/image/](file:///workspace/devspace/codespace/image). |
 | [.github/workflows/](file:///workspace/devspace/.github/workflows) | CI: image build matrix, ISO build, dependency rebuilds, registry cleanup. |
 | [.devcontainer/devcontainer.json](file:///workspace/devspace/.devcontainer/devcontainer.json) | Consumer entry: pulls the published base image. |
 | [pyproject.toml](file:///workspace/devspace/pyproject.toml), [uv.lock](file:///workspace/devspace/uv.lock) | Repo Python tooling (uv-managed); declares lint config (ruff/yapf/black) and CLI deps (typer). |
@@ -40,19 +40,19 @@ High-level design of `devspace` — a personal, opinionated development environm
 - Subfolders are grouped by tool. Notable groups:
   - [zsh/](file:///workspace/devspace/dotfiles/zsh) — modular shell init under `lib/` (numbered prefix = load order).
   - [vscode/](file:///workspace/devspace/dotfiles/vscode) — `app/` for desktop, `remote-server-settings.json` for SSH/devcontainer.
-  - [s6/](file:///workspace/devspace/dotfiles/s6) — service definitions (`sshd`, `ollama`) consumed by base image entrypoint.
+  - [codespace/image/rootfs/etc/s6](file:///workspace/devspace/codespace/image/rootfs/etc/s6) — service definitions (`sshd`, `ollama`) consumed by the codespace image entrypoint.
   - [archive/](file:///workspace/devspace/dotfiles/archive) — frozen / rarely-used configs kept for reference; not wired into `setup.sh` by default.
 
 ### 3.2 Container images
 
 Three layers:
 
-1. **base** — [images/base/Dockerfile](file:///workspace/devspace/images/base/Dockerfile)
+1. **codespace base/reference image** — [codespace/image/Dockerfile](file:///workspace/devspace/codespace/image/Dockerfile)
    - Multi-stage build:
      - `stage_sbt` — produces a static-binary toolset under `/opt/sbt`.
      - `stage_conda` — bakes a Miniconda install.
      - `main` — final image, layered as: apt patch → user `x` (uid 5230) → static tools → nix → rust → java → node → go → python (uv) → conda → dotfiles linked from `/opt/devspace` → s6 init generated from the static s6 binaries.
-   - Entrypoint: [/etc/s6/init/bin/init](file:///workspace/devspace/images/base/script/setup-s6.sh) — a self-hosted s6 init built by [setup-s6.sh](file:///workspace/devspace/images/base/script/setup-s6.sh) from the s6/execline binaries under `/opt/sbt/store` (no s6-overlay); services declared in dotfiles.
+   - Entrypoint: [/etc/s6/init/bin/init](file:///workspace/devspace/codespace/image/script/setup-s6.sh) — a self-hosted s6 init built by [setup-s6.sh](file:///workspace/devspace/codespace/image/script/setup-s6.sh) from the s6/execline binaries under `/opt/sbt/store` (no s6-overlay); services declared in the image rootfs.
    - Runs `dotfiles/setup.sh docker` twice (once as `x`, once as `root`) so both users get a consistent home.
 2. **dist** — [images/gcc](file:///workspace/devspace/images/gcc), [images/gui](file:///workspace/devspace/images/gui), [images/pytorch](file:///workspace/devspace/images/pytorch), [images/tensorflow](file:///workspace/devspace/images/tensorflow), [images/iso](file:///workspace/devspace/images/iso): downstream specializations layered on top of base.
 3. **deps** — [deps/](file:///workspace/devspace/deps): standalone builders that emit tarballs/images consumed by `dist` (or by external users). Each has its own `Taskfile.yaml` so it can be invoked independently of the main release pipeline.
@@ -66,7 +66,8 @@ Three layers:
 
 ### 3.4 CI / Release
 
-- [build-image.yaml](file:///workspace/devspace/.github/workflows/build-image.yaml) — matrix-builds `base` across Debian/Ubuntu bases, then `dist` images. Uses `ghcr.io/curoky/devspace-cache:*` for buildx cache.
+- [build-codespace-image.yaml](file:///workspace/devspace/.github/workflows/build-codespace-image.yaml) — matrix-builds the codespace base/reference image across Debian/Ubuntu bases and publishes both `base-<distro><ver>` and `codespace-<distro><ver>` tags. Uses `ghcr.io/curoky/devspace-cache:codespace-*` for buildx cache.
+- [build-image.yaml](file:///workspace/devspace/.github/workflows/build-image.yaml) — matrix-builds the non-codespace dist images under [images/](file:///workspace/devspace/images).
 - [build-iso.yaml](file:///workspace/devspace/.github/workflows/build-iso.yaml) — produces the live ISO via `images/iso`.
 - [deps-*.yaml](file:///workspace/devspace/.github/workflows) — independently rebuild upstream toolchains; outputs are consumed by `images/*` via `COPY --from=…` or pre-staged tarballs.
 - [cleanup.yaml](file:///workspace/devspace/.github/workflows/cleanup.yaml) — prunes old GHCR tags.
@@ -91,10 +92,10 @@ Three layers:
 
 These are the load-bearing assumptions; touching them requires updating both sides **and** this section.
 
-1. **User identity in containers**: user `x` with uid/gid `5230:5230`. Hard-coded in [images/base/Dockerfile](file:///workspace/devspace/images/base/Dockerfile) and [setup-user.sh](file:///workspace/devspace/images/base/script/setup-user.sh); referenced by every `COPY --chown=…`.
+1. **User identity in containers**: user `x` with uid/gid `5230:5230`. Hard-coded in [codespace/image/Dockerfile](file:///workspace/devspace/codespace/image/Dockerfile); referenced by every `COPY --chown=…`.
 2. **Repo mount path inside container**: `/opt/devspace`, with `~/devspace` as a symlink. Dotfiles paths in `setup.sh` resolve relative to `$CONF_PATH` which defaults to `$HOME/devspace/dotfiles`.
 3. **Image tag scheme**: `ghcr.io/curoky/devspace:base-<distro><ver>` for base, `ghcr.io/curoky/devspace:<name>` for dist. Cache mirror under `ghcr.io/curoky/devspace-cache:*`.
-4. **Service supervision**: containers start via a self-hosted s6 init (no s6-overlay). All s6 config lives in [dotfiles/s6](file:///workspace/devspace/dotfiles/s6) (`s6-rc.d/` service definitions, `skel/` for s6-linux-init) and is copied to `/etc/s6`; [setup-s6.sh](file:///workspace/devspace/images/base/script/setup-s6.sh) then compiles the s6-rc db to `/etc/s6/db` and generates the init at `/etc/s6/init` via `s6-linux-init-maker` (skel `/etc/s6/skel`). New long-running services go under [dotfiles/s6/s6-rc.d](file:///workspace/devspace/dotfiles/s6/s6-rc.d) and must be added to a `user*/contents.d/` bundle. Service `run`/oneshot `up` files are execline scripts; load the container environment with `s6-envdir -Lf -- /run/s6/container_environment` at the top of the run script.
+4. **Service supervision**: containers start via a self-hosted s6 init (no s6-overlay). All s6 config lives in [codespace/image/rootfs/etc/s6](file:///workspace/devspace/codespace/image/rootfs/etc/s6) (`s6-rc.d/` service definitions, `skel/` for s6-linux-init) and is copied to `/etc/s6`; [setup-s6.sh](file:///workspace/devspace/codespace/image/script/setup-s6.sh) then compiles the s6-rc db to `/etc/s6/db` and generates the init at `/etc/s6/init` via `s6-linux-init-maker` (skel `/etc/s6/skel`). New long-running services go under [codespace/image/rootfs/etc/s6/s6-rc.d](file:///workspace/devspace/codespace/image/rootfs/etc/s6/s6-rc.d) and must be added to a `user*/contents.d/` bundle. Service `run`/oneshot `up` files are execline scripts; load the container environment with `s6-envdir -Lf -- /run/s6/container_environment` at the top of the run script.
 5. **Language conventions**: code and committed docs are English; interactive chat is Chinese.
 
 ## 5. Extension recipes

@@ -101,8 +101,11 @@ codespace/
 │   ├── keys.py          # cryptography：内存生成 deploy keypair
 │   ├── Dockerfile       # agent 自身镜像（python + 依赖）
 │   └── run-agent.sh     # 启动 agent 容器（挂 podman.sock）
-└── image/               # 参考开发镜像（满足 §3 契约）
-    └── Dockerfile       # FROM images/base（s6 + sshd + `x` 用户 + git）
+└── image/               # 参考开发镜像（满足 §3 契约，自包含 base/rootfs/script）
+    ├── Dockerfile       # 构建 s6 + sshd + `x` 用户 + git 的参考镜像
+    ├── build.sh         # 本地构建 helper
+    ├── rootfs/          # 镜像 rootfs（s6、sshd、系统配置）
+    └── script/          # 镜像构建与启动 helper 脚本
 ```
 
 | 路径 | 职责 |
@@ -117,7 +120,7 @@ codespace/
 | `codespace/agent/keys.py` | cryptography：内存生成 ed25519 deploy keypair（不落盘、不碰 GitHub）。 |
 | `codespace/agent/Dockerfile` | agent 自身镜像（python + 依赖）。 |
 | `codespace/agent/run-agent.sh` | 启动 agent 容器的参考脚本。 |
-| `codespace/image/Dockerfile` | 参考开发镜像，满足 §3 契约。 |
+| `codespace/image/Dockerfile` | 参考开发镜像，满足 §3 契约；同时发布为 `base-<distro><ver>` 与 `codespace-<distro><ver>` 镜像标签。 |
 
 > **依赖**（`pyproject.toml` 运行依赖）：`typer`、`fastapi`+`uvicorn`（agent HTTP）、
 > `podman`（podman-py，编排 + put_archive 注入）、`cryptography`（agent 内存生成 deploy
@@ -381,9 +384,9 @@ repo 专属的只读 key（git 取最长匹配前缀，主 repo 的 github.com U
 
 ## 10. 端到端验证
 
-1. **构建镜像**：先构建 base（`bash images/base/build.sh debian:12`，产出
-   `ghcr.io/curoky/devspace:base-debian12`），再 `podman build -t codespace/dev:latest
-   codespace/image`（参考镜像 `FROM` 该 base，满足 §3 契约）。
+1. **构建镜像**：从仓库根执行 `bash codespace/image/build.sh debian:12`，产出
+   `ghcr.io/curoky/devspace:base-debian12`；或直接执行 `podman build -t codespace/dev:latest
+   -f codespace/image/Dockerfile .` 构建本地参考镜像。
 2. **启动 agent**：`bash codespace/agent/run-agent.sh`；`curl http://localhost:8001/codespaces`
    返回 `[]`。
 3. **创建**：`python -m codespace.client create --repo owner/name --workspace default

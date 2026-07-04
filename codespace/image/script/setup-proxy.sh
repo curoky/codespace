@@ -12,7 +12,7 @@ function write_proxy() {
   echo "export NO_PROXY=localhost,127.0.0.1,192.168.0.0/16,10.0.0.0/8,releases.nixos.org" >>$2
 }
 
-if [[ -n ${HTTP_PROXY:-} ]]; then
+if [[ -n ${HTTP_PROXY-} ]]; then
   write_proxy $HTTP_PROXY /etc/environment
   write_proxy $HTTP_PROXY /etc/profile
   write_proxy $HTTP_PROXY /etc/bash.bashrc

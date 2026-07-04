@@ -9,7 +9,7 @@ rm -rf /home/x/.cache/starship.plugin.zsh \
   /home/x/.cache/conda.plugin.zsh \
   /home/x/.cache/atuin.plugin.zsh
 
-sudo -E /opt/devspace/images/base/script/setup-proxy.sh
+sudo -E /opt/devspace/codespace/image/script/setup-proxy.sh
 
 mkdir -p /workspace/.vscode-server/data/Machine
 ln -sf /home/x/.vscode-server/data/Machine/settings.json /workspace/.vscode-server/data/Machine/settings.json
@@ -35,8 +35,7 @@ fi
 # bash /home/x/.config/atuin/login-and-sync.sh &
 
 # export PATH=$PATH:/opt/rust/cargo/bin:/opt/sb/bin
-# /opt/devspace/images/base/stage/uv/conda/install.sh py3 &
-
+# /opt/devspace/codespace/image/stage/uv/conda/install.sh py3 &
 
 # ollama pull llama3:8b &
 # ollama pull mistral &

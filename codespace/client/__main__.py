@@ -120,7 +120,7 @@ def create(
         ..., "--token", envvar="GITHUB_TOKEN", help="GitHub token (env GITHUB_TOKEN)."
     ),
     image: str = typer.Option(
-        "ghcr.io/curoky/devspace:codespace-image-debian12",
+        "ghcr.io/curoky/devspace:codespace-debian12",
         "--image",
         help="Dev image satisfying the §3 contract.",
     ),

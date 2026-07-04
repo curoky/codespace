@@ -104,7 +104,7 @@ CODESPACE_CONFIG > ~/.config/codespace/config.yaml
 ```yaml
 defaults:
   agent: home
-  image: ghcr.io/curoky/devspace:codespace-image-debian12
+  image: ghcr.io/curoky/devspace:codespace-debian12
   user: x
   workspace: default
   extra_repos:
@@ -139,7 +139,7 @@ templates:
     agent: lab
     repo: curoky/devspace
     workspace: agent
-    image: ghcr.io/curoky/devspace:codespace-image-debian12
+    image: ghcr.io/curoky/devspace:codespace-debian12
     user: x
     extra_repos:
       - curoky/ai-coding-config
@@ -393,7 +393,7 @@ Agent        [home ▼]
 Repo         [curoky/devspace]
 Workspace    [default]
 Alias        [home-devspace-default]
-Image        [ghcr.io/curoky/devspace:codespace-image-debian12]
+Image        [ghcr.io/curoky/devspace:codespace-debian12]
 Extra repos  [✓] curoky/ai-coding-config
 
 [Cancel] [Create]
@@ -500,7 +500,7 @@ Web API 仅服务本地浏览器，不是远程公共 API。
 {
   "default_agent": "home",
   "defaults": {
-    "image": "ghcr.io/curoky/devspace:codespace-image-debian12",
+    "image": "ghcr.io/curoky/devspace:codespace-debian12",
     "user": "x",
     "workspace": "default",
     "extra_repos": ["curoky/ai-coding-config"]
@@ -578,7 +578,7 @@ Web API 仅服务本地浏览器，不是远程公共 API。
   "repo": "curoky/devspace",
   "workspace": "default",
   "alias": "home-devspace-default",
-  "image": "ghcr.io/curoky/devspace:codespace-image-debian12",
+  "image": "ghcr.io/curoky/devspace:codespace-debian12",
   "user": "x",
   "extra_repos": ["curoky/ai-coding-config"]
 }

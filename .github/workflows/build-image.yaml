@@ -5,7 +5,6 @@ on:
     paths:
       - '.github/workflows/build-image.yaml'
       - 'images/**'
-      - 'dotfiles/**'
   workflow_dispatch:
     inputs:
       disable_docker_cache:
@@ -17,64 +16,6 @@ on:
     - cron: '0 0 * * 0'
 
 jobs:
-  base:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    strategy:
-      matrix:
-        include:
-          - base_image: 'debian:10'
-            saved_image: 'debian10'
-          - base_image: 'debian:11'
-            saved_image: 'debian11'
-          - base_image: 'debian:12'
-            saved_image: 'debian12'
-          - base_image: 'debian:13'
-            saved_image: 'debian13'
-          # - base_image: 'ubuntu:20.04'
-          #   saved_image: 'ubuntu20.04'
-          # - base_image: 'ubuntu:22.04'
-          #   saved_image: 'ubuntu22.04'
-          # - base_image: 'ubuntu:24.04'
-          #   saved_image: 'ubuntu24.04'
-          - base_image: 'ubuntu:26.04'
-            saved_image: 'ubuntu26.04'
-    # needs:
-    #   - stage
-    steps:
-      - uses: actions/checkout@v5
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: images/base/Dockerfile
-          push: true
-          # provenance: mode=max
-          provenance: false
-          # cache-from: type=gha
-          # cache-to: type=gha,mode=max
-          # cache-from: type=registry,ref=curoky/devspace:__cache_base_${{ matrix.saved_image }}
-          # cache-to: type=registry,ref=curoky/devspace:__cache_base_${{ matrix.saved_image }},mode=max
-          cache-from: type=registry,ref=ghcr.io/curoky/devspace-cache:base-${{ matrix.saved_image }}
-          cache-to: type=registry,ref=ghcr.io/curoky/devspace-cache:base-${{ matrix.saved_image }},mode=max
-          no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
-          build-args: BASE_IMAGE=${{ matrix.base_image }}
-          tags: ghcr.io/curoky/devspace:base-${{ matrix.saved_image }}
-          outputs: type=image,oci-mediatypes=true
-
-      # - if: github.event_name == 'schedule'
-      #   run: >
-      #     docker run --rm --env=CI=true -v /var/run/docker.sock:/var/run/docker.sock wagoodman/dive
-      #     curoky/devspace:base-${{ matrix.saved_image }}
-
   # stage:
   #   runs-on: ubuntu-latest
   #   strategy:
@@ -92,8 +33,8 @@ jobs:
   #         password: ${{ secrets.DOCKER_TOKEN }}
   #     - uses: docker/build-push-action@v6
   #       with:
-  #         context: images/base/stage/${{ matrix.name }}
-  #         file: images/base/stage/${{ matrix.name }}/Dockerfile
+  #         context: codespace/image/stage/${{ matrix.name }}
+  #         file: codespace/image/stage/${{ matrix.name }}/Dockerfile
   #         push: true
   #         provenance: mode=max
   #         cache-from: type=registry,ref=curoky/devspace:__cache_stage_${{ matrix.name }}
@@ -117,8 +58,6 @@ jobs:
             saved_image: gcc
           - name: gui
             saved_image: gui
-    needs:
-      - base
     steps:
       - uses: actions/checkout@v5
       - uses: docker/setup-buildx-action@v3
