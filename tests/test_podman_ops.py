@@ -135,6 +135,7 @@ def test_create_container_writes_labels_and_returns_port(monkeypatch: pytest.Mon
     # create_container narrows the run() result with isinstance(_, Container);
     # point that check at the fake so the stub is accepted.
     monkeypatch.setattr(podman_ops, "Container", _FakeContainer)
+    monkeypatch.setattr(podman_ops, "_allocate_host_port", lambda: 49207)
 
     info = podman_ops.create_container(
         client,
@@ -149,7 +150,10 @@ def test_create_container_writes_labels_and_returns_port(monkeypatch: pytest.Mon
     assert info.port == 49207
     run_kwargs = client.containers.runs[0]
     assert run_kwargs["name"] == "codespace-abc"
+    assert run_kwargs["network_mode"] == "host"
+    assert run_kwargs["environment"] == {"SSHD_PORT": "49207"}
     assert run_kwargs["labels"][shared.LABEL_REPO] == "owner/name"
+    assert run_kwargs["labels"][shared.LABEL_PORT] == "49207"
     assert run_kwargs["mounts"][0]["source"] == "/host/ws"
 
 

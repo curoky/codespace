@@ -8,7 +8,7 @@ SSH 连接信息，client 将其写入本地 `~/.ssh/config`，用户即可 `ssh
 > **容器运行时**：本方案使用 **Podman（rootful）**。agent 通过挂载的
 > `/run/podman/podman.sock` 与宿主机 podman service 通信，创建的开发容器是宿主机上的
 > **兄弟容器**（Podman-out-of-Podman, PoP）。rootful 模式下 Podman 行为与 Docker 基本
-> 一致（端口映射、bind mount 属主、exec 等）。
+> 一致（host network、bind mount 属主、exec 等）。
 
 > **独立性原则**：本方案不依赖任何宿主项目的内部约定（不假设特定基础镜像、特定容器
 > 用户/uid、特定 init 系统或既有的密钥注入钩子）。它对"开发容器镜像"只提出一份最小
@@ -51,13 +51,13 @@ SSH 连接信息，client 将其写入本地 `~/.ssh/config`，用户即可 `ssh
        │                            ┌──────────────────────────┐
        ▼                            │  开发容器                 │
  ┌────────────┐ ssh <ssh-host:port> │  满足 §3 镜像契约          │
- │  GitHub    │  ◀───────直连───────│  sshd 监听 22             │
+│  GitHub    │  ◀───────直连───────│  sshd 监听宿主机随机端口  │
  └────────────┘                     └──────────────────────────┘
 ```
 
 - **部署模型**：Podman-out-of-Podman（PoP）。agent 容器挂载宿主机
-  `/run/podman/podman.sock`；开发容器是运行在宿主机上的**兄弟容器**，其映射端口位于宿主机
-  IP 上，client 可直接连接。
+  `/run/podman/podman.sock`；开发容器是运行在宿主机上的**兄弟容器**，使用 host network，
+  sshd 直接监听宿主机随机端口，client 可直接连接。
 - **兄弟容器路径注意**：`podman run -v <src>:<dst>` 的 `<src>` 由**宿主机** podman service
   解释，而非 agent 容器内路径。工作区目录因此以宿主机路径字符串传给 podman（见 §7）。
 - **密钥注入用 `put_archive`**：不依赖任何镜像内的启动钩子，agent 在容器起来后直接
@@ -67,8 +67,10 @@ SSH 连接信息，client 将其写入本地 `~/.ssh/config`，用户即可 `ssh
 
 方案对"开发容器镜像"只要求以下最小契约，任何满足者皆可由 client 指定：
 
-1. **sshd 监听 22**：容器启动后其内部运行 sshd 并监听容器端口 `22`；采用公钥认证
-   （`PubkeyAuthentication yes`）。方案通过 `-p 0.0.0.0:0:22` 把它映射到宿主机随机端口。
+1. **sshd 端口可由环境变量覆盖**：容器启动后其内部运行 sshd，采用公钥认证
+   （`PubkeyAuthentication yes`）。镜像必须读取 `SSHD_PORT` 环境变量作为监听端口；未设置时
+   默认监听 `22`，以便单容器手动运行仍可用。agent 创建容器时使用 host network 并传入随机
+   `SSHD_PORT`，避免依赖 Podman bridge/端口映射的 IPv6 行为。
 2. **存在一个非 root 登录用户**：默认用户名 `x`（可由 client 在 create 请求的 `user`
    字段覆盖）。该用户拥有可写的家目录，`~/.ssh/` 可创建。
 3. **该用户可写工作区路径**：容器内 `/workspace` 供 bind mount 挂载并可被登录用户读写。
@@ -250,30 +252,30 @@ Host <alias>
 2. `id = <短随机十六进制>`；计算工作区目录名
    `ws = codespace-<repo-slug>-<workspace>-<hash8>`，其中 `repo-slug` 为 `owner/name` 的
    `/`→`-`，`hash8` 为 `sha256("<repo>\0<workspace>")` 的前 8 位十六进制（避免 slug 冲突，
-   见 §7）；宿主机路径 `<workspace_root_host>/<ws>`。
+   见 §7）；宿主机路径 `<workspace_root_host>/<ws>`；同时向内核申请一个当前空闲的宿主机 TCP
+   端口作为 `ssh_port`。
 3. **内存中**生成 deploy keypair（`cryptography` 生成 ed25519，导出 OpenSSH 格式，不写盘）；
    私钥留待注入，公钥待返回，均不落磁盘。
 4. **podman-py 启动开发容器**（`client.containers.run(...)`），关键参数逐项说明：
    - `image`：client 传入、满足 §3 契约的开发镜像；`name="codespace-<id>"`：容器名带
      `codespace-` 前缀，是 agent 所有 podman 操作的作用域边界。
    - `detach=True`：后台启动并返回 `Container` 对象（agent 随后轮询其状态）。
-   - `ports={"22/tcp": None}`：把容器内 sshd 的 22 端口映射到**宿主机随机端口**，client 之后
-     经 `<--ssh-host>:<随机端口>` 直连。
+   - `network_mode="host"` + `environment={"SSHD_PORT": str(ssh_port)}`：开发容器复用宿主机
+     网络命名空间，sshd 直接监听宿主机随机端口，client 之后经 `<--ssh-host>:<ssh_port>` 直连。
    - `labels={codespace.id, codespace.repo, codespace.workspace, codespace.user,
-     codespace.image}`：**持久元数据写进 labels**，`list`/`delete` 时从 podman 读回，agent
-     无需本地存储；**注意不含 deploy key id**——GitHub 元数据只由 client 掌握，agent 靠
-     `cs_id`（= 容器名/label）与 GitHub 的 key title `codespace-<id>` 关联（见 §8）。
+     codespace.image, codespace.port}`：**持久元数据写进 labels**，`list`/`delete` 时从 podman
+     读回，agent 无需本地存储；**注意不含 deploy key id**——GitHub 元数据只由 client 掌握，
+     agent 靠 `cs_id`（= 容器名/label）与 GitHub 的 key title `codespace-<id>` 关联（见 §8）。
    - `mounts=[{"type":"bind","source":<workspace_HOST>/<ws>,"target":"/workspace"}]`：把宿主机
      工作区目录 bind 到容器 `/workspace`。**PoP 关键**：`source` 是**宿主机路径**字符串，由
-     宿主机 podman service 解释；**目录不存在时 podman 自动创建**（root 属主），agent 无需
-     触碰宿主机文件系统。
+     宿主机 podman service 解释；agent 在创建容器前确保目录存在。
 5. **put_archive 注入（见 §6.3）**：注入**不依赖 sshd 监听**，只需容器处于 running 且登录
    用户存在。agent 轮询容器状态达到 `running` 后即：
    - 先以 `-u 0`（root）执行 `chown -R <user> /workspace`，修正 bind 目录属主（保持 agent
      无状态，chown 在容器内完成）；
    - 再用 `put_archive` 把内存中构造的 tar（deploy 私钥、git ssh config、登录公钥）写入
      登录用户的 `~/.ssh/`，随后 `chown -R <user> ~/.ssh`。
-6. podman-py 读取容器 `22/tcp` 的宿主机映射端口，作为响应的 `port`（agent 不填 host）。
+6. agent 将 `ssh_port` 作为响应的 `port`（agent 不填 host）。
 7. 丢弃内存中的私钥，返回响应载荷（含 `deploy_public_key`，供 client 注册 GitHub key）。
 8. 若第 4–7 步任一失败：agent 回滚——`rm -f` 该容器（此时尚无 GitHub key，无需清理 GitHub），
    返回 `5xx`。若 agent 成功但 client 侧注册 GitHub key 失败，则由 **client** 调 `DELETE`
@@ -446,7 +448,8 @@ repo 专属的只读 key（git 取最长匹配前缀，主 repo 的 github.com U
 5. **agent 不做鉴权**：与"明文 HTTP、不可信网络已接受"一致；任何能访问 agent 端口者可
    创建/删除容器（`delete` 仅凭 `cs_id`）。但 agent 不持任何 GitHub 凭据，波及不到 GitHub。
    风险已在 §11 记录并接受。
-6. **并发**：无状态设计无共享可变状态，随机端口由 podman 分配，并发创建天然安全。
+6. **并发**：无状态设计无共享可变状态；host network 下随机端口由 agent 向内核申请并写入
+   container label，供 `list`/`delete` 后续读回。
 7. **GitHub 交互全收敛到 client、token 不经网络**（§4/§5/§8）：agent 只生成 keypair 并注入
    私钥、返回公钥；client 用自己的 token 注册/吊销 deploy key。以 `cs_id`（= 容器 label = key
    title `codespace-<id>`）为单一关联键，删除按 title 反查，配合双向回滚保证一致性（§9）。

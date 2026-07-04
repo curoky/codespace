@@ -13,8 +13,10 @@ to the agent's disk, and never appears in a mount table (see DESIGN.md §6.3).
 """
 
 import io
+import socket
 import tarfile
 import time
+from contextlib import suppress
 from pathlib import Path
 
 from podman import PodmanClient
@@ -78,6 +80,20 @@ def _wait_running(container: Container) -> None:
     raise RuntimeError(f"container {container.name} did not reach running state")
 
 
+def _allocate_host_port() -> int:
+    """Ask the kernel for a currently free host TCP port."""
+    try:
+        with socket.socket(socket.AF_INET6, socket.SOCK_STREAM) as sock:
+            with suppress(OSError):
+                sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+            sock.bind(("::", 0))
+            return int(sock.getsockname()[1])
+    except OSError:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.bind(("", 0))
+            return int(sock.getsockname()[1])
+
+
 def create_container(
     client: PodmanClient,
     *,
@@ -96,17 +112,20 @@ def create_container(
     All persistent metadata is written to labels so list/delete need no
     agent-side state.
     """
+    ssh_port = _allocate_host_port()
     container = client.containers.run(
         image,
         name=shared.container_name(cs_id),
         detach=True,
-        ports={"22/tcp": None},
+        network_mode="host",
+        environment={"SSHD_PORT": str(ssh_port)},
         labels={
             shared.LABEL_ID: cs_id,
             shared.LABEL_REPO: repo,
             shared.LABEL_WORKSPACE: workspace,
             shared.LABEL_USER: user,
             shared.LABEL_IMAGE: image,
+            shared.LABEL_PORT: str(ssh_port),
         },
         mounts=[
             {
@@ -121,10 +140,7 @@ def create_container(
     if not isinstance(container, Container):  # pragma: no cover - defensive
         raise TypeError(f"expected Container from run(detach=True), got {type(container)}")
     _wait_running(container)
-    port = _host_port(container)
-    if port is None:
-        raise RuntimeError(f"container {container.name} has no host port mapping for 22/tcp")
-    return ContainerInfo(container_id=container.id, port=port)
+    return ContainerInfo(container_id=container.id, port=ssh_port)
 
 
 def ensure_workspace_dir(workspace_host_dir: str) -> None:
@@ -314,7 +330,8 @@ def to_codespace(container: Container) -> shared.Codespace:
     and the SSH host is omitted: the agent reports only the observable ``port``;
     the client fills in the reachable host.
     """
-    port = _host_port(container) or 0
+    port_label = read_label(container, shared.LABEL_PORT)
+    port = int(port_label) if port_label else _host_port(container) or 0
     return shared.Codespace(
         id=read_label(container, shared.LABEL_ID),
         port=port,

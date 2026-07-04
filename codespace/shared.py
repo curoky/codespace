@@ -34,6 +34,7 @@ LABEL_REPO = "codespace.repo"
 LABEL_WORKSPACE = "codespace.workspace"
 LABEL_USER = "codespace.user"
 LABEL_IMAGE = "codespace.image"
+LABEL_PORT = "codespace.port"
 
 # Validation patterns.
 REPO_RE = re.compile(r"^[\w.-]+/[\w.-]+$")
