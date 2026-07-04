@@ -34,6 +34,7 @@ def client(config: app_module.AgentConfig, monkeypatch: pytest.MonkeyPatch) -> T
 
     monkeypatch.setattr(app_module, "PodmanClient", lambda *a, **k: _DummyClient())
     monkeypatch.setattr(podman_ops, "ensure_workspace_dir", lambda *a: None)
+    monkeypatch.setattr(podman_ops, "wait_for_ssh_ready", lambda *a: None)
     return TestClient(app_module.create_app(config))
 
 

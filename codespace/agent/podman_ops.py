@@ -81,7 +81,13 @@ def _wait_running(container: Container) -> None:
 
 
 def wait_for_ssh_ready(port: int) -> None:
-    """Poll localhost until the provisioned SSH port returns an SSH banner."""
+    """Poll localhost until the provisioned SSH port accepts TCP connections.
+
+    Some sshd builds may accept the connection but return a pre-auth refusal
+    such as ``Not allowed at this time`` instead of the normal ``SSH-`` banner.
+    At this stage the agent only needs to avoid returning before the port is
+    listening; key/auth correctness is handled by the client-side SSH command.
+    """
     deadline = time.monotonic() + _READY_TIMEOUT_S
     last_error: str | None = None
     while time.monotonic() < deadline:
@@ -91,14 +97,11 @@ def wait_for_ssh_ready(port: int) -> None:
                 with socket.socket(family, socket.SOCK_STREAM) as sock:
                     sock.settimeout(_READY_INTERVAL_S)
                     sock.connect((host, port))
-                    banner = sock.recv(64)
-                if banner.startswith(b"SSH-"):
-                    return
-                last_error = f"{host}:{port} returned {banner!r}"
+                return
             except OSError as exc:
                 last_error = f"{host}:{port} {exc}"
         time.sleep(_READY_INTERVAL_S)
-    raise RuntimeError(f"ssh on port {port} did not become ready: {last_error}")
+    raise RuntimeError(f"ssh port {port} did not start listening: {last_error}")
 
 
 def _allocate_host_port() -> int:

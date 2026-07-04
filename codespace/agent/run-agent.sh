@@ -18,7 +18,7 @@ fi
 
 podman run --detach \
 	--name codespace-agent \
-	-p 8001:8001 \
+	--network host \
 	-v /tmp/podmanxd.sock:/tmp/podmanxd.sock \
 	-v "${WORKSPACE_ROOT_HOST}:${WORKSPACE_ROOT_HOST}" \
 	ghcr.io/curoky/devspace:codespace-agent \
