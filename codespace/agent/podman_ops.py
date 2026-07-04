@@ -343,8 +343,24 @@ def to_codespace(container: Container) -> shared.Codespace:
             read_label(container, shared.LABEL_REPO),
             read_label(container, shared.LABEL_WORKSPACE),
         ),
-        status=container.status,
+        status=_container_status(container),
     )
+
+
+def _container_status(container: Container) -> str | None:
+    """Return container status across podman-py inspect/list attr shapes."""
+    attrs = getattr(container, "attrs", {}) or {}
+    state = attrs.get("State") if isinstance(attrs, dict) else None
+    if isinstance(state, dict):
+        status = state.get("Status")
+        return str(status) if status else None
+    if isinstance(state, str):
+        return state
+    try:
+        status = container.status
+    except (AttributeError, KeyError, TypeError):
+        return None
+    return str(status) if status else None
 
 
 def list_containers(client: PodmanClient) -> list[Container]:
