@@ -15,225 +15,273 @@
     <link rel="stylesheet" href="/static/css/app.css" />
   </head>
   <body>
-    <div class="app-shell">
-      <nav class="navbar navbar-expand-lg glass-nav sticky-top">
-        <div class="container-fluid px-4">
-          <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="#">
-            <span class="brand-orb"><i class="bi bi-terminal"></i></span>
-            Codespace Dashboard
-          </a>
-          <div class="d-flex align-items-center gap-2">
+    <div class="app-shell cockpit-shell">
+      <aside class="app-sidebar" aria-label="Dashboard navigation">
+        <a class="brand-block" href="#overview">
+          <span class="brand-orb"><i class="bi bi-terminal"></i></span>
+          <span>
+            <strong>Codespace</strong>
+            <small>Local Control Plane</small>
+          </span>
+        </a>
+
+        <nav class="side-nav">
+          <a href="#overview" class="active"><i class="bi bi-speedometer2"></i>Overview</a>
+          <a href="#templates"><i class="bi bi-lightning-charge"></i>Templates</a>
+          <a href="#codespaces"><i class="bi bi-box-seam"></i>Codespaces</a>
+          <a href="#agents"><i class="bi bi-hdd-network"></i>Agents</a>
+          <a href="#operations"><i class="bi bi-activity"></i>Operations</a>
+        </nav>
+
+        <div class="sidebar-status">
+          <p class="eyebrow mb-2">LIVE SUMMARY</p>
+          <div class="sidebar-stat">
+            <span>Codespaces</span>
+            <strong id="nav-codespace-count">0</strong>
+          </div>
+          <div class="sidebar-stat">
+            <span>Agents</span>
+            <strong id="nav-agent-count">0</strong>
+          </div>
+          <div class="sidebar-stat">
+            <span>Running Ops</span>
+            <strong id="nav-operation-count">0</strong>
+          </div>
+        </div>
+      </aside>
+
+      <div class="app-main">
+        <header class="top-command-bar">
+          <div>
+            <p class="eyebrow mb-1">DASHBOARD</p>
+            <h1 class="h4 mb-0">管理所有 Agent 上的开发容器</h1>
+          </div>
+          <div class="top-actions">
             <span id="config-summary" class="badge text-bg-light rounded-pill px-3 py-2">
               加载配置中...
             </span>
             <button id="refresh-button" class="btn btn-light btn-sm shadow-sm" type="button">
               <i class="bi bi-arrow-clockwise me-1"></i>Refresh
             </button>
+            <button id="create-button" class="btn btn-primary btn-sm shadow-sm" type="button">
+              <i class="bi bi-plus-lg me-1"></i>Create
+            </button>
           </div>
-        </div>
-      </nav>
+        </header>
 
-      <main class="container-fluid px-4 py-4">
-        <section class="hero-card mb-4">
-          <div>
-            <p class="eyebrow mb-2">LOCAL CONTROL PLANE</p>
-            <h1 class="display-6 fw-bold mb-2">管理所有 Agent 上的开发容器</h1>
-            <p class="text-secondary mb-0">
-              从本地 YAML 配置加载多个 agent，统一创建、删除和连接 codespace。
-            </p>
-          </div>
-          <button id="create-button" class="btn btn-primary btn-lg shadow" type="button">
-            <i class="bi bi-plus-lg me-2"></i>Create Codespace
-          </button>
-        </section>
-
-        <section class="card border-0 shadow-sm mb-4">
-          <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-            <div>
-              <h2 class="h5 mb-1">Create Templates</h2>
-              <p class="text-secondary small mb-0">从 config.yaml 读取预设，一键创建常用开发环境</p>
-            </div>
-            <i class="bi bi-lightning-charge fs-3 text-primary"></i>
-          </div>
-          <div class="card-body">
-            <div id="template-list" class="template-grid"></div>
-          </div>
-        </section>
-
-        <section class="row g-3 mb-4" aria-label="Dashboard summary">
-          <div class="col-6 col-xl-3">
-            <div class="metric-card">
-              <span class="metric-icon text-bg-primary"><i class="bi bi-box-seam"></i></span>
-              <div>
-                <p class="metric-label">Codespaces</p>
-                <strong id="stat-codespaces">0</strong>
+        <main class="content-grid">
+          <section class="workspace-column">
+            <section id="overview" class="hero-card command-center mb-4">
+              <div class="command-copy">
+                <p class="eyebrow mb-2">SYSTEM OVERVIEW</p>
+                <h2 class="display-6 fw-bold mb-2">一个本地控制面，统一创建、连接和清理 codespace</h2>
+                <p class="text-secondary mb-0">
+                  从 config.yaml 读取 agents、defaults 和 templates；GitHub token 只留在本地。
+                </p>
               </div>
-            </div>
-          </div>
-          <div class="col-6 col-xl-3">
-            <div class="metric-card">
-              <span class="metric-icon text-bg-success"><i class="bi bi-wifi"></i></span>
-              <div>
-                <p class="metric-label">Online Agents</p>
-                <strong id="stat-online-agents">0</strong>
+              <div class="quick-create-panel">
+                <label class="form-label small text-secondary mb-1" for="quick-template-select">
+                  Quick template
+                </label>
+                <div class="input-group input-group-sm">
+                  <select id="quick-template-select" class="form-select">
+                    <option value="">选择模板...</option>
+                  </select>
+                  <button id="quick-template-button" class="btn btn-primary" type="button">
+                    Apply
+                  </button>
+                </div>
+                <button class="btn btn-outline-primary btn-sm w-100 mt-2" type="button" data-action="open-create">
+                  空白创建表单
+                </button>
               </div>
-            </div>
-          </div>
-          <div class="col-6 col-xl-3">
-            <div class="metric-card">
-              <span class="metric-icon text-bg-danger"><i class="bi bi-wifi-off"></i></span>
-              <div>
-                <p class="metric-label">Offline Agents</p>
-                <strong id="stat-offline-agents">0</strong>
-              </div>
-            </div>
-          </div>
-          <div class="col-6 col-xl-3">
-            <div class="metric-card">
-              <span class="metric-icon text-bg-info"><i class="bi bi-activity"></i></span>
-              <div>
-                <p class="metric-label">Running Ops</p>
-                <strong id="stat-running-ops">0</strong>
-              </div>
-            </div>
-          </div>
-        </section>
+            </section>
 
-        <section id="global-error" class="alert alert-warning d-none" role="alert"></section>
-
-        <div id="toast-area" class="toast-area" aria-live="polite" aria-atomic="true"></div>
-
-        <section class="row g-4 mb-4">
-          <div class="col-12 col-xl-8">
-            <div class="card border-0 shadow-sm h-100">
-              <div class="card-header bg-white border-0 pb-0">
-                <div class="d-flex justify-content-between align-items-center">
+            <section class="row g-3 mb-4" aria-label="Dashboard summary">
+              <div class="col-6 col-xl-3">
+                <div class="metric-card">
+                  <span class="metric-icon text-bg-primary"><i class="bi bi-box-seam"></i></span>
                   <div>
-                    <h2 class="h5 mb-1">Agents</h2>
-                    <p class="text-secondary small mb-0">在线状态和容器数量概览</p>
+                    <p class="metric-label">Codespaces</p>
+                    <strong id="stat-codespaces">0</strong>
                   </div>
-                  <i class="bi bi-hdd-network fs-3 text-primary"></i>
                 </div>
               </div>
-              <div class="card-body">
-                <div id="agent-summary" class="agent-grid"></div>
+              <div class="col-6 col-xl-3">
+                <div class="metric-card">
+                  <span class="metric-icon text-bg-success"><i class="bi bi-wifi"></i></span>
+                  <div>
+                    <p class="metric-label">Online Agents</p>
+                    <strong id="stat-online-agents">0</strong>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+              <div class="col-6 col-xl-3">
+                <div class="metric-card">
+                  <span class="metric-icon text-bg-danger"><i class="bi bi-wifi-off"></i></span>
+                  <div>
+                    <p class="metric-label">Offline Agents</p>
+                    <strong id="stat-offline-agents">0</strong>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6 col-xl-3">
+                <div class="metric-card">
+                  <span class="metric-icon text-bg-info"><i class="bi bi-activity"></i></span>
+                  <div>
+                    <p class="metric-label">Running Ops</p>
+                    <strong id="stat-running-ops">0</strong>
+                  </div>
+                </div>
+              </div>
+            </section>
 
-          <div class="col-12 col-xl-4">
-            <div class="card border-0 shadow-sm h-100">
-              <div class="card-header bg-white border-0 pb-0">
-                <h2 class="h5 mb-1">Filters</h2>
-                <p class="text-secondary small mb-0">快速筛选 repo、workspace 或 alias</p>
+            <section id="global-error" class="alert alert-warning d-none" role="alert"></section>
+
+            <section id="templates" class="surface-panel mb-4">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow mb-1">CREATE FLOW</p>
+                  <h2 class="h5 mb-1">Create Templates</h2>
+                  <p class="text-secondary small mb-0">从配置文件读取预设，点击后填充统一创建表单</p>
+                </div>
+                <i class="bi bi-lightning-charge fs-3 text-primary"></i>
               </div>
-              <div class="card-body d-grid gap-3">
-                <label class="form-label mb-0">
-                  Agent
-                  <select id="agent-filter" class="form-select mt-1"></select>
+              <div id="template-list" class="template-grid"></div>
+            </section>
+
+            <section id="codespaces" class="surface-panel mb-4">
+              <div class="section-heading align-items-start">
+                <div>
+                  <p class="eyebrow mb-1">WORKLOADS</p>
+                  <h2 class="h5 mb-1">Codespaces</h2>
+                  <p class="text-secondary small mb-0">先用卡片快速连接，必要时切换到表格做批量排查</p>
+                </div>
+                <span class="badge text-bg-primary rounded-pill" id="codespace-count">0</span>
+              </div>
+
+              <div class="filter-bar" aria-label="Codespace filters">
+                <label class="filter-field">
+                  <span>Agent</span>
+                  <select id="agent-filter" class="form-select form-select-sm"></select>
                 </label>
-                <label class="form-label mb-0">
-                  Status
-                  <select id="status-filter" class="form-select mt-1">
+                <label class="filter-field">
+                  <span>Status</span>
+                  <select id="status-filter" class="form-select form-select-sm">
                     <option value="all">All</option>
                     <option value="running">Running</option>
                     <option value="stopped">Stopped</option>
                     <option value="unknown">Unknown</option>
                   </select>
                 </label>
-                <label class="form-label mb-0">
-                  Search
-                  <div class="input-group mt-1">
+                <label class="filter-field search-field">
+                  <span>Search</span>
+                  <div class="input-group input-group-sm">
                     <span class="input-group-text"><i class="bi bi-search"></i></span>
                     <input
                       id="search-input"
                       class="form-control"
                       type="search"
-                      placeholder="repo / workspace / alias"
+                      placeholder="repo / workspace / alias / id"
                     />
                   </div>
                 </label>
-                <label class="form-label mb-0">
-                  Sort
-                  <select id="sort-select" class="form-select mt-1">
+                <label class="filter-field">
+                  <span>Sort</span>
+                  <select id="sort-select" class="form-select form-select-sm">
                     <option value="agent">Agent</option>
                     <option value="repo">Repository</option>
                     <option value="workspace">Workspace</option>
                     <option value="status">Status</option>
                   </select>
                 </label>
-                <div class="d-flex justify-content-between align-items-center gap-2">
-                  <button id="clear-search-button" class="btn btn-outline-secondary btn-sm" type="button">
-                    <i class="bi bi-eraser me-1"></i>Clear filters
-                  </button>
-                  <label class="form-check form-switch small mb-0">
-                    <input id="auto-refresh-toggle" class="form-check-input" type="checkbox" checked />
-                    Auto refresh
-                  </label>
+                <button id="clear-search-button" class="btn btn-outline-secondary btn-sm" type="button">
+                  <i class="bi bi-eraser me-1"></i>Clear
+                </button>
+              </div>
+
+              <div id="codespace-empty" class="empty-state d-none">
+                <i class="bi bi-inbox"></i>
+                <p class="mb-0">暂无 codespace</p>
+              </div>
+
+              <div id="codespace-card-grid" class="codespace-grid mb-3"></div>
+
+              <details class="table-disclosure" open>
+                <summary>详细表格视图</summary>
+                <div class="table-responsive mt-3">
+                  <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Agent</th>
+                        <th>Repository</th>
+                        <th>Workspace</th>
+                        <th>Alias</th>
+                        <th>Status</th>
+                        <th>SSH</th>
+                        <th class="text-end">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="codespace-tbody"></tbody>
+                  </table>
                 </div>
-                <p id="last-updated" class="text-secondary small mb-0">尚未刷新</p>
-              </div>
-            </div>
-          </div>
-        </section>
+              </details>
+            </section>
+          </section>
 
-        <section class="card border-0 shadow-sm mb-4">
-          <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-            <div>
-              <h2 class="h5 mb-1">Codespaces</h2>
-              <p class="text-secondary small mb-0">当前 agent 返回的容器列表</p>
-            </div>
-            <span class="badge text-bg-primary rounded-pill" id="codespace-count">0</span>
-          </div>
-          <div class="card-body p-0">
-            <div id="codespace-empty" class="empty-state d-none">
-              <i class="bi bi-inbox"></i>
-              <p class="mb-0">暂无 codespace</p>
-            </div>
-            <div class="table-responsive">
-              <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                  <tr>
-                    <th>Agent</th>
-                    <th>Repository</th>
-                    <th>Workspace</th>
-                    <th>Alias</th>
-                    <th>Status</th>
-                    <th>SSH</th>
-                    <th class="text-end">Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="codespace-tbody"></tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <section class="card border-0 shadow-sm">
-          <div class="card-header bg-white border-0">
-            <div class="d-flex justify-content-between align-items-center gap-2">
-              <div>
-                <h2 class="h5 mb-1">Operations</h2>
-                <p class="text-secondary small mb-0">创建任务和后台进度</p>
+          <aside class="insight-column">
+            <section class="surface-panel mb-4" id="system-status">
+              <div class="section-heading compact">
+                <div>
+                  <p class="eyebrow mb-1">STATUS</p>
+                  <h2 class="h6 mb-0">Runtime</h2>
+                </div>
+                <label class="form-check form-switch small mb-0">
+                  <input id="auto-refresh-toggle" class="form-check-input" type="checkbox" checked />
+                  Auto refresh
+                </label>
               </div>
-              <button id="clear-operations-button" class="btn btn-outline-secondary btn-sm" type="button">
-                <i class="bi bi-check2-circle me-1"></i>Clear finished
-              </button>
-            </div>
-          </div>
-          <div class="card-body">
-            <div id="operation-list" class="operation-list"></div>
-          </div>
-        </section>
-      </main>
+              <div id="token-status-card" class="token-status-card"></div>
+              <p id="last-updated" class="text-secondary small mb-0 mt-3">尚未刷新</p>
+            </section>
+
+            <section id="agents" class="surface-panel mb-4">
+              <div class="section-heading compact">
+                <div>
+                  <p class="eyebrow mb-1">TOPOLOGY</p>
+                  <h2 class="h6 mb-0">Agents</h2>
+                </div>
+                <i class="bi bi-hdd-network fs-4 text-primary"></i>
+              </div>
+              <div id="agent-summary" class="agent-grid stacked"></div>
+            </section>
+
+            <section id="operations" class="surface-panel">
+              <div class="section-heading compact">
+                <div>
+                  <p class="eyebrow mb-1">ACTIVITY</p>
+                  <h2 class="h6 mb-0">Operations</h2>
+                </div>
+                <button id="clear-operations-button" class="btn btn-outline-secondary btn-sm" type="button">
+                  <i class="bi bi-check2-circle me-1"></i>Clear
+                </button>
+              </div>
+              <div id="operation-list" class="operation-list"></div>
+            </section>
+          </aside>
+        </main>
+      </div>
     </div>
+
+    <div id="toast-area" class="toast-area" aria-live="polite" aria-atomic="true"></div>
 
     <dialog id="create-dialog" class="create-dialog">
       <form id="create-form" method="dialog" class="card border-0 shadow-lg modal-card">
         <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
           <div>
+            <p class="eyebrow mb-1">CREATE WORKFLOW</p>
             <h2 class="h4 mb-1">Create Codespace</h2>
-            <p class="text-secondary small mb-0">选择 agent 并填写仓库信息</p>
+            <p class="text-secondary small mb-0">选择 agent，确认模板或默认值，然后提交创建任务</p>
           </div>
           <button id="create-cancel" type="button" class="btn btn-light btn-sm">
             <i class="bi bi-x-lg"></i>

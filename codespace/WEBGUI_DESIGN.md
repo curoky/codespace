@@ -230,30 +230,47 @@ Dashboard 是 Web GUI 的核心页面，必须同时展示多个 agent 与其容
 
 ### 6.1 页面布局
 
+Web GUI 采用 cockpit 式信息架构：左侧固定导航负责定位模块，顶部 command bar 放全局状态与高频
+动作，主体分为「工作区主列」和「右侧洞察列」。这样把创建入口、运行中 codespaces、agent 拓扑
+与后台操作进度拆成稳定区域，避免所有信息线性堆叠。
+
 ```text
-┌──────────────────────────────────────────────────────────────┐
-│ Header                                                       │
-│ Codespace Dashboard        Config: ~/.config/codespace/...   │
-├──────────────────────────────────────────────────────────────┤
-│ Agent Summary                                                │
-│ [Home: Online] [Office: Offline] [Lab: Online]               │
-├──────────────────────────────────────────────────────────────┤
-│ Create Templates                                             │
-│ [Devspace] [Agent Lab] [Create from template]                │
-├──────────────────────────────────────────────────────────────┤
-│ Toolbar                                                      │
-│ Agent: [All ▼]  Search: [repo/workspace/alias]  [Refresh]    │
-│                                             [Create]         │
-├──────────────────────────────────────────────────────────────┤
-│ Codespace Table                                              │
-│ Agent | Repo | Workspace | Alias | Status | SSH | Actions    │
-├──────────────────────────────────────────────────────────────┤
-│ Operation Panel / Drawer                                     │
-│ Creating home-devspace-default: pulling image ...            │
-└──────────────────────────────────────────────────────────────┘
+┌───────────────┬──────────────────────────────────────────────────────────────┐
+│ Sidebar       │ Top Command Bar                                             │
+│ - Overview    │ Default agent · Token status · Refresh · Create             │
+│ - Templates   ├────────────────────────────────────────┬─────────────────────┤
+│ - Codespaces  │ Main Workspace                         │ Insight Rail        │
+│ - Agents      │                                        │                     │
+│ - Operations  │ 1. Overview + Quick template           │ Runtime status      │
+│               │ 2. Metrics                             │ Token state         │
+│ Live Summary  │ 3. Create Templates                    │ Auto refresh        │
+│               │ 4. Codespace cards + detail table      │ Agent topology      │
+│               │                                        │ Operations timeline │
+└───────────────┴────────────────────────────────────────┴─────────────────────┘
 ```
 
-### 6.2 Agent Summary
+布局原则：
+
+- **导航不承载业务状态**：sidebar 只放模块锚点和轻量计数，具体操作仍在模块内完成。
+- **顶部只放全局动作**：`Refresh`、`Create`、token/default 摘要始终可见。
+- **主列优先工作流**：模板、codespace 卡片、过滤器和表格服务于「快速创建 / 快速连接 / 快速删除」。
+- **右列放环境洞察**：token、agent 在线状态和 operation 进度常驻，不打断主工作流。
+- **卡片优先、表格兜底**：日常连接使用 codespace card；排查、批量浏览时展开详细表格。
+
+### 6.2 顶部 Command Bar
+
+顶部栏始终 sticky，提供：
+
+| 元素 | 说明 |
+| --- | --- |
+| 当前 Dashboard 标题 | 固定说明当前控制面范围 |
+| Config summary | 展示 default agent 与 GitHub token 状态，不泄漏 token 明文 |
+| Refresh | 手动刷新 `/api/dashboard` |
+| Create | 打开空白创建表单 |
+
+token 状态同时在右侧 Runtime 卡片中展开，便于用户理解 create 不可用的原因。
+
+### 6.3 Agent Summary
 
 对配置文件里的每个 agent 展示：
 
@@ -274,9 +291,30 @@ GET <agent_url>/codespaces
 
 任一 agent 离线不应阻塞整个 Dashboard；离线 agent 显示错误，其余 agent 正常展示。
 
-### 6.3 Codespace Table
+### 6.4 Create Templates 与 Quick Create
 
-主表格展示所有 agent 的 codespace：
+模板有两个入口：
+
+1. Overview hero 的 `Quick template` 下拉，用于常用路径的快速选中。
+2. `Create Templates` 模块的模板卡片，用于浏览完整模板信息后创建。
+
+两者都只执行「打开 create modal 并填充字段」，不会直接提交创建请求。用户仍可在 modal 中修改
+agent、repo、workspace、alias、image、user 和 extra repos。
+
+### 6.5 Codespace Cards 与 Table
+
+主列先展示 codespace 卡片，突出日常最常用的信息与操作：
+
+| 字段 / 操作 | 说明 |
+| --- | --- |
+| Repo / Agent / Workspace | 识别当前开发环境 |
+| Status | 容器运行状态 |
+| ID / Host:Port / User | 连接和排查所需元数据 |
+| SSH command | 可复制的 SSH 命令 |
+| Copy SSH | 复制连接命令 |
+| Delete / Purge | 删除容器或连同 workspace 清理 |
+
+卡片下方保留详细表格视图，用于排查和密集浏览：
 
 | 列 | 示例 | 说明 |
 | --- | --- | --- |
@@ -297,6 +335,14 @@ GET <agent_url>/codespaces
 - 手动刷新。
 - 可选自动刷新，例如 10 秒一次。
 - 复制 SSH 命令。
+
+### 6.6 Operations Timeline
+
+右侧 operations timeline 常驻展示 WebOperation：
+
+- `queued` / `running`：显示动画进度条，保留在列表中并持续轮询。
+- `succeeded`：显示完成状态，并触发 Dashboard 刷新。
+- `failed`：显示错误详情，用户可保留用于排查，或点击 `Clear` 清理已结束任务。
 
 ## 7. Alias 与 SSH 配置
 

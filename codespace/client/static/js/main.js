@@ -81,8 +81,10 @@ function render() {
   $('#global-error').textContent = state.error || '';
   renderConfig();
   renderStats();
+  renderTokenStatus();
   renderAgents();
   renderTemplates();
+  renderQuickTemplates();
   renderFilters();
   renderCodespaces();
   renderOperations();
@@ -102,11 +104,34 @@ function renderConfig() {
 function renderStats() {
   const agents = state.dashboard.agents || [];
   const ops = [...state.operations.values()];
-  $('#stat-codespaces').textContent = state.dashboard.codespaces?.length || 0;
+  const codespaceCount = state.dashboard.codespaces?.length || 0;
+  const runningOps = ops.filter(isBusyOperation).length;
+  $('#stat-codespaces').textContent = codespaceCount;
   $('#stat-online-agents').textContent = agents.filter((agent) => agent.status === 'online').length;
   $('#stat-offline-agents').textContent = agents.filter((agent) => agent.status === 'offline').length;
-  $('#stat-running-ops').textContent = ops.filter(isBusyOperation).length;
+  $('#stat-running-ops').textContent = runningOps;
+  $('#nav-codespace-count').textContent = codespaceCount;
+  $('#nav-agent-count').textContent = agents.length;
+  $('#nav-operation-count').textContent = runningOps;
   $('#last-updated').textContent = `Last updated: ${formatTime(state.lastUpdated)}`;
+}
+
+function renderTokenStatus() {
+  const github = state.config?.github;
+  const tone = github?.has_token ? 'success' : 'warning';
+  const icon = github?.has_token ? 'bi-shield-check' : 'bi-exclamation-triangle';
+  const title = github?.has_token ? 'GitHub token ready' : 'GitHub token missing';
+  const detail = github?.has_token
+    ? `Source: ${escapeHtml(tokenSourceLabel())}${github.inline_token ? ' (masked inline token)' : ''}`
+    : `Set ${escapeHtml(tokenSourceLabel())} before creating codespaces`;
+  $('#token-status-card').innerHTML = `
+    <div class="token-status ${tone}">
+      <span class="metric-icon text-bg-${tone}"><i class="bi ${icon}"></i></span>
+      <div>
+        <strong>${title}</strong>
+        <p class="mb-0 small">${detail}</p>
+      </div>
+    </div>`;
 }
 
 function renderAgents() {
@@ -155,6 +180,15 @@ function renderTemplates() {
     </article>`).join('') : '<div class="empty-state"><i class="bi bi-lightning-charge"></i><p class="mb-0">暂无模板；在 config.yaml 中添加 templates 后会显示在这里</p></div>';
 }
 
+function renderQuickTemplates() {
+  const templates = state.config?.templates || [];
+  $('#quick-template-select').innerHTML = [
+    '<option value="">选择模板...</option>',
+    ...templates.map((template) => `<option value="${escapeHtml(template.id)}">${escapeHtml(template.name)} · ${escapeHtml(template.repo)}</option>`),
+  ].join('');
+  $('#quick-template-button').disabled = templates.length === 0;
+}
+
 function renderFilters() {
   const options = [
     '<option value="all">All agents</option>',
@@ -185,6 +219,33 @@ function renderCodespaces() {
   const rows = filteredCodespaces();
   $('#codespace-count').textContent = rows.length;
   $('#codespace-empty').classList.toggle('d-none', rows.length > 0);
+  $('#codespace-card-grid').innerHTML = rows.map((cs) => `
+    <article class="codespace-card">
+      <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+        <div>
+          <p class="text-secondary small mb-1">${escapeHtml(cs.agent_name)} · ${escapeHtml(cs.workspace)}</p>
+          <h3 class="h6 mb-0">${escapeHtml(cs.repo)}</h3>
+        </div>
+        <span class="status-pill ${escapeHtml(normalizeStatus(cs.status))}">${escapeHtml(cs.status || 'unknown')}</span>
+      </div>
+      <div class="codespace-meta mb-3">
+        <span><i class="bi bi-fingerprint"></i>${escapeHtml(cs.id)}</span>
+        <span><i class="bi bi-pc-display"></i>${escapeHtml(cs.ssh_host)}:${cs.port}</span>
+        <span><i class="bi bi-person"></i>${escapeHtml(cs.user)}</span>
+      </div>
+      <code class="ssh-code w-100 mb-3" title="${escapeHtml(cs.ssh_command)}">${escapeHtml(cs.ssh_command)}</code>
+      <div class="d-flex gap-2">
+        <button class="btn btn-primary btn-sm flex-fill" data-action="copy" data-ssh="${escapeHtml(cs.ssh_command)}" type="button">
+          <i class="bi bi-clipboard me-1"></i>Copy SSH
+        </button>
+        <button class="btn btn-outline-danger btn-sm" data-action="delete" data-agent="${escapeHtml(cs.agent_id)}" data-id="${escapeHtml(cs.id)}" data-repo="${escapeHtml(cs.repo)}" type="button">
+          Delete
+        </button>
+        <button class="btn btn-danger btn-sm" data-action="purge" data-agent="${escapeHtml(cs.agent_id)}" data-id="${escapeHtml(cs.id)}" data-repo="${escapeHtml(cs.repo)}" type="button">
+          Purge
+        </button>
+      </div>
+    </article>`).join('');
   $('#codespace-tbody').innerHTML = rows.map((cs) => `
     <tr>
       <td>
@@ -216,6 +277,33 @@ function renderCodespaces() {
         </div>
       </td>
     </tr>`).join('');
+}
+
+async function handleCodespaceAction(button) {
+  if (button.dataset.action === 'filter-agent') {
+    state.filter.agent = button.dataset.agent;
+    render();
+    return;
+  }
+  if (button.dataset.action === 'copy') {
+    await navigator.clipboard.writeText(button.dataset.ssh);
+    showToast('SSH command copied');
+    return;
+  }
+  const purge = button.dataset.action === 'purge';
+  if (!confirm(purge ? '确认删除并 purge workspace？' : '确认删除 codespace？')) return;
+  button.disabled = true;
+  try {
+    const result = await request(`/api/agents/${encodeURIComponent(button.dataset.agent)}/codespaces/${encodeURIComponent(button.dataset.id)}?repo=${encodeURIComponent(button.dataset.repo)}${purge ? '&purge=true' : ''}`, { method: 'DELETE' });
+    state.error = result.warning || null;
+    showToast(result.warning || 'Codespace deleted', result.warning ? 'warning' : 'success');
+    await refreshDashboard();
+  } catch (error) {
+    state.error = error.message;
+    render();
+  } finally {
+    button.disabled = false;
+  }
 }
 
 function renderOperations() {
@@ -364,6 +452,7 @@ function showToast(message, tone = 'success') {
 
 $('#refresh-button').addEventListener('click', refreshDashboard);
 $('#create-button').addEventListener('click', openCreate);
+document.querySelectorAll('[data-action="open-create"]').forEach((button) => button.addEventListener('click', openCreate));
 $('#create-cancel').addEventListener('click', () => $('#create-dialog').close());
 $('#create-cancel-footer').addEventListener('click', () => $('#create-dialog').close());
 $('#create-form').addEventListener('submit', submitCreate);
@@ -376,6 +465,10 @@ $('#template-list').addEventListener('click', (event) => {
   const button = event.target.closest('button[data-action="create-template"]');
   if (!button) return;
   openCreateFromTemplate(button.dataset.template);
+});
+$('#quick-template-button').addEventListener('click', () => {
+  const templateId = $('#quick-template-select').value;
+  if (templateId) openCreateFromTemplate(templateId);
 });
 $('#agent-filter').addEventListener('change', (event) => { state.filter.agent = event.target.value; render(); });
 $('#status-filter').addEventListener('change', (event) => { state.filter.status = event.target.value; render(); });
@@ -393,33 +486,15 @@ $('#clear-operations-button').addEventListener('click', () => {
   for (const [id, op] of state.operations.entries()) if (!isBusyOperation(op)) state.operations.delete(id);
   render();
 });
+$('#codespace-card-grid').addEventListener('click', async (event) => {
+  const button = event.target.closest('button[data-action]');
+  if (!button) return;
+  await handleCodespaceAction(button);
+});
 $('#codespace-tbody').addEventListener('click', async (event) => {
   const button = event.target.closest('button[data-action]');
   if (!button) return;
-  if (button.dataset.action === 'filter-agent') {
-    state.filter.agent = button.dataset.agent;
-    render();
-    return;
-  }
-  if (button.dataset.action === 'copy') {
-    await navigator.clipboard.writeText(button.dataset.ssh);
-    showToast('SSH command copied');
-    return;
-  }
-  const purge = button.dataset.action === 'purge';
-  if (!confirm(purge ? '确认删除并 purge workspace？' : '确认删除 codespace？')) return;
-  button.disabled = true;
-  try {
-    const result = await request(`/api/agents/${encodeURIComponent(button.dataset.agent)}/codespaces/${encodeURIComponent(button.dataset.id)}?repo=${encodeURIComponent(button.dataset.repo)}${purge ? '&purge=true' : ''}`, { method: 'DELETE' });
-    state.error = result.warning || null;
-    showToast(result.warning || 'Codespace deleted', result.warning ? 'warning' : 'success');
-    await refreshDashboard();
-  } catch (error) {
-    state.error = error.message;
-    render();
-  } finally {
-    button.disabled = false;
-  }
+  await handleCodespaceAction(button);
 });
 
 loadAll();
