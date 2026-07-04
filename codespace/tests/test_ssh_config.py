@@ -22,6 +22,9 @@ def test_upsert_creates_block_with_id(config_path: Path) -> None:
     assert "HostName 10.0.0.5" in content
     assert "Port 49207" in content
     assert "User dev" in content
+    assert "IdentitiesOnly yes" in content
+    assert "HostKeyAlgorithms ssh-ed25519" in content
+    assert "UpdateHostKeys no" in content
     assert ssh_config.get_id("myalias") == "abc123"
     assert ssh_config.get_repos("myalias") == ["owner/name"]
 

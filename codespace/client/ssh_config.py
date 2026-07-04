@@ -68,8 +68,11 @@ def _render_block(
             f"    Port {port}",
             f"    User {user}",
             f"    IdentityFile ~/.ssh/codespace/{alias}",
+            "    IdentitiesOnly yes",
+            "    HostKeyAlgorithms ssh-ed25519",
             "    StrictHostKeyChecking accept-new",
             "    UserKnownHostsFile ~/.ssh/codespace/known_hosts",
+            "    UpdateHostKeys no",
             _end(alias),
         ]
     )
