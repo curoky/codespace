@@ -140,9 +140,7 @@ def create(
         "--image",
         help="Dev image satisfying the §3 contract.",
     ),
-    alias: str | None = typer.Option(
-        None, "--alias", help="SSH alias; defaults to repo name."
-    ),
+    alias: str | None = typer.Option(None, "--alias", help="SSH alias; defaults to repo name."),
 ) -> None:
     """Create a codespace and register an ssh alias for it.
 

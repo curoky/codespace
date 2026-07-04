@@ -4,8 +4,7 @@ import pytest
 
 from codespace import shared
 from codespace.client import service
-from codespace.client.config import AgentProfile
-from codespace.client.config import DefaultsConfig, WebConfig
+from codespace.client.config import AgentProfile, DefaultsConfig, WebConfig
 from codespace.client.service import SshHttpTunnel, _agent_target_host, _ssh_forward_target_host
 
 
@@ -93,7 +92,9 @@ def test_create_codespace_clones_after_registering_deploy_key(
     )
 
     monkeypatch.setattr(service, "ensure_login_key", lambda alias: "ssh-ed25519 LOGIN")
-    monkeypatch.setattr(service.github, "register_deploy_key", lambda *a, **k: events.append("register"))
+    monkeypatch.setattr(
+        service.github, "register_deploy_key", lambda *a, **k: events.append("register")
+    )
     monkeypatch.setattr(service.ssh_config, "upsert", lambda *a, **k: events.append("upsert"))
     monkeypatch.setattr(service.CodespaceService, "wait_create_operation", lambda *a, **k: cs)
 

@@ -254,7 +254,7 @@ def test_clone_repo_clones_into_repo_name_directory() -> None:
     assert user == "dev"
     assert cmd[:2] == ["sh", "-c"]
     assert cmd[-2:] == ["owner/name", "/workspace/name"]
-    assert "git clone \"git@github.com:$repo\" \"$target\"" in cmd[2]
+    assert 'git clone "git@github.com:$repo" "$target"' in cmd[2]
 
 
 def test_get_container_returns_none_when_absent() -> None:
