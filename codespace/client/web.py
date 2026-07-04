@@ -1,5 +1,6 @@
 """Local FastAPI Web GUI for managing codespaces across multiple agents."""
 
+import logging
 import secrets
 import time
 from pathlib import Path
@@ -18,6 +19,12 @@ from codespace.client.service import CodespaceService, CreateCodespaceInput, Del
 
 WebOperationStatus = Literal["queued", "running", "succeeded", "failed"]
 STATIC_DIR = Path(__file__).parent / "static"
+logger = logging.getLogger(__name__)
+GITHUB_ENV_MISSING_MESSAGE = (
+    "GitHub token is not available in the Web GUI process; set {token_env} "
+    "before starting `python -m codespace.client web`, or configure github.token_env "
+    "in config.yaml."
+)
 
 
 class ConfigDefaultsSummary(BaseModel):
@@ -218,11 +225,13 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
 
     @app.post("/api/agents/{agent_id}/codespaces")
     def create_codespace(agent_id: str, req: CreateCodespaceRequest) -> CreateCodespaceResponse:
-        token = github_token(config)
-        if not token:
-            raise HTTPException(status_code=400, detail="GitHub token is not available")
         if agent_id not in config.agents:
             raise HTTPException(status_code=404, detail="agent not found")
+        token = github_token(config)
+        if not token:
+            message = GITHUB_ENV_MISSING_MESSAGE.format(token_env=config.github.token_env)
+            logger.warning("Rejecting create codespace request for agent %s: %s", agent_id, message)
+            raise HTTPException(status_code=400, detail=message)
         operation = operations.create(agent_id=agent_id, req=req)
         Thread(
             target=_run_create_operation,

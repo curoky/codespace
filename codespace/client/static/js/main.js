@@ -34,6 +34,7 @@ const defaultAlias = (agent, repo, workspace) => agent && repo && workspace ? `$
 const isBusyOperation = (op) => op.status === 'queued' || op.status === 'running';
 const formatTime = (timestamp) => timestamp ? new Date(timestamp).toLocaleTimeString() : '尚未刷新';
 const normalizeStatus = (status) => String(status || 'unknown').toLowerCase();
+const tokenMissingMessage = () => `创建 codespace 需要 GitHub token。请在启动 Web GUI 前设置 ${state.config?.github?.token_env || 'GITHUB_TOKEN'}，或在 config.yaml 的 github.token_env 中指定环境变量名。`;
 
 async function loadAll() {
   try {
@@ -91,7 +92,9 @@ function renderConfig() {
     el.textContent = '加载配置中...';
     return;
   }
-  el.textContent = `Default: ${state.config.default_agent} · Token: ${state.config.github.has_token ? '已配置' : '未配置'}`;
+  el.classList.toggle('text-bg-warning', !state.config.github.has_token);
+  el.classList.toggle('text-bg-light', state.config.github.has_token);
+  el.textContent = `Default: ${state.config.default_agent} · Token: ${state.config.github.has_token ? '已配置' : `未配置(${state.config.github.token_env})`}`;
 }
 
 function renderStats() {
@@ -222,6 +225,8 @@ function openCreate() {
   if (!cfg) return;
   $('#create-error').classList.add('d-none');
   $('#create-error').textContent = '';
+  $('#create-token-warning').classList.toggle('d-none', cfg.github.has_token);
+  $('#create-token-warning').textContent = cfg.github.has_token ? '' : tokenMissingMessage();
   $('#create-agent').innerHTML = cfg.agents.map((a) => `<option value="${escapeHtml(a.id)}">${escapeHtml(a.name)}</option>`).join('');
   $('#create-agent').value = state.filter.agent !== 'all' ? state.filter.agent : cfg.default_agent;
   $('#create-workspace').value = cfg.defaults.workspace;
@@ -268,6 +273,7 @@ async function submitCreate(event) {
   } catch (error) {
     $('#create-error').textContent = error.message;
     $('#create-error').classList.remove('d-none');
+    showToast(error.message, 'danger');
   } finally {
     submitButton.disabled = false;
   }

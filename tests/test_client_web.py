@@ -136,6 +136,27 @@ def test_operation_lifecycle(app_client: TestClient, monkeypatch: pytest.MonkeyP
     assert op["codespace"]["id"] == "abc123"
 
 
+def test_create_without_github_token_logs_actionable_error(
+    app_client: TestClient, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
+) -> None:
+    monkeypatch.delenv("GITHUB_TOKEN")
+
+    with caplog.at_level("WARNING", logger="codespace.client.web"):
+        resp = app_client.post(
+            "/api/agents/home/codespaces",
+            json={"repo": "owner/name", "alias": "home-name-default", "image": "img"},
+        )
+
+    assert resp.status_code == 400
+    assert resp.json() == {
+        "error": "GitHub token is not available in the Web GUI process; set GITHUB_TOKEN "
+        "before starting `python -m codespace.client web`, or configure github.token_env "
+        "in config.yaml."
+    }
+    assert "Rejecting create codespace request for agent home" in caplog.text
+    assert "GITHUB_TOKEN" in caplog.text
+
+
 def test_delete_without_github_token_still_deletes_remote(
     app_client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
