@@ -31,10 +31,12 @@ agents:
     assert cfg.defaults.agent == "home"
     assert cfg.github.token_env == "GITHUB_TOKEN"
     assert cfg.agents["home"].id == "home"
+    assert cfg.agents["home"].ssh_host == "10.0.0.5"
+    assert cfg.agents["home"].ssh_proxy_host is None
     assert cfg.agents["home"].ssh_proxy is False
 
 
-def test_load_config_accepts_ssh_proxy_agent(tmp_path: Path) -> None:
+def test_load_config_rejects_ssh_proxy_without_proxy_host(tmp_path: Path) -> None:
     path = tmp_path / "config.yaml"
     _write_config(
         path,
@@ -50,8 +52,31 @@ agents:
 """,
     )
 
+    with pytest.raises(ValueError, match="ssh_proxy_host is required"):
+        client_config.load_config(path)
+
+
+def test_load_config_accepts_distinct_ssh_proxy_host(tmp_path: Path) -> None:
+    path = tmp_path / "config.yaml"
+    _write_config(
+        path,
+        """
+defaults:
+  agent: home
+  image: img
+agents:
+  home:
+    agent_url: http://127.0.0.1:8001
+    ssh_host: dev-container-host
+    ssh_proxy: true
+    ssh_proxy_host: bastion-host
+""",
+    )
+
     cfg = client_config.load_config(path)
 
+    assert cfg.agents["home"].ssh_host == "dev-container-host"
+    assert cfg.agents["home"].ssh_proxy_host == "bastion-host"
     assert cfg.agents["home"].ssh_proxy is True
 
 

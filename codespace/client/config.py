@@ -22,6 +22,7 @@ class AgentProfile(BaseModel):
     id: str = ""
     agent_url: str
     ssh_host: str
+    ssh_proxy_host: str | None = None
     ssh_proxy: bool = False
 
     @field_validator("id")
@@ -31,12 +32,20 @@ class AgentProfile(BaseModel):
             raise ValueError("agent id must match [\\w.-]+")
         return value
 
-    @field_validator("agent_url", "ssh_host")
+    @field_validator("agent_url", "ssh_host", "ssh_proxy_host")
     @classmethod
-    def _not_blank(cls, value: str) -> str:
+    def _not_blank(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
         if not value.strip():
             raise ValueError("must not be blank")
         return value.rstrip("/") if value.startswith(("http://", "https://")) else value
+
+    @model_validator(mode="after")
+    def _require_proxy_host(self) -> Self:
+        if self.ssh_proxy and self.ssh_proxy_host is None:
+            raise ValueError("ssh_proxy_host is required when ssh_proxy is true")
+        return self
 
 
 class DefaultsConfig(BaseModel):

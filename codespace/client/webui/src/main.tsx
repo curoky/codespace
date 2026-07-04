@@ -54,6 +54,7 @@ type ConfigSummary = {
     id: string;
     agent_url: string;
     ssh_host: string;
+    ssh_proxy_host?: string | null;
     ssh_proxy: boolean;
   }>;
   templates: Array<{
@@ -83,6 +84,7 @@ type Agent = {
   id: string;
   agent_url: string;
   ssh_host: string;
+  ssh_proxy_host?: string | null;
   ssh_proxy: boolean;
   status: AgentStatus;
   error?: string | null;
@@ -586,7 +588,10 @@ function App() {
                       </Group>
                     </Group>
                     <Text size="xs" c="dimmed" mt={6}>{agent.agent_url}</Text>
-                    <Text size="xs" c="dimmed">{agent.ssh_host}</Text>
+                    <Text size="xs" c="dimmed">ssh: {agent.ssh_host}</Text>
+                    {agent.ssh_proxy && agent.ssh_proxy_host && (
+                      <Text size="xs" c="dimmed">proxy: {agent.ssh_proxy_host}</Text>
+                    )}
                     <Text size="xs" c="dimmed">{agent.codespace_count} codespaces</Text>
                     {agent.error && <Alert color="red" mt="xs">{agent.error}</Alert>}
                   </Card>

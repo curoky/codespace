@@ -30,6 +30,8 @@ def _config() -> WebConfig:
                 id="office",
                 agent_url="http://office:8001",
                 ssh_host="10.0.0.8",
+                ssh_proxy_host="office-bastion",
+                ssh_proxy=True,
             ),
         },
         templates={
@@ -122,6 +124,9 @@ def test_config_returns_agent_proxy_flag(app_client: TestClient) -> None:
 
     assert resp.status_code == 200
     assert resp.json()["agents"][0]["ssh_proxy"] is False
+    assert resp.json()["agents"][0]["ssh_proxy_host"] is None
+    assert resp.json()["agents"][1]["ssh_proxy"] is True
+    assert resp.json()["agents"][1]["ssh_proxy_host"] == "office-bastion"
 
 
 def test_static_page_and_script_are_served(app_client: TestClient) -> None:
@@ -167,6 +172,10 @@ def test_dashboard_aggregates_agents(
     body = resp.json()
     assert body["agents"][0]["status"] == "online"
     assert body["agents"][1]["status"] == "offline"
+    assert body["agents"][0]["ssh_host"] == "10.0.0.5"
+    assert body["agents"][0]["ssh_proxy_host"] is None
+    assert body["agents"][1]["ssh_host"] == "10.0.0.8"
+    assert body["agents"][1]["ssh_proxy_host"] == "office-bastion"
     assert body["codespaces"][0]["raw_ssh_command"] == "ssh dev@10.0.0.5 -p 49207"
 
 
@@ -305,7 +314,8 @@ def test_service_uses_ssh_proxy_for_agent_requests(monkeypatch: pytest.MonkeyPat
     profile = AgentProfile(
         id="home",
         agent_url="http://127.0.0.1:8001",
-        ssh_host="dev-host",
+        ssh_host="dev-container-host",
+        ssh_proxy_host="bastion-host",
         ssh_proxy=True,
     )
     cfg = WebConfig(defaults=DefaultsConfig(agent="home", image="img"), agents={"home": profile})

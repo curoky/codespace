@@ -48,6 +48,7 @@ class ConfigAgentSummary(BaseModel):
     id: str
     agent_url: str
     ssh_host: str
+    ssh_proxy_host: str | None = None
     ssh_proxy: bool = False
 
 
@@ -75,6 +76,7 @@ class AgentStatus(BaseModel):
     id: str
     agent_url: str
     ssh_host: str
+    ssh_proxy_host: str | None = None
     ssh_proxy: bool = False
     status: Literal["online", "offline"]
     error: str | None = None
@@ -246,6 +248,7 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
                     id=profile.id,
                     agent_url=profile.agent_url,
                     ssh_host=profile.ssh_host,
+                    ssh_proxy_host=profile.ssh_proxy_host,
                     ssh_proxy=profile.ssh_proxy,
                     status="online" if result.online else "offline",
                     error=result.error,
@@ -325,6 +328,7 @@ def _config_summary(config: WebConfig) -> ConfigSummary:
                 id=agent.id,
                 agent_url=agent.agent_url,
                 ssh_host=agent.ssh_host,
+                ssh_proxy_host=agent.ssh_proxy_host,
                 ssh_proxy=agent.ssh_proxy,
             )
             for agent in config.agents.values()

@@ -93,6 +93,8 @@ class SshHttpTunnel:
         local_port = urlparse(self.local_url).port
         if local_port is None:
             raise ServiceError("failed to allocate local ssh proxy port")
+        if self.profile.ssh_proxy_host is None:
+            raise ServiceError("ssh_proxy_host is required when ssh_proxy is enabled")
         process = subprocess.Popen(  # noqa: S603
             [  # noqa: S607
                 "ssh",
@@ -105,7 +107,7 @@ class SshHttpTunnel:
                 "-N",
                 "-L",
                 f"127.0.0.1:{local_port}:{_ssh_forward_target_host(target_host)}:{target_port}",
-                self.profile.ssh_host,
+                self.profile.ssh_proxy_host,
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
