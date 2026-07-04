@@ -21,22 +21,9 @@ app = typer.Typer(help="Lightweight self-hosted codespace client.")
 
 # Local directory holding per-alias login keypairs.
 KEY_DIR = Path.home() / ".ssh" / "codespace"
-# Fixed list of extra repos every codespace gets read-only pull access to
-# (one ``owner/name`` per line, ``#`` comments allowed).
-EXTRA_REPOS_CONFIG = Path.home() / ".config" / "codespace" / "extra-repos"
+# Repos every codespace gets read-only pull access to (e.g. shared configs).
+EXTRA_REPOS = ["curoky/ai-coding-config"]
 HTTP_TIMEOUT = 30
-
-
-def _load_extra_repos() -> list[str]:
-    """Read the fixed extra-repos config; missing file yields an empty list."""
-    if not EXTRA_REPOS_CONFIG.exists():
-        return []
-    repos = []
-    for line in EXTRA_REPOS_CONFIG.read_text(encoding="utf-8").splitlines():
-        entry = line.split("#", 1)[0].strip()
-        if entry:
-            repos.append(entry)
-    return repos
 
 
 # --- HTTP helpers ------------------------------------------------------------
@@ -93,7 +80,9 @@ def _ensure_login_key(alias: str) -> str:
 @app.command()
 def create(
     repo: str = typer.Option(..., "--repo", help="Target GitHub repo, 'owner/name'."),
-    agent: str = typer.Option(..., "--agent", help="Agent base URL, e.g. http://host:8080."),
+    agent: str = typer.Option(
+        "http://0.0.0.0:8001", "--agent", help="Agent base URL (default local agent)."
+    ),
     ssh_host: str = typer.Option(
         ..., "--ssh-host", help="Reachable host for ssh to the dev container."
     ),
@@ -101,16 +90,15 @@ def create(
         ..., "--token", envvar="GITHUB_TOKEN", help="GitHub token (env GITHUB_TOKEN)."
     ),
     image: str = typer.Option(
-        "codespace/dev:latest", "--image", help="Dev image satisfying the §3 contract."
+        "ghcr.io/curoky/devspace:codespace-image-debian12",
+        "--image",
+        help="Dev image satisfying the §3 contract.",
     ),
     user: str = typer.Option(
         shared.DEFAULT_CONTAINER_USER, "--user", help="Login user inside the dev image."
     ),
     workspace: str = typer.Option(
         shared.DEFAULT_WORKSPACE, "--workspace", help="Workspace name for persistence."
-    ),
-    extra_repo: list[str] = typer.Option(
-        [], "--extra-repo", help="Extra read-only repo(s); adds to the fixed config list."
     ),
     alias: str | None = typer.Option(
         None, "--alias", help="SSH alias; defaults to repo name + workspace."
@@ -120,17 +108,16 @@ def create(
 
     The GitHub token stays on the client: the agent returns deploy public keys
     (read-write for the main repo, read-only for each extra repo) which the
-    client registers on the respective repos. Extra repos come from the fixed
-    config (``~/.config/codespace/extra-repos``) plus any ``--extra-repo``. If
-    any registration fails, the client rolls back all registered keys, the
-    container, and the local login key.
+    client registers on the respective repos. Extra repos (read-only, e.g.
+    shared configs) are fixed in ``EXTRA_REPOS``. If any registration fails, the
+    client rolls back all registered keys, the container, and the local login
+    key.
     """
     if alias is None:
         alias = f"{repo.split('/')[-1]}-{workspace}"
 
-    # Merge fixed config with CLI extras; dedupe and drop the main repo.
-    extra_repos = list(dict.fromkeys([*_load_extra_repos(), *extra_repo]))
-    extra_repos = [r for r in extra_repos if r != repo]
+    # Fixed extra read-only repos, minus the main repo (avoid duplicate key).
+    extra_repos = [r for r in EXTRA_REPOS if r != repo]
 
     login_pubkey = _ensure_login_key(alias)
     payload = shared.CreateRequest(
@@ -198,7 +185,9 @@ def _remove_login_key(alias: str) -> None:
 
 @app.command(name="list")
 def list_codespaces(
-    agent: str = typer.Option(..., "--agent", help="Agent base URL, e.g. http://host:8080."),
+    agent: str = typer.Option(
+        "http://0.0.0.0:8001", "--agent", help="Agent base URL (default local agent)."
+    ),
     ssh_host: str = typer.Option(
         "-", "--ssh-host", help="Reachable ssh host to show in the HOST column."
     ),
@@ -218,7 +207,9 @@ def list_codespaces(
 @app.command()
 def delete(
     alias: str = typer.Option(..., "--alias", help="SSH alias to delete."),
-    agent: str = typer.Option(..., "--agent", help="Agent base URL, e.g. http://host:8080."),
+    agent: str = typer.Option(
+        "http://0.0.0.0:8001", "--agent", help="Agent base URL (default local agent)."
+    ),
     token: str = typer.Option(
         ..., "--token", envvar="GITHUB_TOKEN", help="GitHub token (env GITHUB_TOKEN)."
     ),

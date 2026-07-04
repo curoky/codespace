@@ -189,11 +189,10 @@ Base URL：`http://<agent-host>:<port>`。Content-Type：`application/json`。
 
 ## 5. 客户端行为（macOS）
 
-`create --repo owner/name --agent http://<host>:<port> --ssh-host <ip> --token $TOKEN
-        [--image ...] [--user dev] [--workspace default] [--extra-repo owner/x ...] [--alias <name>]`：
+`create --repo owner/name [--agent http://<host>:<port>] --ssh-host <ip> --token $TOKEN
+        [--image ...] [--user dev] [--workspace default] [--alias <name>]`：
 1. 生成无口令登录 keypair：`ssh-keygen -t ed25519 -f ~/.ssh/codespace/<alias> -N ""`
-   （已存在则跳过）。合并额外 repo 列表 = 固定配置 `~/.config/codespace/extra-repos` +
-   `--extra-repo`（去重、剔除主 repo）。
+   （已存在则跳过）。额外 repo 列表取 client 的 `EXTRA_REPOS` 常量（剔除主 repo）。
 2. `POST /codespaces`，携带 repo / image / user / workspace / extra_repos / 登录公钥（**不含
    token**）。
 3. 用**自己的 token** 把响应里 `deploy_keys` 的每一项注册为对应 repo 的 GitHub deploy key
@@ -451,9 +450,8 @@ repo 专属的只读 key（git 取最长匹配前缀，主 repo 的 github.com U
 7. **GitHub 交互全收敛到 client、token 不经网络**（§4/§5/§8）：agent 只生成 keypair 并注入
    私钥、返回公钥；client 用自己的 token 注册/吊销 deploy key。以 `cs_id`（= 容器 label = key
    title `codespace-<id>`）为单一关联键，删除按 title 反查，配合双向回滚保证一致性（§9）。
-   `image`/`user` 等 caller 侧选择也随之下放到 client 请求，agent 配置仅剩三个宿主机属性。
-8. **额外 repo 只读拉取**（§4/§6.3/§8）：`extra_repos`（client 固定配置
-   `~/.config/codespace/extra-repos` + `--extra-repo`）为每个额外仓库单独生成一把
-   `read_only` deploy key，注入独立 `Host github-<slug>` alias + `~/.gitconfig` `insteadOf`
-   重写，使 `git clone git@github.com:owner/x` 透明选中该 repo 专属只读 key。同一公钥不能跨
-   repo，故用多把 key；主 repo 仍读写。
+   `image`/`user` 等 caller 侧选择也随之下放到 client 请求，agent 配置仅剩两个宿主机属性。
+8. **额外 repo 只读拉取**（§4/§6.3/§8）：`extra_repos`（client 硬编码常量 `EXTRA_REPOS`）
+   为每个额外仓库单独生成一把 `read_only` deploy key，注入独立 `Host github-<slug>` alias +
+   `~/.gitconfig` `insteadOf` 重写，使 `git clone git@github.com:owner/x` 透明选中该 repo 专属
+   只读 key。同一公钥不能跨 repo，故用多把 key；主 repo 仍读写。

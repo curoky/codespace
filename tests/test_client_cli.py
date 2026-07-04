@@ -29,10 +29,10 @@ def _codespace_payload(**overrides: object) -> dict:
 
 @pytest.fixture(autouse=True)
 def _stub_login_key(monkeypatch: pytest.MonkeyPatch) -> None:
-    # Avoid spawning ssh-keygen; return a fixed pubkey. Also isolate from any
-    # real extra-repos config on the host.
+    # Avoid spawning ssh-keygen; return a fixed pubkey. Default to no extra repos
+    # so create tests are isolated (individual tests override EXTRA_REPOS).
     monkeypatch.setattr(cli, "_ensure_login_key", lambda alias: "ssh-ed25519 LOGIN")
-    monkeypatch.setattr(cli, "_load_extra_repos", list)
+    monkeypatch.setattr(cli, "EXTRA_REPOS", [])
 
 
 def test_create_success_registers_key_and_writes_config(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -70,6 +70,7 @@ def test_create_success_registers_key_and_writes_config(monkeypatch: pytest.Monk
 
 def test_create_registers_extra_repo_readonly(monkeypatch: pytest.MonkeyPatch) -> None:
     registered: list[tuple[str, bool]] = []
+    monkeypatch.setattr(cli, "EXTRA_REPOS", ["owner/dotfiles"])
     payload = _codespace_payload(
         deploy_keys=[
             {"repo": "owner/name", "public_openssh": "ssh-ed25519 MAIN", "read_only": False},
@@ -97,8 +98,6 @@ def test_create_registers_extra_repo_readonly(monkeypatch: pytest.MonkeyPatch) -
             "10.0.0.5",
             "--token",
             "tok",
-            "--extra-repo",
-            "owner/dotfiles",
         ],
     )
 
