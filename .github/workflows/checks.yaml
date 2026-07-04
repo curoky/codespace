@@ -51,4 +51,4 @@ jobs:
         run: task sync
 
       - name: Run checks
-        run: task check
+        run: task check:full

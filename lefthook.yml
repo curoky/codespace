@@ -18,13 +18,9 @@ pre-commit:
       run: shellcheck {staged_files}
 
 pre-push:
-  parallel: true
   jobs:
-    - name: typecheck
-      run: task typecheck
-
-    - name: test
-      run: task test
+    - name: full-check
+      run: task check:full
 
 commit-msg:
   commands:
