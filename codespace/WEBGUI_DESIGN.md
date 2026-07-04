@@ -16,6 +16,7 @@
 - 从单个 YAML 配置文件读取多个 agent profile。
 - Dashboard 汇总展示所有 agent 的在线状态与现有 codespace 容器。
 - 支持在指定 agent 上创建 codespace，并展示完整创建进度。
+- 支持从配置文件读取 create templates，在 Dashboard 中展示并一键填充创建表单。
 - 支持删除 codespace，可选择是否 purge workspace。
 - GitHub token 始终保留在 client 本地，不发送给 agent。
 - 复用现有 client 能力：login key、deploy key 注册 / 吊销、`~/.ssh/config` 管理、agent
@@ -28,6 +29,7 @@
 - 不将 GitHub token 持久化到配置文件。
 - 不提供浏览器内 terminal、容器日志、IDE deep link。
 - 不持久化 Web operation 历史；server 重启后通过 agent list 重新发现实际容器状态。
+- 不提供模板编辑 UI；模板只通过手动编辑 `config.yaml` 维护，Web GUI 只读取和使用。
 
 ## 2. 总体架构
 
@@ -116,6 +118,26 @@ agents:
     name: Lab Machine
     agent_url: http://lab.example.com:8001
     ssh_host: lab.example.com
+
+templates:
+  devspace:
+    name: Devspace
+    description: devspace 主仓库默认开发环境
+    agent: home
+    repo: curoky/devspace
+    workspace: default
+    alias: home-devspace-default
+
+  agent-lab:
+    name: Agent Lab
+    description: 使用 lab agent 和自定义镜像调试 agent
+    agent: lab
+    repo: curoky/devspace
+    workspace: agent
+    image: ghcr.io/curoky/devspace:codespace-image-debian12
+    user: x
+    extra_repos:
+      - curoky/ai-coding-config
 ```
 
 ### 4.3 字段
@@ -146,6 +168,24 @@ agents:
 | `agent_url` | 是 | agent HTTP API 地址 |
 | `ssh_host` | 是 | client SSH 连接该 agent 宿主机时使用的 host |
 
+#### `templates.<id>`
+
+`templates` 是 Web GUI 的预设创建模板集合。每个模板只用于填充浏览器创建表单；点击模板后仍会
+打开普通 create modal，用户可在提交前继续修改字段。模板不会直接触发创建，也不会绕过现有
+GitHub token、SSH config 和 agent 创建流程。
+
+| 字段 | 必填 | 说明 |
+| --- | --- | --- |
+| `name` | 否 | UI 展示名；不填则使用 template id |
+| `description` | 否 | UI 卡片描述 |
+| `agent` | 否 | 预选 agent id；不填则使用 `defaults.agent` |
+| `repo` | 是 | 目标 GitHub 仓库 `owner/name` |
+| `workspace` | 否 | 预填 workspace；不填则使用 `defaults.workspace` |
+| `alias` | 否 | 预填 SSH alias；不填则前端按默认规则自动生成 |
+| `image` | 否 | 预填 dev 镜像；不填则使用 `defaults.image` |
+| `user` | 否 | 预填容器登录用户；不填则使用 `defaults.user` |
+| `extra_repos` | 否 | 预填额外只读 repo 列表；不填则使用 `defaults.extra_repos` |
+
 ### 4.4 校验规则
 
 - 配置文件必须是 YAML mapping。
@@ -155,6 +195,12 @@ agents:
 - `defaults.workspace` 必须匹配 `shared.WORKSPACE_RE`。
 - `defaults.extra_repos` 每项必须匹配 `shared.REPO_RE`。
 - 每个 `agent_url` 与 `ssh_host` 均不能为空。
+- template id 必须匹配 `^[\w.-]+$`。
+- `templates.<id>.repo` 必须匹配 `shared.REPO_RE`。
+- `templates.<id>.agent` 如设置，必须存在于 `agents`。
+- `templates.<id>.workspace` 如设置，必须匹配 `shared.WORKSPACE_RE`。
+- `templates.<id>.extra_repos` 每项必须匹配 `shared.REPO_RE`。
+- 模板的 `name`、`description`、`alias`、`image`、`user` 如设置则不能为空白字符串。
 - `github.token_env` 只保存环境变量名，API 只返回 `has_token`，不得返回 token 明文。
 
 YAML 解析建议使用 `PyYAML` 的 `yaml.safe_load`，再交给 Pydantic model 校验。
@@ -191,6 +237,9 @@ Dashboard 是 Web GUI 的核心页面，必须同时展示多个 agent 与其容
 ├──────────────────────────────────────────────────────────────┤
 │ Agent Summary                                                │
 │ [Home: Online] [Office: Offline] [Lab: Online]               │
+├──────────────────────────────────────────────────────────────┤
+│ Create Templates                                             │
+│ [Devspace] [Agent Lab] [Create from template]                │
 ├──────────────────────────────────────────────────────────────┤
 │ Toolbar                                                      │
 │ Agent: [All ▼]  Search: [repo/workspace/alias]  [Refresh]    │
@@ -319,6 +368,32 @@ Extra repos  [✓] curoky/ai-coding-config
 
 当 agent / repo / workspace 改变且用户未手动编辑 alias 时，前端自动重新生成 alias。
 
+### 8.1 从模板创建
+
+Dashboard 在 create 表单之外展示 `Create Templates` 卡片列表。模板来自配置文件
+`templates.<id>`，Web GUI 不提供新增 / 修改 / 删除模板的 UI。
+
+点击 `Create from template` 时：
+
+1. 打开与普通创建相同的 `Create Codespace` modal。
+2. 先加载 `defaults` 中的默认值和 agent 下拉选项。
+3. 再用模板字段覆盖对应表单项。
+4. 若模板提供 `alias`，关闭自动 alias 并使用模板值；否则保持自动 alias，并按
+   `<agent-id>-<repo-name>-<workspace>` 生成。
+5. 用户仍需点击 `Create` 才真正提交创建请求。
+
+模板字段 fallback 规则：
+
+| 表单字段 | 模板字段 | 模板未设置时 |
+| --- | --- | --- |
+| Agent | `agent` | `defaults.agent` |
+| Repo | `repo` | 无 fallback，模板必填 |
+| Workspace | `workspace` | `defaults.workspace` |
+| Alias | `alias` | 自动生成 |
+| Image | `image` | `defaults.image` |
+| User | `user` | `defaults.user` |
+| Extra repos | `extra_repos` | `defaults.extra_repos` |
+
 ## 9. 创建流程与进度
 
 Web GUI 需要维护一层 client-side operation，因为完整创建流程横跨 agent 和本地 client 操作。
@@ -397,6 +472,20 @@ Web API 仅服务本地浏览器，不是远程公共 API。
       "name": "Home Server",
       "agent_url": "http://10.0.0.5:8001",
       "ssh_host": "10.0.0.5"
+    }
+  ],
+  "templates": [
+    {
+      "id": "devspace",
+      "name": "Devspace",
+      "description": "devspace 主仓库默认开发环境",
+      "agent": "home",
+      "repo": "curoky/devspace",
+      "workspace": "default",
+      "alias": "home-devspace-default",
+      "image": null,
+      "user": null,
+      "extra_repos": null
     }
   ]
 }
@@ -519,10 +608,39 @@ class DefaultsConfig(BaseModel):
 class GithubConfig(BaseModel):
     token_env: str = "GITHUB_TOKEN"
 
+class CreateTemplateConfig(BaseModel):
+    id: str
+    name: str | None = None
+    description: str | None = None
+    agent: str | None = None
+    repo: str
+    workspace: str | None = None
+    alias: str | None = None
+    image: str | None = None
+    user: str | None = None
+    extra_repos: list[str] | None = None
+
 class WebConfig(BaseModel):
     defaults: DefaultsConfig
     github: GithubConfig = Field(default_factory=GithubConfig)
     agents: dict[str, AgentProfile]
+    templates: dict[str, CreateTemplateConfig] = Field(default_factory=dict)
+```
+
+配置摘要：
+
+```python
+class ConfigTemplateSummary(BaseModel):
+    id: str
+    name: str
+    description: str | None = None
+    agent: str | None = None
+    repo: str
+    workspace: str | None = None
+    alias: str | None = None
+    image: str | None = None
+    user: str | None = None
+    extra_repos: list[str] | None = None
 ```
 
 Dashboard：
@@ -587,12 +705,14 @@ class WebOperation(BaseModel):
 2. `codespace/client/service.py`：抽出 CLI / Web 共享的 list/create/delete 编排。
 3. `codespace/client/web.py`：实现本地 FastAPI API 和 operation 管理。
 4. `codespace/client/static/`：实现原生 HTML / JS / CSS Dashboard。
-5. 测试：配置校验、Dashboard 聚合、创建 operation、创建失败回滚、删除流程。
+5. 配置式 create templates：读取 `config.yaml`、API 返回摘要、前端卡片展示与一键填表。
+6. 测试：配置校验、Dashboard 聚合、模板摘要、创建 operation、创建失败回滚、删除流程。
 
 ## 16. 后续增强
 
 - SSE 替代前端轮询 operation。
 - 为本地缺失 alias 的远端容器补建本地 SSH alias。
+- 支持模板分组、搜索或从现有 codespace 生成模板（仍应避免在 MVP 中提供复杂编辑器）。
 - 支持多 GitHub token profile。
 - 支持 IDE deep link，例如 VS Code / Cursor Remote SSH。
 - 支持容器日志、健康检查、agent 分组和操作历史。

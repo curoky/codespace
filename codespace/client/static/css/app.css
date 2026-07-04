@@ -102,6 +102,12 @@ body {
   gap: 1rem;
 }
 
+.template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
 .agent-card {
   position: relative;
   overflow: hidden;
@@ -111,6 +117,14 @@ body {
   background: #fff;
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
   transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.template-card {
+  padding: 1rem;
+  border: 1px solid #e0e7ff;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, #fff, #f8fafc);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
 }
 
 .agent-card:hover {

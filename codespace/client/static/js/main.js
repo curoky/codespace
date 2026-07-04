@@ -81,6 +81,7 @@ function render() {
   renderConfig();
   renderStats();
   renderAgents();
+  renderTemplates();
   renderFilters();
   renderCodespaces();
   renderOperations();
@@ -128,6 +129,29 @@ function renderAgents() {
       </div>
       ${agent.error ? `<div class="alert alert-danger small mt-3 mb-0">${escapeHtml(agent.error)}</div>` : ''}
     </article>`).join('') : '<div class="empty-state"><i class="bi bi-hdd-network"></i><p class="mb-0">暂无 agent 信息</p></div>';
+}
+
+function renderTemplates() {
+  const templates = state.config?.templates || [];
+  $('#template-list').innerHTML = templates.length ? templates.map((template) => `
+    <article class="template-card">
+      <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+        <div>
+          <h3 class="h6 mb-1">${escapeHtml(template.name)}</h3>
+          <p class="text-secondary small mb-0">${escapeHtml(template.id)}</p>
+        </div>
+        <span class="repo-chip"><i class="bi bi-git"></i>${escapeHtml(template.repo)}</span>
+      </div>
+      ${template.description ? `<p class="text-secondary small mb-2">${escapeHtml(template.description)}</p>` : ''}
+      <div class="agent-meta mb-3">
+        <span><i class="bi bi-hdd-network"></i>${escapeHtml(template.agent || state.config.default_agent)}</span>
+        <span><i class="bi bi-box-arrow-in-right"></i>${escapeHtml(template.workspace || state.config.defaults.workspace)}</span>
+        <span><i class="bi bi-disc"></i>${escapeHtml(template.image || state.config.defaults.image)}</span>
+      </div>
+      <button class="btn btn-primary btn-sm w-100" data-action="create-template" data-template="${escapeHtml(template.id)}" type="button">
+        <i class="bi bi-rocket-takeoff me-1"></i>Create from template
+      </button>
+    </article>`).join('') : '<div class="empty-state"><i class="bi bi-lightning-charge"></i><p class="mb-0">暂无模板；在 config.yaml 中添加 templates 后会显示在这里</p></div>';
 }
 
 function renderFilters() {
@@ -249,6 +273,31 @@ function updateAlias() {
   $('#create-alias').value = defaultAlias($('#create-agent').value, $('#create-repo').value.trim(), $('#create-workspace').value.trim());
 }
 
+function applyTemplate(template) {
+  const cfg = state.config;
+  $('#create-agent').value = template.agent || cfg.default_agent;
+  $('#create-repo').value = template.repo;
+  $('#create-workspace').value = template.workspace || cfg.defaults.workspace;
+  $('#create-image').value = template.image || cfg.defaults.image;
+  $('#create-user').value = template.user || cfg.defaults.user;
+  $('#create-extra-repos').value = (template.extra_repos ?? cfg.defaults.extra_repos).join('\n');
+  if (template.alias) {
+    $('#create-auto-alias').checked = false;
+    $('#create-alias').value = template.alias;
+  } else {
+    $('#create-auto-alias').checked = true;
+    updateAlias();
+  }
+  updateCreateAgentHelp();
+}
+
+function openCreateFromTemplate(templateId) {
+  const template = state.config?.templates.find((item) => item.id === templateId);
+  if (!template) return;
+  openCreate();
+  applyTemplate(template);
+}
+
 async function submitCreate(event) {
   event.preventDefault();
   const form = event.currentTarget;
@@ -322,6 +371,11 @@ for (const id of ['#create-agent', '#create-repo', '#create-workspace']) {
 }
 $('#create-auto-alias').addEventListener('change', updateAlias);
 $('#create-alias').addEventListener('input', () => { $('#create-auto-alias').checked = false; });
+$('#template-list').addEventListener('click', (event) => {
+  const button = event.target.closest('button[data-action="create-template"]');
+  if (!button) return;
+  openCreateFromTemplate(button.dataset.template);
+});
 $('#agent-filter').addEventListener('change', (event) => { state.filter.agent = event.target.value; render(); });
 $('#status-filter').addEventListener('change', (event) => { state.filter.status = event.target.value; render(); });
 $('#sort-select').addEventListener('change', (event) => { state.filter.sort = event.target.value; render(); });

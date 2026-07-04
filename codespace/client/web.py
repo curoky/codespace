@@ -46,11 +46,25 @@ class ConfigAgentSummary(BaseModel):
     ssh_host: str
 
 
+class ConfigTemplateSummary(BaseModel):
+    id: str
+    name: str
+    description: str | None = None
+    agent: str | None = None
+    repo: str
+    workspace: str | None = None
+    alias: str | None = None
+    image: str | None = None
+    user: str | None = None
+    extra_repos: list[str] | None = None
+
+
 class ConfigSummary(BaseModel):
     default_agent: str
     defaults: ConfigDefaultsSummary
     github: ConfigGithubSummary
     agents: list[ConfigAgentSummary]
+    templates: list[ConfigTemplateSummary]
 
 
 class AgentStatus(BaseModel):
@@ -286,6 +300,21 @@ def _config_summary(config: WebConfig) -> ConfigSummary:
                 ssh_host=agent.ssh_host,
             )
             for agent in config.agents.values()
+        ],
+        templates=[
+            ConfigTemplateSummary(
+                id=template.id,
+                name=template.display_name,
+                description=template.description,
+                agent=template.agent,
+                repo=template.repo,
+                workspace=template.workspace,
+                alias=template.alias,
+                image=template.image,
+                user=template.user,
+                extra_repos=template.extra_repos,
+            )
+            for template in config.templates.values()
         ],
     )
 

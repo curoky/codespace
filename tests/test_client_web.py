@@ -8,7 +8,13 @@ from fastapi.testclient import TestClient
 
 from codespace import shared
 from codespace.client import web
-from codespace.client.config import AgentProfile, DefaultsConfig, GithubConfig, WebConfig
+from codespace.client.config import (
+    AgentProfile,
+    CreateTemplateConfig,
+    DefaultsConfig,
+    GithubConfig,
+    WebConfig,
+)
 
 
 def _config() -> WebConfig:
@@ -25,6 +31,20 @@ def _config() -> WebConfig:
                 agent_url="http://office:8001",
                 ssh_host="10.0.0.8",
             ),
+        },
+        templates={
+            "api": CreateTemplateConfig(
+                id="api",
+                name="API Service",
+                description="Backend service environment",
+                agent="office",
+                repo="owner/api",
+                workspace="backend",
+                alias="office-api-backend",
+                image="custom-img",
+                user="dev",
+                extra_repos=["owner/shared"],
+            )
         },
     )
 
@@ -58,6 +78,26 @@ def test_config_hides_token(app_client: TestClient) -> None:
     assert "secret" not in str(body)
 
 
+def test_config_returns_create_templates(app_client: TestClient) -> None:
+    resp = app_client.get("/api/config")
+
+    assert resp.status_code == 200
+    assert resp.json()["templates"] == [
+        {
+            "id": "api",
+            "name": "API Service",
+            "description": "Backend service environment",
+            "agent": "office",
+            "repo": "owner/api",
+            "workspace": "backend",
+            "alias": "office-api-backend",
+            "image": "custom-img",
+            "user": "dev",
+            "extra_repos": ["owner/shared"],
+        }
+    ]
+
+
 def test_static_page_and_script_are_served(app_client: TestClient) -> None:
     index = app_client.get("/")
     script = app_client.get("/static/js/main.js")
@@ -70,9 +110,13 @@ def test_static_page_and_script_are_served(app_client: TestClient) -> None:
     assert "Dashboard summary" in index.text
     assert "status-filter" in index.text
     assert "auto-refresh-toggle" in index.text
+    assert "Create Templates" in index.text
+    assert "template-list" in index.text
     assert "filteredCodespaces" in script.text
     assert "scheduleAutoRefresh" in script.text
     assert "showToast" in script.text
+    assert "renderTemplates" in script.text
+    assert "openCreateFromTemplate" in script.text
 
 
 def test_dashboard_aggregates_agents(

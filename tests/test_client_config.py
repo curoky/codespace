@@ -35,6 +35,75 @@ agents:
     assert cfg.agents["home"].display_name == "Home"
 
 
+def test_load_config_reads_create_templates(tmp_path: Path) -> None:
+    path = tmp_path / "config.yaml"
+    _write_config(
+        path,
+        """
+defaults:
+  agent: home
+  image: img
+  extra_repos:
+    - owner/default-extra
+agents:
+  home:
+    agent_url: http://h:8001
+    ssh_host: 10.0.0.5
+  office:
+    agent_url: http://o:8001
+    ssh_host: 10.0.0.8
+templates:
+  api:
+    name: API Service
+    description: Backend service environment
+    agent: office
+    repo: owner/api
+    workspace: backend
+    alias: office-api-backend
+    image: custom-img
+    user: dev
+    extra_repos:
+      - owner/shared
+""",
+    )
+
+    cfg = client_config.load_config(path)
+    template = cfg.templates["api"]
+
+    assert template.id == "api"
+    assert template.display_name == "API Service"
+    assert template.agent == "office"
+    assert template.repo == "owner/api"
+    assert template.workspace == "backend"
+    assert template.alias == "office-api-backend"
+    assert template.image == "custom-img"
+    assert template.user == "dev"
+    assert template.extra_repos == ["owner/shared"]
+
+
+def test_load_config_rejects_template_with_unknown_agent(tmp_path: Path) -> None:
+    path = tmp_path / "config.yaml"
+    _write_config(
+        path,
+        """
+defaults:
+  agent: home
+  image: img
+agents:
+  home:
+    agent_url: http://h:8001
+    ssh_host: 10.0.0.5
+templates:
+  api:
+    agent: missing
+    repo: owner/api
+""",
+    )
+
+    with pytest.raises(ValueError, match="references unknown agent"):
+        client_config.load_config(path)
+
+
 def test_load_config_uses_env_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     path = tmp_path / "from-env.yaml"
     _write_config(
