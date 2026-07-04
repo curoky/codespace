@@ -133,14 +133,15 @@ def test_static_page_and_script_are_served(app_client: TestClient) -> None:
     assert "Dashboard summary" in index.text
     assert "Dashboard navigation" not in index.text
     assert "app-sidebar" not in index.text
-    assert "top-command-bar" in index.text
-    assert "content-grid" in index.text
+    assert "topbar" in index.text
+    assert "workbench" in index.text
+    assert "side-pane" in index.text
     assert "quick-template-select" in index.text
     assert "codespace-card-grid" in index.text
     assert "token-status-card" in index.text
     assert "status-filter" in index.text
     assert "auto-refresh-toggle" in index.text
-    assert "Create Templates" in index.text
+    assert "Templates" in index.text
     assert "template-list" in index.text
     assert "filteredCodespaces" in script.text
     assert "scheduleAutoRefresh" in script.text

@@ -8,227 +8,147 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
-      rel="stylesheet"
-    />
     <link rel="stylesheet" href="/static/css/app.css" />
   </head>
   <body>
     <div class="app-shell">
-      <div class="app-main">
-        <header class="top-command-bar">
-          <div>
-            <h1 class="h5 mb-0">Codespace Dashboard</h1>
-          </div>
-          <div class="top-actions">
-            <span id="config-summary" class="badge text-bg-light rounded-pill px-3 py-2">
-              加载配置中...
-            </span>
-            <button id="refresh-button" class="btn btn-light btn-sm shadow-sm" type="button">
-              Refresh
-            </button>
-            <button id="create-button" class="btn btn-primary btn-sm shadow-sm" type="button">
-              Create
-            </button>
-          </div>
-        </header>
+      <header class="topbar">
+        <div class="brand-line">
+          <h1>Codespace</h1>
+          <span id="config-summary" class="meta-pill">加载配置中...</span>
+        </div>
+        <div class="toolbar">
+          <select id="quick-template-select" class="form-select form-select-sm toolbar-template">
+            <option value="">template...</option>
+          </select>
+          <button id="quick-template-button" class="btn btn-outline-primary btn-sm" type="button">
+            Apply
+          </button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" data-action="open-create">
+            Blank
+          </button>
+          <button id="refresh-button" class="btn btn-outline-secondary btn-sm" type="button">
+            Refresh
+          </button>
+          <button id="create-button" class="btn btn-primary btn-sm" type="button">
+            Create
+          </button>
+        </div>
+      </header>
 
-        <main class="content-grid">
-          <section class="workspace-column">
-            <section id="overview" class="hero-card command-center mb-4">
-              <div class="quick-create-panel">
-                <label class="form-label small text-secondary mb-1" for="quick-template-select">
-                  Template
-                </label>
-                <div class="input-group input-group-sm">
-                  <select id="quick-template-select" class="form-select">
-                    <option value="">选择模板...</option>
-                  </select>
-                  <button id="quick-template-button" class="btn btn-primary" type="button">
-                    Apply
-                  </button>
-                </div>
-                <button class="btn btn-outline-primary btn-sm w-100 mt-2" type="button" data-action="open-create">
-                  Blank
-                </button>
-              </div>
-            </section>
-
-            <section class="row g-3 mb-4" aria-label="Dashboard summary">
-              <div class="col-6 col-xl-3">
-                <div class="metric-card">
-                  <div>
-                    <p class="metric-label">Codespaces</p>
-                    <strong id="stat-codespaces">0</strong>
-                  </div>
-                </div>
-              </div>
-              <div class="col-6 col-xl-3">
-                <div class="metric-card">
-                  <div>
-                    <p class="metric-label">Online Agents</p>
-                    <strong id="stat-online-agents">0</strong>
-                  </div>
-                </div>
-              </div>
-              <div class="col-6 col-xl-3">
-                <div class="metric-card">
-                  <div>
-                    <p class="metric-label">Offline Agents</p>
-                    <strong id="stat-offline-agents">0</strong>
-                  </div>
-                </div>
-              </div>
-              <div class="col-6 col-xl-3">
-                <div class="metric-card">
-                  <div>
-                    <p class="metric-label">Running Ops</p>
-                    <strong id="stat-running-ops">0</strong>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <section id="global-error" class="alert alert-warning d-none" role="alert"></section>
-
-            <section id="templates" class="surface-panel mb-4">
-              <div class="section-heading">
-                <div>
-                  <h2 class="h6 mb-0">Create Templates</h2>
-                </div>
-              </div>
-              <div id="template-list" class="template-grid"></div>
-            </section>
-
-            <section id="codespaces" class="surface-panel mb-4">
-              <div class="section-heading align-items-start">
-                <div>
-                  <h2 class="h6 mb-0">Codespaces</h2>
-                </div>
-                <span class="badge text-bg-primary rounded-pill" id="codespace-count">0</span>
-              </div>
-
-              <div class="filter-bar" aria-label="Codespace filters">
-                <label class="filter-field">
-                  <span>Agent</span>
-                  <select id="agent-filter" class="form-select form-select-sm"></select>
-                </label>
-                <label class="filter-field">
-                  <span>Status</span>
-                  <select id="status-filter" class="form-select form-select-sm">
-                    <option value="all">All</option>
-                    <option value="running">Running</option>
-                    <option value="stopped">Stopped</option>
-                    <option value="unknown">Unknown</option>
-                  </select>
-                </label>
-                <label class="filter-field search-field">
-                  <span>Search</span>
-                  <div class="input-group input-group-sm">
-                    <input
-                      id="search-input"
-                      class="form-control"
-                      type="search"
-                      placeholder="repo / workspace / alias / id"
-                    />
-                  </div>
-                </label>
-                <label class="filter-field">
-                  <span>Sort</span>
-                  <select id="sort-select" class="form-select form-select-sm">
-                    <option value="agent">Agent</option>
-                    <option value="repo">Repository</option>
-                    <option value="workspace">Workspace</option>
-                    <option value="status">Status</option>
-                  </select>
-                </label>
-                <button id="clear-search-button" class="btn btn-outline-secondary btn-sm" type="button">
-                  Clear
-                </button>
-              </div>
-
-              <div id="codespace-empty" class="empty-state d-none">
-                <p class="mb-0">暂无 codespace</p>
-              </div>
-
-              <div id="codespace-card-grid" class="codespace-grid mb-3"></div>
-
-              <details class="table-disclosure" open>
-                <summary>详细表格视图</summary>
-                <div class="table-responsive mt-3">
-                  <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                      <tr>
-                        <th>Agent</th>
-                        <th>Repository</th>
-                        <th>Workspace</th>
-                        <th>Alias</th>
-                        <th>Status</th>
-                        <th>SSH</th>
-                        <th class="text-end">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody id="codespace-tbody"></tbody>
-                  </table>
-                </div>
-              </details>
-            </section>
+      <main class="workbench">
+        <section class="main-pane">
+          <section class="stats-row" aria-label="Dashboard summary">
+            <div><span>codespaces</span><strong id="stat-codespaces">0</strong></div>
+            <div><span>online</span><strong id="stat-online-agents">0</strong></div>
+            <div><span>offline</span><strong id="stat-offline-agents">0</strong></div>
+            <div><span>ops</span><strong id="stat-running-ops">0</strong></div>
           </section>
 
-          <aside class="insight-column">
-            <section class="surface-panel mb-4" id="system-status">
-              <div class="section-heading compact">
-                <div>
-                  <h2 class="h6 mb-0">Runtime</h2>
-                </div>
-                <label class="form-check form-switch small mb-0">
-                  <input id="auto-refresh-toggle" class="form-check-input" type="checkbox" checked />
-                  Auto refresh
-                </label>
-              </div>
-              <div id="token-status-card" class="token-status-card"></div>
-              <p id="last-updated" class="text-secondary small mb-0 mt-2">尚未刷新</p>
-            </section>
+          <section id="global-error" class="alert alert-warning d-none" role="alert"></section>
 
-            <section id="agents" class="surface-panel mb-4">
-              <div class="section-heading compact">
-                <div>
-                  <h2 class="h6 mb-0">Agents</h2>
-                </div>
-              </div>
-              <div id="agent-summary" class="agent-grid stacked"></div>
-            </section>
+          <section id="codespaces" class="panel codespace-panel">
+            <div class="panel-header">
+              <h2>Codespaces</h2>
+              <span id="codespace-count" class="count-badge">0</span>
+            </div>
 
-            <section id="operations" class="surface-panel">
-              <div class="section-heading compact">
-                <div>
-                  <h2 class="h6 mb-0">Operations</h2>
-                </div>
-                <button id="clear-operations-button" class="btn btn-outline-secondary btn-sm" type="button">
-                  Clear
-                </button>
-              </div>
-              <div id="operation-list" class="operation-list"></div>
-            </section>
-          </aside>
-        </main>
-      </div>
+            <div class="filter-bar" aria-label="Codespace filters">
+              <select id="agent-filter" class="form-select form-select-sm"></select>
+              <select id="status-filter" class="form-select form-select-sm">
+                <option value="all">All status</option>
+                <option value="running">Running</option>
+                <option value="stopped">Stopped</option>
+                <option value="unknown">Unknown</option>
+              </select>
+              <input
+                id="search-input"
+                class="form-control form-control-sm"
+                type="search"
+                placeholder="repo / workspace / alias / id"
+              />
+              <select id="sort-select" class="form-select form-select-sm">
+                <option value="agent">Agent</option>
+                <option value="repo">Repository</option>
+                <option value="workspace">Workspace</option>
+                <option value="status">Status</option>
+              </select>
+              <button id="clear-search-button" class="btn btn-outline-secondary btn-sm" type="button">
+                Clear
+              </button>
+            </div>
+
+            <div id="codespace-empty" class="empty-state d-none">暂无 codespace</div>
+            <div id="codespace-card-grid" class="codespace-grid"></div>
+
+            <div class="table-responsive">
+              <table class="table table-sm table-hover align-middle mb-0 codespace-table">
+                <thead>
+                  <tr>
+                    <th>Agent</th>
+                    <th>Repo</th>
+                    <th>Workspace</th>
+                    <th>Alias</th>
+                    <th>Status</th>
+                    <th>SSH</th>
+                    <th class="text-end">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="codespace-tbody"></tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+
+        <aside class="side-pane">
+          <section class="panel" id="system-status">
+            <div class="panel-header compact">
+              <h2>Runtime</h2>
+              <label class="form-check form-switch small mb-0">
+                <input id="auto-refresh-toggle" class="form-check-input" type="checkbox" checked />
+                auto
+              </label>
+            </div>
+            <div id="token-status-card"></div>
+            <p id="last-updated" class="muted-line">尚未刷新</p>
+          </section>
+
+          <section id="templates" class="panel">
+            <div class="panel-header compact">
+              <h2>Templates</h2>
+            </div>
+            <div id="template-list" class="template-grid"></div>
+          </section>
+
+          <section id="agents" class="panel">
+            <div class="panel-header compact">
+              <h2>Agents</h2>
+            </div>
+            <div id="agent-summary" class="agent-grid stacked"></div>
+          </section>
+
+          <section id="operations" class="panel">
+            <div class="panel-header compact">
+              <h2>Operations</h2>
+              <button id="clear-operations-button" class="btn btn-outline-secondary btn-sm" type="button">
+                Clear
+              </button>
+            </div>
+            <div id="operation-list" class="operation-list"></div>
+          </section>
+        </aside>
+      </main>
     </div>
 
     <div id="toast-area" class="toast-area" aria-live="polite" aria-atomic="true"></div>
 
     <dialog id="create-dialog" class="create-dialog">
-      <form id="create-form" method="dialog" class="card border-0 shadow-lg modal-card">
-        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-          <div>
-            <h2 class="h4 mb-1">Create Codespace</h2>
-          </div>
-          <button id="create-cancel" type="button" class="btn btn-light btn-sm">
-            ×
-          </button>
+      <form id="create-form" method="dialog" class="modal-card">
+        <div class="dialog-header">
+          <h2>Create Codespace</h2>
+          <button id="create-cancel" type="button" class="btn btn-light btn-sm">×</button>
         </div>
-        <div class="card-body d-grid gap-3">
+        <div class="dialog-body">
           <div id="create-error" class="alert alert-danger d-none" role="alert"></div>
           <div id="create-token-warning" class="alert alert-warning d-none" role="alert"></div>
           <div class="row g-3">
@@ -260,7 +180,7 @@
             </label>
             <label class="col-12 form-check form-switch ms-2">
               <input id="create-auto-alias" class="form-check-input" type="checkbox" checked />
-              <span class="form-check-label">自动根据 agent、repo、workspace 生成 alias</span>
+              <span class="form-check-label">auto alias</span>
             </label>
             <label class="col-12 form-label">
               Image
@@ -279,13 +199,9 @@
             </label>
           </div>
         </div>
-        <div class="card-footer bg-white border-0 d-flex justify-content-end gap-2">
-          <button id="create-cancel-footer" type="button" class="btn btn-outline-secondary">
-            Cancel
-          </button>
-          <button type="submit" class="btn btn-primary">
-            Create
-          </button>
+        <div class="dialog-footer">
+          <button id="create-cancel-footer" type="button" class="btn btn-outline-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create</button>
         </div>
       </form>
     </dialog>
