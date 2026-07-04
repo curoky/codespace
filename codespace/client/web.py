@@ -96,7 +96,7 @@ class DashboardCodespace(BaseModel):
     status: str | None = None
     ssh_command: str
     raw_ssh_command: str
-    vscode_url: str
+    trae_url: str
     has_local_alias: bool
 
 
@@ -376,15 +376,15 @@ def _dashboard_codespace(agent_id: str, ssh_host: str, cs: shared.Codespace) -> 
         status=cs.status,
         ssh_command=f"ssh {alias}" if alias else raw_ssh_command,
         raw_ssh_command=raw_ssh_command,
-        vscode_url=_vscode_remote_ssh_url(remote_authority, shared.WORKSPACE_MOUNT),
+        trae_url=_trae_remote_ssh_url(remote_authority, shared.WORKSPACE_MOUNT),
         has_local_alias=alias is not None,
     )
 
 
-def _vscode_remote_ssh_url(remote_authority: str, remote_path: str) -> str:
-    """Build a VS Code Remote-SSH deep link for a remote authority and path."""
+def _trae_remote_ssh_url(remote_authority: str, remote_path: str) -> str:
+    """Build a Trae Remote-SSH deep link for a remote authority and path."""
     return (
-        "vscode://vscode-remote/ssh-remote+"
+        "trae://vscode-remote/ssh-remote+"
         f"{quote(remote_authority, safe='')}"
         f"{quote(remote_path, safe='/')}"
     )

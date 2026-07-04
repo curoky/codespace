@@ -749,5 +749,5 @@ class WebOperation(BaseModel):
 - 为本地缺失 alias 的远端容器补建本地 SSH alias。
 - 支持模板分组、搜索或从现有 codespace 生成模板（仍应避免在 MVP 中提供复杂编辑器）。
 - 支持多 GitHub token profile。
-- 支持 IDE deep link，例如 VS Code / Cursor Remote SSH。
+- 支持 IDE deep link，例如 Trae IDE Remote SSH。
 - 支持容器日志、健康检查、agent 分组和操作历史。
