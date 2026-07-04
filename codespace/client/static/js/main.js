@@ -308,7 +308,7 @@ function renderOperations() {
         <span class="status-pill ${escapeHtml(op.status)}">${escapeHtml(op.status)}</span>
       </div>
       <div class="progress mb-2" role="progressbar" aria-label="operation progress">
-        <div class="progress-bar ${op.status === 'failed' ? 'bg-danger' : op.status === 'succeeded' ? 'bg-success' : 'progress-bar-striped progress-bar-animated'}" style="width: ${operationProgress(op.status)}%"></div>
+        <div class="progress-bar ${op.status === 'failed' ? 'bg-danger' : op.status === 'succeeded' ? 'bg-success' : ''}" style="width: ${operationProgress(op.status)}%"></div>
       </div>
       <p class="mb-0 small">${escapeHtml(op.stage)}</p>
       ${op.error ? `<div class="alert alert-danger small mt-2 mb-0">${escapeHtml(op.error)}</div>` : ''}
