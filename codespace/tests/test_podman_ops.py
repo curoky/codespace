@@ -162,6 +162,9 @@ def test_create_container_writes_labels_and_returns_port(monkeypatch: pytest.Mon
     run_kwargs = client.containers.runs[0]
     assert run_kwargs["name"] == "codespace-abc"
     assert run_kwargs["network_mode"] == "host"
+    assert run_kwargs["cap_add"] == ["NET_RAW"]
+    assert run_kwargs["pids_limit"] == -1
+    assert run_kwargs["ulimits"] == [{"Name": "memlock", "Soft": -1, "Hard": -1}]
     assert run_kwargs["environment"] == {"SSHD_PORT": "49207"}
     assert run_kwargs["labels"][shared.LABEL_REPO] == "owner/name"
     assert run_kwargs["labels"][shared.LABEL_PORT] == "49207"

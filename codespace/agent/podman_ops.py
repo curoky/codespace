@@ -157,6 +157,9 @@ def create_container(
         name=shared.container_name(cs_id),
         detach=True,
         network_mode="host",
+        cap_add=["NET_RAW"],
+        pids_limit=-1,
+        ulimits=[{"Name": "memlock", "Soft": -1, "Hard": -1}],
         environment={"SSHD_PORT": str(ssh_port)},
         labels={
             shared.LABEL_ID: cs_id,

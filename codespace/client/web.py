@@ -1,5 +1,6 @@
 """Local FastAPI Web GUI for managing codespaces across multiple agents."""
 
+import builtins
 import logging
 import secrets
 import time
@@ -164,7 +165,7 @@ class OperationStore:
         with self._lock:
             return sorted(self._operations.values(), key=lambda op: op.created_at, reverse=True)
 
-    def prune_completed(self) -> "list[WebOperation]":
+    def prune_completed(self) -> builtins.list[WebOperation]:
         """Remove non-busy operations and return the remaining operations."""
         with self._lock:
             self._operations = {
