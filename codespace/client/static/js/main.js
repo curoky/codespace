@@ -127,8 +127,14 @@ document.querySelector('#codespace-tbody').addEventListener('click', async (even
   if (button.dataset.action === 'copy') { await navigator.clipboard.writeText(button.dataset.ssh); return; }
   const purge = button.dataset.action === 'purge';
   if (!confirm(purge ? '确认删除并 purge workspace？' : '确认删除 codespace？')) return;
-  await request(`/api/agents/${encodeURIComponent(button.dataset.agent)}/codespaces/${encodeURIComponent(button.dataset.id)}?repo=${encodeURIComponent(button.dataset.repo)}${purge ? '&purge=true' : ''}`, { method: 'DELETE' });
-  await refreshDashboard();
+  try {
+    const result = await request(`/api/agents/${encodeURIComponent(button.dataset.agent)}/codespaces/${encodeURIComponent(button.dataset.id)}?repo=${encodeURIComponent(button.dataset.repo)}${purge ? '&purge=true' : ''}`, { method: 'DELETE' });
+    state.error = result.warning || null;
+    await refreshDashboard();
+  } catch (error) {
+    state.error = error.message;
+    render();
+  }
 });
 
 loadAll();

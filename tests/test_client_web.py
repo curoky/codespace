@@ -128,3 +128,44 @@ def test_operation_lifecycle(app_client: TestClient, monkeypatch: pytest.MonkeyP
 
     assert op["status"] == "succeeded"
     assert op["codespace"]["id"] == "abc123"
+
+
+def test_delete_without_github_token_still_deletes_remote(
+    app_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from codespace.client import service
+
+    monkeypatch.delenv("GITHUB_TOKEN")
+
+    def _delete(
+        self: service.CodespaceService,
+        agent_id: str,
+        codespace_id: str,
+        *,
+        token: str | None,
+        alias: str | None = None,
+        repo: str | None = None,
+        purge: bool = False,
+    ) -> service.DeleteCodespaceResult:
+        assert agent_id == "home"
+        assert codespace_id == "abc123"
+        assert token is None
+        assert repo == "owner/name"
+        assert purge is True
+        assert alias is None
+        return service.DeleteCodespaceResult(
+            ok=True,
+            workspace_removed=True,
+            warning="GitHub token is not available; skipped deploy key revocation",
+        )
+
+    monkeypatch.setattr(service.CodespaceService, "delete_codespace", _delete)
+
+    resp = app_client.delete("/api/agents/home/codespaces/abc123?repo=owner/name&purge=true")
+
+    assert resp.status_code == 200
+    assert resp.json() == {
+        "ok": True,
+        "workspace_removed": True,
+        "warning": "GitHub token is not available; skipped deploy key revocation",
+    }

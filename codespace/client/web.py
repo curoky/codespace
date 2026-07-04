@@ -246,8 +246,6 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
         repo: str | None = Query(None),
     ) -> DeleteCodespaceResult:
         token = github_token(config)
-        if not token:
-            raise HTTPException(status_code=400, detail="GitHub token is not available")
         try:
             return service.delete_codespace(
                 agent_id, codespace_id, token=token, repo=repo, purge=purge

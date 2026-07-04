@@ -256,7 +256,7 @@ class CodespaceService:
         agent_id: str,
         codespace_id: str,
         *,
-        token: str,
+        token: str | None,
         alias: str | None = None,
         repo: str | None = None,
         purge: bool = False,
@@ -270,8 +270,11 @@ class CodespaceService:
         if not repos and repo:
             repos = [repo]
             warning = "local alias not found; only main repo deploy key was revoked"
-        for repo_name in repos:
-            github.delete_deploy_key(token, repo_name, codespace_id)
+        if token:
+            for repo_name in repos:
+                github.delete_deploy_key(token, repo_name, codespace_id)
+        elif repos:
+            warning = "GitHub token is not available; skipped deploy key revocation"
         resp = delete_remote(profile.agent_url, codespace_id, purge=purge)
         if alias:
             ssh_config.remove(alias)
