@@ -1,0 +1,118 @@
+:root {
+  color-scheme: light;
+  --app-bg: #f5f7fb;
+  --app-panel: #fff;
+  --app-panel-muted: #f8fafc;
+  --app-border: #dee5ef;
+  --app-muted: #667085;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  color: #1f2937;
+  background: var(--app-bg);
+}
+
+.app-shell { min-height: 100vh; }
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+  padding: 10px 14px;
+  background: var(--app-panel);
+  border-bottom: 1px solid var(--app-border);
+}
+
+.toolbar { flex-wrap: wrap; }
+
+.toolbar-template { width: 260px; }
+
+.workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 368px;
+  gap: 14px;
+  max-width: none;
+  padding: 14px;
+}
+
+.main-pane,
+.side-pane { min-width: 0; }
+
+.panel-card { overflow: hidden; }
+
+.panel-heading {
+  min-height: 44px;
+  padding: 10px 14px;
+  background: var(--app-panel-muted);
+  border-bottom: 1px solid var(--app-border);
+}
+
+.panel-heading.compact { min-height: 38px; }
+
+.stat-card {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.filter-bar-react {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.filter-bar-react > * { min-width: 150px; }
+
+.filter-bar-react .search-input {
+  flex: 1 1 260px;
+}
+
+.codespace-table th {
+  color: var(--app-muted);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.codespace-table td {
+  vertical-align: middle;
+}
+
+.ssh-code {
+  display: inline-block;
+  max-width: 520px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toast-area {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 2000;
+  width: min(420px, calc(100vw - 32px));
+}
+
+@media (max-width: 1180px) {
+  .workbench { grid-template-columns: 1fr; }
+  .side-pane { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+}
+
+@media (max-width: 768px) {
+  .topbar { align-items: stretch; flex-direction: column; }
+  .toolbar-template { width: 100%; }
+  .workbench { padding: 10px; }
+  .filter-bar-react { flex-direction: column; }
+  .filter-bar-react > *,
+  .filter-bar-react .search-input { width: 100%; min-width: 0; }
+  .side-pane { grid-template-columns: 1fr; }
+  .ssh-code { max-width: 220px; }
+}

@@ -122,34 +122,19 @@ def test_static_page_and_script_are_served(app_client: TestClient) -> None:
 
     assert index.status_code == 200
     assert "Codespace Dashboard" in index.text
-    assert "bulma" in index.text
+    assert "data-mantine-color-scheme" in index.text
+    assert "bulma" not in index.text
     assert "@primer/css" not in index.text
     assert "bootstrap" not in index.text
     assert script.status_code == 200
     assert "text/javascript" in script.headers["content-type"]
-    assert "await request('/api/config')" in script.text
-    assert "Dashboard summary" in index.text
-    assert "Dashboard navigation" not in index.text
-    assert "app-sidebar" not in index.text
-    assert "topbar" in index.text
-    assert "workbench" in index.text
-    assert "side-pane" in index.text
-    assert "quick-template-select" in index.text
-    assert "codespace-card-grid" in index.text
-    assert "token-status-card" in index.text
-    assert "status-filter" in index.text
-    assert "auto-refresh-toggle" in index.text
-    assert "Templates" in index.text
-    assert "template-list" in index.text
-    assert "filteredCodespaces" in script.text
-    assert "scheduleAutoRefresh" in script.text
-    assert "showToast" in script.text
-    assert "renderTemplates" in script.text
-    assert "renderQuickTemplates" in script.text
-    assert "handleCodespaceAction" in script.text
-    assert "openCreateFromTemplate" in script.text
-    assert "clipboard" not in script.text
-    assert 'data-action="copy"' not in script.text
+    assert "/api/config" in script.text
+    assert "/api/dashboard" in script.text
+    assert "root" in index.text
+    assert "Codespaces" in script.text
+    assert "Templates" in script.text
+    assert "Token ready" in script.text
+    assert "Create" in script.text
 
 
 def test_dashboard_aggregates_agents(

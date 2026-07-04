@@ -20,6 +20,7 @@ High-level design of `devspace` — a personal, opinionated development environm
 | [images/](file:///workspace/devspace/images) | Dockerfiles that produce the published `ghcr.io/curoky/devspace:*` images. [base/](file:///workspace/devspace/images/base) is the foundation; [gcc/](file:///workspace/devspace/images/gcc), [gui/](file:///workspace/devspace/images/gui), [pytorch/](file:///workspace/devspace/images/pytorch), [tensorflow/](file:///workspace/devspace/images/tensorflow), [iso/](file:///workspace/devspace/images/iso) extend it. |
 | [deps/](file:///workspace/devspace/deps) | Independent builders for upstream dependencies (CUDA, GCC, LLVM, Python, TensorFlow, host-tools, tabby). Each subdir owns its `Dockerfile` / `Taskfile.yaml` / `build.sh`. |
 | [tools/](file:///workspace/devspace/tools) | Repo-local helper scripts used by CI, hooks, and ad-hoc maintenance (license headers, git history rewrites, GitHub Actions disk cleanup, …). |
+| [codespace/](file:///workspace/devspace/codespace) | Codespace agent/client implementation plus the local Web GUI source and built static assets. |
 | [.github/workflows/](file:///workspace/devspace/.github/workflows) | CI: image build matrix, ISO build, dependency rebuilds, registry cleanup. |
 | [.devcontainer/devcontainer.json](file:///workspace/devspace/.devcontainer/devcontainer.json) | Consumer entry: pulls the published base image. |
 | [pyproject.toml](file:///workspace/devspace/pyproject.toml), [uv.lock](file:///workspace/devspace/uv.lock) | Repo Python tooling (uv-managed); declares lint config (ruff/yapf/black) and CLI deps (typer). |
@@ -75,6 +76,7 @@ Three layers:
 
 - [lefthook.yml](file:///workspace/devspace/lefthook.yml) — `pre-commit` formats shell/python/c++/protobuf; `commit-msg` enforces author identity via [tools/check-author.sh](file:///workspace/devspace/tools/check-author.sh).
 - [pyproject.toml](file:///workspace/devspace/pyproject.toml) — ruff (line 100, py311 target), yapf (google), black; `typer` is the only runtime dep (used by ad-hoc scripts under `tools/`).
+- [codespace/client/webui/package.json](file:///workspace/devspace/codespace/client/webui/package.json), [codespace/client/webui/pnpm-lock.yaml](file:///workspace/devspace/codespace/client/webui/pnpm-lock.yaml), [codespace/client/webui/vite.config.ts](file:///workspace/devspace/codespace/client/webui/vite.config.ts), [codespace/client/webui/tsconfig.json](file:///workspace/devspace/codespace/client/webui/tsconfig.json) — pnpm-managed Vite / TypeScript toolchain for the local codespace Web GUI; run `pnpm build` from `codespace/client/webui/` to write static assets to `codespace/client/static/`.
 - [.dockerignore](file:///workspace/devspace/.dockerignore), [.gitignore](file:///workspace/devspace/.gitignore) — keep build context lean.
 
 ## 4. Cross-component contracts
