@@ -128,6 +128,10 @@ class DashboardResponse(BaseModel):
     operations: list[WebOperation]
 
 
+class ClearOperationsResponse(BaseModel):
+    operations: list[WebOperation]
+
+
 class OperationStore:
     """Thread-safe in-memory store for Web GUI operations."""
 
@@ -158,6 +162,16 @@ class OperationStore:
 
     def list(self) -> list[WebOperation]:
         with self._lock:
+            return sorted(self._operations.values(), key=lambda op: op.created_at, reverse=True)
+
+    def prune_completed(self) -> "list[WebOperation]":
+        """Remove non-busy operations and return the remaining operations."""
+        with self._lock:
+            self._operations = {
+                operation_id: operation
+                for operation_id, operation in self._operations.items()
+                if operation.status in {"queued", "running"}
+            }
             return sorted(self._operations.values(), key=lambda op: op.created_at, reverse=True)
 
     def update(
@@ -268,6 +282,10 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
         if operation is None:
             raise HTTPException(status_code=404, detail="operation not found")
         return operation
+
+    @app.delete("/api/operations")
+    def clear_operations() -> ClearOperationsResponse:
+        return ClearOperationsResponse(operations=operations.prune_completed())
 
     @app.delete("/api/agents/{agent_id}/codespaces/{codespace_id}")
     def delete_codespace(

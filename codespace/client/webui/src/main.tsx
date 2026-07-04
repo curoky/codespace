@@ -75,6 +75,10 @@ type Dashboard = {
   operations: Operation[];
 };
 
+type ClearOperationsResponse = {
+  operations: Operation[];
+};
+
 type Agent = {
   id: string;
   agent_url: string;
@@ -279,6 +283,15 @@ function App() {
       setRefreshing(false);
     }
   }, [pollOperation]);
+
+  const clearOperations = useCallback(async () => {
+    try {
+      const result = await request<ClearOperationsResponse>('/api/operations', { method: 'DELETE' });
+      setOperations(new Map(result.operations.map((op) => [op.id, op])));
+    } catch (clearError) {
+      setError((clearError as Error).message);
+    }
+  }, []);
 
   useEffect(() => {
     async function loadAll() {
@@ -581,7 +594,7 @@ function App() {
               </Stack>
             </SidePanel>
 
-            <SidePanel title="Operations" action={<Button size="compact-xs" variant="default" onClick={() => setOperations((current) => new Map([...current].filter(([, op]) => isBusyOperation(op))))}>Clear</Button>}>
+            <SidePanel title="Operations" action={<Button size="compact-xs" variant="default" onClick={() => void clearOperations()}>Clear</Button>}>
               <Stack gap="xs">
                 {[...operations.values()].sort((a, b) => b.created_at - a.created_at).map((op) => (
                   <Card key={op.id} withBorder padding="sm" radius="md">

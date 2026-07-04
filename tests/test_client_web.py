@@ -2,6 +2,7 @@
 
 import time
 from collections.abc import Callable
+from typing import cast
 
 import pytest
 from fastapi.testclient import TestClient
@@ -194,15 +195,16 @@ def test_operation_lifecycle(app_client: TestClient, monkeypatch: pytest.MonkeyP
     )
     assert resp.status_code == 200
     op_id = resp.json()["operation_id"]
+    op: dict[str, object] = {}
 
     for _ in range(20):
-        op = app_client.get(f"/api/operations/{op_id}").json()
+        op = cast(dict[str, object], app_client.get(f"/api/operations/{op_id}").json())
         if op["status"] == "succeeded":
             break
         time.sleep(0.01)
 
     assert op["status"] == "succeeded"
-    assert op["codespace"]["id"] == "abc123"
+    assert cast(dict[str, object], op["codespace"])["id"] == "abc123"
 
 
 def test_create_accepts_inline_token_for_compatibility(
@@ -322,9 +324,9 @@ def test_service_uses_ssh_proxy_for_agent_requests(monkeypatch: pytest.MonkeyPat
 
     def _request(
         method: str, url: str, body: dict | None = None, *, timeout: float = service.HTTP_TIMEOUT
-    ) -> tuple[int, dict]:
+    ) -> tuple[int, list[dict[str, object]]]:
         requested.append((method, url))
-        return 200, []
+        return 200, [_codespace().model_dump()]
 
     monkeypatch.setattr(service, "SshHttpTunnel", FakeTunnel)
     monkeypatch.setattr(service, "request", _request)
@@ -334,4 +336,52 @@ def test_service_uses_ssh_proxy_for_agent_requests(monkeypatch: pytest.MonkeyPat
     svc.close()
 
     assert result.online is True
-    assert requested == [("GET", "http://127.0.0.1:43210/codespaces"), ("CLOSE", "http://127.0.0.1:43210")]
+    assert requested == [
+        ("GET", "http://127.0.0.1:43210/codespaces"),
+        ("CLOSE", "http://127.0.0.1:43210"),
+    ]
+
+
+def test_prune_completed_keeps_only_busy_operations() -> None:
+    store = web.OperationStore()
+    queued = store.create(
+        agent_id="home",
+        req=web.CreateCodespaceRequest(
+            repo="curoky/devspace",
+            workspace="default",
+            alias="queued",
+            image="ghcr.io/curoky/devspace:codespace-image-debian12",
+            user="x",
+            extra_repos=[],
+        ),
+    )
+    failed = store.create(
+        agent_id="home",
+        req=web.CreateCodespaceRequest(
+            repo="curoky/devspace",
+            workspace="default",
+            alias="failed",
+            image="ghcr.io/curoky/devspace:codespace-image-debian12",
+            user="x",
+            extra_repos=[],
+        ),
+    )
+    succeeded = store.create(
+        agent_id="home",
+        req=web.CreateCodespaceRequest(
+            repo="curoky/devspace",
+            workspace="default",
+            alias="succeeded",
+            image="ghcr.io/curoky/devspace:codespace-image-debian12",
+            user="x",
+            extra_repos=[],
+        ),
+    )
+
+    store.update(failed.id, status="failed", stage="failed", error="boom")
+    store.update(succeeded.id, status="succeeded", stage="ready")
+
+    remaining = store.prune_completed()
+
+    assert [operation.id for operation in remaining] == [queued.id]
+    assert [operation.id for operation in store.list()] == [queued.id]
