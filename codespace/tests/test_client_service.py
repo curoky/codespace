@@ -113,6 +113,7 @@ def test_create_codespace_clones_after_registering_deploy_key(
             events.append("create")
             return 202, {"id": "op123", "status": "queued", "stage": "queued"}
         if method == "POST" and path == "/codespaces/abc123/clone":
+            assert timeout == service.CLONE_HTTP_TIMEOUT
             events.append("clone")
             return 200, {"ok": True}
         raise AssertionError(f"unexpected request: {method} {path}")

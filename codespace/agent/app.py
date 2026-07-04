@@ -13,7 +13,7 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
 from loguru import logger
 from podman import PodmanClient
-from podman.errors import PodmanError
+from podman.errors import NotFound, PodmanError
 from pydantic import BaseModel, Field
 
 from codespace import shared
@@ -275,6 +275,12 @@ def create_app(config: AgentConfig) -> FastAPI:
 
             try:
                 podman_ops.clone_repo(client, cs_id=cs_id, user=user, repo=repo)
+            except NotFound as exc:
+                if podman_ops.get_container(client, cs_id) is None:
+                    logger.info("clone repo for codespace {} aborted: container was deleted", cs_id)
+                    raise HTTPException(status_code=404, detail="codespace not found") from exc
+                logger.warning("clone repo for codespace {} hit podman not found: {}", cs_id, exc)
+                raise HTTPException(status_code=500, detail=str(exc)) from exc
             except Exception as exc:
                 logger.exception("clone repo for codespace {} failed", cs_id)
                 raise HTTPException(status_code=500, detail=str(exc)) from exc

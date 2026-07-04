@@ -94,15 +94,36 @@ body {
 }
 
 .instance-row td {
+  padding: 6px 14px 10px 46px;
   background: #f8fafc;
 }
 
-.instance-row td:first-child {
-  border-left: 3px solid #dbeafe;
+.instance-card {
+  padding: 10px 12px;
+  background: #fff;
+  border-left: 3px solid #93c5fd;
 }
 
-.operation-instance-row td {
+.operation-instance-row .instance-card {
   background: #fffbeb;
+  border-left-color: #f59e0b;
+}
+
+.instance-main {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.instance-meta,
+.instance-actions {
+  flex-wrap: wrap;
+}
+
+.instance-command {
+  max-width: min(760px, 70vw);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .ssh-code {
@@ -129,5 +150,8 @@ body {
   .filter-bar-react { flex-direction: column; }
   .filter-bar-react > *,
   .filter-bar-react .search-input { width: 100%; min-width: 0; }
+  .instance-row td { padding-left: 20px; }
+  .instance-card > .mantine-Group-root { align-items: flex-start; flex-direction: column; }
+  .instance-actions { width: 100%; }
   .ssh-code { max-width: 220px; }
 }

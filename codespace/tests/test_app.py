@@ -7,6 +7,7 @@ import time
 
 import pytest
 from fastapi.testclient import TestClient
+from podman.errors import NotFound
 
 from codespace import shared
 from codespace.agent import app as app_module
@@ -279,3 +280,29 @@ def test_clone_codespace_repo(client: TestClient, monkeypatch: pytest.MonkeyPatc
     assert resp.status_code == 200
     assert resp.json() == {"ok": True}
     assert cloned == [("abc123", "dev", "owner/name")]
+
+
+def test_clone_codespace_repo_returns_404_when_deleted_during_clone(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    container = object()
+    containers = iter([container, None])
+    monkeypatch.setattr(podman_ops, "get_container", lambda client, cs_id: next(containers))
+    monkeypatch.setattr(
+        podman_ops,
+        "read_label",
+        lambda container, key, default="": {
+            shared.LABEL_REPO: "owner/name",
+            shared.LABEL_USER: "dev",
+        }.get(key, default),
+    )
+
+    def _clone_repo(*args: object, **kwargs: object) -> None:
+        raise NotFound("no such exec session")
+
+    monkeypatch.setattr(podman_ops, "clone_repo", _clone_repo)
+
+    resp = client.post("/codespaces/abc123/clone")
+
+    assert resp.status_code == 404
+    assert resp.json() == {"error": "codespace not found"}

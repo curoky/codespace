@@ -22,6 +22,7 @@ from codespace.client.config import AgentProfile, WebConfig
 KEY_DIR = Path.home() / ".ssh" / "codespace"
 HTTP_TIMEOUT = 30.0
 DASHBOARD_TIMEOUT = 3.0
+CLONE_HTTP_TIMEOUT = 30 * 60.0
 CREATE_POLL_INTERVAL = 2.0
 CLONE_RETRY_INTERVAL = 2.0
 CLONE_ATTEMPTS = 5
@@ -379,7 +380,12 @@ class CodespaceService:
         """Ask the agent to clone the main repo after deploy keys are registered."""
         last_error = "agent failed to clone repo"
         for attempt in range(CLONE_ATTEMPTS):
-            status, data = self.request_agent(profile, "POST", f"/codespaces/{codespace_id}/clone")
+            status, data = self.request_agent(
+                profile,
+                "POST",
+                f"/codespaces/{codespace_id}/clone",
+                timeout=CLONE_HTTP_TIMEOUT,
+            )
             if status == 200:
                 return
             last_error = agent_error(data, status)

@@ -4,6 +4,7 @@ import './styles.css';
 import {
   ActionIcon,
   Alert,
+  Anchor,
   Badge,
   Box,
   Button,
@@ -131,7 +132,6 @@ type InstanceRow = {
 type FilterState = {
   agent: string;
   status: string;
-  search: string;
   sort: 'agent' | 'repo' | 'template' | 'instance' | 'alias' | 'status';
 };
 
@@ -150,7 +150,7 @@ type Toast = {
 };
 
 const emptyDashboard: Dashboard = { agents: [], codespaces: [], operations: [] };
-const defaultFilter: FilterState = { agent: 'all', status: 'all', search: '', sort: 'agent' };
+const defaultFilter: FilterState = { agent: 'all', status: 'all', sort: 'agent' };
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(path, {
@@ -327,17 +327,12 @@ function App() {
   }, [autoRefresh, refreshDashboard]);
 
   const filteredCodespaces = useMemo(() => {
-    const search = filter.search.toLowerCase();
     return dashboard.codespaces
       .filter((cs) => {
         const status = normalizeStatus(cs.status);
         return (
           (filter.agent === 'all' || cs.agent_id === filter.agent) &&
-          (filter.status === 'all' || status === filter.status || (filter.status === 'unknown' && !cs.status)) &&
-          (!search ||
-            [cs.repo, cs.template, cs.instance, cs.alias, cs.id, cs.agent_id, cs.status]
-              .filter(Boolean)
-              .some((value) => String(value).toLowerCase().includes(search)))
+          (filter.status === 'all' || status === filter.status || (filter.status === 'unknown' && !cs.status))
         );
       })
       .sort((left, right) => {
@@ -370,15 +365,8 @@ function App() {
       const key = instanceKey(op.agent_id, op.template, op.instance);
       if (rows.has(key) && op.status === 'succeeded') continue;
       const status = normalizeStatus(op.status);
-      const search = filter.search.toLowerCase();
       if (filter.agent !== 'all' && op.agent_id !== filter.agent) continue;
       if (filter.status !== 'all' && status !== filter.status) continue;
-      if (
-        search &&
-        ![op.repo, op.template, op.instance, op.alias, op.id, op.agent_id, op.status, op.stage]
-          .filter(Boolean)
-          .some((value) => String(value).toLowerCase().includes(search))
-      ) continue;
       rows.set(key, {
         key,
         agent_id: op.agent_id,
@@ -404,7 +392,6 @@ function App() {
 
   const templateRows = useMemo(() => {
     if (!config) return [];
-    const search = filter.search.toLowerCase();
     const configured = config.templates.map((template) => ({
       key: `${template.agent || config.default_agent}:${template.id}`,
       id: template.id,
@@ -432,10 +419,7 @@ function App() {
       }))
       .filter((row) => {
         if (filter.agent !== 'all' && row.agent !== filter.agent) return false;
-        if (!search) return row.instances.length > 0 || config.templates.some((template) => template.id === row.id);
-        return [row.id, row.repo, row.agent, row.description, ...row.instances.flatMap((instance) => [instance.instance, instance.alias, instance.id, instance.status, instance.stage])]
-          .filter(Boolean)
-          .some((value) => String(value).toLowerCase().includes(search));
+        return row.instances.length > 0 || config.templates.some((template) => template.id === row.id);
       })
       .sort((left, right) => {
         const sortValue = (row: { agent: string; repo: string; id: string }) => {
@@ -621,13 +605,6 @@ function App() {
                   value={filter.status}
                   onChange={(value) => setFilter((current) => ({ ...current, status: value || 'all' }))}
                 />
-                <TextInput
-                  size="xs"
-                  placeholder="repo / template / instance / alias / id"
-                  value={filter.search}
-                  onChange={(event) => setFilter((current) => ({ ...current, search: event.currentTarget.value }))}
-                  className="search-input"
-                />
                 <Select
                   size="xs"
                   data={[
@@ -649,8 +626,8 @@ function App() {
                     <Table.Tr>
                       <Table.Th>Template</Table.Th>
                       <Table.Th>Repo</Table.Th>
-                      <Table.Th>Agent</Table.Th>
-                      <Table.Th>Instances</Table.Th>
+                      <Table.Th>Status</Table.Th>
+                      <Table.Th>Runtime</Table.Th>
                       <Table.Th ta="right">Actions</Table.Th>
                     </Table.Tr>
                   </Table.Thead>
@@ -670,11 +647,7 @@ function App() {
                             </Group>
                           </Table.Td>
                           <Table.Td><Text fw={600}>{template.repo}</Text></Table.Td>
-                          <Table.Td>
-                            <Button size="compact-xs" variant="subtle" px={0} onClick={() => setFilter((current) => ({ ...current, agent: template.agent }))}>
-                              {template.agent}
-                            </Button>
-                          </Table.Td>
+                          <Table.Td><Text c="dimmed" size="xs">template</Text></Table.Td>
                           <Table.Td><Badge variant="light"><NumberFormatter value={template.instances.length} /></Badge></Table.Td>
                           <Table.Td>
                             <Group justify="flex-end" gap="xs" wrap="nowrap">
@@ -682,32 +655,41 @@ function App() {
                             </Group>
                           </Table.Td>
                         </Table.Tr>
-                        {expandedTemplates.has(template.key) && template.instances.map((instance) => (
-                          <Table.Tr key={instance.key} className={`instance-row ${instance.kind === 'operation' ? 'operation-instance-row' : ''}`}>
-                            <Table.Td pl="xl">
-                              <Stack gap={2}>
-                                <Text fw={600}>{instance.instance}</Text>
-                                <Text size="xs" c="dimmed">{instance.kind === 'operation' ? instance.stage : instance.id}</Text>
-                                {instance.error && <Text size="xs" c="red" maw={420} truncate>{instance.error}</Text>}
-                              </Stack>
-                            </Table.Td>
-                            <Table.Td>{instance.alias ? <Code>{instance.alias}</Code> : <Text c="dimmed" size="xs">无本地 alias</Text>}</Table.Td>
-                            <Table.Td>
-                              <Stack gap={4}>
-                                <Badge color={statusColor(instance.status)} variant="light">{instance.status || 'unknown'}</Badge>
-                                {instance.kind === 'operation' && <Progress size="xs" value={operationProgress(instance.status as OperationStatus)} color={statusColor(instance.status)} />}
-                              </Stack>
-                            </Table.Td>
-                            <Table.Td><Text size="xs" c="dimmed">{instance.raw_ssh_command || instance.id}</Text></Table.Td>
-                            <Table.Td>
-                              <Group justify="flex-end" gap="xs" wrap="nowrap">
-                                {isCodespaceRow(instance) && <Button size="compact-xs" component="a" href={instance.trae_url}>Trae IDE</Button>}
-                                {isCodespaceRow(instance) && <Button size="compact-xs" variant="default" color="red" onClick={() => void deleteCodespace(instance, false)}>Delete</Button>}
-                                {isCodespaceRow(instance) && <Button size="compact-xs" color="red" onClick={() => void deleteCodespace(instance, true)}>Purge</Button>}
-                              </Group>
-                            </Table.Td>
-                          </Table.Tr>
-                        ))}
+                        {expandedTemplates.has(template.key) && template.instances.map((instance) => {
+                          const isCodespace = isCodespaceRow(instance);
+                          return (
+                            <Table.Tr key={instance.key} className={`instance-row ${instance.kind === 'operation' ? 'operation-instance-row' : ''}`}>
+                              <Table.Td colSpan={5}>
+                                <Paper withBorder radius="md" className="instance-card">
+                                  <Group justify="space-between" align="flex-start" gap="md" wrap="nowrap">
+                                    <Box className="instance-main">
+                                      <Group gap="xs" wrap="nowrap">
+                                        <Badge size="sm" variant="light" color="blue">instance</Badge>
+                                        <Text fw={700}>{instance.instance}</Text>
+                                        <Badge color={statusColor(instance.status)} variant="light">{instance.status || 'unknown'}</Badge>
+                                      </Group>
+                                      <Group gap="xs" mt={6} className="instance-meta">
+                                        <Anchor component="button" type="button" size="xs" onClick={() => setFilter((current) => ({ ...current, agent: instance.agent_id }))}>
+                                          {instance.agent_id}
+                                        </Anchor>
+                                        {instance.alias && <Code>{instance.alias}</Code>}
+                                        <Text size="xs" c="dimmed">{instance.kind === 'operation' ? instance.stage : instance.id}</Text>
+                                      </Group>
+                                      {instance.kind === 'operation' && <Progress mt="xs" size="xs" value={operationProgress(instance.status as OperationStatus)} color={statusColor(instance.status)} />}
+                                      {instance.error && <Text size="xs" c="red" mt={4}>{instance.error}</Text>}
+                                      <Text size="xs" c="dimmed" mt={4} className="instance-command">{instance.raw_ssh_command || instance.id}</Text>
+                                    </Box>
+                                    <Group gap="xs" wrap="nowrap" className="instance-actions">
+                                      {isCodespace && <Button size="compact-xs" component="a" href={instance.trae_url}>Trae IDE</Button>}
+                                      {isCodespace && <Button size="compact-xs" variant="default" color="red" onClick={() => void deleteCodespace(instance, false)}>Delete</Button>}
+                                      {isCodespace && <Button size="compact-xs" color="red" onClick={() => void deleteCodespace(instance, true)}>Purge</Button>}
+                                    </Group>
+                                  </Group>
+                                </Paper>
+                              </Table.Td>
+                            </Table.Tr>
+                          );
+                        })}
                       </React.Fragment>
                     ))}
                   </Table.Tbody>
