@@ -237,7 +237,6 @@ function renderCodespaces() {
         <button class="button is-text is-small agent-link" data-action="filter-agent" data-agent="${escapeHtml(cs.agent_id)}">
           ${escapeHtml(cs.agent_id)}
         </button>
-        <div class="muted-inline">${escapeHtml(cs.agent_id)}</div>
       </td>
       <td><span class="repo-chip">${escapeHtml(cs.repo)}</span></td>
       <td>${escapeHtml(cs.workspace)}</td>
