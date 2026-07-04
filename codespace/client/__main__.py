@@ -24,8 +24,6 @@ app = typer.Typer(help="Lightweight self-hosted codespace client.")
 
 # Local directory holding per-alias login keypairs.
 KEY_DIR = Path.home() / ".ssh" / "codespace"
-# Repos every codespace gets read-only pull access to (e.g. shared configs).
-EXTRA_REPOS = ["curoky/ai-coding-config"]
 HTTP_TIMEOUT = 30
 CREATE_POLL_INTERVAL = 2.0
 CLONE_RETRY_INTERVAL = 2.0
@@ -145,24 +143,19 @@ def create(
     """Create a codespace and register an ssh alias for it.
 
     The GitHub token stays on the client: the agent returns deploy public keys
-    (read-write for the main repo, read-only for each extra repo) which the
-    client registers on the respective repos. Extra repos (read-only, e.g.
-    shared configs) are fixed in ``EXTRA_REPOS``. If any registration fails, the
-    client rolls back all registered keys, the container, and the local login
-    key.
+    which the client registers on the target repo. If registration fails, the
+    client rolls back the registered key, the container, and the local login key.
     """
     if alias is None:
         alias = repo.split("/")[-1]
 
-    # Fixed extra read-only repos, minus the main repo (avoid duplicate key).
-    extra_repos = [r for r in EXTRA_REPOS if r != repo]
-
     login_pubkey = _ensure_login_key(alias)
     payload = shared.CreateRequest(
         repo=repo,
+        template=shared.DEFAULT_TEMPLATE,
+        instance=shared.DEFAULT_INSTANCE,
         login_pubkey=login_pubkey,
         image=image,
-        extra_repos=extra_repos,
     )
 
     status, data = _request("POST", f"{agent.rstrip('/')}/codespaces", body=payload.model_dump())
@@ -213,8 +206,6 @@ def create(
         alias, ssh_host, cs.port, cs.user, cs.id, [key.repo for key in cs.deploy_keys]
     )
     typer.secho(f"codespace ready (id={cs.id}).", fg=typer.colors.GREEN)
-    if extra_repos:
-        typer.echo(f"extra read-only repos: {', '.join(extra_repos)}")
     typer.echo(f"connect with: ssh {alias}")
 
 
@@ -250,9 +241,11 @@ def list_codespaces(
         raise _fail(data.get("error", f"agent returned HTTP {status}"))
 
     rows = [shared.Codespace.model_validate(item) for item in data]
-    table = Table("ID", "REPO", "WORKSPACE", "HOST", "PORT", "STATUS")
+    table = Table("ID", "REPO", "TEMPLATE", "INSTANCE", "HOST", "PORT", "STATUS")
     for cs in rows:
-        table.add_row(cs.id, cs.repo, cs.workspace, ssh_host, str(cs.port), cs.status or "-")
+        table.add_row(
+            cs.id, cs.repo, cs.template, cs.instance, ssh_host, str(cs.port), cs.status or "-"
+        )
     Console().print(table)
 
 

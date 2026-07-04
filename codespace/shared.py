@@ -31,7 +31,8 @@ WORKSPACE_MOUNT = "/workspace"
 # touches GitHub or holds a token.
 LABEL_ID = "codespace.id"
 LABEL_REPO = "codespace.repo"
-LABEL_WORKSPACE = "codespace.workspace"
+LABEL_TEMPLATE = "codespace.template"
+LABEL_INSTANCE = "codespace.instance"
 LABEL_USER = "codespace.user"
 LABEL_IMAGE = "codespace.image"
 LABEL_PORT = "codespace.port"
@@ -40,7 +41,8 @@ LABEL_PORT = "codespace.port"
 REPO_RE = re.compile(r"^[\w.-]+/[\w.-]+$")
 WORKSPACE_RE = re.compile(r"^[\w.-]+$")
 
-DEFAULT_WORKSPACE = "default"
+DEFAULT_TEMPLATE = "default"
+DEFAULT_INSTANCE = "default"
 
 
 # --- Helpers -----------------------------------------------------------------
@@ -51,14 +53,14 @@ def repo_slug(repo: str) -> str:
     return repo.replace("/", "-")
 
 
-def workspace_dir_name(repo: str, workspace: str) -> str:
-    """Compute the host workspace directory name for a (repo, workspace) pair.
+def workspace_dir_name(repo: str, template: str, instance: str) -> str:
+    """Compute the host workspace directory name for a repo/template/instance tuple.
 
     A short hash suffix disambiguates slugs that would otherwise collide
     (e.g. ``a/b-c`` vs ``a-b/c``). See DESIGN.md §7.
     """
-    digest = hashlib.sha256(f"{repo}\0{workspace}".encode()).hexdigest()[:8]
-    return f"{CONTAINER_PREFIX}{repo_slug(repo)}-{workspace}-{digest}"
+    digest = hashlib.sha256(f"{repo}\0{template}\0{instance}".encode()).hexdigest()[:8]
+    return f"{CONTAINER_PREFIX}{repo_slug(repo)}-{template}-{instance}-{digest}"
 
 
 def container_name(cs_id: str) -> str:
@@ -76,27 +78,11 @@ def deploy_key_title(cs_id: str) -> str:
     return f"{CONTAINER_PREFIX}{cs_id}"
 
 
-def extra_repo_ssh_alias(repo: str) -> str:
-    """SSH host alias used inside the container for an extra (read-only) repo.
-
-    Each extra repo gets its own key and its own ``Host <alias>`` block plus a
-    git ``insteadOf`` rewrite, so ``git clone git@github.com:owner/name`` picks
-    the right key transparently. The alias is derived from the repo slug.
-    """
-    return f"github-{repo_slug(repo)}"
-
-
 # --- Wire models -------------------------------------------------------------
 
 
 class DeployKeyRef(BaseModel):
-    """A deploy public key the client must register on ``repo``.
-
-    Returned by ``create``: the agent generates the keypair, injects the
-    private half into the container and returns this public half for the client
-    to register as a GitHub deploy key. ``read_only`` is ``False`` for the main
-    repo and ``True`` for extra repos.
-    """
+    """A deploy public key the client must register on ``repo``."""
 
     repo: str
     public_openssh: str
@@ -108,18 +94,16 @@ class CreateRequest(BaseModel):
 
     The client owns all GitHub interaction, so no token is sent to the agent.
     ``image`` is supplied by the client; the agent fixes the login user and
-    workspace internally so those fields are not part of the wire request.
+    uses ``template``/``instance`` only for remote resource identity.
     """
 
     model_config = ConfigDict(extra="forbid")
 
     repo: str = Field(..., description="Target GitHub repo, 'owner/name'.")
+    template: str = Field(DEFAULT_TEMPLATE, description="Template id for this instance.")
+    instance: str = Field(DEFAULT_INSTANCE, description="Instance name under the template.")
     login_pubkey: str = Field(..., description="Client SSH public key for login.")
     image: str = Field(..., description="Dev image satisfying the DESIGN.md §3 contract.")
-    extra_repos: list[str] = Field(
-        default_factory=list,
-        description="Extra repos granted read-only pull access (e.g. dotfiles).",
-    )
 
     @field_validator("repo")
     @classmethod
@@ -128,12 +112,11 @@ class CreateRequest(BaseModel):
             raise ValueError("repo must match 'owner/name'")
         return v
 
-    @field_validator("extra_repos")
+    @field_validator("template", "instance")
     @classmethod
-    def _check_extra_repos(cls, v: list[str]) -> list[str]:
-        for repo in v:
-            if not REPO_RE.match(repo):
-                raise ValueError(f"extra repo must match 'owner/name': {repo!r}")
+    def _check_name(cls, v: str) -> str:
+        if not WORKSPACE_RE.match(v):
+            raise ValueError("must match [\\w.-]+")
         return v
 
     @field_validator("login_pubkey", "image")
@@ -148,10 +131,9 @@ class Codespace(BaseModel):
     """A managed codespace, returned by create/list.
 
     ``deploy_keys`` is only populated by ``create``: for the main repo (read
-    -write) and each extra repo (read-only), the agent generates the keypair,
-    keeps the private half (injected into the container) and hands the public
-    half back so the client can register it as a GitHub deploy key. It is empty
-    for ``list`` results.
+    -write), the agent generates the keypair, keeps the private half (injected
+    into the container) and hands the public half back so the client can
+    register it as a GitHub deploy key. It is empty for ``list`` results.
 
     The SSH host is *not* included: the agent only reports the ``port`` it can
     observe from podman; the client supplies the reachable host itself (it is
@@ -163,7 +145,8 @@ class Codespace(BaseModel):
     user: str
     container_id: str
     repo: str
-    workspace: str
+    template: str = DEFAULT_TEMPLATE
+    instance: str = DEFAULT_INSTANCE
     workspace_dir: str
     deploy_keys: list[DeployKeyRef] = Field(default_factory=list)
     status: str | None = None

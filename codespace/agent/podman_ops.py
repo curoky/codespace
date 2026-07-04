@@ -32,7 +32,7 @@ __all__ = [
     "clone_repo",
     "create_container",
     "ensure_workspace_dir",
-    "find_container_by_workspace",
+    "find_container_by_instance",
     "get_container",
     "inject_credentials",
     "list_containers",
@@ -130,7 +130,8 @@ def create_container(
     cs_id: str,
     image: str,
     repo: str,
-    workspace: str,
+    template: str,
+    instance: str,
     user: str,
     workspace_host_dir: str,
 ) -> ContainerInfo:
@@ -144,11 +145,13 @@ def create_container(
     """
     ssh_port = _allocate_host_port()
     logger.info(
-        "starting container {} image={} repo={} workspace={} user={} ssh_port={} workspace_dir={}",
+        "starting container {} image={} repo={} template={} instance={} user={} "
+        "ssh_port={} workspace_dir={}",
         shared.container_name(cs_id),
         image,
         repo,
-        workspace,
+        template,
+        instance,
         user,
         ssh_port,
         workspace_host_dir,
@@ -165,7 +168,8 @@ def create_container(
         labels={
             shared.LABEL_ID: cs_id,
             shared.LABEL_REPO: repo,
-            shared.LABEL_WORKSPACE: workspace,
+            shared.LABEL_TEMPLATE: template,
+            shared.LABEL_INSTANCE: instance,
             shared.LABEL_USER: user,
             shared.LABEL_IMAGE: image,
             shared.LABEL_PORT: str(ssh_port),
@@ -260,7 +264,6 @@ def inject_credentials(
     user: str,
     private_key: str,
     login_pubkey: str,
-    extra_keys: list[tuple[str, str]] | None = None,
 ) -> None:
     """Fix workspace ownership then inject deploy keys and the login pubkey.
 
@@ -269,21 +272,14 @@ def inject_credentials(
       2. As the login user, materialise ~/.ssh with the main repo's deploy
          private key, a git ssh config, and the client's login pubkey.
 
-    ``extra_keys`` is a list of ``(repo, private_key)`` for extra read-only
-    repos: each gets its own key file, an ssh ``Host`` alias, and a git
-    ``insteadOf`` rewrite in ~/.gitconfig so ``git clone git@github.com:<repo>``
-    transparently uses that key.
-
     Private keys are delivered via ``put_archive`` (tar over the podman API):
     never a command-line argument, never written to the agent disk.
     """
-    extra_keys = extra_keys or []
     container = client.containers.get(shared.container_name(cs_id))
     logger.info(
-        "injecting credentials into {} user={} extra_keys={}",
+        "injecting credentials into {} user={}",
         shared.container_name(cs_id),
         user,
-        len(extra_keys),
     )
 
     # 1) Correct ownership of the freshly bind-mounted workspace (root).
@@ -312,13 +308,6 @@ def inject_credentials(
         ("authorized_keys", login_pubkey.rstrip("\n") + "\n", 0o600),
     ]
 
-    # Extra repos: per-repo key file + host alias; git insteadOf rewrites below.
-    for repo, key in extra_keys:
-        alias = shared.extra_repo_ssh_alias(repo)
-        key_file = f"repo_{alias}"
-        members.append((key_file, key, 0o600))
-        ssh_config_blocks.append(_ssh_host_block(alias, "github.com", key_file))
-
     members.append(("config", "\n".join(ssh_config_blocks), 0o600))
 
     archive = _multi_member_tar(members)
@@ -333,18 +322,6 @@ def inject_credentials(
     # put_archive preserves the tar member ownership (root); re-own to the user.
     _exec_checked(container, ["chown", "-R", f"{user}:{user}", ssh_dir], user="0")
     logger.info("ssh credentials injected into {}", shared.container_name(cs_id))
-
-    # Extra repos also need a git insteadOf rewrite so plain github.com URLs
-    # resolve to the per-repo alias (and thus the correct key).
-    if extra_keys:
-        logger.info(
-            "writing git insteadOf rules into {} extra_repos={}",
-            shared.container_name(cs_id),
-            len(extra_keys),
-        )
-        _write_git_insteadof(
-            container, home=home, user=user, extra_repos=[r for r, _ in extra_keys]
-        )
 
 
 def clone_repo(client: PodmanClient, *, cs_id: str, user: str, repo: str) -> None:
@@ -397,24 +374,6 @@ def _ssh_host_block(host: str, hostname: str, key_file: str) -> str:
     )
 
 
-def _write_git_insteadof(
-    container: Container, *, home: str, user: str, extra_repos: list[str]
-) -> None:
-    """Append git ``insteadOf`` rewrites so extra repos use their alias/key.
-
-    ``git@github.com:owner/name`` -> ``git@<alias>:owner/name``; git picks the
-    longest-matching prefix, so the main repo (plain github.com) is unaffected.
-    """
-    lines = []
-    for repo in extra_repos:
-        alias = shared.extra_repo_ssh_alias(repo)
-        lines.append(f'[url "git@{alias}:{repo}"]\n    insteadOf = git@github.com:{repo}\n')
-    archive = _multi_member_tar([(".gitconfig", "".join(lines), 0o644)])
-    if not container.put_archive(home, archive):
-        raise RuntimeError("failed to inject git insteadOf config via put_archive")
-    _exec_checked(container, ["chown", f"{user}:{user}", f"{home}/.gitconfig"], user="0")
-
-
 def _multi_member_tar(members: list[tuple[str, str, int]]) -> bytes:
     """Build a tar archive containing several files for ``put_archive``."""
     buf = io.BytesIO()
@@ -449,10 +408,12 @@ def to_codespace(container: Container) -> shared.Codespace:
         user=read_label(container, shared.LABEL_USER, shared.DEFAULT_CONTAINER_USER),
         container_id=container.id,
         repo=read_label(container, shared.LABEL_REPO),
-        workspace=read_label(container, shared.LABEL_WORKSPACE),
+        template=read_label(container, shared.LABEL_TEMPLATE, shared.DEFAULT_TEMPLATE),
+        instance=read_label(container, shared.LABEL_INSTANCE, shared.DEFAULT_INSTANCE),
         workspace_dir=shared.workspace_dir_name(
             read_label(container, shared.LABEL_REPO),
-            read_label(container, shared.LABEL_WORKSPACE),
+            read_label(container, shared.LABEL_TEMPLATE, shared.DEFAULT_TEMPLATE),
+            read_label(container, shared.LABEL_INSTANCE, shared.DEFAULT_INSTANCE),
         ),
         status=_container_status(container),
     )
@@ -486,14 +447,15 @@ def list_containers(client: PodmanClient) -> list[Container]:
     return managed
 
 
-def find_container_by_workspace(
-    client: PodmanClient, repo: str, workspace: str
+def find_container_by_instance(
+    client: PodmanClient, repo: str, template: str, instance: str
 ) -> Container | None:
-    """Return the managed container for a ``(repo, workspace)`` pair, if any."""
+    """Return the managed container for a ``(repo, template, instance)`` tuple, if any."""
     for container in list_containers(client):
         if (
             read_label(container, shared.LABEL_REPO) == repo
-            and read_label(container, shared.LABEL_WORKSPACE) == workspace
+            and read_label(container, shared.LABEL_TEMPLATE, shared.DEFAULT_TEMPLATE) == template
+            and read_label(container, shared.LABEL_INSTANCE, shared.DEFAULT_INSTANCE) == instance
         ):
             return container
     return None

@@ -60,7 +60,8 @@ def test_to_codespace_maps_labels_and_port() -> None:
         labels={
             shared.LABEL_ID: "abc123",
             shared.LABEL_REPO: "owner/name",
-            shared.LABEL_WORKSPACE: "default",
+            shared.LABEL_TEMPLATE: "default",
+            shared.LABEL_INSTANCE: "default",
             shared.LABEL_USER: "dev",
         }
     )
@@ -69,7 +70,7 @@ def test_to_codespace_maps_labels_and_port() -> None:
     assert cs.repo == "owner/name"
     assert cs.port == 49207
     assert cs.deploy_keys == []
-    assert cs.workspace_dir == shared.workspace_dir_name("owner/name", "default")
+    assert cs.workspace_dir == shared.workspace_dir_name("owner/name", "default", "default")
     assert cs.status == "running"
 
 
@@ -153,7 +154,8 @@ def test_create_container_writes_labels_and_returns_port(monkeypatch: pytest.Mon
         cs_id="abc",
         image="img",
         repo="owner/name",
-        workspace="default",
+        template="default",
+        instance="default",
         user="dev",
         workspace_host_dir="/host/ws",
     )
@@ -167,6 +169,8 @@ def test_create_container_writes_labels_and_returns_port(monkeypatch: pytest.Mon
     assert run_kwargs["ulimits"] == [{"Name": "memlock", "Soft": -1, "Hard": -1}]
     assert run_kwargs["environment"] == {"SSHD_PORT": "49207"}
     assert run_kwargs["labels"][shared.LABEL_REPO] == "owner/name"
+    assert run_kwargs["labels"][shared.LABEL_TEMPLATE] == "default"
+    assert run_kwargs["labels"][shared.LABEL_INSTANCE] == "default"
     assert run_kwargs["labels"][shared.LABEL_PORT] == "49207"
     assert run_kwargs["mounts"][0]["source"] == "/host/ws"
 
@@ -216,34 +220,6 @@ def test_inject_credentials_uses_stdout_from_multiplexed_home_output() -> None:
     assert container.archives[0][0] == "/home/x/.ssh"
 
 
-def test_inject_credentials_with_extra_repo_writes_alias_and_gitconfig() -> None:
-    container = _ExecContainer(labels={shared.LABEL_ID: "abc"})
-    client = _FakeClient(container)
-
-    podman_ops.inject_credentials(
-        client,
-        cs_id="abc",
-        user="dev",
-        private_key="PRIV",
-        login_pubkey="ssh-ed25519 LOGIN",
-        extra_keys=[("owner/dotfiles", "EXTRA_PRIV")],
-    )
-
-    alias = shared.extra_repo_ssh_alias("owner/dotfiles")
-    # ~/.ssh archive carries the extra key file + main key + config + authkeys.
-    ssh_archive = next(d for p, d in container.archives if p == "/home/dev/.ssh")
-    assert f"repo_{alias}" in _tar_names(ssh_archive)
-    # ssh config pins the alias to its own key.
-    config_bytes = _tar_member(ssh_archive, "config")
-    assert f"Host {alias}" in config_bytes.decode()
-    assert f"IdentityFile ~/.ssh/repo_{alias}" in config_bytes.decode()
-    # ~/.gitconfig carries the insteadOf rewrite for transparent clones.
-    git_archive = next(d for p, d in container.archives if p == "/home/dev")
-    gitconfig = _tar_member(git_archive, ".gitconfig").decode()
-    assert f"git@{alias}:owner/dotfiles" in gitconfig
-    assert "insteadOf = git@github.com:owner/dotfiles" in gitconfig
-
-
 def test_clone_repo_clones_into_repo_name_directory() -> None:
     container = _ExecContainer(labels={shared.LABEL_ID: "abc"})
     client = _FakeClient(container)
@@ -268,18 +244,22 @@ def test_list_containers_filters_by_label() -> None:
     assert podman_ops.list_containers(client) == [labeled]
 
 
-def test_find_container_by_workspace_matches_repo_and_workspace() -> None:
+def test_find_container_by_instance_matches_repo_template_and_instance() -> None:
     container = _FakeContainer(
         labels={
             shared.LABEL_ID: "abc",
             shared.LABEL_REPO: "owner/name",
-            shared.LABEL_WORKSPACE: "default",
+            shared.LABEL_TEMPLATE: "default",
+            shared.LABEL_INSTANCE: "default",
         }
     )
     client = _FakeClient(container)
 
-    assert podman_ops.find_container_by_workspace(client, "owner/name", "default") is container
-    assert podman_ops.find_container_by_workspace(client, "owner/name", "other") is None
+    assert (
+        podman_ops.find_container_by_instance(client, "owner/name", "default", "default")
+        is container
+    )
+    assert podman_ops.find_container_by_instance(client, "owner/name", "default", "other") is None
 
 
 def test_pull_image_delegates_to_podman_images() -> None:

@@ -7,17 +7,14 @@ import {
   Badge,
   Box,
   Button,
-  Card,
   Checkbox,
   Code,
   Container,
-  Divider,
   Flex,
   Grid,
   Group,
   MantineProvider,
   Modal,
-  NativeSelect,
   NumberFormatter,
   Paper,
   Progress,
@@ -27,10 +24,9 @@ import {
   Table,
   Text,
   TextInput,
-  Textarea,
   Title,
 } from '@mantine/core';
-import { IconRefresh, IconX } from '@tabler/icons-react';
+import { IconChevronDown, IconChevronRight, IconPlus, IconRefresh } from '@tabler/icons-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
@@ -41,7 +37,6 @@ type ConfigSummary = {
   default_agent: string;
   defaults: {
     image: string;
-    extra_repos: string[];
   };
   github: {
     token_env: string;
@@ -60,9 +55,7 @@ type ConfigSummary = {
     description?: string | null;
     agent?: string | null;
     repo: string;
-    alias?: string | null;
     image?: string | null;
-    extra_repos?: string[] | null;
   }>;
 };
 
@@ -91,7 +84,8 @@ type Codespace = {
   agent_id: string;
   id: string;
   repo: string;
-  workspace: string;
+  template: string;
+  instance: string;
   alias?: string | null;
   ssh_host: string;
   port: number;
@@ -107,6 +101,8 @@ type Operation = {
   agent_id: string;
   alias: string;
   repo: string;
+  template: string;
+  instance: string;
   status: OperationStatus;
   stage: string;
   error?: string | null;
@@ -118,16 +114,15 @@ type FilterState = {
   agent: string;
   status: string;
   search: string;
-  sort: 'agent' | 'repo' | 'alias' | 'status';
+  sort: 'agent' | 'repo' | 'template' | 'instance' | 'alias' | 'status';
 };
 
 type CreateForm = {
   agent: string;
   repo: string;
-  alias: string;
+  template: string;
+  instance: string;
   image: string;
-  extraRepos: string;
-  autoAlias: boolean;
 };
 
 type Toast = {
@@ -154,12 +149,8 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return body as T;
 }
 
-function repoName(repo: string): string {
-  return repo.includes('/') ? repo.split('/').at(-1) || repo : repo;
-}
-
-function defaultAlias(agent: string, repo: string): string {
-  return agent && repo ? `${agent}-${repoName(repo)}` : '';
+function instanceAlias(agent: string, template: string, instance: string): string {
+  return agent && template && instance ? `${agent}-${template}-${instance}` : '';
 }
 
 function normalizeStatus(status?: string | null): string {
@@ -192,6 +183,7 @@ function App() {
   const [config, setConfig] = useState<ConfigSummary | null>(null);
   const [dashboard, setDashboard] = useState<Dashboard>(emptyDashboard);
   const [operations, setOperations] = useState<Map<string, Operation>>(new Map());
+  const [expandedTemplates, setExpandedTemplates] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<FilterState>(defaultFilter);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
@@ -204,10 +196,9 @@ function App() {
   const [form, setForm] = useState<CreateForm>({
     agent: '',
     repo: '',
-    alias: '',
+    template: 'default',
+    instance: 'default',
     image: '',
-    extraRepos: '',
-    autoAlias: true,
   });
   const autoRefreshRef = useRef<number | null>(null);
   const operationRef = useRef(operations);
@@ -321,7 +312,7 @@ function App() {
           (filter.agent === 'all' || cs.agent_id === filter.agent) &&
           (filter.status === 'all' || status === filter.status || (filter.status === 'unknown' && !cs.status)) &&
           (!search ||
-            [cs.repo, cs.alias, cs.id, cs.agent_id, cs.status]
+            [cs.repo, cs.template, cs.instance, cs.alias, cs.id, cs.agent_id, cs.status]
               .filter(Boolean)
               .some((value) => String(value).toLowerCase().includes(search)))
         );
@@ -333,12 +324,62 @@ function App() {
       });
   }, [dashboard.codespaces, filter]);
 
-  function updateForm(patch: Partial<CreateForm>) {
-    setForm((current) => {
-      const next = { ...current, ...patch };
-      if (next.autoAlias) next.alias = defaultAlias(next.agent, next.repo.trim());
+  const templateRows = useMemo(() => {
+    if (!config) return [];
+    const search = filter.search.toLowerCase();
+    const configured = config.templates.map((template) => ({
+      key: `${template.agent || config.default_agent}:${template.id}`,
+      id: template.id,
+      repo: template.repo,
+      agent: template.agent || config.default_agent,
+      description: template.description,
+      image: template.image || config.defaults.image,
+    }));
+    const known = new Set(configured.map((row) => row.key));
+    const adHoc = dashboard.codespaces
+      .filter((cs) => !known.has(`${cs.agent_id}:${cs.template}`))
+      .map((cs) => ({
+        key: `${cs.agent_id}:${cs.template}`,
+        id: cs.template,
+        repo: cs.repo,
+        agent: cs.agent_id,
+        description: null,
+        image: config.defaults.image,
+      }));
+    const rows = [...configured, ...adHoc.filter((row, index, list) => list.findIndex((item) => item.key === row.key) === index)];
+    return rows
+      .map((row) => ({
+        ...row,
+        instances: filteredCodespaces.filter((cs) => cs.agent_id === row.agent && cs.template === row.id),
+      }))
+      .filter((row) => {
+        if (filter.agent !== 'all' && row.agent !== filter.agent) return false;
+        if (!search) return row.instances.length > 0 || config.templates.some((template) => template.id === row.id);
+        return [row.id, row.repo, row.agent, row.description, ...row.instances.flatMap((cs) => [cs.instance, cs.alias, cs.id, cs.status])]
+          .filter(Boolean)
+          .some((value) => String(value).toLowerCase().includes(search));
+      })
+      .sort((left, right) => {
+        const sortValue = (row: { agent: string; repo: string; id: string }) => {
+          if (filter.sort === 'agent') return row.agent;
+          if (filter.sort === 'repo') return row.repo;
+          return row.id;
+        };
+        return String(sortValue(left)).localeCompare(String(sortValue(right)));
+      });
+  }, [config, dashboard.codespaces, filteredCodespaces, filter]);
+
+  function toggleTemplate(key: string) {
+    setExpandedTemplates((current) => {
+      const next = new Set(current);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
+  }
+
+  function updateForm(patch: Partial<CreateForm>) {
+    setForm((current) => ({ ...current, ...patch }));
   }
 
   function openCreate(templateId?: string) {
@@ -346,14 +387,12 @@ function App() {
     const template = config.templates.find((item) => item.id === templateId);
     const agent = template?.agent || (filter.agent !== 'all' ? filter.agent : config.default_agent);
     const repo = template?.repo || '';
-    const autoAlias = !template?.alias;
     const nextForm: CreateForm = {
       agent,
       repo,
-      alias: template?.alias || defaultAlias(agent, repo),
+      template: template?.id || 'default',
+      instance: 'default',
       image: template?.image || config.defaults.image,
-      extraRepos: (template?.extra_repos ?? config.defaults.extra_repos).join('\n'),
-      autoAlias,
     };
     setForm(nextForm);
     setCreateError(null);
@@ -367,13 +406,11 @@ function App() {
     try {
       const payload = {
         repo: form.repo.trim(),
-        alias: form.alias.trim(),
+        template: form.template.trim(),
+        instance: form.instance.trim(),
         image: form.image.trim(),
-        extra_repos: form.extraRepos
-          .split(/\n|,/)
-          .map((item) => item.trim())
-          .filter(Boolean),
       };
+      const alias = instanceAlias(form.agent, payload.template, payload.instance);
       const result = await request<{ operation_id: string }>(
         `/api/agents/${encodeURIComponent(form.agent)}/codespaces`,
         { method: 'POST', body: JSON.stringify(payload) },
@@ -383,12 +420,13 @@ function App() {
         id: result.operation_id,
         status: 'queued',
         stage: 'queued',
+        alias,
         ...payload,
         agent_id: form.agent,
         created_at: Date.now() / 1000,
       };
       setOperations((current) => new Map(current).set(result.operation_id, operation));
-      showToast(`Create operation started: ${payload.alias}`);
+      showToast(`Create operation started: ${alias}`);
       void pollOperation(result.operation_id);
     } catch (submitError) {
       const message = (submitError as Error).message;
@@ -452,11 +490,43 @@ function App() {
               <StatCard label="offline" value={dashboard.agents.filter((agent) => agent.status === 'offline').length} />
               <StatCard label="ops" value={runningOps} />
             </Grid>
+            <Paper withBorder radius="md" className="runtime-strip">
+              <Group gap="sm" justify="space-between" align="center">
+                <Group gap="xs" className="runtime-strip-section">
+                  <Badge variant="light" color={config?.github.has_token ? 'green' : 'yellow'}>
+                    {config?.github.has_token ? 'Token ready' : 'Token missing'}
+                  </Badge>
+                  <Text size="xs" c="dimmed">{config?.github.has_token ? config.github.token_env : `set ${config?.github.token_env || 'GITHUB_TOKEN'}`}</Text>
+                  <Text size="xs" c="dimmed">Updated {formatTime(lastUpdated)}</Text>
+                  <Checkbox size="xs" label="auto refresh" checked={autoRefresh} onChange={(event) => setAutoRefresh(event.currentTarget.checked)} />
+                </Group>
+                <Group gap={6} className="agent-chips">
+                  {dashboard.agents.length ? dashboard.agents.map((agent) => (
+                    <Button
+                      key={agent.id}
+                      size="compact-xs"
+                      variant={filter.agent === agent.id ? 'filled' : 'light'}
+                      color={statusColor(agent.status)}
+                      onClick={() => setFilter((current) => ({ ...current, agent: current.agent === agent.id ? 'all' : agent.id }))}
+                    >
+                      {agent.id}{agent.ssh_proxy ? ' · proxy' : ''}
+                    </Button>
+                  )) : <Text c="dimmed" size="xs">暂无 agent 信息</Text>}
+                </Group>
+              </Group>
+              {dashboard.agents.some((agent) => agent.error) && (
+                <Stack gap={4} mt="xs">
+                  {dashboard.agents.filter((agent) => agent.error).map((agent) => (
+                    <Alert key={agent.id} color="red" py={4}>{agent.id}: {agent.error}</Alert>
+                  ))}
+                </Stack>
+              )}
+            </Paper>
             {error && <Alert color="yellow">{error}</Alert>}
             <Paper withBorder radius="md" className="panel-card">
               <Group justify="space-between" className="panel-heading">
-                <Title order={2} size="h5">Codespaces</Title>
-                <Badge variant="light"><NumberFormatter value={filteredCodespaces.length} /></Badge>
+                <Title order={2} size="h5">Templates</Title>
+                <Badge variant="light"><NumberFormatter value={templateRows.length} /></Badge>
               </Group>
               <Flex gap="xs" className="filter-bar-react">
                 <Select
@@ -478,7 +548,7 @@ function App() {
                 />
                 <TextInput
                   size="xs"
-                  placeholder="repo / alias / id"
+                  placeholder="repo / template / instance / alias / id"
                   value={filter.search}
                   onChange={(event) => setFilter((current) => ({ ...current, search: event.currentTarget.value }))}
                   className="search-input"
@@ -488,6 +558,8 @@ function App() {
                   data={[
                     { value: 'agent', label: 'Agent' },
                     { value: 'repo', label: 'Repository' },
+                    { value: 'template', label: 'Template' },
+                    { value: 'instance', label: 'Instance' },
                     { value: 'alias', label: 'Alias' },
                     { value: 'status', label: 'Status' },
                   ]}
@@ -500,105 +572,93 @@ function App() {
                 <Table striped highlightOnHover verticalSpacing="xs" className="codespace-table">
                   <Table.Thead>
                     <Table.Tr>
-                      <Table.Th>Agent</Table.Th>
+                      <Table.Th>Template</Table.Th>
                       <Table.Th>Repo</Table.Th>
-                      <Table.Th>Alias</Table.Th>
-                      <Table.Th>Status</Table.Th>
+                      <Table.Th>Agent</Table.Th>
+                      <Table.Th>Instances</Table.Th>
                       <Table.Th ta="right">Actions</Table.Th>
                     </Table.Tr>
                   </Table.Thead>
                   <Table.Tbody>
-                    {filteredCodespaces.map((cs) => (
-                      <Table.Tr key={`${cs.agent_id}-${cs.id}`}>
-                        <Table.Td>
-                          <Button size="compact-xs" variant="subtle" px={0} onClick={() => setFilter((current) => ({ ...current, agent: cs.agent_id }))}>
-                            {cs.agent_id}
-                          </Button>
-                        </Table.Td>
-                        <Table.Td><Text fw={600}>{cs.repo}</Text></Table.Td>
-                        <Table.Td>{cs.alias ? <Code>{cs.alias}</Code> : <Text c="dimmed" size="xs">无本地 alias</Text>}</Table.Td>
-                        <Table.Td><Badge color={statusColor(cs.status)} variant="light">{cs.status || 'unknown'}</Badge></Table.Td>
-                        <Table.Td>
-                          <Group justify="flex-end" gap="xs" wrap="nowrap">
-                            <Button size="compact-xs" component="a" href={cs.trae_url}>Trae IDE</Button>
-                            <Button size="compact-xs" variant="default" color="red" onClick={() => void deleteCodespace(cs, false)}>Delete</Button>
-                            <Button size="compact-xs" color="red" onClick={() => void deleteCodespace(cs, true)}>Purge</Button>
-                          </Group>
-                        </Table.Td>
-                      </Table.Tr>
+                    {templateRows.map((template) => (
+                      <React.Fragment key={template.key}>
+                        <Table.Tr className="template-row">
+                          <Table.Td>
+                            <Group gap="xs" wrap="nowrap">
+                              <ActionIcon size="sm" variant="subtle" onClick={() => toggleTemplate(template.key)} disabled={template.instances.length === 0}>
+                                {expandedTemplates.has(template.key) ? <IconChevronDown size={14} /> : <IconChevronRight size={14} />}
+                              </ActionIcon>
+                              <Box>
+                                <Text fw={700}>{template.id}</Text>
+                                {template.description && <Text size="xs" c="dimmed">{template.description}</Text>}
+                              </Box>
+                            </Group>
+                          </Table.Td>
+                          <Table.Td><Text fw={600}>{template.repo}</Text></Table.Td>
+                          <Table.Td>
+                            <Button size="compact-xs" variant="subtle" px={0} onClick={() => setFilter((current) => ({ ...current, agent: template.agent }))}>
+                              {template.agent}
+                            </Button>
+                          </Table.Td>
+                          <Table.Td><Badge variant="light"><NumberFormatter value={template.instances.length} /></Badge></Table.Td>
+                          <Table.Td>
+                            <Group justify="flex-end" gap="xs" wrap="nowrap">
+                              <Button size="compact-xs" leftSection={<IconPlus size={14} />} onClick={() => openCreate(template.id)}>New instance</Button>
+                            </Group>
+                          </Table.Td>
+                        </Table.Tr>
+                        {expandedTemplates.has(template.key) && template.instances.map((cs) => (
+                          <Table.Tr key={`${cs.agent_id}-${cs.id}`} className="instance-row">
+                            <Table.Td pl="xl">
+                              <Stack gap={2}>
+                                <Text fw={600}>{cs.instance}</Text>
+                                <Text size="xs" c="dimmed">{cs.id}</Text>
+                              </Stack>
+                            </Table.Td>
+                            <Table.Td>{cs.alias ? <Code>{cs.alias}</Code> : <Text c="dimmed" size="xs">无本地 alias</Text>}</Table.Td>
+                            <Table.Td><Badge color={statusColor(cs.status)} variant="light">{cs.status || 'unknown'}</Badge></Table.Td>
+                            <Table.Td><Text size="xs" c="dimmed">{cs.raw_ssh_command}</Text></Table.Td>
+                            <Table.Td>
+                              <Group justify="flex-end" gap="xs" wrap="nowrap">
+                                <Button size="compact-xs" component="a" href={cs.trae_url}>Trae IDE</Button>
+                                <Button size="compact-xs" variant="default" color="red" onClick={() => void deleteCodespace(cs, false)}>Delete</Button>
+                                <Button size="compact-xs" color="red" onClick={() => void deleteCodespace(cs, true)}>Purge</Button>
+                              </Group>
+                            </Table.Td>
+                          </Table.Tr>
+                        ))}
+                      </React.Fragment>
                     ))}
                   </Table.Tbody>
                 </Table>
               </ScrollArea>
-              {filteredCodespaces.length === 0 && <Text c="dimmed" p="md">暂无 codespace</Text>}
+              {templateRows.length === 0 && <Text c="dimmed" p="md">暂无 template</Text>}
             </Paper>
-          </Stack>
-
-          <Stack gap="sm" className="side-pane">
-            <SidePanel title="Runtime">
-              <Group justify="space-between">
-                <Stack gap={2}>
-                  <Text fw={700} c={config?.github.has_token ? 'green' : 'yellow'}>{config?.github.has_token ? 'Token ready' : 'Token missing'}</Text>
-                  <Text size="xs" c="dimmed">{config?.github.has_token ? config.github.token_env : `set ${config?.github.token_env || 'GITHUB_TOKEN'}`}</Text>
-                </Stack>
-                <Checkbox label="auto" checked={autoRefresh} onChange={(event) => setAutoRefresh(event.currentTarget.checked)} />
-              </Group>
-              <Divider my="sm" />
-              <Text size="xs" c="dimmed">Last updated: {formatTime(lastUpdated)}</Text>
-            </SidePanel>
-
-            <SidePanel title="Templates">
-              <Stack gap="xs">
-                {config?.templates.length ? config.templates.map((template) => (
-                  <Card key={template.id} withBorder padding="sm" radius="md">
-                    <Group justify="space-between" align="flex-start">
-                      <Text fw={700}>{template.id}</Text>
-                      <Text size="xs" c="blue">{template.repo}</Text>
-                    </Group>
-                    {template.description && <Text size="xs" c="dimmed" mt={4}>{template.description}</Text>}
-                    <Text size="xs" c="dimmed" mt={6}>{template.agent || config.default_agent}</Text>
-                    <Button size="xs" fullWidth mt="xs" onClick={() => openCreate(template.id)}>Create</Button>
-                  </Card>
-                )) : <Text c="dimmed" size="sm">暂无模板</Text>}
-              </Stack>
-            </SidePanel>
-
-            <SidePanel title="Agents">
-              <Stack gap="xs">
-                {dashboard.agents.length ? dashboard.agents.map((agent) => (
-                  <Card key={agent.id} withBorder padding="sm" radius="md">
-                    <Group justify="space-between" align="flex-start">
-                      <Text fw={700}>{agent.id}</Text>
-                      <Group gap={4}>
-                        {agent.ssh_proxy && <Badge color="grape" variant="light">ssh proxy</Badge>}
-                        <Badge color={statusColor(agent.status)} variant="light">{agent.status}</Badge>
-                      </Group>
-                    </Group>
-                    {agent.error && <Alert color="red" mt="xs">{agent.error}</Alert>}
-                  </Card>
-                )) : <Text c="dimmed" size="sm">暂无 agent 信息</Text>}
-              </Stack>
-            </SidePanel>
-
-            <SidePanel title="Operations" action={<Button size="compact-xs" variant="default" onClick={() => void clearOperations()}>Clear</Button>}>
-              <Stack gap="xs">
-                {[...operations.values()].sort((a, b) => b.created_at - a.created_at).map((op) => (
-                  <Card key={op.id} withBorder padding="sm" radius="md">
-                    <Group justify="space-between" align="flex-start">
-                      <Box>
-                        <Text fw={700}>{op.alias}</Text>
-                        <Text size="xs" c="dimmed">{op.repo} · {op.agent_id}</Text>
-                      </Box>
-                      <Badge color={statusColor(op.status)} variant="light">{op.status}</Badge>
-                    </Group>
-                    <Progress mt="xs" size="xs" value={operationProgress(op.status)} color={statusColor(op.status)} />
-                    <Text size="xs" c="dimmed" mt={4}>{op.stage}</Text>
-                    {op.error && <Alert color="red" mt="xs">{op.error}</Alert>}
-                  </Card>
-                ))}
-                {operations.size === 0 && <Text c="dimmed" size="sm">暂无 operation</Text>}
-              </Stack>
-            </SidePanel>
+            {operations.size > 0 && (
+              <Paper withBorder radius="md" className="operations-strip">
+                <Group justify="space-between" className="panel-heading compact">
+                  <Title order={2} size="h6">Operations</Title>
+                  <Button size="compact-xs" variant="default" onClick={() => void clearOperations()}>Clear</Button>
+                </Group>
+                <ScrollArea type="auto">
+                  <Flex gap="xs" p="sm" className="operation-pills">
+                    {[...operations.values()].sort((a, b) => b.created_at - a.created_at).map((op) => (
+                      <Paper key={op.id} withBorder radius="md" p="xs" className="operation-pill">
+                        <Group gap="xs" justify="space-between" wrap="nowrap">
+                          <Box className="operation-pill-main">
+                            <Text fw={700} size="sm" truncate>{op.alias}</Text>
+                            <Text size="xs" c="dimmed" truncate>{op.stage}</Text>
+                          </Box>
+                          <Badge color={statusColor(op.status)} variant="light">{op.status}</Badge>
+                        </Group>
+                        <Progress mt={6} size="xs" value={operationProgress(op.status)} color={statusColor(op.status)} />
+                        {op.error && <Text size="xs" c="red" mt={4} truncate>{op.error}</Text>}
+                      </Paper>
+                    ))}
+                  </Flex>
+                </ScrollArea>
+              </Paper>
+            )}
           </Stack>
         </Container>
 
@@ -615,18 +675,18 @@ function App() {
                   <TextInput label="Repo" placeholder="owner/name" value={form.repo} onChange={(event) => updateForm({ repo: event.currentTarget.value })} required />
                 </Grid.Col>
                 <Grid.Col span={6}>
-                  <TextInput label="Alias" value={form.alias} onChange={(event) => updateForm({ alias: event.currentTarget.value, autoAlias: false })} required />
+                  <TextInput label="Template" value={form.template} onChange={(event) => updateForm({ template: event.currentTarget.value })} required />
+                </Grid.Col>
+                <Grid.Col span={6}>
+                  <TextInput label="Instance name" value={form.instance} onChange={(event) => updateForm({ instance: event.currentTarget.value })} required />
                 </Grid.Col>
                 <Grid.Col span={12}>
-                  <Checkbox label="auto alias" checked={form.autoAlias} onChange={(event) => updateForm({ autoAlias: event.currentTarget.checked })} />
+                  <Alert color="gray">Local SSH alias: <Code>{instanceAlias(form.agent, form.template, form.instance) || '-'}</Code></Alert>
                 </Grid.Col>
                 <Grid.Col span={12}>
                   <TextInput label="Image" value={form.image} onChange={(event) => updateForm({ image: event.currentTarget.value })} required />
                 </Grid.Col>
                 {selectedAgent && <Grid.Col span={12}><Alert color="gray">{selectedAgent.agent_url} · {selectedAgent.ssh_host}{selectedAgent.ssh_proxy ? ' · via SSH proxy' : ''}</Alert></Grid.Col>}
-                <Grid.Col span={12}>
-                  <Textarea label="Extra repos" placeholder="owner/repo，每行一个或用逗号分隔" minRows={3} value={form.extraRepos} onChange={(event) => updateForm({ extraRepos: event.currentTarget.value })} />
-                </Grid.Col>
               </Grid>
               <Group justify="flex-end">
                 <Button variant="default" onClick={() => setCreateOpen(false)}>Cancel</Button>
@@ -656,18 +716,6 @@ function StatCard({ label, value }: { label: string; value: number }) {
         <Text fw={700}>{value}</Text>
       </Paper>
     </Grid.Col>
-  );
-}
-
-function SidePanel({ title, action, children }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <Paper withBorder radius="md" className="panel-card">
-      <Group justify="space-between" className="panel-heading compact">
-        <Title order={2} size="h6">{title}</Title>
-        {action}
-      </Group>
-      <Box p="sm">{children}</Box>
-    </Paper>
   );
 }
 

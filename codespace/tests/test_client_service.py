@@ -82,7 +82,8 @@ def test_create_codespace_clones_after_registering_deploy_key(
         user="dev",
         container_id="cid",
         repo="owner/name",
-        workspace="default",
+        template="default",
+        instance="default",
         workspace_dir="ws",
         deploy_keys=[
             shared.DeployKeyRef(
@@ -120,9 +121,15 @@ def test_create_codespace_clones_after_registering_deploy_key(
 
     result = svc.create_codespace(
         "home",
-        service.CreateCodespaceInput(repo="owner/name", alias="name", image="img"),
+        service.CreateCodespaceInput(
+            repo="owner/name", template="api", instance="dev", image="img"
+        ),
         token="tok",
     )
 
     assert result == cs
     assert events == ["create", "register", "clone", "upsert"]
+
+
+def test_instance_alias_uses_agent_template_and_instance() -> None:
+    assert service.instance_alias("home", "api", "dev") == "home-api-dev"

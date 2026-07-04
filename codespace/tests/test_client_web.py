@@ -40,9 +40,7 @@ def _config() -> WebConfig:
                 description="Backend service environment",
                 agent="office",
                 repo="owner/api",
-                alias="office-api-backend",
                 image="custom-img",
-                extra_repos=["owner/shared"],
             )
         },
     )
@@ -55,7 +53,8 @@ def _codespace() -> shared.Codespace:
         user="dev",
         container_id="cid",
         repo="owner/name",
-        workspace="default",
+        template="api",
+        instance="dev",
         workspace_dir="ws",
         status="running",
     )
@@ -108,9 +107,7 @@ def test_config_returns_create_templates(app_client: TestClient) -> None:
             "description": "Backend service environment",
             "agent": "office",
             "repo": "owner/api",
-            "alias": "office-api-backend",
             "image": "custom-img",
-            "extra_repos": ["owner/shared"],
         }
     ]
 
@@ -140,7 +137,7 @@ def test_static_page_and_script_are_served(app_client: TestClient) -> None:
     assert "/api/config" in script.text
     assert "/api/dashboard" in script.text
     assert "root" in index.text
-    assert "Codespaces" in script.text
+    assert "codespaces" in script.text
     assert "Templates" in script.text
     assert "Token ready" in script.text
     assert "Create" in script.text
@@ -218,7 +215,7 @@ def test_operation_lifecycle(app_client: TestClient, monkeypatch: pytest.MonkeyP
 
     resp = app_client.post(
         "/api/agents/home/codespaces",
-        json={"repo": "owner/name", "alias": "home-name-default", "image": "img"},
+        json={"repo": "owner/name", "template": "api", "instance": "dev", "image": "img"},
     )
     assert resp.status_code == 200
     op_id = resp.json()["operation_id"]
@@ -258,7 +255,7 @@ def test_create_accepts_inline_token_for_compatibility(
 
     resp = app_client.post(
         "/api/agents/home/codespaces",
-        json={"repo": "owner/name", "alias": "home-name-default", "image": "img"},
+        json={"repo": "owner/name", "template": "api", "instance": "dev", "image": "img"},
     )
 
     assert resp.status_code == 200
@@ -272,7 +269,7 @@ def test_create_without_github_token_logs_actionable_error(
     with caplog.at_level("WARNING", logger="codespace.client.web"):
         resp = app_client.post(
             "/api/agents/home/codespaces",
-            json={"repo": "owner/name", "alias": "home-name-default", "image": "img"},
+            json={"repo": "owner/name", "template": "api", "instance": "dev", "image": "img"},
         )
 
     assert resp.status_code == 400
@@ -376,27 +373,27 @@ def test_prune_completed_keeps_only_busy_operations() -> None:
         agent_id="home",
         req=web.CreateCodespaceRequest(
             repo="curoky/devspace",
-            alias="queued",
+            template="api",
+            instance="queued",
             image="ghcr.io/curoky/devspace:codespace-debian12",
-            extra_repos=[],
         ),
     )
     failed = store.create(
         agent_id="home",
         req=web.CreateCodespaceRequest(
             repo="curoky/devspace",
-            alias="failed",
+            template="api",
+            instance="failed",
             image="ghcr.io/curoky/devspace:codespace-debian12",
-            extra_repos=[],
         ),
     )
     succeeded = store.create(
         agent_id="home",
         req=web.CreateCodespaceRequest(
             repo="curoky/devspace",
-            alias="succeeded",
+            template="api",
+            instance="succeeded",
             image="ghcr.io/curoky/devspace:codespace-debian12",
-            extra_repos=[],
         ),
     )
 

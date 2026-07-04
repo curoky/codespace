@@ -14,12 +14,17 @@ from urllib.parse import quote
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from codespace import shared
 from codespace.client import ssh_config
 from codespace.client.config import WebConfig, github_token, is_inline_github_token, load_config
-from codespace.client.service import CodespaceService, CreateCodespaceInput, DeleteCodespaceResult
+from codespace.client.service import (
+    CodespaceService,
+    CreateCodespaceInput,
+    DeleteCodespaceResult,
+    instance_alias,
+)
 
 WebOperationStatus = Literal["queued", "running", "succeeded", "failed"]
 STATIC_DIR = Path(__file__).parent / "static"
@@ -34,7 +39,6 @@ INLINE_AUTH_SOURCE_LABEL = "inline GitHub credential"
 
 class ConfigDefaultsSummary(BaseModel):
     image: str
-    extra_repos: list[str]
 
 
 class ConfigGithubSummary(BaseModel):
@@ -56,9 +60,7 @@ class ConfigTemplateSummary(BaseModel):
     description: str | None = None
     agent: str | None = None
     repo: str
-    alias: str | None = None
     image: str | None = None
-    extra_repos: list[str] | None = None
 
 
 class ConfigSummary(BaseModel):
@@ -84,7 +86,8 @@ class DashboardCodespace(BaseModel):
     agent_id: str
     id: str
     repo: str
-    workspace: str
+    template: str
+    instance: str
     alias: str | None = None
     ssh_host: str
     port: int
@@ -98,9 +101,9 @@ class DashboardCodespace(BaseModel):
 
 class CreateCodespaceRequest(BaseModel):
     repo: str
-    alias: str
+    template: str = shared.DEFAULT_TEMPLATE
+    instance: str = shared.DEFAULT_INSTANCE
     image: str
-    extra_repos: list[str] = Field(default_factory=list)
 
 
 class CreateCodespaceResponse(BaseModel):
@@ -112,6 +115,8 @@ class WebOperation(BaseModel):
     agent_id: str
     alias: str
     repo: str
+    template: str
+    instance: str
     status: WebOperationStatus
     stage: str
     codespace: shared.Codespace | None = None
@@ -142,8 +147,10 @@ class OperationStore:
         operation = WebOperation(
             id=secrets.token_hex(6),
             agent_id=agent_id,
-            alias=req.alias,
+            alias=instance_alias(agent_id, req.template, req.instance),
             repo=req.repo,
+            template=req.template,
+            instance=req.instance,
             status="queued",
             stage="queued",
             created_at=now,
@@ -306,10 +313,7 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
 def _config_summary(config: WebConfig) -> ConfigSummary:
     return ConfigSummary(
         default_agent=config.defaults.agent,
-        defaults=ConfigDefaultsSummary(
-            image=config.defaults.image,
-            extra_repos=config.defaults.extra_repos,
-        ),
+        defaults=ConfigDefaultsSummary(image=config.defaults.image),
         github=ConfigGithubSummary(
             token_env=_safe_token_env_label(config),
             has_token=github_token(config) is not None,
@@ -331,9 +335,7 @@ def _config_summary(config: WebConfig) -> ConfigSummary:
                 description=template.description,
                 agent=template.agent,
                 repo=template.repo,
-                alias=template.alias,
                 image=template.image,
-                extra_repos=template.extra_repos,
             )
             for template in config.templates.values()
         ],
@@ -356,7 +358,8 @@ def _dashboard_codespace(agent_id: str, ssh_host: str, cs: shared.Codespace) -> 
         agent_id=agent_id,
         id=cs.id,
         repo=cs.repo,
-        workspace=cs.workspace,
+        template=cs.template,
+        instance=cs.instance,
         alias=alias,
         ssh_host=ssh_host,
         port=cs.port,

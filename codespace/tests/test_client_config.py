@@ -88,8 +88,6 @@ def test_load_config_reads_create_templates(tmp_path: Path) -> None:
 defaults:
   agent: home
   image: img
-  extra_repos:
-    - owner/default-extra
 agents:
   home:
     agent_url: http://h:8001
@@ -102,10 +100,7 @@ templates:
     description: Backend service environment
     agent: office
     repo: owner/api
-    alias: office-api-backend
     image: custom-img
-    extra_repos:
-      - owner/shared
 """,
     )
 
@@ -115,12 +110,10 @@ templates:
     assert template.id == "api"
     assert template.agent == "office"
     assert template.repo == "owner/api"
-    assert template.alias == "office-api-backend"
     assert template.image == "custom-img"
-    assert template.extra_repos == ["owner/shared"]
 
 
-@pytest.mark.parametrize("field", ["workspace", "user"])
+@pytest.mark.parametrize("field", ["workspace", "user", "alias", "extra_repos"])
 def test_load_config_rejects_removed_create_fields(tmp_path: Path, field: str) -> None:
     path = tmp_path / "config.yaml"
     _write_config(

@@ -70,7 +70,7 @@ def test_create_success_returns_public_key(
         "create_container",
         lambda *a, **k: podman_ops.ContainerInfo(container_id="cid", port=49207),
     )
-    monkeypatch.setattr(podman_ops, "find_container_by_workspace", lambda *a: None)
+    monkeypatch.setattr(podman_ops, "find_container_by_instance", lambda *a: None)
     monkeypatch.setattr(podman_ops, "pull_image", lambda *a: None)
     monkeypatch.setattr(podman_ops, "inject_credentials", lambda *a, **k: None)
 
@@ -99,7 +99,7 @@ def test_create_provision_failure_rolls_back_and_returns_500(
         raise RuntimeError("podman down")
 
     monkeypatch.setattr(podman_ops, "create_container", _fail)
-    monkeypatch.setattr(podman_ops, "find_container_by_workspace", lambda *a: None)
+    monkeypatch.setattr(podman_ops, "find_container_by_instance", lambda *a: None)
     monkeypatch.setattr(podman_ops, "pull_image", lambda *a: None)
 
     rolled_back: list[str] = []
@@ -123,12 +123,12 @@ def test_create_rejects_invalid_repo(client: TestClient) -> None:
     assert resp.status_code == 422  # pydantic validation at the boundary
 
 
-def test_create_rejects_existing_repo_workspace(
+def test_create_rejects_existing_repo_template_instance(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     existing = object()
     created: list[object] = []
-    monkeypatch.setattr(podman_ops, "find_container_by_workspace", lambda *a: existing)
+    monkeypatch.setattr(podman_ops, "find_container_by_instance", lambda *a: existing)
     monkeypatch.setattr(podman_ops, "read_label", lambda container, key: "abc123")
     monkeypatch.setattr(podman_ops, "create_container", lambda *a, **k: created.append(k))
     monkeypatch.setattr(podman_ops, "get_container", lambda *a: None)
@@ -137,7 +137,7 @@ def test_create_rejects_existing_repo_workspace(
     assert resp.status_code == 202
     operation = _operation_result(client, resp.json()["id"])
     assert operation["status"] == "failed"
-    assert operation["error"] == "codespace already exists for repo/workspace (id=abc123)"
+    assert operation["error"] == "codespace already exists for repo/template/instance (id=abc123)"
     assert created == []
 
 
@@ -150,7 +150,7 @@ def test_create_prepares_workspace_dir_before_container(
         "generate_deploy_keypair",
         lambda: keys.DeployKeypair(private_openssh="PRIV", public_openssh="ssh-ed25519 PUB"),
     )
-    monkeypatch.setattr(podman_ops, "find_container_by_workspace", lambda *a: None)
+    monkeypatch.setattr(podman_ops, "find_container_by_instance", lambda *a: None)
     monkeypatch.setattr(
         podman_ops,
         "ensure_workspace_dir",
@@ -169,7 +169,7 @@ def test_create_prepares_workspace_dir_before_container(
     assert resp.status_code == 202
     operation = _operation_result(client, resp.json()["id"])
     assert operation["status"] == "succeeded"
-    workspace_dir = "/var/lib/cs/" + shared.workspace_dir_name("owner/name", "default")
+    workspace_dir = "/var/lib/cs/" + shared.workspace_dir_name("owner/name", "default", "default")
     assert calls == [f"mkdir:{workspace_dir}", "pull", f"create:{workspace_dir}"]
 
 
@@ -186,7 +186,8 @@ def test_list_codespaces(client: TestClient, monkeypatch: pytest.MonkeyPatch) ->
         user="dev",
         container_id="cid",
         repo="owner/name",
-        workspace="default",
+        template="default",
+        instance="default",
         workspace_dir="codespace-owner-name-default-deadbeef",
     )
     monkeypatch.setattr(podman_ops, "list_containers", lambda client: ["c"])
@@ -212,9 +213,11 @@ def test_delete_existing_removes_container(
     monkeypatch.setattr(
         podman_ops,
         "read_label",
-        lambda container, key: {shared.LABEL_REPO: "owner/name", shared.LABEL_WORKSPACE: "default"}[
-            key
-        ],
+        lambda container, key, default="": {
+            shared.LABEL_REPO: "owner/name",
+            shared.LABEL_TEMPLATE: "default",
+            shared.LABEL_INSTANCE: "default",
+        }.get(key, default),
     )
     monkeypatch.setattr(podman_ops, "remove_container", lambda c: removed.append(c))
     purged: list[str] = []
@@ -234,9 +237,11 @@ def test_delete_with_purge_removes_workspace(
     monkeypatch.setattr(
         podman_ops,
         "read_label",
-        lambda container, key: {shared.LABEL_REPO: "owner/name", shared.LABEL_WORKSPACE: "default"}[
-            key
-        ],
+        lambda container, key, default="": {
+            shared.LABEL_REPO: "owner/name",
+            shared.LABEL_TEMPLATE: "default",
+            shared.LABEL_INSTANCE: "default",
+        }.get(key, default),
     )
     monkeypatch.setattr(podman_ops, "remove_container", lambda c: None)
     purged: list[str] = []
@@ -246,7 +251,9 @@ def test_delete_with_purge_removes_workspace(
     assert resp.status_code == 200
     assert resp.json() == {"ok": True, "workspace_removed": True}
     # purge target is <workspace_root>/<workspace_dir>
-    assert purged == ["/var/lib/cs/" + shared.workspace_dir_name("owner/name", "default")]
+    assert purged == [
+        "/var/lib/cs/" + shared.workspace_dir_name("owner/name", "default", "default")
+    ]
 
 
 def test_clone_codespace_repo(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:

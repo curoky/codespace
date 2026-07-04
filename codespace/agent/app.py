@@ -32,9 +32,9 @@ class AgentConfig(BaseModel):
     podman_uri: str = Field(..., description="Podman service socket URI.")
 
 
-def _workspace_host_dir(config: AgentConfig, repo: str, workspace: str) -> str:
+def _workspace_host_dir(config: AgentConfig, repo: str, template: str, instance: str) -> str:
     """Compute the host workspace directory path passed to podman's bind source."""
-    name = shared.workspace_dir_name(repo, workspace)
+    name = shared.workspace_dir_name(repo, template, instance)
     root = config.workspace_root_host.rstrip("/")
     return f"{root}/{name}"
 
@@ -96,16 +96,11 @@ def create_app(config: AgentConfig) -> FastAPI:
         req: shared.CreateRequest,
         info: podman_ops.ContainerInfo,
         main_keypair: keys.DeployKeypair,
-        extra_keypairs: dict[str, keys.DeployKeypair],
     ) -> shared.Codespace:
         deploy_keys = [
             shared.DeployKeyRef(
                 repo=req.repo, public_openssh=main_keypair.public_openssh, read_only=False
             ),
-            *[
-                shared.DeployKeyRef(repo=repo, public_openssh=kp.public_openssh, read_only=True)
-                for repo, kp in extra_keypairs.items()
-            ],
         ]
         return shared.Codespace(
             id=cs_id,
@@ -113,26 +108,26 @@ def create_app(config: AgentConfig) -> FastAPI:
             user=shared.DEFAULT_CONTAINER_USER,
             container_id=info.container_id,
             repo=req.repo,
-            workspace=shared.DEFAULT_WORKSPACE,
-            workspace_dir=shared.workspace_dir_name(req.repo, shared.DEFAULT_WORKSPACE),
+            template=req.template,
+            instance=req.instance,
+            workspace_dir=shared.workspace_dir_name(req.repo, req.template, req.instance),
             deploy_keys=deploy_keys,
             status="running",
         )
 
     def _provision_codespace(operation_id: str, cs_id: str, req: shared.CreateRequest) -> None:
-        workspace = shared.DEFAULT_WORKSPACE
         user = shared.DEFAULT_CONTAINER_USER
-        workspace_host_dir = _workspace_host_dir(config, req.repo, workspace)
+        workspace_host_dir = _workspace_host_dir(config, req.repo, req.template, req.instance)
         logger.info(
-            "creating codespace id={} operation={} repo={} workspace={} user={} image={} "
-            "extra_repos={} workspace_dir={}",
+            "creating codespace id={} operation={} repo={} template={} instance={} "
+            "user={} image={} workspace_dir={}",
             cs_id,
             operation_id,
             req.repo,
-            workspace,
+            req.template,
+            req.instance,
             user,
             req.image,
-            len(req.extra_repos),
             workspace_host_dir,
         )
 
@@ -140,22 +135,23 @@ def create_app(config: AgentConfig) -> FastAPI:
             with _client() as client:
                 logger.info("codespace {} operation {}: checking workspace", cs_id, operation_id)
                 _update_operation(operation_id, status="running", stage="checking workspace")
-                existing = podman_ops.find_container_by_workspace(client, req.repo, workspace)
+                existing = podman_ops.find_container_by_instance(
+                    client, req.repo, req.template, req.instance
+                )
                 if existing is not None:
                     existing_id = podman_ops.read_label(existing, shared.LABEL_ID)
                     logger.warning(
-                        "codespace {} operation {}: duplicate repo/workspace found existing_id={}",
+                        "codespace {} operation {}: duplicate instance existing_id={}",
                         cs_id,
                         operation_id,
                         existing_id,
                     )
                     raise RuntimeError(
-                        f"codespace already exists for repo/workspace (id={existing_id})"
+                        f"codespace already exists for repo/template/instance (id={existing_id})"
                     )
 
                 _set_stage(operation_id, cs_id, "generating deploy keys")
                 main_keypair = keys.generate_deploy_keypair()
-                extra_keypairs = {repo: keys.generate_deploy_keypair() for repo in req.extra_repos}
 
                 _set_stage(operation_id, cs_id, "preparing workspace directory")
                 podman_ops.ensure_workspace_dir(workspace_host_dir)
@@ -169,7 +165,8 @@ def create_app(config: AgentConfig) -> FastAPI:
                     cs_id=cs_id,
                     image=req.image,
                     repo=req.repo,
-                    workspace=workspace,
+                    template=req.template,
+                    instance=req.instance,
                     user=user,
                     workspace_host_dir=workspace_host_dir,
                 )
@@ -188,7 +185,6 @@ def create_app(config: AgentConfig) -> FastAPI:
                     user=user,
                     private_key=main_keypair.private_openssh,
                     login_pubkey=req.login_pubkey,
-                    extra_keys=[(repo, kp.private_openssh) for repo, kp in extra_keypairs.items()],
                 )
                 _set_stage(operation_id, cs_id, "waiting for ssh")
                 podman_ops.wait_for_ssh_ready(info.port)
@@ -198,7 +194,7 @@ def create_app(config: AgentConfig) -> FastAPI:
             _update_operation(operation_id, status="failed", stage="failed", error=str(exc))
             return
 
-        codespace = _build_codespace(cs_id, req, info, main_keypair, extra_keypairs)
+        codespace = _build_codespace(cs_id, req, info, main_keypair)
         logger.info("codespace {} ready on port {}", cs_id, info.port)
         _update_operation(
             operation_id,
@@ -244,13 +240,20 @@ def create_app(config: AgentConfig) -> FastAPI:
                 return shared.DeleteResponse(ok=True, workspace_removed=False)
 
             repo = podman_ops.read_label(container, shared.LABEL_REPO)
-            workspace = podman_ops.read_label(container, shared.LABEL_WORKSPACE)
+            template = podman_ops.read_label(
+                container, shared.LABEL_TEMPLATE, shared.DEFAULT_TEMPLATE
+            )
+            instance = podman_ops.read_label(
+                container, shared.LABEL_INSTANCE, shared.DEFAULT_INSTANCE
+            )
 
             podman_ops.remove_container(container)
 
             workspace_removed = False
-            if purge and repo and workspace:
-                podman_ops.purge_workspace(client, _workspace_host_dir(config, repo, workspace))
+            if purge and repo and template and instance:
+                podman_ops.purge_workspace(
+                    client, _workspace_host_dir(config, repo, template, instance)
+                )
                 workspace_removed = True
 
             logger.info("deleted codespace {} (workspace_removed={})", cs_id, workspace_removed)

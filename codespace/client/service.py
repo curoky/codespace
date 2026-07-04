@@ -45,9 +45,9 @@ class CreateCodespaceInput(BaseModel):
     """Input for service-level create orchestration."""
 
     repo: str
-    alias: str
+    template: str = shared.DEFAULT_TEMPLATE
+    instance: str = shared.DEFAULT_INSTANCE
     image: str
-    extra_repos: list[str] = Field(default_factory=list)
 
 
 class DeleteCodespaceResult(BaseModel):
@@ -123,6 +123,11 @@ class SshHttpTunnel:
 def default_alias(agent_id: str, repo: str) -> str:
     """Default Web GUI alias, namespaced by agent id."""
     return f"{agent_id}-{repo.split('/')[-1]}"
+
+
+def instance_alias(agent_id: str, template: str, instance: str) -> str:
+    """Local SSH alias for a template instance."""
+    return f"{agent_id}-{template}-{instance}"
 
 
 def _free_local_port() -> int:
@@ -353,13 +358,14 @@ class CodespaceService:
         try:
             if progress is not None:
                 progress("preparing login key")
-            login_pubkey = ensure_login_key(req.alias)
-            extra_repos = [repo for repo in req.extra_repos if repo != req.repo]
+            alias = instance_alias(agent_id, req.template, req.instance)
+            login_pubkey = ensure_login_key(alias)
             payload = shared.CreateRequest(
                 repo=req.repo,
+                template=req.template,
+                instance=req.instance,
                 login_pubkey=login_pubkey,
                 image=req.image,
-                extra_repos=extra_repos,
             )
             if progress is not None:
                 progress("requesting agent creation")
@@ -387,7 +393,7 @@ class CodespaceService:
             if progress is not None:
                 progress("writing ssh config")
             ssh_config.upsert(
-                req.alias,
+                alias,
                 profile.ssh_host,
                 cs.port,
                 cs.user,
@@ -403,7 +409,7 @@ class CodespaceService:
                     revoke_quietly(token, repo, cs.id)
                 with contextlib.suppress(Exception):
                     self.delete_remote(profile, cs.id)
-            remove_login_key(req.alias)
+            remove_login_key(instance_alias(agent_id, req.template, req.instance))
             raise
 
     def delete_codespace(

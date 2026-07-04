@@ -55,15 +55,6 @@ class DefaultsConfig(BaseModel):
 
     agent: str
     image: str
-    extra_repos: list[str] = Field(default_factory=list)
-
-    @field_validator("extra_repos")
-    @classmethod
-    def _check_extra_repos(cls, value: list[str]) -> list[str]:
-        for repo in value:
-            if not shared.REPO_RE.match(repo):
-                raise ValueError(f"extra repo must match 'owner/name': {repo!r}")
-        return value
 
     @field_validator("agent", "image")
     @classmethod
@@ -82,9 +73,7 @@ class CreateTemplateConfig(BaseModel):
     description: str | None = None
     agent: str | None = None
     repo: str
-    alias: str | None = None
     image: str | None = None
-    extra_repos: list[str] | None = None
 
     @field_validator("id")
     @classmethod
@@ -100,16 +89,6 @@ class CreateTemplateConfig(BaseModel):
             raise ValueError("repo must match 'owner/name'")
         return value
 
-    @field_validator("extra_repos")
-    @classmethod
-    def _check_extra_repos(cls, value: list[str] | None) -> list[str] | None:
-        if value is None:
-            return value
-        for repo in value:
-            if not shared.REPO_RE.match(repo):
-                raise ValueError(f"extra repo must match 'owner/name': {repo!r}")
-        return value
-
     @field_validator("agent")
     @classmethod
     def _check_agent(cls, value: str | None) -> str | None:
@@ -117,7 +96,7 @@ class CreateTemplateConfig(BaseModel):
             raise ValueError("agent must match [\\w.-]+")
         return value
 
-    @field_validator("description", "alias", "image")
+    @field_validator("description", "image")
     @classmethod
     def _not_blank_optional(cls, value: str | None) -> str | None:
         if value is not None and not value.strip():
