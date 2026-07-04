@@ -127,6 +127,8 @@ def test_static_page_and_script_are_served(app_client: TestClient) -> None:
 
     assert index.status_code == 200
     assert "Codespace Dashboard" in index.text
+    assert "@primer/css" in index.text
+    assert "bootstrap" not in index.text
     assert script.status_code == 200
     assert "text/javascript" in script.headers["content-type"]
     assert "await request('/api/config')" in script.text

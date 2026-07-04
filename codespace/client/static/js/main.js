@@ -96,8 +96,7 @@ function renderConfig() {
     el.textContent = 'Loading...';
     return;
   }
-  el.classList.toggle('text-bg-warning', !state.config.github.has_token);
-  el.classList.toggle('text-bg-light', state.config.github.has_token);
+  el.classList.toggle('warning', !state.config.github.has_token);
   el.textContent = `${state.config.default_agent} · ${state.config.github.has_token ? 'token ok' : 'no token'}`;
 }
 
@@ -122,7 +121,7 @@ function renderTokenStatus() {
     <div class="token-status ${tone}">
       <div>
         <strong>${title}</strong>
-        <p class="mb-0 small">${detail}</p>
+        <p class="muted-inline">${detail}</p>
       </div>
     </div>`;
 }
@@ -131,9 +130,9 @@ function renderAgents() {
   const agents = state.dashboard.agents || [];
   $('#agent-summary').innerHTML = agents.length ? agents.map((agent) => `
     <article class="agent-card ${escapeHtml(agent.status)}" data-agent="${escapeHtml(agent.id)}">
-      <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+      <div class="item-head">
         <div>
-          <h3 class="h6 mb-1">${escapeHtml(agent.name)}</h3>
+          <h3>${escapeHtml(agent.name)}</h3>
         </div>
         <span class="status-pill ${escapeHtml(agent.status)}">
           ${escapeHtml(agent.status)}
@@ -144,30 +143,30 @@ function renderAgents() {
         <span>${escapeHtml(agent.ssh_host)}</span>
         <span>${agent.codespace_count} codespaces</span>
       </div>
-      ${agent.error ? `<div class="alert alert-danger small mt-3 mb-0">${escapeHtml(agent.error)}</div>` : ''}
-    </article>`).join('') : '<div class="empty-state"><p class="mb-0">暂无 agent 信息</p></div>';
+      ${agent.error ? `<div class="flash flash-error compact-flash">${escapeHtml(agent.error)}</div>` : ''}
+    </article>`).join('') : '<div class="empty-state"><p>暂无 agent 信息</p></div>';
 }
 
 function renderTemplates() {
   const templates = state.config?.templates || [];
   $('#template-list').innerHTML = templates.length ? templates.map((template) => `
     <article class="template-card">
-      <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+      <div class="item-head">
         <div>
-          <h3 class="h6 mb-1">${escapeHtml(template.name)}</h3>
+          <h3>${escapeHtml(template.name)}</h3>
         </div>
         <span class="repo-chip">${escapeHtml(template.repo)}</span>
       </div>
-      ${template.description ? `<p class="text-secondary small mb-2">${escapeHtml(template.description)}</p>` : ''}
-      <div class="agent-meta mb-3">
+      ${template.description ? `<p class="muted-inline template-desc">${escapeHtml(template.description)}</p>` : ''}
+      <div class="agent-meta template-meta">
         <span>${escapeHtml(template.agent || state.config.default_agent)}</span>
         <span>${escapeHtml(template.workspace || state.config.defaults.workspace)}</span>
         <span>${escapeHtml(template.image || state.config.defaults.image)}</span>
       </div>
-      <button class="btn btn-primary btn-sm w-100" data-action="create-template" data-template="${escapeHtml(template.id)}" type="button">
+      <button class="btn btn-primary btn-sm full-width" data-action="create-template" data-template="${escapeHtml(template.id)}" type="button">
         Create
       </button>
-    </article>`).join('') : '<div class="empty-state"><p class="mb-0">暂无模板</p></div>';
+    </article>`).join('') : '<div class="empty-state"><p>暂无模板</p></div>';
 }
 
 function renderQuickTemplates() {
@@ -211,24 +210,24 @@ function renderCodespaces() {
   $('#codespace-empty').classList.toggle('d-none', rows.length > 0);
   $('#codespace-card-grid').innerHTML = rows.map((cs) => `
     <article class="codespace-card">
-      <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+      <div class="item-head">
         <div>
-          <p class="text-secondary small mb-1">${escapeHtml(cs.agent_name)} · ${escapeHtml(cs.workspace)}</p>
-          <h3 class="h6 mb-0">${escapeHtml(cs.repo)}</h3>
+          <p class="muted-inline">${escapeHtml(cs.agent_name)} · ${escapeHtml(cs.workspace)}</p>
+          <h3>${escapeHtml(cs.repo)}</h3>
         </div>
         <span class="status-pill ${escapeHtml(normalizeStatus(cs.status))}">${escapeHtml(cs.status || 'unknown')}</span>
       </div>
-      <div class="codespace-meta mb-3">
+      <div class="codespace-meta card-meta">
         <span>${escapeHtml(cs.id)}</span>
         <span>${escapeHtml(cs.ssh_host)}:${cs.port}</span>
         <span>${escapeHtml(cs.user)}</span>
       </div>
-      <code class="ssh-code w-100 mb-3" title="${escapeHtml(cs.ssh_command)}">${escapeHtml(cs.ssh_command)}</code>
-      <div class="d-flex gap-2">
-        <button class="btn btn-primary btn-sm flex-fill" data-action="copy" data-ssh="${escapeHtml(cs.ssh_command)}" type="button">
+      <code class="ssh-code full-width card-code" title="${escapeHtml(cs.ssh_command)}">${escapeHtml(cs.ssh_command)}</code>
+      <div class="action-row">
+        <button class="btn btn-primary btn-sm grow" data-action="copy" data-ssh="${escapeHtml(cs.ssh_command)}" type="button">
           Copy
         </button>
-        <button class="btn btn-outline-danger btn-sm" data-action="delete" data-agent="${escapeHtml(cs.agent_id)}" data-id="${escapeHtml(cs.id)}" data-repo="${escapeHtml(cs.repo)}" type="button">
+        <button class="btn danger-muted btn-sm" data-action="delete" data-agent="${escapeHtml(cs.agent_id)}" data-id="${escapeHtml(cs.id)}" data-repo="${escapeHtml(cs.repo)}" type="button">
           Delete
         </button>
         <button class="btn btn-danger btn-sm" data-action="purge" data-agent="${escapeHtml(cs.agent_id)}" data-id="${escapeHtml(cs.id)}" data-repo="${escapeHtml(cs.repo)}" type="button">
@@ -242,26 +241,26 @@ function renderCodespaces() {
         <button class="btn btn-link p-0 text-decoration-none" data-action="filter-agent" data-agent="${escapeHtml(cs.agent_id)}">
           ${escapeHtml(cs.agent_name)}
         </button>
-        <div class="text-secondary small">${escapeHtml(cs.agent_id)}</div>
+        <div class="muted-inline">${escapeHtml(cs.agent_id)}</div>
       </td>
       <td><span class="repo-chip">${escapeHtml(cs.repo)}</span></td>
       <td>${escapeHtml(cs.workspace)}</td>
-      <td>${cs.alias ? `<code>${escapeHtml(cs.alias)}</code>` : '<span class="text-secondary">无本地 alias</span>'}</td>
+      <td>${cs.alias ? `<code>${escapeHtml(cs.alias)}</code>` : '<span class="muted-inline">无本地 alias</span>'}</td>
       <td><span class="status-pill ${escapeHtml(normalizeStatus(cs.status))}">${escapeHtml(cs.status || 'unknown')}</span></td>
       <td>
-        <div class="d-flex align-items-center gap-2">
+        <div class="ssh-cell">
           <code class="ssh-code" title="${escapeHtml(cs.ssh_command)}">${escapeHtml(cs.ssh_command)}</code>
-          <button class="btn btn-outline-primary btn-sm" data-action="copy" data-ssh="${escapeHtml(cs.ssh_command)}" title="Copy SSH command">
+          <button class="btn btn-sm" data-action="copy" data-ssh="${escapeHtml(cs.ssh_command)}" title="Copy SSH command">
             Copy
           </button>
         </div>
       </td>
       <td class="text-end">
-        <div class="btn-group btn-group-sm">
-          <button class="btn btn-outline-danger" data-action="delete" data-agent="${escapeHtml(cs.agent_id)}" data-id="${escapeHtml(cs.id)}" data-repo="${escapeHtml(cs.repo)}">
+        <div class="action-group">
+          <button class="btn btn-sm danger-muted" data-action="delete" data-agent="${escapeHtml(cs.agent_id)}" data-id="${escapeHtml(cs.id)}" data-repo="${escapeHtml(cs.repo)}">
             Delete
           </button>
-          <button class="btn btn-danger" data-action="purge" data-agent="${escapeHtml(cs.agent_id)}" data-id="${escapeHtml(cs.id)}" data-repo="${escapeHtml(cs.repo)}">
+          <button class="btn btn-sm btn-danger" data-action="purge" data-agent="${escapeHtml(cs.agent_id)}" data-id="${escapeHtml(cs.id)}" data-repo="${escapeHtml(cs.repo)}">
             Purge
           </button>
         </div>
@@ -300,19 +299,19 @@ function renderOperations() {
   const ops = [...state.operations.values()].sort((left, right) => right.created_at - left.created_at);
   $('#operation-list').innerHTML = ops.length ? ops.map((op) => `
     <article class="operation-item ${escapeHtml(op.status)}">
-      <div class="d-flex justify-content-between align-items-start gap-2">
+      <div class="item-head">
         <div>
           <strong>${escapeHtml(op.alias)}</strong>
-          <p class="text-secondary small mb-2">${escapeHtml(op.repo)} · ${escapeHtml(op.workspace)} · ${escapeHtml(op.agent_id)}</p>
+          <p class="muted-inline operation-meta">${escapeHtml(op.repo)} · ${escapeHtml(op.workspace)} · ${escapeHtml(op.agent_id)}</p>
         </div>
         <span class="status-pill ${escapeHtml(op.status)}">${escapeHtml(op.status)}</span>
       </div>
-      <div class="progress mb-2" role="progressbar" aria-label="operation progress">
+      <div class="progress" role="progressbar" aria-label="operation progress">
         <div class="progress-bar ${op.status === 'failed' ? 'bg-danger' : op.status === 'succeeded' ? 'bg-success' : ''}" style="width: ${operationProgress(op.status)}%"></div>
       </div>
-      <p class="mb-0 small">${escapeHtml(op.stage)}</p>
-      ${op.error ? `<div class="alert alert-danger small mt-2 mb-0">${escapeHtml(op.error)}</div>` : ''}
-    </article>`).join('') : '<div class="empty-state"><p class="mb-0">暂无 operation</p></div>';
+      <p class="muted-inline operation-stage">${escapeHtml(op.stage)}</p>
+      ${op.error ? `<div class="flash flash-error compact-flash">${escapeHtml(op.error)}</div>` : ''}
+    </article>`).join('') : '<div class="empty-state"><p>暂无 operation</p></div>';
 }
 
 function operationProgress(status) {
