@@ -371,6 +371,7 @@ def _ssh_host_block(host: str, hostname: str, key_file: str) -> str:
         "    User git\n"
         f"    IdentityFile ~/.ssh/{key_file}\n"
         "    IdentitiesOnly yes\n"
+        "    StrictHostKeyChecking accept-new\n"
     )
 
 

@@ -53,29 +53,17 @@ body {
 
 .panel-heading.compact { min-height: 38px; }
 
-.stat-card {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-}
-
 .runtime-strip {
   padding: 10px 14px;
 }
 
 .runtime-strip-section,
-.agent-chips,
-.operation-pills {
+.agent-chips {
   flex-wrap: wrap;
 }
 
-.operation-pill {
-  flex: 0 0 260px;
-  background: #fff;
-}
-
-.operation-pill-main {
-  min-width: 0;
+.create-summary {
+  background: var(--app-panel-muted);
 }
 
 .filter-bar-react {
@@ -113,6 +101,10 @@ body {
   border-left: 3px solid #dbeafe;
 }
 
+.operation-instance-row td {
+  background: #fffbeb;
+}
+
 .ssh-code {
   display: inline-block;
   max-width: 520px;
@@ -137,6 +129,5 @@ body {
   .filter-bar-react { flex-direction: column; }
   .filter-bar-react > *,
   .filter-bar-react .search-input { width: 100%; min-width: 0; }
-  .operation-pill { flex-basis: min(260px, calc(100vw - 44px)); }
   .ssh-code { max-width: 220px; }
 }

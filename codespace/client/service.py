@@ -186,6 +186,50 @@ def request(
         return resp.status_code, {"error": resp.text or resp.reason_phrase}
 
 
+def agent_error(data: dict, status: int) -> str:
+    """Render an actionable error message from an agent HTTP response."""
+    if data.get("error"):
+        return str(data["error"])
+    detail = data.get("detail")
+    if detail:
+        message = _format_validation_detail(detail)
+        if _looks_like_old_agent_schema(detail):
+            message += (
+                "; the running agent is using the old create API. Restart/update the "
+                "codespace agent so POST /codespaces accepts template and instance."
+            )
+        return f"agent returned HTTP {status}: {message}"
+    return f"agent returned HTTP {status}"
+
+
+def _format_validation_detail(detail: object) -> str:
+    if isinstance(detail, list):
+        parts: list[str] = []
+        for item in detail:
+            if isinstance(item, dict):
+                loc = ".".join(str(part) for part in item.get("loc", []))
+                msg = item.get("msg", item.get("type", "validation error"))
+                parts.append(f"{loc}: {msg}" if loc else str(msg))
+            else:
+                parts.append(str(item))
+        return "; ".join(parts)
+    return str(detail)
+
+
+def _looks_like_old_agent_schema(detail: object) -> bool:
+    if not isinstance(detail, list):
+        return False
+    old_fields = {"template", "instance"}
+    for item in detail:
+        if not isinstance(item, dict):
+            continue
+        loc = item.get("loc", [])
+        msg = str(item.get("msg", "")).lower()
+        if any(part in old_fields for part in loc) and "extra" in msg:
+            return True
+    return False
+
+
 def ensure_login_key(alias: str) -> str:
     """Ensure a passwordless ed25519 login keypair exists; return the pubkey."""
     KEY_DIR.mkdir(parents=True, exist_ok=True)
@@ -219,7 +263,7 @@ def delete_remote(agent_url: str, cs_id: str, *, purge: bool = False) -> shared.
         url += "?purge=true"
     status, data = request("DELETE", url)
     if status != 200:
-        raise ServiceError(data.get("error", f"agent returned HTTP {status}"))
+        raise ServiceError(agent_error(data, status))
     return shared.DeleteResponse.model_validate(data)
 
 
@@ -256,7 +300,7 @@ class CodespaceService:
                 return AgentListResult(
                     agent=profile,
                     online=False,
-                    error=data.get("error", f"agent returned HTTP {status}"),
+                    error=agent_error(data, status),
                 )
             return AgentListResult(
                 agent=profile,
@@ -317,7 +361,7 @@ class CodespaceService:
         while True:
             status_code, data = self.request_agent(profile, "GET", f"/operations/{operation_id}")
             if status_code != 200:
-                raise ServiceError(data.get("error", f"agent returned HTTP {status_code}"))
+                raise ServiceError(agent_error(data, status_code))
             operation = shared.CreateOperation.model_validate(data)
             if progress is not None:
                 progress(f"agent: {operation.stage}")
@@ -338,7 +382,7 @@ class CodespaceService:
             status, data = self.request_agent(profile, "POST", f"/codespaces/{codespace_id}/clone")
             if status == 200:
                 return
-            last_error = data.get("error", f"agent returned HTTP {status}")
+            last_error = agent_error(data, status)
             if attempt + 1 < CLONE_ATTEMPTS:
                 time.sleep(CLONE_RETRY_INTERVAL)
         raise ServiceError(last_error)
@@ -371,7 +415,7 @@ class CodespaceService:
                 progress("requesting agent creation")
             status, data = self.request_agent(profile, "POST", "/codespaces", payload.model_dump())
             if status != 202:
-                raise ServiceError(data.get("error", f"agent returned HTTP {status}"))
+                raise ServiceError(agent_error(data, status))
 
             operation = shared.CreateOperation.model_validate(data)
             cs = self.wait_create_operation(profile, operation.id, progress=progress)
@@ -453,5 +497,5 @@ class CodespaceService:
             path += "?purge=true"
         status, data = self.request_agent(profile, "DELETE", path)
         if status != 200:
-            raise ServiceError(data.get("error", f"agent returned HTTP {status}"))
+            raise ServiceError(agent_error(data, status))
         return shared.DeleteResponse.model_validate(data)

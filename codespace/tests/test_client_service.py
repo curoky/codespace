@@ -133,3 +133,22 @@ def test_create_codespace_clones_after_registering_deploy_key(
 
 def test_instance_alias_uses_agent_template_and_instance() -> None:
     assert service.instance_alias("home", "api", "dev") == "home-api-dev"
+
+
+def test_agent_error_renders_validation_detail() -> None:
+    message = service.agent_error(
+        {
+            "detail": [
+                {
+                    "type": "extra_forbidden",
+                    "loc": ["body", "template"],
+                    "msg": "Extra inputs are not permitted",
+                    "input": "api",
+                }
+            ]
+        },
+        422,
+    )
+
+    assert "body.template: Extra inputs are not permitted" in message
+    assert "running agent is using the old create API" in message

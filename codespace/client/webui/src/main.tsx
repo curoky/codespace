@@ -110,6 +110,24 @@ type Operation = {
   _polling?: boolean;
 };
 
+type InstanceRow = {
+  key: string;
+  agent_id: string;
+  repo: string;
+  template: string;
+  instance: string;
+  alias?: string | null;
+  id?: string;
+  ssh_host?: string;
+  port?: number;
+  status?: string | null;
+  stage?: string;
+  error?: string | null;
+  raw_ssh_command?: string;
+  trae_url?: string;
+  kind: 'codespace' | 'operation';
+};
+
 type FilterState = {
   agent: string;
   status: string;
@@ -167,6 +185,10 @@ function operationProgress(status: OperationStatus): number {
   return status === 'succeeded' || status === 'failed' ? 100 : 0;
 }
 
+function instanceKey(agent: string, template: string, instance: string): string {
+  return `${agent}:${template}:${instance}`;
+}
+
 function statusColor(status?: string | null): string {
   const normalized = normalizeStatus(status);
   if (['online', 'running', 'succeeded'].includes(normalized)) return 'green';
@@ -189,6 +211,7 @@ function App() {
   const [lastUpdated, setLastUpdated] = useState<number | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
+  const [createTemplateId, setCreateTemplateId] = useState<string | null>(null);
   const [createError, setCreateError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -324,6 +347,61 @@ function App() {
       });
   }, [dashboard.codespaces, filter]);
 
+  const instanceRows = useMemo<InstanceRow[]>(() => {
+    const rows = new Map<string, InstanceRow>();
+    for (const cs of filteredCodespaces) {
+      rows.set(instanceKey(cs.agent_id, cs.template, cs.instance), {
+        key: instanceKey(cs.agent_id, cs.template, cs.instance),
+        agent_id: cs.agent_id,
+        repo: cs.repo,
+        template: cs.template,
+        instance: cs.instance,
+        alias: cs.alias,
+        id: cs.id,
+        ssh_host: cs.ssh_host,
+        port: cs.port,
+        status: cs.status,
+        raw_ssh_command: cs.raw_ssh_command,
+        trae_url: cs.trae_url,
+        kind: 'codespace',
+      });
+    }
+    for (const op of operations.values()) {
+      const key = instanceKey(op.agent_id, op.template, op.instance);
+      if (rows.has(key) && op.status === 'succeeded') continue;
+      const status = normalizeStatus(op.status);
+      const search = filter.search.toLowerCase();
+      if (filter.agent !== 'all' && op.agent_id !== filter.agent) continue;
+      if (filter.status !== 'all' && status !== filter.status) continue;
+      if (
+        search &&
+        ![op.repo, op.template, op.instance, op.alias, op.id, op.agent_id, op.status, op.stage]
+          .filter(Boolean)
+          .some((value) => String(value).toLowerCase().includes(search))
+      ) continue;
+      rows.set(key, {
+        key,
+        agent_id: op.agent_id,
+        repo: op.repo,
+        template: op.template,
+        instance: op.instance,
+        alias: op.alias,
+        id: op.id,
+        status: op.status,
+        stage: op.stage,
+        error: op.error,
+        kind: 'operation',
+      });
+    }
+    return [...rows.values()].sort((left, right) => {
+      const value = (row: InstanceRow) => {
+        if (filter.sort === 'agent') return row.agent_id;
+        return row[filter.sort] || '';
+      };
+      return String(value(left)).localeCompare(String(value(right)));
+    });
+  }, [filteredCodespaces, operations, filter]);
+
   const templateRows = useMemo(() => {
     if (!config) return [];
     const search = filter.search.toLowerCase();
@@ -350,12 +428,12 @@ function App() {
     return rows
       .map((row) => ({
         ...row,
-        instances: filteredCodespaces.filter((cs) => cs.agent_id === row.agent && cs.template === row.id),
+        instances: instanceRows.filter((instance) => instance.agent_id === row.agent && instance.template === row.id),
       }))
       .filter((row) => {
         if (filter.agent !== 'all' && row.agent !== filter.agent) return false;
         if (!search) return row.instances.length > 0 || config.templates.some((template) => template.id === row.id);
-        return [row.id, row.repo, row.agent, row.description, ...row.instances.flatMap((cs) => [cs.instance, cs.alias, cs.id, cs.status])]
+        return [row.id, row.repo, row.agent, row.description, ...row.instances.flatMap((instance) => [instance.instance, instance.alias, instance.id, instance.status, instance.stage])]
           .filter(Boolean)
           .some((value) => String(value).toLowerCase().includes(search));
       })
@@ -367,7 +445,7 @@ function App() {
         };
         return String(sortValue(left)).localeCompare(String(sortValue(right)));
       });
-  }, [config, dashboard.codespaces, filteredCodespaces, filter]);
+  }, [config, dashboard.codespaces, instanceRows, filter]);
 
   function toggleTemplate(key: string) {
     setExpandedTemplates((current) => {
@@ -395,6 +473,7 @@ function App() {
       image: template?.image || config.defaults.image,
     };
     setForm(nextForm);
+    setCreateTemplateId(template?.id || null);
     setCreateError(null);
     setCreateOpen(true);
   }
@@ -452,8 +531,10 @@ function App() {
     }
   }
 
-  const runningOps = [...operations.values()].filter(isBusyOperation).length;
   const selectedAgent = config?.agents.find((agent) => agent.id === form.agent);
+  const selectedTemplate = createTemplateId
+    ? config?.templates.find((template) => template.id === createTemplateId)
+    : null;
 
   return (
     <MantineProvider defaultColorScheme="light" forceColorScheme="light">
@@ -484,12 +565,6 @@ function App() {
 
         <Container fluid className="workbench">
           <Stack gap="sm" className="main-pane">
-            <Grid gap="xs" aria-label="Dashboard summary">
-              <StatCard label="codespaces" value={dashboard.codespaces.length} />
-              <StatCard label="online" value={dashboard.agents.filter((agent) => agent.status === 'online').length} />
-              <StatCard label="offline" value={dashboard.agents.filter((agent) => agent.status === 'offline').length} />
-              <StatCard label="ops" value={runningOps} />
-            </Grid>
             <Paper withBorder radius="md" className="runtime-strip">
               <Group gap="sm" justify="space-between" align="center">
                 <Group gap="xs" className="runtime-strip-section">
@@ -607,22 +682,28 @@ function App() {
                             </Group>
                           </Table.Td>
                         </Table.Tr>
-                        {expandedTemplates.has(template.key) && template.instances.map((cs) => (
-                          <Table.Tr key={`${cs.agent_id}-${cs.id}`} className="instance-row">
+                        {expandedTemplates.has(template.key) && template.instances.map((instance) => (
+                          <Table.Tr key={instance.key} className={`instance-row ${instance.kind === 'operation' ? 'operation-instance-row' : ''}`}>
                             <Table.Td pl="xl">
                               <Stack gap={2}>
-                                <Text fw={600}>{cs.instance}</Text>
-                                <Text size="xs" c="dimmed">{cs.id}</Text>
+                                <Text fw={600}>{instance.instance}</Text>
+                                <Text size="xs" c="dimmed">{instance.kind === 'operation' ? instance.stage : instance.id}</Text>
+                                {instance.error && <Text size="xs" c="red" maw={420} truncate>{instance.error}</Text>}
                               </Stack>
                             </Table.Td>
-                            <Table.Td>{cs.alias ? <Code>{cs.alias}</Code> : <Text c="dimmed" size="xs">无本地 alias</Text>}</Table.Td>
-                            <Table.Td><Badge color={statusColor(cs.status)} variant="light">{cs.status || 'unknown'}</Badge></Table.Td>
-                            <Table.Td><Text size="xs" c="dimmed">{cs.raw_ssh_command}</Text></Table.Td>
+                            <Table.Td>{instance.alias ? <Code>{instance.alias}</Code> : <Text c="dimmed" size="xs">无本地 alias</Text>}</Table.Td>
+                            <Table.Td>
+                              <Stack gap={4}>
+                                <Badge color={statusColor(instance.status)} variant="light">{instance.status || 'unknown'}</Badge>
+                                {instance.kind === 'operation' && <Progress size="xs" value={operationProgress(instance.status as OperationStatus)} color={statusColor(instance.status)} />}
+                              </Stack>
+                            </Table.Td>
+                            <Table.Td><Text size="xs" c="dimmed">{instance.raw_ssh_command || instance.id}</Text></Table.Td>
                             <Table.Td>
                               <Group justify="flex-end" gap="xs" wrap="nowrap">
-                                <Button size="compact-xs" component="a" href={cs.trae_url}>Trae IDE</Button>
-                                <Button size="compact-xs" variant="default" color="red" onClick={() => void deleteCodespace(cs, false)}>Delete</Button>
-                                <Button size="compact-xs" color="red" onClick={() => void deleteCodespace(cs, true)}>Purge</Button>
+                                {isCodespaceRow(instance) && <Button size="compact-xs" component="a" href={instance.trae_url}>Trae IDE</Button>}
+                                {isCodespaceRow(instance) && <Button size="compact-xs" variant="default" color="red" onClick={() => void deleteCodespace(instance, false)}>Delete</Button>}
+                                {isCodespaceRow(instance) && <Button size="compact-xs" color="red" onClick={() => void deleteCodespace(instance, true)}>Purge</Button>}
                               </Group>
                             </Table.Td>
                           </Table.Tr>
@@ -634,60 +715,68 @@ function App() {
               </ScrollArea>
               {templateRows.length === 0 && <Text c="dimmed" p="md">暂无 template</Text>}
             </Paper>
-            {operations.size > 0 && (
-              <Paper withBorder radius="md" className="operations-strip">
-                <Group justify="space-between" className="panel-heading compact">
-                  <Title order={2} size="h6">Operations</Title>
-                  <Button size="compact-xs" variant="default" onClick={() => void clearOperations()}>Clear</Button>
-                </Group>
-                <ScrollArea type="auto">
-                  <Flex gap="xs" p="sm" className="operation-pills">
-                    {[...operations.values()].sort((a, b) => b.created_at - a.created_at).map((op) => (
-                      <Paper key={op.id} withBorder radius="md" p="xs" className="operation-pill">
-                        <Group gap="xs" justify="space-between" wrap="nowrap">
-                          <Box className="operation-pill-main">
-                            <Text fw={700} size="sm" truncate>{op.alias}</Text>
-                            <Text size="xs" c="dimmed" truncate>{op.stage}</Text>
-                          </Box>
-                          <Badge color={statusColor(op.status)} variant="light">{op.status}</Badge>
-                        </Group>
-                        <Progress mt={6} size="xs" value={operationProgress(op.status)} color={statusColor(op.status)} />
-                        {op.error && <Text size="xs" c="red" mt={4} truncate>{op.error}</Text>}
-                      </Paper>
-                    ))}
-                  </Flex>
-                </ScrollArea>
-              </Paper>
-            )}
+            {operations.size > 0 && <Group justify="flex-end"><Button size="compact-xs" variant="default" onClick={() => void clearOperations()}>Clear completed operations</Button></Group>}
           </Stack>
         </Container>
 
-        <Modal opened={createOpen} onClose={() => setCreateOpen(false)} title="Create Codespace" size="lg" centered>
+        <Modal
+          opened={createOpen}
+          onClose={() => setCreateOpen(false)}
+          title={selectedTemplate ? `New instance · ${selectedTemplate.id}` : 'Create Codespace'}
+          size={selectedTemplate ? 'md' : 'lg'}
+          centered
+        >
           <form onSubmit={submitCreate}>
             <Stack>
               {createError && <Alert color="red">{createError}</Alert>}
               {config && !config.github.has_token && <Alert color="yellow">创建 codespace 需要 GitHub token。请在启动 Web GUI 前设置 {config.github.token_env}。</Alert>}
-              <Grid>
-                <Grid.Col span={6}>
-                  <Select label="Agent" data={config?.agents.map((agent) => ({ value: agent.id, label: agent.id })) || []} value={form.agent} onChange={(value) => updateForm({ agent: value || '' })} required />
-                </Grid.Col>
-                <Grid.Col span={6}>
-                  <TextInput label="Repo" placeholder="owner/name" value={form.repo} onChange={(event) => updateForm({ repo: event.currentTarget.value })} required />
-                </Grid.Col>
-                <Grid.Col span={6}>
-                  <TextInput label="Template" value={form.template} onChange={(event) => updateForm({ template: event.currentTarget.value })} required />
-                </Grid.Col>
-                <Grid.Col span={6}>
-                  <TextInput label="Instance name" value={form.instance} onChange={(event) => updateForm({ instance: event.currentTarget.value })} required />
-                </Grid.Col>
-                <Grid.Col span={12}>
+              {selectedTemplate ? (
+                <Stack gap="sm">
+                  <Paper withBorder radius="md" p="sm" className="create-summary">
+                    <Group justify="space-between" gap="xs">
+                      <Box>
+                        <Text fw={700}>{selectedTemplate.id}</Text>
+                        <Text size="xs" c="dimmed">{selectedTemplate.description || selectedTemplate.repo}</Text>
+                      </Box>
+                      <Badge variant="light">{form.agent}</Badge>
+                    </Group>
+                    <Group gap="xs" mt="xs">
+                      <Code>{form.repo}</Code>
+                      <Text size="xs" c="dimmed">{form.image}</Text>
+                    </Group>
+                  </Paper>
+                  <TextInput
+                    label="Instance name"
+                    value={form.instance}
+                    onChange={(event) => updateForm({ instance: event.currentTarget.value })}
+                    autoFocus
+                    required
+                  />
                   <Alert color="gray">Local SSH alias: <Code>{instanceAlias(form.agent, form.template, form.instance) || '-'}</Code></Alert>
-                </Grid.Col>
-                <Grid.Col span={12}>
-                  <TextInput label="Image" value={form.image} onChange={(event) => updateForm({ image: event.currentTarget.value })} required />
-                </Grid.Col>
-                {selectedAgent && <Grid.Col span={12}><Alert color="gray">{selectedAgent.agent_url} · {selectedAgent.ssh_host}{selectedAgent.ssh_proxy ? ' · via SSH proxy' : ''}</Alert></Grid.Col>}
-              </Grid>
+                </Stack>
+              ) : (
+                <Grid>
+                  <Grid.Col span={6}>
+                    <Select label="Agent" data={config?.agents.map((agent) => ({ value: agent.id, label: agent.id })) || []} value={form.agent} onChange={(value) => updateForm({ agent: value || '' })} required />
+                  </Grid.Col>
+                  <Grid.Col span={6}>
+                    <TextInput label="Repo" placeholder="owner/name" value={form.repo} onChange={(event) => updateForm({ repo: event.currentTarget.value })} required />
+                  </Grid.Col>
+                  <Grid.Col span={6}>
+                    <TextInput label="Template" value={form.template} onChange={(event) => updateForm({ template: event.currentTarget.value })} required />
+                  </Grid.Col>
+                  <Grid.Col span={6}>
+                    <TextInput label="Instance name" value={form.instance} onChange={(event) => updateForm({ instance: event.currentTarget.value })} required />
+                  </Grid.Col>
+                  <Grid.Col span={12}>
+                    <Alert color="gray">Local SSH alias: <Code>{instanceAlias(form.agent, form.template, form.instance) || '-'}</Code></Alert>
+                  </Grid.Col>
+                  <Grid.Col span={12}>
+                    <TextInput label="Image" value={form.image} onChange={(event) => updateForm({ image: event.currentTarget.value })} required />
+                  </Grid.Col>
+                  {selectedAgent && <Grid.Col span={12}><Alert color="gray">{selectedAgent.agent_url} · {selectedAgent.ssh_host}{selectedAgent.ssh_proxy ? ' · via SSH proxy' : ''}</Alert></Grid.Col>}
+                </Grid>
+              )}
               <Group justify="flex-end">
                 <Button variant="default" onClick={() => setCreateOpen(false)}>Cancel</Button>
                 <Button type="submit" loading={submitting}>Create</Button>
@@ -708,15 +797,8 @@ function App() {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: number }) {
-  return (
-    <Grid.Col span={3}>
-      <Paper withBorder radius="md" p="sm" className="stat-card">
-        <Text size="xs" c="dimmed">{label}</Text>
-        <Text fw={700}>{value}</Text>
-      </Paper>
-    </Grid.Col>
-  );
+function isCodespaceRow(row: InstanceRow): row is InstanceRow & Codespace {
+  return row.kind === 'codespace';
 }
 
 createRoot(document.getElementById('root')!).render(<App />);

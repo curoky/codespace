@@ -200,6 +200,9 @@ def test_inject_credentials_chowns_and_puts_archive() -> None:
     assert path == "/home/dev/.ssh"
     names = _tar_names(data)
     assert set(names) == {"repo_id_ed25519", "config", "authorized_keys"}
+    ssh_config = _tar_member(data, "config").decode()
+    assert "Host github.com" in ssh_config
+    assert "StrictHostKeyChecking accept-new" in ssh_config
 
 
 def test_inject_credentials_uses_stdout_from_multiplexed_home_output() -> None:
