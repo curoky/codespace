@@ -83,7 +83,7 @@ def test_to_codespace_tolerates_missing_port() -> None:
 class _ExecContainer(_FakeContainer):
     """Container stub recording exec/put_archive calls for injection tests."""
 
-    def __init__(self, labels: dict[str, str], home: str = "/home/dev") -> None:
+    def __init__(self, labels: dict[str, str], home: str | bytes = "/home/dev") -> None:
         super().__init__(labels)
         self._home = home
         self.execs: list[tuple[list[str], str | None]] = []
@@ -92,7 +92,8 @@ class _ExecContainer(_FakeContainer):
     def exec_run(self, cmd: list[str], *, user: str | None = None) -> tuple[int, bytes]:
         self.execs.append((cmd, user))
         if cmd[:2] == ["sh", "-c"]:  # HOME resolution
-            return 0, self._home.encode()
+            home = self._home if isinstance(self._home, bytes) else self._home.encode()
+            return 0, home
         return 0, b""
 
     def put_archive(self, path: str, data: bytes) -> bool:
@@ -179,6 +180,24 @@ def test_inject_credentials_chowns_and_puts_archive() -> None:
     assert set(names) == {"repo_id_ed25519", "config", "authorized_keys"}
 
 
+def test_inject_credentials_uses_stdout_from_multiplexed_home_output() -> None:
+    output = _exec_frame(1, b"/home/x") + _exec_frame(
+        2, b"[conmon:d]: exec with attach is waiting \x81"
+    )
+    container = _ExecContainer(labels={shared.LABEL_ID: "abc"}, home=output)
+    client = _FakeClient(container)
+
+    podman_ops.inject_credentials(
+        client,
+        cs_id="abc",
+        user="x",
+        private_key="PRIV",
+        login_pubkey="ssh-ed25519 LOGIN",
+    )
+
+    assert container.archives[0][0] == "/home/x/.ssh"
+
+
 def test_inject_credentials_with_extra_repo_writes_alias_and_gitconfig() -> None:
     container = _ExecContainer(labels={shared.LABEL_ID: "abc"})
     client = _FakeClient(container)
@@ -260,3 +279,7 @@ def _tar_member(data: bytes, name: str) -> bytes:
         extracted = tar.extractfile(name)
         assert extracted is not None
         return extracted.read()
+
+
+def _exec_frame(stream: int, payload: bytes) -> bytes:
+    return bytes([stream, 0, 0, 0]) + len(payload).to_bytes(4, "big") + payload
