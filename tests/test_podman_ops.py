@@ -66,7 +66,7 @@ def test_to_codespace_maps_labels_and_port() -> None:
     assert cs.id == "abc123"
     assert cs.repo == "owner/name"
     assert cs.port == 49207
-    assert cs.deploy_public_key is None
+    assert cs.deploy_keys == []
     assert cs.workspace_dir == shared.workspace_dir_name("owner/name", "default")
 
 
@@ -172,6 +172,34 @@ def test_inject_credentials_chowns_and_puts_archive() -> None:
     assert set(names) == {"repo_id_ed25519", "config", "authorized_keys"}
 
 
+def test_inject_credentials_with_extra_repo_writes_alias_and_gitconfig() -> None:
+    container = _ExecContainer(labels={shared.LABEL_ID: "abc"})
+    client = _FakeClient(container)
+
+    podman_ops.inject_credentials(
+        client,
+        cs_id="abc",
+        user="dev",
+        private_key="PRIV",
+        login_pubkey="ssh-ed25519 LOGIN",
+        extra_keys=[("owner/dotfiles", "EXTRA_PRIV")],
+    )
+
+    alias = shared.extra_repo_ssh_alias("owner/dotfiles")
+    # ~/.ssh archive carries the extra key file + main key + config + authkeys.
+    ssh_archive = next(d for p, d in container.archives if p == "/home/dev/.ssh")
+    assert f"repo_{alias}" in _tar_names(ssh_archive)
+    # ssh config pins the alias to its own key.
+    config_bytes = _tar_member(ssh_archive, "config")
+    assert f"Host {alias}" in config_bytes.decode()
+    assert f"IdentityFile ~/.ssh/repo_{alias}" in config_bytes.decode()
+    # ~/.gitconfig carries the insteadOf rewrite for transparent clones.
+    git_archive = next(d for p, d in container.archives if p == "/home/dev")
+    gitconfig = _tar_member(git_archive, ".gitconfig").decode()
+    assert f"git@{alias}:owner/dotfiles" in gitconfig
+    assert "insteadOf = git@github.com:owner/dotfiles" in gitconfig
+
+
 def test_get_container_returns_none_when_absent() -> None:
     client = _FakeClient(None)
     assert podman_ops.get_container(client, "missing") is None
@@ -194,3 +222,10 @@ def test_purge_workspace_runs_helper_container() -> None:
 def _tar_names(data: bytes) -> list[str]:
     with tarfile.open(fileobj=io.BytesIO(data), mode="r") as tar:
         return tar.getnames()
+
+
+def _tar_member(data: bytes, name: str) -> bytes:
+    with tarfile.open(fileobj=io.BytesIO(data), mode="r") as tar:
+        extracted = tar.extractfile(name)
+        assert extracted is not None
+        return extracted.read()

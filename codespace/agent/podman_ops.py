@@ -136,17 +136,24 @@ def inject_credentials(
     user: str,
     private_key: str,
     login_pubkey: str,
+    extra_keys: list[tuple[str, str]] | None = None,
 ) -> None:
-    """Fix workspace ownership then inject the deploy key and login pubkey.
+    """Fix workspace ownership then inject deploy keys and the login pubkey.
 
     Steps mirror DESIGN.md §6.3:
       1. As root, ``chown`` the bind-mounted /workspace to the login user.
-      2. As the login user, materialise ~/.ssh with the deploy private key,
-         a git ssh config pinned to that key, and the client's login pubkey.
+      2. As the login user, materialise ~/.ssh with the main repo's deploy
+         private key, a git ssh config, and the client's login pubkey.
 
-    The private key is delivered via ``put_archive`` (tar over the podman API):
-    it is never a command-line argument and never written to the agent disk.
+    ``extra_keys`` is a list of ``(repo, private_key)`` for extra read-only
+    repos: each gets its own key file, an ssh ``Host`` alias, and a git
+    ``insteadOf`` rewrite in ~/.gitconfig so ``git clone git@github.com:<repo>``
+    transparently uses that key.
+
+    Private keys are delivered via ``put_archive`` (tar over the podman API):
+    never a command-line argument, never written to the agent disk.
     """
+    extra_keys = extra_keys or []
     container = client.containers.get(shared.container_name(cs_id))
 
     # 1) Correct ownership of the freshly bind-mounted workspace (root).
@@ -164,32 +171,65 @@ def inject_credentials(
     ssh_dir = f"{home}/.ssh"
 
     # Ensure ~/.ssh exists with correct perms/ownership before writing into it.
-    _exec_checked(
-        container,
-        ["mkdir", "-p", "-m", "700", ssh_dir],
-        user=user,
-    )
+    _exec_checked(container, ["mkdir", "-p", "-m", "700", ssh_dir], user=user)
 
-    git_ssh_config = (
-        "Host github.com\n"
-        "    HostName github.com\n"
-        "    User git\n"
-        "    IdentityFile ~/.ssh/repo_id_ed25519\n"
-        "    IdentitiesOnly yes\n"
-    )
-    # authorized_keys and git config are not secret; the private key is.
-    archive = _multi_member_tar(
-        [
-            ("repo_id_ed25519", private_key, 0o600),
-            ("config", git_ssh_config, 0o600),
-            ("authorized_keys", login_pubkey.rstrip("\n") + "\n", 0o600),
-        ]
-    )
+    # Main repo: default github.com host + its read-write key.
+    ssh_config_blocks = [_ssh_host_block("github.com", "github.com", "repo_id_ed25519")]
+    members: list[tuple[str, str, int]] = [
+        ("repo_id_ed25519", private_key, 0o600),
+        ("authorized_keys", login_pubkey.rstrip("\n") + "\n", 0o600),
+    ]
+
+    # Extra repos: per-repo key file + host alias; git insteadOf rewrites below.
+    for repo, key in extra_keys:
+        alias = shared.extra_repo_ssh_alias(repo)
+        key_file = f"repo_{alias}"
+        members.append((key_file, key, 0o600))
+        ssh_config_blocks.append(_ssh_host_block(alias, "github.com", key_file))
+
+    members.append(("config", "\n".join(ssh_config_blocks), 0o600))
+
+    archive = _multi_member_tar(members)
     if not container.put_archive(ssh_dir, archive):
         raise RuntimeError("failed to inject credentials via put_archive")
-
     # put_archive preserves the tar member ownership (root); re-own to the user.
     _exec_checked(container, ["chown", "-R", f"{user}:{user}", ssh_dir], user="0")
+
+    # Extra repos also need a git insteadOf rewrite so plain github.com URLs
+    # resolve to the per-repo alias (and thus the correct key).
+    if extra_keys:
+        _write_git_insteadof(
+            container, home=home, user=user, extra_repos=[r for r, _ in extra_keys]
+        )
+
+
+def _ssh_host_block(host: str, hostname: str, key_file: str) -> str:
+    """Render one ~/.ssh/config Host block pinned to a single identity."""
+    return (
+        f"Host {host}\n"
+        f"    HostName {hostname}\n"
+        "    User git\n"
+        f"    IdentityFile ~/.ssh/{key_file}\n"
+        "    IdentitiesOnly yes\n"
+    )
+
+
+def _write_git_insteadof(
+    container: Container, *, home: str, user: str, extra_repos: list[str]
+) -> None:
+    """Append git ``insteadOf`` rewrites so extra repos use their alias/key.
+
+    ``git@github.com:owner/name`` -> ``git@<alias>:owner/name``; git picks the
+    longest-matching prefix, so the main repo (plain github.com) is unaffected.
+    """
+    lines = []
+    for repo in extra_repos:
+        alias = shared.extra_repo_ssh_alias(repo)
+        lines.append(f'[url "git@{alias}:{repo}"]\n    insteadOf = git@github.com:{repo}\n')
+    archive = _multi_member_tar([(".gitconfig", "".join(lines), 0o644)])
+    if not container.put_archive(home, archive):
+        raise RuntimeError("failed to inject git insteadOf config via put_archive")
+    _exec_checked(container, ["chown", f"{user}:{user}", f"{home}/.gitconfig"], user="0")
 
 
 def _multi_member_tar(members: list[tuple[str, str, int]]) -> bytes:

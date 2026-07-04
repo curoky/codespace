@@ -62,7 +62,9 @@ def test_create_success_returns_public_key(
     body = resp.json()
     assert body["id"]
     assert body["port"] == 49207
-    assert body["deploy_public_key"] == "ssh-ed25519 PUB"
+    assert body["deploy_keys"] == [
+        {"repo": "owner/name", "public_openssh": "ssh-ed25519 PUB", "read_only": False}
+    ]
 
 
 def test_create_provision_failure_rolls_back_and_returns_500(

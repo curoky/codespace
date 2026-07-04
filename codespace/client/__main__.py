@@ -4,6 +4,7 @@ Talks to the Linux agent over plain HTTP with ``httpx``; the wire contract
 lives in :mod:`codespace.shared`.
 """
 
+import contextlib
 import subprocess
 from pathlib import Path
 
@@ -20,7 +21,22 @@ app = typer.Typer(help="Lightweight self-hosted codespace client.")
 
 # Local directory holding per-alias login keypairs.
 KEY_DIR = Path.home() / ".ssh" / "codespace"
+# Fixed list of extra repos every codespace gets read-only pull access to
+# (one ``owner/name`` per line, ``#`` comments allowed).
+EXTRA_REPOS_CONFIG = Path.home() / ".config" / "codespace" / "extra-repos"
 HTTP_TIMEOUT = 30
+
+
+def _load_extra_repos() -> list[str]:
+    """Read the fixed extra-repos config; missing file yields an empty list."""
+    if not EXTRA_REPOS_CONFIG.exists():
+        return []
+    repos = []
+    for line in EXTRA_REPOS_CONFIG.read_text(encoding="utf-8").splitlines():
+        entry = line.split("#", 1)[0].strip()
+        if entry:
+            repos.append(entry)
+    return repos
 
 
 # --- HTTP helpers ------------------------------------------------------------
@@ -93,18 +109,28 @@ def create(
     workspace: str = typer.Option(
         shared.DEFAULT_WORKSPACE, "--workspace", help="Workspace name for persistence."
     ),
+    extra_repo: list[str] = typer.Option(
+        [], "--extra-repo", help="Extra read-only repo(s); adds to the fixed config list."
+    ),
     alias: str | None = typer.Option(
         None, "--alias", help="SSH alias; defaults to repo name + workspace."
     ),
 ) -> None:
     """Create a codespace and register an ssh alias for it.
 
-    The GitHub token stays on the client: the agent returns a deploy public key
-    which the client registers on the repo. If registration fails, the client
-    rolls back by asking the agent to delete the just-created container.
+    The GitHub token stays on the client: the agent returns deploy public keys
+    (read-write for the main repo, read-only for each extra repo) which the
+    client registers on the respective repos. Extra repos come from the fixed
+    config (``~/.config/codespace/extra-repos``) plus any ``--extra-repo``. If
+    any registration fails, the client rolls back all registered keys, the
+    container, and the local login key.
     """
     if alias is None:
         alias = f"{repo.split('/')[-1]}-{workspace}"
+
+    # Merge fixed config with CLI extras; dedupe and drop the main repo.
+    extra_repos = list(dict.fromkeys([*_load_extra_repos(), *extra_repo]))
+    extra_repos = [r for r in extra_repos if r != repo]
 
     login_pubkey = _ensure_login_key(alias)
     payload = shared.CreateRequest(
@@ -113,6 +139,7 @@ def create(
         image=image,
         user=user,
         workspace=workspace,
+        extra_repos=extra_repos,
     )
 
     status, data = _request("POST", f"{agent.rstrip('/')}/codespaces", body=payload.model_dump())
@@ -120,28 +147,47 @@ def create(
         raise _fail(data.get("error", f"agent returned HTTP {status}"))
 
     cs = shared.Codespace.model_validate(data)
-    if not cs.deploy_public_key:
+    if not cs.deploy_keys:
         _delete_remote(agent, cs.id)
         _remove_login_key(alias)
-        raise _fail("agent did not return a deploy public key")
+        raise _fail("agent did not return any deploy keys")
 
-    # Register the deploy key with our own token; on failure roll back the
-    # container and the local login key so no orphan is left behind.
-    try:
-        github.register_deploy_key(token, repo, cs.id, cs.deploy_public_key)
-    except GithubException as exc:
-        _delete_remote(agent, cs.id)
-        _remove_login_key(alias)
-        raise _fail(f"failed to register deploy key (rolled back container): {exc}") from exc
+    # Register each deploy key with our own token; on any failure roll back all
+    # keys registered so far, the container, and the local login key.
+    registered: list[str] = []
+    for key in cs.deploy_keys:
+        try:
+            github.register_deploy_key(
+                token, key.repo, cs.id, key.public_openssh, read_only=key.read_only
+            )
+            registered.append(key.repo)
+        except GithubException as exc:
+            for done_repo in registered:
+                _revoke_quietly(token, done_repo, cs.id)
+            _delete_remote(agent, cs.id)
+            _remove_login_key(alias)
+            raise _fail(
+                f"failed to register deploy key on {key.repo} (rolled back): {exc}"
+            ) from exc
 
-    ssh_config.upsert(alias, ssh_host, cs.port, cs.user, cs.id, repo)
+    ssh_config.upsert(
+        alias, ssh_host, cs.port, cs.user, cs.id, [key.repo for key in cs.deploy_keys]
+    )
     typer.secho(f"codespace ready (id={cs.id}).", fg=typer.colors.GREEN)
+    if extra_repos:
+        typer.echo(f"extra read-only repos: {', '.join(extra_repos)}")
     typer.echo(f"connect with: ssh {alias}")
 
 
 def _delete_remote(agent: str, cs_id: str) -> None:
     """Best-effort request to delete a codespace container on the agent."""
     _request("DELETE", f"{agent.rstrip('/')}/codespaces/{cs_id}")
+
+
+def _revoke_quietly(token: str, repo: str, cs_id: str) -> None:
+    """Best-effort deploy-key revocation used during create rollback."""
+    with contextlib.suppress(GithubException):
+        github.delete_deploy_key(token, repo, cs_id)
 
 
 def _remove_login_key(alias: str) -> None:
@@ -179,35 +225,37 @@ def delete(
     cs_id: str | None = typer.Option(
         None, "--id", help="Codespace id; resolved from ssh config when omitted."
     ),
-    repo: str | None = typer.Option(
-        None, "--repo", help="Repo of the deploy key; resolved from ssh config when omitted."
+    repo: list[str] = typer.Option(
+        [],
+        "--repo",
+        help="Repo(s) whose deploy key to revoke; resolved from ssh config if omitted.",
     ),
     purge: bool = typer.Option(False, "--purge", help="Also delete the workspace directory."),
 ) -> None:
     """Delete a codespace and clean up local ssh state.
 
-    The codespace id and repo are read from the alias's ssh config block, so the
-    user need not remember them (``--id`` / ``--repo`` override when the block is
-    missing). The client revokes the GitHub deploy key with its own token before
-    asking the agent to remove the container.
+    The codespace id and repos are read from the alias's ssh config block, so
+    the user need not remember them (``--id`` / ``--repo`` override when the
+    block is missing). The client revokes every repo's GitHub deploy key with
+    its own token before asking the agent to remove the container.
     """
     if cs_id is None:
         cs_id = ssh_config.get_id(alias)
     if not cs_id:
         raise _fail(f"cannot resolve codespace id for alias '{alias}'; pass --id")
-    if repo is None:
-        repo = ssh_config.get_repo(alias)
+    repos = list(repo) if repo else ssh_config.get_repos(alias)
 
-    # Revoke the deploy key first (client owns the token). Rediscovered by title
-    # so it works even without a stored key id.
-    if repo:
-        try:
-            github.delete_deploy_key(token, repo, cs_id)
-        except GithubException as exc:
-            raise _fail(f"failed to revoke deploy key: {exc}") from exc
+    # Revoke every deploy key first (client owns the token). Rediscovered by
+    # title so it works even without stored key ids.
+    if repos:
+        for r in repos:
+            try:
+                github.delete_deploy_key(token, r, cs_id)
+            except GithubException as exc:
+                raise _fail(f"failed to revoke deploy key on {r}: {exc}") from exc
     else:
         typer.secho(
-            "warning: repo unknown; skipping deploy key revocation (pass --repo).",
+            "warning: repos unknown; skipping deploy key revocation (pass --repo).",
             fg=typer.colors.YELLOW,
             err=True,
         )

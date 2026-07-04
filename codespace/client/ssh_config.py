@@ -20,18 +20,18 @@ def _end(alias: str) -> str:
     return f"# <<< codespace {alias} <<<"
 
 
-def _render_block(alias: str, host: str, port: int, user: str, cs_id: str, repo: str) -> str:
+def _render_block(alias: str, host: str, port: int, user: str, cs_id: str, repos: list[str]) -> str:
     """Render the managed block for an alias.
 
-    ``cs_id`` and ``repo`` are stored as comments so ``delete`` can revoke the
-    GitHub deploy key (titled ``codespace-<cs_id>`` on ``repo``) without any
-    other local state.
+    ``cs_id`` and ``repos`` (comma-separated) are stored as comments so
+    ``delete`` can revoke every GitHub deploy key (titled ``codespace-<cs_id>``
+    on each repo) without any other local state.
     """
     return "\n".join(
         [
             _begin(alias),
             f"# codespace-id: {cs_id}",
-            f"# codespace-repo: {repo}",
+            f"# codespace-repos: {','.join(repos)}",
             f"Host {alias}",
             f"    HostName {host}",
             f"    Port {port}",
@@ -67,7 +67,7 @@ def _strip_block(content: str, alias: str) -> str:
     return pattern.sub("", content)
 
 
-def upsert(alias: str, host: str, port: int, user: str, cs_id: str, repo: str) -> None:
+def upsert(alias: str, host: str, port: int, user: str, cs_id: str, repos: list[str]) -> None:
     """Insert or replace the managed block for ``alias``.
 
     Any pre-existing block with the same alias is removed first, so repeated
@@ -75,7 +75,7 @@ def upsert(alias: str, host: str, port: int, user: str, cs_id: str, repo: str) -
     """
     content = _strip_block(_read(), alias)
     content = content.rstrip("\n")
-    block = _render_block(alias, host, port, user, cs_id, repo)
+    block = _render_block(alias, host, port, user, cs_id, repos)
     new_content = f"{content}\n\n{block}\n" if content else f"{block}\n"
     _write(new_content)
 
@@ -94,9 +94,10 @@ def get_id(alias: str) -> str | None:
     return _get_comment(alias, "codespace-id")
 
 
-def get_repo(alias: str) -> str | None:
-    """Return the repo stored in the alias block, or ``None``."""
-    return _get_comment(alias, "codespace-repo")
+def get_repos(alias: str) -> list[str]:
+    """Return the repos stored in the alias block (main + extras), or ``[]``."""
+    raw = _get_comment(alias, "codespace-repos")
+    return [r for r in raw.split(",") if r] if raw else []
 
 
 def _get_comment(alias: str, key: str) -> str | None:

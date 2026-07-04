@@ -68,3 +68,27 @@ def test_create_request_rejects_invalid_workspace() -> None:
 
 def test_deploy_key_title_uses_prefix() -> None:
     assert shared.deploy_key_title("abc123") == "codespace-abc123"
+
+
+def test_create_request_accepts_extra_repos() -> None:
+    req = shared.CreateRequest(
+        repo="owner/name",
+        login_pubkey="ssh-ed25519 AAAA",
+        image="codespace/dev:latest",
+        extra_repos=["owner/dotfiles", "org/tools"],
+    )
+    assert req.extra_repos == ["owner/dotfiles", "org/tools"]
+
+
+def test_create_request_rejects_invalid_extra_repo() -> None:
+    with pytest.raises(ValidationError):
+        shared.CreateRequest(
+            repo="owner/name",
+            login_pubkey="ssh-ed25519 AAAA",
+            image="codespace/dev:latest",
+            extra_repos=["not-a-repo"],
+        )
+
+
+def test_extra_repo_ssh_alias_is_slug_based() -> None:
+    assert shared.extra_repo_ssh_alias("owner/dotfiles") == "github-owner-dotfiles"

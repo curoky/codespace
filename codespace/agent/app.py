@@ -59,10 +59,12 @@ def create_app(config: AgentConfig) -> FastAPI:
         workspace_host_dir = _workspace_host_dir(config, req.repo, req.workspace)
         logger.info("creating codespace id={} repo={} workspace={}", cs_id, req.repo, req.workspace)
 
-        # Generate the deploy keypair in memory: the private half is injected
-        # into the container, the public half is returned for the client to
-        # register with GitHub. The agent never sees a token.
-        keypair = keys.generate_deploy_keypair()
+        # Generate deploy keypairs in memory: the private halves are injected
+        # into the container, the public halves are returned for the client to
+        # register with GitHub. The agent never sees a token. The main repo gets
+        # a read-write key; each extra repo gets its own read-only key.
+        main_keypair = keys.generate_deploy_keypair()
+        extra_keypairs = {repo: keys.generate_deploy_keypair() for repo in req.extra_repos}
 
         try:
             with _client() as client:
@@ -79,8 +81,9 @@ def create_app(config: AgentConfig) -> FastAPI:
                     client,
                     cs_id=cs_id,
                     user=req.user,
-                    private_key=keypair.private_openssh,
+                    private_key=main_keypair.private_openssh,
                     login_pubkey=req.login_pubkey,
+                    extra_keys=[(repo, kp.private_openssh) for repo, kp in extra_keypairs.items()],
                 )
         except Exception as exc:
             logger.exception("provisioning codespace {} failed; rolling back", cs_id)
@@ -90,6 +93,15 @@ def create_app(config: AgentConfig) -> FastAPI:
             ) from exc
 
         logger.info("codespace {} ready on port {}", cs_id, info.port)
+        deploy_keys = [
+            shared.DeployKeyRef(
+                repo=req.repo, public_openssh=main_keypair.public_openssh, read_only=False
+            ),
+            *[
+                shared.DeployKeyRef(repo=repo, public_openssh=kp.public_openssh, read_only=True)
+                for repo, kp in extra_keypairs.items()
+            ],
+        ]
         return shared.Codespace(
             id=cs_id,
             port=info.port,
@@ -98,7 +110,7 @@ def create_app(config: AgentConfig) -> FastAPI:
             repo=req.repo,
             workspace=req.workspace,
             workspace_dir=shared.workspace_dir_name(req.repo, req.workspace),
-            deploy_public_key=keypair.public_openssh,
+            deploy_keys=deploy_keys,
             status="running",
         )
 

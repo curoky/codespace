@@ -69,7 +69,7 @@ SSH 连接信息，client 将其写入本地 `~/.ssh/config`，用户即可 `ssh
 
 1. **sshd 监听 22**：容器启动后其内部运行 sshd 并监听容器端口 `22`；采用公钥认证
    （`PubkeyAuthentication yes`）。方案通过 `-p 0.0.0.0:0:22` 把它映射到宿主机随机端口。
-2. **存在一个非 root 登录用户**：默认用户名 `dev`（可由 client 在 create 请求的 `user`
+2. **存在一个非 root 登录用户**：默认用户名 `x`（可由 client 在 create 请求的 `user`
    字段覆盖）。该用户拥有可写的家目录，`~/.ssh/` 可创建。
 3. **该用户可写工作区路径**：容器内 `/workspace` 供 bind mount 挂载并可被登录用户读写。
 4. **具备 git 与 ssh 客户端**：容器内可执行 `git`、`ssh`（用于 clone/push 目标仓库）。
@@ -100,7 +100,7 @@ codespace/
 │   ├── Dockerfile       # agent 自身镜像（python + 依赖）
 │   └── run-agent.sh     # 启动 agent 容器（挂 podman.sock）
 └── image/               # 参考开发镜像（满足 §3 契约）
-    └── Dockerfile       # openssh-server + `dev` 用户 + git
+    └── Dockerfile       # FROM images/base（s6 + sshd + `x` 用户 + git）
 ```
 
 | 路径 | 职责 |
@@ -139,13 +139,16 @@ Base URL：`http://<agent-host>:<port>`。Content-Type：`application/json`。
   "image": "ghcr.io/you/dev:latest",
   "user": "dev",
   "workspace": "default",
-  "login_pubkey": "ssh-ed25519 AAAA... user@mac"
+  "login_pubkey": "ssh-ed25519 AAAA... user@mac",
+  "extra_repos": ["owner/dotfiles"]
 }
 ```
 - `image`（必填）：满足 §3 契约的开发镜像，由 client 指定（agent 不再持有默认镜像）。
 - `user`（可选，默认 `dev`）：容器内登录用户，由 client 指定。
 - `workspace`（可选，默认 `default`）：同一 repo 下的独立工作区名，用于区分并行 codespace
   及各自的持久化目录（见 §7）。
+- `extra_repos`（可选，默认 `[]`）：额外授予**只读**拉取权限的仓库（如 dotfiles）。每个额外
+  repo 由 agent 单独生成一把只读 deploy keypair（见 §6/§8）。
 
 响应 `201`：
 ```json
@@ -154,7 +157,10 @@ Base URL：`http://<agent-host>:<port>`。Content-Type：`application/json`。
   "port": 49207,
   "user": "dev",
   "container_id": "d34db33f...",
-  "deploy_public_key": "ssh-ed25519 AAAA...",
+  "deploy_keys": [
+    {"repo": "owner/name", "public_openssh": "ssh-ed25519 AAAA...", "read_only": false},
+    {"repo": "owner/dotfiles", "public_openssh": "ssh-ed25519 BBBB...", "read_only": true}
+  ],
   "repo": "owner/name",
   "workspace": "default",
   "workspace_dir": "codespace-owner-name-default-1a2b3c4d"
@@ -162,14 +168,15 @@ Base URL：`http://<agent-host>:<port>`。Content-Type：`application/json`。
 ```
 - **不含 SSH host**：agent 只报它能从 podman 观察到的 `port`；client 用自己的 `--ssh-host`
   （其视角下可达的宿主机地址）与该 `port` 组装连接信息。
-- `deploy_public_key`：agent 内存生成的 deploy **公钥**，client 收到后用自身 token 注册为
+- `deploy_keys`：agent 为主 repo（`read_only: false`）与每个额外 repo（`read_only: true`）
+  各生成一把 deploy keypair 的**公钥**，client 收到后用自身 token 逐个注册为对应 repo 的
   GitHub deploy key（title 固定 `codespace-<id>`）。私钥留在容器内，绝不回传网络。
 - `workspace_dir`：宿主机工作区目录名，末尾 8 位 hash 后缀避免 slug 冲突（见 §7）。
 
 ### `GET /codespaces`
 响应 `200`：受管 codespace 数组（通过容器名前缀 `codespace-` 发现），每项
 `{id, container_id, repo, workspace, port, user, status, workspace_dir}`
-（不含 SSH host；`deploy_public_key` 仅 create 返回，list 中为空）。
+（不含 SSH host；`deploy_keys` 仅 create 返回，list 中为空）。
 
 ### `DELETE /codespaces/{id}`
 删除开发容器（`podman rm -f`）；**默认保留工作区目录**（数据留存以便重建）。查询参数
@@ -183,27 +190,31 @@ Base URL：`http://<agent-host>:<port>`。Content-Type：`application/json`。
 ## 5. 客户端行为（macOS）
 
 `create --repo owner/name --agent http://<host>:<port> --ssh-host <ip> --token $TOKEN
-        [--image ...] [--user dev] [--workspace default] [--alias <name>]`：
+        [--image ...] [--user dev] [--workspace default] [--extra-repo owner/x ...] [--alias <name>]`：
 1. 生成无口令登录 keypair：`ssh-keygen -t ed25519 -f ~/.ssh/codespace/<alias> -N ""`
-   （已存在则跳过）。
-2. `POST /codespaces`，携带 repo / image / user / workspace / 登录公钥（**不含 token**）。
-3. 用**自己的 token** 把响应里的 `deploy_public_key` 注册为 GitHub deploy key（title
-   `codespace-<id>`）。注册失败则调 `DELETE /codespaces/<id>` 回滚容器，避免孤儿。
-4. 成功后 `ssh_config.upsert(alias, ssh_host, port, user, id, repo)`——host 用 client 自带的
-   `--ssh-host`，port 用响应里的 `port`。
+   （已存在则跳过）。合并额外 repo 列表 = 固定配置 `~/.config/codespace/extra-repos` +
+   `--extra-repo`（去重、剔除主 repo）。
+2. `POST /codespaces`，携带 repo / image / user / workspace / extra_repos / 登录公钥（**不含
+   token**）。
+3. 用**自己的 token** 把响应里 `deploy_keys` 的每一项注册为对应 repo 的 GitHub deploy key
+   （主 repo 读写、额外 repo 只读，title 均 `codespace-<id>`）。任一注册失败：吊销已注册的
+   key + 调 `DELETE /codespaces/<id>` 回滚容器 + 删本地登录 key，避免孤儿。
+4. 成功后 `ssh_config.upsert(alias, ssh_host, port, user, id, repos)`——`repos` 为主 repo +
+   全部额外 repo；host 用 client 自带的 `--ssh-host`，port 用响应里的 `port`。
 5. 打印 `ssh <alias>` 提示。
 
 `list`：`GET /codespaces`，表格渲染。
 
-`delete --alias <a> [--purge] --token $TOKEN`：从 ssh config 托管块读回 `id` 与 `repo` →
-用自己的 token 按 title `codespace-<id>` 反查并删除 deploy key → `DELETE /codespaces/<id>[?purge=true]`
-→ `ssh_config.remove(alias)` → 删除本地 `~/.ssh/codespace/<alias>{,.pub}`。
+`delete --alias <a> [--purge] --token $TOKEN`：从 ssh config 托管块读回 `id` 与 `repos` →
+用自己的 token 对每个 repo 按 title `codespace-<id>` 反查并删除 deploy key →
+`DELETE /codespaces/<id>[?purge=true]` → `ssh_config.remove(alias)` → 删除本地
+`~/.ssh/codespace/<alias>{,.pub}`。
 
 ### ssh config 托管块（幂等）
 ```
 # >>> codespace <alias> >>>
 # codespace-id: <id>
-# codespace-repo: <owner/name>
+# codespace-repos: <owner/name>[,<owner/dotfiles>...]
 Host <alias>
     HostName <host_ip>
     Port <port>
@@ -287,10 +298,10 @@ agent 在容器就绪后，通过 podman-py 执行两步：
 chown -R <user>:<user> /workspace
 ```
 再把密钥物料写入登录用户的 `~/.ssh/`。私钥内容**不作为命令行参数**（避免出现在进程列表 /
-label），也**不落 agent 磁盘**：agent 在**内存**中构造一个 tar 归档，包含三个 0600 成员——
-`repo_id_ed25519`（deploy 私钥）、`config`（git ssh 配置）、`authorized_keys`（登录公钥）——
-经 podman 的 `PUT /containers/<c>/archive`（`container.put_archive`）流式写入 `~/.ssh/`，
-写入后 `chown -R <user> ~/.ssh` 修正属主。写入的 `~/.ssh/config` 内容为：
+label），也**不落 agent 磁盘**：agent 在**内存**中构造 tar 归档（0600 私钥成员 +
+`config` + `authorized_keys`），经 podman 的 `PUT /containers/<c>/archive`
+（`container.put_archive`）流式写入 `~/.ssh/`，写入后 `chown -R <user> ~/.ssh` 修正属主。
+主 repo 写入的 `~/.ssh/config` 内容为：
 ```
 Host github.com
     HostName github.com
@@ -298,6 +309,15 @@ Host github.com
     IdentityFile ~/.ssh/repo_id_ed25519
     IdentitiesOnly yes
 ```
+**额外只读 repo**：每个额外 repo 各写一把私钥 `~/.ssh/repo_github-<slug>`，并追加一段独立的
+`Host github-<slug>`（HostName 仍 github.com、IdentityFile 指向该私钥）到 `~/.ssh/config`；
+同时写 `~/.gitconfig` 的 `insteadOf` 重写：
+```
+[url "git@github-<slug>:owner/dotfiles"]
+    insteadOf = git@github.com:owner/dotfiles
+```
+这样容器内 `git clone git@github.com:owner/dotfiles` 会被透明改写到对应 alias，从而选中该
+repo 专属的只读 key（git 取最长匹配前缀，主 repo 的 github.com URL 不受影响）。
 > **为何用 put_archive 而非 exec stdin 流**：当前 podman-py（5.x）的 `exec_run` 把 `stdin` /
 > `socket` 参数标记为**未实现**（`unused-argument`），无法真正向 exec 的 stdin 流写数据。
 > `put_archive`（tar 经 HTTP body 流式上传）保持了同等安全属性——私钥**不作命令行参数、不落
@@ -332,10 +352,13 @@ Host github.com
 
 - 注入容器的凭据是 **GitHub Deploy Key**，GitHub 将其严格限定在单个仓库——无法认证到
   任何其它仓库。
-- 容器内 `~/.ssh/config` 的 `IdentitiesOnly yes` 强制 git 只用这把 deploy key，无法回退
-  到其它身份。
-- 删除 codespace 时 **client**（持 token）从 GitHub 移除该 deploy key，即时吊销访问。
-- 默认 `read_only: false`（可读写/可 push）；未来可加 `--read-only` 变体。
+- 容器内 `~/.ssh/config` 的 `IdentitiesOnly yes` 强制 git 每个 Host 只用其绑定的 deploy
+  key，无法回退到其它身份；额外 repo 各有独立 Host alias + key，互不越权。
+- 删除 codespace 时 **client**（持 token）从 GitHub 移除该 codespace 的**每一把** deploy key
+  （主 repo + 全部额外 repo），即时吊销访问。
+- **主 repo 读写，额外 repo 只读**：主 repo 的 deploy key `read_only: false`（可 push）；
+  `extra_repos` 的 deploy key 一律 `read_only: true`（仅拉取，如 dotfiles）。未来可加
+  `--read-only` 让主 repo 也只读。
 
 > **cs_id 作单一关联键**：deploy key 的 title 固定 `codespace-<cs_id>`，与容器名/label 里的
 > `cs_id` 一致。client 删除时按 title 反查 key（不依赖存下来的 key id），即使本地 ssh config
@@ -348,8 +371,8 @@ Host github.com
   两段跨系统操作，用 `cs_id` 关联（§8）。
   - agent 侧失败（`podman run`/注入）：agent 自行 `rm -f` 容器返回 `5xx`；此时尚无 GitHub
     key，无残留。
-  - agent 成功但 client 注册 key 失败：client 调 `DELETE /codespaces/<id>` 回滚容器，避免
-    孤儿容器。
+  - agent 成功但 client 注册某把 key 失败：client 吊销**已注册的 key**（主 + 额外中已成功的
+    那些）+ 调 `DELETE /codespaces/<id>` 回滚容器 + 删本地登录 key，避免孤儿。
 - 孤儿回收：`GET /codespaces` 列出存活容器；未来可加 `gc` 命令对账——列出 agent 存活容器的
   `cs_id` 集合 ↔ GitHub 上 `codespace-*` deploy keys，清理无对应容器的孤儿 key。
 - client `delete` 尽力幂等：容器（agent 返回 200 even if absent）/ key（按 title 反查，无匹配
@@ -357,8 +380,9 @@ Host github.com
 
 ## 10. 端到端验证
 
-1. **构建镜像**：`podman build -t codespace/dev:latest codespace/image`（参考镜像满足
-   §3 契约）。
+1. **构建镜像**：先构建 base（`bash images/base/build.sh debian:12`，产出
+   `ghcr.io/curoky/devspace:base-debian12`），再 `podman build -t codespace/dev:latest
+   codespace/image`（参考镜像 `FROM` 该 base，满足 §3 契约）。
 2. **启动 agent**：`bash codespace/agent/run-agent.sh`；`curl http://localhost:8080/codespaces`
    返回 `[]`。
 3. **创建**：`python -m codespace.client create --repo owner/name --workspace default
@@ -428,3 +452,8 @@ Host github.com
    私钥、返回公钥；client 用自己的 token 注册/吊销 deploy key。以 `cs_id`（= 容器 label = key
    title `codespace-<id>`）为单一关联键，删除按 title 反查，配合双向回滚保证一致性（§9）。
    `image`/`user` 等 caller 侧选择也随之下放到 client 请求，agent 配置仅剩三个宿主机属性。
+8. **额外 repo 只读拉取**（§4/§6.3/§8）：`extra_repos`（client 固定配置
+   `~/.config/codespace/extra-repos` + `--extra-repo`）为每个额外仓库单独生成一把
+   `read_only` deploy key，注入独立 `Host github-<slug>` alias + `~/.gitconfig` `insteadOf`
+   重写，使 `git clone git@github.com:owner/x` 透明选中该 repo 专属只读 key。同一公钥不能跨
+   repo，故用多把 key；主 repo 仍读写。

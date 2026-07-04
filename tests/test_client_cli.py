@@ -18,7 +18,9 @@ def _codespace_payload(**overrides: object) -> dict:
         "repo": "owner/name",
         "workspace": "default",
         "workspace_dir": "codespace-owner-name-default-deadbeef",
-        "deploy_public_key": "ssh-ed25519 PUB",
+        "deploy_keys": [
+            {"repo": "owner/name", "public_openssh": "ssh-ed25519 PUB", "read_only": False}
+        ],
         "status": "running",
     }
     data.update(overrides)
@@ -27,8 +29,10 @@ def _codespace_payload(**overrides: object) -> dict:
 
 @pytest.fixture(autouse=True)
 def _stub_login_key(monkeypatch: pytest.MonkeyPatch) -> None:
-    # Avoid spawning ssh-keygen; return a fixed pubkey.
+    # Avoid spawning ssh-keygen; return a fixed pubkey. Also isolate from any
+    # real extra-repos config on the host.
     monkeypatch.setattr(cli, "_ensure_login_key", lambda alias: "ssh-ed25519 LOGIN")
+    monkeypatch.setattr(cli, "_load_extra_repos", list)
 
 
 def test_create_success_registers_key_and_writes_config(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -37,13 +41,11 @@ def test_create_success_registers_key_and_writes_config(monkeypatch: pytest.Monk
     monkeypatch.setattr(
         cli.github,
         "register_deploy_key",
-        lambda token, repo, cs_id, pub: calls.setdefault("registered", (repo, cs_id, pub)) or 1,
+        lambda token, repo, cs_id, pub, *, read_only: (
+            calls.setdefault("registered", (repo, cs_id, pub, read_only)) or 1
+        ),
     )
-    monkeypatch.setattr(
-        cli.ssh_config,
-        "upsert",
-        lambda *a: calls.setdefault("upserted", a),
-    )
+    monkeypatch.setattr(cli.ssh_config, "upsert", lambda *a: calls.setdefault("upserted", a))
 
     result = runner.invoke(
         cli.app,
@@ -61,9 +63,48 @@ def test_create_success_registers_key_and_writes_config(monkeypatch: pytest.Monk
     )
 
     assert result.exit_code == 0
-    assert calls["registered"] == ("owner/name", "abc123", "ssh-ed25519 PUB")
-    # upsert(alias, ssh_host, port, user, id, repo)
-    assert calls["upserted"] == ("name-default", "10.0.0.5", 49207, "dev", "abc123", "owner/name")
+    assert calls["registered"] == ("owner/name", "abc123", "ssh-ed25519 PUB", False)
+    # upsert(alias, ssh_host, port, user, id, repos)
+    assert calls["upserted"] == ("name-default", "10.0.0.5", 49207, "dev", "abc123", ["owner/name"])
+
+
+def test_create_registers_extra_repo_readonly(monkeypatch: pytest.MonkeyPatch) -> None:
+    registered: list[tuple[str, bool]] = []
+    payload = _codespace_payload(
+        deploy_keys=[
+            {"repo": "owner/name", "public_openssh": "ssh-ed25519 MAIN", "read_only": False},
+            {"repo": "owner/dotfiles", "public_openssh": "ssh-ed25519 EXTRA", "read_only": True},
+        ]
+    )
+    monkeypatch.setattr(cli, "_request", lambda *a, **k: (201, payload))
+    monkeypatch.setattr(
+        cli.github,
+        "register_deploy_key",
+        lambda token, repo, cs_id, pub, *, read_only: registered.append((repo, read_only)) or 1,
+    )
+    upserted: dict[str, object] = {}
+    monkeypatch.setattr(cli.ssh_config, "upsert", lambda *a: upserted.setdefault("repos", a[5]))
+
+    result = runner.invoke(
+        cli.app,
+        [
+            "create",
+            "--repo",
+            "owner/name",
+            "--agent",
+            "http://h:8080",
+            "--ssh-host",
+            "10.0.0.5",
+            "--token",
+            "tok",
+            "--extra-repo",
+            "owner/dotfiles",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert registered == [("owner/name", False), ("owner/dotfiles", True)]
+    assert upserted["repos"] == ["owner/name", "owner/dotfiles"]
 
 
 def test_create_rolls_back_when_registration_fails(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -121,7 +162,7 @@ def test_create_fails_when_agent_errors(monkeypatch: pytest.MonkeyPatch) -> None
 def test_delete_revokes_key_then_removes(monkeypatch: pytest.MonkeyPatch) -> None:
     calls: dict[str, object] = {}
     monkeypatch.setattr(cli.ssh_config, "get_id", lambda alias: "abc123")
-    monkeypatch.setattr(cli.ssh_config, "get_repo", lambda alias: "owner/name")
+    monkeypatch.setattr(cli.ssh_config, "get_repos", lambda alias: ["owner/name"])
     monkeypatch.setattr(
         cli.github,
         "delete_deploy_key",

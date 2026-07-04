@@ -15,7 +15,8 @@ from pydantic import BaseModel, Field, field_validator
 CONTAINER_PREFIX = "codespace-"
 
 # Default login user inside the dev container (see DESIGN.md §3 image contract).
-DEFAULT_CONTAINER_USER = "dev"
+# The reference image (images/base) ships a pre-created login user `x` (uid 5230).
+DEFAULT_CONTAINER_USER = "x"
 
 # Workspace mount point inside the dev container.
 WORKSPACE_MOUNT = "/workspace"
@@ -71,7 +72,31 @@ def deploy_key_title(cs_id: str) -> str:
     return f"{CONTAINER_PREFIX}{cs_id}"
 
 
+def extra_repo_ssh_alias(repo: str) -> str:
+    """SSH host alias used inside the container for an extra (read-only) repo.
+
+    Each extra repo gets its own key and its own ``Host <alias>`` block plus a
+    git ``insteadOf`` rewrite, so ``git clone git@github.com:owner/name`` picks
+    the right key transparently. The alias is derived from the repo slug.
+    """
+    return f"github-{repo_slug(repo)}"
+
+
 # --- Wire models -------------------------------------------------------------
+
+
+class DeployKeyRef(BaseModel):
+    """A deploy public key the client must register on ``repo``.
+
+    Returned by ``create``: the agent generates the keypair, injects the
+    private half into the container and returns this public half for the client
+    to register as a GitHub deploy key. ``read_only`` is ``False`` for the main
+    repo and ``True`` for extra repos.
+    """
+
+    repo: str
+    public_openssh: str
+    read_only: bool
 
 
 class CreateRequest(BaseModel):
@@ -87,6 +112,10 @@ class CreateRequest(BaseModel):
     image: str = Field(..., description="Dev image satisfying the DESIGN.md §3 contract.")
     user: str = Field(DEFAULT_CONTAINER_USER, description="Login user inside the dev image.")
     workspace: str = Field(DEFAULT_WORKSPACE, description="Workspace name for persistence.")
+    extra_repos: list[str] = Field(
+        default_factory=list,
+        description="Extra repos granted read-only pull access (e.g. dotfiles).",
+    )
 
     @field_validator("repo")
     @classmethod
@@ -102,6 +131,14 @@ class CreateRequest(BaseModel):
             raise ValueError("workspace must match [\\w.-]+")
         return v
 
+    @field_validator("extra_repos")
+    @classmethod
+    def _check_extra_repos(cls, v: list[str]) -> list[str]:
+        for repo in v:
+            if not REPO_RE.match(repo):
+                raise ValueError(f"extra repo must match 'owner/name': {repo!r}")
+        return v
+
     @field_validator("login_pubkey", "image", "user")
     @classmethod
     def _not_blank(cls, v: str) -> str:
@@ -113,10 +150,11 @@ class CreateRequest(BaseModel):
 class Codespace(BaseModel):
     """A managed codespace, returned by create/list.
 
-    ``deploy_public_key`` is only populated by ``create``: the agent generates
-    the keypair, keeps the private half (injected into the container) and hands
-    the public half back so the client can register it as a GitHub deploy key.
-    It is empty for ``list`` results.
+    ``deploy_keys`` is only populated by ``create``: for the main repo (read
+    -write) and each extra repo (read-only), the agent generates the keypair,
+    keeps the private half (injected into the container) and hands the public
+    half back so the client can register it as a GitHub deploy key. It is empty
+    for ``list`` results.
 
     The SSH host is *not* included: the agent only reports the ``port`` it can
     observe from podman; the client supplies the reachable host itself (it is
@@ -130,7 +168,7 @@ class Codespace(BaseModel):
     repo: str
     workspace: str
     workspace_dir: str
-    deploy_public_key: str | None = None
+    deploy_keys: list[DeployKeyRef] = Field(default_factory=list)
     status: str | None = None
 
 
