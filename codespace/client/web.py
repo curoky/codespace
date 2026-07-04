@@ -456,7 +456,11 @@ def _repo_workspace_path(repo: str | None = None) -> str:
 
 
 def _trae_remote_ssh_url(
-    remote_authority: str, repo: str | None = None, *, new_window: bool = True
+    remote_authority: str,
+    repo: str | None = None,
+    *,
+    new_window: bool = True,
+    fullscreen: bool = True,
 ) -> str:
     """Build a Trae Remote-SSH deep link for a remote authority and optional repo path."""
     remote_path = _repo_workspace_path(repo)
@@ -465,8 +469,13 @@ def _trae_remote_ssh_url(
         f"{quote(remote_authority, safe='')}"
         f"{quote(remote_path, safe='/')}"
     )
+    query: list[str] = []
     if new_window:
-        return f"{url}?windowId=_blank"
+        query.append("windowId=_blank")
+    if fullscreen:
+        query.append("fullscreen=true")
+    if query:
+        return f"{url}?{'&'.join(query)}"
     return url
 
 
