@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Codespace Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/@primer/css@21.5.1/dist/primer.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="/static/css/app.css" />
   </head>
   <body>
@@ -15,19 +15,19 @@
           <span id="config-summary" class="meta-pill">加载配置中...</span>
         </div>
         <div class="toolbar">
-          <select id="quick-template-select" class="form-select form-select-sm toolbar-template">
+          <select id="quick-template-select" class="select-control toolbar-template">
             <option value="">template...</option>
           </select>
-          <button id="quick-template-button" class="btn btn-sm" type="button">
+          <button id="quick-template-button" class="button is-small" type="button">
             Apply
           </button>
-          <button class="btn btn-sm" type="button" data-action="open-create">
+          <button class="button is-small" type="button" data-action="open-create">
             Blank
           </button>
-          <button id="refresh-button" class="btn btn-sm" type="button">
+          <button id="refresh-button" class="button is-small" type="button">
             Refresh
           </button>
-          <button id="create-button" class="btn btn-primary btn-sm" type="button">
+          <button id="create-button" class="button is-primary is-small" type="button">
             Create
           </button>
         </div>
@@ -42,7 +42,7 @@
             <div><span>ops</span><strong id="stat-running-ops">0</strong></div>
           </section>
 
-          <section id="global-error" class="flash flash-warn d-none" role="alert"></section>
+          <section id="global-error" class="notification is-warning is-light d-none" role="alert"></section>
 
           <section id="codespaces" class="panel codespace-panel">
             <div class="panel-header">
@@ -51,8 +51,8 @@
             </div>
 
             <div class="filter-bar" aria-label="Codespace filters">
-              <select id="agent-filter" class="form-select form-select-sm"></select>
-              <select id="status-filter" class="form-select form-select-sm">
+              <select id="agent-filter" class="select-control"></select>
+              <select id="status-filter" class="select-control">
                 <option value="all">All status</option>
                 <option value="running">Running</option>
                 <option value="stopped">Stopped</option>
@@ -60,17 +60,17 @@
               </select>
               <input
                 id="search-input"
-                class="form-control form-control-sm"
+                class="input is-small"
                 type="search"
                 placeholder="repo / workspace / alias / id"
               />
-              <select id="sort-select" class="form-select form-select-sm">
+              <select id="sort-select" class="select-control">
                 <option value="agent">Agent</option>
                 <option value="repo">Repository</option>
                 <option value="workspace">Workspace</option>
                 <option value="status">Status</option>
               </select>
-              <button id="clear-search-button" class="btn btn-sm" type="button">
+              <button id="clear-search-button" class="button is-small" type="button">
                 Clear
               </button>
             </div>
@@ -78,8 +78,8 @@
             <div id="codespace-empty" class="empty-state d-none">暂无 codespace</div>
             <div id="codespace-card-grid" class="codespace-grid"></div>
 
-            <div class="table-scroll">
-              <table class="codespace-table">
+            <div class="table-container table-scroll">
+              <table class="table is-fullwidth is-hoverable is-narrow codespace-table">
                 <thead>
                   <tr>
                     <th>Agent</th>
@@ -127,7 +127,7 @@
           <section id="operations" class="panel">
             <div class="panel-header compact">
               <h2>Operations</h2>
-              <button id="clear-operations-button" class="btn btn-sm" type="button">
+              <button id="clear-operations-button" class="button is-small" type="button">
                 Clear
               </button>
             </div>
@@ -143,37 +143,33 @@
       <form id="create-form" method="dialog" class="modal-card">
         <div class="dialog-header">
           <h2>Create Codespace</h2>
-          <button id="create-cancel" type="button" class="btn btn-sm close-button">×</button>
+          <button id="create-cancel" type="button" class="button is-small is-light close-button">×</button>
         </div>
         <div class="dialog-body">
-          <div id="create-error" class="flash flash-error d-none" role="alert"></div>
-          <div id="create-token-warning" class="flash flash-warn d-none" role="alert"></div>
+          <div id="create-error" class="notification is-danger is-light d-none" role="alert"></div>
+          <div id="create-token-warning" class="notification is-warning is-light d-none" role="alert"></div>
           <div class="create-form-grid">
             <label class="field-half form-label">
               Agent
-              <select id="create-agent" name="agent" class="form-select mt-1"></select>
-            </label>
-            <label class="field-half form-label">
-              User
-              <input id="create-user" name="user" class="form-control mt-1" required />
+              <select id="create-agent" name="agent" class="select-control mt-1"></select>
             </label>
             <label class="field-half form-label">
               Repo
               <input
                 id="create-repo"
                 name="repo"
-                class="form-control mt-1"
+                class="input mt-1"
                 required
                 placeholder="owner/name"
               />
             </label>
             <label class="field-half form-label">
               Workspace
-              <input id="create-workspace" name="workspace" class="form-control mt-1" required />
+              <input id="create-workspace" name="workspace" class="input mt-1" required />
             </label>
             <label class="field-full form-label">
               Alias
-              <input id="create-alias" name="alias" class="form-control mt-1" required />
+              <input id="create-alias" name="alias" class="input mt-1" required />
             </label>
             <label class="field-full checkbox-row">
               <input id="create-auto-alias" type="checkbox" checked />
@@ -181,7 +177,7 @@
             </label>
             <label class="field-full form-label">
               Image
-              <input id="create-image" name="image" class="form-control mt-1" required />
+              <input id="create-image" name="image" class="input mt-1" required />
             </label>
             <div id="create-agent-help" class="field-full agent-help"></div>
             <label class="field-full form-label">
@@ -189,7 +185,7 @@
               <textarea
                 id="create-extra-repos"
                 name="extra_repos"
-                class="form-control mt-1"
+                class="textarea mt-1"
                 rows="3"
                 placeholder="owner/repo，每行一个或用逗号分隔"
               ></textarea>
@@ -197,8 +193,8 @@
           </div>
         </div>
         <div class="dialog-footer">
-          <button id="create-cancel-footer" type="button" class="btn">Cancel</button>
-          <button type="submit" class="btn btn-primary">Create</button>
+          <button id="create-cancel-footer" type="button" class="button">Cancel</button>
+          <button type="submit" class="button is-primary">Create</button>
         </div>
       </form>
     </dialog>

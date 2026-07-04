@@ -24,12 +24,9 @@ def _config() -> WebConfig:
         defaults=DefaultsConfig(agent="home", image="img"),
         github=GithubConfig(token_env="GITHUB_TOKEN"),
         agents={
-            "home": AgentProfile(
-                id="home", name="Home", agent_url="http://home:8001", ssh_host="10.0.0.5"
-            ),
+            "home": AgentProfile(id="home", agent_url="http://home:8001", ssh_host="10.0.0.5"),
             "office": AgentProfile(
                 id="office",
-                name="Office",
                 agent_url="http://office:8001",
                 ssh_host="10.0.0.8",
             ),
@@ -37,7 +34,6 @@ def _config() -> WebConfig:
         templates={
             "api": CreateTemplateConfig(
                 id="api",
-                name="API Service",
                 description="Backend service environment",
                 agent="office",
                 repo="owner/api",
@@ -108,7 +104,6 @@ def test_config_returns_create_templates(app_client: TestClient) -> None:
     assert resp.json()["templates"] == [
         {
             "id": "api",
-            "name": "API Service",
             "description": "Backend service environment",
             "agent": "office",
             "repo": "owner/api",
@@ -127,7 +122,8 @@ def test_static_page_and_script_are_served(app_client: TestClient) -> None:
 
     assert index.status_code == 200
     assert "Codespace Dashboard" in index.text
-    assert "@primer/css" in index.text
+    assert "bulma" in index.text
+    assert "@primer/css" not in index.text
     assert "bootstrap" not in index.text
     assert script.status_code == 200
     assert "text/javascript" in script.headers["content-type"]
@@ -152,6 +148,8 @@ def test_static_page_and_script_are_served(app_client: TestClient) -> None:
     assert "renderQuickTemplates" in script.text
     assert "handleCodespaceAction" in script.text
     assert "openCreateFromTemplate" in script.text
+    assert "clipboard" not in script.text
+    assert 'data-action="copy"' not in script.text
 
 
 def test_dashboard_aggregates_agents(

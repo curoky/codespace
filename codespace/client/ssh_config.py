@@ -7,19 +7,19 @@ can recover them (and revoke the deploy key) without other local state
 """
 
 import re
-from dataclasses import dataclass, field
 from pathlib import Path
+
+from pydantic import BaseModel, Field
 
 SSH_CONFIG_PATH = Path.home() / ".ssh" / "config"
 
 
-@dataclass(frozen=True)
-class SshConfigEntry:
+class SshConfigEntry(BaseModel, frozen=True):
     """Parsed metadata from one managed codespace SSH config block."""
 
     alias: str
     codespace_id: str | None = None
-    repos: list[str] = field(default_factory=list)
+    repos: list[str] = Field(default_factory=list)
     agent_id: str | None = None
     repo: str | None = None
     host: str | None = None

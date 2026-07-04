@@ -21,7 +21,6 @@ defaults:
   image: img
 agents:
   home:
-    name: Home
     agent_url: http://h:8001
     ssh_host: 10.0.0.5
 """,
@@ -32,7 +31,6 @@ agents:
     assert cfg.defaults.agent == "home"
     assert cfg.github.token_env == "GITHUB_TOKEN"
     assert cfg.agents["home"].id == "home"
-    assert cfg.agents["home"].display_name == "Home"
 
 
 def test_load_config_reads_create_templates(tmp_path: Path) -> None:
@@ -54,7 +52,6 @@ agents:
     ssh_host: 10.0.0.8
 templates:
   api:
-    name: API Service
     description: Backend service environment
     agent: office
     repo: owner/api
@@ -71,7 +68,6 @@ templates:
     template = cfg.templates["api"]
 
     assert template.id == "api"
-    assert template.display_name == "API Service"
     assert template.agent == "office"
     assert template.repo == "owner/api"
     assert template.workspace == "backend"
@@ -121,7 +117,7 @@ agents:
     monkeypatch.setenv(client_config.CONFIG_ENV, str(path))
 
     assert client_config.resolve_config_path() == path
-    assert client_config.load_config().agents["home"].display_name == "home"
+    assert client_config.load_config().agents["home"].id == "home"
 
 
 def test_load_config_rejects_missing_default_agent(tmp_path: Path) -> None:

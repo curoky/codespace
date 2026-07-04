@@ -20,7 +20,6 @@ class AgentProfile(BaseModel):
     """One configured agent profile."""
 
     id: str = ""
-    name: str | None = None
     agent_url: str
     ssh_host: str
 
@@ -37,11 +36,6 @@ class AgentProfile(BaseModel):
         if not value.strip():
             raise ValueError("must not be blank")
         return value.rstrip("/") if value.startswith(("http://", "https://")) else value
-
-    @property
-    def display_name(self) -> str:
-        """Human readable name used by the Web UI."""
-        return self.name or self.id
 
 
 class DefaultsConfig(BaseModel):
@@ -80,7 +74,6 @@ class CreateTemplateConfig(BaseModel):
     """One preconfigured Web GUI create template."""
 
     id: str = ""
-    name: str | None = None
     description: str | None = None
     agent: str | None = None
     repo: str
@@ -128,17 +121,12 @@ class CreateTemplateConfig(BaseModel):
             raise ValueError("agent must match [\\w.-]+")
         return value
 
-    @field_validator("name", "description", "alias", "image", "user")
+    @field_validator("description", "alias", "image", "user")
     @classmethod
     def _not_blank_optional(cls, value: str | None) -> str | None:
         if value is not None and not value.strip():
             raise ValueError("must not be blank")
         return value
-
-    @property
-    def display_name(self) -> str:
-        """Human readable template name used by the Web UI."""
-        return self.name or self.id
 
 
 class GithubConfig(BaseModel):
@@ -171,7 +159,6 @@ class WebConfig(BaseModel):
         for agent_id, raw_profile in data["agents"].items():
             profile = dict(raw_profile or {})
             profile.setdefault("id", agent_id)
-            profile.setdefault("name", agent_id)
             agents[agent_id] = profile
         data = dict(data)
         data["agents"] = agents
@@ -180,7 +167,6 @@ class WebConfig(BaseModel):
             for template_id, raw_template in data["templates"].items():
                 template = dict(raw_template or {})
                 template.setdefault("id", template_id)
-                template.setdefault("name", template_id)
                 templates[template_id] = template
             data["templates"] = templates
         return data

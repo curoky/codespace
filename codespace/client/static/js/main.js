@@ -132,7 +132,7 @@ function renderAgents() {
     <article class="agent-card ${escapeHtml(agent.status)}" data-agent="${escapeHtml(agent.id)}">
       <div class="item-head">
         <div>
-          <h3>${escapeHtml(agent.name)}</h3>
+          <h3>${escapeHtml(agent.id)}</h3>
         </div>
         <span class="status-pill ${escapeHtml(agent.status)}">
           ${escapeHtml(agent.status)}
@@ -143,7 +143,7 @@ function renderAgents() {
         <span>${escapeHtml(agent.ssh_host)}</span>
         <span>${agent.codespace_count} codespaces</span>
       </div>
-      ${agent.error ? `<div class="flash flash-error compact-flash">${escapeHtml(agent.error)}</div>` : ''}
+      ${agent.error ? `<div class="notification is-danger is-light compact-flash">${escapeHtml(agent.error)}</div>` : ''}
     </article>`).join('') : '<div class="empty-state"><p>暂无 agent 信息</p></div>';
 }
 
@@ -153,7 +153,7 @@ function renderTemplates() {
     <article class="template-card">
       <div class="item-head">
         <div>
-          <h3>${escapeHtml(template.name)}</h3>
+          <h3>${escapeHtml(template.id)}</h3>
         </div>
         <span class="repo-chip">${escapeHtml(template.repo)}</span>
       </div>
@@ -163,7 +163,7 @@ function renderTemplates() {
         <span>${escapeHtml(template.workspace || state.config.defaults.workspace)}</span>
         <span>${escapeHtml(template.image || state.config.defaults.image)}</span>
       </div>
-      <button class="btn btn-primary btn-sm full-width" data-action="create-template" data-template="${escapeHtml(template.id)}" type="button">
+      <button class="button is-primary is-small full-width" data-action="create-template" data-template="${escapeHtml(template.id)}" type="button">
         Create
       </button>
     </article>`).join('') : '<div class="empty-state"><p>暂无模板</p></div>';
@@ -173,7 +173,7 @@ function renderQuickTemplates() {
   const templates = state.config?.templates || [];
   $('#quick-template-select').innerHTML = [
     '<option value="">选择模板...</option>',
-    ...templates.map((template) => `<option value="${escapeHtml(template.id)}">${escapeHtml(template.name)} · ${escapeHtml(template.repo)}</option>`),
+    ...templates.map((template) => `<option value="${escapeHtml(template.id)}">${escapeHtml(template.id)} · ${escapeHtml(template.repo)}</option>`),
   ].join('');
   $('#quick-template-button').disabled = templates.length === 0;
 }
@@ -181,7 +181,7 @@ function renderQuickTemplates() {
 function renderFilters() {
   const options = [
     '<option value="all">All agents</option>',
-    ...(state.dashboard.agents || []).map((a) => `<option value="${escapeHtml(a.id)}">${escapeHtml(a.name)}</option>`),
+    ...(state.dashboard.agents || []).map((a) => `<option value="${escapeHtml(a.id)}">${escapeHtml(a.id)}</option>`),
   ];
   $('#agent-filter').innerHTML = options.join('');
   $('#agent-filter').value = state.filter.agent;
@@ -197,11 +197,11 @@ function filteredCodespaces() {
     const status = normalizeStatus(cs.status);
     return (state.filter.agent === 'all' || cs.agent_id === state.filter.agent)
       && (state.filter.status === 'all' || status === state.filter.status || (state.filter.status === 'unknown' && !cs.status))
-      && (!search || [cs.repo, cs.workspace, cs.alias, cs.id, cs.agent_name, cs.status]
+      && (!search || [cs.repo, cs.workspace, cs.alias, cs.id, cs.agent_id, cs.status]
         .filter(Boolean)
         .some((v) => String(v).toLowerCase().includes(search)));
   });
-  return rows.sort((left, right) => String(left[state.filter.sort] || left.agent_name || '').localeCompare(String(right[state.filter.sort] || right.agent_name || '')));
+  return rows.sort((left, right) => String(left[state.filter.sort] || left.agent_id || '').localeCompare(String(right[state.filter.sort] || right.agent_id || '')));
 }
 
 function renderCodespaces() {
@@ -212,7 +212,7 @@ function renderCodespaces() {
     <article class="codespace-card">
       <div class="item-head">
         <div>
-          <p class="muted-inline">${escapeHtml(cs.agent_name)} · ${escapeHtml(cs.workspace)}</p>
+          <p class="muted-inline">${escapeHtml(cs.agent_id)} · ${escapeHtml(cs.workspace)}</p>
           <h3>${escapeHtml(cs.repo)}</h3>
         </div>
         <span class="status-pill ${escapeHtml(normalizeStatus(cs.status))}">${escapeHtml(cs.status || 'unknown')}</span>
@@ -220,17 +220,13 @@ function renderCodespaces() {
       <div class="codespace-meta card-meta">
         <span>${escapeHtml(cs.id)}</span>
         <span>${escapeHtml(cs.ssh_host)}:${cs.port}</span>
-        <span>${escapeHtml(cs.user)}</span>
       </div>
       <code class="ssh-code full-width card-code" title="${escapeHtml(cs.ssh_command)}">${escapeHtml(cs.ssh_command)}</code>
       <div class="action-row">
-        <button class="btn btn-primary btn-sm grow" data-action="copy" data-ssh="${escapeHtml(cs.ssh_command)}" type="button">
-          Copy
-        </button>
-        <button class="btn danger-muted btn-sm" data-action="delete" data-agent="${escapeHtml(cs.agent_id)}" data-id="${escapeHtml(cs.id)}" data-repo="${escapeHtml(cs.repo)}" type="button">
+        <button class="button is-small danger-muted grow" data-action="delete" data-agent="${escapeHtml(cs.agent_id)}" data-id="${escapeHtml(cs.id)}" data-repo="${escapeHtml(cs.repo)}" type="button">
           Delete
         </button>
-        <button class="btn btn-danger btn-sm" data-action="purge" data-agent="${escapeHtml(cs.agent_id)}" data-id="${escapeHtml(cs.id)}" data-repo="${escapeHtml(cs.repo)}" type="button">
+        <button class="button is-danger is-small" data-action="purge" data-agent="${escapeHtml(cs.agent_id)}" data-id="${escapeHtml(cs.id)}" data-repo="${escapeHtml(cs.repo)}" type="button">
           Purge
         </button>
       </div>
@@ -238,8 +234,8 @@ function renderCodespaces() {
   $('#codespace-tbody').innerHTML = rows.map((cs) => `
     <tr>
       <td>
-        <button class="btn btn-link p-0 text-decoration-none" data-action="filter-agent" data-agent="${escapeHtml(cs.agent_id)}">
-          ${escapeHtml(cs.agent_name)}
+        <button class="button is-text is-small agent-link" data-action="filter-agent" data-agent="${escapeHtml(cs.agent_id)}">
+          ${escapeHtml(cs.agent_id)}
         </button>
         <div class="muted-inline">${escapeHtml(cs.agent_id)}</div>
       </td>
@@ -248,19 +244,14 @@ function renderCodespaces() {
       <td>${cs.alias ? `<code>${escapeHtml(cs.alias)}</code>` : '<span class="muted-inline">无本地 alias</span>'}</td>
       <td><span class="status-pill ${escapeHtml(normalizeStatus(cs.status))}">${escapeHtml(cs.status || 'unknown')}</span></td>
       <td>
-        <div class="ssh-cell">
-          <code class="ssh-code" title="${escapeHtml(cs.ssh_command)}">${escapeHtml(cs.ssh_command)}</code>
-          <button class="btn btn-sm" data-action="copy" data-ssh="${escapeHtml(cs.ssh_command)}" title="Copy SSH command">
-            Copy
-          </button>
-        </div>
+        <code class="ssh-code" title="${escapeHtml(cs.ssh_command)}">${escapeHtml(cs.ssh_command)}</code>
       </td>
       <td class="text-end">
         <div class="action-group">
-          <button class="btn btn-sm danger-muted" data-action="delete" data-agent="${escapeHtml(cs.agent_id)}" data-id="${escapeHtml(cs.id)}" data-repo="${escapeHtml(cs.repo)}">
+          <button class="button is-small danger-muted" data-action="delete" data-agent="${escapeHtml(cs.agent_id)}" data-id="${escapeHtml(cs.id)}" data-repo="${escapeHtml(cs.repo)}">
             Delete
           </button>
-          <button class="btn btn-sm btn-danger" data-action="purge" data-agent="${escapeHtml(cs.agent_id)}" data-id="${escapeHtml(cs.id)}" data-repo="${escapeHtml(cs.repo)}">
+          <button class="button is-danger is-small" data-action="purge" data-agent="${escapeHtml(cs.agent_id)}" data-id="${escapeHtml(cs.id)}" data-repo="${escapeHtml(cs.repo)}">
             Purge
           </button>
         </div>
@@ -272,11 +263,6 @@ async function handleCodespaceAction(button) {
   if (button.dataset.action === 'filter-agent') {
     state.filter.agent = button.dataset.agent;
     render();
-    return;
-  }
-  if (button.dataset.action === 'copy') {
-    await navigator.clipboard.writeText(button.dataset.ssh);
-    showToast('SSH command copied');
     return;
   }
   const purge = button.dataset.action === 'purge';
@@ -310,7 +296,7 @@ function renderOperations() {
         <div class="progress-bar ${op.status === 'failed' ? 'bg-danger' : op.status === 'succeeded' ? 'bg-success' : ''}" style="width: ${operationProgress(op.status)}%"></div>
       </div>
       <p class="muted-inline operation-stage">${escapeHtml(op.stage)}</p>
-      ${op.error ? `<div class="flash flash-error compact-flash">${escapeHtml(op.error)}</div>` : ''}
+      ${op.error ? `<div class="notification is-danger is-light compact-flash">${escapeHtml(op.error)}</div>` : ''}
     </article>`).join('') : '<div class="empty-state"><p>暂无 operation</p></div>';
 }
 
@@ -329,11 +315,10 @@ function openCreate() {
   $('#create-error').textContent = '';
   $('#create-token-warning').classList.toggle('d-none', cfg.github.has_token);
   $('#create-token-warning').textContent = cfg.github.has_token ? '' : tokenMissingMessage();
-  $('#create-agent').innerHTML = cfg.agents.map((a) => `<option value="${escapeHtml(a.id)}">${escapeHtml(a.name)}</option>`).join('');
+  $('#create-agent').innerHTML = cfg.agents.map((a) => `<option value="${escapeHtml(a.id)}">${escapeHtml(a.id)}</option>`).join('');
   $('#create-agent').value = state.filter.agent !== 'all' ? state.filter.agent : cfg.default_agent;
   $('#create-workspace').value = cfg.defaults.workspace;
   $('#create-image').value = cfg.defaults.image;
-  $('#create-user').value = cfg.defaults.user;
   $('#create-extra-repos').value = cfg.defaults.extra_repos.join('\n');
   $('#create-auto-alias').checked = true;
   updateCreateAgentHelp();
@@ -357,7 +342,6 @@ function applyTemplate(template) {
   $('#create-repo').value = template.repo;
   $('#create-workspace').value = template.workspace || cfg.defaults.workspace;
   $('#create-image').value = template.image || cfg.defaults.image;
-  $('#create-user').value = template.user || cfg.defaults.user;
   $('#create-extra-repos').value = (template.extra_repos ?? cfg.defaults.extra_repos).join('\n');
   if (template.alias) {
     $('#create-auto-alias').checked = false;
@@ -386,7 +370,7 @@ async function submitCreate(event) {
     workspace: form.workspace.value.trim(),
     alias: form.alias.value.trim(),
     image: form.image.value.trim(),
-    user: form.user.value.trim(),
+    user: state.config.defaults.user,
     extra_repos: form.extra_repos.value.split(/\n|,/).map((x) => x.trim()).filter(Boolean),
   };
   submitButton.disabled = true;

@@ -43,14 +43,12 @@ class ConfigGithubSummary(BaseModel):
 
 class ConfigAgentSummary(BaseModel):
     id: str
-    name: str
     agent_url: str
     ssh_host: str
 
 
 class ConfigTemplateSummary(BaseModel):
     id: str
-    name: str
     description: str | None = None
     agent: str | None = None
     repo: str
@@ -71,7 +69,6 @@ class ConfigSummary(BaseModel):
 
 class AgentStatus(BaseModel):
     id: str
-    name: str
     agent_url: str
     ssh_host: str
     status: Literal["online", "offline"]
@@ -81,7 +78,6 @@ class AgentStatus(BaseModel):
 
 class DashboardCodespace(BaseModel):
     agent_id: str
-    agent_name: str
     id: str
     repo: str
     workspace: str
@@ -221,7 +217,6 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
             agent_statuses.append(
                 AgentStatus(
                     id=profile.id,
-                    name=profile.display_name,
                     agent_url=profile.agent_url,
                     ssh_host=profile.ssh_host,
                     status="online" if result.online else "offline",
@@ -230,9 +225,7 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
                 )
             )
             for cs in result.codespaces:
-                codespaces.append(
-                    _dashboard_codespace(profile.id, profile.display_name, profile.ssh_host, cs)
-                )
+                codespaces.append(_dashboard_codespace(profile.id, profile.ssh_host, cs))
         return DashboardResponse(
             agents=agent_statuses,
             codespaces=codespaces,
@@ -298,7 +291,6 @@ def _config_summary(config: WebConfig) -> ConfigSummary:
         agents=[
             ConfigAgentSummary(
                 id=agent.id,
-                name=agent.display_name,
                 agent_url=agent.agent_url,
                 ssh_host=agent.ssh_host,
             )
@@ -307,7 +299,6 @@ def _config_summary(config: WebConfig) -> ConfigSummary:
         templates=[
             ConfigTemplateSummary(
                 id=template.id,
-                name=template.display_name,
                 description=template.description,
                 agent=template.agent,
                 repo=template.repo,
@@ -329,15 +320,12 @@ def _safe_token_env_label(config: WebConfig) -> str:
     return config.github.token_env
 
 
-def _dashboard_codespace(
-    agent_id: str, agent_name: str, ssh_host: str, cs: shared.Codespace
-) -> DashboardCodespace:
+def _dashboard_codespace(agent_id: str, ssh_host: str, cs: shared.Codespace) -> DashboardCodespace:
     entry = ssh_config.find_entry(codespace_id=cs.id, agent_id=agent_id)
     alias = entry.alias if entry else None
     raw_ssh_command = f"ssh {cs.user}@{ssh_host} -p {cs.port}"
     return DashboardCodespace(
         agent_id=agent_id,
-        agent_name=agent_name,
         id=cs.id,
         repo=cs.repo,
         workspace=cs.workspace,
