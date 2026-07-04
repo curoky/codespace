@@ -15,6 +15,7 @@ to the agent's disk, and never appears in a mount table (see DESIGN.md §6.3).
 import io
 import tarfile
 import time
+from pathlib import Path
 
 from podman import PodmanClient
 from podman.domain.containers import Container
@@ -26,6 +27,7 @@ from codespace import shared
 __all__ = [
     "ContainerInfo",
     "create_container",
+    "ensure_workspace_dir",
     "find_container_by_workspace",
     "get_container",
     "inject_credentials",
@@ -89,8 +91,10 @@ def create_container(
     """Start a dev container and return its id and host SSH port.
 
     The bind ``source`` is a *host* path string interpreted by the host podman
-    service (PoP); podman creates it (root-owned) if absent. All persistent
-    metadata is written to labels so list/delete need no agent-side state.
+    service (PoP). The directory must already exist, because podman reports a
+    ``statfs ... no such file or directory`` error for absent bind sources.
+    All persistent metadata is written to labels so list/delete need no
+    agent-side state.
     """
     container = client.containers.run(
         image,
@@ -121,6 +125,11 @@ def create_container(
     if port is None:
         raise RuntimeError(f"container {container.name} has no host port mapping for 22/tcp")
     return ContainerInfo(container_id=container.id, port=port)
+
+
+def ensure_workspace_dir(workspace_host_dir: str) -> None:
+    """Create the workspace bind source directory before podman mounts it."""
+    Path(workspace_host_dir).mkdir(parents=True, exist_ok=True)
 
 
 def pull_image(client: PodmanClient, image: str) -> None:

@@ -2,6 +2,7 @@
 
 import io
 import tarfile
+from pathlib import Path
 
 import pytest
 
@@ -149,6 +150,12 @@ def test_create_container_writes_labels_and_returns_port(monkeypatch: pytest.Mon
     assert run_kwargs["name"] == "codespace-abc"
     assert run_kwargs["labels"][shared.LABEL_REPO] == "owner/name"
     assert run_kwargs["mounts"][0]["source"] == "/host/ws"
+
+
+def test_ensure_workspace_dir_creates_missing_parents(tmp_path: Path) -> None:
+    workspace_dir = tmp_path / "missing" / "workspace"
+    podman_ops.ensure_workspace_dir(str(workspace_dir))
+    assert workspace_dir.is_dir()
 
 
 def test_inject_credentials_chowns_and_puts_archive() -> None:

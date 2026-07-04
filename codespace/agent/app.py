@@ -133,6 +133,9 @@ def create_app(config: AgentConfig) -> FastAPI:
                 main_keypair = keys.generate_deploy_keypair()
                 extra_keypairs = {repo: keys.generate_deploy_keypair() for repo in req.extra_repos}
 
+                _update_operation(operation_id, stage="preparing workspace directory")
+                podman_ops.ensure_workspace_dir(workspace_host_dir)
+
                 _update_operation(operation_id, stage=f"pulling image {req.image}")
                 podman_ops.pull_image(client, req.image)
 

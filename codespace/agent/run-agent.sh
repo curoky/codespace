@@ -6,6 +6,11 @@
 
 set -euo pipefail
 
+WORKSPACE_ROOT_HOST="${WORKSPACE_ROOT_HOST:-${HOME}/codespace-workspaces}"
+mkdir -p "${WORKSPACE_ROOT_HOST}"
+
+podman pull ghcr.io/curoky/devspace:codespace-agent
+
 if podman container exists codespace-agent; then
 	echo "removing existing 'codespace-agent' container..."
 	podman rm -f codespace-agent >/dev/null
@@ -15,11 +20,12 @@ podman run --detach \
 	--name codespace-agent \
 	-p 8001:8001 \
 	-v /tmp/podmanxd.sock:/tmp/podmanxd.sock \
+	-v "${WORKSPACE_ROOT_HOST}:${WORKSPACE_ROOT_HOST}" \
 	ghcr.io/curoky/devspace:codespace-agent \
 	serve \
 	--host 0.0.0.0 \
 	--port 8001 \
-	--workspace-root-host "${HOME}/codespace-workspaces" \
+	--workspace-root-host "${WORKSPACE_ROOT_HOST}" \
 	--podman-uri unix:///tmp/podmanxd.sock
 
 echo "agent 'codespace-agent' started on port 8001."

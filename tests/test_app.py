@@ -33,6 +33,7 @@ def client(config: app_module.AgentConfig, monkeypatch: pytest.MonkeyPatch) -> T
             return None
 
     monkeypatch.setattr(app_module, "PodmanClient", lambda *a, **k: _DummyClient())
+    monkeypatch.setattr(podman_ops, "ensure_workspace_dir", lambda *a: None)
     return TestClient(app_module.create_app(config))
 
 
@@ -137,6 +138,38 @@ def test_create_rejects_existing_repo_workspace(
     assert operation["status"] == "failed"
     assert operation["error"] == "codespace already exists for repo/workspace (id=abc123)"
     assert created == []
+
+
+def test_create_prepares_workspace_dir_before_container(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    calls: list[str] = []
+    monkeypatch.setattr(
+        keys,
+        "generate_deploy_keypair",
+        lambda: keys.DeployKeypair(private_openssh="PRIV", public_openssh="ssh-ed25519 PUB"),
+    )
+    monkeypatch.setattr(podman_ops, "find_container_by_workspace", lambda *a: None)
+    monkeypatch.setattr(
+        podman_ops,
+        "ensure_workspace_dir",
+        lambda path: calls.append(f"mkdir:{path}"),
+    )
+    monkeypatch.setattr(podman_ops, "pull_image", lambda *a: calls.append("pull"))
+
+    def _create(*a: object, **kwargs: object) -> podman_ops.ContainerInfo:
+        calls.append(f"create:{kwargs['workspace_host_dir']}")
+        return podman_ops.ContainerInfo(container_id="cid", port=49207)
+
+    monkeypatch.setattr(podman_ops, "create_container", _create)
+    monkeypatch.setattr(podman_ops, "inject_credentials", lambda *a, **k: None)
+
+    resp = client.post("/codespaces", json=_create_body())
+    assert resp.status_code == 202
+    operation = _operation_result(client, resp.json()["id"])
+    assert operation["status"] == "succeeded"
+    workspace_dir = "/var/lib/cs/" + shared.workspace_dir_name("owner/name", "default")
+    assert calls == [f"mkdir:{workspace_dir}", "pull", f"create:{workspace_dir}"]
 
 
 def test_get_operation_returns_404_for_missing_id(client: TestClient) -> None:
