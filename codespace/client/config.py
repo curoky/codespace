@@ -22,6 +22,7 @@ class AgentProfile(BaseModel):
     id: str = ""
     agent_url: str
     ssh_host: str
+    ssh_proxy: bool = False
 
     @field_validator("id")
     @classmethod

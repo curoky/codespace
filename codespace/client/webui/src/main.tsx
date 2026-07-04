@@ -54,6 +54,7 @@ type ConfigSummary = {
     id: string;
     agent_url: string;
     ssh_host: string;
+    ssh_proxy: boolean;
   }>;
   templates: Array<{
     id: string;
@@ -78,6 +79,7 @@ type Agent = {
   id: string;
   agent_url: string;
   ssh_host: string;
+  ssh_proxy: boolean;
   status: AgentStatus;
   error?: string | null;
   codespace_count: number;
@@ -565,7 +567,10 @@ function App() {
                   <Card key={agent.id} withBorder padding="sm" radius="md">
                     <Group justify="space-between" align="flex-start">
                       <Text fw={700}>{agent.id}</Text>
-                      <Badge color={statusColor(agent.status)} variant="light">{agent.status}</Badge>
+                      <Group gap={4}>
+                        {agent.ssh_proxy && <Badge color="grape" variant="light">ssh proxy</Badge>}
+                        <Badge color={statusColor(agent.status)} variant="light">{agent.status}</Badge>
+                      </Group>
                     </Group>
                     <Text size="xs" c="dimmed" mt={6}>{agent.agent_url}</Text>
                     <Text size="xs" c="dimmed">{agent.ssh_host}</Text>
@@ -622,7 +627,7 @@ function App() {
                 <Grid.Col span={12}>
                   <TextInput label="Image" value={form.image} onChange={(event) => updateForm({ image: event.currentTarget.value })} required />
                 </Grid.Col>
-                {selectedAgent && <Grid.Col span={12}><Alert color="gray">{selectedAgent.agent_url} · {selectedAgent.ssh_host}</Alert></Grid.Col>}
+                {selectedAgent && <Grid.Col span={12}><Alert color="gray">{selectedAgent.agent_url} · {selectedAgent.ssh_host}{selectedAgent.ssh_proxy ? ' · via SSH proxy' : ''}</Alert></Grid.Col>}
                 <Grid.Col span={12}>
                   <Textarea label="Extra repos" placeholder="owner/repo，每行一个或用逗号分隔" minRows={3} value={form.extraRepos} onChange={(event) => updateForm({ extraRepos: event.currentTarget.value })} />
                 </Grid.Col>

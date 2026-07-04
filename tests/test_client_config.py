@@ -31,6 +31,28 @@ agents:
     assert cfg.defaults.agent == "home"
     assert cfg.github.token_env == "GITHUB_TOKEN"
     assert cfg.agents["home"].id == "home"
+    assert cfg.agents["home"].ssh_proxy is False
+
+
+def test_load_config_accepts_ssh_proxy_agent(tmp_path: Path) -> None:
+    path = tmp_path / "config.yaml"
+    _write_config(
+        path,
+        """
+defaults:
+  agent: home
+  image: img
+agents:
+  home:
+    agent_url: http://127.0.0.1:8001
+    ssh_host: dev-host
+    ssh_proxy: true
+""",
+    )
+
+    cfg = client_config.load_config(path)
+
+    assert cfg.agents["home"].ssh_proxy is True
 
 
 def test_load_config_reads_create_templates(tmp_path: Path) -> None:

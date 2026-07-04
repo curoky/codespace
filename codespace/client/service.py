@@ -1,11 +1,14 @@
 """Reusable client-side orchestration for CLI and Web GUI."""
 
 import contextlib
+import socket
 import subprocess
 import time
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+from threading import Lock
+from urllib.parse import urlparse, urlunparse
 
 import httpx
 from github import GithubException
@@ -54,9 +57,102 @@ class DeleteCodespaceResult(BaseModel):
     warning: str | None = None
 
 
+class SshHttpTunnel:
+    """Local SSH tunnel that exposes a remote agent HTTP endpoint on localhost."""
+
+    def __init__(self, profile: AgentProfile) -> None:
+        self.profile = profile
+        self.local_url = _local_agent_url(profile.agent_url, _free_local_port())
+        self._process = self._start()
+        _wait_for_agent(self.local_url)
+
+    def close(self) -> None:
+        """Stop the SSH tunnel process if it is still running."""
+        if self._process.poll() is None:
+            self._process.terminate()
+            with contextlib.suppress(subprocess.TimeoutExpired):
+                self._process.wait(timeout=2)
+        if self._process.poll() is None:
+            self._process.kill()
+
+    def is_running(self) -> bool:
+        """Return whether the SSH tunnel process is still alive."""
+        return self._process.poll() is None
+
+    def _start(self) -> subprocess.Popen[bytes]:
+        parsed = urlparse(self.profile.agent_url)
+        if parsed.scheme not in {"http", "https"}:
+            raise ServiceError(
+                f"agent_url must be http(s) when ssh_proxy is enabled: {parsed.scheme}"
+            )
+        if parsed.hostname is None:
+            raise ServiceError("agent_url must include a host when ssh_proxy is enabled")
+        target_host = _agent_target_host(parsed.hostname)
+        target_port = parsed.port or (443 if parsed.scheme == "https" else 80)
+        local_port = urlparse(self.local_url).port
+        if local_port is None:
+            raise ServiceError("failed to allocate local ssh proxy port")
+        process = subprocess.Popen(  # noqa: S603
+            [  # noqa: S607
+                "ssh",
+                "-o",
+                "ExitOnForwardFailure=yes",
+                "-o",
+                "ServerAliveInterval=30",
+                "-o",
+                "ServerAliveCountMax=2",
+                "-N",
+                "-L",
+                f"127.0.0.1:{local_port}:{target_host}:{target_port}",
+                self.profile.ssh_host,
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        time.sleep(0.2)
+        if process.poll() is not None:
+            _, stderr = process.communicate()
+            message = stderr.decode(errors="replace").strip() or "ssh proxy failed to start"
+            raise ServiceError(message)
+        return process
+
+
 def default_alias(agent_id: str, repo: str, workspace: str) -> str:
     """Default Web GUI alias, namespaced by agent id."""
     return f"{agent_id}-{repo.split('/')[-1]}-{workspace}"
+
+
+def _free_local_port() -> int:
+    """Return an available localhost TCP port for an SSH local forward."""
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("127.0.0.1", 0))
+        return int(sock.getsockname()[1])
+
+
+def _local_agent_url(agent_url: str, local_port: int) -> str:
+    """Return a localhost URL preserving the configured agent URL path."""
+    parsed = urlparse(agent_url)
+    return urlunparse(parsed._replace(netloc=f"127.0.0.1:{local_port}"))
+
+
+def _agent_target_host(hostname: str) -> str:
+    """Map wildcard agent hosts to loopback for SSH local forwarding."""
+    return "127.0.0.1" if hostname in {"0.0.0.0", "::"} else hostname  # noqa: S104
+
+
+def _wait_for_agent(local_url: str) -> None:
+    """Wait briefly until the forwarded local agent port accepts HTTP requests."""
+    deadline = time.monotonic() + 3
+    last_error: Exception | None = None
+    while time.monotonic() < deadline:
+        try:
+            with httpx.Client(timeout=0.3) as client:
+                client.get(f"{local_url.rstrip('/')}/codespaces")
+            return
+        except httpx.RequestError as exc:
+            last_error = exc
+            time.sleep(0.1)
+    raise ServiceError(f"ssh proxy started but agent is not reachable: {last_error}")
 
 
 def request(
@@ -115,6 +211,16 @@ class CodespaceService:
 
     def __init__(self, config: WebConfig | None = None) -> None:
         self.config = config
+        self._tunnels: dict[str, SshHttpTunnel] = {}
+        self._tunnel_lock = Lock()
+
+    def close(self) -> None:
+        """Close any SSH HTTP proxy tunnels opened by this service."""
+        with self._tunnel_lock:
+            tunnels = list(self._tunnels.values())
+            self._tunnels.clear()
+        for tunnel in tunnels:
+            tunnel.close()
 
     def agent(self, agent_id: str) -> AgentProfile:
         """Return an agent profile by id."""
@@ -126,8 +232,8 @@ class CodespaceService:
         """List codespaces for one configured agent, converting errors to offline results."""
         profile = self.agent(agent_id)
         try:
-            status, data = request(
-                "GET", f"{profile.agent_url}/codespaces", timeout=DASHBOARD_TIMEOUT
+            status, data = self.request_agent(
+                profile, "GET", "/codespaces", timeout=DASHBOARD_TIMEOUT
             )
             if status != 200:
                 return AgentListResult(
@@ -159,17 +265,40 @@ class CodespaceService:
                 results[agent_id] = future.result()
         return [results[agent_id] for agent_id in self.config.agents]
 
+    def request_agent(
+        self,
+        profile: AgentProfile,
+        method: str,
+        path: str,
+        body: dict | None = None,
+        *,
+        timeout: float = HTTP_TIMEOUT,
+    ) -> tuple[int, dict]:
+        """Request an agent directly or through a client-side SSH HTTP proxy."""
+        base_url = self._agent_base_url(profile)
+        url = f"{base_url.rstrip('/')}/{path.lstrip('/')}"
+        return request(method, url, body, timeout=timeout)
+
+    def _agent_base_url(self, profile: AgentProfile) -> str:
+        if not profile.ssh_proxy:
+            return profile.agent_url
+        with self._tunnel_lock:
+            tunnel = self._tunnels.get(profile.id)
+            if tunnel is None or not tunnel.is_running():
+                tunnel = SshHttpTunnel(profile)
+                self._tunnels[profile.id] = tunnel
+            return tunnel.local_url
+
     def wait_create_operation(
         self,
-        agent_url: str,
+        profile: AgentProfile,
         operation_id: str,
         *,
         progress: ProgressCallback | None = None,
     ) -> shared.Codespace:
         """Poll an asynchronous agent create operation until completion."""
-        url = f"{agent_url.rstrip('/')}/operations/{operation_id}"
         while True:
-            status_code, data = request("GET", url)
+            status_code, data = self.request_agent(profile, "GET", f"/operations/{operation_id}")
             if status_code != 200:
                 raise ServiceError(data.get("error", f"agent returned HTTP {status_code}"))
             operation = shared.CreateOperation.model_validate(data)
@@ -212,12 +341,12 @@ class CodespaceService:
             )
             if progress is not None:
                 progress("requesting agent creation")
-            status, data = request("POST", f"{profile.agent_url}/codespaces", payload.model_dump())
+            status, data = self.request_agent(profile, "POST", "/codespaces", payload.model_dump())
             if status != 202:
                 raise ServiceError(data.get("error", f"agent returned HTTP {status}"))
 
             operation = shared.CreateOperation.model_validate(data)
-            cs = self.wait_create_operation(profile.agent_url, operation.id, progress=progress)
+            cs = self.wait_create_operation(profile, operation.id, progress=progress)
             if not cs.deploy_keys:
                 raise ServiceError("agent did not return any deploy keys")
 
@@ -247,7 +376,7 @@ class CodespaceService:
                 for repo in registered:
                     revoke_quietly(token, repo, cs.id)
                 with contextlib.suppress(Exception):
-                    delete_remote(profile.agent_url, cs.id)
+                    self.delete_remote(profile, cs.id)
             remove_login_key(req.alias)
             raise
 
@@ -275,10 +404,22 @@ class CodespaceService:
                 github.delete_deploy_key(token, repo_name, codespace_id)
         elif repos:
             warning = "GitHub token is not available; skipped deploy key revocation"
-        resp = delete_remote(profile.agent_url, codespace_id, purge=purge)
+        resp = self.delete_remote(profile, codespace_id, purge=purge)
         if alias:
             ssh_config.remove(alias)
             remove_login_key(alias)
         return DeleteCodespaceResult(
             ok=resp.ok, workspace_removed=resp.workspace_removed, warning=warning
         )
+
+    def delete_remote(
+        self, profile: AgentProfile, cs_id: str, *, purge: bool = False
+    ) -> shared.DeleteResponse:
+        """Delete a codespace container on an agent through the configured transport."""
+        path = f"/codespaces/{cs_id}"
+        if purge:
+            path += "?purge=true"
+        status, data = self.request_agent(profile, "DELETE", path)
+        if status != 200:
+            raise ServiceError(data.get("error", f"agent returned HTTP {status}"))
+        return shared.DeleteResponse.model_validate(data)

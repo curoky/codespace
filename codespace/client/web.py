@@ -3,6 +3,8 @@
 import logging
 import secrets
 import time
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 from threading import Lock, Thread
 from typing import Literal
@@ -45,6 +47,7 @@ class ConfigAgentSummary(BaseModel):
     id: str
     agent_url: str
     ssh_host: str
+    ssh_proxy: bool = False
 
 
 class ConfigTemplateSummary(BaseModel):
@@ -71,6 +74,7 @@ class AgentStatus(BaseModel):
     id: str
     agent_url: str
     ssh_host: str
+    ssh_proxy: bool = False
     status: Literal["online", "offline"]
     error: str | None = None
     codespace_count: int = 0
@@ -187,7 +191,15 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
     config = load_config(config_path)
     service = CodespaceService(config)
     operations = OperationStore()
-    app = FastAPI(title="codespace-web")
+
+    @asynccontextmanager
+    async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
+        try:
+            yield
+        finally:
+            service.close()
+
+    app = FastAPI(title="codespace-web", lifespan=_lifespan)
 
     if STATIC_DIR.exists():
         app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -219,6 +231,7 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
                     id=profile.id,
                     agent_url=profile.agent_url,
                     ssh_host=profile.ssh_host,
+                    ssh_proxy=profile.ssh_proxy,
                     status="online" if result.online else "offline",
                     error=result.error,
                     codespace_count=len(result.codespaces),
@@ -293,6 +306,7 @@ def _config_summary(config: WebConfig) -> ConfigSummary:
                 id=agent.id,
                 agent_url=agent.agent_url,
                 ssh_host=agent.ssh_host,
+                ssh_proxy=agent.ssh_proxy,
             )
             for agent in config.agents.values()
         ],

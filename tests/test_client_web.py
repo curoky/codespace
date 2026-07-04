@@ -116,6 +116,13 @@ def test_config_returns_create_templates(app_client: TestClient) -> None:
     ]
 
 
+def test_config_returns_agent_proxy_flag(app_client: TestClient) -> None:
+    resp = app_client.get("/api/config")
+
+    assert resp.status_code == 200
+    assert resp.json()["agents"][0]["ssh_proxy"] is False
+
+
 def test_static_page_and_script_are_served(app_client: TestClient) -> None:
     index = app_client.get("/")
     script = app_client.get("/static/js/main.js")
@@ -288,3 +295,43 @@ def test_delete_without_github_token_still_deletes_remote(
         "workspace_removed": True,
         "warning": "GitHub token is not available; skipped deploy key revocation",
     }
+
+
+def test_service_uses_ssh_proxy_for_agent_requests(monkeypatch: pytest.MonkeyPatch) -> None:
+    from codespace.client import service
+
+    profile = AgentProfile(
+        id="home",
+        agent_url="http://127.0.0.1:8001",
+        ssh_host="dev-host",
+        ssh_proxy=True,
+    )
+    cfg = WebConfig(defaults=DefaultsConfig(agent="home", image="img"), agents={"home": profile})
+    requested: list[tuple[str, str]] = []
+
+    class FakeTunnel:
+        def __init__(self, tunnel_profile: AgentProfile) -> None:
+            assert tunnel_profile == profile
+            self.local_url = "http://127.0.0.1:43210"
+
+        def is_running(self) -> bool:
+            return True
+
+        def close(self) -> None:
+            requested.append(("CLOSE", self.local_url))
+
+    def _request(
+        method: str, url: str, body: dict | None = None, *, timeout: float = service.HTTP_TIMEOUT
+    ) -> tuple[int, dict]:
+        requested.append((method, url))
+        return 200, []
+
+    monkeypatch.setattr(service, "SshHttpTunnel", FakeTunnel)
+    monkeypatch.setattr(service, "request", _request)
+
+    svc = service.CodespaceService(cfg)
+    result = svc.list_agent_codespaces("home")
+    svc.close()
+
+    assert result.online is True
+    assert requested == [("GET", "http://127.0.0.1:43210/codespaces"), ("CLOSE", "http://127.0.0.1:43210")]
