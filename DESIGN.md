@@ -76,8 +76,16 @@ Three layers:
 
 - [lefthook.yml](file:///workspace/devspace/lefthook.yml) — `pre-commit` formats shell/python/c++/protobuf; `commit-msg` enforces author identity via [tools/check-author.sh](file:///workspace/devspace/tools/check-author.sh).
 - [pyproject.toml](file:///workspace/devspace/pyproject.toml) — ruff (line 100, py311 target), yapf (google), black; `typer` is the only runtime dep (used by ad-hoc scripts under `tools/`).
-- [codespace/client/webui/package.json](file:///workspace/devspace/codespace/client/webui/package.json), [codespace/client/webui/pnpm-lock.yaml](file:///workspace/devspace/codespace/client/webui/pnpm-lock.yaml), [codespace/client/webui/vite.config.ts](file:///workspace/devspace/codespace/client/webui/vite.config.ts), [codespace/client/webui/tsconfig.json](file:///workspace/devspace/codespace/client/webui/tsconfig.json) — pnpm-managed Vite / TypeScript toolchain for the local codespace Web GUI; run `pnpm build` from `codespace/client/webui/` to write static assets to `codespace/client/static/`.
+- [codespace/client/webui/package.json](file:///workspace/devspace/codespace/client/webui/package.json), [codespace/client/webui/pnpm-lock.yaml](file:///workspace/devspace/codespace/client/webui/pnpm-lock.yaml), [codespace/client/webui/vite.config.ts](file:///workspace/devspace/codespace/client/webui/vite.config.ts), [codespace/client/webui/tsconfig.json](file:///workspace/devspace/codespace/client/webui/tsconfig.json) — pnpm-managed Vite / TypeScript toolchain for the local codespace Web GUI; `pnpm --dir codespace/client/webui build` writes static assets to `codespace/client/static/`.
 - [.dockerignore](file:///workspace/devspace/.dockerignore), [.gitignore](file:///workspace/devspace/.gitignore) — keep build context lean.
+
+### 3.6 Codespace
+
+- [codespace/agent/](file:///workspace/devspace/codespace/agent) — FastAPI agent and Podman orchestration that runs on the Linux host with access to the rootful Podman socket.
+- [codespace/client/](file:///workspace/devspace/codespace/client) — Typer CLI, local Web GUI server, GitHub deploy-key orchestration, and local SSH config management.
+- [codespace/client/webui/](file:///workspace/devspace/codespace/client/webui) — React / TypeScript / Mantine frontend source for the local Web GUI. This is intentionally co-located under `codespace/` instead of the repository root so codespace-specific code stays in one tree.
+- [codespace/client/static/](file:///workspace/devspace/codespace/client/static) — built frontend assets served by `codespace.client.web`; never edit these by hand, rebuild them from `codespace/client/webui/`.
+- Web GUI frontend commands are run with an explicit directory, for example `pnpm --dir codespace/client/webui typecheck` and `pnpm --dir codespace/client/webui build`.
 
 ## 4. Cross-component contracts
 
