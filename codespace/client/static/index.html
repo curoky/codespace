@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Codespace Dashboard</title>
+    <link rel="stylesheet" href="/static/css/app.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <h1>Codespace Dashboard</h1>
+        <p id="config-summary">加载配置中...</p>
+      </div>
+      <button id="refresh-button" type="button">Refresh</button>
+    </header>
+
+    <main>
+      <section id="global-error" class="error-banner hidden" role="alert"></section>
+
+      <section class="panel">
+        <h2>Agents</h2>
+        <div id="agent-summary" class="agent-grid"></div>
+      </section>
+
+      <section class="panel toolbar">
+        <label>Agent <select id="agent-filter"></select></label>
+        <label>Search <input id="search-input" type="search" /></label>
+        <button id="create-button" type="button">Create</button>
+      </section>
+
+      <section class="panel">
+        <h2>Codespaces</h2>
+        <div id="codespace-empty" class="empty hidden">暂无 codespace</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Agent</th><th>Repo</th><th>Workspace</th><th>Alias</th><th>Status</th>
+              <th>SSH</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="codespace-tbody"></tbody>
+        </table>
+      </section>
+
+      <section class="panel">
+        <h2>Operations</h2>
+        <div id="operation-list"></div>
+      </section>
+    </main>
+
+    <dialog id="create-dialog">
+      <form id="create-form" method="dialog">
+        <h2>Create Codespace</h2>
+        <div id="create-error" class="error-banner hidden" role="alert"></div>
+        <label>Agent <select id="create-agent" name="agent"></select></label>
+        <label>Repo <input id="create-repo" name="repo" required placeholder="owner/name" /></label>
+        <label>Workspace <input id="create-workspace" name="workspace" required /></label>
+        <label>Alias <input id="create-alias" name="alias" required /></label>
+        <label>Image <input id="create-image" name="image" required /></label>
+        <label>User <input id="create-user" name="user" required /></label>
+        <label>Extra repos <textarea id="create-extra-repos" name="extra_repos"></textarea></label>
+        <menu>
+          <button id="create-cancel" type="button">Cancel</button>
+          <button type="submit">Create</button>
+        </menu>
+      </form>
+    </dialog>
+
+    <script type="module" src="/static/js/main.js"></script>
+  </body>
+</html>

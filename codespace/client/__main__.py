@@ -11,12 +11,14 @@ from pathlib import Path
 
 import httpx
 import typer
+import uvicorn
 from github import GithubException
 from rich.console import Console
 from rich.table import Table
 
 from codespace import shared
 from codespace.client import github, ssh_config
+from codespace.client import web as web_module
 
 app = typer.Typer(help="Lightweight self-hosted codespace client.")
 
@@ -300,6 +302,22 @@ def delete(
     resp = shared.DeleteResponse.model_validate(data)
     suffix = " (workspace purged)" if resp.workspace_removed else ""
     typer.secho(f"deleted codespace {cs_id}{suffix}.", fg=typer.colors.GREEN)
+
+
+@app.command()
+def web(
+    port: int = typer.Option(8765, "--port", help="Local Web GUI port."),
+    host: str = typer.Option("127.0.0.1", "--host", help="Local Web GUI bind host."),
+) -> None:
+    """Run the local Web GUI dashboard."""
+    if host not in {"127.0.0.1", "localhost"}:
+        typer.secho(
+            "warning: Web GUI can access local GitHub token, SSH keys and ~/.ssh/config; "
+            "do not expose it to untrusted networks.",
+            fg=typer.colors.YELLOW,
+            err=True,
+        )
+    uvicorn.run(web_module.create_app(), host=host, port=port)
 
 
 if __name__ == "__main__":

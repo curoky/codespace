@@ -7,9 +7,24 @@ can recover them (and revoke the deploy key) without other local state
 """
 
 import re
+from dataclasses import dataclass, field
 from pathlib import Path
 
 SSH_CONFIG_PATH = Path.home() / ".ssh" / "config"
+
+
+@dataclass(frozen=True)
+class SshConfigEntry:
+    """Parsed metadata from one managed codespace SSH config block."""
+
+    alias: str
+    codespace_id: str | None = None
+    repos: list[str] = field(default_factory=list)
+    agent_id: str | None = None
+    repo: str | None = None
+    host: str | None = None
+    port: int | None = None
+    user: str | None = None
 
 
 def _begin(alias: str) -> str:
@@ -20,18 +35,34 @@ def _end(alias: str) -> str:
     return f"# <<< codespace {alias} <<<"
 
 
-def _render_block(alias: str, host: str, port: int, user: str, cs_id: str, repos: list[str]) -> str:
+def _render_block(
+    alias: str,
+    host: str,
+    port: int,
+    user: str,
+    cs_id: str,
+    repos: list[str],
+    *,
+    agent_id: str | None = None,
+    repo: str | None = None,
+) -> str:
     """Render the managed block for an alias.
 
     ``cs_id`` and ``repos`` (comma-separated) are stored as comments so
     ``delete`` can revoke every GitHub deploy key (titled ``codespace-<cs_id>``
     on each repo) without any other local state.
     """
-    return "\n".join(
+    lines = [
+        _begin(alias),
+        f"# codespace-id: {cs_id}",
+        f"# codespace-repos: {','.join(repos)}",
+    ]
+    if agent_id:
+        lines.append(f"# codespace-agent: {agent_id}")
+    if repo:
+        lines.append(f"# codespace-repo: {repo}")
+    lines.extend(
         [
-            _begin(alias),
-            f"# codespace-id: {cs_id}",
-            f"# codespace-repos: {','.join(repos)}",
             f"Host {alias}",
             f"    HostName {host}",
             f"    Port {port}",
@@ -42,6 +73,7 @@ def _render_block(alias: str, host: str, port: int, user: str, cs_id: str, repos
             _end(alias),
         ]
     )
+    return "\n".join(lines)
 
 
 def _read() -> str:
@@ -67,7 +99,17 @@ def _strip_block(content: str, alias: str) -> str:
     return pattern.sub("", content)
 
 
-def upsert(alias: str, host: str, port: int, user: str, cs_id: str, repos: list[str]) -> None:
+def upsert(
+    alias: str,
+    host: str,
+    port: int,
+    user: str,
+    cs_id: str,
+    repos: list[str],
+    *,
+    agent_id: str | None = None,
+    repo: str | None = None,
+) -> None:
     """Insert or replace the managed block for ``alias``.
 
     Any pre-existing block with the same alias is removed first, so repeated
@@ -75,7 +117,7 @@ def upsert(alias: str, host: str, port: int, user: str, cs_id: str, repos: list[
     """
     content = _strip_block(_read(), alias)
     content = content.rstrip("\n")
-    block = _render_block(alias, host, port, user, cs_id, repos)
+    block = _render_block(alias, host, port, user, cs_id, repos, agent_id=agent_id, repo=repo)
     new_content = f"{content}\n\n{block}\n" if content else f"{block}\n"
     _write(new_content)
 
@@ -100,6 +142,47 @@ def get_repos(alias: str) -> list[str]:
     return [r for r in raw.split(",") if r] if raw else []
 
 
+def list_entries() -> list[SshConfigEntry]:
+    """Return all codespace-managed SSH config entries."""
+    content = _read()
+    if not content:
+        return []
+
+    entries: list[SshConfigEntry] = []
+    pattern = re.compile(
+        r"# >>> codespace (?P<alias>.+?) >>>(?P<body>.*?)# <<< codespace (?P=alias) <<<",
+        re.DOTALL,
+    )
+    for match in pattern.finditer(content):
+        alias = match.group("alias")
+        body = match.group("body")
+        entries.append(
+            SshConfigEntry(
+                alias=alias,
+                codespace_id=_comment_from_body(body, "codespace-id"),
+                repos=_repos_from_body(body),
+                agent_id=_comment_from_body(body, "codespace-agent"),
+                repo=_comment_from_body(body, "codespace-repo"),
+                host=_directive_from_body(body, "HostName"),
+                port=_port_from_body(body),
+                user=_directive_from_body(body, "User"),
+            )
+        )
+    return entries
+
+
+def find_entry(*, codespace_id: str, agent_id: str | None = None) -> SshConfigEntry | None:
+    """Find the SSH config entry for a codespace id, preferring exact agent matches."""
+    matches = [entry for entry in list_entries() if entry.codespace_id == codespace_id]
+    if agent_id is not None:
+        exact = [entry for entry in matches if entry.agent_id == agent_id]
+        if exact:
+            return exact[0]
+        legacy = [entry for entry in matches if entry.agent_id is None]
+        return legacy[0] if len(legacy) == 1 else None
+    return matches[0] if len(matches) == 1 else None
+
+
 def _get_comment(alias: str, key: str) -> str | None:
     """Return the value of a ``# <key>: <value>`` comment inside the block."""
     content = _read()
@@ -111,3 +194,23 @@ def _get_comment(alias: str, key: str) -> str | None:
         re.DOTALL,
     )
     return match.group(1) if match else None
+
+
+def _comment_from_body(body: str, key: str) -> str | None:
+    match = re.search(rf"^# {re.escape(key)}:\s*(\S+)\s*$", body, re.MULTILINE)
+    return match.group(1) if match else None
+
+
+def _directive_from_body(body: str, key: str) -> str | None:
+    match = re.search(rf"^\s*{re.escape(key)}\s+(\S+)\s*$", body, re.MULTILINE)
+    return match.group(1) if match else None
+
+
+def _repos_from_body(body: str) -> list[str]:
+    raw = _comment_from_body(body, "codespace-repos")
+    return [repo for repo in raw.split(",") if repo] if raw else []
+
+
+def _port_from_body(body: str) -> int | None:
+    raw = _directive_from_body(body, "Port")
+    return int(raw) if raw and raw.isdigit() else None

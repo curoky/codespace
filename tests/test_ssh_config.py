@@ -65,3 +65,41 @@ def test_get_id_returns_none_when_missing(config_path: Path) -> None:
 
 def test_get_repos_returns_empty_when_missing(config_path: Path) -> None:
     assert ssh_config.get_repos("ghost") == []
+
+
+def test_list_entries_parses_agent_metadata(config_path: Path) -> None:
+    ssh_config.upsert(
+        "home-name-default",
+        "10.0.0.5",
+        49207,
+        "dev",
+        "abc123",
+        ["owner/name"],
+        agent_id="home",
+        repo="owner/name",
+    )
+
+    entries = ssh_config.list_entries()
+
+    assert entries == [
+        ssh_config.SshConfigEntry(
+            alias="home-name-default",
+            codespace_id="abc123",
+            repos=["owner/name"],
+            agent_id="home",
+            repo="owner/name",
+            host="10.0.0.5",
+            port=49207,
+            user="dev",
+        )
+    ]
+    assert ssh_config.find_entry(codespace_id="abc123", agent_id="home") == entries[0]
+
+
+def test_find_entry_falls_back_to_single_legacy_entry(config_path: Path) -> None:
+    ssh_config.upsert("name-default", "10.0.0.5", 49207, "dev", "abc123", ["owner/name"])
+
+    entry = ssh_config.find_entry(codespace_id="abc123", agent_id="home")
+
+    assert entry is not None
+    assert entry.alias == "name-default"

@@ -1,0 +1,22 @@
+body { font-family: system-ui, sans-serif; margin: 0; background: #f8fafc; color: #0f172a; }
+.app-header { display: flex; justify-content: space-between; padding: 1rem 2rem; background: #0f172a; color: white; }
+.panel { margin: 1rem 2rem; padding: 1rem; background: white; border-radius: 0.75rem; box-shadow: 0 1px 3px #0002; }
+.toolbar { display: flex; gap: 1rem; align-items: end; }
+.agent-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+.agent-card { border-left: 4px solid #64748b; padding: 0.75rem; background: #f8fafc; }
+.agent-card.online { border-color: #16a34a; }
+.agent-card.offline { border-color: #dc2626; }
+.error-banner { border: 1px solid #dc2626; background: #fef2f2; color: #991b1b; padding: 0.75rem; border-radius: 0.5rem; white-space: pre-wrap; }
+.hidden { display: none !important; }
+.empty, .muted { color: #64748b; }
+table { border-collapse: collapse; width: 100%; }
+th, td { border-bottom: 1px solid #e2e8f0; padding: 0.5rem; text-align: left; vertical-align: top; }
+label { display: grid; gap: 0.25rem; }
+input, select, textarea, button { font: inherit; }
+button { cursor: pointer; }
+dialog { border: 0; border-radius: 0.75rem; width: min(640px, 90vw); }
+dialog form { display: grid; gap: 0.75rem; }
+.operation-item { border-left: 4px solid #2563eb; padding: 0.5rem; margin-bottom: 0.5rem; background: #f8fafc; }
+.operation-item.succeeded { border-color: #16a34a; }
+.operation-item.failed { border-color: #dc2626; }
+code { background: #e2e8f0; padding: 0.125rem 0.25rem; border-radius: 0.25rem; }
