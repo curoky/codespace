@@ -131,7 +131,8 @@ def test_static_page_and_script_are_served(app_client: TestClient) -> None:
     assert "text/javascript" in script.headers["content-type"]
     assert "await request('/api/config')" in script.text
     assert "Dashboard summary" in index.text
-    assert "Dashboard navigation" in index.text
+    assert "Dashboard navigation" not in index.text
+    assert "app-sidebar" not in index.text
     assert "top-command-bar" in index.text
     assert "content-grid" in index.text
     assert "quick-template-select" in index.text

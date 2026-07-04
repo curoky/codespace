@@ -19,6 +19,7 @@ class _FakeContainer:
         self.labels = labels
         self.ports = {"22/tcp": [{"HostPort": "49207"}]} if ports is None else ports
         self.status = status
+        self.attrs = {"State": {"Status": status}}
         self.id = "deadbeef"
         cs_id = labels.get(shared.LABEL_ID, "")
         self.name = shared.container_name(cs_id) if cs_id else ""
@@ -69,6 +70,16 @@ def test_to_codespace_maps_labels_and_port() -> None:
     assert cs.port == 49207
     assert cs.deploy_keys == []
     assert cs.workspace_dir == shared.workspace_dir_name("owner/name", "default")
+    assert cs.status == "running"
+
+
+def test_to_codespace_reads_status_when_podman_state_is_string() -> None:
+    container = _FakeContainer(labels={shared.LABEL_ID: "abc123"})
+    container.attrs = {"State": "exited"}
+
+    cs = podman_ops.to_codespace(container)
+
+    assert cs.status == "exited"
 
 
 def test_to_codespace_tolerates_missing_port() -> None:

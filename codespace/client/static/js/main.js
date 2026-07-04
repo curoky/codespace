@@ -93,12 +93,12 @@ function render() {
 function renderConfig() {
   const el = $('#config-summary');
   if (!state.config) {
-    el.textContent = '加载配置中...';
+    el.textContent = 'Loading...';
     return;
   }
   el.classList.toggle('text-bg-warning', !state.config.github.has_token);
   el.classList.toggle('text-bg-light', state.config.github.has_token);
-  el.textContent = `Default: ${state.config.default_agent} · Token: ${state.config.github.has_token ? '已配置' : `未配置(${tokenSourceLabel()})`}`;
+  el.textContent = `${state.config.default_agent} · ${state.config.github.has_token ? 'token ok' : 'no token'}`;
 }
 
 function renderStats() {
@@ -110,23 +110,16 @@ function renderStats() {
   $('#stat-online-agents').textContent = agents.filter((agent) => agent.status === 'online').length;
   $('#stat-offline-agents').textContent = agents.filter((agent) => agent.status === 'offline').length;
   $('#stat-running-ops').textContent = runningOps;
-  $('#nav-codespace-count').textContent = codespaceCount;
-  $('#nav-agent-count').textContent = agents.length;
-  $('#nav-operation-count').textContent = runningOps;
   $('#last-updated').textContent = `Last updated: ${formatTime(state.lastUpdated)}`;
 }
 
 function renderTokenStatus() {
   const github = state.config?.github;
   const tone = github?.has_token ? 'success' : 'warning';
-  const icon = github?.has_token ? 'bi-shield-check' : 'bi-exclamation-triangle';
-  const title = github?.has_token ? 'GitHub token ready' : 'GitHub token missing';
-  const detail = github?.has_token
-    ? `Source: ${escapeHtml(tokenSourceLabel())}${github.inline_token ? ' (masked inline token)' : ''}`
-    : `Set ${escapeHtml(tokenSourceLabel())} before creating codespaces`;
+  const title = github?.has_token ? 'Token ready' : 'Token missing';
+  const detail = github?.has_token ? escapeHtml(tokenSourceLabel()) : `set ${escapeHtml(tokenSourceLabel())}`;
   $('#token-status-card').innerHTML = `
     <div class="token-status ${tone}">
-      <span class="metric-icon text-bg-${tone}"><i class="bi ${icon}"></i></span>
       <div>
         <strong>${title}</strong>
         <p class="mb-0 small">${detail}</p>
@@ -141,20 +134,18 @@ function renderAgents() {
       <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
         <div>
           <h3 class="h6 mb-1">${escapeHtml(agent.name)}</h3>
-          <p class="text-secondary small mb-0">${escapeHtml(agent.id)}</p>
         </div>
         <span class="status-pill ${escapeHtml(agent.status)}">
-          <i class="bi ${agent.status === 'online' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}"></i>
           ${escapeHtml(agent.status)}
         </span>
       </div>
       <div class="agent-meta">
-        <span><i class="bi bi-link-45deg"></i>${escapeHtml(agent.agent_url)}</span>
-        <span><i class="bi bi-pc-display"></i>${escapeHtml(agent.ssh_host)}</span>
-        <span><i class="bi bi-box"></i>${agent.codespace_count} codespaces</span>
+        <span>${escapeHtml(agent.agent_url)}</span>
+        <span>${escapeHtml(agent.ssh_host)}</span>
+        <span>${agent.codespace_count} codespaces</span>
       </div>
       ${agent.error ? `<div class="alert alert-danger small mt-3 mb-0">${escapeHtml(agent.error)}</div>` : ''}
-    </article>`).join('') : '<div class="empty-state"><i class="bi bi-hdd-network"></i><p class="mb-0">暂无 agent 信息</p></div>';
+    </article>`).join('') : '<div class="empty-state"><p class="mb-0">暂无 agent 信息</p></div>';
 }
 
 function renderTemplates() {
@@ -164,20 +155,19 @@ function renderTemplates() {
       <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
         <div>
           <h3 class="h6 mb-1">${escapeHtml(template.name)}</h3>
-          <p class="text-secondary small mb-0">${escapeHtml(template.id)}</p>
         </div>
-        <span class="repo-chip"><i class="bi bi-git"></i>${escapeHtml(template.repo)}</span>
+        <span class="repo-chip">${escapeHtml(template.repo)}</span>
       </div>
       ${template.description ? `<p class="text-secondary small mb-2">${escapeHtml(template.description)}</p>` : ''}
       <div class="agent-meta mb-3">
-        <span><i class="bi bi-hdd-network"></i>${escapeHtml(template.agent || state.config.default_agent)}</span>
-        <span><i class="bi bi-box-arrow-in-right"></i>${escapeHtml(template.workspace || state.config.defaults.workspace)}</span>
-        <span><i class="bi bi-disc"></i>${escapeHtml(template.image || state.config.defaults.image)}</span>
+        <span>${escapeHtml(template.agent || state.config.default_agent)}</span>
+        <span>${escapeHtml(template.workspace || state.config.defaults.workspace)}</span>
+        <span>${escapeHtml(template.image || state.config.defaults.image)}</span>
       </div>
       <button class="btn btn-primary btn-sm w-100" data-action="create-template" data-template="${escapeHtml(template.id)}" type="button">
-        <i class="bi bi-rocket-takeoff me-1"></i>Create from template
+        Create
       </button>
-    </article>`).join('') : '<div class="empty-state"><i class="bi bi-lightning-charge"></i><p class="mb-0">暂无模板；在 config.yaml 中添加 templates 后会显示在这里</p></div>';
+    </article>`).join('') : '<div class="empty-state"><p class="mb-0">暂无模板</p></div>';
 }
 
 function renderQuickTemplates() {
@@ -229,14 +219,14 @@ function renderCodespaces() {
         <span class="status-pill ${escapeHtml(normalizeStatus(cs.status))}">${escapeHtml(cs.status || 'unknown')}</span>
       </div>
       <div class="codespace-meta mb-3">
-        <span><i class="bi bi-fingerprint"></i>${escapeHtml(cs.id)}</span>
-        <span><i class="bi bi-pc-display"></i>${escapeHtml(cs.ssh_host)}:${cs.port}</span>
-        <span><i class="bi bi-person"></i>${escapeHtml(cs.user)}</span>
+        <span>${escapeHtml(cs.id)}</span>
+        <span>${escapeHtml(cs.ssh_host)}:${cs.port}</span>
+        <span>${escapeHtml(cs.user)}</span>
       </div>
       <code class="ssh-code w-100 mb-3" title="${escapeHtml(cs.ssh_command)}">${escapeHtml(cs.ssh_command)}</code>
       <div class="d-flex gap-2">
         <button class="btn btn-primary btn-sm flex-fill" data-action="copy" data-ssh="${escapeHtml(cs.ssh_command)}" type="button">
-          <i class="bi bi-clipboard me-1"></i>Copy SSH
+          Copy
         </button>
         <button class="btn btn-outline-danger btn-sm" data-action="delete" data-agent="${escapeHtml(cs.agent_id)}" data-id="${escapeHtml(cs.id)}" data-repo="${escapeHtml(cs.repo)}" type="button">
           Delete
@@ -254,7 +244,7 @@ function renderCodespaces() {
         </button>
         <div class="text-secondary small">${escapeHtml(cs.agent_id)}</div>
       </td>
-      <td><span class="repo-chip"><i class="bi bi-git"></i>${escapeHtml(cs.repo)}</span></td>
+      <td><span class="repo-chip">${escapeHtml(cs.repo)}</span></td>
       <td>${escapeHtml(cs.workspace)}</td>
       <td>${cs.alias ? `<code>${escapeHtml(cs.alias)}</code>` : '<span class="text-secondary">无本地 alias</span>'}</td>
       <td><span class="status-pill ${escapeHtml(normalizeStatus(cs.status))}">${escapeHtml(cs.status || 'unknown')}</span></td>
@@ -262,7 +252,7 @@ function renderCodespaces() {
         <div class="d-flex align-items-center gap-2">
           <code class="ssh-code" title="${escapeHtml(cs.ssh_command)}">${escapeHtml(cs.ssh_command)}</code>
           <button class="btn btn-outline-primary btn-sm" data-action="copy" data-ssh="${escapeHtml(cs.ssh_command)}" title="Copy SSH command">
-            <i class="bi bi-clipboard"></i>
+            Copy
           </button>
         </div>
       </td>
@@ -320,9 +310,9 @@ function renderOperations() {
       <div class="progress mb-2" role="progressbar" aria-label="operation progress">
         <div class="progress-bar ${op.status === 'failed' ? 'bg-danger' : op.status === 'succeeded' ? 'bg-success' : 'progress-bar-striped progress-bar-animated'}" style="width: ${operationProgress(op.status)}%"></div>
       </div>
-      <p class="mb-0 small"><i class="bi bi-arrow-right-circle me-1"></i>${escapeHtml(op.stage)}</p>
+      <p class="mb-0 small">${escapeHtml(op.stage)}</p>
       ${op.error ? `<div class="alert alert-danger small mt-2 mb-0">${escapeHtml(op.error)}</div>` : ''}
-    </article>`).join('') : '<div class="empty-state"><i class="bi bi-clock-history"></i><p class="mb-0">暂无 operation</p></div>';
+    </article>`).join('') : '<div class="empty-state"><p class="mb-0">暂无 operation</p></div>';
 }
 
 function operationProgress(status) {
@@ -354,7 +344,7 @@ function openCreate() {
 
 function updateCreateAgentHelp() {
   const agent = state.config?.agents.find((item) => item.id === $('#create-agent').value);
-  $('#create-agent-help').innerHTML = agent ? `<i class="bi bi-info-circle me-1"></i>${escapeHtml(agent.agent_url)} · SSH host: ${escapeHtml(agent.ssh_host)}` : '';
+  $('#create-agent-help').innerHTML = agent ? `${escapeHtml(agent.agent_url)} · ${escapeHtml(agent.ssh_host)}` : '';
 }
 
 function updateAlias() {
@@ -445,7 +435,7 @@ async function pollOperation(id) {
 function showToast(message, tone = 'success') {
   const toast = document.createElement('div');
   toast.className = `app-toast ${tone}`;
-  toast.innerHTML = `<i class="bi ${tone === 'danger' ? 'bi-x-circle' : 'bi-check-circle'} me-2"></i>${escapeHtml(message)}`;
+  toast.textContent = message;
   $('#toast-area').append(toast);
   setTimeout(() => toast.remove(), 3500);
 }
