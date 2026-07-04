@@ -54,8 +54,10 @@ def test_create_success_registers_key_and_writes_config(monkeypatch: pytest.Monk
 
     def _request(method: str, url: str, body: dict | None = None) -> tuple[int, dict]:
         requests.append((method, url))
-        if method == "POST":
+        if method == "POST" and url.endswith("/codespaces"):
             return 202, _operation_payload(codespace=None, status="queued", stage="queued")
+        if method == "POST" and url.endswith("/clone"):
+            return 200, {"ok": True}
         return 200, _operation_payload()
 
     monkeypatch.setattr(cli, "_request", _request)
@@ -87,6 +89,7 @@ def test_create_success_registers_key_and_writes_config(monkeypatch: pytest.Monk
     assert requests == [
         ("POST", "http://h:8080/codespaces"),
         ("GET", "http://h:8080/operations/op123"),
+        ("POST", "http://h:8080/codespaces/abc123/clone"),
     ]
     assert calls["registered"] == ("owner/name", "abc123", "ssh-ed25519 PUB", False)
     # upsert(alias, ssh_host, port, user, id, repos)
@@ -107,7 +110,9 @@ def test_create_registers_extra_repo_readonly(monkeypatch: pytest.MonkeyPatch) -
         "_request",
         lambda method, url, body=None: (
             (202, _operation_payload(codespace=None))
-            if method == "POST"
+            if method == "POST" and url.endswith("/codespaces")
+            else (200, {"ok": True})
+            if method == "POST" and url.endswith("/clone")
             else (200, _operation_payload(codespace=payload))
         ),
     )
@@ -179,6 +184,47 @@ def test_create_rolls_back_when_registration_fails(monkeypatch: pytest.MonkeyPat
     assert removed == ["name"]  # local login key cleaned up
 
 
+def test_create_rolls_back_when_clone_fails(monkeypatch: pytest.MonkeyPatch) -> None:
+    deleted: list[str] = []
+    removed: list[str] = []
+    revoked: list[str] = []
+
+    def _request(method: str, url: str, body: dict | None = None) -> tuple[int, dict]:
+        if method == "POST" and url.endswith("/codespaces"):
+            return 202, _operation_payload(codespace=None)
+        if method == "POST" and url.endswith("/clone"):
+            return 500, {"error": "clone failed"}
+        return 200, _operation_payload()
+
+    monkeypatch.setattr(cli, "CLONE_ATTEMPTS", 1)
+    monkeypatch.setattr(cli, "_request", _request)
+    monkeypatch.setattr(cli, "_delete_remote", lambda agent, cs_id: deleted.append(cs_id))
+    monkeypatch.setattr(cli, "_remove_login_key", lambda alias: removed.append(alias))
+    monkeypatch.setattr(cli, "_revoke_quietly", lambda token, repo, cs_id: revoked.append(repo))
+    monkeypatch.setattr(cli.github, "register_deploy_key", lambda *a, **k: 1)
+
+    result = runner.invoke(
+        cli.app,
+        [
+            "create",
+            "--repo",
+            "owner/name",
+            "--agent",
+            "http://h:8080",
+            "--ssh-host",
+            "10.0.0.5",
+            "--token",
+            "tok",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "clone failed" in result.output
+    assert revoked == ["owner/name"]
+    assert deleted == ["abc123"]
+    assert removed == ["name"]
+
+
 def test_create_fails_when_agent_errors(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(cli, "_request", lambda *a, **k: (500, {"error": "podman down"}))
     removed: list[str] = []
@@ -210,7 +256,7 @@ def test_create_fails_when_operation_fails(monkeypatch: pytest.MonkeyPatch) -> N
         "_request",
         lambda method, url, body=None: (
             (202, _operation_payload(codespace=None))
-            if method == "POST"
+            if method == "POST" and url.endswith("/codespaces")
             else (200, _operation_payload(status="failed", codespace=None, error="pull failed"))
         ),
     )

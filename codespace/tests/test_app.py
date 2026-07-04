@@ -247,3 +247,28 @@ def test_delete_with_purge_removes_workspace(
     assert resp.json() == {"ok": True, "workspace_removed": True}
     # purge target is <workspace_root>/<workspace_dir>
     assert purged == ["/var/lib/cs/" + shared.workspace_dir_name("owner/name", "default")]
+
+
+def test_clone_codespace_repo(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    container = object()
+    cloned: list[tuple[str, str, str]] = []
+    monkeypatch.setattr(podman_ops, "get_container", lambda client, cs_id: container)
+    monkeypatch.setattr(
+        podman_ops,
+        "read_label",
+        lambda container, key, default="": {
+            shared.LABEL_REPO: "owner/name",
+            shared.LABEL_USER: "dev",
+        }.get(key, default),
+    )
+    monkeypatch.setattr(
+        podman_ops,
+        "clone_repo",
+        lambda client, *, cs_id, user, repo: cloned.append((cs_id, user, repo)),
+    )
+
+    resp = client.post("/codespaces/abc123/clone")
+
+    assert resp.status_code == 200
+    assert resp.json() == {"ok": True}
+    assert cloned == [("abc123", "dev", "owner/name")]

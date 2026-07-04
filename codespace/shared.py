@@ -184,5 +184,9 @@ class DeleteResponse(BaseModel):
     workspace_removed: bool = False
 
 
+class CloneRepoResponse(BaseModel):
+    ok: bool = True
+
+
 class ErrorResponse(BaseModel):
     error: str

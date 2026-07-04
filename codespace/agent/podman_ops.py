@@ -29,6 +29,7 @@ from codespace import shared
 
 __all__ = [
     "ContainerInfo",
+    "clone_repo",
     "create_container",
     "ensure_workspace_dir",
     "find_container_by_workspace",
@@ -344,6 +345,45 @@ def inject_credentials(
         _write_git_insteadof(
             container, home=home, user=user, extra_repos=[r for r, _ in extra_keys]
         )
+
+
+def clone_repo(client: PodmanClient, *, cs_id: str, user: str, repo: str) -> None:
+    """Clone the main repository into ``/workspace/<repo-name>``.
+
+    The client calls this only after it has registered the deploy key returned
+    by the agent, so a normal GitHub SSH URL can use the injected key. If the
+    target already contains a Git repository, leave it untouched so a preserved
+    workspace can be reused safely.
+    """
+    container = client.containers.get(shared.container_name(cs_id))
+    repo_name = repo.split("/")[-1]
+    target = f"{shared.WORKSPACE_MOUNT}/{repo_name}"
+    logger.info("cloning repo {} into {} user={}", repo, target, user)
+    _exec_checked(
+        container,
+        [
+            "sh",
+            "-c",
+            """
+set -eu
+repo="$1"
+target="$2"
+if [ -d "$target/.git" ]; then
+  exit 0
+fi
+if [ -e "$target" ]; then
+  echo "target already exists and is not a git repository: $target" >&2
+  exit 1
+fi
+git clone "git@github.com:$repo" "$target"
+""".strip(),
+            "clone-repo",
+            repo,
+            target,
+        ],
+        user=user,
+    )
+    logger.info("repo {} is ready in {}", repo, target)
 
 
 def _ssh_host_block(host: str, hostname: str, key_file: str) -> str:

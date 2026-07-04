@@ -28,6 +28,8 @@ KEY_DIR = Path.home() / ".ssh" / "codespace"
 EXTRA_REPOS = ["curoky/ai-coding-config"]
 HTTP_TIMEOUT = 30
 CREATE_POLL_INTERVAL = 2.0
+CLONE_RETRY_INTERVAL = 2.0
+CLONE_ATTEMPTS = 5
 
 
 # --- HTTP helpers ------------------------------------------------------------
@@ -79,6 +81,20 @@ def _wait_create_operation(agent: str, operation_id: str) -> shared.Codespace:
                     return operation.codespace
                 case "failed":
                     raise _fail(operation.error or "agent failed to provision codespace")
+
+
+def _clone_remote(agent: str, cs_id: str) -> None:
+    """Ask the agent to clone the main repo after deploy keys are registered."""
+    url = f"{agent.rstrip('/')}/codespaces/{cs_id}/clone"
+    last_error = "agent failed to clone repo"
+    for attempt in range(CLONE_ATTEMPTS):
+        status_code, data = _request("POST", url)
+        if status_code == 200:
+            return
+        last_error = data.get("error", f"agent returned HTTP {status_code}")
+        if attempt + 1 < CLONE_ATTEMPTS:
+            time.sleep(CLONE_RETRY_INTERVAL)
+    raise _fail(last_error)
 
 
 # --- Key management ----------------------------------------------------------
@@ -185,6 +201,15 @@ def create(
             raise _fail(
                 f"failed to register deploy key on {key.repo} (rolled back): {exc}"
             ) from exc
+
+    try:
+        _clone_remote(agent, cs.id)
+    except typer.Exit:
+        for done_repo in registered:
+            _revoke_quietly(token, done_repo, cs.id)
+        _delete_remote(agent, cs.id)
+        _remove_login_key(alias)
+        raise
 
     ssh_config.upsert(
         alias, ssh_host, cs.port, cs.user, cs.id, [key.repo for key in cs.deploy_keys]

@@ -118,7 +118,7 @@ type FilterState = {
   agent: string;
   status: string;
   search: string;
-  sort: keyof Codespace | 'agent';
+  sort: 'agent' | 'repo' | 'alias' | 'status';
 };
 
 type CreateForm = {
@@ -321,7 +321,7 @@ function App() {
           (filter.agent === 'all' || cs.agent_id === filter.agent) &&
           (filter.status === 'all' || status === filter.status || (filter.status === 'unknown' && !cs.status)) &&
           (!search ||
-            [cs.repo, cs.workspace, cs.alias, cs.id, cs.agent_id, cs.status]
+            [cs.repo, cs.alias, cs.id, cs.agent_id, cs.status]
               .filter(Boolean)
               .some((value) => String(value).toLowerCase().includes(search)))
         );
@@ -478,7 +478,7 @@ function App() {
                 />
                 <TextInput
                   size="xs"
-                  placeholder="repo / workspace / alias / id"
+                  placeholder="repo / alias / id"
                   value={filter.search}
                   onChange={(event) => setFilter((current) => ({ ...current, search: event.currentTarget.value }))}
                   className="search-input"
@@ -488,7 +488,7 @@ function App() {
                   data={[
                     { value: 'agent', label: 'Agent' },
                     { value: 'repo', label: 'Repository' },
-                    { value: 'workspace', label: 'Workspace' },
+                    { value: 'alias', label: 'Alias' },
                     { value: 'status', label: 'Status' },
                   ]}
                   value={filter.sort}
@@ -502,10 +502,8 @@ function App() {
                     <Table.Tr>
                       <Table.Th>Agent</Table.Th>
                       <Table.Th>Repo</Table.Th>
-                      <Table.Th>Workspace</Table.Th>
                       <Table.Th>Alias</Table.Th>
                       <Table.Th>Status</Table.Th>
-                      <Table.Th>SSH</Table.Th>
                       <Table.Th ta="right">Actions</Table.Th>
                     </Table.Tr>
                   </Table.Thead>
@@ -518,10 +516,8 @@ function App() {
                           </Button>
                         </Table.Td>
                         <Table.Td><Text fw={600}>{cs.repo}</Text></Table.Td>
-                        <Table.Td>{cs.workspace}</Table.Td>
                         <Table.Td>{cs.alias ? <Code>{cs.alias}</Code> : <Text c="dimmed" size="xs">无本地 alias</Text>}</Table.Td>
                         <Table.Td><Badge color={statusColor(cs.status)} variant="light">{cs.status || 'unknown'}</Badge></Table.Td>
-                        <Table.Td><Code className="ssh-code">{cs.ssh_command}</Code></Table.Td>
                         <Table.Td>
                           <Group justify="flex-end" gap="xs" wrap="nowrap">
                             <Button size="compact-xs" component="a" href={cs.trae_url}>Trae IDE</Button>
@@ -578,12 +574,6 @@ function App() {
                         <Badge color={statusColor(agent.status)} variant="light">{agent.status}</Badge>
                       </Group>
                     </Group>
-                    <Text size="xs" c="dimmed" mt={6}>{agent.agent_url}</Text>
-                    <Text size="xs" c="dimmed">ssh: {agent.ssh_host}</Text>
-                    {agent.ssh_proxy && agent.ssh_proxy_host && (
-                      <Text size="xs" c="dimmed">proxy: {agent.ssh_proxy_host}</Text>
-                    )}
-                    <Text size="xs" c="dimmed">{agent.codespace_count} codespaces</Text>
                     {agent.error && <Alert color="red" mt="xs">{agent.error}</Alert>}
                   </Card>
                 )) : <Text c="dimmed" size="sm">暂无 agent 信息</Text>}

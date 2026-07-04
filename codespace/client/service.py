@@ -23,6 +23,8 @@ KEY_DIR = Path.home() / ".ssh" / "codespace"
 HTTP_TIMEOUT = 30.0
 DASHBOARD_TIMEOUT = 3.0
 CREATE_POLL_INTERVAL = 2.0
+CLONE_RETRY_INTERVAL = 2.0
+CLONE_ATTEMPTS = 5
 ProgressCallback = Callable[[str], None]
 
 
@@ -324,6 +326,18 @@ class CodespaceService:
                 case "failed":
                     raise ServiceError(operation.error or "agent failed to provision codespace")
 
+    def clone_remote_repo(self, profile: AgentProfile, codespace_id: str) -> None:
+        """Ask the agent to clone the main repo after deploy keys are registered."""
+        last_error = "agent failed to clone repo"
+        for attempt in range(CLONE_ATTEMPTS):
+            status, data = self.request_agent(profile, "POST", f"/codespaces/{codespace_id}/clone")
+            if status == 200:
+                return
+            last_error = data.get("error", f"agent returned HTTP {status}")
+            if attempt + 1 < CLONE_ATTEMPTS:
+                time.sleep(CLONE_RETRY_INTERVAL)
+        raise ServiceError(last_error)
+
     def create_codespace(
         self,
         agent_id: str,
@@ -365,6 +379,10 @@ class CodespaceService:
                     token, key.repo, cs.id, key.public_openssh, read_only=key.read_only
                 )
                 registered.append(key.repo)
+
+            if progress is not None:
+                progress("cloning repo into workspace")
+            self.clone_remote_repo(profile, cs.id)
 
             if progress is not None:
                 progress("writing ssh config")

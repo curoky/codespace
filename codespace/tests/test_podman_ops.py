@@ -244,6 +244,19 @@ def test_inject_credentials_with_extra_repo_writes_alias_and_gitconfig() -> None
     assert "insteadOf = git@github.com:owner/dotfiles" in gitconfig
 
 
+def test_clone_repo_clones_into_repo_name_directory() -> None:
+    container = _ExecContainer(labels={shared.LABEL_ID: "abc"})
+    client = _FakeClient(container)
+
+    podman_ops.clone_repo(client, cs_id="abc", user="dev", repo="owner/name")
+
+    cmd, user = container.execs[-1]
+    assert user == "dev"
+    assert cmd[:2] == ["sh", "-c"]
+    assert cmd[-2:] == ["owner/name", "/workspace/name"]
+    assert "git clone \"git@github.com:$repo\" \"$target\"" in cmd[2]
+
+
 def test_get_container_returns_none_when_absent() -> None:
     client = _FakeClient(None)
     assert podman_ops.get_container(client, "missing") is None

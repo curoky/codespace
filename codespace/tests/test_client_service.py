@@ -2,7 +2,10 @@ import subprocess
 
 import pytest
 
+from codespace import shared
+from codespace.client import service
 from codespace.client.config import AgentProfile
+from codespace.client.config import DefaultsConfig, WebConfig
 from codespace.client.service import SshHttpTunnel, _agent_target_host, _ssh_forward_target_host
 
 
@@ -65,3 +68,60 @@ def test_ssh_http_tunnel_uses_distinct_proxy_host(monkeypatch: pytest.MonkeyPatc
             "bastion-host",
         ]
     ]
+
+
+def test_create_codespace_clones_after_registering_deploy_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    profile = AgentProfile(id="home", agent_url="http://agent", ssh_host="10.0.0.5")
+    cfg = WebConfig(defaults=DefaultsConfig(agent="home", image="img"), agents={"home": profile})
+    svc = service.CodespaceService(cfg)
+    events: list[str] = []
+    cs = shared.Codespace(
+        id="abc123",
+        port=49207,
+        user="dev",
+        container_id="cid",
+        repo="owner/name",
+        workspace="default",
+        workspace_dir="ws",
+        deploy_keys=[
+            shared.DeployKeyRef(
+                repo="owner/name", public_openssh="ssh-ed25519 PUB", read_only=False
+            )
+        ],
+    )
+
+    monkeypatch.setattr(service, "ensure_login_key", lambda alias: "ssh-ed25519 LOGIN")
+    monkeypatch.setattr(service.github, "register_deploy_key", lambda *a, **k: events.append("register"))
+    monkeypatch.setattr(service.ssh_config, "upsert", lambda *a, **k: events.append("upsert"))
+    monkeypatch.setattr(service.CodespaceService, "wait_create_operation", lambda *a, **k: cs)
+
+    def _request_agent(
+        self: service.CodespaceService,
+        request_profile: AgentProfile,
+        method: str,
+        path: str,
+        body: dict | None = None,
+        *,
+        timeout: float = service.HTTP_TIMEOUT,
+    ) -> tuple[int, dict]:
+        assert request_profile == profile
+        if method == "POST" and path == "/codespaces":
+            events.append("create")
+            return 202, {"id": "op123", "status": "queued", "stage": "queued"}
+        if method == "POST" and path == "/codespaces/abc123/clone":
+            events.append("clone")
+            return 200, {"ok": True}
+        raise AssertionError(f"unexpected request: {method} {path}")
+
+    monkeypatch.setattr(service.CodespaceService, "request_agent", _request_agent)
+
+    result = svc.create_codespace(
+        "home",
+        service.CreateCodespaceInput(repo="owner/name", alias="name", image="img"),
+        token="tok",
+    )
+
+    assert result == cs
+    assert events == ["create", "register", "clone", "upsert"]

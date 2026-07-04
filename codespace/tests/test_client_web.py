@@ -174,8 +174,29 @@ def test_dashboard_aggregates_agents(
     assert body["agents"][1]["ssh_proxy_host"] == "office-bastion"
     assert body["codespaces"][0]["raw_ssh_command"] == "ssh dev@10.0.0.5 -p 49207"
     assert body["codespaces"][0]["trae_url"] == (
-        "trae://vscode-remote/ssh-remote+dev%4010.0.0.5%3A49207/workspace"
+        "trae://vscode-remote/ssh-remote+dev%4010.0.0.5%3A49207/workspace/name"
+        "?windowId=_blank"
     )
+
+
+def test_trae_url_defaults_to_workspace_without_repo() -> None:
+    assert web._trae_remote_ssh_url("dev@10.0.0.5:49207") == (
+        "trae://vscode-remote/ssh-remote+dev%4010.0.0.5%3A49207/workspace"
+        "?windowId=_blank"
+    )
+
+
+def test_trae_url_uses_repo_path_when_repo_is_specified() -> None:
+    assert web._trae_remote_ssh_url("dev@10.0.0.5:49207", repo="owner/api.git") == (
+        "trae://vscode-remote/ssh-remote+dev%4010.0.0.5%3A49207/workspace/api"
+        "?windowId=_blank"
+    )
+
+
+def test_trae_url_can_disable_new_window_hint() -> None:
+    assert web._trae_remote_ssh_url(
+        "dev@10.0.0.5:49207", repo="owner/api", new_window=False
+    ) == "trae://vscode-remote/ssh-remote+dev%4010.0.0.5%3A49207/workspace/api"
 
 
 def test_operation_lifecycle(app_client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -359,7 +380,6 @@ def test_prune_completed_keeps_only_busy_operations() -> None:
             repo="curoky/devspace",
             alias="queued",
             image="ghcr.io/curoky/devspace:codespace-debian12",
-            user="x",
             extra_repos=[],
         ),
     )
@@ -369,7 +389,6 @@ def test_prune_completed_keeps_only_busy_operations() -> None:
             repo="curoky/devspace",
             alias="failed",
             image="ghcr.io/curoky/devspace:codespace-debian12",
-            user="x",
             extra_repos=[],
         ),
     )
@@ -379,7 +398,6 @@ def test_prune_completed_keeps_only_busy_operations() -> None:
             repo="curoky/devspace",
             alias="succeeded",
             image="ghcr.io/curoky/devspace:codespace-debian12",
-            user="x",
             extra_repos=[],
         ),
     )

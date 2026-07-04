@@ -364,18 +364,34 @@ def _dashboard_codespace(agent_id: str, ssh_host: str, cs: shared.Codespace) -> 
         status=cs.status,
         ssh_command=f"ssh {alias}" if alias else raw_ssh_command,
         raw_ssh_command=raw_ssh_command,
-        trae_url=_trae_remote_ssh_url(remote_authority, shared.WORKSPACE_MOUNT),
+        trae_url=_trae_remote_ssh_url(remote_authority, repo=cs.repo),
         has_local_alias=alias is not None,
     )
 
 
-def _trae_remote_ssh_url(remote_authority: str, remote_path: str) -> str:
-    """Build a Trae Remote-SSH deep link for a remote authority and path."""
-    return (
+def _repo_workspace_path(repo: str | None = None) -> str:
+    """Return the remote path Trae should open for a repo, if known."""
+    if repo is None:
+        return shared.WORKSPACE_MOUNT
+    repo_name = repo.rstrip("/").split("/")[-1].removesuffix(".git")
+    if not repo_name:
+        return shared.WORKSPACE_MOUNT
+    return f"{shared.WORKSPACE_MOUNT}/{repo_name}"
+
+
+def _trae_remote_ssh_url(
+    remote_authority: str, repo: str | None = None, *, new_window: bool = True
+) -> str:
+    """Build a Trae Remote-SSH deep link for a remote authority and optional repo path."""
+    remote_path = _repo_workspace_path(repo)
+    url = (
         "trae://vscode-remote/ssh-remote+"
         f"{quote(remote_authority, safe='')}"
         f"{quote(remote_path, safe='/')}"
     )
+    if new_window:
+        return f"{url}?windowId=_blank"
+    return url
 
 
 def _run_create_operation(

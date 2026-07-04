@@ -256,6 +256,27 @@ def create_app(config: AgentConfig) -> FastAPI:
             logger.info("deleted codespace {} (workspace_removed={})", cs_id, workspace_removed)
             return shared.DeleteResponse(ok=True, workspace_removed=workspace_removed)
 
+    @app.post("/codespaces/{cs_id}/clone")
+    def clone_codespace_repo(cs_id: str) -> shared.CloneRepoResponse:
+        with _client() as client:
+            container = podman_ops.get_container(client, cs_id)
+            if container is None:
+                raise HTTPException(status_code=404, detail="codespace not found")
+
+            repo = podman_ops.read_label(container, shared.LABEL_REPO)
+            user = podman_ops.read_label(
+                container, shared.LABEL_USER, shared.DEFAULT_CONTAINER_USER
+            )
+            if not repo:
+                raise HTTPException(status_code=500, detail="codespace repo label is missing")
+
+            try:
+                podman_ops.clone_repo(client, cs_id=cs_id, user=user, repo=repo)
+            except Exception as exc:
+                logger.exception("clone repo for codespace {} failed", cs_id)
+                raise HTTPException(status_code=500, detail=str(exc)) from exc
+            return shared.CloneRepoResponse(ok=True)
+
     return app
 
 
