@@ -2,7 +2,7 @@ Host *
   GSSAPIAuthentication yes
   GSSAPIDelegateCredentials yes
 
-  IdentityFile ~/devspace/dotfiles/ssh/devbox.private.id_rsa
+  # IdentityFile ~/devspace/dotfiles/ssh/devbox.private.id_rsa
 
   # StrictHostKeyChecking no
   # HashKnownHosts no
@@ -23,15 +23,17 @@ Host *
   # ObsoletePostQuantumKeyExchange no
 
 Host github.com
-  IdentityFile /workspace/passkey/github_id_ed25519
-  IdentityFile /Users/x/workspace/passkey/github_id_ed25519
-  IdentityFile ~/.ssh/github_id_ed25519
+  # IdentityFile /workspace/passkey/github_id_ed25519
+  # IdentityFile /Users/x/workspace/passkey/github_id_ed25519
+  # IdentityFile ~/.ssh/github_id_ed25519
+	IdentityAgent /Users/x/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh
   IdentitiesOnly yes
 
 Host gitlab.com
-  IdentityFile /workspace/passkey/gitlab_id_ed25519
-  IdentityFile /Users/x/workspace/passkey/gitlab_id_ed25519
-  IdentityFile ~/.ssh/gitlab_id_ed25519
+  # IdentityFile /workspace/passkey/gitlab_id_ed25519
+  # IdentityFile /Users/x/workspace/passkey/gitlab_id_ed25519
+  # IdentityFile ~/.ssh/gitlab_id_ed25519
+	IdentityAgent /Users/x/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh
   IdentitiesOnly yes
 
 Host windows
