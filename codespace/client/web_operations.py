@@ -26,7 +26,6 @@ class OperationStore:
             alias=instance_alias(agent_id, req.template, req.instance),
             repo=req.repo,
             provider=req.provider,
-            git_ssh_host=req.git_ssh_host,
             template=req.template,
             instance=req.instance,
             status="queued",

@@ -47,11 +47,9 @@ class CreateCodespaceInput(BaseModel):
 
     repo: str
     provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER
-    git_ssh_host: str | None = None
     template: str = shared.DEFAULT_TEMPLATE
     instance: str = shared.DEFAULT_INSTANCE
     image: str
-    env: dict[str, str] = Field(default_factory=dict)
 
 
 class DeleteCodespaceResult(BaseModel):
@@ -239,7 +237,7 @@ def revoke_quietly(
 ) -> None:
     """Best-effort deploy-key revocation used during create rollback."""
     with contextlib.suppress(*PROVIDER_ERRORS):
-        provider_client(config, provider).delete_deploy_key(token, repo, cs_id)
+        provider_client(provider).delete_deploy_key(token, repo, cs_id)
 
 
 class CodespaceService:
@@ -381,7 +379,6 @@ class CodespaceService:
         cs: shared.Codespace | None = None
         try:
             provider = req.provider
-            git_ssh_host = req.git_ssh_host or provider_client(self.config, provider).ssh_host
             if progress is not None:
                 progress("preparing login key")
             alias = instance_alias(agent_id, req.template, req.instance)
@@ -389,12 +386,10 @@ class CodespaceService:
             payload = shared.CreateRequest(
                 repo=req.repo,
                 provider=provider,
-                git_ssh_host=git_ssh_host,
                 template=req.template,
                 instance=req.instance,
                 login_pubkey=login_pubkey,
                 image=req.image,
-                env=req.env,
             )
             if progress is not None:
                 progress("requesting agent creation")
@@ -410,7 +405,7 @@ class CodespaceService:
             for key in cs.deploy_keys:
                 if progress is not None:
                     progress(f"registering deploy key: {key.repo}")
-                provider_client(self.config, key.provider).register_deploy_key(
+                provider_client(key.provider).register_deploy_key(
                     token,
                     key.repo,
                     cs.id,
@@ -475,12 +470,12 @@ class CodespaceService:
         if token:
             key_provider = entry.provider if entry else provider
             for repo_name in repos:
-                provider_client(self.config, key_provider).delete_deploy_key(
+                provider_client(key_provider).delete_deploy_key(
                     token, repo_name, codespace_id
                 )
         elif repos:
             delete_provider = entry.provider if entry else provider
-            display_name = provider_client(self.config, delete_provider).display_name
+            display_name = provider_client(delete_provider).display_name
             warning = f"{display_name} token is not available; skipped deploy key revocation"
         resp = self.delete_remote(profile, codespace_id, purge=purge)
         if alias:

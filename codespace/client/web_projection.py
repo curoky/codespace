@@ -5,14 +5,11 @@ from urllib.parse import quote
 from codespace import shared
 from codespace.client import ssh_config
 from codespace.client.config import WebConfig
-from codespace.client.providers import provider_client
 from codespace.client.service import AgentListResult
 from codespace.client.web_models import (
     AgentStatus,
     ConfigAgentSummary,
     ConfigDefaultsSummary,
-    ConfigGithubSummary,
-    ConfigGitlabSummary,
     ConfigSummary,
     ConfigTemplateSummary,
     DashboardCodespace,
@@ -22,22 +19,10 @@ from codespace.client.web_models import (
 
 
 def config_summary(config: WebConfig) -> ConfigSummary:
-    """Return a token-safe summary of the Web GUI configuration."""
-    github = provider_client(config, "github")
-    gitlab = provider_client(config, "gitlab")
+    """Return the Web GUI configuration summary."""
     return ConfigSummary(
         default_agent=config.defaults.agent,
         defaults=ConfigDefaultsSummary(image=config.defaults.image),
-        github=ConfigGithubSummary(
-            token_env=github.token_label,
-            has_token=github.token is not None,
-        ),
-        gitlab=ConfigGitlabSummary(
-            token_env=gitlab.token_label,
-            api_url=config.gitlab.api_url,
-            ssh_host=config.gitlab.ssh_host,
-            has_token=gitlab.token is not None,
-        ),
         agents=[
             ConfigAgentSummary(
                 id=agent.id,
@@ -55,8 +40,6 @@ def config_summary(config: WebConfig) -> ConfigSummary:
                 agent=template.agent,
                 provider=template.provider,
                 repo=template.repo,
-                git_ssh_host=template.git_ssh_host
-                or provider_client(config, template.provider).ssh_host,
                 image=template.image,
             )
             for template in config.templates.values()
@@ -104,7 +87,6 @@ def dashboard_codespace(agent_id: str, ssh_host: str, cs: shared.Codespace) -> D
         id=cs.id,
         repo=cs.repo,
         provider=cs.provider,
-        git_ssh_host=cs.git_ssh_host,
         template=cs.template,
         instance=cs.instance,
         alias=alias,

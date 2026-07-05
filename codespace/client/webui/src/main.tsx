@@ -23,7 +23,6 @@ import {
   Stack,
   Table,
   Text,
-  Textarea,
   TextInput,
   Title,
 } from '@mantine/core';
@@ -38,9 +37,11 @@ import type {
   CreateForm,
   Dashboard,
   FilterState,
+  GitProvider,
   InstanceRow,
   Operation,
   OperationStatus,
+  TokenStatusResponse,
   Toast,
 } from './types';
 import {
@@ -51,7 +52,6 @@ import {
   isCodespaceRow,
   normalizeStatus,
   operationProgress,
-  parseEnvText,
   statusColor,
 } from './utils';
 
@@ -73,15 +73,21 @@ function App() {
   const [submitting, setSubmitting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [providerTokens, setProviderTokens] = useState<Record<GitProvider, string>>({
+    github: '',
+    gitlab: '',
+  });
+  const [providerTokenStatus, setProviderTokenStatus] = useState<TokenStatusResponse>({
+    github: { has_token: false },
+    gitlab: { has_token: false },
+  });
   const [form, setForm] = useState<CreateForm>({
     agent: '',
     repo: '',
     provider: 'github',
-    git_ssh_host: 'github.com',
     template: 'default',
     instance: 'default',
     image: '',
-    envText: '',
   });
   const autoRefreshRef = useRef<number | null>(null);
   const operationRef = useRef(operations);
@@ -163,19 +169,44 @@ function App() {
     }
   }, []);
 
+  const refreshProviderTokens = useCallback(async () => {
+    const result = await request<TokenStatusResponse>('/api/provider-tokens');
+    setProviderTokenStatus(result);
+  }, []);
+
+  const saveProviderToken = useCallback(async (provider: GitProvider) => {
+    const token = providerTokens[provider].trim();
+    if (!token) {
+      showToast(`请先填写 ${provider === 'gitlab' ? 'GitLab' : 'GitHub'} token`, 'warning');
+      return;
+    }
+    try {
+      const result = await request<TokenStatusResponse>(`/api/provider-tokens/${provider}`, {
+        method: 'PUT',
+        body: JSON.stringify({ token }),
+      });
+      setProviderTokenStatus(result);
+      setProviderTokens((current) => ({ ...current, [provider]: '' }));
+      showToast(`${provider === 'gitlab' ? 'GitLab' : 'GitHub'} token 已保存到 Python service 内存`);
+    } catch (saveError) {
+      showToast((saveError as Error).message, 'danger');
+    }
+  }, [providerTokens, showToast]);
+
   useEffect(() => {
     async function loadAll() {
       try {
         setError(null);
         const loadedConfig = await request<ConfigSummary>('/api/config');
         setConfig(loadedConfig);
+        await refreshProviderTokens();
         await refreshDashboard();
       } catch (loadError) {
         setError((loadError as Error).message);
       }
     }
     void loadAll();
-  }, [refreshDashboard]);
+  }, [refreshDashboard, refreshProviderTokens]);
 
   useEffect(() => {
     if (autoRefreshRef.current) window.clearInterval(autoRefreshRef.current);
@@ -210,7 +241,6 @@ function App() {
         agent_id: cs.agent_id,
         repo: cs.repo,
         provider: cs.provider,
-        git_ssh_host: cs.git_ssh_host,
         template: cs.template,
         instance: cs.instance,
         alias: cs.alias,
@@ -234,7 +264,6 @@ function App() {
         agent_id: op.agent_id,
         repo: op.repo,
         provider: op.provider,
-        git_ssh_host: op.git_ssh_host,
         template: op.template,
         instance: op.instance,
         alias: op.alias,
@@ -261,7 +290,6 @@ function App() {
       id: template.id,
       repo: template.repo,
       provider: template.provider,
-      git_ssh_host: template.git_ssh_host,
       agent: template.agent || config.default_agent,
       description: template.description,
       image: template.image || config.defaults.image,
@@ -274,7 +302,6 @@ function App() {
         id: cs.template,
         repo: cs.repo,
         provider: cs.provider,
-        git_ssh_host: cs.git_ssh_host,
         agent: cs.agent_id,
         description: null,
         image: config.defaults.image,
@@ -327,11 +354,9 @@ function App() {
       agent,
       repo: template.repo,
       provider,
-      git_ssh_host: template.git_ssh_host || (provider === 'gitlab' ? config.gitlab.ssh_host : 'github.com'),
       template: template.id,
       instance: 'default',
       image: template.image || config.defaults.image,
-      envText: '',
     };
     setForm(nextForm);
     setCreateTemplateId(template.id);
@@ -344,16 +369,14 @@ function App() {
     if (!config) return;
     setSubmitting(true);
     try {
-      const env = parseEnvText(form.envText);
       const payload = {
         repo: form.repo.trim(),
         provider: form.provider,
-        git_ssh_host: form.git_ssh_host.trim() || null,
         template: form.template.trim(),
         instance: form.instance.trim(),
         image: form.image.trim(),
-        env,
       };
+      if (!providerTokenStatus[form.provider].has_token) throw new Error(`请先保存 ${form.provider === 'gitlab' ? 'GitLab' : 'GitHub'} token`);
       const alias = instanceAlias(form.agent, payload.template, payload.instance);
       const result = await request<{ operation_id: string }>(
         `/api/agents/${encodeURIComponent(form.agent)}/codespaces`,
@@ -365,7 +388,10 @@ function App() {
         status: 'queued',
         stage: 'queued',
         alias,
-        ...payload,
+        repo: payload.repo,
+        provider: payload.provider,
+        template: payload.template,
+        instance: payload.instance,
         agent_id: form.agent,
         created_at: Date.now() / 1000,
       };
@@ -399,13 +425,7 @@ function App() {
   const selectedTemplate = createTemplateId
     ? config?.templates.find((template) => template.id === createTemplateId)
     : null;
-  const selectedProviderHasToken = form.provider === 'gitlab'
-    ? Boolean(config?.gitlab.has_token)
-    : Boolean(config?.github.has_token);
-  const selectedProviderTokenEnv = form.provider === 'gitlab'
-    ? config?.gitlab.token_env
-    : config?.github.token_env;
-  const allTokensReady = Boolean(config?.github.has_token && config?.gitlab.has_token);
+  const selectedProviderHasToken = providerTokenStatus[form.provider].has_token;
 
   return (
     <MantineProvider defaultColorScheme="light" forceColorScheme="light">
@@ -413,8 +433,8 @@ function App() {
         <header className="topbar">
           <Group gap="sm" wrap="nowrap">
             <Title order={1} size="h4">Codespace</Title>
-            <Badge variant="light" color={allTokensReady ? 'gray' : 'yellow'}>
-              {config ? `${config.default_agent} · GitHub ${config.github.has_token ? 'ok' : 'missing'} · GitLab ${config.gitlab.has_token ? 'ok' : 'missing'}` : '加载配置中...'}
+            <Badge variant="light" color="gray">
+              {config ? `${config.default_agent} · token in service memory` : '加载配置中...'}
             </Badge>
           </Group>
           <Group gap="xs" className="toolbar">
@@ -437,10 +457,23 @@ function App() {
             <Paper withBorder radius="md" className="runtime-strip">
               <Group gap="sm" justify="space-between" align="center">
                 <Group gap="xs" className="runtime-strip-section">
-                  <Badge variant="light" color={allTokensReady ? 'green' : 'yellow'}>
-                    {allTokensReady ? 'Token ready' : 'Token missing'}
-                  </Badge>
-                  <Text size="xs" c="dimmed">GitHub: {config?.github.token_env || 'GITHUB_TOKEN'} · GitLab: {config?.gitlab.token_env || 'GITLAB_TOKEN'}</Text>
+                  <Badge variant="light" color="blue">Token memory</Badge>
+                  <TextInput
+                    size="xs"
+                    type="password"
+                    placeholder={providerTokenStatus.github.has_token ? 'GitHub token saved' : 'GitHub token'}
+                    value={providerTokens.github}
+                    onChange={(event) => setProviderTokens((current) => ({ ...current, github: event.currentTarget.value }))}
+                  />
+                  <Button size="compact-xs" variant={providerTokenStatus.github.has_token ? 'light' : 'filled'} onClick={() => void saveProviderToken('github')}>Save GitHub</Button>
+                  <TextInput
+                    size="xs"
+                    type="password"
+                    placeholder={providerTokenStatus.gitlab.has_token ? 'GitLab token saved' : 'GitLab token'}
+                    value={providerTokens.gitlab}
+                    onChange={(event) => setProviderTokens((current) => ({ ...current, gitlab: event.currentTarget.value }))}
+                  />
+                  <Button size="compact-xs" variant={providerTokenStatus.gitlab.has_token ? 'light' : 'filled'} onClick={() => void saveProviderToken('gitlab')}>Save GitLab</Button>
                   <Text size="xs" c="dimmed">Updated {formatTime(lastUpdated)}</Text>
                   <Checkbox size="xs" label="auto refresh" checked={autoRefresh} onChange={(event) => setAutoRefresh(event.currentTarget.checked)} />
                 </Group>
@@ -601,7 +634,7 @@ function App() {
           <form onSubmit={submitCreate}>
             <Stack>
               {createError && <Alert color="red">{createError}</Alert>}
-              {config && !selectedProviderHasToken && <Alert color="yellow">创建 {form.provider} codespace 需要 token。请在启动 Web GUI 前设置 {selectedProviderTokenEnv}。</Alert>}
+              {!selectedProviderHasToken && <Alert color="yellow">请先在页面顶部填写并保存 {form.provider === 'gitlab' ? 'GitLab' : 'GitHub'} token。</Alert>}
               {selectedTemplate ? (
                 <Stack gap="sm">
                   <Paper withBorder radius="md" p="sm" className="create-summary">
@@ -624,15 +657,6 @@ function App() {
                     onChange={(event) => updateForm({ instance: event.currentTarget.value })}
                     autoFocus
                     required
-                  />
-                  <Textarea
-                    label="Environment variables"
-                    description="非敏感环境变量，每行 KEY=VALUE；会作为容器启动参数传入。不要在这里填写 token 或 password。"
-                    placeholder={'HTTP_PROXY=http://proxy.example.com:7890\nNO_PROXY=localhost,127.0.0.1'}
-                    value={form.envText}
-                    onChange={(event) => updateForm({ envText: event.currentTarget.value })}
-                    minRows={4}
-                    autosize
                   />
                   <Alert color="gray">Local SSH alias: <Code>{instanceAlias(form.agent, form.template, form.instance) || '-'}</Code></Alert>
                 </Stack>

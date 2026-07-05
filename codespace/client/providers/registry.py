@@ -1,17 +1,17 @@
-"""Provider-specific token, SSH host and deploy-key operations."""
+"""Provider-specific deploy-key operations."""
 
-import os
-from dataclasses import dataclass
 from typing import Protocol
 
 from github import GithubException
+from gitlab import GitlabError
 from httpx import HTTPError
+from pydantic import BaseModel, ConfigDict
 
 from codespace import shared
-from codespace.client import github, gitlab
-from codespace.client.config import WebConfig
+from codespace.client import github
+from codespace.client import gitlab as gitlab_client
 
-PROVIDER_ERRORS = (GithubException, HTTPError)
+PROVIDER_ERRORS = (GithubException, GitlabError, HTTPError)
 
 
 class GitProviderClient(Protocol):
@@ -25,19 +25,6 @@ class GitProviderClient(Protocol):
 
     @property
     def config_key(self) -> str: ...
-
-    @property
-    def token_env(self) -> str: ...
-
-    @property
-    def token_label(self) -> str: ...
-
-    @property
-    def ssh_host(self) -> str: ...
-
-    @property
-    def token(self) -> str | None:
-        """Return the configured provider token, if available."""
 
     def register_deploy_key(
         self,
@@ -54,22 +41,12 @@ class GitProviderClient(Protocol):
         """Delete a deploy key for one repository."""
 
 
-@dataclass(frozen=True)
-class GithubProviderClient:
-    token_env: str = "GITHUB_TOKEN"  # noqa: S105 - env var name, not a token
+class GithubProviderClient(BaseModel):
+    model_config = ConfigDict(frozen=True)
 
     provider: shared.GitProvider = "github"
     display_name: str = "GitHub"
     config_key: str = "github"
-    ssh_host: str = shared.DEFAULT_GITHUB_SSH_HOST
-
-    @property
-    def token(self) -> str | None:
-        return os.environ.get(self.token_env)
-
-    @property
-    def token_label(self) -> str:
-        return self.token_env
 
     def register_deploy_key(
         self,
@@ -88,23 +65,12 @@ class GithubProviderClient:
         return github.delete_deploy_key(token, repo, cs_id)
 
 
-@dataclass(frozen=True)
-class GitlabProviderClient:
-    token_env: str = "GITLAB_TOKEN"  # noqa: S105 - env var name, not a token
-    api_url: str = "https://gitlab.com"
-    ssh_host: str = shared.DEFAULT_GITLAB_SSH_HOST
+class GitlabProviderClient(BaseModel):
+    model_config = ConfigDict(frozen=True)
 
     provider: shared.GitProvider = "gitlab"
     display_name: str = "GitLab"
     config_key: str = "gitlab"
-
-    @property
-    def token(self) -> str | None:
-        return os.environ.get(self.token_env)
-
-    @property
-    def token_label(self) -> str:
-        return self.token_env
 
     def register_deploy_key(
         self,
@@ -115,30 +81,18 @@ class GitlabProviderClient:
         *,
         read_only: bool,
     ) -> int:
-        return gitlab.register_deploy_key(
-            token, self.api_url, repo, cs_id, public_openssh, read_only=read_only
+        return gitlab_client.register_deploy_key(
+            token, repo, cs_id, public_openssh, read_only=read_only
         )
 
     def delete_deploy_key(self, token: str, repo: str, cs_id: str) -> bool:
-        return gitlab.delete_deploy_key(token, self.api_url, repo, cs_id)
+        return gitlab_client.delete_deploy_key(token, repo, cs_id)
 
 
-def provider_client(
-    config: WebConfig | None, provider: shared.GitProvider
-) -> GitProviderClient:
+def provider_client(provider: shared.GitProvider) -> GitProviderClient:
     """Return a configured façade for ``provider``."""
     match provider:
         case "github":
-            return GithubProviderClient(
-                token_env=config.github.token_env if config is not None else "GITHUB_TOKEN"
-            )
+            return GithubProviderClient()
         case "gitlab":
-            return GitlabProviderClient(
-                token_env=config.gitlab.token_env if config is not None else "GITLAB_TOKEN",
-                api_url=config.gitlab.api_url if config is not None else "https://gitlab.com",
-                ssh_host=(
-                    config.gitlab.ssh_host
-                    if config is not None
-                    else shared.DEFAULT_GITLAB_SSH_HOST
-                ),
-            )
+            return GitlabProviderClient()

@@ -179,35 +179,6 @@ def test_create_prepares_workspace_dir_before_container(
     assert calls == [f"mkdir:{workspace_dir}", "pull", f"create:{workspace_dir}"]
 
 
-def test_create_passes_env_to_container(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    captured_env: dict[str, str] | None = None
-    monkeypatch.setattr(
-        keys,
-        "generate_deploy_keypair",
-        lambda: keys.DeployKeypair(private_openssh="PRIV", public_openssh="ssh-ed25519 PUB"),
-    )
-    monkeypatch.setattr(podman_ops, "find_container_by_instance", lambda *a: None)
-    monkeypatch.setattr(podman_ops, "pull_image", lambda *a: None)
-
-    def _create(*a: object, **kwargs: object) -> podman_ops.ContainerInfo:
-        nonlocal captured_env
-        captured_env = kwargs["env"]
-        return podman_ops.ContainerInfo(container_id="cid", port=49207)
-
-    monkeypatch.setattr(podman_ops, "create_container", _create)
-    monkeypatch.setattr(podman_ops, "inject_credentials", lambda *a, **k: None)
-
-    body = _create_body() | {"env": {"HTTP_PROXY": "http://proxy"}}
-    resp = client.post("/codespaces", json=body)
-
-    assert resp.status_code == 202
-    operation = _operation_result(client, resp.json()["id"])
-    assert operation["status"] == "succeeded"
-    assert captured_env == {"HTTP_PROXY": "http://proxy"}
-
-
 def test_get_operation_returns_404_for_missing_id(client: TestClient) -> None:
     resp = client.get("/operations/missing")
     assert resp.status_code == 404
@@ -306,7 +277,7 @@ def test_clone_codespace_repo(client: TestClient, monkeypatch: pytest.MonkeyPatc
     monkeypatch.setattr(
         podman_ops,
         "clone_repo",
-        lambda client, *, cs_id, user, repo: cloned.append((cs_id, user, repo)),
+        lambda client, *, cs_id, user, repo, provider: cloned.append((cs_id, user, repo)),
     )
 
     resp = client.post("/codespaces/abc123/clone")

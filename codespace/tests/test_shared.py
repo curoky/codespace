@@ -51,54 +51,18 @@ def test_create_request_rejects_blank_image() -> None:
         shared.CreateRequest(repo="owner/name", login_pubkey="ssh-ed25519 AAAA", image="  ")
 
 
-def test_create_request_accepts_env() -> None:
-    req = shared.CreateRequest(
-        repo="owner/name",
-        login_pubkey="ssh-ed25519 AAAA",
-        image="codespace/dev:latest",
-        env={"HTTP_PROXY": "http://proxy.example.com:7890", "NO_PROXY": "localhost,127.0.0.1"},
-    )
-
-    assert req.env == {
-        "HTTP_PROXY": "http://proxy.example.com:7890",
-        "NO_PROXY": "localhost,127.0.0.1",
-    }
-
-
-@pytest.mark.parametrize("env", [{"bad-name": "x"}, {"1BAD": "x"}, {"SSHD_PORT": "22"}])
-def test_create_request_rejects_invalid_env(env: dict[str, str]) -> None:
-    with pytest.raises(ValidationError):
-        shared.CreateRequest(
-            repo="owner/name",
-            login_pubkey="ssh-ed25519 AAAA",
-            image="codespace/dev:latest",
-            env=env,
-        )
-
-
-def test_create_request_rejects_env_value_with_nul() -> None:
-    with pytest.raises(ValidationError):
-        shared.CreateRequest(
-            repo="owner/name",
-            login_pubkey="ssh-ed25519 AAAA",
-            image="codespace/dev:latest",
-            env={"FOO": "bad\x00value"},
-        )
-
-
 def test_create_request_requires_image() -> None:
     with pytest.raises(ValidationError):
         shared.CreateRequest(repo="owner/name", login_pubkey="ssh-ed25519 AAAA")
 
 
-@pytest.mark.parametrize("field", ["workspace", "user", "extra_repos", "alias"])
-def test_create_request_rejects_removed_client_fields(field: str) -> None:
+def test_create_request_rejects_unknown_fields() -> None:
     with pytest.raises(ValidationError):
         shared.CreateRequest(
             repo="owner/name",
             login_pubkey="ssh-ed25519 AAAA",
             image="codespace/dev:latest",
-            **{field: "removed"},
+            env={"HTTP_PROXY": "http://proxy"},
         )
 
 

@@ -1,10 +1,9 @@
 """Local FastAPI Web GUI for managing codespaces across multiple agents."""
 
-import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
-from threading import Thread
+from threading import Lock, Thread
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
@@ -12,7 +11,6 @@ from fastapi.staticfiles import StaticFiles
 
 from codespace import shared
 from codespace.client.config import load_config
-from codespace.client.providers import provider_client
 from codespace.client.service import (
     CodespaceService,
     CreateCodespaceInput,
@@ -24,6 +22,8 @@ from codespace.client.web_models import (
     CreateCodespaceRequest,
     CreateCodespaceResponse,
     DashboardResponse,
+    TokenStatusResponse,
+    UpdateProviderTokenRequest,
     WebOperation,
 )
 from codespace.client.web_operations import OperationStore
@@ -34,12 +34,6 @@ from codespace.client.web_projection import (
 )
 
 STATIC_DIR = Path(__file__).parent / "static"
-logger = logging.getLogger(__name__)
-GIT_ENV_MISSING_MESSAGE = (
-    "{provider} token is not available in the Web GUI process; set {token_env} "
-    "before starting `python -m codespace.client`, or configure {config_key}.token_env "
-    "in config.yaml."
-)
 
 
 def create_app(config_path: str | Path | None = None) -> FastAPI:
@@ -47,6 +41,8 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
     config = load_config(config_path)
     service = CodespaceService(config)
     operations = OperationStore()
+    provider_tokens: dict[shared.GitProvider, str] = {}
+    provider_tokens_lock = Lock()
 
     @asynccontextmanager
     async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
@@ -75,6 +71,25 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
     def get_config() -> ConfigSummary:
         return config_summary(config)
 
+    @app.get("/api/provider-tokens")
+    def get_provider_tokens() -> TokenStatusResponse:
+        with provider_tokens_lock:
+            return TokenStatusResponse(
+                github={"has_token": "github" in provider_tokens},
+                gitlab={"has_token": "gitlab" in provider_tokens},
+            )
+
+    @app.put("/api/provider-tokens/{provider}")
+    def update_provider_token(
+        provider: shared.GitProvider, req: UpdateProviderTokenRequest
+    ) -> TokenStatusResponse:
+        with provider_tokens_lock:
+            provider_tokens[provider] = req.token
+            return TokenStatusResponse(
+                github={"has_token": "github" in provider_tokens},
+                gitlab={"has_token": "gitlab" in provider_tokens},
+            )
+
     @app.get("/api/dashboard")
     def get_dashboard() -> DashboardResponse:
         return dashboard_response(service.list_all_agents(), operations.list())
@@ -83,16 +98,10 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
     def create_codespace(agent_id: str, req: CreateCodespaceRequest) -> CreateCodespaceResponse:
         if agent_id not in config.agents:
             raise HTTPException(status_code=404, detail="agent not found")
-        git_provider = provider_client(config, req.provider)
-        token = git_provider.token
-        if not token:
-            message = GIT_ENV_MISSING_MESSAGE.format(
-                provider=git_provider.display_name,
-                token_env=git_provider.token_env,
-                config_key=git_provider.config_key,
-            )
-            logger.warning("Rejecting create codespace request for agent %s: %s", agent_id, message)
-            raise HTTPException(status_code=400, detail=message)
+        with provider_tokens_lock:
+            token = provider_tokens.get(req.provider)
+        if token is None:
+            raise HTTPException(status_code=400, detail=f"{req.provider} token is not set")
         operation = operations.create(agent_id=agent_id, req=req)
         Thread(
             target=_run_create_operation,
@@ -120,10 +129,16 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
         repo: str | None = Query(None),
     ) -> DeleteCodespaceResult:
         provider = provider_for_delete(config, agent_id, codespace_id, repo)
-        token = provider_client(config, provider).token
+        with provider_tokens_lock:
+            token = provider_tokens.get(provider)
         try:
             return service.delete_codespace(
-                agent_id, codespace_id, token=token, repo=repo, provider=provider, purge=purge
+                agent_id,
+                codespace_id,
+                token=token,
+                repo=repo,
+                provider=provider,
+                purge=purge,
             )
         except Exception as exc:
             raise HTTPException(status_code=500, detail=str(exc)) from exc

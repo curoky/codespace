@@ -13,15 +13,6 @@ from codespace import shared
 CONFIG_ENV = "CODESPACE_CONFIG"
 DEFAULT_CONFIG_PATH = Path.home() / ".config" / "codespace" / "config.yaml"
 AGENT_ID_RE = re.compile(r"^[\w.-]+$")
-ENV_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
-TOKEN_VALUE_PREFIXES = ("github_pat_", "ghp_", "gho_", "ghu_", "ghs_", "ghr_", "glpat-", "glabpat-")
-
-
-def _validate_token_env(value: str) -> str:
-    stripped = value.strip()
-    if not ENV_NAME_RE.match(stripped) or stripped.startswith(TOKEN_VALUE_PREFIXES):
-        raise ValueError("token_env must be an environment variable name")
-    return stripped
 
 
 class AgentProfile(BaseModel):
@@ -82,7 +73,6 @@ class CreateTemplateConfig(BaseModel):
     agent: str | None = None
     provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER
     repo: str
-    git_ssh_host: str | None = None
     image: str | None = None
 
     @field_validator("id")
@@ -99,16 +89,6 @@ class CreateTemplateConfig(BaseModel):
             raise ValueError("repo must be a slash-separated path like 'owner/name'")
         return value
 
-    @field_validator("git_ssh_host")
-    @classmethod
-    def _check_git_ssh_host(cls, value: str | None) -> str | None:
-        if value is None:
-            return value
-        stripped = value.strip()
-        if not stripped or "/" in stripped or ":" in stripped:
-            raise ValueError("git_ssh_host must be a hostname")
-        return stripped
-
     @field_validator("agent")
     @classmethod
     def _check_agent(cls, value: str | None) -> str | None:
@@ -124,44 +104,12 @@ class CreateTemplateConfig(BaseModel):
         return value
 
 
-class GithubConfig(BaseModel):
-    """GitHub token lookup config."""
-
-    token_env: str = "GITHUB_TOKEN"  # noqa: S105 - this is an env var name, not a token
-
-    @field_validator("token_env")
-    @classmethod
-    def _not_blank(cls, value: str) -> str:
-        return _validate_token_env(value)
-
-
-class GitlabConfig(BaseModel):
-    """GitLab token/API lookup config."""
-
-    token_env: str = "GITLAB_TOKEN"  # noqa: S105 - this is an env var name, not a token
-    api_url: str = "https://gitlab.com"
-    ssh_host: str = shared.DEFAULT_GITLAB_SSH_HOST
-
-    @field_validator("token_env", "api_url", "ssh_host")
-    @classmethod
-    def _not_blank(cls, value: str) -> str:
-        stripped = value.strip()
-        if not stripped:
-            raise ValueError("must not be blank")
-        return stripped.rstrip("/") if stripped.startswith(("http://", "https://")) else stripped
-
-    @field_validator("token_env")
-    @classmethod
-    def _check_token_env(cls, value: str) -> str:
-        return _validate_token_env(value)
-
-
 class WebConfig(BaseModel):
     """Complete Web GUI configuration loaded from YAML."""
 
+    model_config = ConfigDict(extra="forbid")
+
     defaults: DefaultsConfig
-    github: GithubConfig = Field(default_factory=GithubConfig)
-    gitlab: GitlabConfig = Field(default_factory=GitlabConfig)
     agents: dict[str, AgentProfile]
     templates: dict[str, CreateTemplateConfig] = Field(default_factory=dict)
 

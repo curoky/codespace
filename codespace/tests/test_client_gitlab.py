@@ -1,72 +1,124 @@
-"""Tests for the client-side GitLab deploy-key lifecycle (httpx mocked)."""
+"""Tests for the client-side GitLab deploy-key lifecycle (python-gitlab mocked)."""
 
-import httpx
+from typing import ClassVar
+
 import pytest
 
 from codespace.client import gitlab
 
 
-class _FakeResponse:
-    def __init__(self, data: object) -> None:
-        self._data = data
-
-    def raise_for_status(self) -> None:
-        return None
-
-    def json(self) -> object:
-        return self._data
+class _FakeDeployKey:
+    def __init__(self, key_id: int, title: str) -> None:
+        self.id = key_id
+        self.title = title
 
 
-def test_register_deploy_key_uses_gitlab_project_api(monkeypatch: pytest.MonkeyPatch) -> None:
-    calls: list[dict[str, object]] = []
+class _FakeProjectKeys:
+    def __init__(self) -> None:
+        self.created: list[dict[str, object]] = []
+        self.deleted: list[int] = []
+        self.existing = [
+            _FakeDeployKey(1, "codespace-other"),
+            _FakeDeployKey(2, "codespace-abc123"),
+        ]
 
-    def _post(url: str, **kwargs: object) -> _FakeResponse:
-        calls.append({"url": url, **kwargs})
-        return _FakeResponse({"id": 42})
+    def create(self, payload: dict[str, object]) -> _FakeDeployKey:
+        self.created.append(payload)
+        return _FakeDeployKey(42, str(payload["title"]))
 
-    monkeypatch.setattr(httpx, "post", _post)
+    def list(self, *, get_all: bool) -> list[_FakeDeployKey]:
+        assert get_all is True
+        return self.existing
 
+    def delete(self, key_id: int) -> None:
+        self.deleted.append(key_id)
+
+
+class _FakeProject:
+    def __init__(self) -> None:
+        self.keys = _FakeProjectKeys()
+
+
+class _FakeProjects:
+    def __init__(self, project: _FakeProject) -> None:
+        self.project = project
+        self.requested_repo: str | None = None
+
+    def get(self, repo: str) -> _FakeProject:
+        self.requested_repo = repo
+        return self.project
+
+
+class _FakeGitlab:
+    instances: ClassVar[list["_FakeGitlab"]] = []
+
+    def __init__(self, *, private_token: str, timeout: float) -> None:
+        self.private_token = private_token
+        self.timeout = timeout
+        self.project = _FakeProject()
+        self.projects = _FakeProjects(self.project)
+        self.instances.append(self)
+
+
+@pytest.fixture(autouse=True)
+def fake_gitlab_client(monkeypatch: pytest.MonkeyPatch) -> None:
+    _FakeGitlab.instances = []
+    monkeypatch.setattr(gitlab.python_gitlab, "Gitlab", _FakeGitlab)
+
+
+def test_register_deploy_key_uses_gitlab_project_api() -> None:
     key_id = gitlab.register_deploy_key(
-        "tok", "https://gitlab.example.com", "group/sub/project", "abc123", "ssh-ed25519 PUB"
+        "tok", "group/sub/project", "abc123", "ssh-ed25519 PUB"
     )
 
+    client = _FakeGitlab.instances[0]
     assert key_id == 42
-    assert calls == [
+    assert client.private_token == "tok"
+    assert client.timeout == gitlab.HTTP_TIMEOUT
+    assert client.projects.requested_repo == "group/sub/project"
+    assert client.project.keys.created == [
         {
-            "url": "https://gitlab.example.com/api/v4/projects/group%2Fsub%2Fproject/deploy_keys",
-            "headers": {"PRIVATE-TOKEN": "tok"},
-            "json": {
-                "title": "codespace-abc123",
-                "key": "ssh-ed25519 PUB",
-                "can_push": True,
-            },
-            "timeout": gitlab.HTTP_TIMEOUT,
+            "title": "codespace-abc123",
+            "key": "ssh-ed25519 PUB",
+            "can_push": True,
         }
     ]
 
 
-def test_delete_deploy_key_removes_matching_title(monkeypatch: pytest.MonkeyPatch) -> None:
-    deleted: list[str] = []
+def test_register_deploy_key_honors_read_only() -> None:
+    gitlab.register_deploy_key(
+        "tok",
+        "group/project",
+        "abc123",
+        "ssh-ed25519 PUB",
+        read_only=True,
+    )
 
-    def _get(url: str, **kwargs: object) -> _FakeResponse:
-        assert url == "https://gitlab.com/api/v4/projects/group%2Fproject/deploy_keys"
-        assert kwargs["headers"] == {"PRIVATE-TOKEN": "tok"}
-        return _FakeResponse(
-            [
-                {"id": 1, "title": "codespace-other"},
-                {"id": 2, "title": "codespace-abc123"},
-            ]
-        )
+    assert _FakeGitlab.instances[0].project.keys.created[0]["can_push"] is False
 
-    def _delete(url: str, **kwargs: object) -> _FakeResponse:
-        deleted.append(url)
-        assert kwargs["headers"] == {"PRIVATE-TOKEN": "tok"}
-        return _FakeResponse({})
 
-    monkeypatch.setattr(httpx, "get", _get)
-    monkeypatch.setattr(httpx, "delete", _delete)
+def test_delete_deploy_key_removes_matching_title() -> None:
+    removed = gitlab.delete_deploy_key("tok", "group/project", "abc123")
 
-    removed = gitlab.delete_deploy_key("tok", "https://gitlab.com", "group/project", "abc123")
-
+    client = _FakeGitlab.instances[0]
     assert removed is True
-    assert deleted == ["https://gitlab.com/api/v4/projects/group%2Fproject/deploy_keys/2"]
+    assert client.projects.requested_repo == "group/project"
+    assert client.project.keys.deleted == [2]
+
+
+def test_delete_deploy_key_returns_false_when_not_found() -> None:
+    client_project = _FakeProject()
+    client_project.keys.existing = [_FakeDeployKey(1, "codespace-other")]
+
+    class FakeGitlabWithoutMatchingKey(_FakeGitlab):
+        def __init__(self, *, private_token: str, timeout: float) -> None:
+            super().__init__(private_token=private_token, timeout=timeout)
+            self.project = client_project
+            self.projects = _FakeProjects(self.project)
+
+    gitlab.python_gitlab.Gitlab = FakeGitlabWithoutMatchingKey
+
+    removed = gitlab.delete_deploy_key("tok", "group/project", "abc123")
+
+    assert removed is False
+    assert client_project.keys.deleted == []

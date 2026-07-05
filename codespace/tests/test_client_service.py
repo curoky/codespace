@@ -95,13 +95,11 @@ def test_create_codespace_clones_after_registering_deploy_key(
     monkeypatch.setattr(service, "ensure_login_key", lambda alias: "ssh-ed25519 LOGIN")
 
     class FakeProvider:
-        ssh_host = shared.DEFAULT_GITHUB_SSH_HOST
-
         def register_deploy_key(self, *args: object, **kwargs: object) -> int:
             events.append("register")
             return 1
 
-    monkeypatch.setattr(service, "provider_client", lambda config, provider: FakeProvider())
+    monkeypatch.setattr(service, "provider_client", lambda provider: FakeProvider())
     monkeypatch.setattr(service.ssh_config, "upsert", lambda *a, **k: events.append("upsert"))
     monkeypatch.setattr(service.CodespaceService, "wait_create_operation", lambda *a, **k: cs)
 
@@ -118,7 +116,7 @@ def test_create_codespace_clones_after_registering_deploy_key(
         if method == "POST" and path == "/codespaces":
             events.append("create")
             assert body is not None
-            assert body["env"] == {"HTTP_PROXY": "http://proxy"}
+            assert "env" not in body
             return 202, {"id": "op123", "status": "queued", "stage": "queued"}
         if method == "POST" and path == "/codespaces/abc123/clone":
             assert timeout == service.CLONE_HTTP_TIMEOUT
@@ -135,7 +133,6 @@ def test_create_codespace_clones_after_registering_deploy_key(
             template="api",
             instance="dev",
             image="img",
-            env={"HTTP_PROXY": "http://proxy"},
         ),
         token="tok",
     )
@@ -154,8 +151,8 @@ def test_agent_error_renders_validation_detail() -> None:
             "detail": [
                 {
                     "type": "extra_forbidden",
-                    "loc": ["body", "template"],
-                    "msg": "Extra inputs are not permitted",
+                    "loc": ["body", "image"],
+                    "msg": "Field required",
                     "input": "api",
                 }
             ]
@@ -163,4 +160,4 @@ def test_agent_error_renders_validation_detail() -> None:
         422,
     )
 
-    assert "body.template: Extra inputs are not permitted" in message
+    assert "body.image: Field required" in message

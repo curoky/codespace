@@ -117,12 +117,10 @@ def create_container(
     image: str,
     repo: str,
     provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER,
-    git_ssh_host: str = shared.DEFAULT_GITHUB_SSH_HOST,
     template: str,
     instance: str,
     user: str,
     workspace_host_dir: str,
-    env: dict[str, str] | None = None,
 ) -> ContainerInfo:
     """Start a dev container and return its id and host SSH port.
 
@@ -134,12 +132,11 @@ def create_container(
     """
     ssh_port = _allocate_host_port()
     logger.info(
-        "starting container {} image={} provider={} git_ssh_host={} repo={} template={} "
+        "starting container {} image={} provider={} repo={} template={} "
         "instance={} user={} ssh_port={} workspace_dir={}",
         shared.container_name(cs_id),
         image,
         provider,
-        git_ssh_host,
         repo,
         template,
         instance,
@@ -164,11 +161,6 @@ def create_container(
             }
         )
 
-    environment = {
-        **(env or {}),
-        "SSHD_PORT": str(ssh_port),
-    }
-
     container = client.containers.run(
         image,
         name=shared.container_name(cs_id),
@@ -177,12 +169,11 @@ def create_container(
         cap_add=["NET_RAW"],
         pids_limit=-1,
         ulimits=[{"Name": "memlock", "Soft": -1, "Hard": -1}],
-        environment=environment,
+        environment={"SSHD_PORT": str(ssh_port)},
         labels={
             shared.LABEL_ID: cs_id,
             shared.LABEL_REPO: repo,
             shared.LABEL_PROVIDER: provider,
-            shared.LABEL_GIT_SSH_HOST: git_ssh_host,
             shared.LABEL_TEMPLATE: template,
             shared.LABEL_INSTANCE: instance,
             shared.LABEL_USER: user,
@@ -273,7 +264,7 @@ def inject_credentials(
     user: str,
     private_key: str,
     login_pubkey: str,
-    git_ssh_host: str = shared.DEFAULT_GITHUB_SSH_HOST,
+    provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER,
 ) -> None:
     """Fix workspace ownership then inject deploy keys and the login pubkey.
 
@@ -312,7 +303,8 @@ def inject_credentials(
     _exec_checked(container, ["mkdir", "-p", "-m", "700", ssh_dir], user=user)
 
     # Main repo: provider SSH host + its read-write key.
-    ssh_config_blocks = [_ssh_host_block(git_ssh_host, git_ssh_host, "repo_id_ed25519")]
+    git_host = shared.default_git_host(provider)
+    ssh_config_blocks = [_ssh_host_block(git_host, git_host, "repo_id_ed25519")]
     members: list[tuple[str, str, int]] = [
         ("repo_id_ed25519", private_key, 0o600),
         ("authorized_keys", login_pubkey.rstrip("\n") + "\n", 0o600),
@@ -340,7 +332,7 @@ def clone_repo(
     cs_id: str,
     user: str,
     repo: str,
-    git_ssh_host: str = shared.DEFAULT_GITHUB_SSH_HOST,
+    provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER,
 ) -> None:
     """Clone the main repository into ``/workspace/<repo-name>``.
 
@@ -350,9 +342,10 @@ def clone_repo(
     workspace can be reused safely.
     """
     container = client.containers.get(shared.container_name(cs_id))
+    git_host = shared.default_git_host(provider)
     repo_name = repo.split("/")[-1]
     target = f"{shared.WORKSPACE_MOUNT}/{repo_name}"
-    logger.info("cloning repo {} from {} into {} user={}", repo, git_ssh_host, target, user)
+    logger.info("cloning repo {} from {} into {} user={}", repo, git_host, target, user)
     _exec_checked(
         container,
         [
@@ -360,7 +353,7 @@ def clone_repo(
             "-c",
             """
 set -eu
-git_ssh_host="$1"
+git_host="$1"
 repo="$2"
 target="$3"
 if [ -d "$target/.git" ]; then
@@ -370,10 +363,10 @@ if [ -e "$target" ]; then
   echo "target already exists and is not a git repository: $target" >&2
   exit 1
 fi
-git clone "git@$git_ssh_host:$repo.git" "$target"
+git clone "git@$git_host:$repo.git" "$target"
 """.strip(),
             "clone-repo",
-            git_ssh_host,
+            git_host,
             repo,
             target,
         ],
@@ -431,9 +424,6 @@ def to_codespace(container: Container) -> shared.Codespace:
         provider=cast(
             shared.GitProvider,
             read_label(container, shared.LABEL_PROVIDER, shared.DEFAULT_GIT_PROVIDER),
-        ),
-        git_ssh_host=read_label(
-            container, shared.LABEL_GIT_SSH_HOST, shared.DEFAULT_GITHUB_SSH_HOST
         ),
         template=read_label(container, shared.LABEL_TEMPLATE, shared.DEFAULT_TEMPLATE),
         instance=read_label(container, shared.LABEL_INSTANCE, shared.DEFAULT_INSTANCE),

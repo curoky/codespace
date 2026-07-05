@@ -2,7 +2,7 @@
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from codespace import shared
 
@@ -11,18 +11,6 @@ WebOperationStatus = Literal["queued", "running", "succeeded", "failed"]
 
 class ConfigDefaultsSummary(BaseModel):
     image: str
-
-
-class ConfigGithubSummary(BaseModel):
-    token_env: str
-    has_token: bool
-
-
-class ConfigGitlabSummary(BaseModel):
-    token_env: str
-    api_url: str
-    ssh_host: str
-    has_token: bool
 
 
 class ConfigAgentSummary(BaseModel):
@@ -39,15 +27,12 @@ class ConfigTemplateSummary(BaseModel):
     agent: str | None = None
     provider: shared.GitProvider
     repo: str
-    git_ssh_host: str
     image: str | None = None
 
 
 class ConfigSummary(BaseModel):
     default_agent: str
     defaults: ConfigDefaultsSummary
-    github: ConfigGithubSummary
-    gitlab: ConfigGitlabSummary
     agents: list[ConfigAgentSummary]
     templates: list[ConfigTemplateSummary]
 
@@ -68,7 +53,6 @@ class DashboardCodespace(BaseModel):
     id: str
     repo: str
     provider: shared.GitProvider
-    git_ssh_host: str
     template: str
     instance: str
     alias: str | None = None
@@ -81,17 +65,32 @@ class DashboardCodespace(BaseModel):
 
 
 class CreateCodespaceRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     repo: str
     provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER
-    git_ssh_host: str | None = None
     template: str = shared.DEFAULT_TEMPLATE
     instance: str = shared.DEFAULT_INSTANCE
     image: str
-    env: dict[str, str] = Field(default_factory=dict)
 
 
 class CreateCodespaceResponse(BaseModel):
     operation_id: str
+
+
+class UpdateProviderTokenRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    token: str = Field(min_length=1, repr=False)
+
+
+class ProviderTokenStatus(BaseModel):
+    has_token: bool = False
+
+
+class TokenStatusResponse(BaseModel):
+    github: ProviderTokenStatus = Field(default_factory=ProviderTokenStatus)
+    gitlab: ProviderTokenStatus = Field(default_factory=ProviderTokenStatus)
 
 
 class WebOperation(BaseModel):
@@ -100,7 +99,6 @@ class WebOperation(BaseModel):
     alias: str
     repo: str
     provider: shared.GitProvider
-    git_ssh_host: str | None = None
     template: str
     instance: str
     status: WebOperationStatus

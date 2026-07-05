@@ -13,7 +13,6 @@ from codespace.client.config import (
     AgentProfile,
     CreateTemplateConfig,
     DefaultsConfig,
-    GithubConfig,
     WebConfig,
 )
 from codespace.client.web_models import CreateCodespaceRequest
@@ -23,7 +22,6 @@ from codespace.client.web_operations import OperationStore
 def _config() -> WebConfig:
     return WebConfig(
         defaults=DefaultsConfig(agent="home", image="img"),
-        github=GithubConfig(token_env="GITHUB_TOKEN"),
         agents={
             "home": AgentProfile(id="home", agent_url="http://home:8001", ssh_host="10.0.0.5"),
             "office": AgentProfile(
@@ -63,20 +61,17 @@ def _codespace() -> shared.Codespace:
 @pytest.fixture
 def app_client(monkeypatch: pytest.MonkeyPatch) -> TestClient:
     monkeypatch.setattr(web, "load_config", lambda path=None: _config())
-    monkeypatch.setenv("GITHUB_TOKEN", "secret")
     return TestClient(web.create_app())
 
 
-def test_config_hides_token(app_client: TestClient) -> None:
+def test_config_does_not_include_tokens(app_client: TestClient) -> None:
     resp = app_client.get("/api/config")
 
     assert resp.status_code == 200
     body = resp.json()
-    assert body["github"] == {
-        "token_env": "GITHUB_TOKEN",
-        "has_token": True,
-    }
-    assert "secret" not in str(body)
+    assert "github" not in body
+    assert "gitlab" not in body
+    assert "token" not in str(body)
 
 
 def test_config_returns_create_templates(app_client: TestClient) -> None:
@@ -90,7 +85,6 @@ def test_config_returns_create_templates(app_client: TestClient) -> None:
             "agent": "office",
             "provider": "github",
             "repo": "owner/api",
-            "git_ssh_host": "github.com",
             "image": "custom-img",
         }
     ]
@@ -123,7 +117,7 @@ def test_static_page_and_script_are_served(app_client: TestClient) -> None:
     assert "root" in index.text
     assert "codespaces" in script.text
     assert "Templates" in script.text
-    assert "Token ready" in script.text
+    assert "Templates" in script.text
     assert "Create" in script.text
 
 
@@ -205,7 +199,6 @@ def test_operation_lifecycle(app_client: TestClient, monkeypatch: pytest.MonkeyP
     ) -> shared.Codespace:
         assert agent_id == "home"
         assert token == "secret"
-        assert req.env == {"HTTP_PROXY": "http://proxy"}
         if progress:
             progress("testing")
         return _codespace()
@@ -219,7 +212,7 @@ def test_operation_lifecycle(app_client: TestClient, monkeypatch: pytest.MonkeyP
             "template": "api",
             "instance": "dev",
             "image": "img",
-            "env": {"HTTP_PROXY": "http://proxy"},
+            "token": "secret",
         },
     )
     assert resp.status_code == 200
@@ -236,33 +229,19 @@ def test_operation_lifecycle(app_client: TestClient, monkeypatch: pytest.MonkeyP
     assert op["stage"] == "ready"
 
 
-def test_create_without_github_token_logs_actionable_error(
-    app_client: TestClient, monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
-) -> None:
-    monkeypatch.delenv("GITHUB_TOKEN")
+def test_create_requires_request_token(app_client: TestClient) -> None:
+    resp = app_client.post(
+        "/api/agents/home/codespaces",
+        json={"repo": "owner/name", "template": "api", "instance": "dev", "image": "img"},
+    )
 
-    with caplog.at_level("WARNING", logger="codespace.client.web"):
-        resp = app_client.post(
-            "/api/agents/home/codespaces",
-            json={"repo": "owner/name", "template": "api", "instance": "dev", "image": "img"},
-        )
-
-    assert resp.status_code == 400
-    assert resp.json() == {
-        "error": "GitHub token is not available in the Web GUI process; set GITHUB_TOKEN "
-        "before starting `python -m codespace.client`, or configure github.token_env "
-        "in config.yaml."
-    }
-    assert "Rejecting create codespace request for agent home" in caplog.text
-    assert "GITHUB_TOKEN" in caplog.text
+    assert resp.status_code == 422
 
 
-def test_delete_without_github_token_still_deletes_remote(
+def test_delete_passes_optional_request_token(
     app_client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     from codespace.client import service
-
-    monkeypatch.delenv("GITHUB_TOKEN")
 
     def _delete(
         self: service.CodespaceService,
@@ -277,7 +256,7 @@ def test_delete_without_github_token_still_deletes_remote(
     ) -> service.DeleteCodespaceResult:
         assert agent_id == "home"
         assert codespace_id == "abc123"
-        assert token is None
+        assert token == "secret"
         assert repo == "owner/name"
         assert provider == "github"
         assert purge is True
@@ -290,7 +269,11 @@ def test_delete_without_github_token_still_deletes_remote(
 
     monkeypatch.setattr(service.CodespaceService, "delete_codespace", _delete)
 
-    resp = app_client.delete("/api/agents/home/codespaces/abc123?repo=owner/name&purge=true")
+    resp = app_client.request(
+        "DELETE",
+        "/api/agents/home/codespaces/abc123?repo=owner/name&purge=true",
+        json={"token": "secret"},
+    )
 
     assert resp.status_code == 200
     assert resp.json() == {
@@ -350,6 +333,7 @@ def test_prune_completed_keeps_only_busy_operations() -> None:
         agent_id="home",
         req=CreateCodespaceRequest(
             repo="curoky/devspace",
+            token="secret",
             template="api",
             instance="queued",
             image="ghcr.io/curoky/devspace:codespace-debian12",
@@ -359,6 +343,7 @@ def test_prune_completed_keeps_only_busy_operations() -> None:
         agent_id="home",
         req=CreateCodespaceRequest(
             repo="curoky/devspace",
+            token="secret",
             template="api",
             instance="failed",
             image="ghcr.io/curoky/devspace:codespace-debian12",
@@ -368,6 +353,7 @@ def test_prune_completed_keeps_only_busy_operations() -> None:
         agent_id="home",
         req=CreateCodespaceRequest(
             repo="curoky/devspace",
+            token="secret",
             template="api",
             instance="succeeded",
             image="ghcr.io/curoky/devspace:codespace-debian12",

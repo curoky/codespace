@@ -8,6 +8,7 @@ stateless -- all metadata is read back from podman labels. See DESIGN.md §4/§6
 
 import secrets
 from threading import Lock, Thread
+from typing import cast
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
@@ -112,7 +113,6 @@ def create_app(config: AgentConfig) -> FastAPI:
             container_id=info.container_id,
             repo=req.repo,
             provider=req.provider,
-            git_ssh_host=req.git_ssh_host,
             template=req.template,
             instance=req.instance,
             workspace_dir=shared.workspace_dir_name(req.repo, req.template, req.instance),
@@ -171,12 +171,10 @@ def create_app(config: AgentConfig) -> FastAPI:
                     image=req.image,
                     repo=req.repo,
                     provider=req.provider,
-                    git_ssh_host=req.git_ssh_host,
                     template=req.template,
                     instance=req.instance,
                     user=user,
                     workspace_host_dir=workspace_host_dir,
-                    env=req.env,
                 )
                 logger.info(
                     "codespace {} operation {}: container created id={} ssh_port={}",
@@ -193,7 +191,7 @@ def create_app(config: AgentConfig) -> FastAPI:
                     user=user,
                     private_key=main_keypair.private_openssh,
                     login_pubkey=req.login_pubkey,
-                    git_ssh_host=req.git_ssh_host,
+                    provider=req.provider,
                 )
                 _set_stage(operation_id, cs_id, "waiting for ssh")
                 podman_ops.wait_for_ssh_ready(info.port)
@@ -276,8 +274,8 @@ def create_app(config: AgentConfig) -> FastAPI:
                 raise HTTPException(status_code=404, detail="codespace not found")
 
             repo = podman_ops.read_label(container, shared.LABEL_REPO)
-            git_ssh_host = podman_ops.read_label(
-                container, shared.LABEL_GIT_SSH_HOST, shared.DEFAULT_GITHUB_SSH_HOST
+            provider = podman_ops.read_label(
+                container, shared.LABEL_PROVIDER, shared.DEFAULT_GIT_PROVIDER
             )
             user = podman_ops.read_label(
                 container, shared.LABEL_USER, shared.DEFAULT_CONTAINER_USER
@@ -286,12 +284,13 @@ def create_app(config: AgentConfig) -> FastAPI:
                 raise HTTPException(status_code=500, detail="codespace repo label is missing")
 
             try:
-                if git_ssh_host == shared.DEFAULT_GITHUB_SSH_HOST:
-                    podman_ops.clone_repo(client, cs_id=cs_id, user=user, repo=repo)
-                else:
-                    podman_ops.clone_repo(
-                        client, cs_id=cs_id, user=user, repo=repo, git_ssh_host=git_ssh_host
-                    )
+                podman_ops.clone_repo(
+                    client,
+                    cs_id=cs_id,
+                    user=user,
+                    repo=repo,
+                    provider=cast(shared.GitProvider, provider),
+                )
             except NotFound as exc:
                 if podman_ops.get_container(client, cs_id) is None:
                     logger.info("clone repo for codespace {} aborted: container was deleted", cs_id)

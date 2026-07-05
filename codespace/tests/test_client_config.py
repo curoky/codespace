@@ -29,7 +29,6 @@ agents:
     cfg = client_config.load_config(path)
 
     assert cfg.defaults.agent == "home"
-    assert cfg.github.token_env == "GITHUB_TOKEN"
     assert cfg.agents["home"].id == "home"
     assert cfg.agents["home"].ssh_host == "10.0.0.5"
     assert cfg.agents["home"].ssh_proxy_host is None
@@ -113,24 +112,20 @@ templates:
     assert template.image == "custom-img"
 
 
-@pytest.mark.parametrize("field", ["workspace", "user", "alias", "extra_repos"])
-def test_load_config_rejects_removed_create_fields(tmp_path: Path, field: str) -> None:
+def test_load_config_rejects_unknown_fields(tmp_path: Path) -> None:
     path = tmp_path / "config.yaml"
     _write_config(
         path,
-        f"""
+        """
 defaults:
   agent: home
   image: img
-  {field}: removed
+github:
+  token_env: MY_TOKEN
 agents:
   home:
     agent_url: http://h:8001
     ssh_host: 10.0.0.5
-templates:
-  api:
-    repo: owner/api
-    {field}: removed
 """,
     )
 
@@ -197,48 +192,4 @@ agents:
     )
 
     with pytest.raises(ValueError, match=r"defaults\.agent"):
-        client_config.load_config(path)
-
-
-def test_github_token_reads_configured_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    from codespace.client.providers import provider_client
-
-    path = tmp_path / "config.yaml"
-    _write_config(
-        path,
-        """
-defaults:
-  agent: home
-  image: img
-github:
-  token_env: MY_TOKEN
-agents:
-  home:
-    agent_url: http://h:8001
-    ssh_host: 10.0.0.5
-""",
-    )
-    monkeypatch.setenv("MY_TOKEN", "secret")
-
-    assert provider_client(client_config.load_config(path), "github").token == "secret"
-
-
-def test_load_config_rejects_inline_token_env(tmp_path: Path) -> None:
-    path = tmp_path / "config.yaml"
-    _write_config(
-        path,
-        """
-defaults:
-  agent: home
-  image: img
-github:
-  token_env: github_pat_example
-agents:
-  home:
-    agent_url: http://h:8001
-    ssh_host: 10.0.0.5
-""",
-    )
-
-    with pytest.raises(ValueError, match="environment variable name"):
         client_config.load_config(path)

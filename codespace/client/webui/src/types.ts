@@ -7,16 +7,6 @@ export type ConfigSummary = {
   defaults: {
     image: string;
   };
-  github: {
-    token_env: string;
-    has_token: boolean;
-  };
-  gitlab: {
-    token_env: string;
-    api_url: string;
-    ssh_host: string;
-    has_token: boolean;
-  };
   agents: Array<{
     id: string;
     agent_url: string;
@@ -30,7 +20,6 @@ export type ConfigSummary = {
     agent?: string | null;
     provider: GitProvider;
     repo: string;
-    git_ssh_host: string;
     image?: string | null;
   }>;
 };
@@ -44,6 +33,8 @@ export type Dashboard = {
 export type ClearOperationsResponse = {
   operations: Operation[];
 };
+
+export type TokenStatusResponse = Record<GitProvider, { has_token: boolean }>;
 
 export type Agent = {
   id: string;
@@ -61,7 +52,6 @@ export type Codespace = {
   id: string;
   repo: string;
   provider: GitProvider;
-  git_ssh_host: string;
   template: string;
   instance: string;
   alias?: string | null;
@@ -78,7 +68,6 @@ export type Operation = {
   alias: string;
   repo: string;
   provider: GitProvider;
-  git_ssh_host?: string | null;
   template: string;
   instance: string;
   status: OperationStatus;
@@ -93,7 +82,6 @@ export type InstanceRow = {
   agent_id: string;
   repo: string;
   provider: GitProvider;
-  git_ssh_host?: string | null;
   template: string;
   instance: string;
   alias?: string | null;
@@ -118,11 +106,9 @@ export type CreateForm = {
   agent: string;
   repo: string;
   provider: GitProvider;
-  git_ssh_host: string;
   template: string;
   instance: string;
   image: string;
-  envText: string;
 };
 
 export type Toast = {

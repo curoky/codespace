@@ -188,33 +188,6 @@ def test_create_container_writes_labels_and_returns_port(monkeypatch: pytest.Mon
     assert len(run_kwargs["mounts"]) == 1
 
 
-def test_create_container_merges_env_and_keeps_internal_ssh_port(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    container = _FakeContainer(labels={shared.LABEL_ID: "abc"})
-    client = _FakeClient(container)
-    monkeypatch.setattr(podman_ops, "Container", _FakeContainer)
-    monkeypatch.setattr(podman_ops, "_allocate_host_port", lambda: 49207)
-    monkeypatch.setattr(podman_ops, "_HOST_KRB5_CONF", _FakeHostKrb5Conf(False))
-
-    podman_ops.create_container(
-        client,
-        cs_id="abc",
-        image="img",
-        repo="owner/name",
-        template="default",
-        instance="default",
-        user="dev",
-        workspace_host_dir="/host/ws",
-        env={"HTTP_PROXY": "http://proxy", "SSHD_PORT": "22"},
-    )
-
-    assert client.containers.runs[0]["environment"] == {
-        "HTTP_PROXY": "http://proxy",
-        "SSHD_PORT": "49207",
-    }
-
-
 def test_create_container_mounts_host_krb5_conf_when_present(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -309,7 +282,7 @@ def test_clone_repo_clones_into_repo_name_directory() -> None:
     assert user == "dev"
     assert cmd[:2] == ["sh", "-c"]
     assert cmd[-2:] == ["owner/name", "/workspace/name"]
-    assert 'git clone "git@$git_ssh_host:$repo.git" "$target"' in cmd[2]
+    assert 'git clone "git@$git_host:$repo.git" "$target"' in cmd[2]
 
 
 def test_get_container_returns_none_when_absent() -> None:
