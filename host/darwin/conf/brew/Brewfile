@@ -36,8 +36,8 @@ casks = [
   # 'ecopaste',
   # 'orbstack',
   # 'db-browser-for-sqlite',
-  # 'only-switch'
-  # 'stats'
+  # 'only-switch',
+  # 'stats',
   # 'android-platform-tools',
   # 'charles',
   # 'chromedriver',
@@ -64,32 +64,35 @@ brews = [
   'python@3',
   'go',
   'node',
-  # 'pre-commit', 'prettier', 'eslint', # 'openjdk',#'git', #'yazi',
+  # 'pre-commit', 'prettier', 'eslint',
   # 'wget',
   # 'smartmontools',
   # 'parallel',
   # 'exiftool',
-  # 'prettier',
   # 'pnpm',
   # 'ffmpeg',
 
   # 'krb5',
+  # 'openjdk',
+  # 'git',
+  # 'yazi',
   # 'colima', 'docker', 'qemu',
 
   # rust
-  #'uv', 'ruff', # 'eza', 'bat', 'atuin',  'fd', 'git-absorb', 'starship',
+  # 'uv', 'ruff', 'eza', 'bat', 'atuin', 'fd', 'git-absorb', 'starship',
 
   # go
   # 'git-lfs', 'gost', 'fzf', 'shfmt', 'go-task',
 
   # compression
   # 'bzip2', 'xz', 'zstd', 'zip', 'unzip',
+
   # network tools
   # 'netcat', 'lsof', 'connect', 'inetutils',
-  # shell tools
+
   # text editor and tools
-  # 'gettext', 'm4', 'gpatch',
-  # 'the_silver_searcher',
+  # 'gettext', 'm4', 'gpatch', 'the_silver_searcher',
+
   # others
   # 'aria2',
   # 'rsync',
