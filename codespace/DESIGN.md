@@ -74,9 +74,7 @@ codespace/
 │   ├── __main__.py              # agent CLI：serve
 │   ├── app.py                   # agent FastAPI app、operation 路由
 │   ├── podman_ops.py            # Podman 编排、workspace、put_archive 注入
-│   ├── keys.py                  # ed25519 deploy keypair 生成
-│   ├── Dockerfile               # agent 镜像
-│   └── run-agent.sh             # 参考启动脚本
+│   └── keys.py                  # ed25519 deploy keypair 生成
 ├── client/
 │   ├── __main__.py              # 本地 Web GUI 启动器
 │   ├── config.py                # YAML 配置模型与校验
@@ -91,7 +89,9 @@ codespace/
 │   ├── web_projection.py        # Dashboard/config projection、Trae URL
 │   ├── webui/                   # React / Mantine 前端源码
 │   └── static/                  # Vite 构建产物
-└── image/                       # 参考开发镜像
+└── images/
+    ├── agent/                   # agent 镜像 Dockerfile 与运行脚本
+    └── dev/                     # 参考开发镜像 Dockerfile、rootfs、构建脚本
 ```
 
 | 路径 | 职责 |
@@ -117,7 +117,7 @@ codespace/
 5. **不依赖项目专属 hook**：agent 通过 podman `put_archive` 注入密钥，不要求镜像内提供自定义
    启动钩子。
 
-参考镜像位于 `codespace/image/`。
+参考开发镜像位于 `codespace/images/dev/`；agent 镜像资源位于 `codespace/images/agent/`。
 
 ## 5. Agent 协议
 

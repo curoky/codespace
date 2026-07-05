@@ -3,7 +3,7 @@
 # image needs NO podman CLI -- podman-py speaks the socket directly.
 #
 # Build from the repo root so pyproject.toml/uv.lock are in the context:
-#   podman build -t codespace/agent:latest -f codespace/agent/Dockerfile .
+#   podman build -t codespace/agent:latest -f codespace/images/agent/Dockerfile .
 
 FROM docker.io/python:3.13-slim
 
@@ -27,5 +27,5 @@ RUN uv sync --frozen --no-dev --no-install-project
 COPY codespace /app/codespace
 ENV PATH="/app/.venv/bin:$PATH"
 
-# The agent is stateless; all flags are provided at runtime (see run-agent.sh).
+# The agent is stateless; all flags are provided at runtime (see run.sh).
 ENTRYPOINT ["python", "-m", "codespace.agent"]

@@ -33,8 +33,8 @@ jobs:
   #         password: ${{ secrets.DOCKER_TOKEN }}
   #     - uses: docker/build-push-action@v6
   #       with:
-  #         context: codespace/image/stage/${{ matrix.name }}
-  #         file: codespace/image/stage/${{ matrix.name }}/Dockerfile
+  #         context: codespace/images/dev/stage/${{ matrix.name }}
+  #         file: codespace/images/dev/stage/${{ matrix.name }}/Dockerfile
   #         push: true
   #         provenance: mode=max
   #         cache-from: type=registry,ref=curoky/devspace:__cache_stage_${{ matrix.name }}
