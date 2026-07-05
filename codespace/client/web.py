@@ -93,7 +93,7 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
 
     @app.get("/api/dashboard")
     def get_dashboard() -> DashboardResponse:
-        return dashboard_response(service.list_all_agents(), operations.list())
+        return dashboard_response(service.list_all_agents(), operations.prune_completed())
 
     @app.post("/api/agents/{agent_id}/codespaces")
     def create_codespace(agent_id: str, req: CreateCodespaceRequest) -> CreateCodespaceResponse:

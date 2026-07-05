@@ -74,7 +74,6 @@ export type Operation = {
   stage: string;
   error?: string | null;
   created_at: number;
-  _polling?: boolean;
 };
 
 export type InstanceRow = {

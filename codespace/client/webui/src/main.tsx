@@ -91,6 +91,7 @@ function App() {
   });
   const autoRefreshRef = useRef<number | null>(null);
   const operationRef = useRef(operations);
+  const pollingOperationIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     operationRef.current = operations;
@@ -105,37 +106,38 @@ function App() {
   const pollOperation = useCallback(
     async (id: string) => {
       const op = operationRef.current.get(id);
-      if (!op || op._polling) return;
-      setOperations((current) => {
-        const next = new Map(current);
-        const existing = next.get(id);
-        if (existing) next.set(id, { ...existing, _polling: true });
-        return next;
-      });
-      while (true) {
-        const previous = operationRef.current.get(id) || op;
-        const latest = await request<Operation>(`/api/operations/${encodeURIComponent(id)}`).catch(
-          (requestError: Error) => ({
-            ...previous,
-            status: 'failed' as OperationStatus,
-            stage: 'polling failed',
-            error: requestError.message,
-          }),
-        );
-        setOperations((current) => new Map(current).set(id, { ...latest, _polling: true }));
-        if (latest.status === 'succeeded') {
-          showToast(`Codespace ready: ${latest.alias}`);
-          setOperations((current) => new Map(current).set(id, { ...latest, _polling: false }));
-          await refreshDashboard();
-          return;
+      if (!op || pollingOperationIdsRef.current.has(id)) return;
+      pollingOperationIdsRef.current.add(id);
+      try {
+        while (true) {
+          const previous = operationRef.current.get(id) || op;
+          const latest = await request<Operation>(`/api/operations/${encodeURIComponent(id)}`).catch(
+            (requestError: Error) => ({
+              ...previous,
+              status: 'failed' as OperationStatus,
+              stage: 'polling failed',
+              error: requestError.message,
+            }),
+          );
+          setOperations((current) => {
+            const next = new Map(current).set(id, latest);
+            operationRef.current = next;
+            return next;
+          });
+          if (latest.status === 'succeeded') {
+            showToast(`Codespace ready: ${latest.alias}`);
+            await refreshDashboard();
+            return;
+          }
+          if (latest.status === 'failed') {
+            showToast(`Operation failed: ${latest.alias}`, 'danger');
+            await refreshDashboard();
+            return;
+          }
+          await new Promise((resolve) => window.setTimeout(resolve, 2000));
         }
-        if (latest.status === 'failed') {
-          showToast(`Operation failed: ${latest.alias}`, 'danger');
-          setOperations((current) => new Map(current).set(id, { ...latest, _polling: false }));
-          await refreshDashboard();
-          return;
-        }
-        await new Promise((resolve) => window.setTimeout(resolve, 2000));
+      } finally {
+        pollingOperationIdsRef.current.delete(id);
       }
     },
     [showToast],
@@ -146,14 +148,12 @@ function App() {
     try {
       setError(null);
       const result = await request<Dashboard>('/api/dashboard');
+      const nextOperations = new Map((result.operations || []).map((op) => [op.id, op]));
+      operationRef.current = nextOperations;
       setDashboard(result);
       setLastUpdated(Date.now());
-      setOperations((current) => {
-        const next = new Map(current);
-        for (const op of result.operations || []) next.set(op.id, op);
-        return next;
-      });
-      for (const op of operationRef.current.values()) if (isBusyOperation(op)) void pollOperation(op.id);
+      setOperations(nextOperations);
+      for (const op of nextOperations.values()) if (isBusyOperation(op)) void pollOperation(op.id);
     } catch (refreshError) {
       setError((refreshError as Error).message);
     } finally {
@@ -164,7 +164,9 @@ function App() {
   const clearOperations = useCallback(async () => {
     try {
       const result = await request<ClearOperationsResponse>('/api/operations', { method: 'DELETE' });
-      setOperations(new Map(result.operations.map((op) => [op.id, op])));
+      const nextOperations = new Map(result.operations.map((op) => [op.id, op]));
+      operationRef.current = nextOperations;
+      setOperations(nextOperations);
     } catch (clearError) {
       setError((clearError as Error).message);
     }
@@ -255,11 +257,12 @@ function App() {
       });
     }
     for (const op of operations.values()) {
+      if (op.status === 'succeeded') continue;
       const key = instanceKey(op.agent_id, op.template, op.instance);
-      if (rows.has(key) && op.status === 'succeeded') continue;
       const status = normalizeStatus(op.status);
       if (filter.agent !== 'all' && op.agent_id !== filter.agent) continue;
       if (filter.status !== 'all' && status !== filter.status) continue;
+      const existing = rows.get(key);
       rows.set(key, {
         key,
         agent_id: op.agent_id,
@@ -267,11 +270,15 @@ function App() {
         provider: op.provider,
         template: op.template,
         instance: op.instance,
-        alias: op.alias,
-        id: op.id,
+        alias: existing?.alias || op.alias,
+        id: existing?.id || op.id,
+        ssh_host: existing?.ssh_host,
+        port: existing?.port,
         status: op.status,
         stage: op.stage,
         error: op.error,
+        raw_ssh_command: existing?.raw_ssh_command,
+        trae_url: existing?.trae_url,
         kind: 'operation',
       });
     }
@@ -346,7 +353,7 @@ function App() {
       if (cs.agent_id === agent && cs.template === template) used.add(cs.instance);
     }
     for (const op of operations.values()) {
-      if (op.agent_id === agent && op.template === template && op.status !== 'failed') used.add(op.instance);
+      if (op.agent_id === agent && op.template === template && isBusyOperation(op)) used.add(op.instance);
     }
     return used;
   }
@@ -419,7 +426,9 @@ function App() {
         agent_id: form.agent,
         created_at: Date.now() / 1000,
       };
-      setOperations((current) => new Map(current).set(result.operation_id, operation));
+      const nextOperations = new Map(operationRef.current).set(result.operation_id, operation);
+      operationRef.current = nextOperations;
+      setOperations(nextOperations);
       showToast(`Create operation started: ${alias}`);
       void pollOperation(result.operation_id);
     } catch (submitError) {
@@ -440,6 +449,15 @@ function App() {
       );
       setError(result.warning || null);
       showToast(result.warning || 'Codespace deleted', result.warning ? 'warning' : 'success');
+      setOperations((current) => {
+        const next = new Map(current);
+        for (const [id, op] of current.entries()) {
+          if (op.agent_id === cs.agent_id && op.template === cs.template && op.instance === cs.instance) {
+            next.delete(id);
+          }
+        }
+        return next;
+      });
       await refreshDashboard();
     } catch (deleteError) {
       setError((deleteError as Error).message);
@@ -620,7 +638,8 @@ function App() {
                                           {instance.agent_id}
                                         </Anchor>
                                         {instance.alias && <Code>{instance.alias}</Code>}
-                                        <Text size="xs" c="dimmed">{instance.kind === 'operation' ? instance.stage : instance.id}</Text>
+                                        {instance.stage && <Text size="xs" c="dimmed">{instance.stage}</Text>}
+                                        {instance.id && <Text size="xs" c="dimmed">{instance.kind === 'operation' ? `container/op: ${instance.id}` : instance.id}</Text>}
                                       </Group>
                                       {instance.kind === 'operation' && <Progress mt="xs" size="xs" value={operationProgress(instance.status as OperationStatus)} color={statusColor(instance.status)} />}
                                       {instance.error && <Text size="xs" c="red" mt={4}>{instance.error}</Text>}
