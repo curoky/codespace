@@ -3,10 +3,10 @@
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
-from threading import Lock, Thread
+from threading import Lock
 from typing import Annotated
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -50,7 +50,7 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
     """Build the local Web GUI FastAPI app."""
     config = load_config(config_path)
     service = CodespaceService(config)
-    operations = OperationStore()
+    operations = OperationStore(completed_ttl_s=COMPLETED_OPERATION_TTL_S)
     provider_tokens: dict[shared.GitProvider, str] = {}
     provider_tokens_lock = Lock()
 
@@ -98,11 +98,15 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
     def get_dashboard() -> DashboardResponse:
         return dashboard_response(
             service.list_all_agents(),
-            operations.prune_completed_older_than(COMPLETED_OPERATION_TTL_S),
+            operations.list(),
         )
 
     @app.post("/api/agents/{agent_id}/codespaces")
-    def create_codespace(agent_id: str, req: CreateCodespaceRequest) -> CreateCodespaceResponse:
+    def create_codespace(
+        agent_id: str,
+        req: CreateCodespaceRequest,
+        background_tasks: BackgroundTasks,
+    ) -> CreateCodespaceResponse:
         if agent_id not in config.agents:
             raise HTTPException(status_code=404, detail="agent not found")
         with provider_tokens_lock:
@@ -110,11 +114,15 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
         if token is None:
             raise HTTPException(status_code=400, detail=f"{req.provider} token is not set")
         operation = operations.create(agent_id=agent_id, req=req)
-        Thread(
-            target=_run_create_operation,
-            args=(operations, service, operation.id, agent_id, req, token),
-            daemon=True,
-        ).start()
+        background_tasks.add_task(
+            _run_create_operation,
+            operations,
+            service,
+            operation.id,
+            agent_id,
+            req,
+            token,
+        )
         return CreateCodespaceResponse(operation_id=operation.id)
 
     @app.get("/api/operations/{operation_id}")

@@ -8,10 +8,10 @@ read back from podman labels. See DESIGN.md "Agent 创建流程".
 
 import posixpath
 import secrets
-from threading import Lock, Thread
+from threading import Lock
 from typing import cast
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
 from loguru import logger
 from podman import PodmanClient
@@ -240,16 +240,14 @@ def create_app(config: AgentConfig) -> FastAPI:
         )
 
     @app.post("/codespaces", status_code=202)
-    def create_codespace(req: shared.CreateRequest) -> shared.CreateOperation:
+    def create_codespace(
+        req: shared.CreateRequest, background_tasks: BackgroundTasks
+    ) -> shared.CreateOperation:
         operation_id = secrets.token_hex(6)
         cs_id = secrets.token_hex(8)
         operation = shared.CreateOperation(id=operation_id, status="queued", stage="queued")
         _set_operation(operation)
-        Thread(
-            target=_provision_codespace,
-            args=(operation_id, cs_id, req),
-            daemon=True,
-        ).start()
+        background_tasks.add_task(_provision_codespace, operation_id, cs_id, req)
         return _get_operation(operation_id) or operation
 
     @app.get("/operations/{operation_id}")

@@ -402,9 +402,9 @@ def test_prune_completed_keeps_only_busy_operations() -> None:
     assert [operation.id for operation in store.list()] == [queued.id]
 
 
-def test_prune_completed_older_than_keeps_recent_completed(monkeypatch: pytest.MonkeyPatch) -> None:
-    store = OperationStore()
+def test_operation_store_expires_completed_operations(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("codespace.client.web_operations.time.time", lambda: 100.0)
+    store = OperationStore(completed_ttl_s=30.0)
     old = store.create(
         agent_id="home",
         req=CreateCodespaceRequest(
@@ -428,6 +428,6 @@ def test_prune_completed_older_than_keeps_recent_completed(monkeypatch: pytest.M
     store.update(recent.id, status="succeeded", stage="ready")
     monkeypatch.setattr("codespace.client.web_operations.time.time", lambda: 220.0)
 
-    remaining = store.prune_completed_older_than(30.0)
+    remaining = store.list()
 
     assert [operation.id for operation in remaining] == [recent.id]
