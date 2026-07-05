@@ -312,6 +312,7 @@ def test_find_container_by_instance_matches_repo_template_and_instance() -> None
         labels={
             shared.LABEL_ID: "abc",
             shared.LABEL_REPO: "owner/name",
+            shared.LABEL_PROVIDER: "gitlab",
             shared.LABEL_TEMPLATE: "default",
             shared.LABEL_INSTANCE: "default",
         }
@@ -321,6 +322,18 @@ def test_find_container_by_instance_matches_repo_template_and_instance() -> None
     assert (
         podman_ops.find_container_by_instance(client, "owner/name", "default", "default")
         is container
+    )
+    assert (
+        podman_ops.find_container_by_instance(
+            client, "owner/name", "default", "default", provider="gitlab"
+        )
+        is container
+    )
+    assert (
+        podman_ops.find_container_by_instance(
+            client, "owner/name", "default", "default", provider="github"
+        )
+        is None
     )
     assert podman_ops.find_container_by_instance(client, "owner/name", "default", "other") is None
 

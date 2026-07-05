@@ -1,11 +1,11 @@
 """Provider-specific deploy-key operations."""
 
+from dataclasses import dataclass
 from typing import Protocol
 
 from github import GithubException
 from gitlab import GitlabError
 from httpx import HTTPError
-from pydantic import BaseModel, ConfigDict
 
 from codespace import shared
 from codespace.client import github
@@ -41,9 +41,8 @@ class GitProviderClient(Protocol):
         """Delete a deploy key for one repository."""
 
 
-class GithubProviderClient(BaseModel):
-    model_config = ConfigDict(frozen=True)
-
+@dataclass(frozen=True)
+class GithubProviderClient:
     provider: shared.GitProvider = "github"
     display_name: str = "GitHub"
     config_key: str = "github"
@@ -63,9 +62,8 @@ class GithubProviderClient(BaseModel):
         return github.delete_deploy_key(token, repo, cs_id)
 
 
-class GitlabProviderClient(BaseModel):
-    model_config = ConfigDict(frozen=True)
-
+@dataclass(frozen=True)
+class GitlabProviderClient:
     provider: shared.GitProvider = "gitlab"
     display_name: str = "GitLab"
     config_key: str = "gitlab"
@@ -87,10 +85,15 @@ class GitlabProviderClient(BaseModel):
         return gitlab_client.delete_deploy_key(token, repo, cs_id)
 
 
+_PROVIDER_CLIENTS: dict[shared.GitProvider, GitProviderClient] = {
+    "github": GithubProviderClient(),
+    "gitlab": GitlabProviderClient(),
+}
+
+
 def provider_client(provider: shared.GitProvider) -> GitProviderClient:
     """Return a configured façade for ``provider``."""
-    match provider:
-        case "github":
-            return GithubProviderClient()
-        case "gitlab":
-            return GitlabProviderClient()
+    try:
+        return _PROVIDER_CLIENTS[provider]
+    except KeyError as exc:
+        raise ValueError(f"unsupported git provider: {provider!r}") from exc

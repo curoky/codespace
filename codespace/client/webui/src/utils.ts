@@ -1,4 +1,17 @@
-import type { Codespace, InstanceRow, Operation, OperationStatus } from './types';
+import type { Codespace, InstanceRow, Operation, OperationStatus, StatusFilter } from './types';
+
+export const STATUS_FILTER_OPTIONS: Array<{ value: StatusFilter; label: string }> = [
+  { value: 'all', label: 'All status' },
+  { value: 'running', label: 'Running' },
+  { value: 'stopped', label: 'Stopped' },
+  { value: 'queued', label: 'Queued' },
+  { value: 'failed', label: 'Failed' },
+  { value: 'unknown', label: 'Unknown' },
+];
+
+export function isStatusFilter(value: string): value is StatusFilter {
+  return STATUS_FILTER_OPTIONS.some((option) => option.value === value);
+}
 
 export function instanceAlias(agent: string, template: string, instance: string): string {
   return agent && template && instance ? `${agent}-${template}-${instance}` : '';

@@ -121,12 +121,45 @@ def test_create_provision_failure_rolls_back_and_returns_500(
     assert rolled_back  # rollback attempted to find/remove the container
 
 
+def test_create_failure_state_survives_rollback_failure(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def _raise_podman_down(*args: object, **kwargs: object) -> None:
+        raise RuntimeError("podman down")
+
+    def _raise_rollback_down(*args: object, **kwargs: object) -> None:
+        raise RuntimeError("rollback down")
+
+    monkeypatch.setattr(
+        keys,
+        "generate_deploy_keypair",
+        lambda: keys.DeployKeypair(private_openssh="PRIV", public_openssh="PUB"),
+    )
+    monkeypatch.setattr(podman_ops, "find_container_by_instance", lambda *a: None)
+    monkeypatch.setattr(podman_ops, "pull_image", lambda *a: None)
+    monkeypatch.setattr(podman_ops, "create_container", _raise_podman_down)
+    monkeypatch.setattr(podman_ops, "get_container", _raise_rollback_down)
+
+    resp = client.post("/codespaces", json=_create_body())
+    assert resp.status_code == 202
+    operation = _operation_result(client, resp.json()["id"])
+    assert operation["status"] == "failed"
+    assert operation["error"] == "podman down"
+
+
 def test_create_rejects_invalid_repo(client: TestClient) -> None:
     resp = client.post(
         "/codespaces",
         json={"repo": "invalid", "login_pubkey": "ssh-ed25519 AAAA", "image": "img"},
     )
     assert resp.status_code == 422  # pydantic validation at the boundary
+
+
+def test_agent_config_rejects_relative_or_root_workspace() -> None:
+    with pytest.raises(ValueError):
+        app_module.AgentConfig(workspace_root_host="relative", podman_uri="unix:///run/podman/podman.sock")
+    with pytest.raises(ValueError):
+        app_module.AgentConfig(workspace_root_host="/", podman_uri="unix:///run/podman/podman.sock")
 
 
 def test_create_rejects_existing_repo_template_instance(
@@ -251,6 +284,7 @@ def test_delete_with_purge_removes_workspace(
             shared.LABEL_INSTANCE: "default",
         }.get(key, default),
     )
+    monkeypatch.setattr(podman_ops, "stop_container", lambda c: None)
     monkeypatch.setattr(podman_ops, "remove_container", lambda c: None)
     purged: list[str] = []
     monkeypatch.setattr(podman_ops, "purge_workspace", lambda client, d: purged.append(d))
@@ -262,6 +296,30 @@ def test_delete_with_purge_removes_workspace(
     assert purged == [
         "/var/lib/cs/" + shared.workspace_dir_name("owner/name", "default", "default")
     ]
+
+
+def test_delete_with_purge_purges_before_removing_container(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    events: list[str] = []
+    monkeypatch.setattr(podman_ops, "get_container", lambda client, cs_id: object())
+    monkeypatch.setattr(
+        podman_ops,
+        "read_label",
+        lambda container, key, default="": {
+            shared.LABEL_REPO: "owner/name",
+            shared.LABEL_TEMPLATE: "default",
+            shared.LABEL_INSTANCE: "default",
+        }.get(key, default),
+    )
+    monkeypatch.setattr(podman_ops, "stop_container", lambda c: events.append("stop"))
+    monkeypatch.setattr(podman_ops, "purge_workspace", lambda client, d: events.append("purge"))
+    monkeypatch.setattr(podman_ops, "remove_container", lambda c: events.append("remove"))
+
+    resp = client.request("DELETE", "/codespaces/abc123?purge=true")
+
+    assert resp.status_code == 200
+    assert events == ["stop", "purge", "remove"]
 
 
 def test_clone_codespace_repo(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:

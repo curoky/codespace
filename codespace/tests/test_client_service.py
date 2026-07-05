@@ -210,9 +210,50 @@ def test_delete_codespace_continues_when_deploy_key_revocation_fails(
         purge=True,
     )
 
-    assert events == ["delete-key", "delete-remote"]
+    assert events == ["delete-remote", "delete-key"]
     assert result.ok is True
     assert result.workspace_removed is True
     assert result.warning is not None
     assert "GitLab deploy key revocation failed for group/project" in result.warning
     assert "403: insufficient_granular_scope" in result.warning
+
+
+def test_delete_codespace_does_not_revoke_key_when_remote_delete_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    profile = AgentProfile(id="home", agent_url="http://agent", ssh_host="10.0.0.5")
+    cfg = WebConfig(defaults=DefaultsConfig(agent="home", image="img"), agents={"home": profile})
+    svc = service.CodespaceService(cfg)
+    events: list[str] = []
+
+    class FakeProvider:
+        def delete_deploy_key(self, *args: object, **kwargs: object) -> bool:
+            events.append("delete-key")
+            return True
+
+    def _request_agent(
+        self: service.CodespaceService,
+        request_profile: AgentProfile,
+        method: str,
+        path: str,
+        body: dict | None = None,
+        *,
+        timeout: float = service.HTTP_TIMEOUT,
+    ) -> tuple[int, dict]:
+        events.append("delete-remote")
+        return 500, {"error": "podman unavailable"}
+
+    monkeypatch.setattr(service, "provider_client", lambda provider: FakeProvider())
+    monkeypatch.setattr(service.ssh_config, "find_entry", lambda **kwargs: None)
+    monkeypatch.setattr(service.CodespaceService, "request_agent", _request_agent)
+
+    with pytest.raises(service.ServiceError, match="podman unavailable"):
+        svc.delete_codespace(
+            "home",
+            "abc123",
+            token="tok",
+            repo="group/project",
+            provider="gitlab",
+        )
+
+    assert events == ["delete-remote"]

@@ -1,6 +1,7 @@
 export type GitProvider = 'github' | 'gitlab';
 export type AgentStatus = 'online' | 'offline';
 export type OperationStatus = 'queued' | 'running' | 'succeeded' | 'failed';
+export type StatusFilter = 'all' | 'running' | 'stopped' | 'unknown' | 'queued' | 'failed';
 
 export type ConfigSummary = {
   default_agent: string;
@@ -74,6 +75,7 @@ export type Operation = {
   stage: string;
   error?: string | null;
   created_at: number;
+  updated_at: number;
 };
 
 export type InstanceRow = {
@@ -97,7 +99,7 @@ export type InstanceRow = {
 
 export type FilterState = {
   agent: string;
-  status: string;
+  status: StatusFilter;
   sort: 'agent' | 'repo' | 'template' | 'instance' | 'alias' | 'status';
 };
 

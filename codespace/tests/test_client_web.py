@@ -154,6 +154,44 @@ def test_dashboard_aggregates_agents(
     )
 
 
+def test_dashboard_does_not_prune_completed_operations(
+    app_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from codespace.client import service
+
+    monkeypatch.setattr(service.CodespaceService, "list_all_agents", lambda self: [])
+    token_resp = app_client.put("/api/provider-tokens/github", json={"token": "secret"})
+    assert token_resp.status_code == 200
+
+    def _create(
+        self: service.CodespaceService,
+        agent_id: str,
+        req: service.CreateCodespaceInput,
+        *,
+        token: str,
+        progress: Callable[[str], None] | None = None,
+    ) -> shared.Codespace:
+        return _codespace()
+
+    monkeypatch.setattr(service.CodespaceService, "create_codespace", _create)
+    resp = app_client.post(
+        "/api/agents/home/codespaces",
+        json={"repo": "owner/name", "template": "api", "instance": "dev", "image": "img"},
+    )
+    op_id = resp.json()["operation_id"]
+
+    for _ in range(20):
+        op = app_client.get(f"/api/operations/{op_id}").json()
+        if op["status"] == "succeeded":
+            break
+        time.sleep(0.01)
+
+    dashboard = app_client.get("/api/dashboard")
+    assert dashboard.status_code == 200
+    assert dashboard.json()["operations"][0]["id"] == op_id
+    assert app_client.get(f"/api/operations/{op_id}").status_code == 200
+
+
 def test_trae_url_defaults_to_workspace_without_repo() -> None:
     assert web_projection.trae_remote_ssh_url("dev@10.0.0.5:49207") == (
         "trae://vscode-remote/ssh-remote+dev%4010.0.0.5%3A49207/workspace?"
@@ -269,7 +307,9 @@ def test_delete_passes_optional_request_token(
     token_resp = app_client.put("/api/provider-tokens/github", json={"token": "secret"})
     assert token_resp.status_code == 200
 
-    resp = app_client.delete("/api/agents/home/codespaces/abc123?repo=owner/name&purge=true")
+    resp = app_client.delete(
+        "/api/agents/home/codespaces/abc123?repo=owner/name&provider=github&purge=true"
+    )
 
     assert resp.status_code == 200
     assert resp.json() == {
@@ -360,3 +400,24 @@ def test_prune_completed_keeps_only_busy_operations() -> None:
 
     assert [operation.id for operation in remaining] == [queued.id]
     assert [operation.id for operation in store.list()] == [queued.id]
+
+
+def test_prune_completed_older_than_keeps_recent_completed(monkeypatch: pytest.MonkeyPatch) -> None:
+    store = OperationStore()
+    monkeypatch.setattr("codespace.client.web_operations.time.time", lambda: 100.0)
+    old = store.create(
+        agent_id="home",
+        req=CreateCodespaceRequest(repo="curoky/devspace", template="api", instance="old", image="img"),
+    )
+    recent = store.create(
+        agent_id="home",
+        req=CreateCodespaceRequest(repo="curoky/devspace", template="api", instance="recent", image="img"),
+    )
+    store.update(old.id, status="failed", stage="failed")
+    monkeypatch.setattr("codespace.client.web_operations.time.time", lambda: 200.0)
+    store.update(recent.id, status="succeeded", stage="ready")
+    monkeypatch.setattr("codespace.client.web_operations.time.time", lambda: 220.0)
+
+    remaining = store.prune_completed_older_than(30.0)
+
+    assert [operation.id for operation in remaining] == [recent.id]

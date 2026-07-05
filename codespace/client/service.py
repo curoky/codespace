@@ -7,12 +7,13 @@ import subprocess
 import time
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Any
 from pathlib import Path
 from threading import Lock
 from urllib.parse import urlparse, urlunparse
 
 import httpx
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from codespace import shared
 from codespace.client import ssh_config
@@ -24,9 +25,11 @@ HTTP_TIMEOUT = 30.0
 DASHBOARD_TIMEOUT = 3.0
 CLONE_HTTP_TIMEOUT = 30 * 60.0
 CREATE_POLL_INTERVAL = 2.0
+CREATE_OPERATION_TIMEOUT = 30 * 60.0
 CLONE_RETRY_INTERVAL = 2.0
 CLONE_ATTEMPTS = 5
 ProgressCallback = Callable[[str], None]
+JsonValue = dict[str, Any] | list[Any] | str | int | float | bool | None
 
 
 class ServiceError(RuntimeError):
@@ -44,6 +47,8 @@ class AgentListResult(BaseModel):
 
 class CreateCodespaceInput(BaseModel):
     """Input for service-level create orchestration."""
+
+    model_config = ConfigDict(extra="forbid")
 
     repo: str
     provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER
@@ -171,7 +176,7 @@ def _wait_for_agent(local_url: str) -> None:
 
 def request(
     method: str, url: str, body: dict | None = None, *, timeout: float = HTTP_TIMEOUT
-) -> tuple[int, dict]:
+) -> tuple[int, JsonValue]:
     """Perform an HTTP request and return ``(status, parsed_json)``."""
     try:
         resp = httpx.request(method, url, json=body, timeout=timeout)
@@ -183,8 +188,10 @@ def request(
         return resp.status_code, {"error": resp.text or resp.reason_phrase}
 
 
-def agent_error(data: dict, status: int) -> str:
+def agent_error(data: JsonValue, status: int) -> str:
     """Render an actionable error message from an agent HTTP response."""
+    if not isinstance(data, dict):
+        return f"agent returned HTTP {status}"
     if data.get("error"):
         return str(data["error"])
     detail = data.get("detail")
@@ -218,6 +225,14 @@ def ensure_login_key(alias: str) -> str:
             check=True,
             capture_output=True,
         )
+    if not pub_path.exists():
+        result = subprocess.run(  # noqa: S603
+            ["ssh-keygen", "-y", "-f", str(key_path)],  # noqa: S607
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        pub_path.write_text(result.stdout.strip() + "\n", encoding="utf-8")
     return pub_path.read_text(encoding="utf-8").strip()
 
 
@@ -275,6 +290,8 @@ class CodespaceService:
                     online=False,
                     error=agent_error(data, status),
                 )
+            if not isinstance(data, list):
+                return AgentListResult(agent=profile, online=False, error="agent returned non-list response")
             return AgentListResult(
                 agent=profile,
                 online=True,
@@ -307,7 +324,7 @@ class CodespaceService:
         body: dict | None = None,
         *,
         timeout: float = HTTP_TIMEOUT,
-    ) -> tuple[int, dict]:
+    ) -> tuple[int, JsonValue]:
         """Request an agent directly or through a client-side SSH HTTP proxy."""
         base_url = self._agent_base_url(profile)
         url = f"{base_url.rstrip('/')}/{path.lstrip('/')}"
@@ -331,10 +348,13 @@ class CodespaceService:
         progress: ProgressCallback | None = None,
     ) -> shared.Codespace:
         """Poll an asynchronous agent create operation until completion."""
-        while True:
+        deadline = time.monotonic() + CREATE_OPERATION_TIMEOUT
+        while time.monotonic() < deadline:
             status_code, data = self.request_agent(profile, "GET", f"/operations/{operation_id}")
             if status_code != 200:
                 raise ServiceError(agent_error(data, status_code))
+            if not isinstance(data, dict):
+                raise ServiceError("agent returned invalid operation response")
             operation = shared.CreateOperation.model_validate(data)
             if progress is not None:
                 progress(f"agent: {operation.stage}")
@@ -347,6 +367,7 @@ class CodespaceService:
                     return operation.codespace
                 case "failed":
                     raise ServiceError(operation.error or "agent failed to provision codespace")
+        raise ServiceError(f"agent create operation timed out after {CREATE_OPERATION_TIMEOUT:.0f}s")
 
     def clone_remote_repo(self, profile: AgentProfile, codespace_id: str) -> None:
         """Ask the agent to clone the main repo after deploy keys are registered."""
@@ -373,7 +394,7 @@ class CodespaceService:
         token: str,
         progress: ProgressCallback | None = None,
     ) -> shared.Codespace:
-        """Create a codespace on one agent and register local/GitHub state."""
+        """Create a codespace on one agent and register local provider state."""
         profile = self.agent(agent_id)
         registered: list[tuple[str, shared.GitProvider]] = []
         cs: shared.Codespace | None = None
@@ -396,6 +417,8 @@ class CodespaceService:
             status, data = self.request_agent(profile, "POST", "/codespaces", payload.model_dump())
             if status != 202:
                 raise ServiceError(agent_error(data, status))
+            if not isinstance(data, dict):
+                raise ServiceError("agent returned invalid create response")
 
             operation = shared.CreateOperation.model_validate(data)
             cs = self.wait_create_operation(profile, operation.id, progress=progress)
@@ -458,7 +481,7 @@ class CodespaceService:
         provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER,
         purge: bool = False,
     ) -> DeleteCodespaceResult:
-        """Delete a remote codespace and clean local/GitHub state."""
+        """Delete a remote codespace and clean local/provider state."""
         profile = self.agent(agent_id)
         entry = ssh_config.find_entry(codespace_id=codespace_id, agent_id=agent_id)
         alias = alias or entry.alias if entry else alias
@@ -467,10 +490,16 @@ class CodespaceService:
         if not repos and repo:
             repos = [repo]
             warning = "local alias not found; only main repo deploy key was revoked"
+        resp = self.delete_remote(profile, codespace_id, purge=purge)
         if token:
             key_provider = entry.provider if entry else provider
+            client = provider_client(key_provider)
+            if not repos:
+                warning = (
+                    f"{client.display_name} token is available, but repo metadata is missing; "
+                    "skipped deploy key revocation"
+                )
             for repo_name in repos:
-                client = provider_client(key_provider)
                 try:
                     client.delete_deploy_key(token, repo_name, codespace_id)
                 except PROVIDER_ERRORS as exc:
@@ -482,7 +511,6 @@ class CodespaceService:
             delete_provider = entry.provider if entry else provider
             display_name = provider_client(delete_provider).display_name
             warning = f"{display_name} token is not available; skipped deploy key revocation"
-        resp = self.delete_remote(profile, codespace_id, purge=purge)
         if alias:
             ssh_config.remove(alias)
             remove_login_key(alias)
@@ -500,4 +528,6 @@ class CodespaceService:
         status, data = self.request_agent(profile, "DELETE", path)
         if status != 200:
             raise ServiceError(agent_error(data, status))
+        if not isinstance(data, dict):
+            raise ServiceError("agent returned invalid delete response")
         return shared.DeleteResponse.model_validate(data)

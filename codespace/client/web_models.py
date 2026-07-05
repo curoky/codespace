@@ -5,6 +5,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from codespace import shared
+from codespace.client.service import CreateCodespaceInput
 
 WebOperationStatus = Literal["queued", "running", "succeeded", "failed"]
 
@@ -64,14 +65,8 @@ class DashboardCodespace(BaseModel):
     trae_url: str
 
 
-class CreateCodespaceRequest(BaseModel):
+class CreateCodespaceRequest(CreateCodespaceInput):
     model_config = ConfigDict(extra="forbid")
-
-    repo: str
-    provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER
-    template: str = shared.DEFAULT_TEMPLATE
-    instance: str = shared.DEFAULT_INSTANCE
-    image: str
 
 
 class CreateCodespaceResponse(BaseModel):

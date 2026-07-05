@@ -514,12 +514,21 @@ def list_containers(client: PodmanClient) -> list[Container]:
 
 
 def find_container_by_instance(
-    client: PodmanClient, repo: str, template: str, instance: str
+    client: PodmanClient,
+    repo: str,
+    template: str,
+    instance: str,
+    *,
+    provider: shared.GitProvider | None = None,
 ) -> Container | None:
     """Return the managed container for a ``(repo, template, instance)`` tuple, if any."""
     for container in list_containers(client):
         if (
             read_label(container, shared.LABEL_REPO) == repo
+            and (
+                provider is None
+                or read_label(container, shared.LABEL_PROVIDER, shared.DEFAULT_GIT_PROVIDER) == provider
+            )
             and read_label(container, shared.LABEL_TEMPLATE, shared.DEFAULT_TEMPLATE) == template
             and read_label(container, shared.LABEL_INSTANCE, shared.DEFAULT_INSTANCE) == instance
         ):
@@ -541,6 +550,11 @@ def get_container(client: PodmanClient, cs_id: str) -> Container | None:
 def remove_container(container: Container) -> None:
     """Force-remove a dev container (podman rm -f)."""
     container.remove(force=True)
+
+
+def stop_container(container: Container) -> None:
+    """Stop a dev container before destructive workspace cleanup."""
+    container.stop(timeout=10)
 
 
 def purge_workspace(client: PodmanClient, workspace_host_dir: str) -> None:

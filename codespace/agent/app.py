@@ -1,11 +1,12 @@
 """FastAPI application and routes for the codespace agent.
 
-The agent never talks to GitHub and holds no token: it generates a deploy
-keypair, injects the private half into the container and returns the public
-half to the client, which owns all GitHub interaction. The agent stays
-stateless -- all metadata is read back from podman labels. See DESIGN.md §4/§6.
+The agent never talks to a Git provider and holds no token: it generates a
+deploy keypair, injects the private half into the container and returns the
+public half to the client, which owns provider interaction. Runtime metadata is
+read back from podman labels. See DESIGN.md "Agent 创建流程".
 """
 
+import posixpath
 import secrets
 from threading import Lock, Thread
 from typing import cast
@@ -14,8 +15,8 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
 from loguru import logger
 from podman import PodmanClient
-from podman.errors import NotFound, PodmanError
-from pydantic import BaseModel, Field
+from podman.errors import NotFound
+from pydantic import BaseModel, Field, field_validator
 
 from codespace import shared
 from codespace.agent import keys, podman_ops
@@ -32,12 +33,19 @@ class AgentConfig(BaseModel):
     workspace_root_host: str = Field(..., description="Host path prefix for workspace bind mounts.")
     podman_uri: str = Field(..., description="Podman service socket URI.")
 
+    @field_validator("workspace_root_host")
+    @classmethod
+    def _validate_workspace_root_host(cls, value: str) -> str:
+        root = posixpath.normpath(value.strip())
+        if not root.startswith("/") or root == "/":
+            raise ValueError("workspace_root_host must be an absolute non-root host path")
+        return root
+
 
 def _workspace_host_dir(config: AgentConfig, repo: str, template: str, instance: str) -> str:
     """Compute the host workspace directory path passed to podman's bind source."""
     name = shared.workspace_dir_name(repo, template, instance)
-    root = config.workspace_root_host.rstrip("/")
-    return f"{root}/{name}"
+    return posixpath.join(config.workspace_root_host, name)
 
 
 def create_app(config: AgentConfig) -> FastAPI:
@@ -45,6 +53,8 @@ def create_app(config: AgentConfig) -> FastAPI:
     app = FastAPI(title="codespace-agent")
     operations: dict[str, shared.CreateOperation] = {}
     operations_lock = Lock()
+    creating_instances: set[tuple[str, str, str]] = set()
+    creating_instances_lock = Lock()
 
     @app.exception_handler(HTTPException)
     def _render_error(_request: object, exc: HTTPException) -> JSONResponse:
@@ -122,6 +132,7 @@ def create_app(config: AgentConfig) -> FastAPI:
 
     def _provision_codespace(operation_id: str, cs_id: str, req: shared.CreateRequest) -> None:
         user = shared.DEFAULT_CONTAINER_USER
+        instance_key = (req.repo, req.template, req.instance)
         workspace_host_dir = _workspace_host_dir(config, req.repo, req.template, req.instance)
         logger.info(
             "creating codespace id={} operation={} repo={} template={} instance={} "
@@ -136,7 +147,13 @@ def create_app(config: AgentConfig) -> FastAPI:
             workspace_host_dir,
         )
 
+        reserved_instance = False
         try:
+            with creating_instances_lock:
+                if instance_key in creating_instances:
+                    raise RuntimeError("codespace creation is already running for repo/template/instance")
+                creating_instances.add(instance_key)
+                reserved_instance = True
             with _client() as client:
                 logger.info("codespace {} operation {}: checking workspace", cs_id, operation_id)
                 _update_operation(operation_id, status="running", stage="checking workspace")
@@ -206,6 +223,10 @@ def create_app(config: AgentConfig) -> FastAPI:
             _rollback(config, cs_id)
             _update_operation(operation_id, status="failed", stage="failed", error=str(exc))
             return
+        finally:
+            if reserved_instance:
+                with creating_instances_lock:
+                    creating_instances.discard(instance_key)
 
         codespace = _build_codespace(cs_id, req, info, main_keypair)
         logger.info("codespace {} ready on port {}", cs_id, info.port)
@@ -219,7 +240,7 @@ def create_app(config: AgentConfig) -> FastAPI:
     @app.post("/codespaces", status_code=202)
     def create_codespace(req: shared.CreateRequest) -> shared.CreateOperation:
         operation_id = secrets.token_hex(6)
-        cs_id = secrets.token_hex(3)
+        cs_id = secrets.token_hex(8)
         operation = shared.CreateOperation(id=operation_id, status="queued", stage="queued")
         _set_operation(operation)
         Thread(
@@ -248,7 +269,7 @@ def create_app(config: AgentConfig) -> FastAPI:
             container = podman_ops.get_container(client, cs_id)
             if container is None:
                 # Idempotent: nothing to delete. The client is responsible for
-                # removing the GitHub deploy key (it owns the token).
+                # removing provider deploy keys (it owns the token).
                 logger.info("delete codespace {}: not found, treating as done", cs_id)
                 return shared.DeleteResponse(ok=True, workspace_removed=False)
 
@@ -260,14 +281,15 @@ def create_app(config: AgentConfig) -> FastAPI:
                 container, shared.LABEL_INSTANCE, shared.DEFAULT_INSTANCE
             )
 
-            podman_ops.remove_container(container)
-
             workspace_removed = False
             if purge and repo and template and instance:
+                podman_ops.stop_container(container)
                 podman_ops.purge_workspace(
                     client, _workspace_host_dir(config, repo, template, instance)
                 )
                 workspace_removed = True
+
+            podman_ops.remove_container(container)
 
             logger.info("deleted codespace {} (workspace_removed={})", cs_id, workspace_removed)
             return shared.DeleteResponse(ok=True, workspace_removed=workspace_removed)
@@ -314,7 +336,7 @@ def create_app(config: AgentConfig) -> FastAPI:
 def _rollback(config: AgentConfig, cs_id: str) -> None:
     """Best-effort container cleanup after a failed create.
 
-    No GitHub key exists yet at this point (the client registers it only after
+    No provider key exists yet at this point (the client registers it only after
     a successful create), so rollback only needs to remove the container.
     """
     try:
@@ -322,5 +344,5 @@ def _rollback(config: AgentConfig, cs_id: str) -> None:
             container = podman_ops.get_container(client, cs_id)
             if container is not None:
                 podman_ops.remove_container(container)
-    except PodmanError as exc:
+    except Exception as exc:
         logger.error("rollback: failed to remove container for {}: {}", cs_id, exc)

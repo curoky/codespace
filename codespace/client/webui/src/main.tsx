@@ -48,10 +48,12 @@ import {
   formatTime,
   instanceAlias,
   instanceKey,
+  isStatusFilter,
   isBusyOperation,
   isCodespaceRow,
   normalizeStatus,
   operationProgress,
+  STATUS_FILTER_OPTIONS,
   statusColor,
 } from './utils';
 
@@ -92,6 +94,8 @@ function App() {
   const autoRefreshRef = useRef<number | null>(null);
   const operationRef = useRef(operations);
   const pollingOperationIdsRef = useRef<Set<string>>(new Set());
+  const refreshSeqRef = useRef(0);
+  const pollFailuresRef = useRef<Map<string, number>>(new Map());
 
   useEffect(() => {
     operationRef.current = operations;
@@ -110,15 +114,33 @@ function App() {
       pollingOperationIdsRef.current.add(id);
       try {
         while (true) {
-          const previous = operationRef.current.get(id) || op;
-          const latest = await request<Operation>(`/api/operations/${encodeURIComponent(id)}`).catch(
-            (requestError: Error) => ({
-              ...previous,
-              status: 'failed' as OperationStatus,
-              stage: 'polling failed',
-              error: requestError.message,
-            }),
-          );
+          let latest: Operation;
+          try {
+            latest = await request<Operation>(`/api/operations/${encodeURIComponent(id)}`);
+          } catch (requestError) {
+            const message = (requestError as Error).message;
+            const failures = (pollFailuresRef.current.get(id) || 0) + 1;
+            pollFailuresRef.current.set(id, failures);
+            setError(`Operation polling failed: ${message}`);
+            if (message.includes('operation not found') || failures >= 5) {
+              setOperations((current) => {
+                const existing = current.get(id) || op;
+                const next = new Map(current).set(id, {
+                  ...existing,
+                  status: 'failed',
+                  stage: 'polling failed',
+                  error: message,
+                  updated_at: Date.now() / 1000,
+                });
+                operationRef.current = next;
+                return next;
+              });
+              return;
+            }
+            await new Promise((resolve) => window.setTimeout(resolve, 2000));
+            continue;
+          }
+          pollFailuresRef.current.delete(id);
           setOperations((current) => {
             const next = new Map(current).set(id, latest);
             operationRef.current = next;
@@ -135,19 +157,23 @@ function App() {
             return;
           }
           await new Promise((resolve) => window.setTimeout(resolve, 2000));
-        }
-      } finally {
-        pollingOperationIdsRef.current.delete(id);
       }
-    },
+    } finally {
+      pollingOperationIdsRef.current.delete(id);
+      pollFailuresRef.current.delete(id);
+    }
+  },
     [showToast],
   );
 
   const refreshDashboard = useCallback(async () => {
+    const seq = refreshSeqRef.current + 1;
+    refreshSeqRef.current = seq;
     setRefreshing(true);
     try {
       setError(null);
       const result = await request<Dashboard>('/api/dashboard');
+      if (seq !== refreshSeqRef.current) return;
       const nextOperations = new Map((result.operations || []).map((op) => [op.id, op]));
       operationRef.current = nextOperations;
       setDashboard(result);
@@ -155,9 +181,9 @@ function App() {
       setOperations(nextOperations);
       for (const op of nextOperations.values()) if (isBusyOperation(op)) void pollOperation(op.id);
     } catch (refreshError) {
-      setError((refreshError as Error).message);
+      if (seq === refreshSeqRef.current) setError((refreshError as Error).message);
     } finally {
-      setRefreshing(false);
+      if (seq === refreshSeqRef.current) setRefreshing(false);
     }
   }, [pollOperation]);
 
@@ -322,6 +348,7 @@ function App() {
       }))
       .filter((row) => {
         if (filter.agent !== 'all' && row.agent !== filter.agent) return false;
+        if (filter.status !== 'all' && row.instances.length === 0) return false;
         return row.instances.length > 0 || config.templates.some((template) => template.id === row.id);
       })
       .sort((left, right) => {
@@ -425,6 +452,7 @@ function App() {
         instance: payload.instance,
         agent_id: form.agent,
         created_at: Date.now() / 1000,
+        updated_at: Date.now() / 1000,
       };
       const nextOperations = new Map(operationRef.current).set(result.operation_id, operation);
       operationRef.current = nextOperations;
@@ -444,7 +472,7 @@ function App() {
     if (!window.confirm(purge ? '确认删除容器，并同时删除 workspace 目录？' : '确认只删除容器？workspace 会保留。')) return;
     try {
       const result = await request<{ warning?: string | null }>(
-        `/api/agents/${encodeURIComponent(cs.agent_id)}/codespaces/${encodeURIComponent(cs.id)}?repo=${encodeURIComponent(cs.repo)}${purge ? '&purge=true' : ''}`,
+        `/api/agents/${encodeURIComponent(cs.agent_id)}/codespaces/${encodeURIComponent(cs.id)}?repo=${encodeURIComponent(cs.repo)}&provider=${encodeURIComponent(cs.provider)}${purge ? '&purge=true' : ''}`,
         { method: 'DELETE' },
       );
       setError(result.warning || null);
@@ -456,6 +484,7 @@ function App() {
             next.delete(id);
           }
         }
+        operationRef.current = next;
         return next;
       });
       await refreshDashboard();
@@ -556,14 +585,9 @@ function App() {
                 />
                 <Select
                   size="xs"
-                  data={[
-                    { value: 'all', label: 'All status' },
-                    { value: 'running', label: 'Running' },
-                    { value: 'stopped', label: 'Stopped' },
-                    { value: 'unknown', label: 'Unknown' },
-                  ]}
+                  data={STATUS_FILTER_OPTIONS}
                   value={filter.status}
-                  onChange={(value) => setFilter((current) => ({ ...current, status: value || 'all' }))}
+                  onChange={(value) => setFilter((current) => ({ ...current, status: value && isStatusFilter(value) ? value : 'all' }))}
                 />
                 <Select
                   size="xs"

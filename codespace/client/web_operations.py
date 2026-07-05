@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import builtins
 import secrets
 import time
 from threading import Lock
@@ -45,13 +44,24 @@ class OperationStore:
         with self._lock:
             return sorted(self._operations.values(), key=lambda op: op.created_at, reverse=True)
 
-    def prune_completed(self) -> builtins.list[WebOperation]:
+    def prune_completed(self) -> list[WebOperation]:
         """Remove non-busy operations and return the remaining operations."""
         with self._lock:
             self._operations = {
                 operation_id: operation
                 for operation_id, operation in self._operations.items()
                 if operation.status in {"queued", "running"}
+            }
+            return sorted(self._operations.values(), key=lambda op: op.created_at, reverse=True)
+
+    def prune_completed_older_than(self, max_age_s: float) -> list[WebOperation]:
+        """Remove completed operations older than ``max_age_s`` and return the rest."""
+        cutoff = time.time() - max_age_s
+        with self._lock:
+            self._operations = {
+                operation_id: operation
+                for operation_id, operation in self._operations.items()
+                if operation.status in {"queued", "running"} or operation.updated_at >= cutoff
             }
             return sorted(self._operations.values(), key=lambda op: op.created_at, reverse=True)
 

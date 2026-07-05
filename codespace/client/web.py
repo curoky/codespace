@@ -13,7 +13,6 @@ from codespace import shared
 from codespace.client.config import load_config
 from codespace.client.service import (
     CodespaceService,
-    CreateCodespaceInput,
     DeleteCodespaceResult,
 )
 from codespace.client.web_models import (
@@ -35,6 +34,15 @@ from codespace.client.web_projection import (
 )
 
 STATIC_DIR = Path(__file__).parent / "static"
+COMPLETED_OPERATION_TTL_S = 30 * 60.0
+
+
+def _provider_token_status(provider_tokens: dict[shared.GitProvider, str]) -> TokenStatusResponse:
+    """Return token presence without exposing token values."""
+    return TokenStatusResponse(
+        github=ProviderTokenStatus(has_token="github" in provider_tokens),
+        gitlab=ProviderTokenStatus(has_token="gitlab" in provider_tokens),
+    )
 
 
 def create_app(config_path: str | Path | None = None) -> FastAPI:
@@ -75,10 +83,7 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
     @app.get("/api/provider-tokens")
     def get_provider_tokens() -> TokenStatusResponse:
         with provider_tokens_lock:
-            return TokenStatusResponse(
-                github=ProviderTokenStatus(has_token="github" in provider_tokens),
-                gitlab=ProviderTokenStatus(has_token="gitlab" in provider_tokens),
-            )
+            return _provider_token_status(provider_tokens)
 
     @app.put("/api/provider-tokens/{provider}")
     def update_provider_token(
@@ -86,14 +91,13 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
     ) -> TokenStatusResponse:
         with provider_tokens_lock:
             provider_tokens[provider] = req.token
-            return TokenStatusResponse(
-                github=ProviderTokenStatus(has_token="github" in provider_tokens),
-                gitlab=ProviderTokenStatus(has_token="gitlab" in provider_tokens),
-            )
+            return _provider_token_status(provider_tokens)
 
     @app.get("/api/dashboard")
     def get_dashboard() -> DashboardResponse:
-        return dashboard_response(service.list_all_agents(), operations.prune_completed())
+        return dashboard_response(
+            service.list_all_agents(), operations.prune_completed_older_than(COMPLETED_OPERATION_TTL_S)
+        )
 
     @app.post("/api/agents/{agent_id}/codespaces")
     def create_codespace(agent_id: str, req: CreateCodespaceRequest) -> CreateCodespaceResponse:
@@ -128,17 +132,18 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
         codespace_id: str,
         purge: bool = Query(False),
         repo: str | None = Query(None),
+        provider: shared.GitProvider | None = Query(None),
     ) -> DeleteCodespaceResult:
-        provider = provider_for_delete(config, agent_id, codespace_id, repo)
+        delete_provider = provider or provider_for_delete(config, agent_id, codespace_id, repo)
         with provider_tokens_lock:
-            token = provider_tokens.get(provider)
+            token = provider_tokens.get(delete_provider)
         try:
             return service.delete_codespace(
                 agent_id,
                 codespace_id,
                 token=token,
                 repo=repo,
-                provider=provider,
+                provider=delete_provider,
                 purge=purge,
             )
         except Exception as exc:
@@ -162,7 +167,7 @@ def _run_create_operation(
         operations.update(operation_id, status="running", stage="starting")
         service.create_codespace(
             agent_id,
-            CreateCodespaceInput.model_validate(req.model_dump()),
+            req,
             token=token,
             progress=_progress,
         )
