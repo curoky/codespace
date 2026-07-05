@@ -201,6 +201,8 @@ agents:
 
 
 def test_github_token_reads_configured_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    from codespace.client.providers import provider_client
+
     path = tmp_path / "config.yaml"
     _write_config(
         path,
@@ -218,20 +220,19 @@ agents:
     )
     monkeypatch.setenv("MY_TOKEN", "secret")
 
-    assert client_config.github_token(client_config.load_config(path)) == "secret"
+    assert provider_client(client_config.load_config(path), "github").token == "secret"
 
 
-def test_github_token_accepts_inline_token_for_compatibility(tmp_path: Path) -> None:
+def test_load_config_rejects_inline_token_env(tmp_path: Path) -> None:
     path = tmp_path / "config.yaml"
-    token = "github_pat_example"
     _write_config(
         path,
-        f"""
+        """
 defaults:
   agent: home
   image: img
 github:
-  token_env: {token}
+  token_env: github_pat_example
 agents:
   home:
     agent_url: http://h:8001
@@ -239,7 +240,5 @@ agents:
 """,
     )
 
-    cfg = client_config.load_config(path)
-
-    assert client_config.github_token(cfg) == token
-    assert client_config.is_inline_github_token(cfg.github.token_env) is True
+    with pytest.raises(ValueError, match="environment variable name"):
+        client_config.load_config(path)

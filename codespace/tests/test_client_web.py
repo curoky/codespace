@@ -8,7 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from codespace import shared
-from codespace.client import web
+from codespace.client import web, web_projection
 from codespace.client.config import (
     AgentProfile,
     CreateTemplateConfig,
@@ -16,8 +16,8 @@ from codespace.client.config import (
     GithubConfig,
     WebConfig,
 )
-
-INLINE_TEST_TOKEN = "github_pat_example"
+from codespace.client.web_models import CreateCodespaceRequest
+from codespace.client.web_operations import OperationStore
 
 
 def _config() -> WebConfig:
@@ -75,26 +75,8 @@ def test_config_hides_token(app_client: TestClient) -> None:
     assert body["github"] == {
         "token_env": "GITHUB_TOKEN",
         "has_token": True,
-        "inline_token": False,
     }
     assert "secret" not in str(body)
-
-
-def test_config_hides_inline_token(monkeypatch: pytest.MonkeyPatch) -> None:
-    config = _config().model_copy(update={"github": GithubConfig(token_env=INLINE_TEST_TOKEN)})
-    monkeypatch.setattr(web, "load_config", lambda path=None: config)
-    app_client = TestClient(web.create_app())
-
-    resp = app_client.get("/api/config")
-
-    assert resp.status_code == 200
-    body = resp.json()
-    assert body["github"] == {
-        "token_env": "inline GitHub credential",
-        "has_token": True,
-        "inline_token": True,
-    }
-    assert INLINE_TEST_TOKEN not in str(body)
 
 
 def test_config_returns_create_templates(app_client: TestClient) -> None:
@@ -179,14 +161,14 @@ def test_dashboard_aggregates_agents(
 
 
 def test_trae_url_defaults_to_workspace_without_repo() -> None:
-    assert web._trae_remote_ssh_url("dev@10.0.0.5:49207") == (
+    assert web_projection.trae_remote_ssh_url("dev@10.0.0.5:49207") == (
         "trae://vscode-remote/ssh-remote+dev%4010.0.0.5%3A49207/workspace?"
         "windowId=_blank&fullscreen=true"
     )
 
 
 def test_trae_url_uses_repo_path_when_repo_is_specified() -> None:
-    assert web._trae_remote_ssh_url("dev@10.0.0.5:49207", repo="owner/api.git") == (
+    assert web_projection.trae_remote_ssh_url("dev@10.0.0.5:49207", repo="owner/api.git") == (
         "trae://vscode-remote/ssh-remote+dev%4010.0.0.5%3A49207/workspace/api?"
         "windowId=_blank&fullscreen=true"
     )
@@ -194,14 +176,16 @@ def test_trae_url_uses_repo_path_when_repo_is_specified() -> None:
 
 def test_trae_url_can_disable_new_window_hint() -> None:
     assert (
-        web._trae_remote_ssh_url("dev@10.0.0.5:49207", repo="owner/api", new_window=False)
+        web_projection.trae_remote_ssh_url(
+            "dev@10.0.0.5:49207", repo="owner/api", new_window=False
+        )
         == "trae://vscode-remote/ssh-remote+dev%4010.0.0.5%3A49207/workspace/api?fullscreen=true"
     )
 
 
 def test_trae_url_can_disable_fullscreen_hint() -> None:
     assert (
-        web._trae_remote_ssh_url(
+        web_projection.trae_remote_ssh_url(
             "dev@10.0.0.5:49207", repo="owner/api", fullscreen=False
         )
         == "trae://vscode-remote/ssh-remote+dev%4010.0.0.5%3A49207/workspace/api?windowId=_blank"
@@ -221,6 +205,7 @@ def test_operation_lifecycle(app_client: TestClient, monkeypatch: pytest.MonkeyP
     ) -> shared.Codespace:
         assert agent_id == "home"
         assert token == "secret"
+        assert req.env == {"HTTP_PROXY": "http://proxy"}
         if progress:
             progress("testing")
         return _codespace()
@@ -229,7 +214,13 @@ def test_operation_lifecycle(app_client: TestClient, monkeypatch: pytest.MonkeyP
 
     resp = app_client.post(
         "/api/agents/home/codespaces",
-        json={"repo": "owner/name", "template": "api", "instance": "dev", "image": "img"},
+        json={
+            "repo": "owner/name",
+            "template": "api",
+            "instance": "dev",
+            "image": "img",
+            "env": {"HTTP_PROXY": "http://proxy"},
+        },
     )
     assert resp.status_code == 200
     op_id = resp.json()["operation_id"]
@@ -243,36 +234,6 @@ def test_operation_lifecycle(app_client: TestClient, monkeypatch: pytest.MonkeyP
 
     assert op["status"] == "succeeded"
     assert cast(dict[str, object], op["codespace"])["id"] == "abc123"
-
-
-def test_create_accepts_inline_token_for_compatibility(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    from codespace.client import service
-
-    config = _config().model_copy(update={"github": GithubConfig(token_env=INLINE_TEST_TOKEN)})
-    monkeypatch.setattr(web, "load_config", lambda path=None: config)
-
-    def _create(
-        self: service.CodespaceService,
-        agent_id: str,
-        req: service.CreateCodespaceInput,
-        *,
-        token: str,
-        progress: Callable[[str], None] | None = None,
-    ) -> shared.Codespace:
-        assert token == INLINE_TEST_TOKEN
-        return _codespace()
-
-    monkeypatch.setattr(service.CodespaceService, "create_codespace", _create)
-    app_client = TestClient(web.create_app())
-
-    resp = app_client.post(
-        "/api/agents/home/codespaces",
-        json={"repo": "owner/name", "template": "api", "instance": "dev", "image": "img"},
-    )
-
-    assert resp.status_code == 200
 
 
 def test_create_without_github_token_logs_actionable_error(
@@ -289,7 +250,7 @@ def test_create_without_github_token_logs_actionable_error(
     assert resp.status_code == 400
     assert resp.json() == {
         "error": "GitHub token is not available in the Web GUI process; set GITHUB_TOKEN "
-        "before starting `python -m codespace.client web`, or configure github.token_env "
+        "before starting `python -m codespace.client`, or configure github.token_env "
         "in config.yaml."
     }
     assert "Rejecting create codespace request for agent home" in caplog.text
@@ -311,12 +272,14 @@ def test_delete_without_github_token_still_deletes_remote(
         token: str | None,
         alias: str | None = None,
         repo: str | None = None,
+        provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER,
         purge: bool = False,
     ) -> service.DeleteCodespaceResult:
         assert agent_id == "home"
         assert codespace_id == "abc123"
         assert token is None
         assert repo == "owner/name"
+        assert provider == "github"
         assert purge is True
         assert alias is None
         return service.DeleteCodespaceResult(
@@ -382,10 +345,10 @@ def test_service_uses_ssh_proxy_for_agent_requests(monkeypatch: pytest.MonkeyPat
 
 
 def test_prune_completed_keeps_only_busy_operations() -> None:
-    store = web.OperationStore()
+    store = OperationStore()
     queued = store.create(
         agent_id="home",
-        req=web.CreateCodespaceRequest(
+        req=CreateCodespaceRequest(
             repo="curoky/devspace",
             template="api",
             instance="queued",
@@ -394,7 +357,7 @@ def test_prune_completed_keeps_only_busy_operations() -> None:
     )
     failed = store.create(
         agent_id="home",
-        req=web.CreateCodespaceRequest(
+        req=CreateCodespaceRequest(
             repo="curoky/devspace",
             template="api",
             instance="failed",
@@ -403,7 +366,7 @@ def test_prune_completed_keeps_only_busy_operations() -> None:
     )
     succeeded = store.create(
         agent_id="home",
-        req=web.CreateCodespaceRequest(
+        req=CreateCodespaceRequest(
             repo="curoky/devspace",
             template="api",
             instance="succeeded",

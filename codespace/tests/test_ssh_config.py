@@ -99,10 +99,9 @@ def test_list_entries_parses_agent_metadata(config_path: Path) -> None:
     assert ssh_config.find_entry(codespace_id="abc123", agent_id="home") == entries[0]
 
 
-def test_find_entry_falls_back_to_single_legacy_entry(config_path: Path) -> None:
+def test_find_entry_requires_matching_agent_metadata(config_path: Path) -> None:
     ssh_config.upsert("name-default", "10.0.0.5", 49207, "dev", "abc123", ["owner/name"])
 
     entry = ssh_config.find_entry(codespace_id="abc123", agent_id="home")
 
-    assert entry is not None
-    assert entry.alias == "name-default"
+    assert entry is None

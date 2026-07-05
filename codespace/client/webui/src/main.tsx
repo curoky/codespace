@@ -24,199 +24,41 @@ import {
   Stack,
   Table,
   Text,
+  Textarea,
   TextInput,
   Title,
 } from '@mantine/core';
 import { IconChevronDown, IconChevronRight, IconPlus, IconRefresh } from '@tabler/icons-react';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-
-type AgentStatus = 'online' | 'offline';
-type OperationStatus = 'queued' | 'running' | 'succeeded' | 'failed';
-
-type ConfigSummary = {
-  default_agent: string;
-  defaults: {
-    image: string;
-  };
-  github: {
-    token_env: string;
-    has_token: boolean;
-    inline_token: boolean;
-  };
-  gitlab: {
-    token_env: string;
-    api_url: string;
-    ssh_host: string;
-    has_token: boolean;
-    inline_token: boolean;
-  };
-  agents: Array<{
-    id: string;
-    agent_url: string;
-    ssh_host: string;
-    ssh_proxy_host?: string | null;
-    ssh_proxy: boolean;
-  }>;
-  templates: Array<{
-    id: string;
-    description?: string | null;
-    agent?: string | null;
-    provider: 'github' | 'gitlab';
-    repo: string;
-    git_ssh_host: string;
-    image?: string | null;
-  }>;
-};
-
-type Dashboard = {
-  agents: Agent[];
-  codespaces: Codespace[];
-  operations: Operation[];
-};
-
-type ClearOperationsResponse = {
-  operations: Operation[];
-};
-
-type Agent = {
-  id: string;
-  agent_url: string;
-  ssh_host: string;
-  ssh_proxy_host?: string | null;
-  ssh_proxy: boolean;
-  status: AgentStatus;
-  error?: string | null;
-  codespace_count: number;
-};
-
-type Codespace = {
-  agent_id: string;
-  id: string;
-  repo: string;
-  provider: 'github' | 'gitlab';
-  git_ssh_host: string;
-  template: string;
-  instance: string;
-  alias?: string | null;
-  ssh_host: string;
-  port: number;
-  status?: string | null;
-  ssh_command: string;
-  raw_ssh_command: string;
-  trae_url: string;
-  has_local_alias: boolean;
-};
-
-type Operation = {
-  id: string;
-  agent_id: string;
-  alias: string;
-  repo: string;
-  provider: 'github' | 'gitlab';
-  git_ssh_host?: string | null;
-  template: string;
-  instance: string;
-  status: OperationStatus;
-  stage: string;
-  error?: string | null;
-  created_at: number;
-  _polling?: boolean;
-};
-
-type InstanceRow = {
-  key: string;
-  agent_id: string;
-  repo: string;
-  provider: 'github' | 'gitlab';
-  git_ssh_host?: string | null;
-  template: string;
-  instance: string;
-  alias?: string | null;
-  id?: string;
-  ssh_host?: string;
-  port?: number;
-  status?: string | null;
-  stage?: string;
-  error?: string | null;
-  raw_ssh_command?: string;
-  trae_url?: string;
-  kind: 'codespace' | 'operation';
-};
-
-type FilterState = {
-  agent: string;
-  status: string;
-  sort: 'agent' | 'repo' | 'template' | 'instance' | 'alias' | 'status';
-};
-
-type CreateForm = {
-  agent: string;
-  repo: string;
-  provider: 'github' | 'gitlab';
-  git_ssh_host: string;
-  template: string;
-  instance: string;
-  image: string;
-};
-
-type Toast = {
-  id: number;
-  message: string;
-  tone: 'success' | 'warning' | 'danger';
-};
+import { request } from './api';
+import type {
+  ClearOperationsResponse,
+  Codespace,
+  ConfigSummary,
+  CreateForm,
+  Dashboard,
+  FilterState,
+  GitProvider,
+  InstanceRow,
+  Operation,
+  OperationStatus,
+  Toast,
+} from './types';
+import {
+  formatTime,
+  instanceAlias,
+  instanceKey,
+  isBusyOperation,
+  isCodespaceRow,
+  normalizeStatus,
+  operationProgress,
+  parseEnvText,
+  statusColor,
+} from './utils';
 
 const emptyDashboard: Dashboard = { agents: [], codespaces: [], operations: [] };
 const defaultFilter: FilterState = { agent: 'all', status: 'all', sort: 'agent' };
-
-async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(path, {
-    headers: {
-      Accept: 'application/json',
-      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
-    },
-    ...options,
-  });
-  const body = response.headers.get('content-type')?.includes('application/json')
-    ? await response.json()
-    : {};
-  if (!response.ok) throw new Error(body.error || `HTTP ${response.status}`);
-  return body as T;
-}
-
-function instanceAlias(agent: string, template: string, instance: string): string {
-  return agent && template && instance ? `${agent}-${template}-${instance}` : '';
-}
-
-function normalizeStatus(status?: string | null): string {
-  return String(status || 'unknown').toLowerCase();
-}
-
-function isBusyOperation(op: Operation): boolean {
-  return op.status === 'queued' || op.status === 'running';
-}
-
-function operationProgress(status: OperationStatus): number {
-  if (status === 'queued') return 12;
-  if (status === 'running') return 58;
-  return status === 'succeeded' || status === 'failed' ? 100 : 0;
-}
-
-function instanceKey(agent: string, template: string, instance: string): string {
-  return `${agent}:${template}:${instance}`;
-}
-
-function statusColor(status?: string | null): string {
-  const normalized = normalizeStatus(status);
-  if (['online', 'running', 'succeeded'].includes(normalized)) return 'green';
-  if (['offline', 'failed'].includes(normalized)) return 'red';
-  if (normalized === 'queued') return 'yellow';
-  return 'gray';
-}
-
-function formatTime(timestamp: number | null): string {
-  return timestamp ? new Date(timestamp).toLocaleTimeString() : '尚未刷新';
-}
 
 function App() {
   const [config, setConfig] = useState<ConfigSummary | null>(null);
@@ -241,6 +83,7 @@ function App() {
     template: 'default',
     instance: 'default',
     image: '',
+    envText: '',
   });
   const autoRefreshRef = useRef<number | null>(null);
   const operationRef = useRef(operations);
@@ -485,6 +328,7 @@ function App() {
       template: template?.id || 'default',
       instance: 'default',
       image: template?.image || config.defaults.image,
+      envText: '',
     };
     setForm(nextForm);
     setCreateTemplateId(template?.id || null);
@@ -497,6 +341,7 @@ function App() {
     if (!config) return;
     setSubmitting(true);
     try {
+      const env = parseEnvText(form.envText);
       const payload = {
         repo: form.repo.trim(),
         provider: form.provider,
@@ -504,6 +349,7 @@ function App() {
         template: form.template.trim(),
         instance: form.instance.trim(),
         image: form.image.trim(),
+        env,
       };
       const alias = instanceAlias(form.agent, payload.template, payload.instance);
       const result = await request<{ operation_id: string }>(
@@ -779,6 +625,15 @@ function App() {
                     autoFocus
                     required
                   />
+                  <Textarea
+                    label="Environment variables"
+                    description="非敏感环境变量，每行 KEY=VALUE；会作为容器启动参数传入。不要在这里填写 token 或 password。"
+                    placeholder={'HTTP_PROXY=http://proxy.example.com:7890\nNO_PROXY=localhost,127.0.0.1'}
+                    value={form.envText}
+                    onChange={(event) => updateForm({ envText: event.currentTarget.value })}
+                    minRows={4}
+                    autosize
+                  />
                   <Alert color="gray">Local SSH alias: <Code>{instanceAlias(form.agent, form.template, form.instance) || '-'}</Code></Alert>
                 </Stack>
               ) : (
@@ -816,6 +671,17 @@ function App() {
                   <Grid.Col span={12}>
                     <TextInput label="Image" value={form.image} onChange={(event) => updateForm({ image: event.currentTarget.value })} required />
                   </Grid.Col>
+                  <Grid.Col span={12}>
+                    <Textarea
+                      label="Environment variables"
+                      description="非敏感环境变量，每行 KEY=VALUE；会作为容器启动参数传入。不要在这里填写 token 或 password。"
+                      placeholder={'HTTP_PROXY=http://proxy.example.com:7890\nNO_PROXY=localhost,127.0.0.1'}
+                      value={form.envText}
+                      onChange={(event) => updateForm({ envText: event.currentTarget.value })}
+                      minRows={4}
+                      autosize
+                    />
+                  </Grid.Col>
                   {selectedAgent && <Grid.Col span={12}><Alert color="gray">{selectedAgent.agent_url} · {selectedAgent.ssh_host}{selectedAgent.ssh_proxy ? ' · via SSH proxy' : ''}</Alert></Grid.Col>}
                 </Grid>
               )}
@@ -837,10 +703,6 @@ function App() {
       </Box>
     </MantineProvider>
   );
-}
-
-function isCodespaceRow(row: InstanceRow): row is InstanceRow & Codespace {
-  return row.kind === 'codespace';
 }
 
 createRoot(document.getElementById('root')!).render(<App />);

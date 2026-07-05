@@ -46,6 +46,7 @@ __all__ = [
 # Poll budget for waiting on the container to reach "running" so exec works.
 _READY_TIMEOUT_S = 30.0
 _READY_INTERVAL_S = 0.5
+_HOST_KRB5_CONF = Path("/etc/krb5.conf")
 
 
 class ContainerInfo(BaseModel):
@@ -136,6 +137,7 @@ def create_container(
     instance: str,
     user: str,
     workspace_host_dir: str,
+    env: dict[str, str] | None = None,
 ) -> ContainerInfo:
     """Start a dev container and return its id and host SSH port.
 
@@ -160,6 +162,28 @@ def create_container(
         ssh_port,
         workspace_host_dir,
     )
+    mounts = [
+        {
+            "type": "bind",
+            "source": workspace_host_dir,
+            "target": shared.WORKSPACE_MOUNT,
+        }
+    ]
+    if _HOST_KRB5_CONF.is_file():
+        mounts.append(
+            {
+                "type": "bind",
+                "source": str(_HOST_KRB5_CONF),
+                "target": "/etc/krb5.conf",
+                "read_only": True,
+            }
+        )
+
+    environment = {
+        **(env or {}),
+        "SSHD_PORT": str(ssh_port),
+    }
+
     container = client.containers.run(
         image,
         name=shared.container_name(cs_id),
@@ -168,7 +192,7 @@ def create_container(
         cap_add=["NET_RAW"],
         pids_limit=-1,
         ulimits=[{"Name": "memlock", "Soft": -1, "Hard": -1}],
-        environment={"SSHD_PORT": str(ssh_port)},
+        environment=environment,
         labels={
             shared.LABEL_ID: cs_id,
             shared.LABEL_REPO: repo,
@@ -180,13 +204,7 @@ def create_container(
             shared.LABEL_IMAGE: image,
             shared.LABEL_PORT: str(ssh_port),
         },
-        mounts=[
-            {
-                "type": "bind",
-                "source": workspace_host_dir,
-                "target": shared.WORKSPACE_MOUNT,
-            }
-        ],
+        mounts=mounts,
     )
     # detach=True always yields a Container (the streaming overloads apply only
     # when detach is False); narrow the union for the type checker.

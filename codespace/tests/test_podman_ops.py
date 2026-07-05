@@ -141,6 +141,17 @@ class _FakeClient:
         self.containers = _FakeContainers(container)
 
 
+class _FakeHostKrb5Conf:
+    def __init__(self, exists: bool) -> None:
+        self.exists = exists
+
+    def is_file(self) -> bool:
+        return self.exists
+
+    def __str__(self) -> str:
+        return "/etc/krb5.conf"
+
+
 def test_create_container_writes_labels_and_returns_port(monkeypatch: pytest.MonkeyPatch) -> None:
     container = _FakeContainer(labels={shared.LABEL_ID: "abc"})
     client = _FakeClient(container)
@@ -148,6 +159,7 @@ def test_create_container_writes_labels_and_returns_port(monkeypatch: pytest.Mon
     # point that check at the fake so the stub is accepted.
     monkeypatch.setattr(podman_ops, "Container", _FakeContainer)
     monkeypatch.setattr(podman_ops, "_allocate_host_port", lambda: 49207)
+    monkeypatch.setattr(podman_ops, "_HOST_KRB5_CONF", _FakeHostKrb5Conf(False))
 
     info = podman_ops.create_container(
         client,
@@ -173,6 +185,70 @@ def test_create_container_writes_labels_and_returns_port(monkeypatch: pytest.Mon
     assert run_kwargs["labels"][shared.LABEL_INSTANCE] == "default"
     assert run_kwargs["labels"][shared.LABEL_PORT] == "49207"
     assert run_kwargs["mounts"][0]["source"] == "/host/ws"
+    assert len(run_kwargs["mounts"]) == 1
+
+
+def test_create_container_merges_env_and_keeps_internal_ssh_port(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    container = _FakeContainer(labels={shared.LABEL_ID: "abc"})
+    client = _FakeClient(container)
+    monkeypatch.setattr(podman_ops, "Container", _FakeContainer)
+    monkeypatch.setattr(podman_ops, "_allocate_host_port", lambda: 49207)
+    monkeypatch.setattr(podman_ops, "_HOST_KRB5_CONF", _FakeHostKrb5Conf(False))
+
+    podman_ops.create_container(
+        client,
+        cs_id="abc",
+        image="img",
+        repo="owner/name",
+        template="default",
+        instance="default",
+        user="dev",
+        workspace_host_dir="/host/ws",
+        env={"HTTP_PROXY": "http://proxy", "SSHD_PORT": "22"},
+    )
+
+    assert client.containers.runs[0]["environment"] == {
+        "HTTP_PROXY": "http://proxy",
+        "SSHD_PORT": "49207",
+    }
+
+
+def test_create_container_mounts_host_krb5_conf_when_present(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    container = _FakeContainer(labels={shared.LABEL_ID: "abc"})
+    client = _FakeClient(container)
+    monkeypatch.setattr(podman_ops, "Container", _FakeContainer)
+    monkeypatch.setattr(podman_ops, "_allocate_host_port", lambda: 49207)
+    monkeypatch.setattr(podman_ops, "_HOST_KRB5_CONF", _FakeHostKrb5Conf(True))
+
+    podman_ops.create_container(
+        client,
+        cs_id="abc",
+        image="img",
+        repo="owner/name",
+        template="default",
+        instance="default",
+        user="dev",
+        workspace_host_dir="/host/ws",
+    )
+
+    run_kwargs = client.containers.runs[0]
+    assert run_kwargs["mounts"] == [
+        {
+            "type": "bind",
+            "source": "/host/ws",
+            "target": shared.WORKSPACE_MOUNT,
+        },
+        {
+            "type": "bind",
+            "source": "/etc/krb5.conf",
+            "target": "/etc/krb5.conf",
+            "read_only": True,
+        },
+    ]
 
 
 def test_ensure_workspace_dir_creates_missing_parents(tmp_path: Path) -> None:

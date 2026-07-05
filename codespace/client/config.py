@@ -13,8 +13,15 @@ from codespace import shared
 CONFIG_ENV = "CODESPACE_CONFIG"
 DEFAULT_CONFIG_PATH = Path.home() / ".config" / "codespace" / "config.yaml"
 AGENT_ID_RE = re.compile(r"^[\w.-]+$")
-GITHUB_TOKEN_PREFIXES = ("github_pat_", "ghp_", "gho_", "ghu_", "ghs_", "ghr_")
-GITLAB_TOKEN_PREFIXES = ("glpat-", "glabpat-")
+ENV_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+TOKEN_VALUE_PREFIXES = ("github_pat_", "ghp_", "gho_", "ghu_", "ghs_", "ghr_", "glpat-", "glabpat-")
+
+
+def _validate_token_env(value: str) -> str:
+    stripped = value.strip()
+    if not ENV_NAME_RE.match(stripped) or stripped.startswith(TOKEN_VALUE_PREFIXES):
+        raise ValueError("token_env must be an environment variable name")
+    return stripped
 
 
 class AgentProfile(BaseModel):
@@ -125,9 +132,7 @@ class GithubConfig(BaseModel):
     @field_validator("token_env")
     @classmethod
     def _not_blank(cls, value: str) -> str:
-        if not value.strip():
-            raise ValueError("must not be blank")
-        return value
+        return _validate_token_env(value)
 
 
 class GitlabConfig(BaseModel):
@@ -140,9 +145,15 @@ class GitlabConfig(BaseModel):
     @field_validator("token_env", "api_url", "ssh_host")
     @classmethod
     def _not_blank(cls, value: str) -> str:
-        if not value.strip():
+        stripped = value.strip()
+        if not stripped:
             raise ValueError("must not be blank")
-        return value.rstrip("/") if value.startswith(("http://", "https://")) else value
+        return stripped.rstrip("/") if stripped.startswith(("http://", "https://")) else stripped
+
+    @field_validator("token_env")
+    @classmethod
+    def _check_token_env(cls, value: str) -> str:
+        return _validate_token_env(value)
 
 
 class WebConfig(BaseModel):
@@ -213,45 +224,3 @@ def load_config(path: str | Path | None = None) -> WebConfig:
     if not isinstance(raw, dict):
         raise ValueError("config file must be a YAML mapping")
     return WebConfig.model_validate(raw)
-
-
-def github_token(config: WebConfig) -> str | None:
-    """Return the configured GitHub token from the environment, if present."""
-    if is_inline_github_token(config.github.token_env):
-        return config.github.token_env
-    return os.environ.get(config.github.token_env)
-
-
-def gitlab_token(config: WebConfig) -> str | None:
-    """Return the configured GitLab token from the environment, if present."""
-    if is_inline_gitlab_token(config.gitlab.token_env):
-        return config.gitlab.token_env
-    return os.environ.get(config.gitlab.token_env)
-
-
-def token_for_provider(config: WebConfig, provider: shared.GitProvider) -> str | None:
-    """Return the configured token for a git provider."""
-    match provider:
-        case "github":
-            return github_token(config)
-        case "gitlab":
-            return gitlab_token(config)
-
-
-def is_inline_github_token(value: str) -> bool:
-    """Return whether a value looks like an inline GitHub token instead of an env var name."""
-    return value.startswith(GITHUB_TOKEN_PREFIXES)
-
-
-def is_inline_gitlab_token(value: str) -> bool:
-    """Return whether a value looks like an inline GitLab token instead of an env var name."""
-    return value.startswith(GITLAB_TOKEN_PREFIXES)
-
-
-def default_git_ssh_host(config: WebConfig, provider: shared.GitProvider) -> str:
-    """Return the default SSH host for a git provider."""
-    match provider:
-        case "github":
-            return shared.DEFAULT_GITHUB_SSH_HOST
-        case "gitlab":
-            return config.gitlab.ssh_host

@@ -184,14 +184,11 @@ def list_entries() -> list[SshConfigEntry]:
 
 
 def find_entry(*, codespace_id: str, agent_id: str | None = None) -> SshConfigEntry | None:
-    """Find the SSH config entry for a codespace id, preferring exact agent matches."""
+    """Find the SSH config entry for a codespace id."""
     matches = [entry for entry in list_entries() if entry.codespace_id == codespace_id]
     if agent_id is not None:
         exact = [entry for entry in matches if entry.agent_id == agent_id]
-        if exact:
-            return exact[0]
-        legacy = [entry for entry in matches if entry.agent_id is None]
-        return legacy[0] if len(legacy) == 1 else None
+        return exact[0] if len(exact) == 1 else None
     return matches[0] if len(matches) == 1 else None
 
 

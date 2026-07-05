@@ -13,7 +13,6 @@ dependencies = [
     "cryptography>=44.0.0",
     "loguru>=0.7.2",
     "httpx>=0.28.0",
-    "rich>=13.9.0",
     "PyYAML>=6.0.0",
 ]
 
@@ -40,8 +39,6 @@ select = ["E", "F", "B", "Q", "I", "UP", "S", "SIM", "RUF", "PTH", "ANN", "C4", 
 [tool.ruff.lint.per-file-ignores]
 # The agent is designed to serve on all interfaces (see DESIGN.md §11 threat model).
 "codespace/agent/__main__.py" = ["S104"]
-# typer uses function calls (typer.Option) in argument defaults by design.
-"codespace/client/__main__.py" = ["B008"]
 # Tests may use assert and hardcoded dummy secrets.
 "codespace/tests/**" = ["S101", "S105", "S106"]
 

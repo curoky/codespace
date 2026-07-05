@@ -93,9 +93,15 @@ def test_create_codespace_clones_after_registering_deploy_key(
     )
 
     monkeypatch.setattr(service, "ensure_login_key", lambda alias: "ssh-ed25519 LOGIN")
-    monkeypatch.setattr(
-        service.github, "register_deploy_key", lambda *a, **k: events.append("register")
-    )
+
+    class FakeProvider:
+        ssh_host = shared.DEFAULT_GITHUB_SSH_HOST
+
+        def register_deploy_key(self, *args: object, **kwargs: object) -> int:
+            events.append("register")
+            return 1
+
+    monkeypatch.setattr(service, "provider_client", lambda config, provider: FakeProvider())
     monkeypatch.setattr(service.ssh_config, "upsert", lambda *a, **k: events.append("upsert"))
     monkeypatch.setattr(service.CodespaceService, "wait_create_operation", lambda *a, **k: cs)
 
@@ -111,6 +117,8 @@ def test_create_codespace_clones_after_registering_deploy_key(
         assert request_profile == profile
         if method == "POST" and path == "/codespaces":
             events.append("create")
+            assert body is not None
+            assert body["env"] == {"HTTP_PROXY": "http://proxy"}
             return 202, {"id": "op123", "status": "queued", "stage": "queued"}
         if method == "POST" and path == "/codespaces/abc123/clone":
             assert timeout == service.CLONE_HTTP_TIMEOUT
@@ -123,7 +131,11 @@ def test_create_codespace_clones_after_registering_deploy_key(
     result = svc.create_codespace(
         "home",
         service.CreateCodespaceInput(
-            repo="owner/name", template="api", instance="dev", image="img"
+            repo="owner/name",
+            template="api",
+            instance="dev",
+            image="img",
+            env={"HTTP_PROXY": "http://proxy"},
         ),
         token="tok",
     )

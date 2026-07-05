@@ -176,6 +176,7 @@ def create_app(config: AgentConfig) -> FastAPI:
                     instance=req.instance,
                     user=user,
                     workspace_host_dir=workspace_host_dir,
+                    env=req.env,
                 )
                 logger.info(
                     "codespace {} operation {}: container created id={} ssh_port={}",
