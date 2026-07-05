@@ -263,6 +263,15 @@ def test_inject_credentials_chowns_and_puts_archive() -> None:
     assert 'cat "$tmp_block" >> "$tmp_config"' in append_cmd[2]
     assert 'mv "$tmp_config" "$config"' in append_cmd[2]
 
+    ssh_chown = (["chown", "-R", "dev:dev", "/home/dev/.ssh"], "0")
+    assert container.execs.count(ssh_chown) == 2
+    append_index = next(
+        index
+        for index, (cmd, _user) in enumerate(container.execs)
+        if cmd[3:5] == ["append-ssh-config", "/home/dev/.ssh"]
+    )
+    assert container.execs.index(ssh_chown) < append_index
+
 
 def test_inject_credentials_uses_stdout_from_multiplexed_home_output() -> None:
     output = _exec_frame(1, b"/home/x") + _exec_frame(

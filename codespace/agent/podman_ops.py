@@ -323,8 +323,11 @@ def inject_credentials(
     )
     if not container.put_archive(ssh_dir, archive):
         raise RuntimeError("failed to inject credentials via put_archive")
+    # put_archive preserves tar member ownership as root. Re-own before merging
+    # the temporary config block because the merge runs as the login user.
+    _exec_checked(container, ["chown", "-R", f"{user}:{user}", ssh_dir], user="0")
     _append_managed_ssh_config(container, ssh_dir, user=user)
-    # put_archive preserves the tar member ownership (root); re-own to the user.
+    # The merge creates/replaces ~/.ssh/config; keep the whole dir owned by user.
     _exec_checked(container, ["chown", "-R", f"{user}:{user}", ssh_dir], user="0")
     logger.info("ssh credentials injected into {}", shared.container_name(cs_id))
 
