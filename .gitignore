@@ -13,3 +13,5 @@ htmlcov/
 
 # JavaScript
 node_modules/
+
+*.log
