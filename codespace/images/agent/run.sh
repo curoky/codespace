@@ -24,7 +24,7 @@ podman run --detach \
   -v /tmp/podmanxd.sock:/tmp/podmanxd.sock \
   -v "${WORKSPACE_ROOT_HOST}:${WORKSPACE_ROOT_HOST}" \
   -e WORKSPACE_ROOT_HOST="${WORKSPACE_ROOT_HOST}" \
-  -e ATUIN_DB_URI="${ATUIN_DB_URI}" \
+  -e ATUIN_DB_URI="${ATUIN_DB_URI:-}" \
   ghcr.io/curoky/devspace:codespace-agent
 
 echo "agent 'codespace-agent' started on port 8001."
