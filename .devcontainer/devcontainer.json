@@ -1,5 +1,5 @@
 {
-  "image": "ghcr.io/curoky/devspace:base-ubuntu24.04",
+  "image": "ghcr.io/curoky/devspace:codespace-debian13",
   "containerUser": "x",
   "features": {}
 }

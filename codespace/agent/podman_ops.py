@@ -34,7 +34,7 @@ _READY_TIMEOUT_S = 30.0
 _READY_INTERVAL_S = 0.5
 _SSH_CONFIG_BEGIN = "# >>> codespace managed git ssh config >>>"
 _SSH_CONFIG_END = "# <<< codespace managed git ssh config <<<"
-_HOST_KRB5_CONF = Path("/etc/krb5.conf")
+_HOST_KRB5_CONF = "/etc/krb5.conf"
 
 
 class ContainerInfo(BaseModel):
@@ -147,22 +147,22 @@ def create_container(
         ssh_port,
         workspace_host_dir,
     )
+    # Bind sources are interpreted by the host podman service, not by the agent
+    # container. Do not probe /etc/krb5.conf from inside the agent container: it
+    # may be invisible there even when the file exists on the host.
     mounts: list[dict[str, object]] = [
         {
             "type": "bind",
             "source": workspace_host_dir,
             "target": shared.WORKSPACE_MOUNT,
-        }
+        },
+        {
+            "type": "bind",
+            "source": _HOST_KRB5_CONF,
+            "target": "/etc/krb5.conf",
+            "read_only": True,
+        },
     ]
-    if _HOST_KRB5_CONF.is_file():
-        mounts.append(
-            {
-                "type": "bind",
-                "source": str(_HOST_KRB5_CONF),
-                "target": "/etc/krb5.conf",
-                "read_only": True,
-            }
-        )
 
     container = client.containers.run(
         image,

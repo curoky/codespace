@@ -141,17 +141,6 @@ class _FakeClient:
         self.containers = _FakeContainers(container)
 
 
-class _FakeHostKrb5Conf:
-    def __init__(self, exists: bool) -> None:
-        self.exists = exists
-
-    def is_file(self) -> bool:
-        return self.exists
-
-    def __str__(self) -> str:
-        return "/etc/krb5.conf"
-
-
 def test_create_container_writes_labels_and_returns_port(monkeypatch: pytest.MonkeyPatch) -> None:
     container = _FakeContainer(labels={shared.LABEL_ID: "abc"})
     client = _FakeClient(container)
@@ -159,7 +148,6 @@ def test_create_container_writes_labels_and_returns_port(monkeypatch: pytest.Mon
     # point that check at the fake so the stub is accepted.
     monkeypatch.setattr(podman_ops, "Container", _FakeContainer)
     monkeypatch.setattr(podman_ops, "_allocate_host_port", lambda: 49207)
-    monkeypatch.setattr(podman_ops, "_HOST_KRB5_CONF", _FakeHostKrb5Conf(False))
 
     info = podman_ops.create_container(
         client,
@@ -185,17 +173,21 @@ def test_create_container_writes_labels_and_returns_port(monkeypatch: pytest.Mon
     assert run_kwargs["labels"][shared.LABEL_INSTANCE] == "default"
     assert run_kwargs["labels"][shared.LABEL_PORT] == "49207"
     assert run_kwargs["mounts"][0]["source"] == "/host/ws"
-    assert len(run_kwargs["mounts"]) == 1
+    assert run_kwargs["mounts"][1] == {
+        "type": "bind",
+        "source": "/etc/krb5.conf",
+        "target": "/etc/krb5.conf",
+        "read_only": True,
+    }
 
 
-def test_create_container_mounts_host_krb5_conf_when_present(
+def test_create_container_always_passes_host_krb5_conf_bind_to_podman(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     container = _FakeContainer(labels={shared.LABEL_ID: "abc"})
     client = _FakeClient(container)
     monkeypatch.setattr(podman_ops, "Container", _FakeContainer)
     monkeypatch.setattr(podman_ops, "_allocate_host_port", lambda: 49207)
-    monkeypatch.setattr(podman_ops, "_HOST_KRB5_CONF", _FakeHostKrb5Conf(True))
 
     podman_ops.create_container(
         client,
