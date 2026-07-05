@@ -43,9 +43,11 @@ class _FakeProjects:
     def __init__(self, project: _FakeProject) -> None:
         self.project = project
         self.requested_repo: str | None = None
+        self.requested_lazy: bool | None = None
 
-    def get(self, repo: str) -> _FakeProject:
+    def get(self, repo: str, *, lazy: bool = False) -> _FakeProject:
         self.requested_repo = repo
+        self.requested_lazy = lazy
         return self.project
 
 
@@ -74,6 +76,7 @@ def test_register_deploy_key_uses_gitlab_project_api() -> None:
     assert client.private_token == "tok"
     assert client.timeout == gitlab.HTTP_TIMEOUT
     assert client.projects.requested_repo == "group/sub/project"
+    assert client.projects.requested_lazy is True
     assert client.project.keys.created == [
         {
             "title": "codespace-abc123",
@@ -101,6 +104,7 @@ def test_delete_deploy_key_removes_matching_title() -> None:
     client = _FakeGitlab.instances[0]
     assert removed is True
     assert client.projects.requested_repo == "group/project"
+    assert client.projects.requested_lazy is True
     assert client.project.keys.deleted == [2]
 
 

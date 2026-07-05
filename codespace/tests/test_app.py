@@ -143,7 +143,9 @@ def test_create_rejects_existing_repo_template_instance(
     assert resp.status_code == 202
     operation = _operation_result(client, resp.json()["id"])
     assert operation["status"] == "failed"
-    assert operation["error"] == "codespace already exists for repo/template/instance (id=abc123)"
+    assert operation["error"] == (
+        "codespace already exists for repo/template/instance (id=abc123, name=None, status=unknown)"
+    )
     assert created == []
 
 

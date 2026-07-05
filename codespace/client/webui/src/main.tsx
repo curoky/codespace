@@ -132,6 +132,7 @@ function App() {
         if (latest.status === 'failed') {
           showToast(`Operation failed: ${latest.alias}`, 'danger');
           setOperations((current) => new Map(current).set(id, { ...latest, _polling: false }));
+          await refreshDashboard();
           return;
         }
         await new Promise((resolve) => window.setTimeout(resolve, 2000));
@@ -339,6 +340,26 @@ function App() {
     setForm((current) => ({ ...current, ...patch }));
   }
 
+  function existingInstances(agent: string, template: string): Set<string> {
+    const used = new Set<string>();
+    for (const cs of dashboard.codespaces) {
+      if (cs.agent_id === agent && cs.template === template) used.add(cs.instance);
+    }
+    for (const op of operations.values()) {
+      if (op.agent_id === agent && op.template === template && op.status !== 'failed') used.add(op.instance);
+    }
+    return used;
+  }
+
+  function nextInstanceName(agent: string, template: string): string {
+    const used = existingInstances(agent, template);
+    if (!used.has('default')) return 'default';
+    for (let index = 2; ; index += 1) {
+      const candidate = `default-${index}`;
+      if (!used.has(candidate)) return candidate;
+    }
+  }
+
   function openCreate(templateId: string) {
     if (!config) return;
     const template = config.templates.find((item) => item.id === templateId);
@@ -355,7 +376,7 @@ function App() {
       repo: template.repo,
       provider,
       template: template.id,
-      instance: 'default',
+      instance: nextInstanceName(agent, template.id),
       image: template.image || config.defaults.image,
     };
     setForm(nextForm);
@@ -376,6 +397,9 @@ function App() {
         instance: form.instance.trim(),
         image: form.image.trim(),
       };
+      if (existingInstances(form.agent, payload.template).has(payload.instance)) {
+        throw new Error(`Instance already exists: ${form.agent}/${payload.template}/${payload.instance}`);
+      }
       if (!providerTokenStatus[form.provider].has_token) throw new Error(`请先保存 ${form.provider === 'gitlab' ? 'GitLab' : 'GitHub'} token`);
       const alias = instanceAlias(form.agent, payload.template, payload.instance);
       const result = await request<{ operation_id: string }>(

@@ -239,6 +239,11 @@ deploy key 生命周期由 client 负责。
    - 必要权限和属主。
 10. 返回 codespace payload，丢弃内存中的 deploy private key。
 
+创建前 agent 会根据 Podman container labels 检查是否已存在相同 `repo/template/instance` 的容器；
+workspace 目录是否存在不参与这个重复判断。若报 `codespace already exists for repo/template/instance`，
+说明 agent 连接的 Podman service 中仍存在带相同 labels 的容器，错误信息会包含 existing id、容器名
+和状态，便于清理 stale container。
+
 若 agent 创建阶段失败，agent 自行删除已创建容器。此时 deploy key 尚未注册，无需清理 Git
 provider。
 
@@ -290,7 +295,9 @@ ready
 6. 删除本地登录 keypair。
 
 若本地 alias 缺失，仍允许删除远端容器；此时只能根据 Web 请求里的 repo 尽力吊销主 repo deploy
-key，并向用户返回 warning。
+key，并向用户返回 warning。若 provider deploy key 吊销失败（例如 GitLab fine-grained token 缺少
+delete deploy key 权限），删除流程仍继续删除远端容器和本地 SSH 物料，并把吊销失败作为 warning
+返回给 Web GUI。
 
 ## 9. SSH config 专用文件与托管块
 
@@ -346,7 +353,8 @@ codespace-<repo-slug>-<template>-<instance>-<hash8>
 - `hash8`：`sha256(repo + "\0" + template + "\0" + instance)` 的前 8 位；
 - 同一个 repo/template/instance 稳定复用同一目录；
 - 不同 template 或 instance 不共享 workspace，避免串数据；
-- 默认删除容器不删目录，purge 才删除目录。
+- 默认删除容器不删目录，purge 才删除目录；
+- purge 时 agent 通过 helper container 挂载 workspace 父目录并删除目标 workspace 目录本身，避免只清空目录内容后留下空目录。
 
 ## 11. 状态来源
 
@@ -361,7 +369,8 @@ codespace-<repo-slug>-<template>-<instance>-<hash8>
 | Web operation | client 进程内存 | `/api/operations/{id}` |
 
 agent 重启后不会丢失容器状态；Web GUI 重启后 operation 历史丢失，但 Dashboard 会重新通过 agent
-list 发现现存 codespace。
+list 发现现存 codespace。agent 内存中的 failed operation 不参与重复实例判断；重复判断只来自 Podman
+容器 labels，因此排查 stale instance 时应使用 agent 同一个 podman socket 查看容器列表。
 
 ## 12. Git provider 抽象
 
@@ -375,6 +384,11 @@ Git provider 差异集中在 `codespace/client/providers/registry.py`：
 
 上层 `service.py` 和 `web.py` 不直接分支 GitHub/GitLab，统一通过 provider façade 执行 deploy key
 操作；Git clone SSH host 由 `shared.default_git_host(provider)` 推导。
+
+GitLab token 可以是普通 Personal Access Token，也可以是 Fine-grained personal access token。
+Fine-grained token 只需要覆盖目标 project，并授予 Deploy Key 相关 REST API 权限。GitLab client
+使用 python-gitlab 的 lazy project object，避免先请求 `GET /projects/:id`；这样即使 token 只允许
+project deploy key 的 list/create/delete endpoint，也能完成 codespace 的 deploy key 生命周期。
 
 ## 13. 安全模型
 

@@ -17,7 +17,10 @@ def register_deploy_key(
 ) -> int:
     """Register ``public_openssh`` as a GitLab deploy key on ``repo``; return its id."""
     client = python_gitlab.Gitlab(private_token=token, timeout=HTTP_TIMEOUT)
-    project = client.projects.get(repo)
+    # Fine-grained PATs can be limited to deploy-key endpoints only. Avoid an
+    # eager GET /projects/:id here because that endpoint may require a different
+    # permission even when the deploy-key endpoints themselves are allowed.
+    project = client.projects.get(repo, lazy=True)
     deploy_key = project.keys.create(
         {
             "title": shared.deploy_key_title(cs_id),
@@ -31,7 +34,8 @@ def register_deploy_key(
 def delete_deploy_key(token: str, repo: str, cs_id: str) -> bool:
     """Delete the GitLab deploy key titled ``codespace-<cs_id>`` from ``repo``."""
     client = python_gitlab.Gitlab(private_token=token, timeout=HTTP_TIMEOUT)
-    project = client.projects.get(repo)
+    # Keep this lazy for GitLab fine-grained PATs with only deploy-key access.
+    project = client.projects.get(repo, lazy=True)
     title = shared.deploy_key_title(cs_id)
     removed = False
     for key in project.keys.list(get_all=True):

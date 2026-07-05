@@ -145,14 +145,20 @@ def create_app(config: AgentConfig) -> FastAPI:
                 )
                 if existing is not None:
                     existing_id = podman_ops.read_label(existing, shared.LABEL_ID)
+                    existing_status = podman_ops._container_status(existing) or "unknown"
+                    existing_name = getattr(existing, "name", None)
                     logger.warning(
-                        "codespace {} operation {}: duplicate instance existing_id={}",
+                        "codespace {} operation {}: duplicate instance existing_id={} "
+                        "existing_name={} existing_status={}",
                         cs_id,
                         operation_id,
                         existing_id,
+                        existing_name,
+                        existing_status,
                     )
                     raise RuntimeError(
-                        f"codespace already exists for repo/template/instance (id={existing_id})"
+                        "codespace already exists for repo/template/instance "
+                        f"(id={existing_id}, name={existing_name}, status={existing_status})"
                     )
 
                 _set_stage(operation_id, cs_id, "generating deploy keys")

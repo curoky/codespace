@@ -317,8 +317,8 @@ failed
 
 Dashboard 每个 instance 提供删除入口：
 
-- Delete：删除容器，保留 workspace。
-- Delete + Purge：删除容器并删除 workspace。
+- Delete container：删除容器，保留 workspace。
+- Delete workspace：删除容器并删除 workspace 目录本身。
 
 后端流程：
 
@@ -327,7 +327,14 @@ Dashboard 每个 instance 提供删除入口：
 3. 从 service 内存读取对应 provider token；token 缺失时跳过吊销并返回 warning。
 4. 调 agent `DELETE /codespaces/{id}`。
 5. 清理 `~/.ssh/codespace/ssh_config` 中的 SSH config block 和 login key。
-6. 返回 warning（如 token 缺失或 alias 缺失）。
+6. 返回 warning（如 token 缺失、alias 缺失或 provider deploy key 吊销失败）。deploy key 吊销失败
+   不阻断容器和 workspace 删除。
+
+创建时 Web GUI 会基于当前 Dashboard 和本地 operation 列表检查 `agent/template/instance` 是否已存在：
+打开创建弹窗时会为 `default` 冲突自动建议 `default-2`、`default-3` 等名称；提交前也会阻止已知重复。
+最终一致性仍由 agent 的 Podman label 去重保证。若 agent 返回 `codespace already exists for
+repo/template/instance`，说明 agent 使用的 Podman service 里仍有同 repo/template/instance 的容器；
+workspace 目录存在本身不会触发该错误。
 
 ## 11. Web API
 
@@ -381,6 +388,8 @@ Web API 只服务本地浏览器，不是远程公共 API。
 ### 11.4 `PUT /api/provider-tokens/{provider}`
 
 保存 provider token 到本地 Python Web GUI service 进程内存。`provider` 为 `github` 或 `gitlab`。
+GitLab provider 可使用普通 Personal Access Token，也可使用 Fine-grained personal access token；
+Fine-grained token 需要覆盖目标 project，并授予 Deploy Key 相关 REST API 权限。
 
 请求：
 
