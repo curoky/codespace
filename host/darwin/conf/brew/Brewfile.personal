@@ -12,6 +12,7 @@ casks = [
   'input-source-pro',
   'freefilesync',
   'resilio-sync',
+  'secretive',
 
   # 'cap',
   # 'clash-verge-rev',
