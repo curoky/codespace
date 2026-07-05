@@ -14,7 +14,7 @@ WORKDIR /app
 
 ENV PATH="/app/.venv/bin:/opt/sb/bin:/opt/sb/profile/s6/bin:/opt/sb/profile/s6/libexec:$PATH" \
   UV_LINK_MODE=copy \
-  UV_PYTHON_DOWNLOADS=managed \
+  UV_PYTHON_DOWNLOADS=true \
   UV_PYTHON=3.13 \
   PYTHONUNBUFFERED=1 \
   PYTHONPATH=/app

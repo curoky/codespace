@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.9.0
-ARG BASE_IMAGE=debian:12
+ARG BASE_IMAGE=debian:13
 
 ################################ stage/static tools ################################
 FROM docker.io/debian:latest AS stage_sb
