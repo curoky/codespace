@@ -68,10 +68,8 @@ export type Codespace = {
   ssh_host: string;
   port: number;
   status?: string | null;
-  ssh_command: string;
   raw_ssh_command: string;
   trae_url: string;
-  has_local_alias: boolean;
 };
 
 export type Operation = {

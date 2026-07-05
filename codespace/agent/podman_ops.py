@@ -18,6 +18,7 @@ import tarfile
 import time
 from contextlib import suppress
 from pathlib import Path
+from typing import cast
 
 from loguru import logger
 from podman import PodmanClient
@@ -26,22 +27,6 @@ from podman.errors import NotFound
 from pydantic import BaseModel, ConfigDict
 
 from codespace import shared
-
-__all__ = [
-    "ContainerInfo",
-    "clone_repo",
-    "create_container",
-    "ensure_workspace_dir",
-    "find_container_by_instance",
-    "get_container",
-    "inject_credentials",
-    "list_containers",
-    "pull_image",
-    "purge_workspace",
-    "read_label",
-    "remove_container",
-    "to_codespace",
-]
 
 # Poll budget for waiting on the container to reach "running" so exec works.
 _READY_TIMEOUT_S = 30.0
@@ -162,7 +147,7 @@ def create_container(
         ssh_port,
         workspace_host_dir,
     )
-    mounts = [
+    mounts: list[dict[str, object]] = [
         {
             "type": "bind",
             "source": workspace_host_dir,
@@ -443,7 +428,10 @@ def to_codespace(container: Container) -> shared.Codespace:
         user=read_label(container, shared.LABEL_USER, shared.DEFAULT_CONTAINER_USER),
         container_id=container.id,
         repo=read_label(container, shared.LABEL_REPO),
-        provider=read_label(container, shared.LABEL_PROVIDER, shared.DEFAULT_GIT_PROVIDER),
+        provider=cast(
+            shared.GitProvider,
+            read_label(container, shared.LABEL_PROVIDER, shared.DEFAULT_GIT_PROVIDER),
+        ),
         git_ssh_host=read_label(
             container, shared.LABEL_GIT_SSH_HOST, shared.DEFAULT_GITHUB_SSH_HOST
         ),

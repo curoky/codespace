@@ -191,13 +191,7 @@ def agent_error(data: dict, status: int) -> str:
         return str(data["error"])
     detail = data.get("detail")
     if detail:
-        message = _format_validation_detail(detail)
-        if _looks_like_old_agent_schema(detail):
-            message += (
-                "; the running agent is using the old create API. Restart/update the "
-                "codespace agent so POST /codespaces accepts template and instance."
-            )
-        return f"agent returned HTTP {status}: {message}"
+        return f"agent returned HTTP {status}: {_format_validation_detail(detail)}"
     return f"agent returned HTTP {status}"
 
 
@@ -213,20 +207,6 @@ def _format_validation_detail(detail: object) -> str:
                 parts.append(str(item))
         return "; ".join(parts)
     return str(detail)
-
-
-def _looks_like_old_agent_schema(detail: object) -> bool:
-    if not isinstance(detail, list):
-        return False
-    old_fields = {"template", "instance"}
-    for item in detail:
-        if not isinstance(item, dict):
-            continue
-        loc = item.get("loc", [])
-        msg = str(item.get("msg", "")).lower()
-        if any(part in old_fields for part in loc) and "extra" in msg:
-            return True
-    return False
 
 
 def ensure_login_key(alias: str) -> str:
@@ -260,17 +240,6 @@ def revoke_quietly(
     """Best-effort deploy-key revocation used during create rollback."""
     with contextlib.suppress(*PROVIDER_ERRORS):
         provider_client(config, provider).delete_deploy_key(token, repo, cs_id)
-
-
-def delete_remote(agent_url: str, cs_id: str, *, purge: bool = False) -> shared.DeleteResponse:
-    """Delete a codespace container on an agent."""
-    url = f"{agent_url.rstrip('/')}/codespaces/{cs_id}"
-    if purge:
-        url += "?purge=true"
-    status, data = request("DELETE", url)
-    if status != 200:
-        raise ServiceError(agent_error(data, status))
-    return shared.DeleteResponse.model_validate(data)
 
 
 class CodespaceService:

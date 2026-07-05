@@ -12,7 +12,6 @@ import {
   Code,
   Container,
   Flex,
-  Grid,
   Group,
   MantineProvider,
   Modal,
@@ -39,7 +38,6 @@ import type {
   CreateForm,
   Dashboard,
   FilterState,
-  GitProvider,
   InstanceRow,
   Operation,
   OperationStatus,
@@ -314,24 +312,29 @@ function App() {
     setForm((current) => ({ ...current, ...patch }));
   }
 
-  function openCreate(templateId?: string) {
+  function openCreate(templateId: string) {
     if (!config) return;
     const template = config.templates.find((item) => item.id === templateId);
-    const agent = template?.agent || (filter.agent !== 'all' ? filter.agent : config.default_agent);
-    const repo = template?.repo || '';
-    const provider = template?.provider || 'github';
+    if (!template) {
+      const message = `Template not found: ${templateId}`;
+      setCreateError(message);
+      showToast(message, 'danger');
+      return;
+    }
+    const agent = template.agent || config.default_agent;
+    const provider = template.provider;
     const nextForm: CreateForm = {
       agent,
-      repo,
+      repo: template.repo,
       provider,
-      git_ssh_host: template?.git_ssh_host || (provider === 'gitlab' ? config.gitlab.ssh_host : 'github.com'),
-      template: template?.id || 'default',
+      git_ssh_host: template.git_ssh_host || (provider === 'gitlab' ? config.gitlab.ssh_host : 'github.com'),
+      template: template.id,
       instance: 'default',
-      image: template?.image || config.defaults.image,
+      image: template.image || config.defaults.image,
       envText: '',
     };
     setForm(nextForm);
-    setCreateTemplateId(template?.id || null);
+    setCreateTemplateId(template.id);
     setCreateError(null);
     setCreateOpen(true);
   }
@@ -393,7 +396,6 @@ function App() {
     }
   }
 
-  const selectedAgent = config?.agents.find((agent) => agent.id === form.agent);
   const selectedTemplate = createTemplateId
     ? config?.templates.find((template) => template.id === createTemplateId)
     : null;
@@ -424,11 +426,9 @@ function App() {
               onChange={(value) => value && openCreate(value)}
               searchable
             />
-            <Button size="xs" variant="default" onClick={() => openCreate()}>Blank</Button>
             <Button size="xs" variant="default" leftSection={<IconRefresh size={14} />} loading={refreshing} onClick={() => void refreshDashboard()}>
               Refresh
             </Button>
-            <Button size="xs" onClick={() => openCreate()}>Create</Button>
           </Group>
         </header>
 
@@ -594,8 +594,8 @@ function App() {
         <Modal
           opened={createOpen}
           onClose={() => setCreateOpen(false)}
-          title={selectedTemplate ? `New instance · ${selectedTemplate.id}` : 'Create Codespace'}
-          size={selectedTemplate ? 'md' : 'lg'}
+          title={selectedTemplate ? `New instance · ${selectedTemplate.id}` : 'Template not found'}
+          size="md"
           centered
         >
           <form onSubmit={submitCreate}>
@@ -637,53 +637,7 @@ function App() {
                   <Alert color="gray">Local SSH alias: <Code>{instanceAlias(form.agent, form.template, form.instance) || '-'}</Code></Alert>
                 </Stack>
               ) : (
-                <Grid>
-                  <Grid.Col span={6}>
-                    <Select label="Agent" data={config?.agents.map((agent) => ({ value: agent.id, label: agent.id })) || []} value={form.agent} onChange={(value) => updateForm({ agent: value || '' })} required />
-                  </Grid.Col>
-                  <Grid.Col span={6}>
-                    <Select
-                      label="Provider"
-                      data={[{ value: 'github', label: 'GitHub' }, { value: 'gitlab', label: 'GitLab' }]}
-                      value={form.provider}
-                      onChange={(value) => {
-                        const provider = (value || 'github') as 'github' | 'gitlab';
-                        updateForm({ provider, git_ssh_host: provider === 'gitlab' ? (config?.gitlab.ssh_host || 'gitlab.com') : 'github.com' });
-                      }}
-                      required
-                    />
-                  </Grid.Col>
-                  <Grid.Col span={6}>
-                    <TextInput label="Repo" placeholder="owner/name" value={form.repo} onChange={(event) => updateForm({ repo: event.currentTarget.value })} required />
-                  </Grid.Col>
-                  <Grid.Col span={6}>
-                    <TextInput label="Git SSH host" value={form.git_ssh_host} onChange={(event) => updateForm({ git_ssh_host: event.currentTarget.value })} required />
-                  </Grid.Col>
-                  <Grid.Col span={6}>
-                    <TextInput label="Template" value={form.template} onChange={(event) => updateForm({ template: event.currentTarget.value })} required />
-                  </Grid.Col>
-                  <Grid.Col span={6}>
-                    <TextInput label="Instance name" value={form.instance} onChange={(event) => updateForm({ instance: event.currentTarget.value })} required />
-                  </Grid.Col>
-                  <Grid.Col span={12}>
-                    <Alert color="gray">Local SSH alias: <Code>{instanceAlias(form.agent, form.template, form.instance) || '-'}</Code></Alert>
-                  </Grid.Col>
-                  <Grid.Col span={12}>
-                    <TextInput label="Image" value={form.image} onChange={(event) => updateForm({ image: event.currentTarget.value })} required />
-                  </Grid.Col>
-                  <Grid.Col span={12}>
-                    <Textarea
-                      label="Environment variables"
-                      description="非敏感环境变量，每行 KEY=VALUE；会作为容器启动参数传入。不要在这里填写 token 或 password。"
-                      placeholder={'HTTP_PROXY=http://proxy.example.com:7890\nNO_PROXY=localhost,127.0.0.1'}
-                      value={form.envText}
-                      onChange={(event) => updateForm({ envText: event.currentTarget.value })}
-                      minRows={4}
-                      autosize
-                    />
-                  </Grid.Col>
-                  {selectedAgent && <Grid.Col span={12}><Alert color="gray">{selectedAgent.agent_url} · {selectedAgent.ssh_host}{selectedAgent.ssh_proxy ? ' · via SSH proxy' : ''}</Alert></Grid.Col>}
-                </Grid>
+                <Alert color="red">Selected template is unavailable. Close this dialog and choose a configured template.</Alert>
               )}
               <Group justify="flex-end">
                 <Button variant="default" onClick={() => setCreateOpen(false)}>Cancel</Button>

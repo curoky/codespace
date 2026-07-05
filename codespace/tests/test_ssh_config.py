@@ -25,7 +25,14 @@ def test_upsert_creates_block_with_id(config_path: Path) -> None:
     assert "IdentitiesOnly yes" in content
     assert "HostKeyAlgorithms ssh-ed25519" in content
     assert "UpdateHostKeys no" in content
-    assert ssh_config.get_id("myalias") == "abc123"
+    assert ssh_config.find_entry(codespace_id="abc123") == ssh_config.SshConfigEntry(
+        alias="myalias",
+        codespace_id="abc123",
+        repos=["owner/name"],
+        host="10.0.0.5",
+        port=49207,
+        user="dev",
+    )
     assert ssh_config.get_repos("myalias") == ["owner/name"]
 
 
@@ -36,7 +43,14 @@ def test_upsert_is_idempotent(config_path: Path) -> None:
     assert content.count("Host a") == 1
     assert "HostName 2.2.2.2" in content
     assert "HostName 1.1.1.1" not in content
-    assert ssh_config.get_id("a") == "id2"
+    assert ssh_config.find_entry(codespace_id="id2") == ssh_config.SshConfigEntry(
+        alias="a",
+        codespace_id="id2",
+        repos=["owner/two"],
+        host="2.2.2.2",
+        port=33,
+        user="dev",
+    )
     assert ssh_config.get_repos("a") == ["owner/two"]
 
 
@@ -62,8 +76,8 @@ def test_remove_absent_alias_is_noop(config_path: Path) -> None:
     assert not config_path.exists() or config_path.read_text() == ""
 
 
-def test_get_id_returns_none_when_missing(config_path: Path) -> None:
-    assert ssh_config.get_id("ghost") is None
+def test_find_entry_returns_none_when_missing(config_path: Path) -> None:
+    assert ssh_config.find_entry(codespace_id="ghost") is None
 
 
 def test_get_repos_returns_empty_when_missing(config_path: Path) -> None:

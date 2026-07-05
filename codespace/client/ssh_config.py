@@ -142,11 +142,6 @@ def remove(alias: str) -> None:
     _write(f"{stripped}\n" if stripped else "")
 
 
-def get_id(alias: str) -> str | None:
-    """Return the codespace id stored in the alias block, or ``None``."""
-    return _get_comment(alias, "codespace-id")
-
-
 def get_repos(alias: str) -> list[str]:
     """Return the repos stored in the alias block (main + extras), or ``[]``."""
     raw = _get_comment(alias, "codespace-repos")

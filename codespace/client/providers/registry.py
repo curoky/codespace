@@ -17,12 +17,23 @@ PROVIDER_ERRORS = (GithubException, HTTPError)
 class GitProviderClient(Protocol):
     """Uniform façade for one configured git provider."""
 
-    provider: shared.GitProvider
-    display_name: str
-    config_key: str
-    token_env: str
-    token_label: str
-    ssh_host: str
+    @property
+    def provider(self) -> shared.GitProvider: ...
+
+    @property
+    def display_name(self) -> str: ...
+
+    @property
+    def config_key(self) -> str: ...
+
+    @property
+    def token_env(self) -> str: ...
+
+    @property
+    def token_label(self) -> str: ...
+
+    @property
+    def ssh_host(self) -> str: ...
 
     @property
     def token(self) -> str | None:

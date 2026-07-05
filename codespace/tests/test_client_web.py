@@ -233,7 +233,7 @@ def test_operation_lifecycle(app_client: TestClient, monkeypatch: pytest.MonkeyP
         time.sleep(0.01)
 
     assert op["status"] == "succeeded"
-    assert cast(dict[str, object], op["codespace"])["id"] == "abc123"
+    assert op["stage"] == "ready"
 
 
 def test_create_without_github_token_logs_actionable_error(

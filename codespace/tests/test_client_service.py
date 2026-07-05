@@ -164,4 +164,3 @@ def test_agent_error_renders_validation_detail() -> None:
     )
 
     assert "body.template: Extra inputs are not permitted" in message
-    assert "running agent is using the old create API" in message

@@ -112,10 +112,8 @@ def dashboard_codespace(agent_id: str, ssh_host: str, cs: shared.Codespace) -> D
         port=cs.port,
         user=cs.user,
         status=cs.status,
-        ssh_command=f"ssh {alias}" if alias else raw_ssh_command,
         raw_ssh_command=raw_ssh_command,
         trae_url=trae_remote_ssh_url(remote_authority, repo=cs.repo),
-        has_local_alias=alias is not None,
     )
 
 

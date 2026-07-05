@@ -76,10 +76,8 @@ class DashboardCodespace(BaseModel):
     port: int
     user: str
     status: str | None = None
-    ssh_command: str
     raw_ssh_command: str
     trae_url: str
-    has_local_alias: bool
 
 
 class CreateCodespaceRequest(BaseModel):
@@ -107,7 +105,6 @@ class WebOperation(BaseModel):
     instance: str
     status: WebOperationStatus
     stage: str
-    codespace: shared.Codespace | None = None
     error: str | None = None
     created_at: float
     updated_at: float

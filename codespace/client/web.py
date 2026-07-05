@@ -144,12 +144,12 @@ def _run_create_operation(
 
     try:
         operations.update(operation_id, status="running", stage="starting")
-        cs = service.create_codespace(
+        service.create_codespace(
             agent_id,
             CreateCodespaceInput.model_validate(req.model_dump()),
             token=token,
             progress=_progress,
         )
-        operations.update(operation_id, status="succeeded", stage="ready", codespace=cs)
+        operations.update(operation_id, status="succeeded", stage="ready")
     except Exception as exc:
         operations.update(operation_id, status="failed", stage="failed", error=str(exc))

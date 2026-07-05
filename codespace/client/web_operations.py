@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+import builtins
 import secrets
 import time
 from threading import Lock
 
-from codespace import shared
 from codespace.client.service import instance_alias
 from codespace.client.web_models import CreateCodespaceRequest, WebOperation, WebOperationStatus
 
@@ -46,7 +46,7 @@ class OperationStore:
         with self._lock:
             return sorted(self._operations.values(), key=lambda op: op.created_at, reverse=True)
 
-    def prune_completed(self) -> list[WebOperation]:
+    def prune_completed(self) -> builtins.list[WebOperation]:
         """Remove non-busy operations and return the remaining operations."""
         with self._lock:
             self._operations = {
@@ -62,7 +62,6 @@ class OperationStore:
         *,
         status: WebOperationStatus | None = None,
         stage: str | None = None,
-        codespace: shared.Codespace | None = None,
         error: str | None = None,
     ) -> None:
         with self._lock:
@@ -73,7 +72,6 @@ class OperationStore:
                     for key, value in {
                         "status": status,
                         "stage": stage,
-                        "codespace": codespace,
                         "error": error,
                         "updated_at": time.time(),
                     }.items()
