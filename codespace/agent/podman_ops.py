@@ -13,6 +13,7 @@ to the agent's disk, and never appears in a mount table (see DESIGN.md §6.3).
 """
 
 import io
+import posixpath
 import socket
 import tarfile
 import time
@@ -543,18 +544,24 @@ def purge_workspace(client: PodmanClient, workspace_host_dir: str) -> None:
     """Delete a workspace directory using a throwaway helper container.
 
     Keeps the agent stateless: the removal runs inside a busybox container that
-    bind-mounts the host directory, so the agent never touches the host FS.
+    bind-mounts the host parent directory, so the agent never touches the host FS.
     """
+    normalized = posixpath.normpath(workspace_host_dir)
+    workspace_parent = posixpath.dirname(normalized)
+    workspace_name = posixpath.basename(normalized)
+    if not workspace_name or workspace_parent in ("", normalized):
+        raise ValueError(f"invalid workspace directory: {workspace_host_dir!r}")
+
     client.containers.run(
         "docker.io/library/busybox:latest",
-        command=["sh", "-c", "rm -rf /t/* /t/.[!.]* /t/..?* 2>/dev/null; true"],
+        command=["sh", "-c", 'rm -rf -- "/workspaces/$1"', "purge-workspace", workspace_name],
         remove=True,
         detach=False,
         mounts=[
             {
                 "type": "bind",
-                "source": workspace_host_dir,
-                "target": "/t",
+                "source": workspace_parent,
+                "target": "/workspaces",
             }
         ],
     )

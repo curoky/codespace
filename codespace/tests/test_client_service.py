@@ -1,6 +1,7 @@
 import subprocess
 
 import pytest
+from gitlab import GitlabError
 
 from codespace import shared
 from codespace.client import service
@@ -161,3 +162,57 @@ def test_agent_error_renders_validation_detail() -> None:
     )
 
     assert "body.image: Field required" in message
+
+
+def test_delete_codespace_continues_when_deploy_key_revocation_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    profile = AgentProfile(id="home", agent_url="http://agent", ssh_host="10.0.0.5")
+    cfg = WebConfig(defaults=DefaultsConfig(agent="home", image="img"), agents={"home": profile})
+    svc = service.CodespaceService(cfg)
+    events: list[str] = []
+
+    class FakeProvider:
+        display_name = "GitLab"
+
+        def delete_deploy_key(self, token: str, repo: str, cs_id: str) -> bool:
+            assert token == "tok"
+            assert repo == "group/project"
+            assert cs_id == "abc123"
+            events.append("delete-key")
+            raise GitlabError("403: insufficient_granular_scope")
+
+    def _request_agent(
+        self: service.CodespaceService,
+        request_profile: AgentProfile,
+        method: str,
+        path: str,
+        body: dict | None = None,
+        *,
+        timeout: float = service.HTTP_TIMEOUT,
+    ) -> tuple[int, dict]:
+        assert request_profile == profile
+        assert method == "DELETE"
+        assert path == "/codespaces/abc123?purge=true"
+        events.append("delete-remote")
+        return 200, {"ok": True, "workspace_removed": True}
+
+    monkeypatch.setattr(service, "provider_client", lambda provider: FakeProvider())
+    monkeypatch.setattr(service.ssh_config, "find_entry", lambda **kwargs: None)
+    monkeypatch.setattr(service.CodespaceService, "request_agent", _request_agent)
+
+    result = svc.delete_codespace(
+        "home",
+        "abc123",
+        token="tok",
+        repo="group/project",
+        provider="gitlab",
+        purge=True,
+    )
+
+    assert events == ["delete-key", "delete-remote"]
+    assert result.ok is True
+    assert result.workspace_removed is True
+    assert result.warning is not None
+    assert "GitLab deploy key revocation failed for group/project" in result.warning
+    assert "403: insufficient_granular_scope" in result.warning

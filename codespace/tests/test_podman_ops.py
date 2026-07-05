@@ -338,8 +338,24 @@ def test_purge_workspace_runs_helper_container() -> None:
     client = _FakeClient(_FakeContainer(labels={}))
     podman_ops.purge_workspace(client, "/host/ws")
     run = client.containers.runs[0]
-    assert run["mounts"][0]["source"] == "/host/ws"
+    assert run["mounts"][0]["source"] == "/host"
+    assert run["mounts"][0]["target"] == "/workspaces"
+    assert run["command"] == [
+        "sh",
+        "-c",
+        'rm -rf -- "/workspaces/$1"',
+        "purge-workspace",
+        "ws",
+    ]
     assert run["remove"] is True
+
+
+@pytest.mark.parametrize("workspace_host_dir", ["/", ".", ""])
+def test_purge_workspace_rejects_invalid_target(workspace_host_dir: str) -> None:
+    client = _FakeClient(_FakeContainer(labels={}))
+    with pytest.raises(ValueError, match="invalid workspace directory"):
+        podman_ops.purge_workspace(client, workspace_host_dir)
+    assert client.containers.runs == []
 
 
 def _tar_names(data: bytes) -> list[str]:

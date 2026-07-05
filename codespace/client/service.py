@@ -470,7 +470,14 @@ class CodespaceService:
         if token:
             key_provider = entry.provider if entry else provider
             for repo_name in repos:
-                provider_client(key_provider).delete_deploy_key(token, repo_name, codespace_id)
+                client = provider_client(key_provider)
+                try:
+                    client.delete_deploy_key(token, repo_name, codespace_id)
+                except PROVIDER_ERRORS as exc:
+                    warning = (
+                        f"{client.display_name} deploy key revocation failed for "
+                        f"{repo_name}: {exc}; deleted codespace anyway"
+                    )
         elif repos:
             delete_provider = entry.provider if entry else provider
             display_name = provider_client(delete_provider).display_name

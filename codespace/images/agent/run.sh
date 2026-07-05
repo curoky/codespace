@@ -7,7 +7,7 @@
 
 set -euo pipefail
 
-WORKSPACE_ROOT_HOST="${WORKSPACE_ROOT_HOST:-${HOME}/codespace-workspaces}"
+WORKSPACE_ROOT_HOST="${WORKSPACE_ROOT_HOST:-${HOME}/codespace}"
 
 mkdir -p "${WORKSPACE_ROOT_HOST}"
 
