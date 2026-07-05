@@ -31,6 +31,8 @@ from codespace import shared
 # Poll budget for waiting on the container to reach "running" so exec works.
 _READY_TIMEOUT_S = 30.0
 _READY_INTERVAL_S = 0.5
+_SSH_CONFIG_BEGIN = "# >>> codespace managed git ssh config >>>"
+_SSH_CONFIG_END = "# <<< codespace managed git ssh config <<<"
 _HOST_KRB5_CONF = Path("/etc/krb5.conf")
 
 
@@ -304,13 +306,12 @@ def inject_credentials(
 
     # Main repo: provider SSH host + its read-write key.
     git_host = shared.default_git_host(provider)
-    ssh_config_blocks = [_ssh_host_block(git_host, git_host, "repo_id_ed25519")]
+    ssh_config = _managed_ssh_config_block(_ssh_host_block(git_host, git_host, "repo_id_ed25519"))
     members: list[tuple[str, str, int]] = [
         ("repo_id_ed25519", private_key, 0o600),
         ("authorized_keys", login_pubkey.rstrip("\n") + "\n", 0o600),
+        ("config.codespace.tmp", ssh_config, 0o600),
     ]
-
-    members.append(("config", "\n".join(ssh_config_blocks), 0o600))
 
     archive = _multi_member_tar(members)
     logger.info(
@@ -321,6 +322,7 @@ def inject_credentials(
     )
     if not container.put_archive(ssh_dir, archive):
         raise RuntimeError("failed to inject credentials via put_archive")
+    _append_managed_ssh_config(container, ssh_dir, user=user)
     # put_archive preserves the tar member ownership (root); re-own to the user.
     _exec_checked(container, ["chown", "-R", f"{user}:{user}", ssh_dir], user="0")
     logger.info("ssh credentials injected into {}", shared.container_name(cs_id))
@@ -384,6 +386,49 @@ def _ssh_host_block(host: str, hostname: str, key_file: str) -> str:
         f"    IdentityFile ~/.ssh/{key_file}\n"
         "    IdentitiesOnly yes\n"
         "    StrictHostKeyChecking accept-new\n"
+    )
+
+
+def _managed_ssh_config_block(block: str) -> str:
+    """Wrap an injected ssh config block so repeated injections can replace it."""
+    return f"{_SSH_CONFIG_BEGIN}\n{block.rstrip()}\n{_SSH_CONFIG_END}\n"
+
+
+def _append_managed_ssh_config(container: Container, ssh_dir: str, *, user: str) -> None:
+    """Append the managed git ssh config without overwriting a user's config."""
+    _exec_checked(
+        container,
+        [
+            "sh",
+            "-c",
+            r"""
+set -eu
+ssh_dir="$1"
+config="$ssh_dir/config"
+tmp_block="$ssh_dir/config.codespace.tmp"
+tmp_config="$ssh_dir/config.codespace.new"
+begin_marker="$2"
+end_marker="$3"
+touch "$config"
+awk '
+  $0 == begin { skipping = 1; next }
+  $0 == end { skipping = 0; next }
+  !skipping { print }
+' begin="$begin_marker" end="$end_marker" "$config" > "$tmp_config"
+if [ -s "$tmp_config" ] && [ "$(tail -c 1 "$tmp_config")" != "" ]; then
+  printf '\n' >> "$tmp_config"
+fi
+cat "$tmp_block" >> "$tmp_config"
+mv "$tmp_config" "$config"
+rm -f "$tmp_block"
+chmod 600 "$config"
+            """.strip(),
+            "append-ssh-config",
+            ssh_dir,
+            _SSH_CONFIG_BEGIN,
+            _SSH_CONFIG_END,
+        ],
+        user=user,
     )
 
 

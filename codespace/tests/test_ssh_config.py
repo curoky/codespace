@@ -1,6 +1,7 @@
 """Tests for idempotent Codespace SSH config block management."""
 
 import stat
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import pytest
@@ -67,8 +68,9 @@ def test_upsert_preserves_other_main_config_content(ssh_paths: tuple[Path, Path]
     main_config.parent.mkdir(parents=True)
     main_config.write_text("Host existing\n    HostName 9.9.9.9\n")
     ssh_config.upsert("new", "1.2.3.4", 22, "dev", "id", ["owner/name"])
-    assert "Host existing" in main_config.read_text()
-    assert ssh_config.CODESPACE_INCLUDE_LINE in main_config.read_text()
+    main_content = main_config.read_text()
+    assert main_content.startswith(f"{ssh_config.CODESPACE_INCLUDE_LINE}\n\n")
+    assert "Host existing" in main_content
     assert "Host new" not in main_config.read_text()
     assert "Host new" in dedicated_config.read_text()
 
@@ -211,6 +213,35 @@ def test_migration_keeps_existing_dedicated_alias(ssh_paths: tuple[Path, Path]) 
     assert entries[0].host == "2.2.2.2"
 
 
+def test_migration_skips_duplicate_legacy_aliases(ssh_paths: tuple[Path, Path]) -> None:
+    main_config, dedicated_config = ssh_paths
+    main_config.parent.mkdir(parents=True)
+    main_config.write_text(
+        "# >>> codespace same >>>\n"
+        "# codespace-id: old-id\n"
+        "# codespace-repos: owner/old\n"
+        "Host same\n"
+        "    HostName 1.1.1.1\n"
+        "    Port 22\n"
+        "    User dev\n"
+        "# <<< codespace same <<<\n\n"
+        "# >>> codespace same >>>\n"
+        "# codespace-id: duplicate-id\n"
+        "# codespace-repos: owner/duplicate\n"
+        "Host same\n"
+        "    HostName 2.2.2.2\n"
+        "    Port 33\n"
+        "    User dev\n"
+        "# <<< codespace same <<<\n"
+    )
+
+    entries = ssh_config.list_entries()
+
+    content = dedicated_config.read_text()
+    assert content.count("# >>> codespace same >>>") == 1
+    assert entries[0].codespace_id == "old-id"
+
+
 def test_remove_cleans_legacy_main_block(ssh_paths: tuple[Path, Path]) -> None:
     main_config, _dedicated_config = ssh_paths
     main_config.parent.mkdir(parents=True)
@@ -246,10 +277,94 @@ def test_existing_include_is_not_duplicated(ssh_paths: tuple[Path, Path]) -> Non
     assert "~/.ssh/codespace/ssh_config" in main_config.read_text()
 
 
-@pytest.mark.parametrize("alias", ["", ".", "..", "ssh_config", "known_hosts", "bad/name"])
+def test_existing_include_with_comment_is_not_duplicated(ssh_paths: tuple[Path, Path]) -> None:
+    main_config, _dedicated_config = ssh_paths
+    main_config.parent.mkdir(parents=True)
+    main_config.write_text("Include '~/.ssh/codespace/ssh_config' # codespace\nHost existing\n")
+
+    ssh_config.upsert("a", "1.1.1.1", 22, "dev", "id", ["owner/name"])
+
+    assert main_config.read_text().lower().count("include") == 1
+
+
+def test_include_is_moved_to_top_level(ssh_paths: tuple[Path, Path]) -> None:
+    main_config, _dedicated_config = ssh_paths
+    main_config.parent.mkdir(parents=True)
+    main_config.write_text("Host existing\n    HostName 9.9.9.9\n")
+
+    ssh_config.upsert("a", "1.1.1.1", 22, "dev", "id", ["owner/name"])
+
+    assert main_config.read_text().splitlines()[:3] == [
+        ssh_config.CODESPACE_INCLUDE_LINE,
+        "",
+        "Host existing",
+    ]
+
+
+@pytest.mark.parametrize(
+    "alias",
+    [
+        "",
+        ".",
+        "..",
+        "ssh_config",
+        "known_hosts",
+        "bad/name",
+        "bad name",
+        "bad#name",
+        "bad*name",
+        "bad?name",
+        "bad\nname",
+    ],
+)
 def test_reserved_alias_is_rejected(ssh_paths: tuple[Path, Path], alias: str) -> None:
     with pytest.raises(ValueError, match="invalid or reserved SSH alias"):
         ssh_config.upsert(alias, "1.1.1.1", 22, "dev", "id", ["owner/name"])
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "match"),
+    [
+        ({"host": "bad\nhost"}, "host"),
+        ({"port": 0}, "port"),
+        ({"port": 70000}, "port"),
+        ({"user": "bad user"}, "user"),
+        ({"cs_id": "bad\nid"}, "codespace_id"),
+        ({"repos": ["owner,bad"]}, "repo"),
+        ({"agent_id": "bad\nagent"}, "agent_id"),
+    ],
+)
+def test_invalid_rendered_values_are_rejected(
+    ssh_paths: tuple[Path, Path], kwargs: dict[str, object], match: str
+) -> None:
+    values: dict[str, object] = {
+        "alias": "valid-alias",
+        "host": "1.1.1.1",
+        "port": 22,
+        "user": "dev",
+        "cs_id": "id",
+        "repos": ["owner/name"],
+        "agent_id": "home",
+    }
+    values.update(kwargs)
+
+    with pytest.raises(ValueError, match=match):
+        ssh_config.upsert(**values)  # type: ignore[arg-type]
+
+
+def test_concurrent_upserts_do_not_lose_blocks(ssh_paths: tuple[Path, Path]) -> None:
+    main_config, dedicated_config = ssh_paths
+
+    def write(index: int) -> None:
+        ssh_config.upsert(f"alias-{index}", "1.1.1.1", 22, "dev", f"id-{index}", [f"owner/{index}"])
+
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        list(executor.map(write, range(8)))
+
+    content = dedicated_config.read_text()
+    for index in range(8):
+        assert f"Host alias-{index}" in content
+    assert main_config.read_text().count(ssh_config.CODESPACE_INCLUDE_LINE) == 1
 
 
 def test_written_config_files_are_private(ssh_paths: tuple[Path, Path]) -> None:

@@ -47,9 +47,23 @@ Local client Web GUI (FastAPI + React)
 client ── register/delete deploy key ──▶ GitHub / GitLab
 ```
 
-agent 容器挂载宿主机 `/run/podman/podman.sock`，创建的开发容器是宿主机上的兄弟容器
+agent 容器挂载宿主机 podman socket 到 `/tmp/podmanxd.sock`，创建的开发容器是宿主机上的兄弟容器
 （Podman-out-of-Podman, PoP）。开发容器使用 host network，sshd 在宿主机网络命名空间监听随机
 端口，client 使用配置中的 `ssh_host` 加返回的端口直连。
+
+agent 镜像使用 s6/s6-rc 作为容器 init，并在默认 `user` runlevel 下托管两个 longrun 服务：
+
+- `agent-service`：启动 `python -m codespace.agent serve`；除 workspace 根目录外，监听地址、端口和 podman socket 均在 run 脚本中固定。
+- `atuin-service`：启动 `atuin server start`，默认监听 `127.0.0.1:8002`。
+
+agent 容器启动契约是“`WORKSPACE_ROOT_HOST` 环境变量 + 可选 `ATUIN_DB_URI` 环境变量 + s6 ENTRYPOINT”，不再通过镜像 argv 传入
+`serve ...`。其他运行参数固定在 s6 run 脚本中：agent 监听 `0.0.0.0:8001`，podman socket 为
+`unix:///tmp/podmanxd.sock`，atuin 监听 `127.0.0.1:8002` 且关闭开放注册。
+
+| 环境变量 | 必填 | 默认值 | 说明 |
+| --- | --- | --- | --- |
+| `WORKSPACE_ROOT_HOST` | 是 | 无 | 宿主机 workspace 根目录。 |
+| `ATUIN_DB_URI` | 否 | 无 | atuin server 数据库连接串。 |
 
 ### 2.1 PoP 路径语义
 
@@ -90,7 +104,7 @@ codespace/
 │   ├── webui/                   # React / Mantine 前端源码
 │   └── static/                  # Vite 构建产物
 └── images/
-    ├── agent/                   # agent 镜像 Dockerfile 与运行脚本
+    ├── agent/                   # agent 镜像 Dockerfile、s6 服务定义与运行脚本
     └── dev/                     # 参考开发镜像 Dockerfile、rootfs、构建脚本
 ```
 
@@ -99,6 +113,8 @@ codespace/
 | `shared.py` | repo/template/instance 命名、wire model、deploy key title。 |
 | `agent/app.py` | agent HTTP API 与异步 create operation 管理。 |
 | `agent/podman_ops.py` | 容器创建、状态读取、workspace 目录准备、密钥注入、删除和 purge。 |
+| `images/agent/rootfs/etc/s6/s6-rc.d/agent-service/run` | s6 longrun：读取 `WORKSPACE_ROOT_HOST`，并使用固定的 agent 监听地址、端口和 podman socket 启动 agent CLI。 |
+| `images/dev/rootfs/etc/s6/s6-rc.d/atuin-service/run` | s6 longrun：启动 `atuin server start`；agent 镜像在 Dockerfile 中直接复用该服务定义。 |
 | `client/config.py` | 读取 YAML，注入 agent/template id，校验 agent、template。 |
 | `client/providers/registry.py` | GitHub / GitLab deploy key register/delete façade。 |
 | `client/service.py` | create/delete 编排，包含回滚、clone、SSH config 写入。 |

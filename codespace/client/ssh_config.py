@@ -6,7 +6,13 @@ can recover them (and revoke the deploy key) without other local state
 (see DESIGN.md §9).
 """
 
+import fcntl
+import os
 import re
+import tempfile
+import threading
+from collections.abc import Iterator
+from contextlib import contextmanager, suppress
 from pathlib import Path
 
 from pydantic import BaseModel, Field
@@ -17,6 +23,8 @@ SSH_CONFIG_PATH = Path.home() / ".ssh" / "config"
 CODESPACE_SSH_CONFIG_PATH = Path.home() / ".ssh" / "codespace" / "ssh_config"
 CODESPACE_INCLUDE_LINE = "Include ~/.ssh/codespace/ssh_config"
 RESERVED_ALIASES = {"", ".", "..", "ssh_config", "known_hosts"}
+_ALIAS_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$")
+_THREAD_LOCK = threading.RLock()
 
 
 class SshConfigEntry(BaseModel, frozen=True):
@@ -95,11 +103,60 @@ def _read(path: Path) -> str:
 
 
 def _write(path: Path, content: str) -> None:
-    """Write an ssh config file, ensuring its directory and 0600 perms."""
+    """Atomically write an ssh config file, ensuring its directory and 0600 perms."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.parent.chmod(0o700)
-    path.write_text(content, encoding="utf-8")
-    path.chmod(0o600)
+    tmp_name = ""
+    try:
+        with tempfile.NamedTemporaryFile(
+            "w",
+            encoding="utf-8",
+            dir=path.parent,
+            prefix=f".{path.name}.",
+            delete=False,
+        ) as tmp:
+            tmp_name = tmp.name
+            tmp.write(content)
+            tmp.flush()
+            os.fsync(tmp.fileno())
+        Path(tmp_name).chmod(0o600)
+        Path(tmp_name).replace(path)
+        _fsync_dir(path.parent)
+    finally:
+        if tmp_name:
+            with suppress(FileNotFoundError):
+                Path(tmp_name).unlink()
+
+
+def _fsync_dir(path: Path) -> None:
+    """Best-effort fsync for a directory after an atomic rename."""
+    try:
+        fd = os.open(path, os.O_RDONLY)
+    except OSError:
+        return
+    try:
+        os.fsync(fd)
+    except OSError:
+        pass
+    finally:
+        os.close(fd)
+
+
+@contextmanager
+def _layout_lock() -> Iterator[None]:
+    """Serialize read-modify-write operations across local processes."""
+    with _THREAD_LOCK:
+        lock_dir = CODESPACE_SSH_CONFIG_PATH.parent
+        lock_dir.mkdir(parents=True, exist_ok=True)
+        lock_dir.chmod(0o700)
+        lock_path = lock_dir / ".lock"
+        with lock_path.open("a+", encoding="utf-8") as lock_file:
+            lock_path.chmod(0o600)
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
 
 
 def _strip_block(content: str, alias: str) -> str:
@@ -146,34 +203,43 @@ def _include_targets() -> set[str]:
     return {"~/.ssh/codespace/ssh_config", str(CODESPACE_SSH_CONFIG_PATH)}
 
 
+def _line_includes_codespace_config(line: str) -> bool:
+    """Return whether one Include line targets the dedicated Codespace config."""
+    content = line.split("#", 1)[0].strip()
+    parts = content.split()
+    if not parts or parts[0].lower() != "include":
+        return False
+    targets = _include_targets()
+    return any(part.strip("'\"") in targets for part in parts[1:])
+
+
 def _has_codespace_include(content: str) -> bool:
     """Return whether ``content`` already includes the dedicated config."""
-    targets = _include_targets()
-    for line in content.splitlines():
-        parts = line.strip().split()
-        if (
-            len(parts) == 2
-            and parts[0].lower() == "include"
-            and parts[1].strip("'\"") in targets
-        ):
-            return True
-    return False
+    return any(_line_includes_codespace_config(line) for line in content.splitlines())
+
+
+def _with_global_include(content: str) -> str:
+    """Place the Codespace Include at top-level so OpenSSH always sees it."""
+    lines = [line for line in content.splitlines() if not _line_includes_codespace_config(line)]
+    body = "\n".join(lines).strip("\n")
+    return f"{CODESPACE_INCLUDE_LINE}\n\n{body}\n" if body else f"{CODESPACE_INCLUDE_LINE}\n"
+
+
+def _ensure_include_unlocked() -> None:
+    """Ensure the main ssh config includes the dedicated file; caller holds lock."""
+    content = _read(SSH_CONFIG_PATH)
+    new_content = _with_global_include(content)
+    if content == new_content:
+        if SSH_CONFIG_PATH.exists():
+            SSH_CONFIG_PATH.chmod(0o600)
+        return
+    _write(SSH_CONFIG_PATH, new_content)
 
 
 def ensure_include() -> None:
     """Ensure the main ssh config includes the dedicated Codespace config."""
-    content = _read(SSH_CONFIG_PATH)
-    if _has_codespace_include(content):
-        if SSH_CONFIG_PATH.exists():
-            SSH_CONFIG_PATH.chmod(0o600)
-        return
-    stripped = content.rstrip("\n")
-    new_content = (
-        f"{stripped}\n\n{CODESPACE_INCLUDE_LINE}\n"
-        if stripped
-        else f"{CODESPACE_INCLUDE_LINE}\n"
-    )
-    _write(SSH_CONFIG_PATH, new_content)
+    with _layout_lock():
+        _ensure_include_unlocked()
 
 
 def _migrate_legacy_blocks_from_main_config() -> None:
@@ -185,9 +251,11 @@ def _migrate_legacy_blocks_from_main_config() -> None:
 
     dedicated_content = _read(CODESPACE_SSH_CONFIG_PATH)
     dedicated = dedicated_content.rstrip("\n")
+    seen_aliases = {alias for alias, _block in _extract_blocks(dedicated_content)}
     for alias, block in legacy_blocks:
-        if not _has_block(dedicated_content, alias):
+        if alias not in seen_aliases:
             dedicated = f"{dedicated}\n\n{block}" if dedicated else block
+            seen_aliases.add(alias)
 
     _write(CODESPACE_SSH_CONFIG_PATH, f"{dedicated.rstrip()}\n" if dedicated else "")
     main_without_blocks = _strip_all_blocks(main_content).rstrip("\n")
@@ -197,13 +265,47 @@ def _migrate_legacy_blocks_from_main_config() -> None:
 def _ensure_layout() -> None:
     """Ensure legacy blocks are migrated and the main config includes the dedicated file."""
     _migrate_legacy_blocks_from_main_config()
-    ensure_include()
+    _ensure_include_unlocked()
 
 
 def _validate_alias(alias: str) -> None:
     """Reject aliases that would collide with files in ``~/.ssh/codespace``."""
-    if alias in RESERVED_ALIASES or "/" in alias:
+    if alias in RESERVED_ALIASES or not _ALIAS_RE.fullmatch(alias):
         raise ValueError(f"invalid or reserved SSH alias: {alias!r}")
+
+
+def _reject_newline(value: str, field: str) -> None:
+    if "\n" in value or "\r" in value:
+        raise ValueError(f"invalid SSH config {field}: must not contain newlines")
+
+
+def _validate_config_values(
+    *,
+    host: str,
+    port: int,
+    user: str,
+    cs_id: str,
+    repos: list[str],
+    agent_id: str | None,
+    repo: str | None,
+) -> None:
+    """Reject values that would generate invalid or injectable SSH config."""
+    if not 1 <= port <= 65535:
+        raise ValueError(f"invalid SSH port: {port!r}")
+    for field, value in {"host": host, "user": user, "codespace_id": cs_id}.items():
+        if not value:
+            raise ValueError(f"invalid SSH config {field}: must not be empty")
+        _reject_newline(value, field)
+    if any(char.isspace() for char in user):
+        raise ValueError(f"invalid SSH config user: {user!r}")
+    if agent_id is not None:
+        _reject_newline(agent_id, "agent_id")
+    if repo is not None:
+        _reject_newline(repo, "repo")
+    for item in repos:
+        _reject_newline(item, "repo")
+        if "," in item:
+            raise ValueError(f"invalid SSH config repo: {item!r}")
 
 
 def upsert(
@@ -224,28 +326,39 @@ def upsert(
     calls are idempotent. Other content in the file is preserved verbatim.
     """
     _validate_alias(alias)
-    _ensure_layout()
-    content = _strip_block(_read(CODESPACE_SSH_CONFIG_PATH), alias)
-    content = content.rstrip("\n")
-    block = _render_block(
-        alias, host, port, user, cs_id, repos, agent_id=agent_id, repo=repo, provider=provider
+    _validate_config_values(
+        host=host,
+        port=port,
+        user=user,
+        cs_id=cs_id,
+        repos=repos,
+        agent_id=agent_id,
+        repo=repo,
     )
-    new_content = f"{content}\n\n{block}\n" if content else f"{block}\n"
-    _write(CODESPACE_SSH_CONFIG_PATH, new_content)
+    with _layout_lock():
+        _ensure_layout()
+        content = _strip_block(_read(CODESPACE_SSH_CONFIG_PATH), alias)
+        content = content.rstrip("\n")
+        block = _render_block(
+            alias, host, port, user, cs_id, repos, agent_id=agent_id, repo=repo, provider=provider
+        )
+        new_content = f"{content}\n\n{block}\n" if content else f"{block}\n"
+        _write(CODESPACE_SSH_CONFIG_PATH, new_content)
 
 
 def remove(alias: str) -> None:
     """Remove the managed block for ``alias`` (no-op when absent)."""
-    _ensure_layout()
-    content = _read(CODESPACE_SSH_CONFIG_PATH)
-    stripped = _strip_block(content, alias).rstrip("\n")
-    _write(CODESPACE_SSH_CONFIG_PATH, f"{stripped}\n" if stripped else "")
+    with _layout_lock():
+        _ensure_layout()
+        content = _read(CODESPACE_SSH_CONFIG_PATH)
+        stripped = _strip_block(content, alias).rstrip("\n")
+        _write(CODESPACE_SSH_CONFIG_PATH, f"{stripped}\n" if stripped else "")
 
-    main_content = _read(SSH_CONFIG_PATH)
-    main_stripped = _strip_block(main_content, alias).rstrip("\n")
-    if main_stripped != main_content.rstrip("\n"):
-        _write(SSH_CONFIG_PATH, f"{main_stripped}\n" if main_stripped else "")
-        ensure_include()
+        main_content = _read(SSH_CONFIG_PATH)
+        main_stripped = _strip_block(main_content, alias).rstrip("\n")
+        if main_stripped != main_content.rstrip("\n"):
+            _write(SSH_CONFIG_PATH, f"{main_stripped}\n" if main_stripped else "")
+            _ensure_include_unlocked()
 
 
 def get_repos(alias: str) -> list[str]:
@@ -258,8 +371,9 @@ def get_repos(alias: str) -> list[str]:
 
 def list_entries() -> list[SshConfigEntry]:
     """Return all codespace-managed SSH config entries."""
-    _ensure_layout()
-    return _parse_entries(_read(CODESPACE_SSH_CONFIG_PATH))
+    with _layout_lock():
+        _ensure_layout()
+        return _parse_entries(_read(CODESPACE_SSH_CONFIG_PATH))
 
 
 def _parse_entries(content: str) -> list[SshConfigEntry]:

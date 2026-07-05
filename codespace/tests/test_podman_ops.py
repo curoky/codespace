@@ -248,10 +248,22 @@ def test_inject_credentials_chowns_and_puts_archive() -> None:
     path, data = container.archives[0]
     assert path == "/home/dev/.ssh"
     names = _tar_names(data)
-    assert set(names) == {"repo_id_ed25519", "config", "authorized_keys"}
-    ssh_config = _tar_member(data, "config").decode()
+    assert set(names) == {"repo_id_ed25519", "config.codespace.tmp", "authorized_keys"}
+    ssh_config = _tar_member(data, "config.codespace.tmp").decode()
+    assert podman_ops._SSH_CONFIG_BEGIN in ssh_config
     assert "Host github.com" in ssh_config
     assert "StrictHostKeyChecking accept-new" in ssh_config
+    assert podman_ops._SSH_CONFIG_END in ssh_config
+
+    append_cmds = [
+        cmd
+        for cmd, user in container.execs
+        if cmd[3:5] == ["append-ssh-config", "/home/dev/.ssh"]
+    ]
+    assert append_cmds
+    append_cmd = append_cmds[0]
+    assert 'cat "$tmp_block" >> "$tmp_config"' in append_cmd[2]
+    assert 'mv "$tmp_config" "$config"' in append_cmd[2]
 
 
 def test_inject_credentials_uses_stdout_from_multiplexed_home_output() -> None:
