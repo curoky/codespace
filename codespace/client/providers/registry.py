@@ -57,9 +57,7 @@ class GithubProviderClient(BaseModel):
         *,
         read_only: bool,
     ) -> int:
-        return github.register_deploy_key(
-            token, repo, cs_id, public_openssh, read_only=read_only
-        )
+        return github.register_deploy_key(token, repo, cs_id, public_openssh, read_only=read_only)
 
     def delete_deploy_key(self, token: str, repo: str, cs_id: str) -> bool:
         return github.delete_deploy_key(token, repo, cs_id)

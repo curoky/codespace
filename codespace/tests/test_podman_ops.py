@@ -256,9 +256,7 @@ def test_inject_credentials_chowns_and_puts_archive() -> None:
     assert podman_ops._SSH_CONFIG_END in ssh_config
 
     append_cmds = [
-        cmd
-        for cmd, user in container.execs
-        if cmd[3:5] == ["append-ssh-config", "/home/dev/.ssh"]
+        cmd for cmd, user in container.execs if cmd[3:5] == ["append-ssh-config", "/home/dev/.ssh"]
     ]
     assert append_cmds
     append_cmd = append_cmds[0]

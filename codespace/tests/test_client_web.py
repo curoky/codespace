@@ -170,18 +170,14 @@ def test_trae_url_uses_repo_path_when_repo_is_specified() -> None:
 
 def test_trae_url_can_disable_new_window_hint() -> None:
     assert (
-        web_projection.trae_remote_ssh_url(
-            "dev@10.0.0.5:49207", repo="owner/api", new_window=False
-        )
+        web_projection.trae_remote_ssh_url("dev@10.0.0.5:49207", repo="owner/api", new_window=False)
         == "trae://vscode-remote/ssh-remote+dev%4010.0.0.5%3A49207/workspace/api?fullscreen=true"
     )
 
 
 def test_trae_url_can_disable_fullscreen_hint() -> None:
     assert (
-        web_projection.trae_remote_ssh_url(
-            "dev@10.0.0.5:49207", repo="owner/api", fullscreen=False
-        )
+        web_projection.trae_remote_ssh_url("dev@10.0.0.5:49207", repo="owner/api", fullscreen=False)
         == "trae://vscode-remote/ssh-remote+dev%4010.0.0.5%3A49207/workspace/api?windowId=_blank"
     )
 

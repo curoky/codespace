@@ -6,7 +6,9 @@ fdmove -c 2 1
 
 importas WORKSPACE_ROOT_HOST WORKSPACE_ROOT_HOST
 
-exec /app/.venv/bin/python -m codespace.agent serve
+export PYTHONPATH "/app"
+
+exec /opt/sb/bin/uv run --directory /app --no-sync python -m codespace.agent serve
   --host 0.0.0.0
   --port 8001
   --workspace-root-host ${WORKSPACE_ROOT_HOST}

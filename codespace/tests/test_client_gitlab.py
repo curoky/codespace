@@ -67,9 +67,7 @@ def fake_gitlab_client(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_register_deploy_key_uses_gitlab_project_api() -> None:
-    key_id = gitlab.register_deploy_key(
-        "tok", "group/sub/project", "abc123", "ssh-ed25519 PUB"
-    )
+    key_id = gitlab.register_deploy_key("tok", "group/sub/project", "abc123", "ssh-ed25519 PUB")
 
     client = _FakeGitlab.instances[0]
     assert key_id == 42

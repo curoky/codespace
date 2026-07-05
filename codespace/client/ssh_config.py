@@ -191,11 +191,14 @@ def _strip_all_blocks(content: str) -> str:
 
 def _has_block(content: str, alias: str) -> bool:
     """Return whether ``content`` contains a managed block for ``alias``."""
-    return re.search(
-        rf"{re.escape(_begin(alias))}.*?{re.escape(_end(alias))}",
-        content,
-        re.DOTALL,
-    ) is not None
+    return (
+        re.search(
+            rf"{re.escape(_begin(alias))}.*?{re.escape(_end(alias))}",
+            content,
+            re.DOTALL,
+        )
+        is not None
+    )
 
 
 def _include_targets() -> set[str]:

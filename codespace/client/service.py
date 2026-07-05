@@ -470,9 +470,7 @@ class CodespaceService:
         if token:
             key_provider = entry.provider if entry else provider
             for repo_name in repos:
-                provider_client(key_provider).delete_deploy_key(
-                    token, repo_name, codespace_id
-                )
+                provider_client(key_provider).delete_deploy_key(token, repo_name, codespace_id)
         elif repos:
             delete_provider = entry.provider if entry else provider
             display_name = provider_client(delete_provider).display_name
