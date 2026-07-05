@@ -20,7 +20,7 @@ def main() -> None:
     port = int(os.environ.get("CODESPACE_WEB_PORT", str(DEFAULT_WEB_PORT)))
     if host not in {"127.0.0.1", "localhost"}:
         print(
-            "warning: Web GUI can access local git tokens, SSH keys and ~/.ssh/config; "
+            "warning: Web GUI can access local git tokens, SSH keys and SSH config files; "
             "do not expose it to untrusted networks."
         )
     uvicorn.run(web_module.create_app(), host=host, port=port)

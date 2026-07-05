@@ -35,7 +35,7 @@ Browser
   ▼
 Local FastAPI Web GUI
   │ 读取 ~/.config/codespace/config.yaml
-  │ 管理 ~/.ssh/codespace 与 ~/.ssh/config
+  │ 管理 ~/.ssh/codespace/ssh_config，并确保 ~/.ssh/config Include
   │ 使用 service 进程内存中的 Git provider token 注册 / 吊销 deploy key
   │
   ├──────────────▶ Agent home   ──▶ Podman containers
@@ -61,7 +61,7 @@ uv run python -m codespace.client
 | `CODESPACE_CONFIG` | `~/.config/codespace/config.yaml` | YAML 配置路径 |
 
 若监听地址不是 `127.0.0.1` 或 `localhost`，启动器必须打印安全警告，因为 Web GUI 能访问本地
-SSH key、`~/.ssh/config`，并会在进程内存中保存 provider token。
+SSH key、`~/.ssh/config`、`~/.ssh/codespace/ssh_config`，并会在进程内存中保存 provider token。
 
 前端源码位于 `codespace/client/webui/`，构建产物输出到 `codespace/client/static/`：
 
@@ -240,7 +240,7 @@ defaults 填充，Web GUI 不再提供无 template 的空白创建入口。GitHu
 `GET /api/dashboard` 聚合三类数据：
 
 1. agent list 结果：每个 agent 独立请求 `/codespaces`。
-2. 本地 SSH config projection：根据 `codespace-id + codespace-agent` 反查 alias。
+2. 本地 SSH config projection：从 `~/.ssh/codespace/ssh_config` 根据 `codespace-id + codespace-agent` 反查 alias。
 3. Web operation store：本进程内 queued/running/succeeded/failed 操作。
 
 ### 8.1 AgentStatus
@@ -326,7 +326,7 @@ Dashboard 每个 instance 提供删除入口：
 2. 确定 provider：优先 SSH config entry；其次根据 repo 匹配 template；最后使用默认 provider。
 3. 从 service 内存读取对应 provider token；token 缺失时跳过吊销并返回 warning。
 4. 调 agent `DELETE /codespaces/{id}`。
-5. 清理本地 SSH config block 和 login key。
+5. 清理 `~/.ssh/codespace/ssh_config` 中的 SSH config block 和 login key。
 6. 返回 warning（如 token 缺失或 alias 缺失）。
 
 ## 11. Web API

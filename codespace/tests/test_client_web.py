@@ -204,6 +204,8 @@ def test_operation_lifecycle(app_client: TestClient, monkeypatch: pytest.MonkeyP
         return _codespace()
 
     monkeypatch.setattr(service.CodespaceService, "create_codespace", _create)
+    token_resp = app_client.put("/api/provider-tokens/github", json={"token": "secret"})
+    assert token_resp.status_code == 200
 
     resp = app_client.post(
         "/api/agents/home/codespaces",
@@ -212,7 +214,6 @@ def test_operation_lifecycle(app_client: TestClient, monkeypatch: pytest.MonkeyP
             "template": "api",
             "instance": "dev",
             "image": "img",
-            "token": "secret",
         },
     )
     assert resp.status_code == 200
@@ -229,13 +230,14 @@ def test_operation_lifecycle(app_client: TestClient, monkeypatch: pytest.MonkeyP
     assert op["stage"] == "ready"
 
 
-def test_create_requires_request_token(app_client: TestClient) -> None:
+def test_create_requires_saved_provider_token(app_client: TestClient) -> None:
     resp = app_client.post(
         "/api/agents/home/codespaces",
         json={"repo": "owner/name", "template": "api", "instance": "dev", "image": "img"},
     )
 
-    assert resp.status_code == 422
+    assert resp.status_code == 400
+    assert resp.json() == {"error": "github token is not set"}
 
 
 def test_delete_passes_optional_request_token(
@@ -268,12 +270,10 @@ def test_delete_passes_optional_request_token(
         )
 
     monkeypatch.setattr(service.CodespaceService, "delete_codespace", _delete)
+    token_resp = app_client.put("/api/provider-tokens/github", json={"token": "secret"})
+    assert token_resp.status_code == 200
 
-    resp = app_client.request(
-        "DELETE",
-        "/api/agents/home/codespaces/abc123?repo=owner/name&purge=true",
-        json={"token": "secret"},
-    )
+    resp = app_client.delete("/api/agents/home/codespaces/abc123?repo=owner/name&purge=true")
 
     assert resp.status_code == 200
     assert resp.json() == {
@@ -333,7 +333,6 @@ def test_prune_completed_keeps_only_busy_operations() -> None:
         agent_id="home",
         req=CreateCodespaceRequest(
             repo="curoky/devspace",
-            token="secret",
             template="api",
             instance="queued",
             image="ghcr.io/curoky/devspace:codespace-debian12",
@@ -343,7 +342,6 @@ def test_prune_completed_keeps_only_busy_operations() -> None:
         agent_id="home",
         req=CreateCodespaceRequest(
             repo="curoky/devspace",
-            token="secret",
             template="api",
             instance="failed",
             image="ghcr.io/curoky/devspace:codespace-debian12",
@@ -353,7 +351,6 @@ def test_prune_completed_keeps_only_busy_operations() -> None:
         agent_id="home",
         req=CreateCodespaceRequest(
             repo="curoky/devspace",
-            token="secret",
             template="api",
             instance="succeeded",
             image="ghcr.io/curoky/devspace:codespace-debian12",

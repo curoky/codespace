@@ -22,6 +22,7 @@ from codespace.client.web_models import (
     CreateCodespaceRequest,
     CreateCodespaceResponse,
     DashboardResponse,
+    ProviderTokenStatus,
     TokenStatusResponse,
     UpdateProviderTokenRequest,
     WebOperation,
@@ -75,8 +76,8 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
     def get_provider_tokens() -> TokenStatusResponse:
         with provider_tokens_lock:
             return TokenStatusResponse(
-                github={"has_token": "github" in provider_tokens},
-                gitlab={"has_token": "gitlab" in provider_tokens},
+                github=ProviderTokenStatus(has_token="github" in provider_tokens),
+                gitlab=ProviderTokenStatus(has_token="gitlab" in provider_tokens),
             )
 
     @app.put("/api/provider-tokens/{provider}")
@@ -86,8 +87,8 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
         with provider_tokens_lock:
             provider_tokens[provider] = req.token
             return TokenStatusResponse(
-                github={"has_token": "github" in provider_tokens},
-                gitlab={"has_token": "gitlab" in provider_tokens},
+                github=ProviderTokenStatus(has_token="github" in provider_tokens),
+                gitlab=ProviderTokenStatus(has_token="gitlab" in provider_tokens),
             )
 
     @app.get("/api/dashboard")
