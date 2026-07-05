@@ -151,7 +151,9 @@ def create_app(config: AgentConfig) -> FastAPI:
         try:
             with creating_instances_lock:
                 if instance_key in creating_instances:
-                    raise RuntimeError("codespace creation is already running for repo/template/instance")
+                    raise RuntimeError(
+                        "codespace creation is already running for repo/template/instance"
+                    )
                 creating_instances.add(instance_key)
                 reserved_instance = True
             with _client() as client:

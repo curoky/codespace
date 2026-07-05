@@ -4,6 +4,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
 from threading import Lock, Thread
+from typing import Annotated
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
@@ -96,7 +97,8 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
     @app.get("/api/dashboard")
     def get_dashboard() -> DashboardResponse:
         return dashboard_response(
-            service.list_all_agents(), operations.prune_completed_older_than(COMPLETED_OPERATION_TTL_S)
+            service.list_all_agents(),
+            operations.prune_completed_older_than(COMPLETED_OPERATION_TTL_S),
         )
 
     @app.post("/api/agents/{agent_id}/codespaces")
@@ -130,9 +132,9 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
     def delete_codespace(
         agent_id: str,
         codespace_id: str,
-        purge: bool = Query(False),
-        repo: str | None = Query(None),
-        provider: shared.GitProvider | None = Query(None),
+        purge: Annotated[bool, Query()] = False,
+        repo: Annotated[str | None, Query()] = None,
+        provider: Annotated[shared.GitProvider | None, Query()] = None,
     ) -> DeleteCodespaceResult:
         delete_provider = provider or provider_for_delete(config, agent_id, codespace_id, repo)
         with provider_tokens_lock:

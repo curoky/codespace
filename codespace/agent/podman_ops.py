@@ -527,7 +527,8 @@ def find_container_by_instance(
             read_label(container, shared.LABEL_REPO) == repo
             and (
                 provider is None
-                or read_label(container, shared.LABEL_PROVIDER, shared.DEFAULT_GIT_PROVIDER) == provider
+                or read_label(container, shared.LABEL_PROVIDER, shared.DEFAULT_GIT_PROVIDER)
+                == provider
             )
             and read_label(container, shared.LABEL_TEMPLATE, shared.DEFAULT_TEMPLATE) == template
             and read_label(container, shared.LABEL_INSTANCE, shared.DEFAULT_INSTANCE) == instance

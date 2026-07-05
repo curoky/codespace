@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import secrets
 import time
+from builtins import list as builtins_list
 from threading import Lock
 
 from codespace.client.service import instance_alias
@@ -40,11 +41,11 @@ class OperationStore:
         with self._lock:
             return self._operations.get(operation_id)
 
-    def list(self) -> list[WebOperation]:
+    def list(self) -> builtins_list[WebOperation]:
         with self._lock:
             return sorted(self._operations.values(), key=lambda op: op.created_at, reverse=True)
 
-    def prune_completed(self) -> list[WebOperation]:
+    def prune_completed(self) -> builtins_list[WebOperation]:
         """Remove non-busy operations and return the remaining operations."""
         with self._lock:
             self._operations = {
@@ -54,7 +55,7 @@ class OperationStore:
             }
             return sorted(self._operations.values(), key=lambda op: op.created_at, reverse=True)
 
-    def prune_completed_older_than(self, max_age_s: float) -> list[WebOperation]:
+    def prune_completed_older_than(self, max_age_s: float) -> builtins_list[WebOperation]:
         """Remove completed operations older than ``max_age_s`` and return the rest."""
         cutoff = time.time() - max_age_s
         with self._lock:

@@ -407,11 +407,21 @@ def test_prune_completed_older_than_keeps_recent_completed(monkeypatch: pytest.M
     monkeypatch.setattr("codespace.client.web_operations.time.time", lambda: 100.0)
     old = store.create(
         agent_id="home",
-        req=CreateCodespaceRequest(repo="curoky/devspace", template="api", instance="old", image="img"),
+        req=CreateCodespaceRequest(
+            repo="curoky/devspace",
+            template="api",
+            instance="old",
+            image="img",
+        ),
     )
     recent = store.create(
         agent_id="home",
-        req=CreateCodespaceRequest(repo="curoky/devspace", template="api", instance="recent", image="img"),
+        req=CreateCodespaceRequest(
+            repo="curoky/devspace",
+            template="api",
+            instance="recent",
+            image="img",
+        ),
     )
     store.update(old.id, status="failed", stage="failed")
     monkeypatch.setattr("codespace.client.web_operations.time.time", lambda: 200.0)

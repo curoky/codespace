@@ -7,13 +7,20 @@ import subprocess
 import time
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any
 from pathlib import Path
 from threading import Lock
+from typing import Any
 from urllib.parse import urlparse, urlunparse
 
 import httpx
 from pydantic import BaseModel, ConfigDict, Field
+from tenacity import (
+    Retrying,
+    retry_if_exception_type,
+    stop_after_attempt,
+    stop_after_delay,
+    wait_fixed,
+)
 
 from codespace import shared
 from codespace.client import ssh_config
@@ -34,6 +41,14 @@ JsonValue = dict[str, Any] | list[Any] | str | int | float | bool | None
 
 class ServiceError(RuntimeError):
     """Base error raised by client service orchestration."""
+
+
+class _OperationPending(RuntimeError):
+    """Internal retry signal for an agent create operation that is still busy."""
+
+
+class _CloneNotReady(RuntimeError):
+    """Internal retry signal for clone requests that failed transiently."""
 
 
 class AgentListResult(BaseModel):
@@ -161,17 +176,39 @@ def _ssh_forward_target_host(hostname: str) -> str:
 
 def _wait_for_agent(local_url: str) -> None:
     """Wait briefly until the forwarded local agent port accepts HTTP requests."""
-    deadline = time.monotonic() + 3
-    last_error: Exception | None = None
-    while time.monotonic() < deadline:
-        try:
-            with httpx.Client(timeout=0.3) as client:
-                client.get(f"{local_url.rstrip('/')}/codespaces")
-            return
-        except httpx.RequestError as exc:
-            last_error = exc
-            time.sleep(0.1)
-    raise ServiceError(f"ssh proxy started but agent is not reachable: {last_error}")
+    try:
+        for attempt in Retrying(
+            stop=stop_after_delay(3),
+            wait=wait_fixed(0.1),
+            retry=retry_if_exception_type(httpx.RequestError),
+            reraise=True,
+        ):
+            with attempt:
+                with httpx.Client(timeout=0.3) as client:
+                    client.get(f"{local_url.rstrip('/')}/codespaces")
+                return
+    except httpx.RequestError as exc:
+        raise ServiceError(f"ssh proxy started but agent is not reachable: {exc}") from exc
+
+
+def _poll_retry(timeout_s: float, interval_s: float) -> Retrying:
+    """Return a fixed-interval retry iterator for polling loops."""
+    return Retrying(
+        stop=stop_after_delay(timeout_s),
+        wait=wait_fixed(interval_s),
+        retry=retry_if_exception_type(_OperationPending),
+        reraise=True,
+    )
+
+
+def _clone_retry() -> Retrying:
+    """Return the retry policy used while waiting for agent-side clone readiness."""
+    return Retrying(
+        stop=stop_after_attempt(CLONE_ATTEMPTS),
+        wait=wait_fixed(CLONE_RETRY_INTERVAL),
+        retry=retry_if_exception_type(_CloneNotReady),
+        reraise=True,
+    )
 
 
 def request(
@@ -291,7 +328,11 @@ class CodespaceService:
                     error=agent_error(data, status),
                 )
             if not isinstance(data, list):
-                return AgentListResult(agent=profile, online=False, error="agent returned non-list response")
+                return AgentListResult(
+                    agent=profile,
+                    online=False,
+                    error="agent returned non-list response",
+                )
             return AgentListResult(
                 agent=profile,
                 online=True,
@@ -348,43 +389,58 @@ class CodespaceService:
         progress: ProgressCallback | None = None,
     ) -> shared.Codespace:
         """Poll an asynchronous agent create operation until completion."""
-        deadline = time.monotonic() + CREATE_OPERATION_TIMEOUT
-        while time.monotonic() < deadline:
-            status_code, data = self.request_agent(profile, "GET", f"/operations/{operation_id}")
-            if status_code != 200:
-                raise ServiceError(agent_error(data, status_code))
-            if not isinstance(data, dict):
-                raise ServiceError("agent returned invalid operation response")
-            operation = shared.CreateOperation.model_validate(data)
-            if progress is not None:
-                progress(f"agent: {operation.stage}")
-            match operation.status:
-                case "queued" | "running":
-                    time.sleep(CREATE_POLL_INTERVAL)
-                case "succeeded":
-                    if operation.codespace is None:
-                        raise ServiceError("agent completed create without returning a codespace")
-                    return operation.codespace
-                case "failed":
-                    raise ServiceError(operation.error or "agent failed to provision codespace")
-        raise ServiceError(f"agent create operation timed out after {CREATE_OPERATION_TIMEOUT:.0f}s")
+        try:
+            for attempt in _poll_retry(CREATE_OPERATION_TIMEOUT, CREATE_POLL_INTERVAL):
+                with attempt:
+                    status_code, data = self.request_agent(
+                        profile,
+                        "GET",
+                        f"/operations/{operation_id}",
+                    )
+                    if status_code != 200:
+                        raise ServiceError(agent_error(data, status_code))
+                    if not isinstance(data, dict):
+                        raise ServiceError("agent returned invalid operation response")
+                    operation = shared.CreateOperation.model_validate(data)
+                    if progress is not None:
+                        progress(f"agent: {operation.stage}")
+                    match operation.status:
+                        case "queued" | "running":
+                            raise _OperationPending
+                        case "succeeded":
+                            if operation.codespace is None:
+                                raise ServiceError(
+                                    "agent completed create without returning a codespace"
+                                )
+                            return operation.codespace
+                        case "failed":
+                            raise ServiceError(
+                                operation.error or "agent failed to provision codespace"
+                            )
+        except _OperationPending as exc:
+            raise ServiceError(
+                f"agent create operation timed out after {CREATE_OPERATION_TIMEOUT:.0f}s"
+            ) from exc
+        raise ServiceError(
+            f"agent create operation timed out after {CREATE_OPERATION_TIMEOUT:.0f}s"
+        )
 
     def clone_remote_repo(self, profile: AgentProfile, codespace_id: str) -> None:
         """Ask the agent to clone the main repo after deploy keys are registered."""
-        last_error = "agent failed to clone repo"
-        for attempt in range(CLONE_ATTEMPTS):
-            status, data = self.request_agent(
-                profile,
-                "POST",
-                f"/codespaces/{codespace_id}/clone",
-                timeout=CLONE_HTTP_TIMEOUT,
-            )
-            if status == 200:
-                return
-            last_error = agent_error(data, status)
-            if attempt + 1 < CLONE_ATTEMPTS:
-                time.sleep(CLONE_RETRY_INTERVAL)
-        raise ServiceError(last_error)
+        try:
+            for attempt in _clone_retry():
+                with attempt:
+                    status, data = self.request_agent(
+                        profile,
+                        "POST",
+                        f"/codespaces/{codespace_id}/clone",
+                        timeout=CLONE_HTTP_TIMEOUT,
+                    )
+                    if status == 200:
+                        return
+                    raise _CloneNotReady(agent_error(data, status))
+        except _CloneNotReady as exc:
+            raise ServiceError(str(exc) or "agent failed to clone repo") from exc
 
     def create_codespace(
         self,
