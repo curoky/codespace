@@ -157,7 +157,9 @@ def test_create_rejects_invalid_repo(client: TestClient) -> None:
 
 def test_agent_config_rejects_relative_or_root_workspace() -> None:
     with pytest.raises(ValueError):
-        app_module.AgentConfig(workspace_root_host="relative", podman_uri="unix:///run/podman/podman.sock")
+        app_module.AgentConfig(
+            workspace_root_host="relative", podman_uri="unix:///run/podman/podman.sock"
+        )
     with pytest.raises(ValueError):
         app_module.AgentConfig(workspace_root_host="/", podman_uri="unix:///run/podman/podman.sock")
 
