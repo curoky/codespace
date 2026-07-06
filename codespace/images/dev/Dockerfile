@@ -112,7 +112,7 @@ RUN bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles \
 RUN git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-playbook \
   && mkdir -p /home/x/.trae/user_rules \
   && rsync -a --delete /tmp/agent-playbook/.trae/rules/ /home/x/.trae/user_rules/ \
-  && rsync -a --delete /tmp/agent-playbook/.trae/skills/refactor /home/x/.trae/skills/refactor \
+  && rsync -a --delete /tmp/agent-playbook/.trae/skills/ /home/x/.trae/skills/ \
   && rm -rf /tmp/agent-playbook
 
 
