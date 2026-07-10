@@ -1,5 +1,6 @@
 """Local FastAPI Web GUI for managing codespaces across multiple agents."""
 
+import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -7,7 +8,7 @@ from threading import Lock
 from typing import Annotated
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from codespace import shared
@@ -36,6 +37,7 @@ from codespace.client.web_projection import (
 
 STATIC_DIR = Path(__file__).parent / "static"
 COMPLETED_OPERATION_TTL_S = 30 * 60.0
+OPERATION_STREAM_INTERVAL_S = 1.0
 
 
 def _provider_token_status(provider_tokens: dict[shared.GitProvider, str]) -> TokenStatusResponse:
@@ -124,6 +126,29 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
             token,
         )
         return CreateCodespaceResponse(operation_id=operation.id)
+
+    @app.get("/api/operations/stream")
+    async def stream_operations() -> StreamingResponse:
+        """Push operation changes to the browser as Server-Sent Events.
+
+        The generator snapshots ``operations.list()`` (thread-safe) once per
+        interval and only emits operations whose serialized state changed. The
+        first frame sends the full current set so a late subscriber catches up.
+        This trades ~1s latency for keeping the threaded create workers and the
+        store untouched (no cross-thread event loop plumbing).
+        """
+
+        async def _events() -> AsyncIterator[str]:
+            seen: dict[str, str] = {}
+            while True:
+                for operation in operations.list():
+                    payload = operation.model_dump_json()
+                    if seen.get(operation.id) != payload:
+                        seen[operation.id] = payload
+                        yield f"data: {payload}\n\n"
+                await asyncio.sleep(OPERATION_STREAM_INTERVAL_S)
+
+        return StreamingResponse(_events(), media_type="text/event-stream")
 
     @app.get("/api/operations/{operation_id}")
     def get_operation(operation_id: str) -> WebOperation:

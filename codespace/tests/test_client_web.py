@@ -106,7 +106,6 @@ def test_static_page_and_script_are_served(app_client: TestClient) -> None:
 
     assert index.status_code == 200
     assert "Codespace Dashboard" in index.text
-    assert "data-mantine-color-scheme" in index.text
     assert "bulma" not in index.text
     assert "@primer/css" not in index.text
     assert "bootstrap" not in index.text
@@ -114,11 +113,11 @@ def test_static_page_and_script_are_served(app_client: TestClient) -> None:
     assert "text/javascript" in script.headers["content-type"]
     assert "/api/config" in script.text
     assert "/api/dashboard" in script.text
+    assert "/api/operations/stream" in script.text
     assert "root" in index.text
     assert "codespaces" in script.text
-    assert "Templates" in script.text
-    assert "Templates" in script.text
-    assert "Create" in script.text
+    assert "New codespace" in script.text
+    assert "Open in Trae" in script.text
 
 
 def test_dashboard_aggregates_agents(

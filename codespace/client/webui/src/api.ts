@@ -1,3 +1,5 @@
+import type { Operation } from './types';
+
 export async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(path, {
     ...options,
@@ -12,6 +14,22 @@ export async function request<T>(path: string, options: RequestInit = {}): Promi
     : {};
   if (!response.ok) throw new Error(errorMessage(body, response.status));
   return body as T;
+}
+
+/**
+ * Subscribe to the operation SSE stream. Each message is a single serialized
+ * `Operation`. Returns a disposer that closes the connection.
+ */
+export function openOperationStream(onOperation: (op: Operation) => void): () => void {
+  const source = new EventSource('/api/operations/stream');
+  source.onmessage = (event) => {
+    try {
+      onOperation(JSON.parse(event.data) as Operation);
+    } catch {
+      // Ignore malformed frames; the next dashboard refresh reconciles state.
+    }
+  };
+  return () => source.close();
 }
 
 function errorMessage(body: unknown, status: number): string {

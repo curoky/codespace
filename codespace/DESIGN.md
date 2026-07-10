@@ -12,7 +12,7 @@ agent 保持无状态，不持有 GitHub / GitLab token。
 ### 目标
 
 - 通过本地 Web GUI 创建、查看、删除远程开发容器。
-- 主列表以 template 为核心，template 下展开多个 instance。
+- Web GUI 采用连接优先信息架构：codespace 实例卡片是主视图，创建、删除是次级操作。
 - 每个 codespace 绑定一个 repo，并使用 repo 级 deploy key，不使用账户级 SSH key 进入容器。
 - 工作区数据持久化：删除容器时默认保留 workspace，重建同一 template/instance 时可复用数据。
 - 支持多 agent、多模板、多实例。
@@ -101,7 +101,7 @@ codespace/
 │   ├── web_models.py            # Web API schema
 │   ├── web_operations.py        # Web operation store
 │   ├── web_projection.py        # Dashboard/config projection、Trae URL
-│   ├── webui/                   # React / Mantine 前端源码
+│   ├── webui/                   # React / Radix Themes 前端源码
 │   └── static/                  # Vite 构建产物
 └── images/
     ├── agent/                   # agent 镜像 Dockerfile、s6 服务定义与运行脚本
@@ -440,9 +440,8 @@ uv lock --check
 
 ## 16. 后续增强
 
-- SSE 替代前端轮询 operation。
 - 为本地缺失 alias 的远端容器补建 SSH alias。
-- agent 分组、标签、搜索。
+- agent 分组、标签。
 - 容器日志和健康检查。
 - 空闲自动停止 / TTL / GC。
 - 支持更多 Git provider。

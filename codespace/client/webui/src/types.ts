@@ -1,7 +1,6 @@
 export type GitProvider = 'github' | 'gitlab';
 export type AgentStatus = 'online' | 'offline';
 export type OperationStatus = 'queued' | 'running' | 'succeeded' | 'failed';
-export type StatusFilter = 'all' | 'running' | 'stopped' | 'unknown' | 'queued' | 'failed';
 
 export type ConfigSummary = {
   default_agent: string;
@@ -78,7 +77,11 @@ export type Operation = {
   updated_at: number;
 };
 
-export type InstanceRow = {
+/**
+ * One card in the connection-first grid: a ready codespace or an in-flight
+ * create operation. Connection fields are only present for `kind: 'codespace'`.
+ */
+export type InstanceCard = {
   key: string;
   agent_id: string;
   repo: string;
@@ -87,20 +90,12 @@ export type InstanceRow = {
   instance: string;
   alias?: string | null;
   id?: string;
-  ssh_host?: string;
-  port?: number;
   status?: string | null;
   stage?: string;
   error?: string | null;
   raw_ssh_command?: string;
   trae_url?: string;
   kind: 'codespace' | 'operation';
-};
-
-export type FilterState = {
-  agent: string;
-  status: StatusFilter;
-  sort: 'agent' | 'repo' | 'template' | 'instance' | 'alias' | 'status';
 };
 
 export type CreateForm = {

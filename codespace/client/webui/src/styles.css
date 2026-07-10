@@ -1,139 +1,54 @@
 :root {
   color-scheme: light;
-  --app-bg: #f5f7fb;
-  --app-panel: #fff;
-  --app-panel-muted: #f8fafc;
-  --app-border: #dee5ef;
-  --app-muted: #667085;
 }
 
 body {
   min-height: 100vh;
   margin: 0;
-  color: #1f2937;
-  background: var(--app-bg);
 }
 
-.app-shell { min-height: 100vh; }
+.app-shell {
+  min-height: 100vh;
+  background: var(--gray-2);
+}
 
+/* Sticky top bar: title + tokens/refresh/new. */
 .topbar {
   position: sticky;
   top: 0;
+  z-index: 20;
+  background: var(--color-panel-solid);
+  border-bottom: 1px solid var(--gray-a5);
+}
+
+/* Agent filter chips + search, stuck just below the top bar. */
+.agentbar {
+  position: sticky;
+  top: 57px;
   z-index: 10;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 56px;
-  padding: 10px 14px;
-  background: var(--app-panel);
-  border-bottom: 1px solid var(--app-border);
+  background: var(--color-panel-solid);
+  border-bottom: 1px solid var(--gray-a4);
 }
 
-.toolbar { flex-wrap: wrap; }
-
-.toolbar-template { width: 260px; }
-
-.workbench {
-  display: block;
-  max-width: none;
-  padding: 14px;
+/* Small status circle rendered as an empty Badge. */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  padding: 0;
 }
 
-.main-pane { min-width: 0; }
-
-.panel-card { overflow: hidden; }
-
-.panel-heading {
-  min-height: 44px;
-  padding: 10px 14px;
-  background: var(--app-panel-muted);
-  border-bottom: 1px solid var(--app-border);
+/* Grid cards fill their track and keep a stable minimum height. */
+.cs-card {
+  min-height: 172px;
 }
 
-.panel-heading.compact { min-height: 38px; }
-
-.runtime-strip {
-  padding: 10px 14px;
+/* In-flight operation cards get a subtle amber wash. */
+.cs-card-op {
+  background: var(--amber-2);
 }
 
-.runtime-strip-section,
-.agent-chips {
-  flex-wrap: wrap;
-}
-
-.create-summary {
-  background: var(--app-panel-muted);
-}
-
-.filter-bar-react {
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--app-border);
-}
-
-.filter-bar-react > * { min-width: 150px; }
-
-.filter-bar-react .search-input {
-  flex: 1 1 260px;
-}
-
-.codespace-table th {
-  color: var(--app-muted);
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.codespace-table td {
-  vertical-align: middle;
-}
-
-.template-row td {
-  background: #fff;
-}
-
-.instance-row td {
-  padding: 6px 14px 10px 46px;
-  background: #f8fafc;
-}
-
-.instance-card {
-  padding: 10px 12px;
-  background: #fff;
-  border-left: 3px solid #93c5fd;
-}
-
-.operation-instance-row .instance-card {
-  background: #fffbeb;
-  border-left-color: #f59e0b;
-}
-
-.instance-main {
-  min-width: 0;
-  flex: 1 1 auto;
-}
-
-.instance-meta,
-.instance-actions {
-  flex-wrap: wrap;
-}
-
-.instance-command {
-  max-width: min(760px, 70vw);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.ssh-code {
-  display: inline-block;
-  max-width: 520px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
+/* Toast stack, fixed bottom-right, click to dismiss. */
 .toast-area {
   position: fixed;
   right: 16px;
@@ -142,16 +57,14 @@ body {
   width: min(420px, calc(100vw - 32px));
 }
 
+.toast {
+  cursor: pointer;
+  box-shadow: var(--shadow-4);
+}
+
 @media (max-width: 768px) {
-  .topbar { align-items: stretch; flex-direction: column; }
-  .toolbar-template { width: 100%; }
-  .workbench { padding: 10px; }
-  .runtime-strip > .mantine-Group-root { align-items: flex-start; flex-direction: column; }
-  .filter-bar-react { flex-direction: column; }
-  .filter-bar-react > *,
-  .filter-bar-react .search-input { width: 100%; min-width: 0; }
-  .instance-row td { padding-left: 20px; }
-  .instance-card > .mantine-Group-root { align-items: flex-start; flex-direction: column; }
-  .instance-actions { width: 100%; }
-  .ssh-code { max-width: 220px; }
+  .agentbar {
+    top: 0;
+    position: static;
+  }
 }

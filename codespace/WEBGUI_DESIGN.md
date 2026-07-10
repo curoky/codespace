@@ -13,10 +13,10 @@
 - 本地启动 Web GUI，默认监听 localhost。
 - 从一个 YAML 配置文件读取多个 agent profile、provider 和 create templates。
 - Dashboard 聚合展示所有 agent 在线状态、codespace 实例、后台 operation。
-- 以 template 为主列表；template 下展示该模板的多个 instance。
+- 以连接为核心：codespace 实例卡片是主视图，可直接 Open in Trae / 复制 SSH；创建、删除是次级操作。
 - 支持创建 codespace，并展示完整创建进度。
 - 支持删除 codespace，可选择是否 purge workspace。
-- 支持 GitHub / GitLab provider，token 在页面顶部填写并保存到本地 Python Web GUI service 进程内存。
+- 支持 GitHub / GitLab provider，token 通过顶部 Tokens 弹窗填写并保存到本地 Python Web GUI service 进程内存。
 - 复用 client service：login key、deploy key、clone、SSH config、回滚。
 
 ### 非目标
@@ -166,7 +166,7 @@ codespace/client/web.py               # FastAPI app 与路由
 codespace/client/web_models.py        # Web API Pydantic schema
 codespace/client/web_operations.py    # Web operation store
 codespace/client/web_projection.py    # config/dashboard projection 与 Trae URL
-codespace/client/webui/               # React / Mantine 前端源码
+codespace/client/webui/               # React / Radix Themes 前端源码
 codespace/client/static/              # Vite 构建产物
 ```
 
@@ -184,31 +184,33 @@ web.py ──▶ service.py ──▶ providers / ssh_config / agent API
 
 ## 6. Dashboard 信息架构
 
-页面使用 React / Mantine，采用顶部操作栏 + 主工作区 + 状态区域的结构。
+页面使用 React / Radix Themes（light appearance），采用「连接优先」信息架构：codespace 实例卡片
+是主视图，用户最高频的动作是连接一个已有环境，因此这些动作直达卡片；创建、删除、token 管理
+被降级为次级入口，不占据主视觉。
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│ Top Bar: default agent · template select · Refresh                           │
+│ Top Bar: Codespace · Tokens 弹窗 · Refresh · New codespace                    │
 ├──────────────────────────────────────────────────────────────────────────────┤
-│ Runtime strip: provider token inputs · last updated · auto refresh · agents  │
+│ Agent Bar: agent 状态 chips（点击过滤）· 搜索框（repo/instance/alias）        │
 ├──────────────────────────────────────────────────────────────────────────────┤
-│ Templates                                                                    │
-│   template card/table rows                                                   │
-├──────────────────────────────────────────────────────────────────────────────┤
-│ Instances grouped below templates                                            │
-│   ssh command · Trae URL · delete/purge                                      │
-├──────────────────────────────────────────────────────────────────────────────┤
-│ Operations timeline                                                          │
+│ Codespace Grid（响应式 1/2/3/4 列）                                           │
+│   每张卡片：instance · status · template · provider · repo · agent · alias    │
+│   ready 卡片动作：Open in Trae · Copy SSH · ⋯（Delete container / workspace） │
+│   进行中的 operation 也渲染为卡片：进度条 · stage · 失败可 Dismiss           │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
 设计原则：
 
-- template 是主要入口，instance 从属于 template。
-- agent 状态和 provider token 输入常驻，并显示 token 是否已保存在 service 内存中，避免创建失败时用户不知道原因。
-- 离线 agent 不阻塞其它 agent。
-- operation 明确展示 queued/running/succeeded/failed，便于排障。
-- 缺少本地 alias 的远端容器仍可展示 raw SSH 命令。
+- 连接是主线：ready codespace 卡片把 Open in Trae 和 Copy SSH 做成一等动作。
+- 进行中的 create operation 和 ready codespace 合并进同一 grid（按 `agent+template+instance`
+  去重），operation 卡片排在前面，完成后由 dashboard 刷新替换为真实 codespace。
+- 创建、删除、token 管理是次级操作：New codespace 是弹窗，删除收进卡片的 ⋯ 菜单，token 收进
+  顶部 Tokens 弹窗并显示已保存数量，避免创建失败时用户不知道原因。
+- 过滤保持轻量：只有 agent chips 过滤 + 文本搜索，不做状态过滤和多维排序（容器数量通常是个位数）。
+- 离线 agent 不阻塞其它 agent，其错误在 Agent Bar 以 callout 展示。
+- 缺少本地 alias 的远端容器仍可展示 raw SSH 命令（Copy SSH 回退到 `raw_ssh_command`）。
 
 ## 7. Template / Instance 模型
 
@@ -231,9 +233,11 @@ home-devspace-default
 office-service-api-debug
 ```
 
-创建表单中用户选择 template，填写 instance。repo、provider、agent、image 等字段由 template 和
-defaults 填充，Web GUI 不再提供无 template 的空白创建入口。GitHub / GitLab token 在页面顶部填写并
-保存到 service 进程内存中，创建时按 template 的 provider 取对应 token。
+创建表单是一个弹窗（New codespace）：用户在可过滤的 template 列表中选择 template，填写 instance。
+repo、provider、agent、image 等字段由 template 和 defaults 填充，Web GUI 不提供无 template 的空白
+创建入口。打开弹窗时会为选中 template 自动建议一个未占用的 instance 名。GitHub / GitLab token 在顶部
+Tokens 弹窗填写并保存到 service 进程内存中，创建时按 template 的 provider 取对应 token；token 未保存
+时弹窗内直接提示。
 
 ## 8. Dashboard projection
 
@@ -423,13 +427,27 @@ Fine-grained token 需要覆盖目标 project，并授予 Deploy Key 相关 REST
 
 ### 11.6 `GET /api/operations/{operation_id}`
 
-查询 Web operation。
+查询单个 Web operation。
 
-### 11.7 `DELETE /api/operations`
+### 11.7 `GET /api/operations/stream`
+
+Server-Sent Events 流，前端订阅它获得 operation 实时更新，取代逐 operation 轮询。响应
+`Content-Type: text/event-stream`，每条消息是一个序列化后的 WebOperation JSON：
+
+```text
+data: {"id": "web-op-123", "status": "running", "stage": "cloning repo into workspace", ...}
+```
+
+服务端每秒对 `operations.list()` 做一次快照，只推送序列化结果发生变化的 operation；订阅建立时
+先发送当前全量，便于中途加入的浏览器补齐状态。此路由声明在 `/api/operations/{operation_id}` 之前，
+避免 `stream` 被当作 operation_id 匹配。该方案不改动后台创建线程与 operation store（保持线程模型
+简单），代价是最多约 1s 延迟。
+
+### 11.8 `DELETE /api/operations`
 
 清理已完成 operation，保留 queued/running。
 
-### 11.8 `DELETE /api/agents/{agent_id}/codespaces/{codespace_id}`
+### 11.9 `DELETE /api/agents/{agent_id}/codespaces/{codespace_id}`
 
 参数：
 
@@ -457,19 +475,25 @@ purge=false|true
 - 单个 agent 请求使用短超时，失败只影响该 agent。
 - Web operations 存在本进程内存中，用锁保护并发读写。
 - 创建操作在后台线程执行，HTTP 请求快速返回 operation id。
-- 操作完成后前端刷新 Dashboard，确保远端真实状态覆盖本地估计。
+- 前端通过 `/api/operations/stream` SSE 订阅 operation 更新；operation 进入 succeeded/failed 时前端刷新 Dashboard，确保远端真实状态覆盖本地估计。
 
 ## 13. 前端模块
 
 ```text
-webui/src/main.tsx    # App 状态、页面组合、表单交互
-webui/src/types.ts    # API 类型
-webui/src/api.ts      # request/fetch 封装
-webui/src/utils.ts    # alias、颜色、格式化、分组工具
+webui/src/main.tsx              # App 状态、页面组合、create/delete 交互
+webui/src/types.ts              # API 与视图类型（含 InstanceCard）
+webui/src/api.ts                # request/fetch 封装 + openOperationStream（SSE）
+webui/src/utils.ts              # alias、状态颜色、连接命令、instance 名建议等工具
+webui/src/styles.css            # 少量布局类（sticky bar、grid 卡片、toast）
+webui/src/hooks/useDashboard.ts # config/dashboard/operations/token 状态，订阅 SSE
+webui/src/hooks/useToast.ts     # toast 状态
+webui/src/components/           # TopBar / TokenPopover / AgentBar /
+                                #   CodespaceGrid / CodespaceCard / CreateDialog
 ```
 
-后续如果继续拆分，可优先把 `main.tsx` 中的模板列表、实例列表、operation timeline、create modal
-拆成组件，但当前拆分已经把类型/API/工具从主文件中隔离出来。
+组件划分围绕连接优先 IA：`CodespaceGrid` 把 codespaces 与进行中的 operation 合并成卡片列表，
+`CodespaceCard` 承载连接/删除动作，`CreateDialog` 与 `TokenPopover` 承载次级操作。样式主要交给
+Radix Themes token，`styles.css` 只保留 sticky bar、grid 卡片最小高度和 toast 定位等少量布局类。
 
 ## 14. 安全约束
 
@@ -483,8 +507,7 @@ webui/src/utils.ts    # alias、颜色、格式化、分组工具
 
 ## 15. 后续增强
 
-- SSE 替代 operation 轮询。
 - 为缺失本地 alias 的远端容器补建 SSH alias。
-- agent 分组、标签、搜索。
+- agent 分组、标签。
 - operation 历史持久化。
 - 容器日志、健康检查、资源指标。
