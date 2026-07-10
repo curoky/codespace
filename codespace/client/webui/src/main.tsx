@@ -7,22 +7,13 @@ import { createRoot } from 'react-dom/client';
 
 import { request } from './api';
 import { AgentBar } from './components/AgentBar';
-import { CodespaceGrid } from './components/CodespaceGrid';
 import { CreateDialog } from './components/CreateDialog';
+import { ProjectGrid } from './components/ProjectGrid';
 import { TopBar } from './components/TopBar';
 import { useDashboard } from './hooks/useDashboard';
 import { useToast } from './hooks/useToast';
-import type { CreateForm, InstanceCard, Operation } from './types';
+import type { InstanceCard, Operation, Project } from './types';
 import { existingInstances, instanceAlias, nextInstanceName } from './utils';
-
-const emptyForm: CreateForm = {
-  agent: '',
-  repo: '',
-  provider: 'github',
-  template: '',
-  instance: 'default',
-  image: '',
-};
 
 function App() {
   const { toasts, showToast, dismissToast } = useToast();
@@ -31,59 +22,41 @@ function App() {
 
   const [agentFilter, setAgentFilter] = useState('all');
   const [query, setQuery] = useState('');
-  const [createOpen, setCreateOpen] = useState(false);
-  const [createError, setCreateError] = useState<string | null>(null);
+  const [dialogProject, setDialogProject] = useState<Project | null>(null);
+  const [dialogInstance, setDialogInstance] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState<CreateForm>(emptyForm);
 
-  function selectTemplate(templateId: string) {
-    if (!config) return;
-    const template = config.templates.find((item) => item.id === templateId);
-    if (!template) return;
-    const agent = template.agent || config.default_agent;
-    const used = existingInstances(dashboard.codespaces, operations.values(), agent, template.id);
-    setForm({
-      agent,
+  /** Shared create path used by both the empty-state one-click and the dialog. */
+  async function createInstance(project: Project, instanceName: string): Promise<boolean> {
+    if (!config) return false;
+    const template = config.templates.find((item) => item.id === project.id);
+    if (!template) return false;
+    const instance = instanceName.trim();
+    if (!instance) return false;
+
+    const used = existingInstances(dashboard.codespaces, operations.values(), project.agent, template.id);
+    if (used.has(instance)) {
+      showToast(`Instance already exists: ${project.agent}/${template.id}/${instance}`, 'danger');
+      return false;
+    }
+    if (!tokenStatus[template.provider].has_token) {
+      showToast(`请先保存 ${template.provider === 'gitlab' ? 'GitLab' : 'GitHub'} token`, 'danger');
+      return false;
+    }
+
+    const payload = {
       repo: template.repo,
       provider: template.provider,
       template: template.id,
-      instance: nextInstanceName(used),
+      instance,
       image: template.image || config.defaults.image,
-    });
-    setCreateError(null);
-  }
-
-  function openCreate() {
-    if (!config) return;
-    setCreateError(null);
-    if (form.template === '' && config.templates.length > 0) selectTemplate(config.templates[0].id);
-    setCreateOpen(true);
-  }
-
-  async function submitCreate() {
-    if (!config || !form.template) return;
-    setSubmitting(true);
+    };
+    const alias = instanceAlias(project.agent, template.id, instance);
     try {
-      const payload = {
-        repo: form.repo.trim(),
-        provider: form.provider,
-        template: form.template.trim(),
-        instance: form.instance.trim(),
-        image: form.image.trim(),
-      };
-      const used = existingInstances(dashboard.codespaces, operations.values(), form.agent, payload.template);
-      if (used.has(payload.instance)) {
-        throw new Error(`Instance already exists: ${form.agent}/${payload.template}/${payload.instance}`);
-      }
-      if (!tokenStatus[form.provider].has_token) {
-        throw new Error(`请先保存 ${form.provider === 'gitlab' ? 'GitLab' : 'GitHub'} token`);
-      }
-      const alias = instanceAlias(form.agent, payload.template, payload.instance);
       const result = await request<{ operation_id: string }>(
-        `/api/agents/${encodeURIComponent(form.agent)}/codespaces`,
+        `/api/agents/${encodeURIComponent(project.agent)}/codespaces`,
         { method: 'POST', body: JSON.stringify(payload) },
       );
-      setCreateOpen(false);
       const now = Date.now() / 1000;
       const operation: Operation = {
         id: result.operation_id,
@@ -93,20 +66,40 @@ function App() {
         repo: payload.repo,
         provider: payload.provider,
         template: payload.template,
-        instance: payload.instance,
-        agent_id: form.agent,
+        instance,
+        agent_id: project.agent,
         created_at: now,
         updated_at: now,
       };
       state.addOperation(operation);
       showToast(`Create started: ${alias}`);
-    } catch (submitError) {
-      const message = (submitError as Error).message;
-      setCreateError(message);
-      showToast(message, 'danger');
-    } finally {
-      setSubmitting(false);
+      return true;
+    } catch (createError) {
+      showToast((createError as Error).message, 'danger');
+      return false;
     }
+  }
+
+  function suggestName(project: Project): string {
+    const used = existingInstances(dashboard.codespaces, operations.values(), project.agent, project.id);
+    return nextInstanceName(used);
+  }
+
+  function createDefault(project: Project) {
+    void createInstance(project, suggestName(project));
+  }
+
+  function openNewInstance(project: Project) {
+    setDialogInstance(suggestName(project));
+    setDialogProject(project);
+  }
+
+  async function submitDialog() {
+    if (!dialogProject) return;
+    setSubmitting(true);
+    const ok = await createInstance(dialogProject, dialogInstance);
+    setSubmitting(false);
+    if (ok) setDialogProject(null);
   }
 
   async function deleteCodespace(card: InstanceCard, purge: boolean) {
@@ -139,7 +132,7 @@ function App() {
     );
   }
 
-  const providerHasToken = tokenStatus[form.provider].has_token;
+  const dialogProviderHasToken = dialogProject ? tokenStatus[dialogProject.provider].has_token : true;
 
   return (
     <Theme appearance="light" accentColor="indigo" radius="medium">
@@ -147,7 +140,6 @@ function App() {
         <TopBar
           refreshing={state.refreshing}
           tokenStatus={tokenStatus}
-          onNew={openCreate}
           onRefresh={() => void state.refresh()}
           onSaveToken={async (provider, token) => {
             const ok = await state.saveToken(provider, token);
@@ -171,11 +163,14 @@ function App() {
           </Box>
         )}
         <Box flexGrow="1">
-          <CodespaceGrid
+          <ProjectGrid
+            config={config}
             codespaces={dashboard.codespaces}
             operations={operations}
             agentFilter={agentFilter}
             query={query}
+            onCreateDefault={createDefault}
+            onNewInstance={openNewInstance}
             onConnectCopied={(message, ok) => showToast(message, ok ? 'success' : 'danger')}
             onDelete={(card, purge) => void deleteCodespace(card, purge)}
             onDismissOperation={dismissOperation}
@@ -184,16 +179,15 @@ function App() {
       </Flex>
 
       <CreateDialog
-        open={createOpen}
-        config={config}
-        form={form}
-        error={createError}
+        project={dialogProject}
+        instance={dialogInstance}
         submitting={submitting}
-        providerHasToken={providerHasToken}
-        onOpenChange={setCreateOpen}
-        onSelectTemplate={selectTemplate}
-        onInstanceChange={(value) => setForm((current) => ({ ...current, instance: value }))}
-        onSubmit={() => void submitCreate()}
+        providerHasToken={dialogProviderHasToken}
+        onOpenChange={(open) => {
+          if (!open) setDialogProject(null);
+        }}
+        onInstanceChange={setDialogInstance}
+        onSubmit={() => void submitDialog()}
       />
 
       <Flex direction="column" gap="2" className="toast-area">

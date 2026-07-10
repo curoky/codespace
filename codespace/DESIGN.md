@@ -12,7 +12,7 @@ agent 保持无状态，不持有 GitHub / GitLab token。
 ### 目标
 
 - 通过本地 Web GUI 创建、查看、删除远程开发容器。
-- Web GUI 采用连接优先信息架构：codespace 实例卡片是主视图，创建、删除是次级操作。
+- Web GUI 采用项目优先信息架构：每个 create template 是一个项目，项目卡是主视图，实例是项目下的运行环境；创建、删除是次级操作。
 - 每个 codespace 绑定一个 repo，并使用 repo 级 deploy key，不使用账户级 SSH key 进入容器。
 - 工作区数据持久化：删除容器时默认保留 workspace，重建同一 template/instance 时可复用数据。
 - 支持多 agent、多模板、多实例。

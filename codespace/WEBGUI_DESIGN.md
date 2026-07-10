@@ -13,7 +13,7 @@
 - 本地启动 Web GUI，默认监听 localhost。
 - 从一个 YAML 配置文件读取多个 agent profile、provider 和 create templates。
 - Dashboard 聚合展示所有 agent 在线状态、codespace 实例、后台 operation。
-- 以连接为核心：codespace 实例卡片是主视图，可直接 Open in Trae / 复制 SSH；创建、删除是次级操作。
+- 以项目为核心：每个 create template 是一个「项目」，项目卡是主视图；实例（instance）是项目下的运行环境。用户第一眼就能看到某项目有没有环境，有则一键 Open in Trae / 复制 SSH，没有则一键创建。
 - 支持创建 codespace，并展示完整创建进度。
 - 支持删除 codespace，可选择是否 purge workspace。
 - 支持 GitHub / GitLab provider，token 通过顶部 Tokens 弹窗填写并保存到本地 Python Web GUI service 进程内存。
@@ -184,37 +184,44 @@ web.py ──▶ service.py ──▶ providers / ssh_config / agent API
 
 ## 6. Dashboard 信息架构
 
-页面使用 React / Radix Themes（light appearance），采用「连接优先」信息架构：codespace 实例卡片
-是主视图，用户最高频的动作是连接一个已有环境，因此这些动作直达卡片；创建、删除、token 管理
-被降级为次级入口，不占据主视觉。
+页面使用 React / Radix Themes（light appearance），采用「项目优先」信息架构。codespace 的目的是
+为项目提供开发环境，所以**项目是一等公民**，实例（instance）是项目下的运行环境。每个 config
+template 是一个项目；用户的心智是「我要开发某项目 → 看它有没有环境 → 有就一键进入，没有就一键
+创建」，因此实例始终归属在所属项目卡片下，不再平铺。
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│ Top Bar: Codespace · Tokens 弹窗 · Refresh · New codespace                    │
+│ Top Bar: Codespace · Tokens 弹窗 · Refresh                                    │
 ├──────────────────────────────────────────────────────────────────────────────┤
-│ Agent Bar: agent 状态 chips（点击过滤）· 搜索框（repo/instance/alias）        │
+│ Agent Bar: agent 状态 chips（点击过滤）· 搜索框（项目名/repo/instance/alias）  │
 ├──────────────────────────────────────────────────────────────────────────────┤
-│ Codespace Grid（响应式 1/2/3/4 列）                                           │
-│   每张卡片：instance · status · template · provider · repo · agent · alias    │
-│   ready 卡片动作：Open in Trae · Copy SSH · ⋯（Delete container / workspace） │
-│   进行中的 operation 也渲染为卡片：进度条 · stage · 失败可 Dismiss           │
+│ Project List（纵向堆叠，每个 template 一张项目卡）                            │
+│   卡头：项目名 · provider · agent · repo/description · 环境数 · New instance   │
+│   空项目：「还没有环境」+ Create（一键用 default 名直接创建）                  │
+│   有实例：每个 instance 一行（instance · status · alias ·                     │
+│           Open in Trae · SSH · ⋯Delete）                                      │
+│   进行中的 operation 也是该项目下的一行：进度条 · stage · 失败可 Dismiss      │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
 设计原则：
 
-- 连接是主线：ready codespace 卡片把 Open in Trae 和 Copy SSH 做成一等动作。
-- 进行中的 create operation 和 ready codespace 合并进同一 grid（按 `agent+template+instance`
-  去重），operation 卡片排在前面，完成后由 dashboard 刷新替换为真实 codespace。
-- 创建、删除、token 管理是次级操作：New codespace 是弹窗，删除收进卡片的 ⋯ 菜单，token 收进
-  顶部 Tokens 弹窗并显示已保存数量，避免创建失败时用户不知道原因。
-- 过滤保持轻量：只有 agent chips 过滤 + 文本搜索，不做状态过滤和多维排序（容器数量通常是个位数）。
+- 项目是主线：每张项目卡直接回答「有没有环境、能不能一键进入/创建」。
+- 一键创建：空项目的 Create 用 `default`（或下一个可用名）+ template/defaults 直接创建，不弹窗；
+  New instance 才弹窗以便自定义 instance 名。
+- 实例归属清晰：instance 行只展示 instance/status/alias 与连接动作，repo/provider/agent 收在卡头，
+  不再重复。
+- 进行中的 create operation 与 ready codespace 按 `agent+template+instance` 去重后挂到所属项目，
+  operation 行排在前面，完成后由 dashboard 刷新替换为真实 codespace。
+- 次级操作下沉：删除收进 instance 行的 ⋯ 菜单；token 收进顶部 Tokens 弹窗并显示已保存数量。
+- template 已不在配置中的历史容器归入末尾的合成「未归类环境」项目，可展示/连接但不提供创建。
+- 过滤保持轻量：只有 agent chips 过滤（按项目 agent）+ 文本搜索。
 - 离线 agent 不阻塞其它 agent，其错误在 Agent Bar 以 callout 展示。
-- 缺少本地 alias 的远端容器仍可展示 raw SSH 命令（Copy SSH 回退到 `raw_ssh_command`）。
+- 缺少本地 alias 的远端容器仍可连接（Copy SSH 回退到 `raw_ssh_command`）。
 
-## 7. Template / Instance 模型
+## 7. Project / Instance 模型
 
-实例身份由三元组确定：
+项目即 config template；实例身份由三元组确定：
 
 ```text
 agent + template + instance
@@ -233,10 +240,11 @@ home-devspace-default
 office-service-api-debug
 ```
 
-创建表单是一个弹窗（New codespace）：用户在可过滤的 template 列表中选择 template，填写 instance。
-repo、provider、agent、image 等字段由 template 和 defaults 填充，Web GUI 不提供无 template 的空白
-创建入口。打开弹窗时会为选中 template 自动建议一个未占用的 instance 名。GitHub / GitLab token 在顶部
-Tokens 弹窗填写并保存到 service 进程内存中，创建时按 template 的 provider 取对应 token；token 未保存
+创建有两条路径，共用同一套逻辑（token 检查、重名检查、乐观插入 operation）：空项目卡的 Create
+一键用建议名直接创建；项目卡的 New instance 打开弹窗，template 锁定为该项目、只编辑 instance 名
+（预填下一个可用名）。repo、provider、agent、image 由 template 和 defaults 填充，Web GUI 不提供无
+项目的空白创建入口。GitHub / GitLab token 在顶部 Tokens 弹窗填写并保存到 service 进程内存中，创建时
+按项目的 provider 取对应 token；token 未保存
 时弹窗内直接提示。
 
 ## 8. Dashboard projection
@@ -480,20 +488,23 @@ purge=false|true
 ## 13. 前端模块
 
 ```text
-webui/src/main.tsx              # App 状态、页面组合、create/delete 交互
-webui/src/types.ts              # API 与视图类型（含 InstanceCard）
+webui/src/main.tsx              # App 状态、页面组合、共享 createInstance / delete 交互
+webui/src/types.ts              # API 与视图类型（含 InstanceCard、Project）
 webui/src/api.ts                # request/fetch 封装 + openOperationStream（SSE）
 webui/src/utils.ts              # alias、状态颜色、连接命令、instance 名建议等工具
-webui/src/styles.css            # 少量布局类（sticky bar、grid 卡片、toast）
+webui/src/styles.css            # 少量布局类（sticky bar、项目卡、instance 行、toast）
 webui/src/hooks/useDashboard.ts # config/dashboard/operations/token 状态，订阅 SSE
 webui/src/hooks/useToast.ts     # toast 状态
 webui/src/components/           # TopBar / TokenPopover / AgentBar /
-                                #   CodespaceGrid / CodespaceCard / CreateDialog
+                                #   ProjectGrid / ProjectCard / InstanceRow / CreateDialog
 ```
 
-组件划分围绕连接优先 IA：`CodespaceGrid` 把 codespaces 与进行中的 operation 合并成卡片列表，
-`CodespaceCard` 承载连接/删除动作，`CreateDialog` 与 `TokenPopover` 承载次级操作。样式主要交给
-Radix Themes token，`styles.css` 只保留 sticky bar、grid 卡片最小高度和 toast 定位等少量布局类。
+组件划分围绕项目优先 IA：`ProjectGrid` 以 config templates 为基准，把 codespaces 与进行中的
+operation 按 template id 分组挂到对应项目（template 不在配置中的归入合成「未归类环境」项目）；
+`ProjectCard` 承载卡头、空态一键 Create 与 New instance；`InstanceRow` 承载单个实例的连接/删除或
+operation 进度；`CreateDialog` 是锁定项目的 New instance 弹窗，`TokenPopover` 承载 token 管理。
+`main.tsx` 的 `createInstance(project, name)` 被空态一键创建与弹窗提交共用。样式主要交给 Radix
+Themes token，`styles.css` 只保留 sticky bar、项目卡宽度、instance 行内边距和 toast 定位等少量布局类。
 
 ## 14. 安全约束
 

@@ -1,4 +1,3 @@
-import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
 import {
   Badge,
   Box,
@@ -7,163 +6,95 @@ import {
   Code,
   Dialog,
   Flex,
-  ScrollArea,
   Text,
   TextField,
 } from '@radix-ui/themes';
-import { useMemo, useState } from 'react';
 
-import type { ConfigSummary, CreateForm } from '../types';
+import type { Project } from '../types';
 import { instanceAlias, providerColor } from '../utils';
 
-type TemplateOption = ConfigSummary['templates'][number] & { resolvedAgent: string };
-
 type Props = {
-  open: boolean;
-  config: ConfigSummary | null;
-  form: CreateForm;
-  error: string | null;
+  project: Project | null;
+  instance: string;
   submitting: boolean;
   providerHasToken: boolean;
   onOpenChange: (open: boolean) => void;
-  onSelectTemplate: (templateId: string) => void;
   onInstanceChange: (value: string) => void;
   onSubmit: () => void;
 };
 
+/** Create another instance for a fixed project (template). Only the name is editable. */
 export function CreateDialog({
-  open,
-  config,
-  form,
-  error,
+  project,
+  instance,
   submitting,
   providerHasToken,
   onOpenChange,
-  onSelectTemplate,
   onInstanceChange,
   onSubmit,
 }: Props) {
-  const [query, setQuery] = useState('');
-
-  const options = useMemo<TemplateOption[]>(() => {
-    if (!config) return [];
-    return config.templates
-      .map((template) => ({ ...template, resolvedAgent: template.agent || config.default_agent }))
-      .filter((template) => {
-        if (!query) return true;
-        return `${template.id} ${template.repo}`.toLowerCase().includes(query.toLowerCase());
-      });
-  }, [config, query]);
-
-  const selected = config?.templates.find((template) => template.id === form.template) ?? null;
-
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Content maxWidth="480px">
-        <Dialog.Title>New codespace</Dialog.Title>
+    <Dialog.Root open={project !== null} onOpenChange={onOpenChange}>
+      <Dialog.Content maxWidth="440px">
+        <Dialog.Title>New instance</Dialog.Title>
         <Dialog.Description size="2" color="gray" mb="3">
-          选择 template 并填写 instance 名，其余字段由 template 与 defaults 填充。
+          为项目创建一个新的运行环境。repo、provider、agent、镜像由项目配置填充。
         </Dialog.Description>
 
-        <Flex direction="column" gap="3">
-          {error && (
-            <Callout.Root color="red" size="1">
-              <Callout.Text>{error}</Callout.Text>
-            </Callout.Root>
-          )}
+        {project && (
+          <Flex direction="column" gap="3">
+            <Flex align="center" gap="2" wrap="wrap">
+              <Text weight="bold">{project.id}</Text>
+              <Badge color={providerColor(project.provider)} variant="soft">
+                {project.provider}
+              </Badge>
+              <Badge variant="surface" color="gray">
+                {project.agent}
+              </Badge>
+              <Text size="2" color="gray" truncate>
+                {project.repo}
+              </Text>
+            </Flex>
 
-          <Box>
-            <Text size="2" weight="bold" as="div" mb="1">
-              Template
-            </Text>
-            <TextField.Root
-              size="2"
-              placeholder="过滤 template"
-              value={query}
-              onChange={(event) => setQuery(event.currentTarget.value)}
-              mb="2"
-            >
-              <TextField.Slot>
-                <MagnifyingGlassIcon height="14" width="14" />
-              </TextField.Slot>
-            </TextField.Root>
-            <ScrollArea type="auto" style={{ maxHeight: 180 }}>
-              <Flex direction="column" gap="1">
-                {options.length === 0 && (
-                  <Box p="2">
-                    <Text size="2" color="gray">
-                      没有匹配的 template。
-                    </Text>
-                  </Box>
-                )}
-                {options.map((template) => (
-                  <Button
-                    key={template.id}
-                    variant={form.template === template.id ? 'solid' : 'soft'}
-                    color={form.template === template.id ? undefined : 'gray'}
-                    onClick={() => onSelectTemplate(template.id)}
-                    style={{ justifyContent: 'flex-start', height: 'auto', padding: 8 }}
-                  >
-                    <Flex direction="column" align="start" gap="1" width="100%">
-                      <Flex align="center" gap="2">
-                        <Text weight="bold">{template.id}</Text>
-                        <Badge color={providerColor(template.provider)} variant="soft">
-                          {template.provider}
-                        </Badge>
-                        <Badge variant="surface" color="gray">
-                          {template.resolvedAgent}
-                        </Badge>
-                      </Flex>
-                      <Text size="1" color="gray">
-                        {template.description || template.repo}
-                      </Text>
-                    </Flex>
-                  </Button>
-                ))}
-              </Flex>
-            </ScrollArea>
-          </Box>
-
-          {selected && (
-            <>
-              {!providerHasToken && (
-                <Callout.Root color="amber" size="1">
-                  <Callout.Text>
-                    请先在右上角 Tokens 中保存 {form.provider === 'gitlab' ? 'GitLab' : 'GitHub'} token。
-                  </Callout.Text>
-                </Callout.Root>
-              )}
-              <Box>
-                <Text size="2" weight="bold" as="div" mb="1">
-                  Instance name
-                </Text>
-                <TextField.Root
-                  size="2"
-                  autoFocus
-                  value={form.instance}
-                  onChange={(event) => onInstanceChange(event.currentTarget.value)}
-                />
-              </Box>
-              <Callout.Root color="gray" size="1">
+            {!providerHasToken && (
+              <Callout.Root color="amber" size="1">
                 <Callout.Text>
-                  Local SSH alias:{' '}
-                  <Code>{instanceAlias(form.agent, form.template, form.instance) || '-'}</Code>
+                  请先在右上角 Tokens 中保存 {project.provider === 'gitlab' ? 'GitLab' : 'GitHub'} token。
                 </Callout.Text>
               </Callout.Root>
-            </>
-          )}
+            )}
 
-          <Flex gap="3" mt="1" justify="end">
-            <Dialog.Close>
-              <Button variant="soft" color="gray">
-                Cancel
+            <Box>
+              <Text size="2" weight="bold" as="div" mb="1">
+                Instance name
+              </Text>
+              <TextField.Root
+                size="2"
+                autoFocus
+                value={instance}
+                onChange={(event) => onInstanceChange(event.currentTarget.value)}
+              />
+            </Box>
+
+            <Callout.Root color="gray" size="1">
+              <Callout.Text>
+                Local SSH alias:{' '}
+                <Code>{instanceAlias(project.agent, project.id, instance) || '-'}</Code>
+              </Callout.Text>
+            </Callout.Root>
+
+            <Flex gap="3" mt="1" justify="end">
+              <Dialog.Close>
+                <Button variant="soft" color="gray">
+                  Cancel
+                </Button>
+              </Dialog.Close>
+              <Button onClick={onSubmit} loading={submitting} disabled={!instance.trim()}>
+                Create
               </Button>
-            </Dialog.Close>
-            <Button onClick={onSubmit} loading={submitting} disabled={!selected}>
-              Create
-            </Button>
+            </Flex>
           </Flex>
-        </Flex>
+        )}
       </Dialog.Content>
     </Dialog.Root>
   );

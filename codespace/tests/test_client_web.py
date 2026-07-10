@@ -116,7 +116,7 @@ def test_static_page_and_script_are_served(app_client: TestClient) -> None:
     assert "/api/operations/stream" in script.text
     assert "root" in index.text
     assert "codespaces" in script.text
-    assert "New codespace" in script.text
+    assert "New instance" in script.text
     assert "Open in Trae" in script.text
 
 

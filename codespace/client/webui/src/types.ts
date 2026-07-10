@@ -98,13 +98,19 @@ export type InstanceCard = {
   kind: 'codespace' | 'operation';
 };
 
-export type CreateForm = {
+/**
+ * A project is a config template (its own repo/provider/agent). Instances are
+ * the running environments below it. `known: false` marks a synthetic group for
+ * codespaces whose template is no longer in config (can list, cannot create).
+ */
+export type Project = {
+  id: string;
+  description?: string | null;
   agent: string;
-  repo: string;
   provider: GitProvider;
-  template: string;
-  instance: string;
-  image: string;
+  repo: string;
+  known: boolean;
+  instances: InstanceCard[];
 };
 
 export type Toast = {

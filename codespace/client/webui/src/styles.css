@@ -12,7 +12,7 @@ body {
   background: var(--gray-2);
 }
 
-/* Sticky top bar: title + tokens/refresh/new. */
+/* Sticky top bar: title + tokens/refresh. */
 .topbar {
   position: sticky;
   top: 0;
@@ -38,13 +38,23 @@ body {
   padding: 0;
 }
 
-/* Grid cards fill their track and keep a stable minimum height. */
-.cs-card {
-  min-height: 172px;
+/* Project cards fill the list width. */
+.project-card {
+  width: 100%;
 }
 
-/* In-flight operation cards get a subtle amber wash. */
-.cs-card-op {
+/* Empty-state CTA strip inside a project with no instances. */
+.project-empty {
+  padding: 4px 2px;
+}
+
+/* One environment row; in-flight rows get a subtle amber wash. */
+.instance-row {
+  padding: 6px 4px;
+  border-radius: var(--radius-2);
+}
+
+.instance-row-op {
   background: var(--amber-2);
 }
 
