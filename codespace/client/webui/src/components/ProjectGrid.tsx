@@ -138,7 +138,7 @@ export function ProjectGrid({
 
   if (projects.length === 0) {
     return (
-      <Box p="6">
+      <Box className="page-inner" p="6">
         <Text color="gray" align="center" as="div">
           {normalizeStatus(agentFilter) === 'all' && !query
             ? '暂无项目。请在 config.yaml 的 templates 中添加项目。'
@@ -149,7 +149,7 @@ export function ProjectGrid({
   }
 
   return (
-    <Flex direction="column" gap="3" p="4">
+    <Flex direction="column" gap="3" p="4" className="page-inner">
       {projects.map((project) => (
         <ProjectCard
           key={project.id}

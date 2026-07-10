@@ -1,5 +1,5 @@
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
-import { Badge, Button, Callout, Flex, Text, TextField } from '@radix-ui/themes';
+import { Badge, Box, Button, Callout, Flex, Text, TextField } from '@radix-ui/themes';
 
 import type { Agent } from '../types';
 import { statusColor } from '../utils';
@@ -16,8 +16,9 @@ type Props = {
 export function AgentBar({ agents, agentFilter, query, onToggleAgent, onQueryChange }: Props) {
   const offline = agents.filter((agent) => agent.error);
   return (
-    <Flex direction="column" gap="2" px="4" py="2" className="agentbar">
-      <Flex align="center" justify="between" gap="3" wrap="wrap">
+    <Box px="4" className="agentbar">
+      <Flex direction="column" gap="2" py="2" className="page-inner">
+        <Flex align="center" justify="between" gap="3" wrap="wrap">
         <Flex align="center" gap="2" wrap="wrap">
           {agents.length ? (
             agents.map((agent) => (
@@ -56,13 +57,14 @@ export function AgentBar({ agents, agentFilter, query, onToggleAgent, onQueryCha
           </TextField.Slot>
         </TextField.Root>
       </Flex>
-      {offline.map((agent) => (
-        <Callout.Root key={agent.id} color="red" size="1">
-          <Callout.Text>
-            {agent.id}: {agent.error}
-          </Callout.Text>
-        </Callout.Root>
-      ))}
-    </Flex>
+        {offline.map((agent) => (
+          <Callout.Root key={agent.id} color="red" size="1">
+            <Callout.Text>
+              {agent.id}: {agent.error}
+            </Callout.Text>
+          </Callout.Root>
+        ))}
+      </Flex>
+    </Box>
   );
 }

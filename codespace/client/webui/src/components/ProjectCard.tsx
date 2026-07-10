@@ -30,7 +30,7 @@ export function ProjectCard({
       <Flex direction="column" gap="3">
         <Flex align="center" justify="between" gap="3" wrap="wrap">
           <Flex align="center" gap="2" minWidth="0" style={{ flex: '1 1 320px' }}>
-            <Text weight="bold" truncate>
+            <Text size="4" weight="bold" truncate>
               {project.id}
             </Text>
             <Badge color={providerColor(project.provider)} variant="soft">
@@ -44,9 +44,11 @@ export function ProjectCard({
             </Text>
           </Flex>
           <Flex align="center" gap="2" flexShrink="0">
-            <Badge variant="surface" color="gray">
-              {instances.length} 个环境
-            </Badge>
+            {instances.length > 0 && (
+              <Badge variant="surface" color="gray">
+                {instances.length} 个环境
+              </Badge>
+            )}
             {project.known && (
               <Button size="2" variant="soft" onClick={() => onNewInstance(project)}>
                 <PlusIcon />
@@ -59,27 +61,30 @@ export function ProjectCard({
         {instances.length === 0 ? (
           <Flex align="center" justify="between" gap="3" wrap="wrap" className="project-empty">
             <Text size="2" color="gray">
-              还没有环境。
+              还没有运行环境
             </Text>
-            <Button size="2" onClick={() => onCreateDefault(project)}>
-              <PlusIcon />
-              Create
-            </Button>
+            {project.known && (
+              <Button size="2" onClick={() => onCreateDefault(project)}>
+                <PlusIcon />
+                Create
+              </Button>
+            )}
           </Flex>
         ) : (
-          <Flex direction="column">
-            {instances.map((card, index) => (
-              <div key={card.key}>
-                {index > 0 && <Separator size="4" my="1" />}
+          <>
+            <Separator size="4" />
+            <Flex direction="column" gap="1">
+              {instances.map((card) => (
                 <InstanceRow
+                  key={card.key}
                   card={card}
                   onConnectCopied={onConnectCopied}
                   onDelete={onDelete}
                   onDismissOperation={onDismissOperation}
                 />
-              </div>
-            ))}
-          </Flex>
+              ))}
+            </Flex>
+          </>
         )}
       </Flex>
     </Card>

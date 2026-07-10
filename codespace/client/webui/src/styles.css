@@ -1,5 +1,6 @@
 :root {
   color-scheme: light;
+  --page-max: 1120px;
 }
 
 body {
@@ -12,13 +13,21 @@ body {
   background: var(--gray-2);
 }
 
-/* Sticky top bar: title + tokens/refresh. */
+/* Centered content column shared by the bars and the project list. */
+.page-inner {
+  width: 100%;
+  max-width: var(--page-max);
+  margin: 0 auto;
+}
+
+/* Sticky top bar: title + tokens/refresh. Full-bleed bar, centered content. */
 .topbar {
   position: sticky;
   top: 0;
   z-index: 20;
   background: var(--color-panel-solid);
   border-bottom: 1px solid var(--gray-a5);
+  box-shadow: var(--shadow-2);
 }
 
 /* Agent filter chips + search, stuck just below the top bar. */
@@ -26,7 +35,8 @@ body {
   position: sticky;
   top: 57px;
   z-index: 10;
-  background: var(--color-panel-solid);
+  background: color-mix(in srgb, var(--color-panel-solid) 82%, transparent);
+  backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--gray-a4);
 }
 
@@ -38,23 +48,32 @@ body {
   padding: 0;
 }
 
-/* Project cards fill the list width. */
+/* Project cards fill the centered column. */
 .project-card {
   width: 100%;
 }
 
-/* Empty-state CTA strip inside a project with no instances. */
+/* Empty-state CTA: dashed, muted, clearly signals "nothing here yet". */
 .project-empty {
-  padding: 4px 2px;
+  padding: 14px 16px;
+  border: 1px dashed var(--gray-a6);
+  border-radius: var(--radius-3);
+  background: var(--gray-a2);
 }
 
-/* One environment row; in-flight rows get a subtle amber wash. */
+/* One environment row; hover highlights, in-flight rows get an amber wash. */
 .instance-row {
-  padding: 6px 4px;
+  padding: 8px 10px;
   border-radius: var(--radius-2);
+  transition: background 120ms ease;
 }
 
-.instance-row-op {
+.instance-row:hover {
+  background: var(--gray-a3);
+}
+
+.instance-row-op,
+.instance-row-op:hover {
   background: var(--amber-2);
 }
 

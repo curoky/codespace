@@ -1,5 +1,5 @@
 import { UpdateIcon } from '@radix-ui/react-icons';
-import { Button, Flex, Heading } from '@radix-ui/themes';
+import { Box, Button, Flex, Heading, Text } from '@radix-ui/themes';
 
 import type { GitProvider, TokenStatusResponse } from '../types';
 import { TokenPopover } from './TokenPopover';
@@ -13,17 +13,24 @@ type Props = {
 
 export function TopBar({ refreshing, tokenStatus, onRefresh, onSaveToken }: Props) {
   return (
-    <Flex asChild align="center" justify="between" gap="3" px="4" py="3" className="topbar">
+    <Box asChild px="4" className="topbar">
       <header>
-        <Heading size="5">Codespace</Heading>
-        <Flex align="center" gap="2">
-          <TokenPopover status={tokenStatus} onSave={onSaveToken} />
-          <Button variant="soft" color="gray" onClick={onRefresh} loading={refreshing}>
-            <UpdateIcon />
-            Refresh
-          </Button>
+        <Flex align="center" justify="between" gap="3" py="3" className="page-inner">
+          <Flex align="center" gap="2">
+            <Heading size="5">Codespace</Heading>
+            <Text size="1" color="gray">
+              项目开发环境
+            </Text>
+          </Flex>
+          <Flex align="center" gap="2">
+            <TokenPopover status={tokenStatus} onSave={onSaveToken} />
+            <Button variant="soft" color="gray" onClick={onRefresh} loading={refreshing}>
+              <UpdateIcon />
+              Refresh
+            </Button>
+          </Flex>
         </Flex>
       </header>
-    </Flex>
+    </Box>
   );
 }

@@ -156,10 +156,12 @@ function App() {
           onQueryChange={setQuery}
         />
         {state.error && (
-          <Box px="4" pt="2">
-            <Callout.Root color="amber" size="1">
-              <Callout.Text>{state.error}</Callout.Text>
-            </Callout.Root>
+          <Box px="4" pt="3">
+            <Box className="page-inner">
+              <Callout.Root color="amber" size="1">
+                <Callout.Text>{state.error}</Callout.Text>
+              </Callout.Root>
+            </Box>
           </Box>
         )}
         <Box flexGrow="1">
