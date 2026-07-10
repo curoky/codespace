@@ -10,7 +10,9 @@ body {
 
 .app-shell {
   min-height: 100vh;
-  background: var(--gray-2);
+  background:
+    radial-gradient(1200px 400px at 50% -120px, var(--accent-a3), transparent 70%),
+    var(--gray-2);
 }
 
 /* Centered content column shared by the bars and the project list. */
@@ -51,6 +53,14 @@ body {
 /* Project cards fill the centered column. */
 .project-card {
   width: 100%;
+  border: 1px solid var(--gray-a4);
+  box-shadow: var(--shadow-2);
+  transition: box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.project-card:hover {
+  border-color: var(--gray-a6);
+  box-shadow: var(--shadow-3);
 }
 
 /* Empty-state CTA: dashed, muted, clearly signals "nothing here yet". */
@@ -61,20 +71,31 @@ body {
   background: var(--gray-a2);
 }
 
+/* Whole-list empty state (no projects / no matches). */
+.list-empty {
+  border: 1px dashed var(--gray-a6);
+  border-radius: var(--radius-4);
+  background: var(--gray-a2);
+}
+
 /* One environment row; hover highlights, in-flight rows get an amber wash. */
 .instance-row {
-  padding: 8px 10px;
-  border-radius: var(--radius-2);
-  transition: background 120ms ease;
+  padding: 10px 12px;
+  border-radius: var(--radius-3);
+  border: 1px solid var(--gray-a3);
+  background: var(--color-panel-solid);
+  transition: background 120ms ease, border-color 120ms ease;
 }
 
 .instance-row:hover {
-  background: var(--gray-a3);
+  background: var(--gray-a2);
+  border-color: var(--gray-a5);
 }
 
 .instance-row-op,
 .instance-row-op:hover {
   background: var(--amber-2);
+  border-color: var(--amber-a5);
 }
 
 /* Toast stack, fixed bottom-right, click to dismiss. */

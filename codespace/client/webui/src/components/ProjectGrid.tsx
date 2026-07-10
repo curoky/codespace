@@ -138,12 +138,14 @@ export function ProjectGrid({
 
   if (projects.length === 0) {
     return (
-      <Box className="page-inner" p="6">
-        <Text color="gray" align="center" as="div">
-          {normalizeStatus(agentFilter) === 'all' && !query
-            ? '暂无项目。请在 config.yaml 的 templates 中添加项目。'
-            : '没有匹配的项目。'}
-        </Text>
+      <Box className="page-inner" p="4">
+        <Box className="list-empty" p="6">
+          <Text color="gray" align="center" as="div">
+            {normalizeStatus(agentFilter) === 'all' && !query
+              ? '暂无项目。请在 config.yaml 的 templates 中添加项目。'
+              : '没有匹配的项目。'}
+          </Text>
+        </Box>
       </Box>
     );
   }

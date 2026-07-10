@@ -1,5 +1,5 @@
-import { CopyIcon, DotsHorizontalIcon, ExternalLinkIcon } from '@radix-ui/react-icons';
-import { Badge, Box, Button, Code, DropdownMenu, Flex, IconButton, Progress, Spinner, Text } from '@radix-ui/themes';
+import { CopyIcon, ExternalLinkIcon, TrashIcon } from '@radix-ui/react-icons';
+import { Badge, Box, Button, Code, Flex, Progress, Spinner, Text } from '@radix-ui/themes';
 
 import type { InstanceCard } from '../types';
 import { connectCommand, copyToClipboard, isCodespaceCard, operationProgress, statusColor } from '../utils';
@@ -62,21 +62,14 @@ export function InstanceRow({ card, onConnectCopied, onDelete, onDismissOperatio
             <CopyIcon />
             SSH
           </Button>
-          <DropdownMenu.Root>
-            <DropdownMenu.Trigger>
-              <IconButton size="2" variant="soft" color="gray">
-                <DotsHorizontalIcon />
-              </IconButton>
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Content>
-              <DropdownMenu.Item color="red" onClick={() => onDelete(card, false)}>
-                Delete container
-              </DropdownMenu.Item>
-              <DropdownMenu.Item color="red" onClick={() => onDelete(card, true)}>
-                Delete workspace
-              </DropdownMenu.Item>
-            </DropdownMenu.Content>
-          </DropdownMenu.Root>
+          <Button size="2" variant="soft" color="gray" onClick={() => onDelete(card, false)}>
+            <TrashIcon />
+            Container
+          </Button>
+          <Button size="2" variant="soft" color="red" onClick={() => onDelete(card, true)}>
+            <TrashIcon />
+            Workspace
+          </Button>
         </Flex>
       ) : (
         <Flex align="center" gap="2" minWidth="0" style={{ flex: '1 1 220px' }}>

@@ -1,4 +1,4 @@
-import { PlusIcon } from '@radix-ui/react-icons';
+import { LightningBoltIcon, PlusIcon } from '@radix-ui/react-icons';
 import { Badge, Button, Card, Flex, Separator, Text } from '@radix-ui/themes';
 
 import type { InstanceCard, Project } from '../types';
@@ -25,6 +25,19 @@ export function ProjectCard({
 }: Props) {
   const { instances } = project;
 
+  const actions = project.known ? (
+    <Flex align="center" gap="2" flexShrink="0">
+      <Button size="2" variant="solid" onClick={() => onCreateDefault(project)}>
+        <LightningBoltIcon />
+        Quick
+      </Button>
+      <Button size="2" variant="soft" onClick={() => onNewInstance(project)}>
+        <PlusIcon />
+        New instance
+      </Button>
+    </Flex>
+  ) : null;
+
   return (
     <Card size="2" className="project-card">
       <Flex direction="column" gap="3">
@@ -49,12 +62,7 @@ export function ProjectCard({
                 {instances.length} 个环境
               </Badge>
             )}
-            {project.known && (
-              <Button size="2" variant="soft" onClick={() => onNewInstance(project)}>
-                <PlusIcon />
-                New instance
-              </Button>
-            )}
+            {actions}
           </Flex>
         </Flex>
 
@@ -63,17 +71,12 @@ export function ProjectCard({
             <Text size="2" color="gray">
               还没有运行环境
             </Text>
-            {project.known && (
-              <Button size="2" onClick={() => onCreateDefault(project)}>
-                <PlusIcon />
-                Create
-              </Button>
-            )}
+            {actions}
           </Flex>
         ) : (
           <>
             <Separator size="4" />
-            <Flex direction="column" gap="1">
+            <Flex direction="column" gap="2">
               {instances.map((card) => (
                 <InstanceRow
                   key={card.key}
