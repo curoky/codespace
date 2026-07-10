@@ -7,7 +7,8 @@ DESIGN.md §6.
 import typer
 import uvicorn
 
-from codespace.agent.app import AgentConfig, create_app
+from codespace.agent.app import create_app
+from codespace.agent.config import AgentConfig
 
 app = typer.Typer(help="Lightweight self-hosted codespace agent (Podman-out-of-Podman).")
 

@@ -87,7 +87,12 @@ codespace/
 ├── agent/
 │   ├── __main__.py              # agent CLI：serve
 │   ├── app.py                   # agent FastAPI app、operation 路由
-│   ├── podman_ops.py            # Podman 编排、workspace、put_archive 注入
+│   ├── config.py                # AgentConfig 校验与 workspace 宿主机路径推导
+│   ├── operations.py            # 异步 create operation 内存 store
+│   ├── service.py               # CodespaceProvisioner 创建编排与回滚
+│   ├── containers.py            # Podman 容器生命周期、清单、就绪探测、workspace
+│   ├── credentials.py           # deploy key/登录公钥 put_archive 注入与 repo clone
+│   ├── podman_exec.py           # podman exec 多路复用帧解析
 │   └── keys.py                  # ed25519 deploy keypair 生成
 ├── client/
 │   ├── __main__.py              # 本地 Web GUI 启动器
@@ -111,8 +116,10 @@ codespace/
 | 路径 | 职责 |
 | --- | --- |
 | `shared.py` | repo/template/instance 命名、wire model、deploy key title。 |
-| `agent/app.py` | agent HTTP API 与异步 create operation 管理。 |
-| `agent/podman_ops.py` | 容器创建、状态读取、workspace 目录准备、密钥注入、删除和 purge。 |
+| `agent/app.py` | agent HTTP API 路由；将创建流程委托给 provisioner。 |
+| `agent/service.py` | create 编排（去重、keygen、workspace、拉镜像、建容器、注入、探测）与失败回滚。 |
+| `agent/containers.py` | 容器创建、状态读取、清单/去重、SSH 就绪探测、workspace 目录准备与 purge。 |
+| `agent/credentials.py` | 通过 put_archive 注入 deploy 私钥/登录公钥与 git ssh config，以及 repo clone。 |
 | `images/agent/rootfs/etc/s6/s6-rc.d/agent-service/run` | s6 longrun：读取 `WORKSPACE_ROOT_HOST`，并使用固定的 agent 监听地址、端口和 podman socket 启动 agent CLI。 |
 | `images/dev/rootfs/etc/s6/s6-rc.d/atuin-service/run` | s6 longrun：启动 `atuin server start`；agent 镜像在 Dockerfile 中直接复用该服务定义。 |
 | `client/config.py` | 读取 YAML，注入 agent/template id，校验 agent、template。 |

@@ -1,0 +1,151 @@
+"""Tests for credential injection and repo cloning."""
+
+import io
+import tarfile
+
+from codespace import shared
+from codespace.agent import credentials
+
+
+class _FakeContainer:
+    """Container stub recording exec/put_archive calls for injection tests."""
+
+    def __init__(self, labels: dict[str, str], home: str | bytes = "/home/dev") -> None:
+        self.labels = labels
+        self._home = home
+        self.id = "deadbeef"
+        cs_id = labels.get(shared.LABEL_ID, "")
+        self.name = shared.container_name(cs_id) if cs_id else ""
+        self.execs: list[tuple[list[str], str | None]] = []
+        self.archives: list[tuple[str, bytes]] = []
+
+    def exec_run(self, cmd: list[str], *, user: str | None = None) -> tuple[int, bytes]:
+        self.execs.append((cmd, user))
+        if cmd[:2] == ["sh", "-c"]:  # HOME resolution
+            home = self._home if isinstance(self._home, bytes) else self._home.encode()
+            return 0, home
+        return 0, b""
+
+    def put_archive(self, path: str, data: bytes) -> bool:
+        self.archives.append((path, data))
+        return True
+
+
+class _FakeContainers:
+    def __init__(self, container: _FakeContainer) -> None:
+        self._container = container
+
+    def get(self, name: str) -> _FakeContainer:
+        return self._container
+
+
+class _FakeClient:
+    def __init__(self, container: _FakeContainer) -> None:
+        self.containers = _FakeContainers(container)
+
+
+def test_inject_credentials_chowns_and_puts_archive() -> None:
+    container = _FakeContainer(labels={shared.LABEL_ID: "abc"})
+    client = _FakeClient(container)
+
+    credentials.inject_credentials(
+        client,
+        cs_id="abc",
+        user="dev",
+        private_key="PRIV",
+        login_pubkey="ssh-ed25519 LOGIN",
+    )
+
+    # workspace chown (root) happened before archive, ~/.ssh chown after.
+    assert (["chown", "-R", "dev:dev", "/workspace"], "0") in container.execs
+    assert container.archives  # credentials were written via put_archive
+    path, data = container.archives[0]
+    assert path == "/home/dev/.ssh"
+    names = _tar_names(data)
+    assert set(names) == {"repo_id_ed25519", "config.codespace.tmp", "authorized_keys"}
+    ssh_config = _tar_member(data, "config.codespace.tmp").decode()
+    assert credentials._SSH_CONFIG_BEGIN in ssh_config
+    assert "Host github.com" in ssh_config
+    assert "StrictHostKeyChecking accept-new" in ssh_config
+    assert credentials._SSH_CONFIG_END in ssh_config
+
+    append_cmds = [
+        cmd for cmd, user in container.execs if cmd[3:5] == ["append-ssh-config", "/home/dev/.ssh"]
+    ]
+    assert append_cmds
+    append_cmd = append_cmds[0]
+    assert 'cat "$tmp_block" >> "$tmp_config"' in append_cmd[2]
+    assert 'mv "$tmp_config" "$config"' in append_cmd[2]
+
+    ssh_chown = (["chown", "-R", "dev:dev", "/home/dev/.ssh"], "0")
+    assert container.execs.count(ssh_chown) == 2
+    append_index = next(
+        index
+        for index, (cmd, _user) in enumerate(container.execs)
+        if cmd[3:5] == ["append-ssh-config", "/home/dev/.ssh"]
+    )
+    assert container.execs.index(ssh_chown) < append_index
+
+
+def test_inject_credentials_uses_stdout_from_multiplexed_home_output() -> None:
+    output = _exec_frame(1, b"/home/x") + _exec_frame(
+        2, b"[conmon:d]: exec with attach is waiting \x81"
+    )
+    container = _FakeContainer(labels={shared.LABEL_ID: "abc"}, home=output)
+    client = _FakeClient(container)
+
+    credentials.inject_credentials(
+        client,
+        cs_id="abc",
+        user="x",
+        private_key="PRIV",
+        login_pubkey="ssh-ed25519 LOGIN",
+    )
+
+    assert container.archives[0][0] == "/home/x/.ssh"
+
+
+def test_clone_repo_clones_into_repo_name_directory() -> None:
+    container = _FakeContainer(labels={shared.LABEL_ID: "abc"})
+    client = _FakeClient(container)
+
+    credentials.clone_repo(client, cs_id="abc", user="dev", repo="owner/name")
+
+    cmd, user = container.execs[-1]
+    assert user == "dev"
+    assert cmd[:2] == ["sh", "-c"]
+    assert cmd[-2:] == ["owner/name", "/workspace/name"]
+    assert 'git clone "git@$git_host:$repo.git" "$target"' in cmd[2]
+
+
+def test_multi_member_tar_contains_members_with_modes() -> None:
+    archive = credentials._multi_member_tar(
+        [
+            ("repo_id_ed25519", "PRIVATE", 0o600),
+            ("config", "cfg", 0o600),
+        ]
+    )
+    with tarfile.open(fileobj=io.BytesIO(archive), mode="r") as tar:
+        names = tar.getnames()
+        assert names == ["repo_id_ed25519", "config"]
+        member = tar.getmember("repo_id_ed25519")
+        assert member.mode == 0o600
+        extracted = tar.extractfile("repo_id_ed25519")
+        assert extracted is not None
+        assert extracted.read() == b"PRIVATE"
+
+
+def _tar_names(data: bytes) -> list[str]:
+    with tarfile.open(fileobj=io.BytesIO(data), mode="r") as tar:
+        return tar.getnames()
+
+
+def _tar_member(data: bytes, name: str) -> bytes:
+    with tarfile.open(fileobj=io.BytesIO(data), mode="r") as tar:
+        extracted = tar.extractfile(name)
+        assert extracted is not None
+        return extracted.read()
+
+
+def _exec_frame(stream: int, payload: bytes) -> bytes:
+    return bytes([stream, 0, 0, 0]) + len(payload).to_bytes(4, "big") + payload
