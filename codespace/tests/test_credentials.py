@@ -116,6 +116,38 @@ def test_clone_repo_clones_into_repo_name_directory() -> None:
     assert cmd[:2] == ["sh", "-c"]
     assert cmd[-2:] == ["owner/name", "/workspace/name"]
     assert 'git clone "git@$git_host:$repo.git" "$target"' in cmd[2]
+    # The injected body is the on-disk resource, not an inline heredoc.
+    assert cmd[2] == credentials._load_script("clone_repo.sh")
+
+
+def test_append_ssh_config_uses_loaded_script_verbatim() -> None:
+    container = _FakeContainer(labels={shared.LABEL_ID: "abc"})
+    client = _FakeClient(container)
+
+    credentials.inject_credentials(
+        client,
+        cs_id="abc",
+        user="dev",
+        private_key="PRIV",
+        login_pubkey="ssh-ed25519 LOGIN",
+    )
+
+    append_cmd = next(
+        cmd for cmd, _user in container.execs if cmd[3:4] == ["append-ssh-config"]
+    )
+    assert append_cmd[2] == credentials._load_script("append_ssh_config.sh")
+
+
+def test_load_script_reads_resource_and_caches() -> None:
+    clone = credentials._load_script("clone_repo.sh")
+    append = credentials._load_script("append_ssh_config.sh")
+
+    assert clone.startswith("#!/bin/sh")
+    assert 'git clone "git@$git_host:$repo.git" "$target"' in clone
+    assert append.startswith("#!/bin/sh")
+    assert 'mv "$tmp_config" "$config"' in append
+    # @cache returns the identical object on repeat lookups.
+    assert credentials._load_script("clone_repo.sh") is clone
 
 
 def test_multi_member_tar_contains_members_with_modes() -> None:

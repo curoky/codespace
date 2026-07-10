@@ -7,7 +7,10 @@ from pydantic import BaseModel, ConfigDict, Field
 from codespace import shared
 from codespace.client.service import CreateCodespaceInput
 
-WebOperationStatus = Literal["queued", "running", "succeeded", "failed"]
+# The Web GUI operation status mirrors the agent's create-operation status
+# 1:1 (a Web operation's status is driven by the agent's). Alias the shared
+# type so the two state machines can never drift apart.
+WebOperationStatus = shared.CreateOperationStatus
 
 
 class ConfigDefaultsSummary(BaseModel):

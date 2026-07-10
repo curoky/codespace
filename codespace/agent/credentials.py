@@ -9,6 +9,8 @@ to the agent's disk, and never appears in a mount table (see DESIGN.md §6.3).
 
 import io
 import tarfile
+from functools import cache
+from importlib import resources
 
 from loguru import logger
 from podman import PodmanClient
@@ -19,6 +21,17 @@ from codespace.agent.podman_exec import exec_checked, exec_output_text
 
 _SSH_CONFIG_BEGIN = "# >>> codespace managed git ssh config >>>"
 _SSH_CONFIG_END = "# <<< codespace managed git ssh config <<<"
+
+
+@cache
+def _load_script(name: str) -> str:
+    """Read a shell script shipped under ``codespace.agent.scripts``.
+
+    Scripts are stored as standalone ``.sh`` resources (shellcheck-able,
+    unit-testable) instead of inline heredocs, and loaded via
+    ``importlib.resources`` so they resolve regardless of the working directory.
+    """
+    return (resources.files("codespace.agent.scripts") / name).read_text(encoding="utf-8")
 
 
 def inject_credentials(
@@ -118,20 +131,7 @@ def clone_repo(
         [
             "sh",
             "-c",
-            """
-set -eu
-git_host="$1"
-repo="$2"
-target="$3"
-if [ -d "$target/.git" ]; then
-  exit 0
-fi
-if [ -e "$target" ]; then
-  echo "target already exists and is not a git repository: $target" >&2
-  exit 1
-fi
-git clone "git@$git_host:$repo.git" "$target"
-""".strip(),
+            _load_script("clone_repo.sh"),
             "clone-repo",
             git_host,
             repo,
@@ -166,28 +166,7 @@ def _append_managed_ssh_config(container: Container, ssh_dir: str, *, user: str)
         [
             "sh",
             "-c",
-            r"""
-set -eu
-ssh_dir="$1"
-config="$ssh_dir/config"
-tmp_block="$ssh_dir/config.codespace.tmp"
-tmp_config="$ssh_dir/config.codespace.new"
-begin_marker="$2"
-end_marker="$3"
-touch "$config"
-awk '
-  $0 == begin { skipping = 1; next }
-  $0 == end { skipping = 0; next }
-  !skipping { print }
-' begin="$begin_marker" end="$end_marker" "$config" > "$tmp_config"
-if [ -s "$tmp_config" ] && [ "$(tail -c 1 "$tmp_config")" != "" ]; then
-  printf '\n' >> "$tmp_config"
-fi
-cat "$tmp_block" >> "$tmp_config"
-mv "$tmp_config" "$config"
-rm -f "$tmp_block"
-chmod 600 "$config"
-            """.strip(),
+            _load_script("append_ssh_config.sh"),
             "append-ssh-config",
             ssh_dir,
             _SSH_CONFIG_BEGIN,
