@@ -454,5 +454,6 @@
   "AI.rules.importClaudeMd": true,
   "git.blame.editorDecoration.enabled": true,
   "telemetry.editStats.enabled": false,
-  "security.promptForRemoteFileProtocolHandling": false
+  "security.promptForRemoteFileProtocolHandling": false,
+  "AI.toolcall.v2.fileOp.allowPaths": "[\"/workspace/tmp\"]"
 }
