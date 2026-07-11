@@ -414,5 +414,6 @@
   "yaml.disableSchemaDetection": [],
   "yaml.format.enable": true,
   "yaml.format.singleQuote": true,
-  "trae.network.proxy.effectiveMode": "system"
+  "trae.network.proxy.effectiveMode": "system",
+  "security.promptForRemoteFileProtocolHandling": false
 }
