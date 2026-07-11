@@ -50,6 +50,7 @@ select = ["E", "F", "B", "Q", "I", "UP", "S", "SIM", "RUF", "PTH", "ANN", "C4", 
 [tool.ruff.lint.per-file-ignores]
 # Tests may use assert, hardcoded dummy secrets, and fixed socket paths.
 "tests/**" = ["S101", "S105", "S106", "S108"]
+"platform/container/workspace/tests/**" = ["S101", "S603", "S607"]
 
 [tool.mypy]
 strict = true
