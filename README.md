@@ -1,1 +1,0 @@
-# curoky's dotfiles
