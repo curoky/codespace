@@ -58,7 +58,7 @@ def test_example_config_loads() -> None:
     assert list(config.projects) == ["codespace"]
     assert list(config.services) == ["support", "vllm", "sglang"]
     assert config.workspace_spec("codespace", "server", "default").identity == (
-        "codespace-workspace_server_codespace_default"
+        "space:codespace/default@server"
     )
     workspace = config.workspace_spec("codespace", "server", "default")
     assert workspace.container.is_bridge
@@ -487,6 +487,14 @@ def test_unknown_host_reference_is_rejected(config: Config) -> None:
         Config.model_validate(data)
 
 
+def test_host_cannot_use_workspace_ssh_prefix(config: Config) -> None:
+    data = config.model_dump()
+    data["hosts"]["space-home"] = {}
+
+    with pytest.raises(ValidationError, match="reserved Workspace SSH prefix"):
+        Config.model_validate(data)
+
+
 def test_encrypted_project_requires_syncable_key(config: Config) -> None:
     data = config.model_dump()
     data["projects"]["codespace"]["encrypted"] = True
@@ -513,9 +521,13 @@ def test_workspace_identity_labels_and_paths(config: Config) -> None:
     spec = config.workspace_spec("codespace", "home", "debug")
     paths = HostDataPaths("/home/x/codespace")
 
-    assert identity == "codespace-workspace_home_codespace_debug"
+    assert identity == "space:codespace/debug@home"
     assert spec.identity == identity
-    assert 20_000 <= workspace_ssh_host_port(identity) <= 29_999
+    actual = spec.to_workspace("container-id", status="running")
+    assert spec.container_name == actual.container_name == "space-codespace-debug"
+    assert actual.ssh_alias == "space-codespace-debug-home"
+    assert spec.ssh_host_port == actual.ssh_host_port == 28098
+    assert workspace_ssh_host_port(spec.container_name) == actual.ssh_host_port
     assert spec.labels() == {
         LABEL_KIND: "workspace",
         LABEL_PROJECT: "codespace",
@@ -535,3 +547,16 @@ def test_workspace_identity_labels_and_paths(config: Config) -> None:
 
 def test_workspace_identity_has_unambiguous_component_boundaries() -> None:
     assert workspace_identity("home", "a-b", "c") != workspace_identity("home", "a", "b-c")
+
+
+def test_workspace_names_follow_host_scope(config: Config) -> None:
+    home = config.workspace_spec("codespace", "home", "debug").to_workspace(
+        "home-container", status="running"
+    )
+    office = home.model_copy(update={"host": "office", "container_id": "office-container"})
+
+    assert home.container_name == office.container_name == "space-codespace-debug"
+    assert home.ssh_alias == "space-codespace-debug-home"
+    assert office.ssh_alias == "space-codespace-debug-office"
+    assert home.id != office.id
+    assert home.ssh_host_port == office.ssh_host_port

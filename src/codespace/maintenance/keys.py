@@ -123,17 +123,18 @@ def _collect(
 
 
 def _usage(title: str, routes: list[Route], active: set[str], scanned_hosts: set[str]) -> Usage:
-    if not title.startswith("codespace-workspace_"):
-        return "unmanaged"
     if title in active:
         return "yes"
-    matching_hosts = {
-        host
-        for host, project in routes
-        if title.startswith(prefix := f"codespace-workspace_{host}_{project}_")
-        and RESOURCE_ID_RE.fullmatch(title.removeprefix(prefix))
-    }
-    return "unknown" if matching_hosts - scanned_hosts else "no"
+    for host, project in routes:
+        prefix = f"space:{project}/"
+        suffix = f"@{host}"
+        if (
+            title.startswith(prefix)
+            and title.endswith(suffix)
+            and RESOURCE_ID_RE.fullmatch(title.removeprefix(prefix).removesuffix(suffix))
+        ):
+            return "no" if host in scanned_hosts else "unknown"
+    return "unmanaged"
 
 
 def _delete(
