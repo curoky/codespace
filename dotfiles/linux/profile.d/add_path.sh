@@ -1,1 +1,1 @@
-export PATH:/opt/sb/bin:$PATH
+export PATH=/opt/sb/bin:$PATH
