@@ -132,9 +132,7 @@ def test_append_ssh_config_uses_loaded_script_verbatim() -> None:
         login_pubkey="ssh-ed25519 LOGIN",
     )
 
-    append_cmd = next(
-        cmd for cmd, _user in container.execs if cmd[3:4] == ["append-ssh-config"]
-    )
+    append_cmd = next(cmd for cmd, _user in container.execs if cmd[3:4] == ["append-ssh-config"])
     assert append_cmd[2] == credentials._load_script("append_ssh_config.sh")
 
 
