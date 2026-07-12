@@ -393,17 +393,12 @@
     "minimap.background": "#1f1f2256"
   },
   "workbench.colorTheme": "Better Solarized Light",
-  "workbench.diffEditorAssociations": {
-    "*.md": "default"
-  },
   "workbench.editor.highlightModifiedTabs": true,
   "workbench.editor.useModal": "off",
   "workbench.editor.wrapTabs": true,
   "workbench.editorAssociations": {
-    "*.copilotmd": "vscode.markdown.preview.editor",
     "*.hex": "hexEditor.hexedit",
     "*.ipynb": "jupyter-notebook",
-    "*.md": "vscode.markdown.preview.editor",
     "*.plist": "default",
     "*.spec": "default"
   },
