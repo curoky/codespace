@@ -34,7 +34,7 @@ packages:
     - gdu
     - ncdu_1
     - parallel
-    - smartmontools
+    # - smartmontools
     - git-absorb
     - git-extras
     - git-lfs
@@ -42,7 +42,7 @@ packages:
     - lefthook
     - gnupatch
     - m4
-    - getopt
+    # - getopt
     - go-task
     - bazelisk
     - buildifier
@@ -51,9 +51,11 @@ packages:
     - shfmt
     - ruff
     - prettier
-    - biome
+    # - biome
     - cloc
     - exiftool
+    - bats
+
   unlink:
     - nodejs-slim26
     - perl
@@ -68,4 +70,4 @@ profiles:
     - gotests
     - gotools
     - impl
-    - go-outline
+    # - go-outline

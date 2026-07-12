@@ -25,4 +25,4 @@ pre-push:
 commit-msg:
   commands:
     check-git-author:
-      run: scripts/hooks/check-author.sh -n curoky -e cccuroky@gmail.com
+      run: scripts/check-author.sh -n curoky -e cccuroky@gmail.com

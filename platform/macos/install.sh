@@ -60,6 +60,7 @@ install_homebrew() {
   /opt/homebrew/bin/brew bundle \
     --force \
     --file "$script_dir/Brewfile" \
+    --cleanup \
     --verbose
   /opt/homebrew/bin/brew cleanup --prune=all
 }
