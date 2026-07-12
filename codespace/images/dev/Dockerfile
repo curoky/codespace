@@ -41,7 +41,7 @@ RUN /tmp/patch-apt.sh ${BASE_IMAGE} \
 # Static tools and system config must be present before setup-sysconf.sh (it
 # runs `chsh` to the sb zsh and tightens perms on the rootfs-provided /etc/ssh &
 # /etc/sudoers.d files). Lay both down while still root, before `USER x`.
-COPY --link --from=stage_sb /opt/sb /opt/sb
+COPY --link --chown=5230:5230 --from=stage_sb /opt/sb /opt/sb
 COPY codespace/images/dev/rootfs/ /
 
 COPY codespace/images/dev/script/setup-sysconf.sh /tmp/setup-sysconf.sh
@@ -92,7 +92,7 @@ RUN uv tool install licenseheaders \
   && uv tool install tensorboard --python 3.12 --with tensorboard-plugin-profile --with "setuptools==81.0.0"
 
 # setup conda
-COPY --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
+COPY --link --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
 ENV PATH=${PATH}:/opt/conda/condabin
 RUN conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main \
   && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r

@@ -46,6 +46,7 @@ alwaysApply: true
 - **node / npm / npx / corepack**：`/home/x/.nix-profile/bin/`（等价 `/nix/var/nix/profiles/nodejs-24/bin`），版本 v24.x。
 - **pnpm / pnpx**（首选包管理器）：`/opt/sb/bin/pnpm`、`/opt/sb/bin/pnpx`。
 - **prettier**：`/opt/sb/bin/prettier`；**markdownlint-cli2**：`/opt/sb/bin/markdownlint-cli2`。
+- **biome**：`/opt/sb/bin/biome`。
 
 ### Go —— Go 1.26
 - **go / gofmt**：`/home/x/.nix-profile/bin/go`（等价 `/nix/var/nix/profiles/go-1_26/bin`）。
