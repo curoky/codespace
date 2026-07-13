@@ -23,6 +23,7 @@ class AgentProfile(BaseModel):
     ssh_host: str
     ssh_proxy_host: str | None = None
     ssh_proxy: bool = False
+    ssh_options: dict[str, str] = Field(default_factory=dict)
 
     @field_validator("id")
     @classmethod

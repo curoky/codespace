@@ -60,12 +60,17 @@ def _render_block(
     agent_id: str | None = None,
     repo: str | None = None,
     provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER,
+    ssh_options: dict[str, str] | None = None,
 ) -> str:
     """Render the managed block for an alias.
 
     ``cs_id`` and ``repos`` (comma-separated) are stored as comments so
     ``delete`` can revoke every GitHub deploy key (titled ``codespace-<cs_id>``
     on each repo) without any other local state.
+
+    ``ssh_options`` are extra ``Key Value`` directives (e.g. ``ProxyJump``)
+    passed through verbatim from the local agent profile, so per-host values
+    live in local config rather than in code.
     """
     lines = [
         _begin(alias),
@@ -89,9 +94,11 @@ def _render_block(
             "    StrictHostKeyChecking accept-new",
             "    UserKnownHostsFile ~/.ssh/codespace/known_hosts",
             "    UpdateHostKeys no",
-            _end(alias),
         ]
     )
+    for key, value in (ssh_options or {}).items():
+        lines.append(f"    {key} {value}")
+    lines.append(_end(alias))
     return "\n".join(lines)
 
 
@@ -291,6 +298,7 @@ def _validate_config_values(
     repos: list[str],
     agent_id: str | None,
     repo: str | None,
+    ssh_options: dict[str, str] | None,
 ) -> None:
     """Reject values that would generate invalid or injectable SSH config."""
     if not 1 <= port <= 65535:
@@ -309,6 +317,11 @@ def _validate_config_values(
         _reject_newline(item, "repo")
         if "," in item:
             raise ValueError(f"invalid SSH config repo: {item!r}")
+    for key, value in (ssh_options or {}).items():
+        if not key or any(char.isspace() for char in key):
+            raise ValueError(f"invalid SSH option key: {key!r}")
+        _reject_newline(key, "ssh_option key")
+        _reject_newline(value, "ssh_option value")
 
 
 def upsert(
@@ -322,6 +335,7 @@ def upsert(
     agent_id: str | None = None,
     repo: str | None = None,
     provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER,
+    ssh_options: dict[str, str] | None = None,
 ) -> None:
     """Insert or replace the managed block for ``alias``.
 
@@ -337,13 +351,23 @@ def upsert(
         repos=repos,
         agent_id=agent_id,
         repo=repo,
+        ssh_options=ssh_options,
     )
     with _layout_lock():
         _ensure_layout()
         content = _strip_block(_read(CODESPACE_SSH_CONFIG_PATH), alias)
         content = content.rstrip("\n")
         block = _render_block(
-            alias, host, port, user, cs_id, repos, agent_id=agent_id, repo=repo, provider=provider
+            alias,
+            host,
+            port,
+            user,
+            cs_id,
+            repos,
+            agent_id=agent_id,
+            repo=repo,
+            provider=provider,
+            ssh_options=ssh_options,
         )
         new_content = f"{content}\n\n{block}\n" if content else f"{block}\n"
         _write(CODESPACE_SSH_CONFIG_PATH, new_content)

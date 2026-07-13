@@ -43,6 +43,37 @@ def test_upsert_creates_dedicated_block_with_id(ssh_paths: tuple[Path, Path]) ->
     assert ssh_config.get_repos("myalias") == ["owner/name"]
 
 
+def test_upsert_renders_ssh_options_inside_block(ssh_paths: tuple[Path, Path]) -> None:
+    _main_config, dedicated_config = ssh_paths
+    ssh_config.upsert(
+        "myalias",
+        "10.0.0.5",
+        49207,
+        "dev",
+        "abc123",
+        ["owner/name"],
+        ssh_options={"ProxyJump": "jump-proxy.example.org"},
+    )
+    content = dedicated_config.read_text()
+    assert "    ProxyJump jump-proxy.example.org" in content
+    # options land after the managed directives, before the end marker.
+    assert content.index("ProxyJump") > content.index("UpdateHostKeys no")
+    assert content.index("ProxyJump") < content.index("# <<< codespace myalias <<<")
+
+
+def test_upsert_rejects_injectable_ssh_option(ssh_paths: tuple[Path, Path]) -> None:
+    with pytest.raises(ValueError, match="ssh_option"):
+        ssh_config.upsert(
+            "myalias",
+            "10.0.0.5",
+            49207,
+            "dev",
+            "abc123",
+            ["owner/name"],
+            ssh_options={"ProxyJump": "host\n    ProxyCommand rm -rf /"},
+        )
+
+
 def test_upsert_is_idempotent(ssh_paths: tuple[Path, Path]) -> None:
     main_config, dedicated_config = ssh_paths
     ssh_config.upsert("a", "1.1.1.1", 22, "dev", "id1", ["owner/one"])

@@ -509,6 +509,7 @@ class CodespaceService:
                 agent_id=agent_id,
                 repo=cs.repo,
                 provider=cs.provider,
+                ssh_options=profile.ssh_options,
             )
             return cs
         except Exception:

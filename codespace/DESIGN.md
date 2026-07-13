@@ -335,6 +335,7 @@ Host <alias>
     StrictHostKeyChecking accept-new
     UserKnownHostsFile ~/.ssh/codespace/known_hosts
     UpdateHostKeys no
+    <extra ssh options from agent profile, e.g. ProxyJump ...>
 # <<< codespace <alias> <<<
 ```
 
@@ -345,6 +346,7 @@ Host <alias>
 - `codespace-provider` 用于删除时选择正确的 provider façade。
 - `codespace-repos` 当前只包含主 repo，但保留 list 结构，便于统一 revoke 逻辑。
 - 缺失本地托管块不影响 Dashboard 展示；页面会展示 raw SSH 命令。
+- 额外 SSH 指令（如 `ProxyJump`）由 agent profile 的 `ssh_options` 透传，追加在托管指令之后；值只存在于本地 config，不进代码库。key/value 做换行与空白校验防注入。
 
 ## 10. Workspace 命名与持久化
 
