@@ -9,41 +9,57 @@ filesystem itself.
 import posixpath
 import socket
 import time
+from collections.abc import Iterator
 from contextlib import suppress
+from dataclasses import dataclass
 from pathlib import Path
-from typing import cast
 
 from loguru import logger
 from podman import PodmanClient
 from podman.domain.containers import Container
 from podman.errors import NotFound
-from pydantic import BaseModel, ConfigDict
 
 from codespace import shared
 
 # Poll budget for waiting on the container to reach "running" so exec works.
 _READY_TIMEOUT_S = 30.0
 _READY_INTERVAL_S = 0.5
-_HOST_KRB5_CONF = "/etc/krb5.conf"
 
 
-class ContainerInfo(BaseModel):
-    """Runtime facts resolved from a created/listed dev container."""
-
-    model_config = ConfigDict(frozen=True)
-
+@dataclass(frozen=True, slots=True)
+class ContainerInfo:
     container_id: str
     port: int
 
 
-def _host_port(container: Container, container_port: str = "22/tcp") -> int | None:
-    """Resolve the host port mapped to ``container_port``, or ``None`` if unmapped."""
-    container.reload()
-    ports = container.ports or {}
-    bindings = ports.get(container_port)
-    if not bindings:
-        return None
-    return int(bindings[0]["HostPort"])
+@dataclass(frozen=True, slots=True)
+class ContainerLabels:
+    cs_id: str
+    repo: str
+    provider: shared.GitProvider
+    template: str
+    instance: str
+    image: str
+    port: int
+
+
+_REQUIRED_LABELS = (
+    shared.LABEL_ID,
+    shared.LABEL_REPO,
+    shared.LABEL_PROVIDER,
+    shared.LABEL_TEMPLATE,
+    shared.LABEL_INSTANCE,
+    shared.LABEL_IMAGE,
+    shared.LABEL_PORT,
+)
+
+
+def _require_label(labels: dict[str, str], container: Container, key: str) -> str:
+    value = labels.get(key)
+    if value is None or not value.strip():
+        name = getattr(container, "name", "<unknown>")
+        raise ValueError(f"container {name} is missing required label {key}")
+    return value
 
 
 def _wait_running(container: Container) -> None:
@@ -109,10 +125,9 @@ def create_container(
     cs_id: str,
     image: str,
     repo: str,
-    provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER,
+    provider: shared.GitProvider,
     template: str,
     instance: str,
-    user: str,
     workspace_host_dir: str,
 ) -> ContainerInfo:
     """Start a dev container and return its id and host SSH port.
@@ -133,7 +148,7 @@ def create_container(
         repo,
         template,
         instance,
-        user,
+        shared.DEFAULT_CONTAINER_USER,
         ssh_port,
         workspace_host_dir,
     )
@@ -148,7 +163,7 @@ def create_container(
         },
         {
             "type": "bind",
-            "source": _HOST_KRB5_CONF,
+            "source": "/etc/krb5.conf",
             "target": "/etc/krb5.conf",
             "read_only": True,
         },
@@ -169,15 +184,12 @@ def create_container(
             shared.LABEL_PROVIDER: provider,
             shared.LABEL_TEMPLATE: template,
             shared.LABEL_INSTANCE: instance,
-            shared.LABEL_USER: user,
             shared.LABEL_IMAGE: image,
             shared.LABEL_PORT: str(ssh_port),
         },
         mounts=mounts,
     )
-    # detach=True always yields a Container (the streaming overloads apply only
-    # when detach is False); narrow the union for the type checker.
-    if not isinstance(container, Container):  # pragma: no cover - defensive
+    if not isinstance(container, Container):
         raise TypeError(f"expected Container from run(detach=True), got {type(container)}")
     _wait_running(container)
     logger.info(
@@ -202,68 +214,75 @@ def pull_image(client: PodmanClient, image: str) -> None:
     logger.info("image {} is ready", image)
 
 
-def read_label(container: Container, key: str, default: str = "") -> str:
-    """Read a label off a container inspect."""
-    labels = container.labels or {}
-    return labels.get(key, default)
+def _parse_git_provider(provider: str) -> shared.GitProvider:
+    """Validate a git provider label value."""
+    match provider:
+        case "github" | "gitlab":
+            return provider
+        case _:
+            raise ValueError(f"invalid git provider label: {provider!r}")
 
 
-def to_codespace(container: Container) -> shared.Codespace:
+def read_labels(container: Container) -> ContainerLabels:
+    """Read the complete state label set for a managed codespace container."""
+    raw_labels = container.labels or {}
+    labels = {key: _require_label(raw_labels, container, key) for key in _REQUIRED_LABELS}
+    try:
+        port = int(labels[shared.LABEL_PORT])
+    except ValueError as exc:
+        raise ValueError(f"invalid port label: {labels[shared.LABEL_PORT]!r}") from exc
+    return ContainerLabels(
+        cs_id=labels[shared.LABEL_ID],
+        repo=labels[shared.LABEL_REPO],
+        provider=_parse_git_provider(labels[shared.LABEL_PROVIDER]),
+        template=labels[shared.LABEL_TEMPLATE],
+        instance=labels[shared.LABEL_INSTANCE],
+        image=labels[shared.LABEL_IMAGE],
+        port=port,
+    )
+
+
+def _to_codespace(container: Container, labels: ContainerLabels) -> shared.Codespace:
     """Build a wire Codespace model from a container's labels and state.
 
     ``deploy_keys`` is left unset (only meaningful in a create response), and
     the SSH host is omitted: the agent reports only the observable ``port``; the
     client fills in the reachable host.
     """
-    port_label = read_label(container, shared.LABEL_PORT)
-    port = int(port_label) if port_label else _host_port(container) or 0
     return shared.Codespace(
-        id=read_label(container, shared.LABEL_ID),
-        port=port,
-        user=read_label(container, shared.LABEL_USER, shared.DEFAULT_CONTAINER_USER),
+        id=labels.cs_id,
+        port=labels.port,
+        user=shared.DEFAULT_CONTAINER_USER,
         container_id=container.id,
-        repo=read_label(container, shared.LABEL_REPO),
-        provider=cast(
-            shared.GitProvider,
-            read_label(container, shared.LABEL_PROVIDER, shared.DEFAULT_GIT_PROVIDER),
-        ),
-        template=read_label(container, shared.LABEL_TEMPLATE, shared.DEFAULT_TEMPLATE),
-        instance=read_label(container, shared.LABEL_INSTANCE, shared.DEFAULT_INSTANCE),
-        workspace_dir=shared.workspace_dir_name(
-            read_label(container, shared.LABEL_REPO),
-            read_label(container, shared.LABEL_TEMPLATE, shared.DEFAULT_TEMPLATE),
-            read_label(container, shared.LABEL_INSTANCE, shared.DEFAULT_INSTANCE),
-        ),
+        repo=labels.repo,
+        provider=labels.provider,
+        template=labels.template,
+        instance=labels.instance,
+        workspace_dir=shared.workspace_dir_name(labels.repo, labels.template, labels.instance),
         status=container_status(container),
     )
 
 
 def container_status(container: Container) -> str | None:
-    """Return container status across podman-py inspect/list attr shapes."""
-    attrs = getattr(container, "attrs", {}) or {}
-    state = attrs.get("State") if isinstance(attrs, dict) else None
-    if isinstance(state, dict):
-        status = state.get("Status")
-        return str(status) if status else None
-    if isinstance(state, str):
-        return state
-    try:
-        status = container.status
-    except (AttributeError, KeyError, TypeError):
-        return None
+    """Return the podman container status."""
+    status = container.status
     return str(status) if status else None
 
 
-def list_containers(client: PodmanClient) -> list[Container]:
-    """List managed dev containers, scoped by the codespace name prefix."""
-    managed: list[Container] = []
+def _managed_containers(client: PodmanClient) -> Iterator[Container]:
     for container in client.containers.list(all=True):
         name = container.name or ""
-        # Only containers carrying the id label are managed codespaces; this
-        # also excludes workspace dirs that share the name prefix.
-        if name.startswith(shared.CONTAINER_PREFIX) and read_label(container, shared.LABEL_ID):
-            managed.append(container)
-    return managed
+        if name.startswith(shared.CONTAINER_PREFIX):
+            yield container
+
+
+def list_codespaces(client: PodmanClient) -> list[shared.Codespace]:
+    """List managed codespaces, scoped by the reserved codespace prefix."""
+    codespaces: list[shared.Codespace] = []
+    for container in _managed_containers(client):
+        labels = read_labels(container)
+        codespaces.append(_to_codespace(container, labels))
+    return codespaces
 
 
 def find_container_by_instance(
@@ -271,21 +290,11 @@ def find_container_by_instance(
     repo: str,
     template: str,
     instance: str,
-    *,
-    provider: shared.GitProvider | None = None,
 ) -> Container | None:
     """Return the managed container for a ``(repo, template, instance)`` tuple, if any."""
-    for container in list_containers(client):
-        if (
-            read_label(container, shared.LABEL_REPO) == repo
-            and (
-                provider is None
-                or read_label(container, shared.LABEL_PROVIDER, shared.DEFAULT_GIT_PROVIDER)
-                == provider
-            )
-            and read_label(container, shared.LABEL_TEMPLATE, shared.DEFAULT_TEMPLATE) == template
-            and read_label(container, shared.LABEL_INSTANCE, shared.DEFAULT_INSTANCE) == instance
-        ):
+    for container in _managed_containers(client):
+        labels = read_labels(container)
+        if labels.repo == repo and labels.template == template and labels.instance == instance:
             return container
     return None
 
@@ -296,19 +305,10 @@ def get_container(client: PodmanClient, cs_id: str) -> Container | None:
         container = client.containers.get(shared.container_name(cs_id))
     except NotFound:
         return None
-    if not read_label(container, shared.LABEL_ID):
-        return None
+    labels = read_labels(container)
+    if labels.cs_id != cs_id:
+        raise ValueError(f"container {container.name} has mismatched codespace id label")
     return container
-
-
-def remove_container(container: Container) -> None:
-    """Force-remove a dev container (podman rm -f)."""
-    container.remove(force=True)
-
-
-def stop_container(container: Container) -> None:
-    """Stop a dev container before destructive workspace cleanup."""
-    container.stop(timeout=10)
 
 
 def purge_workspace(client: PodmanClient, workspace_host_dir: str) -> None:

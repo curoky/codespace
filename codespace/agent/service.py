@@ -7,14 +7,15 @@ closure keeps the orchestration independently testable. See DESIGN.md
 "Agent 创建流程".
 """
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from threading import Lock
 
 from loguru import logger
 from podman import PodmanClient
 
 from codespace import shared
-from codespace.agent import containers, credentials, keys
+from codespace.agent import containers, credentials
 from codespace.agent.config import AgentConfig, workspace_host_dir
 from codespace.agent.containers import ContainerInfo
 from codespace.agent.operations import OperationStore
@@ -37,7 +38,6 @@ class CodespaceProvisioner:
 
     def provision(self, operation_id: str, cs_id: str, req: shared.CreateRequest) -> None:
         """Provision a codespace end to end, rolling back on any failure."""
-        user = shared.DEFAULT_CONTAINER_USER
         instance_key = (req.repo, req.template, req.instance)
         workspace_dir = workspace_host_dir(self._config, req.repo, req.template, req.instance)
         logger.info(
@@ -48,21 +48,18 @@ class CodespaceProvisioner:
             req.repo,
             req.template,
             req.instance,
-            user,
+            shared.DEFAULT_CONTAINER_USER,
             req.image,
             workspace_dir,
         )
 
-        reserved_instance = False
         try:
-            reserved_instance = self._reserve_instance(instance_key)
-            with self._client_factory() as client:
-                self._set_stage(operation_id, cs_id, "checking workspace")
-                self._operations.update(operation_id, status="running", stage="checking workspace")
+            with self._claim_instance(instance_key), self._client_factory() as client:
+                self._set_stage(operation_id, cs_id, "checking workspace", status="running")
                 self._reject_if_duplicate(client, operation_id, cs_id, req)
 
                 self._set_stage(operation_id, cs_id, "generating deploy keys")
-                main_keypair = keys.generate_deploy_keypair()
+                keypair = credentials.generate_deploy_keypair()
 
                 self._set_stage(operation_id, cs_id, "preparing workspace directory")
                 containers.ensure_workspace_dir(workspace_dir)
@@ -79,7 +76,6 @@ class CodespaceProvisioner:
                     provider=req.provider,
                     template=req.template,
                     instance=req.instance,
-                    user=user,
                     workspace_host_dir=workspace_dir,
                 )
                 logger.info(
@@ -94,8 +90,7 @@ class CodespaceProvisioner:
                 credentials.inject_credentials(
                     client,
                     cs_id=cs_id,
-                    user=user,
-                    private_key=main_keypair.private_openssh,
+                    private_key=keypair.private_openssh,
                     login_pubkey=req.login_pubkey,
                     provider=req.provider,
                 )
@@ -106,12 +101,8 @@ class CodespaceProvisioner:
             self._rollback(cs_id)
             self._operations.update(operation_id, status="failed", stage="failed", error=str(exc))
             return
-        finally:
-            if reserved_instance:
-                with self._creating_instances_lock:
-                    self._creating_instances.discard(instance_key)
 
-        codespace = self._build_codespace(cs_id, req, info, main_keypair)
+        codespace = self._build_codespace(cs_id, req, info, keypair)
         logger.info("codespace {} ready on port {}", cs_id, info.port)
         self._operations.update(
             operation_id,
@@ -120,15 +111,20 @@ class CodespaceProvisioner:
             codespace=codespace,
         )
 
-    def _reserve_instance(self, instance_key: tuple[str, str, str]) -> bool:
-        """Claim an in-flight instance slot, rejecting concurrent duplicate creates."""
+    @contextmanager
+    def _claim_instance(self, instance_key: tuple[str, str, str]) -> Iterator[None]:
+        """Reject concurrent creates for the same repo/template/instance."""
         with self._creating_instances_lock:
             if instance_key in self._creating_instances:
                 raise RuntimeError(
                     "codespace creation is already running for repo/template/instance"
                 )
             self._creating_instances.add(instance_key)
-        return True
+        try:
+            yield
+        finally:
+            with self._creating_instances_lock:
+                self._creating_instances.remove(instance_key)
 
     def _reject_if_duplicate(
         self, client: PodmanClient, operation_id: str, cs_id: str, req: shared.CreateRequest
@@ -139,7 +135,7 @@ class CodespaceProvisioner:
         )
         if existing is None:
             return
-        existing_id = containers.read_label(existing, shared.LABEL_ID)
+        labels = containers.read_labels(existing)
         existing_status = containers.container_status(existing) or "unknown"
         existing_name = getattr(existing, "name", None)
         logger.warning(
@@ -147,13 +143,13 @@ class CodespaceProvisioner:
             "existing_name={} existing_status={}",
             cs_id,
             operation_id,
-            existing_id,
+            labels.cs_id,
             existing_name,
             existing_status,
         )
         raise RuntimeError(
             "codespace already exists for repo/template/instance "
-            f"(id={existing_id}, name={existing_name}, status={existing_status})"
+            f"(id={labels.cs_id}, name={existing_name}, status={existing_status})"
         )
 
     def _build_codespace(
@@ -161,13 +157,13 @@ class CodespaceProvisioner:
         cs_id: str,
         req: shared.CreateRequest,
         info: ContainerInfo,
-        main_keypair: keys.DeployKeypair,
+        keypair: credentials.DeployKeypair,
     ) -> shared.Codespace:
         deploy_keys = [
             shared.DeployKeyRef(
                 repo=req.repo,
                 provider=req.provider,
-                public_openssh=main_keypair.public_openssh,
+                public_openssh=keypair.public_openssh,
                 read_only=False,
             ),
         ]
@@ -196,10 +192,17 @@ class CodespaceProvisioner:
             with self._client_factory() as client:
                 container = containers.get_container(client, cs_id)
                 if container is not None:
-                    containers.remove_container(container)
+                    container.remove(force=True)
         except Exception as exc:
             logger.error("rollback: failed to remove container for {}: {}", cs_id, exc)
 
-    def _set_stage(self, operation_id: str, cs_id: str, stage: str) -> None:
+    def _set_stage(
+        self,
+        operation_id: str,
+        cs_id: str,
+        stage: str,
+        *,
+        status: shared.CreateOperationStatus | None = None,
+    ) -> None:
         logger.info("codespace {} operation {}: {}", cs_id, operation_id, stage)
-        self._operations.update(operation_id, stage=stage)
+        self._operations.update(operation_id, status=status, stage=stage)

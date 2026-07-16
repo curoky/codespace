@@ -18,18 +18,14 @@ from codespace.agent import containers
 class _FakeContainer:
     """Minimal stand-in exposing the attributes the helpers read."""
 
-    def __init__(
-        self, labels: dict[str, str], ports: dict | None = None, status: str = "running"
-    ) -> None:
+    def __init__(self, labels: dict[str, str], status: str = "running") -> None:
         self.labels = labels
-        self.ports = {"22/tcp": [{"HostPort": "49207"}]} if ports is None else ports
         self.status = status
-        self.attrs = {"State": {"Status": status}}
         self.id = "deadbeef"
         cs_id = labels.get(shared.LABEL_ID, "")
         self.name = shared.container_name(cs_id) if cs_id else ""
 
-    def reload(self) -> None:  # to_codespace -> _host_port calls reload()
+    def reload(self) -> None:
         pass
 
 
@@ -61,30 +57,42 @@ class _FakeClient:
         self.containers = _FakeContainers(container)
 
 
-# --- Label / projection helpers ----------------------------------------------
+def _labels(**overrides: str) -> dict[str, str]:
+    labels = {
+        shared.LABEL_ID: "abc123",
+        shared.LABEL_REPO: "owner/name",
+        shared.LABEL_PROVIDER: "github",
+        shared.LABEL_TEMPLATE: "default",
+        shared.LABEL_INSTANCE: "default",
+        shared.LABEL_IMAGE: "codespace/dev:latest",
+        shared.LABEL_PORT: "49207",
+    }
+    labels.update(overrides)
+    return labels
 
 
-def test_read_label_returns_default_when_absent() -> None:
-    container = _FakeContainer(labels={})
-    assert containers.read_label(container, shared.LABEL_REPO, "fallback") == "fallback"
+def test_read_labels_reads_complete_state() -> None:
+    labels = containers.read_labels(_FakeContainer(labels=_labels()))
+
+    assert labels.cs_id == "abc123"
+    assert labels.repo == "owner/name"
+    assert labels.provider == "github"
+    assert labels.template == "default"
+    assert labels.instance == "default"
+    assert labels.image == "codespace/dev:latest"
+    assert labels.port == 49207
 
 
-def test_read_label_reads_value() -> None:
-    container = _FakeContainer(labels={shared.LABEL_REPO: "owner/name"})
-    assert containers.read_label(container, shared.LABEL_REPO) == "owner/name"
+def test_read_labels_rejects_missing_required_value() -> None:
+    container = _FakeContainer(labels={shared.LABEL_ID: "abc"})
+
+    with pytest.raises(ValueError, match=r"missing required label codespace\.repo"):
+        containers.read_labels(container)
 
 
-def test_to_codespace_maps_labels_and_port() -> None:
-    container = _FakeContainer(
-        labels={
-            shared.LABEL_ID: "abc123",
-            shared.LABEL_REPO: "owner/name",
-            shared.LABEL_TEMPLATE: "default",
-            shared.LABEL_INSTANCE: "default",
-            shared.LABEL_USER: "dev",
-        }
-    )
-    cs = containers.to_codespace(container)
+def test_list_codespaces_maps_labels_and_port() -> None:
+    container = _FakeContainer(labels=_labels())
+    cs = containers.list_codespaces(_FakeClient(container))[0]
     assert cs.id == "abc123"
     assert cs.repo == "owner/name"
     assert cs.port == 49207
@@ -93,19 +101,27 @@ def test_to_codespace_maps_labels_and_port() -> None:
     assert cs.status == "running"
 
 
-def test_to_codespace_reads_status_when_podman_state_is_string() -> None:
-    container = _FakeContainer(labels={shared.LABEL_ID: "abc123"})
-    container.attrs = {"State": "exited"}
+def test_read_labels_rejects_invalid_provider_label() -> None:
+    container = _FakeContainer(labels=_labels(**{shared.LABEL_PROVIDER: "bitbucket"}))
 
-    cs = containers.to_codespace(container)
-
-    assert cs.status == "exited"
+    with pytest.raises(ValueError, match="invalid git provider label"):
+        containers.read_labels(container)
 
 
-def test_to_codespace_tolerates_missing_port() -> None:
-    container = _FakeContainer(labels={shared.LABEL_ID: "x"}, ports={})
-    cs = containers.to_codespace(container)
-    assert cs.port == 0
+def test_read_labels_rejects_missing_state_label() -> None:
+    labels = _labels()
+    del labels[shared.LABEL_IMAGE]
+    container = _FakeContainer(labels=labels)
+
+    with pytest.raises(ValueError, match=r"missing required label codespace\.image"):
+        containers.read_labels(container)
+
+
+def test_read_labels_rejects_invalid_port_label() -> None:
+    container = _FakeContainer(labels=_labels(**{shared.LABEL_PORT: "ssh"}))
+
+    with pytest.raises(ValueError, match="invalid port label"):
+        containers.read_labels(container)
 
 
 # --- Orchestration tests with a fake podman client ---------------------------
@@ -124,9 +140,9 @@ def test_create_container_writes_labels_and_returns_port(monkeypatch: pytest.Mon
         cs_id="abc",
         image="img",
         repo="owner/name",
+        provider="github",
         template="default",
         instance="default",
-        user="dev",
         workspace_host_dir="/host/ws",
     )
 
@@ -164,9 +180,9 @@ def test_create_container_always_passes_host_krb5_conf_bind_to_podman(
         cs_id="abc",
         image="img",
         repo="owner/name",
+        provider="github",
         template="default",
         instance="default",
-        user="dev",
         workspace_host_dir="/host/ws",
     )
 
@@ -197,39 +213,35 @@ def test_get_container_returns_none_when_absent() -> None:
     assert containers.get_container(client, "missing") is None
 
 
-def test_list_containers_filters_by_label() -> None:
-    labeled = _FakeContainer(labels={shared.LABEL_ID: "abc"})
+def test_get_container_rejects_mismatched_id_label() -> None:
+    container = _FakeContainer(labels=_labels())
+    client = _FakeClient(container)
+
+    with pytest.raises(ValueError, match="mismatched codespace id label"):
+        containers.get_container(client, "different")
+
+
+def test_list_codespaces_filters_by_prefix() -> None:
+    labeled = _FakeContainer(labels=_labels())
     client = _FakeClient(labeled)
-    assert containers.list_containers(client) == [labeled]
+    assert [cs.id for cs in containers.list_codespaces(client)] == ["abc123"]
+
+
+def test_list_codespaces_rejects_prefixed_container_without_complete_labels() -> None:
+    container = _FakeContainer(labels={shared.LABEL_ID: "abc"})
+    client = _FakeClient(container)
+
+    with pytest.raises(ValueError, match=r"missing required label codespace\.repo"):
+        containers.list_codespaces(client)
 
 
 def test_find_container_by_instance_matches_repo_template_and_instance() -> None:
-    container = _FakeContainer(
-        labels={
-            shared.LABEL_ID: "abc",
-            shared.LABEL_REPO: "owner/name",
-            shared.LABEL_PROVIDER: "gitlab",
-            shared.LABEL_TEMPLATE: "default",
-            shared.LABEL_INSTANCE: "default",
-        }
-    )
+    container = _FakeContainer(labels=_labels(**{shared.LABEL_PROVIDER: "gitlab"}))
     client = _FakeClient(container)
 
     assert (
         containers.find_container_by_instance(client, "owner/name", "default", "default")
         is container
-    )
-    assert (
-        containers.find_container_by_instance(
-            client, "owner/name", "default", "default", provider="gitlab"
-        )
-        is container
-    )
-    assert (
-        containers.find_container_by_instance(
-            client, "owner/name", "default", "default", provider="github"
-        )
-        is None
     )
     assert containers.find_container_by_instance(client, "owner/name", "default", "other") is None
 

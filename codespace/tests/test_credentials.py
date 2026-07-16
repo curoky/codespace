@@ -3,6 +3,8 @@
 import io
 import tarfile
 
+from cryptography.hazmat.primitives.serialization import load_ssh_private_key, load_ssh_public_key
+
 from codespace import shared
 from codespace.agent import credentials
 
@@ -10,9 +12,8 @@ from codespace.agent import credentials
 class _FakeContainer:
     """Container stub recording exec/put_archive calls for injection tests."""
 
-    def __init__(self, labels: dict[str, str], home: str | bytes = "/home/dev") -> None:
+    def __init__(self, labels: dict[str, str]) -> None:
         self.labels = labels
-        self._home = home
         self.id = "deadbeef"
         cs_id = labels.get(shared.LABEL_ID, "")
         self.name = shared.container_name(cs_id) if cs_id else ""
@@ -21,9 +22,6 @@ class _FakeContainer:
 
     def exec_run(self, cmd: list[str], *, user: str | None = None) -> tuple[int, bytes]:
         self.execs.append((cmd, user))
-        if cmd[:2] == ["sh", "-c"]:  # HOME resolution
-            home = self._home if isinstance(self._home, bytes) else self._home.encode()
-            return 0, home
         return 0, b""
 
     def put_archive(self, path: str, data: bytes) -> bool:
@@ -51,16 +49,16 @@ def test_inject_credentials_chowns_and_puts_archive() -> None:
     credentials.inject_credentials(
         client,
         cs_id="abc",
-        user="dev",
         private_key="PRIV",
         login_pubkey="ssh-ed25519 LOGIN",
+        provider="github",
     )
 
     # workspace chown (root) happened before archive, ~/.ssh chown after.
-    assert (["chown", "-R", "dev:dev", "/workspace"], "0") in container.execs
+    assert (["chown", "-R", "x:x", "/workspace"], "0") in container.execs
     assert container.archives  # credentials were written via put_archive
     path, data = container.archives[0]
-    assert path == "/home/dev/.ssh"
+    assert path == "/home/x/.ssh"
     names = _tar_names(data)
     assert set(names) == {"repo_id_ed25519", "config.codespace.tmp", "authorized_keys"}
     ssh_config = _tar_member(data, "config.codespace.tmp").decode()
@@ -70,36 +68,33 @@ def test_inject_credentials_chowns_and_puts_archive() -> None:
     assert credentials._SSH_CONFIG_END in ssh_config
 
     append_cmds = [
-        cmd for cmd, user in container.execs if cmd[3:5] == ["append-ssh-config", "/home/dev/.ssh"]
+        cmd for cmd, user in container.execs if cmd[3:5] == ["append-ssh-config", "/home/x/.ssh"]
     ]
     assert append_cmds
     append_cmd = append_cmds[0]
     assert 'cat "$tmp_block" >> "$tmp_config"' in append_cmd[2]
     assert 'mv "$tmp_config" "$config"' in append_cmd[2]
 
-    ssh_chown = (["chown", "-R", "dev:dev", "/home/dev/.ssh"], "0")
-    assert container.execs.count(ssh_chown) == 2
+    ssh_chown = (["chown", "-R", "x:x", "/home/x/.ssh"], "0")
+    assert container.execs.count(ssh_chown) == 1
     append_index = next(
         index
-        for index, (cmd, _user) in enumerate(container.execs)
-        if cmd[3:5] == ["append-ssh-config", "/home/dev/.ssh"]
+        for index, (cmd, user) in enumerate(container.execs)
+        if cmd[3:5] == ["append-ssh-config", "/home/x/.ssh"] and user == "0"
     )
-    assert container.execs.index(ssh_chown) < append_index
+    assert append_index < container.execs.index(ssh_chown)
 
 
-def test_inject_credentials_uses_stdout_from_multiplexed_home_output() -> None:
-    output = _exec_frame(1, b"/home/x") + _exec_frame(
-        2, b"[conmon:d]: exec with attach is waiting \x81"
-    )
-    container = _FakeContainer(labels={shared.LABEL_ID: "abc"}, home=output)
+def test_inject_credentials_uses_fixed_user_home_path() -> None:
+    container = _FakeContainer(labels={shared.LABEL_ID: "abc"})
     client = _FakeClient(container)
 
     credentials.inject_credentials(
         client,
         cs_id="abc",
-        user="x",
         private_key="PRIV",
         login_pubkey="ssh-ed25519 LOGIN",
+        provider="github",
     )
 
     assert container.archives[0][0] == "/home/x/.ssh"
@@ -109,10 +104,15 @@ def test_clone_repo_clones_into_repo_name_directory() -> None:
     container = _FakeContainer(labels={shared.LABEL_ID: "abc"})
     client = _FakeClient(container)
 
-    credentials.clone_repo(client, cs_id="abc", user="dev", repo="owner/name")
+    credentials.clone_repo(
+        client,
+        cs_id="abc",
+        repo="owner/name",
+        provider="github",
+    )
 
     cmd, user = container.execs[-1]
-    assert user == "dev"
+    assert user == "x"
     assert cmd[:2] == ["sh", "-c"]
     assert cmd[-2:] == ["owner/name", "/workspace/name"]
     assert 'git clone "git@$git_host:$repo.git" "$target"' in cmd[2]
@@ -127,9 +127,9 @@ def test_append_ssh_config_uses_loaded_script_verbatim() -> None:
     credentials.inject_credentials(
         client,
         cs_id="abc",
-        user="dev",
         private_key="PRIV",
         login_pubkey="ssh-ed25519 LOGIN",
+        provider="github",
     )
 
     append_cmd = next(cmd for cmd, _user in container.execs if cmd[3:4] == ["append-ssh-config"])
@@ -165,6 +165,16 @@ def test_multi_member_tar_contains_members_with_modes() -> None:
         assert extracted.read() == b"PRIVATE"
 
 
+def test_generate_deploy_keypair_is_valid_and_unique() -> None:
+    first = credentials.generate_deploy_keypair()
+    second = credentials.generate_deploy_keypair()
+
+    load_ssh_private_key(first.private_openssh.encode(), password=None)
+    load_ssh_public_key(first.public_openssh.encode())
+    assert first.private_openssh != second.private_openssh
+    assert first.public_openssh != second.public_openssh
+
+
 def _tar_names(data: bytes) -> list[str]:
     with tarfile.open(fileobj=io.BytesIO(data), mode="r") as tar:
         return tar.getnames()
@@ -175,7 +185,3 @@ def _tar_member(data: bytes, name: str) -> bytes:
         extracted = tar.extractfile(name)
         assert extracted is not None
         return extracted.read()
-
-
-def _exec_frame(stream: int, payload: bytes) -> bytes:
-    return bytes([stream, 0, 0, 0]) + len(payload).to_bytes(4, "big") + payload

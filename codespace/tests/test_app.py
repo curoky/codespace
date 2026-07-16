@@ -12,7 +12,7 @@ from podman.errors import NotFound
 
 from codespace import shared
 from codespace.agent import app as app_module
-from codespace.agent import containers, credentials, keys
+from codespace.agent import containers, credentials
 from codespace.agent.config import AgentConfig
 
 
@@ -60,13 +60,25 @@ def _operation_result(client: TestClient, operation_id: str) -> dict:
     return body
 
 
+def _container_labels() -> containers.ContainerLabels:
+    return containers.ContainerLabels(
+        cs_id="abc123",
+        repo="owner/name",
+        provider="github",
+        template="default",
+        instance="default",
+        image="codespace/dev:latest",
+        port=49207,
+    )
+
+
 def test_create_success_returns_public_key(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(
-        keys,
+        credentials,
         "generate_deploy_keypair",
-        lambda: keys.DeployKeypair(private_openssh="PRIV", public_openssh="ssh-ed25519 PUB"),
+        lambda: credentials.DeployKeypair(private_openssh="PRIV", public_openssh="ssh-ed25519 PUB"),
     )
     monkeypatch.setattr(
         containers,
@@ -119,12 +131,27 @@ def test_list_codespaces(client: TestClient, monkeypatch: pytest.MonkeyPatch) ->
         instance="default",
         workspace_dir="codespace-owner-name-default-deadbeef",
     )
-    monkeypatch.setattr(containers, "list_containers", lambda client: ["c"])
-    monkeypatch.setattr(containers, "to_codespace", lambda c: sample)
+    monkeypatch.setattr(containers, "list_codespaces", lambda client: [sample])
 
     resp = client.get("/codespaces")
     assert resp.status_code == 200
     assert resp.json()[0]["id"] == "abc"
+
+
+def test_list_codespaces_renders_corrupt_label_error(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def _raise_corrupt_label(_client: object) -> list[shared.Codespace]:
+        raise ValueError("container codespace-abc is missing required label codespace.repo")
+
+    monkeypatch.setattr(containers, "list_codespaces", _raise_corrupt_label)
+
+    resp = client.get("/codespaces")
+
+    assert resp.status_code == 500
+    assert resp.json() == {
+        "error": "container codespace-abc is missing required label codespace.repo"
+    }
 
 
 def test_delete_missing_is_idempotent(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -138,17 +165,13 @@ def test_delete_existing_removes_container(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     removed: list[object] = []
-    monkeypatch.setattr(containers, "get_container", lambda client, cs_id: object())
-    monkeypatch.setattr(
-        containers,
-        "read_label",
-        lambda container, key, default="": {
-            shared.LABEL_REPO: "owner/name",
-            shared.LABEL_TEMPLATE: "default",
-            shared.LABEL_INSTANCE: "default",
-        }.get(key, default),
-    )
-    monkeypatch.setattr(containers, "remove_container", lambda c: removed.append(c))
+    container = type(
+        "_Container",
+        (),
+        {"remove": lambda self, *, force: removed.append(self)},
+    )()
+    monkeypatch.setattr(containers, "get_container", lambda client, cs_id: container)
+    monkeypatch.setattr(containers, "read_labels", lambda container: _container_labels())
     purged: list[str] = []
     monkeypatch.setattr(containers, "purge_workspace", lambda client, d: purged.append(d))
 
@@ -162,18 +185,16 @@ def test_delete_existing_removes_container(
 def test_delete_with_purge_removes_workspace(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(containers, "get_container", lambda client, cs_id: object())
-    monkeypatch.setattr(
-        containers,
-        "read_label",
-        lambda container, key, default="": {
-            shared.LABEL_REPO: "owner/name",
-            shared.LABEL_TEMPLATE: "default",
-            shared.LABEL_INSTANCE: "default",
-        }.get(key, default),
-    )
-    monkeypatch.setattr(containers, "stop_container", lambda c: None)
-    monkeypatch.setattr(containers, "remove_container", lambda c: None)
+    container = type(
+        "_Container",
+        (),
+        {
+            "stop": lambda self, *, timeout: None,
+            "remove": lambda self, *, force: None,
+        },
+    )()
+    monkeypatch.setattr(containers, "get_container", lambda client, cs_id: container)
+    monkeypatch.setattr(containers, "read_labels", lambda container: _container_labels())
     purged: list[str] = []
     monkeypatch.setattr(containers, "purge_workspace", lambda client, d: purged.append(d))
 
@@ -190,19 +211,17 @@ def test_delete_with_purge_purges_before_removing_container(
     client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     events: list[str] = []
-    monkeypatch.setattr(containers, "get_container", lambda client, cs_id: object())
-    monkeypatch.setattr(
-        containers,
-        "read_label",
-        lambda container, key, default="": {
-            shared.LABEL_REPO: "owner/name",
-            shared.LABEL_TEMPLATE: "default",
-            shared.LABEL_INSTANCE: "default",
-        }.get(key, default),
-    )
-    monkeypatch.setattr(containers, "stop_container", lambda c: events.append("stop"))
+
+    class _Container:
+        def stop(self, *, timeout: int) -> None:
+            events.append("stop")
+
+        def remove(self, *, force: bool) -> None:
+            events.append("remove")
+
+    monkeypatch.setattr(containers, "get_container", lambda client, cs_id: _Container())
+    monkeypatch.setattr(containers, "read_labels", lambda container: _container_labels())
     monkeypatch.setattr(containers, "purge_workspace", lambda client, d: events.append("purge"))
-    monkeypatch.setattr(containers, "remove_container", lambda c: events.append("remove"))
 
     resp = client.request("DELETE", "/codespaces/abc123?purge=true")
 
@@ -212,27 +231,20 @@ def test_delete_with_purge_purges_before_removing_container(
 
 def test_clone_codespace_repo(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
     container = object()
-    cloned: list[tuple[str, str, str]] = []
+    cloned: list[tuple[str, str]] = []
     monkeypatch.setattr(containers, "get_container", lambda client, cs_id: container)
-    monkeypatch.setattr(
-        containers,
-        "read_label",
-        lambda container, key, default="": {
-            shared.LABEL_REPO: "owner/name",
-            shared.LABEL_USER: "dev",
-        }.get(key, default),
-    )
+    monkeypatch.setattr(containers, "read_labels", lambda container: _container_labels())
     monkeypatch.setattr(
         credentials,
         "clone_repo",
-        lambda client, *, cs_id, user, repo, provider: cloned.append((cs_id, user, repo)),
+        lambda client, *, cs_id, repo, provider: cloned.append((cs_id, repo)),
     )
 
     resp = client.post("/codespaces/abc123/clone")
 
     assert resp.status_code == 200
     assert resp.json() == {"ok": True}
-    assert cloned == [("abc123", "dev", "owner/name")]
+    assert cloned == [("abc123", "owner/name")]
 
 
 def test_clone_codespace_repo_returns_404_when_deleted_during_clone(
@@ -241,14 +253,7 @@ def test_clone_codespace_repo_returns_404_when_deleted_during_clone(
     container = object()
     result = iter([container, None])
     monkeypatch.setattr(containers, "get_container", lambda client, cs_id: next(result))
-    monkeypatch.setattr(
-        containers,
-        "read_label",
-        lambda container, key, default="": {
-            shared.LABEL_REPO: "owner/name",
-            shared.LABEL_USER: "dev",
-        }.get(key, default),
-    )
+    monkeypatch.setattr(containers, "read_labels", lambda container: _container_labels())
 
     def _clone_repo(*args: object, **kwargs: object) -> None:
         raise NotFound("no such exec session")

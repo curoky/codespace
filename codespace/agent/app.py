@@ -11,7 +11,6 @@ podman work in :mod:`codespace.agent.containers` / :mod:`.credentials`.
 """
 
 import secrets
-from typing import cast
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
@@ -24,8 +23,6 @@ from codespace.agent import containers, credentials
 from codespace.agent.config import AgentConfig, workspace_host_dir
 from codespace.agent.operations import OperationStore
 from codespace.agent.service import CodespaceProvisioner
-
-__all__ = ["AgentConfig", "create_app"]
 
 
 def create_app(config: AgentConfig) -> FastAPI:
@@ -44,6 +41,14 @@ def create_app(config: AgentConfig) -> FastAPI:
         return JSONResponse(
             status_code=exc.status_code,
             content=shared.ErrorResponse(error=str(exc.detail)).model_dump(),
+        )
+
+    @app.exception_handler(ValueError)
+    def _render_value_error(_request: object, exc: ValueError) -> JSONResponse:
+        """Render corrupt managed-state errors as the client error shape."""
+        return JSONResponse(
+            status_code=500,
+            content=shared.ErrorResponse(error=str(exc)).model_dump(),
         )
 
     @app.post("/codespaces", status_code=202)
@@ -66,8 +71,7 @@ def create_app(config: AgentConfig) -> FastAPI:
     @app.get("/codespaces")
     def list_codespaces() -> list[shared.Codespace]:
         with _client() as client:
-            managed = containers.list_containers(client)
-            return [containers.to_codespace(c) for c in managed]
+            return containers.list_codespaces(client)
 
     @app.delete("/codespaces/{cs_id}")
     def delete_codespace(cs_id: str, purge: bool = Query(False)) -> shared.DeleteResponse:
@@ -79,23 +83,18 @@ def create_app(config: AgentConfig) -> FastAPI:
                 logger.info("delete codespace {}: not found, treating as done", cs_id)
                 return shared.DeleteResponse(ok=True, workspace_removed=False)
 
-            repo = containers.read_label(container, shared.LABEL_REPO)
-            template = containers.read_label(
-                container, shared.LABEL_TEMPLATE, shared.DEFAULT_TEMPLATE
-            )
-            instance = containers.read_label(
-                container, shared.LABEL_INSTANCE, shared.DEFAULT_INSTANCE
-            )
+            labels = containers.read_labels(container)
 
             workspace_removed = False
-            if purge and repo and template and instance:
-                containers.stop_container(container)
+            if purge:
+                container.stop(timeout=10)
                 containers.purge_workspace(
-                    client, workspace_host_dir(config, repo, template, instance)
+                    client,
+                    workspace_host_dir(config, labels.repo, labels.template, labels.instance),
                 )
                 workspace_removed = True
 
-            containers.remove_container(container)
+            container.remove(force=True)
 
             logger.info("deleted codespace {} (workspace_removed={})", cs_id, workspace_removed)
             return shared.DeleteResponse(ok=True, workspace_removed=workspace_removed)
@@ -107,23 +106,14 @@ def create_app(config: AgentConfig) -> FastAPI:
             if container is None:
                 raise HTTPException(status_code=404, detail="codespace not found")
 
-            repo = containers.read_label(container, shared.LABEL_REPO)
-            provider = containers.read_label(
-                container, shared.LABEL_PROVIDER, shared.DEFAULT_GIT_PROVIDER
-            )
-            user = containers.read_label(
-                container, shared.LABEL_USER, shared.DEFAULT_CONTAINER_USER
-            )
-            if not repo:
-                raise HTTPException(status_code=500, detail="codespace repo label is missing")
+            labels = containers.read_labels(container)
 
             try:
                 credentials.clone_repo(
                     client,
                     cs_id=cs_id,
-                    user=user,
-                    repo=repo,
-                    provider=cast(shared.GitProvider, provider),
+                    repo=labels.repo,
+                    provider=labels.provider,
                 )
             except NotFound as exc:
                 if containers.get_container(client, cs_id) is None:

@@ -7,7 +7,7 @@ FastAPI layer: dedup rejection, rollback on failure, and stage ordering.
 import pytest
 
 from codespace import shared
-from codespace.agent import containers, credentials, keys
+from codespace.agent import containers, credentials
 from codespace.agent.config import AgentConfig
 from codespace.agent.operations import OperationStore
 from codespace.agent.service import CodespaceProvisioner
@@ -41,9 +41,9 @@ def _provisioner(operations: OperationStore) -> CodespaceProvisioner:
 
 def _patch_happy_path(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
-        keys,
+        credentials,
         "generate_deploy_keypair",
-        lambda: keys.DeployKeypair(private_openssh="PRIV", public_openssh="ssh-ed25519 PUB"),
+        lambda: credentials.DeployKeypair(private_openssh="PRIV", public_openssh="ssh-ed25519 PUB"),
     )
     monkeypatch.setattr(containers, "find_container_by_instance", lambda *a, **k: None)
     monkeypatch.setattr(containers, "ensure_workspace_dir", lambda *a: None)
@@ -86,9 +86,9 @@ def test_provision_orders_workspace_before_pull_and_create(
 ) -> None:
     calls: list[str] = []
     monkeypatch.setattr(
-        keys,
+        credentials,
         "generate_deploy_keypair",
-        lambda: keys.DeployKeypair(private_openssh="PRIV", public_openssh="ssh-ed25519 PUB"),
+        lambda: credentials.DeployKeypair(private_openssh="PRIV", public_openssh="ssh-ed25519 PUB"),
     )
     monkeypatch.setattr(containers, "find_container_by_instance", lambda *a, **k: None)
     monkeypatch.setattr(
@@ -116,7 +116,19 @@ def test_provision_rejects_existing_instance(monkeypatch: pytest.MonkeyPatch) ->
     existing = object()
     created: list[object] = []
     monkeypatch.setattr(containers, "find_container_by_instance", lambda *a, **k: existing)
-    monkeypatch.setattr(containers, "read_label", lambda container, key, default="": "abc123")
+    monkeypatch.setattr(
+        containers,
+        "read_labels",
+        lambda container: containers.ContainerLabels(
+            cs_id="abc123",
+            repo="owner/name",
+            provider="github",
+            template="default",
+            instance="default",
+            image="codespace/dev:latest",
+            port=49207,
+        ),
+    )
     monkeypatch.setattr(containers, "container_status", lambda container: None)
     monkeypatch.setattr(containers, "create_container", lambda *a, **k: created.append(k))
     monkeypatch.setattr(containers, "get_container", lambda *a: None)
@@ -136,9 +148,9 @@ def test_provision_rejects_existing_instance(monkeypatch: pytest.MonkeyPatch) ->
 
 def test_provision_failure_rolls_back_container(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
-        keys,
+        credentials,
         "generate_deploy_keypair",
-        lambda: keys.DeployKeypair(private_openssh="PRIV", public_openssh="PUB"),
+        lambda: credentials.DeployKeypair(private_openssh="PRIV", public_openssh="PUB"),
     )
     monkeypatch.setattr(containers, "find_container_by_instance", lambda *a, **k: None)
     monkeypatch.setattr(containers, "ensure_workspace_dir", lambda *a: None)
@@ -166,9 +178,9 @@ def test_provision_failure_rolls_back_container(monkeypatch: pytest.MonkeyPatch)
 
 def test_provision_failure_survives_rollback_failure(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
-        keys,
+        credentials,
         "generate_deploy_keypair",
-        lambda: keys.DeployKeypair(private_openssh="PRIV", public_openssh="PUB"),
+        lambda: credentials.DeployKeypair(private_openssh="PRIV", public_openssh="PUB"),
     )
     monkeypatch.setattr(containers, "find_container_by_instance", lambda *a, **k: None)
     monkeypatch.setattr(containers, "ensure_workspace_dir", lambda *a: None)
@@ -198,10 +210,9 @@ def test_provision_rejects_concurrent_duplicate_instance(monkeypatch: pytest.Mon
     operations = OperationStore()
     provisioner = _provisioner(operations)
     # Pre-reserve the instance slot so the next provision sees it as in-flight.
-    provisioner._reserve_instance(("owner/name", "default", "default"))
-
     operations.create("op1")
-    provisioner.provision("op1", "cs1", _request())
+    with provisioner._claim_instance(("owner/name", "default", "default")):
+        provisioner.provision("op1", "cs1", _request())
 
     operation = operations.get("op1")
     assert operation is not None

@@ -1,4 +1,4 @@
-"""Credential injection and repo cloning for the codespace agent.
+"""Deploy-key generation, credential injection and repo cloning.
 
 Key injection uses ``put_archive`` (an in-memory tar streamed over the podman
 API) rather than an exec stdin stream: podman-py 5.x leaves the exec ``stdin``
@@ -9,18 +9,45 @@ to the agent's disk, and never appears in a mount table (see DESIGN.md §6.3).
 
 import io
 import tarfile
+from dataclasses import dataclass
 from functools import cache
 from importlib import resources
 
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from loguru import logger
 from podman import PodmanClient
 from podman.domain.containers import Container
 
 from codespace import shared
-from codespace.agent.podman_exec import exec_checked, exec_output_text
 
 _SSH_CONFIG_BEGIN = "# >>> codespace managed git ssh config >>>"
 _SSH_CONFIG_END = "# <<< codespace managed git ssh config <<<"
+
+
+@dataclass(frozen=True, slots=True)
+class DeployKeypair:
+    private_openssh: str
+    public_openssh: str
+
+
+def generate_deploy_keypair() -> DeployKeypair:
+    """Generate an in-memory ed25519 keypair in OpenSSH format."""
+    key = Ed25519PrivateKey.generate()
+    private_openssh = key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.OpenSSH,
+        encryption_algorithm=serialization.NoEncryption(),
+    ).decode()
+    public_openssh = (
+        key.public_key()
+        .public_bytes(
+            encoding=serialization.Encoding.OpenSSH,
+            format=serialization.PublicFormat.OpenSSH,
+        )
+        .decode()
+    )
+    return DeployKeypair(private_openssh, public_openssh)
 
 
 @cache
@@ -38,21 +65,21 @@ def inject_credentials(
     client: PodmanClient,
     *,
     cs_id: str,
-    user: str,
     private_key: str,
     login_pubkey: str,
-    provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER,
+    provider: shared.GitProvider,
 ) -> None:
     """Fix workspace ownership then inject deploy keys and the login pubkey.
 
     Steps mirror DESIGN.md §6.3:
       1. As root, ``chown`` the bind-mounted /workspace to the login user.
-      2. As the login user, materialise ~/.ssh with the main repo's deploy
-         private key, a git ssh config, and the client's login pubkey.
+      2. Materialise ~/.ssh with the main repo's deploy private key, a git ssh
+         config, and the client's login pubkey.
 
     Private keys are delivered via ``put_archive`` (tar over the podman API):
     never a command-line argument, never written to the agent disk.
     """
+    user = shared.DEFAULT_CONTAINER_USER
     container = client.containers.get(shared.container_name(cs_id))
     logger.info(
         "injecting credentials into {} user={}",
@@ -62,26 +89,28 @@ def inject_credentials(
 
     # 1) Correct ownership of the freshly bind-mounted workspace (root).
     logger.info("fixing workspace ownership for {} user={}", shared.container_name(cs_id), user)
-    exec_checked(
+    _exec_checked(
         container,
         ["chown", "-R", f"{user}:{user}", shared.WORKSPACE_MOUNT],
         user="0",
     )
 
-    # Resolve the login user's home directory for archive placement.
-    exit_code, out = container.exec_run(["sh", "-c", 'printf %s "$HOME"'], user=user)
-    home = exec_output_text(out, stdout_only=True).strip()
-    if exit_code not in (0, None) or not home:
-        raise RuntimeError(f"could not resolve home dir for user {user}")
-    ssh_dir = f"{home}/.ssh"
-    logger.info("resolved home for {} in {}: {}", user, shared.container_name(cs_id), home)
+    ssh_dir = f"/home/{user}/.ssh"
 
     # Ensure ~/.ssh exists with correct perms/ownership before writing into it.
-    exec_checked(container, ["mkdir", "-p", "-m", "700", ssh_dir], user=user)
+    _exec_checked(container, ["mkdir", "-p", "-m", "700", ssh_dir], user="0")
 
-    # Main repo: provider SSH host + its read-write key.
     git_host = shared.default_git_host(provider)
-    ssh_config = _managed_ssh_config_block(_ssh_host_block(git_host, git_host, "repo_id_ed25519"))
+    ssh_config = (
+        f"{_SSH_CONFIG_BEGIN}\n"
+        f"Host {git_host}\n"
+        f"    HostName {git_host}\n"
+        "    User git\n"
+        "    IdentityFile ~/.ssh/repo_id_ed25519\n"
+        "    IdentitiesOnly yes\n"
+        "    StrictHostKeyChecking accept-new\n"
+        f"{_SSH_CONFIG_END}\n"
+    )
     members: list[tuple[str, str, int]] = [
         ("repo_id_ed25519", private_key, 0o600),
         ("authorized_keys", login_pubkey.rstrip("\n") + "\n", 0o600),
@@ -97,12 +126,21 @@ def inject_credentials(
     )
     if not container.put_archive(ssh_dir, archive):
         raise RuntimeError("failed to inject credentials via put_archive")
-    # put_archive preserves tar member ownership as root. Re-own before merging
-    # the temporary config block because the merge runs as the login user.
-    exec_checked(container, ["chown", "-R", f"{user}:{user}", ssh_dir], user="0")
-    _append_managed_ssh_config(container, ssh_dir, user=user)
+    _exec_checked(
+        container,
+        [
+            "sh",
+            "-c",
+            _load_script("append_ssh_config.sh"),
+            "append-ssh-config",
+            ssh_dir,
+            _SSH_CONFIG_BEGIN,
+            _SSH_CONFIG_END,
+        ],
+        user="0",
+    )
     # The merge creates/replaces ~/.ssh/config; keep the whole dir owned by user.
-    exec_checked(container, ["chown", "-R", f"{user}:{user}", ssh_dir], user="0")
+    _exec_checked(container, ["chown", "-R", f"{user}:{user}", ssh_dir], user="0")
     logger.info("ssh credentials injected into {}", shared.container_name(cs_id))
 
 
@@ -110,9 +148,8 @@ def clone_repo(
     client: PodmanClient,
     *,
     cs_id: str,
-    user: str,
     repo: str,
-    provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER,
+    provider: shared.GitProvider,
 ) -> None:
     """Clone the main repository into ``/workspace/<repo-name>``.
 
@@ -121,12 +158,13 @@ def clone_repo(
     target already contains a Git repository, leave it untouched so a preserved
     workspace can be reused safely.
     """
+    user = shared.DEFAULT_CONTAINER_USER
     container = client.containers.get(shared.container_name(cs_id))
     git_host = shared.default_git_host(provider)
     repo_name = repo.split("/")[-1]
     target = f"{shared.WORKSPACE_MOUNT}/{repo_name}"
     logger.info("cloning repo {} from {} into {} user={}", repo, git_host, target, user)
-    exec_checked(
+    _exec_checked(
         container,
         [
             "sh",
@@ -142,40 +180,6 @@ def clone_repo(
     logger.info("repo {} is ready in {}", repo, target)
 
 
-def _ssh_host_block(host: str, hostname: str, key_file: str) -> str:
-    """Render one ~/.ssh/config Host block pinned to a single identity."""
-    return (
-        f"Host {host}\n"
-        f"    HostName {hostname}\n"
-        "    User git\n"
-        f"    IdentityFile ~/.ssh/{key_file}\n"
-        "    IdentitiesOnly yes\n"
-        "    StrictHostKeyChecking accept-new\n"
-    )
-
-
-def _managed_ssh_config_block(block: str) -> str:
-    """Wrap an injected ssh config block so repeated injections can replace it."""
-    return f"{_SSH_CONFIG_BEGIN}\n{block.rstrip()}\n{_SSH_CONFIG_END}\n"
-
-
-def _append_managed_ssh_config(container: Container, ssh_dir: str, *, user: str) -> None:
-    """Append the managed git ssh config without overwriting a user's config."""
-    exec_checked(
-        container,
-        [
-            "sh",
-            "-c",
-            _load_script("append_ssh_config.sh"),
-            "append-ssh-config",
-            ssh_dir,
-            _SSH_CONFIG_BEGIN,
-            _SSH_CONFIG_END,
-        ],
-        user=user,
-    )
-
-
 def _multi_member_tar(members: list[tuple[str, str, int]]) -> bytes:
     """Build a tar archive containing several files for ``put_archive``."""
     buf = io.BytesIO()
@@ -187,3 +191,13 @@ def _multi_member_tar(members: list[tuple[str, str, int]]) -> bytes:
             info.mode = mode
             tar.addfile(info, io.BytesIO(raw))
     return buf.getvalue()
+
+
+def _exec_checked(container: Container, cmd: list[str], *, user: str | None = None) -> None:
+    """Run a command in the container and raise on non-zero exit."""
+    exit_code, output = container.exec_run(cmd, user=user)
+    if exit_code not in (0, None):
+        output_text = (
+            output.decode("utf-8", "replace") if isinstance(output, bytes) else str(output)
+        )
+        raise RuntimeError(f"exec {cmd!r} failed ({exit_code}): {output_text}")

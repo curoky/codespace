@@ -91,9 +91,7 @@ codespace/
 │   ├── operations.py            # 异步 create operation 内存 store
 │   ├── service.py               # CodespaceProvisioner 创建编排与回滚
 │   ├── containers.py            # Podman 容器生命周期、清单、就绪探测、workspace
-│   ├── credentials.py           # deploy key/登录公钥 put_archive 注入与 repo clone
-│   ├── podman_exec.py           # podman exec 多路复用帧解析
-│   └── keys.py                  # ed25519 deploy keypair 生成
+│   └── credentials.py           # deploy key 生成、SSH 物料注入与 repo clone
 ├── client/
 │   ├── __main__.py              # 本地 Web GUI 启动器
 │   ├── config.py                # YAML 配置模型与校验
@@ -119,7 +117,7 @@ codespace/
 | `agent/app.py` | agent HTTP API 路由；将创建流程委托给 provisioner。 |
 | `agent/service.py` | create 编排（去重、keygen、workspace、拉镜像、建容器、注入、探测）与失败回滚。 |
 | `agent/containers.py` | 容器创建、状态读取、清单/去重、SSH 就绪探测、workspace 目录准备与 purge。 |
-| `agent/credentials.py` | 通过 put_archive 注入 deploy 私钥/登录公钥与 git ssh config，以及 repo clone。 |
+| `agent/credentials.py` | 生成 deploy keypair，通过 put_archive 注入 SSH 物料，并负责 repo clone。 |
 | `images/agent/rootfs/etc/s6/s6-rc.d/agent-service/run` | s6 longrun：读取 `WORKSPACE_ROOT_HOST`，并使用固定的 agent 监听地址、端口和 podman socket 启动 agent CLI。 |
 | `images/dev/rootfs/etc/s6/s6-rc.d/atuin-service/run` | s6 longrun：启动 `atuin server start`；agent 镜像在 Dockerfile 中直接复用该服务定义。 |
 | `client/config.py` | 读取 YAML，注入 agent/template id，校验 agent、template。 |
@@ -134,7 +132,7 @@ codespace/
 
 1. **sshd 端口可配置**：镜像启动后运行 sshd，并读取 `SSHD_PORT` 作为监听端口；未设置时可默认
    监听 22，便于手动调试。
-2. **固定登录用户**：默认登录用户为 `x`，拥有可写 home 目录，`~/.ssh/` 可创建。
+2. **固定登录用户**：默认登录用户为 `x`，home 固定为 `/home/x`，拥有可写 home 目录，`~/.ssh/` 可创建。
 3. **工作区路径可写**：容器内 `/workspace` 可被登录用户读写，作为 repo clone 目标。
 4. **包含 git 与 ssh 客户端**：容器内可以执行 `git clone` / `git push` 和 SSH 连接。
 5. **不依赖项目专属 hook**：agent 通过 podman `put_archive` 注入密钥，不要求镜像内提供自定义
@@ -235,7 +233,7 @@ deploy key 生命周期由 client 负责。
    - `name=shared.container_name(cs_id)`；
    - `network_mode="host"`；
    - `environment={"SSHD_PORT": str(port)}`；`SSHD_PORT` 始终由 agent 分配的端口；
-   - labels 写入 repo/provider/template/instance/user/image/port 等元数据；
+   - labels 写入 repo/provider/template/instance/image/port 等元数据；
    - bind mount workspace 到 `/workspace`。
 7. 等待容器 running。
 8. 容器内 root 执行 `chown -R <user> /workspace` 修正 bind mount 属主。
@@ -380,6 +378,10 @@ codespace-<repo-slug>-<template>-<instance>-<hash8>
 agent 重启后不会丢失容器状态；Web GUI 重启后 operation 历史丢失，但 Dashboard 会重新通过 agent
 list 发现现存 codespace。agent 内存中的 failed operation 不参与重复实例判断；重复判断只来自 Podman
 容器 labels，因此排查 stale instance 时应使用 agent 同一个 podman socket 查看容器列表。
+
+`codespace-` 前缀是 agent 保留的受管容器命名空间。该命名空间内的容器必须带有完整
+`codespace.id/repo/provider/template/instance/image/port` labels；agent 不为缺失 label
+推导默认值。若这些 labels 缺失或非法，视为损坏的受管状态，需要人工清理对应容器。
 
 ## 12. Git provider 抽象
 
