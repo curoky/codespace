@@ -1,4 +1,7 @@
 {
+  "AI.rules.importClaudeMd": true,
+  "AI.toolcall.v2.command.allowList": "[\"python\",\"npm\",\"npx\",\"bazel\",\"nix\",\"nix-env\",\"nix-shell\",\"nix-channel\",\"grep\",\"ls\",\"echo\",\"head\",\"touch\",\"rm\",\"sleep\",\"tail\",\"cd\",\"cat\",\"python3\",\"./result-wget/bin/wget\",\"mkdir\",\"cp\",\"chmod\",\"/tmp/ptest/parallel/bin/parallel\"]",
+  "AI.toolcall.v2.fileOp.allowPaths": "[\"/workspace/tmp\"]",
   "C_Cpp.autocompleteAddParentheses": true,
   "C_Cpp.clang_format_fallbackStyle": "Google",
   "C_Cpp.default.cStandard": "c23",
@@ -163,6 +166,7 @@
   "editor.stickyScroll.enabled": true,
   "editor.suggest.preview": true,
   "editor.tabSize": 2,
+  "excalidraw.theme": "light",
   // "errorLens.delay": 15000,
   // "eslint.format.enable": true,
   "explorer.openEditors.visible": 1,
@@ -209,10 +213,15 @@
   "files.insertFinalNewline": true,
   "files.trimFinalNewlines": true,
   "files.trimTrailingWhitespace": true,
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/oh_modules/**": true
+  },
   "geminicodeassist.displayInlineContextHint": false,
   "geminicodeassist.enableTelemetry": false,
   "git-graph.date.format": "ISO Date & Time",
   "git-graph.maxDepthOfRepoSearch": 4,
+  "git.blame.editorDecoration.enabled": true,
   "git.blame.statusBarItem.enabled": true,
   "git.confirmSync": false,
   "git.mergeEditor": false,
@@ -295,6 +304,8 @@
   "notebook.experimental.generate": false,
   // "notebook.formatOnSave.enabled": true,
   "notebook.lineNumbers": "on",
+  "python-envs.terminal.autoActivationType": "shellStartup",
+  "python-envs.terminal.showActivateButton": true,
   // "prettier.jsxSingleQuote": true,
   // "prettier.prettierPath": "/opt/homebrew/opt/prettier/libexec/lib/node_modules/prettier/index.cjs",
   "python.analysis.autoFormatStrings": true,
@@ -315,16 +326,17 @@
   "remote.SSH.connectTimeout": 36000,
   "remote.SSH.experimental.chat": false,
   "remote.SSH.localServerDownload": "off",
+  "remote.SSH.logLevel": "trace",
   "remote.SSH.maxReconnectionAttempts": 8,
   "remote.SSH.reconnectionGraceTime": 360000,
   "remote.SSH.serverInstallPath": {
+    "cn_boe_simp": "/workspace",
     "my2_h100_comp": "/workspace",
     "my2_h100_simp": "/workspace",
     "my3_h20_comp": "/workspace",
     "my3_h20_simp": "/workspace",
-    "sg_t4_simp": "/workspace",
     "sg_t4_comp": "/workspace",
-    "cn_boe_simp": "/workspace"
+    "sg_t4_simp": "/workspace"
   },
   "remote.autoForwardPortsSource": "output",
   "remote.downloadExtensionsLocally": true,
@@ -342,6 +354,7 @@
   "ruff.interpreter": [
     "/opt/homebrew/bin/python3"
   ],
+  "ruff.logLevel": "info",
   "ruff.path": [
     "/opt/sb/store/ruff/bin/ruff"
   ],
@@ -358,7 +371,14 @@
   //   "strings": "off"
   // },
   "scm.repositories.sortOrder": "name",
+  "search.exclude": {
+    "**/*.code-search": true,
+    "**/.eden-mono": true,
+    "**/bower_components": true,
+    "**/node_modules": true
+  },
   "search.useGlobalIgnoreFiles": true,
+  "security.promptForRemoteFileProtocolHandling": false,
   "security.workspace.trust.enabled": false,
   "shellformat.flag": "-i 2 -s -ci",
   "shellformat.path": "/opt/sb/store/shfmt/bin/shfmt",
@@ -374,6 +394,7 @@
   "task.slowProviderWarning": [
     "typescript"
   ],
+  "telemetry.editStats.enabled": false,
   "telemetry.feedback.enabled": false,
   "telemetry.telemetryLevel": "off",
   "terminal.integrated.cursorBlinking": true,
@@ -399,6 +420,7 @@
   "testMate.cpp.test.parallelExecutionLimit": 8,
   "thunder-client.saveToWorkspace": true,
   "typescript.surveys.enabled": false,
+  "update.showReleaseNotes": false,
   "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
   "window.commandCenter": false,
   "window.nativeTabs": true,
@@ -416,6 +438,7 @@
   },
   "workbench.colorTheme": "Better Solarized Light",
   "workbench.editor.highlightModifiedTabs": true,
+  "workbench.editor.useModal": "off",
   "workbench.editor.wrapTabs": true,
   "workbench.editorAssociations": {
     "*.hex": "hexEditor.hexedit",
@@ -432,36 +455,10 @@
     "3d9e771126ecadc94e645d7d2fa1ea98c50c9c283ffa9ddf39be665bd6cef445",
     "0ba0adb68115248e110be22bfbdc79cb970ec5e6f62e9d69732ce68d15beecb6"
   ],
+  "xml.server.preferBinary": true,
   "xml.server.vmargs": "-Xmx1024M",
   "xml.symbols.maxItemsComputed": 400000,
+  "yaml.disableSchemaDetection": [],
   "yaml.format.enable": true,
-  "yaml.format.singleQuote": true,
-  "python-envs.terminal.autoActivationType": "shellStartup",
-  "python-envs.terminal.showActivateButton": true,
-  "remote.SSH.logLevel": "trace",
-  "excalidraw.theme": "light",
-  "ruff.logLevel": "info",
-  "search.exclude": {
-    "**/node_modules": true,
-    "**/bower_components": true,
-    "**/*.code-search": true,
-    "**/.eden-mono": true
-  },
-  "xml.server.preferBinary": true,
-  "workbench.editor.useModal": "off",
-  "update.showReleaseNotes": false,
-  "AI.toolcall.v2.command.allowList": "[\"python\",\"npm\",\"npx\",\"bazel\",\"nix\",\"nix-env\",\"nix-shell\",\"nix-channel\",\"grep\",\"ls\",\"echo\",\"head\",\"touch\",\"rm\",\"sleep\",\"tail\",\"cd\",\"cat\",\"python3\",\"./result-wget/bin/wget\",\"mkdir\",\"cp\",\"chmod\",\"/tmp/ptest/parallel/bin/parallel\"]",
-  "AI.rules.importClaudeMd": true,
-  "git.blame.editorDecoration.enabled": true,
-  "telemetry.editStats.enabled": false,
-  "security.promptForRemoteFileProtocolHandling": false,
-  "AI.toolcall.v2.fileOp.allowPaths": "[\"/workspace/tmp\"]",
-  "yaml.disableSchemaDetection": [
-    "**/.github/workflows/*.yml",
-    "**/.github/workflows/*.yaml",
-    "**/.gitea/workflows/*.yml",
-    "**/.gitea/workflows/*.yaml",
-    "**/.forgejo/workflows/*.yml",
-    "**/.forgejo/workflows/*.yaml"
-  ]
+  "yaml.format.singleQuote": true
 }
