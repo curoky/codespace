@@ -8,7 +8,6 @@ type Props = {
   agents: Agent[];
   agentFilter: string;
   query: string;
-  lastUpdated: number | null;
   onToggleAgent: (id: string) => void;
   onQueryChange: (value: string) => void;
 };

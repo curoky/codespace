@@ -96,14 +96,7 @@ def test_create_success_returns_public_key(
     body = _operation_result(client, operation["id"])["codespace"]
     assert body["id"]
     assert body["port"] == 49207
-    assert body["deploy_keys"] == [
-        {
-            "repo": "owner/name",
-            "provider": "github",
-            "public_openssh": "ssh-ed25519 PUB",
-            "read_only": False,
-        }
-    ]
+    assert body["deploy_public_key"] == "ssh-ed25519 PUB"
 
 
 def test_create_rejects_invalid_repo(client: TestClient) -> None:

@@ -23,18 +23,7 @@ class GitProviderClient(Protocol):
     @property
     def display_name(self) -> str: ...
 
-    @property
-    def config_key(self) -> str: ...
-
-    def register_deploy_key(
-        self,
-        token: str,
-        repo: str,
-        cs_id: str,
-        public_openssh: str,
-        *,
-        read_only: bool,
-    ) -> int:
+    def register_deploy_key(self, token: str, repo: str, cs_id: str, public_openssh: str) -> int:
         """Register a deploy key for one repository."""
 
     def delete_deploy_key(self, token: str, repo: str, cs_id: str) -> bool:
@@ -45,18 +34,9 @@ class GitProviderClient(Protocol):
 class GithubProviderClient:
     provider: shared.GitProvider = "github"
     display_name: str = "GitHub"
-    config_key: str = "github"
 
-    def register_deploy_key(
-        self,
-        token: str,
-        repo: str,
-        cs_id: str,
-        public_openssh: str,
-        *,
-        read_only: bool,
-    ) -> int:
-        return github.register_deploy_key(token, repo, cs_id, public_openssh, read_only=read_only)
+    def register_deploy_key(self, token: str, repo: str, cs_id: str, public_openssh: str) -> int:
+        return github.register_deploy_key(token, repo, cs_id, public_openssh)
 
     def delete_deploy_key(self, token: str, repo: str, cs_id: str) -> bool:
         return github.delete_deploy_key(token, repo, cs_id)
@@ -66,20 +46,9 @@ class GithubProviderClient:
 class GitlabProviderClient:
     provider: shared.GitProvider = "gitlab"
     display_name: str = "GitLab"
-    config_key: str = "gitlab"
 
-    def register_deploy_key(
-        self,
-        token: str,
-        repo: str,
-        cs_id: str,
-        public_openssh: str,
-        *,
-        read_only: bool,
-    ) -> int:
-        return gitlab_client.register_deploy_key(
-            token, repo, cs_id, public_openssh, read_only=read_only
-        )
+    def register_deploy_key(self, token: str, repo: str, cs_id: str, public_openssh: str) -> int:
+        return gitlab_client.register_deploy_key(token, repo, cs_id, public_openssh)
 
     def delete_deploy_key(self, token: str, repo: str, cs_id: str) -> bool:
         return gitlab_client.delete_deploy_key(token, repo, cs_id)

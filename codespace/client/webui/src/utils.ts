@@ -43,10 +43,6 @@ export function providerColor(provider: string): AccentColor {
   return provider === 'gitlab' ? 'orange' : 'gray';
 }
 
-export function formatTime(timestamp: number | null): string {
-  return timestamp ? new Date(timestamp).toLocaleTimeString() : '尚未刷新';
-}
-
 /** The command a user runs to connect: prefer the local SSH alias. */
 export function connectCommand(card: Pick<InstanceCard, 'alias' | 'raw_ssh_command'>): string {
   if (card.alias) return `ssh ${card.alias}`;

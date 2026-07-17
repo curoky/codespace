@@ -16,21 +16,18 @@ def register_deploy_key(
     repo: str,
     cs_id: str,
     public_openssh: str,
-    *,
-    read_only: bool = False,
 ) -> int:
     """Register ``public_openssh`` as a deploy key on ``repo``; return its id.
 
     The key is titled ``codespace-<cs_id>`` so it can later be rediscovered by
-    title. ``read_only`` is ``False`` for the main repo (push access) and
-    ``True`` for extra repos (pull-only).
+    title. The key grants push access (the container clones and pushes the repo).
     """
     with Github(auth=Auth.Token(token)) as gh:
         repository = gh.get_repo(repo)
         key = repository.create_key(
             title=shared.deploy_key_title(cs_id),
             key=public_openssh,
-            read_only=read_only,
+            read_only=False,
         )
         return key.id
 

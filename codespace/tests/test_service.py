@@ -71,14 +71,7 @@ def test_provision_success_records_ready_codespace(monkeypatch: pytest.MonkeyPat
     assert operation.codespace is not None
     assert operation.codespace.id == "cs1"
     assert operation.codespace.port == 49207
-    assert operation.codespace.deploy_keys == [
-        shared.DeployKeyRef(
-            repo="owner/name",
-            provider="github",
-            public_openssh="ssh-ed25519 PUB",
-            read_only=False,
-        )
-    ]
+    assert operation.codespace.deploy_public_key == "ssh-ed25519 PUB"
 
 
 def test_provision_orders_workspace_before_pull_and_create(

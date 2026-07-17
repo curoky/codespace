@@ -55,12 +55,6 @@ class OperationStore:
         with self._lock:
             return self._sorted_locked()
 
-    def prune_completed(self) -> builtins_list[WebOperation]:
-        """Remove non-busy operations and return the remaining operations."""
-        with self._lock:
-            self._completed.clear()
-            return self._sorted_locked()
-
     def update(
         self,
         operation_id: str,

@@ -96,7 +96,7 @@ def test_list_codespaces_maps_labels_and_port() -> None:
     assert cs.id == "abc123"
     assert cs.repo == "owner/name"
     assert cs.port == 49207
-    assert cs.deploy_keys == []
+    assert cs.deploy_public_key is None
     assert cs.workspace_dir == shared.workspace_dir_name("owner/name", "default", "default")
     assert cs.status == "running"
 

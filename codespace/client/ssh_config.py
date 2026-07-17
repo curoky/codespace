@@ -15,7 +15,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager, suppress
 from pathlib import Path
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from codespace import shared
 
@@ -32,13 +32,9 @@ class SshConfigEntry(BaseModel, frozen=True):
 
     alias: str
     codespace_id: str | None = None
-    repos: list[str] = Field(default_factory=list)
     provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER
     agent_id: str | None = None
     repo: str | None = None
-    host: str | None = None
-    port: int | None = None
-    user: str | None = None
 
 
 def _begin(alias: str) -> str:
@@ -55,7 +51,6 @@ def _render_block(
     port: int,
     user: str,
     cs_id: str,
-    repos: list[str],
     *,
     agent_id: str | None = None,
     repo: str | None = None,
@@ -64,9 +59,9 @@ def _render_block(
 ) -> str:
     """Render the managed block for an alias.
 
-    ``cs_id`` and ``repos`` (comma-separated) are stored as comments so
-    ``delete`` can revoke every GitHub deploy key (titled ``codespace-<cs_id>``
-    on each repo) without any other local state.
+    ``cs_id`` and ``repo`` are stored as comments so ``delete`` can revoke the
+    provider deploy key (titled ``codespace-<cs_id>`` on the repo) without any
+    other local state.
 
     ``ssh_options`` are extra ``Key Value`` directives (e.g. ``ProxyJump``)
     passed through verbatim from the local agent profile, so per-host values
@@ -75,7 +70,6 @@ def _render_block(
     lines = [
         _begin(alias),
         f"# codespace-id: {cs_id}",
-        f"# codespace-repos: {','.join(repos)}",
         f"# codespace-provider: {provider}",
     ]
     if agent_id:
@@ -295,7 +289,6 @@ def _validate_config_values(
     port: int,
     user: str,
     cs_id: str,
-    repos: list[str],
     agent_id: str | None,
     repo: str | None,
     ssh_options: dict[str, str] | None,
@@ -313,10 +306,6 @@ def _validate_config_values(
         _reject_newline(agent_id, "agent_id")
     if repo is not None:
         _reject_newline(repo, "repo")
-    for item in repos:
-        _reject_newline(item, "repo")
-        if "," in item:
-            raise ValueError(f"invalid SSH config repo: {item!r}")
     for key, value in (ssh_options or {}).items():
         if not key or any(char.isspace() for char in key):
             raise ValueError(f"invalid SSH option key: {key!r}")
@@ -330,7 +319,6 @@ def upsert(
     port: int,
     user: str,
     cs_id: str,
-    repos: list[str],
     *,
     agent_id: str | None = None,
     repo: str | None = None,
@@ -348,7 +336,6 @@ def upsert(
         port=port,
         user=user,
         cs_id=cs_id,
-        repos=repos,
         agent_id=agent_id,
         repo=repo,
         ssh_options=ssh_options,
@@ -363,7 +350,6 @@ def upsert(
             port,
             user,
             cs_id,
-            repos,
             agent_id=agent_id,
             repo=repo,
             provider=provider,
@@ -386,14 +372,6 @@ def remove(alias: str) -> None:
         if main_stripped != main_content.rstrip("\n"):
             _write(SSH_CONFIG_PATH, f"{main_stripped}\n" if main_stripped else "")
             _ensure_include_unlocked()
-
-
-def get_repos(alias: str) -> list[str]:
-    """Return the repos stored in the alias block (main + extras), or ``[]``."""
-    for entry in list_entries():
-        if entry.alias == alias:
-            return entry.repos
-    return []
 
 
 def list_entries() -> list[SshConfigEntry]:
@@ -420,13 +398,9 @@ def _parse_entries(content: str) -> list[SshConfigEntry]:
             SshConfigEntry(
                 alias=alias,
                 codespace_id=_comment_from_body(body, "codespace-id"),
-                repos=_repos_from_body(body),
                 provider=_provider_from_body(body),
                 agent_id=_comment_from_body(body, "codespace-agent"),
                 repo=_comment_from_body(body, "codespace-repo"),
-                host=_directive_from_body(body, "HostName"),
-                port=_port_from_body(body),
-                user=_directive_from_body(body, "User"),
             )
         )
     return entries
@@ -446,21 +420,6 @@ def _comment_from_body(body: str, key: str) -> str | None:
     return match.group(1) if match else None
 
 
-def _directive_from_body(body: str, key: str) -> str | None:
-    match = re.search(rf"^\s*{re.escape(key)}\s+(\S+)\s*$", body, re.MULTILINE)
-    return match.group(1) if match else None
-
-
-def _repos_from_body(body: str) -> list[str]:
-    raw = _comment_from_body(body, "codespace-repos")
-    return [repo for repo in raw.split(",") if repo] if raw else []
-
-
 def _provider_from_body(body: str) -> shared.GitProvider:
     raw = _comment_from_body(body, "codespace-provider")
     return "gitlab" if raw == "gitlab" else shared.DEFAULT_GIT_PROVIDER
-
-
-def _port_from_body(body: str) -> int | None:
-    raw = _directive_from_body(body, "Port")
-    return int(raw) if raw and raw.isdigit() else None

@@ -245,9 +245,9 @@ def read_labels(container: Container) -> ContainerLabels:
 def _to_codespace(container: Container, labels: ContainerLabels) -> shared.Codespace:
     """Build a wire Codespace model from a container's labels and state.
 
-    ``deploy_keys`` is left unset (only meaningful in a create response), and
-    the SSH host is omitted: the agent reports only the observable ``port``; the
-    client fills in the reachable host.
+    ``deploy_public_key`` is left unset (only meaningful in a create response),
+    and the SSH host is omitted: the agent reports only the observable ``port``;
+    the client fills in the reachable host.
     """
     return shared.Codespace(
         id=labels.cs_id,

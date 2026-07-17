@@ -9,7 +9,6 @@ def test_github_provider_metadata() -> None:
 
     assert client.provider == "github"
     assert client.display_name == "GitHub"
-    assert client.config_key == "github"
 
 
 def test_gitlab_provider_metadata() -> None:
@@ -17,7 +16,6 @@ def test_gitlab_provider_metadata() -> None:
 
     assert client.provider == "gitlab"
     assert client.display_name == "GitLab"
-    assert client.config_key == "gitlab"
 
 
 def test_default_git_host_uses_official_hosts() -> None:

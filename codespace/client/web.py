@@ -18,7 +18,6 @@ from codespace.client.service import (
     DeleteCodespaceResult,
 )
 from codespace.client.web_models import (
-    ClearOperationsResponse,
     ConfigSummary,
     CreateCodespaceRequest,
     CreateCodespaceResponse,
@@ -156,10 +155,6 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
         if operation is None:
             raise HTTPException(status_code=404, detail="operation not found")
         return operation
-
-    @app.delete("/api/operations")
-    def clear_operations() -> ClearOperationsResponse:
-        return ClearOperationsResponse(operations=operations.prune_completed())
 
     @app.delete("/api/agents/{agent_id}/codespaces/{codespace_id}")
     def delete_codespace(

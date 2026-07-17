@@ -86,18 +86,6 @@ def test_register_deploy_key_uses_gitlab_project_api() -> None:
     ]
 
 
-def test_register_deploy_key_honors_read_only() -> None:
-    gitlab.register_deploy_key(
-        "tok",
-        "group/project",
-        "abc123",
-        "ssh-ed25519 PUB",
-        read_only=True,
-    )
-
-    assert _FakeGitlab.instances[0].project.keys.created[0]["can_push"] is False
-
-
 def test_delete_deploy_key_removes_matching_title() -> None:
     removed = gitlab.delete_deploy_key("tok", "group/project", "abc123")
 

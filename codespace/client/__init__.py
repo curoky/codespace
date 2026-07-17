@@ -1,1 +1,1 @@
-"""macOS client for the codespace scheme (typer CLI + ssh config manager)."""
+"""Local client for the codespace scheme (Web GUI + ssh config manager)."""

@@ -1,4 +1,4 @@
-"""Reusable client-side orchestration for CLI and Web GUI."""
+"""Reusable client-side orchestration for the local Web GUI."""
 
 import contextlib
 import ipaddress
@@ -285,7 +285,6 @@ def revoke_quietly(
     cs_id: str,
     *,
     provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER,
-    config: WebConfig | None = None,
 ) -> None:
     """Best-effort deploy-key revocation used during create rollback."""
     with contextlib.suppress(*PROVIDER_ERRORS):
@@ -293,9 +292,9 @@ def revoke_quietly(
 
 
 class CodespaceService:
-    """Client-side operations shared by CLI and Web GUI."""
+    """Client-side operations for the local Web GUI."""
 
-    def __init__(self, config: WebConfig | None = None) -> None:
+    def __init__(self, config: WebConfig) -> None:
         self.config = config
         self._tunnels: dict[str, SshHttpTunnel] = {}
         self._tunnel_lock = Lock()
@@ -310,7 +309,7 @@ class CodespaceService:
 
     def agent(self, agent_id: str) -> AgentProfile:
         """Return an agent profile by id."""
-        if self.config is None or agent_id not in self.config.agents:
+        if agent_id not in self.config.agents:
             raise ServiceError(f"unknown agent: {agent_id}")
         return self.config.agents[agent_id]
 
@@ -343,8 +342,6 @@ class CodespaceService:
 
     def list_all_agents(self) -> list[AgentListResult]:
         """List codespaces for all configured agents."""
-        if self.config is None:
-            return []
         max_workers = max(1, len(self.config.agents))
         results: dict[str, AgentListResult] = {}
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
@@ -452,7 +449,7 @@ class CodespaceService:
     ) -> shared.Codespace:
         """Create a codespace on one agent and register local provider state."""
         profile = self.agent(agent_id)
-        registered: list[tuple[str, shared.GitProvider]] = []
+        registered = False
         cs: shared.Codespace | None = None
         try:
             provider = req.provider
@@ -478,20 +475,18 @@ class CodespaceService:
 
             operation = shared.CreateOperation.model_validate(data)
             cs = self.wait_create_operation(profile, operation.id, progress=progress)
-            if not cs.deploy_keys:
-                raise ServiceError("agent did not return any deploy keys")
+            if not cs.deploy_public_key:
+                raise ServiceError("agent did not return a deploy public key")
 
-            for key in cs.deploy_keys:
-                if progress is not None:
-                    progress(f"registering deploy key: {key.repo}")
-                provider_client(key.provider).register_deploy_key(
-                    token,
-                    key.repo,
-                    cs.id,
-                    key.public_openssh,
-                    read_only=key.read_only,
-                )
-                registered.append((key.repo, key.provider))
+            if progress is not None:
+                progress(f"registering deploy key: {cs.repo}")
+            provider_client(cs.provider).register_deploy_key(
+                token,
+                cs.repo,
+                cs.id,
+                cs.deploy_public_key,
+            )
+            registered = True
 
             if progress is not None:
                 progress("cloning repo into workspace")
@@ -505,7 +500,6 @@ class CodespaceService:
                 cs.port,
                 cs.user,
                 cs.id,
-                [key.repo for key in cs.deploy_keys],
                 agent_id=agent_id,
                 repo=cs.repo,
                 provider=cs.provider,
@@ -514,14 +508,8 @@ class CodespaceService:
             return cs
         except Exception:
             if cs is not None:
-                for repo, provider in registered:
-                    revoke_quietly(
-                        token,
-                        repo,
-                        cs.id,
-                        provider=provider,
-                        config=self.config,
-                    )
+                if registered:
+                    revoke_quietly(token, cs.repo, cs.id, provider=cs.provider)
                 with contextlib.suppress(Exception):
                     self.delete_remote(profile, cs.id)
             remove_login_key(instance_alias(agent_id, req.template, req.instance))
@@ -533,7 +521,6 @@ class CodespaceService:
         codespace_id: str,
         *,
         token: str | None,
-        alias: str | None = None,
         repo: str | None = None,
         provider: shared.GitProvider = shared.DEFAULT_GIT_PROVIDER,
         purge: bool = False,
@@ -541,33 +528,31 @@ class CodespaceService:
         """Delete a remote codespace and clean local/provider state."""
         profile = self.agent(agent_id)
         entry = ssh_config.find_entry(codespace_id=codespace_id, agent_id=agent_id)
-        alias = alias or entry.alias if entry else alias
-        repos = ssh_config.get_repos(alias) if alias else []
+        alias = entry.alias if entry else None
+        revoke_repo = entry.repo if entry else None
         warning = None
-        if not repos and repo:
-            repos = [repo]
+        if not revoke_repo and repo:
+            revoke_repo = repo
             warning = "local alias not found; only main repo deploy key was revoked"
         resp = self.delete_remote(profile, codespace_id, purge=purge)
+        key_provider = entry.provider if entry else provider
+        client = provider_client(key_provider)
         if token:
-            key_provider = entry.provider if entry else provider
-            client = provider_client(key_provider)
-            if not repos:
+            if not revoke_repo:
                 warning = (
                     f"{client.display_name} token is available, but repo metadata is missing; "
                     "skipped deploy key revocation"
                 )
-            for repo_name in repos:
+            else:
                 try:
-                    client.delete_deploy_key(token, repo_name, codespace_id)
+                    client.delete_deploy_key(token, revoke_repo, codespace_id)
                 except PROVIDER_ERRORS as exc:
                     warning = (
                         f"{client.display_name} deploy key revocation failed for "
-                        f"{repo_name}: {exc}; deleted codespace anyway"
+                        f"{revoke_repo}: {exc}; deleted codespace anyway"
                     )
-        elif repos:
-            delete_provider = entry.provider if entry else provider
-            display_name = provider_client(delete_provider).display_name
-            warning = f"{display_name} token is not available; skipped deploy key revocation"
+        elif revoke_repo:
+            warning = f"{client.display_name} token is not available; skipped deploy key revocation"
         if alias:
             ssh_config.remove(alias)
             remove_login_key(alias)

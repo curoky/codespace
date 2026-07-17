@@ -86,11 +86,7 @@ def test_create_codespace_clones_after_registering_deploy_key(
         template="default",
         instance="default",
         workspace_dir="ws",
-        deploy_keys=[
-            shared.DeployKeyRef(
-                repo="owner/name", public_openssh="ssh-ed25519 PUB", read_only=False
-            )
-        ],
+        deploy_public_key="ssh-ed25519 PUB",
     )
 
     monkeypatch.setattr(service, "ensure_login_key", lambda alias: "ssh-ed25519 LOGIN")

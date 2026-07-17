@@ -110,7 +110,3 @@ class DashboardResponse(BaseModel):
     agents: list[AgentStatus]
     codespaces: list[DashboardCodespace]
     operations: list[WebOperation]
-
-
-class ClearOperationsResponse(BaseModel):
-    operations: list[WebOperation]

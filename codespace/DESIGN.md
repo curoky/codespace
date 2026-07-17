@@ -195,14 +195,7 @@ agent 返回 `202` 表示创建任务进入异步 operation：
     "template": "api",
     "instance": "dev",
     "workspace_dir": "codespace-owner-name-api-dev-12345678",
-    "deploy_keys": [
-      {
-        "repo": "owner/name",
-        "provider": "github",
-        "public_openssh": "ssh-ed25519 AAAA...",
-        "read_only": false
-      }
-    ],
+    "deploy_public_key": "ssh-ed25519 AAAA...",
     "status": "running"
   }
 }
@@ -293,7 +286,7 @@ ready
 ## 8. Client 删除流程
 
 1. 根据 `agent_id + codespace_id` 查找本地 SSH config entry。
-2. 若 entry 存在，从 entry 读取 alias、repo、provider、repos。
+2. 若 entry 存在，从 entry 读取 alias、repo、provider。
 3. 若 token 可用，按 deploy key title 删除对应 provider 上的 deploy key。
 4. 请求 agent 删除容器，必要时带 `purge=true`。
 5. 删除本地 `~/.ssh/codespace/ssh_config` 中的 SSH config 托管块。
@@ -319,7 +312,6 @@ Include ~/.ssh/codespace/ssh_config
 ```sshconfig
 # >>> codespace <alias> >>>
 # codespace-id: <id>
-# codespace-repos: <owner/name>
 # codespace-provider: <github|gitlab>
 # codespace-agent: <agent-id>
 # codespace-repo: <owner/name>
@@ -342,7 +334,7 @@ Host <alias>
 - alias 由 `agent-template-instance` 自动生成，不从配置文件读取。
 - `codespace-agent` 必须存在，多 agent 删除和 dashboard projection 依赖精确匹配。
 - `codespace-provider` 用于删除时选择正确的 provider façade。
-- `codespace-repos` 当前只包含主 repo，但保留 list 结构，便于统一 revoke 逻辑。
+- `codespace-repo` 记录主 repo，删除时据此吊销 deploy key（title `codespace-<cs_id>`）。
 - 缺失本地托管块不影响 Dashboard 展示；页面会展示 raw SSH 命令。
 - 额外 SSH 指令（如 `ProxyJump`）由 agent profile 的 `ssh_options` 透传，追加在托管指令之后；值只存在于本地 config，不进代码库。key/value 做换行与空白校验防注入。
 

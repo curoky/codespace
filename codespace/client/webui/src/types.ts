@@ -30,10 +30,6 @@ export type Dashboard = {
   operations: Operation[];
 };
 
-export type ClearOperationsResponse = {
-  operations: Operation[];
-};
-
 export type TokenStatusResponse = Record<GitProvider, { has_token: boolean }>;
 
 export type Agent = {

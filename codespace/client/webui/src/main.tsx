@@ -151,7 +151,6 @@ function App() {
           agents={dashboard.agents}
           agentFilter={agentFilter}
           query={query}
-          lastUpdated={state.lastUpdated}
           onToggleAgent={(id) => setAgentFilter((current) => (current === id ? 'all' : id))}
           onQueryChange={setQuery}
         />

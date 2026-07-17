@@ -362,45 +362,6 @@ def test_service_uses_ssh_proxy_for_agent_requests(monkeypatch: pytest.MonkeyPat
     ]
 
 
-def test_prune_completed_keeps_only_busy_operations() -> None:
-    store = OperationStore()
-    queued = store.create(
-        agent_id="home",
-        req=CreateCodespaceRequest(
-            repo="curoky/devspace",
-            template="api",
-            instance="queued",
-            image="ghcr.io/curoky/devspace:codespace-debian12",
-        ),
-    )
-    failed = store.create(
-        agent_id="home",
-        req=CreateCodespaceRequest(
-            repo="curoky/devspace",
-            template="api",
-            instance="failed",
-            image="ghcr.io/curoky/devspace:codespace-debian12",
-        ),
-    )
-    succeeded = store.create(
-        agent_id="home",
-        req=CreateCodespaceRequest(
-            repo="curoky/devspace",
-            template="api",
-            instance="succeeded",
-            image="ghcr.io/curoky/devspace:codespace-debian12",
-        ),
-    )
-
-    store.update(failed.id, status="failed", stage="failed", error="boom")
-    store.update(succeeded.id, status="succeeded", stage="ready")
-
-    remaining = store.prune_completed()
-
-    assert [operation.id for operation in remaining] == [queued.id]
-    assert [operation.id for operation in store.list()] == [queued.id]
-
-
 def test_operation_store_expires_completed_operations(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("codespace.client.web_operations.time.time", lambda: 100.0)
     store = OperationStore(completed_ttl_s=30.0)

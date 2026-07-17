@@ -159,14 +159,6 @@ class CodespaceProvisioner:
         info: ContainerInfo,
         keypair: credentials.DeployKeypair,
     ) -> shared.Codespace:
-        deploy_keys = [
-            shared.DeployKeyRef(
-                repo=req.repo,
-                provider=req.provider,
-                public_openssh=keypair.public_openssh,
-                read_only=False,
-            ),
-        ]
         return shared.Codespace(
             id=cs_id,
             port=info.port,
@@ -177,7 +169,7 @@ class CodespaceProvisioner:
             template=req.template,
             instance=req.instance,
             workspace_dir=shared.workspace_dir_name(req.repo, req.template, req.instance),
-            deploy_keys=deploy_keys,
+            deploy_public_key=keypair.public_openssh,
             status="running",
         )
 

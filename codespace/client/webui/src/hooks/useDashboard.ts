@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { openOperationStream, request } from '../api';
 import type {
-  ClearOperationsResponse,
   ConfigSummary,
   Dashboard,
   GitProvider,
@@ -23,13 +22,10 @@ export type DashboardState = {
   operations: Map<string, Operation>;
   tokenStatus: TokenStatusResponse;
   error: string | null;
-  lastUpdated: number | null;
   refreshing: boolean;
   refresh: () => Promise<void>;
-  refreshTokens: () => Promise<void>;
   saveToken: (provider: GitProvider, token: string) => Promise<boolean>;
   addOperation: (op: Operation) => void;
-  clearCompletedOperations: () => Promise<void>;
   dropOperations: (predicate: (op: Operation) => boolean) => void;
   setError: (message: string | null) => void;
 };
@@ -46,7 +42,6 @@ export function useDashboard(showToast: ShowToast): DashboardState {
   const [operations, setOperations] = useState<Map<string, Operation>>(new Map());
   const [tokenStatus, setTokenStatus] = useState<TokenStatusResponse>(emptyTokenStatus);
   const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const refreshSeqRef = useRef(0);
@@ -61,7 +56,6 @@ export function useDashboard(showToast: ShowToast): DashboardState {
       if (seq !== refreshSeqRef.current) return;
       setError(null);
       setDashboard(result);
-      setLastUpdated(Date.now());
       setOperations(new Map((result.operations || []).map((op) => [op.id, op])));
     } catch (refreshError) {
       if (seq === refreshSeqRef.current) setError((refreshError as Error).message);
@@ -105,15 +99,6 @@ export function useDashboard(showToast: ShowToast): DashboardState {
     });
   }, []);
 
-  const clearCompletedOperations = useCallback(async () => {
-    try {
-      const result = await request<ClearOperationsResponse>('/api/operations', { method: 'DELETE' });
-      setOperations(new Map(result.operations.map((op) => [op.id, op])));
-    } catch (clearError) {
-      setError((clearError as Error).message);
-    }
-  }, []);
-
   // Initial load: config, tokens, dashboard.
   useEffect(() => {
     async function loadAll() {
@@ -152,13 +137,10 @@ export function useDashboard(showToast: ShowToast): DashboardState {
     operations,
     tokenStatus,
     error,
-    lastUpdated,
     refreshing,
     refresh,
-    refreshTokens,
     saveToken,
     addOperation,
-    clearCompletedOperations,
     dropOperations,
     setError,
   };

@@ -12,8 +12,6 @@ def register_deploy_key(
     repo: str,
     cs_id: str,
     public_openssh: str,
-    *,
-    read_only: bool = False,
 ) -> int:
     """Register ``public_openssh`` as a GitLab deploy key on ``repo``; return its id."""
     client = python_gitlab.Gitlab(private_token=token, timeout=HTTP_TIMEOUT)
@@ -25,7 +23,7 @@ def register_deploy_key(
         {
             "title": shared.deploy_key_title(cs_id),
             "key": public_openssh,
-            "can_push": not read_only,
+            "can_push": True,
         }
     )
     return int(deploy_key.id)

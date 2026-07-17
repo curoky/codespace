@@ -451,11 +451,7 @@ data: {"id": "web-op-123", "status": "running", "stage": "cloning repo into work
 避免 `stream` 被当作 operation_id 匹配。该方案不改动后台创建线程与 operation store（保持线程模型
 简单），代价是最多约 1s 延迟。
 
-### 11.8 `DELETE /api/operations`
-
-清理已完成 operation，保留 queued/running。
-
-### 11.9 `DELETE /api/agents/{agent_id}/codespaces/{codespace_id}`
+### 11.8 `DELETE /api/agents/{agent_id}/codespaces/{codespace_id}`
 
 参数：
 
