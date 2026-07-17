@@ -306,9 +306,6 @@ Codespace 的 Host blocks 统一写入专用文件 `~/.ssh/codespace/ssh_config`
 Include ~/.ssh/codespace/ssh_config
 ```
 
-如果检测到旧版本直接写在 `~/.ssh/config` 中的 codespace 托管块，client 会自动迁移到
-`~/.ssh/codespace/ssh_config`，并从主 config 删除这些托管块。
-
 ```sshconfig
 # >>> codespace <alias> >>>
 # codespace-id: <id>
