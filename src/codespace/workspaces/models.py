@@ -11,7 +11,7 @@ from urllib.parse import quote
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field
 
-from codespace.runtime.container import ContainerSpec, ImagePlatform
+from codespace.runtime.container import ContainerSpec, ImagePlatform, NonBlankString
 
 type GitProvider = Literal["github", "gitlab"]
 type PlatformSelection = Literal["native", "linux/amd64", "linux/arm64"]
@@ -29,6 +29,7 @@ WORKSPACE_KEY_SECRET = "codespace_workspace_key"  # noqa: S105 - secret identifi
 WORKSPACE_KEY_MOUNT = f"/run/secrets/{WORKSPACE_KEY_SECRET}"
 SOURCE_TYPE_ENV = "CODESPACE_SOURCE_TYPE"
 CLONE_URL_ENV = "CODESPACE_CLONE_URL"
+GIT_ARGS_ENV = "CODESPACE_GIT_ARGS"
 CHECKOUT_PATH_ENV = "CODESPACE_CHECKOUT_PATH"
 OPEN_PATH_ENV = "CODESPACE_OPEN_PATH"
 ENCRYPTED_ENV = "CODESPACE_ENCRYPTED"
@@ -110,6 +111,7 @@ class ProviderSource(BaseModel):
 
     type: GitProvider
     repository: RepositoryPath
+    args: list[NonBlankString] = Field(default_factory=list)
 
     @property
     def clone_url(self) -> str:
@@ -125,6 +127,7 @@ class GitSource(BaseModel):
 
     type: Literal["git"]
     url: GitUrl
+    args: list[NonBlankString] = Field(default_factory=list)
 
     @property
     def clone_url(self) -> str:
@@ -140,6 +143,10 @@ class EmptySource(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     type: Literal["empty"]
+
+    @property
+    def args(self) -> list[str]:
+        return []
 
     @property
     def clone_url(self) -> None:

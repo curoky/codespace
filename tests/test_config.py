@@ -52,10 +52,41 @@ def test_tunnel_ports_reject_invalid_values(
         Config.model_validate(data)
 
 
+def test_git_source_args_default_empty_and_accept_clone_options(config: Config) -> None:
+    assert config.workspace_spec("codespace", "home", "default").source.args == []
+    data = config.model_dump()
+    data["projects"]["codespace"]["source"]["args"] = ["--depth=1", "--single-branch"]
+
+    parsed = Config.model_validate(data)
+
+    assert parsed.workspace_spec("codespace", "home", "default").source.args == [
+        "--depth=1",
+        "--single-branch",
+    ]
+
+
+@pytest.mark.parametrize("args", [[""], [" "], [1], "--depth=1"])
+def test_git_source_args_reject_invalid_values(config: Config, args: object) -> None:
+    data = config.model_dump()
+    data["projects"]["codespace"]["source"]["args"] = args
+
+    with pytest.raises(ValidationError):
+        Config.model_validate(data)
+
+
+def test_empty_source_rejects_git_args(config: Config) -> None:
+    data = config.model_dump()
+    data["projects"]["scratch"]["source"]["args"] = ["--depth=1"]
+
+    with pytest.raises(ValidationError, match="Extra inputs"):
+        Config.model_validate(data)
+
+
 def test_example_config_loads() -> None:
     config = load_config(Path("config.example.yaml"))
 
     assert list(config.projects) == ["codespace"]
+    assert config.projects["codespace"].source.args == ["--depth=1"]
     assert list(config.services) == ["support", "vllm", "sglang"]
     assert config.workspace_spec("codespace", "server", "default").identity == (
         "space:codespace/default@server"
@@ -96,12 +127,17 @@ def test_source_union_and_default_paths(config: Config) -> None:
     direct = config.workspace_spec("personal", "home", "default")
     empty = config.workspace_spec("scratch", "home", "default")
 
-    assert managed.source.model_dump() == {"type": "github", "repository": "curoky/codespace"}
+    assert managed.source.model_dump() == {
+        "type": "github",
+        "repository": "curoky/codespace",
+        "args": [],
+    }
     assert managed.source.clone_url == "git@github.com:curoky/codespace.git"
     assert managed.checkout_path == "/workspace/codespace"
     assert direct.source.model_dump() == {
         "type": "git",
         "url": "git@github.com:curoky/codespace.git",
+        "args": [],
     }
     assert empty.source.type == "empty"
     assert empty.source.clone_url is None
@@ -425,6 +461,11 @@ def test_project_rejects_reserved_environment_and_mounts(config: Config) -> None
     }
     with pytest.raises(ValidationError, match="reserved environment"):
         Config.model_validate(environment)
+
+    git_args = config.model_dump()
+    git_args["projects"]["codespace"]["container"] = {"environment": {"CODESPACE_GIT_ARGS": "[]"}}
+    with pytest.raises(ValidationError, match="reserved environment"):
+        Config.model_validate(git_args)
 
     volume = config.model_dump()
     volume["projects"]["codespace"]["container"] = {

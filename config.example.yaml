@@ -32,6 +32,7 @@ projects:
     source:
       type: github
       repository: curoky/codespace
+      args: [--depth=1]
     hosts:
       server: {}
     checkout_path: /workspace/codespace

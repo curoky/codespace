@@ -239,6 +239,9 @@ class TestCheckout(unittest.TestCase):
         (seed / "README.md").write_text("initial\n")
         run("git", "-C", seed, "add", "README.md")
         run("git", "-C", seed, "commit", "-qm", "initial")
+        for index in range(2):
+            (seed / "README.md").write_text(f"revision {index + 2}\n")
+            run("git", "-C", seed, "commit", "-qam", f"revision {index + 2}")
         run("git", "clone", "-q", "--bare", seed, origin)
         return origin
 
@@ -250,6 +253,22 @@ class TestCheckout(unittest.TestCase):
         result = run(helper, f"file://{origin}", checkout)
         self.assertEqual(result.stdout, "")
         self.assertTrue((checkout / ".git").is_dir())
+        self.assertEqual(run("git", "-C", checkout, "rev-list", "--count", "HEAD").stdout, "3\n")
+        self.assertEqual(
+            run("git", "-C", checkout, "rev-parse", "--is-shallow-repository").stdout,
+            "false\n",
+        )
+
+        shallow_checkout = self.root / "workspace/shallow"
+        run(helper, f"file://{origin}", shallow_checkout, "--depth=1", "--single-branch")
+        self.assertEqual(
+            run("git", "-C", shallow_checkout, "rev-list", "--count", "HEAD").stdout,
+            "1\n",
+        )
+        self.assertEqual(
+            run("git", "-C", shallow_checkout, "rev-parse", "--is-shallow-repository").stdout,
+            "true\n",
+        )
 
         local_file = checkout / "local.txt"
         local_file.write_text("local\n")
