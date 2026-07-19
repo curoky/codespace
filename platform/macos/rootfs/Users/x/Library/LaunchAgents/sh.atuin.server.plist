@@ -26,7 +26,7 @@
     <key>ATUIN_OPEN_REGISTRATION</key>
     <string>false</string>
     <key>ATUIN_DB_URI</key>
-    <string>postgres://atuin:atuin@localhost/atuin</string>
+    <string>postgresql://postgres.hwhoanatmtltozrvpfep:[YOUR-PASSWORD]@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres</string>
   </dict>
   <key>StandardOutPath</key>
   <string>/tmp/atuin.server.log</string>
