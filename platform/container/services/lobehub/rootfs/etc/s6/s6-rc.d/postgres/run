@@ -1,0 +1,10 @@
+#!/opt/bm/profile/s6/bin/execlineb -P
+
+s6-envdir -Lf -- /run/s6/container_environment
+
+redirfd -w 1 /var/log/s6.postgres.log
+fdmove -c 2 1
+
+s6-notifyoncheck -d -n 0 -w 1000 -t 2000 -T 60000
+  -c "pg_isready --host 127.0.0.1 --port 5432 --username postgres --quiet"
+exec /opt/codespace/lobehub/database.sh
