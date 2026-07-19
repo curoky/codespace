@@ -97,6 +97,7 @@ class DashboardWorkspace(Workspace):
 class ServiceHostStatus(BaseModel):
     host: str
     desired_image: str
+    tunnel_ports: list[int]
     container: Service | None
 
 

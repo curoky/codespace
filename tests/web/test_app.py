@@ -95,6 +95,7 @@ class FakeServiceManager:
         self.operations = OperationStore()
         self.applied: list[tuple[str, str]] = []
         self.logs_read: list[tuple[str, str]] = []
+        self.tunnels_opened: list[tuple[str, str, int]] = []
 
     def queue_apply(self, service: str, host: str) -> Operation:
         return self.operations.create(
@@ -120,6 +121,10 @@ class FakeServiceManager:
     def logs(self, service: str, host: str) -> str:
         self.logs_read.append((service, host))
         return "service log\n"
+
+    def open_tunnel(self, service: str, host: str, port: int) -> int:
+        self.tunnels_opened.append((service, host, port))
+        return port
 
 
 class FakeControl:
@@ -159,6 +164,7 @@ def test_static_ui_uses_final_terminology(app_client: tuple[TestClient, FakeCont
     assert "renderServices" in script
     assert "/api/projects/" in script
     assert "/api/services/" in script
+    assert "/tunnels/${port}" in script
     assert 'portLink.target = "_blank"' in script
     assert "openWorkspaceTunnel" not in script
     assert 'form.target = "_blank"' not in script
@@ -345,6 +351,21 @@ def test_service_routes_apply_log_and_remove(
     assert removed.json() == {"removed": True, "data_removed": True}
 
 
+def test_service_tunnel_route_redirects_to_local_forward(
+    app_client: tuple[TestClient, FakeControl],
+) -> None:
+    client, control = app_client
+
+    opened = client.get(
+        "/api/services/support/hosts/home/tunnels/3210",
+        follow_redirects=False,
+    )
+
+    assert opened.status_code == 303
+    assert opened.headers["location"] == "http://127.0.0.1:3210/"
+    assert control.services.tunnels_opened == [("support", "home", 3210)]
+
+
 def test_only_final_api_routes_exist(app_client: tuple[TestClient, FakeControl]) -> None:
     _client, _control = app_client
     routes = {
@@ -363,6 +384,7 @@ def test_only_final_api_routes_exist(app_client: tuple[TestClient, FakeControl])
         ("DELETE", "/api/projects/{project}/hosts/{host}/operations/{workspace}"),
         ("POST", "/api/services/{service}/hosts/{host}/apply"),
         ("GET", "/api/services/{service}/hosts/{host}/logs"),
+        ("GET", "/api/services/{service}/hosts/{host}/tunnels/{port}"),
         ("DELETE", "/api/services/{service}/hosts/{host}"),
         ("DELETE", "/api/services/{service}/hosts/{host}/operation"),
     }

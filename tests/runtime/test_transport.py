@@ -345,6 +345,31 @@ def test_tcp_forwards_isolate_ports_workspaces_and_hosts(tmp_path: Path) -> None
     assert all(process.terminated for process in processes)
 
 
+def test_tcp_forward_can_preserve_remote_port_locally(tmp_path: Path) -> None:
+    commands: list[list[str]] = []
+    processes: list[FakeProcess] = []
+    transport = PodmanTransport(
+        {"home"},
+        runtime_parent=tmp_path,
+        process_factory=_master_factory(processes, commands),
+    )
+
+    try:
+        local_port = transport.forward_tcp(
+            "home",
+            "home",
+            port=3210,
+            local_port=3210,
+            options=[],
+            connection_id="service-container",
+        )
+
+        assert local_port == 3210
+        assert commands[0][-3:] == ["-L", "127.0.0.1:3210:127.0.0.1:3210", "home"]
+    finally:
+        transport.close()
+
+
 def test_tcp_forward_start_failure_is_not_cached(tmp_path: Path) -> None:
     processes: list[FakeProcess] = []
 

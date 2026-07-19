@@ -273,6 +273,22 @@ function renderServiceHost(service, host, hostStatus) {
   applyButton.classList.remove("secondary");
   applyButton.classList.add("primary");
   actions.append(applyButton);
+  for (const port of host.tunnel_ports) {
+    const path = `/api/services/${encodeURIComponent(service.id)}/hosts/${encodeURIComponent(host.host)}/tunnels/${port}`;
+    if (status === "running") {
+      const portLink = link(String(port), path);
+      portLink.target = "_blank";
+      portLink.rel = "noopener noreferrer";
+      portLink.title = `Open port ${port} via SSH tunnel`;
+      actions.append(portLink);
+    } else {
+      const button = element("button", "secondary", String(port));
+      button.type = "button";
+      button.disabled = true;
+      button.title = `Open port ${port} via SSH tunnel`;
+      actions.append(button);
+    }
+  }
   if (actual !== null) {
     actions.append(actionButton("Logs", "logs", target));
     actions.append(actionButton("Remove", "remove", target));
