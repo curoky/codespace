@@ -59,8 +59,8 @@ install_homebrew() {
   export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
   /opt/homebrew/bin/brew bundle \
     --force \
+    --force-cleanup \
     --file "$script_dir/Brewfile" \
-    --cleanup \
     --verbose
   /opt/homebrew/bin/brew cleanup --prune=all
 }
