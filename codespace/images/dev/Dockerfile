@@ -106,6 +106,7 @@ RUN bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles \
 RUN git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-playbook \
   && bash /tmp/agent-playbook/install.sh \
   && cp /opt/devspace/codespace/images/dev/dev-environment.md /home/x/.trae/user_rules/ \
+  && cp /opt/devspace/codespace/images/dev/dev-environment.md /home/x/.trae-cn/user_rules/ \
   && rm -rf /tmp/agent-playbook
 
 USER root
