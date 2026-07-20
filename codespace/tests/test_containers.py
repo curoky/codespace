@@ -21,6 +21,8 @@ class _FakeContainer:
     def __init__(self, labels: dict[str, str], status: str = "running") -> None:
         self.labels = labels
         self.status = status
+        # Mirror podman's list-endpoint shape: a bare status string under State.
+        self.attrs = {"State": status}
         self.id = "deadbeef"
         cs_id = labels.get(shared.LABEL_ID, "")
         self.name = shared.container_name(cs_id) if cs_id else ""
