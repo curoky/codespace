@@ -270,14 +270,13 @@ def container_status(container: Container) -> str | None:
 
 
 def _managed_containers(client: PodmanClient) -> Iterator[Container]:
-    for container in client.containers.list(all=True):
-        name = container.name or ""
-        if name.startswith(shared.CONTAINER_PREFIX):
-            yield container
+    # Scope by the codespace.id label rather than the name prefix: the agent's
+    # own container is also named ``codespace-*`` but carries no codespace labels.
+    yield from client.containers.list(all=True, filters={"label": shared.LABEL_ID})
 
 
 def list_codespaces(client: PodmanClient) -> list[shared.Codespace]:
-    """List managed codespaces, scoped by the reserved codespace prefix."""
+    """List managed codespaces, scoped by the ``codespace.id`` label."""
     codespaces: list[shared.Codespace] = []
     for container in _managed_containers(client):
         labels = read_labels(container)

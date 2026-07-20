@@ -29,7 +29,7 @@ from codespace.client.providers import PROVIDER_ERRORS, provider_client
 
 KEY_DIR = Path.home() / ".ssh" / "codespace"
 HTTP_TIMEOUT = 30.0
-DASHBOARD_TIMEOUT = 3.0
+DASHBOARD_TIMEOUT = 6.0
 CLONE_HTTP_TIMEOUT = 30 * 60.0
 CREATE_POLL_INTERVAL = 2.0
 CREATE_OPERATION_TIMEOUT = 30 * 60.0
