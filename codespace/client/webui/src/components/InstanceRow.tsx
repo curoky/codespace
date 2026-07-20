@@ -58,6 +58,12 @@ export function InstanceRow({ card, onConnectCopied, onDelete, onDismissOperatio
               Open in Trae
             </a>
           </Button>
+          <Button asChild size="2">
+            <a href={card.trae_cn_url}>
+              <ExternalLinkIcon />
+              Open in Trae CN
+            </a>
+          </Button>
           <Button size="2" variant="soft" color="gray" onClick={() => void copyConnect()}>
             <CopyIcon />
             SSH

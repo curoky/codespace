@@ -151,6 +151,10 @@ def test_dashboard_aggregates_agents(
         "trae://vscode-remote/ssh-remote+dev%4010.0.0.5%3A49207/workspace/name?"
         "windowId=_blank&fullscreen=true"
     )
+    assert body["codespaces"][0]["trae_cn_url"] == (
+        "trae-cn://vscode-remote/ssh-remote+dev%4010.0.0.5%3A49207/workspace/name?"
+        "windowId=_blank&fullscreen=true"
+    )
 
 
 def test_dashboard_does_not_prune_completed_operations(

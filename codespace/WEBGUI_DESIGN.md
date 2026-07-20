@@ -281,6 +281,7 @@ office-service-api-debug
 | `alias` | 本地 SSH alias，可能为空。 |
 | `raw_ssh_command` | `ssh <user>@<ssh_host> -p <port>`。 |
 | `trae_url` | Trae Remote-SSH deep link。 |
+| `trae_cn_url` | Trae CN Remote-SSH deep link（`trae-cn://` scheme）。 |
 
 ### 8.3 Trae URL
 

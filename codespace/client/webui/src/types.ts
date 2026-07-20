@@ -56,6 +56,7 @@ export type Codespace = {
   status?: string | null;
   raw_ssh_command: string;
   trae_url: string;
+  trae_cn_url: string;
 };
 
 export type Operation = {
@@ -91,6 +92,7 @@ export type InstanceCard = {
   error?: string | null;
   raw_ssh_command?: string;
   trae_url?: string;
+  trae_cn_url?: string;
   kind: 'codespace' | 'operation';
 };
 

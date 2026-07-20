@@ -37,6 +37,7 @@ function buildInstanceCards(codespaces: Codespace[], operations: Map<string, Ope
       status: cs.status,
       raw_ssh_command: cs.raw_ssh_command,
       trae_url: cs.trae_url,
+      trae_cn_url: cs.trae_cn_url,
       kind: 'codespace',
     });
   }

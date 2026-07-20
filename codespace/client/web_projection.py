@@ -96,6 +96,7 @@ def dashboard_codespace(agent_id: str, ssh_host: str, cs: shared.Codespace) -> D
         status=cs.status,
         raw_ssh_command=raw_ssh_command,
         trae_url=trae_remote_ssh_url(remote_authority, repo=cs.repo),
+        trae_cn_url=trae_remote_ssh_url(remote_authority, repo=cs.repo, scheme="trae-cn"),
     )
 
 
@@ -127,13 +128,18 @@ def trae_remote_ssh_url(
     remote_authority: str,
     repo: str | None = None,
     *,
+    scheme: str = "trae",
     new_window: bool = True,
     fullscreen: bool = True,
 ) -> str:
-    """Build a Trae Remote-SSH deep link for a remote authority and optional repo path."""
+    """Build a Trae Remote-SSH deep link for a remote authority and optional repo path.
+
+    ``scheme`` selects the target app: ``trae`` for the international build and
+    ``trae-cn`` for the China build.
+    """
     remote_path = repo_workspace_path(repo)
     url = (
-        "trae://vscode-remote/ssh-remote+"
+        f"{scheme}://vscode-remote/ssh-remote+"
         f"{quote(remote_authority, safe='')}"
         f"{quote(remote_path, safe='/')}"
     )

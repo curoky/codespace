@@ -66,6 +66,7 @@ class DashboardCodespace(BaseModel):
     status: str | None = None
     raw_ssh_command: str
     trae_url: str
+    trae_cn_url: str
 
 
 class CreateCodespaceRequest(CreateCodespaceInput):
