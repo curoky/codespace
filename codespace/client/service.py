@@ -31,6 +31,10 @@ KEY_DIR = Path.home() / ".ssh" / "codespace"
 HTTP_TIMEOUT = 30.0
 DASHBOARD_TIMEOUT = 6.0
 CLONE_HTTP_TIMEOUT = 30 * 60.0
+# First-time SSH tunnel setup (auth + optional ProxyJump) can take several
+# seconds before the local forward starts listening; probe generously.
+AGENT_READY_TIMEOUT = 15.0
+AGENT_READY_PROBE_TIMEOUT = 1.0
 CREATE_POLL_INTERVAL = 2.0
 CREATE_OPERATION_TIMEOUT = 30 * 60.0
 CLONE_RETRY_INTERVAL = 2.0
@@ -87,7 +91,13 @@ class SshHttpTunnel:
         self.profile = profile
         self.local_url = _local_agent_url(profile.agent_url, _free_local_port())
         self._process = self._start()
-        _wait_for_agent(self.local_url)
+        # If readiness probing fails, tear down the ssh child process we just
+        # spawned; otherwise every failed attempt leaks a detached `ssh -N`.
+        try:
+            _wait_for_agent(self.local_url)
+        except BaseException:
+            self.close()
+            raise
 
     def close(self) -> None:
         """Stop the SSH tunnel process if it is still running."""
@@ -175,16 +185,16 @@ def _ssh_forward_target_host(hostname: str) -> str:
 
 
 def _wait_for_agent(local_url: str) -> None:
-    """Wait briefly until the forwarded local agent port accepts HTTP requests."""
+    """Wait until the forwarded local agent port accepts HTTP requests."""
     try:
         for attempt in Retrying(
-            stop=stop_after_delay(3),
+            stop=stop_after_delay(AGENT_READY_TIMEOUT),
             wait=wait_fixed(0.1),
             retry=retry_if_exception_type(httpx.RequestError),
             reraise=True,
         ):
             with attempt:
-                with httpx.Client(timeout=0.3) as client:
+                with httpx.Client(timeout=AGENT_READY_PROBE_TIMEOUT) as client:
                     client.get(f"{local_url.rstrip('/')}/codespaces")
                 return
     except httpx.RequestError as exc:
@@ -256,11 +266,21 @@ def ensure_login_key(alias: str) -> str:
     KEY_DIR.mkdir(parents=True, exist_ok=True)
     key_path = KEY_DIR / alias
     pub_path = KEY_DIR / f"{alias}.pub"
-    if not key_path.exists():
+    # Treat a missing or empty/half-written private key as absent: a previous
+    # interrupted ssh-keygen can leave a 0-byte file that exists() but cannot
+    # derive a public key, which would otherwise fail on the ``-y`` step below.
+    if not key_path.exists() or key_path.stat().st_size == 0:
+        # ssh-keygen refuses to overwrite an existing file and would otherwise
+        # prompt interactively (hanging or failing with no tty). Clear any
+        # stale key first and close stdin so a lost TOCTOU race fails fast
+        # instead of blocking on the overwrite prompt.
+        key_path.unlink(missing_ok=True)
+        pub_path.unlink(missing_ok=True)
         subprocess.run(  # noqa: S603
             ["ssh-keygen", "-t", "ed25519", "-f", str(key_path), "-N", ""],  # noqa: S607
             check=True,
             capture_output=True,
+            stdin=subprocess.DEVNULL,
         )
     if not pub_path.exists():
         result = subprocess.run(  # noqa: S603
@@ -268,6 +288,7 @@ def ensure_login_key(alias: str) -> str:
             check=True,
             capture_output=True,
             text=True,
+            stdin=subprocess.DEVNULL,
         )
         pub_path.write_text(result.stdout.strip() + "\n", encoding="utf-8")
     return pub_path.read_text(encoding="utf-8").strip()

@@ -264,9 +264,21 @@ def _to_codespace(container: Container, labels: ContainerLabels) -> shared.Codes
 
 
 def container_status(container: Container) -> str | None:
-    """Return the podman container status."""
-    status = container.status
-    return str(status) if status else None
+    """Return the podman container status across list/inspect attr shapes.
+
+    podman-py's ``Container.status`` assumes the inspect shape where
+    ``attrs["State"]`` is a dict; the ``list`` endpoint instead returns a bare
+    status string under ``State``, which makes that property raise TypeError.
+    """
+    state = container.attrs.get("State")
+    match state:
+        case str():
+            return state or None
+        case dict():
+            status = state.get("Status")
+            return str(status) if status else None
+        case _:
+            return None
 
 
 def _managed_containers(client: PodmanClient) -> Iterator[Container]:

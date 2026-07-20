@@ -48,8 +48,17 @@ class _FakeContainers:
             raise NotFound(name)
         return self._container
 
-    def list(self, all: bool = False) -> list[_FakeContainer]:
-        return [self._container] if self._container else []
+    def list(
+        self, all: bool = False, filters: dict[str, str] | None = None
+    ) -> list[_FakeContainer]:
+        # Emulate podman's label filter: only return containers carrying the
+        # requested label, matching the ``codespace.id`` scoping in production.
+        if self._container is None:
+            return []
+        label = filters.get("label") if filters else None
+        if label and label not in self._container.labels:
+            return []
+        return [self._container]
 
 
 class _FakeClient:
