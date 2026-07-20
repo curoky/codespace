@@ -103,4 +103,7 @@ elif [[ $SCENE == "docker" ]]; then
   link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.trae-server/data/Machine/settings.json
 
   link_path $CONF_PATH/bazel/bazelrc $HOME/.bazelrc
+
+  copy_path $CONF_PATH/git/.gitconfig $HOME/.gitconfig
+  copy_path $CONF_PATH/ssh/user.ssh_config $HOME/.ssh/config
 fi
