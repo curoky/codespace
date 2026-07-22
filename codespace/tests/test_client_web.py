@@ -8,7 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from codespace import shared
-from codespace.client import web, web_projection
+from codespace.client import ssh_config, web, web_projection
 from codespace.client.config import (
     AgentProfile,
     CreateTemplateConfig,
@@ -157,6 +157,72 @@ def test_dashboard_aggregates_agents(
     )
 
 
+def test_dashboard_batches_ssh_config_reads_for_many_codespaces(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from codespace.client import service
+
+    profile = AgentProfile(id="home", agent_url="http://home:8001", ssh_host="10.0.0.5")
+
+    def _cs(cs_id: str, instance: str) -> shared.Codespace:
+        return shared.Codespace(
+            id=cs_id,
+            port=49207,
+            user="dev",
+            container_id="cid",
+            repo="owner/name",
+            template="api",
+            instance=instance,
+            workspace_dir="ws",
+            status="running",
+        )
+
+    codespaces = [_cs(f"id{i}", f"dev{i}") for i in range(5)]
+    results = [service.AgentListResult(agent=profile, online=True, codespaces=codespaces)]
+
+    calls = 0
+    entries = [
+        ssh_config.SshConfigEntry(alias=f"home-name-dev{i}", codespace_id=f"id{i}", agent_id="home")
+        for i in range(5)
+    ]
+
+    def _list_entries(*, ensure_include: bool = True) -> list[ssh_config.SshConfigEntry]:
+        nonlocal calls
+        calls += 1
+        return entries
+
+    monkeypatch.setattr(web_projection.ssh_config, "list_entries", _list_entries)
+
+    dashboard = web_projection.dashboard_response(results, [])
+
+    # The whole batch resolves aliases from a single SSH config read.
+    assert calls == 1
+    assert [cs.alias for cs in dashboard.codespaces] == [f"home-name-dev{i}" for i in range(5)]
+
+
+def test_dashboard_ambiguous_ssh_entries_resolve_to_no_alias(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from codespace.client import service
+
+    profile = AgentProfile(id="home", agent_url="http://home:8001", ssh_host="10.0.0.5")
+    results = [service.AgentListResult(agent=profile, online=True, codespaces=[_codespace()])]
+
+    # Two entries share the same (codespace_id, agent_id) key -> ambiguous, so
+    # find_entry semantics dictate no alias is applied.
+    duplicates = [
+        ssh_config.SshConfigEntry(alias="alias-a", codespace_id="abc123", agent_id="home"),
+        ssh_config.SshConfigEntry(alias="alias-b", codespace_id="abc123", agent_id="home"),
+    ]
+    monkeypatch.setattr(
+        web_projection.ssh_config, "list_entries", lambda *, ensure_include=True: duplicates
+    )
+
+    dashboard = web_projection.dashboard_response(results, [])
+
+    assert dashboard.codespaces[0].alias is None
+
+
 def test_dashboard_does_not_prune_completed_operations(
     app_client: TestClient, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -275,6 +341,86 @@ def test_create_requires_saved_provider_token(app_client: TestClient) -> None:
 
     assert resp.status_code == 400
     assert resp.json() == {"error": "github token is not set"}
+
+
+def test_create_rejects_unknown_agent(app_client: TestClient) -> None:
+    resp = app_client.post(
+        "/api/agents/ghost/codespaces",
+        json={"repo": "owner/name", "template": "api", "instance": "dev", "image": "img"},
+    )
+
+    assert resp.status_code == 404
+    assert resp.json() == {"error": "agent not found"}
+
+
+def test_get_unknown_operation_returns_404(app_client: TestClient) -> None:
+    resp = app_client.get("/api/operations/does-not-exist")
+
+    assert resp.status_code == 404
+    assert resp.json() == {"error": "operation not found"}
+
+
+def test_provider_tokens_status_reflects_saved_tokens(app_client: TestClient) -> None:
+    before = app_client.get("/api/provider-tokens").json()
+    assert before == {"github": {"has_token": False}, "gitlab": {"has_token": False}}
+
+    app_client.put("/api/provider-tokens/github", json={"token": "secret"})
+
+    after = app_client.get("/api/provider-tokens").json()
+    assert after == {"github": {"has_token": True}, "gitlab": {"has_token": False}}
+
+
+def test_create_operation_records_failure(
+    app_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from codespace.client import service
+
+    def _create(
+        self: service.CodespaceService,
+        agent_id: str,
+        req: service.CreateCodespaceInput,
+        *,
+        token: str,
+        progress: Callable[[str], None] | None = None,
+    ) -> shared.Codespace:
+        raise service.ServiceError("agent exploded")
+
+    monkeypatch.setattr(service.CodespaceService, "create_codespace", _create)
+    app_client.put("/api/provider-tokens/github", json={"token": "secret"})
+
+    resp = app_client.post(
+        "/api/agents/home/codespaces",
+        json={"repo": "owner/name", "template": "api", "instance": "dev", "image": "img"},
+    )
+    op_id = resp.json()["operation_id"]
+
+    op: dict[str, object] = {}
+    for _ in range(20):
+        op = app_client.get(f"/api/operations/{op_id}").json()
+        if op["status"] == "failed":
+            break
+        time.sleep(0.01)
+
+    assert op["status"] == "failed"
+    assert op["stage"] == "failed"
+    assert op["error"] == "agent exploded"
+
+
+def test_delete_returns_500_when_service_raises(
+    app_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from codespace.client import service
+
+    def _delete(*args: object, **kwargs: object) -> service.DeleteCodespaceResult:
+        raise service.ServiceError("agent unreachable")
+
+    monkeypatch.setattr(service.CodespaceService, "delete_codespace", _delete)
+    app_client.put("/api/provider-tokens/github", json={"token": "secret"})
+
+    resp = app_client.delete("/api/agents/home/codespaces/abc123?repo=owner/name&provider=github")
+
+    assert resp.status_code == 500
+    assert resp.json() == {"error": "agent unreachable"}
 
 
 def test_delete_passes_optional_request_token(

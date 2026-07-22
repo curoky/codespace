@@ -131,20 +131,20 @@ def create_app(config_path: str | Path | None = None) -> FastAPI:
         """Push operation changes to the browser as Server-Sent Events.
 
         The generator snapshots ``operations.list()`` (thread-safe) once per
-        interval and only emits operations whose serialized state changed. The
-        first frame sends the full current set so a late subscriber catches up.
-        This trades ~1s latency for keeping the threaded create workers and the
-        store untouched (no cross-thread event loop plumbing).
+        interval and only emits operations whose ``updated_at`` changed, so
+        unchanged operations skip serialization entirely. The first frame sends
+        the full current set so a late subscriber catches up. This trades ~1s
+        latency for keeping the threaded create workers and the store untouched
+        (no cross-thread event loop plumbing).
         """
 
         async def _events() -> AsyncIterator[str]:
-            seen: dict[str, str] = {}
+            seen: dict[str, float] = {}
             while True:
                 for operation in operations.list():
-                    payload = operation.model_dump_json()
-                    if seen.get(operation.id) != payload:
-                        seen[operation.id] = payload
-                        yield f"data: {payload}\n\n"
+                    if seen.get(operation.id) != operation.updated_at:
+                        seen[operation.id] = operation.updated_at
+                        yield f"data: {operation.model_dump_json()}\n\n"
                 await asyncio.sleep(OPERATION_STREAM_INTERVAL_S)
 
         return StreamingResponse(_events(), media_type="text/event-stream")

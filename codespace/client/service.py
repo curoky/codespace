@@ -318,7 +318,12 @@ class CodespaceService:
     def __init__(self, config: WebConfig) -> None:
         self.config = config
         self._tunnels: dict[str, SshHttpTunnel] = {}
+        # Guards ``_tunnels`` and ``_agent_locks`` bookkeeping only; never held
+        # while building a tunnel (which can block up to AGENT_READY_TIMEOUT).
         self._tunnel_lock = Lock()
+        # Per-agent locks so concurrent dashboard loads build each agent's
+        # tunnel in parallel instead of serializing on one global lock.
+        self._agent_locks: dict[str, Lock] = {}
 
     def close(self) -> None:
         """Close any SSH HTTP proxy tunnels opened by this service."""
@@ -392,10 +397,21 @@ class CodespaceService:
     def _agent_base_url(self, profile: AgentProfile) -> str:
         if not profile.ssh_proxy:
             return profile.agent_url
+        # Fast path: reuse a live tunnel without taking the per-agent lock.
         with self._tunnel_lock:
             tunnel = self._tunnels.get(profile.id)
-            if tunnel is None or not tunnel.is_running():
-                tunnel = SshHttpTunnel(profile)
+            if tunnel is not None and tunnel.is_running():
+                return tunnel.local_url
+            agent_lock = self._agent_locks.setdefault(profile.id, Lock())
+        # Build under a per-agent lock so different agents proceed in parallel;
+        # the (possibly slow) SshHttpTunnel construction never blocks others.
+        with agent_lock:
+            with self._tunnel_lock:
+                tunnel = self._tunnels.get(profile.id)
+            if tunnel is not None and tunnel.is_running():
+                return tunnel.local_url
+            tunnel = SshHttpTunnel(profile)
+            with self._tunnel_lock:
                 self._tunnels[profile.id] = tunnel
             return tunnel.local_url
 

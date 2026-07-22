@@ -153,6 +153,39 @@ def test_find_entry_requires_matching_agent_metadata(ssh_paths: tuple[Path, Path
     assert entry is None
 
 
+def test_list_entries_read_only_does_not_write_main_config(ssh_paths: tuple[Path, Path]) -> None:
+    main_config, _dedicated_config = ssh_paths
+    ssh_config.upsert(
+        "home-name-default",
+        "10.0.0.5",
+        49207,
+        "dev",
+        "abc123",
+        agent_id="home",
+        repo="owner/name",
+    )
+    # Drop the Include line that upsert wrote so we can observe whether a
+    # read-only list_entries re-creates it.
+    main_config.unlink()
+
+    entries = ssh_config.list_entries(ensure_include=False)
+
+    # Read-only path parses the dedicated file without touching the main config.
+    assert not main_config.exists()
+    assert entries == [
+        ssh_config.SshConfigEntry(
+            alias="home-name-default",
+            codespace_id="abc123",
+            agent_id="home",
+            repo="owner/name",
+        )
+    ]
+
+    # The default path still repairs the Include line.
+    ssh_config.list_entries()
+    assert ssh_config.CODESPACE_INCLUDE_LINE in main_config.read_text()
+
+
 def test_existing_include_is_not_duplicated(ssh_paths: tuple[Path, Path]) -> None:
     main_config, _dedicated_config = ssh_paths
     main_config.parent.mkdir(parents=True)

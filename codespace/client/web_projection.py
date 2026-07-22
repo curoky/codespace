@@ -51,6 +51,9 @@ def dashboard_response(
     agent_results: list[AgentListResult], operations: list[WebOperation]
 ) -> DashboardResponse:
     """Project agent list results and operation state into the dashboard payload."""
+    # Read the managed SSH config once and index it, instead of re-reading and
+    # re-parsing the file (under an exclusive lock) for every codespace.
+    entries = _index_entries(ssh_config.list_entries(ensure_include=False))
     agent_statuses: list[AgentStatus] = []
     codespaces: list[DashboardCodespace] = []
     for result in agent_results:
@@ -68,7 +71,8 @@ def dashboard_response(
             )
         )
         for cs in result.codespaces:
-            codespaces.append(dashboard_codespace(profile.id, profile.ssh_host, cs))
+            entry = entries.get((cs.id, profile.id))
+            codespaces.append(dashboard_codespace(profile.id, profile.ssh_host, cs, entry))
     return DashboardResponse(
         agents=agent_statuses,
         codespaces=codespaces,
@@ -76,9 +80,27 @@ def dashboard_response(
     )
 
 
-def dashboard_codespace(agent_id: str, ssh_host: str, cs: shared.Codespace) -> DashboardCodespace:
+def _index_entries(
+    entries: list[ssh_config.SshConfigEntry],
+) -> dict[tuple[str | None, str | None], ssh_config.SshConfigEntry]:
+    """Index entries by ``(codespace_id, agent_id)``, keeping only unique matches.
+
+    Mirrors ``ssh_config.find_entry``: an ambiguous key (more than one entry)
+    resolves to no alias.
+    """
+    grouped: dict[tuple[str | None, str | None], list[ssh_config.SshConfigEntry]] = {}
+    for entry in entries:
+        grouped.setdefault((entry.codespace_id, entry.agent_id), []).append(entry)
+    return {key: matches[0] for key, matches in grouped.items() if len(matches) == 1}
+
+
+def dashboard_codespace(
+    agent_id: str,
+    ssh_host: str,
+    cs: shared.Codespace,
+    entry: ssh_config.SshConfigEntry | None,
+) -> DashboardCodespace:
     """Project an agent codespace into a Web dashboard row."""
-    entry = ssh_config.find_entry(codespace_id=cs.id, agent_id=agent_id)
     alias = entry.alias if entry else None
     raw_ssh_command = f"ssh {cs.user}@{ssh_host} -p {cs.port}"
     remote_authority = alias if alias else f"{cs.user}@{ssh_host}:{cs.port}"

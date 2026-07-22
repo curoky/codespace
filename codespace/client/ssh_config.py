@@ -298,10 +298,16 @@ def remove(alias: str) -> None:
         _write(CODESPACE_SSH_CONFIG_PATH, f"{stripped}\n" if stripped else "")
 
 
-def list_entries() -> list[SshConfigEntry]:
-    """Return all codespace-managed SSH config entries."""
+def list_entries(*, ensure_include: bool = True) -> list[SshConfigEntry]:
+    """Return all codespace-managed SSH config entries.
+
+    Read-only callers (e.g. dashboard projection) pass ``ensure_include=False``
+    to skip the main-config read/rewrite in ``_ensure_include_unlocked``; they
+    only parse the dedicated file.
+    """
     with _layout_lock():
-        _ensure_include_unlocked()
+        if ensure_include:
+            _ensure_include_unlocked()
         return _parse_entries(_read(CODESPACE_SSH_CONFIG_PATH))
 
 
