@@ -62,13 +62,13 @@ file_mode() {
     .ssh/config \
     .ssh/codespace/config \
     .ssh/codespace/login_key \
-    .ssh/codespace/known_hosts/codespace \
-    .ssh/codespace/proxy; do
+    .ssh/codespace/known_hosts/codespace; do
     [ -L "$HOME/$relative_path" ]
     [ "$HOME/$relative_path" -ef "$MACOS_HOME/$relative_path" ]
   done
 
   [ "$(file_mode "$HOME/.ssh/codespace")" = 700 ]
+  [ "$(file_mode "$HOME/.ssh/codespace/workspaces")" = 700 ]
   for relative_path in \
     .gitconfig \
     .config/git/user.gitconfig \
@@ -78,7 +78,6 @@ file_mode() {
     .ssh/codespace/known_hosts/codespace; do
     [ "$(file_mode "$MACOS_HOME/$relative_path")" = 600 ]
   done
-  [ "$(file_mode "$MACOS_HOME/.ssh/codespace/proxy")" = 700 ]
 
   [ -L "$HOME/.zshrc" ]
   [ "$HOME/.zshrc" -ef "$MACOS_HOME/.zshrc" ]

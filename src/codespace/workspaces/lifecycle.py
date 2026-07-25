@@ -69,22 +69,6 @@ class WorkspaceManager:
     def inventory(self, host_name: str) -> list[Workspace]:
         return inventory.list_workspaces(self.transport.client(host_name), host_name)
 
-    def resolve_ssh_alias(self, alias: str) -> Workspace:
-        matches = [
-            workspace
-            for host_name in self.config.hosts
-            for workspace in self.inventory(host_name)
-            if workspace.ssh_alias == alias
-        ]
-        if not matches:
-            raise ResourceNotFound(f"Workspace SSH alias {alias!r} not found")
-        if len(matches) != 1:
-            raise ResourceConflict(f"Workspace SSH alias {alias!r} is ambiguous")
-        actual = matches[0]
-        if actual.status != "running":
-            raise ResourceConflict(f"workspace {actual.id!r} is not running ({actual.status})")
-        return actual
-
     def queue_create(self, project: str, host_name: str, workspace: str) -> Operation:
         configured = self._project(project, host_name)
         if isinstance(configured.source, ProviderSource):
@@ -188,7 +172,10 @@ class WorkspaceManager:
         agent_client.wait_for("ready", timeout=_AGENT_READY_TIMEOUT)
 
         self._stage(spec, "probing ssh")
-        ssh.probe(spec.to_workspace(created.id, status="running"), route)
+        actual = spec.to_workspace(created.id, status="running")
+        ssh.probe(actual, route)
+        self._stage(spec, "writing ssh config")
+        ssh.write_route(actual)
 
     def inspect_deletion(self, project: str, host_name: str, workspace: str) -> RepoGitState:
         """Read repository state without starting or changing the Workspace."""
@@ -236,6 +223,7 @@ class WorkspaceManager:
             )
         container.remove_container(running)
         self.transport.close_tcp(host_name, actual.ssh_alias)
+        ssh.remove_route(actual)
 
     def open_tunnel(self, project: str, host_name: str, workspace: str, port: int) -> int:
         """Forward an explicitly configured Workspace port to local loopback."""

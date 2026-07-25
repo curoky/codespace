@@ -10,7 +10,7 @@ from typing import Annotated, cast
 from fastapi import APIRouter, BackgroundTasks, FastAPI, Query, Request
 from fastapi import Path as ApiPath
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -43,21 +43,6 @@ def _control(request: Request) -> ControlPlane:
 @router.get("/api/dashboard")
 def dashboard(request: Request) -> DashboardResponse:
     return dashboard_view.build(_control(request))
-
-
-@router.get("/api/ssh/{alias}", response_class=PlainTextResponse)
-def workspace_ssh_route(
-    alias: Annotated[
-        str,
-        ApiPath(
-            pattern=r"^space-[a-z0-9][a-z0-9-]{0,31}-[a-z0-9][a-z0-9-]{0,31}-"
-            r"[a-z0-9][a-z0-9.-]{0,62}$"
-        ),
-    ],
-    request: Request,
-) -> PlainTextResponse:
-    workspace = _control(request).workspaces.resolve_ssh_alias(alias)
-    return PlainTextResponse(f"{workspace.host} {workspace.ssh_host_port}\n")
 
 
 @router.put("/api/providers/{provider}/token")
