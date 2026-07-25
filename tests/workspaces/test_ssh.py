@@ -8,10 +8,10 @@ from pathlib import Path
 import pytest
 
 from codespace.runtime.transport import SSHRoute
-from codespace.workspaces import ssh
-from codespace.workspaces.models import (
+from codespace.workspaces import (
     ProviderSource,
     Workspace,
+    ssh,
 )
 
 

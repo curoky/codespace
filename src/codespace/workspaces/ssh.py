@@ -12,7 +12,7 @@ from pathlib import Path
 from tenacity import Retrying, retry_if_exception_type, stop_after_delay, wait_fixed
 
 from codespace.runtime.transport import SSHRoute, ssh_base_options
-from codespace.workspaces.models import Workspace
+from codespace.workspaces import Workspace
 
 SSH_CONFIG_PATH = Path("/Users/x/.ssh/codespace/config")
 SSH_ROUTES_DIR = Path("/Users/x/.ssh/codespace/workspaces")

@@ -6,9 +6,14 @@ import importlib.util
 import json
 import subprocess
 import sys
+import tempfile
+from collections.abc import Iterator
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from types import ModuleType, SimpleNamespace
+from socketserver import BaseRequestHandler, UnixStreamServer
+from types import ModuleType
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
@@ -17,25 +22,20 @@ from codespace.workspaces import agent
 
 
 @pytest.fixture
-def client(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> agent.WorkspaceAgentClient:
-    monkeypatch.setattr(agent, "_UnixHTTPConnection", FakeConnection)
+def responses() -> list[httpx.Response]:
+    return []
+
+
+@pytest.fixture
+def client(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, responses: list[httpx.Response]
+) -> agent.WorkspaceAgentClient:
+    monkeypatch.setattr(
+        httpx,
+        "HTTPTransport",
+        lambda **_kwargs: httpx.MockTransport(lambda _request: responses[-1]),
+    )
     return agent.WorkspaceAgentClient(tmp_path / "agent.sock")
-
-
-class FakeConnection:
-    response = SimpleNamespace(status=200, reason="OK", read=lambda _limit: b"{}")
-
-    def __init__(self, _socket_path: Path, _timeout: float) -> None:
-        self.requested: tuple[str, str] | None = None
-
-    def request(self, method: str, target: str) -> None:
-        self.requested = (method, target)
-
-    def getresponse(self) -> object:
-        return self.response
-
-    def close(self) -> None:
-        return None
 
 
 @pytest.mark.parametrize(
@@ -50,14 +50,10 @@ class FakeConnection:
 )
 def test_status_validates_fixed_response(
     client: agent.WorkspaceAgentClient,
-    monkeypatch: pytest.MonkeyPatch,
+    responses: list[httpx.Response],
     payload: dict[str, object],
 ) -> None:
-    monkeypatch.setattr(
-        FakeConnection,
-        "response",
-        SimpleNamespace(status=200, read=lambda _limit: json.dumps(payload).encode()),
-    )
+    responses.append(httpx.Response(200, json=payload))
 
     status = client.status()
 
@@ -85,15 +81,12 @@ def test_status_validates_fixed_response(
 def test_invalid_response_is_rejected(
     client: agent.WorkspaceAgentClient,
     monkeypatch: pytest.MonkeyPatch,
+    responses: list[httpx.Response],
     payload: dict[str, object],
 ) -> None:
     sleeps: list[float] = []
     monkeypatch.setattr(agent.time, "sleep", sleeps.append)
-    monkeypatch.setattr(
-        FakeConnection,
-        "response",
-        SimpleNamespace(status=200, read=lambda _limit: json.dumps(payload).encode()),
-    )
+    responses.append(httpx.Response(200, json=payload))
 
     with pytest.raises(agent.AgentError, match="invalid status") as caught:
         client.wait_for("ready", timeout=1)
@@ -104,14 +97,10 @@ def test_invalid_response_is_rejected(
 
 def test_failed_agent_state_stops_waiting(
     client: agent.WorkspaceAgentClient,
-    monkeypatch: pytest.MonkeyPatch,
+    responses: list[httpx.Response],
 ) -> None:
     payload = {"state": "failed", "public_key": None, "error": "checkout failed"}
-    monkeypatch.setattr(
-        FakeConnection,
-        "response",
-        SimpleNamespace(status=200, read=lambda _limit: json.dumps(payload).encode()),
-    )
+    responses.append(httpx.Response(200, json=payload))
 
     with pytest.raises(agent.AgentError, match="checkout failed"):
         client.wait_for("ready", timeout=1)
@@ -134,14 +123,10 @@ def test_failed_agent_state_stops_waiting(
 )
 def test_invalid_git_state_is_not_treated_as_clean(
     client: agent.WorkspaceAgentClient,
-    monkeypatch: pytest.MonkeyPatch,
+    responses: list[httpx.Response],
     payload: dict[str, object],
 ) -> None:
-    monkeypatch.setattr(
-        FakeConnection,
-        "response",
-        SimpleNamespace(status=200, read=lambda _limit: json.dumps(payload).encode()),
-    )
+    responses.append(httpx.Response(200, json=payload))
 
     with pytest.raises(agent.AgentError, match="invalid Git state") as caught:
         client.git_state()
@@ -158,30 +143,18 @@ def test_invalid_git_state_is_not_treated_as_clean(
 )
 def test_git_state_preserves_complete_response(
     client: agent.WorkspaceAgentClient,
-    monkeypatch: pytest.MonkeyPatch,
+    responses: list[httpx.Response],
     payload: dict[str, object],
 ) -> None:
-    monkeypatch.setattr(
-        FakeConnection,
-        "response",
-        SimpleNamespace(status=200, read=lambda _limit: json.dumps(payload).encode()),
-    )
+    responses.append(httpx.Response(200, json=payload))
 
     assert client.git_state().model_dump() == payload
 
 
 def test_http_error_reports_agent_detail(
-    client: agent.WorkspaceAgentClient, monkeypatch: pytest.MonkeyPatch
+    client: agent.WorkspaceAgentClient, responses: list[httpx.Response]
 ) -> None:
-    monkeypatch.setattr(
-        FakeConnection,
-        "response",
-        SimpleNamespace(
-            status=409,
-            reason="Conflict",
-            read=lambda _limit: b'{"detail":"agent state is starting"}',
-        ),
-    )
+    responses.append(httpx.Response(409, json={"detail": "agent state is starting"}))
 
     with pytest.raises(agent.AgentError, match=r"failed \(409\): agent state is starting"):
         client.git_state()
@@ -190,16 +163,10 @@ def test_http_error_reports_agent_detail(
 @pytest.mark.parametrize("payload", [{}, {"error": "wrong schema"}, {"detail": ""}])
 def test_malformed_http_error_is_rejected(
     client: agent.WorkspaceAgentClient,
-    monkeypatch: pytest.MonkeyPatch,
+    responses: list[httpx.Response],
     payload: dict[str, object],
 ) -> None:
-    monkeypatch.setattr(
-        FakeConnection,
-        "response",
-        SimpleNamespace(
-            status=409, reason="Conflict", read=lambda _limit: json.dumps(payload).encode()
-        ),
-    )
+    responses.append(httpx.Response(409, json=payload))
 
     with pytest.raises(agent.AgentError, match="invalid error response"):
         client.git_state()
@@ -252,6 +219,111 @@ def test_wait_remains_bounded(
         client.wait_for("ready", timeout=1)
 
     assert len(sleeps) == 1
+
+
+@pytest.mark.parametrize("content", [b"not-json", b"\xff"])
+def test_invalid_json_fails_without_retry(
+    client: agent.WorkspaceAgentClient,
+    responses: list[httpx.Response],
+    monkeypatch: pytest.MonkeyPatch,
+    content: bytes,
+) -> None:
+    sleeps: list[float] = []
+    monkeypatch.setattr(agent.time, "sleep", sleeps.append)
+    response = httpx.Response(200, content=content)
+    responses.append(response)
+
+    with pytest.raises(agent.AgentError, match="invalid JSON"):
+        client.wait_for("ready", timeout=1)
+
+    assert sleeps == []
+    assert response.is_closed
+
+
+@pytest.mark.parametrize(
+    ("failure", "expected"),
+    [
+        ("oversized", agent.AgentError),
+        ("read", agent.AgentUnavailable),
+        ("interrupt", KeyboardInterrupt),
+    ],
+)
+def test_stream_is_bounded_and_closed_on_failure(
+    client: agent.WorkspaceAgentClient,
+    responses: list[httpx.Response],
+    failure: str,
+    expected: type[BaseException],
+) -> None:
+    consumed: list[int] = []
+    closed: list[bool] = []
+
+    class Stream(httpx.SyncByteStream):
+        def __iter__(self) -> Iterator[bytes]:
+            for _ in range(20):
+                consumed.append(8192)
+                yield b"x" * 8192
+                if failure == "read":
+                    raise httpx.ReadTimeout("response stalled")
+                if failure == "interrupt":
+                    raise KeyboardInterrupt
+
+        def close(self) -> None:
+            closed.append(True)
+
+    response = httpx.Response(200, stream=Stream())
+    responses.append(response)
+    with pytest.raises(expected) as caught:
+        client.status()
+
+    assert sum(consumed) <= 64 * 1024 + 8192
+    assert closed == [True]
+    assert response.is_closed
+    if failure == "oversized":
+        assert str(caught.value) == "workspace agent response exceeds 64 KiB"
+        assert not isinstance(caught.value, agent.AgentUnavailable)
+    elif failure == "read":
+        assert isinstance(caught.value.__cause__, httpx.ReadTimeout)
+
+
+def test_missing_socket_is_unavailable(tmp_path: Path) -> None:
+    with pytest.raises(agent.AgentUnavailable) as caught:
+        agent.WorkspaceAgentClient(tmp_path / "missing.sock").status()
+    assert isinstance(caught.value.__cause__, httpx.ConnectError)
+
+
+def test_http_client_uses_real_unix_socket(monkeypatch: pytest.MonkeyPatch) -> None:
+    requests: list[str] = []
+    payloads = {
+        "/status": {"state": "ready", "public_key": None, "error": None},
+        "/git-state": {"unpushed": False, "uncommitted": True, "detail": [" M file"]},
+    }
+
+    class Handler(BaseRequestHandler):
+        def handle(self) -> None:
+            self.request.settimeout(2)
+            with self.request.makefile("rb") as stream:
+                request = stream.readline().decode()
+                requests.append(request)
+                while stream.readline().strip():
+                    pass
+            content = json.dumps(payloads[request.split()[1]]).encode()
+            self.request.sendall(
+                f"HTTP/1.1 200 OK\r\nContent-Length: {len(content)}\r\n\r\n".encode() + content
+            )
+
+    # UDS paths are limited to 103 bytes on the supported macOS client.
+    with tempfile.TemporaryDirectory(prefix="cs-agent-", dir="/tmp") as directory:
+        path = Path(directory) / "agent.sock"
+        with UnixStreamServer(str(path), Handler) as server, ThreadPoolExecutor() as executor:
+            server.timeout = 2
+            monkeypatch.setenv("HTTP_PROXY", "http://127.0.0.1:1")
+            client = agent.WorkspaceAgentClient(path)
+            for target, read in (("/status", client.status), ("/git-state", client.git_state)):
+                handled = executor.submit(server.handle_request)
+                assert read().model_dump() == payloads[target]
+                handled.result(timeout=3)
+
+    assert requests == ["GET /status HTTP/1.1\r\n", "GET /git-state HTTP/1.1\r\n"]
 
 
 @pytest.fixture
@@ -318,6 +390,7 @@ def test_image_bootstrap_passes_git_args(
 def test_image_bootstrap_responses_satisfy_client_contract(
     image_agent: ModuleType,
     client: agent.WorkspaceAgentClient,
+    responses: list[httpx.Response],
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
     source: str,
@@ -340,11 +413,7 @@ def test_image_bootstrap_responses_satisfy_client_contract(
         def read_status() -> None:
             response = server.get("/status")
             assert response.status_code == 200
-            monkeypatch.setattr(
-                FakeConnection,
-                "response",
-                SimpleNamespace(status=response.status_code, read=lambda _limit: response.content),
-            )
+            responses.append(httpx.Response(response.status_code, content=response.content))
             states.append(client.status().state)
 
         def authorize(_interval: float) -> None:
@@ -372,6 +441,7 @@ def test_image_bootstrap_responses_satisfy_client_contract(
 def test_image_git_and_error_responses_satisfy_client_contract(
     image_agent: ModuleType,
     client: agent.WorkspaceAgentClient,
+    responses: list[httpx.Response],
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     worker = image_agent.WorkspaceAgent(
@@ -385,22 +455,14 @@ def test_image_git_and_error_responses_satisfy_client_contract(
     with TestClient(image_agent.create_app(worker)) as server:
         response = server.get("/git-state")
         assert response.status_code == 409
-        monkeypatch.setattr(
-            FakeConnection,
-            "response",
-            SimpleNamespace(status=response.status_code, read=lambda _limit: response.content),
-        )
+        responses.append(httpx.Response(response.status_code, content=response.content))
         with pytest.raises(agent.AgentError, match="agent state is 'starting'"):
             client.git_state()
 
         worker.run_bootstrap()
         response = server.get("/git-state")
         assert response.status_code == 200
-        monkeypatch.setattr(
-            FakeConnection,
-            "response",
-            SimpleNamespace(status=response.status_code, read=lambda _limit: response.content),
-        )
+        responses.append(httpx.Response(response.status_code, content=response.content))
         assert client.git_state().model_dump() == {
             "unpushed": False,
             "uncommitted": False,

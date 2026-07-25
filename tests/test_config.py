@@ -6,16 +6,14 @@ import pytest
 from pydantic import ValidationError
 
 from codespace.config import CONFIG_PATH, Config, load_config
+from codespace.resources import LABEL_IMAGE, LABEL_KIND, Resource
 from codespace.runtime.host import HostDataPaths
-from codespace.workspaces.models import (
-    LABEL_IMAGE,
-    LABEL_KIND,
+from codespace.workspaces import (
     LABEL_PLATFORM,
     LABEL_PROJECT,
     LABEL_REPOSITORY,
     LABEL_SOURCE,
     LABEL_WORKSPACE,
-    workspace_identity,
     workspace_ssh_host_port,
 )
 
@@ -104,7 +102,7 @@ def test_example_config_loads() -> None:
     assert list(config.projects) == ["codespace"]
     assert config.projects["codespace"].source.args == ["--depth=1"]
     assert list(config.services) == ["support", "vllm", "sglang", "lobehub", "chatbox"]
-    assert config.workspace_spec("codespace", "server", "default").identity == (
+    assert config.workspace_spec("codespace", "server", "default").id == (
         "space:codespace/default@server"
     )
     workspace = config.workspace_spec("codespace", "server", "default")
@@ -156,7 +154,6 @@ def test_source_union_and_default_paths(config: Config) -> None:
         "args": [],
     }
     assert empty.source.type == "empty"
-    assert empty.source.clone_url is None
     assert empty.checkout_path == "/workspace"
 
 
@@ -574,12 +571,12 @@ def test_tokens_are_seeded_without_leaking_from_repr(config: Config) -> None:
 
 
 def test_workspace_identity_labels_and_paths(config: Config) -> None:
-    identity = workspace_identity("home", "codespace", "debug")
+    identity = Resource("home", "debug", "codespace").id
     spec = config.workspace_spec("codespace", "home", "debug")
     paths = HostDataPaths("/home/x/codespace")
 
     assert identity == "space:codespace/debug@home"
-    assert spec.identity == identity
+    assert spec.id == identity
     actual = spec.to_workspace("container-id", status="running")
     assert spec.container_name == actual.container_name == "space-codespace-debug"
     assert actual.ssh_alias == "space-codespace-debug-home"
@@ -603,7 +600,7 @@ def test_workspace_identity_labels_and_paths(config: Config) -> None:
 
 
 def test_workspace_identity_has_unambiguous_component_boundaries() -> None:
-    assert workspace_identity("home", "a-b", "c") != workspace_identity("home", "a", "b-c")
+    assert Resource("home", "c", "a-b").id != Resource("home", "b-c", "a").id
 
 
 def test_workspace_names_follow_host_scope(config: Config) -> None:

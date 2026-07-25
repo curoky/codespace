@@ -2,7 +2,7 @@
 
 from types import SimpleNamespace
 
-from codespace.services import inventory
+from codespace import services as inventory
 
 
 def test_service_inventory_uses_disjoint_kind_filter() -> None:

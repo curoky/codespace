@@ -5,6 +5,7 @@ description = "Personal development platform and local control plane"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.115.0",
+    "httpx>=0.28.1",
     "uvicorn>=0.32.0",
     "podman>=5.0.0",
     "PyGithub>=2.5.0",
@@ -26,7 +27,6 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
-    "httpx>=0.28.1",
     "ruff>=0.8.0",
     "pytest>=8.3.0",
     "pytest-cov>=6.0.0",

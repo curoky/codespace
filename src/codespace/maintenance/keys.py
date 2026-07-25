@@ -8,12 +8,14 @@ from pathlib import Path
 from typing import Literal
 
 from rich.console import Console
+from rich.table import Column
 
+from codespace import maintenance
+from codespace import workspaces as inventory
 from codespace.config import CONFIG_PATH, Config, load_config
-from codespace.maintenance import output
+from codespace.resources import RESOURCE_ID_RE
 from codespace.runtime.transport import PodmanTransport
-from codespace.workspaces import inventory, provider
-from codespace.workspaces.models import RESOURCE_ID_RE, GitProvider, ProviderSource
+from codespace.workspaces import GitProvider, ProviderSource, provider
 
 type Repository = tuple[GitProvider, str]
 type Route = tuple[str, str]
@@ -48,25 +50,25 @@ def prune(
                     _usage(key.title, repositories[repository], active, scanned_hosts),
                 )
             )
-    output.render_table(
+    maintenance.render_table(
         target,
         [
-            {"header": "Repository", "overflow": "fold"},
-            {"header": "Deploy key", "overflow": "fold"},
-            {"header": "In use", "no_wrap": True},
+            Column("Repository", overflow="fold"),
+            Column("Deploy key", overflow="fold"),
+            Column("In use", no_wrap=True),
         ],
         [
             (f"{item.repository[0]}:{item.repository[1]}", item.key.title, item.usage)
             for item in rows
         ],
     )
-    output.print_warnings(target, errors)
+    maintenance.print_errors(target, errors, level="Warning")
     unused = [item for item in rows if item.usage == "no"]
     if not apply:
         target.print(f"Dry run: {len(unused)} unused key(s); pass --apply to delete.")
         return
     deleted, delete_errors = _delete(config.seed_tokens(), unused)
-    output.print_errors(target, delete_errors)
+    maintenance.print_errors(target, delete_errors)
     target.print(f"Deleted {deleted} unused key(s).")
 
 
@@ -90,7 +92,7 @@ def _collect(
     transport = PodmanTransport(config.hosts)
     tokens = config.seed_tokens()
     try:
-        inventories, host_failures = output.fan_out(
+        inventories, host_failures = maintenance.fan_out(
             config.hosts,
             lambda host: inventory.list_workspaces(transport.client(host), host),
         )
@@ -107,7 +109,7 @@ def _collect(
             for provider_name, repository in repositories
             if tokens.get(provider_name) is None
         )
-        listed, key_failures = output.fan_out(
+        listed, key_failures = maintenance.fan_out(
             listable,
             lambda repository: provider.list_deploy_keys(
                 repository[0],
@@ -144,7 +146,7 @@ def _delete(
     grouped: dict[Repository, list[int]] = defaultdict(list)
     for item in unused:
         grouped[item.repository].append(item.key.id)
-    _results, failures = output.fan_out(
+    _results, failures = maintenance.fan_out(
         grouped,
         lambda repository: provider.delete_deploy_keys(
             repository[0],

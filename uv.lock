@@ -206,6 +206,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
+    { name = "httpx" },
     { name = "loguru" },
     { name = "podman" },
     { name = "pygithub" },
@@ -220,7 +221,6 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "httpx" },
     { name = "httpx2" },
     { name = "mypy" },
     { name = "pytest" },
@@ -232,6 +232,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.115.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "loguru", specifier = ">=0.7.2" },
     { name = "podman", specifier = ">=5.0.0" },
     { name = "pygithub", specifier = ">=2.5.0" },
@@ -246,7 +247,6 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "httpx", specifier = ">=0.28.1" },
     { name = "httpx2", specifier = ">=2.9.1" },
     { name = "mypy", specifier = ">=1.13.0" },
     { name = "pytest", specifier = ">=8.3.0" },

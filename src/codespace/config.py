@@ -16,6 +16,7 @@ from pydantic import (
     model_validator,
 )
 
+from codespace.resources import HostId, Resource, ResourceId, ResourceNotFound
 from codespace.runtime.container import (
     ComposeNonBlankString,
     ComposeString,
@@ -29,8 +30,8 @@ from codespace.runtime.container import (
     UlimitSpec,
     UniqueContainerOptions,
 )
-from codespace.services.models import SERVICE_DATA_PLACEHOLDER, ServiceSpec
-from codespace.workspaces.models import (
+from codespace.services import SERVICE_DATA_PLACEHOLDER, ServiceSpec
+from codespace.workspaces import (
     CACHE_MOUNT,
     CHECKOUT_PATH_ENV,
     CLONE_URL_ENV,
@@ -45,9 +46,8 @@ from codespace.workspaces.models import (
     WORKSPACE_KEY_MOUNT,
     WORKSPACE_KEY_SECRET,
     WORKSPACE_MOUNT,
+    EmptySource,
     GitProvider,
-    HostId,
-    ResourceId,
     Source,
     TokenString,
     WorkspaceContainerSpec,
@@ -160,7 +160,7 @@ class ProjectConfig(FrozenModel):
     def resolved_checkout_path(self) -> str:
         if self.checkout_path is not None:
             return self.checkout_path
-        name = self.source.checkout_name
+        name = None if isinstance(self.source, EmptySource) else self.source.checkout_name
         return workspace_path(WORKSPACE_MOUNT if name is None else f"{WORKSPACE_MOUNT}/{name}")
 
     def resolved_open_path(self) -> str:
@@ -222,12 +222,6 @@ class Config(FrozenModel):
                     self.resolved_service_container(service_id, host),
                 )
         return self
-
-    def project_hosts(self, project: str) -> list[str]:
-        return list(self.projects[project].hosts)
-
-    def service_hosts(self, service: str) -> list[str]:
-        return list(self.services[service].hosts)
 
     def resolved_project_container(self, project: str, host: str) -> WorkspaceContainerSpec:
         configured = self.projects[project]
@@ -294,6 +288,24 @@ class Config(FrozenModel):
             image=self.service_image(service, host),
             container=self.resolved_service_container(service, host),
         )
+
+    def resource_spec(self, resource: Resource) -> WorkspaceSpec | ServiceSpec:
+        """Validate desired placement for every resource operation."""
+        kind = "project" if resource.project is not None else "service"
+        name = resource.project if resource.project is not None else resource.name
+        configured = (
+            self.projects.get(name) if resource.project is not None else self.services.get(name)
+        )
+        if configured is None:
+            raise ResourceNotFound(f"unknown {kind}: {name}")
+        if resource.host not in configured.hosts:
+            raise ResourceNotFound(
+                f"host {resource.host!r} is not configured for {kind} {name!r}; "
+                f"allowed: {sorted(configured.hosts)}"
+            )
+        if resource.project is not None:
+            return self.workspace_spec(resource.project, resource.host, resource.name)
+        return self.service_spec(resource.name, resource.host)
 
     def seed_tokens(self) -> dict[GitProvider, str]:
         tokens: dict[GitProvider, str] = {}

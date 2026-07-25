@@ -5,8 +5,8 @@ from types import SimpleNamespace
 import pytest
 from pydantic import ValidationError
 
+from codespace import workspaces as inventory
 from codespace.config import Config
-from codespace.workspaces import inventory
 
 
 def _container(encrypted: str) -> SimpleNamespace:
@@ -73,7 +73,7 @@ def test_read_workspace_rejects_escaping_open_path() -> None:
 
 @pytest.mark.parametrize("project", ["codespace", "service-api", "scratch", "personal"])
 def test_created_labels_round_trip_inventory(config: Config, project: str) -> None:
-    host = config.project_hosts(project)[0]
+    host = next(iter(config.projects[project].hosts))
     spec = config.workspace_spec(project, host, "debug")
     container = SimpleNamespace(
         id="container-id",

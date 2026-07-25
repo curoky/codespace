@@ -12,28 +12,39 @@ from fastapi import Path as ApiPath
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, ConfigDict, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from codespace.config import CONFIG_PATH, Config, load_config
 from codespace.control import ControlPlane
-from codespace.errors import ResourceConflict, ResourceNotFound
 from codespace.operations import Operation, describe_error
+from codespace.resources import HostId, Resource, ResourceConflict, ResourceId, ResourceNotFound
 from codespace.web import dashboard as dashboard_view
-from codespace.web.models import (
-    ContainerLogsResponse,
-    CreateWorkspaceRequest,
-    DashboardResponse,
-    DeleteWorkspaceQuery,
-    DeleteWorkspaceResult,
-    RemoveServiceResult,
-    UpdateTokenRequest,
-)
-from codespace.workspaces.models import GitProvider, RepoGitState
+from codespace.workspaces import GitProvider, RepoGitState, TokenString
 
 STATIC_DIR = Path(__file__).parent / "static"
 router = APIRouter()
-ResourcePath = Annotated[str, ApiPath(pattern=r"^[a-z0-9][a-z0-9-]{0,31}$")]
-HostPath = Annotated[str, ApiPath(pattern=r"^[a-z0-9][a-z0-9.-]{0,62}$")]
+ResourcePath = Annotated[ResourceId, ApiPath()]
+HostPath = Annotated[HostId, ApiPath()]
+
+
+class CreateWorkspaceRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    host: HostId
+    workspace: ResourceId
+
+
+class UpdateTokenRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    token: TokenString = Field(repr=False)
+
+
+class DeleteWorkspaceQuery(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    purge: bool = False
 
 
 def _control(request: Request) -> ControlPlane:
@@ -41,7 +52,7 @@ def _control(request: Request) -> ControlPlane:
 
 
 @router.get("/api/dashboard")
-def dashboard(request: Request) -> DashboardResponse:
+def dashboard(request: Request) -> dict[str, object]:
     return dashboard_view.build(_control(request))
 
 
@@ -52,8 +63,8 @@ def update_token(
     request: Request,
 ) -> dict[GitProvider, bool]:
     control = _control(request)
-    control.tokens.set(provider, payload.token)
-    return control.tokens.status()
+    control.set_token(provider, payload.token)
+    return control.token_status()
 
 
 @router.post("/api/projects/{project}/workspaces", status_code=202)
@@ -63,9 +74,10 @@ def create_workspace(
     background_tasks: BackgroundTasks,
     request: Request,
 ) -> Operation:
-    manager = _control(request).workspaces
-    operation = manager.queue_create(project, payload.host, payload.workspace)
-    background_tasks.add_task(manager.create, project, payload.host, payload.workspace)
+    control = _control(request)
+    resource = Resource(payload.host, payload.workspace, project)
+    operation = control.queue(resource)
+    background_tasks.add_task(control.deploy, resource)
     return operation
 
 
@@ -75,9 +87,8 @@ def workspace_logs(
     host: HostPath,
     workspace: ResourcePath,
     request: Request,
-) -> ContainerLogsResponse:
-    logs = _control(request).workspaces.logs(project, host, workspace)
-    return ContainerLogsResponse(logs=logs)
+) -> dict[str, str]:
+    return {"logs": _control(request).logs(Resource(host, workspace, project))}
 
 
 @router.get("/api/projects/{project}/hosts/{host}/workspaces/{workspace}/tunnels/{port}")
@@ -88,7 +99,7 @@ def open_workspace_tunnel(
     port: Annotated[int, ApiPath(ge=1, le=65535)],
     request: Request,
 ) -> RedirectResponse:
-    local_port = _control(request).workspaces.open_tunnel(project, host, workspace, port)
+    local_port = _control(request).open_tunnel(Resource(host, workspace, project), port)
     return RedirectResponse(f"http://127.0.0.1:{local_port}/", status_code=303)
 
 
@@ -99,7 +110,7 @@ def inspect_workspace_deletion(
     workspace: ResourcePath,
     request: Request,
 ) -> RepoGitState:
-    return _control(request).workspaces.inspect_deletion(project, host, workspace)
+    return _control(request).inspect_deletion(Resource(host, workspace, project))
 
 
 @router.delete("/api/projects/{project}/hosts/{host}/workspaces/{workspace}")
@@ -109,17 +120,9 @@ def delete_workspace(
     workspace: ResourcePath,
     request: Request,
     query: Annotated[DeleteWorkspaceQuery, Query()],
-) -> DeleteWorkspaceResult:
-    _control(request).workspaces.delete(
-        project,
-        host,
-        workspace,
-        purge=query.purge,
-    )
-    return DeleteWorkspaceResult(
-        deleted=True,
-        data_removed=query.purge,
-    )
+) -> dict[str, bool]:
+    _control(request).remove(Resource(host, workspace, project), purge=query.purge)
+    return {"deleted": True, "data_removed": query.purge}
 
 
 @router.delete("/api/projects/{project}/hosts/{host}/operations/{workspace}")
@@ -129,7 +132,7 @@ def dismiss_workspace_operation(
     workspace: ResourcePath,
     request: Request,
 ) -> dict[str, bool]:
-    dismissed = _control(request).workspaces.dismiss_failed(project, host, workspace)
+    dismissed = _control(request).dismiss_failed(Resource(host, workspace, project))
     return {"dismissed": dismissed}
 
 
@@ -140,9 +143,10 @@ def apply_service(
     background_tasks: BackgroundTasks,
     request: Request,
 ) -> Operation:
-    manager = _control(request).services
-    operation = manager.queue_apply(service, host)
-    background_tasks.add_task(manager.apply, service, host)
+    control = _control(request)
+    resource = Resource(host, service)
+    operation = control.queue(resource)
+    background_tasks.add_task(control.deploy, resource)
     return operation
 
 
@@ -151,9 +155,8 @@ def service_logs(
     service: ResourcePath,
     host: HostPath,
     request: Request,
-) -> ContainerLogsResponse:
-    logs = _control(request).services.logs(service, host)
-    return ContainerLogsResponse(logs=logs)
+) -> dict[str, str]:
+    return {"logs": _control(request).logs(Resource(host, service))}
 
 
 @router.get("/api/services/{service}/hosts/{host}/tunnels/{port}")
@@ -163,7 +166,7 @@ def open_service_tunnel(
     port: Annotated[int, ApiPath(ge=1, le=65535)],
     request: Request,
 ) -> RedirectResponse:
-    local_port = _control(request).services.open_tunnel(service, host, port)
+    local_port = _control(request).open_tunnel(Resource(host, service), port)
     return RedirectResponse(f"http://127.0.0.1:{local_port}/", status_code=303)
 
 
@@ -173,9 +176,9 @@ def remove_service(
     host: HostPath,
     request: Request,
     purge: Annotated[bool, Query()] = False,
-) -> RemoveServiceResult:
-    removed = _control(request).services.remove(service, host, purge=purge)
-    return RemoveServiceResult(removed=removed, data_removed=purge)
+) -> dict[str, bool]:
+    removed = _control(request).remove(Resource(host, service), purge=purge)
+    return {"removed": removed, "data_removed": purge}
 
 
 @router.delete("/api/services/{service}/hosts/{host}/operation")
@@ -184,33 +187,27 @@ def dismiss_service_operation(
     host: HostPath,
     request: Request,
 ) -> dict[str, bool]:
-    dismissed = _control(request).services.dismiss_failed(service, host)
+    dismissed = _control(request).dismiss_failed(Resource(host, service))
     return {"dismissed": dismissed}
 
 
-def _http_error(_request: Request, exc: Exception) -> JSONResponse:
-    error = cast("StarletteHTTPException", exc)
-    return JSONResponse(status_code=error.status_code, content={"error": str(error.detail)})
-
-
-def _not_found(_request: Request, exc: Exception) -> JSONResponse:
-    return JSONResponse(status_code=404, content={"error": str(exc)})
-
-
-def _conflict(_request: Request, exc: Exception) -> JSONResponse:
-    return JSONResponse(status_code=409, content={"error": str(exc)})
-
-
-def _validation_error(_request: Request, exc: Exception) -> JSONResponse:
-    error = cast("RequestValidationError", exc)
-    details = [
-        f"{'.'.join(str(part) for part in item['loc'])}: {item['msg']}" for item in error.errors()
-    ]
-    return JSONResponse(status_code=422, content={"error": "; ".join(details)})
-
-
-def _unexpected_error(_request: Request, exc: Exception) -> JSONResponse:
-    return JSONResponse(status_code=500, content={"error": describe_error(exc)})
+def _error(_request: Request, exc: Exception) -> JSONResponse:
+    match exc:
+        case ResourceNotFound():
+            status, detail = 404, str(exc)
+        case ResourceConflict():
+            status, detail = 409, str(exc)
+        case StarletteHTTPException():
+            status, detail = exc.status_code, str(exc.detail)
+        case RequestValidationError():
+            status = 422
+            detail = "; ".join(
+                f"{'.'.join(str(part) for part in item['loc'])}: {item['msg']}"
+                for item in exc.errors()
+            )
+        case _:
+            status, detail = 500, describe_error(exc)
+    return JSONResponse(status_code=status, content={"error": detail})
 
 
 def _index() -> FileResponse:
@@ -241,11 +238,14 @@ def create_app(
     )
     app.state.control = resolved_control
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
-    app.add_exception_handler(StarletteHTTPException, _http_error)
-    app.add_exception_handler(ResourceNotFound, _not_found)
-    app.add_exception_handler(ResourceConflict, _conflict)
-    app.add_exception_handler(RequestValidationError, _validation_error)
-    app.add_exception_handler(Exception, _unexpected_error)
+    for error_type in (
+        StarletteHTTPException,
+        ResourceNotFound,
+        ResourceConflict,
+        RequestValidationError,
+        Exception,
+    ):
+        app.add_exception_handler(error_type, _error)
     app.add_api_route("/", _index, methods=["GET"])
     app.include_router(router)
     return app

@@ -4,11 +4,12 @@ from types import SimpleNamespace
 
 import pytest
 
+from codespace import control as lifecycle
 from codespace.config import Config
+from codespace.control import ControlPlane
+from codespace.resources import Resource
 from codespace.runtime.host import HostDataPaths
 from codespace.runtime.transport import SSHRoute
-from codespace.services import lifecycle
-from codespace.services.lifecycle import ServiceManager
 
 
 class FakeTransport:
@@ -29,18 +30,18 @@ class FakeTransport:
 
 
 @pytest.fixture
-def manager(config: Config) -> ServiceManager:
-    return ServiceManager(config, FakeTransport())  # type: ignore[arg-type]
+def manager(config: Config) -> ControlPlane:
+    return ControlPlane(config, transport=FakeTransport())  # type: ignore[arg-type]
 
 
 def test_apply_replaces_container_and_resolves_data_placeholder(
-    manager: ServiceManager,
+    manager: ControlPlane,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     events: list[str] = []
     running = SimpleNamespace()
     captured: dict[str, object] = {}
-    manager.queue_apply("vllm", "office")
+    manager.queue(Resource("office", "vllm"))
     monkeypatch.setattr(lifecycle.container, "pull_image", lambda *_args: events.append("pull"))
     monkeypatch.setattr(
         lifecycle.host,
@@ -64,7 +65,7 @@ def test_apply_replaces_container_and_resolves_data_placeholder(
         lambda *_args, **kwargs: captured.update(kwargs),
     )
 
-    manager.apply("vllm", "office")
+    manager.deploy(Resource("office", "vllm"))
 
     assert events == ["pull", "/home/x/codespace/services/vllm", "remove"]
     assert captured["name"] == "codespace-service-vllm"
@@ -80,17 +81,15 @@ def test_apply_replaces_container_and_resolves_data_placeholder(
     assert manager.operations.list() == []
 
 
-def test_apply_failure_is_retained(
-    manager: ServiceManager, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    manager.queue_apply("support", "home")
+def test_apply_failure_is_retained(manager: ControlPlane, monkeypatch: pytest.MonkeyPatch) -> None:
+    manager.queue(Resource("home", "support"))
     monkeypatch.setattr(
         lifecycle.container,
         "find_container",
         lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("Podman unavailable")),
     )
 
-    manager.apply("support", "home")
+    manager.deploy(Resource("home", "support"))
 
     failed = manager.operations.list()[0]
     assert failed.kind == "service"
@@ -99,7 +98,7 @@ def test_apply_failure_is_retained(
 
 
 def test_remove_can_purge_service_data(
-    manager: ServiceManager,
+    manager: ControlPlane,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     events: list[str] = []
@@ -122,12 +121,12 @@ def test_remove_can_purge_service_data(
         lambda *_args: events.append("data"),
     )
 
-    assert manager.remove("support", "home", purge=True) is True
+    assert manager.remove(Resource("home", "support"), purge=True) is True
     assert events == ["container", "data"]
 
 
 def test_logs_reads_podman_output(
-    manager: ServiceManager,
+    manager: ControlPlane,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     running = SimpleNamespace()
@@ -139,12 +138,12 @@ def test_logs_reads_podman_output(
         lambda actual: (calls.append(actual), "service line\n")[-1],
     )
 
-    assert manager.logs("support", "home") == "service line\n"
+    assert manager.logs(Resource("home", "support")) == "service line\n"
     assert calls == [running]
 
 
 def test_tunnel_forwards_configured_loopback_port(
-    manager: ServiceManager,
+    manager: ControlPlane,
     config: Config,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -161,7 +160,7 @@ def test_tunnel_forwards_configured_loopback_port(
     )
     monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
 
-    assert manager.open_tunnel("support", "home", 3210) == 49123
+    assert manager.open_tunnel(Resource("home", "support"), 3210) == 49123
     assert manager.transport.tcp_forwards == [  # type: ignore[attr-defined]
         (
             "home",
@@ -177,11 +176,11 @@ def test_tunnel_forwards_configured_loopback_port(
 
 
 def test_tunnel_rejects_unconfigured_or_stopped_service(
-    manager: ServiceManager,
+    manager: ControlPlane,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     with pytest.raises(lifecycle.ResourceNotFound, match="not configured"):
-        manager.open_tunnel("support", "home", 3210)
+        manager.open_tunnel(Resource("home", "support"), 3210)
 
     data = manager.config.model_dump()
     data["services"]["support"]["container"] = {
@@ -197,4 +196,4 @@ def test_tunnel_rejects_unconfigured_or_stopped_service(
     monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
 
     with pytest.raises(lifecycle.ResourceConflict, match="is not running"):
-        manager.open_tunnel("support", "home", 3210)
+        manager.open_tunnel(Resource("home", "support"), 3210)

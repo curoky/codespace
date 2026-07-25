@@ -9,14 +9,14 @@ from typing import Literal
 import pytest
 from pydantic import ValidationError
 
+from codespace import workspaces as inventory
 from codespace.config import Config
-from codespace.errors import ResourceConflict, ResourceNotFound
+from codespace.control import ControlPlane
+from codespace.resources import Resource, ResourceConflict, ResourceNotFound
 from codespace.runtime.host import HostDataPaths
 from codespace.runtime.transport import SSHRoute
-from codespace.workspaces import agent, inventory, lifecycle, provider, ssh
+from codespace.workspaces import RepoGitState, agent, lifecycle, provider, ssh
 from codespace.workspaces.agent import WorkspaceAgentClient
-from codespace.workspaces.lifecycle import WorkspaceManager
-from codespace.workspaces.models import RepoGitState
 
 _PATHS = HostDataPaths("/home/x/codespace")
 
@@ -64,35 +64,34 @@ class FakeAgent:
 
 
 @pytest.fixture
-def manager(config: Config, monkeypatch: pytest.MonkeyPatch) -> WorkspaceManager:
+def manager(config: Config, monkeypatch: pytest.MonkeyPatch) -> ControlPlane:
     monkeypatch.setattr(agent, "WorkspaceAgentClient", FakeAgent)
     monkeypatch.setattr(lifecycle.host, "remote_data_paths", lambda _route: _PATHS)
     monkeypatch.setattr(ssh, "write_route", lambda _workspace: None)
     monkeypatch.setattr(ssh, "remove_route", lambda _workspace: None)
-    return WorkspaceManager(
-        config,
-        FakeTransport(),  # type: ignore[arg-type]
-        lambda _provider: "token",
-    )
+    control = ControlPlane(config, transport=FakeTransport())  # type: ignore[arg-type]
+    control.set_token("github", "token")
+    control.set_token("gitlab", "token")
+    return control
 
 
 def test_container_name_collision_fails_before_creation(
-    manager: WorkspaceManager, config: Config, monkeypatch: pytest.MonkeyPatch
+    manager: ControlPlane, config: Config, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     spec = config.workspace_spec("scratch", "home", "a-b")
     existing = spec.to_workspace("existing", status="running").model_copy(
         update={"project": "scratch-a", "workspace": "b"}
     )
-    monkeypatch.setattr(inventory, "list_workspaces", lambda *_args: [existing])
-    manager.queue_create("scratch", "home", "a-b")
-    manager.create("scratch", "home", "a-b")
+    monkeypatch.setattr(lifecycle, "list_workspaces", lambda *_args: [existing])
+    manager.queue(Resource("home", "a-b", "scratch"))
+    manager.deploy(Resource("home", "a-b", "scratch"))
     failed = manager.operations.list()[0]
     assert failed.status == "failed"
     assert "container name collision" in (failed.error or "")
 
 
 def test_container_lookup_uses_short_name_and_ownership_labels(
-    manager: WorkspaceManager, monkeypatch: pytest.MonkeyPatch
+    manager: ControlPlane, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     captured: list[tuple[str, dict[str, str]]] = []
 
@@ -101,7 +100,7 @@ def test_container_lookup_uses_short_name_and_ownership_labels(
 
     monkeypatch.setattr(lifecycle.container, "find_container", lookup)
     with pytest.raises(ResourceNotFound):
-        manager._container("codespace", "home", "debug")
+        manager.logs(Resource("home", "debug", "codespace"))
     assert captured == [
         (
             "space-codespace-debug",
@@ -114,8 +113,8 @@ def test_container_lookup_uses_short_name_and_ownership_labels(
     ]
 
 
-def test_queue_create_uses_final_identity(manager: WorkspaceManager) -> None:
-    operation = manager.queue_create("codespace", "home", "debug")
+def test_queue_create_uses_final_identity(manager: ControlPlane) -> None:
+    operation = manager.queue(Resource("home", "debug", "codespace"))
 
     assert operation.id == "space:codespace/debug@home"
     assert operation.kind == "workspace"
@@ -126,17 +125,17 @@ def test_queue_create_uses_final_identity(manager: WorkspaceManager) -> None:
 @pytest.mark.parametrize("project", ["codespace", "service-api", "scratch", "personal"])
 @pytest.mark.parametrize("invalid_status", [False, True])
 def test_create_handles_source_bootstrap_and_agent_protocol_failure(
-    manager: WorkspaceManager,
+    manager: ControlPlane,
     config: Config,
     monkeypatch: pytest.MonkeyPatch,
     project: str,
     invalid_status: bool,
 ) -> None:
-    host = config.project_hosts(project)[0]
+    host = next(iter(config.projects[project].hosts))
     spec = config.workspace_spec(project, host, "debug")
-    manager.queue_create(project, host, "debug")
+    manager.queue(Resource(host, "debug", project))
     events: list[str] = []
-    monkeypatch.setattr(inventory, "list_workspaces", lambda *_args: [])
+    monkeypatch.setattr(lifecycle, "list_workspaces", lambda *_args: [])
     monkeypatch.setattr(lifecycle.host, "read_environment", lambda *_args: {"HTTP_PROXY": "proxy"})
     monkeypatch.setattr(
         lifecycle.host, "prepare_directories", lambda *_args: events.append("paths")
@@ -154,7 +153,7 @@ def test_create_handles_source_bootstrap_and_agent_protocol_failure(
     monkeypatch.setattr(lifecycle.container, "pull_image", lambda *_args: events.append("pull"))
     monkeypatch.setattr(
         lifecycle,
-        "_create_workspace_container",
+        "create_container",
         lambda *_args: (events.append("create"), SimpleNamespace(id="container-id"))[-1],
     )
     monkeypatch.setattr(provider, "register", lambda *_args: events.append("register"))
@@ -165,7 +164,7 @@ def test_create_handles_source_bootstrap_and_agent_protocol_failure(
         monkeypatch.setattr(client, "_request", lambda *_args: {})
         monkeypatch.setattr(agent, "WorkspaceAgentClient", lambda _path: client)
 
-    manager.create(project, host, "debug")
+    manager.deploy(Resource(host, "debug", project))
 
     if invalid_status:
         assert events == ["pull", "paths", "control", "create"]
@@ -186,24 +185,24 @@ def test_create_handles_source_bootstrap_and_agent_protocol_failure(
 
 
 def test_create_failure_is_retained_as_failed_operation(
-    manager: WorkspaceManager,
+    manager: ControlPlane,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    manager.queue_create("codespace", "home", "debug")
+    manager.queue(Resource("home", "debug", "codespace"))
     monkeypatch.setattr(
-        inventory,
+        lifecycle,
         "list_workspaces",
         lambda *_args: (_ for _ in ()).throw(RuntimeError("Podman unavailable")),
     )
 
-    manager.create("codespace", "home", "debug")
+    manager.deploy(Resource("home", "debug", "codespace"))
 
     assert manager.operations.list()[0].status == "failed"
     assert "Podman unavailable" in (manager.operations.list()[0].error or "")
 
 
 def test_deletion_check_returns_git_state_without_mutation(
-    manager: WorkspaceManager,
+    manager: ControlPlane,
     config: Config,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -220,7 +219,7 @@ def test_deletion_check_returns_git_state_without_mutation(
     )
     manager._token = lambda _provider: (_ for _ in ()).throw(RuntimeError("token must not be read"))
 
-    state = manager.inspect_deletion("codespace", "home", "debug")
+    state = manager.inspect_deletion(Resource("home", "debug", "codespace"))
 
     assert state.uncommitted is True
     assert mutations == []
@@ -229,7 +228,7 @@ def test_deletion_check_returns_git_state_without_mutation(
 
 @pytest.mark.parametrize("project", ["codespace", "scratch"])
 def test_delete_inspection_never_defaults_an_invalid_agent_response_to_clean(
-    manager: WorkspaceManager,
+    manager: ControlPlane,
     config: Config,
     monkeypatch: pytest.MonkeyPatch,
     project: str,
@@ -252,7 +251,7 @@ def test_delete_inspection_never_defaults_an_invalid_agent_response_to_clean(
     monkeypatch.setattr(provider, "revoke", lambda *_args: mutations.append("revoke"))
 
     if project == "scratch":
-        assert manager.inspect_deletion(project, "home", "debug").model_dump() == {
+        assert manager.inspect_deletion(Resource("home", "debug", project)).model_dump() == {
             "unpushed": False,
             "uncommitted": False,
             "detail": [],
@@ -260,14 +259,14 @@ def test_delete_inspection_never_defaults_an_invalid_agent_response_to_clean(
         assert requests == []
     else:
         with pytest.raises(agent.AgentError, match="invalid Git state"):
-            manager.inspect_deletion(project, "home", "debug")
+            manager.inspect_deletion(Resource("home", "debug", project))
         assert requests == ["/git-state"]
     assert mutations == []
 
 
 @pytest.mark.parametrize("revoke_fails", [False, True])
 def test_purge_revokes_key_before_data_and_container(
-    manager: WorkspaceManager,
+    manager: ControlPlane,
     config: Config,
     monkeypatch: pytest.MonkeyPatch,
     revoke_fails: bool,
@@ -301,11 +300,11 @@ def test_purge_revokes_key_before_data_and_container(
     monkeypatch.setattr(ssh, "remove_route", lambda _workspace: events.append("route"))
     if revoke_fails:
         with pytest.raises(RuntimeError, match="provider unavailable"):
-            manager.delete("codespace", "home", "debug", purge=True)
+            manager.remove(Resource("home", "debug", "codespace"), purge=True)
         assert events == ["revoke"]
         assert manager.transport.closed_tcp == []  # type: ignore[attr-defined]
         return
-    manager.delete("codespace", "home", "debug", purge=True)
+    manager.remove(Resource("home", "debug", "codespace"), purge=True)
 
     assert events == ["revoke", "stop", "data", "container", "route"]
     assert manager.transport.closed_tcp == [  # type: ignore[attr-defined]
@@ -314,7 +313,7 @@ def test_purge_revokes_key_before_data_and_container(
 
 
 def test_stopped_workspace_requires_explicit_delete_without_inspection(
-    manager: WorkspaceManager, config: Config, monkeypatch: pytest.MonkeyPatch
+    manager: ControlPlane, config: Config, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     mutations: list[str] = []
     running = SimpleNamespace(
@@ -328,15 +327,15 @@ def test_stopped_workspace_requires_explicit_delete_without_inspection(
         lifecycle.container, "remove_container", lambda *_args: mutations.append("container")
     )
     with pytest.raises(ResourceConflict, match="cannot be inspected"):
-        manager.inspect_deletion("personal", "home", "debug")
+        manager.inspect_deletion(Resource("home", "debug", "personal"))
     assert mutations == []
 
-    assert manager.delete("personal", "home", "debug", purge=False) is None
+    assert manager.remove(Resource("home", "debug", "personal"), purge=False) is True
     assert mutations == ["container"]
 
 
 def test_logs_reads_podman_output(
-    manager: WorkspaceManager,
+    manager: ControlPlane,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     running = SimpleNamespace()
@@ -348,7 +347,7 @@ def test_logs_reads_podman_output(
         lambda actual: (calls.append(actual), "agent line\n")[-1],
     )
 
-    assert manager.logs("codespace", "home", "debug") == "agent line\n"
+    assert manager.logs(Resource("home", "debug", "codespace")) == "agent line\n"
     assert calls == [running]
 
 
@@ -371,7 +370,7 @@ def test_workspace_container_uses_fixed_ssh_listener_and_reserved_mounts(
         lambda *_args, **kwargs: (captured.update(kwargs), SimpleNamespace())[-1],
     )
 
-    lifecycle._create_workspace_container(
+    lifecycle.create_container(
         SimpleNamespace(),  # type: ignore[arg-type]
         spec,
         _PATHS.workspace("codespace", "debug"),
@@ -419,7 +418,7 @@ def test_workspace_ssh_port_conflict_fails_before_container_creation(
     )
 
     with pytest.raises(ValidationError, match="22/tcp is published more than once"):
-        lifecycle._create_workspace_container(
+        lifecycle.create_container(
             SimpleNamespace(),  # type: ignore[arg-type]
             spec,
             _PATHS.workspace("scratch", "debug"),
@@ -444,7 +443,7 @@ def test_encrypted_workspace_mounts_key_as_compose_secret(
         lambda *_args, **kwargs: (captured.update(kwargs), SimpleNamespace())[-1],
     )
 
-    lifecycle._create_workspace_container(
+    lifecycle.create_container(
         SimpleNamespace(),  # type: ignore[arg-type]
         spec,
         _PATHS.workspace("codespace", "debug"),
@@ -466,7 +465,7 @@ def test_encrypted_workspace_mounts_key_as_compose_secret(
 
 
 def test_delete_uses_deployed_source_after_config_changes(
-    manager: WorkspaceManager, config: Config, monkeypatch: pytest.MonkeyPatch
+    manager: ControlPlane, config: Config, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     running = SimpleNamespace(
         id="container-id",
@@ -482,15 +481,15 @@ def test_delete_uses_deployed_source_after_config_changes(
     monkeypatch.setattr(provider, "revoke", lambda *args: revoked.append(args))
     monkeypatch.setattr(lifecycle.container, "remove_container", lambda _container: None)
 
-    assert manager.inspect_deletion("codespace", "home", "debug").uncommitted
-    manager.delete("codespace", "home", "debug", purge=False)
+    assert manager.inspect_deletion(Resource("home", "debug", "codespace")).uncommitted
+    manager.remove(Resource("home", "debug", "codespace"), purge=False)
 
     assert revoked == [("github", "token", "curoky/codespace", "space:codespace/debug@home")]
 
 
 @pytest.fixture
 def tunnel_container(
-    manager: WorkspaceManager, config: Config, monkeypatch: pytest.MonkeyPatch
+    manager: ControlPlane, config: Config, monkeypatch: pytest.MonkeyPatch
 ) -> SimpleNamespace:
     running = SimpleNamespace(
         id="deployed-container",
@@ -507,13 +506,13 @@ def tunnel_container(
 
 @pytest.mark.parametrize("port", [8005, 8080])
 def test_tunnel_uses_configured_port_and_deployed_ssh_metadata(
-    manager: WorkspaceManager,
+    manager: ControlPlane,
     tunnel_container: SimpleNamespace,
     port: int,
 ) -> None:
     actual = inventory.read_workspace(tunnel_container, "home")
 
-    assert manager.open_tunnel("codespace", "home", "debug", port) == 49123
+    assert manager.open_tunnel(Resource("home", "debug", "codespace"), port) == 49123
     assert manager.transport.tcp_forwards == [  # type: ignore[attr-defined]
         (
             "home",
@@ -530,27 +529,27 @@ def test_tunnel_uses_configured_port_and_deployed_ssh_metadata(
 
 @pytest.mark.parametrize("status", ["exited", "paused", "created"])
 def test_tunnel_rejects_nonrunning_workspace(
-    manager: WorkspaceManager, tunnel_container: SimpleNamespace, status: str
+    manager: ControlPlane, tunnel_container: SimpleNamespace, status: str
 ) -> None:
     tunnel_container.attrs["State"]["Status"] = status
 
     with pytest.raises(ResourceConflict, match="is not running"):
-        manager.open_tunnel("codespace", "home", "debug", 8005)
+        manager.open_tunnel(Resource("home", "debug", "codespace"), 8005)
     assert manager.transport.tcp_forwards == []  # type: ignore[attr-defined]
 
 
 def test_tunnel_rejects_unconfigured_port(
-    manager: WorkspaceManager, tunnel_container: SimpleNamespace
+    manager: ControlPlane, tunnel_container: SimpleNamespace
 ) -> None:
     with pytest.raises(ResourceNotFound, match="not configured"):
-        manager.open_tunnel("codespace", "home", "debug", 22)
+        manager.open_tunnel(Resource("home", "debug", "codespace"), 22)
     assert manager.transport.tcp_forwards == []  # type: ignore[attr-defined]
 
 
 def test_tunnel_rejects_missing_workspace(
-    manager: WorkspaceManager, tunnel_container: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
+    manager: ControlPlane, tunnel_container: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: None)
     with pytest.raises(ResourceNotFound, match="not found"):
-        manager.open_tunnel("codespace", "home", "debug", 8005)
+        manager.open_tunnel(Resource("home", "debug", "codespace"), 8005)
     assert manager.transport.tcp_forwards == []  # type: ignore[attr-defined]
