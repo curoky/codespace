@@ -6,5 +6,5 @@ redirfd -w 1 /var/log/s6.lobehub.log
 fdmove -c 2 1
 
 s6-notifyoncheck -d -n 0 -w 1000 -t 3000 -T 120000
-  -c "curl --noproxy * --fail --silent --output /dev/null --max-time 2 http://127.0.0.1:3210/"
+  -c "curl --noproxy * --fail --silent --output /dev/null --max-time 2 http://127.0.0.1:3211/api/version"
 exec /opt/codespace/lobehub/serve.sh
