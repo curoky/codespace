@@ -10,6 +10,8 @@ packages:
     - shellcheck
     - bats
     - lark-cli
+    - radare2
+    - rizin
 
     # shell & terminal
     - zsh

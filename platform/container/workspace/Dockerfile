@@ -86,6 +86,9 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
   && nix-channel --add https://nixos.org/channels/nixos-25.05 nixpkgs_2505 \
   && nix-channel --update \
   && nix-env -iA nixpkgs.ollama-cpu nixpkgs.lemminx nixpkgs.codex -p /nix/var/nix/profiles/default \
+  # ghidra 套件同时提供 GUI 与 analyzeHeadless；nixpkgs 已不再拆分 headless 子包，
+  # Workspace 无显示服务器，仅使用其 analyzeHeadless CLI。
+  && nix-env -iA nixpkgs.ghidra -p /nix/var/nix/profiles/default \
   # setup formatters & linters
   && nix-env -iA nixpkgs.markdownlint-cli2 nixpkgs.pnpm nixpkgs.prettier -p /nix/var/nix/profiles/default \
   # setup java
