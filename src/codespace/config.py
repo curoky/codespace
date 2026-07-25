@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path, PurePosixPath
-from typing import Annotated, Literal
+from typing import Annotated, Literal, cast
 
 import yaml
 from pydantic import (
@@ -30,19 +30,19 @@ from codespace.runtime.container import (
     UlimitSpec,
     UniqueContainerOptions,
 )
-from codespace.services import SERVICE_DATA_PLACEHOLDER, ServiceSpec
+from codespace.services import ServiceSpec
 from codespace.workspaces import (
-    CACHE_MOUNT,
     CHECKOUT_PATH_ENV,
     CLONE_URL_ENV,
     CONTAINER_HOME,
+    CONTAINER_STATE_ROOT,
     CONTROL_MOUNT,
     ENCRYPTED_ENV,
+    ENCRYPTED_PATH_ENV,
     GIT_ARGS_ENV,
     OPEN_PATH_ENV,
     SOURCE_TYPE_ENV,
     UPLOAD_MOUNT,
-    WORKSPACE_CIPHER_MOUNT,
     WORKSPACE_KEY_MOUNT,
     WORKSPACE_KEY_SECRET,
     WORKSPACE_MOUNT,
@@ -67,10 +67,9 @@ _RESERVED_ENVIRONMENT = {
     ENCRYPTED_ENV,
 }
 _RESERVED_MOUNTS = (
+    CONTAINER_STATE_ROOT,
     WORKSPACE_MOUNT,
-    WORKSPACE_CIPHER_MOUNT,
     UPLOAD_MOUNT,
-    CACHE_MOUNT,
     CONTROL_MOUNT,
     WORKSPACE_KEY_MOUNT,
     CONTAINER_HOME,
@@ -120,7 +119,30 @@ def _merge_container_layers(*layers: ContainerLayer | None) -> dict[str, object]
     merged: dict[str, object] = {}
     for layer in layers:
         if layer is not None:
-            merged.update(layer.model_dump(exclude_none=True))
+            merged.update(
+                layer.model_dump(
+                    exclude_none=True,
+                    exclude={"environment", "volumes"},
+                )
+            )
+            if layer.environment is not None:
+                environment = dict(cast("dict[str, str]", merged.get("environment", {})))
+                environment.update(layer.environment)
+                merged["environment"] = environment
+            if layer.volumes is not None:
+                if not layer.volumes:
+                    merged["volumes"] = []
+                    continue
+                volumes = list(cast("list[dict[str, object]]", merged.get("volumes", [])))
+                positions = {volume["target"]: index for index, volume in enumerate(volumes)}
+                for volume in (item.model_dump() for item in layer.volumes):
+                    target = volume["target"]
+                    if target in positions:
+                        volumes[positions[target]] = volume
+                    else:
+                        positions[target] = len(volumes)
+                        volumes.append(volume)
+                merged["volumes"] = volumes
     return merged
 
 
@@ -324,17 +346,66 @@ class Config(FrozenModel):
         if reserved_environment:
             names = ", ".join(sorted(reserved_environment))
             raise ValueError(f"project {project!r} overrides reserved environment: {names}")
+        encrypted_workspace_target = container.environment.get(ENCRYPTED_PATH_ENV)
+        if encrypted_workspace_target is None:
+            raise ValueError(f"project {project!r} requires environment {ENCRYPTED_PATH_ENV!r}")
+        encrypted_path = PurePosixPath(encrypted_workspace_target)
+        if not encrypted_path.is_absolute() or ".." in encrypted_path.parts:
+            raise ValueError(f"{ENCRYPTED_PATH_ENV} must be an absolute normalized path")
+        managed_targets = {
+            volume.target for volume in container.volumes if volume.uses_resource_data
+        }
+        managed_targets.add(encrypted_workspace_target)
         for volume in container.volumes:
-            volume.mount()
-            if any(_paths_overlap(volume.target, reserved) for reserved in _RESERVED_MOUNTS):
+            if not volume.uses_resource_data:
+                volume.mount()
+            if not volume.uses_resource_data and any(
+                _paths_overlap(volume.target, reserved)
+                for reserved in (*_RESERVED_MOUNTS, *managed_targets)
+            ):
                 raise ValueError(
                     f"project volume targeting {volume.target!r} overlaps reserved mount target"
                 )
+        for encrypted in (False, True):
+            targets = [
+                encrypted_workspace_target
+                if encrypted and volume.target == WORKSPACE_MOUNT
+                else volume.target
+                for volume in container.volumes
+            ]
+            required = {
+                encrypted_workspace_target if encrypted else WORKSPACE_MOUNT,
+                UPLOAD_MOUNT,
+                CONTROL_MOUNT,
+            }
+            if missing := required.difference(targets):
+                raise ValueError(f"Workspace volumes missing required targets: {sorted(missing)}")
+            for index, target in enumerate(targets):
+                if any(_paths_overlap(target, other) for other in targets[:index]):
+                    raise ValueError(f"Workspace volume {target!r} overlaps another volume")
+                configured = container.volumes[index]
+                if configured.uses_resource_data and (
+                    any(
+                        _paths_overlap(target, reserved)
+                        for reserved in (CONTAINER_STATE_ROOT, WORKSPACE_KEY_MOUNT)
+                    )
+                    or PurePosixPath(CONTAINER_HOME).is_relative_to(target)
+                ):
+                    raise ValueError(f"Workspace volume {target!r} overlaps image-owned state")
+                if (
+                    configured.uses_resource_data
+                    and encrypted
+                    and _paths_overlap(target, WORKSPACE_MOUNT)
+                ):
+                    raise ValueError("encrypted Workspace must leave /workspace for gocryptfs")
         for secret in container.secrets:
             if secret.source == WORKSPACE_KEY_SECRET:
                 raise ValueError(f"project secret {secret.source!r} overrides a reserved secret")
             target = secret.target or f"/run/secrets/{secret.source}"
-            if any(_paths_overlap(target, reserved) for reserved in _RESERVED_MOUNTS):
+            if any(
+                _paths_overlap(target, reserved)
+                for reserved in (*_RESERVED_MOUNTS, *managed_targets)
+            ):
                 raise ValueError(
                     f"project secret {secret.source!r} overlaps a reserved mount target"
                 )
@@ -342,8 +413,7 @@ class Config(FrozenModel):
     @staticmethod
     def _validate_service_container(container: ContainerSpec) -> None:
         for volume in container.volumes:
-            if volume.source != SERVICE_DATA_PLACEHOLDER:
-                volume.mount()
+            volume.resolve_data_path("/managed").mount()
 
 
 def _paths_overlap(left: str, right: str) -> bool:

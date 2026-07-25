@@ -154,20 +154,21 @@ class ControlPlane:
         platform = spec.platform if isinstance(spec, WorkspaceSpec) else None
         container.pull_image(client, spec.image, platform)
         data = host.remote_data_paths(route)
+        path = (
+            data.workspace(spec.project, spec.workspace)
+            if isinstance(spec, WorkspaceSpec)
+            else data.service(spec.service)
+        )
+        stage("preparing data root")
+        directories = [path]
         if isinstance(spec, WorkspaceSpec):
-            stage("preparing workspace")
-            paths = data.workspace(spec.project, spec.workspace)
-            host.prepare_directories(
-                route, [paths.workspace, paths.upload, paths.cache, paths.control]
-            )
-            host.reset_workspace_control(route, paths.control)
+            directories.extend(spec.data_directories(path))
+        host.prepare_directories(route, directories)
+        if isinstance(spec, WorkspaceSpec):
             stage("creating container")
-            created = workspace_runtime.create_container(client, spec, paths, forwarded)
-            workspace_runtime.bootstrap(spec, created, self.transport, paths, credentials, stage)
+            created = workspace_runtime.create_container(client, spec, path, forwarded)
+            workspace_runtime.bootstrap(spec, created, self.transport, path, credentials, stage)
         else:
-            stage("preparing data root")
-            path = data.service(spec.service)
-            host.prepare_directories(route, [path])
             stage("replacing container")
             if existing is not None:
                 container.remove_container(existing)
@@ -184,8 +185,9 @@ class ControlPlane:
             )
 
     def inspect_deletion(self, resource: Resource) -> RepoGitState:
-        actual = workspaces.read_workspace(self._container(resource), resource.host)
-        return workspace_runtime.inspect_deletion(actual, self.transport)
+        running = self._container(resource)
+        actual = workspaces.read_workspace(running, resource.host)
+        return workspace_runtime.inspect_deletion(actual, self.transport, running)
 
     def remove(self, resource: Resource, *, purge: bool = False) -> bool:
         spec = self.config.resource_spec(resource)
@@ -214,15 +216,13 @@ class ControlPlane:
                 actual.id,
             )
         if purge:
-            paths = host.remote_data_paths(self.transport.ssh_route(resource.host)).workspace(
-                resource.project, resource.name
-            )
+            data = host.remote_data_paths(self.transport.ssh_route(resource.host))
             running.stop(timeout=10, ignore=True)
             container.remove_data_directory(
                 client,
                 actual.image,
-                paths.workspaces_root,
-                paths.root,
+                data.workspaces,
+                data.workspace(resource.project, resource.name),
                 platform=None if actual.platform == "native" else actual.platform,
             )
         container.remove_container(running)

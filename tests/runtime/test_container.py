@@ -218,10 +218,10 @@ def test_volume_translates_to_podman_mount() -> None:
 
 def test_volume_rejects_parent_traversal_in_target() -> None:
     with pytest.raises(ValidationError, match="must not contain"):
-        VolumeSpec(type="bind", source="/host/data", target="/tmp/../run/codespace-control")
+        VolumeSpec(type="bind", source="/host/data", target="/tmp/../workspace")
 
 
-@pytest.mark.parametrize("source", ["relative", "${SERVICE_DATA}", "${OTHER_DATA}", "/${DATA}"])
+@pytest.mark.parametrize("source", ["relative", "${RESOURCE_DATA}"])
 def test_runtime_rejects_unresolved_mount_sources(source: str) -> None:
     volume = VolumeSpec(type="bind", source=source, target="/data")
 
@@ -235,6 +235,12 @@ def test_runtime_rejects_unresolved_mount_sources(source: str) -> None:
             labels={},
             mounts=[],
         )
+
+
+@pytest.mark.parametrize("source", ["${SERVICE_DATA}", "${OTHER_DATA}", "/${DATA}"])
+def test_volume_rejects_unknown_source_interpolation(source: str) -> None:
+    with pytest.raises(ValidationError, match=r"only .*RESOURCE_DATA"):
+        VolumeSpec(type="bind", source=source, target="/data")
 
 
 @pytest.mark.parametrize("model", [ContainerLayer, ContainerSpec])

@@ -27,10 +27,9 @@ CONTAINER_USER = "x"
 CONTAINER_UID = 5230
 CONTAINER_GID = 5230
 CONTAINER_HOME = f"/home/{CONTAINER_USER}"
+CONTAINER_STATE_ROOT = "/var/lib/codespace"
 WORKSPACE_MOUNT = "/workspace"
-WORKSPACE_CIPHER_MOUNT = "/workspace.enc"
 UPLOAD_MOUNT = "/upload"
-CACHE_MOUNT = "/cache"
 CONTROL_MOUNT = "/run/codespace-control"
 WORKSPACE_KEY_SECRET = "codespace_workspace_key"  # noqa: S105 - secret identifier
 WORKSPACE_KEY_MOUNT = f"/run/secrets/{WORKSPACE_KEY_SECRET}"
@@ -40,6 +39,7 @@ GIT_ARGS_ENV = "CODESPACE_GIT_ARGS"
 CHECKOUT_PATH_ENV = "CODESPACE_CHECKOUT_PATH"
 OPEN_PATH_ENV = "CODESPACE_OPEN_PATH"
 ENCRYPTED_ENV = "CODESPACE_ENCRYPTED"
+ENCRYPTED_PATH_ENV = "CODESPACE_ENCRYPTED_PATH"
 
 LABEL_PROJECT = "codespace.project"
 LABEL_WORKSPACE = "codespace.workspace"
@@ -171,6 +171,26 @@ class WorkspaceSpec(WorkspaceMetadata):
     platform: ImagePlatform | None
     container: WorkspaceContainerSpec
     checkout_path: WorkspacePath
+
+    def resolve_data_path(self, data_path: str) -> WorkspaceContainerSpec:
+        volumes = [volume.resolve_data_path(data_path) for volume in self.container.volumes]
+        if self.encrypted:
+            encrypted_workspace_target = self.container.environment[ENCRYPTED_PATH_ENV]
+            volumes = [
+                volume.model_copy(update={"target": encrypted_workspace_target})
+                if volume.target == WORKSPACE_MOUNT
+                else volume
+                for volume in volumes
+            ]
+        return self.container.model_copy(update={"volumes": volumes})
+
+    def data_directories(self, data_path: str) -> list[str]:
+        resolved = self.resolve_data_path(data_path)
+        return [
+            actual.source
+            for configured, actual in zip(self.container.volumes, resolved.volumes, strict=True)
+            if configured.uses_resource_data
+        ]
 
     def labels(self) -> dict[str, str]:
         labels = {

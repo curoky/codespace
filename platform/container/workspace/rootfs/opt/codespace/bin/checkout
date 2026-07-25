@@ -16,11 +16,6 @@ main() {
   local clone_url=$1
   local target=$2
   local temporary="${target}.codespace-clone"
-  local -a clone_command=(git clone)
-  if [[ $# -gt 2 ]]; then
-    clone_command+=("${@:3}")
-  fi
-  clone_command+=(-- "${clone_url}" "${temporary}")
 
   if [[ -d "${target}/.git" ]]; then
     if git -C "${target}" rev-parse --verify HEAD >/dev/null 2>&1; then
@@ -29,7 +24,8 @@ main() {
     if [[ -f "${target}/.git/${EMPTY_REPOSITORY_MARKER}" ]]; then
       return
     fi
-    rm -rf -- "${target}"
+    echo "repository target is not a reusable checkout: ${target}" >&2
+    return 1
   elif [[ -e ${target} ]]; then
     echo "repository target exists but is not a checkout: ${target}" >&2
     return 1
@@ -37,7 +33,7 @@ main() {
 
   mkdir -p -- "$(dirname -- "${target}")"
   rm -rf -- "${temporary}"
-  if ! "${clone_command[@]}"; then
+  if ! git clone "${@:3}" -- "${clone_url}" "${temporary}"; then
     rm -rf -- "${temporary}"
     return 1
   fi

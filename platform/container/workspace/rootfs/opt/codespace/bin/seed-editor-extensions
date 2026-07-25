@@ -6,7 +6,7 @@ set -euo pipefail
 readonly template=/opt/codespace/share/editor-extensions
 
 for server in .vscode-server .trae-server .trae-cn-server; do
-  target="/cache/$server/extensions"
+  target="/home/x/$server/extensions"
   [[ -f "$target/extensions.json" ]] && continue
 
   # Publish the prebuilt manifest last, so interrupted copies can be retried.

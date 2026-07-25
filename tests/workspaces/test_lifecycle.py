@@ -13,17 +13,31 @@ from codespace import workspaces as inventory
 from codespace.config import Config
 from codespace.control import ControlPlane
 from codespace.resources import Resource, ResourceConflict, ResourceNotFound
+from codespace.runtime import host as host_runtime
 from codespace.runtime.host import HostDataPaths
 from codespace.runtime.transport import SSHRoute
 from codespace.workspaces import RepoGitState, agent, lifecycle, provider, ssh
 from codespace.workspaces.agent import WorkspaceAgentClient
 
 _PATHS = HostDataPaths("/home/x/codespace")
+_CACHE_PATHS = (
+    ".vscode-server/bin",
+    ".vscode-server/extensions",
+    ".trae/bin",
+    ".trae/extensions",
+    ".trae-cn/bin",
+    ".trae-cn/extensions",
+    ".trae-server/bin",
+    ".trae-server/extensions",
+    ".trae-cn-server/bin",
+    ".trae-cn-server/extensions",
+)
 
 
 class FakeTransport:
     def __init__(self) -> None:
         self.client_value = object()
+        self.socket_forwards: list[tuple[str, str]] = []
         self.tcp_forwards: list[tuple[str, str, dict[str, object]]] = []
         self.closed_tcp: list[tuple[str, str]] = []
 
@@ -33,7 +47,8 @@ class FakeTransport:
     def ssh_route(self, host: str) -> SSHRoute:
         return SSHRoute(host=host)
 
-    def forward_socket(self, host: str, _remote: str) -> Path:
+    def forward_socket(self, host: str, remote: str) -> Path:
+        self.socket_forwards.append((host, remote))
         return Path(f"/tmp/{host}-agent.sock")
 
     def forward_tcp(self, host: str, destination: str, **kwargs: object) -> int:
@@ -62,11 +77,14 @@ class FakeAgent:
     def git_state(self) -> RepoGitState:
         return RepoGitState(unpushed=False, uncommitted=True, detail=[" M file"])
 
+    def authorize_provider(self) -> None:
+        pass
+
 
 @pytest.fixture
 def manager(config: Config, monkeypatch: pytest.MonkeyPatch) -> ControlPlane:
     monkeypatch.setattr(agent, "WorkspaceAgentClient", FakeAgent)
-    monkeypatch.setattr(lifecycle.host, "remote_data_paths", lambda _route: _PATHS)
+    monkeypatch.setattr(host_runtime, "remote_data_paths", lambda _route: _PATHS)
     monkeypatch.setattr(ssh, "write_route", lambda _workspace: None)
     monkeypatch.setattr(ssh, "remove_route", lambda _workspace: None)
     control = ControlPlane(config, transport=FakeTransport())  # type: ignore[arg-type]
@@ -135,19 +153,17 @@ def test_create_handles_source_bootstrap_and_agent_protocol_failure(
     spec = config.workspace_spec(project, host, "debug")
     manager.queue(Resource(host, "debug", project))
     events: list[str] = []
+    directories: list[str] = []
     monkeypatch.setattr(lifecycle, "list_workspaces", lambda *_args: [])
-    monkeypatch.setattr(lifecycle.host, "read_environment", lambda *_args: {"HTTP_PROXY": "proxy"})
+    monkeypatch.setattr(host_runtime, "read_environment", lambda *_args: {"HTTP_PROXY": "proxy"})
     monkeypatch.setattr(
-        lifecycle.host, "prepare_directories", lambda *_args: events.append("paths")
+        host_runtime,
+        "prepare_directories",
+        lambda _route, paths: (directories.extend(paths), events.append("paths")),
     )
     monkeypatch.setattr(
-        lifecycle.host,
-        "reset_workspace_control",
-        lambda *_args: events.append("control"),
-    )
-    monkeypatch.setattr(
-        lifecycle.host,
-        "signal_provider_ready",
+        FakeAgent,
+        "authorize_provider",
         lambda *_args: events.append("ready"),
     )
     monkeypatch.setattr(lifecycle.container, "pull_image", lambda *_args: events.append("pull"))
@@ -157,7 +173,6 @@ def test_create_handles_source_bootstrap_and_agent_protocol_failure(
         lambda *_args: (events.append("create"), SimpleNamespace(id="container-id"))[-1],
     )
     monkeypatch.setattr(provider, "register", lambda *_args: events.append("register"))
-    monkeypatch.setattr(ssh, "probe", lambda *_args: events.append("probe"))
     monkeypatch.setattr(ssh, "write_route", lambda _workspace: events.append("route"))
     if invalid_status:
         client = WorkspaceAgentClient(Path("/tmp/agent.sock"))
@@ -166,8 +181,16 @@ def test_create_handles_source_bootstrap_and_agent_protocol_failure(
 
     manager.deploy(Resource(host, "debug", project))
 
+    root = _PATHS.workspace(project, "debug")
+    assert directories == [
+        root,
+        f"{root}/workspace",
+        f"{root}/upload",
+        f"{root}/control",
+        *(f"{root}/cache/{relative}" for relative in _CACHE_PATHS),
+    ]
     if invalid_status:
-        assert events == ["pull", "paths", "control", "create"]
+        assert events == ["pull", "paths", "create"]
         failed = manager.operations.list()[0]
         assert failed.status == "failed"
         assert "invalid status" in failed.error
@@ -175,13 +198,63 @@ def test_create_handles_source_bootstrap_and_agent_protocol_failure(
     assert events == [
         "pull",
         "paths",
-        "control",
         "create",
         *(["register", "ready"] if spec.source.type in {"github", "gitlab"} else []),
-        "probe",
         "route",
     ]
     assert manager.operations.list() == []
+
+
+def test_deploy_uses_configured_mounts_alongside_host_volumes(
+    manager: ControlPlane, config: Config, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    data = config.model_dump()
+    volumes = data["project_defaults"]["container"]["volumes"]
+    next(volume for volume in volumes if volume["target"] == "/run/codespace-control")["source"] = (
+        "${RESOURCE_DATA}/agent-control"
+    )
+    volumes.append(
+        {
+            "type": "bind",
+            "source": "${RESOURCE_DATA}/cache/build",
+            "target": "/build-cache",
+        }
+    )
+    data["hosts"]["home"]["container"] = {"volumes": ["/host/file:/opt/file:ro"]}
+    manager.config = Config.model_validate(data)
+    directories: list[str] = []
+    captured: dict[str, object] = {}
+    monkeypatch.setattr(lifecycle, "list_workspaces", lambda *_args: [])
+    monkeypatch.setattr(lifecycle.container, "pull_image", lambda *_args: None)
+    monkeypatch.setattr(host_runtime, "read_environment", lambda *_args: {})
+    monkeypatch.setattr(
+        host_runtime, "prepare_directories", lambda _route, paths: directories.extend(paths)
+    )
+    monkeypatch.setattr(
+        lifecycle.container,
+        "create_container",
+        lambda *_args, **kwargs: (captured.update(kwargs), SimpleNamespace(id="container-id"))[-1],
+    )
+
+    manager.queue(Resource("home", "debug", "scratch"))
+    manager.deploy(Resource("home", "debug", "scratch"))
+
+    root = _PATHS.workspace("scratch", "debug")
+    assert manager.operations.list() == []
+    assert f"{root}/agent-control" in directories
+    assert f"{root}/control" not in directories
+    assert f"{root}/cache/build" in directories
+    assert "/host/file" not in directories
+    assert captured["mounts"] == []
+    resolved = {  # type: ignore[union-attr]
+        volume.target: volume for volume in captured["spec"].volumes
+    }
+    assert resolved["/build-cache"].source == f"{root}/cache/build"
+    assert resolved["/opt/file"].source == "/host/file"
+    assert len(resolved) == 16
+    assert manager.transport.socket_forwards == [  # type: ignore[attr-defined]
+        ("home", f"{root}/agent-control/agent.sock")
+    ]
 
 
 def test_create_failure_is_retained_as_failed_operation(
@@ -210,7 +283,12 @@ def test_deletion_check_returns_git_state_without_mutation(
         id="container-id",
         name="space-codespace-debug",
         labels=config.workspace_spec("codespace", "home", "debug").labels(),
-        attrs={"State": {"Status": "running"}},
+        attrs={
+            "State": {"Status": "running"},
+            "Mounts": [
+                {"Source": "/deployed/control", "Destination": "/run/codespace-control"},
+            ],
+        },
     )
     mutations: list[str] = []
     monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
@@ -224,6 +302,9 @@ def test_deletion_check_returns_git_state_without_mutation(
     assert state.uncommitted is True
     assert mutations == []
     assert manager.transport.closed_tcp == []  # type: ignore[attr-defined]
+    assert manager.transport.socket_forwards == [  # type: ignore[attr-defined]
+        ("home", "/deployed/control/agent.sock")
+    ]
 
 
 @pytest.mark.parametrize("project", ["codespace", "scratch"])
@@ -237,7 +318,12 @@ def test_delete_inspection_never_defaults_an_invalid_agent_response_to_clean(
         id="container-id",
         name=f"space-{project}-debug",
         labels=config.workspace_spec(project, "home", "debug").labels(),
-        attrs={"State": {"Status": "running"}},
+        attrs={
+            "State": {"Status": "running"},
+            "Mounts": [
+                {"Source": "/deployed/control", "Destination": "/run/codespace-control"},
+            ],
+        },
     )
     requests: list[str] = []
     mutations: list[str] = []
@@ -351,11 +437,15 @@ def test_logs_reads_podman_output(
     assert calls == [running]
 
 
+@pytest.mark.parametrize("encrypted", [False, True])
 def test_workspace_container_uses_fixed_ssh_listener_and_reserved_mounts(
     config: Config,
     monkeypatch: pytest.MonkeyPatch,
+    encrypted: bool,
 ) -> None:
     data = config.model_dump()
+    data["projects"]["codespace"]["encrypted"] = encrypted
+    data["secrets"]["codespace_workspace_key"] = "test-key"
     data["projects"]["codespace"]["container"] = {
         "secrets": [{"source": "atuin_db_uri", "mode": 0o400}],
         "ports": [{"target": 8080, "published": 18080, "host_ip": "127.0.0.1"}],
@@ -383,7 +473,8 @@ def test_workspace_container_uses_fixed_ssh_listener_and_reserved_mounts(
     assert environment["CODESPACE_SOURCE_TYPE"] == "github"
     assert environment["CODESPACE_CHECKOUT_PATH"] == "/workspace/codespace"
     assert environment["CODESPACE_OPEN_PATH"] == "/workspace/codespace"
-    assert environment["CODESPACE_ENCRYPTED"] == "false"
+    assert environment["CODESPACE_ENCRYPTED"] == str(encrypted).lower()
+    assert environment["CODESPACE_ENCRYPTED_PATH"] == "/workspace.enc"
     assert environment["CODESPACE_CLONE_URL"] == "git@github.com:curoky/codespace.git"
     assert environment["CODESPACE_GIT_ARGS"] == '["--depth=1", "--single-branch"]'
     assert "ATUIN_SYNC_ADDRESS" not in environment
@@ -397,8 +488,43 @@ def test_workspace_container_uses_fixed_ssh_listener_and_reserved_mounts(
         "host_ip": "127.0.0.1",
         "protocol": "tcp",
     }
-    targets = {mount["target"] for mount in captured["mounts"]}  # type: ignore[index]
-    assert targets == {"/workspace", "/upload", "/cache", "/run/codespace-control"}
+    expected_mounts = [
+        {
+            "type": "bind",
+            "source": "/home/x/codespace/workspaces/codespace/debug/workspace",
+            "target": "/workspace.enc" if encrypted else "/workspace",
+            "read_only": False,
+        },
+        {
+            "type": "bind",
+            "source": "/home/x/codespace/workspaces/codespace/debug/upload",
+            "target": "/upload",
+            "read_only": False,
+        },
+        {
+            "type": "bind",
+            "source": "/home/x/codespace/workspaces/codespace/debug/control",
+            "target": "/run/codespace-control",
+            "read_only": False,
+        },
+        *(
+            {
+                "type": "bind",
+                "source": f"/home/x/codespace/workspaces/codespace/debug/cache/{relative}",
+                "target": f"/home/x/{relative}",
+                "read_only": False,
+            }
+            for relative in _CACHE_PATHS
+        ),
+        {
+            "type": "bind",
+            "source": "/etc/krb5.conf",
+            "target": "/etc/krb5.conf",
+            "read_only": True,
+        },
+    ]
+    assert captured["mounts"] == []
+    assert [volume.mount() for volume in captured["spec"].volumes] == expected_mounts  # type: ignore[union-attr]
     assert [port.target for port in captured["spec"].ports] == [8080, 22]  # type: ignore[union-attr]
     assert spec.container.model_dump() == original_container
 
@@ -452,7 +578,7 @@ def test_encrypted_workspace_mounts_key_as_compose_secret(
 
     runtime_spec = captured["spec"]
     assert captured["environment"]["CODESPACE_ENCRYPTED"] == "true"  # type: ignore[index]
-    assert "CODESPACE_GIT_ARGS" not in captured["environment"]  # type: ignore[operator]
+    assert captured["environment"]["CODESPACE_GIT_ARGS"] == "[]"  # type: ignore[index]
     assert captured["labels"]["codespace.encrypted"] == "true"  # type: ignore[index]
     assert spec.container.secrets == []
     assert runtime_spec.secrets[0].model_dump() == {  # type: ignore[union-attr]
@@ -471,7 +597,12 @@ def test_delete_uses_deployed_source_after_config_changes(
         id="container-id",
         name="space-codespace-debug",
         labels=config.workspace_spec("codespace", "home", "debug").labels(),
-        attrs={"State": {"Status": "running"}},
+        attrs={
+            "State": {"Status": "running"},
+            "Mounts": [
+                {"Source": "/deployed/control", "Destination": "/run/codespace-control"},
+            ],
+        },
     )
     data = config.model_dump()
     data["projects"]["codespace"]["source"] = {"type": "empty"}

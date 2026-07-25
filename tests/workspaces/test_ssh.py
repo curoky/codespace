@@ -1,8 +1,9 @@
-"""Tests for Workspace SSH login probes."""
+"""Tests for Workspace SSH routes and authenticated Host forwarding."""
 
 from __future__ import annotations
 
 import stat
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -30,36 +31,44 @@ def _workspace(name: str = "debug") -> Workspace:
     )
 
 
-def test_probe_uses_preprovisioned_config_and_existing_host_connection(
+@pytest.mark.parametrize("internal", [False, True])
+def test_macos_contract_resolves_persisted_routes_and_authenticated_tunnels(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
+    internal: bool,
 ) -> None:
-    commands: list[list[str]] = []
-    config = tmp_path / "config"
-    monkeypatch.setattr(ssh, "SSH_CONFIG_PATH", config)
-    monkeypatch.setattr(
-        ssh.subprocess,
-        "run",
-        lambda command, **_kwargs: commands.append(command),
+    source = (
+        Path(__file__).resolve().parents[2] / "platform/macos/rootfs/Users/x/.ssh/codespace/config"
     )
+    config = tmp_path / "config"
+    routes = tmp_path / "routes"
+    config.write_text(source.read_text().replace("~/.ssh/codespace/workspaces/*", f"{routes}/*"))
+    monkeypatch.setattr(ssh, "SSH_CONFIG_PATH", config)
+    monkeypatch.setattr(ssh, "SSH_ROUTES_DIR", routes)
+    workspace = _workspace()
+    if internal:
+        options = ssh.connection_options(
+            workspace, SSHRoute(host="home", control_path=Path("/tmp/host.sock"))
+        )
+    else:
+        ssh.write_route(workspace)
+        options = ["-F", str(config)]
 
-    ssh.probe(_workspace(), SSHRoute(host="home", control_path=Path("/tmp/host.sock")))
-
-    assert commands == [
-        [
-            "ssh",
-            "-o",
-            "BatchMode=yes",
-            "-F",
-            str(config),
-            "-o",
-            f"Port={_workspace().ssh_host_port}",
-            "-o",
-            "ProxyCommand=ssh -o BatchMode=yes -o ControlPath=/tmp/host.sock -W %h:%p home",
-            _workspace().ssh_alias,
-            "true",
-        ]
-    ]
+    result = subprocess.run(  # noqa: S603 - parse repository config without connecting
+        ["/usr/bin/ssh", "-G", *options, workspace.ssh_alias],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    resolved = dict(line.split(" ", 1) for line in result.stdout.splitlines())
+    assert resolved["hostname"] == "127.0.0.1"
+    assert resolved["user"] == "x"
+    assert resolved["port"] == str(workspace.ssh_host_port)
+    assert resolved["hostkeyalias"] == "codespace"
+    assert resolved["stricthostkeychecking"] == "true"
+    assert resolved["batchmode"] == "yes"
+    control = "-o ControlPath=/tmp/host.sock " if internal else ""
+    assert resolved["proxycommand"] == f"ssh -o BatchMode=yes {control}-W %h:%p home"
 
 
 def test_write_route_persists_workspace_connection(
@@ -75,7 +84,6 @@ def test_write_route_persists_workspace_connection(
     route = routes / workspace.ssh_alias
     assert route.read_text() == (
         "Host space-codespace-debug-home\n"
-        "  HostName 127.0.0.1\n"
         f"  Port {workspace.ssh_host_port}\n"
         "  ProxyCommand ssh -o BatchMode=yes -W %h:%p home\n"
     )

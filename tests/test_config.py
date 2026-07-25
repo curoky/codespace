@@ -192,7 +192,9 @@ def test_host_rejects_podman_socket_override(config: Config) -> None:
         Config.model_validate(data)
 
 
-def test_project_layers_apply_host_defaults_and_replace_mappings(config: Config) -> None:
+def test_project_layers_apply_host_defaults_and_merge_volumes_by_target(
+    config: Config,
+) -> None:
     data = config.model_dump()
     data["hosts"]["home"]["container"] = {
         "environment": {"HOST": "1"},
@@ -207,20 +209,27 @@ def test_project_layers_apply_host_defaults_and_replace_mappings(config: Config)
     data["projects"]["codespace"]["hosts"]["home"]["container"] = {
         "environment": {"PLACEMENT": "1"},
         "pids_limit": 128,
-        "volumes": ["/host/placement:/placement:ro"],
+        "volumes": ["/host/placement:/data:ro"],
     }
     data["projects"]["codespace"]["hosts"]["home"]["image"] = "workspace:placement"
 
     parsed = Config.model_validate(data)
     resolved = parsed.resolved_project_container("codespace", "home")
 
-    assert resolved.environment == {"PLACEMENT": "1"}
+    assert resolved.environment == {
+        "CODESPACE_ENCRYPTED_PATH": "/workspace.enc",
+        "HOST": "1",
+        "PROJECT": "1",
+        "PLACEMENT": "1",
+    }
     assert resolved.devices == ["/dev/fuse"]
     assert resolved.cap_add == ["NET_RAW"]
     assert resolved.pids_limit == 128
-    assert [(volume.source, volume.read_only) for volume in resolved.volumes] == [
-        ("/host/placement", True)
-    ]
+    volumes = {volume.target: volume for volume in resolved.volumes}
+    assert volumes["/workspace"].source == "${RESOURCE_DATA}/workspace"
+    assert volumes["/data"].source == "/host/placement"
+    assert volumes["/data"].read_only is True
+    assert "/host/base" not in {volume.source for volume in resolved.volumes}
     assert parsed.project_image("codespace", "home") == "workspace:placement"
 
 
@@ -250,7 +259,7 @@ def test_service_layers_apply_host_defaults_before_service(config: Config) -> No
     resolved = parsed.resolved_service_container("support", "home")
 
     assert parsed.service_image("support", "home") == "support:pinned"
-    assert resolved.environment == {"PLACEMENT": "1"}
+    assert resolved.environment == {"BASE": "1", "PLACEMENT": "1"}
     assert resolved.devices == ["/dev/fuse"]
     assert resolved.pids_limit == 64
 
@@ -283,7 +292,10 @@ def test_container_overrides_distinguish_null_from_empty(
         else configured.service_spec(resource, "home").container
     )
 
-    assert resolved.environment == ({} if cleared else {"HOST": "1"})
+    expected_environment = {"HOST": "1"}
+    if kind == "projects":
+        expected_environment["CODESPACE_ENCRYPTED_PATH"] = "/workspace.enc"
+    assert resolved.environment == expected_environment
     assert resolved.devices == ([] if cleared else ["/dev/fuse"])
     assert resolved.pids_limit == (0 if cleared else 64)
     assert configured.model_dump() == Config.model_validate(configured.model_dump()).model_dump()
@@ -292,7 +304,10 @@ def test_container_overrides_distinguish_null_from_empty(
 @pytest.mark.parametrize("kind", ["projects", "services"])
 def test_resolved_containers_have_concrete_collections(config: Config, kind: str) -> None:
     data = config.model_dump()
-    data["project_defaults"]["container"] = {}
+    data["project_defaults"]["container"] = {
+        "environment": data["project_defaults"]["container"]["environment"],
+        "volumes": data["project_defaults"]["container"]["volumes"],
+    }
     configured = Config.model_validate(data)
     before = configured.model_dump()
     resolved = (
@@ -301,20 +316,17 @@ def test_resolved_containers_have_concrete_collections(config: Config, kind: str
         else configured.service_spec("support", "home").container
     )
 
-    assert resolved.model_dump() == {
-        "cap_add": [],
-        "security_opt": [],
-        "network_mode": "bridge" if kind == "projects" else "host",
-        "ipc": None,
-        "pids_limit": None,
-        "ulimits": {},
-        "volumes": [],
-        "environment": {},
-        "secrets": [],
-        "devices": [],
-        "ports": [],
-        "shm_size": None,
-    }
+    assert resolved.cap_add == []
+    assert resolved.security_opt == []
+    assert resolved.network_mode == ("bridge" if kind == "projects" else "host")
+    assert resolved.ulimits == {}
+    assert resolved.environment == (
+        {"CODESPACE_ENCRYPTED_PATH": "/workspace.enc"} if kind == "projects" else {}
+    )
+    assert resolved.secrets == []
+    assert resolved.devices == []
+    assert resolved.ports == []
+    assert bool(resolved.volumes) is (kind == "projects")
     resolved.environment["LOCAL"] = "1"
     resolved.devices.append("/dev/fuse")
     assert configured.model_dump() == before
@@ -332,8 +344,6 @@ def test_empty_collections_clear_all_inherited_container_values(config: Config) 
         "cap_add": [],
         "security_opt": [],
         "ulimits": {},
-        "volumes": [],
-        "environment": {},
         "secrets": [],
         "devices": [],
         "ports": [],
@@ -345,6 +355,14 @@ def test_empty_collections_clear_all_inherited_container_values(config: Config) 
 
     assert resolved.model_dump(include=set(empty)) == empty
     assert config.project_defaults.container.cap_add == ["NET_RAW", "SYS_ADMIN"]
+
+
+def test_project_cannot_clear_required_volumes(config: Config) -> None:
+    data = config.model_dump()
+    data["projects"]["scratch"]["container"] = {"volumes": []}
+
+    with pytest.raises(ValidationError, match="missing required targets"):
+        Config.model_validate(data)
 
 
 def test_service_requires_resolved_network_mode(config: Config) -> None:
@@ -366,28 +384,145 @@ def test_invalid_container_layer_is_rejected_even_when_overridden(config: Config
 
 def test_config_accepts_compose_volume_short_syntax(config: Config) -> None:
     data = config.model_dump()
-    data["project_defaults"]["container"]["volumes"] = ["/host/path:/opt/data:ro"]
+    data["project_defaults"]["container"]["volumes"].append("/host/path:/opt/data:ro")
 
     parsed = Config.model_validate(data)
 
     assert parsed.project_defaults.container.volumes is not None
-    assert parsed.project_defaults.container.volumes[0].source == "/host/path"
-    assert parsed.project_defaults.container.volumes[0].read_only is True
+    assert parsed.project_defaults.container.volumes[-1].source == "/host/path"
+    assert parsed.project_defaults.container.volumes[-1].read_only is True
 
 
-def test_service_accepts_managed_data_placeholder(config: Config) -> None:
+@pytest.mark.parametrize(
+    "source",
+    [
+        "${RESOURCE_DATA}/../outside",
+        "${RESOURCE_DATA}/cache/../../outside",
+        "${RESOURCE_DATA}/./cache",
+        "${DATA}",
+    ],
+)
+def test_resource_data_rejects_invalid_subpaths(config: Config, source: str) -> None:
+    data = config.model_dump()
+    data["project_defaults"]["container"]["volumes"][0]["source"] = source
+
+    with pytest.raises(ValidationError):
+        Config.model_validate(data)
+
+
+@pytest.mark.parametrize("target", ["/workspace", "/upload", "/run/codespace-control"])
+def test_workspace_volumes_require_image_runtime_targets(config: Config, target: str) -> None:
+    data = config.model_dump()
+    data["project_defaults"]["container"]["volumes"] = [
+        volume
+        for volume in data["project_defaults"]["container"]["volumes"]
+        if volume["target"] != target
+    ]
+
+    with pytest.raises(ValidationError, match="missing required targets"):
+        Config.model_validate(data)
+
+
+def test_workspace_requires_encrypted_target_configuration(config: Config) -> None:
+    data = config.model_dump()
+    del data["project_defaults"]["container"]["environment"]["CODESPACE_ENCRYPTED_PATH"]
+
+    with pytest.raises(ValidationError, match="CODESPACE_ENCRYPTED_PATH"):
+        Config.model_validate(data)
+
+
+def test_encrypted_workspace_target_is_resolved_from_environment(config: Config) -> None:
+    data = config.model_dump()
+    data["project_defaults"]["container"]["environment"]["CODESPACE_ENCRYPTED_PATH"] = "/ciphertext"
+    data["projects"]["codespace"]["encrypted"] = True
+    data["secrets"]["codespace_workspace_key"] = "test-key"
+
+    spec = Config.model_validate(data).workspace_spec("codespace", "home", "default")
+    resolved = spec.resolve_data_path("/home/x/codespace/workspaces/codespace/default")
+
+    assert {volume.source: volume.target for volume in resolved.volumes}[
+        "/home/x/codespace/workspaces/codespace/default/workspace"
+    ] == "/ciphertext"
+    assert set(spec.container.volumes[0].model_dump()) == {
+        "type",
+        "source",
+        "target",
+        "read_only",
+    }
+
+
+@pytest.mark.parametrize("target", ["relative", "/workspace/../ciphertext"])
+def test_encrypted_workspace_target_must_be_absolute_and_normalized(
+    config: Config, target: str
+) -> None:
+    data = config.model_dump()
+    data["project_defaults"]["container"]["environment"]["CODESPACE_ENCRYPTED_PATH"] = target
+
+    with pytest.raises(ValidationError, match="absolute normalized path"):
+        Config.model_validate(data)
+
+
+@pytest.mark.parametrize(
+    ("target", "error"),
+    [
+        ("/upload", "volume targets must be unique"),
+        ("/workspace/nested", "overlaps another volume"),
+        ("/var/lib/codespace", "image-owned state"),
+        ("/run/secrets/codespace_workspace_key", "image-owned state"),
+        ("/home/x", "overlaps"),
+    ],
+)
+def test_workspace_volumes_reject_conflicting_targets(
+    config: Config, target: str, error: str
+) -> None:
+    data = config.model_dump()
+    data["project_defaults"]["container"]["volumes"].append(
+        {"type": "bind", "source": "${RESOURCE_DATA}/extra", "target": target}
+    )
+
+    with pytest.raises(ValidationError, match=error):
+        Config.model_validate(data)
+
+
+@pytest.mark.parametrize("target", ["/workspace", "/upload"])
+def test_workspace_rejects_conflicting_encrypted_target(config: Config, target: str) -> None:
+    data = config.model_dump()
+    data["project_defaults"]["container"]["environment"]["CODESPACE_ENCRYPTED_PATH"] = target
+
+    with pytest.raises(ValidationError, match=r"overlaps|leave /workspace"):
+        Config.model_validate(data)
+
+
+@pytest.mark.parametrize("field", ["volumes", "secrets"])
+def test_container_options_cannot_shadow_configured_workspace_mounts(
+    config: Config, field: str
+) -> None:
+    data = config.model_dump()
+    data["projects"]["codespace"]["container"] = {
+        field: (
+            ["/host/upload:/upload"]
+            if field == "volumes"
+            else [{"source": "api_key", "target": "/upload/key"}]
+        ),
+    }
+
+    with pytest.raises(ValidationError, match="overlaps"):
+        Config.model_validate(data)
+
+
+def test_service_accepts_resource_data_placeholder(config: Config) -> None:
     volumes = config.resolved_service_container("vllm", "office").volumes
 
-    assert volumes[0].source == "${SERVICE_DATA}"
+    assert volumes[0].source == "${RESOURCE_DATA}"
     assert volumes[0].target == "/root/.cache/huggingface"
 
 
 def test_service_resolves_data_without_mutating_config(config: Config) -> None:
     data = config.model_dump()
     data["services"]["vllm"]["container"]["volumes"] = [
-        "${SERVICE_DATA}:/data:ro",
+        "${RESOURCE_DATA}:/data:ro",
         "/host/cache:/cache",
-        {"type": "bind", "source": "${SERVICE_DATA}", "target": "/models"},
+        {"type": "bind", "source": "${RESOURCE_DATA}/models", "target": "/models"},
     ]
     configured = Config.model_validate(data)
     spec = configured.service_spec("vllm", "office")
@@ -404,20 +539,20 @@ def test_service_resolves_data_without_mutating_config(config: Config) -> None:
         {"type": "bind", "source": "/host/cache", "target": "/cache", "read_only": False},
         {
             "type": "bind",
-            "source": "/home/x/codespace/services/vllm",
+            "source": "/home/x/codespace/services/vllm/models",
             "target": "/models",
             "read_only": False,
         },
     ]
     assert [volume.source for volume in spec.container.volumes] == [
-        "${SERVICE_DATA}",
+        "${RESOURCE_DATA}",
         "/host/cache",
-        "${SERVICE_DATA}",
+        "${RESOURCE_DATA}/models",
     ]
 
 
 @pytest.mark.parametrize("kind, name", [("projects", "scratch"), ("services", "support")])
-@pytest.mark.parametrize("source", ["relative", "${OTHER_DATA}", "/${DATA}"])
+@pytest.mark.parametrize("source", ["relative", "${SERVICE_DATA}", "${OTHER_DATA}", "/${DATA}"])
 def test_config_rejects_invalid_mount_sources(
     config: Config, kind: str, name: str, source: str
 ) -> None:
@@ -467,7 +602,18 @@ def test_project_network_is_fixed_to_bridge(config: Config, scope: str) -> None:
         Config.model_validate(data)
 
 
-def test_project_rejects_reserved_environment_and_mounts(config: Config) -> None:
+@pytest.mark.parametrize(
+    "target",
+    [
+        "/workspace/generated",
+        "/workspace.enc",
+        "/upload",
+        "/run/codespace-control/agent.sock",
+        "/var/lib/codespace",
+        "/var/lib/codespace/provider-authorized",
+    ],
+)
+def test_project_rejects_reserved_environment_and_mounts(config: Config, target: str) -> None:
     environment = config.model_dump()
     environment["projects"]["codespace"]["container"] = {
         "environment": {"CODESPACE_SOURCE_TYPE": "empty"}
@@ -486,7 +632,7 @@ def test_project_rejects_reserved_environment_and_mounts(config: Config) -> None
             {
                 "type": "bind",
                 "source": "/host/data",
-                "target": "/workspace/generated",
+                "target": target,
             }
         ]
     }
@@ -525,12 +671,15 @@ def test_project_rejects_escaping_derived_checkout_path(config: Config) -> None:
         Config.model_validate(data)
 
 
-def test_service_data_placeholder_is_rejected_for_projects(config: Config) -> None:
+def test_resource_data_placeholder_resolves_for_projects(config: Config) -> None:
     data = config.model_dump()
-    data["projects"]["codespace"]["container"] = {"volumes": ["${SERVICE_DATA}:/workspace/models"]}
+    data["projects"]["codespace"]["container"] = {"volumes": ["${RESOURCE_DATA}/models:/models"]}
 
-    with pytest.raises(ValidationError, match="absolute path"):
-        Config.model_validate(data)
+    spec = Config.model_validate(data).workspace_spec("codespace", "home", "default")
+
+    resolved = spec.resolve_data_path("/home/x/codespace/workspaces/codespace/default")
+    volumes = {volume.target: volume for volume in resolved.volumes}
+    assert volumes["/models"].source == ("/home/x/codespace/workspaces/codespace/default/models")
 
 
 def test_unknown_host_reference_is_rejected(config: Config) -> None:
@@ -593,9 +742,7 @@ def test_workspace_identity_labels_and_paths(config: Config) -> None:
         "codespace.open-path": "/workspace/codespace",
         "codespace.encrypted": "false",
     }
-    assert paths.workspace("codespace", "debug").root == (
-        "/home/x/codespace/workspaces/codespace/debug"
-    )
+    assert paths.workspace("codespace", "debug") == ("/home/x/codespace/workspaces/codespace/debug")
     assert paths.service("support") == "/home/x/codespace/services/support"
 
 

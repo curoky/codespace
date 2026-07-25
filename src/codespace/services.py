@@ -10,7 +10,6 @@ from codespace.resources import LABEL_IMAGE, LABEL_KIND, Resource
 from codespace.runtime.container import ContainerSpec, container_status
 
 LABEL_SERVICE = "codespace.service"
-SERVICE_DATA_PLACEHOLDER = "${SERVICE_DATA}"
 
 
 class ServiceMetadata(BaseModel):
@@ -43,10 +42,7 @@ class ServiceSpec(ServiceMetadata):
         return self.container.model_copy(
             update={
                 "volumes": [
-                    volume.model_copy(update={"source": data_path})
-                    if volume.source == SERVICE_DATA_PLACEHOLDER
-                    else volume
-                    for volume in self.container.volumes
+                    volume.resolve_data_path(data_path) for volume in self.container.volumes
                 ]
             }
         )

@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
-# workspace-init s6 oneshot (runs as x): prepare the Workspace data, ciphertext
-# root and upload/cache as private x-owned directories, then mount /workspace via
-# gocryptfs when explicitly enabled by the container specification.
-# Gates sshd and Workspace file services. IDE cache symlink targets are prepared
-# by home-init.
+# workspace-init s6 oneshot (runs as x): prepare private data directories
+# and mount /workspace via gocryptfs when explicitly enabled.
 
 set -euo pipefail
 
@@ -14,8 +11,13 @@ case "${CODESPACE_ENCRYPTED:?CODESPACE_ENCRYPTED must be true or false}" in
     exit 1
     ;;
 esac
+readonly encrypted_path="${CODESPACE_ENCRYPTED_PATH:?CODESPACE_ENCRYPTED_PATH must be set}"
 
-sudo install -d -o 5230 -g 5230 -m 0700 -- /workspace /workspace.enc /upload /cache
+# Rootful Podman preserves Host IDs. SSH must reach the UDS as the Host login
+# user, so retain the bind source's owner on the control directory.
+sudo mkdir -p -- /run/codespace-control
+sudo chmod 0700 -- /run/codespace-control
+sudo install -d -o 5230 -g 5230 -m 0700 -- /workspace "${encrypted_path}" /upload
 
 if [[ ${CODESPACE_ENCRYPTED} == false ]]; then
   echo "Workspace encryption disabled, using plaintext /workspace"
@@ -35,8 +37,8 @@ if grep -q " /workspace fuse.gocryptfs " /proc/mounts; then
   exit 0
 fi
 
-if [[ ! -e /workspace.enc/gocryptfs.conf ]]; then
-  gocryptfs -init -extpass "${workspace_key_command}" /workspace.enc
+if [[ ! -e ${encrypted_path}/gocryptfs.conf ]]; then
+  gocryptfs -init -extpass "${workspace_key_command}" "${encrypted_path}"
 fi
 
-gocryptfs -extpass "${workspace_key_command}" -allow_other /workspace.enc /workspace
+gocryptfs -extpass "${workspace_key_command}" -allow_other "${encrypted_path}" /workspace

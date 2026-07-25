@@ -30,6 +30,7 @@ _LOG_TAIL = 2000
 _PORT_MIN = 1
 _PORT_MAX = 65_535
 _SECRET_NAME_RE = re.compile(r"^[a-zA-Z0-9._-]+$")
+RESOURCE_DATA_PLACEHOLDER = "${RESOURCE_DATA}"
 
 
 def _not_blank(value: str) -> str:
@@ -55,6 +56,21 @@ def _compose_literal(value: str) -> str:
     return value
 
 
+def _volume_source(value: str) -> str:
+    if "$" not in value:
+        return value
+    if value == RESOURCE_DATA_PLACEHOLDER:
+        return value
+    prefix = f"{RESOURCE_DATA_PLACEHOLDER}/"
+    if not value.startswith(prefix):
+        raise ValueError(f"only {RESOURCE_DATA_PLACEHOLDER} may be used in volume sources")
+    relative = value.removeprefix(prefix)
+    path = PurePosixPath(relative)
+    if not relative or path.is_absolute() or ".." in path.parts or str(path) != relative:
+        raise ValueError(f"path below {RESOURCE_DATA_PLACEHOLDER} must be normalized")
+    return value
+
+
 def _secret_name(value: str) -> str:
     if not _SECRET_NAME_RE.fullmatch(value):
         raise ValueError("must be a valid Compose secret name")
@@ -77,6 +93,11 @@ type ComposeNonBlankString = Annotated[
     AfterValidator(_compose_literal),
 ]
 type AbsolutePath = Annotated[str, AfterValidator(_absolute_path)]
+type VolumeSource = Annotated[
+    str,
+    AfterValidator(_not_blank),
+    AfterValidator(_volume_source),
+]
 type SecretName = Annotated[str, AfterValidator(_secret_name)]
 type SecretId = Annotated[str, Field(pattern=r"^\d+$")]
 type UlimitName = Annotated[str, Field(pattern=r"^[a-z]+$")]
@@ -103,7 +124,7 @@ class VolumeSpec(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     type: Literal["bind"]
-    source: NonBlankString
+    source: VolumeSource
     target: AbsolutePath
     read_only: StrictBool = False
 
@@ -132,6 +153,20 @@ class VolumeSpec(BaseModel):
             "target": self.target,
             "read_only": self.read_only,
         }
+
+    @property
+    def uses_resource_data(self) -> bool:
+        return self.source == RESOURCE_DATA_PLACEHOLDER or self.source.startswith(
+            f"{RESOURCE_DATA_PLACEHOLDER}/"
+        )
+
+    def resolve_data_path(self, data_path: str) -> Self:
+        source = self.source
+        if self.uses_resource_data:
+            root = _absolute_path(data_path)
+            relative = self.source.removeprefix(RESOURCE_DATA_PLACEHOLDER).removeprefix("/")
+            source = root if not relative else f"{root}/{relative}"
+        return self.model_copy(update={"source": source})
 
 
 class SecretSpec(BaseModel):
@@ -164,9 +199,9 @@ def _unique_options(values: list[str]) -> list[str]:
 
 
 def _unique_volumes(volumes: list[VolumeSpec]) -> list[VolumeSpec]:
-    keys = [(volume.type, volume.source, volume.target, volume.read_only) for volume in volumes]
-    if len(keys) != len(set(keys)):
-        raise ValueError("volumes must not contain duplicate values")
+    targets = [volume.target for volume in volumes]
+    if len(targets) != len(set(targets)):
+        raise ValueError("volume targets must be unique")
     return volumes
 
 

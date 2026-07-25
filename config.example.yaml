@@ -9,6 +9,8 @@ project_defaults:
   image: ghcr.io/curoky/codespace:workspace-debian13
   tunnel_ports: [8005, 8007, 8008]
   container:
+    environment:
+      CODESPACE_ENCRYPTED_PATH: /workspace.enc
     secrets:
       - source: atuin_db_uri
         mode: 0400
@@ -24,6 +26,19 @@ project_defaults:
         soft: -1
         hard: -1
     volumes:
+      - ${RESOURCE_DATA}/workspace:/workspace
+      - ${RESOURCE_DATA}/upload:/upload
+      - ${RESOURCE_DATA}/control:/run/codespace-control
+      - ${RESOURCE_DATA}/cache/.vscode-server/bin:/home/x/.vscode-server/bin
+      - ${RESOURCE_DATA}/cache/.vscode-server/extensions:/home/x/.vscode-server/extensions
+      - ${RESOURCE_DATA}/cache/.trae/bin:/home/x/.trae/bin
+      - ${RESOURCE_DATA}/cache/.trae/extensions:/home/x/.trae/extensions
+      - ${RESOURCE_DATA}/cache/.trae-cn/bin:/home/x/.trae-cn/bin
+      - ${RESOURCE_DATA}/cache/.trae-cn/extensions:/home/x/.trae-cn/extensions
+      - ${RESOURCE_DATA}/cache/.trae-server/bin:/home/x/.trae-server/bin
+      - ${RESOURCE_DATA}/cache/.trae-server/extensions:/home/x/.trae-server/extensions
+      - ${RESOURCE_DATA}/cache/.trae-cn-server/bin:/home/x/.trae-cn-server/bin
+      - ${RESOURCE_DATA}/cache/.trae-cn-server/extensions:/home/x/.trae-cn-server/extensions
       - /etc/krb5.conf:/etc/krb5.conf:ro
 
 projects:
@@ -64,7 +79,7 @@ services:
         SERVE_HOST: 0.0.0.0
         SERVE_PORT: "8003"
       volumes:
-        - ${SERVICE_DATA}:/root/.cache/huggingface
+        - ${RESOURCE_DATA}:/root/.cache/huggingface
 
   sglang:
     image: ghcr.io/curoky/codespace:service-sglang
@@ -81,7 +96,7 @@ services:
         SERVE_HOST: 0.0.0.0
         SERVE_PORT: "8003"
       volumes:
-        - ${SERVICE_DATA}:/root/.cache/huggingface
+        - ${RESOURCE_DATA}:/root/.cache/huggingface
 
   lobehub:
     image: ghcr.io/curoky/codespace:service-lobehub
@@ -96,7 +111,7 @@ services:
         APP_URL: http://localhost:3210
         OPENAI_PROXY_URL: http://10.88.0.1:8003/v1
       volumes:
-        - ${SERVICE_DATA}:/var/lib/codespace/lobehub
+        - ${RESOURCE_DATA}:/var/lib/codespace/lobehub
 
   chatbox:
     image: ghcr.io/curoky/codespace:service-chatbox

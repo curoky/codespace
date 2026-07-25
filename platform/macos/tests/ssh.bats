@@ -45,6 +45,7 @@ teardown() {
   [ "$status" -eq 0 ]
   [[ "$output" == *$'user x\n'* ]]
   [[ "$output" == *$'hostname 127.0.0.1\n'* ]]
+  [[ "$output" == *$'batchmode yes\n'* ]]
   [[ "$output" == *$'stricthostkeychecking true\n'* ]]
   [[ "$output" == *$'hostkeyalgorithms ssh-ed25519\n'* ]]
   [[ "$output" == *$'hostkeyalias codespace\n'* ]]
@@ -62,7 +63,6 @@ teardown() {
   mkdir "$routes"
   cat >"$routes/$alias" <<'EOF'
 Host space-codespace-debug-home
-  HostName 127.0.0.1
   Port 23456
   ProxyCommand ssh -o BatchMode=yes -W %h:%p home
 EOF
@@ -72,6 +72,7 @@ EOF
 
   [ "$status" -eq 0 ]
   [[ "$output" == *$'port 23456\n'* ]]
+  [[ "$output" == *$'hostname 127.0.0.1\n'* ]]
   [[ "$output" == *'proxycommand ssh -o BatchMode=yes -W %h:%p home'* ]]
 }
 

@@ -3,6 +3,7 @@
 redirfd -w 1 /var/log/s6.sshd.log
 fdmove -c 2 1
 
-# https://github.com/un-def/openssh-static-build/blob/master/run-sshd.sh#L30
+s6-notifyoncheck -d -n 0 -w 200 -t 2000 -T 60000
+  -c "s6-tcpclient -H -t 1 127.0.0.1 22 /bin/true"
 exec /opt/bm/store/openssh_gssapi/bin/sshd -D -e
   -f /etc/ssh/sshd_config

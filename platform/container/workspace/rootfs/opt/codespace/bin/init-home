@@ -7,18 +7,11 @@
 set -euo pipefail
 
 sudo install -d -o 5230 -g 5230 -m 0700 -- \
-  /cache/.vscode-server/{bin,extensions} \
-  /cache/.trae/{bin,extensions} \
-  /cache/.trae-cn/{bin,extensions} \
-  /cache/.trae-server/{bin,extensions} \
-  /cache/.trae-cn-server/{bin,extensions}
+  /home/x/{.vscode-server,.trae,.trae-cn,.trae-server,.trae-cn-server}/{bin,extensions}
 
-# The private key stays inside the Workspace; the control plane reads only the
-# public key.
-install -d -m 0700 -- /home/x/.ssh
+# Preserve the provider-registered identity across restarts of this container.
 if [[ ! -f /home/x/.ssh/repo_id_ed25519 ]]; then
   ssh-keygen -q -t ed25519 -N "" -C codespace -f /home/x/.ssh/repo_id_ed25519
 fi
-chmod 0600 /home/x/.ssh/repo_id_ed25519
 
 /opt/codespace/bin/seed-editor-extensions
