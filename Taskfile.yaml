@@ -137,6 +137,11 @@ tasks:
     cmds:
       - platform/container/services/lobehub/build.sh {{.CLI_ARGS}}
 
+  platform:chatbox:
+    desc: 构建 Chatbox Service image
+    cmds:
+      - platform/container/services/chatbox/build.sh {{.CLI_ARGS}}
+
   platform:framework:pytorch:
     desc: 构建 PyTorch framework image
     cmds:

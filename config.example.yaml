@@ -98,5 +98,16 @@ services:
       volumes:
         - ${SERVICE_DATA}:/var/lib/codespace/lobehub
 
+  chatbox:
+    image: ghcr.io/curoky/codespace:service-chatbox
+    hosts:
+      server: {}
+    container:
+      network_mode: bridge
+      ports:
+        - { target: 3212, published: 3212, host_ip: 127.0.0.1 }
+      environment:
+        CHATBOX_API_UPSTREAM: http://10.88.0.1:8003
+
 tokens: {}
 secrets: {}
