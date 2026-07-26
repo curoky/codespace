@@ -20,9 +20,9 @@ export PATH="$PATH:/opt/conda/condabin"
 export PATH="$PATH:/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec"
 
 # nix
-export PATH="$PATH:/nix/var/nix/profiles/default/bin"
+export PATH="$PATH:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin"
 
 # cuda
 export CUDA_HOME=/usr/local/cuda
 export PATH="$PATH:/usr/local/cuda/bin:/opt/nvidia/nsight-systems-cli/2026.3.1/bin"
-export LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+$LD_LIBRARY_PATH:}/usr/local/cuda/lib64"
+export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/cuda/lib64"
