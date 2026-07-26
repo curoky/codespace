@@ -1,56 +1,38 @@
-"""Tests for the agent's in-memory operation store."""
+"""Tests for current-operation state keyed by project and instance."""
 
-from codespace import shared
-from codespace.agent.operations import OperationStore
+import pytest
+
+from codespace.operations import OperationStore
 
 
-def test_create_registers_queued_operation() -> None:
+def test_store_rejects_concurrent_operation_and_retains_failure() -> None:
     store = OperationStore()
-    operation = store.create("op1")
-    assert operation.id == "op1"
-    assert operation.status == "queued"
-    assert operation.stage == "queued"
-    assert store.get("op1") is operation
+    store.create("home", "devspace", "debug")
 
+    with pytest.raises(RuntimeError, match="already running"):
+        store.create("home", "devspace", "debug")
 
-def test_get_returns_none_for_unknown_id() -> None:
-    assert OperationStore().get("missing") is None
-
-
-def test_update_merges_only_provided_fields() -> None:
-    store = OperationStore()
-    store.create("op1")
-    store.update("op1", status="running", stage="creating container")
-
-    operation = store.get("op1")
-    assert operation is not None
-    assert operation.status == "running"
-    assert operation.stage == "creating container"
-    assert operation.error is None
-
-    # A later update leaves untouched fields intact.
-    store.update("op1", stage="waiting for ssh")
-    operation = store.get("op1")
-    assert operation is not None
-    assert operation.status == "running"
-    assert operation.stage == "waiting for ssh"
-
-
-def test_update_can_attach_codespace_and_terminal_status() -> None:
-    store = OperationStore()
-    store.create("op1")
-    codespace = shared.Codespace(
-        id="cs1",
-        port=49207,
-        user="dev",
-        container_id="cid",
-        repo="owner/name",
-        workspace_dir="codespace-owner-name-default-default-deadbeef",
+    store.update(
+        "devspace",
+        "debug",
+        status="failed",
+        stage="failed",
+        error="podman unavailable",
     )
-    store.update("op1", status="succeeded", stage="ready", codespace=codespace)
 
-    operation = store.get("op1")
-    assert operation is not None
-    assert operation.status == "succeeded"
-    assert operation.codespace is not None
-    assert operation.codespace.id == "cs1"
+    operation = store.list()[0]
+    assert operation.status == "failed"
+    assert operation.error == "podman unavailable"
+
+
+def test_retry_replaces_failed_operation_and_success_removes_it() -> None:
+    store = OperationStore()
+    store.create("home", "devspace", "debug")
+    store.update("devspace", "debug", status="failed", error="first failure")
+
+    retried = store.create("home", "devspace", "debug")
+
+    assert retried.status == "queued"
+    assert retried.error is None
+    store.remove("devspace", "debug")
+    assert store.list() == []

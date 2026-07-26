@@ -1,259 +1,207 @@
-"""Tests for the agent FastAPI routes with podman mocked out.
+"""Tests for the reduced local Web API and native static assets."""
 
-The agent no longer talks to GitHub, so only podman is stubbed. Orchestration
-detail lives in test_service.py; these tests exercise the HTTP surface.
-"""
-
-import time
+from __future__ import annotations
 
 import pytest
 from fastapi.testclient import TestClient
-from podman.errors import NotFound
 
-from codespace import shared
-from codespace.agent import app as app_module
-from codespace.agent import containers, credentials
-from codespace.agent.config import AgentConfig
+from codespace.app import create_app
+from codespace.config import Config
+from codespace.models import (
+    DashboardResponse,
+    HostStatus,
+    ProjectSummary,
+)
+from codespace.operations import OperationStore
+
+
+class FakeService:
+    def __init__(self, config: Config) -> None:
+        self.config = config
+        self.operations = OperationStore()
+        self.tokens = {"github": False, "gitlab": False}
+        self.created: list[tuple[str, str]] = []
+        self.deleted: list[tuple[str, str, bool]] = []
+        self.closed = False
+
+    def close(self) -> None:
+        self.closed = True
+
+    def token_status(self) -> dict[str, bool]:
+        return dict(self.tokens)
+
+    def set_token(self, provider: str, token: str) -> None:
+        assert token
+        self.tokens[provider] = True
+
+    def dashboard(self) -> DashboardResponse:
+        return DashboardResponse(
+            hosts=[HostStatus(id="home", status="online")],
+            projects=[
+                ProjectSummary(
+                    id="devspace",
+                    host="home",
+                    provider="github",
+                    repo="curoky/devspace",
+                    image=self.config.default_image,
+                )
+            ],
+            environments=[],
+            operations=self.operations.list(),
+            tokens={  # type: ignore[arg-type]
+                "github": self.tokens["github"],
+                "gitlab": self.tokens["gitlab"],
+            },
+        )
+
+    def queue_create(self, project: str, instance: str) -> str:
+        if project not in self.config.projects:
+            raise KeyError(f"unknown project: {project}")
+        if not self.tokens["github"]:
+            raise RuntimeError("github token is not set")
+        return self.operations.create("home", project, instance).id
+
+    def create(self, project: str, instance: str) -> None:
+        self.created.append((project, instance))
+
+    def delete(self, project: str, instance: str, *, purge: bool) -> None:
+        if project not in self.config.projects:
+            raise KeyError(f"unknown project: {project}")
+        self.deleted.append((project, instance, purge))
 
 
 @pytest.fixture
-def config() -> AgentConfig:
-    return AgentConfig(
-        workspace_root_host="/var/lib/cs",
-        podman_uri="unix:///run/podman/podman.sock",
-    )
+def app_client(config: Config) -> tuple[TestClient, FakeService]:
+    service = FakeService(config)
+    return TestClient(create_app(config, service=service)), service  # type: ignore[arg-type]
 
 
-@pytest.fixture
-def client(config: AgentConfig, monkeypatch: pytest.MonkeyPatch) -> TestClient:
-    # The agent opens a PodmanClient as a context manager; stub it so no socket
-    # is touched. Individual tests override the container ops they need.
-    class _DummyClient:
-        def __enter__(self) -> "_DummyClient":
-            return self
+def test_static_assets_are_native_sources(app_client: tuple[TestClient, FakeService]) -> None:
+    client, _service = app_client
 
-        def __exit__(self, *args: object) -> None:
-            return None
+    index = client.get("/")
+    script = client.get("/static/app.js")
+    stylesheet = client.get("/static/app.css")
 
-    monkeypatch.setattr(app_module, "PodmanClient", lambda *a, **k: _DummyClient())
-    monkeypatch.setattr(containers, "ensure_workspace_dir", lambda *a: None)
-    monkeypatch.setattr(containers, "wait_for_ssh_ready", lambda *a: None)
-    return TestClient(app_module.create_app(config))
+    assert index.status_code == 200
+    assert "/static/app.js" in index.text
+    assert "react" not in script.text.lower()
+    assert "radix" not in stylesheet.text.lower()
 
 
-def _create_body() -> dict:
-    return {
-        "repo": "owner/name",
-        "login_pubkey": "ssh-ed25519 AAAA",
-        "image": "codespace/dev:latest",
-    }
-
-
-def _operation_result(client: TestClient, operation_id: str) -> dict:
-    for _ in range(20):
-        resp = client.get(f"/operations/{operation_id}")
-        assert resp.status_code == 200
-        body = resp.json()
-        if body["status"] in {"succeeded", "failed"}:
-            return body
-        time.sleep(0.01)
-    return body
-
-
-def _container_labels() -> containers.ContainerLabels:
-    return containers.ContainerLabels(
-        cs_id="abc123",
-        repo="owner/name",
-        provider="github",
-        template="default",
-        instance="default",
-        image="codespace/dev:latest",
-        port=49207,
-    )
-
-
-def test_create_success_returns_public_key(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch
+def test_dashboard_returns_all_state_and_token_presence(
+    app_client: tuple[TestClient, FakeService],
 ) -> None:
-    monkeypatch.setattr(
-        credentials,
-        "generate_deploy_keypair",
-        lambda: credentials.DeployKeypair(private_openssh="PRIV", public_openssh="ssh-ed25519 PUB"),
-    )
-    monkeypatch.setattr(
-        containers,
-        "create_container",
-        lambda *a, **k: containers.ContainerInfo(container_id="cid", port=49207),
-    )
-    monkeypatch.setattr(containers, "find_container_by_instance", lambda *a: None)
-    monkeypatch.setattr(containers, "pull_image", lambda *a: None)
-    monkeypatch.setattr(credentials, "inject_credentials", lambda *a, **k: None)
+    client, _service = app_client
 
-    resp = client.post("/codespaces", json=_create_body())
-    assert resp.status_code == 202
-    operation = resp.json()
-    assert operation["id"]
-    body = _operation_result(client, operation["id"])["codespace"]
-    assert body["id"]
-    assert body["port"] == 49207
-    assert body["deploy_public_key"] == "ssh-ed25519 PUB"
+    body = client.get("/api/dashboard").json()
 
-
-def test_create_rejects_invalid_repo(client: TestClient) -> None:
-    resp = client.post(
-        "/codespaces",
-        json={"repo": "invalid", "login_pubkey": "ssh-ed25519 AAAA", "image": "img"},
-    )
-    assert resp.status_code == 422  # pydantic validation at the boundary
-
-
-def test_get_operation_returns_404_for_missing_id(client: TestClient) -> None:
-    resp = client.get("/operations/missing")
-    assert resp.status_code == 404
-    assert resp.json() == {"error": "operation not found"}
-
-
-def test_list_codespaces(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
-    sample = shared.Codespace(
-        id="abc",
-        port=49207,
-        user="dev",
-        container_id="cid",
-        repo="owner/name",
-        template="default",
-        instance="default",
-        workspace_dir="codespace-owner-name-default-deadbeef",
-    )
-    monkeypatch.setattr(containers, "list_codespaces", lambda client: [sample])
-
-    resp = client.get("/codespaces")
-    assert resp.status_code == 200
-    assert resp.json()[0]["id"] == "abc"
-
-
-def test_list_codespaces_renders_corrupt_label_error(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    def _raise_corrupt_label(_client: object) -> list[shared.Codespace]:
-        raise ValueError("container codespace-abc is missing required label codespace.repo")
-
-    monkeypatch.setattr(containers, "list_codespaces", _raise_corrupt_label)
-
-    resp = client.get("/codespaces")
-
-    assert resp.status_code == 500
-    assert resp.json() == {
-        "error": "container codespace-abc is missing required label codespace.repo"
-    }
-
-
-def test_delete_missing_is_idempotent(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(containers, "get_container", lambda client, cs_id: None)
-    resp = client.request("DELETE", "/codespaces/nope")
-    assert resp.status_code == 200
-    assert resp.json() == {"ok": True, "workspace_removed": False}
-
-
-def test_delete_existing_removes_container(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    removed: list[object] = []
-    container = type(
-        "_Container",
-        (),
-        {"remove": lambda self, *, force: removed.append(self)},
-    )()
-    monkeypatch.setattr(containers, "get_container", lambda client, cs_id: container)
-    monkeypatch.setattr(containers, "read_labels", lambda container: _container_labels())
-    purged: list[str] = []
-    monkeypatch.setattr(containers, "purge_workspace", lambda client, d: purged.append(d))
-
-    resp = client.request("DELETE", "/codespaces/abc123")
-    assert resp.status_code == 200
-    assert resp.json() == {"ok": True, "workspace_removed": False}
-    assert len(removed) == 1  # container removed
-    assert purged == []  # no purge without ?purge=true
-
-
-def test_delete_with_purge_removes_workspace(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    container = type(
-        "_Container",
-        (),
+    assert body["hosts"] == [
         {
-            "stop": lambda self, *, timeout: None,
-            "remove": lambda self, *, force: None,
-        },
-    )()
-    monkeypatch.setattr(containers, "get_container", lambda client, cs_id: container)
-    monkeypatch.setattr(containers, "read_labels", lambda container: _container_labels())
-    purged: list[str] = []
-    monkeypatch.setattr(containers, "purge_workspace", lambda client, d: purged.append(d))
-
-    resp = client.request("DELETE", "/codespaces/abc123?purge=true")
-    assert resp.status_code == 200
-    assert resp.json() == {"ok": True, "workspace_removed": True}
-    # purge target is <workspace_root>/<workspace_dir>
-    assert purged == [
-        "/var/lib/cs/" + shared.workspace_dir_name("owner/name", "default", "default")
+            "id": "home",
+            "status": "online",
+            "environment_count": 0,
+            "error": None,
+            "inventory_errors": [],
+        }
     ]
+    assert body["projects"][0]["id"] == "devspace"
+    assert body["tokens"] == {"github": False, "gitlab": False}
+    assert body["operations"] == []
 
 
-def test_delete_with_purge_purges_before_removing_container(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch
+def test_token_api_never_returns_token_value(
+    app_client: tuple[TestClient, FakeService],
 ) -> None:
-    events: list[str] = []
+    client, _service = app_client
 
-    class _Container:
-        def stop(self, *, timeout: int) -> None:
-            events.append("stop")
+    response = client.put("/api/tokens/github", json={"token": "secret-token"})
 
-        def remove(self, *, force: bool) -> None:
-            events.append("remove")
-
-    monkeypatch.setattr(containers, "get_container", lambda client, cs_id: _Container())
-    monkeypatch.setattr(containers, "read_labels", lambda container: _container_labels())
-    monkeypatch.setattr(containers, "purge_workspace", lambda client, d: events.append("purge"))
-
-    resp = client.request("DELETE", "/codespaces/abc123?purge=true")
-
-    assert resp.status_code == 200
-    assert events == ["stop", "purge", "remove"]
+    assert response.status_code == 200
+    assert response.json() == {"github": True, "gitlab": False}
+    assert "secret-token" not in response.text
 
 
-def test_clone_codespace_repo(client: TestClient, monkeypatch: pytest.MonkeyPatch) -> None:
-    container = object()
-    cloned: list[tuple[str, str]] = []
-    monkeypatch.setattr(containers, "get_container", lambda client, cs_id: container)
-    monkeypatch.setattr(containers, "read_labels", lambda container: _container_labels())
-    monkeypatch.setattr(
-        credentials,
-        "clone_repo",
-        lambda client, *, cs_id, repo, provider: cloned.append((cs_id, repo)),
+def test_create_requires_token_and_returns_local_operation(
+    app_client: tuple[TestClient, FakeService],
+) -> None:
+    client, service = app_client
+
+    missing = client.post(
+        "/api/projects/devspace/instances",
+        json={"instance": "debug"},
+    )
+    assert missing.status_code == 409
+    assert missing.json() == {"error": "github token is not set"}
+
+    client.put("/api/tokens/github", json={"token": "token"})
+    created = client.post(
+        "/api/projects/devspace/instances",
+        json={"instance": "debug"},
     )
 
-    resp = client.post("/codespaces/abc123/clone")
+    assert created.status_code == 202
+    assert created.json() == {
+        "id": "codespace-home-devspace-debug",
+        "host": "home",
+        "project": "devspace",
+        "instance": "debug",
+        "status": "queued",
+        "stage": "queued",
+        "error": None,
+    }
+    assert service.created == [("devspace", "debug")]
 
-    assert resp.status_code == 200
-    assert resp.json() == {"ok": True}
-    assert cloned == [("abc123", "owner/name")]
 
-
-def test_clone_codespace_repo_returns_404_when_deleted_during_clone(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch
+def test_create_rejects_unknown_fields_and_invalid_ids(
+    app_client: tuple[TestClient, FakeService],
 ) -> None:
-    container = object()
-    result = iter([container, None])
-    monkeypatch.setattr(containers, "get_container", lambda client, cs_id: next(result))
-    monkeypatch.setattr(containers, "read_labels", lambda container: _container_labels())
+    client, _service = app_client
 
-    def _clone_repo(*args: object, **kwargs: object) -> None:
-        raise NotFound("no such exec session")
+    invalid_body = client.post(
+        "/api/projects/devspace/instances",
+        json={"instance": "debug", "image": "override"},
+    )
+    invalid_path = client.request(
+        "DELETE",
+        "/api/projects/devspace/instances/Bad?purge=false",
+    )
 
-    monkeypatch.setattr(credentials, "clone_repo", _clone_repo)
+    assert invalid_body.status_code == 422
+    assert invalid_body.json()["error"].startswith("body.image:")
+    assert invalid_path.status_code == 422
+    assert invalid_path.json()["error"].startswith("path.instance:")
 
-    resp = client.post("/codespaces/abc123/clone")
 
-    assert resp.status_code == 404
-    assert resp.json() == {"error": "codespace not found"}
+@pytest.mark.parametrize("purge", [False, True])
+def test_delete_api_passes_purge_choice(
+    app_client: tuple[TestClient, FakeService],
+    purge: bool,
+) -> None:
+    client, service = app_client
+
+    response = client.request(
+        "DELETE",
+        f"/api/projects/devspace/instances/debug?purge={str(purge).lower()}",
+    )
+
+    assert response.status_code == 200
+    assert response.json() == {"ok": True, "workspace_removed": purge}
+    assert service.deleted == [("devspace", "debug", purge)]
+
+
+def test_only_documented_api_routes_exist(
+    app_client: tuple[TestClient, FakeService],
+) -> None:
+    client, _service = app_client
+
+    for path in (
+        "/api/config",
+        "/api/provider-tokens",
+        "/api/operations/anything",
+        "/api/operations/stream",
+        "/codespaces",
+    ):
+        response = client.get(path)
+        assert response.status_code == 404
+        assert response.json() == {"error": "Not Found"}

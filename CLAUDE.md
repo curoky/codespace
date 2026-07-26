@@ -20,10 +20,10 @@ High-level design of `devspace` — a personal, opinionated development environm
 | [images/](file:///workspace/devspace/images) | Dockerfiles for non-codespace `ghcr.io/curoky/devspace:*` image variants. [gcc/](file:///workspace/devspace/images/gcc), [gui/](file:///workspace/devspace/images/gui), [pytorch/](file:///workspace/devspace/images/pytorch), [tensorflow/](file:///workspace/devspace/images/tensorflow), [iso/](file:///workspace/devspace/images/iso) extend the published base images. |
 | [deps/](file:///workspace/devspace/deps) | Independent builders for upstream dependencies (CUDA, GCC, LLVM, Python, TensorFlow, host-tools, tabby). Each subdir owns its `Dockerfile` / `Taskfile.yaml` / `build.sh`. |
 | [tools/](file:///workspace/devspace/tools) | Repo-local helper scripts used by CI, hooks, and ad-hoc maintenance (license headers, git history rewrites, GitHub Actions disk cleanup, …). |
-| [codespace/](file:///workspace/devspace/codespace) | Codespace agent/client implementation, local Web GUI source and built static assets, and codespace-specific image assets under [codespace/images/](file:///workspace/devspace/codespace/images). |
+| [codespace/](file:///workspace/devspace/codespace) | Local Codespace control plane, native Web UI, tests, development image, host sidecar boundary, and its agent source of truth in [codespace/CLAUDE.md](file:///workspace/devspace/codespace/CLAUDE.md). |
 | [.github/workflows/](file:///workspace/devspace/.github/workflows) | CI: image build matrix, ISO build, dependency rebuilds, registry cleanup. |
 | [.devcontainer/devcontainer.json](file:///workspace/devspace/.devcontainer/devcontainer.json) | Consumer entry: pulls the published base image. |
-| [pyproject.toml](file:///workspace/devspace/pyproject.toml), [uv.lock](file:///workspace/devspace/uv.lock) | Repo Python tooling (uv-managed); declares lint config (ruff/yapf/black) and CLI deps (typer). |
+| [pyproject.toml](file:///workspace/devspace/pyproject.toml), [uv.lock](file:///workspace/devspace/uv.lock) | uv-managed Python runtime and tooling for the local Codespace control plane. |
 | [lefthook.yml](file:///workspace/devspace/lefthook.yml) | Pre-commit / commit-msg hooks (shfmt, ruff, clang-format, author check). |
 
 ## 3. Component design
@@ -67,6 +67,7 @@ Three layers:
 ### 3.4 CI / Release
 
 - [build-codespace-image.yaml](file:///workspace/devspace/.github/workflows/build-codespace-image.yaml) — matrix-builds the codespace base/reference image from [codespace/images/dev](file:///workspace/devspace/codespace/images/dev) across Debian/Ubuntu bases and publishes both `base-<distro><ver>` and `codespace-<distro><ver>` tags. Uses `ghcr.io/curoky/devspace-cache:codespace-*` for buildx cache.
+- [build-codespace-sidecar.yaml](file:///workspace/devspace/.github/workflows/build-codespace-sidecar.yaml) — builds [codespace/sidecar/Dockerfile](file:///workspace/devspace/codespace/sidecar/Dockerfile) and publishes the host-shared `ghcr.io/curoky/devspace:codespace-sidecar` image.
 - [build-image.yaml](file:///workspace/devspace/.github/workflows/build-image.yaml) — matrix-builds the non-codespace dist images under [images/](file:///workspace/devspace/images).
 - [build-iso.yaml](file:///workspace/devspace/.github/workflows/build-iso.yaml) — produces the live ISO via `images/iso`.
 - [deps-*.yaml](file:///workspace/devspace/.github/workflows) — independently rebuild upstream toolchains; outputs are consumed by `images/*` via `COPY --from=…` or pre-staged tarballs.
@@ -76,19 +77,20 @@ Three layers:
 ### 3.5 Repo tooling
 
 - [lefthook.yml](file:///workspace/devspace/lefthook.yml) — `pre-commit` formats shell/python/c++/protobuf; `commit-msg` enforces author identity via [tools/check-author.sh](file:///workspace/devspace/tools/check-author.sh).
-- [pyproject.toml](file:///workspace/devspace/pyproject.toml) — ruff (line 100, py311 target), yapf (google), black; `typer` is the only runtime dep (used by ad-hoc scripts under `tools/`).
-- [codespace/client/webui/package.json](file:///workspace/devspace/codespace/client/webui/package.json), [codespace/client/webui/pnpm-lock.yaml](file:///workspace/devspace/codespace/client/webui/pnpm-lock.yaml), [codespace/client/webui/vite.config.ts](file:///workspace/devspace/codespace/client/webui/vite.config.ts), [codespace/client/webui/tsconfig.json](file:///workspace/devspace/codespace/client/webui/tsconfig.json) — pnpm-managed Vite / TypeScript toolchain for the local codespace Web GUI; `pnpm --dir codespace/client/webui build` writes static assets to `codespace/client/static/`.
+- [pyproject.toml](file:///workspace/devspace/pyproject.toml) — Python 3.13 runtime dependencies plus ruff, mypy, and pytest tooling managed by uv.
+- [codespace/static/](file:///workspace/devspace/codespace/static) — native HTML, CSS, and JavaScript served directly by FastAPI; these files are source, not generated build output.
 - [.dockerignore](file:///workspace/devspace/.dockerignore), [.gitignore](file:///workspace/devspace/.gitignore) — keep build context lean.
 
 ### 3.6 Codespace
 
-- [codespace/agent/](file:///workspace/devspace/codespace/agent) — FastAPI agent and Podman orchestration that runs on the Linux host with access to the rootful Podman socket.
-- [codespace/client/](file:///workspace/devspace/codespace/client) — Typer CLI, local Web GUI server, GitHub deploy-key orchestration, and local SSH config management.
-- [codespace/images/agent/](file:///workspace/devspace/codespace/images/agent) — agent image Dockerfile, build script, s6 service definitions, standalone-binaries manifest, and reference run script.
+- [codespace/__main__.py](file:///workspace/devspace/codespace/__main__.py) — fixed localhost launcher for the single-process Web control plane.
+- [codespace/config.py](file:///workspace/devspace/codespace/config.py), [models.py](file:///workspace/devspace/codespace/models.py) — strict TOML configuration and deterministic host/project/instance identities.
+- [codespace/transport.py](file:///workspace/devspace/codespace/transport.py), [runtime.py](file:///workspace/devspace/codespace/runtime.py) — reusable system-SSH Unix socket forwards and direct remote rootful Podman lifecycle.
+- [codespace/service.py](file:///workspace/devspace/codespace/service.py), [provider.py](file:///workspace/devspace/codespace/provider.py), [ssh.py](file:///workspace/devspace/codespace/ssh.py) — lifecycle orchestration, GitHub/GitLab deploy keys, login keys, and generated SSH projections.
+- [codespace/app.py](file:///workspace/devspace/codespace/app.py), [codespace/static/](file:///workspace/devspace/codespace/static) — the reduced FastAPI API and native Web UI.
 - [codespace/images/dev/](file:///workspace/devspace/codespace/images/dev) — reference development image Dockerfile, rootfs, and build scripts used by codespace containers.
-- [codespace/client/webui/](file:///workspace/devspace/codespace/client/webui) — React / TypeScript / Mantine frontend source for the local Web GUI. This is intentionally co-located under `codespace/` instead of the repository root so codespace-specific code stays in one tree.
-- [codespace/client/static/](file:///workspace/devspace/codespace/client/static) — built frontend assets served by `codespace.client.web`; never edit these by hand, rebuild them from `codespace/client/webui/`.
-- Web GUI frontend commands are run with an explicit directory, for example `pnpm --dir codespace/client/webui typecheck` and `pnpm --dir codespace/client/webui build`.
+- [codespace/sidecar/](file:///workspace/devspace/codespace/sidecar) — host-scoped shared-service image and launcher. Each host runs one fixed `codespace-sidecar` container; image details and invariants live in [codespace/sidecar/CLAUDE.md](file:///workspace/devspace/codespace/sidecar/CLAUDE.md).
+- Codespace hosts are existing root SSH aliases. The local process forwards each host's `/run/podman/podman.sock` to a private local Unix socket and never deploys a remote HTTP agent.
 
 ## 4. Cross-component contracts
 
@@ -97,8 +99,9 @@ These are the load-bearing assumptions; touching them requires updating both sid
 1. **User identity in containers**: user `x` with uid/gid `5230:5230`. Hard-coded in [codespace/images/dev/Dockerfile](file:///workspace/devspace/codespace/images/dev/Dockerfile); referenced by every `COPY --chown=…`.
 2. **Repo mount path inside container**: `/opt/devspace`, with `~/devspace` as a symlink. Dotfiles paths in `setup.sh` resolve relative to `$CONF_PATH` which defaults to `$HOME/devspace/dotfiles`.
 3. **Image tag scheme**: `ghcr.io/curoky/devspace:base-<distro><ver>` for base, `ghcr.io/curoky/devspace:<name>` for dist. Cache mirror under `ghcr.io/curoky/devspace-cache:*`.
-4. **Service supervision**: codespace containers start via a self-hosted s6 init (no s6-overlay). Dev image s6 config lives in [codespace/images/dev/rootfs/etc/s6](file:///workspace/devspace/codespace/images/dev/rootfs/etc/s6); agent image s6 service definitions live in [codespace/images/agent/rootfs/etc/s6](file:///workspace/devspace/codespace/images/agent/rootfs/etc/s6). `setup-s6.sh` compiles the s6-rc db to `/etc/s6/db` and generates the init at `/etc/s6/init` via `s6-linux-init-maker`. New long-running services go under the image-specific `rootfs/etc/s6/s6-rc.d` and must be added to a `user*/contents.d/` bundle. Service `run`/oneshot `up` files are execline scripts; load the container environment with `s6-envdir -Lf -- /run/s6/container_environment` at the top of the run script.
-5. **Language conventions**: code and committed docs are English; interactive chat is Chinese.
+4. **Service supervision**: codespace containers start via a self-hosted s6 init (no s6-overlay). Dev image s6 config lives in [codespace/images/dev/rootfs/etc/s6](file:///workspace/devspace/codespace/images/dev/rootfs/etc/s6). `setup-s6.sh` compiles the s6-rc db to `/etc/s6/db` and generates the init at `/etc/s6/init` via `s6-linux-init-maker`. New long-running services go under `rootfs/etc/s6/s6-rc.d` and must be added to a `user*/contents.d/` bundle. Service `run`/oneshot `up` files are execline scripts; load the container environment with `s6-envdir -Lf -- /run/s6/container_environment` at the top of the run script.
+5. **Host sidecar**: each Codespace host has one fixed `codespace-sidecar` container, independent from project and instance resources. The `ghcr.io/curoky/devspace:codespace-sidecar` image runs s6 and Atuin server on host-network `127.0.0.1:8002`, while development containers retain client wiring.
+6. **Language conventions**: code and committed docs are English; interactive chat is Chinese.
 
 ## 5. Extension recipes
 
@@ -106,6 +109,7 @@ These are the load-bearing assumptions; touching them requires updating both sid
 - **Add a new image variant** → create `images/<name>/{Dockerfile,build.sh}`, add a matrix entry in [build-image.yaml](file:///workspace/devspace/.github/workflows/build-image.yaml), update §3.2.
 - **Add a new dependency builder** → create `deps/<name>/{Dockerfile,Taskfile.yaml,build.sh}`, add a `deps-<name>.yaml` workflow, update §3.2.
 - **Add a host platform** → create `host/<os>/bootstrap.sh` and required conf assets; update §3.3.
+- **Add a Codespace shared service** → add its assets under [codespace/sidecar/](file:///workspace/devspace/codespace/sidecar), preserve the one-sidecar-per-host contract, and update both Codespace agent guides.
 
 ## 6. Known caveats
 

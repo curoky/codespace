@@ -1,213 +1,443 @@
-"""Tests for the codespace provisioner orchestration.
+"""Tests for local lifecycle orchestration and fail-closed rollback."""
 
-These exercise the create flow directly against fakes, without going through the
-FastAPI layer: dedup rejection, rollback on failure, and stage ordering.
-"""
+from __future__ import annotations
+
+from types import SimpleNamespace
 
 import pytest
 
-from codespace import shared
-from codespace.agent import containers, credentials
-from codespace.agent.config import AgentConfig
-from codespace.agent.operations import OperationStore
-from codespace.agent.service import CodespaceProvisioner
+from codespace import provider, runtime, ssh
+from codespace.config import Config
+from codespace.models import Environment, environment_id, ssh_port
+from codespace.service import CodespaceService
 
 
-class _DummyClient:
-    def __enter__(self) -> "_DummyClient":
-        return self
+class FakeTransport:
+    def __init__(self, clients: dict[str, object]) -> None:
+        self.clients = clients
+        self.closed = False
 
-    def __exit__(self, *args: object) -> None:
-        return None
+    def client(self, host: str) -> object:
+        client = self.clients[host]
+        if isinstance(client, Exception):
+            raise client
+        return client
+
+    def close(self) -> None:
+        self.closed = True
 
 
-def _config() -> AgentConfig:
-    return AgentConfig(
-        workspace_root_host="/var/lib/cs", podman_uri="unix:///run/podman/podman.sock"
+def _environment(
+    *,
+    host: str = "home",
+    project: str = "devspace",
+    instance: str = "debug",
+) -> Environment:
+    identity = environment_id(host, project, instance)
+    provider_name = "github" if host == "home" else "gitlab"
+    repo = "curoky/devspace" if host == "home" else "group/service-api"
+    return Environment(
+        id=identity,
+        host=host,
+        project=project,
+        instance=instance,
+        repo=repo,
+        provider=provider_name,
+        image="image:latest",
+        ssh_port=ssh_port(identity),
+        container_id="container-id",
+        status="running",
     )
 
 
-def _request() -> shared.CreateRequest:
-    return shared.CreateRequest(
-        repo="owner/name",
-        login_pubkey="ssh-ed25519 AAAA",
-        image="codespace/dev:latest",
+@pytest.fixture
+def service(
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> CodespaceService:
+    monkeypatch.setattr(ssh, "initialize", lambda hosts: None)
+    return CodespaceService(
+        config,
+        transport=FakeTransport({"home": object(), "office": object()}),  # type: ignore[arg-type]
     )
 
 
-def _provisioner(operations: OperationStore) -> CodespaceProvisioner:
-    return CodespaceProvisioner(_config(), operations, lambda: _DummyClient())
+def _queue_with_token(service: CodespaceService) -> None:
+    service.set_token("github", "token")
+    service.queue_create("devspace", "debug")
 
 
-def _patch_happy_path(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        credentials,
-        "generate_deploy_keypair",
-        lambda: credentials.DeployKeypair(private_openssh="PRIV", public_openssh="ssh-ed25519 PUB"),
-    )
-    monkeypatch.setattr(containers, "find_container_by_instance", lambda *a, **k: None)
-    monkeypatch.setattr(containers, "ensure_workspace_dir", lambda *a: None)
-    monkeypatch.setattr(containers, "pull_image", lambda *a: None)
-    monkeypatch.setattr(
-        containers,
-        "create_container",
-        lambda *a, **k: containers.ContainerInfo(container_id="cid", port=49207),
-    )
-    monkeypatch.setattr(credentials, "inject_credentials", lambda *a, **k: None)
-    monkeypatch.setattr(containers, "wait_for_ssh_ready", lambda *a: None)
-
-
-def test_provision_success_records_ready_codespace(monkeypatch: pytest.MonkeyPatch) -> None:
-    _patch_happy_path(monkeypatch)
-    operations = OperationStore()
-    operations.create("op1")
-
-    _provisioner(operations).provision("op1", "cs1", _request())
-
-    operation = operations.get("op1")
-    assert operation is not None
-    assert operation.status == "succeeded"
-    assert operation.stage == "ready"
-    assert operation.codespace is not None
-    assert operation.codespace.id == "cs1"
-    assert operation.codespace.port == 49207
-    assert operation.codespace.deploy_public_key == "ssh-ed25519 PUB"
-
-
-def test_provision_orders_workspace_before_pull_and_create(
+def test_dashboard_isolates_offline_host_and_rewrites_successful_host(
+    config: Config,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    calls: list[str] = []
+    monkeypatch.setattr(ssh, "initialize", lambda hosts: None)
+    writes: list[tuple[str, list[Environment]]] = []
+    monkeypatch.setattr(ssh, "write_host", lambda host, envs: writes.append((host, envs)))
+    home_client = object()
+    transport = FakeTransport({"home": home_client, "office": RuntimeError("ssh down")})
+    service = CodespaceService(config, transport=transport)  # type: ignore[arg-type]
     monkeypatch.setattr(
-        credentials,
-        "generate_deploy_keypair",
-        lambda: credentials.DeployKeypair(private_openssh="PRIV", public_openssh="ssh-ed25519 PUB"),
+        runtime,
+        "list_inventory",
+        lambda client, host, cfg: runtime.Inventory([_environment()], []),
     )
-    monkeypatch.setattr(containers, "find_container_by_instance", lambda *a, **k: None)
-    monkeypatch.setattr(
-        containers, "ensure_workspace_dir", lambda path: calls.append(f"mkdir:{path}")
+
+    dashboard = service.dashboard()
+
+    assert [host.status for host in dashboard.hosts] == ["online", "offline"]
+    assert dashboard.hosts[1].error == "ssh down"
+    assert [environment.id for environment in dashboard.environments] == [
+        "codespace-home-devspace-debug"
+    ]
+    assert writes == [("home", [_environment()])]
+
+
+def test_dashboard_keeps_failed_operation_when_container_was_retained(
+    service: CodespaceService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _queue_with_token(service)
+    service.operations.update(
+        "devspace",
+        "debug",
+        status="failed",
+        stage="failed",
+        error="rollback stopped: provider unavailable",
     )
-    monkeypatch.setattr(containers, "pull_image", lambda *a: calls.append("pull"))
-
-    def _create(*a: object, **kwargs: object) -> containers.ContainerInfo:
-        calls.append(f"create:{kwargs['workspace_host_dir']}")
-        return containers.ContainerInfo(container_id="cid", port=49207)
-
-    monkeypatch.setattr(containers, "create_container", _create)
-    monkeypatch.setattr(credentials, "inject_credentials", lambda *a, **k: None)
-    monkeypatch.setattr(containers, "wait_for_ssh_ready", lambda *a: None)
-
-    operations = OperationStore()
-    operations.create("op1")
-    _provisioner(operations).provision("op1", "cs1", _request())
-
-    workspace_dir = "/var/lib/cs/" + shared.workspace_dir_name("owner/name", "default", "default")
-    assert calls == [f"mkdir:{workspace_dir}", "pull", f"create:{workspace_dir}"]
-
-
-def test_provision_rejects_existing_instance(monkeypatch: pytest.MonkeyPatch) -> None:
-    existing = object()
-    created: list[object] = []
-    monkeypatch.setattr(containers, "find_container_by_instance", lambda *a, **k: existing)
     monkeypatch.setattr(
-        containers,
-        "read_labels",
-        lambda container: containers.ContainerLabels(
-            cs_id="abc123",
-            repo="owner/name",
-            provider="github",
-            template="default",
-            instance="default",
-            image="codespace/dev:latest",
-            port=49207,
+        runtime,
+        "list_inventory",
+        lambda client, host, cfg: (
+            runtime.Inventory([_environment()], []) if host == "home" else runtime.Inventory([], [])
         ),
     )
-    monkeypatch.setattr(containers, "container_status", lambda container: None)
-    monkeypatch.setattr(containers, "create_container", lambda *a, **k: created.append(k))
-    monkeypatch.setattr(containers, "get_container", lambda *a: None)
+    monkeypatch.setattr(ssh, "write_host", lambda host, environments: None)
 
-    operations = OperationStore()
-    operations.create("op1")
-    _provisioner(operations).provision("op1", "cs1", _request())
+    dashboard = service.dashboard()
 
-    operation = operations.get("op1")
-    assert operation is not None
-    assert operation.status == "failed"
-    assert operation.error == (
-        "codespace already exists for repo/template/instance (id=abc123, name=None, status=unknown)"
+    assert len(dashboard.environments) == 1
+    assert len(dashboard.operations) == 1
+    assert dashboard.operations[0].status == "failed"
+
+
+def test_create_runs_all_stages_in_order(
+    service: CodespaceService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _queue_with_token(service)
+    events: list[str] = []
+    container = SimpleNamespace(id="container-id")
+    inventories = iter(
+        [
+            runtime.Inventory([], []),
+            runtime.Inventory([_environment()], []),
+        ]
     )
-    assert created == []
-
-
-def test_provision_failure_rolls_back_container(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(runtime, "list_inventory", lambda *args: next(inventories))
+    monkeypatch.setattr(ssh, "ensure_login_key", lambda: events.append("login") or "LOGIN")
     monkeypatch.setattr(
-        credentials,
+        runtime,
         "generate_deploy_keypair",
-        lambda: credentials.DeployKeypair(private_openssh="PRIV", public_openssh="PUB"),
+        lambda: (
+            events.append("keygen")
+            or runtime.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC")
+        ),
     )
-    monkeypatch.setattr(containers, "find_container_by_instance", lambda *a, **k: None)
-    monkeypatch.setattr(containers, "ensure_workspace_dir", lambda *a: None)
-    monkeypatch.setattr(containers, "pull_image", lambda *a: None)
-
-    def _fail(*a: object, **k: object) -> containers.ContainerInfo:
-        raise RuntimeError("podman down")
-
-    monkeypatch.setattr(containers, "create_container", _fail)
-    rolled_back: list[str] = []
+    monkeypatch.setattr(runtime, "pull_image", lambda *args: events.append("pull"))
+    monkeypatch.setattr(runtime, "prepare_workspace", lambda *args: events.append("workspace"))
     monkeypatch.setattr(
-        containers, "get_container", lambda client, cs_id: rolled_back.append(cs_id) or None
+        runtime,
+        "create_container",
+        lambda *args, **kwargs: events.append("create") or container,
     )
-
-    operations = OperationStore()
-    operations.create("op1")
-    _provisioner(operations).provision("op1", "cs1", _request())
-
-    operation = operations.get("op1")
-    assert operation is not None
-    assert operation.status == "failed"
-    assert operation.error == "podman down"
-    assert rolled_back == ["cs1"]  # rollback attempted to find/remove the container
-
-
-def test_provision_failure_survives_rollback_failure(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
-        credentials,
+        runtime, "inject_credentials", lambda *args, **kwargs: events.append("inject")
+    )
+    monkeypatch.setattr(ssh, "probe", lambda environment: events.append("probe"))
+    monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
+    monkeypatch.setattr(runtime, "clone_repo", lambda *args: events.append("clone"))
+    monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
+
+    service.create("devspace", "debug")
+
+    assert events == [
+        "login",
+        "keygen",
+        "pull",
+        "workspace",
+        "create",
+        "inject",
+        "probe",
+        "register",
+        "clone",
+        "projection",
+    ]
+    assert service.operations.list() == []
+
+
+def test_create_rejects_duplicate_before_generating_keys(
+    service: CodespaceService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _queue_with_token(service)
+    monkeypatch.setattr(
+        runtime,
+        "list_inventory",
+        lambda *args: runtime.Inventory([_environment()], []),
+    )
+    generated: list[bool] = []
+    monkeypatch.setattr(
+        runtime,
         "generate_deploy_keypair",
-        lambda: credentials.DeployKeypair(private_openssh="PRIV", public_openssh="PUB"),
+        lambda: generated.append(True),
     )
-    monkeypatch.setattr(containers, "find_container_by_instance", lambda *a, **k: None)
-    monkeypatch.setattr(containers, "ensure_workspace_dir", lambda *a: None)
-    monkeypatch.setattr(containers, "pull_image", lambda *a: None)
 
-    def _raise_podman_down(*a: object, **k: object) -> containers.ContainerInfo:
-        raise RuntimeError("podman down")
+    service.create("devspace", "debug")
 
-    def _raise_rollback_down(*a: object, **k: object) -> None:
-        raise RuntimeError("rollback down")
-
-    monkeypatch.setattr(containers, "create_container", _raise_podman_down)
-    monkeypatch.setattr(containers, "get_container", _raise_rollback_down)
-
-    operations = OperationStore()
-    operations.create("op1")
-    _provisioner(operations).provision("op1", "cs1", _request())
-
-    operation = operations.get("op1")
-    assert operation is not None
+    operation = service.operations.list()[0]
     assert operation.status == "failed"
-    assert operation.error == "podman down"
+    assert "already exists" in (operation.error or "")
+    assert generated == []
 
 
-def test_provision_rejects_concurrent_duplicate_instance(monkeypatch: pytest.MonkeyPatch) -> None:
-    _patch_happy_path(monkeypatch)
-    operations = OperationStore()
-    provisioner = _provisioner(operations)
-    # Pre-reserve the instance slot so the next provision sees it as in-flight.
-    operations.create("op1")
-    with provisioner._claim_instance(("owner/name", "default", "default")):
-        provisioner.provision("op1", "cs1", _request())
+def test_create_rejects_deterministic_port_collision(
+    service: CodespaceService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _queue_with_token(service)
+    collision = _environment(instance="other")
+    collision.ssh_port = ssh_port("codespace-home-devspace-debug")
+    monkeypatch.setattr(
+        runtime,
+        "list_inventory",
+        lambda *args: runtime.Inventory([collision], []),
+    )
 
-    operation = operations.get("op1")
-    assert operation is not None
-    assert operation.status == "failed"
-    assert operation.error == "codespace creation is already running for repo/template/instance"
+    service.create("devspace", "debug")
+
+    error = service.operations.list()[0].error or ""
+    assert "SSH port collision" in error
+    assert "choose a different instance name" in error
+
+
+def test_failure_before_register_removes_container_but_keeps_workspace(
+    service: CodespaceService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _queue_with_token(service)
+    container = SimpleNamespace(id="container-id")
+    removed: list[object] = []
+    monkeypatch.setattr(
+        runtime,
+        "list_inventory",
+        lambda *args: runtime.Inventory([], []),
+    )
+    monkeypatch.setattr(ssh, "ensure_login_key", lambda: "LOGIN")
+    monkeypatch.setattr(
+        runtime,
+        "generate_deploy_keypair",
+        lambda: runtime.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
+    )
+    monkeypatch.setattr(runtime, "pull_image", lambda *args: None)
+    monkeypatch.setattr(runtime, "prepare_workspace", lambda *args: None)
+    monkeypatch.setattr(runtime, "create_container", lambda *args, **kwargs: container)
+    monkeypatch.setattr(runtime, "inject_credentials", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssh, "probe", lambda environment: (_ for _ in ()).throw(RuntimeError("no ssh"))
+    )
+    monkeypatch.setattr(runtime, "find_container", lambda *args: container)
+    monkeypatch.setattr(runtime, "remove_container", lambda item: removed.append(item))
+    monkeypatch.setattr(provider, "revoke", lambda *args: pytest.fail("must not revoke"))
+
+    service.create("devspace", "debug")
+
+    assert removed == [container]
+    assert service.operations.list()[0].error == "no ssh"
+
+
+def test_container_run_failure_still_attempts_deterministic_cleanup(
+    service: CodespaceService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _queue_with_token(service)
+    container = SimpleNamespace(id="container-id")
+    removed: list[object] = []
+    monkeypatch.setattr(
+        runtime,
+        "list_inventory",
+        lambda *args: runtime.Inventory([], []),
+    )
+    monkeypatch.setattr(ssh, "ensure_login_key", lambda: "LOGIN")
+    monkeypatch.setattr(
+        runtime,
+        "generate_deploy_keypair",
+        lambda: runtime.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
+    )
+    monkeypatch.setattr(runtime, "pull_image", lambda *args: None)
+    monkeypatch.setattr(runtime, "prepare_workspace", lambda *args: None)
+    monkeypatch.setattr(
+        runtime,
+        "create_container",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("wait failed")),
+    )
+    monkeypatch.setattr(runtime, "find_container", lambda *args: container)
+    monkeypatch.setattr(runtime, "remove_container", lambda item: removed.append(item))
+
+    service.create("devspace", "debug")
+
+    assert removed == [container]
+    assert service.operations.list()[0].error == "wait failed"
+
+
+def test_failure_after_register_revokes_then_removes_container(
+    service: CodespaceService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _queue_with_token(service)
+    events: list[str] = []
+    container = SimpleNamespace(id="container-id")
+    monkeypatch.setattr(runtime, "list_inventory", lambda *args: runtime.Inventory([], []))
+    monkeypatch.setattr(ssh, "ensure_login_key", lambda: "LOGIN")
+    monkeypatch.setattr(
+        runtime,
+        "generate_deploy_keypair",
+        lambda: runtime.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
+    )
+    monkeypatch.setattr(runtime, "pull_image", lambda *args: None)
+    monkeypatch.setattr(runtime, "prepare_workspace", lambda *args: None)
+    monkeypatch.setattr(runtime, "create_container", lambda *args, **kwargs: container)
+    monkeypatch.setattr(runtime, "inject_credentials", lambda *args, **kwargs: None)
+    monkeypatch.setattr(ssh, "probe", lambda environment: None)
+    monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
+    monkeypatch.setattr(
+        runtime,
+        "clone_repo",
+        lambda *args: (_ for _ in ()).throw(RuntimeError("clone failed")),
+    )
+    monkeypatch.setattr(runtime, "find_container", lambda *args: container)
+    monkeypatch.setattr(provider, "revoke", lambda *args: events.append("revoke"))
+    monkeypatch.setattr(runtime, "remove_container", lambda item: events.append("remove"))
+
+    service.create("devspace", "debug")
+
+    assert events == ["register", "revoke", "remove"]
+
+
+def test_revoke_failure_after_register_retains_container(
+    service: CodespaceService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _queue_with_token(service)
+    stopped: list[int] = []
+    container = SimpleNamespace(
+        id="container-id",
+        stop=lambda *, timeout: stopped.append(timeout),
+    )
+    removed: list[object] = []
+    monkeypatch.setattr(runtime, "list_inventory", lambda *args: runtime.Inventory([], []))
+    monkeypatch.setattr(ssh, "ensure_login_key", lambda: "LOGIN")
+    monkeypatch.setattr(
+        runtime,
+        "generate_deploy_keypair",
+        lambda: runtime.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
+    )
+    monkeypatch.setattr(runtime, "pull_image", lambda *args: None)
+    monkeypatch.setattr(runtime, "prepare_workspace", lambda *args: None)
+    monkeypatch.setattr(runtime, "create_container", lambda *args, **kwargs: container)
+    monkeypatch.setattr(runtime, "inject_credentials", lambda *args, **kwargs: None)
+    monkeypatch.setattr(ssh, "probe", lambda environment: None)
+    monkeypatch.setattr(provider, "register", lambda *args: None)
+    monkeypatch.setattr(
+        runtime,
+        "clone_repo",
+        lambda *args: (_ for _ in ()).throw(RuntimeError("clone failed")),
+    )
+    monkeypatch.setattr(
+        provider,
+        "revoke",
+        lambda *args: (_ for _ in ()).throw(RuntimeError("provider unavailable")),
+    )
+    monkeypatch.setattr(runtime, "find_container", lambda *args: container)
+    monkeypatch.setattr(runtime, "remove_container", lambda item: removed.append(item))
+
+    service.create("devspace", "debug")
+
+    assert removed == []
+    assert stopped == [10]
+    assert "rollback stopped: provider unavailable" in (service.operations.list()[0].error or "")
+
+
+def test_delete_requires_token_before_remote_mutation(
+    service: CodespaceService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    touched: list[bool] = []
+    monkeypatch.setattr(runtime, "list_inventory", lambda *args: touched.append(True))
+
+    with pytest.raises(RuntimeError, match="token is not set"):
+        service.delete("devspace", "debug", purge=False)
+
+    assert touched == []
+
+
+@pytest.mark.parametrize(
+    ("purge", "expected"),
+    [
+        (False, ["revoke", "remove", "projection"]),
+        (True, ["revoke", "purge", "remove", "projection"]),
+    ],
+)
+def test_delete_revokes_before_container_and_workspace_mutation(
+    service: CodespaceService,
+    monkeypatch: pytest.MonkeyPatch,
+    purge: bool,
+    expected: list[str],
+) -> None:
+    service.set_token("github", "token")
+    container = object()
+    events: list[str] = []
+    inventories = iter(
+        [
+            runtime.Inventory([_environment()], []),
+            runtime.Inventory([], []),
+        ]
+    )
+    monkeypatch.setattr(runtime, "list_inventory", lambda *args: next(inventories))
+    monkeypatch.setattr(runtime, "find_container", lambda *args: container)
+    monkeypatch.setattr(runtime, "read_environment", lambda *args: _environment())
+    monkeypatch.setattr(provider, "revoke", lambda *args: events.append("revoke"))
+    monkeypatch.setattr(runtime, "purge_workspace", lambda *args: events.append("purge"))
+    monkeypatch.setattr(runtime, "remove_container", lambda item: events.append("remove"))
+    monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
+
+    service.delete("devspace", "debug", purge=purge)
+
+    assert events == expected
+
+
+def test_delete_revoke_failure_refuses_all_mutation(
+    service: CodespaceService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service.set_token("github", "token")
+    container = object()
+    mutations: list[str] = []
+    monkeypatch.setattr(
+        runtime,
+        "list_inventory",
+        lambda *args: runtime.Inventory([_environment()], []),
+    )
+    monkeypatch.setattr(runtime, "find_container", lambda *args: container)
+    monkeypatch.setattr(
+        provider,
+        "revoke",
+        lambda *args: (_ for _ in ()).throw(RuntimeError("denied")),
+    )
+    monkeypatch.setattr(runtime, "purge_workspace", lambda *args: mutations.append("purge"))
+    monkeypatch.setattr(runtime, "remove_container", lambda item: mutations.append("remove"))
+
+    with pytest.raises(RuntimeError, match="denied"):
+        service.delete("devspace", "debug", purge=True)
+
+    assert mutations == []

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Codespace</title>
+    <link rel="stylesheet" href="/static/app.css" />
+    <script type="module" src="/static/app.js"></script>
+  </head>
+  <body>
+    <header>
+      <div>
+        <p class="eyebrow">Remote development</p>
+        <h1>Codespace</h1>
+      </div>
+      <div class="header-actions">
+        <button id="tokens-button" class="secondary">Tokens</button>
+        <button id="refresh-button">Refresh</button>
+      </div>
+    </header>
+
+    <main>
+      <section aria-labelledby="hosts-heading">
+        <div class="section-heading">
+          <h2 id="hosts-heading">Hosts</h2>
+        </div>
+        <div id="hosts" class="host-list"></div>
+      </section>
+
+      <section aria-labelledby="projects-heading">
+        <div class="section-heading">
+          <h2 id="projects-heading">Projects</h2>
+          <span id="poll-status" class="muted"></span>
+        </div>
+        <div id="projects" class="project-grid"></div>
+      </section>
+    </main>
+
+    <dialog id="instance-dialog">
+      <form id="instance-form">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">Create environment</p>
+            <h2 id="instance-title">New instance</h2>
+          </div>
+          <button type="button" class="icon secondary" data-close="instance-dialog">×</button>
+        </div>
+        <input id="instance-project" type="hidden" />
+        <label>
+          Instance name
+          <input
+            id="instance-name"
+            name="instance"
+            required
+            pattern="[a-z0-9][a-z0-9-]{0,31}"
+            maxlength="32"
+            autocomplete="off"
+            placeholder="debug"
+          />
+        </label>
+        <p class="muted">Lowercase letters, digits, and hyphens only.</p>
+        <div class="dialog-actions">
+          <button type="button" class="secondary" data-close="instance-dialog">Cancel</button>
+          <button type="submit">Create</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="tokens-dialog">
+      <form id="tokens-form">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">Process memory only</p>
+            <h2>Provider tokens</h2>
+          </div>
+          <button type="button" class="icon secondary" data-close="tokens-dialog">×</button>
+        </div>
+        <label>
+          GitHub token
+          <input id="github-token" type="password" autocomplete="off" />
+        </label>
+        <label>
+          GitLab token
+          <input id="gitlab-token" type="password" autocomplete="off" />
+        </label>
+        <p class="muted">Tokens are never returned by the API or written to disk.</p>
+        <div class="dialog-actions">
+          <button type="button" class="secondary" data-close="tokens-dialog">Cancel</button>
+          <button type="submit">Save supplied tokens</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>

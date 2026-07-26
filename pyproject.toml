@@ -1,25 +1,21 @@
 [project]
 name = "devspace"
 version = "0.1.0"
-description = "Add your description here"
+description = "Personal development environment and local Codespace control plane"
 requires-python = ">=3.13"
 dependencies = [
-    "typer>=0.19.2",
     "fastapi>=0.115.0",
     "uvicorn>=0.32.0",
     "podman>=5.0.0",
     "PyGithub>=2.5.0",
     "cryptography>=44.0.0",
     "loguru>=0.7.2",
-    "httpx>=0.28.0",
-    "PyYAML>=6.0.0",
     "python-gitlab>=8.4.0",
-    "cachetools>=6.2.2",
-    "tenacity>=9.1.2",
 ]
 
 [dependency-groups]
 dev = [
+    "httpx2>=0.1.0",
     "ruff>=0.8.0",
     "pytest>=8.3.0",
     "pytest-cov>=6.0.0",
@@ -39,8 +35,6 @@ target-version = "py313"
 select = ["E", "F", "B", "Q", "I", "UP", "S", "SIM", "RUF", "PTH", "ANN", "C4", "PIE"]
 
 [tool.ruff.lint.per-file-ignores]
-# The agent is designed to serve on all interfaces (see DESIGN.md §11 threat model).
-"codespace/agent/__main__.py" = ["S104"]
 # Tests may use assert and hardcoded dummy secrets.
 "codespace/tests/**" = ["S101", "S105", "S106"]
 

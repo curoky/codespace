@@ -1,0 +1,17 @@
+#!/opt/sb/profile/s6/bin/execlineb -P
+
+s6-envdir -Lf -- /run/s6/container_environment
+
+fdmove -c 2 1
+redirfd -w 1 /var/log/atuin-service.log
+
+importas ATUIN_DB_URI ATUIN_DB_URI
+
+export ATUIN_HOST "127.0.0.1"
+export ATUIN_PORT "8002"
+export ATUIN_OPEN_REGISTRATION "false"
+export ATUIN_DB_URI "${ATUIN_DB_URI}"
+
+foreground { mkdir -p /var/log }
+
+exec /opt/sb/store/atuin/bin/atuin server start

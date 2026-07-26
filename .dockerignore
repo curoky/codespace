@@ -17,8 +17,7 @@
 .coverage.*
 htmlcov
 
-# Node / frontend deps — nested under codespace/client/webui (~246M). The bare
-# `node_modules` pattern only matches the context root, so use `**/`.
+# Node dependencies are never needed in image build contexts.
 **/node_modules
 
 # Build outputs & packages
