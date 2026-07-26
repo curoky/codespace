@@ -5,8 +5,8 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from codespace.config import Config, load_config
-from codespace.models import (
+from codespace.client.config import Config, load_config
+from codespace.client.models import (
     CreateInstanceRequest,
     deploy_key_title,
     environment_id,

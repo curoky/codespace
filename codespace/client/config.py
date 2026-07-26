@@ -8,7 +8,7 @@ from typing import Self
 
 from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 
-from codespace.models import HOST_RE, REPO_RE, RESOURCE_ID_RE, GitProvider
+from codespace.client.models import HOST_RE, REPO_RE, RESOURCE_ID_RE, GitProvider
 
 CONFIG_PATH = Path.home() / ".config" / "codespace" / "config.toml"
 

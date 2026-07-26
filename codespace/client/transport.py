@@ -14,7 +14,7 @@ from threading import Lock
 
 from podman import PodmanClient
 
-from codespace.models import PODMAN_SOCKET
+from codespace.client.models import PODMAN_SOCKET
 
 _START_TIMEOUT = 10.0
 _START_INTERVAL = 0.05

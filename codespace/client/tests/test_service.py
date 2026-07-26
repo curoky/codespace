@@ -6,10 +6,10 @@ from types import SimpleNamespace
 
 import pytest
 
-from codespace import provider, runtime, ssh
-from codespace.config import Config
-from codespace.models import Environment, environment_id, ssh_port
-from codespace.service import CodespaceService
+from codespace.client import provider, runtime, ssh
+from codespace.client.config import Config
+from codespace.client.models import Environment, environment_id, ssh_port
+from codespace.client.service import CodespaceService
 
 
 class FakeTransport:

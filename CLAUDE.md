@@ -78,17 +78,12 @@ Three layers:
 
 - [lefthook.yml](file:///workspace/devspace/lefthook.yml) — `pre-commit` formats shell/python/c++/protobuf; `commit-msg` enforces author identity via [tools/check-author.sh](file:///workspace/devspace/tools/check-author.sh).
 - [pyproject.toml](file:///workspace/devspace/pyproject.toml) — Python 3.13 runtime dependencies plus ruff, mypy, and pytest tooling managed by uv.
-- [codespace/static/](file:///workspace/devspace/codespace/static) — native HTML, CSS, and JavaScript served directly by FastAPI; these files are source, not generated build output.
+- [codespace/client/static/](file:///workspace/devspace/codespace/client/static) — native HTML, CSS, and JavaScript served directly by FastAPI; these files are source, not generated build output.
 - [.dockerignore](file:///workspace/devspace/.dockerignore), [.gitignore](file:///workspace/devspace/.gitignore) — keep build context lean.
 
 ### 3.6 Codespace
 
-- [codespace/__main__.py](file:///workspace/devspace/codespace/__main__.py) — fixed localhost launcher for the single-process Web control plane.
-- [codespace/config.py](file:///workspace/devspace/codespace/config.py), [models.py](file:///workspace/devspace/codespace/models.py) — strict TOML configuration and deterministic host/project/instance identities.
-- [codespace/transport.py](file:///workspace/devspace/codespace/transport.py), [runtime.py](file:///workspace/devspace/codespace/runtime.py) — reusable system-SSH Unix socket forwards and direct remote rootful Podman lifecycle.
-- [codespace/service.py](file:///workspace/devspace/codespace/service.py), [provider.py](file:///workspace/devspace/codespace/provider.py), [ssh.py](file:///workspace/devspace/codespace/ssh.py) — lifecycle orchestration, GitHub/GitLab deploy keys, login keys, and generated SSH projections.
-- [codespace/app.py](file:///workspace/devspace/codespace/app.py), [codespace/static/](file:///workspace/devspace/codespace/static) — the reduced FastAPI API and native Web UI.
-- [codespace/client/run.sh](file:///workspace/devspace/codespace/client/run.sh) — detached local launcher for the flat Codespace control-plane package.
+- [codespace/client/](file:///workspace/devspace/codespace/client) — complete local control-plane package: strict TOML and models, system-SSH Podman transport, lifecycle orchestration, provider and SSH state, FastAPI, native Web UI, tests, and the detached launcher. Its entry point is `python -m codespace.client`.
 - [codespace/images/dev/](file:///workspace/devspace/codespace/images/dev) — reference development image Dockerfile, rootfs, and build scripts used by codespace containers.
 - [codespace/images/sidecar/](file:///workspace/devspace/codespace/images/sidecar) — host-scoped shared-service image and launcher. Each host runs one fixed `codespace-sidecar` container; image details and invariants live in [codespace/images/sidecar/CLAUDE.md](file:///workspace/devspace/codespace/images/sidecar/CLAUDE.md).
 - Codespace hosts are existing root SSH aliases. The local process forwards each host's `/run/podman/podman.sock` to a private local Unix socket and never deploys a remote HTTP agent.

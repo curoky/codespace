@@ -12,7 +12,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager, suppress
 from pathlib import Path
 
-from codespace.models import CONTAINER_USER, Environment
+from codespace.client.models import CONTAINER_USER, Environment
 
 SSH_CONFIG_PATH = Path.home() / ".ssh" / "config"
 CODESPACE_DIR = Path.home() / ".ssh" / "codespace"

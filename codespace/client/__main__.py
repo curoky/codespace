@@ -2,7 +2,7 @@
 
 import uvicorn
 
-from codespace.app import create_app
+from codespace.client.app import create_app
 
 
 def main() -> None:

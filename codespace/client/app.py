@@ -14,15 +14,15 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from codespace.config import CONFIG_PATH, Config, load_config
-from codespace.models import (
+from codespace.client.config import CONFIG_PATH, Config, load_config
+from codespace.client.models import (
     CreateInstanceRequest,
     DashboardResponse,
     GitProvider,
     Operation,
     UpdateTokenRequest,
 )
-from codespace.service import CodespaceService
+from codespace.client.service import CodespaceService
 
 STATIC_DIR = Path(__file__).parent / "static"
 

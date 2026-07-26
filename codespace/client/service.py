@@ -9,9 +9,9 @@ from threading import Lock
 from loguru import logger
 from podman import PodmanClient
 
-from codespace import provider, runtime, ssh
-from codespace.config import Config, ProjectConfig
-from codespace.models import (
+from codespace.client import provider, runtime, ssh
+from codespace.client.config import Config, ProjectConfig
+from codespace.client.models import (
     DashboardEnvironment,
     DashboardResponse,
     Environment,
@@ -23,8 +23,8 @@ from codespace.models import (
     environment_id,
     ssh_port,
 )
-from codespace.operations import OperationStore
-from codespace.transport import PodmanTransport
+from codespace.client.operations import OperationStore
+from codespace.client.transport import PodmanTransport
 
 
 @dataclass(frozen=True, slots=True)

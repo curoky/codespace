@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from threading import Lock
 
-from codespace.models import Operation, OperationStatus, environment_id
+from codespace.client.models import Operation, OperationStatus, environment_id
 
 
 class OperationStore:

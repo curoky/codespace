@@ -13,8 +13,8 @@ from podman import PodmanClient
 from podman.domain.containers import Container
 from podman.errors import NotFound
 
-from codespace.config import Config
-from codespace.models import (
+from codespace.client.config import Config
+from codespace.client.models import (
     CONTAINER_UID,
     CONTAINER_USER,
     LABEL_IMAGE,

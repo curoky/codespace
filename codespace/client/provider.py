@@ -5,7 +5,7 @@ from __future__ import annotations
 import gitlab as python_gitlab
 from github import Auth, Github
 
-from codespace.models import GitProvider
+from codespace.client.models import GitProvider
 
 _HTTP_TIMEOUT = 30.0
 

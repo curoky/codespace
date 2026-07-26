@@ -11,26 +11,27 @@ containers on remote rootful Podman hosts. The local Python process forwards
 each host's Podman Unix socket through system OpenSSH and calls Podman directly.
 Do not add a remote HTTP agent or use the podman-py SSH adapter.
 
-FastAPI serves both the JSON API and the native files in `static/`. GitHub and
-GitLab tokens exist only in process memory.
+FastAPI serves both the JSON API and the native files in `client/static/`.
+GitHub and GitLab tokens exist only in process memory.
 
 ## Layout
 
 | Path | Responsibility |
 | --- | --- |
-| `app.py`, `__main__.py` | Web application and process entry point. |
-| `config.py`, `models.py` | Configuration, identities, and API models. |
-| `transport.py`, `runtime.py` | SSH tunnels and Podman primitives. |
-| `service.py`, `operations.py` | Orchestration and operation state. |
-| `provider.py`, `ssh.py` | Deploy keys and SSH projections. |
-| `static/` | Native Web source served by FastAPI. |
-| `client/run.sh` | Background launcher for the local control plane. |
+| `client/` | Complete local control-plane Python package and launcher. |
+| `client/app.py`, `client/__main__.py` | Web application and entry point. |
+| `client/config.py`, `client/models.py` | Configuration and API models. |
+| `client/transport.py`, `client/runtime.py` | SSH and Podman primitives. |
+| `client/service.py`, `client/operations.py` | Orchestration and operations. |
+| `client/provider.py`, `client/ssh.py` | Deploy keys and SSH projections. |
+| `client/static/` | Native Web source served by FastAPI. |
+| `client/tests/` | Tests organized by public module behavior. |
+| `client/run.sh` | Detached launcher for the local control plane. |
 | `images/dev/` | Reference development image. |
 | `images/sidecar/` | Host shared-service image and launcher. |
-| `tests/` | Tests organized by public module behavior. |
 
-Do not recreate `agent/`, the old client Python package, generated Web assets,
-or a Node build chain. `client/` contains only the shell launcher.
+Do not recreate `agent/`, top-level client modules, generated Web assets, or a
+Node build chain. All local control-plane code belongs in `client/`.
 
 ## Configuration
 
@@ -177,7 +178,7 @@ file. Do not parse or merge historical SSH blocks.
 Run with:
 
 ```bash
-uv run python -m codespace
+uv run python -m codespace.client
 ```
 
 For a detached local process with repository-local logging, run:
@@ -219,8 +220,8 @@ or separate host and port configuration.
 - Keep sidecar inventory distinct from environment inventory.
 - Never restore the Python HTTP agent, Podman socket mount, or workspace mount
   in the sidecar image.
-- Keep `client/` limited to the local launcher; application code remains in the
-  flat `codespace` package.
+- Keep all local control-plane Python, static, launcher, and test files under
+  `client/`; do not add top-level compatibility modules.
 - Update this file and `images/sidecar/CLAUDE.md` whenever the sidecar naming,
   labels, image, storage, or lifecycle becomes concrete.
 - Prefer focused tests beside the affected module; do not restore compatibility
@@ -231,9 +232,9 @@ or separate host and port configuration.
 Run the narrowest relevant checks, then the complete Codespace suite:
 
 ```bash
-uv run ruff format --check codespace
-uv run ruff check codespace
-uv run mypy codespace
-uv run pytest codespace/tests
+uv run ruff format --check codespace/client
+uv run ruff check codespace/client
+uv run mypy codespace/client
+uv run pytest codespace/client/tests
 uv lock --check
 ```

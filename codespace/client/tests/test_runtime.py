@@ -8,9 +8,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from codespace import runtime
-from codespace.config import Config
-from codespace.models import (
+from codespace.client import runtime
+from codespace.client.config import Config
+from codespace.client.models import (
     LABEL_IMAGE,
     LABEL_INSTANCE,
     LABEL_MANAGED,

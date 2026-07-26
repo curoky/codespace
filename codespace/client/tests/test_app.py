@@ -5,14 +5,14 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
-from codespace.app import create_app
-from codespace.config import Config
-from codespace.models import (
+from codespace.client.app import create_app
+from codespace.client.config import Config
+from codespace.client.models import (
     DashboardResponse,
     HostStatus,
     ProjectSummary,
 )
-from codespace.operations import OperationStore
+from codespace.client.operations import OperationStore
 
 
 class FakeService:

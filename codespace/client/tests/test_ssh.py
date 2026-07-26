@@ -8,8 +8,8 @@ from pathlib import Path
 
 import pytest
 
-from codespace import ssh
-from codespace.models import Environment, ssh_port
+from codespace.client import ssh
+from codespace.client.models import Environment, ssh_port
 
 
 @pytest.fixture

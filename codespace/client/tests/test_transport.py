@@ -5,7 +5,7 @@ from __future__ import annotations
 import stat
 from pathlib import Path
 
-from codespace.transport import PodmanTransport
+from codespace.client.transport import PodmanTransport
 
 
 class FakeProcess:

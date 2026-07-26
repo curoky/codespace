@@ -2,7 +2,7 @@
 
 import pytest
 
-from codespace.operations import OperationStore
+from codespace.client.operations import OperationStore
 
 
 def test_store_rejects_concurrent_operation_and_retains_failure() -> None:

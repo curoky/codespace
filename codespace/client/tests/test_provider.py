@@ -6,7 +6,7 @@ from typing import ClassVar
 
 import pytest
 
-from codespace import provider
+from codespace.client import provider
 
 
 class GithubKey:

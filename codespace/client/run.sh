@@ -7,7 +7,7 @@ repo_root="$(cd -- "${script_dir}/../.." && pwd)"
 log_file="${repo_root}/codespace-client.log"
 uv_bin="$(command -v uv)"
 readonly uv_bin
-readonly process_pattern='python -m codespace'
+readonly process_pattern='python -m codespace.client'
 
 server_process_exists() {
   pgrep -f "${process_pattern}" >/dev/null 2>&1
@@ -37,7 +37,7 @@ fi
   echo "url=http://127.0.0.1:8765"
 } >>"${log_file}"
 
-nohup "${uv_bin}" run --directory "${repo_root}" python -m codespace \
+nohup "${uv_bin}" run --directory "${repo_root}" python -m codespace.client \
   >>"${log_file}" 2>&1 </dev/null &
 
 echo "codespace control plane started"

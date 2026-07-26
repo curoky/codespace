@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from codespace.config import Config
+from codespace.client.config import Config
 
 
 @pytest.fixture
