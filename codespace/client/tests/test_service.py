@@ -68,6 +68,20 @@ def _queue_with_token(service: CodespaceService) -> None:
     service.queue_create("devspace", "debug")
 
 
+def test_service_seeds_tokens_from_config(
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(ssh, "initialize", lambda hosts: None)
+    seeded = Config.model_validate({**config.model_dump(), "tokens": {"github": "ghp_example"}})
+    service = CodespaceService(
+        seeded,
+        transport=FakeTransport({"home": object(), "office": object()}),  # type: ignore[arg-type]
+    )
+
+    assert service.token_status() == {"github": True, "gitlab": False}
+
+
 def test_dashboard_isolates_offline_host_and_rewrites_successful_host(
     config: Config,
     monkeypatch: pytest.MonkeyPatch,

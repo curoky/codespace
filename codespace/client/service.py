@@ -50,6 +50,7 @@ class CodespaceService:
         self.operations = operations or OperationStore()
         self._tokens: dict[GitProvider, str] = {}
         self._token_lock = Lock()
+        self._tokens.update(config.seed_tokens())
         ssh.initialize(config.hosts)
 
     def close(self) -> None:

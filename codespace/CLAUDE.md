@@ -12,7 +12,8 @@ each host's Podman Unix socket through system OpenSSH and calls Podman directly.
 Do not add a remote HTTP agent or use the podman-py SSH adapter.
 
 FastAPI serves both the JSON API and the native files in `client/static/`.
-GitHub and GitLab tokens exist only in process memory.
+GitHub and GitLab tokens live in process memory; the optional `[tokens]` table
+in `config.toml` seeds them at startup and the Web UI overrides them at runtime.
 
 ## Layout
 
@@ -56,13 +57,18 @@ image = "registry.example.com/codespace-api:latest"
 
 [host_options.office]
 podman_socket = "/tmp/podmanxd.sock"
+
+[tokens]
+github = "ghp_xxx"
+gitlab = "glpat-xxx"
 ```
 
 Required top-level fields are `default_image` and `hosts`. Each project requires
 `host`, `provider`, and `repo`; `description` and `image` are optional. The
 optional `host_options.<host>` table overrides per-host settings; its only field
 is `podman_socket` (absolute remote path, default `/run/podman/podman.sock`).
-Reject unknown fields.
+The optional `[tokens]` table seeds provider tokens at startup; `github` and
+`gitlab` are each optional non-blank strings. Reject unknown fields.
 
 - Project and instance IDs match `^[a-z0-9][a-z0-9-]{0,31}$`.
 - Host aliases match `^[a-z0-9][a-z0-9.-]{0,62}$`.
@@ -216,8 +222,10 @@ or separate host and port configuration.
 
 - Treat a rootful Podman socket as root access to its host.
 - Keep system OpenSSH host-key verification enabled.
-- Never return, log, persist, or send provider tokens anywhere except the
-  selected Git provider.
+- Never return, log, or send provider tokens anywhere except the selected Git
+  provider. The control plane may read tokens from the local `[tokens]` config
+  table but never writes them back; that file holds plaintext secrets, so keep
+  it local, permission-restricted, and out of version control.
 - Deploy private keys may exist only in their development container.
 - Do not expose the Web application remotely or add multiple workers.
 - Shared services in the sidecar must bind only to addresses required by

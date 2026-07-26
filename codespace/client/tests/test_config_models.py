@@ -66,6 +66,67 @@ def test_config_resolves_per_host_podman_socket() -> None:
     }
 
 
+def test_config_seeds_tokens_from_tokens_table(tmp_path: Path) -> None:
+    path = tmp_path / "config.toml"
+    path.write_text(
+        """
+default_image = "default:latest"
+hosts = ["home"]
+
+[projects.devspace]
+host = "home"
+provider = "github"
+repo = "curoky/devspace"
+
+[tokens]
+github = "ghp_example"
+""",
+        encoding="utf-8",
+    )
+
+    config = load_config(path)
+
+    assert config.seed_tokens() == {"github": "ghp_example"}
+    assert "ghp_example" not in repr(config)
+
+
+def test_config_seed_tokens_defaults_to_empty() -> None:
+    config = Config.model_validate(
+        {
+            "default_image": "img",
+            "hosts": ["home"],
+            "projects": {
+                "devspace": {
+                    "host": "home",
+                    "provider": "github",
+                    "repo": "owner/repo",
+                }
+            },
+        }
+    )
+
+    assert config.seed_tokens() == {}
+
+
+@pytest.mark.parametrize("provider", ["github", "gitlab"])
+def test_config_rejects_blank_token(provider: str) -> None:
+    with pytest.raises(ValidationError, match="token must not be blank"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "hosts": ["home"],
+                "projects": {
+                    "devspace": {
+                        "host": "home",
+                        "provider": "github",
+                        "repo": "owner/repo",
+                    }
+                },
+                "tokens": {provider: "   "},
+            }
+        )
+
+
 @pytest.mark.parametrize(
     ("host_options", "message"),
     [

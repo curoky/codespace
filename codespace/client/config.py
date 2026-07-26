@@ -34,6 +34,27 @@ class HostConfig(BaseModel):
         return value
 
 
+class TokensConfig(BaseModel):
+    """Optional provider tokens read from the local ``[tokens]`` table.
+
+    Tokens supplied here seed the in-memory token store at startup so the
+    control plane does not require re-entering them through the Web UI after a
+    restart. They are secrets stored in plaintext on the local config file.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    github: str | None = Field(default=None, repr=False)
+    gitlab: str | None = Field(default=None, repr=False)
+
+    @field_validator("github", "gitlab")
+    @classmethod
+    def _not_blank_optional(cls, value: str | None) -> str | None:
+        if value is not None and not value.strip():
+            raise ValueError("token must not be blank")
+        return value
+
+
 class ProjectConfig(BaseModel):
     """Configuration for one project and its target host."""
 
@@ -76,6 +97,7 @@ class Config(BaseModel):
     hosts: list[str]
     projects: dict[str, ProjectConfig]
     host_options: dict[str, HostConfig] = Field(default_factory=dict)
+    tokens: TokensConfig = Field(default_factory=TokensConfig, repr=False)
 
     @field_validator("default_image")
     @classmethod
@@ -114,6 +136,15 @@ class Config(BaseModel):
     def project_image(self, project_id: str) -> str:
         """Resolve a project image against the required default image."""
         return self.projects[project_id].image or self.default_image
+
+    def seed_tokens(self) -> dict[GitProvider, str]:
+        """Return provider tokens declared in ``[tokens]`` to seed the store."""
+        seeded: dict[GitProvider, str] = {}
+        if self.tokens.github is not None:
+            seeded["github"] = self.tokens.github
+        if self.tokens.gitlab is not None:
+            seeded["gitlab"] = self.tokens.gitlab
+        return seeded
 
     def podman_socket(self, host: str) -> str:
         """Resolve one host's remote Podman socket, defaulting to the standard path."""
