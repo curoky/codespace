@@ -67,7 +67,7 @@ Three layers:
 ### 3.4 CI / Release
 
 - [build-codespace-image.yaml](file:///workspace/devspace/.github/workflows/build-codespace-image.yaml) — matrix-builds the codespace base/reference image from [codespace/images/dev](file:///workspace/devspace/codespace/images/dev) across Debian/Ubuntu bases and publishes both `base-<distro><ver>` and `codespace-<distro><ver>` tags. Uses `ghcr.io/curoky/devspace-cache:codespace-*` for buildx cache.
-- [build-codespace-sidecar.yaml](file:///workspace/devspace/.github/workflows/build-codespace-sidecar.yaml) — builds [codespace/sidecar/Dockerfile](file:///workspace/devspace/codespace/sidecar/Dockerfile) and publishes the host-shared `ghcr.io/curoky/devspace:codespace-sidecar` image.
+- [build-codespace-sidecar.yaml](file:///workspace/devspace/.github/workflows/build-codespace-sidecar.yaml) — builds [codespace/images/sidecar/Dockerfile](file:///workspace/devspace/codespace/images/sidecar/Dockerfile) and publishes the host-shared `ghcr.io/curoky/devspace:codespace-sidecar` image.
 - [build-image.yaml](file:///workspace/devspace/.github/workflows/build-image.yaml) — matrix-builds the non-codespace dist images under [images/](file:///workspace/devspace/images).
 - [build-iso.yaml](file:///workspace/devspace/.github/workflows/build-iso.yaml) — produces the live ISO via `images/iso`.
 - [deps-*.yaml](file:///workspace/devspace/.github/workflows) — independently rebuild upstream toolchains; outputs are consumed by `images/*` via `COPY --from=…` or pre-staged tarballs.
@@ -88,8 +88,9 @@ Three layers:
 - [codespace/transport.py](file:///workspace/devspace/codespace/transport.py), [runtime.py](file:///workspace/devspace/codespace/runtime.py) — reusable system-SSH Unix socket forwards and direct remote rootful Podman lifecycle.
 - [codespace/service.py](file:///workspace/devspace/codespace/service.py), [provider.py](file:///workspace/devspace/codespace/provider.py), [ssh.py](file:///workspace/devspace/codespace/ssh.py) — lifecycle orchestration, GitHub/GitLab deploy keys, login keys, and generated SSH projections.
 - [codespace/app.py](file:///workspace/devspace/codespace/app.py), [codespace/static/](file:///workspace/devspace/codespace/static) — the reduced FastAPI API and native Web UI.
+- [codespace/client/run.sh](file:///workspace/devspace/codespace/client/run.sh) — detached local launcher for the flat Codespace control-plane package.
 - [codespace/images/dev/](file:///workspace/devspace/codespace/images/dev) — reference development image Dockerfile, rootfs, and build scripts used by codespace containers.
-- [codespace/sidecar/](file:///workspace/devspace/codespace/sidecar) — host-scoped shared-service image and launcher. Each host runs one fixed `codespace-sidecar` container; image details and invariants live in [codespace/sidecar/CLAUDE.md](file:///workspace/devspace/codespace/sidecar/CLAUDE.md).
+- [codespace/images/sidecar/](file:///workspace/devspace/codespace/images/sidecar) — host-scoped shared-service image and launcher. Each host runs one fixed `codespace-sidecar` container; image details and invariants live in [codespace/images/sidecar/CLAUDE.md](file:///workspace/devspace/codespace/images/sidecar/CLAUDE.md).
 - Codespace hosts are existing root SSH aliases. The local process forwards each host's `/run/podman/podman.sock` to a private local Unix socket and never deploys a remote HTTP agent.
 
 ## 4. Cross-component contracts
@@ -109,7 +110,7 @@ These are the load-bearing assumptions; touching them requires updating both sid
 - **Add a new image variant** → create `images/<name>/{Dockerfile,build.sh}`, add a matrix entry in [build-image.yaml](file:///workspace/devspace/.github/workflows/build-image.yaml), update §3.2.
 - **Add a new dependency builder** → create `deps/<name>/{Dockerfile,Taskfile.yaml,build.sh}`, add a `deps-<name>.yaml` workflow, update §3.2.
 - **Add a host platform** → create `host/<os>/bootstrap.sh` and required conf assets; update §3.3.
-- **Add a Codespace shared service** → add its assets under [codespace/sidecar/](file:///workspace/devspace/codespace/sidecar), preserve the one-sidecar-per-host contract, and update both Codespace agent guides.
+- **Add a Codespace shared service** → add its assets under [codespace/images/sidecar/](file:///workspace/devspace/codespace/images/sidecar), preserve the one-sidecar-per-host contract, and update both Codespace agent guides.
 
 ## 6. Known caveats
 

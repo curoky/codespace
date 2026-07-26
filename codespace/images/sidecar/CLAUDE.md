@@ -49,8 +49,8 @@ external, so the container itself has no persistent service-data mount.
 Build and run manually from the repository root:
 
 ```bash
-codespace/sidecar/build.sh
-ATUIN_DB_URI=postgres://... codespace/sidecar/run.sh
+codespace/images/sidecar/build.sh
+ATUIN_DB_URI=postgres://... codespace/images/sidecar/run.sh
 ```
 
 `run.sh` replaces the fixed-name container and configures the Podman restart

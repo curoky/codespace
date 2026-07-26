@@ -24,12 +24,13 @@ GitLab tokens exist only in process memory.
 | `service.py`, `operations.py` | Orchestration and operation state. |
 | `provider.py`, `ssh.py` | Deploy keys and SSH projections. |
 | `static/` | Native Web source served by FastAPI. |
+| `client/run.sh` | Background launcher for the local control plane. |
 | `images/dev/` | Reference development image. |
-| `sidecar/` | Host shared-service image, launcher, and agent guide. |
+| `images/sidecar/` | Host shared-service image and launcher. |
 | `tests/` | Tests organized by public module behavior. |
 
-Do not recreate `agent/`, `client/`, generated Web assets, or a Node build
-chain.
+Do not recreate `agent/`, the old client Python package, generated Web assets,
+or a Node build chain. `client/` contains only the shell launcher.
 
 ## Configuration
 
@@ -112,7 +113,7 @@ errors; do not infer defaults.
 Sidecars are host-scoped and have exactly one container instance per host. They
 must not reuse the environment identity, workspace, deploy-key, or SSH
 projection contracts. Their detailed implementation contract belongs in
-`sidecar/CLAUDE.md`.
+`images/sidecar/CLAUDE.md`.
 
 ## Transport
 
@@ -179,6 +180,12 @@ Run with:
 uv run python -m codespace
 ```
 
+For a detached local process with repository-local logging, run:
+
+```bash
+codespace/client/run.sh
+```
+
 The application is fixed to one worker on `127.0.0.1:8765`. Keep these APIs
 only:
 
@@ -207,13 +214,15 @@ or separate host and port configuration.
 
 - Preserve unrelated files under `images/dev/`, especially s6, Atuin client,
   Ollama, onceinit, and sshd wiring.
-- Put host-shared service assets under `sidecar/`, not in project lifecycle
-  modules.
+- Put host-shared service assets under `images/sidecar/`, not in project
+  lifecycle modules.
 - Keep sidecar inventory distinct from environment inventory.
 - Never restore the Python HTTP agent, Podman socket mount, or workspace mount
   in the sidecar image.
-- Update this file and `sidecar/CLAUDE.md` whenever the sidecar naming, labels,
-  image, storage, or lifecycle becomes concrete.
+- Keep `client/` limited to the local launcher; application code remains in the
+  flat `codespace` package.
+- Update this file and `images/sidecar/CLAUDE.md` whenever the sidecar naming,
+  labels, image, storage, or lifecycle becomes concrete.
 - Prefer focused tests beside the affected module; do not restore compatibility
   paths.
 
