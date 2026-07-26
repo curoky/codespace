@@ -20,10 +20,9 @@ document.querySelectorAll("[data-close]").forEach((button) => {
 projectsElement.addEventListener("click", async (event) => {
   const target = event.target.closest("[data-action]");
   if (!target) return;
-  const { action, project, instance, value } = target.dataset;
+  const { action, project, instance } = target.dataset;
   if (action === "new") openInstanceDialog(project);
   if (action === "quick") await submitInstance(project, DEFAULT_INSTANCE);
-  if (action === "copy") await copyText(value);
   if (action === "delete") await deleteInstance(project, instance, false);
   if (action === "purge") await deleteInstance(project, instance, true);
 });
@@ -151,7 +150,6 @@ function renderEnvironment(environment) {
   const actions = element("div", "environment-actions");
   actions.append(link("Trae", environment.trae_url));
   actions.append(link("Trae CN", environment.trae_cn_url));
-  actions.append(actionButton("Copy SSH", "copy", environment.project, environment.instance, environment.ssh_command));
   actions.append(actionButton("Keep workspace", "delete", environment.project, environment.instance));
   const purgeButton = actionButton("Purge", "purge", environment.project, environment.instance);
   purgeButton.classList.add("danger");
@@ -234,11 +232,6 @@ async function saveTokens(event) {
   }
 }
 
-async function copyText(value) {
-  await navigator.clipboard.writeText(value);
-  notify(`Copied: ${value}`);
-}
-
 function element(tag, className = "", text = "") {
   const node = document.createElement(tag);
   if (className) node.className = className;
@@ -246,10 +239,10 @@ function element(tag, className = "", text = "") {
   return node;
 }
 
-function actionButton(label, action, project, instance = "", value = "") {
+function actionButton(label, action, project, instance = "") {
   const button = element("button", "secondary", label);
   button.type = "button";
-  Object.assign(button.dataset, { action, project, instance, value });
+  Object.assign(button.dataset, { action, project, instance });
   return button;
 }
 
