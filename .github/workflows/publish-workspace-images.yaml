@@ -90,6 +90,95 @@ jobs:
           mkdir -p "${RUNNER_TEMP}/digests"
           touch "${RUNNER_TEMP}/digests/${digest#sha256:}"
 
+      - name: Generate image report
+        shell: bash
+        env:
+          BUILD_METADATA: ${{ steps.build.outputs.metadata }}
+          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          set -euo pipefail
+
+          report_dir="${RUNNER_TEMP}/image-report"
+          image="ghcr.io/curoky/codespace@${IMAGE_DIGEST}"
+          mkdir -p "${report_dir}"
+
+          docker pull "${image}"
+          docker pull docker.io/wagoodman/dive:v0.13.1
+          printf '%s\n' "${BUILD_METADATA}" | jq . > "${report_dir}/build-metadata.json"
+          docker buildx imagetools inspect --raw "${image}" \
+            | jq . > "${report_dir}/manifest.json"
+          docker image inspect "${image}" \
+            | jq . > "${report_dir}/image-inspect.json"
+          docker history --no-trunc --format '{{json .}}' "${image}" \
+            | jq --slurp . > "${report_dir}/history.json"
+          docker history --no-trunc \
+            --format 'table {{.Size}}\t{{.CreatedBy}}' "${image}" \
+            > "${report_dir}/history.txt"
+
+          set +e
+          docker run --rm \
+            --env CI=true \
+            --env NO_COLOR=1 \
+            --volume /var/run/docker.sock:/var/run/docker.sock \
+            docker.io/wagoodman/dive:v0.13.1 "${image}" 2>&1 \
+            | tee "${report_dir}/dive.txt"
+          dive_status="${PIPESTATUS[0]}"
+          set -e
+          printf '%s\n' "${dive_status}" > "${report_dir}/dive-exit-code.txt"
+
+          compressed_bytes="$(
+            jq '[.layers[].size] | add // 0' "${report_dir}/manifest.json"
+          )"
+          unpacked_bytes="$(
+            jq '.[0].Size' "${report_dir}/image-inspect.json"
+          )"
+          layer_count="$(
+            jq '.layers | length' "${report_dir}/manifest.json"
+          )"
+
+          {
+            echo '# Workspace image report'
+            echo
+            echo '| Metric | Value |'
+            echo '| --- | --- |'
+            echo "| Image | \`${image}\` |"
+            echo "| Platform | \`linux/${{ matrix.platform.arch }}\` |"
+            echo "| Compressed size | $(numfmt --to=iec-i --suffix=B "${compressed_bytes}") (${compressed_bytes} bytes) |"
+            echo "| Unpacked size | $(numfmt --to=iec-i --suffix=B "${unpacked_bytes}") (${unpacked_bytes} bytes) |"
+            echo "| Layer count | ${layer_count} |"
+            echo '| Dive version | 0.13.1 |'
+            echo "| Dive exit code | ${dive_status} |"
+            echo
+            echo '## Largest compressed layers'
+            echo
+            echo '| Index | Size | Digest |'
+            echo '| ---: | ---: | --- |'
+            jq --raw-output \
+              '.layers
+               | to_entries
+               | sort_by(.value.size)
+               | reverse
+               | .[:10][]
+               | [.key, .value.size, .value.digest]
+               | @tsv' \
+              "${report_dir}/manifest.json" \
+              | while IFS=$'\t' read -r index size digest; do
+                  printf "| %s | %s | \`%s\` |\n" \
+                    "${index}" \
+                    "$(numfmt --to=iec-i --suffix=B "${size}")" \
+                    "${digest}"
+                done
+          } > "${report_dir}/summary.md"
+
+      - name: Upload image report
+        if: ${{ always() && steps.build.outcome == 'success' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: image-report-${{ matrix.image.tag }}-${{ matrix.platform.arch }}
+          path: ${{ runner.temp }}/image-report
+          if-no-files-found: error
+          retention-days: 30
+
       - uses: actions/upload-artifact@v7
         with:
           name: digests-${{ matrix.image.tag }}-${{ matrix.platform.arch }}

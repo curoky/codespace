@@ -71,9 +71,8 @@ RUN apt-get update -y \
 # 而本 stage 无 sudo。提前建好可让安装器直接跳过该步。
 RUN mkdir -m 0755 /nix && chown 5230:5230 /nix
 
-# unfree 包（如 codex）与 nix.conf 必须在安装期可见，否则 nix-env -iA 失败。
+# unfree 包（如 codex）的配置必须在安装期可见，否则 nix-env -iA 失败。
 COPY --chown=5230:5230 platform/container/workspace/rootfs/home/x/.config/nixpkgs/config.nix /home/x/.config/nixpkgs/config.nix
-COPY platform/container/workspace/rootfs/etc/nix/nix.conf /etc/nix/nix.conf
 
 USER x
 ENV PATH=${PATH}:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin
@@ -85,12 +84,9 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
   # gcc12 已在 25.11 起从 unstable 移除，锁定仍含 gcc12 的 25.05 channel 单独供其使用。
   && nix-channel --add https://nixos.org/channels/nixos-25.05 nixpkgs_2505 \
   && nix-channel --update \
-  && nix-env -iA nixpkgs.ollama-cpu nixpkgs.lemminx nixpkgs.codex -p /nix/var/nix/profiles/default \
-  # ghidra 套件同时提供 GUI 与 analyzeHeadless；nixpkgs 已不再拆分 headless 子包，
-  # Workspace 无显示服务器，仅使用其 analyzeHeadless CLI。
-  && nix-env -iA nixpkgs.ghidra -p /nix/var/nix/profiles/default \
-  # setup formatters & linters
-  && nix-env -iA nixpkgs.markdownlint-cli2 nixpkgs.pnpm nixpkgs.prettier -p /nix/var/nix/profiles/default \
+  && nix-env -iA nixpkgs.ollama-cpu nixpkgs.lemminx nixpkgs.codex \
+    nixpkgs.ghidra nixpkgs.markdownlint-cli2 nixpkgs.pnpm \
+    nixpkgs.prettier -p /nix/var/nix/profiles/default \
   # setup java
   && nix-env -iA nixpkgs.maven -p /nix/var/nix/profiles/default \
   && nix-env -iA nixpkgs.jdk8_headless -p /nix/var/nix/profiles/jdk8 \
