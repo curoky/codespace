@@ -53,15 +53,21 @@ host = "office"
 provider = "gitlab"
 repo = "group/service-api"
 image = "registry.example.com/codespace-api:latest"
+
+[host_options.office]
+podman_socket = "/tmp/podmanxd.sock"
 ```
 
 Required top-level fields are `default_image` and `hosts`. Each project requires
-`host`, `provider`, and `repo`; `description` and `image` are optional. Reject
-unknown fields.
+`host`, `provider`, and `repo`; `description` and `image` are optional. The
+optional `host_options.<host>` table overrides per-host settings; its only field
+is `podman_socket` (absolute remote path, default `/run/podman/podman.sock`).
+Reject unknown fields.
 
 - Project and instance IDs match `^[a-z0-9][a-z0-9-]{0,31}$`.
 - Host aliases match `^[a-z0-9][a-z0-9.-]{0,62}$`.
 - Hosts are unique and each project references a configured host.
+- Every `host_options` key references a configured host.
 - Project `image` falls back to `default_image`.
 
 ## Host Contract
@@ -72,8 +78,11 @@ policy.
 
 Every host provides:
 
-- rootful Podman at `/run/podman/podman.sock`;
-- workspace root `/var/lib/codespace`;
+- rootful Podman at `/run/podman/podman.sock`, or another absolute socket path
+  declared through `host_options.<host>.podman_socket`;
+- a writable home for the SSH login user; the workspace root is `~/codespace2`
+  (resolved to the login user's absolute `$HOME` per host and created on first
+  use, since a Podman bind-mount source cannot contain `~`);
 - ports `20000-29999` reserved for environment SSH;
 - one host-level sidecar container for shared services;
 - project images satisfying the development image contract.
@@ -101,7 +110,8 @@ alias, and deploy-key title:
 codespace-<host>-<project>-<instance>
 ```
 
-Its workspace is `/var/lib/codespace/<project>/<instance>`. Its SSH port is
+Its workspace is `<login-home>/codespace2/<project>/<instance>` on the host,
+bind-mounted at `/workspace` inside the container. Its SSH port is
 `20000 + int(sha256(environment_id)[:4], 16) % 10000`. Reject a collision with
 another managed environment on the same host; do not probe for a different
 port.
@@ -122,13 +132,15 @@ Maintain one reusable system SSH process and one Podman client per host:
 
 ```text
 ssh -N -o ExitOnForwardFailure=yes -o StreamLocalBindUnlink=yes \
-  -L <local.sock>:/run/podman/podman.sock <host>
+  -L <local.sock>:<host podman_socket> <host>
 ```
 
-Sockets live in a process-private runtime directory with mode `0700`. Rebuild a
-host tunnel after its process dies. Close Podman clients and SSH subprocesses
-during application shutdown. Dashboard inventory queries run concurrently, and
-one offline host must not block other hosts.
+The forward target is the host's resolved `podman_socket`
+(default `/run/podman/podman.sock`). Sockets live in a process-private runtime
+directory with mode `0700`. Rebuild a host tunnel after its process dies. Close
+Podman clients and SSH subprocesses during application shutdown. Dashboard
+inventory queries run concurrently, and one offline host must not block other
+hosts.
 
 ## Environment Lifecycle
 

@@ -7,14 +7,12 @@ import shutil
 import subprocess
 import tempfile
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
 from threading import Lock
 
 from podman import PodmanClient
-
-from codespace.client.models import PODMAN_SOCKET
 
 _START_TIMEOUT = 10.0
 _START_INTERVAL = 0.05
@@ -43,19 +41,20 @@ class PodmanTransport:
 
     def __init__(
         self,
-        hosts: list[str],
+        host_sockets: Mapping[str, str],
         *,
         runtime_parent: Path | None = None,
         process_factory: ProcessFactory = subprocess.Popen,
         client_factory: ClientFactory = PodmanClient,
     ) -> None:
-        self._hosts = set(hosts)
+        self._host_sockets = dict(host_sockets)
+        self._hosts = set(host_sockets)
         self._runtime_dir = Path(tempfile.mkdtemp(prefix="codespace-", dir=runtime_parent))
         self._runtime_dir.chmod(0o700)
         self._process_factory = process_factory
         self._client_factory = client_factory
         self._tunnels: dict[str, _Tunnel] = {}
-        self._locks = {host: Lock() for host in hosts}
+        self._locks = {host: Lock() for host in host_sockets}
         self._closed = False
 
     @property
@@ -99,6 +98,7 @@ class PodmanTransport:
     def _start(self, host: str) -> _Tunnel:
         socket_path = self._runtime_dir / f"{host}.sock"
         socket_path.unlink(missing_ok=True)
+        remote_socket = self._host_sockets[host]
         command = [
             "ssh",
             "-N",
@@ -107,7 +107,7 @@ class PodmanTransport:
             "-o",
             "StreamLocalBindUnlink=yes",
             "-L",
-            f"{socket_path}:{PODMAN_SOCKET}",
+            f"{socket_path}:{remote_socket}",
             host,
         ]
         process = self._process_factory(

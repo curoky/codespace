@@ -12,7 +12,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager, suppress
 from pathlib import Path
 
-from codespace.client.models import CONTAINER_USER, Environment
+from codespace.client.models import CONTAINER_USER, WORKSPACE_DIR_NAME, Environment
 
 SSH_CONFIG_PATH = Path.home() / ".ssh" / "config"
 CODESPACE_DIR = Path.home() / ".ssh" / "codespace"
@@ -25,6 +25,52 @@ HOSTS_INCLUDE_LINE = "Include ~/.ssh/codespace/hosts/*.conf"
 _LOCK = threading.RLock()
 _PROBE_TIMEOUT = 30.0
 _PROBE_INTERVAL = 0.5
+_WORKSPACE_ROOT_TIMEOUT = 15.0
+_workspace_roots: dict[str, str] = {}
+_workspace_root_lock = threading.Lock()
+
+
+def remote_workspace_root(host: str) -> str:
+    """Resolve and ensure one host's workspace root under the login user's home.
+
+    A Podman bind-mount source cannot contain ``~``, so the absolute path is
+    resolved per host with one cached SSH round-trip that also creates the
+    directory. Ensuring it here means the bind-mount source always exists.
+    """
+    with _workspace_root_lock:
+        cached = _workspace_roots.get(host)
+        if cached is not None:
+            return cached
+    root = _resolve_remote_workspace_root(host)
+    with _workspace_root_lock:
+        _workspace_roots[host] = root
+    return root
+
+
+def _resolve_remote_workspace_root(host: str) -> str:
+    # WORKSPACE_DIR_NAME is a fixed internal constant, so this remote command is
+    # not exposed to injection; "$HOME" expands in the remote login shell.
+    remote_command = (
+        f'mkdir -p -- "$HOME/{WORKSPACE_DIR_NAME}" && printf %s "$HOME/{WORKSPACE_DIR_NAME}"'
+    )
+    try:
+        result = subprocess.run(  # noqa: S603
+            ["ssh", "-o", "BatchMode=yes", host, remote_command],  # noqa: S607
+            check=True,
+            capture_output=True,
+            text=True,
+            stdin=subprocess.DEVNULL,
+            timeout=_WORKSPACE_ROOT_TIMEOUT,
+        )
+    except subprocess.CalledProcessError as exc:
+        stderr = exc.stderr.strip() if exc.stderr else ""
+        raise RuntimeError(
+            f"failed to resolve workspace root on host {host!r}: {stderr or exc}"
+        ) from exc
+    root = result.stdout.strip()
+    if not root.startswith("/"):
+        raise RuntimeError(f"host {host!r} returned a non-absolute workspace root: {root!r}")
+    return root
 
 
 def initialize(hosts: list[str]) -> None:

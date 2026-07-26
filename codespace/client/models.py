@@ -16,7 +16,10 @@ type HostState = Literal["online", "offline"]
 CONTAINER_USER = "x"
 CONTAINER_UID = 5230
 WORKSPACE_MOUNT = "/workspace"
-WORKSPACE_ROOT = "/var/lib/codespace"
+# Host workspace root lives under the SSH login user's home so each host can use
+# its own account. The absolute path is resolved per host at runtime because a
+# Podman bind-mount source cannot contain '~'.
+WORKSPACE_DIR_NAME = "codespace2"
 PODMAN_SOCKET = "/run/podman/podman.sock"
 SSH_PORT_START = 20_000
 SSH_PORT_COUNT = 10_000
@@ -39,9 +42,9 @@ def environment_id(host: str, project: str, instance: str) -> str:
     return f"codespace-{host}-{project}-{instance}"
 
 
-def workspace_path(project: str, instance: str) -> str:
-    """Return the fixed host workspace path for one environment."""
-    return f"{WORKSPACE_ROOT}/{project}/{instance}"
+def workspace_path(workspace_root: str, project: str, instance: str) -> str:
+    """Return one environment's workspace path under a resolved host root."""
+    return f"{workspace_root}/{project}/{instance}"
 
 
 def ssh_port(identity: str) -> int:
@@ -121,10 +124,6 @@ class Environment(BaseModel):
     ssh_port: int
     container_id: str
     status: str | None = None
-
-    @property
-    def workspace(self) -> str:
-        return workspace_path(self.project, self.instance)
 
 
 class DashboardEnvironment(BaseModel):

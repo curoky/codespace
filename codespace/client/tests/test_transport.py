@@ -59,7 +59,7 @@ def test_transport_uses_system_ssh_command_and_private_runtime(tmp_path: Path) -
         return client
 
     transport = PodmanTransport(
-        ["home"],
+        {"home": "/run/podman/podman.sock"},
         runtime_parent=tmp_path,
         process_factory=process_factory,
         client_factory=client_factory,  # type: ignore[arg-type]
@@ -108,7 +108,7 @@ def test_transport_reuses_live_tunnel_and_rebuilds_dead_tunnel(tmp_path: Path) -
         return client
 
     transport = PodmanTransport(
-        ["home"],
+        {"home": "/run/podman/podman.sock"},
         runtime_parent=tmp_path,
         process_factory=process_factory,
         client_factory=client_factory,  # type: ignore[arg-type]
@@ -127,3 +127,28 @@ def test_transport_reuses_live_tunnel_and_rebuilds_dead_tunnel(tmp_path: Path) -
 
     transport.close()
     assert clients[1].closed is True
+
+
+def test_transport_forwards_per_host_remote_socket(tmp_path: Path) -> None:
+    commands: list[list[str]] = []
+
+    def process_factory(command: list[str], **_kwargs: object) -> FakeProcess:
+        commands.append(command)
+        Path(command[-2].split(":", 1)[0]).touch()
+        return FakeProcess()
+
+    def client_factory(*, base_url: str) -> FakeClient:
+        return FakeClient(base_url)
+
+    transport = PodmanTransport(
+        {"boe": "/tmp/podmanxd.sock"},
+        runtime_parent=tmp_path,
+        process_factory=process_factory,
+        client_factory=client_factory,  # type: ignore[arg-type]
+    )
+
+    transport.client("boe")
+
+    assert commands[0][-2] == f"{transport.runtime_dir}/boe.sock:/tmp/podmanxd.sock"
+
+    transport.close()

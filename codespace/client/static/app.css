@@ -173,14 +173,14 @@ main {
 
 .project-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
+  grid-template-columns: 1fr;
   gap: 18px;
 }
 
 .project-card {
   border: 1px solid var(--line);
   border-radius: 22px;
-  padding: 20px;
+  padding: 14px 18px;
   background: var(--panel);
   box-shadow: var(--shadow);
 }
@@ -188,15 +188,28 @@ main {
 .project-header {
   display: flex;
   justify-content: space-between;
-  gap: 20px;
-  align-items: flex-start;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
-.project-meta {
+.project-title {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 10px 0 4px;
+  min-width: 0;
+}
+
+.project-header-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+button.compact {
+  padding: 6px 12px;
+  font-size: 0.8rem;
 }
 
 .badge {
@@ -208,27 +221,14 @@ main {
   font-weight: 700;
 }
 
-.description,
-.repo,
 .muted {
   color: var(--muted);
-}
-
-.description {
-  margin-top: 8px;
-  line-height: 1.5;
-}
-
-.repo {
-  margin-top: 4px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.82rem;
 }
 
 .environment-list {
   display: grid;
   gap: 10px;
-  margin-top: 18px;
+  margin-top: 12px;
 }
 
 .environment,

@@ -46,7 +46,7 @@ class CodespaceService:
         operations: OperationStore | None = None,
     ) -> None:
         self.config = config
-        self.transport = transport or PodmanTransport(config.hosts)
+        self.transport = transport or PodmanTransport(config.podman_sockets())
         self.operations = operations or OperationStore()
         self._tokens: dict[GitProvider, str] = {}
         self._token_lock = Lock()
@@ -136,7 +136,8 @@ class CodespaceService:
             runtime.pull_image(client, image)
 
             self._stage(project_id, instance, "preparing workspace")
-            runtime.prepare_workspace(client, image, project_id, instance)
+            workspace_root = ssh.remote_workspace_root(project.host)
+            runtime.prepare_workspace(client, image, workspace_root, project_id, instance)
 
             self._stage(project_id, instance, "creating container")
             container_created = True
@@ -148,6 +149,7 @@ class CodespaceService:
                 repo=project.repo,
                 provider=project.provider,
                 image=image,
+                workspace_root=workspace_root,
             )
 
             self._stage(project_id, instance, "injecting credentials")
@@ -253,10 +255,12 @@ class CodespaceService:
             deploy_key_title(identity),
         )
         if purge:
+            workspace_root = ssh.remote_workspace_root(project.host)
             runtime.purge_workspace(
                 client,
                 container,
                 environment.image,
+                workspace_root,
                 project_id,
                 instance,
             )

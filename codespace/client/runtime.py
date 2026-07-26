@@ -27,7 +27,6 @@ from codespace.client.models import (
     REPO_RE,
     RESOURCE_ID_RE,
     WORKSPACE_MOUNT,
-    WORKSPACE_ROOT,
     Environment,
     GitProvider,
     environment_id,
@@ -191,11 +190,12 @@ def pull_image(client: PodmanClient, image: str) -> None:
 def prepare_workspace(
     client: PodmanClient,
     image: str,
+    workspace_root: str,
     project: str,
     instance: str,
 ) -> None:
     """Create and chown a host workspace with a short-lived image helper."""
-    target = workspace_path(project, instance)
+    target = workspace_path(workspace_root, project, instance)
     client.containers.run(
         image,
         name=None,
@@ -215,8 +215,8 @@ def prepare_workspace(
         mounts=[
             {
                 "type": "bind",
-                "source": WORKSPACE_ROOT,
-                "target": WORKSPACE_ROOT,
+                "source": workspace_root,
+                "target": workspace_root,
             }
         ],
     )
@@ -231,6 +231,7 @@ def create_container(
     repo: str,
     provider: GitProvider,
     image: str,
+    workspace_root: str,
 ) -> Container:
     """Create the deterministic host-network development container."""
     identity = environment_id(host, project, instance)
@@ -256,7 +257,7 @@ def create_container(
         mounts=[
             {
                 "type": "bind",
-                "source": workspace_path(project, instance),
+                "source": workspace_path(workspace_root, project, instance),
                 "target": WORKSPACE_MOUNT,
             },
             {
@@ -332,6 +333,7 @@ def purge_workspace(
     client: PodmanClient,
     container: Container,
     image: str,
+    workspace_root: str,
     project: str,
     instance: str,
 ) -> None:
@@ -341,14 +343,14 @@ def purge_workspace(
         image,
         name=None,
         entrypoint=["/bin/rm"],
-        command=["-rf", "--", workspace_path(project, instance)],
+        command=["-rf", "--", workspace_path(workspace_root, project, instance)],
         detach=False,
         remove=True,
         mounts=[
             {
                 "type": "bind",
-                "source": WORKSPACE_ROOT,
-                "target": WORKSPACE_ROOT,
+                "source": workspace_root,
+                "target": workspace_root,
             }
         ],
     )

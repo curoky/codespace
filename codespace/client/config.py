@@ -6,11 +6,32 @@ import tomllib
 from pathlib import Path
 from typing import Self
 
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from codespace.client.models import HOST_RE, REPO_RE, RESOURCE_ID_RE, GitProvider
+from codespace.client.models import (
+    HOST_RE,
+    PODMAN_SOCKET,
+    REPO_RE,
+    RESOURCE_ID_RE,
+    GitProvider,
+)
 
 CONFIG_PATH = Path.home() / ".config" / "codespace" / "config.toml"
+
+
+class HostConfig(BaseModel):
+    """Optional per-host overrides keyed by SSH alias in ``host_options``."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    podman_socket: str = PODMAN_SOCKET
+
+    @field_validator("podman_socket")
+    @classmethod
+    def _validate_podman_socket(cls, value: str) -> str:
+        if not value.startswith("/"):
+            raise ValueError("podman_socket must be an absolute path")
+        return value
 
 
 class ProjectConfig(BaseModel):
@@ -54,6 +75,7 @@ class Config(BaseModel):
     default_image: str
     hosts: list[str]
     projects: dict[str, ProjectConfig]
+    host_options: dict[str, HostConfig] = Field(default_factory=dict)
 
     @field_validator("default_image")
     @classmethod
@@ -84,11 +106,23 @@ class Config(BaseModel):
                 raise ValueError(f"project {project_id!r} must match ^[a-z0-9][a-z0-9-]{{0,31}}$")
             if project.host not in configured_hosts:
                 raise ValueError(f"project {project_id!r} references unknown host {project.host!r}")
+        for host in self.host_options:
+            if host not in configured_hosts:
+                raise ValueError(f"host_options references unknown host {host!r}")
         return self
 
     def project_image(self, project_id: str) -> str:
         """Resolve a project image against the required default image."""
         return self.projects[project_id].image or self.default_image
+
+    def podman_socket(self, host: str) -> str:
+        """Resolve one host's remote Podman socket, defaulting to the standard path."""
+        options = self.host_options.get(host)
+        return options.podman_socket if options is not None else PODMAN_SOCKET
+
+    def podman_sockets(self) -> dict[str, str]:
+        """Map every configured host to its remote Podman socket path."""
+        return {host: self.podman_socket(host) for host in self.hosts}
 
 
 def load_config(path: Path = CONFIG_PATH) -> Config:

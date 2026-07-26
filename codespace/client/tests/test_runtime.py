@@ -118,6 +118,7 @@ def test_create_container_preserves_fixed_runtime_contract(
         repo="curoky/devspace",
         provider="github",
         image=config.project_image("devspace"),
+        workspace_root="/home/x/codespace2",
     )
 
     assert result is container
@@ -136,7 +137,7 @@ def test_create_container_preserves_fixed_runtime_contract(
     assert kwargs["mounts"] == [
         {
             "type": "bind",
-            "source": "/var/lib/codespace/devspace/debug",
+            "source": "/home/x/codespace2/devspace/debug",
             "target": "/workspace",
         },
         {
@@ -157,6 +158,7 @@ def test_workspace_helper_uses_project_image_and_fixed_uid() -> None:
     runtime.prepare_workspace(
         client,  # type: ignore[arg-type]
         "project-image:latest",
+        "/home/x/codespace2",
         "devspace",
         "debug",
     )
@@ -172,7 +174,14 @@ def test_workspace_helper_uses_project_image_and_fixed_uid() -> None:
         "5230",
         "-g",
         "5230",
-        "/var/lib/codespace/devspace/debug",
+        "/home/x/codespace2/devspace/debug",
+    ]
+    assert kwargs["mounts"] == [
+        {
+            "type": "bind",
+            "source": "/home/x/codespace2",
+            "target": "/home/x/codespace2",
+        }
     ]
 
 

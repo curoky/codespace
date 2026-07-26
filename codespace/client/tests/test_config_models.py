@@ -42,6 +42,59 @@ image = "custom:latest"
     assert config.project_image("service-api") == "custom:latest"
 
 
+def test_config_resolves_per_host_podman_socket() -> None:
+    config = Config.model_validate(
+        {
+            "default_image": "img",
+            "hosts": ["home", "office"],
+            "projects": {
+                "devspace": {
+                    "host": "home",
+                    "provider": "github",
+                    "repo": "owner/repo",
+                }
+            },
+            "host_options": {"office": {"podman_socket": "/tmp/podmanxd.sock"}},
+        }
+    )
+
+    assert config.podman_socket("office") == "/tmp/podmanxd.sock"
+    assert config.podman_socket("home") == "/run/podman/podman.sock"
+    assert config.podman_sockets() == {
+        "home": "/run/podman/podman.sock",
+        "office": "/tmp/podmanxd.sock",
+    }
+
+
+@pytest.mark.parametrize(
+    ("host_options", "message"),
+    [
+        ({"ghost": {"podman_socket": "/tmp/x.sock"}}, "unknown host"),
+        ({"home": {"podman_socket": "relative.sock"}}, "absolute path"),
+        ({"home": {"unknown": "x"}}, "Extra inputs"),
+    ],
+)
+def test_config_rejects_invalid_host_options(
+    host_options: dict[str, object],
+    message: str,
+) -> None:
+    with pytest.raises(ValidationError, match=message):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "hosts": ["home"],
+                "projects": {
+                    "devspace": {
+                        "host": "home",
+                        "provider": "github",
+                        "repo": "owner/repo",
+                    }
+                },
+                "host_options": host_options,
+            }
+        )
+
+
 @pytest.mark.parametrize(
     ("data", "message"),
     [
@@ -130,6 +183,9 @@ def test_resource_identity_contract_is_deterministic() -> None:
 
     assert identity == "codespace-home-devspace-debug"
     assert deploy_key_title(identity) == identity
-    assert workspace_path("devspace", "debug") == "/var/lib/codespace/devspace/debug"
+    assert (
+        workspace_path("/home/x/codespace2", "devspace", "debug")
+        == "/home/x/codespace2/devspace/debug"
+    )
     assert ssh_port(identity) == ssh_port(identity)
     assert 20_000 <= ssh_port(identity) <= 29_999

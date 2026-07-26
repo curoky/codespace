@@ -1,5 +1,7 @@
 const state = { dashboard: null, pollTimer: null };
 
+const DEFAULT_INSTANCE = "default";
+
 const hostsElement = document.querySelector("#hosts");
 const projectsElement = document.querySelector("#projects");
 const pollStatusElement = document.querySelector("#poll-status");
@@ -20,6 +22,7 @@ projectsElement.addEventListener("click", async (event) => {
   if (!target) return;
   const { action, project, instance, value } = target.dataset;
   if (action === "new") openInstanceDialog(project);
+  if (action === "quick") await submitInstance(project, DEFAULT_INSTANCE);
   if (action === "copy") await copyText(value);
   if (action === "delete") await deleteInstance(project, instance, false);
   if (action === "purge") await deleteInstance(project, instance, true);
@@ -92,16 +95,22 @@ function renderProjects(dashboard) {
     const card = element("article", "project-card");
 
     const header = element("div", "project-header");
-    const info = element("div");
-    info.append(element("h3", "", project.id));
-    const meta = element("div", "project-meta");
-    meta.append(element("span", "badge", project.host));
-    meta.append(element("span", "badge", project.provider));
-    info.append(meta);
-    info.append(element("p", "repo", project.repo));
-    if (project.description) info.append(element("p", "description", project.description));
-    const createButton = actionButton("New instance", "new", project.id);
-    header.append(info, createButton);
+    const info = element("div", "project-title");
+    const name = element("h3", "", project.id);
+    name.title = project.description ? `${project.repo} — ${project.description}` : project.repo;
+    info.append(name);
+    info.append(element("span", "badge", project.host));
+    info.append(element("span", "badge", project.provider));
+
+    const quickButton = actionButton("Quick Create", "quick", project.id);
+    quickButton.classList.add("compact");
+    quickButton.title = `Create instance named "${DEFAULT_INSTANCE}"`;
+    const createButton = actionButton("New", "new", project.id);
+    createButton.classList.add("compact");
+    createButton.title = "Create a named instance";
+    const headerActions = element("div", "project-header-actions");
+    headerActions.append(quickButton, createButton);
+    header.append(info, headerActions);
     card.append(header);
 
     const list = element("div", "environment-list");
@@ -163,16 +172,21 @@ async function createInstance(event) {
   event.preventDefault();
   const project = document.querySelector("#instance-project").value;
   const instance = document.querySelector("#instance-name").value;
+  if (await submitInstance(project, instance)) instanceDialog.close();
+}
+
+async function submitInstance(project, instance) {
   try {
     await api(`/api/projects/${encodeURIComponent(project)}/instances`, {
       method: "POST",
       body: JSON.stringify({ instance }),
     });
-    instanceDialog.close();
     notify(`Queued ${project}/${instance}`);
     await refresh();
+    return true;
   } catch (error) {
     notify(error.message);
+    return false;
   }
 }
 

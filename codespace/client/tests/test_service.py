@@ -56,6 +56,7 @@ def service(
     monkeypatch: pytest.MonkeyPatch,
 ) -> CodespaceService:
     monkeypatch.setattr(ssh, "initialize", lambda hosts: None)
+    monkeypatch.setattr(ssh, "remote_workspace_root", lambda host: "/home/x/codespace2")
     return CodespaceService(
         config,
         transport=FakeTransport({"home": object(), "office": object()}),  # type: ignore[arg-type]

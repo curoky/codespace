@@ -156,3 +156,76 @@ def test_probe_retries_until_ssh_login_succeeds(
     ssh.probe(_environment())
 
     assert sleeps == [0.5]
+
+
+@pytest.fixture(autouse=True)
+def _clear_workspace_root_cache() -> None:
+    ssh._workspace_roots.clear()
+
+
+def test_remote_workspace_root_resolves_home_and_creates_dir(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    commands: list[list[str]] = []
+
+    def run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
+        commands.append(command)
+        return subprocess.CompletedProcess(
+            command, 0, stdout="/home/x/codespace2\n", stderr=""
+        )
+
+    monkeypatch.setattr(ssh.subprocess, "run", run)
+
+    root = ssh.remote_workspace_root("home")
+
+    assert root == "/home/x/codespace2"
+    assert commands[0][0] == "ssh"
+    assert commands[0][-2] == "home"
+    # The remote command both creates the directory and prints the absolute path.
+    assert "mkdir -p" in commands[0][-1]
+    assert "codespace2" in commands[0][-1]
+
+
+def test_remote_workspace_root_is_cached_per_host(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[str] = []
+
+    def run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
+        calls.append(command[-2])
+        return subprocess.CompletedProcess(command, 0, stdout="/home/x/codespace2", stderr="")
+
+    monkeypatch.setattr(ssh.subprocess, "run", run)
+
+    first = ssh.remote_workspace_root("home")
+    second = ssh.remote_workspace_root("home")
+
+    assert first == second == "/home/x/codespace2"
+    assert calls == ["home"]
+
+
+def test_remote_workspace_root_rejects_non_absolute_result(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        ssh.subprocess,
+        "run",
+        lambda command, **_kwargs: subprocess.CompletedProcess(
+            command, 0, stdout="relative/path", stderr=""
+        ),
+    )
+
+    with pytest.raises(RuntimeError, match="non-absolute workspace root"):
+        ssh.remote_workspace_root("home")
+
+
+def test_remote_workspace_root_wraps_ssh_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def run(command: list[str], **_kwargs: object) -> None:
+        raise subprocess.CalledProcessError(255, command, stderr="permission denied")
+
+    monkeypatch.setattr(ssh.subprocess, "run", run)
+
+    with pytest.raises(RuntimeError, match="failed to resolve workspace root"):
+        ssh.remote_workspace_root("home")

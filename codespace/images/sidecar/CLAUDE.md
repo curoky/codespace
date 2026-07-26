@@ -27,7 +27,7 @@ environments; it is not a per-environment companion container.
 - Sidecar failure may be reported with host state, but it must not corrupt
   environment inventory.
 - Persistent service data must use host storage owned by the sidecar contract,
-  never `/var/lib/codespace/<project>/<instance>`.
+  never the environment workspace root `~/codespace2/<project>/<instance>`.
 
 ## Container Contract
 
