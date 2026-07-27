@@ -10,6 +10,7 @@ from codespace.client.config import Config
 from codespace.client.models import (
     DashboardResponse,
     HostStatus,
+    Operation,
     ProjectSummary,
 )
 from codespace.client.operations import OperationStore
@@ -54,12 +55,12 @@ class FakeService:
             },
         )
 
-    def queue_create(self, project: str, instance: str) -> str:
+    def queue_create(self, project: str, instance: str) -> Operation:
         if project not in self.config.projects:
             raise KeyError(f"unknown project: {project}")
         if not self.tokens["github"]:
             raise RuntimeError("github token is not set")
-        return self.operations.create("home", project, instance).id
+        return self.operations.create("home", project, instance)
 
     def create(self, project: str, instance: str) -> None:
         self.created.append((project, instance))

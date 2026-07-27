@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import hashlib
 import re
-from typing import Literal
+from typing import Annotated, Literal
 from urllib.parse import quote
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field
 
 type GitProvider = Literal["github", "gitlab"]
 type OperationStatus = Literal["queued", "running", "failed"]
@@ -27,6 +27,25 @@ SSH_PORT_COUNT = 10_000
 RESOURCE_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}$")
 HOST_RE = re.compile(r"^[a-z0-9][a-z0-9.-]{0,62}$")
 REPO_RE = re.compile(r"^[\w.-]+(?:/[\w.-]+)+$")
+
+
+def _not_blank(value: str) -> str:
+    if not value.strip():
+        raise ValueError("must not be blank")
+    return value
+
+
+def _not_blank_token(value: str) -> str:
+    if not value.strip():
+        raise ValueError("token must not be blank")
+    return value
+
+
+type ResourceId = Annotated[str, Field(pattern=RESOURCE_ID_RE.pattern)]
+type HostId = Annotated[str, Field(pattern=HOST_RE.pattern)]
+type RepoPath = Annotated[str, Field(pattern=REPO_RE.pattern)]
+type NonBlankString = Annotated[str, AfterValidator(_not_blank)]
+type TokenString = Annotated[str, AfterValidator(_not_blank_token)]
 
 LABEL_MANAGED = "codespace.managed"
 LABEL_PROJECT = "codespace.project"
@@ -51,11 +70,6 @@ def ssh_port(identity: str) -> int:
     """Map an environment identity to its deterministic reserved SSH port."""
     digest_prefix = hashlib.sha256(identity.encode()).hexdigest()[:4]
     return SSH_PORT_START + int(digest_prefix, 16) % SSH_PORT_COUNT
-
-
-def deploy_key_title(identity: str) -> str:
-    """Return the provider deploy-key title for an environment."""
-    return identity
 
 
 def git_host(provider: GitProvider) -> str:
@@ -86,14 +100,7 @@ class CreateInstanceRequest(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    instance: str
-
-    @field_validator("instance")
-    @classmethod
-    def _validate_instance(cls, value: str) -> str:
-        if not RESOURCE_ID_RE.fullmatch(value):
-            raise ValueError("instance must match ^[a-z0-9][a-z0-9-]{0,31}$")
-        return value
+    instance: ResourceId
 
 
 class UpdateTokenRequest(BaseModel):
@@ -101,14 +108,7 @@ class UpdateTokenRequest(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    token: str = Field(min_length=1, repr=False)
-
-    @field_validator("token")
-    @classmethod
-    def _not_blank(cls, value: str) -> str:
-        if not value.strip():
-            raise ValueError("token must not be blank")
-        return value
+    token: TokenString = Field(repr=False)
 
 
 class Environment(BaseModel):

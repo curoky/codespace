@@ -160,7 +160,7 @@ def test_probe_retries_until_ssh_login_succeeds(
 
 @pytest.fixture(autouse=True)
 def _clear_workspace_root_cache() -> None:
-    ssh._workspace_roots.clear()
+    ssh.remote_workspace_root.cache_clear()
 
 
 def test_remote_workspace_root_resolves_home_and_creates_dir(

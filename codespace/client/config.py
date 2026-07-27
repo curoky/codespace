@@ -9,11 +9,13 @@ from typing import Self
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from codespace.client.models import (
-    HOST_RE,
     PODMAN_SOCKET,
-    REPO_RE,
     RESOURCE_ID_RE,
     GitProvider,
+    HostId,
+    NonBlankString,
+    RepoPath,
+    TokenString,
 )
 
 CONFIG_PATH = Path.home() / ".config" / "codespace" / "config.toml"
@@ -44,15 +46,8 @@ class TokensConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    github: str | None = Field(default=None, repr=False)
-    gitlab: str | None = Field(default=None, repr=False)
-
-    @field_validator("github", "gitlab")
-    @classmethod
-    def _not_blank_optional(cls, value: str | None) -> str | None:
-        if value is not None and not value.strip():
-            raise ValueError("token must not be blank")
-        return value
+    github: TokenString | None = Field(default=None, repr=False)
+    gitlab: TokenString | None = Field(default=None, repr=False)
 
 
 class ProjectConfig(BaseModel):
@@ -60,32 +55,11 @@ class ProjectConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    host: str
+    host: HostId
     provider: GitProvider
-    repo: str
-    description: str | None = None
-    image: str | None = None
-
-    @field_validator("host")
-    @classmethod
-    def _validate_host(cls, value: str) -> str:
-        if not HOST_RE.fullmatch(value):
-            raise ValueError("host must match ^[a-z0-9][a-z0-9.-]{0,62}$")
-        return value
-
-    @field_validator("repo")
-    @classmethod
-    def _validate_repo(cls, value: str) -> str:
-        if not REPO_RE.fullmatch(value):
-            raise ValueError("repo must be a slash-separated path like 'owner/name'")
-        return value
-
-    @field_validator("description", "image")
-    @classmethod
-    def _not_blank_optional(cls, value: str | None) -> str | None:
-        if value is not None and not value.strip():
-            raise ValueError("must not be blank")
-        return value
+    repo: RepoPath
+    description: NonBlankString | None = None
+    image: NonBlankString | None = None
 
 
 class Config(BaseModel):
@@ -93,29 +67,19 @@ class Config(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    default_image: str
-    hosts: list[str]
+    default_image: NonBlankString
+    hosts: list[HostId]
     projects: dict[str, ProjectConfig]
     host_options: dict[str, HostConfig] = Field(default_factory=dict)
     tokens: TokensConfig = Field(default_factory=TokensConfig, repr=False)
 
-    @field_validator("default_image")
-    @classmethod
-    def _validate_default_image(cls, value: str) -> str:
-        if not value.strip():
-            raise ValueError("default_image must not be blank")
-        return value
-
     @field_validator("hosts")
     @classmethod
-    def _validate_hosts(cls, value: list[str]) -> list[str]:
+    def _validate_hosts(cls, value: list[HostId]) -> list[HostId]:
         if not value:
             raise ValueError("hosts must contain at least one host")
         if len(value) != len(set(value)):
             raise ValueError("hosts must not contain duplicates")
-        for host in value:
-            if not HOST_RE.fullmatch(host):
-                raise ValueError(f"host {host!r} must match ^[a-z0-9][a-z0-9.-]{{0,62}}$")
         return value
 
     @model_validator(mode="after")

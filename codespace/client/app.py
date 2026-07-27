@@ -104,16 +104,11 @@ def create_app(
         background_tasks: BackgroundTasks,
     ) -> Operation:
         try:
-            resolved_service.queue_create(project, request.instance)
+            operation = resolved_service.queue_create(project, request.instance)
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc.args[0])) from exc
         except RuntimeError as exc:
             raise HTTPException(status_code=409, detail=str(exc)) from exc
-        operation = next(
-            item
-            for item in resolved_service.operations.list()
-            if item.project == project and item.instance == request.instance
-        )
         background_tasks.add_task(
             resolved_service.create,
             project,

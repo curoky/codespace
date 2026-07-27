@@ -10,6 +10,7 @@ import threading
 import time
 from collections.abc import Iterator
 from contextlib import contextmanager, suppress
+from functools import cache
 from pathlib import Path
 
 from codespace.client.models import CONTAINER_USER, WORKSPACE_DIR_NAME, Environment
@@ -26,10 +27,9 @@ _LOCK = threading.RLock()
 _PROBE_TIMEOUT = 30.0
 _PROBE_INTERVAL = 0.5
 _WORKSPACE_ROOT_TIMEOUT = 15.0
-_workspace_roots: dict[str, str] = {}
-_workspace_root_lock = threading.Lock()
 
 
+@cache
 def remote_workspace_root(host: str) -> str:
     """Resolve and ensure one host's workspace root under the login user's home.
 
@@ -37,14 +37,7 @@ def remote_workspace_root(host: str) -> str:
     resolved per host with one cached SSH round-trip that also creates the
     directory. Ensuring it here means the bind-mount source always exists.
     """
-    with _workspace_root_lock:
-        cached = _workspace_roots.get(host)
-        if cached is not None:
-            return cached
-    root = _resolve_remote_workspace_root(host)
-    with _workspace_root_lock:
-        _workspace_roots[host] = root
-    return root
+    return _resolve_remote_workspace_root(host)
 
 
 def _resolve_remote_workspace_root(host: str) -> str:

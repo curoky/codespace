@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from threading import Lock
 
@@ -17,9 +17,9 @@ from codespace.client.models import (
     Environment,
     GitProvider,
     HostStatus,
+    Operation,
     OperationStatus,
     ProjectSummary,
-    deploy_key_title,
     environment_id,
     ssh_port,
 )
@@ -28,11 +28,26 @@ from codespace.client.transport import PodmanTransport
 
 
 @dataclass(frozen=True, slots=True)
-class HostInventory:
+class _HostInventory:
     """Dashboard inventory result for one host."""
 
     status: HostStatus
     environments: list[Environment]
+
+
+@dataclass(slots=True)
+class _Creation:
+    """Inputs and rollback state for one create operation."""
+
+    project_id: str
+    instance: str
+    project: ProjectConfig
+    image: str
+    identity: str
+    token: str | None = None
+    client: PodmanClient | None = None
+    container_created: bool = False
+    deploy_key_registered: bool = False
 
 
 class CodespaceService:
@@ -104,109 +119,27 @@ class CodespaceService:
             tokens=self.token_status(),
         )
 
-    def queue_create(self, project_id: str, instance: str) -> str:
+    def queue_create(self, project_id: str, instance: str) -> Operation:
         """Validate synchronous prerequisites and create a queued operation."""
         project = self._project(project_id)
         self._token(project.provider)
-        operation = self.operations.create(project.host, project_id, instance)
-        return operation.id
+        return self.operations.create(project.host, project_id, instance)
 
     def create(self, project_id: str, instance: str) -> None:
         """Run one complete local creation operation with fail-closed rollback."""
         project = self._project(project_id)
-        image = self.config.project_image(project_id)
-        identity = environment_id(project.host, project_id, instance)
-        registered = False
-        container_created = False
-        client: PodmanClient | None = None
+        creation = _Creation(
+            project_id=project_id,
+            instance=instance,
+            project=project,
+            image=self.config.project_image(project_id),
+            identity=environment_id(project.host, project_id, instance),
+        )
         try:
-            self._stage(project_id, instance, "checking inventory", status="running")
-            token = self._token(project.provider)
-            client = self.transport.client(project.host)
-            inventory = runtime.list_inventory(client, project.host, self.config)
-            self._reject_inventory_errors(project.host, inventory)
-            self._reject_duplicate_and_collision(inventory.environments, project_id, instance)
-
-            self._stage(project_id, instance, "preparing login key")
-            login_public_key = ssh.ensure_login_key()
-
-            self._stage(project_id, instance, "generating deploy key")
-            deploy_keypair = runtime.generate_deploy_keypair()
-
-            self._stage(project_id, instance, f"pulling image {image}")
-            runtime.pull_image(client, image)
-
-            self._stage(project_id, instance, "preparing workspace")
-            workspace_root = ssh.remote_workspace_root(project.host)
-            runtime.prepare_workspace(client, image, workspace_root, project_id, instance)
-
-            self._stage(project_id, instance, "creating container")
-            container_created = True
-            container = runtime.create_container(
-                client,
-                host=project.host,
-                project=project_id,
-                instance=instance,
-                repo=project.repo,
-                provider=project.provider,
-                image=image,
-                workspace_root=workspace_root,
-            )
-
-            self._stage(project_id, instance, "injecting credentials")
-            runtime.inject_credentials(
-                container,
-                login_public_key=login_public_key,
-                deploy_private_key=deploy_keypair.private_key,
-                provider=project.provider,
-            )
-
-            environment = Environment(
-                id=identity,
-                host=project.host,
-                project=project_id,
-                instance=instance,
-                repo=project.repo,
-                provider=project.provider,
-                image=image,
-                ssh_port=ssh_port(identity),
-                container_id=container.id,
-                status="running",
-            )
-            self._stage(project_id, instance, "probing ssh")
-            ssh.probe(environment)
-
-            self._stage(project_id, instance, "registering deploy key")
-            provider.register(
-                project.provider,
-                token,
-                project.repo,
-                deploy_key_title(identity),
-                deploy_keypair.public_key,
-            )
-            registered = True
-
-            self._stage(project_id, instance, "cloning repository")
-            runtime.clone_repo(container, project.repo, project.provider)
-
-            self._stage(project_id, instance, "writing ssh config")
-            refreshed = runtime.list_inventory(client, project.host, self.config)
-            self._reject_inventory_errors(project.host, refreshed)
-            ssh.write_host(project.host, refreshed.environments)
+            self._create(creation)
         except Exception as exc:
-            logger.exception("failed to create {}", identity)
-            rollback_error = self._rollback_create(
-                client=client,
-                host=project.host,
-                project=project_id,
-                instance=instance,
-                provider_name=project.provider,
-                token=self._optional_token(project.provider),
-                repo=project.repo,
-                identity=identity,
-                registered=registered,
-                container_created=container_created,
-            )
+            logger.exception("failed to create {}", creation.identity)
+            rollback_error = self._rollback_create(creation)
             message = str(exc)
             if rollback_error is not None:
                 message = f"{message}; rollback stopped: {rollback_error}"
@@ -220,6 +153,93 @@ class CodespaceService:
             return
 
         self.operations.remove(project_id, instance)
+
+    def _create(self, creation: _Creation) -> None:
+        project = creation.project
+
+        self._stage(creation, "checking inventory", status="running")
+        creation.token = self._token(project.provider)
+        creation.client = self.transport.client(project.host)
+        inventory = runtime.list_inventory(creation.client, project.host, self.config)
+        self._reject_inventory_errors(project.host, inventory)
+        self._reject_duplicate_and_collision(
+            inventory.environments,
+            creation.project_id,
+            creation.instance,
+        )
+
+        self._stage(creation, "preparing login key")
+        login_public_key = ssh.ensure_login_key()
+
+        self._stage(creation, "generating deploy key")
+        deploy_keypair = runtime.generate_deploy_keypair()
+
+        self._stage(creation, f"pulling image {creation.image}")
+        runtime.pull_image(creation.client, creation.image)
+
+        self._stage(creation, "preparing workspace")
+        workspace_root = ssh.remote_workspace_root(project.host)
+        runtime.prepare_workspace(
+            creation.client,
+            creation.image,
+            workspace_root,
+            creation.project_id,
+            creation.instance,
+        )
+
+        self._stage(creation, "creating container")
+        creation.container_created = True
+        container = runtime.create_container(
+            creation.client,
+            host=project.host,
+            project=creation.project_id,
+            instance=creation.instance,
+            repo=project.repo,
+            provider=project.provider,
+            image=creation.image,
+            workspace_root=workspace_root,
+        )
+
+        self._stage(creation, "injecting credentials")
+        runtime.inject_credentials(
+            container,
+            login_public_key=login_public_key,
+            deploy_private_key=deploy_keypair.private_key,
+            provider=project.provider,
+        )
+
+        environment = Environment(
+            id=creation.identity,
+            host=project.host,
+            project=creation.project_id,
+            instance=creation.instance,
+            repo=project.repo,
+            provider=project.provider,
+            image=creation.image,
+            ssh_port=ssh_port(creation.identity),
+            container_id=container.id,
+            status="running",
+        )
+        self._stage(creation, "probing ssh")
+        ssh.probe(environment)
+
+        self._stage(creation, "registering deploy key")
+        provider.register(
+            project.provider,
+            creation.token,
+            project.repo,
+            creation.identity,
+            deploy_keypair.public_key,
+        )
+        creation.deploy_key_registered = True
+
+        self._stage(creation, "cloning repository")
+        runtime.clone_repo(container, project.repo, project.provider)
+
+        self._stage(creation, "writing ssh config")
+        refreshed = runtime.list_inventory(creation.client, project.host, self.config)
+        self._reject_inventory_errors(project.host, refreshed)
+        ssh.write_host(project.host, refreshed.environments)
 
     def delete(self, project_id: str, instance: str, *, purge: bool) -> None:
         """Revoke provider state before deleting a container or workspace."""
@@ -253,7 +273,7 @@ class CodespaceService:
             project.provider,
             token,
             project.repo,
-            deploy_key_title(identity),
+            identity,
         )
         if purge:
             workspace_root = ssh.remote_workspace_root(project.host)
@@ -271,24 +291,18 @@ class CodespaceService:
         self._reject_inventory_errors(project.host, refreshed)
         ssh.write_host(project.host, refreshed.environments)
 
-    def _all_host_inventories(self) -> dict[str, HostInventory]:
-        results: dict[str, HostInventory] = {}
+    def _all_host_inventories(self) -> dict[str, _HostInventory]:
         with ThreadPoolExecutor(max_workers=len(self.config.hosts)) as executor:
-            futures = {
-                executor.submit(self._host_inventory, host): host for host in self.config.hosts
-            }
-            for future in as_completed(futures):
-                host = futures[future]
-                results[host] = future.result()
-        return results
+            inventories = executor.map(self._host_inventory, self.config.hosts)
+            return dict(zip(self.config.hosts, inventories, strict=True))
 
-    def _host_inventory(self, host: str) -> HostInventory:
+    def _host_inventory(self, host: str) -> _HostInventory:
         try:
             client = self.transport.client(host)
             inventory = runtime.list_inventory(client, host, self.config)
             if not inventory.errors:
                 ssh.write_host(host, inventory.environments)
-            return HostInventory(
+            return _HostInventory(
                 status=HostStatus(
                     id=host,
                     status="online",
@@ -299,7 +313,7 @@ class CodespaceService:
                 environments=inventory.environments,
             )
         except Exception as exc:
-            return HostInventory(
+            return _HostInventory(
                 status=HostStatus(id=host, status="offline", error=str(exc)),
                 environments=[],
             )
@@ -323,38 +337,25 @@ class CodespaceService:
                     "choose a different instance name"
                 )
 
-    def _rollback_create(
-        self,
-        *,
-        client: PodmanClient | None,
-        host: str,
-        project: str,
-        instance: str,
-        provider_name: GitProvider,
-        token: str | None,
-        repo: str,
-        identity: str,
-        registered: bool,
-        container_created: bool,
-    ) -> Exception | None:
-        if registered:
-            if token is None:
+    def _rollback_create(self, creation: _Creation) -> Exception | None:
+        if creation.deploy_key_registered:
+            if creation.token is None:
                 return RuntimeError("provider token is unavailable; container retained")
             try:
                 provider.revoke(
-                    provider_name,
-                    token,
-                    repo,
-                    deploy_key_title(identity),
+                    creation.project.provider,
+                    creation.token,
+                    creation.project.repo,
+                    creation.identity,
                 )
             except Exception as exc:
-                if client is not None and container_created:
+                if creation.client is not None and creation.container_created:
                     try:
                         container = runtime.find_container(
-                            client,
-                            host,
-                            project,
-                            instance,
+                            creation.client,
+                            creation.project.host,
+                            creation.project_id,
+                            creation.instance,
                             self.config,
                         )
                         if container is not None:
@@ -362,14 +363,14 @@ class CodespaceService:
                     except Exception as stop_exc:
                         return RuntimeError(f"{exc}; failed to stop retained container: {stop_exc}")
                 return exc
-        if not container_created or client is None:
+        if not creation.container_created or creation.client is None:
             return None
         try:
             container = runtime.find_container(
-                client,
-                host,
-                project,
-                instance,
+                creation.client,
+                creation.project.host,
+                creation.project_id,
+                creation.instance,
                 self.config,
             )
             if container is not None:
@@ -380,15 +381,14 @@ class CodespaceService:
 
     def _stage(
         self,
-        project: str,
-        instance: str,
+        creation: _Creation,
         stage: str,
         *,
         status: OperationStatus | None = None,
     ) -> None:
         self.operations.update(
-            project,
-            instance,
+            creation.project_id,
+            creation.instance,
             status=status,
             stage=stage,
         )

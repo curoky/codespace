@@ -1,6 +1,5 @@
-const state = { dashboard: null, pollTimer: null };
-
 const DEFAULT_INSTANCE = "default";
+let pollTimer = null;
 
 const hostsElement = document.querySelector("#hosts");
 const projectsElement = document.querySelector("#projects");
@@ -47,8 +46,7 @@ async function api(path, options = {}) {
 async function refresh() {
   pollStatusElement.textContent = "Refreshing…";
   try {
-    state.dashboard = await api("/api/dashboard");
-    render();
+    render(await api("/api/dashboard"));
   } catch (error) {
     notify(error.message);
   } finally {
@@ -56,20 +54,20 @@ async function refresh() {
   }
 }
 
-function render() {
-  renderHosts(state.dashboard.hosts);
-  renderProjects(state.dashboard);
-  const savedTokens = Object.values(state.dashboard.tokens).filter(Boolean).length;
+function render(dashboard) {
+  renderHosts(dashboard.hosts);
+  renderProjects(dashboard);
+  const savedTokens = Object.values(dashboard.tokens).filter(Boolean).length;
   document.querySelector("#tokens-button").textContent = `Tokens ${savedTokens}/2`;
-  const busy = state.dashboard.operations.some((operation) =>
+  const busy = dashboard.operations.some((operation) =>
     ["queued", "running"].includes(operation.status),
   );
-  if (busy && !state.pollTimer) {
-    state.pollTimer = window.setInterval(refresh, 1500);
+  if (busy && !pollTimer) {
+    pollTimer = window.setInterval(refresh, 1500);
     pollStatusElement.textContent = "Operations running";
-  } else if (!busy && state.pollTimer) {
-    window.clearInterval(state.pollTimer);
-    state.pollTimer = null;
+  } else if (!busy && pollTimer) {
+    window.clearInterval(pollTimer);
+    pollTimer = null;
   }
 }
 

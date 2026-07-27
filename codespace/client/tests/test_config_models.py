@@ -8,7 +8,6 @@ from pydantic import ValidationError
 from codespace.client.config import Config, load_config
 from codespace.client.models import (
     CreateInstanceRequest,
-    deploy_key_title,
     environment_id,
     ssh_port,
     workspace_path,
@@ -243,7 +242,6 @@ def test_resource_identity_contract_is_deterministic() -> None:
     identity = environment_id("home", "devspace", "debug")
 
     assert identity == "codespace-home-devspace-debug"
-    assert deploy_key_title(identity) == identity
     assert (
         workspace_path("/home/x/codespace2", "devspace", "debug")
         == "/home/x/codespace2/devspace/debug"
