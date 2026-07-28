@@ -138,15 +138,18 @@ Maintain one reusable system SSH process and one Podman client per host:
 
 ```text
 ssh -N -o ExitOnForwardFailure=yes -o StreamLocalBindUnlink=yes \
+  -o ServerAliveInterval=15 -o ServerAliveCountMax=3 \
   -L <local.sock>:<host podman_socket> <host>
 ```
 
 The forward target is the host's resolved `podman_socket`
 (default `/run/podman/podman.sock`). Sockets live in a process-private runtime
-directory with mode `0700`. Rebuild a host tunnel after its process dies. Close
-Podman clients and SSH subprocesses during application shutdown. Dashboard
-inventory queries run concurrently, and one offline host must not block other
-hosts.
+directory with mode `0700`. SSH keepalives make a silently-broken forward exit
+on its own, and every Podman client carries a bounded call timeout so a
+half-dead tunnel fails fast instead of hanging an operation. Rebuild a host
+tunnel after its process dies. Close Podman clients and SSH subprocesses during
+application shutdown. Dashboard inventory queries run concurrently, and one
+offline host must not block other hosts.
 
 ## Environment Lifecycle
 

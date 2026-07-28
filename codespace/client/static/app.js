@@ -46,7 +46,11 @@ async function api(path, options = {}) {
 async function refresh() {
   pollStatusElement.textContent = "Refreshing…";
   try {
-    render(await api("/api/dashboard"));
+    const dashboard = await api("/api/dashboard");
+    // Skip the DOM rebuild while the user is selecting text so polling does not
+    // clear their selection mid-copy; the next poll re-renders once they finish.
+    if (hasActiveSelection()) return;
+    render(dashboard);
   } catch (error) {
     notify(error.message);
   } finally {
@@ -228,6 +232,11 @@ async function saveTokens(event) {
   } catch (error) {
     notify(error.message);
   }
+}
+
+function hasActiveSelection() {
+  const selection = window.getSelection();
+  return Boolean(selection && !selection.isCollapsed && selection.toString().trim());
 }
 
 function element(tag, className = "", text = "") {

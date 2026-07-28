@@ -16,6 +16,14 @@ from podman import PodmanClient
 
 _START_TIMEOUT = 10.0
 _START_INTERVAL = 0.05
+# Cap every Podman call so a half-dead tunnel fails fast instead of hanging a
+# create operation forever. Image pulls stream, so this bounds inter-chunk gaps
+# rather than the whole download.
+_CLIENT_TIMEOUT = 60.0
+# Let SSH drop a silently-broken forward on its own; the dead process then fails
+# is_running() and the next client() call rebuilds the tunnel.
+_SERVER_ALIVE_INTERVAL = 15
+_SERVER_ALIVE_COUNT_MAX = 3
 
 
 class TransportError(RuntimeError):
@@ -106,6 +114,10 @@ class PodmanTransport:
             "ExitOnForwardFailure=yes",
             "-o",
             "StreamLocalBindUnlink=yes",
+            "-o",
+            f"ServerAliveInterval={_SERVER_ALIVE_INTERVAL}",
+            "-o",
+            f"ServerAliveCountMax={_SERVER_ALIVE_COUNT_MAX}",
             "-L",
             f"{socket_path}:{remote_socket}",
             host,
@@ -119,7 +131,10 @@ class PodmanTransport:
         deadline = time.monotonic() + _START_TIMEOUT
         while time.monotonic() < deadline:
             if socket_path.exists():
-                client = self._client_factory(base_url=f"unix://{socket_path}")
+                client = self._client_factory(
+                    base_url=f"unix://{socket_path}",
+                    timeout=_CLIENT_TIMEOUT,
+                )
                 return _Tunnel(
                     socket_path=socket_path,
                     process=process,

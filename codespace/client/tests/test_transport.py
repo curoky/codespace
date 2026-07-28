@@ -32,8 +32,9 @@ class FakeProcess:
 
 
 class FakeClient:
-    def __init__(self, base_url: str) -> None:
+    def __init__(self, base_url: str, timeout: float | None = None) -> None:
         self.base_url = base_url
+        self.timeout = timeout
         self.closed = False
 
     def close(self) -> None:
@@ -53,8 +54,8 @@ def test_transport_uses_system_ssh_command_and_private_runtime(tmp_path: Path) -
         processes.append(process)
         return process
 
-    def client_factory(*, base_url: str) -> FakeClient:
-        client = FakeClient(base_url)
+    def client_factory(*, base_url: str, timeout: float | None = None) -> FakeClient:
+        client = FakeClient(base_url, timeout)
         clients.append(client)
         return client
 
@@ -75,6 +76,10 @@ def test_transport_uses_system_ssh_command_and_private_runtime(tmp_path: Path) -
             "ExitOnForwardFailure=yes",
             "-o",
             "StreamLocalBindUnlink=yes",
+            "-o",
+            "ServerAliveInterval=15",
+            "-o",
+            "ServerAliveCountMax=3",
             "-L",
             f"{transport.runtime_dir}/home.sock:/run/podman/podman.sock",
             "home",
@@ -83,6 +88,7 @@ def test_transport_uses_system_ssh_command_and_private_runtime(tmp_path: Path) -
     assert "StrictHostKeyChecking=no" not in commands[0]
     assert returned is clients[0]
     assert clients[0].base_url == f"unix://{transport.runtime_dir}/home.sock"
+    assert clients[0].timeout == 60.0
     assert stat.S_IMODE(transport.runtime_dir.stat().st_mode) == 0o700
 
     transport.close()
@@ -102,8 +108,8 @@ def test_transport_reuses_live_tunnel_and_rebuilds_dead_tunnel(tmp_path: Path) -
         processes.append(process)
         return process
 
-    def client_factory(*, base_url: str) -> FakeClient:
-        client = FakeClient(base_url)
+    def client_factory(*, base_url: str, timeout: float | None = None) -> FakeClient:
+        client = FakeClient(base_url, timeout)
         clients.append(client)
         return client
 
@@ -137,8 +143,8 @@ def test_transport_forwards_per_host_remote_socket(tmp_path: Path) -> None:
         Path(command[-2].split(":", 1)[0]).touch()
         return FakeProcess()
 
-    def client_factory(*, base_url: str) -> FakeClient:
-        return FakeClient(base_url)
+    def client_factory(*, base_url: str, timeout: float | None = None) -> FakeClient:
+        return FakeClient(base_url, timeout)
 
     transport = PodmanTransport(
         {"boe": "/tmp/podmanxd.sock"},
