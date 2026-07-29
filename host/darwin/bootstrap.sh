@@ -15,3 +15,11 @@ ln -s ~/workspace/devspace ~/devspace
 brew bundle --force --file ~/devspace/host/darwin/conf/brew/Brewfile --cleanup --verbose
 # brew link krb5 --force
 brew cleanup --prune=all
+
+launchctl bootout gui/"$(id -u)"/sh.atuin.daemon || true
+launchctl bootstrap gui/"$(id -u)" ~/Library/LaunchAgents/sh.atuin.daemon.plist
+launchctl kickstart -k gui/"$(id -u)"/sh.atuin.daemon
+
+launchctl bootout gui/"$(id -u)"/sh.atuin.server || true
+launchctl bootstrap gui/"$(id -u)" ~/Library/LaunchAgents/sh.atuin.server.plist
+launchctl kickstart -k gui/"$(id -u)"/sh.atuin.server
