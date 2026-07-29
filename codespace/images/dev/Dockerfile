@@ -5,10 +5,10 @@ ARG BASE_IMAGE=debian:13
 FROM docker.io/debian:latest AS stage_sb
 RUN apt-get update -y && apt-get install -y curl zstd
 
-COPY codespace/images/dev/script/sb-pkgs.yaml /tmp/sb-pkgs.yaml
-RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/client/install.sh \
+COPY codespace/images/dev/script/binman.yaml /tmp/binman.yaml
+RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
     | bash -s -- --prefix /opt/sb/bin \
-  && /opt/sb/bin/sb sync /tmp/sb-pkgs.yaml \
+  && /opt/sb/bin/bm sync /tmp/binman.yaml \
   && ln -s -r /opt/sb/bin/bazelisk /opt/sb/bin/bazel \
   && rm -rf /opt/sb/store/nettools/bin/hostname \
   && rm -rf /opt/sb/store/cmake/share/cmake*/Help \

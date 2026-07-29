@@ -62,7 +62,7 @@ policy. The existing development image's Atuin client continues to use
 | Path | Responsibility |
 | --- | --- |
 | `Dockerfile` | Minimal Debian, standalone Atuin, s6, and rootfs assembly. |
-| `sb-pkgs.yaml` | Standalone Atuin and s6 package set. |
+| `binman.yaml` | Standalone Atuin and s6 package set. |
 | `rootfs/` | Sidecar-only s6 bundle and shared services. |
 | `build.sh` | Local image build from the repository root. |
 | `run.sh` | Manual host-local singleton replacement. |
