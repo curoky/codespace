@@ -7,6 +7,7 @@ import tarfile
 from types import SimpleNamespace
 
 import pytest
+from podman.errors import NotFound
 
 from codespace.client import runtime
 from codespace.client.config import Config
@@ -50,6 +51,7 @@ class FakeContainer:
         self.status = "running"
         self.exec_calls: list[tuple[list[str], str | None]] = []
         self.archive: bytes | None = None
+        self.files: dict[str, bytes] = {}
 
     def reload(self) -> None:
         return None
@@ -66,6 +68,17 @@ class FakeContainer:
     def put_archive(self, _path: str, archive: bytes) -> bool:
         self.archive = archive
         return True
+
+    def get_archive(self, path: str) -> tuple[list[bytes], dict[str, object]]:
+        if path not in self.files:
+            raise NotFound(f"no such file: {path}")
+        buffer = io.BytesIO()
+        with tarfile.open(fileobj=buffer, mode="w") as archive:
+            raw = self.files[path]
+            info = tarfile.TarInfo(name=path.rsplit("/", 1)[-1])
+            info.size = len(raw)
+            archive.addfile(info, io.BytesIO(raw))
+        return [buffer.getvalue()], {}
 
 
 def test_read_environment_requires_complete_valid_labels(config: Config) -> None:
@@ -185,16 +198,7 @@ def test_workspace_helper_uses_project_image_and_fixed_uid() -> None:
     ]
 
 
-def test_inject_credentials_overwrites_managed_files() -> None:
-    container = FakeContainer()
-
-    runtime.inject_credentials(
-        container,  # type: ignore[arg-type]
-        login_public_key="ssh-ed25519 LOGIN",
-        deploy_private_key="PRIVATE",
-        provider="github",
-    )
-
+def _archived_config(container: FakeContainer) -> str:
     assert container.archive is not None
     with tarfile.open(fileobj=io.BytesIO(container.archive), mode="r") as archive:
         assert set(archive.getnames()) == {
@@ -204,8 +208,65 @@ def test_inject_credentials_overwrites_managed_files() -> None:
         }
         config_file = archive.extractfile("config")
         assert config_file is not None
-        assert "Host github.com" in config_file.read().decode()
+        return config_file.read().decode()
+
+
+def test_inject_credentials_writes_managed_block_when_no_config() -> None:
+    container = FakeContainer()
+
+    runtime.inject_credentials(
+        container,  # type: ignore[arg-type]
+        login_public_key="ssh-ed25519 LOGIN",
+        deploy_private_key="PRIVATE",
+        provider="github",
+    )
+
+    config = _archived_config(container)
+    assert "Host github.com" in config
+    assert config.count("# >>> codespace managed >>>") == 1
     assert all(command[0] != "sh" for command, _user in container.exec_calls)
+
+
+def test_inject_credentials_appends_and_preserves_user_entries() -> None:
+    container = FakeContainer()
+    container.files["/home/x/.ssh/config"] = (
+        b"Host my-server\n    HostName 10.0.0.1\n    User dev\n"
+    )
+
+    runtime.inject_credentials(
+        container,  # type: ignore[arg-type]
+        login_public_key="ssh-ed25519 LOGIN",
+        deploy_private_key="PRIVATE",
+        provider="github",
+    )
+
+    config = _archived_config(container)
+    assert "Host my-server" in config
+    assert "Host github.com" in config
+    assert config.count("# >>> codespace managed >>>") == 1
+
+
+def test_inject_credentials_replaces_stale_managed_block() -> None:
+    container = FakeContainer()
+    container.files["/home/x/.ssh/config"] = (
+        b"Host my-server\n    HostName 10.0.0.1\n\n"
+        b"# >>> codespace managed >>>\n"
+        b"Host gitlab.com\n    HostName gitlab.com\n"
+        b"# <<< codespace managed <<<\n"
+    )
+
+    runtime.inject_credentials(
+        container,  # type: ignore[arg-type]
+        login_public_key="ssh-ed25519 LOGIN",
+        deploy_private_key="PRIVATE",
+        provider="github",
+    )
+
+    config = _archived_config(container)
+    assert "Host my-server" in config
+    assert "Host github.com" in config
+    assert "gitlab.com" not in config
+    assert config.count("# >>> codespace managed >>>") == 1
 
 
 def test_clone_reuses_existing_checkout_and_uses_argument_list() -> None:

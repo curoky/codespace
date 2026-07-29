@@ -161,7 +161,8 @@ Creation order is load-bearing:
 4. Pull the project image.
 5. Use the same image as a helper to create and chown the host workspace.
 6. Create the labeled host-network container with the fixed runtime parameters.
-7. Overwrite Codespace-owned login and repository SSH credentials.
+7. Write Codespace-owned login and repository SSH credentials, merging the
+   managed `~/.ssh/config` block so user-added entries survive.
 8. Verify an actual SSH login through the generated route.
 9. Replace matching provider deploy keys with one read-write key.
 10. Preserve an existing Git checkout or clone the configured repository.

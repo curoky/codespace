@@ -281,7 +281,12 @@ def inject_credentials(
     deploy_private_key: str,
     provider: GitProvider,
 ) -> None:
-    """Overwrite all Codespace-owned SSH files inside the container."""
+    """Write Codespace-owned SSH credentials, merging the managed config block.
+
+    ``authorized_keys`` and ``repo_id_ed25519`` are dedicated Codespace files and
+    are replaced wholesale. ``config`` is merged: any prior Codespace-managed block
+    is stripped and the fresh block appended, so user-added entries survive.
+    """
     ssh_dir = f"/home/{CONTAINER_USER}/.ssh"
     _exec_checked(
         container,
@@ -289,7 +294,7 @@ def inject_credentials(
         user="0",
     )
     provider_host = git_host(provider)
-    git_config = (
+    managed_block = (
         f"Host {provider_host}\n"
         f"    HostName {provider_host}\n"
         "    User git\n"
@@ -297,11 +302,12 @@ def inject_credentials(
         "    IdentitiesOnly yes\n"
         "    StrictHostKeyChecking accept-new\n"
     )
+    existing_config = _read_container_file(container, f"{ssh_dir}/config")
     archive = _ssh_archive(
         [
             ("authorized_keys", login_public_key.rstrip() + "\n", 0o600),
             ("repo_id_ed25519", deploy_private_key, 0o600),
-            ("config", git_config, 0o600),
+            ("config", _merge_ssh_config(existing_config, managed_block), 0o600),
         ]
     )
     if not container.put_archive(ssh_dir, archive):
@@ -388,6 +394,56 @@ def _exec_checked(container: Container, command: list[str], *, user: str) -> Non
         return
     message = output.decode("utf-8", "replace") if isinstance(output, bytes) else str(output)
     raise RuntimeError(f"exec {command!r} failed ({exit_code}): {message}")
+
+
+_SSH_CONFIG_MARKER_BEGIN = "# >>> codespace managed >>>"
+_SSH_CONFIG_MARKER_END = "# <<< codespace managed <<<"
+
+
+def _merge_ssh_config(existing: str, managed_block: str) -> str:
+    """Return ``existing`` with the Codespace-managed block replaced or appended.
+
+    The managed block is delimited by stable markers so repeated injections stay
+    idempotent while any user-added SSH entries outside the markers are preserved.
+    """
+    preserved = _strip_managed_block(existing).strip("\n")
+    block = (
+        f"{_SSH_CONFIG_MARKER_BEGIN}\n{managed_block.rstrip(chr(10))}\n{_SSH_CONFIG_MARKER_END}\n"
+    )
+    return f"{preserved}\n\n{block}" if preserved else block
+
+
+def _strip_managed_block(content: str) -> str:
+    lines = content.splitlines()
+    result: list[str] = []
+    skipping = False
+    for line in lines:
+        if line.strip() == _SSH_CONFIG_MARKER_BEGIN:
+            skipping = True
+            continue
+        if line.strip() == _SSH_CONFIG_MARKER_END:
+            skipping = False
+            continue
+        if not skipping:
+            result.append(line)
+    return "\n".join(result)
+
+
+def _read_container_file(container: Container, path: str) -> str:
+    """Return the container file contents, or an empty string when it is absent."""
+    try:
+        stream, _stat = container.get_archive(path)
+    except NotFound:
+        return ""
+    buffer = io.BytesIO(b"".join(stream))
+    with tarfile.open(fileobj=buffer, mode="r") as archive:
+        member = next((m for m in archive.getmembers() if m.isfile()), None)
+        if member is None:
+            return ""
+        extracted = archive.extractfile(member)
+        if extracted is None:
+            return ""
+        return extracted.read().decode("utf-8", "replace")
 
 
 def _ssh_archive(files: list[tuple[str, str, int]]) -> bytes:
