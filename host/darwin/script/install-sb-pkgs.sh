@@ -9,7 +9,7 @@ if [[ ! -d /opt/sb ]]; then
   sudo chown x:staff /opt/sb
 fi
 
-# Bootstrap the sb client into the prefix, then use it to install everything.
+# Bootstrap the binman client (bm) into the prefix, then use it to install everything.
 mkdir -p /opt/sb/bin
 curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh |
   bash -s -- --prefix /opt/sb/bin

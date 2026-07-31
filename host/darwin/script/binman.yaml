@@ -102,3 +102,17 @@ packages:
   unlink:
     - nodejs-slim26
     - perl
+
+profiles:
+  # vscode go tools
+  go:
+    - gopls
+    - delve
+    - go-tools
+    - gofumpt
+    - golangci-lint
+    - gomodifytags
+    - gotests
+    - gotools
+    - impl
+    - go-outline
