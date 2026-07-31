@@ -15,7 +15,6 @@ from podman.errors import NotFound
 
 from codespace.client.config import Config
 from codespace.client.models import (
-    CONTAINER_UID,
     CONTAINER_USER,
     LABEL_IMAGE,
     LABEL_INSTANCE,
@@ -185,41 +184,6 @@ def find_container(
 def pull_image(client: PodmanClient, image: str) -> None:
     """Pull the configured project image before any helper or container run."""
     client.images.pull(image)
-
-
-def prepare_workspace(
-    client: PodmanClient,
-    image: str,
-    workspace_root: str,
-    project: str,
-    instance: str,
-) -> None:
-    """Create and chown a host workspace with a short-lived image helper."""
-    target = workspace_path(workspace_root, project, instance)
-    client.containers.run(
-        image,
-        name=None,
-        entrypoint=["/usr/bin/install"],
-        command=[
-            "-d",
-            "-m",
-            "0755",
-            "-o",
-            str(CONTAINER_UID),
-            "-g",
-            str(CONTAINER_UID),
-            target,
-        ],
-        detach=False,
-        remove=True,
-        mounts=[
-            {
-                "type": "bind",
-                "source": workspace_root,
-                "target": workspace_root,
-            }
-        ],
-    )
 
 
 def create_container(

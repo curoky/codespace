@@ -159,7 +159,9 @@ Creation order is load-bearing:
 2. Generate or reuse `~/.ssh/codespace/id_ed25519`.
 3. Generate the environment deploy key in memory.
 4. Pull the project image.
-5. Use the same image as a helper to create and chown the host workspace.
+5. Create the host workspace directory over SSH (`mkdir` as the login user,
+   which shares uid/gid 5230 with the container user, so ownership is correct
+   without a helper container).
 6. Create the labeled host-network container with the fixed runtime parameters.
 7. Write Codespace-owned login and repository SSH credentials, merging the
    managed `~/.ssh/config` block so user-added entries survive.

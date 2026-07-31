@@ -162,42 +162,6 @@ def test_create_container_preserves_fixed_runtime_contract(
     ]
 
 
-def test_workspace_helper_uses_project_image_and_fixed_uid() -> None:
-    calls: list[tuple[str, dict[str, object]]] = []
-    client = SimpleNamespace(
-        containers=SimpleNamespace(run=lambda image, **kwargs: calls.append((image, kwargs)))
-    )
-
-    runtime.prepare_workspace(
-        client,  # type: ignore[arg-type]
-        "project-image:latest",
-        "/home/x/codespace2",
-        "devspace",
-        "debug",
-    )
-
-    image, kwargs = calls[0]
-    assert image == "project-image:latest"
-    assert kwargs["entrypoint"] == ["/usr/bin/install"]
-    assert kwargs["command"] == [
-        "-d",
-        "-m",
-        "0755",
-        "-o",
-        "5230",
-        "-g",
-        "5230",
-        "/home/x/codespace2/devspace/debug",
-    ]
-    assert kwargs["mounts"] == [
-        {
-            "type": "bind",
-            "source": "/home/x/codespace2",
-            "target": "/home/x/codespace2",
-        }
-    ]
-
-
 def _archived_config(container: FakeContainer) -> str:
     assert container.archive is not None
     with tarfile.open(fileobj=io.BytesIO(container.archive), mode="r") as archive:

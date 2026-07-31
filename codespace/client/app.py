@@ -22,7 +22,7 @@ from codespace.client.models import (
     Operation,
     UpdateTokenRequest,
 )
-from codespace.client.service import CodespaceService
+from codespace.client.service import CodespaceService, describe_error
 
 STATIC_DIR = Path(__file__).parent / "static"
 
@@ -73,7 +73,7 @@ def create_app(
 
     @app.exception_handler(Exception)
     def _unexpected_error(_request: object, exc: Exception) -> JSONResponse:
-        return JSONResponse(status_code=500, content={"error": str(exc)})
+        return JSONResponse(status_code=500, content={"error": describe_error(exc)})
 
     @app.get("/")
     def index() -> FileResponse:
@@ -133,7 +133,7 @@ def create_app(
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc.args[0])) from exc
         except Exception as exc:
-            raise HTTPException(status_code=409, detail=str(exc)) from exc
+            raise HTTPException(status_code=409, detail=describe_error(exc)) from exc
         return {"ok": True, "workspace_removed": purge}
 
     return app

@@ -229,3 +229,39 @@ def test_remote_workspace_root_wraps_ssh_failure(
 
     with pytest.raises(RuntimeError, match="failed to resolve workspace root"):
         ssh.remote_workspace_root("home")
+
+
+def test_prepare_workspace_creates_directory_over_ssh(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    commands: list[list[str]] = []
+
+    def run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
+        commands.append(command)
+        return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(ssh.subprocess, "run", run)
+
+    ssh.prepare_workspace("home", "/home/x/codespace2/devspace/debug")
+
+    command = commands[0]
+    assert command[0] == "ssh"
+    assert command[-2] == "home"
+    assert command[-1] == "mkdir -p -m 0755 -- /home/x/codespace2/devspace/debug"
+
+
+def test_prepare_workspace_rejects_non_absolute_target() -> None:
+    with pytest.raises(RuntimeError, match="non-absolute workspace path"):
+        ssh.prepare_workspace("home", "relative/path")
+
+
+def test_prepare_workspace_wraps_ssh_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def run(command: list[str], **_kwargs: object) -> None:
+        raise subprocess.CalledProcessError(1, command, stderr="permission denied")
+
+    monkeypatch.setattr(ssh.subprocess, "run", run)
+
+    with pytest.raises(RuntimeError, match="failed to prepare workspace"):
+        ssh.prepare_workspace("home", "/home/x/codespace2/devspace/debug")

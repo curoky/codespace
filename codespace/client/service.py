@@ -22,9 +22,31 @@ from codespace.client.models import (
     ProjectSummary,
     environment_id,
     ssh_port,
+    workspace_path,
 )
 from codespace.client.operations import OperationStore
 from codespace.client.transport import PodmanTransport
+
+
+def describe_error(exc: BaseException) -> str:
+    """Render an exception with its cause chain.
+
+    Some clients (notably podman-py's ``APIError``) format only a bare URL and a
+    generic phrase like ``GET operation failed`` while stashing the real cause
+    (e.g. ``TimeoutError: timed out``) on ``__cause__``. Walk the chain so the
+    surfaced message keeps the actual failure instead of silently dropping it.
+    """
+    parts: list[str] = []
+    seen: set[int] = set()
+    current: BaseException | None = exc
+    while current is not None and id(current) not in seen:
+        seen.add(id(current))
+        text = str(current).strip()
+        rendered = f"{type(current).__name__}: {text}" if text else type(current).__name__
+        if rendered not in parts:
+            parts.append(rendered)
+        current = current.__cause__ or current.__context__
+    return " <- ".join(parts)
 
 
 @dataclass(frozen=True, slots=True)
@@ -140,9 +162,9 @@ class CodespaceService:
         except Exception as exc:
             logger.exception("failed to create {}", creation.identity)
             rollback_error = self._rollback_create(creation)
-            message = str(exc)
+            message = describe_error(exc)
             if rollback_error is not None:
-                message = f"{message}; rollback stopped: {rollback_error}"
+                message = f"{message}; rollback stopped: {describe_error(rollback_error)}"
             self.operations.update(
                 project_id,
                 instance,
@@ -179,12 +201,9 @@ class CodespaceService:
 
         self._stage(creation, "preparing workspace")
         workspace_root = ssh.remote_workspace_root(project.host)
-        runtime.prepare_workspace(
-            creation.client,
-            creation.image,
-            workspace_root,
-            creation.project_id,
-            creation.instance,
+        ssh.prepare_workspace(
+            project.host,
+            workspace_path(workspace_root, creation.project_id, creation.instance),
         )
 
         self._stage(creation, "creating container")
@@ -314,7 +333,7 @@ class CodespaceService:
             )
         except Exception as exc:
             return _HostInventory(
-                status=HostStatus(id=host, status="offline", error=str(exc)),
+                status=HostStatus(id=host, status="offline", error=describe_error(exc)),
                 environments=[],
             )
 

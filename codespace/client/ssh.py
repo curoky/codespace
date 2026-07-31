@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import fcntl
 import os
+import shlex
 import subprocess
 import tempfile
 import threading
@@ -27,6 +28,7 @@ _LOCK = threading.RLock()
 _PROBE_TIMEOUT = 30.0
 _PROBE_INTERVAL = 0.5
 _WORKSPACE_ROOT_TIMEOUT = 15.0
+_WORKSPACE_PREPARE_TIMEOUT = 15.0
 
 
 @cache
@@ -38,6 +40,36 @@ def remote_workspace_root(host: str) -> str:
     directory. Ensuring it here means the bind-mount source always exists.
     """
     return _resolve_remote_workspace_root(host)
+
+
+def prepare_workspace(host: str, target: str) -> None:
+    """Create one environment's workspace directory on the host over SSH.
+
+    The SSH login user shares uid/gid 5230 with the container user, so a plain
+    ``mkdir`` already yields correct ownership. This deliberately avoids a
+    short-lived Podman helper container: podman-py's ``run`` inspects the
+    container over the SSH-forwarded Unix socket, and that round-trip stalls for
+    the full client timeout on some hosts. ``target`` is built from a
+    remote-resolved absolute root and regex-validated project/instance IDs, so
+    it carries no shell metacharacters; it is still quoted defensively.
+    """
+    if not target.startswith("/"):
+        raise RuntimeError(f"refusing to prepare non-absolute workspace path: {target!r}")
+    remote_command = f"mkdir -p -m 0755 -- {shlex.quote(target)}"
+    try:
+        subprocess.run(  # noqa: S603
+            ["ssh", "-o", "BatchMode=yes", host, remote_command],  # noqa: S607
+            check=True,
+            capture_output=True,
+            text=True,
+            stdin=subprocess.DEVNULL,
+            timeout=_WORKSPACE_PREPARE_TIMEOUT,
+        )
+    except subprocess.CalledProcessError as exc:
+        stderr = exc.stderr.strip() if exc.stderr else ""
+        raise RuntimeError(
+            f"failed to prepare workspace {target!r} on host {host!r}: {stderr or exc}"
+        ) from exc
 
 
 def _resolve_remote_workspace_root(host: str) -> str:

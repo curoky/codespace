@@ -9,7 +9,7 @@ import pytest
 from codespace.client import provider, runtime, ssh
 from codespace.client.config import Config
 from codespace.client.models import Environment, environment_id, ssh_port
-from codespace.client.service import CodespaceService
+from codespace.client.service import CodespaceService, describe_error
 
 
 class FakeTransport:
@@ -101,7 +101,7 @@ def test_dashboard_isolates_offline_host_and_rewrites_successful_host(
     dashboard = service.dashboard()
 
     assert [host.status for host in dashboard.hosts] == ["online", "offline"]
-    assert dashboard.hosts[1].error == "ssh down"
+    assert dashboard.hosts[1].error == "RuntimeError: ssh down"
     assert [environment.id for environment in dashboard.environments] == [
         "codespace-home-devspace-debug"
     ]
@@ -160,7 +160,7 @@ def test_create_runs_all_stages_in_order(
         ),
     )
     monkeypatch.setattr(runtime, "pull_image", lambda *args: events.append("pull"))
-    monkeypatch.setattr(runtime, "prepare_workspace", lambda *args: events.append("workspace"))
+    monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: events.append("workspace"))
     monkeypatch.setattr(
         runtime,
         "create_container",
@@ -255,7 +255,7 @@ def test_failure_before_register_removes_container_but_keeps_workspace(
         lambda: runtime.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
     )
     monkeypatch.setattr(runtime, "pull_image", lambda *args: None)
-    monkeypatch.setattr(runtime, "prepare_workspace", lambda *args: None)
+    monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
     monkeypatch.setattr(runtime, "create_container", lambda *args, **kwargs: container)
     monkeypatch.setattr(runtime, "inject_credentials", lambda *args, **kwargs: None)
     monkeypatch.setattr(
@@ -268,7 +268,7 @@ def test_failure_before_register_removes_container_but_keeps_workspace(
     service.create("devspace", "debug")
 
     assert removed == [container]
-    assert service.operations.list()[0].error == "no ssh"
+    assert service.operations.list()[0].error == "RuntimeError: no ssh"
 
 
 def test_container_run_failure_still_attempts_deterministic_cleanup(
@@ -290,7 +290,7 @@ def test_container_run_failure_still_attempts_deterministic_cleanup(
         lambda: runtime.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
     )
     monkeypatch.setattr(runtime, "pull_image", lambda *args: None)
-    monkeypatch.setattr(runtime, "prepare_workspace", lambda *args: None)
+    monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
     monkeypatch.setattr(
         runtime,
         "create_container",
@@ -302,7 +302,7 @@ def test_container_run_failure_still_attempts_deterministic_cleanup(
     service.create("devspace", "debug")
 
     assert removed == [container]
-    assert service.operations.list()[0].error == "wait failed"
+    assert service.operations.list()[0].error == "RuntimeError: wait failed"
 
 
 def test_failure_after_register_revokes_then_removes_container(
@@ -320,7 +320,7 @@ def test_failure_after_register_revokes_then_removes_container(
         lambda: runtime.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
     )
     monkeypatch.setattr(runtime, "pull_image", lambda *args: None)
-    monkeypatch.setattr(runtime, "prepare_workspace", lambda *args: None)
+    monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
     monkeypatch.setattr(runtime, "create_container", lambda *args, **kwargs: container)
     monkeypatch.setattr(runtime, "inject_credentials", lambda *args, **kwargs: None)
     monkeypatch.setattr(ssh, "probe", lambda environment: None)
@@ -358,7 +358,7 @@ def test_revoke_failure_after_register_retains_container(
         lambda: runtime.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
     )
     monkeypatch.setattr(runtime, "pull_image", lambda *args: None)
-    monkeypatch.setattr(runtime, "prepare_workspace", lambda *args: None)
+    monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
     monkeypatch.setattr(runtime, "create_container", lambda *args, **kwargs: container)
     monkeypatch.setattr(runtime, "inject_credentials", lambda *args, **kwargs: None)
     monkeypatch.setattr(ssh, "probe", lambda environment: None)
@@ -380,7 +380,9 @@ def test_revoke_failure_after_register_retains_container(
 
     assert removed == []
     assert stopped == [10]
-    assert "rollback stopped: provider unavailable" in (service.operations.list()[0].error or "")
+    assert "rollback stopped: RuntimeError: provider unavailable" in (
+        service.operations.list()[0].error or ""
+    )
 
 
 def test_delete_requires_token_before_remote_mutation(
@@ -456,3 +458,32 @@ def test_delete_revoke_failure_refuses_all_mutation(
         service.delete("devspace", "debug", purge=True)
 
     assert mutations == []
+
+
+def test_describe_error_unwraps_cause_chain() -> None:
+    cause = TimeoutError("timed out")
+    try:
+        try:
+            raise cause
+        except TimeoutError as inner:
+            raise RuntimeError("GET operation failed") from inner
+    except RuntimeError as exc:
+        message = describe_error(exc)
+
+    assert message == "RuntimeError: GET operation failed <- TimeoutError: timed out"
+
+
+def test_describe_error_uses_implicit_context() -> None:
+    try:
+        try:
+            raise ValueError("bad socket")
+        except ValueError:
+            raise RuntimeError("wrapper")  # noqa: B904 — exercising implicit __context__
+    except RuntimeError as exc:
+        message = describe_error(exc)
+
+    assert message == "RuntimeError: wrapper <- ValueError: bad socket"
+
+
+def test_describe_error_handles_empty_message() -> None:
+    assert describe_error(RuntimeError()) == "RuntimeError"
