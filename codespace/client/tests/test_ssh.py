@@ -69,6 +69,17 @@ def test_initialize_generates_include_layout_and_removes_deleted_hosts(
     assert stat.S_IMODE(main.stat().st_mode) == 0o600
 
 
+def test_initialize_does_not_replace_unchanged_config(ssh_layout: Path) -> None:
+    ssh.initialize(["home"])
+    main = ssh_layout / "config"
+    managed = ssh_layout / "codespace" / "config"
+    inodes = (main.stat().st_ino, managed.stat().st_ino)
+
+    ssh.initialize(["home"])
+
+    assert (main.stat().st_ino, managed.stat().st_ino) == inodes
+
+
 def test_write_host_replaces_complete_projection(ssh_layout: Path) -> None:
     ssh.initialize(["home"])
     path = ssh_layout / "codespace" / "hosts" / "home.conf"

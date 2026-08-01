@@ -5,6 +5,7 @@ from __future__ import annotations
 import fcntl
 import os
 import shlex
+import stat
 import subprocess
 import tempfile
 import threading
@@ -104,7 +105,7 @@ def initialize(hosts: list[str]) -> None:
         _ensure_main_include()
         _write(CODESPACE_CONFIG_PATH, f"{HOSTS_INCLUDE_LINE}\n")
         HOSTS_DIR.mkdir(parents=True, exist_ok=True)
-        HOSTS_DIR.chmod(0o700)
+        _ensure_mode(HOSTS_DIR, 0o700)
         configured = {f"{host}.conf" for host in hosts}
         for path in HOSTS_DIR.glob("*.conf"):
             if path.name not in configured:
@@ -115,7 +116,7 @@ def ensure_login_key() -> str:
     """Generate or reuse the single passwordless Codespace login keypair."""
     with _layout_lock():
         CODESPACE_DIR.mkdir(parents=True, exist_ok=True)
-        CODESPACE_DIR.chmod(0o700)
+        _ensure_mode(CODESPACE_DIR, 0o700)
         public_path = LOGIN_KEY_PATH.with_suffix(".pub")
         if not LOGIN_KEY_PATH.exists() or LOGIN_KEY_PATH.stat().st_size == 0:
             LOGIN_KEY_PATH.unlink(missing_ok=True)
@@ -134,7 +135,7 @@ def ensure_login_key() -> str:
                 capture_output=True,
                 stdin=subprocess.DEVNULL,
             )
-        LOGIN_KEY_PATH.chmod(0o600)
+        _ensure_mode(LOGIN_KEY_PATH, 0o600)
         if not public_path.exists():
             result = subprocess.run(  # noqa: S603
                 ["ssh-keygen", "-y", "-f", str(LOGIN_KEY_PATH)],  # noqa: S607
@@ -144,7 +145,7 @@ def ensure_login_key() -> str:
                 stdin=subprocess.DEVNULL,
             )
             public_path.write_text(result.stdout.rstrip() + "\n", encoding="utf-8")
-        public_path.chmod(0o600)
+        _ensure_mode(public_path, 0o600)
         return public_path.read_text(encoding="utf-8").strip()
 
 
@@ -152,7 +153,7 @@ def probe(environment: Environment) -> None:
     """Verify actual SSH login through the configured host alias and login key."""
     known_hosts = KNOWN_HOSTS_DIR / environment.id
     known_hosts.parent.mkdir(parents=True, exist_ok=True)
-    known_hosts.parent.chmod(0o700)
+    _ensure_mode(known_hosts.parent, 0o700)
     command = [
         "ssh",
         "-o",
@@ -244,7 +245,7 @@ def _ensure_main_include() -> None:
     if updated != content:
         _write(SSH_CONFIG_PATH, updated)
     elif SSH_CONFIG_PATH.exists():
-        SSH_CONFIG_PATH.chmod(0o600)
+        _ensure_mode(SSH_CONFIG_PATH, 0o600)
 
 
 def _is_codespace_include(line: str) -> bool:
@@ -260,7 +261,10 @@ def _is_codespace_include(line: str) -> bool:
 
 def _write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.parent.chmod(0o700)
+    _ensure_mode(path.parent, 0o700)
+    if path.exists() and path.read_text(encoding="utf-8") == content:
+        _ensure_mode(path, 0o600)
+        return
     temporary_name = ""
     try:
         with tempfile.NamedTemporaryFile(
@@ -275,7 +279,7 @@ def _write(path: Path, content: str) -> None:
             temporary.flush()
             os.fsync(temporary.fileno())
         temporary_path = Path(temporary_name)
-        temporary_path.chmod(0o600)
+        _ensure_mode(temporary_path, 0o600)
         temporary_path.replace(path)
     finally:
         if temporary_name:
@@ -283,14 +287,19 @@ def _write(path: Path, content: str) -> None:
                 Path(temporary_name).unlink()
 
 
+def _ensure_mode(path: Path, mode: int) -> None:
+    if stat.S_IMODE(path.stat().st_mode) != mode:
+        path.chmod(mode)
+
+
 @contextmanager
 def _layout_lock() -> Iterator[None]:
     with _LOCK:
         CODESPACE_DIR.mkdir(parents=True, exist_ok=True)
-        CODESPACE_DIR.chmod(0o700)
+        _ensure_mode(CODESPACE_DIR, 0o700)
         lock_path = CODESPACE_DIR / ".lock"
         with lock_path.open("a+", encoding="utf-8") as lock_file:
-            lock_path.chmod(0o600)
+            _ensure_mode(lock_path, 0o600)
             fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
             try:
                 yield
