@@ -121,7 +121,7 @@ packages:
     - getopt
     - bison
     - flex
-    - patchelf
+    # - patchelf
     - go-task
     - clang-tools-22
     # - binutils
@@ -164,7 +164,7 @@ packages:
     # - dive
 
   unlink:
-    - python311
+    # - python311
     - python314
     - nodejs-slim24
     - nodejs-slim26
