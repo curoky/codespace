@@ -17,6 +17,7 @@ from codespace.client.models import (
     Environment,
     GitProvider,
     HostStatus,
+    ImagePlatform,
     Operation,
     OperationStatus,
     ProjectSummary,
@@ -65,6 +66,7 @@ class _Creation:
     instance: str
     project: ProjectConfig
     image: str
+    platform: ImagePlatform | None
     identity: str
     token: str | None = None
     client: PodmanClient | None = None
@@ -126,6 +128,7 @@ class CodespaceService:
                     provider=project.provider,
                     repo=project.repo,
                     image=self.config.project_image(project_id),
+                    platform=project.platform,
                     description=project.description,
                 )
                 for project_id, project in self.config.projects.items()
@@ -155,6 +158,7 @@ class CodespaceService:
             instance=instance,
             project=project,
             image=self.config.project_image(project_id),
+            platform=project.platform,
             identity=environment_id(project.host, project_id, instance),
         )
         try:
@@ -197,7 +201,7 @@ class CodespaceService:
         deploy_keypair = runtime.generate_deploy_keypair()
 
         self._stage(creation, f"pulling image {creation.image}")
-        runtime.pull_image(creation.client, creation.image)
+        runtime.pull_image(creation.client, creation.image, creation.platform)
 
         self._stage(creation, "preparing workspace")
         workspace_root = ssh.remote_workspace_root(project.host)
@@ -216,6 +220,7 @@ class CodespaceService:
             repo=project.repo,
             provider=project.provider,
             image=creation.image,
+            platform=creation.platform,
             workspace_root=workspace_root,
         )
 
@@ -235,6 +240,7 @@ class CodespaceService:
             repo=project.repo,
             provider=project.provider,
             image=creation.image,
+            platform=creation.platform or "native",
             ssh_port=ssh_port(creation.identity),
             container_id=container.id,
             status="running",
@@ -300,6 +306,7 @@ class CodespaceService:
                 client,
                 container,
                 environment.image,
+                None if environment.platform == "native" else environment.platform,
                 workspace_root,
                 project_id,
                 instance,

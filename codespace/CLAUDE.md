@@ -54,6 +54,7 @@ host = "office"
 provider = "gitlab"
 repo = "group/service-api"
 image = "registry.example.com/codespace-api:latest"
+platform = "linux/arm64"
 
 [host_options.office]
 podman_socket = "/tmp/podmanxd.sock"
@@ -65,6 +66,8 @@ gitlab = "glpat-xxx"
 
 Required top-level fields are `default_image` and `hosts`. Each project requires
 `host`, `provider`, and `repo`; `description` and `image` are optional. The
+optional `platform` is `linux/amd64` or `linux/arm64`; when omitted, Podman
+selects the host-native image platform. The
 optional `host_options.<host>` table overrides per-host settings; its only field
 is `podman_socket` (absolute remote path, default `/run/podman/podman.sock`).
 The optional `[tokens]` table seeds provider tokens at startup; `github` and
@@ -92,6 +95,11 @@ Every host provides:
 - ports `20000-29999` reserved for environment SSH;
 - one host-level sidecar container for shared services;
 - project images satisfying the development image contract.
+
+Running a non-native project platform requires the host kernel to register the
+corresponding persistent `binfmt_misc` interpreter, normally QEMU user-static.
+Codespace selects the image platform but does not install or manage host
+emulation.
 
 The development image contract is:
 
@@ -124,8 +132,10 @@ port.
 
 Podman inventory is authoritative. Environment containers require
 `codespace.managed=true` and complete project, instance, repo, provider, image,
-and SSH-port labels. Missing, malformed, or unknown-project labels are inventory
-errors; do not infer defaults.
+platform, and SSH-port labels. The platform label is the configured
+`linux/amd64` or `linux/arm64`, or `native` when no platform was selected.
+Missing, malformed, or unknown-project labels are inventory errors; do not infer
+defaults.
 
 Sidecars are host-scoped and have exactly one container instance per host. They
 must not reuse the environment identity, workspace, deploy-key, or SSH
@@ -158,7 +168,8 @@ Creation order is load-bearing:
 1. Validate inventory, token, duplicate identity, and SSH port collision.
 2. Generate or reuse `~/.ssh/codespace/id_ed25519`.
 3. Generate the environment deploy key in memory.
-4. Pull the project image.
+4. Pull the project image for its configured platform, or the host-native
+   platform when omitted.
 5. Create the host workspace directory over SSH (`mkdir` as the login user,
    which shares uid/gid 5230 with the container user, so ownership is correct
    without a helper container).

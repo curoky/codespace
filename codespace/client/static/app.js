@@ -146,7 +146,10 @@ function renderEnvironment(environment) {
       `${environment.alias} · ${environment.status || "unknown"} · :${environment.ssh_port}`,
     ),
   );
-  top.append(title, element("span", "badge", environment.image));
+  top.append(
+    title,
+    element("span", "badge", `${environment.image} · ${environment.platform}`),
+  );
   row.append(top);
 
   const actions = element("div", "environment-actions");

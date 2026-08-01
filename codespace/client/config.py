@@ -13,6 +13,7 @@ from codespace.client.models import (
     RESOURCE_ID_RE,
     GitProvider,
     HostId,
+    ImagePlatform,
     NonBlankString,
     RepoPath,
     TokenString,
@@ -60,6 +61,7 @@ class ProjectConfig(BaseModel):
     repo: RepoPath
     description: NonBlankString | None = None
     image: NonBlankString | None = None
+    platform: ImagePlatform | None = None
 
 
 class Config(BaseModel):

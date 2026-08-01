@@ -15,6 +15,7 @@ from codespace.client.models import (
     LABEL_IMAGE,
     LABEL_INSTANCE,
     LABEL_MANAGED,
+    LABEL_PLATFORM,
     LABEL_PROJECT,
     LABEL_PROVIDER,
     LABEL_REPO,
@@ -34,6 +35,7 @@ class FakeContainer:
         repo: str = "curoky/devspace",
         provider: str = "github",
         image: str = "image:latest",
+        platform: str = "native",
     ) -> None:
         self.name = environment_id(host, project, instance)
         self.id = "container-id"
@@ -45,6 +47,7 @@ class FakeContainer:
             LABEL_REPO: repo,
             LABEL_PROVIDER: provider,
             LABEL_IMAGE: image,
+            LABEL_PLATFORM: platform,
             LABEL_SSH_PORT: str(identity_port),
         }
         self.attrs = {"State": "running"}
@@ -88,11 +91,27 @@ def test_read_environment_requires_complete_valid_labels(config: Config) -> None
 
     assert environment.id == "codespace-home-devspace-debug"
     assert environment.repo == "curoky/devspace"
+    assert environment.platform == "native"
     assert environment.status == "running"
 
     del container.labels[LABEL_REPO]
     with pytest.raises(ValueError, match=r"missing required label codespace.repo"):
         runtime.read_environment(container, "home", config)  # type: ignore[arg-type]
+
+
+def test_pull_image_passes_configured_platform_only_when_selected() -> None:
+    calls: list[tuple[str, dict[str, str]]] = []
+    client = SimpleNamespace(
+        images=SimpleNamespace(pull=lambda image, **kwargs: calls.append((image, kwargs))),
+    )
+
+    runtime.pull_image(client, "image:latest", None)  # type: ignore[arg-type]
+    runtime.pull_image(client, "image:latest", "linux/arm64")  # type: ignore[arg-type]
+
+    assert calls == [
+        ("image:latest", {}),
+        ("image:latest", {"platform": "linux/arm64"}),
+    ]
 
 
 def test_inventory_reports_unknown_project_as_error(config: Config) -> None:
@@ -107,6 +126,13 @@ def test_inventory_reports_unknown_project_as_error(config: Config) -> None:
     assert inventory.errors == [
         "container codespace-home-unknown-debug references unknown project 'unknown'"
     ]
+
+
+def test_read_environment_rejects_invalid_platform_label(config: Config) -> None:
+    container = FakeContainer(platform="linux/riscv64")
+
+    with pytest.raises(ValueError, match=r"invalid platform label 'linux/riscv64'"):
+        runtime.read_environment(container, "home", config)  # type: ignore[arg-type]
 
 
 def test_create_container_preserves_fixed_runtime_contract(
@@ -131,6 +157,7 @@ def test_create_container_preserves_fixed_runtime_contract(
         repo="curoky/devspace",
         provider="github",
         image=config.project_image("devspace"),
+        platform="linux/arm64",
         workspace_root="/home/x/codespace2",
     )
 
@@ -139,13 +166,15 @@ def test_create_container_preserves_fixed_runtime_contract(
     assert image == config.default_image
     assert kwargs["name"] == "codespace-home-devspace-debug"
     assert kwargs["network_mode"] == "host"
-    assert kwargs["cap_add"] == ["NET_RAW"]
+    assert kwargs["platform"] == "linux/arm64"
+    assert kwargs["cap_add"] == ["NET_RAW", "SYS_ADMIN"]
     assert kwargs["pids_limit"] == -1
     assert kwargs["ulimits"] == [{"Name": "memlock", "Soft": -1, "Hard": -1}]
     assert kwargs["environment"] == {"SSHD_PORT": str(ssh_port("codespace-home-devspace-debug"))}
     assert kwargs["labels"] == {
         **container.labels,
         LABEL_IMAGE: config.default_image,
+        LABEL_PLATFORM: "linux/arm64",
     }
     assert kwargs["mounts"] == [
         {
@@ -258,3 +287,26 @@ def test_clone_missing_checkout_runs_git_without_shell() -> None:
         ],
         "x",
     )
+
+
+def test_purge_workspace_uses_environment_platform() -> None:
+    container = SimpleNamespace(stop=lambda *, timeout: None)
+    calls: list[tuple[str, dict[str, object]]] = []
+    client = SimpleNamespace(
+        containers=SimpleNamespace(
+            run=lambda image, **kwargs: calls.append((image, kwargs)),
+        )
+    )
+
+    runtime.purge_workspace(
+        client,  # type: ignore[arg-type]
+        container,  # type: ignore[arg-type]
+        "image:latest",
+        "linux/arm64",
+        "/home/x/codespace2",
+        "devspace",
+        "debug",
+    )
+
+    assert calls[0][0] == "image:latest"
+    assert calls[0][1]["platform"] == "linux/arm64"

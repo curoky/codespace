@@ -12,6 +12,8 @@ from pydantic import AfterValidator, BaseModel, ConfigDict, Field
 type GitProvider = Literal["github", "gitlab"]
 type OperationStatus = Literal["queued", "running", "failed"]
 type HostState = Literal["online", "offline"]
+type ImagePlatform = Literal["linux/amd64", "linux/arm64"]
+type PlatformSelection = Literal["native", "linux/amd64", "linux/arm64"]
 
 CONTAINER_USER = "x"
 CONTAINER_UID = 5230
@@ -53,6 +55,7 @@ LABEL_INSTANCE = "codespace.instance"
 LABEL_REPO = "codespace.repo"
 LABEL_PROVIDER = "codespace.provider"
 LABEL_IMAGE = "codespace.image"
+LABEL_PLATFORM = "codespace.platform"
 LABEL_SSH_PORT = "codespace.ssh-port"
 
 
@@ -121,6 +124,7 @@ class Environment(BaseModel):
     repo: str
     provider: GitProvider
     image: str
+    platform: PlatformSelection
     ssh_port: int
     container_id: str
     status: str | None = None
@@ -136,6 +140,7 @@ class DashboardEnvironment(BaseModel):
     repo: str
     provider: GitProvider
     image: str
+    platform: PlatformSelection
     ssh_port: int
     status: str | None = None
     alias: str
@@ -172,6 +177,7 @@ class ProjectSummary(BaseModel):
     provider: GitProvider
     repo: str
     image: str
+    platform: ImagePlatform | None = None
     description: str | None = None
 
 

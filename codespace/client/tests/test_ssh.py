@@ -35,6 +35,7 @@ def _environment(instance: str = "debug") -> Environment:
         repo="curoky/devspace",
         provider="github",
         image="image:latest",
+        platform="native",
         ssh_port=ssh_port(identity),
         container_id=f"container-{instance}",
         status="running",

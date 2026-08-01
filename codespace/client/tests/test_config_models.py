@@ -31,6 +31,7 @@ host = "office"
 provider = "gitlab"
 repo = "group/service-api"
 image = "custom:latest"
+platform = "linux/arm64"
 """,
         encoding="utf-8",
     )
@@ -39,6 +40,16 @@ image = "custom:latest"
 
     assert config.project_image("devspace") == "default:latest"
     assert config.project_image("service-api") == "custom:latest"
+    assert config.projects["devspace"].platform is None
+    assert config.projects["service-api"].platform == "linux/arm64"
+
+
+def test_config_rejects_invalid_project_platform(config: Config) -> None:
+    data = config.model_dump()
+    data["projects"]["devspace"]["platform"] = "linux/riscv64"
+
+    with pytest.raises(ValidationError, match=r"linux/amd64.*linux/arm64"):
+        Config.model_validate(data)
 
 
 def test_config_resolves_per_host_podman_socket() -> None:

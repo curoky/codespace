@@ -19,6 +19,7 @@ def config() -> Config:
                     "provider": "github",
                     "repo": "curoky/devspace",
                     "description": "Devspace repository",
+                    "platform": "linux/arm64",
                 },
                 "service-api": {
                     "host": "office",

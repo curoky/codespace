@@ -87,6 +87,7 @@ Three layers:
 - [codespace/images/dev/](file:///workspace/devspace/codespace/images/dev) — reference development image Dockerfile, rootfs, and build scripts used by codespace containers.
 - [codespace/images/sidecar/](file:///workspace/devspace/codespace/images/sidecar) — host-scoped shared-service image and launcher. Each host runs one fixed `codespace-sidecar` container; image details and invariants live in [codespace/images/sidecar/CLAUDE.md](file:///workspace/devspace/codespace/images/sidecar/CLAUDE.md).
 - Codespace hosts are existing root SSH aliases. The local process forwards each host's `/run/podman/podman.sock` to a private local Unix socket and never deploys a remote HTTP agent.
+- Projects may select `linux/amd64` or `linux/arm64`; omitted platform selection remains host-native. Non-native execution depends on host-managed `binfmt_misc` and QEMU user-static.
 
 ## 4. Cross-component contracts
 
@@ -98,6 +99,7 @@ These are the load-bearing assumptions; touching them requires updating both sid
 4. **Service supervision**: codespace containers start via a self-hosted s6 init (no s6-overlay). Dev image s6 config lives in [codespace/images/dev/rootfs/etc/s6](file:///workspace/devspace/codespace/images/dev/rootfs/etc/s6). `setup-s6.sh` compiles the s6-rc db to `/etc/s6/db` and generates the init at `/etc/s6/init` via `s6-linux-init-maker`. New long-running services go under `rootfs/etc/s6/s6-rc.d` and must be added to a `user*/contents.d/` bundle. Service `run`/oneshot `up` files are execline scripts; load the container environment with `s6-envdir -Lf -- /run/s6/container_environment` at the top of the run script.
 5. **Host sidecar**: each Codespace host has one fixed `codespace-sidecar` container, independent from project and instance resources. The `ghcr.io/curoky/devspace:codespace-sidecar` image runs s6 and Atuin server on host-network `127.0.0.1:8002`, while development containers retain client wiring.
 6. **Language conventions**: code and committed docs are English; interactive chat is Chinese.
+7. **Codespace image platform**: project `platform` is optional and limited to `linux/amd64` or `linux/arm64`. Codespace passes it consistently to image pull, environment creation, and workspace purge helpers; Podman inventory records the selection as a required label, using `native` when omitted.
 
 ## 5. Extension recipes
 

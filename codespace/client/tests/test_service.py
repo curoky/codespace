@@ -44,6 +44,7 @@ def _environment(
         repo=repo,
         provider=provider_name,
         image="image:latest",
+        platform="native",
         ssh_port=ssh_port(identity),
         container_id="container-id",
         status="running",
@@ -142,6 +143,7 @@ def test_create_runs_all_stages_in_order(
 ) -> None:
     _queue_with_token(service)
     events: list[str] = []
+    platforms: list[str | None] = []
     container = SimpleNamespace(id="container-id")
     inventories = iter(
         [
@@ -159,12 +161,24 @@ def test_create_runs_all_stages_in_order(
             or runtime.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC")
         ),
     )
-    monkeypatch.setattr(runtime, "pull_image", lambda *args: events.append("pull"))
+    pulls: list[tuple[str, str | None]] = []
+    monkeypatch.setattr(
+        runtime,
+        "pull_image",
+        lambda _client, image, platform: (
+            pulls.append((image, platform)),
+            events.append("pull"),
+        ),
+    )
     monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: events.append("workspace"))
     monkeypatch.setattr(
         runtime,
         "create_container",
-        lambda *args, **kwargs: events.append("create") or container,
+        lambda *args, **kwargs: (
+            platforms.append(kwargs["platform"]),
+            events.append("create"),
+            container,
+        )[-1],
     )
     monkeypatch.setattr(
         runtime, "inject_credentials", lambda *args, **kwargs: events.append("inject")
@@ -188,6 +202,8 @@ def test_create_runs_all_stages_in_order(
         "clone",
         "projection",
     ]
+    assert pulls == [(service.config.default_image, "linux/arm64")]
+    assert platforms == ["linux/arm64"]
     assert service.operations.list() == []
 
 

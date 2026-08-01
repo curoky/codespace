@@ -19,6 +19,7 @@ from codespace.client.models import (
     LABEL_IMAGE,
     LABEL_INSTANCE,
     LABEL_MANAGED,
+    LABEL_PLATFORM,
     LABEL_PROJECT,
     LABEL_PROVIDER,
     LABEL_REPO,
@@ -28,6 +29,8 @@ from codespace.client.models import (
     WORKSPACE_MOUNT,
     Environment,
     GitProvider,
+    ImagePlatform,
+    PlatformSelection,
     environment_id,
     git_host,
     repo_target,
@@ -43,6 +46,7 @@ _REQUIRED_LABELS = (
     LABEL_REPO,
     LABEL_PROVIDER,
     LABEL_IMAGE,
+    LABEL_PLATFORM,
     LABEL_SSH_PORT,
 )
 
@@ -118,6 +122,7 @@ def read_environment(container: Container, host: str, config: Config) -> Environ
     repo = labels[LABEL_REPO]
     provider = _provider(labels[LABEL_PROVIDER], name)
     image = labels[LABEL_IMAGE]
+    platform = _platform(labels[LABEL_PLATFORM], name)
 
     if not RESOURCE_ID_RE.fullmatch(project):
         raise ValueError(f"container {name} has invalid project label {project!r}")
@@ -156,6 +161,7 @@ def read_environment(container: Container, host: str, config: Config) -> Environ
         repo=repo,
         provider=provider,
         image=image,
+        platform=platform,
         ssh_port=port,
         container_id=container.id,
         status=container_status(container),
@@ -181,9 +187,16 @@ def find_container(
     return container
 
 
-def pull_image(client: PodmanClient, image: str) -> None:
+def pull_image(
+    client: PodmanClient,
+    image: str,
+    platform: ImagePlatform | None,
+) -> None:
     """Pull the configured project image before any helper or container run."""
-    client.images.pull(image)
+    if platform is None:
+        client.images.pull(image)
+    else:
+        client.images.pull(image, platform=platform)
 
 
 def create_container(
@@ -195,6 +208,7 @@ def create_container(
     repo: str,
     provider: GitProvider,
     image: str,
+    platform: ImagePlatform | None,
     workspace_root: str,
 ) -> Container:
     """Create the deterministic host-network development container."""
@@ -210,6 +224,7 @@ def create_container(
         pids_limit=-1,
         ulimits=[{"Name": "memlock", "Soft": -1, "Hard": -1}],
         environment={"SSHD_PORT": str(port)},
+        platform=platform,
         labels={
             LABEL_MANAGED: "true",
             LABEL_PROJECT: project,
@@ -217,6 +232,7 @@ def create_container(
             LABEL_REPO: repo,
             LABEL_PROVIDER: provider,
             LABEL_IMAGE: image,
+            LABEL_PLATFORM: platform or "native",
             LABEL_SSH_PORT: str(port),
         },
         mounts=[
@@ -304,6 +320,7 @@ def purge_workspace(
     client: PodmanClient,
     container: Container,
     image: str,
+    platform: ImagePlatform | None,
     workspace_root: str,
     project: str,
     instance: str,
@@ -317,6 +334,7 @@ def purge_workspace(
         command=["-rf", "--", workspace_path(workspace_root, project, instance)],
         detach=False,
         remove=True,
+        platform=platform,
         mounts=[
             {
                 "type": "bind",
@@ -440,3 +458,13 @@ def _provider(value: str, name: str) -> GitProvider:
     if value == "gitlab":
         return "gitlab"
     raise ValueError(f"container {name} has invalid provider label {value!r}")
+
+
+def _platform(value: str, name: str) -> PlatformSelection:
+    if value == "native":
+        return "native"
+    if value == "linux/amd64":
+        return "linux/amd64"
+    if value == "linux/arm64":
+        return "linux/arm64"
+    raise ValueError(f"container {name} has invalid platform label {value!r}")
