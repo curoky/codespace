@@ -7,6 +7,38 @@ RUN apt-get update -y && apt-get install -y curl zstd
 
 COPY codespace/images/dev/script/binman.yaml /tmp/binman.yaml
 ARG TARGETARCH
+
+# #region debug-point C:execution-platform
+RUN printf '[DEBUG] targetarch=%s uname=%s\n' "${TARGETARCH}" "$(uname -a)"
+# #endregion
+
+# #region debug-point A:dns-resolution
+RUN printf '[DEBUG] resolv.conf\n' \
+  && cat /etc/resolv.conf \
+  && printf '[DEBUG] ghcr.io IPv4 addresses\n' \
+  && (getent ahostsv4 ghcr.io || true) \
+  && printf '[DEBUG] ghcr.io IPv6 addresses\n' \
+  && (getent ahostsv6 ghcr.io || true)
+# #endregion
+
+# #region debug-point B:ip-connectivity
+RUN curl -4 -sv --connect-timeout 8 --max-time 10 -o /dev/null \
+    -w '\n[DEBUG] ghcr-v2-ipv4 exit=%{exitcode} remote_ip=%{remote_ip} http=%{http_code} connect=%{time_connect} tls=%{time_appconnect} error=%{errormsg}\n' \
+    https://ghcr.io/v2/ || true \
+  && curl -6 -sv --connect-timeout 8 --max-time 10 -o /dev/null \
+    -w '\n[DEBUG] ghcr-v2-ipv6 exit=%{exitcode} remote_ip=%{remote_ip} http=%{http_code} connect=%{time_connect} tls=%{time_appconnect} error=%{errormsg}\n' \
+    https://ghcr.io/v2/ || true
+# #endregion
+
+# #region debug-point D:token-endpoint
+RUN curl -sv --connect-timeout 8 --max-time 10 -o /dev/null \
+    -w '\n[DEBUG] ghcr-token-default exit=%{exitcode} remote_ip=%{remote_ip} http=%{http_code} connect=%{time_connect} tls=%{time_appconnect} error=%{errormsg}\n' \
+    'https://ghcr.io/token?scope=repository:curoky/standalone-binaries:pull' || true \
+  && curl -4 -sv --connect-timeout 8 --max-time 10 -o /dev/null \
+    -w '\n[DEBUG] ghcr-token-ipv4 exit=%{exitcode} remote_ip=%{remote_ip} http=%{http_code} connect=%{time_connect} tls=%{time_appconnect} error=%{errormsg}\n' \
+    'https://ghcr.io/token?scope=repository:curoky/standalone-binaries:pull' || true
+# #endregion
+
 RUN case "${TARGETARCH}" in \
     amd64) binman_arch=linux-x86_64 ;; \
     arm64) binman_arch=linux-arm64 ;; \
