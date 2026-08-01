@@ -5,7 +5,7 @@
 #   packages.unlink: installed into the store only, not linked into the root.
 #   profiles:        installed into the store and aggregated under
 #                    /opt/sb/profile/<name>/ via relative symlinks.
-prefix: /opt/sb2
+prefix: /opt/sb
 packages:
   link:
     # shell & terminal
@@ -150,7 +150,7 @@ packages:
 
     # languages & debuggers
     - perl
-    - gdb
+    # - gdb
 
     # misc
     - nil
