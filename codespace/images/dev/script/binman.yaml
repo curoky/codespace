@@ -5,7 +5,7 @@
 #   packages.unlink: installed into the store only, not linked into the root.
 #   profiles:        installed into the store and aggregated under
 #                    /opt/sb/profile/<name>/ via relative symlinks.
-prefix: /opt/sb
+prefix: /opt/sb2
 packages:
   link:
     # shell & terminal
@@ -132,11 +132,6 @@ packages:
     - pnpm
     - bazelisk
     - buildifier
-    - protobuf_24
-    - protobuf_25
-    - protobuf_28
-    - protobuf_3_8_0
-    - protobuf_3_9_2
 
     # linters & formatters
     - ruff
@@ -173,6 +168,12 @@ packages:
     - clang-tools-19
     - clang-tools-20
     - clang-tools-21
+
+    - protobuf_24
+    - protobuf_25
+    - protobuf_28
+    - protobuf_3_8_0
+    - protobuf_3_9_2
 
 profiles:
   s6:
