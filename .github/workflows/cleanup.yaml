@@ -1,15 +1,15 @@
-name: Cleanup
+name: Delete Untagged Images
 
 on:
   push:
     paths:
-      - '.github/workflows/cleanup.yaml'
+      - '.github/workflows/delete-untagged-images.yaml'
   workflow_dispatch:
   schedule:
     - cron: '0 0 * * 0'
 
 jobs:
-  ghcr-cleanup:
+  delete-untagged-images:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -19,4 +19,4 @@ jobs:
         with:
           dry-run: false
           delete-untagged: true
-          packages: devspace,devspace-cache
+          packages: ${{ github.event.repository.name }},${{ github.event.repository.name }}-cache
