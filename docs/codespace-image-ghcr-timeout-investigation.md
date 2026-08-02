@@ -997,39 +997,9 @@ curl -4 -sS \
 - 没有 `curl: (28)`。
 - 所有目标 image 和 cache 正常 push。
 
-## 14. 当前建议
+## 14. 证据索引与复核入口
 
-在现场 A/B 完成前，不建议：
-
-- 把 `stage_sb` 改成 `$BUILDPLATFORM`。
-- 固定 GHCR IP。
-- 继续增加 installer retry 次数。
-- 直接断言必须将所有并发永久降到 4。
-
-建议顺序：
-
-1. 在 `standalone-binaries` 合入共享 `remote.Puller` 和对应回归测试。
-2. 用同 runner A/B 确定 resolve 并发值。
-3. 将 resolve 和 download 并发拆开，避免无证据地牺牲下载吞吐。
-4. 发布两个 Linux 架构的新 `bm` artifact。
-5. 用无 cache 的完整 multi-platform Action 验证。
-
-## 15. 结论摘要
-
-这不是一个已被证实的 QEMU arm64 网络 bug。
-
-直接证据表明：
-
-- 问题发生在 TCP SYN/SYN-ACK 层。
-- `bm sync` 压力下，宿主原生和 QEMU arm64 新连接都会失败。
-- 第二次复现中，arm64 的 6 次 bootstrap timeout 与 amd64 的 134 package resolve 时间完全重叠。
-- 旧 `bm` 为并发 tag 创建独立 Puller，重复 challenge、token exchange 和 transport 初始化。
-
-因此，根修复方向是减少不必要的新连接和重复认证：**同一批次共享 Puller，并根据 A/B 数据限制 resolve 并发；不能用改变 platform、固定 IP 或无限 retry 掩盖问题。**
-
-## 16. 证据索引与复核入口
-
-### 16.1 仓库内长期证据
+### 14.1 仓库内长期证据
 
 | 证据                | 路径或 commit                                  | 可复核内容                                       |
 | ------------------- | ---------------------------------------------- | ------------------------------------------------ |
@@ -1053,7 +1023,7 @@ git show d93d0c5 -- .github/workflows/build-codespace-image.yaml
 git show d3aa77c -- .github/workflows/build-codespace-image.yaml
 ```
 
-### 16.2 GitHub 上的长期证据
+### 14.2 GitHub 上的长期证据
 
 主要 run：
 
@@ -1083,51 +1053,7 @@ https://github.com/curoky/devspace/actions/runs/30741650188/job/91480045405
 GitHub log 可以证明 build step 的错误和 platform 输出，但 runner-local pcap、socket
 状态和 BuildKit history 不会自动上传到 GitHub。
 
-### 16.3 Runner 现场复核命令
-
-确认 builder 和网络配置：
-
-```bash
-docker buildx ls
-docker ps -a
-ps -eo pid,etimes,cmd |
-  grep -E 'docker buildx|buildkit|bm sync|tmate'
-```
-
-查看失败 build：
-
-```bash
-docker buildx history ls
-docker buildx history inspect <build-id>
-docker buildx history logs <build-id>
-```
-
-空闲网络基线：
-
-```bash
-getent ahostsv4 ghcr.io
-
-for attempt in $(seq 1 5); do
-  curl -4 -sS \
-    --connect-timeout 3 \
-    -o /dev/null \
-    -w "${attempt} code=%{http_code} ip=%{remote_ip} connect=%{time_connect}\n" \
-    https://ghcr.io/v2/
-done
-```
-
-抓取 GHCR TCP flow：
-
-```bash
-sudo tcpdump -i any -nn \
-  'tcp dst port 443 and host <resolved-ghcr-ip>' \
-  -w /tmp/ghcr.pcap
-```
-
-使用固定 IP filter 前必须先记录当次 `getent` 结果。GHCR edge IP 会变化，不能把文档中
-曾观察到的 `140.82.112.33` 或 `140.82.114.34` 当成永久地址。
-
-### 16.4 外部 `bm` 源码复核
+### 14.3 外部 `bm` 源码复核
 
 本文分析基于 `standalone-binaries@58b877e`。关键文件：
 
@@ -1161,7 +1087,7 @@ github.com/google/go-containerregistry v0.21.7
 
 该依赖的 Puller 复用语义应以当前 pin 的源码为准，不应只依赖本文描述。
 
-### 16.5 已丢失或未持久化的原始资产
+### 14.4 已丢失或未持久化的原始资产
 
 以下资产位于 ephemeral runner 或本机 `/tmp`，没有提交到 `devspace`：
 
@@ -1176,7 +1102,7 @@ github.com/google/go-containerregistry v0.21.7
 下一轮正式 A/B 应把脚本、summary 和必要的 pcap 作为 Action artifact 上传，避免再次因
 runner 销毁丢失证据。
 
-### 16.6 下一位调查者的最短路径
+### 14.5 下一位调查者的最短路径
 
 如果需要继续当前调查，不必重复所有探索步骤。建议顺序：
 

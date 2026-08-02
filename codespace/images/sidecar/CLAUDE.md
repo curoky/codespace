@@ -1,57 +1,48 @@
-# Codespace Sidecar Agent Guide
+# Codespace Sidecar 约束
 
-This directory owns host-scoped shared-service container assets for Codespace.
+本目录保存 Codespace host 级共享服务的容器资产。
 
-## Definition
+## 定义
 
-A sidecar is one common container instance on each configured host. It serves
-all development environments on that host and is not attached to a project or
-instance. Atuin server is the first intended shared service.
+每个已配置 host 只有一个 sidecar container，服务该 host 上的全部开发环境，不属于任何
+project 或 instance。当前共享服务是 Atuin server。
 
-The term sidecar describes its relationship to the host's Codespace
-environments; it is not a per-environment companion container.
+这里的 sidecar 表示它与一组 Codespace environment 的关系，不是每个 environment 各自
+附带的 companion container。
 
-## Invariants
+## 不变量
 
-- Exactly one Codespace sidecar container may exist per configured host.
-- Shared services are exposed only on host loopback. Linux uses host networking;
-  macOS Podman Machine uses bridge networking with loopback-only published
-  ports.
-- Sidecar identity is derived only from the host. It must not include project
-  or instance IDs.
-- Sidecar inventory and labels are separate from `codespace.managed=true`
-  environment inventory.
-- Sidecars have no project workspace, environment SSH port, login alias,
-  deploy key, repository, or generated SSH projection.
-- Creating or deleting an environment must not create, replace, or remove the
-  host sidecar.
-- Sidecar failure may be reported with host state, but it must not corrupt
-  environment inventory.
-- Persistent service data must use host storage owned by the sidecar contract,
-  never the environment workspace root `~/codespace2/<project>/<instance>`.
+- 每个 host 最多存在一个 Codespace sidecar。
+- 共享服务只能通过 host loopback 暴露：Linux 使用 host network；macOS Podman Machine
+  使用 bridge network，并仅向 loopback publish 端口。
+- Sidecar identity 只由 host 决定，不包含 project 或 instance ID。
+- Sidecar inventory 和 label 独立于 `codespace.managed=true` 的 environment inventory。
+- Sidecar 没有 project workspace、environment SSH port、login alias、deploy key、
+  repository 或生成的 SSH 投影。
+- 创建或删除 environment 不得创建、替换或删除 host sidecar。
+- Sidecar 故障可以反映在 host 状态中，但不得破坏 environment inventory。
+- 持久服务数据只能使用 sidecar contract 管理的 host storage，不能使用
+  `~/codespace2/<project>/<instance>`。
 
-## Container Contract
+## 容器契约
 
-The current image is `ghcr.io/curoky/devspace:codespace-sidecar`. Its host-local
-container name is `codespace-sidecar`, which gives each host exactly one
-instance without embedding project or instance identity.
+镜像固定为 `ghcr.io/curoky/devspace:codespace-sidecar`，host 内 container name 固定为
+`codespace-sidecar`。
 
-The container runs s6 as PID 1 and starts Atuin server with:
+容器以 s6 作为 PID 1，并按以下参数启动 Atuin server：
 
-- host `127.0.0.1` by default;
-- port `8002`;
-- open registration disabled;
-- required `ATUIN_DB_URI` supplied at container creation.
+- 默认监听 `127.0.0.1`；
+- 端口 `8002`；
+- 禁止开放注册；
+- 创建容器时必须提供 `ATUIN_DB_URI`。
 
-The macOS launcher overrides the container listener to `0.0.0.0` so Podman can
-forward it from the isolated bridge network, but publishes it only as
-`127.0.0.1:8002` on the macOS host.
+macOS 启动器将容器内监听地址改为 `0.0.0.0`，使 Podman 能从隔离的 bridge network
+转发端口，但在 macOS host 上只 publish 到 `127.0.0.1:8002`。
 
-The image contains no Python control plane, Podman socket, project workspace,
-SSH service, provider token, or repository credential. Atuin's database is
-external, so the container itself has no persistent service-data mount.
+镜像不得包含 Python 控制面、Podman socket、project workspace、SSH 服务、provider
+token 或 repository credential。Atuin 使用外部数据库，容器不挂载持久服务数据。
 
-Build and run manually from the repository root:
+在仓库根目录手动构建和运行：
 
 ```bash
 codespace/images/sidecar/build.sh
@@ -59,35 +50,34 @@ ATUIN_DB_URI=postgres://... codespace/images/sidecar/run-linux.sh
 ATUIN_DB_URI=postgres://... codespace/images/sidecar/run-macos.sh
 ```
 
-Both launchers replace the fixed-name container and configure the Podman
-restart policy. `run-linux.sh` uses host networking, while `run-macos.sh`
-publishes the bridge-network port to macOS loopback. The existing development
-image's Atuin client continues to use `http://127.0.0.1:8002`.
+两个启动器都会替换固定名称的 container 并配置 Podman restart policy。`run-linux.sh`
+使用 host network；`run-macos.sh` 将 bridge network 端口 publish 到 macOS loopback。
+开发镜像中的 Atuin client 始终访问 `http://127.0.0.1:8002`。
 
-## Layout
+## 目录
 
-| Path | Responsibility |
+| 路径 | 职责 |
 | --- | --- |
-| `Dockerfile` | Minimal Debian, standalone Atuin, s6, and rootfs assembly. |
-| `binman.yaml` | Standalone Atuin and s6 package set. |
-| `rootfs/` | Sidecar-only s6 bundle and shared services. |
-| `build.sh` | Local image build from the repository root. |
-| `run-linux.sh` | Linux host-network singleton replacement. |
-| `run-macos.sh` | macOS bridge-network singleton with loopback port publishing. |
+| `Dockerfile` | 组装最小 Debian、standalone Atuin、s6 和 rootfs |
+| `binman.yaml` | Atuin 与 s6 的 standalone package 集合 |
+| `rootfs/` | Sidecar 专用 s6 bundle 和共享服务 |
+| `build.sh` | 从仓库根目录构建本地镜像 |
+| `run-linux.sh` | 替换 Linux host-network 单例 |
+| `run-macos.sh` | 替换 macOS bridge-network 单例并限制 loopback publish |
 
-Do not copy the deleted agent service, Python application, uv environment,
-workspace mount, or Podman socket into this image.
+不得把已删除的 agent service、Python 应用、uv 环境、workspace mount 或 Podman socket
+复制回镜像。
 
-## Control-Plane Boundary
+## 控制面边界
 
-The image and manual launcher exist, but the local Codespace control plane does
-not yet reconcile sidecars. When adding that lifecycle:
+镜像和手动启动器已经存在，但本地 Codespace 控制面尚未 reconcile sidecar。实现该生命周期
+时必须：
 
-1. Define sidecar-specific labels and strict inventory validation.
-2. Reuse the existing host Podman transport; do not add another protocol.
-3. Idempotently ensure the fixed sidecar on each online configured host.
-4. Report missing, stopped, duplicate, or malformed sidecars explicitly.
-5. Add lifecycle and mixed online/offline host tests.
-6. Update this file and `codespace/CLAUDE.md` with the final labels and API.
+1. 定义 sidecar 专用 label 和严格 inventory 校验。
+2. 复用现有 host Podman transport，不增加协议。
+3. 幂等确保每个在线已配置 host 存在固定 sidecar。
+4. 明确报告缺失、停止、重复或格式错误的 sidecar。
+5. 增加生命周期以及在线、离线 host 混合测试。
+6. 用最终 label 和 API 同步更新本文与 `codespace/CLAUDE.md`。
 
-Do not add migration or compatibility behavior unless explicitly requested.
+除非明确要求，不增加迁移或兼容行为。

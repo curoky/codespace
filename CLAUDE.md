@@ -1,117 +1,160 @@
-# CLAUDE.md
+# Devspace 架构约束
 
-High-level design of `devspace` — a personal, opinionated development environment delivered as portable dotfiles, container images, and host bootstrap scripts.
+本文是仓库架构、目录职责、常用操作和跨组件契约的事实来源。修改这些内容时，必须在
+同一变更中更新本文。
 
-> **Maintenance rule**: Any code change that affects the architecture, directory layout, build/release flow, or cross-component contracts described below MUST be reflected in this file in the same change. Treat this file as the single source of truth for "how the pieces fit together".
+## 目标
 
-## 1. Goals
+- 在容器和 macOS 主机上提供可复现的个人开发环境。
+- 在一个仓库内管理用户配置、开发镜像、工具链构建和主机初始化。
+- 配置脚本保持声明式、幂等，可安全重复执行。
+- CUDA、GCC、LLVM、Python、TensorFlow 等重型工具链独立构建，再由下游镜像消费。
 
-- Reproducible developer environment across **macOS host**, **Linux host**, **Windows host**, and **containers** (Docker / devcontainer).
-- Single repository owns **configuration** (dotfiles), **packaging** (images), **toolchain builders** (deps), and **host setup** (host).
-- Configuration is **declarative and idempotent**: setup scripts can be re-run safely.
-- Heavy toolchains (CUDA, GCC, LLVM, TensorFlow, PyTorch, Python) are built **out-of-band** as separate images and consumed downstream.
+## 目录职责
 
-## 2. Top-level layout
-
-| Path | Responsibility |
+| 路径 | 职责 |
 | --- | --- |
-| [dotfiles/](file:///workspace/devspace/dotfiles) | Per-tool configuration files (zsh, git, ssh, vscode, tmux, …) and a single dispatcher [setup.sh](file:///workspace/devspace/dotfiles/setup.sh). |
-| [host/](file:///workspace/devspace/host) | Linux and Windows bootstrap scripts plus host-only assets. |
-| [images/](file:///workspace/devspace/images) | Dockerfiles for non-codespace `ghcr.io/curoky/devspace:*` image variants. [gcc/](file:///workspace/devspace/images/gcc), [gui/](file:///workspace/devspace/images/gui), [pytorch/](file:///workspace/devspace/images/pytorch), [tensorflow/](file:///workspace/devspace/images/tensorflow), [iso/](file:///workspace/devspace/images/iso) extend the published base images. |
-| [deps/](file:///workspace/devspace/deps) | Independent builders for upstream dependencies (CUDA, GCC, LLVM, Python, TensorFlow, host-tools, tabby). Each subdir owns its `Dockerfile` / `Taskfile.yaml` / `build.sh`. |
-| [tools/](file:///workspace/devspace/tools) | Repo-local helper scripts used by CI, hooks, and ad-hoc maintenance (license headers, git history rewrites, GitHub Actions disk cleanup, …). |
-| [codespace/](file:///workspace/devspace/codespace) | Local Codespace control plane, native Web UI, tests, development image, macOS host bootstrap, host sidecar boundary, and its agent source of truth in [codespace/CLAUDE.md](file:///workspace/devspace/codespace/CLAUDE.md). |
-| [.github/workflows/](file:///workspace/devspace/.github/workflows) | CI: image build matrix, ISO build, dependency rebuilds, registry cleanup. |
-| [.devcontainer/devcontainer.json](file:///workspace/devspace/.devcontainer/devcontainer.json) | Consumer entry: pulls the published base image. |
-| [pyproject.toml](file:///workspace/devspace/pyproject.toml), [uv.lock](file:///workspace/devspace/uv.lock) | uv-managed Python runtime and tooling for the local Codespace control plane. |
-| [lefthook.yml](file:///workspace/devspace/lefthook.yml) | Pre-commit / commit-msg hooks (shfmt, ruff, clang-format, author check). |
+| `dotfiles/` | 用户级配置及统一入口 `setup.sh` |
+| `codespace/` | 本地控制面、开发镜像、共享服务和 macOS 主机支持 |
+| `images/` | GCC、PyTorch、TensorFlow、ISO 等派生镜像 |
+| `deps/` | CUDA、GCC、LLVM、Python、TensorFlow 等独立构建器 |
+| `tools/` | CI、hook 和仓库维护脚本 |
+| `.github/workflows/` | 测试、镜像构建、发布和 registry 清理 |
+| `.devcontainer/` | 消费已发布开发镜像的 devcontainer 入口 |
+| `pyproject.toml`、`uv.lock` | Codespace Python 运行时、依赖和开发工具 |
+| `lefthook.yml` | pre-commit 与 commit-msg hook |
 
-## 3. Component design
+## 组件设计
 
-### 3.1 dotfiles
+### Dotfiles
 
-- **Source of truth** for all user-level configuration. Everything else links into it.
-- [dotfiles/setup.sh](file:///workspace/devspace/dotfiles/setup.sh) is the dispatcher with two helpers:
-  - `link_path` — symlink (preferred for editable configs).
-  - `copy_path` — copy with `0600` perms (used for `.zshrc`, `.gitconfig`, `~/.ssh/config`).
-- Dispatch is parameterized by `(SCENE, CONF_PATH)`:
-  - `SCENE ∈ {docker, host-linux}` controls Linux-only branches.
-  - `OS_NAME == Darwin` triggers macOS-only links (VSCode, Trae, Snipaste).
-- Subfolders are grouped by tool. Notable groups:
-  - [zsh/](file:///workspace/devspace/dotfiles/zsh) — modular shell init under `lib/` (numbered prefix = load order).
-  - [vscode/](file:///workspace/devspace/dotfiles/vscode) — `app/` for desktop, `remote-server-settings.json` for SSH/devcontainer.
-  - [codespace/images/dev/rootfs/etc/s6](file:///workspace/devspace/codespace/images/dev/rootfs/etc/s6) — service definitions (`sshd`, `ollama`) consumed by the codespace dev image entrypoint.
-  - [archive/](file:///workspace/devspace/dotfiles/archive) — frozen / rarely-used configs kept for reference; not wired into `setup.sh` by default.
+`dotfiles/` 是用户配置的唯一来源。`dotfiles/setup.sh` 按运行场景分发配置：
 
-### 3.2 Container images
+- `link_path` 为可编辑配置创建符号链接。
+- `copy_path` 以 `0600` 权限复制需要独立权限控制的配置。
+- `SCENE` 支持 `docker` 和 `host-linux`；Darwin 分支配置桌面编辑器与 LaunchAgent。
+- `CONF_PATH` 默认是 `$HOME/devspace/dotfiles`，也可由第二个参数显式传入。
 
-Three layers:
+`dotfiles/archive/` 只保存未启用的历史配置，不得假定其中内容会被 `setup.sh` 加载。
 
-1. **codespace base/reference image** — [codespace/images/dev/Dockerfile](file:///workspace/devspace/codespace/images/dev/Dockerfile)
-   - Multi-stage build:
-     - `stage_sb` — produces a static-binary toolset under `/opt/sb`.
-     - `stage_conda` — bakes a Miniconda install.
-     - `main` — final image, layered as: apt patch → user `x` (uid 5230) → static tools → nix → rust → java → node → go → python (uv) → conda → dotfiles linked from `/opt/devspace` → s6 init generated from the static s6 binaries.
-   - Entrypoint: [/etc/s6/init/bin/init](file:///workspace/devspace/codespace/images/dev/script/setup-s6.sh) — a self-hosted s6 init built by [setup-s6.sh](file:///workspace/devspace/codespace/images/dev/script/setup-s6.sh) from the s6/execline binaries under `/opt/sb/store` (no s6-overlay); services declared in the image rootfs.
-   - Runs `dotfiles/setup.sh docker` twice (once as `x`, once as `root`) so both users get a consistent home.
-2. **dist** — [images/gcc](file:///workspace/devspace/images/gcc), [images/gui](file:///workspace/devspace/images/gui), [images/pytorch](file:///workspace/devspace/images/pytorch), [images/tensorflow](file:///workspace/devspace/images/tensorflow), [images/iso](file:///workspace/devspace/images/iso): downstream specializations layered on top of base.
-3. **deps** — [deps/](file:///workspace/devspace/deps): standalone builders that emit tarballs/images consumed by `dist` (or by external users). Each has its own `Taskfile.yaml` so it can be invoked independently of the main release pipeline.
+### 镜像
 
-### 3.3 Host bootstrap
+镜像分为三层：
 
-- [codespace/host/darwin/bootstrap.sh](file:///workspace/devspace/codespace/host/darwin/bootstrap.sh) — installs Homebrew, links `~/devspace`, runs `dotfiles/setup.sh`, then installs the macOS toolset. `start-podman.sh` creates or reuses the rootful local Podman Machine used by Codespace.
-- [host/linux/bootstrap.sh](file:///workspace/devspace/host/linux/bootstrap.sh), [host/linux/vultr-bootstrap.sh](file:///workspace/devspace/host/linux/vultr-bootstrap.sh) — Linux host (incl. VPS) variants.
-- [host/win/bootstrap.sh](file:///workspace/devspace/host/win/bootstrap.sh) — Windows (WSL/MSYS) variant.
-- Host-only assets (Brewfiles with lockfiles, conda env yamls) live next to their bootstrap script — they are **not** part of the container build.
+1. `codespace/images/dev/` 构建 Codespace 基础与参考开发镜像。它组合 `/opt/sb` 静态工具、
+   Nix、Rust、Java、Node.js、Go、uv、Conda、dotfiles 和自建 s6 init。
+2. `images/` 在基础镜像之上构建 GCC、PyTorch、TensorFlow 和 ISO 等用途镜像。
+3. `deps/` 独立构建上游工具链，产物供派生镜像或外部流程消费。
 
-### 3.4 CI / Release
+开发镜像不使用 s6-overlay。`codespace/images/dev/script/setup-s6.sh` 从 `/opt/sb/store`
+中的 s6/execline 二进制生成 `/etc/s6/init` 和 `/etc/s6/db`。
 
-- [build-codespace-image.yaml](file:///workspace/devspace/.github/workflows/build-codespace-image.yaml) — matrix-builds each Debian/Ubuntu codespace base/reference image on native `ubuntu-24.04` amd64 and `ubuntu-24.04-arm` runners, pushes OCI zstd-compressed architecture images by digest, and merges them into the `base-<distro><ver>` and `codespace-<distro><ver>` multi-platform tags. Buildx caches are isolated by distro and architecture under `ghcr.io/curoky/devspace-cache:codespace-*`; push builds update minimal caches, while scheduled and manual builds refresh maximal caches.
-- [build-codespace-sidecar.yaml](file:///workspace/devspace/.github/workflows/build-codespace-sidecar.yaml) — builds [codespace/images/sidecar/Dockerfile](file:///workspace/devspace/codespace/images/sidecar/Dockerfile) and publishes the host-shared `ghcr.io/curoky/devspace:codespace-sidecar` image.
-- [build-image.yaml](file:///workspace/devspace/.github/workflows/build-image.yaml) — matrix-builds the non-codespace dist images under [images/](file:///workspace/devspace/images).
-- [build-iso.yaml](file:///workspace/devspace/.github/workflows/build-iso.yaml) — produces the live ISO via `images/iso`.
-- [deps-*.yaml](file:///workspace/devspace/.github/workflows) — independently rebuild upstream toolchains; outputs are consumed by `images/*` via `COPY --from=…` or pre-staged tarballs.
-- [delete-untagged-images.yaml](file:///workspace/devspace/.github/workflows/delete-untagged-images.yaml) — prunes untagged GHCR images.
-- Triggers: push (path-filtered), `workflow_dispatch` (with `disable_docker_cache`), weekly cron.
+### Codespace
 
-### 3.5 Repo tooling
+`codespace/client/` 是完整的本地单进程控制面，包括配置、Podman transport、生命周期、
+Git provider、SSH 投影、FastAPI、原生 Web UI 和测试。入口是：
 
-- [lefthook.yml](file:///workspace/devspace/lefthook.yml) — `pre-commit` formats shell/python/c++/protobuf; `commit-msg` enforces author identity via [tools/check-author.sh](file:///workspace/devspace/tools/check-author.sh).
-- [pyproject.toml](file:///workspace/devspace/pyproject.toml) — Python 3.13 runtime dependencies plus ruff, mypy, and pytest tooling managed by uv.
-- [codespace/client/static/](file:///workspace/devspace/codespace/client/static) — native HTML, CSS, and JavaScript served directly by FastAPI; these files are source, not generated build output.
-- [.dockerignore](file:///workspace/devspace/.dockerignore), [.gitignore](file:///workspace/devspace/.gitignore) — keep build context lean.
+```bash
+uv run python -m codespace.client
+```
 
-### 3.6 Codespace
+它通过 system OpenSSH 转发远端 rootful Podman Unix socket，或直接连接已运行的 rootful
+Podman Machine；不部署远端 HTTP agent。完整契约见
+[`codespace/CLAUDE.md`](codespace/CLAUDE.md)。
 
-- [codespace/client/](file:///workspace/devspace/codespace/client) — complete local control-plane package: strict TOML and models, system-SSH Podman transport, lifecycle orchestration, provider and SSH state, FastAPI, native Web UI, tests, and the detached launcher. Its entry point is `python -m codespace.client`.
-- [codespace/images/dev/](file:///workspace/devspace/codespace/images/dev) — reference development image Dockerfile, rootfs, and build scripts used by codespace containers.
-- [codespace/images/sidecar/](file:///workspace/devspace/codespace/images/sidecar) — host-scoped shared-service image and launcher. Each host runs one fixed `codespace-sidecar` container; image details and invariants live in [codespace/images/sidecar/CLAUDE.md](file:///workspace/devspace/codespace/images/sidecar/CLAUDE.md).
-- [codespace/host/darwin/](file:///workspace/devspace/codespace/host/darwin) — macOS bootstrap and local Podman Machine setup.
-- Codespace hosts are existing SSH aliases with access to rootful Podman; non-root logins require passwordless sudo for workspace ownership, while local rootful Podman Machines are configured explicitly. The local process forwards remote `/run/podman/podman.sock` sockets to private local Unix sockets and connects to Podman Machine through its inspected local API socket; it never deploys a remote HTTP agent.
-- Projects may select `linux/amd64` or `linux/arm64`; omitted platform selection remains host-native. Non-native execution depends on host-managed `binfmt_misc` and QEMU user-static.
+### CI 与发布
 
-## 4. Cross-component contracts
+- `ci-codespace.yaml` 运行 Codespace 格式、lint、类型和测试检查。
+- `build-codespace-image.yaml` 在原生 amd64/arm64 runner 上构建并合并多架构开发镜像。
+- `build-codespace-sidecar.yaml` 发布 `ghcr.io/curoky/devspace:codespace-sidecar`。
+- `build-image.yaml` 与 `build-iso.yaml` 构建派生镜像和 ISO。
+- `deps-*.yaml` 独立重建工具链。
+- `delete-untagged-images.yaml` 清理 GHCR 中无 tag 的镜像。
 
-These are the load-bearing assumptions; touching them requires updating both sides **and** this section.
+## 常用操作
 
-1. **User identity in containers**: user `x` with uid/gid `5230:5230`. Hard-coded in [codespace/images/dev/Dockerfile](file:///workspace/devspace/codespace/images/dev/Dockerfile); referenced by every `COPY --chown=…`.
-2. **Repo mount path inside container**: `/opt/devspace`, with `~/devspace` as a symlink. Dotfiles paths in `setup.sh` resolve relative to `$CONF_PATH` which defaults to `$HOME/devspace/dotfiles`.
-3. **Image tag scheme**: `ghcr.io/curoky/devspace:base-<distro><ver>` for base, `ghcr.io/curoky/devspace:<name>` for dist. Cache mirror under `ghcr.io/curoky/devspace-cache:*`.
-4. **Service supervision**: codespace containers start via a self-hosted s6 init (no s6-overlay). Dev image s6 config lives in [codespace/images/dev/rootfs/etc/s6](file:///workspace/devspace/codespace/images/dev/rootfs/etc/s6). `setup-s6.sh` compiles the s6-rc db to `/etc/s6/db` and generates the init at `/etc/s6/init` via `s6-linux-init-maker`. New long-running services go under `rootfs/etc/s6/s6-rc.d` and must be added to a `user*/contents.d/` bundle. Service `run`/oneshot `up` files are execline scripts; load the container environment with `s6-envdir -Lf -- /run/s6/container_environment` at the top of the run script. Environment sshd binds its deterministic port only on host-loopback `127.0.0.1`; access goes through the configured SSH host alias.
-5. **Host sidecar**: each Codespace host has one fixed `codespace-sidecar` container, independent from project and instance resources. The `ghcr.io/curoky/devspace:codespace-sidecar` image runs s6 and Atuin server. Linux uses host-network `127.0.0.1:8002`; macOS Podman Machine uses a bridge-network listener published only to host `127.0.0.1:8002`. Development containers retain client wiring.
-6. **Language conventions**: code and committed docs are English; interactive chat is Chinese.
-7. **Codespace image platform**: project `platform` is optional and limited to `linux/amd64` or `linux/arm64`. Codespace passes it consistently to image pull, environment creation, and workspace purge helpers; Podman inventory records the selection as a required label, using `native` when omitted.
+### 配置 Dotfiles
 
-## 5. Extension recipes
+`dotfiles/setup.sh` 接收运行场景和配置目录，可重复执行：
 
-- **Add a new tool config** → drop files under `dotfiles/<tool>/`, add `link_path`/`copy_path` line in [setup.sh](file:///workspace/devspace/dotfiles/setup.sh) under the right scene, update §3.1.
-- **Add a new image variant** → create `images/<name>/{Dockerfile,build.sh}`, add a matrix entry in [build-image.yaml](file:///workspace/devspace/.github/workflows/build-image.yaml), update §3.2.
-- **Add a new dependency builder** → create `deps/<name>/{Dockerfile,Taskfile.yaml,build.sh}`, add a `deps-<name>.yaml` workflow, update §3.2.
-- **Add a host platform** → create `host/<os>/bootstrap.sh` and required conf assets; update §3.3.
-- **Add a Codespace shared service** → add its assets under [codespace/images/sidecar/](file:///workspace/devspace/codespace/images/sidecar), preserve the one-sidecar-per-host contract, and update both Codespace agent guides.
+```bash
+dotfiles/setup.sh docker "$PWD/dotfiles"
+dotfiles/setup.sh host-linux "$PWD/dotfiles"
+```
 
-## 6. Known caveats
+### 启动 Codespace
 
-- `dotfiles/archive/` is intentionally not wired into `setup.sh`; do not assume those configs are active.
-- `setup.sh` has a `TODO: remove` on the `CONF_PATH` default — keep both call sites in sync until removed.
-- Some CI matrix entries are commented out (TF variants, tabby) — they are paused, not deleted.
+先按 [`codespace/CLAUDE.md`](codespace/CLAUDE.md#配置) 创建
+`~/.config/codespace/config.toml`，再启动控制面：
+
+```bash
+uv sync
+uv run python -m codespace.client
+```
+
+服务只监听 `127.0.0.1:8765`。后台运行使用：
+
+```bash
+codespace/client/run.sh
+```
+
+### 验证 Codespace
+
+```bash
+uv run ruff format --check codespace/client
+uv run ruff check codespace/client
+uv run mypy codespace/client
+uv run pytest codespace/client/tests
+uv lock --check
+```
+
+### 构建镜像
+
+```bash
+codespace/images/dev/build.sh
+codespace/images/sidecar/build.sh
+task --dir deps/gcc all
+```
+
+本地构建不会发布镜像，发布流程由 `.github/workflows/` 管理。
+
+## 跨组件契约
+
+以下约束同时被多个组件依赖，修改时必须同步更新所有调用方和本文：
+
+1. **容器用户**：开发用户固定为 `x`，uid/gid 为 `5230:5230`。
+2. **仓库路径**：镜像内仓库路径为 `/opt/devspace`，`~/devspace` 指向该目录。
+3. **镜像命名**：基础镜像使用 `ghcr.io/curoky/devspace:base-<distro><version>`，
+   其他镜像使用 `ghcr.io/curoky/devspace:<name>`；缓存位于
+   `ghcr.io/curoky/devspace-cache:*`。
+4. **服务管理**：开发容器以自建 s6 init 启动。新增服务必须放入
+   `codespace/images/dev/rootfs/etc/s6/s6-rc.d/` 并加入相应 bundle；execline 脚本通过
+   `s6-envdir -Lf -- /run/s6/container_environment` 读取容器环境。
+5. **网络边界**：环境 sshd 只绑定宿主 loopback；访问必须经过配置的 SSH host route。
+6. **共享服务**：每个 Codespace host 只有一个固定名称的 `codespace-sidecar`，不得附属于
+   project 或 instance。Atuin 仅通过宿主 `127.0.0.1:8002` 暴露。
+7. **平台选择**：project `platform` 只能省略或设为 `linux/amd64`、`linux/arm64`；
+   省略时库存 label 使用 `native`。
+8. **文档语言**：仓库说明与约束文档使用中文；代码标识、命令、协议名和外部 API 保留原文。
+
+## 变更规则
+
+- 新增工具配置：更新 `dotfiles/<tool>/` 和 `dotfiles/setup.sh`。
+- 新增派生镜像：创建 `images/<name>/`，并接入对应 workflow matrix。
+- 新增依赖构建器：创建 `deps/<name>/`，并增加 `deps-<name>.yaml`。
+- 修改 Codespace 配置、生命周期、API、host contract 或 sidecar：同步更新
+  `codespace/CLAUDE.md`；涉及 sidecar 时还要更新
+  `codespace/images/sidecar/CLAUDE.md`。
+- 不恢复已删除的兼容目录、远端 Python agent 或 Node Web 构建链。
+
+## 相关文档
+
+- `codespace/CLAUDE.md`：Codespace 配置、生命周期、API 与 host contract。
+- `codespace/images/dev/dev-environment.md`：开发镜像内的工具路径与使用方式。
+- `codespace/images/sidecar/CLAUDE.md`：Host 级共享服务约束。
+- `docs/codespace-image-ghcr-timeout-investigation.md`：多架构镜像访问 GHCR 超时的调查记录。
+
+## 已知边界
+
+- `dotfiles/setup.sh` 的 `CONF_PATH` 默认值仍标记为待移除，变更前需核对所有调用方。
+- workflow 中被注释的 matrix 项表示暂停构建，不代表对应源码已废弃。

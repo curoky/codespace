@@ -1,44 +1,41 @@
-# Codespace Agent Guide
+# Codespace 设计约束
 
-This file is the source of truth for agents changing `codespace/`. Keep it
-synchronized with architecture, directory layout, lifecycle ordering, API
-contracts, and host requirements. Committed documentation and code use English.
+本文是 `codespace/` 的架构、生命周期、API 和 host contract 的事实来源。相关行为变化时
+必须同步更新本文。
 
-## Scope
+## 范围
 
-Codespace is a localhost-only, single-process control plane for development
-containers on remote rootful Podman hosts and a local rootful Podman Machine.
-The local Python process forwards remote Podman Unix sockets through system
-OpenSSH; Podman Machine uses its inspected local API socket. Do not add a remote
-HTTP agent or use the podman-py SSH adapter.
+Codespace 是仅监听 localhost 的单进程开发容器控制面，支持远端 rootful Podman host 和
+本地 rootful Podman Machine。Python 进程通过 system OpenSSH 转发远端 Podman Unix
+socket；Podman Machine 使用 `podman machine inspect` 返回的本地 API socket。
 
-FastAPI serves both the JSON API and the native files in `client/static/`.
-GitHub and GitLab tokens live in process memory; the optional `[tokens]` table
-in `config.toml` seeds them at startup and the Web UI overrides them at runtime.
+不得增加远端 HTTP agent，也不得改用 podman-py 的 SSH adapter。
 
-## Layout
+FastAPI 同时提供 JSON API 和 `client/static/` 中的原生 Web 文件。GitHub、GitLab token
+只保存在进程内存中；`config.toml` 的可选 `[tokens]` 可提供启动值，Web UI 可在运行时覆盖。
 
-| Path | Responsibility |
+## 目录
+
+| 路径 | 职责 |
 | --- | --- |
-| `client/` | Complete local control-plane Python package and launcher. |
-| `client/app.py`, `client/__main__.py` | Web application and entry point. |
-| `client/config.py`, `client/models.py` | Configuration and API models. |
-| `client/transport.py`, `client/runtime.py` | SSH and Podman primitives. |
-| `client/service.py`, `client/operations.py` | Orchestration and operations. |
-| `client/provider.py`, `client/ssh.py` | Deploy keys and SSH projections. |
-| `client/static/` | Native Web source served by FastAPI. |
-| `client/tests/` | Tests organized by public module behavior. |
-| `client/run.sh` | Detached launcher for the local control plane. |
-| `images/dev/` | Reference development image. |
-| `images/sidecar/` | Host shared-service image and launcher. |
+| `client/app.py`、`client/__main__.py` | Web 应用与入口 |
+| `client/config.py`、`client/models.py` | 配置与 API model |
+| `client/transport.py`、`client/runtime.py` | SSH 与 Podman 基础能力 |
+| `client/service.py`、`client/operations.py` | 编排与操作状态 |
+| `client/provider.py`、`client/ssh.py` | Deploy key 与 SSH 投影 |
+| `client/static/` | FastAPI 直接提供的原生 Web 源码 |
+| `client/tests/` | 按公开模块行为组织的测试 |
+| `client/run.sh` | 本地后台启动器 |
+| `images/dev/` | 参考开发镜像 |
+| `images/sidecar/` | Host 级共享服务镜像 |
 
-Do not recreate `agent/`, top-level client modules, generated Web assets, or a
-Node build chain. All local control-plane code belongs in `client/`.
+本地控制面代码全部放在 `client/`。不得恢复 `agent/`、顶层兼容模块、生成式 Web 产物或
+Node.js 构建链。
 
-## Configuration
+## 配置
 
-Read only `~/.config/codespace/config.toml` at process startup. Do not add YAML,
-environment overrides, live reload, or fallback configuration sources.
+进程启动时只读取 `~/.config/codespace/config.toml`。不得增加 YAML、环境变量覆盖、热加载
+或备用配置源。
 
 ```toml
 default_image = "ghcr.io/curoky/devspace:codespace-debian13"
@@ -69,101 +66,82 @@ github = "ghp_xxx"
 gitlab = "glpat-xxx"
 ```
 
-Required top-level fields are `default_image` and `hosts`. Each project requires
-`host`, `provider`, and `repo`; `description` and `image` are optional. The
-optional `platform` is `linux/amd64` or `linux/arm64`; when omitted, Podman
-selects the host-native image platform. The
-optional `host_options.<host>` table selects `type = "ssh"` (the default) or
-`type = "podman-machine"`. SSH hosts may set `podman_socket` (absolute remote
-path, default `/run/podman/podman.sock`) and must not set `machine`.
-Podman Machine hosts require `machine` and must not set `podman_socket`.
-The optional `[tokens]` table seeds provider tokens at startup; `github` and
-`gitlab` are each optional non-blank strings. Reject unknown fields.
+顶层必填字段是 `default_image` 和 `hosts`。每个 project 必须包含 `host`、`provider`、
+`repo`，可选 `description`、`image` 和 `platform`。其他规则如下：
 
-- Project and instance IDs match `^[a-z0-9][a-z0-9-]{0,31}$`.
-- Host aliases match `^[a-z0-9][a-z0-9.-]{0,62}$`.
-- Hosts are unique and each project references a configured host.
-- Every `host_options` key references a configured host.
-- Project `image` falls back to `default_image`.
+- `platform` 只能是 `linux/amd64` 或 `linux/arm64`；省略时使用 host 原生平台。
+- `host_options.<host>.type` 默认是 `ssh`，也可设为 `podman-machine`。
+- SSH host 可配置绝对路径 `podman_socket`，默认 `/run/podman/podman.sock`，不得配置
+  `machine`。
+- Podman Machine host 必须配置 `machine`，不得配置 `podman_socket`。
+- `[tokens]` 中的 `github`、`gitlab` 是可选的非空字符串。
+- 拒绝未知字段。
+- Project 和 instance ID 匹配 `^[a-z0-9][a-z0-9-]{0,31}$`。
+- Host alias 匹配 `^[a-z0-9][a-z0-9.-]{0,62}$`。
+- `hosts` 不得重复；project 和 `host_options` 只能引用已配置的 host。
+- Project 未配置 `image` 时使用 `default_image`。
 
-## Host Contract
+## Host 契约
 
-An SSH host ID is an existing SSH alias in local `~/.ssh/config` with access to
-rootful Podman. A non-root login requires passwordless sudo so Codespace can
-assign workspace ownership to the container user. System OpenSSH remains
-responsible for identity files, jump hosts, and host-key policy. A Podman
-Machine host ID is a logical Codespace name whose configured machine must
-already exist, be running, and prefer rootful execution.
+SSH host ID 必须是本地 `~/.ssh/config` 中可访问 rootful Podman 的现有 alias。非 root
+登录必须支持免密 `sudo -n`，以便为 workspace 设置容器用户所有权。身份文件、跳板机和
+host key policy 由 system OpenSSH 管理。
 
-Every host provides:
+Podman Machine host ID 是 Codespace 内的逻辑名称；对应 machine 必须已存在、正在运行且
+使用 rootful 模式。
 
-- rootful Podman at `/run/podman/podman.sock`, or another absolute socket path
-  declared through `host_options.<host>.podman_socket`; Podman Machine obtains
-  its rootful API socket and SSH identity from `podman machine inspect`;
-- a writable home for the SSH login user; the workspace root is `~/codespace2`
-  (resolved to the login user's absolute `$HOME` per host and created on first
-  use, since a Podman bind-mount source cannot contain `~`). Workspace
-  preparation always assigns each environment directory to `5230:5230`,
-  directly as root or through passwordless `sudo -n`;
-- ports `20000-29999` reserved for environment SSH;
-- one host-level sidecar container for shared services;
-- project images satisfying the development image contract.
+每个 host 必须提供：
 
-Running a non-native project platform requires the host kernel to register the
-corresponding persistent `binfmt_misc` interpreter, normally QEMU user-static.
-Codespace selects the image platform but does not install or manage host
-emulation.
+- rootful Podman socket；SSH host 默认是 `/run/podman/podman.sock`，Podman Machine
+  通过 `podman machine inspect` 获取 API socket 和 SSH identity；
+- SSH 登录用户的可写 home；workspace root 是绝对路径化后的 `~/codespace2`；
+- 将每个 environment workspace 设为 `5230:5230` 的权限；
+- 为 environment SSH 保留的端口范围 `20000-29999`；
+- 一个 host 级 sidecar；
+- 满足下述契约的开发镜像。
 
-The development image contract is:
+非原生平台依赖 host 已注册持久化 `binfmt_misc` interpreter，通常为 QEMU user-static。
+Codespace 只选择平台，不安装或管理模拟器。
 
-- user `x` with uid/gid `5230`;
-- writable `/workspace`;
-- host networking, with environment sshd bound only to `127.0.0.1`;
-- Podman API security option `disable` (the API form of CLI `label=disable`) so
-  Podman Machine's SELinux accepts the persistent workspace bind mount,
-  alongside the existing `seccomp=unconfined`;
-- the existing s6 entrypoint, sshd, onceinit, and Atuin client wiring;
-- Git and OpenSSH clients.
+开发镜像必须提供：
 
-The sidecar image is `ghcr.io/curoky/devspace:codespace-sidecar`; its fixed
-host-local container name is `codespace-sidecar`. Linux runs it with host
-networking and Atuin on `127.0.0.1:8002`. macOS Podman Machine runs it on a
-bridge network, binds Atuin to the isolated container's `0.0.0.0:8002`, and
-publishes only `127.0.0.1:8002` to the host. `ATUIN_DB_URI` is supplied at
-creation. Development containers remain service clients. Keep the sidecar
-independent from project and instance resources.
+- 用户 `x`，uid/gid 为 `5230:5230`；
+- 可写的 `/workspace`；
+- host network，且 sshd 只绑定 `127.0.0.1`；
+- Podman security option `disable` 和 `seccomp=unconfined`；
+- 现有 s6 entrypoint、sshd、onceinit、Atuin client、Git 和 OpenSSH client。
 
-## Resource Identity
+Sidecar 镜像和网络细节见
+[`images/sidecar/CLAUDE.md`](images/sidecar/CLAUDE.md)。它必须独立于 project 和
+instance 资源。
 
-An environment uses one deterministic ID as its container name, local SSH
-alias, and deploy-key title:
+## 资源标识
+
+Environment 的 container name、本地 SSH alias 和 deploy-key title 共用确定性 ID：
 
 ```text
 codespace-<host>-<project>-<instance>
 ```
 
-Its workspace is `<login-home>/codespace2/<project>/<instance>` on the host,
-bind-mounted at `/workspace` inside the container. Its SSH port is
-`20000 + int(sha256(environment_id)[:4], 16) % 10000`. Reject a collision with
-another managed environment on the same host; do not probe for a different
-port.
+Host workspace 为 `<login-home>/codespace2/<project>/<instance>`，挂载到容器
+`/workspace`。SSH 端口计算公式是：
 
-Podman inventory is authoritative. Environment containers require
-`codespace.managed=true` and complete project, instance, repo, provider, image,
-platform, and SSH-port labels. The platform label is the configured
-`linux/amd64` or `linux/arm64`, or `native` when no platform was selected.
-Missing, malformed, or unknown-project labels are inventory errors; do not infer
-defaults.
+```text
+20000 + int(sha256(environment_id)[:4], 16) % 10000
+```
 
-Sidecars are host-scoped and have exactly one container instance per host. They
-must not reuse the environment identity, workspace, deploy-key, or SSH
-projection contracts. Their detailed implementation contract belongs in
-`images/sidecar/CLAUDE.md`.
+若与同一 host 上其他受管 environment 冲突，直接拒绝，不探测替代端口。
 
-## Transport
+Podman inventory 是唯一事实来源。Environment container 必须具有
+`codespace.managed=true`，以及完整的 project、instance、repo、provider、image、
+platform、SSH port label。未选择平台时 platform label 是 `native`。缺失、格式错误或
+引用未知 project 的 label 都是 inventory error，不得推断默认值。
 
-Maintain one reusable Podman client per host. SSH hosts also maintain one
-system SSH process:
+Sidecar 是 host 级单例，不得复用 environment 的 ID、workspace、deploy key 或 SSH 投影。
+
+## 连接机制
+
+每个 host 维护一个可复用的 Podman client。SSH host 另维护一个 system SSH 进程：
 
 ```text
 ssh -N -o ExitOnForwardFailure=yes -o StreamLocalBindUnlink=yes \
@@ -171,126 +149,102 @@ ssh -N -o ExitOnForwardFailure=yes -o StreamLocalBindUnlink=yes \
   -L <local.sock>:<host podman_socket> <host>
 ```
 
-The forward target is the host's resolved `podman_socket`
-(default `/run/podman/podman.sock`). Sockets live in a process-private runtime
-directory with mode `0700`. SSH keepalives make a silently-broken forward exit
-on its own, and every Podman client carries a bounded call timeout so a
-half-dead tunnel fails fast instead of hanging an operation. Rebuild a host
-tunnel after its process dies. Close Podman clients and SSH subprocesses during
-application shutdown. Podman Machine connections read the local API socket,
-machine SSH port, and identity path from `podman machine inspect`; reject a
-stopped or rootless machine. Dashboard inventory queries run concurrently, and
-one offline host must not block other hosts.
+转发目标是解析后的 `podman_socket`。本地 socket 位于权限为 `0700` 的进程私有 runtime
+目录。SSH keepalive 必须让失效 tunnel 自动退出，Podman 调用必须有超时；进程退出后重建
+tunnel，应用关闭时释放 Podman client 和 SSH 子进程。
 
-## Environment Lifecycle
+Podman Machine 连接从 `podman machine inspect` 读取 API socket、SSH 端口和 identity；
+拒绝已停止或 rootless machine。Dashboard 并发查询各 host，一个离线 host 不得阻塞其他
+host。
 
-Creation order is load-bearing:
+## 环境生命周期
 
-1. Validate inventory, token, duplicate identity, and SSH port collision.
-2. Generate or reuse `~/.ssh/codespace/id_ed25519`.
-3. Generate the environment deploy key in memory.
-4. Pull the project image for its configured platform, or the host-native
-   platform when omitted.
-5. Create the host workspace directory over SSH and assign it to uid/gid
-   `5230:5230`; a non-root SSH login uses passwordless `sudo -n`, while a
-   Podman Machine route already runs as root.
-6. Create the labeled host-network container with the fixed runtime parameters.
-7. Write Codespace-owned login and repository SSH credentials, merging the
-   managed `~/.ssh/config` block so user-added entries survive.
-8. Verify an actual SSH login through the generated route.
-9. Replace matching provider deploy keys with one read-write key.
-10. Preserve an existing Git checkout or clone the configured repository.
-11. Atomically regenerate the host SSH projection.
+创建顺序不可调整：
 
-Before deploy-key registration, rollback removes the container and preserves
-the workspace. After registration, revoke the key before removing the
-container. If revocation fails, stop and retain the labeled container so normal
-deletion can retry after token recovery.
+1. 校验 inventory、token、重复 ID 和 SSH 端口冲突。
+2. 生成或复用 `~/.ssh/codespace/id_ed25519`。
+3. 在内存中生成 environment deploy key。
+4. 按 project 平台拉取镜像；未配置时使用 host 原生平台。
+5. 创建 host workspace 并设为 `5230:5230`；非 root SSH 登录使用 `sudo -n`。
+6. 用固定参数创建带完整 label 的 host-network container。
+7. 写入 Codespace 管理的登录与仓库 SSH 凭据，合并受管 `~/.ssh/config` block。
+8. 通过生成的 route 完成真实 SSH 登录验证。
+9. 将 provider 上同名 deploy key 替换为一个可写 key。
+10. 保留现有 Git checkout，或 clone 配置的 repository。
+11. 原子更新 host SSH 投影。
 
-Deletion requires the provider token and revokes every matching deploy key
-before remote mutation. A missing provider key is idempotent success. With
-`purge=false`, remove only the container. With `purge=true`, stop it, use its
-labeled image to remove the workspace, then remove the container. Provider
-failure must leave container and workspace state unchanged.
+注册 deploy key 前失败时，回滚 container 但保留 workspace。注册后失败时，必须先撤销
+key；撤销失败则停止并保留带 label 的 container，待 token 恢复后重试正常删除。
 
-## SSH Projection
+删除需要 provider token，并在任何远端变更前撤销所有匹配 deploy key。Key 已不存在视为
+幂等成功。`purge=false` 只删除 container；`purge=true` 先停止 container，再依据其 image
+label 清理 workspace，最后删除 container。Provider 失败时不得改变 container 和 workspace。
 
-Add exactly one include to `~/.ssh/config`:
+## SSH 投影
+
+`~/.ssh/config` 中只增加一个 include：
 
 ```sshconfig
 Include ~/.ssh/codespace/config
 ```
 
-Codespace fully owns `~/.ssh/codespace/config` and `hosts/*.conf`. Rewrite a
-host projection only after successful inventory; preserve its last projection
-while offline and remove it when the host leaves TOML.
+Codespace 完全管理 `~/.ssh/codespace/config` 和 `hosts/*.conf`。只有 inventory 成功后
+才能重写 host 投影；host 离线时保留最后版本，从 TOML 移除后才删除。
 
-Each environment entry uses `HostName 127.0.0.1`, its deterministic port, user
-`x`, the global login key, and an independent known-hosts file. SSH hosts use
-`ProxyJump <host>`. Podman Machine hosts use a dedicated `ProxyCommand` built
-from the inspected loopback SSH port and machine identity. Do not parse or
-merge historical SSH blocks.
+每个 environment 使用 `HostName 127.0.0.1`、确定性端口、用户 `x`、全局登录 key 和独立
+known-hosts 文件。SSH host 使用 `ProxyJump <host>`；Podman Machine 使用由 inspect 结果
+构造的专用 `ProxyCommand`。不得解析或合并历史 SSH block。
 
-## Web Contract
+## Web 契约
 
-Run with:
+前台启动：
 
 ```bash
 uv run python -m codespace.client
 ```
 
-For a detached local process with repository-local logging, run:
+后台启动并将日志保存在仓库内：
 
 ```bash
 codespace/client/run.sh
 ```
 
-The application is fixed to one worker on `127.0.0.1:8765`. Keep these APIs
-only:
+应用固定使用单 worker 并监听 `127.0.0.1:8765`。只保留以下 API：
 
 - `GET /api/dashboard`
 - `PUT /api/tokens/{provider}`
 - `POST /api/projects/{project}/instances`
 - `DELETE /api/projects/{project}/instances/{instance}?purge=true|false`
 
-Return errors as `{"error": "..."}`. The Dashboard response is the browser's
-only source of truth. Poll only while a create operation is queued or running.
-Do not add SSE, operation dismissal, frontend optimistic state, OpenAPI pages,
-or separate host and port configuration.
+错误格式固定为 `{"error": "..."}`。Dashboard response 是浏览器的唯一事实来源。只在
+create operation 处于 queued 或 running 时轮询。不得增加 SSE、operation dismissal、
+前端 optimistic state、OpenAPI 页面或独立 host/port 配置。
 
-## Security Boundary
+## 安全边界
 
-- Treat a rootful Podman socket as root access to its host.
-- Keep system OpenSSH host-key verification enabled.
-- Never return, log, or send provider tokens anywhere except the selected Git
-  provider. The control plane may read tokens from the local `[tokens]` config
-  table but never writes them back; that file holds plaintext secrets, so keep
-  it local, permission-restricted, and out of version control.
-- Deploy private keys may exist only in their development container.
-- Do not expose the Web application remotely or add multiple workers.
-- Shared services in the sidecar must be exposed only on host loopback. A
-  bridge-network container may bind internally to all interfaces only when its
-  published host port is restricted to `127.0.0.1`.
+- Rootful Podman socket 等同于 host root 权限。
+- 必须保留 system OpenSSH host-key verification。
+- Provider token 只能发送给选定 Git provider，不得返回或写入日志。配置文件中的 token
+  是明文，只能本地保存、限制权限并排除版本控制；控制面不得回写。
+- Deploy private key 只能存在于对应开发容器。
+- Web 应用不得远程暴露，也不得增加 worker。
+- Sidecar 共享服务只能通过 host loopback 暴露；bridge container 只有在 host publish
+  限制为 `127.0.0.1` 时，内部才可绑定所有接口。
 
-## Change Rules
+## 变更规则
 
-- Preserve unrelated files under `images/dev/`, especially s6, Atuin client,
-  Ollama, onceinit, and sshd wiring.
-- Put host-shared service assets under `images/sidecar/`, not in project
-  lifecycle modules.
-- Keep sidecar inventory distinct from environment inventory.
-- Never restore the Python HTTP agent, Podman socket mount, or workspace mount
-  in the sidecar image.
-- Keep all local control-plane Python, static, launcher, and test files under
-  `client/`; do not add top-level compatibility modules.
-- Update this file and `images/sidecar/CLAUDE.md` whenever the sidecar naming,
-  labels, image, storage, or lifecycle becomes concrete.
-- Prefer focused tests beside the affected module; do not restore compatibility
-  paths.
+- 不修改 `images/dev/` 中与任务无关的 s6、Atuin client、Ollama、onceinit 和 sshd。
+- Host 共享服务资产只能放在 `images/sidecar/`，不能进入 project 生命周期模块。
+- Sidecar inventory 与 environment inventory 必须分离。
+- Sidecar 不得恢复 Python HTTP agent、Podman socket 或 workspace mount。
+- 本地控制面的 Python、静态资源、启动器和测试全部保留在 `client/`。
+- Sidecar 的命名、label、image、storage 或生命周期确定后，同时更新本文和
+  `images/sidecar/CLAUDE.md`。
+- 优先添加针对受影响模块的聚焦测试，不恢复兼容路径。
 
-## Validation
+## 验证
 
-Run the narrowest relevant checks, then the complete Codespace suite:
+先运行最小相关检查，再运行完整 Codespace 检查：
 
 ```bash
 uv run ruff format --check codespace/client
