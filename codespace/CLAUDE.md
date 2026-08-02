@@ -88,10 +88,12 @@ The optional `[tokens]` table seeds provider tokens at startup; `github` and
 
 ## Host Contract
 
-An SSH host ID is an existing root SSH alias in local `~/.ssh/config`. System
-OpenSSH remains responsible for identity files, jump hosts, and host-key
-policy. A Podman Machine host ID is a logical Codespace name whose configured
-machine must already exist, be running, and prefer rootful execution.
+An SSH host ID is an existing SSH alias in local `~/.ssh/config` with access to
+rootful Podman. A non-root login requires passwordless sudo so Codespace can
+assign workspace ownership to the container user. System OpenSSH remains
+responsible for identity files, jump hosts, and host-key policy. A Podman
+Machine host ID is a logical Codespace name whose configured machine must
+already exist, be running, and prefer rootful execution.
 
 Every host provides:
 
@@ -100,9 +102,9 @@ Every host provides:
   its rootful API socket and SSH identity from `podman machine inspect`;
 - a writable home for the SSH login user; the workspace root is `~/codespace2`
   (resolved to the login user's absolute `$HOME` per host and created on first
-  use, since a Podman bind-mount source cannot contain `~`). Podman Machine
-  commands run as root and explicitly assign environment workspaces to
-  `5230:5230`;
+  use, since a Podman bind-mount source cannot contain `~`). Workspace
+  preparation always assigns each environment directory to `5230:5230`,
+  directly as root or through passwordless `sudo -n`;
 - ports `20000-29999` reserved for environment SSH;
 - one host-level sidecar container for shared services;
 - project images satisfying the development image contract.
@@ -187,9 +189,9 @@ Creation order is load-bearing:
 3. Generate the environment deploy key in memory.
 4. Pull the project image for its configured platform, or the host-native
    platform when omitted.
-5. Create the host workspace directory over SSH. An SSH host login user shares
-   uid/gid 5230 with the container user; a Podman Machine route runs as root and
-   assigns the environment directory to `5230:5230`.
+5. Create the host workspace directory over SSH and assign it to uid/gid
+   `5230:5230`; a non-root SSH login uses passwordless `sudo -n`, while a
+   Podman Machine route already runs as root.
 6. Create the labeled host-network container with the fixed runtime parameters.
 7. Write Codespace-owned login and repository SSH credentials, merging the
    managed `~/.ssh/config` block so user-added entries survive.

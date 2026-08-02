@@ -52,16 +52,22 @@ def remote_workspace_root(route: SSHRoute) -> str:
 def prepare_workspace(route: SSHRoute, target: str) -> None:
     """Create one environment's workspace directory through its host route.
 
-    The SSH login user shares uid/gid 5230 with the container user, so a plain
-    ``mkdir`` yields correct ownership on SSH hosts. Podman Machine commands run
-    as root, so the target is explicitly assigned to the container uid/gid.
+    Rootful Podman exposes host ownership directly, so the directory must belong
+    to the container uid/gid. Podman Machine commands already run as root;
+    regular SSH routes use passwordless sudo when the login user is not root.
     This deliberately avoids a short-lived Podman helper container.
     """
     if not target.startswith("/"):
         raise RuntimeError(f"refusing to prepare non-absolute workspace path: {target!r}")
-    remote_command = f"mkdir -p -m 0755 -- {shlex.quote(target)}"
+    install_command = (
+        f"install -d -m 0755 -o {CONTAINER_UID} -g {CONTAINER_UID} -- {shlex.quote(target)}"
+    )
     if route.is_machine:
-        remote_command += f" && chown {CONTAINER_UID}:{CONTAINER_UID} -- {shlex.quote(target)}"
+        remote_command = install_command
+    else:
+        remote_command = (
+            f'if [ "$(id -u)" -eq 0 ]; then {install_command}; else sudo -n {install_command}; fi'
+        )
     _run_host(
         route,
         remote_command,

@@ -252,7 +252,7 @@ def test_remote_workspace_root_wraps_ssh_failure(
         ssh.remote_workspace_root(_remote_route())
 
 
-def test_prepare_workspace_creates_directory_over_ssh(
+def test_prepare_workspace_uses_root_or_passwordless_sudo_over_ssh(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     commands: list[list[str]] = []
@@ -268,7 +268,12 @@ def test_prepare_workspace_creates_directory_over_ssh(
     command = commands[0]
     assert command[0] == "ssh"
     assert command[-2] == "home"
-    assert command[-1] == "mkdir -p -m 0755 -- /home/x/codespace2/devspace/debug"
+    assert command[-1] == (
+        'if [ "$(id -u)" -eq 0 ]; then '
+        "install -d -m 0755 -o 5230 -g 5230 -- /home/x/codespace2/devspace/debug; "
+        "else sudo -n install -d -m 0755 -o 5230 -g 5230 -- "
+        "/home/x/codespace2/devspace/debug; fi"
+    )
 
 
 def test_prepare_workspace_rejects_non_absolute_target() -> None:
@@ -321,7 +326,9 @@ def test_podman_machine_workspace_uses_root_route_and_container_ownership(
         assert "StrictHostKeyChecking=accept-new" in command
         assert any(option.endswith("/known_hosts/machine-local") for option in command)
         assert command[-2] == "root@127.0.0.1"
-    assert commands[1][-1].endswith("&& chown 5230:5230 -- /root/codespace2/devspace/debug")
+    assert commands[1][-1] == (
+        "install -d -m 0755 -o 5230 -g 5230 -- /root/codespace2/devspace/debug"
+    )
 
 
 def test_podman_machine_projection_and_probe_use_dedicated_proxy_command(

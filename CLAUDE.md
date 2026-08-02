@@ -87,7 +87,7 @@ Three layers:
 - [codespace/images/dev/](file:///workspace/devspace/codespace/images/dev) — reference development image Dockerfile, rootfs, and build scripts used by codespace containers.
 - [codespace/images/sidecar/](file:///workspace/devspace/codespace/images/sidecar) — host-scoped shared-service image and launcher. Each host runs one fixed `codespace-sidecar` container; image details and invariants live in [codespace/images/sidecar/CLAUDE.md](file:///workspace/devspace/codespace/images/sidecar/CLAUDE.md).
 - [codespace/host/darwin/](file:///workspace/devspace/codespace/host/darwin) — macOS bootstrap and local Podman Machine setup.
-- Codespace hosts are existing root SSH aliases or an explicitly configured local rootful Podman Machine. The local process forwards remote `/run/podman/podman.sock` sockets to private local Unix sockets and connects to Podman Machine through its inspected local API socket; it never deploys a remote HTTP agent.
+- Codespace hosts are existing SSH aliases with access to rootful Podman; non-root logins require passwordless sudo for workspace ownership, while local rootful Podman Machines are configured explicitly. The local process forwards remote `/run/podman/podman.sock` sockets to private local Unix sockets and connects to Podman Machine through its inspected local API socket; it never deploys a remote HTTP agent.
 - Projects may select `linux/amd64` or `linux/arm64`; omitted platform selection remains host-native. Non-native execution depends on host-managed `binfmt_misc` and QEMU user-static.
 
 ## 4. Cross-component contracts
