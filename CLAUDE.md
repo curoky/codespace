@@ -66,12 +66,12 @@ Three layers:
 
 ### 3.4 CI / Release
 
-- [build-codespace-image.yaml](file:///workspace/devspace/.github/workflows/build-codespace-image.yaml) — matrix-builds the codespace base/reference image from [codespace/images/dev](file:///workspace/devspace/codespace/images/dev) across Debian/Ubuntu bases and publishes both `base-<distro><ver>` and `codespace-<distro><ver>` tags. Uses `ghcr.io/curoky/devspace-cache:codespace-*` for buildx cache.
+- [build-codespace-image.yaml](file:///workspace/devspace/.github/workflows/build-codespace-image.yaml) — matrix-builds each Debian/Ubuntu codespace base/reference image on native `ubuntu-24.04` amd64 and `ubuntu-24.04-arm` runners, pushes the architecture images by digest, and merges them into the `base-<distro><ver>` and `codespace-<distro><ver>` multi-platform tags. Buildx caches are isolated by distro and architecture under `ghcr.io/curoky/devspace-cache:codespace-*`.
 - [build-codespace-sidecar.yaml](file:///workspace/devspace/.github/workflows/build-codespace-sidecar.yaml) — builds [codespace/images/sidecar/Dockerfile](file:///workspace/devspace/codespace/images/sidecar/Dockerfile) and publishes the host-shared `ghcr.io/curoky/devspace:codespace-sidecar` image.
 - [build-image.yaml](file:///workspace/devspace/.github/workflows/build-image.yaml) — matrix-builds the non-codespace dist images under [images/](file:///workspace/devspace/images).
 - [build-iso.yaml](file:///workspace/devspace/.github/workflows/build-iso.yaml) — produces the live ISO via `images/iso`.
 - [deps-*.yaml](file:///workspace/devspace/.github/workflows) — independently rebuild upstream toolchains; outputs are consumed by `images/*` via `COPY --from=…` or pre-staged tarballs.
-- [cleanup.yaml](file:///workspace/devspace/.github/workflows/cleanup.yaml) — prunes old GHCR tags.
+- [delete-untagged-images.yaml](file:///workspace/devspace/.github/workflows/delete-untagged-images.yaml) — prunes untagged GHCR images.
 - Triggers: push (path-filtered), `workflow_dispatch` (with `disable_docker_cache`), weekly cron.
 
 ### 3.5 Repo tooling
