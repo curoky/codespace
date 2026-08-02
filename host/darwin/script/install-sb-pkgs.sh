@@ -18,6 +18,6 @@ curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/hea
 # declared in the YAML manifest alongside this script. bm sync resolves +
 # downloads them in parallel internally, so no shell-level background/wait loop
 # is needed. nodejs-slim26 / perl are installed unlinked (binaries not exposed).
-/opt/sb/bin/bm sync "$script_dir/binman.yaml"
+/opt/sb/bin/bm sync --prefix /opt/sb "$script_dir/binman.yaml"
 
 ln -sf /opt/sb/bin/bazelisk /opt/sb/bin/bazel

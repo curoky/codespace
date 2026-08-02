@@ -32,10 +32,12 @@ RUN case "${TARGETARCH}" in \
     *) echo "unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
   esac \
   && apt-get update -y \
-  && apt-get install -y curl gcc g++ git pkg-config \
+  && apt-get install -y --no-install-recommends ca-certificates curl \
   && curl -fsSL -o /tmp/miniconda.sh \
     "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-${miniconda_arch}.sh" \
-  && bash /tmp/miniconda.sh -b -u -p /opt/conda
+  && bash /tmp/miniconda.sh -b -u -p /opt/conda \
+  && /opt/conda/bin/conda clean -afy \
+  && rm -rf /tmp/miniconda.sh /var/lib/apt/lists/*
 
 COPY codespace/images/dev/script/setup-conda-env.sh /opt/conda/condabin/setup-conda-env.sh
 

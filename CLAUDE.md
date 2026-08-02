@@ -66,7 +66,7 @@ Three layers:
 
 ### 3.4 CI / Release
 
-- [build-codespace-image.yaml](file:///workspace/devspace/.github/workflows/build-codespace-image.yaml) — matrix-builds each Debian/Ubuntu codespace base/reference image on native `ubuntu-24.04` amd64 and `ubuntu-24.04-arm` runners, pushes the architecture images by digest, and merges them into the `base-<distro><ver>` and `codespace-<distro><ver>` multi-platform tags. Buildx caches are isolated by distro and architecture under `ghcr.io/curoky/devspace-cache:codespace-*`.
+- [build-codespace-image.yaml](file:///workspace/devspace/.github/workflows/build-codespace-image.yaml) — matrix-builds each Debian/Ubuntu codespace base/reference image on native `ubuntu-24.04` amd64 and `ubuntu-24.04-arm` runners, pushes OCI zstd-compressed architecture images by digest, and merges them into the `base-<distro><ver>` and `codespace-<distro><ver>` multi-platform tags. Buildx caches are isolated by distro and architecture under `ghcr.io/curoky/devspace-cache:codespace-*`; push builds update minimal caches, while scheduled and manual builds refresh maximal caches.
 - [build-codespace-sidecar.yaml](file:///workspace/devspace/.github/workflows/build-codespace-sidecar.yaml) — builds [codespace/images/sidecar/Dockerfile](file:///workspace/devspace/codespace/images/sidecar/Dockerfile) and publishes the host-shared `ghcr.io/curoky/devspace:codespace-sidecar` image.
 - [build-image.yaml](file:///workspace/devspace/.github/workflows/build-image.yaml) — matrix-builds the non-codespace dist images under [images/](file:///workspace/devspace/images).
 - [build-iso.yaml](file:///workspace/devspace/.github/workflows/build-iso.yaml) — produces the live ISO via `images/iso`.
