@@ -15,6 +15,11 @@ on:
         default: false
         required: false
         type: boolean
+      debug_tmate:
+        description: 'start an SSH-accessible tmate debug runner'
+        default: false
+        required: false
+        type: boolean
 
 jobs:
   build:
@@ -23,6 +28,7 @@ jobs:
       contents: read
       packages: write
     strategy:
+      fail-fast: ${{ !inputs.debug_tmate }}
       matrix:
         include:
           - base_image: 'debian:10'
@@ -73,3 +79,10 @@ jobs:
             ghcr.io/curoky/devspace:base-${{ matrix.saved_image }}
             ghcr.io/curoky/devspace:codespace-${{ matrix.saved_image }}
           outputs: type=image,oci-mediatypes=true
+
+      - if: >-
+          ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 60
+        with:
+          limit-access-to-actor: true
