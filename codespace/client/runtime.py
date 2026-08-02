@@ -291,6 +291,7 @@ def inject_credentials(
             ("config", _merge_ssh_config(existing_config, managed_block), 0o600),
         ]
     )
+    _exec_checked(container, ["rm", "-f", f"{ssh_dir}/config"], user="0")
     if not container.put_archive(ssh_dir, archive):
         raise RuntimeError("failed to write container SSH credentials")
     _exec_checked(

@@ -17,10 +17,11 @@ importas -D 22 SSHD_PORT SSHD_PORT
 # build time (setup-sysconf.sh), so no per-boot permission fixup is needed here.
 foreground { mkdir -p /var/log }
 
-# Override the listen port on the command line (-o) instead of editing the
-# config file, so the shipped sshd_config stays untouched.
+# Override the listen port and bind to the host loopback on the command line
+# instead of editing the config file. Codespace reaches sshd through ProxyJump.
 # https://github.com/un-def/openssh-static-build/blob/master/run-sshd.sh#L30
 exec /opt/sb/store/openssh_gssapi/bin/sshd -D
   -o Port=${SSHD_PORT}
+  -o ListenAddress=127.0.0.1
   -f /etc/ssh/sshd_config
   -E /var/log/sshd.log

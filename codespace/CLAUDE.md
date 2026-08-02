@@ -105,7 +105,7 @@ The development image contract is:
 
 - user `x` with uid/gid `5230`;
 - writable `/workspace`;
-- host networking;
+- host networking, with environment sshd bound only to `127.0.0.1`;
 - the existing s6 entrypoint, sshd, onceinit, and Atuin client wiring;
 - Git and OpenSSH clients.
 

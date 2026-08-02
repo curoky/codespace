@@ -237,6 +237,10 @@ def test_inject_credentials_appends_and_preserves_user_entries() -> None:
     assert "Host my-server" in config
     assert "Host github.com" in config
     assert config.count("# >>> codespace managed >>>") == 1
+    assert (
+        ["rm", "-f", "/home/x/.ssh/config"],
+        "0",
+    ) in container.exec_calls
 
 
 def test_inject_credentials_replaces_stale_managed_block() -> None:
