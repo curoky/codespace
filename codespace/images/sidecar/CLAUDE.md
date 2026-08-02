@@ -14,8 +14,9 @@ environments; it is not a per-environment companion container.
 ## Invariants
 
 - Exactly one Codespace sidecar container may exist per configured host.
-- The sidecar uses host networking so development containers can reach shared
-  loopback services.
+- Shared services are exposed only on host loopback. Linux uses host networking;
+  macOS Podman Machine uses bridge networking with loopback-only published
+  ports.
 - Sidecar identity is derived only from the host. It must not include project
   or instance IDs.
 - Sidecar inventory and labels are separate from `codespace.managed=true`
@@ -37,10 +38,14 @@ instance without embedding project or instance identity.
 
 The container runs s6 as PID 1 and starts Atuin server with:
 
-- host `127.0.0.1`;
+- host `127.0.0.1` by default;
 - port `8002`;
 - open registration disabled;
 - required `ATUIN_DB_URI` supplied at container creation.
+
+The macOS launcher overrides the container listener to `0.0.0.0` so Podman can
+forward it from the isolated bridge network, but publishes it only as
+`127.0.0.1:8002` on the macOS host.
 
 The image contains no Python control plane, Podman socket, project workspace,
 SSH service, provider token, or repository credential. Atuin's database is
@@ -50,12 +55,14 @@ Build and run manually from the repository root:
 
 ```bash
 codespace/images/sidecar/build.sh
-ATUIN_DB_URI=postgres://... codespace/images/sidecar/run.sh
+ATUIN_DB_URI=postgres://... codespace/images/sidecar/run-linux.sh
+ATUIN_DB_URI=postgres://... codespace/images/sidecar/run-macos.sh
 ```
 
-`run.sh` replaces the fixed-name container and configures the Podman restart
-policy. The existing development image's Atuin client continues to use
-`http://127.0.0.1:8002`.
+Both launchers replace the fixed-name container and configure the Podman
+restart policy. `run-linux.sh` uses host networking, while `run-macos.sh`
+publishes the bridge-network port to macOS loopback. The existing development
+image's Atuin client continues to use `http://127.0.0.1:8002`.
 
 ## Layout
 
@@ -65,7 +72,8 @@ policy. The existing development image's Atuin client continues to use
 | `binman.yaml` | Standalone Atuin and s6 package set. |
 | `rootfs/` | Sidecar-only s6 bundle and shared services. |
 | `build.sh` | Local image build from the repository root. |
-| `run.sh` | Manual host-local singleton replacement. |
+| `run-linux.sh` | Linux host-network singleton replacement. |
+| `run-macos.sh` | macOS bridge-network singleton with loopback port publishing. |
 
 Do not copy the deleted agent service, Python application, uv environment,
 workspace mount, or Podman socket into this image.

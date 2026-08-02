@@ -126,10 +126,12 @@ The development image contract is:
 - Git and OpenSSH clients.
 
 The sidecar image is `ghcr.io/curoky/devspace:codespace-sidecar`; its fixed
-host-local container name is `codespace-sidecar`. It runs s6 and Atuin server
-on `127.0.0.1:8002`, with `ATUIN_DB_URI` supplied at creation. Development
-containers remain service clients. Keep the sidecar independent from project
-and instance resources.
+host-local container name is `codespace-sidecar`. Linux runs it with host
+networking and Atuin on `127.0.0.1:8002`. macOS Podman Machine runs it on a
+bridge network, binds Atuin to the isolated container's `0.0.0.0:8002`, and
+publishes only `127.0.0.1:8002` to the host. `ATUIN_DB_URI` is supplied at
+creation. Development containers remain service clients. Keep the sidecar
+independent from project and instance resources.
 
 ## Resource Identity
 
@@ -266,8 +268,9 @@ or separate host and port configuration.
   it local, permission-restricted, and out of version control.
 - Deploy private keys may exist only in their development container.
 - Do not expose the Web application remotely or add multiple workers.
-- Shared services in the sidecar must bind only to addresses required by
-  host-network clients; they are not public Internet services by default.
+- Shared services in the sidecar must be exposed only on host loopback. A
+  bridge-network container may bind internally to all interfaces only when its
+  published host port is restricted to `127.0.0.1`.
 
 ## Change Rules
 
