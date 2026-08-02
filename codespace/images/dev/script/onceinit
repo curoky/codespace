@@ -2,8 +2,6 @@
 
 set -xeuo pipefail
 
-exec > >(sudo tee /var/log/onceinit.log) 2>&1
-
 # clean cache
 rm -rf /home/x/.cache/starship.plugin.zsh \
   /home/x/.cache/conda.plugin.zsh \
