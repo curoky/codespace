@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import tomllib
 from pathlib import Path
-from typing import Self
+from typing import Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -23,18 +23,38 @@ CONFIG_PATH = Path.home() / ".config" / "codespace" / "config.toml"
 
 
 class HostConfig(BaseModel):
-    """Optional per-host overrides keyed by SSH alias in ``host_options``."""
+    """Connection settings keyed by host ID in ``host_options``."""
 
     model_config = ConfigDict(extra="forbid")
 
-    podman_socket: str = PODMAN_SOCKET
+    type: Literal["ssh", "podman-machine"] = "ssh"
+    podman_socket: str | None = None
+    machine: NonBlankString | None = None
 
     @field_validator("podman_socket")
     @classmethod
-    def _validate_podman_socket(cls, value: str) -> str:
-        if not value.startswith("/"):
+    def _validate_podman_socket(cls, value: str | None) -> str | None:
+        if value is not None and not value.startswith("/"):
             raise ValueError("podman_socket must be an absolute path")
         return value
+
+    @model_validator(mode="after")
+    def _validate_type_fields(self) -> Self:
+        if self.type == "ssh":
+            if self.machine is not None:
+                raise ValueError("machine is only valid for podman-machine hosts")
+            return self
+        if self.machine is None:
+            raise ValueError("machine is required for podman-machine hosts")
+        if self.podman_socket is not None:
+            raise ValueError("podman_socket is not valid for podman-machine hosts")
+        return self
+
+    def resolved_podman_socket(self) -> str:
+        """Return the remote socket used by an SSH host."""
+        if self.type != "ssh":
+            raise ValueError("podman-machine socket is discovered from machine inspect")
+        return self.podman_socket or PODMAN_SOCKET
 
 
 class TokensConfig(BaseModel):
@@ -114,12 +134,15 @@ class Config(BaseModel):
 
     def podman_socket(self, host: str) -> str:
         """Resolve one host's remote Podman socket, defaulting to the standard path."""
-        options = self.host_options.get(host)
-        return options.podman_socket if options is not None else PODMAN_SOCKET
+        return self.host_config(host).resolved_podman_socket()
 
-    def podman_sockets(self) -> dict[str, str]:
-        """Map every configured host to its remote Podman socket path."""
-        return {host: self.podman_socket(host) for host in self.hosts}
+    def host_config(self, host: str) -> HostConfig:
+        """Return one host's explicit settings or the default SSH settings."""
+        return self.host_options.get(host, HostConfig())
+
+    def host_configs(self) -> dict[str, HostConfig]:
+        """Map every configured host to its resolved connection settings."""
+        return {host: self.host_config(host) for host in self.hosts}
 
 
 def load_config(path: Path = CONFIG_PATH) -> Config:

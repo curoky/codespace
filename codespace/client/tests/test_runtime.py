@@ -168,6 +168,7 @@ def test_create_container_preserves_fixed_runtime_contract(
     assert kwargs["network_mode"] == "host"
     assert kwargs["platform"] == "linux/arm64"
     assert kwargs["cap_add"] == ["NET_RAW", "SYS_ADMIN"]
+    assert kwargs["security_opt"] == ["disable", "seccomp=unconfined"]
     assert kwargs["pids_limit"] == -1
     assert kwargs["ulimits"] == [{"Name": "memlock", "Soft": -1, "Hard": -1}]
     assert kwargs["environment"] == {"SSHD_PORT": str(ssh_port("codespace-home-devspace-debug"))}

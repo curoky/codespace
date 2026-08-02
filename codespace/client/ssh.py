@@ -15,7 +15,13 @@ from contextlib import contextmanager, suppress
 from functools import cache
 from pathlib import Path
 
-from codespace.client.models import CONTAINER_USER, WORKSPACE_DIR_NAME, Environment
+from codespace.client.models import (
+    CONTAINER_UID,
+    CONTAINER_USER,
+    WORKSPACE_DIR_NAME,
+    Environment,
+)
+from codespace.client.transport import SSHRoute
 
 SSH_CONFIG_PATH = Path.home() / ".ssh" / "config"
 CODESPACE_DIR = Path.home() / ".ssh" / "codespace"
@@ -33,70 +39,104 @@ _WORKSPACE_PREPARE_TIMEOUT = 15.0
 
 
 @cache
-def remote_workspace_root(host: str) -> str:
+def remote_workspace_root(route: SSHRoute) -> str:
     """Resolve and ensure one host's workspace root under the login user's home.
 
     A Podman bind-mount source cannot contain ``~``, so the absolute path is
-    resolved per host with one cached SSH round-trip that also creates the
+    resolved per route with one cached SSH round-trip that also creates the
     directory. Ensuring it here means the bind-mount source always exists.
     """
-    return _resolve_remote_workspace_root(host)
+    return _resolve_remote_workspace_root(route)
 
 
-def prepare_workspace(host: str, target: str) -> None:
-    """Create one environment's workspace directory on the host over SSH.
+def prepare_workspace(route: SSHRoute, target: str) -> None:
+    """Create one environment's workspace directory through its host route.
 
     The SSH login user shares uid/gid 5230 with the container user, so a plain
-    ``mkdir`` already yields correct ownership. This deliberately avoids a
-    short-lived Podman helper container: podman-py's ``run`` inspects the
-    container over the SSH-forwarded Unix socket, and that round-trip stalls for
-    the full client timeout on some hosts. ``target`` is built from a
-    remote-resolved absolute root and regex-validated project/instance IDs, so
-    it carries no shell metacharacters; it is still quoted defensively.
+    ``mkdir`` yields correct ownership on SSH hosts. Podman Machine commands run
+    as root, so the target is explicitly assigned to the container uid/gid.
+    This deliberately avoids a short-lived Podman helper container.
     """
     if not target.startswith("/"):
         raise RuntimeError(f"refusing to prepare non-absolute workspace path: {target!r}")
     remote_command = f"mkdir -p -m 0755 -- {shlex.quote(target)}"
-    try:
-        subprocess.run(  # noqa: S603
-            ["ssh", "-o", "BatchMode=yes", host, remote_command],  # noqa: S607
-            check=True,
-            capture_output=True,
-            text=True,
-            stdin=subprocess.DEVNULL,
-            timeout=_WORKSPACE_PREPARE_TIMEOUT,
-        )
-    except subprocess.CalledProcessError as exc:
-        stderr = exc.stderr.strip() if exc.stderr else ""
-        raise RuntimeError(
-            f"failed to prepare workspace {target!r} on host {host!r}: {stderr or exc}"
-        ) from exc
+    if route.is_machine:
+        remote_command += f" && chown {CONTAINER_UID}:{CONTAINER_UID} -- {shlex.quote(target)}"
+    _run_host(
+        route,
+        remote_command,
+        timeout=_WORKSPACE_PREPARE_TIMEOUT,
+        action=f"prepare workspace {target!r}",
+    )
 
 
-def _resolve_remote_workspace_root(host: str) -> str:
+def _resolve_remote_workspace_root(route: SSHRoute) -> str:
     # WORKSPACE_DIR_NAME is a fixed internal constant, so this remote command is
     # not exposed to injection; "$HOME" expands in the remote login shell.
     remote_command = (
         f'mkdir -p -- "$HOME/{WORKSPACE_DIR_NAME}" && printf %s "$HOME/{WORKSPACE_DIR_NAME}"'
     )
+    result = _run_host(
+        route,
+        remote_command,
+        timeout=_WORKSPACE_ROOT_TIMEOUT,
+        action="resolve workspace root",
+    )
+    root = result.stdout.strip()
+    if not root.startswith("/"):
+        raise RuntimeError(f"host {route.host!r} returned a non-absolute workspace root: {root!r}")
+    return root
+
+
+def _run_host(
+    route: SSHRoute,
+    remote_command: str,
+    *,
+    timeout: float,
+    action: str,
+) -> subprocess.CompletedProcess[str]:
+    command = ["ssh", "-o", "BatchMode=yes"]
+    if route.is_machine:
+        if route.port is None or route.identity_path is None:
+            raise RuntimeError(f"Podman Machine SSH route for {route.host!r} is incomplete")
+        machine_known_hosts = _machine_known_hosts(route)
+        machine_known_hosts.parent.mkdir(parents=True, exist_ok=True)
+        _ensure_mode(machine_known_hosts.parent, 0o700)
+        command.extend(
+            [
+                "-o",
+                "IdentitiesOnly=yes",
+                "-o",
+                "StrictHostKeyChecking=accept-new",
+                "-o",
+                f"UserKnownHostsFile={machine_known_hosts}",
+                "-i",
+                str(route.identity_path),
+                "-p",
+                str(route.port),
+                "root@127.0.0.1",
+            ]
+        )
+    else:
+        command.append(route.host)
+    command.append(remote_command)
     try:
         result = subprocess.run(  # noqa: S603
-            ["ssh", "-o", "BatchMode=yes", host, remote_command],  # noqa: S607
+            command,
             check=True,
             capture_output=True,
             text=True,
             stdin=subprocess.DEVNULL,
-            timeout=_WORKSPACE_ROOT_TIMEOUT,
+            timeout=timeout,
         )
-    except subprocess.CalledProcessError as exc:
-        stderr = exc.stderr.strip() if exc.stderr else ""
-        raise RuntimeError(
-            f"failed to resolve workspace root on host {host!r}: {stderr or exc}"
-        ) from exc
-    root = result.stdout.strip()
-    if not root.startswith("/"):
-        raise RuntimeError(f"host {host!r} returned a non-absolute workspace root: {root!r}")
-    return root
+    except (OSError, subprocess.SubprocessError) as exc:
+        stderr = (
+            exc.stderr.strip()
+            if isinstance(exc, subprocess.CalledProcessError) and exc.stderr
+            else ""
+        )
+        raise RuntimeError(f"failed to {action} on host {route.host!r}: {stderr or exc}") from exc
+    return result
 
 
 def initialize(hosts: list[str]) -> None:
@@ -149,7 +189,7 @@ def ensure_login_key() -> str:
         return public_path.read_text(encoding="utf-8").strip()
 
 
-def probe(environment: Environment) -> None:
+def probe(environment: Environment, route: SSHRoute) -> None:
     """Verify actual SSH login through the configured host alias and login key."""
     known_hosts = KNOWN_HOSTS_DIR / environment.id
     known_hosts.parent.mkdir(parents=True, exist_ok=True)
@@ -167,7 +207,7 @@ def probe(environment: Environment) -> None:
         "-o",
         f"User={CONTAINER_USER}",
         "-o",
-        f"ProxyJump={environment.host}",
+        _proxy_option(route),
         "-o",
         f"IdentityFile={LOGIN_KEY_PATH}",
         "-o",
@@ -202,10 +242,12 @@ def probe(environment: Environment) -> None:
             time.sleep(_PROBE_INTERVAL)
 
 
-def write_host(host: str, environments: list[Environment]) -> None:
+def write_host(host: str, environments: list[Environment], route: SSHRoute) -> None:
     """Atomically replace one successfully inventoried host projection."""
+    if route.host != host:
+        raise ValueError(f"SSH route {route.host!r} does not match host {host!r}")
     blocks = [
-        _render_environment(environment)
+        _render_environment(environment, route)
         for environment in sorted(
             environments,
             key=lambda item: (item.project, item.instance),
@@ -218,15 +260,16 @@ def write_host(host: str, environments: list[Environment]) -> None:
         _write(HOSTS_DIR / f"{host}.conf", content)
 
 
-def _render_environment(environment: Environment) -> str:
+def _render_environment(environment: Environment, route: SSHRoute) -> str:
     known_hosts = f"~/.ssh/codespace/known_hosts/{environment.id}"
+    proxy_directive = _proxy_option(route).replace("=", " ", 1)
     return "\n".join(
         [
             f"Host {environment.id}",
             "    HostName 127.0.0.1",
             f"    Port {environment.ssh_port}",
             f"    User {CONTAINER_USER}",
-            f"    ProxyJump {environment.host}",
+            f"    {proxy_directive}",
             "    IdentityFile ~/.ssh/codespace/id_ed25519",
             "    IdentitiesOnly yes",
             "    HostKeyAlgorithms ssh-ed25519",
@@ -235,6 +278,37 @@ def _render_environment(environment: Environment) -> str:
             "    UpdateHostKeys no",
         ]
     )
+
+
+def _proxy_option(route: SSHRoute) -> str:
+    if not route.is_machine:
+        return f"ProxyJump={route.host}"
+    if route.port is None or route.identity_path is None:
+        raise RuntimeError(f"Podman Machine SSH route for {route.host!r} is incomplete")
+    machine_known_hosts = _machine_known_hosts(route)
+    command = [
+        "ssh",
+        "-o",
+        "BatchMode=yes",
+        "-o",
+        "IdentitiesOnly=yes",
+        "-o",
+        "StrictHostKeyChecking=accept-new",
+        "-o",
+        f"UserKnownHostsFile={machine_known_hosts}",
+        "-i",
+        str(route.identity_path),
+        "-p",
+        str(route.port),
+        "-W",
+        "%h:%p",
+        "root@127.0.0.1",
+    ]
+    return f"ProxyCommand={shlex.join(command)}"
+
+
+def _machine_known_hosts(route: SSHRoute) -> Path:
+    return KNOWN_HOSTS_DIR / f"machine-{route.host}"
 
 
 def _ensure_main_include() -> None:

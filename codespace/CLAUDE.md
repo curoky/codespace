@@ -7,9 +7,10 @@ contracts, and host requirements. Committed documentation and code use English.
 ## Scope
 
 Codespace is a localhost-only, single-process control plane for development
-containers on remote rootful Podman hosts. The local Python process forwards
-each host's Podman Unix socket through system OpenSSH and calls Podman directly.
-Do not add a remote HTTP agent or use the podman-py SSH adapter.
+containers on remote rootful Podman hosts and a local rootful Podman Machine.
+The local Python process forwards remote Podman Unix sockets through system
+OpenSSH; Podman Machine uses its inspected local API socket. Do not add a remote
+HTTP agent or use the podman-py SSH adapter.
 
 FastAPI serves both the JSON API and the native files in `client/static/`.
 GitHub and GitLab tokens live in process memory; the optional `[tokens]` table
@@ -41,7 +42,7 @@ environment overrides, live reload, or fallback configuration sources.
 
 ```toml
 default_image = "ghcr.io/curoky/devspace:codespace-debian13"
-hosts = ["home", "office"]
+hosts = ["local", "home", "office"]
 
 [projects.devspace]
 host = "home"
@@ -59,6 +60,10 @@ platform = "linux/arm64"
 [host_options.office]
 podman_socket = "/tmp/podmanxd.sock"
 
+[host_options.local]
+type = "podman-machine"
+machine = "podman-machine-default"
+
 [tokens]
 github = "ghp_xxx"
 gitlab = "glpat-xxx"
@@ -68,8 +73,10 @@ Required top-level fields are `default_image` and `hosts`. Each project requires
 `host`, `provider`, and `repo`; `description` and `image` are optional. The
 optional `platform` is `linux/amd64` or `linux/arm64`; when omitted, Podman
 selects the host-native image platform. The
-optional `host_options.<host>` table overrides per-host settings; its only field
-is `podman_socket` (absolute remote path, default `/run/podman/podman.sock`).
+optional `host_options.<host>` table selects `type = "ssh"` (the default) or
+`type = "podman-machine"`. SSH hosts may set `podman_socket` (absolute remote
+path, default `/run/podman/podman.sock`) and must not set `machine`.
+Podman Machine hosts require `machine` and must not set `podman_socket`.
 The optional `[tokens]` table seeds provider tokens at startup; `github` and
 `gitlab` are each optional non-blank strings. Reject unknown fields.
 
@@ -81,17 +88,21 @@ The optional `[tokens]` table seeds provider tokens at startup; `github` and
 
 ## Host Contract
 
-Each host ID is an existing root SSH alias in local `~/.ssh/config`. System
-OpenSSH must remain responsible for identity files, jump hosts, and host-key
-policy.
+An SSH host ID is an existing root SSH alias in local `~/.ssh/config`. System
+OpenSSH remains responsible for identity files, jump hosts, and host-key
+policy. A Podman Machine host ID is a logical Codespace name whose configured
+machine must already exist, be running, and prefer rootful execution.
 
 Every host provides:
 
 - rootful Podman at `/run/podman/podman.sock`, or another absolute socket path
-  declared through `host_options.<host>.podman_socket`;
+  declared through `host_options.<host>.podman_socket`; Podman Machine obtains
+  its rootful API socket and SSH identity from `podman machine inspect`;
 - a writable home for the SSH login user; the workspace root is `~/codespace2`
   (resolved to the login user's absolute `$HOME` per host and created on first
-  use, since a Podman bind-mount source cannot contain `~`);
+  use, since a Podman bind-mount source cannot contain `~`). Podman Machine
+  commands run as root and explicitly assign environment workspaces to
+  `5230:5230`;
 - ports `20000-29999` reserved for environment SSH;
 - one host-level sidecar container for shared services;
 - project images satisfying the development image contract.
@@ -106,6 +117,9 @@ The development image contract is:
 - user `x` with uid/gid `5230`;
 - writable `/workspace`;
 - host networking, with environment sshd bound only to `127.0.0.1`;
+- Podman API security option `disable` (the API form of CLI `label=disable`) so
+  Podman Machine's SELinux accepts the persistent workspace bind mount,
+  alongside the existing `seccomp=unconfined`;
 - the existing s6 entrypoint, sshd, onceinit, and Atuin client wiring;
 - Git and OpenSSH clients.
 
@@ -144,7 +158,8 @@ projection contracts. Their detailed implementation contract belongs in
 
 ## Transport
 
-Maintain one reusable system SSH process and one Podman client per host:
+Maintain one reusable Podman client per host. SSH hosts also maintain one
+system SSH process:
 
 ```text
 ssh -N -o ExitOnForwardFailure=yes -o StreamLocalBindUnlink=yes \
@@ -158,8 +173,10 @@ directory with mode `0700`. SSH keepalives make a silently-broken forward exit
 on its own, and every Podman client carries a bounded call timeout so a
 half-dead tunnel fails fast instead of hanging an operation. Rebuild a host
 tunnel after its process dies. Close Podman clients and SSH subprocesses during
-application shutdown. Dashboard inventory queries run concurrently, and one
-offline host must not block other hosts.
+application shutdown. Podman Machine connections read the local API socket,
+machine SSH port, and identity path from `podman machine inspect`; reject a
+stopped or rootless machine. Dashboard inventory queries run concurrently, and
+one offline host must not block other hosts.
 
 ## Environment Lifecycle
 
@@ -170,9 +187,9 @@ Creation order is load-bearing:
 3. Generate the environment deploy key in memory.
 4. Pull the project image for its configured platform, or the host-native
    platform when omitted.
-5. Create the host workspace directory over SSH (`mkdir` as the login user,
-   which shares uid/gid 5230 with the container user, so ownership is correct
-   without a helper container).
+5. Create the host workspace directory over SSH. An SSH host login user shares
+   uid/gid 5230 with the container user; a Podman Machine route runs as root and
+   assigns the environment directory to `5230:5230`.
 6. Create the labeled host-network container with the fixed runtime parameters.
 7. Write Codespace-owned login and repository SSH credentials, merging the
    managed `~/.ssh/config` block so user-added entries survive.
@@ -205,8 +222,10 @@ host projection only after successful inventory; preserve its last projection
 while offline and remove it when the host leaves TOML.
 
 Each environment entry uses `HostName 127.0.0.1`, its deterministic port, user
-`x`, `ProxyJump <host>`, the global login key, and an independent known-hosts
-file. Do not parse or merge historical SSH blocks.
+`x`, the global login key, and an independent known-hosts file. SSH hosts use
+`ProxyJump <host>`. Podman Machine hosts use a dedicated `ProxyCommand` built
+from the inspected loopback SSH port and machine identity. Do not parse or
+merge historical SSH blocks.
 
 ## Web Contract
 

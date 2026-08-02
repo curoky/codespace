@@ -10,6 +10,7 @@ from codespace.client import provider, runtime, ssh
 from codespace.client.config import Config
 from codespace.client.models import Environment, environment_id, ssh_port
 from codespace.client.service import CodespaceService, describe_error
+from codespace.client.transport import SSHRoute
 
 
 class FakeTransport:
@@ -22,6 +23,9 @@ class FakeTransport:
         if isinstance(client, Exception):
             raise client
         return client
+
+    def ssh_route(self, host: str) -> SSHRoute:
+        return SSHRoute(host=host)
 
     def close(self) -> None:
         self.closed = True
@@ -57,7 +61,7 @@ def service(
     monkeypatch: pytest.MonkeyPatch,
 ) -> CodespaceService:
     monkeypatch.setattr(ssh, "initialize", lambda hosts: None)
-    monkeypatch.setattr(ssh, "remote_workspace_root", lambda host: "/home/x/codespace2")
+    monkeypatch.setattr(ssh, "remote_workspace_root", lambda route: "/home/x/codespace2")
     return CodespaceService(
         config,
         transport=FakeTransport({"home": object(), "office": object()}),  # type: ignore[arg-type]
@@ -89,7 +93,11 @@ def test_dashboard_isolates_offline_host_and_rewrites_successful_host(
 ) -> None:
     monkeypatch.setattr(ssh, "initialize", lambda hosts: None)
     writes: list[tuple[str, list[Environment]]] = []
-    monkeypatch.setattr(ssh, "write_host", lambda host, envs: writes.append((host, envs)))
+    monkeypatch.setattr(
+        ssh,
+        "write_host",
+        lambda host, envs, route: writes.append((host, envs)),
+    )
     home_client = object()
     transport = FakeTransport({"home": home_client, "office": RuntimeError("ssh down")})
     service = CodespaceService(config, transport=transport)  # type: ignore[arg-type]
@@ -128,7 +136,7 @@ def test_dashboard_keeps_failed_operation_when_container_was_retained(
             runtime.Inventory([_environment()], []) if host == "home" else runtime.Inventory([], [])
         ),
     )
-    monkeypatch.setattr(ssh, "write_host", lambda host, environments: None)
+    monkeypatch.setattr(ssh, "write_host", lambda host, environments, route: None)
 
     dashboard = service.dashboard()
 
@@ -183,7 +191,7 @@ def test_create_runs_all_stages_in_order(
     monkeypatch.setattr(
         runtime, "inject_credentials", lambda *args, **kwargs: events.append("inject")
     )
-    monkeypatch.setattr(ssh, "probe", lambda environment: events.append("probe"))
+    monkeypatch.setattr(ssh, "probe", lambda environment, route: events.append("probe"))
     monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
     monkeypatch.setattr(runtime, "clone_repo", lambda *args: events.append("clone"))
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
@@ -275,7 +283,9 @@ def test_failure_before_register_removes_container_but_keeps_workspace(
     monkeypatch.setattr(runtime, "create_container", lambda *args, **kwargs: container)
     monkeypatch.setattr(runtime, "inject_credentials", lambda *args, **kwargs: None)
     monkeypatch.setattr(
-        ssh, "probe", lambda environment: (_ for _ in ()).throw(RuntimeError("no ssh"))
+        ssh,
+        "probe",
+        lambda environment, route: (_ for _ in ()).throw(RuntimeError("no ssh")),
     )
     monkeypatch.setattr(runtime, "find_container", lambda *args: container)
     monkeypatch.setattr(runtime, "remove_container", lambda item: removed.append(item))
@@ -339,7 +349,7 @@ def test_failure_after_register_revokes_then_removes_container(
     monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
     monkeypatch.setattr(runtime, "create_container", lambda *args, **kwargs: container)
     monkeypatch.setattr(runtime, "inject_credentials", lambda *args, **kwargs: None)
-    monkeypatch.setattr(ssh, "probe", lambda environment: None)
+    monkeypatch.setattr(ssh, "probe", lambda environment, route: None)
     monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
     monkeypatch.setattr(
         runtime,
@@ -377,7 +387,7 @@ def test_revoke_failure_after_register_retains_container(
     monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
     monkeypatch.setattr(runtime, "create_container", lambda *args, **kwargs: container)
     monkeypatch.setattr(runtime, "inject_credentials", lambda *args, **kwargs: None)
-    monkeypatch.setattr(ssh, "probe", lambda environment: None)
+    monkeypatch.setattr(ssh, "probe", lambda environment, route: None)
     monkeypatch.setattr(provider, "register", lambda *args: None)
     monkeypatch.setattr(
         runtime,

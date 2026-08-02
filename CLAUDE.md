@@ -16,11 +16,11 @@ High-level design of `devspace` — a personal, opinionated development environm
 | Path | Responsibility |
 | --- | --- |
 | [dotfiles/](file:///workspace/devspace/dotfiles) | Per-tool configuration files (zsh, git, ssh, vscode, tmux, …) and a single dispatcher [setup.sh](file:///workspace/devspace/dotfiles/setup.sh). |
-| [host/](file:///workspace/devspace/host) | Per-OS bootstrap scripts ([darwin](file:///workspace/devspace/host/darwin/bootstrap.sh), [linux](file:///workspace/devspace/host/linux/bootstrap.sh), [win](file:///workspace/devspace/host/win/bootstrap.sh)) plus host-only assets (Brewfiles, conda lockfiles). |
+| [host/](file:///workspace/devspace/host) | Linux and Windows bootstrap scripts plus host-only assets. |
 | [images/](file:///workspace/devspace/images) | Dockerfiles for non-codespace `ghcr.io/curoky/devspace:*` image variants. [gcc/](file:///workspace/devspace/images/gcc), [gui/](file:///workspace/devspace/images/gui), [pytorch/](file:///workspace/devspace/images/pytorch), [tensorflow/](file:///workspace/devspace/images/tensorflow), [iso/](file:///workspace/devspace/images/iso) extend the published base images. |
 | [deps/](file:///workspace/devspace/deps) | Independent builders for upstream dependencies (CUDA, GCC, LLVM, Python, TensorFlow, host-tools, tabby). Each subdir owns its `Dockerfile` / `Taskfile.yaml` / `build.sh`. |
 | [tools/](file:///workspace/devspace/tools) | Repo-local helper scripts used by CI, hooks, and ad-hoc maintenance (license headers, git history rewrites, GitHub Actions disk cleanup, …). |
-| [codespace/](file:///workspace/devspace/codespace) | Local Codespace control plane, native Web UI, tests, development image, host sidecar boundary, and its agent source of truth in [codespace/CLAUDE.md](file:///workspace/devspace/codespace/CLAUDE.md). |
+| [codespace/](file:///workspace/devspace/codespace) | Local Codespace control plane, native Web UI, tests, development image, macOS host bootstrap, host sidecar boundary, and its agent source of truth in [codespace/CLAUDE.md](file:///workspace/devspace/codespace/CLAUDE.md). |
 | [.github/workflows/](file:///workspace/devspace/.github/workflows) | CI: image build matrix, ISO build, dependency rebuilds, registry cleanup. |
 | [.devcontainer/devcontainer.json](file:///workspace/devspace/.devcontainer/devcontainer.json) | Consumer entry: pulls the published base image. |
 | [pyproject.toml](file:///workspace/devspace/pyproject.toml), [uv.lock](file:///workspace/devspace/uv.lock) | uv-managed Python runtime and tooling for the local Codespace control plane. |
@@ -59,7 +59,7 @@ Three layers:
 
 ### 3.3 Host bootstrap
 
-- [host/darwin/bootstrap.sh](file:///workspace/devspace/host/darwin/bootstrap.sh) — installs Homebrew, links `~/devspace`, runs `dotfiles/setup.sh`, then `brew bundle` from `host/darwin/conf/brew/Brewfile.*`.
+- [codespace/host/darwin/bootstrap.sh](file:///workspace/devspace/codespace/host/darwin/bootstrap.sh) — installs Homebrew, links `~/devspace`, runs `dotfiles/setup.sh`, then installs the macOS toolset. `start-podman.sh` creates or reuses the rootful local Podman Machine used by Codespace.
 - [host/linux/bootstrap.sh](file:///workspace/devspace/host/linux/bootstrap.sh), [host/linux/vultr-bootstrap.sh](file:///workspace/devspace/host/linux/vultr-bootstrap.sh) — Linux host (incl. VPS) variants.
 - [host/win/bootstrap.sh](file:///workspace/devspace/host/win/bootstrap.sh) — Windows (WSL/MSYS) variant.
 - Host-only assets (Brewfiles with lockfiles, conda env yamls) live next to their bootstrap script — they are **not** part of the container build.
@@ -86,7 +86,8 @@ Three layers:
 - [codespace/client/](file:///workspace/devspace/codespace/client) — complete local control-plane package: strict TOML and models, system-SSH Podman transport, lifecycle orchestration, provider and SSH state, FastAPI, native Web UI, tests, and the detached launcher. Its entry point is `python -m codespace.client`.
 - [codespace/images/dev/](file:///workspace/devspace/codespace/images/dev) — reference development image Dockerfile, rootfs, and build scripts used by codespace containers.
 - [codespace/images/sidecar/](file:///workspace/devspace/codespace/images/sidecar) — host-scoped shared-service image and launcher. Each host runs one fixed `codespace-sidecar` container; image details and invariants live in [codespace/images/sidecar/CLAUDE.md](file:///workspace/devspace/codespace/images/sidecar/CLAUDE.md).
-- Codespace hosts are existing root SSH aliases. The local process forwards each host's `/run/podman/podman.sock` to a private local Unix socket and never deploys a remote HTTP agent.
+- [codespace/host/darwin/](file:///workspace/devspace/codespace/host/darwin) — macOS bootstrap and local Podman Machine setup.
+- Codespace hosts are existing root SSH aliases or an explicitly configured local rootful Podman Machine. The local process forwards remote `/run/podman/podman.sock` sockets to private local Unix sockets and connects to Podman Machine through its inspected local API socket; it never deploys a remote HTTP agent.
 - Projects may select `linux/amd64` or `linux/arm64`; omitted platform selection remains host-native. Non-native execution depends on host-managed `binfmt_misc` and QEMU user-static.
 
 ## 4. Cross-component contracts

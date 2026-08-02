@@ -220,7 +220,7 @@ def create_container(
         detach=True,
         network_mode="host",
         cap_add=["NET_RAW", "SYS_ADMIN"],
-        security_opt=["seccomp=unconfined"],
+        security_opt=["disable", "seccomp=unconfined"],
         pids_limit=-1,
         ulimits=[{"Name": "memlock", "Soft": -1, "Hard": -1}],
         environment={"SSHD_PORT": str(port)},

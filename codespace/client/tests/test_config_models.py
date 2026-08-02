@@ -70,10 +70,37 @@ def test_config_resolves_per_host_podman_socket() -> None:
 
     assert config.podman_socket("office") == "/tmp/podmanxd.sock"
     assert config.podman_socket("home") == "/run/podman/podman.sock"
-    assert config.podman_sockets() == {
-        "home": "/run/podman/podman.sock",
-        "office": "/tmp/podmanxd.sock",
-    }
+    assert config.host_config("home").type == "ssh"
+    assert config.host_config("office").podman_socket == "/tmp/podmanxd.sock"
+
+
+def test_config_accepts_explicit_podman_machine_host() -> None:
+    config = Config.model_validate(
+        {
+            "default_image": "img",
+            "hosts": ["local"],
+            "projects": {
+                "devspace": {
+                    "host": "local",
+                    "provider": "github",
+                    "repo": "owner/repo",
+                }
+            },
+            "host_options": {
+                "local": {
+                    "type": "podman-machine",
+                    "machine": "podman-machine-default",
+                }
+            },
+        }
+    )
+
+    options = config.host_config("local")
+    assert options.type == "podman-machine"
+    assert options.machine == "podman-machine-default"
+
+    with pytest.raises(ValueError, match="discovered from machine inspect"):
+        config.podman_socket("local")
 
 
 def test_config_seeds_tokens_from_tokens_table(tmp_path: Path) -> None:
@@ -142,6 +169,24 @@ def test_config_rejects_blank_token(provider: str) -> None:
     [
         ({"ghost": {"podman_socket": "/tmp/x.sock"}}, "unknown host"),
         ({"home": {"podman_socket": "relative.sock"}}, "absolute path"),
+        (
+            {"home": {"type": "podman-machine"}},
+            "machine is required",
+        ),
+        (
+            {
+                "home": {
+                    "type": "podman-machine",
+                    "machine": "podman-machine-default",
+                    "podman_socket": "/run/podman/podman.sock",
+                }
+            },
+            "podman_socket is not valid",
+        ),
+        (
+            {"home": {"machine": "podman-machine-default"}},
+            "machine is only valid",
+        ),
         ({"home": {"unknown": "x"}}, "Extra inputs"),
     ],
 )

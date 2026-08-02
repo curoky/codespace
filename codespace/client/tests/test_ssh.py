@@ -10,6 +10,7 @@ import pytest
 
 from codespace.client import ssh
 from codespace.client.models import Environment, ssh_port
+from codespace.client.transport import SSHRoute
 
 
 @pytest.fixture
@@ -40,6 +41,10 @@ def _environment(instance: str = "debug") -> Environment:
         container_id=f"container-{instance}",
         status="running",
     )
+
+
+def _remote_route() -> SSHRoute:
+    return SSHRoute(host="home")
 
 
 def test_initialize_generates_include_layout_and_removes_deleted_hosts(
@@ -86,7 +91,11 @@ def test_write_host_replaces_complete_projection(ssh_layout: Path) -> None:
     path = ssh_layout / "codespace" / "hosts" / "home.conf"
     path.write_text("old block\n", encoding="utf-8")
 
-    ssh.write_host("home", [_environment("debug"), _environment("default")])
+    ssh.write_host(
+        "home",
+        [_environment("debug"), _environment("default")],
+        _remote_route(),
+    )
 
     content = path.read_text(encoding="utf-8")
     assert "old block" not in content
@@ -136,7 +145,7 @@ def test_probe_uses_proxyjump_and_environment_alias(
         lambda command, **_kwargs: commands.append(command),
     )
 
-    ssh.probe(_environment())
+    ssh.probe(_environment(), _remote_route())
 
     command = commands[0]
     assert "ProxyJump=home" in command
@@ -165,7 +174,7 @@ def test_probe_retries_until_ssh_login_succeeds(
     monkeypatch.setattr(ssh.subprocess, "run", run)
     monkeypatch.setattr(ssh.time, "sleep", lambda interval: sleeps.append(interval))
 
-    ssh.probe(_environment())
+    ssh.probe(_environment(), _remote_route())
 
     assert sleeps == [0.5]
 
@@ -188,7 +197,7 @@ def test_remote_workspace_root_resolves_home_and_creates_dir(
 
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
-    root = ssh.remote_workspace_root("home")
+    root = ssh.remote_workspace_root(_remote_route())
 
     assert root == "/home/x/codespace2"
     assert commands[0][0] == "ssh"
@@ -209,8 +218,8 @@ def test_remote_workspace_root_is_cached_per_host(
 
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
-    first = ssh.remote_workspace_root("home")
-    second = ssh.remote_workspace_root("home")
+    first = ssh.remote_workspace_root(_remote_route())
+    second = ssh.remote_workspace_root(_remote_route())
 
     assert first == second == "/home/x/codespace2"
     assert calls == ["home"]
@@ -228,7 +237,7 @@ def test_remote_workspace_root_rejects_non_absolute_result(
     )
 
     with pytest.raises(RuntimeError, match="non-absolute workspace root"):
-        ssh.remote_workspace_root("home")
+        ssh.remote_workspace_root(_remote_route())
 
 
 def test_remote_workspace_root_wraps_ssh_failure(
@@ -240,7 +249,7 @@ def test_remote_workspace_root_wraps_ssh_failure(
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
     with pytest.raises(RuntimeError, match="failed to resolve workspace root"):
-        ssh.remote_workspace_root("home")
+        ssh.remote_workspace_root(_remote_route())
 
 
 def test_prepare_workspace_creates_directory_over_ssh(
@@ -254,7 +263,7 @@ def test_prepare_workspace_creates_directory_over_ssh(
 
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
-    ssh.prepare_workspace("home", "/home/x/codespace2/devspace/debug")
+    ssh.prepare_workspace(_remote_route(), "/home/x/codespace2/devspace/debug")
 
     command = commands[0]
     assert command[0] == "ssh"
@@ -264,7 +273,7 @@ def test_prepare_workspace_creates_directory_over_ssh(
 
 def test_prepare_workspace_rejects_non_absolute_target() -> None:
     with pytest.raises(RuntimeError, match="non-absolute workspace path"):
-        ssh.prepare_workspace("home", "relative/path")
+        ssh.prepare_workspace(_remote_route(), "relative/path")
 
 
 def test_prepare_workspace_wraps_ssh_failure(
@@ -276,4 +285,72 @@ def test_prepare_workspace_wraps_ssh_failure(
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
     with pytest.raises(RuntimeError, match="failed to prepare workspace"):
-        ssh.prepare_workspace("home", "/home/x/codespace2/devspace/debug")
+        ssh.prepare_workspace(_remote_route(), "/home/x/codespace2/devspace/debug")
+
+
+def test_podman_machine_workspace_uses_root_route_and_container_ownership(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = tmp_path / "machine-key"
+    identity.touch()
+    route = SSHRoute(
+        host="local",
+        machine="podman-machine-default",
+        port=54321,
+        identity_path=identity,
+    )
+    commands: list[list[str]] = []
+
+    def run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
+        commands.append(command)
+        stdout = "/root/codespace2" if "printf %s" in command[-1] else ""
+        return subprocess.CompletedProcess(command, 0, stdout=stdout, stderr="")
+
+    monkeypatch.setattr(ssh.subprocess, "run", run)
+
+    root = ssh.remote_workspace_root(route)
+    ssh.prepare_workspace(route, f"{root}/devspace/debug")
+
+    assert root == "/root/codespace2"
+    for command in commands:
+        assert "-i" in command
+        assert str(identity) in command
+        assert "-p" in command
+        assert "54321" in command
+        assert "StrictHostKeyChecking=accept-new" in command
+        assert any(option.endswith("/known_hosts/machine-local") for option in command)
+        assert command[-2] == "root@127.0.0.1"
+    assert commands[1][-1].endswith("&& chown 5230:5230 -- /root/codespace2/devspace/debug")
+
+
+def test_podman_machine_projection_and_probe_use_dedicated_proxy_command(
+    ssh_layout: Path,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = tmp_path / "machine-key"
+    identity.touch()
+    route = SSHRoute(
+        host="home",
+        machine="podman-machine-default",
+        port=54321,
+        identity_path=identity,
+    )
+    commands: list[list[str]] = []
+    monkeypatch.setattr(
+        ssh.subprocess,
+        "run",
+        lambda command, **_kwargs: commands.append(command),
+    )
+    ssh.initialize(["home"])
+
+    ssh.write_host("home", [_environment()], route)
+    ssh.probe(_environment(), route)
+
+    projection = (ssh_layout / "codespace" / "hosts" / "home.conf").read_text(encoding="utf-8")
+    assert "ProxyCommand ssh" in projection
+    assert str(identity) in projection
+    assert "-p 54321" in projection
+    assert "root@127.0.0.1" in projection
+    assert any(option.startswith("ProxyCommand=ssh") for option in commands[0])

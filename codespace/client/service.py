@@ -26,7 +26,7 @@ from codespace.client.models import (
     workspace_path,
 )
 from codespace.client.operations import OperationStore
-from codespace.client.transport import PodmanTransport
+from codespace.client.transport import PodmanTransport, SSHRoute
 
 
 def describe_error(exc: BaseException) -> str:
@@ -70,6 +70,7 @@ class _Creation:
     identity: str
     token: str | None = None
     client: PodmanClient | None = None
+    route: SSHRoute | None = None
     container_created: bool = False
     deploy_key_registered: bool = False
 
@@ -85,7 +86,7 @@ class CodespaceService:
         operations: OperationStore | None = None,
     ) -> None:
         self.config = config
-        self.transport = transport or PodmanTransport(config.podman_sockets())
+        self.transport = transport or PodmanTransport(config.host_configs())
         self.operations = operations or OperationStore()
         self._tokens: dict[GitProvider, str] = {}
         self._token_lock = Lock()
@@ -186,6 +187,7 @@ class CodespaceService:
         self._stage(creation, "checking inventory", status="running")
         creation.token = self._token(project.provider)
         creation.client = self.transport.client(project.host)
+        creation.route = self.transport.ssh_route(project.host)
         inventory = runtime.list_inventory(creation.client, project.host, self.config)
         self._reject_inventory_errors(project.host, inventory)
         self._reject_duplicate_and_collision(
@@ -204,9 +206,9 @@ class CodespaceService:
         runtime.pull_image(creation.client, creation.image, creation.platform)
 
         self._stage(creation, "preparing workspace")
-        workspace_root = ssh.remote_workspace_root(project.host)
+        workspace_root = ssh.remote_workspace_root(creation.route)
         ssh.prepare_workspace(
-            project.host,
+            creation.route,
             workspace_path(workspace_root, creation.project_id, creation.instance),
         )
 
@@ -246,7 +248,7 @@ class CodespaceService:
             status="running",
         )
         self._stage(creation, "probing ssh")
-        ssh.probe(environment)
+        ssh.probe(environment, creation.route)
 
         self._stage(creation, "registering deploy key")
         provider.register(
@@ -264,7 +266,7 @@ class CodespaceService:
         self._stage(creation, "writing ssh config")
         refreshed = runtime.list_inventory(creation.client, project.host, self.config)
         self._reject_inventory_errors(project.host, refreshed)
-        ssh.write_host(project.host, refreshed.environments)
+        ssh.write_host(project.host, refreshed.environments, creation.route)
 
     def delete(self, project_id: str, instance: str, *, purge: bool) -> None:
         """Revoke provider state before deleting a container or workspace."""
@@ -272,6 +274,7 @@ class CodespaceService:
         token = self._token(project.provider)
         identity = environment_id(project.host, project_id, instance)
         client = self.transport.client(project.host)
+        route = self.transport.ssh_route(project.host)
         inventory = runtime.list_inventory(client, project.host, self.config)
         self._reject_inventory_errors(project.host, inventory)
         environment = next(
@@ -301,7 +304,7 @@ class CodespaceService:
             identity,
         )
         if purge:
-            workspace_root = ssh.remote_workspace_root(project.host)
+            workspace_root = ssh.remote_workspace_root(route)
             runtime.purge_workspace(
                 client,
                 container,
@@ -315,7 +318,7 @@ class CodespaceService:
 
         refreshed = runtime.list_inventory(client, project.host, self.config)
         self._reject_inventory_errors(project.host, refreshed)
-        ssh.write_host(project.host, refreshed.environments)
+        ssh.write_host(project.host, refreshed.environments, route)
 
     def _all_host_inventories(self) -> dict[str, _HostInventory]:
         with ThreadPoolExecutor(max_workers=len(self.config.hosts)) as executor:
@@ -325,9 +328,10 @@ class CodespaceService:
     def _host_inventory(self, host: str) -> _HostInventory:
         try:
             client = self.transport.client(host)
+            route = self.transport.ssh_route(host)
             inventory = runtime.list_inventory(client, host, self.config)
             if not inventory.errors:
-                ssh.write_host(host, inventory.environments)
+                ssh.write_host(host, inventory.environments, route)
             return _HostInventory(
                 status=HostStatus(
                     id=host,
