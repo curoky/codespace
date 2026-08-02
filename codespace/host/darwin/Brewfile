@@ -64,6 +64,7 @@ brews = [
   'python@3',
   'go',
   'node',
+  'podman',
   # 'pre-commit', 'prettier', 'eslint',
   # 'wget',
   # 'smartmontools',
