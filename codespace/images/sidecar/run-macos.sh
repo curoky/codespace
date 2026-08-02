@@ -13,7 +13,7 @@ podman run --detach \
 	--network bridge \
 	--publish 127.0.0.1:8002:8002 \
 	--restart unless-stopped \
-	--env ATUIN_DB_URI=postgresql://postgres.hwhoanatmtltozrvpfep:ztcnPjzeUz35kOKQ@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres \
+	--env ATUIN_DB_URI=postgresql://postgres.hwhoanatmtltozrvpfep:[YOUR-PASSWORD]@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres \
 	--env ATUIN_HOST=0.0.0.0 \
 	ghcr.io/curoky/devspace:codespace-sidecar
 
