@@ -329,7 +329,7 @@ def _archived_config(container: FakeContainer) -> str:
         return config_file.read().decode()
 
 
-def test_inject_credentials_writes_managed_block_when_no_config() -> None:
+def test_inject_credentials_writes_provider_config_wholesale() -> None:
     container = FakeContainer()
 
     runtime.inject_credentials(
@@ -341,11 +341,14 @@ def test_inject_credentials_writes_managed_block_when_no_config() -> None:
 
     config = _archived_config(container)
     assert "Host github.com" in config
-    assert config.count("# >>> codespace managed >>>") == 1
-    assert all(command[0] != "sh" for command, _user in container.exec_calls)
+    assert "IdentityFile ~/.ssh/repo_id_ed25519" in config
+    # The container is a fresh Codespace-exclusive resource, so the config is
+    # written wholesale with no marker block and no pre-read of existing files.
+    assert "# >>> codespace managed >>>" not in config
+    assert all(command[0] not in {"sh", "rm"} for command, _user in container.exec_calls)
 
 
-def test_inject_credentials_appends_and_preserves_user_entries() -> None:
+def test_inject_credentials_does_not_read_existing_container_config() -> None:
     container = FakeContainer()
     container.files["/home/x/.ssh/config"] = (
         b"Host my-server\n    HostName 10.0.0.1\n    User dev\n"
@@ -359,36 +362,12 @@ def test_inject_credentials_appends_and_preserves_user_entries() -> None:
     )
 
     config = _archived_config(container)
-    assert "Host my-server" in config
+    # A wholesale overwrite ignores any pre-existing container config entirely.
+    assert "my-server" not in config
     assert "Host github.com" in config
-    assert config.count("# >>> codespace managed >>>") == 1
-    assert (
-        ["rm", "-f", "/home/x/.ssh/config"],
-        "0",
-    ) in container.exec_calls
-
-
-def test_inject_credentials_replaces_stale_managed_block() -> None:
-    container = FakeContainer()
-    container.files["/home/x/.ssh/config"] = (
-        b"Host my-server\n    HostName 10.0.0.1\n\n"
-        b"# >>> codespace managed >>>\n"
-        b"Host gitlab.com\n    HostName gitlab.com\n"
-        b"# <<< codespace managed <<<\n"
+    assert all(
+        command != ["rm", "-f", "/home/x/.ssh/config"] for command, _user in container.exec_calls
     )
-
-    runtime.inject_credentials(
-        container,  # type: ignore[arg-type]
-        login_public_key="ssh-ed25519 LOGIN",
-        deploy_private_key="PRIVATE",
-        provider="github",
-    )
-
-    config = _archived_config(container)
-    assert "Host my-server" in config
-    assert "Host github.com" in config
-    assert "gitlab.com" not in config
-    assert config.count("# >>> codespace managed >>>") == 1
 
 
 def test_clone_reuses_existing_checkout_and_uses_argument_list() -> None:

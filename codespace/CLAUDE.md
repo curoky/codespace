@@ -186,7 +186,9 @@ host。
 6. 用固定参数创建带完整 label 的 host-network container；host 开启 `gpu` 时额外注入 CDI
    设备 `nvidia.com/gpu=all`。
 7. 由容器内 root `chown` 将挂载的 `/workspace` 归属到 `5230:5230`。
-8. 写入 Codespace 管理的登录与仓库 SSH 凭据，合并受管 `~/.ssh/config` block。
+8. 整体写入 Codespace 管理的登录与仓库 SSH 凭据。容器是 Codespace 独占的新建资源，
+   `authorized_keys`、`repo_id_ed25519` 和 provider `~/.ssh/config` 均整文件覆盖，不读取
+   或合并容器内既有内容。
 9. 通过生成的 route 完成真实 SSH 登录验证。
 10. 将 provider 上同名 deploy key 替换为一个可写 key。
 11. 保留现有 Git checkout，或 clone 配置的 repository。

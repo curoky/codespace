@@ -303,13 +303,14 @@ def inject_credentials(
     deploy_private_key: str | None,
     provider: GitProvider | None,
 ) -> None:
-    """Write Codespace-owned SSH credentials, merging the managed config block.
+    """Write Codespace-owned SSH credentials into the development container.
 
-    ``authorized_keys`` is a dedicated Codespace file replaced wholesale. For
-    repo projects the deploy key ``repo_id_ed25519`` and the provider ``config``
-    block are also written; blank projects have no provider so both are skipped.
-    ``config`` is merged: any prior Codespace-managed block is stripped and the
-    fresh block appended, so user-added entries survive.
+    Every file is a dedicated Codespace artifact written wholesale: the
+    container is a freshly created, Codespace-exclusive resource, so there is no
+    pre-existing user config to preserve or merge. ``authorized_keys`` is always
+    written; repo projects additionally get the deploy key ``repo_id_ed25519``
+    and a fixed provider ``config``, while blank projects have no provider and
+    skip both.
     """
     ssh_dir = f"/home/{CONTAINER_USER}/.ssh"
     _exec_checked(
@@ -324,7 +325,7 @@ def inject_credentials(
         if deploy_private_key is None:
             raise ValueError("deploy_private_key is required for a repo project")
         provider_host = git_host(provider)
-        managed_block = (
+        provider_config = (
             f"Host {provider_host}\n"
             f"    HostName {provider_host}\n"
             "    User git\n"
@@ -332,10 +333,8 @@ def inject_credentials(
             "    IdentitiesOnly yes\n"
             "    StrictHostKeyChecking accept-new\n"
         )
-        existing_config = _read_container_file(container, f"{ssh_dir}/config")
         files.append(("repo_id_ed25519", deploy_private_key, 0o600))
-        files.append(("config", _merge_ssh_config(existing_config, managed_block), 0o600))
-        _exec_checked(container, ["rm", "-f", f"{ssh_dir}/config"], user="0")
+        files.append(("config", provider_config, 0o600))
     archive = _ssh_archive(files)
     if not container.put_archive(ssh_dir, archive):
         raise RuntimeError("failed to write container SSH credentials")
@@ -349,11 +348,8 @@ def inject_credentials(
 def clone_repo(container: Container, repo: str, provider: GitProvider) -> None:
     """Clone the configured repo, preserving an existing Git checkout unchanged."""
     target = repo_target(repo)
-    exit_code, _output = container.exec_run(
-        ["test", "-d", f"{target}/.git"],
-        user=CONTAINER_USER,
-    )
-    if exit_code in (0, None):
+    present, _text = _exec(container, ["test", "-d", f"{target}/.git"], user=CONTAINER_USER)
+    if present == 0:
         return
     _exec_checked(
         container,
@@ -371,11 +367,8 @@ def repo_git_state(container: Container, repo: str) -> RepoGitState:
     """
     _ensure_running(container)
     target = repo_target(repo)
-    exit_code, _output = container.exec_run(
-        ["test", "-d", f"{target}/.git"],
-        user=CONTAINER_USER,
-    )
-    if exit_code not in (0, None):
+    present, _text = _exec(container, ["test", "-d", f"{target}/.git"], user=CONTAINER_USER)
+    if present != 0:
         return RepoGitState()
 
     detail: list[str] = []
@@ -397,12 +390,8 @@ def repo_git_state(container: Container, repo: str) -> RepoGitState:
 
 
 def _git_lines(container: Container, target: str, args: list[str]) -> list[str]:
-    exit_code, output = container.exec_run(
-        ["git", "-C", target, *args],
-        user=CONTAINER_USER,
-    )
-    text = output.decode("utf-8", "replace") if isinstance(output, bytes) else str(output)
-    if exit_code not in (0, None):
+    exit_code, text = _exec(container, ["git", "-C", target, *args], user=CONTAINER_USER)
+    if exit_code != 0:
         raise RuntimeError(f"exec git {args!r} failed ({exit_code}): {text}")
     return [line for line in text.splitlines() if line.strip()]
 
@@ -484,62 +473,24 @@ def _wait_running(container: Container) -> None:
     raise RuntimeError(f"container {_container_name(container)} did not reach running state")
 
 
-def _exec_checked(container: Container, command: list[str], *, user: str) -> None:
-    exit_code, output = container.exec_run(command, user=user)
-    if exit_code in (0, None):
-        return
-    message = output.decode("utf-8", "replace") if isinstance(output, bytes) else str(output)
-    raise RuntimeError(f"exec {command!r} failed ({exit_code}): {message}")
+def _exec(container: Container, command: list[str], *, user: str) -> tuple[int, str]:
+    """Run one container command, failing fast when Podman returns no exit code.
 
-
-_SSH_CONFIG_MARKER_BEGIN = "# >>> codespace managed >>>"
-_SSH_CONFIG_MARKER_END = "# <<< codespace managed <<<"
-
-
-def _merge_ssh_config(existing: str, managed_block: str) -> str:
-    """Return ``existing`` with the Codespace-managed block replaced or appended.
-
-    The managed block is delimited by stable markers so repeated injections stay
-    idempotent while any user-added SSH entries outside the markers are preserved.
+    A missing (``None``) exit code means the command status is unknown; treating
+    it as success would silently swallow failures, so it is rejected here. The
+    returned code is a real integer callers can branch on (e.g. ``test -d``).
     """
-    preserved = _strip_managed_block(existing).strip("\n")
-    block = (
-        f"{_SSH_CONFIG_MARKER_BEGIN}\n{managed_block.rstrip(chr(10))}\n{_SSH_CONFIG_MARKER_END}\n"
-    )
-    return f"{preserved}\n\n{block}" if preserved else block
+    exit_code, output = container.exec_run(command, user=user)
+    text = output.decode("utf-8", "replace") if isinstance(output, bytes) else str(output)
+    if exit_code is None:
+        raise RuntimeError(f"exec {command!r} returned no exit code: {text}")
+    return exit_code, text
 
 
-def _strip_managed_block(content: str) -> str:
-    lines = content.splitlines()
-    result: list[str] = []
-    skipping = False
-    for line in lines:
-        if line.strip() == _SSH_CONFIG_MARKER_BEGIN:
-            skipping = True
-            continue
-        if line.strip() == _SSH_CONFIG_MARKER_END:
-            skipping = False
-            continue
-        if not skipping:
-            result.append(line)
-    return "\n".join(result)
-
-
-def _read_container_file(container: Container, path: str) -> str:
-    """Return the container file contents, or an empty string when it is absent."""
-    try:
-        stream, _stat = container.get_archive(path)
-    except NotFound:
-        return ""
-    buffer = io.BytesIO(b"".join(stream))
-    with tarfile.open(fileobj=buffer, mode="r") as archive:
-        member = next((m for m in archive.getmembers() if m.isfile()), None)
-        if member is None:
-            return ""
-        extracted = archive.extractfile(member)
-        if extracted is None:
-            return ""
-        return extracted.read().decode("utf-8", "replace")
+def _exec_checked(container: Container, command: list[str], *, user: str) -> None:
+    exit_code, text = _exec(container, command, user=user)
+    if exit_code != 0:
+        raise RuntimeError(f"exec {command!r} failed ({exit_code}): {text}")
 
 
 def _ssh_archive(files: list[tuple[str, str, int]]) -> bytes:
