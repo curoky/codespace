@@ -189,6 +189,7 @@ def test_create_runs_all_stages_in_order(
             container,
         )[-1],
     )
+    monkeypatch.setattr(runtime, "own_workspace", lambda *args: events.append("own"))
     monkeypatch.setattr(
         runtime, "inject_credentials", lambda *args, **kwargs: events.append("inject")
     )
@@ -205,6 +206,7 @@ def test_create_runs_all_stages_in_order(
         "pull",
         "workspace",
         "create",
+        "own",
         "inject",
         "probe",
         "register",
@@ -244,6 +246,7 @@ def test_create_blank_project_skips_repo_stages(
         "create_container",
         lambda *args, **kwargs: (events.append("create"), container)[-1],
     )
+    monkeypatch.setattr(runtime, "own_workspace", lambda *args: events.append("own"))
     monkeypatch.setattr(
         runtime, "inject_credentials", lambda *args, **kwargs: events.append("inject")
     )
@@ -257,7 +260,16 @@ def test_create_blank_project_skips_repo_stages(
     assert "keygen" not in events
     assert "register" not in events
     assert "clone" not in events
-    assert events == ["login", "pull", "workspace", "create", "inject", "probe", "projection"]
+    assert events == [
+        "login",
+        "pull",
+        "workspace",
+        "create",
+        "own",
+        "inject",
+        "probe",
+        "projection",
+    ]
     assert service.operations.list() == []
 
 
@@ -333,6 +345,7 @@ def test_failure_before_register_removes_container_but_keeps_workspace(
     monkeypatch.setattr(runtime, "pull_image", lambda *args: None)
     monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
     monkeypatch.setattr(runtime, "create_container", lambda *args, **kwargs: container)
+    monkeypatch.setattr(runtime, "own_workspace", lambda *args: None)
     monkeypatch.setattr(runtime, "inject_credentials", lambda *args, **kwargs: None)
     monkeypatch.setattr(
         ssh,
@@ -400,6 +413,7 @@ def test_failure_after_register_revokes_then_removes_container(
     monkeypatch.setattr(runtime, "pull_image", lambda *args: None)
     monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
     monkeypatch.setattr(runtime, "create_container", lambda *args, **kwargs: container)
+    monkeypatch.setattr(runtime, "own_workspace", lambda *args: None)
     monkeypatch.setattr(runtime, "inject_credentials", lambda *args, **kwargs: None)
     monkeypatch.setattr(ssh, "probe", lambda environment, route: None)
     monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
@@ -438,6 +452,7 @@ def test_revoke_failure_after_register_retains_container(
     monkeypatch.setattr(runtime, "pull_image", lambda *args: None)
     monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
     monkeypatch.setattr(runtime, "create_container", lambda *args, **kwargs: container)
+    monkeypatch.setattr(runtime, "own_workspace", lambda *args: None)
     monkeypatch.setattr(runtime, "inject_credentials", lambda *args, **kwargs: None)
     monkeypatch.setattr(ssh, "probe", lambda environment, route: None)
     monkeypatch.setattr(provider, "register", lambda *args: None)

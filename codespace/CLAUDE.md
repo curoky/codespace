@@ -97,9 +97,10 @@ tokens:
 
 ## Host 契约
 
-SSH host ID 必须是本地 `~/.ssh/config` 中可访问 rootful Podman 的现有 alias。非 root
-登录必须支持免密 `sudo -n`，以便为 workspace 设置容器用户所有权。身份文件、跳板机和
-host key policy 由 system OpenSSH 管理。
+SSH host ID 必须是本地 `~/.ssh/config` 中可访问 rootful Podman 的现有 alias。workspace
+目录以普通 SSH 登录用户身份创建（`mkdir -p`），无需免密 `sudo`；容器创建后由容器内 root
+执行 `chown` 将挂载的 `/workspace` 归属到 `5230:5230`（rootful Podman 直接透传 host
+所有权）。身份文件、跳板机和 host key policy 由 system OpenSSH 管理。
 
 Podman Machine host ID 是 Codespace 内的逻辑名称；对应 machine 必须已存在、正在运行且
 使用 rootful 模式。
@@ -109,7 +110,7 @@ Podman Machine host ID 是 Codespace 内的逻辑名称；对应 machine 必须�
 - rootful Podman socket；SSH host 默认是 `/run/podman/podman.sock`，Podman Machine
   通过 `podman machine inspect` 获取 API socket 和 SSH identity；
 - SSH 登录用户的可写 home；workspace root 是绝对路径化后的 `~/codespace`；
-- 将每个 environment workspace 设为 `5230:5230` 的权限；
+- 将挂载的 `/workspace` 由容器内 root `chown` 为 `5230:5230` 的权限；
 - 为 environment SSH 保留的端口范围 `20000-29999`；
 - 一个 host 级 sidecar；
 - 满足下述契约的开发镜像。
@@ -181,20 +182,21 @@ host。
 2. 生成或复用 `~/.ssh/codespace/id_ed25519`。
 3. 在内存中生成 environment deploy key。
 4. 按 project 平台拉取镜像；未配置时使用 host 原生平台。
-5. 创建 host workspace 并设为 `5230:5230`；非 root SSH 登录使用 `sudo -n`。
+5. 以 SSH 登录用户身份创建 host workspace 目录（`mkdir -p`，无需 `sudo`）。
 6. 用固定参数创建带完整 label 的 host-network container；host 开启 `gpu` 时额外注入 CDI
    设备 `nvidia.com/gpu=all`。
-7. 写入 Codespace 管理的登录与仓库 SSH 凭据，合并受管 `~/.ssh/config` block。
-8. 通过生成的 route 完成真实 SSH 登录验证。
-9. 将 provider 上同名 deploy key 替换为一个可写 key。
-10. 保留现有 Git checkout，或 clone 配置的 repository。
-11. 原子更新 host SSH 投影。
+7. 由容器内 root `chown` 将挂载的 `/workspace` 归属到 `5230:5230`。
+8. 写入 Codespace 管理的登录与仓库 SSH 凭据，合并受管 `~/.ssh/config` block。
+9. 通过生成的 route 完成真实 SSH 登录验证。
+10. 将 provider 上同名 deploy key 替换为一个可写 key。
+11. 保留现有 Git checkout，或 clone 配置的 repository。
+12. 原子更新 host SSH 投影。
 
 注册 deploy key 前失败时，回滚 container 但保留 workspace。注册后失败时，必须先撤销
 key；撤销失败则停止并保留带 label 的 container，待 token 恢复后重试正常删除。
 
-`blank` 类型 project 跳过与仓库相关的步骤：不生成或注册 deploy key（步骤 3、9），不 clone
-repository（步骤 10），创建与删除均不需要 provider token；其余步骤与 `repo` 类型一致，
+`blank` 类型 project 跳过与仓库相关的步骤：不生成或注册 deploy key（步骤 3、10），不 clone
+repository（步骤 11），创建与删除均不需要 provider token；其余步骤与 `repo` 类型一致，
 编辑器按 `open_path`（默认挂载点 `/workspace`）打开。
 
 删除 `repo` 类型需要 provider token，并在任何远端变更前撤销所有匹配 deploy key。Key 已不

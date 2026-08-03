@@ -192,9 +192,7 @@ def test_remote_workspace_root_resolves_home_and_creates_dir(
 
     def run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
         commands.append(command)
-        return subprocess.CompletedProcess(
-            command, 0, stdout="/home/x/codespace\n", stderr=""
-        )
+        return subprocess.CompletedProcess(command, 0, stdout="/home/x/codespace\n", stderr="")
 
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
@@ -253,7 +251,7 @@ def test_remote_workspace_root_wraps_ssh_failure(
         ssh.remote_workspace_root(_remote_route())
 
 
-def test_prepare_workspace_uses_root_or_passwordless_sudo_over_ssh(
+def test_prepare_workspace_creates_directory_as_login_user_over_ssh(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     commands: list[list[str]] = []
@@ -269,12 +267,7 @@ def test_prepare_workspace_uses_root_or_passwordless_sudo_over_ssh(
     command = commands[0]
     assert command[0] == "ssh"
     assert command[-2] == "home"
-    assert command[-1] == (
-        'if [ "$(id -u)" -eq 0 ]; then '
-        "install -d -m 0755 -o 5230 -g 5230 -- /home/x/codespace/devspace/debug; "
-        "else sudo -n install -d -m 0755 -o 5230 -g 5230 -- "
-        "/home/x/codespace/devspace/debug; fi"
-    )
+    assert command[-1] == "mkdir -p -- /home/x/codespace/devspace/debug"
 
 
 def test_prepare_workspace_rejects_non_absolute_target() -> None:
@@ -294,7 +287,7 @@ def test_prepare_workspace_wraps_ssh_failure(
         ssh.prepare_workspace(_remote_route(), "/home/x/codespace/devspace/debug")
 
 
-def test_podman_machine_workspace_uses_root_route_and_container_ownership(
+def test_podman_machine_workspace_uses_root_route(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -327,9 +320,7 @@ def test_podman_machine_workspace_uses_root_route_and_container_ownership(
         assert "StrictHostKeyChecking=accept-new" in command
         assert any(option.endswith("/known_hosts/machine-local") for option in command)
         assert command[-2] == "root@127.0.0.1"
-    assert commands[1][-1] == (
-        "install -d -m 0755 -o 5230 -g 5230 -- /root/codespace/devspace/debug"
-    )
+    assert commands[1][-1] == "mkdir -p -- /root/codespace/devspace/debug"
 
 
 def test_podman_machine_projection_and_probe_use_dedicated_proxy_command(

@@ -16,7 +16,6 @@ from functools import cache
 from pathlib import Path
 
 from codespace.client.models import (
-    CONTAINER_UID,
     CONTAINER_USER,
     WORKSPACE_DIR_NAME,
     Environment,
@@ -52,22 +51,15 @@ def remote_workspace_root(route: SSHRoute) -> str:
 def prepare_workspace(route: SSHRoute, target: str) -> None:
     """Create one environment's workspace directory through its host route.
 
-    Rootful Podman exposes host ownership directly, so the directory must belong
-    to the container uid/gid. Podman Machine commands already run as root;
-    regular SSH routes use passwordless sudo when the login user is not root.
-    This deliberately avoids a short-lived Podman helper container.
+    The directory is created as the plain SSH login user without any privilege
+    escalation, so hosts do not need passwordless ``sudo``. Ownership is left as
+    the login user here; the container fixes it to the container uid/gid from the
+    inside via ``runtime.own_workspace`` (rootful Podman exposes host ownership
+    directly, so an in-container ``chown`` as root also updates the host path).
     """
     if not target.startswith("/"):
         raise RuntimeError(f"refusing to prepare non-absolute workspace path: {target!r}")
-    install_command = (
-        f"install -d -m 0755 -o {CONTAINER_UID} -g {CONTAINER_UID} -- {shlex.quote(target)}"
-    )
-    if route.is_machine:
-        remote_command = install_command
-    else:
-        remote_command = (
-            f'if [ "$(id -u)" -eq 0 ]; then {install_command}; else sudo -n {install_command}; fi'
-        )
+    remote_command = f"mkdir -p -- {shlex.quote(target)}"
     _run_host(
         route,
         remote_command,

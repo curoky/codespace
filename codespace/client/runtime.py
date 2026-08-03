@@ -280,6 +280,22 @@ def create_container(
     return container
 
 
+def own_workspace(container: Container) -> None:
+    """Set the mounted workspace ownership to the container user from inside.
+
+    The host workspace directory is created as the plain SSH login user, so it
+    starts owned by that account. Rootful Podman maps container root to host
+    root and exposes host ownership directly, so a ``chown`` run as root inside
+    the container also updates the bind-mounted host directory. This removes any
+    need for passwordless ``sudo`` on the host.
+    """
+    _exec_checked(
+        container,
+        ["chown", f"{CONTAINER_USER}:{CONTAINER_USER}", WORKSPACE_MOUNT],
+        user="0",
+    )
+
+
 def inject_credentials(
     container: Container,
     *,

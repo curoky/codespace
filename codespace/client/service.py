@@ -240,6 +240,7 @@ class CodespaceService:
         )
 
         self._stage(creation, "injecting credentials")
+        runtime.own_workspace(container)
         runtime.inject_credentials(
             container,
             login_public_key=login_public_key,
