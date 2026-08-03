@@ -125,6 +125,7 @@ class HostConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     type: Literal["ssh", "podman-machine"] = "ssh"
+    network_mode: Literal["host", "bridge"]
     podman_socket: str | None = None
     machine: NonBlankString | None = None
     gpu: bool = False
@@ -153,15 +154,11 @@ class HostConfig(BaseModel):
     def is_bridge(self) -> bool:
         """Whether this host's containers use a bridge network.
 
-        Podman Machine hosts publish ports to the VM loopback and therefore use
-        a bridge network; SSH hosts share the host network namespace.
+        Bridge hosts get their own netns, so sshd must bind all interfaces and
+        the SSH port plus any business ports are published; ``host`` hosts share
+        the host netns instead. Derived from the explicit ``network_mode`` field.
         """
-        return self.type == "podman-machine"
-
-    @property
-    def network_mode(self) -> str:
-        """Return the Podman network mode implied by the host type."""
-        return "bridge" if self.is_bridge else "host"
+        return self.network_mode == "bridge"
 
     def resolved_podman_socket(self) -> str:
         """Return the remote socket used by an SSH host."""
@@ -287,11 +284,11 @@ class Config(BaseModel):
                 raise ValueError(f"project {project_id!r} must match ^[a-z0-9][a-z0-9-]{{0,31}}$")
             if project.host not in self.hosts:
                 raise ValueError(f"project {project_id!r} references unknown host {project.host!r}")
-            if project.published_ports and self.hosts[project.host].type != "podman-machine":
+            if project.published_ports and not self.hosts[project.host].is_bridge:
                 raise ValueError(
                     f"project {project_id!r} sets 'published_ports' but host "
-                    f"{project.host!r} is not a podman-machine host; port publishing "
-                    "requires a bridge-network host"
+                    f"{project.host!r} does not use bridge network_mode; port "
+                    "publishing requires a bridge-network host"
                 )
         return self
 

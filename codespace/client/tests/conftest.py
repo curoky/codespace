@@ -25,7 +25,10 @@ def config() -> Config:
                     }
                 ],
             },
-            "hosts": {"home": None, "office": None},
+            "hosts": {
+                "home": {"network_mode": "host"},
+                "office": {"network_mode": "host"},
+            },
             "projects": {
                 "devspace": {
                     "host": "home",

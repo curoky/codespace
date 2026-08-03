@@ -5,7 +5,7 @@ s6-envdir -Lf -- /run/s6/container_environment
 fdmove -c 2 1
 redirfd -w 1 /var/log/atuin-service.log
 
-importas ATUIN_DB_URI ATUIN_DB_URI
+importas -i ATUIN_DB_URI ATUIN_DB_URI
 importas -D "127.0.0.1" ATUIN_HOST ATUIN_HOST
 
 export ATUIN_HOST "${ATUIN_HOST}"

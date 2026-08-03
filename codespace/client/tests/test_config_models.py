@@ -21,7 +21,10 @@ _CONTAINER: dict[str, object] = {
     "ulimits": [{"name": "memlock", "soft": -1, "hard": -1}],
 }
 
-# Same block rendered as YAML for the file-based tests.
+# Every host must declare network_mode explicitly; there is no default.
+_SSH_HOST: dict[str, object] = {"network_mode": "host"}
+
+# Same blocks rendered as YAML for the file-based tests.
 _CONTAINER_YAML = """
 container:
   cap_add: [NET_RAW, SYS_ADMIN]
@@ -40,7 +43,9 @@ default_image: "default:latest"
 {_CONTAINER_YAML}
 hosts:
   home:
+    network_mode: host
   office:
+    network_mode: host
 
 projects:
   devspace:
@@ -74,13 +79,41 @@ def test_config_rejects_invalid_project_platform(config: Config) -> None:
         Config.model_validate(data)
 
 
+def test_config_rejects_host_without_network_mode() -> None:
+    with pytest.raises(ValidationError, match="network_mode"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "container": _CONTAINER,
+                "hosts": {"home": None},
+                "projects": {
+                    "devspace": {"host": "home", "provider": "github", "repo": "owner/repo"}
+                },
+            }
+        )
+
+
+def test_config_rejects_invalid_network_mode() -> None:
+    with pytest.raises(ValidationError, match=r"host.*bridge"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "container": _CONTAINER,
+                "hosts": {"home": {"network_mode": "none"}},
+                "projects": {
+                    "devspace": {"host": "home", "provider": "github", "repo": "owner/repo"}
+                },
+            }
+        )
+
+
 def test_config_rejects_combined_repo_with_separate_provider() -> None:
     with pytest.raises(ValidationError, match="either combined 'repo' or separate 'provider'"):
         Config.model_validate(
             {
                 "default_image": "img",
                 "container": _CONTAINER,
-                "hosts": {"home": None},
+                "hosts": {"home": _SSH_HOST},
                 "projects": {
                     "devspace": {
                         "host": "home",
@@ -97,7 +130,7 @@ def test_config_accepts_blank_project_and_open_path() -> None:
         {
             "default_image": "img",
             "container": _CONTAINER,
-            "hosts": {"home": None},
+            "hosts": {"home": _SSH_HOST},
             "projects": {
                 "scratch": {
                     "host": "home",
@@ -126,7 +159,7 @@ def test_config_rejects_blank_project_with_repo() -> None:
             {
                 "default_image": "img",
                 "container": _CONTAINER,
-                "hosts": {"home": None},
+                "hosts": {"home": _SSH_HOST},
                 "projects": {
                     "scratch": {
                         "host": "home",
@@ -144,7 +177,7 @@ def test_config_rejects_repo_project_without_repo() -> None:
             {
                 "default_image": "img",
                 "container": _CONTAINER,
-                "hosts": {"home": None},
+                "hosts": {"home": _SSH_HOST},
                 "projects": {"devspace": {"host": "home", "type": "repo"}},
             }
         )
@@ -156,7 +189,7 @@ def test_config_rejects_relative_open_path() -> None:
             {
                 "default_image": "img",
                 "container": _CONTAINER,
-                "hosts": {"home": None},
+                "hosts": {"home": _SSH_HOST},
                 "projects": {
                     "scratch": {
                         "host": "home",
@@ -174,8 +207,8 @@ def test_config_resolves_per_host_podman_socket() -> None:
             "default_image": "img",
             "container": _CONTAINER,
             "hosts": {
-                "home": None,
-                "office": {"podman_socket": "/tmp/podmanxd.sock"},
+                "home": _SSH_HOST,
+                "office": {"network_mode": "host", "podman_socket": "/tmp/podmanxd.sock"},
             },
             "projects": {
                 "devspace": {
@@ -201,6 +234,7 @@ def test_config_accepts_explicit_podman_machine_host() -> None:
             "hosts": {
                 "local": {
                     "type": "podman-machine",
+                    "network_mode": "bridge",
                     "machine": "podman-machine-default",
                 }
             },
@@ -230,7 +264,7 @@ def test_config_ssh_host_uses_host_network() -> None:
         {
             "default_image": "img",
             "container": _CONTAINER,
-            "hosts": {"home": None},
+            "hosts": {"home": _SSH_HOST},
             "projects": {"devspace": {"host": "home", "provider": "github", "repo": "owner/repo"}},
         }
     )
@@ -239,12 +273,39 @@ def test_config_ssh_host_uses_host_network() -> None:
     assert config.host_config("home").network_mode == "host"
 
 
-def _podman_machine_project_config(published_ports: list[str]) -> dict[str, object]:
+def test_config_bridge_ssh_host_enables_port_publishing() -> None:
+    """network_mode is independent of host type: an SSH host may use bridge."""
+    config = Config.model_validate(
+        {
+            "default_image": "img",
+            "container": _CONTAINER,
+            "hosts": {"home": {"network_mode": "bridge"}},
+            "projects": {
+                "devspace": {
+                    "host": "home",
+                    "provider": "github",
+                    "repo": "owner/repo",
+                    "published_ports": ["8080"],
+                }
+            },
+        }
+    )
+
+    assert config.host_config("home").type == "ssh"
+    assert config.host_config("home").is_bridge is True
+    assert config.project_ports("devspace") == [(8080, 8080)]
+
+
+def _bridge_machine_project_config(published_ports: list[str]) -> dict[str, object]:
     return {
         "default_image": "img",
         "container": _CONTAINER,
         "hosts": {
-            "local": {"type": "podman-machine", "machine": "podman-machine-default"},
+            "local": {
+                "type": "podman-machine",
+                "network_mode": "bridge",
+                "machine": "podman-machine-default",
+            },
         },
         "projects": {
             "devspace": {
@@ -257,19 +318,19 @@ def _podman_machine_project_config(published_ports: list[str]) -> dict[str, obje
     }
 
 
-def test_config_parses_project_ports_on_podman_machine_host() -> None:
-    config = Config.model_validate(_podman_machine_project_config(["8080", "3000:5000"]))
+def test_config_parses_project_ports_on_bridge_host() -> None:
+    config = Config.model_validate(_bridge_machine_project_config(["8080", "3000:5000"]))
 
     assert config.project_ports("devspace") == [(8080, 8080), (3000, 5000)]
 
 
-def test_config_rejects_ports_on_non_podman_machine_host() -> None:
+def test_config_rejects_ports_on_host_network_host() -> None:
     with pytest.raises(ValidationError, match="requires a bridge-network host"):
         Config.model_validate(
             {
                 "default_image": "img",
                 "container": _CONTAINER,
-                "hosts": {"home": None},
+                "hosts": {"home": _SSH_HOST},
                 "projects": {
                     "devspace": {
                         "host": "home",
@@ -284,17 +345,17 @@ def test_config_rejects_ports_on_non_podman_machine_host() -> None:
 
 def test_config_rejects_malformed_port_mapping() -> None:
     with pytest.raises(ValidationError, match="not a port number"):
-        Config.model_validate(_podman_machine_project_config(["http"]))
+        Config.model_validate(_bridge_machine_project_config(["http"]))
 
 
 def test_config_rejects_out_of_range_port() -> None:
     with pytest.raises(ValidationError, match="between 1 and 65535"):
-        Config.model_validate(_podman_machine_project_config(["70000"]))
+        Config.model_validate(_bridge_machine_project_config(["70000"]))
 
 
 def test_config_rejects_duplicate_published_host_port() -> None:
     with pytest.raises(ValidationError, match="duplicate published host port"):
-        Config.model_validate(_podman_machine_project_config(["8080", "8080:9090"]))
+        Config.model_validate(_bridge_machine_project_config(["8080", "8080:9090"]))
 
 
 def test_config_project_ports_defaults_empty() -> None:
@@ -302,7 +363,7 @@ def test_config_project_ports_defaults_empty() -> None:
         {
             "default_image": "img",
             "container": _CONTAINER,
-            "hosts": {"home": None},
+            "hosts": {"home": _SSH_HOST},
             "projects": {"devspace": {"host": "home", "provider": "github", "repo": "owner/repo"}},
         }
     )
@@ -336,10 +397,11 @@ def test_config_resolved_container_applies_host_and_project_overrides() -> None:
             },
             "hosts": {
                 "home": {
+                    "network_mode": "host",
                     "container": {
                         "cap_add": ["NET_RAW", "SYS_ADMIN"],
                         "pids_limit": 100,
-                    }
+                    },
                 }
             },
             "projects": {
@@ -379,7 +441,7 @@ def test_config_rejects_reserved_container_env_key() -> None:
                     "ulimits": [],
                     "env": {"SSHD_PORT": "2222"},
                 },
-                "hosts": {"home": None},
+                "hosts": {"home": _SSH_HOST},
                 "projects": {
                     "devspace": {"host": "home", "provider": "github", "repo": "owner/repo"}
                 },
@@ -399,7 +461,7 @@ def test_config_rejects_relative_container_mount_source() -> None:
                     "ulimits": [],
                     "mounts": [{"source": "relative", "target": "/etc/x"}],
                 },
-                "hosts": {"home": None},
+                "hosts": {"home": _SSH_HOST},
                 "projects": {
                     "devspace": {"host": "home", "provider": "github", "repo": "owner/repo"}
                 },
@@ -415,6 +477,7 @@ default_image: "default:latest"
 {_CONTAINER_YAML}
 hosts:
   home:
+    network_mode: host
 
 projects:
   devspace:
@@ -438,7 +501,7 @@ def test_config_seed_tokens_defaults_to_empty() -> None:
         {
             "default_image": "img",
             "container": _CONTAINER,
-            "hosts": {"home": None},
+            "hosts": {"home": _SSH_HOST},
             "projects": {
                 "devspace": {
                     "host": "home",
@@ -459,7 +522,7 @@ def test_config_rejects_blank_token(provider: str) -> None:
             {
                 "default_image": "img",
                 "container": _CONTAINER,
-                "hosts": {"home": None},
+                "hosts": {"home": _SSH_HOST},
                 "projects": {
                     "devspace": {
                         "host": "home",
@@ -475,24 +538,25 @@ def test_config_rejects_blank_token(provider: str) -> None:
 @pytest.mark.parametrize(
     ("host_options", "message"),
     [
-        ({"podman_socket": "relative.sock"}, "absolute path"),
+        ({"network_mode": "host", "podman_socket": "relative.sock"}, "absolute path"),
         (
-            {"type": "podman-machine"},
+            {"type": "podman-machine", "network_mode": "bridge"},
             "machine is required",
         ),
         (
             {
                 "type": "podman-machine",
+                "network_mode": "bridge",
                 "machine": "podman-machine-default",
                 "podman_socket": "/run/podman/podman.sock",
             },
             "podman_socket is not valid",
         ),
         (
-            {"machine": "podman-machine-default"},
+            {"network_mode": "host", "machine": "podman-machine-default"},
             "machine is only valid",
         ),
-        ({"unknown": "x"}, "Extra inputs"),
+        ({"network_mode": "host", "unknown": "x"}, "Extra inputs"),
     ],
 )
 def test_config_rejects_invalid_host_options(
@@ -538,7 +602,7 @@ def test_config_rejects_invalid_host_options(
             {
                 "default_image": "img",
                 "container": _CONTAINER,
-                "hosts": {"home": None},
+                "hosts": {"home": _SSH_HOST},
                 "projects": {
                     "Bad": {
                         "host": "home",
@@ -553,7 +617,7 @@ def test_config_rejects_invalid_host_options(
             {
                 "default_image": "img",
                 "container": _CONTAINER,
-                "hosts": {"home": None},
+                "hosts": {"home": _SSH_HOST},
                 "projects": {
                     "project": {
                         "host": "office",

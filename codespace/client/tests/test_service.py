@@ -217,7 +217,7 @@ def test_create_runs_all_stages_in_order(
     ]
     assert pulls == [(service.config.default_image, "linux/arm64")]
     assert platforms == ["linux/arm64"]
-    assert create_kwargs[0]["bridge"] is False
+    assert create_kwargs[0]["network_mode"] == "host"
     assert create_kwargs[0]["published_ports"] == []
     assert service.operations.list() == []
 
@@ -237,7 +237,11 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
                 "ulimits": [{"name": "memlock", "soft": -1, "hard": -1}],
             },
             "hosts": {
-                "local": {"type": "podman-machine", "machine": "podman-machine-default"},
+                "local": {
+                    "type": "podman-machine",
+                    "network_mode": "bridge",
+                    "machine": "podman-machine-default",
+                },
             },
             "projects": {
                 "devspace": {
@@ -283,7 +287,7 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
 
     service.create("devspace", "debug")
 
-    assert create_kwargs[0]["bridge"] is True
+    assert create_kwargs[0]["network_mode"] == "bridge"
     assert create_kwargs[0]["published_ports"] == [(8080, 8080), (3000, 5000)]
     assert service.operations.list() == []
 

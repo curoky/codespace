@@ -200,6 +200,7 @@ def test_create_container_preserves_fixed_runtime_contract(
         workspace_root="/home/x/codespace",
         gpu=False,
         container=config.resolved_container("devspace"),
+        network_mode="host",
     )
 
     assert result is container
@@ -262,6 +263,7 @@ def test_create_container_injects_gpu_device(
         workspace_root="/home/x/codespace",
         gpu=True,
         container=config.resolved_container("devspace"),
+        network_mode="host",
     )
 
     _, kwargs = calls[0]
@@ -295,7 +297,7 @@ def test_create_container_bridge_publishes_ports_and_binds_sshd(
         workspace_root="/home/x/codespace",
         gpu=False,
         container=config.resolved_container("devspace"),
-        bridge=True,
+        network_mode="bridge",
         published_ports=[(8080, 8080), (3000, 5000)],
     )
 
@@ -337,6 +339,7 @@ def test_create_container_blank_omits_repo_and_provider_labels(
         workspace_root="/home/x/codespace",
         gpu=False,
         container=config.resolved_container("scratch"),
+        network_mode="host",
     )
 
     _, kwargs = calls[0]

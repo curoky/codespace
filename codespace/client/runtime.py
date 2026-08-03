@@ -235,18 +235,18 @@ def create_container(
     workspace_root: str,
     gpu: bool,
     container: ContainerConfig,
-    bridge: bool = False,
+    network_mode: str,
     published_ports: list[tuple[int, int]] | None = None,
 ) -> Container:
     """Create the deterministic development container.
 
-    SSH hosts keep the ``host`` network so the container shares the host netns
-    and sshd on ``127.0.0.1:<ssh_port>`` is reachable through ProxyJump. A
-    ``bridge`` container (podman-machine hosts) instead gets its own netns, so
-    sshd is told to bind ``0.0.0.0`` and the SSH port is published on the VM
-    loopback to preserve the existing ProxyCommand path unchanged. Business
-    ``published_ports`` are published on all interfaces so the Podman machine
-    forwards them to the macOS host loopback.
+    A ``host`` network container shares the host netns so sshd on
+    ``127.0.0.1:<ssh_port>`` is reachable through ProxyJump. A ``bridge``
+    container gets its own netns, so sshd is told to bind ``0.0.0.0`` and the
+    SSH port is published on the loopback to preserve the existing ProxyCommand
+    path unchanged. Business ``published_ports`` are published on all interfaces
+    so a Podman machine forwards them to the macOS host loopback. The
+    ``network_mode`` string is forwarded to ``podman run`` verbatim.
 
     All non-identity run flags (``cap_add``, ``security_opt``, ``pids_limit``,
     ``ulimits``, extra ``mounts`` and ``env``) come from ``container`` and are
@@ -254,6 +254,7 @@ def create_container(
     """
     identity = environment_id(host, project, instance)
     port = ssh_port(identity)
+    bridge = network_mode == "bridge"
     devices = [CDI_ALL_GPUS] if gpu else []
     labels = environment_labels(
         project=project,
@@ -297,7 +298,7 @@ def create_container(
         image,
         name=identity,
         detach=True,
-        network_mode="bridge" if bridge else "host",
+        network_mode=network_mode,
         cap_add=container.cap_add,
         security_opt=container.security_opt,
         pids_limit=container.pids_limit,

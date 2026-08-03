@@ -240,7 +240,7 @@ class CodespaceService:
             workspace_root=workspace_root,
             gpu=host_config.gpu,
             container=self.config.resolved_container(creation.project_id),
-            bridge=host_config.is_bridge,
+            network_mode=host_config.network_mode,
             published_ports=self.config.project_ports(creation.project_id),
         )
 

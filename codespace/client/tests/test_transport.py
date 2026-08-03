@@ -65,7 +65,7 @@ def test_transport_uses_system_ssh_command_and_private_runtime(tmp_path: Path) -
         return client
 
     transport = PodmanTransport(
-        {"home": HostConfig()},
+        {"home": HostConfig(network_mode="host")},
         runtime_parent=tmp_path,
         process_factory=process_factory,
         client_factory=client_factory,  # type: ignore[arg-type]
@@ -119,7 +119,7 @@ def test_transport_reuses_live_tunnel_and_rebuilds_dead_tunnel(tmp_path: Path) -
         return client
 
     transport = PodmanTransport(
-        {"home": HostConfig()},
+        {"home": HostConfig(network_mode="host")},
         runtime_parent=tmp_path,
         process_factory=process_factory,
         client_factory=client_factory,  # type: ignore[arg-type]
@@ -152,7 +152,7 @@ def test_transport_forwards_per_host_remote_socket(tmp_path: Path) -> None:
         return FakeClient(base_url, timeout)
 
     transport = PodmanTransport(
-        {"boe": HostConfig(podman_socket="/tmp/podmanxd.sock")},
+        {"boe": HostConfig(network_mode="host", podman_socket="/tmp/podmanxd.sock")},
         runtime_parent=tmp_path,
         process_factory=process_factory,
         client_factory=client_factory,  # type: ignore[arg-type]
@@ -194,6 +194,7 @@ def test_transport_connects_to_rootful_podman_machine_socket(tmp_path: Path) -> 
         {
             "local": HostConfig(
                 type="podman-machine",
+                network_mode="bridge",
                 machine="podman-machine-default",
             )
         },
@@ -228,6 +229,7 @@ def test_transport_rejects_rootless_podman_machine(tmp_path: Path) -> None:
         {
             "local": HostConfig(
                 type="podman-machine",
+                network_mode="bridge",
                 machine="podman-machine-default",
             )
         },
