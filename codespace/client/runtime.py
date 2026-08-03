@@ -13,8 +13,9 @@ from podman import PodmanClient
 from podman.domain.containers import Container
 from podman.errors import NotFound
 
-from codespace.client.config import Config, ProjectConfig
+from codespace.client.config import Config, ContainerConfig, ProjectConfig
 from codespace.client.models import (
+    CDI_ALL_GPUS,
     CONTAINER_USER,
     LABEL_IMAGE,
     LABEL_INSTANCE,
@@ -38,6 +39,7 @@ from codespace.client.models import (
     environment_id,
     environment_labels,
     git_host,
+    platform_label,
     repo_target,
     ssh_port,
     workspace_path,
@@ -232,6 +234,7 @@ def create_container(
     platform: ImagePlatform | None,
     workspace_root: str,
     gpu: bool,
+    container: ContainerConfig,
     bridge: bool = False,
     published_ports: list[tuple[int, int]] | None = None,
 ) -> Container:
@@ -244,10 +247,14 @@ def create_container(
     loopback to preserve the existing ProxyCommand path unchanged. Business
     ``published_ports`` are published on all interfaces so the Podman machine
     forwards them to the macOS host loopback.
+
+    All non-identity run flags (``cap_add``, ``security_opt``, ``pids_limit``,
+    ``ulimits``, extra ``mounts`` and ``env``) come from ``container`` and are
+    forwarded verbatim; the control plane keeps no implicit defaults for them.
     """
     identity = environment_id(host, project, instance)
     port = ssh_port(identity)
-    devices = ["nvidia.com/gpu=all"] if gpu else []
+    devices = [CDI_ALL_GPUS] if gpu else []
     labels = environment_labels(
         project=project,
         instance=instance,
@@ -255,10 +262,13 @@ def create_container(
         repo=repo,
         provider=provider,
         image=image,
-        platform=platform or "native",
+        platform=platform_label(platform),
         ssh_port=port,
     )
-    environment = {"SSHD_PORT": str(port)}
+    # Derived keys are written last so a stray configured env key can never
+    # silently override the control-plane values; config.ContainerConfig already
+    # rejects the reserved keys at load time, so a collision here is impossible.
+    environment = {**container.env, "SSHD_PORT": str(port)}
     ports: dict[str, object] = {}
     if bridge:
         environment["SSHD_BIND"] = "0.0.0.0"  # noqa: S104
@@ -267,38 +277,45 @@ def create_container(
         ports[f"{port}/tcp"] = ("127.0.0.1", port)
         for local, remote in published_ports or []:
             ports[f"{remote}/tcp"] = local
-    container = client.containers.run(
+    mounts: list[dict[str, object]] = [
+        {
+            "type": "bind",
+            "source": workspace_path(workspace_root, project, instance),
+            "target": WORKSPACE_MOUNT,
+        }
+    ]
+    for extra in container.mounts:
+        mounts.append(
+            {
+                "type": "bind",
+                "source": extra.source,
+                "target": extra.target,
+                "read_only": extra.read_only,
+            }
+        )
+    created = client.containers.run(
         image,
         name=identity,
         detach=True,
         network_mode="bridge" if bridge else "host",
-        cap_add=["NET_RAW", "SYS_ADMIN"],
-        security_opt=["disable", "seccomp=unconfined"],
-        pids_limit=-1,
-        ulimits=[{"Name": "memlock", "Soft": -1, "Hard": -1}],
+        cap_add=container.cap_add,
+        security_opt=container.security_opt,
+        pids_limit=container.pids_limit,
+        ulimits=[
+            {"Name": limit.name, "Soft": limit.soft, "Hard": limit.hard}
+            for limit in container.ulimits
+        ],
         environment=environment,
         platform=platform,
         devices=devices,
         ports=ports,
         labels=labels,
-        mounts=[
-            {
-                "type": "bind",
-                "source": workspace_path(workspace_root, project, instance),
-                "target": WORKSPACE_MOUNT,
-            },
-            {
-                "type": "bind",
-                "source": "/etc/krb5.conf",
-                "target": "/etc/krb5.conf",
-                "read_only": True,
-            },
-        ],
+        mounts=mounts,
     )
-    if not isinstance(container, Container):
-        raise TypeError(f"expected Container, got {type(container)}")
-    _wait_running(container)
-    return container
+    if not isinstance(created, Container):
+        raise TypeError(f"expected Container, got {type(created)}")
+    _wait_running(created)
+    return created
 
 
 def own_workspace(container: Container) -> None:

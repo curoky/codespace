@@ -230,6 +230,12 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
     config = Config.model_validate(
         {
             "default_image": "img:latest",
+            "container": {
+                "cap_add": ["NET_RAW", "SYS_ADMIN"],
+                "security_opt": ["disable", "seccomp=unconfined"],
+                "pids_limit": -1,
+                "ulimits": [{"name": "memlock", "soft": -1, "hard": -1}],
+            },
             "hosts": {
                 "local": {"type": "podman-machine", "machine": "podman-machine-default"},
             },
@@ -238,7 +244,7 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
                     "host": "local",
                     "provider": "github",
                     "repo": "curoky/devspace",
-                    "ports": ["8080", "3000:5000"],
+                    "published_ports": ["8080", "3000:5000"],
                 }
             },
         }

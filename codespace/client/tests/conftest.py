@@ -12,6 +12,19 @@ def config() -> Config:
     return Config.model_validate(
         {
             "default_image": "ghcr.io/curoky/devspace:codespace-debian13",
+            "container": {
+                "cap_add": ["NET_RAW", "SYS_ADMIN"],
+                "security_opt": ["disable", "seccomp=unconfined"],
+                "pids_limit": -1,
+                "ulimits": [{"name": "memlock", "soft": -1, "hard": -1}],
+                "mounts": [
+                    {
+                        "source": "/etc/krb5.conf",
+                        "target": "/etc/krb5.conf",
+                        "read_only": True,
+                    }
+                ],
+            },
             "hosts": {"home": None, "office": None},
             "projects": {
                 "devspace": {

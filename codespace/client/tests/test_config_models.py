@@ -13,12 +13,31 @@ from codespace.client.models import (
     workspace_path,
 )
 
+# Minimal valid global container block reused by success-path inline configs.
+_CONTAINER: dict[str, object] = {
+    "cap_add": ["NET_RAW", "SYS_ADMIN"],
+    "security_opt": ["disable", "seccomp=unconfined"],
+    "pids_limit": -1,
+    "ulimits": [{"name": "memlock", "soft": -1, "hard": -1}],
+}
+
+# Same block rendered as YAML for the file-based tests.
+_CONTAINER_YAML = """
+container:
+  cap_add: [NET_RAW, SYS_ADMIN]
+  security_opt: [disable, seccomp=unconfined]
+  pids_limit: -1
+  ulimits:
+    - {name: memlock, soft: -1, hard: -1}
+"""
+
 
 def test_load_config_reads_yaml_and_resolves_image(tmp_path: Path) -> None:
     path = tmp_path / "config.yaml"
     path.write_text(
-        """
+        f"""
 default_image: "default:latest"
+{_CONTAINER_YAML}
 hosts:
   home:
   office:
@@ -60,6 +79,7 @@ def test_config_rejects_combined_repo_with_separate_provider() -> None:
         Config.model_validate(
             {
                 "default_image": "img",
+                "container": _CONTAINER,
                 "hosts": {"home": None},
                 "projects": {
                     "devspace": {
@@ -76,6 +96,7 @@ def test_config_accepts_blank_project_and_open_path() -> None:
     config = Config.model_validate(
         {
             "default_image": "img",
+            "container": _CONTAINER,
             "hosts": {"home": None},
             "projects": {
                 "scratch": {
@@ -104,6 +125,7 @@ def test_config_rejects_blank_project_with_repo() -> None:
         Config.model_validate(
             {
                 "default_image": "img",
+                "container": _CONTAINER,
                 "hosts": {"home": None},
                 "projects": {
                     "scratch": {
@@ -121,6 +143,7 @@ def test_config_rejects_repo_project_without_repo() -> None:
         Config.model_validate(
             {
                 "default_image": "img",
+                "container": _CONTAINER,
                 "hosts": {"home": None},
                 "projects": {"devspace": {"host": "home", "type": "repo"}},
             }
@@ -132,6 +155,7 @@ def test_config_rejects_relative_open_path() -> None:
         Config.model_validate(
             {
                 "default_image": "img",
+                "container": _CONTAINER,
                 "hosts": {"home": None},
                 "projects": {
                     "scratch": {
@@ -148,6 +172,7 @@ def test_config_resolves_per_host_podman_socket() -> None:
     config = Config.model_validate(
         {
             "default_image": "img",
+            "container": _CONTAINER,
             "hosts": {
                 "home": None,
                 "office": {"podman_socket": "/tmp/podmanxd.sock"},
@@ -172,6 +197,7 @@ def test_config_accepts_explicit_podman_machine_host() -> None:
     config = Config.model_validate(
         {
             "default_image": "img",
+            "container": _CONTAINER,
             "hosts": {
                 "local": {
                     "type": "podman-machine",
@@ -191,14 +217,32 @@ def test_config_accepts_explicit_podman_machine_host() -> None:
     options = config.host_config("local")
     assert options.type == "podman-machine"
     assert options.machine == "podman-machine-default"
+    assert options.is_bridge is True
+    assert options.network_mode == "bridge"
+    assert config.host_config("local").is_bridge is True
 
     with pytest.raises(ValueError, match="discovered from machine inspect"):
         config.podman_socket("local")
 
 
-def _podman_machine_project_config(ports: list[str]) -> dict[str, object]:
+def test_config_ssh_host_uses_host_network() -> None:
+    config = Config.model_validate(
+        {
+            "default_image": "img",
+            "container": _CONTAINER,
+            "hosts": {"home": None},
+            "projects": {"devspace": {"host": "home", "provider": "github", "repo": "owner/repo"}},
+        }
+    )
+
+    assert config.host_config("home").is_bridge is False
+    assert config.host_config("home").network_mode == "host"
+
+
+def _podman_machine_project_config(published_ports: list[str]) -> dict[str, object]:
     return {
         "default_image": "img",
+        "container": _CONTAINER,
         "hosts": {
             "local": {"type": "podman-machine", "machine": "podman-machine-default"},
         },
@@ -207,7 +251,7 @@ def _podman_machine_project_config(ports: list[str]) -> dict[str, object]:
                 "host": "local",
                 "provider": "github",
                 "repo": "owner/repo",
-                "ports": ports,
+                "published_ports": published_ports,
             }
         },
     }
@@ -224,13 +268,14 @@ def test_config_rejects_ports_on_non_podman_machine_host() -> None:
         Config.model_validate(
             {
                 "default_image": "img",
+                "container": _CONTAINER,
                 "hosts": {"home": None},
                 "projects": {
                     "devspace": {
                         "host": "home",
                         "provider": "github",
                         "repo": "owner/repo",
-                        "ports": ["8080"],
+                        "published_ports": ["8080"],
                     }
                 },
             }
@@ -256,6 +301,7 @@ def test_config_project_ports_defaults_empty() -> None:
     config = Config.model_validate(
         {
             "default_image": "img",
+            "container": _CONTAINER,
             "hosts": {"home": None},
             "projects": {"devspace": {"host": "home", "provider": "github", "repo": "owner/repo"}},
         }
@@ -264,11 +310,109 @@ def test_config_project_ports_defaults_empty() -> None:
     assert config.project_ports("devspace") == []
 
 
+def test_config_resolved_container_uses_global_defaults(config: Config) -> None:
+    resolved = config.resolved_container("devspace")
+
+    assert resolved.cap_add == ["NET_RAW", "SYS_ADMIN"]
+    assert resolved.security_opt == ["disable", "seccomp=unconfined"]
+    assert resolved.pids_limit == -1
+    assert [(u.name, u.soft, u.hard) for u in resolved.ulimits] == [("memlock", -1, -1)]
+    assert [(m.source, m.target, m.read_only) for m in resolved.mounts] == [
+        ("/etc/krb5.conf", "/etc/krb5.conf", True)
+    ]
+    assert resolved.env == {}
+
+
+def test_config_resolved_container_applies_host_and_project_overrides() -> None:
+    config = Config.model_validate(
+        {
+            "default_image": "img",
+            "container": {
+                "cap_add": ["NET_RAW"],
+                "security_opt": ["disable"],
+                "pids_limit": -1,
+                "ulimits": [],
+                "env": {"BASE": "1"},
+            },
+            "hosts": {
+                "home": {
+                    "container": {
+                        "cap_add": ["NET_RAW", "SYS_ADMIN"],
+                        "pids_limit": 100,
+                    }
+                }
+            },
+            "projects": {
+                "devspace": {
+                    "host": "home",
+                    "provider": "github",
+                    "repo": "owner/repo",
+                    "container": {
+                        "pids_limit": 200,
+                        "env": {"PROJECT": "1"},
+                    },
+                }
+            },
+        }
+    )
+
+    resolved = config.resolved_container("devspace")
+
+    # host override replaces cap_add wholesale; project override wins on pids_limit
+    assert resolved.cap_add == ["NET_RAW", "SYS_ADMIN"]
+    assert resolved.pids_limit == 200
+    # env is replaced wholesale by the project layer, not deep-merged
+    assert resolved.env == {"PROJECT": "1"}
+    # security_opt untouched by any override, inherits global
+    assert resolved.security_opt == ["disable"]
+
+
+def test_config_rejects_reserved_container_env_key() -> None:
+    with pytest.raises(ValidationError, match="control-plane keys"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "container": {
+                    "cap_add": [],
+                    "security_opt": [],
+                    "pids_limit": -1,
+                    "ulimits": [],
+                    "env": {"SSHD_PORT": "2222"},
+                },
+                "hosts": {"home": None},
+                "projects": {
+                    "devspace": {"host": "home", "provider": "github", "repo": "owner/repo"}
+                },
+            }
+        )
+
+
+def test_config_rejects_relative_container_mount_source() -> None:
+    with pytest.raises(ValidationError, match="must be an absolute path"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "container": {
+                    "cap_add": [],
+                    "security_opt": [],
+                    "pids_limit": -1,
+                    "ulimits": [],
+                    "mounts": [{"source": "relative", "target": "/etc/x"}],
+                },
+                "hosts": {"home": None},
+                "projects": {
+                    "devspace": {"host": "home", "provider": "github", "repo": "owner/repo"}
+                },
+            }
+        )
+
+
 def test_config_seeds_tokens_from_tokens_table(tmp_path: Path) -> None:
     path = tmp_path / "config.yaml"
     path.write_text(
-        """
+        f"""
 default_image: "default:latest"
+{_CONTAINER_YAML}
 hosts:
   home:
 
@@ -293,6 +437,7 @@ def test_config_seed_tokens_defaults_to_empty() -> None:
     config = Config.model_validate(
         {
             "default_image": "img",
+            "container": _CONTAINER,
             "hosts": {"home": None},
             "projects": {
                 "devspace": {
@@ -313,6 +458,7 @@ def test_config_rejects_blank_token(provider: str) -> None:
         Config.model_validate(
             {
                 "default_image": "img",
+                "container": _CONTAINER,
                 "hosts": {"home": None},
                 "projects": {
                     "devspace": {
@@ -357,6 +503,7 @@ def test_config_rejects_invalid_host_options(
         Config.model_validate(
             {
                 "default_image": "img",
+                "container": _CONTAINER,
                 "hosts": {"home": host_options},
                 "projects": {
                     "devspace": {
@@ -375,6 +522,7 @@ def test_config_rejects_invalid_host_options(
         (
             {
                 "default_image": "img",
+                "container": _CONTAINER,
                 "hosts": {},
                 "projects": {
                     "project": {
@@ -389,6 +537,7 @@ def test_config_rejects_invalid_host_options(
         (
             {
                 "default_image": "img",
+                "container": _CONTAINER,
                 "hosts": {"home": None},
                 "projects": {
                     "Bad": {
@@ -403,6 +552,7 @@ def test_config_rejects_invalid_host_options(
         (
             {
                 "default_image": "img",
+                "container": _CONTAINER,
                 "hosts": {"home": None},
                 "projects": {
                     "project": {
@@ -432,7 +582,7 @@ def test_config_rejects_unknown_fields(config: Config) -> None:
         Config.model_validate(data)
 
 
-@pytest.mark.parametrize("missing", ["default_image", "hosts", "projects"])
+@pytest.mark.parametrize("missing", ["default_image", "container", "hosts", "projects"])
 def test_config_requires_top_level_fields(config: Config, missing: str) -> None:
     data = config.model_dump()
     data.pop(missing)

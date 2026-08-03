@@ -26,6 +26,9 @@ WORKSPACE_DIR_NAME = "codespace"
 PODMAN_SOCKET = "/run/podman/podman.sock"
 SSH_PORT_START = 20_000
 SSH_PORT_COUNT = 10_000
+# CDI device string injected when a host enables GPU access; equivalent to
+# ``--device nvidia.com/gpu=all`` (CLAUDE.md 配置 gpu).
+CDI_ALL_GPUS = "nvidia.com/gpu=all"
 
 RESOURCE_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}$")
 HOST_RE = re.compile(r"^[a-z0-9][a-z0-9.-]{0,62}$")
@@ -155,6 +158,17 @@ def ssh_port(identity: str) -> int:
     """Map an environment identity to its deterministic reserved SSH port."""
     digest_prefix = hashlib.sha256(identity.encode()).hexdigest()[:4]
     return SSH_PORT_START + int(digest_prefix, 16) % SSH_PORT_COUNT
+
+
+def platform_label(platform: ImagePlatform | None) -> PlatformSelection:
+    """Map an optional image platform to its label value.
+
+    A project without an explicit ``platform`` runs on the host's native
+    platform, recorded as the ``native`` label. Centralising the ``None`` ->
+    ``"native"`` mapping keeps the write side (container labels) and the derived
+    environment state from drifting to separate literals.
+    """
+    return platform if platform is not None else "native"
 
 
 def git_host(provider: GitProvider) -> str:

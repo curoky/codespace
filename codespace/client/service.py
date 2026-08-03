@@ -23,6 +23,7 @@ from codespace.client.models import (
     ProjectSummary,
     RepoGitState,
     environment_id,
+    platform_label,
     ssh_port,
     workspace_path,
 )
@@ -238,7 +239,8 @@ class CodespaceService:
             platform=creation.platform,
             workspace_root=workspace_root,
             gpu=host_config.gpu,
-            bridge=host_config.type == "podman-machine",
+            container=self.config.resolved_container(creation.project_id),
+            bridge=host_config.is_bridge,
             published_ports=self.config.project_ports(creation.project_id),
         )
 
@@ -260,7 +262,7 @@ class CodespaceService:
             repo=project.repo,
             provider=project.provider,
             image=creation.image,
-            platform=creation.platform or "native",
+            platform=platform_label(creation.platform),
             ssh_port=ssh_port(creation.identity),
             container_id=container.id,
             status="running",
