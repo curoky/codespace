@@ -91,7 +91,7 @@ class CodespaceService:
         self._tokens: dict[GitProvider, str] = {}
         self._token_lock = Lock()
         self._tokens.update(config.seed_tokens())
-        ssh.initialize(config.hosts)
+        ssh.initialize(list(self.config.hosts))
 
     def close(self) -> None:
         """Release all host tunnels."""

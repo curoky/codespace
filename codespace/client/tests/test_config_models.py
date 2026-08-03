@@ -1,4 +1,4 @@
-"""Tests for strict TOML configuration and deterministic resource identity."""
+"""Tests for strict YAML configuration and deterministic resource identity."""
 
 from pathlib import Path
 
@@ -14,24 +14,26 @@ from codespace.client.models import (
 )
 
 
-def test_load_config_reads_toml_and_resolves_image(tmp_path: Path) -> None:
-    path = tmp_path / "config.toml"
+def test_load_config_reads_yaml_and_resolves_image(tmp_path: Path) -> None:
+    path = tmp_path / "config.yaml"
     path.write_text(
         """
-default_image = "default:latest"
-hosts = ["home", "office"]
+default_image: "default:latest"
+hosts:
+  home:
+  office:
 
-[projects.devspace]
-host = "home"
-provider = "github"
-repo = "curoky/devspace"
-
-[projects.service-api]
-host = "office"
-provider = "gitlab"
-repo = "group/service-api"
-image = "custom:latest"
-platform = "linux/arm64"
+projects:
+  devspace:
+    host: "home"
+    provider: "github"
+    repo: "curoky/devspace"
+  service-api:
+    host: "office"
+    provider: "gitlab"
+    repo: "group/service-api"
+    image: "custom:latest"
+    platform: "linux/arm64"
 """,
         encoding="utf-8",
     )
@@ -56,7 +58,10 @@ def test_config_resolves_per_host_podman_socket() -> None:
     config = Config.model_validate(
         {
             "default_image": "img",
-            "hosts": ["home", "office"],
+            "hosts": {
+                "home": None,
+                "office": {"podman_socket": "/tmp/podmanxd.sock"},
+            },
             "projects": {
                 "devspace": {
                     "host": "home",
@@ -64,7 +69,6 @@ def test_config_resolves_per_host_podman_socket() -> None:
                     "repo": "owner/repo",
                 }
             },
-            "host_options": {"office": {"podman_socket": "/tmp/podmanxd.sock"}},
         }
     )
 
@@ -78,18 +82,17 @@ def test_config_accepts_explicit_podman_machine_host() -> None:
     config = Config.model_validate(
         {
             "default_image": "img",
-            "hosts": ["local"],
+            "hosts": {
+                "local": {
+                    "type": "podman-machine",
+                    "machine": "podman-machine-default",
+                }
+            },
             "projects": {
                 "devspace": {
                     "host": "local",
                     "provider": "github",
                     "repo": "owner/repo",
-                }
-            },
-            "host_options": {
-                "local": {
-                    "type": "podman-machine",
-                    "machine": "podman-machine-default",
                 }
             },
         }
@@ -104,19 +107,21 @@ def test_config_accepts_explicit_podman_machine_host() -> None:
 
 
 def test_config_seeds_tokens_from_tokens_table(tmp_path: Path) -> None:
-    path = tmp_path / "config.toml"
+    path = tmp_path / "config.yaml"
     path.write_text(
         """
-default_image = "default:latest"
-hosts = ["home"]
+default_image: "default:latest"
+hosts:
+  home:
 
-[projects.devspace]
-host = "home"
-provider = "github"
-repo = "curoky/devspace"
+projects:
+  devspace:
+    host: "home"
+    provider: "github"
+    repo: "curoky/devspace"
 
-[tokens]
-github = "ghp_example"
+tokens:
+  github: "ghp_example"
 """,
         encoding="utf-8",
     )
@@ -131,7 +136,7 @@ def test_config_seed_tokens_defaults_to_empty() -> None:
     config = Config.model_validate(
         {
             "default_image": "img",
-            "hosts": ["home"],
+            "hosts": {"home": None},
             "projects": {
                 "devspace": {
                     "host": "home",
@@ -151,7 +156,7 @@ def test_config_rejects_blank_token(provider: str) -> None:
         Config.model_validate(
             {
                 "default_image": "img",
-                "hosts": ["home"],
+                "hosts": {"home": None},
                 "projects": {
                     "devspace": {
                         "host": "home",
@@ -167,27 +172,24 @@ def test_config_rejects_blank_token(provider: str) -> None:
 @pytest.mark.parametrize(
     ("host_options", "message"),
     [
-        ({"ghost": {"podman_socket": "/tmp/x.sock"}}, "unknown host"),
-        ({"home": {"podman_socket": "relative.sock"}}, "absolute path"),
+        ({"podman_socket": "relative.sock"}, "absolute path"),
         (
-            {"home": {"type": "podman-machine"}},
+            {"type": "podman-machine"},
             "machine is required",
         ),
         (
             {
-                "home": {
-                    "type": "podman-machine",
-                    "machine": "podman-machine-default",
-                    "podman_socket": "/run/podman/podman.sock",
-                }
+                "type": "podman-machine",
+                "machine": "podman-machine-default",
+                "podman_socket": "/run/podman/podman.sock",
             },
             "podman_socket is not valid",
         ),
         (
-            {"home": {"machine": "podman-machine-default"}},
+            {"machine": "podman-machine-default"},
             "machine is only valid",
         ),
-        ({"home": {"unknown": "x"}}, "Extra inputs"),
+        ({"unknown": "x"}, "Extra inputs"),
     ],
 )
 def test_config_rejects_invalid_host_options(
@@ -198,7 +200,7 @@ def test_config_rejects_invalid_host_options(
         Config.model_validate(
             {
                 "default_image": "img",
-                "hosts": ["home"],
+                "hosts": {"home": host_options},
                 "projects": {
                     "devspace": {
                         "host": "home",
@@ -206,7 +208,6 @@ def test_config_rejects_invalid_host_options(
                         "repo": "owner/repo",
                     }
                 },
-                "host_options": host_options,
             }
         )
 
@@ -217,7 +218,7 @@ def test_config_rejects_invalid_host_options(
         (
             {
                 "default_image": "img",
-                "hosts": ["home", "home"],
+                "hosts": {},
                 "projects": {
                     "project": {
                         "host": "home",
@@ -226,12 +227,12 @@ def test_config_rejects_invalid_host_options(
                     }
                 },
             },
-            "duplicates",
+            "at least one host",
         ),
         (
             {
                 "default_image": "img",
-                "hosts": ["home"],
+                "hosts": {"home": None},
                 "projects": {
                     "Bad": {
                         "host": "home",
@@ -245,7 +246,7 @@ def test_config_rejects_invalid_host_options(
         (
             {
                 "default_image": "img",
-                "hosts": ["home"],
+                "hosts": {"home": None},
                 "projects": {
                     "project": {
                         "host": "office",

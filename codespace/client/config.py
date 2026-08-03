@@ -1,11 +1,11 @@
-"""Strict startup configuration loaded from the fixed Codespace TOML path."""
+"""Strict startup configuration loaded from the fixed Codespace YAML path."""
 
 from __future__ import annotations
 
-import tomllib
 from pathlib import Path
 from typing import Literal, Self
 
+import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from codespace.client.models import (
@@ -19,11 +19,11 @@ from codespace.client.models import (
     TokenString,
 )
 
-CONFIG_PATH = Path.home() / ".config" / "codespace" / "config.toml"
+CONFIG_PATH = Path.home() / ".config" / "codespace" / "config.yaml"
 
 
 class HostConfig(BaseModel):
-    """Connection settings keyed by host ID in ``host_options``."""
+    """Connection settings keyed by host ID in ``hosts``."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -90,33 +90,34 @@ class Config(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     default_image: NonBlankString
-    hosts: list[HostId]
+    hosts: dict[HostId, HostConfig]
     projects: dict[str, ProjectConfig]
-    host_options: dict[str, HostConfig] = Field(default_factory=dict)
     tokens: TokensConfig = Field(default_factory=TokensConfig, repr=False)
+
+    @field_validator("hosts", mode="before")
+    @classmethod
+    def _default_host_options(cls, value: object) -> object:
+        """Treat a host declared with no options (``null``) as default SSH settings."""
+        if isinstance(value, dict):
+            return {host: options if options is not None else {} for host, options in value.items()}
+        return value
 
     @field_validator("hosts")
     @classmethod
-    def _validate_hosts(cls, value: list[HostId]) -> list[HostId]:
+    def _validate_hosts(cls, value: dict[HostId, HostConfig]) -> dict[HostId, HostConfig]:
         if not value:
             raise ValueError("hosts must contain at least one host")
-        if len(value) != len(set(value)):
-            raise ValueError("hosts must not contain duplicates")
         return value
 
     @model_validator(mode="after")
     def _validate_projects(self) -> Self:
         if not self.projects:
             raise ValueError("projects must contain at least one project")
-        configured_hosts = set(self.hosts)
         for project_id, project in self.projects.items():
             if not RESOURCE_ID_RE.fullmatch(project_id):
                 raise ValueError(f"project {project_id!r} must match ^[a-z0-9][a-z0-9-]{{0,31}}$")
-            if project.host not in configured_hosts:
+            if project.host not in self.hosts:
                 raise ValueError(f"project {project_id!r} references unknown host {project.host!r}")
-        for host in self.host_options:
-            if host not in configured_hosts:
-                raise ValueError(f"host_options references unknown host {host!r}")
         return self
 
     def project_image(self, project_id: str) -> str:
@@ -124,7 +125,7 @@ class Config(BaseModel):
         return self.projects[project_id].image or self.default_image
 
     def seed_tokens(self) -> dict[GitProvider, str]:
-        """Return provider tokens declared in ``[tokens]`` to seed the store."""
+        """Return provider tokens declared in ``tokens`` to seed the store."""
         seeded: dict[GitProvider, str] = {}
         if self.tokens.github is not None:
             seeded["github"] = self.tokens.github
@@ -137,16 +138,16 @@ class Config(BaseModel):
         return self.host_config(host).resolved_podman_socket()
 
     def host_config(self, host: str) -> HostConfig:
-        """Return one host's explicit settings or the default SSH settings."""
-        return self.host_options.get(host, HostConfig())
+        """Return one host's connection settings."""
+        return self.hosts[host]
 
     def host_configs(self) -> dict[str, HostConfig]:
         """Map every configured host to its resolved connection settings."""
-        return {host: self.host_config(host) for host in self.hosts}
+        return dict(self.hosts)
 
 
 def load_config(path: Path = CONFIG_PATH) -> Config:
-    """Read and validate the fixed-format TOML configuration."""
+    """Read and validate the fixed-format YAML configuration."""
     with path.open("rb") as config_file:
-        raw = tomllib.load(config_file)
+        raw = yaml.safe_load(config_file)
     return Config.model_validate(raw)

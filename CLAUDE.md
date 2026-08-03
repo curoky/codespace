@@ -85,7 +85,7 @@ dotfiles/setup.sh host-linux "$PWD/dotfiles"
 ### 启动 Codespace
 
 先按 [`codespace/CLAUDE.md`](codespace/CLAUDE.md#配置) 创建
-`~/.config/codespace/config.toml`，再启动控制面：
+`~/.config/codespace/config.yaml`，再启动控制面：
 
 ```bash
 uv sync

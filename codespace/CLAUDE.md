@@ -12,7 +12,7 @@ socket；Podman Machine 使用 `podman machine inspect` 返回的本地 API sock
 不得增加远端 HTTP agent，也不得改用 podman-py 的 SSH adapter。
 
 FastAPI 同时提供 JSON API 和 `client/static/` 中的原生 Web 文件。GitHub、GitLab token
-只保存在进程内存中；`config.toml` 的可选 `[tokens]` 可提供启动值，Web UI 可在运行时覆盖。
+只保存在进程内存中；`config.yaml` 的可选 `tokens` 可提供启动值，Web UI 可在运行时覆盖。
 
 ## 目录
 
@@ -34,51 +34,52 @@ Node.js 构建链。
 
 ## 配置
 
-进程启动时只读取 `~/.config/codespace/config.toml`。不得增加 YAML、环境变量覆盖、热加载
+进程启动时只读取 `~/.config/codespace/config.yaml`。不得增加 TOML、环境变量覆盖、热加载
 或备用配置源。
 
-```toml
-default_image = "ghcr.io/curoky/devspace:codespace-debian13"
-hosts = ["local", "home", "office"]
+```yaml
+default_image: ghcr.io/curoky/devspace:codespace-debian13
 
-[projects.devspace]
-host = "home"
-provider = "github"
-repo = "curoky/devspace"
-description = "Devspace repository"
+hosts:
+  local:
+    type: podman-machine
+    machine: podman-machine-default
+  office:
+    podman_socket: /tmp/podmanxd.sock
+  home:
 
-[projects.service-api]
-host = "office"
-provider = "gitlab"
-repo = "group/service-api"
-image = "registry.example.com/codespace-api:latest"
-platform = "linux/arm64"
+projects:
+  devspace:
+    host: home
+    provider: github
+    repo: curoky/devspace
+    description: Devspace repository
+  service-api:
+    host: office
+    provider: gitlab
+    repo: group/service-api
+    image: registry.example.com/codespace-api:latest
+    platform: linux/arm64
 
-[host_options.office]
-podman_socket = "/tmp/podmanxd.sock"
-
-[host_options.local]
-type = "podman-machine"
-machine = "podman-machine-default"
-
-[tokens]
-github = "ghp_xxx"
-gitlab = "glpat-xxx"
+tokens:
+  github: ghp_xxx
+  gitlab: glpat-xxx
 ```
 
-顶层必填字段是 `default_image` 和 `hosts`。每个 project 必须包含 `host`、`provider`、
-`repo`，可选 `description`、`image` 和 `platform`。其他规则如下：
+顶层必填字段是 `default_image`、`hosts` 和 `projects`。`hosts` 是以 host alias 为 key 的
+映射，值为该 host 的连接设置；没有额外设置的 host 值留空即可。每个 project 必须包含
+`host`、`provider`、`repo`，可选 `description`、`image` 和 `platform`。其他规则如下：
 
 - `platform` 只能是 `linux/amd64` 或 `linux/arm64`；省略时使用 host 原生平台。
-- `host_options.<host>.type` 默认是 `ssh`，也可设为 `podman-machine`。
+- `hosts.<host>.type` 默认是 `ssh`，也可设为 `podman-machine`。
 - SSH host 可配置绝对路径 `podman_socket`，默认 `/run/podman/podman.sock`，不得配置
   `machine`。
 - Podman Machine host 必须配置 `machine`，不得配置 `podman_socket`。
-- `[tokens]` 中的 `github`、`gitlab` 是可选的非空字符串。
+- `tokens` 中的 `github`、`gitlab` 是可选的非空字符串。
 - 拒绝未知字段。
 - Project 和 instance ID 匹配 `^[a-z0-9][a-z0-9-]{0,31}$`。
 - Host alias 匹配 `^[a-z0-9][a-z0-9.-]{0,62}$`。
-- `hosts` 不得重复；project 和 `host_options` 只能引用已配置的 host。
+- `hosts` 至少包含一个 host；project 只能引用已配置的 host。
 - Project 未配置 `image` 时使用 `default_image`。
 
 ## Host 契约
@@ -189,7 +190,7 @@ Include ~/.ssh/codespace/config
 ```
 
 Codespace 完全管理 `~/.ssh/codespace/config` 和 `hosts/*.conf`。只有 inventory 成功后
-才能重写 host 投影；host 离线时保留最后版本，从 TOML 移除后才删除。
+才能重写 host 投影；host 离线时保留最后版本，从 YAML 移除后才删除。
 
 每个 environment 使用 `HostName 127.0.0.1`、确定性端口、用户 `x`、全局登录 key 和独立
 known-hosts 文件。SSH host 使用 `ProxyJump <host>`；Podman Machine 使用由 inspect 结果

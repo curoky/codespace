@@ -1,0 +1,40 @@
+default_image: ghcr.io/curoky/devspace:codespace-debian13
+
+hosts:
+  local:
+    type: podman-machine
+    machine: podman-machine-default
+
+tokens:
+  github: github_pat_
+  gitlab: glpat
+
+projects:
+  devspace:
+    host: local
+    provider: github
+    repo: curoky/devspace
+    platform: linux/arm64
+
+  standalone-binaries:
+    host: local
+    provider: github
+    repo: curoky/standalone-binaries
+    platform: linux/arm64
+
+  agent-playbook:
+    host: local
+    provider: github
+    repo: curoky/agent-playbook
+    platform: linux/arm64
+
+  obsidian:
+    host: local
+    provider: github
+    platform: linux/arm64
+
+  rss:
+    host: local
+    provider: github
+    repo: curoky/rss
+    platform: linux/arm64

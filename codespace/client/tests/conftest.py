@@ -12,7 +12,7 @@ def config() -> Config:
     return Config.model_validate(
         {
             "default_image": "ghcr.io/curoky/devspace:codespace-debian13",
-            "hosts": ["home", "office"],
+            "hosts": {"home": None, "office": None},
             "projects": {
                 "devspace": {
                     "host": "home",
