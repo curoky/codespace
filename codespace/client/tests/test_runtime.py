@@ -21,7 +21,9 @@ from codespace.client.models import (
     LABEL_REPO,
     LABEL_SSH_PORT,
     LABEL_TYPE,
+    MANDATORY_LABELS,
     environment_id,
+    environment_labels,
     ssh_port,
 )
 
@@ -135,6 +137,40 @@ def test_read_environment_rejects_invalid_platform_label(config: Config) -> None
 
     with pytest.raises(ValueError, match=r"invalid platform label 'linux/riscv64'"):
         runtime.read_environment(container, "home", config)  # type: ignore[arg-type]
+
+
+def test_written_labels_cover_every_required_label() -> None:
+    """The write side must emit every label the read side validates.
+
+    This locks the ``environment_labels`` / ``_REQUIRED_LABELS`` symmetry so a
+    future label addition cannot desynchronise the two paths (CLAUDE.md 资源标识).
+    """
+    repo_labels = environment_labels(
+        project="devspace",
+        instance="debug",
+        project_type="repo",
+        repo="curoky/devspace",
+        provider="github",
+        image="image:latest",
+        platform="native",
+        ssh_port=20001,
+    )
+    assert set(MANDATORY_LABELS) <= set(repo_labels)
+    assert set(MANDATORY_LABELS) == set(runtime._REQUIRED_LABELS)
+
+    blank_labels = environment_labels(
+        project="scratch",
+        instance="debug",
+        project_type="blank",
+        repo=None,
+        provider=None,
+        image="image:latest",
+        platform="native",
+        ssh_port=20002,
+    )
+    assert set(MANDATORY_LABELS) <= set(blank_labels)
+    assert LABEL_REPO not in blank_labels
+    assert LABEL_PROVIDER not in blank_labels
 
 
 def test_create_container_preserves_fixed_runtime_contract(

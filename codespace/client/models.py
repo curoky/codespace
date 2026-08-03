@@ -60,6 +60,53 @@ LABEL_IMAGE = "codespace.image"
 LABEL_PLATFORM = "codespace.platform"
 LABEL_SSH_PORT = "codespace.ssh-port"
 
+# Labels every managed container carries, excluding the LABEL_MANAGED marker
+# which is validated on its own. This tuple is the single source of truth shared
+# by the write side (``environment_labels``) and the read side
+# (``runtime._REQUIRED_LABELS``); the symmetry is asserted in the tests so that
+# adding or removing a label cannot silently desynchronise the two paths.
+MANDATORY_LABELS = (
+    LABEL_PROJECT,
+    LABEL_INSTANCE,
+    LABEL_TYPE,
+    LABEL_IMAGE,
+    LABEL_PLATFORM,
+    LABEL_SSH_PORT,
+)
+# Extra labels only repo projects carry; blank projects must omit them.
+REPO_LABELS = (LABEL_REPO, LABEL_PROVIDER)
+
+
+def environment_labels(
+    *,
+    project: str,
+    instance: str,
+    project_type: ProjectType,
+    repo: str | None,
+    provider: GitProvider | None,
+    image: str,
+    platform: PlatformSelection,
+    ssh_port: int,
+) -> dict[str, str]:
+    """Build the canonical label set written onto a managed container.
+
+    Single source of truth for the container label contract. ``read_environment``
+    validates the same keys, so both sides stay symmetric (CLAUDE.md 资源标识).
+    """
+    labels = {
+        LABEL_MANAGED: "true",
+        LABEL_PROJECT: project,
+        LABEL_INSTANCE: instance,
+        LABEL_TYPE: project_type,
+        LABEL_IMAGE: image,
+        LABEL_PLATFORM: platform,
+        LABEL_SSH_PORT: str(ssh_port),
+    }
+    if repo is not None and provider is not None:
+        labels[LABEL_REPO] = repo
+        labels[LABEL_PROVIDER] = provider
+    return labels
+
 
 def environment_id(host: str, project: str, instance: str) -> str:
     """Return the deterministic identity shared by all environment resources."""

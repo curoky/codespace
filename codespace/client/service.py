@@ -456,13 +456,13 @@ class CodespaceService:
     @staticmethod
     def _require_provider(project: ProjectConfig) -> GitProvider:
         if project.provider is None:
-            raise RuntimeError(f"project {project.repo!r} has no provider")
+            raise RuntimeError(f"repo project on host {project.host!r} has no provider")
         return project.provider
 
     @staticmethod
     def _require_repo(project: ProjectConfig) -> str:
         if project.repo is None:
-            raise RuntimeError("repo project is missing repo")
+            raise RuntimeError(f"repo project on host {project.host!r} has no repo")
         return project.repo
 
     def _token(self, provider_name: GitProvider) -> str:

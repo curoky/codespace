@@ -25,6 +25,7 @@ from codespace.client.models import (
     LABEL_REPO,
     LABEL_SSH_PORT,
     LABEL_TYPE,
+    MANDATORY_LABELS,
     REPO_RE,
     RESOURCE_ID_RE,
     WORKSPACE_MOUNT,
@@ -34,6 +35,7 @@ from codespace.client.models import (
     PlatformSelection,
     ProjectType,
     environment_id,
+    environment_labels,
     git_host,
     repo_target,
     ssh_port,
@@ -42,14 +44,9 @@ from codespace.client.models import (
 
 _READY_TIMEOUT = 30.0
 _READY_INTERVAL = 0.25
-_REQUIRED_LABELS = (
-    LABEL_PROJECT,
-    LABEL_INSTANCE,
-    LABEL_TYPE,
-    LABEL_IMAGE,
-    LABEL_PLATFORM,
-    LABEL_SSH_PORT,
-)
+# Read-side counterpart of ``environment_labels``; keep aligned with
+# ``MANDATORY_LABELS`` so the write and read paths cannot drift apart.
+_REQUIRED_LABELS = MANDATORY_LABELS
 
 
 @dataclass(frozen=True, slots=True)
@@ -239,18 +236,16 @@ def create_container(
     identity = environment_id(host, project, instance)
     port = ssh_port(identity)
     devices = ["nvidia.com/gpu=all"] if gpu else []
-    labels = {
-        LABEL_MANAGED: "true",
-        LABEL_PROJECT: project,
-        LABEL_INSTANCE: instance,
-        LABEL_TYPE: project_type,
-        LABEL_IMAGE: image,
-        LABEL_PLATFORM: platform or "native",
-        LABEL_SSH_PORT: str(port),
-    }
-    if repo is not None and provider is not None:
-        labels[LABEL_REPO] = repo
-        labels[LABEL_PROVIDER] = provider
+    labels = environment_labels(
+        project=project,
+        instance=instance,
+        project_type=project_type,
+        repo=repo,
+        provider=provider,
+        image=image,
+        platform=platform or "native",
+        ssh_port=port,
+    )
     container = client.containers.run(
         image,
         name=identity,
