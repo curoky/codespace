@@ -72,6 +72,78 @@ def test_config_rejects_combined_repo_with_separate_provider() -> None:
         )
 
 
+def test_config_accepts_blank_project_and_open_path() -> None:
+    config = Config.model_validate(
+        {
+            "default_image": "img",
+            "hosts": {"home": None},
+            "projects": {
+                "scratch": {
+                    "host": "home",
+                    "type": "blank",
+                },
+                "notes": {
+                    "host": "home",
+                    "type": "blank",
+                    "open_path": "/workspace/notes",
+                },
+            },
+        }
+    )
+
+    scratch = config.projects["scratch"]
+    assert scratch.type == "blank"
+    assert scratch.repo is None
+    assert scratch.provider is None
+    assert scratch.resolved_open_path() == "/workspace"
+    assert config.projects["notes"].resolved_open_path() == "/workspace/notes"
+
+
+def test_config_rejects_blank_project_with_repo() -> None:
+    with pytest.raises(ValidationError, match="blank project must not set"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "hosts": {"home": None},
+                "projects": {
+                    "scratch": {
+                        "host": "home",
+                        "type": "blank",
+                        "repo": "github:curoky/devspace",
+                    }
+                },
+            }
+        )
+
+
+def test_config_rejects_repo_project_without_repo() -> None:
+    with pytest.raises(ValidationError, match="repo project requires"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "hosts": {"home": None},
+                "projects": {"devspace": {"host": "home", "type": "repo"}},
+            }
+        )
+
+
+def test_config_rejects_relative_open_path() -> None:
+    with pytest.raises(ValidationError, match="open_path must be an absolute path"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "hosts": {"home": None},
+                "projects": {
+                    "scratch": {
+                        "host": "home",
+                        "type": "blank",
+                        "open_path": "relative/path",
+                    }
+                },
+            }
+        )
+
+
 def test_config_resolves_per_host_podman_socket() -> None:
     config = Config.model_validate(
         {

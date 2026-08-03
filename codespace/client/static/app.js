@@ -98,10 +98,13 @@ function renderProjects(dashboard) {
     const header = element("div", "project-header");
     const info = element("div", "project-title");
     const name = element("h3", "", project.id);
-    name.title = project.description ? `${project.repo} — ${project.description}` : project.repo;
+    const label = project.repo || project.open_path;
+    name.title = project.description ? `${label} — ${project.description}` : label;
     info.append(name);
     info.append(element("span", "badge", project.host));
-    info.append(element("span", "badge", project.provider));
+    if (project.provider) {
+      info.append(element("span", "badge", project.provider));
+    }
 
     const quickButton = actionButton("Quick Create", "quick", project.id);
     quickButton.classList.add("compact");

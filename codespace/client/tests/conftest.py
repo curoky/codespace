@@ -27,6 +27,11 @@ def config() -> Config:
                     "repo": "group/service-api",
                     "image": "registry.example.com/codespace-api:latest",
                 },
+                "scratch": {
+                    "host": "home",
+                    "type": "blank",
+                    "description": "Repo-less scratch space",
+                },
             },
         }
     )

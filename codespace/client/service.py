@@ -126,16 +126,21 @@ class CodespaceService:
                 ProjectSummary(
                     id=project_id,
                     host=project.host,
+                    type=project.type,
                     provider=project.provider,
                     repo=project.repo,
                     image=self.config.project_image(project_id),
                     platform=project.platform,
                     description=project.description,
+                    open_path=self.config.project_open_path(project_id),
                 )
                 for project_id, project in self.config.projects.items()
             ],
             environments=[
-                DashboardEnvironment.from_environment(environment)
+                DashboardEnvironment.from_environment(
+                    environment,
+                    self.config.project_open_path(environment.project),
+                )
                 for environment in sorted(
                     environments,
                     key=lambda item: (item.project, item.instance),
@@ -148,7 +153,8 @@ class CodespaceService:
     def queue_create(self, project_id: str, instance: str) -> Operation:
         """Validate synchronous prerequisites and create a queued operation."""
         project = self._project(project_id)
-        self._token(project.provider)
+        if project.type == "repo":
+            self._token(self._require_provider(project))
         return self.operations.create(project.host, project_id, instance)
 
     def create(self, project_id: str, instance: str) -> None:
@@ -183,9 +189,11 @@ class CodespaceService:
 
     def _create(self, creation: _Creation) -> None:
         project = creation.project
+        is_repo = project.type == "repo"
 
         self._stage(creation, "checking inventory", status="running")
-        creation.token = self._token(project.provider)
+        if is_repo:
+            creation.token = self._token(self._require_provider(project))
         creation.client = self.transport.client(project.host)
         creation.route = self.transport.ssh_route(project.host)
         inventory = runtime.list_inventory(creation.client, project.host, self.config)
@@ -199,8 +207,10 @@ class CodespaceService:
         self._stage(creation, "preparing login key")
         login_public_key = ssh.ensure_login_key()
 
-        self._stage(creation, "generating deploy key")
-        deploy_keypair = runtime.generate_deploy_keypair()
+        deploy_keypair = None
+        if is_repo:
+            self._stage(creation, "generating deploy key")
+            deploy_keypair = runtime.generate_deploy_keypair()
 
         self._stage(creation, f"pulling image {creation.image}")
         runtime.pull_image(creation.client, creation.image, creation.platform)
@@ -219,18 +229,20 @@ class CodespaceService:
             host=project.host,
             project=creation.project_id,
             instance=creation.instance,
+            project_type=project.type,
             repo=project.repo,
             provider=project.provider,
             image=creation.image,
             platform=creation.platform,
             workspace_root=workspace_root,
+            gpu=self.config.host_config(project.host).gpu,
         )
 
         self._stage(creation, "injecting credentials")
         runtime.inject_credentials(
             container,
             login_public_key=login_public_key,
-            deploy_private_key=deploy_keypair.private_key,
+            deploy_private_key=deploy_keypair.private_key if deploy_keypair else None,
             provider=project.provider,
         )
 
@@ -239,6 +251,7 @@ class CodespaceService:
             host=project.host,
             project=creation.project_id,
             instance=creation.instance,
+            type=project.type,
             repo=project.repo,
             provider=project.provider,
             image=creation.image,
@@ -250,18 +263,27 @@ class CodespaceService:
         self._stage(creation, "probing ssh")
         ssh.probe(environment, creation.route)
 
-        self._stage(creation, "registering deploy key")
-        provider.register(
-            project.provider,
-            creation.token,
-            project.repo,
-            creation.identity,
-            deploy_keypair.public_key,
-        )
-        creation.deploy_key_registered = True
+        if is_repo:
+            if deploy_keypair is None:
+                raise RuntimeError("deploy key missing for repo project")
+            if creation.token is None:
+                raise RuntimeError("provider token missing for repo project")
+            self._stage(creation, "registering deploy key")
+            provider.register(
+                self._require_provider(project),
+                creation.token,
+                self._require_repo(project),
+                creation.identity,
+                deploy_keypair.public_key,
+            )
+            creation.deploy_key_registered = True
 
-        self._stage(creation, "cloning repository")
-        runtime.clone_repo(container, project.repo, project.provider)
+            self._stage(creation, "cloning repository")
+            runtime.clone_repo(
+                container,
+                self._require_repo(project),
+                self._require_provider(project),
+            )
 
         self._stage(creation, "writing ssh config")
         refreshed = runtime.list_inventory(creation.client, project.host, self.config)
@@ -271,7 +293,8 @@ class CodespaceService:
     def delete(self, project_id: str, instance: str, *, purge: bool) -> None:
         """Revoke provider state before deleting a container or workspace."""
         project = self._project(project_id)
-        token = self._token(project.provider)
+        is_repo = project.type == "repo"
+        token = self._token(self._require_provider(project)) if is_repo else None
         identity = environment_id(project.host, project_id, instance)
         client = self.transport.client(project.host)
         route = self.transport.ssh_route(project.host)
@@ -297,12 +320,13 @@ class CodespaceService:
         if container is None:
             raise RuntimeError(f"environment {identity!r} not found")
 
-        provider.revoke(
-            project.provider,
-            token,
-            project.repo,
-            identity,
-        )
+        if is_repo and token is not None:
+            provider.revoke(
+                self._require_provider(project),
+                token,
+                self._require_repo(project),
+                identity,
+            )
         if purge:
             workspace_root = ssh.remote_workspace_root(route)
             runtime.purge_workspace(
@@ -373,9 +397,9 @@ class CodespaceService:
                 return RuntimeError("provider token is unavailable; container retained")
             try:
                 provider.revoke(
-                    creation.project.provider,
+                    self._require_provider(creation.project),
                     creation.token,
-                    creation.project.repo,
+                    self._require_repo(creation.project),
                     creation.identity,
                 )
             except Exception as exc:
@@ -428,6 +452,18 @@ class CodespaceService:
             return self.config.projects[project_id]
         except KeyError as exc:
             raise KeyError(f"unknown project: {project_id}") from exc
+
+    @staticmethod
+    def _require_provider(project: ProjectConfig) -> GitProvider:
+        if project.provider is None:
+            raise RuntimeError(f"project {project.repo!r} has no provider")
+        return project.provider
+
+    @staticmethod
+    def _require_repo(project: ProjectConfig) -> str:
+        if project.repo is None:
+            raise RuntimeError("repo project is missing repo")
+        return project.repo
 
     def _token(self, provider_name: GitProvider) -> str:
         token = self._optional_token(provider_name)

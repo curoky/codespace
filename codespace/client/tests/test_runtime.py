@@ -20,6 +20,7 @@ from codespace.client.models import (
     LABEL_PROVIDER,
     LABEL_REPO,
     LABEL_SSH_PORT,
+    LABEL_TYPE,
     environment_id,
     ssh_port,
 )
@@ -44,6 +45,7 @@ class FakeContainer:
             LABEL_MANAGED: "true",
             LABEL_PROJECT: project,
             LABEL_INSTANCE: instance,
+            LABEL_TYPE: "repo",
             LABEL_REPO: repo,
             LABEL_PROVIDER: provider,
             LABEL_IMAGE: image,
@@ -154,11 +156,13 @@ def test_create_container_preserves_fixed_runtime_contract(
         host="home",
         project="devspace",
         instance="debug",
+        project_type="repo",
         repo="curoky/devspace",
         provider="github",
         image=config.project_image("devspace"),
         platform="linux/arm64",
         workspace_root="/home/x/codespace2",
+        gpu=False,
     )
 
     assert result is container
@@ -172,6 +176,7 @@ def test_create_container_preserves_fixed_runtime_contract(
     assert kwargs["pids_limit"] == -1
     assert kwargs["ulimits"] == [{"Name": "memlock", "Soft": -1, "Hard": -1}]
     assert kwargs["environment"] == {"SSHD_PORT": str(ssh_port("codespace-home-devspace-debug"))}
+    assert kwargs["devices"] == []
     assert kwargs["labels"] == {
         **container.labels,
         LABEL_IMAGE: config.default_image,
@@ -190,6 +195,89 @@ def test_create_container_preserves_fixed_runtime_contract(
             "read_only": True,
         },
     ]
+
+
+def test_create_container_injects_gpu_device(
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    container = FakeContainer()
+    calls: list[tuple[str, dict[str, object]]] = []
+
+    def run(image: str, **kwargs: object) -> FakeContainer:
+        calls.append((image, kwargs))
+        return container
+
+    monkeypatch.setattr(runtime, "Container", FakeContainer)
+    client = SimpleNamespace(containers=SimpleNamespace(run=run))
+
+    runtime.create_container(
+        client,  # type: ignore[arg-type]
+        host="home",
+        project="devspace",
+        instance="debug",
+        project_type="repo",
+        repo="curoky/devspace",
+        provider="github",
+        image=config.project_image("devspace"),
+        platform="linux/arm64",
+        workspace_root="/home/x/codespace2",
+        gpu=True,
+    )
+
+    _, kwargs = calls[0]
+    assert kwargs["devices"] == ["nvidia.com/gpu=all"]
+
+
+def test_create_container_blank_omits_repo_and_provider_labels(
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    container = FakeContainer()
+    calls: list[tuple[str, dict[str, object]]] = []
+
+    def run(image: str, **kwargs: object) -> FakeContainer:
+        calls.append((image, kwargs))
+        return container
+
+    monkeypatch.setattr(runtime, "Container", FakeContainer)
+    client = SimpleNamespace(containers=SimpleNamespace(run=run))
+
+    runtime.create_container(
+        client,  # type: ignore[arg-type]
+        host="home",
+        project="scratch",
+        instance="debug",
+        project_type="blank",
+        repo=None,
+        provider=None,
+        image=config.default_image,
+        platform=None,
+        workspace_root="/home/x/codespace2",
+        gpu=False,
+    )
+
+    _, kwargs = calls[0]
+    labels = kwargs["labels"]
+    assert isinstance(labels, dict)
+    assert labels[LABEL_TYPE] == "blank"
+    assert LABEL_REPO not in labels
+    assert LABEL_PROVIDER not in labels
+
+
+def test_inject_credentials_blank_skips_deploy_key(config: Config) -> None:
+    container = FakeContainer()
+
+    runtime.inject_credentials(
+        container,  # type: ignore[arg-type]
+        login_public_key="ssh-ed25519 LOGIN",
+        deploy_private_key=None,
+        provider=None,
+    )
+
+    assert container.archive is not None
+    with tarfile.open(fileobj=io.BytesIO(container.archive), mode="r") as archive:
+        assert set(archive.getnames()) == {"authorized_keys"}
 
 
 def _archived_config(container: FakeContainer) -> str:

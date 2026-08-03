@@ -10,6 +10,7 @@ from urllib.parse import quote
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field
 
 type GitProvider = Literal["github", "gitlab"]
+type ProjectType = Literal["repo", "blank"]
 type OperationStatus = Literal["queued", "running", "failed"]
 type HostState = Literal["online", "offline"]
 type ImagePlatform = Literal["linux/amd64", "linux/arm64"]
@@ -52,6 +53,7 @@ type TokenString = Annotated[str, AfterValidator(_not_blank_token)]
 LABEL_MANAGED = "codespace.managed"
 LABEL_PROJECT = "codespace.project"
 LABEL_INSTANCE = "codespace.instance"
+LABEL_TYPE = "codespace.type"
 LABEL_REPO = "codespace.repo"
 LABEL_PROVIDER = "codespace.provider"
 LABEL_IMAGE = "codespace.image"
@@ -90,11 +92,20 @@ def repo_target(repo: str) -> str:
     return f"{WORKSPACE_MOUNT}/{name}"
 
 
-def trae_url(alias: str, repo: str, *, scheme: str = "trae") -> str:
+def workspace_open_path(repo: str | None) -> str:
+    """Return the default editor open path for a project.
+
+    A repo project opens its checkout directory; a blank project has no
+    checkout so the editor opens the mounted workspace root directly.
+    """
+    return repo_target(repo) if repo is not None else WORKSPACE_MOUNT
+
+
+def trae_url(alias: str, open_path: str, *, scheme: str = "trae") -> str:
     """Build a Trae Remote-SSH deep link for an environment."""
     return (
         f"{scheme}://vscode-remote/ssh-remote+{quote(alias, safe='')}"
-        f"{quote(repo_target(repo), safe='/')}?windowId=_blank&fullscreen=true"
+        f"{quote(open_path, safe='/')}?windowId=_blank&fullscreen=true"
     )
 
 
@@ -121,8 +132,9 @@ class Environment(BaseModel):
     host: str
     project: str
     instance: str
-    repo: str
-    provider: GitProvider
+    type: ProjectType
+    repo: str | None = None
+    provider: GitProvider | None = None
     image: str
     platform: PlatformSelection
     ssh_port: int
@@ -137,8 +149,9 @@ class DashboardEnvironment(BaseModel):
     host: str
     project: str
     instance: str
-    repo: str
-    provider: GitProvider
+    type: ProjectType
+    repo: str | None = None
+    provider: GitProvider | None = None
     image: str
     platform: PlatformSelection
     ssh_port: int
@@ -149,13 +162,13 @@ class DashboardEnvironment(BaseModel):
     trae_cn_url: str
 
     @classmethod
-    def from_environment(cls, environment: Environment) -> DashboardEnvironment:
+    def from_environment(cls, environment: Environment, open_path: str) -> DashboardEnvironment:
         return cls(
             **environment.model_dump(exclude={"container_id"}),
             alias=environment.id,
             ssh_command=f"ssh {environment.id}",
-            trae_url=trae_url(environment.id, environment.repo),
-            trae_cn_url=trae_url(environment.id, environment.repo, scheme="trae-cn"),
+            trae_url=trae_url(environment.id, open_path),
+            trae_cn_url=trae_url(environment.id, open_path, scheme="trae-cn"),
         )
 
 
@@ -174,11 +187,13 @@ class ProjectSummary(BaseModel):
 
     id: str
     host: str
-    provider: GitProvider
-    repo: str
+    type: ProjectType
+    repo: str | None = None
+    provider: GitProvider | None = None
     image: str
     platform: ImagePlatform | None = None
     description: str | None = None
+    open_path: str
 
 
 class Operation(BaseModel):

@@ -13,7 +13,7 @@ from podman import PodmanClient
 from podman.domain.containers import Container
 from podman.errors import NotFound
 
-from codespace.client.config import Config
+from codespace.client.config import Config, ProjectConfig
 from codespace.client.models import (
     CONTAINER_USER,
     LABEL_IMAGE,
@@ -24,6 +24,7 @@ from codespace.client.models import (
     LABEL_PROVIDER,
     LABEL_REPO,
     LABEL_SSH_PORT,
+    LABEL_TYPE,
     REPO_RE,
     RESOURCE_ID_RE,
     WORKSPACE_MOUNT,
@@ -31,6 +32,7 @@ from codespace.client.models import (
     GitProvider,
     ImagePlatform,
     PlatformSelection,
+    ProjectType,
     environment_id,
     git_host,
     repo_target,
@@ -43,8 +45,7 @@ _READY_INTERVAL = 0.25
 _REQUIRED_LABELS = (
     LABEL_PROJECT,
     LABEL_INSTANCE,
-    LABEL_REPO,
-    LABEL_PROVIDER,
+    LABEL_TYPE,
     LABEL_IMAGE,
     LABEL_PLATFORM,
     LABEL_SSH_PORT,
@@ -119,8 +120,7 @@ def read_environment(container: Container, host: str, config: Config) -> Environ
     labels = {key: _required_label(raw_labels, name, key) for key in _REQUIRED_LABELS}
     project = labels[LABEL_PROJECT]
     instance = labels[LABEL_INSTANCE]
-    repo = labels[LABEL_REPO]
-    provider = _provider(labels[LABEL_PROVIDER], name)
+    project_type = _project_type(labels[LABEL_TYPE], name)
     image = labels[LABEL_IMAGE]
     platform = _platform(labels[LABEL_PLATFORM], name)
 
@@ -128,8 +128,6 @@ def read_environment(container: Container, host: str, config: Config) -> Environ
         raise ValueError(f"container {name} has invalid project label {project!r}")
     if not RESOURCE_ID_RE.fullmatch(instance):
         raise ValueError(f"container {name} has invalid instance label {instance!r}")
-    if not REPO_RE.fullmatch(repo):
-        raise ValueError(f"container {name} has invalid repo label {repo!r}")
     if project not in config.projects:
         raise ValueError(f"container {name} references unknown project {project!r}")
     configured_project = config.projects[project]
@@ -138,8 +136,11 @@ def read_environment(container: Container, host: str, config: Config) -> Environ
             f"container {name} project {project!r} belongs to host "
             f"{configured_project.host!r}, not {host!r}"
         )
-    if configured_project.repo != repo or configured_project.provider != provider:
-        raise ValueError(f"container {name} labels do not match project {project!r}")
+    if configured_project.type != project_type:
+        raise ValueError(
+            f"container {name} type {project_type!r} does not match project {project!r}"
+        )
+    repo, provider = _read_repo_labels(raw_labels, name, project_type, configured_project)
     identity = environment_id(host, project, instance)
     if name != identity:
         raise ValueError(f"container {name} must use deterministic name {identity!r}")
@@ -158,6 +159,7 @@ def read_environment(container: Container, host: str, config: Config) -> Environ
         host=host,
         project=project,
         instance=instance,
+        type=project_type,
         repo=repo,
         provider=provider,
         image=image,
@@ -166,6 +168,26 @@ def read_environment(container: Container, host: str, config: Config) -> Environ
         container_id=container.id,
         status=container_status(container),
     )
+
+
+def _read_repo_labels(
+    raw_labels: dict[str, str],
+    name: str,
+    project_type: ProjectType,
+    configured_project: ProjectConfig,
+) -> tuple[str | None, GitProvider | None]:
+    """Validate repo/provider labels against the resolved project type."""
+    if project_type == "blank":
+        if raw_labels.get(LABEL_REPO) or raw_labels.get(LABEL_PROVIDER):
+            raise ValueError(f"container {name} is blank but has repo or provider label")
+        return None, None
+    repo = _required_label(raw_labels, name, LABEL_REPO)
+    provider = _provider(_required_label(raw_labels, name, LABEL_PROVIDER), name)
+    if not REPO_RE.fullmatch(repo):
+        raise ValueError(f"container {name} has invalid repo label {repo!r}")
+    if configured_project.repo != repo or configured_project.provider != provider:
+        raise ValueError(f"container {name} labels do not match project labels")
+    return repo, provider
 
 
 def find_container(
@@ -205,15 +227,30 @@ def create_container(
     host: str,
     project: str,
     instance: str,
-    repo: str,
-    provider: GitProvider,
+    project_type: ProjectType,
+    repo: str | None,
+    provider: GitProvider | None,
     image: str,
     platform: ImagePlatform | None,
     workspace_root: str,
+    gpu: bool,
 ) -> Container:
     """Create the deterministic host-network development container."""
     identity = environment_id(host, project, instance)
     port = ssh_port(identity)
+    devices = ["nvidia.com/gpu=all"] if gpu else []
+    labels = {
+        LABEL_MANAGED: "true",
+        LABEL_PROJECT: project,
+        LABEL_INSTANCE: instance,
+        LABEL_TYPE: project_type,
+        LABEL_IMAGE: image,
+        LABEL_PLATFORM: platform or "native",
+        LABEL_SSH_PORT: str(port),
+    }
+    if repo is not None and provider is not None:
+        labels[LABEL_REPO] = repo
+        labels[LABEL_PROVIDER] = provider
     container = client.containers.run(
         image,
         name=identity,
@@ -225,16 +262,8 @@ def create_container(
         ulimits=[{"Name": "memlock", "Soft": -1, "Hard": -1}],
         environment={"SSHD_PORT": str(port)},
         platform=platform,
-        labels={
-            LABEL_MANAGED: "true",
-            LABEL_PROJECT: project,
-            LABEL_INSTANCE: instance,
-            LABEL_REPO: repo,
-            LABEL_PROVIDER: provider,
-            LABEL_IMAGE: image,
-            LABEL_PLATFORM: platform or "native",
-            LABEL_SSH_PORT: str(port),
-        },
+        devices=devices,
+        labels=labels,
         mounts=[
             {
                 "type": "bind",
@@ -259,14 +288,16 @@ def inject_credentials(
     container: Container,
     *,
     login_public_key: str,
-    deploy_private_key: str,
-    provider: GitProvider,
+    deploy_private_key: str | None,
+    provider: GitProvider | None,
 ) -> None:
     """Write Codespace-owned SSH credentials, merging the managed config block.
 
-    ``authorized_keys`` and ``repo_id_ed25519`` are dedicated Codespace files and
-    are replaced wholesale. ``config`` is merged: any prior Codespace-managed block
-    is stripped and the fresh block appended, so user-added entries survive.
+    ``authorized_keys`` is a dedicated Codespace file replaced wholesale. For
+    repo projects the deploy key ``repo_id_ed25519`` and the provider ``config``
+    block are also written; blank projects have no provider so both are skipped.
+    ``config`` is merged: any prior Codespace-managed block is stripped and the
+    fresh block appended, so user-added entries survive.
     """
     ssh_dir = f"/home/{CONTAINER_USER}/.ssh"
     _exec_checked(
@@ -274,24 +305,26 @@ def inject_credentials(
         ["install", "-d", "-m", "0700", "-o", CONTAINER_USER, "-g", CONTAINER_USER, ssh_dir],
         user="0",
     )
-    provider_host = git_host(provider)
-    managed_block = (
-        f"Host {provider_host}\n"
-        f"    HostName {provider_host}\n"
-        "    User git\n"
-        "    IdentityFile ~/.ssh/repo_id_ed25519\n"
-        "    IdentitiesOnly yes\n"
-        "    StrictHostKeyChecking accept-new\n"
-    )
-    existing_config = _read_container_file(container, f"{ssh_dir}/config")
-    archive = _ssh_archive(
-        [
-            ("authorized_keys", login_public_key.rstrip() + "\n", 0o600),
-            ("repo_id_ed25519", deploy_private_key, 0o600),
-            ("config", _merge_ssh_config(existing_config, managed_block), 0o600),
-        ]
-    )
-    _exec_checked(container, ["rm", "-f", f"{ssh_dir}/config"], user="0")
+    files: list[tuple[str, str, int]] = [
+        ("authorized_keys", login_public_key.rstrip() + "\n", 0o600),
+    ]
+    if provider is not None:
+        if deploy_private_key is None:
+            raise ValueError("deploy_private_key is required for a repo project")
+        provider_host = git_host(provider)
+        managed_block = (
+            f"Host {provider_host}\n"
+            f"    HostName {provider_host}\n"
+            "    User git\n"
+            "    IdentityFile ~/.ssh/repo_id_ed25519\n"
+            "    IdentitiesOnly yes\n"
+            "    StrictHostKeyChecking accept-new\n"
+        )
+        existing_config = _read_container_file(container, f"{ssh_dir}/config")
+        files.append(("repo_id_ed25519", deploy_private_key, 0o600))
+        files.append(("config", _merge_ssh_config(existing_config, managed_block), 0o600))
+        _exec_checked(container, ["rm", "-f", f"{ssh_dir}/config"], user="0")
+    archive = _ssh_archive(files)
     if not container.put_archive(ssh_dir, archive):
         raise RuntimeError("failed to write container SSH credentials")
     _exec_checked(
@@ -459,6 +492,14 @@ def _provider(value: str, name: str) -> GitProvider:
     if value == "gitlab":
         return "gitlab"
     raise ValueError(f"container {name} has invalid provider label {value!r}")
+
+
+def _project_type(value: str, name: str) -> ProjectType:
+    if value == "repo":
+        return "repo"
+    if value == "blank":
+        return "blank"
+    raise ValueError(f"container {name} has invalid type label {value!r}")
 
 
 def _platform(value: str, name: str) -> PlatformSelection:

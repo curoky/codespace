@@ -42,9 +42,11 @@ class FakeService:
                 ProjectSummary(
                     id="devspace",
                     host="home",
+                    type="repo",
                     provider="github",
                     repo="curoky/devspace",
                     image=self.config.default_image,
+                    open_path="/opt/devspace",
                 )
             ],
             environments=[],

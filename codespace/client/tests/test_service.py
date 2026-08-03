@@ -45,6 +45,7 @@ def _environment(
         host=host,
         project=project,
         instance=instance,
+        type="repo",
         repo=repo,
         provider=provider_name,
         image="image:latest",
@@ -213,6 +214,57 @@ def test_create_runs_all_stages_in_order(
     assert pulls == [(service.config.default_image, "linux/arm64")]
     assert platforms == ["linux/arm64"]
     assert service.operations.list() == []
+
+
+def test_create_blank_project_skips_repo_stages(
+    service: CodespaceService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service.queue_create("scratch", "debug")
+    events: list[str] = []
+    container = SimpleNamespace(id="container-id")
+    scratch_env = _environment(project="scratch")
+    inventories = iter(
+        [
+            runtime.Inventory([], []),
+            runtime.Inventory([scratch_env], []),
+        ]
+    )
+    monkeypatch.setattr(runtime, "list_inventory", lambda *args: next(inventories))
+    monkeypatch.setattr(ssh, "ensure_login_key", lambda: events.append("login") or "LOGIN")
+    monkeypatch.setattr(
+        runtime,
+        "generate_deploy_keypair",
+        lambda: events.append("keygen") or runtime.DeployKeypair("PRIVATE", "PUBLIC"),
+    )
+    monkeypatch.setattr(runtime, "pull_image", lambda *args: events.append("pull"))
+    monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: events.append("workspace"))
+    monkeypatch.setattr(
+        runtime,
+        "create_container",
+        lambda *args, **kwargs: (events.append("create"), container)[-1],
+    )
+    monkeypatch.setattr(
+        runtime, "inject_credentials", lambda *args, **kwargs: events.append("inject")
+    )
+    monkeypatch.setattr(ssh, "probe", lambda environment, route: events.append("probe"))
+    monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
+    monkeypatch.setattr(runtime, "clone_repo", lambda *args: events.append("clone"))
+    monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
+
+    service.create("scratch", "debug")
+
+    assert "keygen" not in events
+    assert "register" not in events
+    assert "clone" not in events
+    assert events == ["login", "pull", "workspace", "create", "inject", "probe", "projection"]
+    assert service.operations.list() == []
+
+
+def test_queue_create_blank_project_needs_no_token(service: CodespaceService) -> None:
+    operation = service.queue_create("scratch", "debug")
+
+    assert operation.project == "scratch"
 
 
 def test_create_rejects_duplicate_before_generating_keys(

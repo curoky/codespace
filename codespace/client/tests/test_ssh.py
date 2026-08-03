@@ -33,6 +33,7 @@ def _environment(instance: str = "debug") -> Environment:
         host="home",
         project="devspace",
         instance=instance,
+        type="repo",
         repo="curoky/devspace",
         provider="github",
         image="image:latest",

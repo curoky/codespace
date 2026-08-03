@@ -15,8 +15,10 @@ from codespace.client.models import (
     HostId,
     ImagePlatform,
     NonBlankString,
+    ProjectType,
     RepoPath,
     TokenString,
+    workspace_open_path,
 )
 
 CONFIG_PATH = Path.home() / ".config" / "codespace" / "config.yaml"
@@ -30,6 +32,7 @@ class HostConfig(BaseModel):
     type: Literal["ssh", "podman-machine"] = "ssh"
     podman_socket: str | None = None
     machine: NonBlankString | None = None
+    gpu: bool = False
 
     @field_validator("podman_socket")
     @classmethod
@@ -77,11 +80,20 @@ class ProjectConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     host: HostId
-    provider: GitProvider
-    repo: RepoPath
+    type: ProjectType = "repo"
+    provider: GitProvider | None = None
+    repo: RepoPath | None = None
     description: NonBlankString | None = None
     image: NonBlankString | None = None
     platform: ImagePlatform | None = None
+    open_path: NonBlankString | None = None
+
+    @field_validator("open_path")
+    @classmethod
+    def _validate_open_path(cls, value: str | None) -> str | None:
+        if value is not None and not value.startswith("/"):
+            raise ValueError("open_path must be an absolute path")
+        return value
 
     @model_validator(mode="before")
     @classmethod
@@ -98,6 +110,20 @@ class ProjectConfig(BaseModel):
             provider, _, repo = data["repo"].partition(":")
             return {**data, "provider": provider, "repo": repo}
         return data
+
+    @model_validator(mode="after")
+    def _validate_type_fields(self) -> Self:
+        if self.type == "repo":
+            if self.repo is None or self.provider is None:
+                raise ValueError("repo project requires 'repo' and 'provider'")
+            return self
+        if self.repo is not None or self.provider is not None:
+            raise ValueError("blank project must not set 'repo' or 'provider'")
+        return self
+
+    def resolved_open_path(self) -> str:
+        """Return the editor open path, defaulting per project type."""
+        return self.open_path or workspace_open_path(self.repo)
 
 
 class Config(BaseModel):
@@ -139,6 +165,10 @@ class Config(BaseModel):
     def project_image(self, project_id: str) -> str:
         """Resolve a project image against the required default image."""
         return self.projects[project_id].image or self.default_image
+
+    def project_open_path(self, project_id: str) -> str:
+        """Resolve one project's editor open path, defaulting per type."""
+        return self.projects[project_id].resolved_open_path()
 
     def seed_tokens(self) -> dict[GitProvider, str]:
         """Return provider tokens declared in ``tokens`` to seed the store."""

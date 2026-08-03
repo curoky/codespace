@@ -46,6 +46,8 @@ hosts:
     machine: podman-machine-default
   office:
     podman_socket: /tmp/podmanxd.sock
+  gpu-box:
+    gpu: true
   home:
 
 projects:
@@ -58,6 +60,10 @@ projects:
     repo: gitlab:group/service-api
     image: registry.example.com/codespace-api:latest
     platform: linux/arm64
+  scratch:
+    host: home
+    type: blank
+    open_path: /workspace/notes
 
 tokens:
   github: ghp_xxx
@@ -66,14 +72,22 @@ tokens:
 
 顶层必填字段是 `default_image`、`hosts` 和 `projects`。`hosts` 是以 host alias 为 key 的
 映射，值为该 host 的连接设置；没有额外设置的 host 值留空即可。每个 project 必须包含
-`host` 和 `repo`，可选 `description`、`image` 和 `platform`。其他规则如下：
+`host`，并按 `type` 决定 repo 相关字段，可选 `description`、`image`、`platform` 和
+`open_path`。其他规则如下：
 
+- `type` 默认 `repo`，也可设为 `blank`。`repo` 类型必须配置 `repo`（因此带 `provider`）；
+  `blank` 类型禁止配置 `repo` 和 `provider`。
 - `repo` 写成 `<provider>:<owner>/<name>`，`provider` 只能是 `github` 或 `gitlab`。
+- `open_path` 可选，必须是绝对路径；未设置时 `repo` 类型默认打开仓库目录，`blank` 类型默认
+  打开挂载点 `/workspace`。编辑器 deep link 按此路径打开。
 - `platform` 只能是 `linux/amd64` 或 `linux/arm64`；省略时使用 host 原生平台。
 - `hosts.<host>.type` 默认是 `ssh`，也可设为 `podman-machine`。
 - SSH host 可配置绝对路径 `podman_socket`，默认 `/run/podman/podman.sock`，不得配置
   `machine`。
 - Podman Machine host 必须配置 `machine`，不得配置 `podman_socket`。
+- `hosts.<host>.gpu` 默认 `false`；设为 `true` 时容器创建注入 CDI 设备
+  `nvidia.com/gpu=all`（等价 `--device nvidia.com/gpu=all`），要求该 host 已安装 NVIDIA
+  驱动与 CDI 规范文件。
 - `tokens` 中的 `github`、`gitlab` 是可选的非空字符串。
 - 拒绝未知字段。
 - Project 和 instance ID 匹配 `^[a-z0-9][a-z0-9-]{0,31}$`。
@@ -133,9 +147,11 @@ Host workspace 为 `<login-home>/codespace2/<project>/<instance>`，挂载到容
 若与同一 host 上其他受管 environment 冲突，直接拒绝，不探测替代端口。
 
 Podman inventory 是唯一事实来源。Environment container 必须具有
-`codespace.managed=true`，以及完整的 project、instance、repo、provider、image、
-platform、SSH port label。未选择平台时 platform label 是 `native`。缺失、格式错误或
-引用未知 project 的 label 都是 inventory error，不得推断默认值。
+`codespace.managed=true`，以及完整的 project、instance、type、image、platform、SSH port
+label。`codespace.type` 只能是 `repo` 或 `blank`：`repo` 类型额外携带 `codespace.repo`
+和 `codespace.provider`，`blank` 类型不得携带这两个 label。未选择平台时 platform label 是
+`native`。缺失、格式错误、与配置 `type` 不符或引用未知 project 的 label 都是 inventory
+error，不得推断默认值。
 
 Sidecar 是 host 级单例，不得复用 environment 的 ID、workspace、deploy key 或 SSH 投影。
 
@@ -166,7 +182,8 @@ host。
 3. 在内存中生成 environment deploy key。
 4. 按 project 平台拉取镜像；未配置时使用 host 原生平台。
 5. 创建 host workspace 并设为 `5230:5230`；非 root SSH 登录使用 `sudo -n`。
-6. 用固定参数创建带完整 label 的 host-network container。
+6. 用固定参数创建带完整 label 的 host-network container；host 开启 `gpu` 时额外注入 CDI
+   设备 `nvidia.com/gpu=all`。
 7. 写入 Codespace 管理的登录与仓库 SSH 凭据，合并受管 `~/.ssh/config` block。
 8. 通过生成的 route 完成真实 SSH 登录验证。
 9. 将 provider 上同名 deploy key 替换为一个可写 key。
@@ -176,9 +193,14 @@ host。
 注册 deploy key 前失败时，回滚 container 但保留 workspace。注册后失败时，必须先撤销
 key；撤销失败则停止并保留带 label 的 container，待 token 恢复后重试正常删除。
 
-删除需要 provider token，并在任何远端变更前撤销所有匹配 deploy key。Key 已不存在视为
-幂等成功。`purge=false` 只删除 container；`purge=true` 先停止 container，再依据其 image
-label 清理 workspace，最后删除 container。Provider 失败时不得改变 container 和 workspace。
+`blank` 类型 project 跳过与仓库相关的步骤：不生成或注册 deploy key（步骤 3、9），不 clone
+repository（步骤 10），创建与删除均不需要 provider token；其余步骤与 `repo` 类型一致，
+编辑器按 `open_path`（默认挂载点 `/workspace`）打开。
+
+删除 `repo` 类型需要 provider token，并在任何远端变更前撤销所有匹配 deploy key。Key 已不
+存在视为幂等成功。`blank` 类型没有 provider 状态，直接进入 container 与 workspace 处理。
+`purge=false` 只删除 container；`purge=true` 先停止 container，再依据其 image label 清理
+workspace，最后删除 container。Provider 失败时不得改变 container 和 workspace。
 
 ## SSH 投影
 
