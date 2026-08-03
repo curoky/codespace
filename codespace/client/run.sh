@@ -35,12 +35,12 @@ rm -rf "${log_file}"
 {
   echo "===== $(date '+%Y-%m-%d %H:%M:%S') starting codespace ====="
   echo "repo_root=${repo_root}"
-  echo "url=http://127.0.0.1:8765"
+  echo "url=http://127.0.0.1:8003"
 } >>"${log_file}"
 
 nohup "${uv_bin}" run --directory "${repo_root}" python -m codespace.client \
   >>"${log_file}" 2>&1 </dev/null &
 
 echo "codespace control plane started"
-echo "url: http://127.0.0.1:8765"
+echo "url: http://127.0.0.1:8003"
 echo "log: ${log_file}"

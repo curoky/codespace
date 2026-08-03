@@ -18,6 +18,7 @@ from codespace.client.models import (
     ProjectType,
     RepoPath,
     TokenString,
+    parse_port_mapping,
     workspace_open_path,
 )
 
@@ -87,12 +88,27 @@ class ProjectConfig(BaseModel):
     image: NonBlankString | None = None
     platform: ImagePlatform | None = None
     open_path: NonBlankString | None = None
+    ports: list[str] | None = None
 
     @field_validator("open_path")
     @classmethod
     def _validate_open_path(cls, value: str | None) -> str | None:
         if value is not None and not value.startswith("/"):
             raise ValueError("open_path must be an absolute path")
+        return value
+
+    @field_validator("ports")
+    @classmethod
+    def _validate_ports(cls, value: list[str] | None) -> list[str] | None:
+        """Reject malformed port specs and duplicate host bindings at load time."""
+        if value is None:
+            return value
+        seen_local: set[int] = set()
+        for spec in value:
+            local, _remote = parse_port_mapping(spec)
+            if local in seen_local:
+                raise ValueError(f"duplicate published host port {local}")
+            seen_local.add(local)
         return value
 
     @model_validator(mode="before")
@@ -160,6 +176,11 @@ class Config(BaseModel):
                 raise ValueError(f"project {project_id!r} must match ^[a-z0-9][a-z0-9-]{{0,31}}$")
             if project.host not in self.hosts:
                 raise ValueError(f"project {project_id!r} references unknown host {project.host!r}")
+            if project.ports and self.hosts[project.host].type != "podman-machine":
+                raise ValueError(
+                    f"project {project_id!r} sets 'ports' but host {project.host!r} is not a "
+                    "podman-machine host; port publishing requires a bridge-network host"
+                )
         return self
 
     def project_image(self, project_id: str) -> str:
@@ -169,6 +190,13 @@ class Config(BaseModel):
     def project_open_path(self, project_id: str) -> str:
         """Resolve one project's editor open path, defaulting per type."""
         return self.projects[project_id].resolved_open_path()
+
+    def project_ports(self, project_id: str) -> list[tuple[int, int]]:
+        """Resolve one project's published ``(local, remote)`` port mappings."""
+        ports = self.projects[project_id].ports
+        if not ports:
+            return []
+        return [parse_port_mapping(spec) for spec in ports]
 
     def seed_tokens(self) -> dict[GitProvider, str]:
         """Return provider tokens declared in ``tokens`` to seed the store."""

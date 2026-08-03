@@ -31,6 +31,39 @@ RESOURCE_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}$")
 HOST_RE = re.compile(r"^[a-z0-9][a-z0-9.-]{0,62}$")
 REPO_RE = re.compile(r"^[\w.-]+(?:/[\w.-]+)+$")
 
+PORT_MIN = 1
+PORT_MAX = 65_535
+
+
+def _valid_port(value: int) -> int:
+    if not PORT_MIN <= value <= PORT_MAX:
+        raise ValueError(f"port must be between {PORT_MIN} and {PORT_MAX}, got {value}")
+    return value
+
+
+def parse_port_mapping(value: str) -> tuple[int, int]:
+    """Parse one ``local:remote`` or single-port publish spec into ``(local, remote)``.
+
+    A bare ``"8080"`` maps host 8080 to container 8080; ``"3000:5000"`` maps host
+    3000 to container 5000. Both endpoints must be valid TCP ports. Malformed
+    input raises rather than being silently ignored.
+    """
+    parts = value.split(":")
+    if len(parts) == 1:
+        remote = _parse_port_int(parts[0], value)
+        return remote, remote
+    if len(parts) == 2:
+        local = _parse_port_int(parts[0], value)
+        remote = _parse_port_int(parts[1], value)
+        return local, remote
+    raise ValueError(f"invalid port mapping {value!r}: expected 'remote' or 'local:remote'")
+
+
+def _parse_port_int(token: str, original: str) -> int:
+    if not token.isdigit():
+        raise ValueError(f"invalid port mapping {original!r}: {token!r} is not a port number")
+    return _valid_port(int(token))
+
 
 def _not_blank(value: str) -> str:
     if not value.strip():

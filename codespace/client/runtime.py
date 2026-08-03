@@ -232,8 +232,19 @@ def create_container(
     platform: ImagePlatform | None,
     workspace_root: str,
     gpu: bool,
+    bridge: bool = False,
+    published_ports: list[tuple[int, int]] | None = None,
 ) -> Container:
-    """Create the deterministic host-network development container."""
+    """Create the deterministic development container.
+
+    SSH hosts keep the ``host`` network so the container shares the host netns
+    and sshd on ``127.0.0.1:<ssh_port>`` is reachable through ProxyJump. A
+    ``bridge`` container (podman-machine hosts) instead gets its own netns, so
+    sshd is told to bind ``0.0.0.0`` and the SSH port is published on the VM
+    loopback to preserve the existing ProxyCommand path unchanged. Business
+    ``published_ports`` are published on all interfaces so the Podman machine
+    forwards them to the macOS host loopback.
+    """
     identity = environment_id(host, project, instance)
     port = ssh_port(identity)
     devices = ["nvidia.com/gpu=all"] if gpu else []
@@ -247,18 +258,28 @@ def create_container(
         platform=platform or "native",
         ssh_port=port,
     )
+    environment = {"SSHD_PORT": str(port)}
+    ports: dict[str, object] = {}
+    if bridge:
+        environment["SSHD_BIND"] = "0.0.0.0"  # noqa: S104
+        # SSH stays on the VM loopback so the ProxyCommand path is unchanged and
+        # sshd is never exposed through the machine's user-facing port forwarder.
+        ports[f"{port}/tcp"] = ("127.0.0.1", port)
+        for local, remote in published_ports or []:
+            ports[f"{remote}/tcp"] = local
     container = client.containers.run(
         image,
         name=identity,
         detach=True,
-        network_mode="host",
+        network_mode="bridge" if bridge else "host",
         cap_add=["NET_RAW", "SYS_ADMIN"],
         security_opt=["disable", "seccomp=unconfined"],
         pids_limit=-1,
         ulimits=[{"Name": "memlock", "Soft": -1, "Hard": -1}],
-        environment={"SSHD_PORT": str(port)},
+        environment=environment,
         platform=platform,
         devices=devices,
+        ports=ports,
         labels=labels,
         mounts=[
             {

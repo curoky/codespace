@@ -153,6 +153,7 @@ def test_create_runs_all_stages_in_order(
     _queue_with_token(service)
     events: list[str] = []
     platforms: list[str | None] = []
+    create_kwargs: list[dict[str, object]] = []
     container = SimpleNamespace(id="container-id")
     inventories = iter(
         [
@@ -185,6 +186,7 @@ def test_create_runs_all_stages_in_order(
         "create_container",
         lambda *args, **kwargs: (
             platforms.append(kwargs["platform"]),
+            create_kwargs.append(kwargs),
             events.append("create"),
             container,
         )[-1],
@@ -215,6 +217,68 @@ def test_create_runs_all_stages_in_order(
     ]
     assert pulls == [(service.config.default_image, "linux/arm64")]
     assert platforms == ["linux/arm64"]
+    assert create_kwargs[0]["bridge"] is False
+    assert create_kwargs[0]["published_ports"] == []
+    assert service.operations.list() == []
+
+
+def test_create_on_podman_machine_host_uses_bridge_and_ports(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(ssh, "initialize", lambda hosts: None)
+    monkeypatch.setattr(ssh, "remote_workspace_root", lambda route: "/home/x/codespace")
+    config = Config.model_validate(
+        {
+            "default_image": "img:latest",
+            "hosts": {
+                "local": {"type": "podman-machine", "machine": "podman-machine-default"},
+            },
+            "projects": {
+                "devspace": {
+                    "host": "local",
+                    "provider": "github",
+                    "repo": "curoky/devspace",
+                    "ports": ["8080", "3000:5000"],
+                }
+            },
+        }
+    )
+    service = CodespaceService(
+        config,
+        transport=FakeTransport({"local": object()}),  # type: ignore[arg-type]
+    )
+    service.set_token("github", "token")
+    service.queue_create("devspace", "debug")
+
+    create_kwargs: list[dict[str, object]] = []
+    container = SimpleNamespace(id="container-id")
+    environment = _environment(host="local")
+    inventories = iter([runtime.Inventory([], []), runtime.Inventory([environment], [])])
+    monkeypatch.setattr(runtime, "list_inventory", lambda *args: next(inventories))
+    monkeypatch.setattr(ssh, "ensure_login_key", lambda: "LOGIN")
+    monkeypatch.setattr(
+        runtime,
+        "generate_deploy_keypair",
+        lambda: runtime.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
+    )
+    monkeypatch.setattr(runtime, "pull_image", lambda *args: None)
+    monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
+    monkeypatch.setattr(
+        runtime,
+        "create_container",
+        lambda *args, **kwargs: (create_kwargs.append(kwargs), container)[-1],
+    )
+    monkeypatch.setattr(runtime, "own_workspace", lambda *args: None)
+    monkeypatch.setattr(runtime, "inject_credentials", lambda *args, **kwargs: None)
+    monkeypatch.setattr(ssh, "probe", lambda environment, route: None)
+    monkeypatch.setattr(provider, "register", lambda *args: None)
+    monkeypatch.setattr(runtime, "clone_repo", lambda *args: None)
+    monkeypatch.setattr(ssh, "write_host", lambda *args: None)
+
+    service.create("devspace", "debug")
+
+    assert create_kwargs[0]["bridge"] is True
+    assert create_kwargs[0]["published_ports"] == [(8080, 8080), (3000, 5000)]
     assert service.operations.list() == []
 
 

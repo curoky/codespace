@@ -72,8 +72,8 @@ tokens:
 
 顶层必填字段是 `default_image`、`hosts` 和 `projects`。`hosts` 是以 host alias 为 key 的
 映射，值为该 host 的连接设置；没有额外设置的 host 值留空即可。每个 project 必须包含
-`host`，并按 `type` 决定 repo 相关字段，可选 `description`、`image`、`platform` 和
-`open_path`。其他规则如下：
+`host`，并按 `type` 决定 repo 相关字段，可选 `description`、`image`、`platform`、
+`open_path` 和 `ports`。其他规则如下：
 
 - `type` 默认 `repo`，也可设为 `blank`。`repo` 类型必须配置 `repo`（因此带 `provider`）；
   `blank` 类型禁止配置 `repo` 和 `provider`。
@@ -81,6 +81,10 @@ tokens:
 - `open_path` 可选，必须是绝对路径；未设置时 `repo` 类型默认打开仓库目录，`blank` 类型默认
   打开挂载点 `/workspace`。编辑器 deep link 按此路径打开。
 - `platform` 只能是 `linux/amd64` 或 `linux/arm64`；省略时使用 host 原生平台。
+- `ports` 可选，是要发布到宿主机的端口列表，每项写成 `"<remote>"`（local=remote）或
+  `"<local>:<remote>"`，端口取值 1-65535，同一 project 内 local 端口不得重复。只有
+  `podman-machine` host 的 project 可配置 `ports`（这类 host 的容器用 bridge 网络），其他
+  host 配置 `ports` 直接拒绝。改动 `ports` 需重建实例才生效。
 - `hosts.<host>.type` 默认是 `ssh`，也可设为 `podman-machine`。
 - SSH host 可配置绝对路径 `podman_socket`，默认 `/run/podman/podman.sock`，不得配置
   `machine`。
@@ -122,9 +126,14 @@ Codespace 只选择平台，不安装或管理模拟器。
 
 - 用户 `x`，uid/gid 为 `5230:5230`；
 - 可写的 `/workspace`；
-- host network，且 sshd 只绑定 `127.0.0.1`；
+- 默认 host network，sshd 监听地址由 `SSHD_BIND` 环境变量控制，默认 `127.0.0.1`；
 - Podman security option `disable` 和 `seccomp=unconfined`；
 - 现有 s6 entrypoint、sshd、onceinit、Atuin client、Git 和 OpenSSH client。
+
+SSH host 的容器使用 host network，sshd 绑定 `127.0.0.1`。`podman-machine` host 的容器改用
+bridge network：sshd 注入 `SSHD_BIND=0.0.0.0`，SSH 端口发布到 VM loopback
+`127.0.0.1:<ssh_port>` 以复用现有 ProxyCommand 路径，project `ports` 声明的业务端口发布后经
+gvproxy 转发到 macOS `localhost:<local>`。
 
 Sidecar 镜像和网络细节见
 [`images/sidecar/CLAUDE.md`](images/sidecar/CLAUDE.md)。它必须独立于 project 和
@@ -183,8 +192,10 @@ host。
 3. 在内存中生成 environment deploy key。
 4. 按 project 平台拉取镜像；未配置时使用 host 原生平台。
 5. 以 SSH 登录用户身份创建 host workspace 目录（`mkdir -p`，无需 `sudo`）。
-6. 用固定参数创建带完整 label 的 host-network container；host 开启 `gpu` 时额外注入 CDI
-   设备 `nvidia.com/gpu=all`。
+6. 用固定参数创建带完整 label 的 container；host 开启 `gpu` 时额外注入 CDI
+   设备 `nvidia.com/gpu=all`。SSH host 用 host network；`podman-machine` host 用 bridge
+   network，注入 `SSHD_BIND=0.0.0.0`，发布 SSH 端口到 VM loopback，并发布 project `ports`
+   声明的业务端口。
 7. 由容器内 root `chown` 将挂载的 `/workspace` 归属到 `5230:5230`。
 8. 整体写入 Codespace 管理的登录与仓库 SSH 凭据。容器是 Codespace 独占的新建资源，
    `authorized_keys`、`repo_id_ed25519` 和 provider `~/.ssh/config` 均整文件覆盖，不读取

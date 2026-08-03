@@ -196,6 +196,74 @@ def test_config_accepts_explicit_podman_machine_host() -> None:
         config.podman_socket("local")
 
 
+def _podman_machine_project_config(ports: list[str]) -> dict[str, object]:
+    return {
+        "default_image": "img",
+        "hosts": {
+            "local": {"type": "podman-machine", "machine": "podman-machine-default"},
+        },
+        "projects": {
+            "devspace": {
+                "host": "local",
+                "provider": "github",
+                "repo": "owner/repo",
+                "ports": ports,
+            }
+        },
+    }
+
+
+def test_config_parses_project_ports_on_podman_machine_host() -> None:
+    config = Config.model_validate(_podman_machine_project_config(["8080", "3000:5000"]))
+
+    assert config.project_ports("devspace") == [(8080, 8080), (3000, 5000)]
+
+
+def test_config_rejects_ports_on_non_podman_machine_host() -> None:
+    with pytest.raises(ValidationError, match="requires a bridge-network host"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "hosts": {"home": None},
+                "projects": {
+                    "devspace": {
+                        "host": "home",
+                        "provider": "github",
+                        "repo": "owner/repo",
+                        "ports": ["8080"],
+                    }
+                },
+            }
+        )
+
+
+def test_config_rejects_malformed_port_mapping() -> None:
+    with pytest.raises(ValidationError, match="not a port number"):
+        Config.model_validate(_podman_machine_project_config(["http"]))
+
+
+def test_config_rejects_out_of_range_port() -> None:
+    with pytest.raises(ValidationError, match="between 1 and 65535"):
+        Config.model_validate(_podman_machine_project_config(["70000"]))
+
+
+def test_config_rejects_duplicate_published_host_port() -> None:
+    with pytest.raises(ValidationError, match="duplicate published host port"):
+        Config.model_validate(_podman_machine_project_config(["8080", "8080:9090"]))
+
+
+def test_config_project_ports_defaults_empty() -> None:
+    config = Config.model_validate(
+        {
+            "default_image": "img",
+            "hosts": {"home": None},
+            "projects": {"devspace": {"host": "home", "provider": "github", "repo": "owner/repo"}},
+        }
+    )
+
+    assert config.project_ports("devspace") == []
+
+
 def test_config_seeds_tokens_from_tokens_table(tmp_path: Path) -> None:
     path = tmp_path / "config.yaml"
     path.write_text(

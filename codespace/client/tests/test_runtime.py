@@ -212,6 +212,7 @@ def test_create_container_preserves_fixed_runtime_contract(
     assert kwargs["pids_limit"] == -1
     assert kwargs["ulimits"] == [{"Name": "memlock", "Soft": -1, "Hard": -1}]
     assert kwargs["environment"] == {"SSHD_PORT": str(ssh_port("codespace-home-devspace-debug"))}
+    assert kwargs["ports"] == {}
     assert kwargs["devices"] == []
     assert kwargs["labels"] == {
         **container.labels,
@@ -263,6 +264,47 @@ def test_create_container_injects_gpu_device(
 
     _, kwargs = calls[0]
     assert kwargs["devices"] == ["nvidia.com/gpu=all"]
+
+
+def test_create_container_bridge_publishes_ports_and_binds_sshd(
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    container = FakeContainer()
+    calls: list[tuple[str, dict[str, object]]] = []
+
+    def run(image: str, **kwargs: object) -> FakeContainer:
+        calls.append((image, kwargs))
+        return container
+
+    monkeypatch.setattr(runtime, "Container", FakeContainer)
+    client = SimpleNamespace(containers=SimpleNamespace(run=run))
+
+    runtime.create_container(
+        client,  # type: ignore[arg-type]
+        host="local",
+        project="devspace",
+        instance="debug",
+        project_type="repo",
+        repo="curoky/devspace",
+        provider="github",
+        image=config.default_image,
+        platform=None,
+        workspace_root="/home/x/codespace",
+        gpu=False,
+        bridge=True,
+        published_ports=[(8080, 8080), (3000, 5000)],
+    )
+
+    _, kwargs = calls[0]
+    port = ssh_port("codespace-local-devspace-debug")
+    assert kwargs["network_mode"] == "bridge"
+    assert kwargs["environment"] == {"SSHD_PORT": str(port), "SSHD_BIND": "0.0.0.0"}  # noqa: S104
+    assert kwargs["ports"] == {
+        f"{port}/tcp": ("127.0.0.1", port),
+        "8080/tcp": 8080,
+        "5000/tcp": 3000,
+    }
 
 
 def test_create_container_blank_omits_repo_and_provider_labels(
