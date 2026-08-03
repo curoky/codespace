@@ -22,7 +22,7 @@ project 或 instance。当前共享服务是 Atuin server。
 - 创建或删除 environment 不得创建、替换或删除 host sidecar。
 - Sidecar 故障可以反映在 host 状态中，但不得破坏 environment inventory。
 - 持久服务数据只能使用 sidecar contract 管理的 host storage，不能使用
-  `~/codespace2/<project>/<instance>`。
+  `~/codespace/<project>/<instance>`。
 
 ## 容器契约
 

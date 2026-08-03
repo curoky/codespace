@@ -296,6 +296,32 @@ dialog form {
   padding: 22px;
 }
 
+.dialog-body {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+}
+
+.delete-warning {
+  margin: 0;
+  color: var(--warning);
+  font-weight: 700;
+}
+
+.delete-detail {
+  margin: 0;
+  max-height: 220px;
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: #fbf7f6;
+  color: #29332c;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .dialog-heading {
   display: flex;
   justify-content: space-between;

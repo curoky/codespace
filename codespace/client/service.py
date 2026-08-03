@@ -21,6 +21,7 @@ from codespace.client.models import (
     Operation,
     OperationStatus,
     ProjectSummary,
+    RepoGitState,
     environment_id,
     ssh_port,
     workspace_path,
@@ -290,8 +291,16 @@ class CodespaceService:
         self._reject_inventory_errors(project.host, refreshed)
         ssh.write_host(project.host, refreshed.environments, creation.route)
 
-    def delete(self, project_id: str, instance: str, *, purge: bool) -> None:
-        """Revoke provider state before deleting a container or workspace."""
+    def delete(
+        self, project_id: str, instance: str, *, purge: bool, force: bool = False
+    ) -> RepoGitState:
+        """Inspect a repo environment (``force=False``) or delete it (``force=True``).
+
+        Without ``force`` this only probes the checkout for unpushed or
+        uncommitted work and performs no mutation, letting the WebUI confirm
+        before a second forced call actually removes anything. ``blank`` projects
+        have no checkout so the returned state is always empty.
+        """
         project = self._project(project_id)
         is_repo = project.type == "repo"
         token = self._token(self._require_provider(project)) if is_repo else None
@@ -320,6 +329,11 @@ class CodespaceService:
         if container is None:
             raise RuntimeError(f"environment {identity!r} not found")
 
+        if not force:
+            if is_repo:
+                return runtime.repo_git_state(container, self._require_repo(project))
+            return RepoGitState()
+
         if is_repo and token is not None:
             provider.revoke(
                 self._require_provider(project),
@@ -343,6 +357,7 @@ class CodespaceService:
         refreshed = runtime.list_inventory(client, project.host, self.config)
         self._reject_inventory_errors(project.host, refreshed)
         ssh.write_host(project.host, refreshed.environments, route)
+        return RepoGitState()
 
     def _all_host_inventories(self) -> dict[str, _HostInventory]:
         with ThreadPoolExecutor(max_workers=len(self.config.hosts)) as executor:

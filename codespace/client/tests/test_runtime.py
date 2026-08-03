@@ -197,7 +197,7 @@ def test_create_container_preserves_fixed_runtime_contract(
         provider="github",
         image=config.project_image("devspace"),
         platform="linux/arm64",
-        workspace_root="/home/x/codespace2",
+        workspace_root="/home/x/codespace",
         gpu=False,
     )
 
@@ -221,7 +221,7 @@ def test_create_container_preserves_fixed_runtime_contract(
     assert kwargs["mounts"] == [
         {
             "type": "bind",
-            "source": "/home/x/codespace2/devspace/debug",
+            "source": "/home/x/codespace/devspace/debug",
             "target": "/workspace",
         },
         {
@@ -257,7 +257,7 @@ def test_create_container_injects_gpu_device(
         provider="github",
         image=config.project_image("devspace"),
         platform="linux/arm64",
-        workspace_root="/home/x/codespace2",
+        workspace_root="/home/x/codespace",
         gpu=True,
     )
 
@@ -289,7 +289,7 @@ def test_create_container_blank_omits_repo_and_provider_labels(
         provider=None,
         image=config.default_image,
         platform=None,
-        workspace_root="/home/x/codespace2",
+        workspace_root="/home/x/codespace",
         gpu=False,
     )
 
@@ -418,24 +418,171 @@ def test_clone_missing_checkout_runs_git_without_shell() -> None:
     )
 
 
-def test_purge_workspace_uses_environment_platform() -> None:
-    container = SimpleNamespace(stop=lambda *, timeout: None)
+def test_purge_workspace_uses_environment_platform(monkeypatch: pytest.MonkeyPatch) -> None:
+    container = SimpleNamespace(stop=lambda *, timeout, ignore=False: None)
     calls: list[tuple[str, dict[str, object]]] = []
-    client = SimpleNamespace(
-        containers=SimpleNamespace(
-            run=lambda image, **kwargs: calls.append((image, kwargs)),
-        )
-    )
+
+    class HelperContainer:
+        def wait(self) -> int:
+            return 0
+
+        def logs(self, **_: object) -> list[bytes]:
+            return []
+
+        def remove(self, **_: object) -> None:
+            return None
+
+    def run(image: str, **kwargs: object) -> HelperContainer:
+        calls.append((image, kwargs))
+        return HelperContainer()
+
+    monkeypatch.setattr(runtime, "Container", HelperContainer)
+    client = SimpleNamespace(containers=SimpleNamespace(run=run))
 
     runtime.purge_workspace(
         client,  # type: ignore[arg-type]
         container,  # type: ignore[arg-type]
         "image:latest",
         "linux/arm64",
-        "/home/x/codespace2",
+        "/home/x/codespace",
         "devspace",
         "debug",
     )
 
     assert calls[0][0] == "image:latest"
     assert calls[0][1]["platform"] == "linux/arm64"
+    assert calls[0][1]["user"] == "0"
+    assert calls[0][1]["security_opt"] == ["disable"]
+
+
+def test_purge_workspace_surfaces_rm_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    container = SimpleNamespace(stop=lambda *, timeout, ignore=False: None)
+    removed: list[bool] = []
+
+    class HelperContainer:
+        def wait(self) -> int:
+            return 1
+
+        def logs(self, **_: object) -> list[bytes]:
+            return [b"rm: cannot remove: Device or resource busy\n"]
+
+        def remove(self, **_: object) -> None:
+            removed.append(True)
+
+    monkeypatch.setattr(runtime, "Container", HelperContainer)
+    client = SimpleNamespace(
+        containers=SimpleNamespace(run=lambda image, **kwargs: HelperContainer()),
+    )
+
+    with pytest.raises(RuntimeError, match="Device or resource busy"):
+        runtime.purge_workspace(
+            client,  # type: ignore[arg-type]
+            container,  # type: ignore[arg-type]
+            "image:latest",
+            None,
+            "/home/x/codespace",
+            "devspace",
+            "debug",
+        )
+
+    assert removed == [True]
+
+
+class GitFakeContainer:
+    """Container stub scripting exec_run replies for git state probes."""
+
+    def __init__(self, replies: dict[str, tuple[int, bytes]]) -> None:
+        self.replies = replies
+        self.calls: list[tuple[list[str], str | None]] = []
+        self.status = "running"
+        self.started = False
+
+    def reload(self) -> None:
+        pass
+
+    def start(self) -> None:
+        self.started = True
+        self.status = "running"
+
+    def exec_run(
+        self,
+        command: list[str],
+        *,
+        user: str | None = None,
+    ) -> tuple[int, bytes]:
+        self.calls.append((command, user))
+        if command[0] == "test":
+            return self.replies.get("test", (0, b""))
+        # git commands: key on the subcommand after "-C <target>".
+        return self.replies.get(command[3], (0, b""))
+
+
+def test_repo_git_state_clean_when_nothing_pending() -> None:
+    container = GitFakeContainer({})
+
+    state = runtime.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+
+    assert state.blocks_delete is False
+    assert state.unpushed is False
+    assert state.uncommitted is False
+    assert state.detail == []
+
+
+def test_repo_git_state_starts_stopped_container() -> None:
+    container = GitFakeContainer({})
+    container.status = "exited"
+
+    runtime.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+
+    assert container.started is True
+
+
+def test_repo_git_state_detects_uncommitted() -> None:
+    container = GitFakeContainer({"status": (0, b" M models.py\n")})
+
+    state = runtime.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+
+    assert state.uncommitted is True
+    assert state.unpushed is False
+    assert state.detail == [" M models.py"]
+
+
+def test_repo_git_state_detects_unpushed() -> None:
+    container = GitFakeContainer({"log": (0, b"abc123 add feature\n")})
+
+    state = runtime.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+
+    assert state.unpushed is True
+    assert state.uncommitted is False
+    assert state.detail == ["abc123 add feature"]
+
+
+def test_repo_git_state_detects_both() -> None:
+    container = GitFakeContainer(
+        {
+            "status": (0, b" M models.py\n"),
+            "log": (0, b"abc123 add feature\n"),
+        }
+    )
+
+    state = runtime.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+
+    assert state.blocks_delete is True
+    assert state.detail == [" M models.py", "abc123 add feature"]
+
+
+def test_repo_git_state_skips_absent_checkout() -> None:
+    container = GitFakeContainer({"test": (1, b"")})
+
+    state = runtime.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+
+    assert state.blocks_delete is False
+    # Only the presence probe should run when the checkout is missing.
+    assert container.calls == [(["test", "-d", "/workspace/devspace/.git"], "x")]
+
+
+def test_repo_git_state_raises_on_git_failure() -> None:
+    container = GitFakeContainer({"status": (128, b"fatal: not a git repository")})
+
+    with pytest.raises(RuntimeError, match=r"exec git .* failed \(128\)"):
+        runtime.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]

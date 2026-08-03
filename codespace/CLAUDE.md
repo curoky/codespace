@@ -108,7 +108,7 @@ Podman Machine host ID 是 Codespace 内的逻辑名称；对应 machine 必须�
 
 - rootful Podman socket；SSH host 默认是 `/run/podman/podman.sock`，Podman Machine
   通过 `podman machine inspect` 获取 API socket 和 SSH identity；
-- SSH 登录用户的可写 home；workspace root 是绝对路径化后的 `~/codespace2`；
+- SSH 登录用户的可写 home；workspace root 是绝对路径化后的 `~/codespace`；
 - 将每个 environment workspace 设为 `5230:5230` 的权限；
 - 为 environment SSH 保留的端口范围 `20000-29999`；
 - 一个 host 级 sidecar；
@@ -137,7 +137,7 @@ Environment 的 container name、本地 SSH alias 和 deploy-key title 共用确
 codespace-<host>-<project>-<instance>
 ```
 
-Host workspace 为 `<login-home>/codespace2/<project>/<instance>`，挂载到容器
+Host workspace 为 `<login-home>/codespace/<project>/<instance>`，挂载到容器
 `/workspace`。SSH 端口计算公式是：
 
 ```text
@@ -202,6 +202,14 @@ repository（步骤 10），创建与删除均不需要 provider token；其余�
 `purge=false` 只删除 container；`purge=true` 先停止 container，再依据其 image label 清理
 workspace，最后删除 container。Provider 失败时不得改变 container 和 workspace。
 
+删除 `repo` 类型时分两阶段。`force=false` 只在容器内的 checkout 目录检测未 push 提交
+（`git log --branches --not --remotes`）和未提交/未跟踪改动（`git status --porcelain`），
+不做任何 container/workspace/provider 变更，返回 `{deleted, workspace_removed, state}`，
+其中 `state` 含 `unpushed`、`uncommitted`、`detail`。WebUI 先以 `force=false` 打开 block
+弹窗展示检测结果，用户确认后再以 `force=true` 真正删除（此时执行撤销 deploy key、按 purge
+清理 workspace、删除 container）。`blank` 类型无 checkout，`state` 恒为空。检测只发生在删除
+路径，dashboard 不受影响。
+
 ## SSH 投影
 
 `~/.ssh/config` 中只增加一个 include：
@@ -236,9 +244,10 @@ codespace/client/run.sh
 - `GET /api/dashboard`
 - `PUT /api/tokens/{provider}`
 - `POST /api/projects/{project}/instances`
-- `DELETE /api/projects/{project}/instances/{instance}?purge=true|false`
+- `DELETE /api/projects/{project}/instances/{instance}?purge=true|false&force=true|false`
 
-错误格式固定为 `{"error": "..."}`。Dashboard response 是浏览器的唯一事实来源。只在
+错误格式固定为 `{"error": "..."}`。`DELETE` 成功返回 `{deleted, workspace_removed, state}`，
+`force=false` 时 `deleted=false` 且 `state` 携带 git 检测结果。Dashboard response 是浏览器的唯一事实来源。只在
 create operation 处于 queued 或 running 时轮询。不得增加 SSE、operation dismissal、
 前端 optimistic state、OpenAPI 页面或独立 host/port 配置。
 

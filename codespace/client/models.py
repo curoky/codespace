@@ -22,7 +22,7 @@ WORKSPACE_MOUNT = "/workspace"
 # Host workspace root lives under the SSH login user's home so each host can use
 # its own account. The absolute path is resolved per host at runtime because a
 # Podman bind-mount source cannot contain '~'.
-WORKSPACE_DIR_NAME = "codespace2"
+WORKSPACE_DIR_NAME = "codespace"
 PODMAN_SOCKET = "/run/podman/podman.sock"
 SSH_PORT_START = 20_000
 SSH_PORT_COUNT = 10_000
@@ -170,6 +170,26 @@ class UpdateTokenRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     token: TokenString = Field(repr=False)
+
+
+class RepoGitState(BaseModel):
+    """Pre-delete safety check for a repo checkout inside a container."""
+
+    unpushed: bool = False
+    uncommitted: bool = False
+    detail: list[str] = Field(default_factory=list)
+
+    @property
+    def blocks_delete(self) -> bool:
+        return self.unpushed or self.uncommitted
+
+
+class DeleteInstanceResult(BaseModel):
+    """Result of an inspect (``force=False``) or delete (``force=True``) call."""
+
+    deleted: bool
+    workspace_removed: bool = False
+    state: RepoGitState = Field(default_factory=RepoGitState)
 
 
 class Environment(BaseModel):

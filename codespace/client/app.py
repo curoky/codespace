@@ -18,6 +18,7 @@ from codespace.client.config import CONFIG_PATH, Config, load_config
 from codespace.client.models import (
     CreateInstanceRequest,
     DashboardResponse,
+    DeleteInstanceResult,
     GitProvider,
     Operation,
     UpdateTokenRequest,
@@ -127,13 +128,18 @@ def create_app(
             ApiPath(pattern=r"^[a-z0-9][a-z0-9-]{0,31}$"),
         ],
         purge: Annotated[bool, Query()] = False,
-    ) -> dict[str, bool]:
+        force: Annotated[bool, Query()] = False,
+    ) -> DeleteInstanceResult:
         try:
-            resolved_service.delete(project, instance, purge=purge)
+            state = resolved_service.delete(project, instance, purge=purge, force=force)
         except KeyError as exc:
             raise HTTPException(status_code=404, detail=str(exc.args[0])) from exc
         except Exception as exc:
             raise HTTPException(status_code=409, detail=describe_error(exc)) from exc
-        return {"ok": True, "workspace_removed": purge}
+        return DeleteInstanceResult(
+            deleted=force,
+            workspace_removed=purge and force,
+            state=state,
+        )
 
     return app

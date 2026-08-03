@@ -6,6 +6,7 @@ const projectsElement = document.querySelector("#projects");
 const pollStatusElement = document.querySelector("#poll-status");
 const instanceDialog = document.querySelector("#instance-dialog");
 const tokensDialog = document.querySelector("#tokens-dialog");
+const deleteDialog = document.querySelector("#delete-dialog");
 const toastElement = document.querySelector("#toast");
 
 document.querySelector("#refresh-button").addEventListener("click", refresh);
@@ -33,12 +34,17 @@ async function api(path, options = {}) {
   });
   if (!response.ok) {
     let message = `Request failed (${response.status})`;
+    let body = null;
     try {
-      message = (await response.json()).error || message;
+      body = await response.json();
+      message = body.error || message;
     } catch {
       // Keep the status-based fallback.
     }
-    throw new Error(message);
+    const error = new Error(message);
+    error.status = response.status;
+    error.body = body;
+    throw error;
   }
   return response.json();
 }
@@ -196,19 +202,74 @@ async function submitInstance(project, instance) {
   }
 }
 
+const deleteStatusElement = document.querySelector("#delete-status");
+const deleteDetailElement = document.querySelector("#delete-detail");
+const deleteConfirmButton = document.querySelector("#delete-confirm");
+deleteConfirmButton.addEventListener("click", confirmDelete);
+deleteDialog.addEventListener("close", () => {
+  pendingDelete = null;
+});
+
+let pendingDelete = null;
+
 async function deleteInstance(project, instance, purge) {
-  const action = purge ? "delete the container and workspace" : "delete the container";
-  if (!window.confirm(`Really ${action} for ${project}/${instance}?`)) return;
+  pendingDelete = { project, instance, purge };
+  const scope = purge ? "container and workspace" : "container";
+  document.querySelector("#delete-eyebrow").textContent = `Delete ${scope}`;
+  document.querySelector("#delete-title").textContent = `${project}/${instance}`;
+  deleteStatusElement.className = "muted";
+  deleteStatusElement.textContent = "Checking repository state…";
+  deleteDetailElement.hidden = true;
+  deleteDetailElement.textContent = "";
+  deleteConfirmButton.disabled = true;
+  deleteDialog.showModal();
+
+  let result;
   try {
-    await api(
-      `/api/projects/${encodeURIComponent(project)}/instances/${encodeURIComponent(instance)}?purge=${purge}`,
-      { method: "DELETE" },
-    );
+    result = await sendDelete(project, instance, purge, false);
+  } catch (error) {
+    deleteStatusElement.textContent = error.message;
+    return;
+  }
+  if (deleteDialog.open === false || pendingDelete === null) return;
+
+  const state = result.state || {};
+  const reasons = [];
+  if (state.unpushed) reasons.push("unpushed commits");
+  if (state.uncommitted) reasons.push("uncommitted changes");
+  if (reasons.length) {
+    deleteStatusElement.className = "delete-warning";
+    deleteStatusElement.textContent = `This repository has ${reasons.join(" and ")}. Deleting loses this work.`;
+    deleteDetailElement.textContent = (state.detail || []).join("\n");
+    deleteDetailElement.hidden = false;
+  } else {
+    deleteStatusElement.className = "muted";
+    deleteStatusElement.textContent = "No unpushed or uncommitted work detected.";
+  }
+  deleteConfirmButton.disabled = false;
+}
+
+async function confirmDelete() {
+  if (pendingDelete === null) return;
+  const { project, instance, purge } = pendingDelete;
+  deleteConfirmButton.disabled = true;
+  try {
+    await sendDelete(project, instance, purge, true);
+    deleteDialog.close();
     notify(`Deleted ${project}/${instance}`);
     await refresh();
   } catch (error) {
-    notify(error.message);
+    deleteStatusElement.className = "delete-warning";
+    deleteStatusElement.textContent = error.message;
+    deleteConfirmButton.disabled = false;
   }
+}
+
+function sendDelete(project, instance, purge, force) {
+  return api(
+    `/api/projects/${encodeURIComponent(project)}/instances/${encodeURIComponent(instance)}?purge=${purge}&force=${force}`,
+    { method: "DELETE" },
+  );
 }
 
 async function saveTokens(event) {

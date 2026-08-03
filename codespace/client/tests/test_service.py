@@ -8,7 +8,7 @@ import pytest
 
 from codespace.client import provider, runtime, ssh
 from codespace.client.config import Config
-from codespace.client.models import Environment, environment_id, ssh_port
+from codespace.client.models import Environment, RepoGitState, environment_id, ssh_port
 from codespace.client.service import CodespaceService, describe_error
 from codespace.client.transport import SSHRoute
 
@@ -62,7 +62,7 @@ def service(
     monkeypatch: pytest.MonkeyPatch,
 ) -> CodespaceService:
     monkeypatch.setattr(ssh, "initialize", lambda hosts: None)
-    monkeypatch.setattr(ssh, "remote_workspace_root", lambda route: "/home/x/codespace2")
+    monkeypatch.setattr(ssh, "remote_workspace_root", lambda route: "/home/x/codespace")
     return CodespaceService(
         config,
         transport=FakeTransport({"home": object(), "office": object()}),  # type: ignore[arg-type]
@@ -501,12 +501,13 @@ def test_delete_revokes_before_container_and_workspace_mutation(
     monkeypatch.setattr(runtime, "list_inventory", lambda *args: next(inventories))
     monkeypatch.setattr(runtime, "find_container", lambda *args: container)
     monkeypatch.setattr(runtime, "read_environment", lambda *args: _environment())
+    monkeypatch.setattr(runtime, "repo_git_state", lambda *args: RepoGitState())
     monkeypatch.setattr(provider, "revoke", lambda *args: events.append("revoke"))
     monkeypatch.setattr(runtime, "purge_workspace", lambda *args: events.append("purge"))
     monkeypatch.setattr(runtime, "remove_container", lambda item: events.append("remove"))
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
 
-    service.delete("devspace", "debug", purge=purge)
+    service.delete("devspace", "debug", purge=purge, force=True)
 
     assert events == expected
 
@@ -524,6 +525,7 @@ def test_delete_revoke_failure_refuses_all_mutation(
         lambda *args: runtime.Inventory([_environment()], []),
     )
     monkeypatch.setattr(runtime, "find_container", lambda *args: container)
+    monkeypatch.setattr(runtime, "repo_git_state", lambda *args: RepoGitState())
     monkeypatch.setattr(
         provider,
         "revoke",
@@ -533,9 +535,67 @@ def test_delete_revoke_failure_refuses_all_mutation(
     monkeypatch.setattr(runtime, "remove_container", lambda item: mutations.append("remove"))
 
     with pytest.raises(RuntimeError, match="denied"):
-        service.delete("devspace", "debug", purge=True)
+        service.delete("devspace", "debug", purge=True, force=True)
 
     assert mutations == []
+
+
+def test_delete_without_force_inspects_and_skips_mutation(
+    service: CodespaceService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service.set_token("github", "token")
+    container = object()
+    mutations: list[str] = []
+    monkeypatch.setattr(
+        runtime,
+        "list_inventory",
+        lambda *args: runtime.Inventory([_environment()], []),
+    )
+    monkeypatch.setattr(runtime, "find_container", lambda *args: container)
+    monkeypatch.setattr(
+        runtime,
+        "repo_git_state",
+        lambda *args: RepoGitState(unpushed=True, detail=["abc add feature"]),
+    )
+    monkeypatch.setattr(provider, "revoke", lambda *args: mutations.append("revoke"))
+    monkeypatch.setattr(runtime, "purge_workspace", lambda *args: mutations.append("purge"))
+    monkeypatch.setattr(runtime, "remove_container", lambda item: mutations.append("remove"))
+
+    state = service.delete("devspace", "debug", purge=True, force=False)
+
+    assert state.unpushed is True
+    assert state.detail == ["abc add feature"]
+    assert mutations == []
+
+
+def test_delete_force_skips_git_check_and_deletes(
+    service: CodespaceService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service.set_token("github", "token")
+    container = object()
+    events: list[str] = []
+    inventories = iter(
+        [
+            runtime.Inventory([_environment()], []),
+            runtime.Inventory([], []),
+        ]
+    )
+    monkeypatch.setattr(runtime, "list_inventory", lambda *args: next(inventories))
+    monkeypatch.setattr(runtime, "find_container", lambda *args: container)
+
+    def _fail_git_state(*_args: object) -> RepoGitState:
+        raise AssertionError("repo_git_state must not run when force=True")
+
+    monkeypatch.setattr(runtime, "repo_git_state", _fail_git_state)
+    monkeypatch.setattr(provider, "revoke", lambda *args: events.append("revoke"))
+    monkeypatch.setattr(runtime, "remove_container", lambda item: events.append("remove"))
+    monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
+
+    service.delete("devspace", "debug", purge=False, force=True)
+
+    assert events == ["revoke", "remove", "projection"]
 
 
 def test_describe_error_unwraps_cause_chain() -> None:

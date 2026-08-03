@@ -34,6 +34,7 @@ from codespace.client.models import (
     ImagePlatform,
     PlatformSelection,
     ProjectType,
+    RepoGitState,
     environment_id,
     environment_labels,
     git_host,
@@ -345,6 +346,51 @@ def clone_repo(container: Container, repo: str, provider: GitProvider) -> None:
     )
 
 
+def repo_git_state(container: Container, repo: str) -> RepoGitState:
+    """Inspect a repo checkout for uncommitted or unpushed work before deletion.
+
+    Returns an empty (non-blocking) state when the checkout is absent. Git
+    command failures are surfaced explicitly rather than silently ignored. The
+    container is started when stopped, since ``exec`` requires a running state.
+    """
+    _ensure_running(container)
+    target = repo_target(repo)
+    exit_code, _output = container.exec_run(
+        ["test", "-d", f"{target}/.git"],
+        user=CONTAINER_USER,
+    )
+    if exit_code not in (0, None):
+        return RepoGitState()
+
+    detail: list[str] = []
+    dirty = _git_lines(container, target, ["status", "--porcelain"])
+    if dirty:
+        detail.extend(dirty)
+    unpushed = _git_lines(
+        container,
+        target,
+        ["log", "--branches", "--not", "--remotes", "--oneline"],
+    )
+    if unpushed:
+        detail.extend(unpushed)
+    return RepoGitState(
+        unpushed=bool(unpushed),
+        uncommitted=bool(dirty),
+        detail=detail[:20],
+    )
+
+
+def _git_lines(container: Container, target: str, args: list[str]) -> list[str]:
+    exit_code, output = container.exec_run(
+        ["git", "-C", target, *args],
+        user=CONTAINER_USER,
+    )
+    text = output.decode("utf-8", "replace") if isinstance(output, bytes) else str(output)
+    if exit_code not in (0, None):
+        raise RuntimeError(f"exec git {args!r} failed ({exit_code}): {text}")
+    return [line for line in text.splitlines() if line.strip()]
+
+
 def purge_workspace(
     client: PodmanClient,
     container: Container,
@@ -355,15 +401,17 @@ def purge_workspace(
     instance: str,
 ) -> None:
     """Stop an environment and remove its workspace with the same project image."""
-    container.stop(timeout=10)
-    client.containers.run(
+    container.stop(timeout=10, ignore=True)
+    target = workspace_path(workspace_root, project, instance)
+    helper = client.containers.run(
         image,
         name=None,
         entrypoint=["/bin/rm"],
-        command=["-rf", "--", workspace_path(workspace_root, project, instance)],
-        detach=False,
-        remove=True,
+        command=["-rf", "--", target],
+        detach=True,
         platform=platform,
+        user="0",
+        security_opt=["disable"],
         mounts=[
             {
                 "type": "bind",
@@ -372,6 +420,17 @@ def purge_workspace(
             }
         ],
     )
+    if not isinstance(helper, Container):
+        raise RuntimeError("expected a detached workspace-removal container")
+    try:
+        exit_code = helper.wait()
+        if exit_code not in (0, None):
+            logs = helper.logs(stdout=True, stderr=True)
+            raw = logs if isinstance(logs, bytes) else b"".join(logs)
+            text = raw.decode("utf-8", "replace").strip()
+            raise RuntimeError(f"failed to remove workspace {target!r} ({exit_code}): {text}")
+    finally:
+        helper.remove(force=True)
 
 
 def remove_container(container: Container) -> None:
@@ -388,6 +447,15 @@ def container_status(container: Container) -> str | None:
         status = state.get("Status")
         return str(status) if status else None
     return None
+
+
+def _ensure_running(container: Container) -> None:
+    """Start a stopped container so ``exec`` sessions can be created."""
+    container.reload()
+    if container.status == "running":
+        return
+    container.start()
+    _wait_running(container)
 
 
 def _wait_running(container: Container) -> None:

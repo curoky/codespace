@@ -193,19 +193,19 @@ def test_remote_workspace_root_resolves_home_and_creates_dir(
     def run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
         commands.append(command)
         return subprocess.CompletedProcess(
-            command, 0, stdout="/home/x/codespace2\n", stderr=""
+            command, 0, stdout="/home/x/codespace\n", stderr=""
         )
 
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
     root = ssh.remote_workspace_root(_remote_route())
 
-    assert root == "/home/x/codespace2"
+    assert root == "/home/x/codespace"
     assert commands[0][0] == "ssh"
     assert commands[0][-2] == "home"
     # The remote command both creates the directory and prints the absolute path.
     assert "mkdir -p" in commands[0][-1]
-    assert "codespace2" in commands[0][-1]
+    assert "codespace" in commands[0][-1]
 
 
 def test_remote_workspace_root_is_cached_per_host(
@@ -215,14 +215,14 @@ def test_remote_workspace_root_is_cached_per_host(
 
     def run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
         calls.append(command[-2])
-        return subprocess.CompletedProcess(command, 0, stdout="/home/x/codespace2", stderr="")
+        return subprocess.CompletedProcess(command, 0, stdout="/home/x/codespace", stderr="")
 
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
     first = ssh.remote_workspace_root(_remote_route())
     second = ssh.remote_workspace_root(_remote_route())
 
-    assert first == second == "/home/x/codespace2"
+    assert first == second == "/home/x/codespace"
     assert calls == ["home"]
 
 
@@ -264,16 +264,16 @@ def test_prepare_workspace_uses_root_or_passwordless_sudo_over_ssh(
 
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
-    ssh.prepare_workspace(_remote_route(), "/home/x/codespace2/devspace/debug")
+    ssh.prepare_workspace(_remote_route(), "/home/x/codespace/devspace/debug")
 
     command = commands[0]
     assert command[0] == "ssh"
     assert command[-2] == "home"
     assert command[-1] == (
         'if [ "$(id -u)" -eq 0 ]; then '
-        "install -d -m 0755 -o 5230 -g 5230 -- /home/x/codespace2/devspace/debug; "
+        "install -d -m 0755 -o 5230 -g 5230 -- /home/x/codespace/devspace/debug; "
         "else sudo -n install -d -m 0755 -o 5230 -g 5230 -- "
-        "/home/x/codespace2/devspace/debug; fi"
+        "/home/x/codespace/devspace/debug; fi"
     )
 
 
@@ -291,7 +291,7 @@ def test_prepare_workspace_wraps_ssh_failure(
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
     with pytest.raises(RuntimeError, match="failed to prepare workspace"):
-        ssh.prepare_workspace(_remote_route(), "/home/x/codespace2/devspace/debug")
+        ssh.prepare_workspace(_remote_route(), "/home/x/codespace/devspace/debug")
 
 
 def test_podman_machine_workspace_uses_root_route_and_container_ownership(
@@ -310,7 +310,7 @@ def test_podman_machine_workspace_uses_root_route_and_container_ownership(
 
     def run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
         commands.append(command)
-        stdout = "/root/codespace2" if "printf %s" in command[-1] else ""
+        stdout = "/root/codespace" if "printf %s" in command[-1] else ""
         return subprocess.CompletedProcess(command, 0, stdout=stdout, stderr="")
 
     monkeypatch.setattr(ssh.subprocess, "run", run)
@@ -318,7 +318,7 @@ def test_podman_machine_workspace_uses_root_route_and_container_ownership(
     root = ssh.remote_workspace_root(route)
     ssh.prepare_workspace(route, f"{root}/devspace/debug")
 
-    assert root == "/root/codespace2"
+    assert root == "/root/codespace"
     for command in commands:
         assert "-i" in command
         assert str(identity) in command
@@ -328,7 +328,7 @@ def test_podman_machine_workspace_uses_root_route_and_container_ownership(
         assert any(option.endswith("/known_hosts/machine-local") for option in command)
         assert command[-2] == "root@127.0.0.1"
     assert commands[1][-1] == (
-        "install -d -m 0755 -o 5230 -g 5230 -- /root/codespace2/devspace/debug"
+        "install -d -m 0755 -o 5230 -g 5230 -- /root/codespace/devspace/debug"
     )
 
 

@@ -12,6 +12,7 @@ from codespace.client.models import (
     HostStatus,
     Operation,
     ProjectSummary,
+    RepoGitState,
 )
 from codespace.client.operations import OperationStore
 
@@ -22,7 +23,8 @@ class FakeService:
         self.operations = OperationStore()
         self.tokens = {"github": False, "gitlab": False}
         self.created: list[tuple[str, str]] = []
-        self.deleted: list[tuple[str, str, bool]] = []
+        self.deleted: list[tuple[str, str, bool, bool]] = []
+        self.state: RepoGitState = RepoGitState()
         self.closed = False
 
     def close(self) -> None:
@@ -67,10 +69,15 @@ class FakeService:
     def create(self, project: str, instance: str) -> None:
         self.created.append((project, instance))
 
-    def delete(self, project: str, instance: str, *, purge: bool) -> None:
+    def delete(
+        self, project: str, instance: str, *, purge: bool, force: bool = False
+    ) -> RepoGitState:
         if project not in self.config.projects:
             raise KeyError(f"unknown project: {project}")
-        self.deleted.append((project, instance, purge))
+        if not force:
+            return self.state
+        self.deleted.append((project, instance, purge, force))
+        return RepoGitState()
 
 
 @pytest.fixture
@@ -185,12 +192,44 @@ def test_delete_api_passes_purge_choice(
 
     response = client.request(
         "DELETE",
-        f"/api/projects/devspace/instances/debug?purge={str(purge).lower()}",
+        f"/api/projects/devspace/instances/debug?purge={str(purge).lower()}&force=true",
     )
 
     assert response.status_code == 200
-    assert response.json() == {"ok": True, "workspace_removed": purge}
-    assert service.deleted == [("devspace", "debug", purge)]
+    assert response.json() == {
+        "deleted": True,
+        "workspace_removed": purge,
+        "state": {"unpushed": False, "uncommitted": False, "detail": []},
+    }
+    assert service.deleted == [("devspace", "debug", purge, True)]
+
+
+def test_delete_without_force_returns_git_state_and_skips_delete(
+    app_client: tuple[TestClient, FakeService],
+) -> None:
+    client, service = app_client
+    service.state = RepoGitState(unpushed=True, uncommitted=True, detail=["abc feat", " M x"])
+
+    response = client.request("DELETE", "/api/projects/devspace/instances/debug")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["deleted"] is False
+    assert body["workspace_removed"] is False
+    assert body["state"] == {
+        "unpushed": True,
+        "uncommitted": True,
+        "detail": ["abc feat", " M x"],
+    }
+    assert service.deleted == []
+
+    forced = client.request(
+        "DELETE",
+        "/api/projects/devspace/instances/debug?force=true",
+    )
+
+    assert forced.status_code == 200
+    assert service.deleted == [("devspace", "debug", False, True)]
 
 
 def test_only_documented_api_routes_exist(

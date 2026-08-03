@@ -91,6 +91,24 @@
       </form>
     </dialog>
 
+    <dialog id="delete-dialog">
+      <div class="dialog-body">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow" id="delete-eyebrow">Delete environment</p>
+            <h2 id="delete-title">Delete instance</h2>
+          </div>
+          <button type="button" class="icon secondary" data-close="delete-dialog">×</button>
+        </div>
+        <p id="delete-status" class="muted">Checking repository state…</p>
+        <pre id="delete-detail" class="delete-detail" hidden></pre>
+        <div class="dialog-actions">
+          <button type="button" class="secondary" data-close="delete-dialog">Cancel</button>
+          <button type="button" id="delete-confirm" class="danger" disabled>Delete</button>
+        </div>
+      </div>
+    </dialog>
+
     <div id="toast" role="status" aria-live="polite"></div>
   </body>
 </html>

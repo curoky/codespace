@@ -31,6 +31,7 @@ if server_process_exists; then
   fi
 fi
 
+rm -rf "${log_file}"
 {
   echo "===== $(date '+%Y-%m-%d %H:%M:%S') starting codespace ====="
   echo "repo_root=${repo_root}"
