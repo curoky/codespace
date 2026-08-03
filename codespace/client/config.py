@@ -83,6 +83,22 @@ class ProjectConfig(BaseModel):
     image: NonBlankString | None = None
     platform: ImagePlatform | None = None
 
+    @model_validator(mode="before")
+    @classmethod
+    def _split_provider_repo(cls, data: object) -> object:
+        """Split the combined ``repo: <provider>:<owner>/<name>`` form.
+
+        Accepts either the combined form or an already-split mapping (as
+        produced by ``model_dump``); the two are unambiguous because a repo
+        path never contains a colon.
+        """
+        if isinstance(data, dict) and isinstance(data.get("repo"), str) and ":" in data["repo"]:
+            if "provider" in data:
+                raise ValueError("set either combined 'repo' or separate 'provider', not both")
+            provider, _, repo = data["repo"].partition(":")
+            return {**data, "provider": provider, "repo": repo}
+        return data
+
 
 class Config(BaseModel):
     """Complete immutable Codespace configuration."""

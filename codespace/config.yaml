@@ -12,29 +12,25 @@ tokens:
 projects:
   devspace:
     host: local
-    provider: github
-    repo: curoky/devspace
+    repo: github:curoky/devspace
     platform: linux/arm64
 
   standalone-binaries:
     host: local
-    provider: github
-    repo: curoky/standalone-binaries
+    repo: github:curoky/standalone-binaries
     platform: linux/arm64
 
   agent-playbook:
     host: local
-    provider: github
-    repo: curoky/agent-playbook
+    repo: github:curoky/agent-playbook
     platform: linux/arm64
 
   obsidian:
     host: local
-    provider: github
+    repo: github:curoky/obsidian
     platform: linux/arm64
 
   rss:
     host: local
-    provider: github
-    repo: curoky/rss
+    repo: github:curoky/rss
     platform: linux/arm64

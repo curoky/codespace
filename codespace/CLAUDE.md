@@ -51,13 +51,11 @@ hosts:
 projects:
   devspace:
     host: home
-    provider: github
-    repo: curoky/devspace
+    repo: github:curoky/devspace
     description: Devspace repository
   service-api:
     host: office
-    provider: gitlab
-    repo: group/service-api
+    repo: gitlab:group/service-api
     image: registry.example.com/codespace-api:latest
     platform: linux/arm64
 
@@ -68,8 +66,9 @@ tokens:
 
 顶层必填字段是 `default_image`、`hosts` 和 `projects`。`hosts` 是以 host alias 为 key 的
 映射，值为该 host 的连接设置；没有额外设置的 host 值留空即可。每个 project 必须包含
-`host`、`provider`、`repo`，可选 `description`、`image` 和 `platform`。其他规则如下：
+`host` 和 `repo`，可选 `description`、`image` 和 `platform`。其他规则如下：
 
+- `repo` 写成 `<provider>:<owner>/<name>`，`provider` 只能是 `github` 或 `gitlab`。
 - `platform` 只能是 `linux/amd64` 或 `linux/arm64`；省略时使用 host 原生平台。
 - `hosts.<host>.type` 默认是 `ssh`，也可设为 `podman-machine`。
 - SSH host 可配置绝对路径 `podman_socket`，默认 `/run/podman/podman.sock`，不得配置

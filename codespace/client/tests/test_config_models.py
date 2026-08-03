@@ -26,12 +26,10 @@ hosts:
 projects:
   devspace:
     host: "home"
-    provider: "github"
-    repo: "curoky/devspace"
+    repo: "github:curoky/devspace"
   service-api:
     host: "office"
-    provider: "gitlab"
-    repo: "group/service-api"
+    repo: "gitlab:group/service-api"
     image: "custom:latest"
     platform: "linux/arm64"
 """,
@@ -42,6 +40,9 @@ projects:
 
     assert config.project_image("devspace") == "default:latest"
     assert config.project_image("service-api") == "custom:latest"
+    assert config.projects["devspace"].provider == "github"
+    assert config.projects["devspace"].repo == "curoky/devspace"
+    assert config.projects["service-api"].provider == "gitlab"
     assert config.projects["devspace"].platform is None
     assert config.projects["service-api"].platform == "linux/arm64"
 
@@ -52,6 +53,23 @@ def test_config_rejects_invalid_project_platform(config: Config) -> None:
 
     with pytest.raises(ValidationError, match=r"linux/amd64.*linux/arm64"):
         Config.model_validate(data)
+
+
+def test_config_rejects_combined_repo_with_separate_provider() -> None:
+    with pytest.raises(ValidationError, match="either combined 'repo' or separate 'provider'"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "hosts": {"home": None},
+                "projects": {
+                    "devspace": {
+                        "host": "home",
+                        "provider": "github",
+                        "repo": "github:curoky/devspace",
+                    }
+                },
+            }
+        )
 
 
 def test_config_resolves_per_host_podman_socket() -> None:
@@ -117,8 +135,7 @@ hosts:
 projects:
   devspace:
     host: "home"
-    provider: "github"
-    repo: "curoky/devspace"
+    repo: "github:curoky/devspace"
 
 tokens:
   github: "ghp_example"
