@@ -1,13 +1,23 @@
 default_image: ghcr.io/curoky/devspace:codespace-debian13
 
+container:
+  cap_add: [NET_RAW, SYS_ADMIN]
+  security_opt: [disable, seccomp=unconfined]
+  pids_limit: -1
+  ulimits:
+    - {name: memlock, soft: -1, hard: -1}
+  mounts:
+    - {source: /etc/krb5.conf, target: /etc/krb5.conf, read_only: true}
+
 hosts:
   local:
     type: podman-machine
     machine: podman-machine-default
+    network_mode: host
 
 tokens:
-  github: github_pat_
-  gitlab: glpat
+  github:
+  gitlab:
 
 projects:
   devspace:
@@ -18,19 +28,4 @@ projects:
   standalone-binaries:
     host: local
     repo: github:curoky/standalone-binaries
-    platform: linux/arm64
-
-  agent-playbook:
-    host: local
-    repo: github:curoky/agent-playbook
-    platform: linux/arm64
-
-  obsidian:
-    host: local
-    repo: github:curoky/obsidian
-    platform: linux/arm64
-
-  rss:
-    host: local
-    repo: github:curoky/rss
     platform: linux/arm64
