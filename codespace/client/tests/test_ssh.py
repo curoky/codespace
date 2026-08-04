@@ -323,10 +323,7 @@ def test_read_host_environment_returns_only_requested_exported_values(
             command,
             0,
             stdout=(
-                "PATH=/usr/bin\0"
-                "HTTP_PROXY=http://proxy:3128\0"
-                "EMPTY=\0"
-                "MULTILINE=line 1\nline 2\0"
+                "PATH=/usr/bin\0HTTP_PROXY=http://proxy:3128\0EMPTY=\0MULTILINE=line 1\nline 2\0"
             ),
             stderr="",
         )
