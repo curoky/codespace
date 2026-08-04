@@ -25,9 +25,6 @@ WORKSPACE_DIR_NAME = "codespace"
 PODMAN_SOCKET = "/run/podman/podman.sock"
 SSH_PORT_START = 20_000
 SSH_PORT_COUNT = 10_000
-# CDI device string injected when a host enables GPU access; equivalent to
-# ``--device nvidia.com/gpu=all`` (CLAUDE.md 配置 gpu).
-CDI_ALL_GPUS = "nvidia.com/gpu=all"
 
 RESOURCE_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}$")
 HOST_RE = re.compile(r"^[a-z0-9][a-z0-9.-]{0,62}$")

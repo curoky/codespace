@@ -226,7 +226,6 @@ class CodespaceService:
 
         self._stage(creation, "creating container")
         creation.container_created = True
-        host_config = self.config.host_config(project.host)
         container = runtime.create_container(
             creation.client,
             host=project.host,
@@ -238,9 +237,7 @@ class CodespaceService:
             image=creation.image,
             platform=creation.platform,
             workspace_root=workspace_root,
-            gpu=host_config.gpu,
             container=self.config.resolved_container(creation.project_id),
-            network_mode=host_config.network_mode,
             published_ports=self.config.project_ports(creation.project_id),
         )
 

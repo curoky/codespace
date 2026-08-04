@@ -14,7 +14,7 @@ from pydantic import (
     model_validator,
 )
 
-from codespace.client.compose import ServiceOverride, ServiceSpec
+from codespace.client.compose import ServiceSpec
 from codespace.client.models import (
     PODMAN_SOCKET,
     RESOURCE_ID_RE,
@@ -49,32 +49,37 @@ def _reject_reserved_env(value: dict[str, str] | None) -> dict[str, str] | None:
 
 
 class ContainerConfig(ServiceSpec):
-    """The global ``container`` block: a Compose service plus reserved-key guard.
+    """A ``container`` block: a Compose service plus control-plane guards.
 
-    Inherits the Compose service subset (``cap_add``/``security_opt``/
-    ``pids_limit``/``ulimits`` required, ``volumes``/``environment`` optional)
-    and only adds the control-plane rule that ``environment`` must not carry the
-    keys the control plane derives itself.
-    """
-
-    @field_validator("environment")
-    @classmethod
-    def _reject_reserved(cls, value: dict[str, str]) -> dict[str, str]:
-        return _reject_reserved_env(value)  # type: ignore[return-value]
-
-
-class ContainerOverride(ServiceOverride):
-    """Optional per-host or per-project override of the global container block.
-
-    Each set key replaces the corresponding global value wholesale (shallow,
-    key-level replace; no deep merge). Unset keys inherit the global value. The
-    ``environment`` reserved-key guard applies here too.
+    Inherits the all-optional Compose service subset and adds the control-plane
+    rules that ``environment`` must not carry the keys the control plane derives
+    itself, and that ``network_mode`` is restricted to the two modes the control
+    plane knows how to wire (``host``/``bridge``). Because every field is
+    optional, the same type serves as the global block and as per-host/per-project
+    overrides layered on top of it (``merged_with``).
     """
 
     @field_validator("environment")
     @classmethod
     def _reject_reserved(cls, value: dict[str, str] | None) -> dict[str, str] | None:
         return _reject_reserved_env(value)
+
+    @field_validator("network_mode")
+    @classmethod
+    def _validate_network_mode(cls, value: str | None) -> str | None:
+        if value is not None and value not in ("host", "bridge"):
+            raise ValueError("network_mode must be 'host' or 'bridge'")
+        return value
+
+    @property
+    def is_bridge(self) -> bool:
+        """Whether the resolved container uses a bridge network.
+
+        Bridge containers get their own netns, so sshd must bind all interfaces
+        and the SSH port plus any business ports are published; ``host``
+        containers share the host netns instead.
+        """
+        return self.network_mode == "bridge"
 
 
 class HostConfig(BaseModel):
@@ -83,11 +88,9 @@ class HostConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     type: Literal["ssh", "podman-machine"] = "ssh"
-    network_mode: Literal["host", "bridge"]
     podman_socket: str | None = None
     machine: NonBlankString | None = None
-    gpu: bool = False
-    container: ContainerOverride | None = None
+    container: ContainerConfig | None = None
 
     @field_validator("podman_socket")
     @classmethod
@@ -107,16 +110,6 @@ class HostConfig(BaseModel):
         if self.podman_socket is not None:
             raise ValueError("podman_socket is not valid for podman-machine hosts")
         return self
-
-    @property
-    def is_bridge(self) -> bool:
-        """Whether this host's containers use a bridge network.
-
-        Bridge hosts get their own netns, so sshd must bind all interfaces and
-        the SSH port plus any business ports are published; ``host`` hosts share
-        the host netns instead. Derived from the explicit ``network_mode`` field.
-        """
-        return self.network_mode == "bridge"
 
     def resolved_podman_socket(self) -> str:
         """Return the remote socket used by an SSH host."""
@@ -153,7 +146,7 @@ class ProjectConfig(BaseModel):
     platform: ImagePlatform | None = None
     open_path: NonBlankString | None = None
     published_ports: list[str] | None = None
-    container: ContainerOverride | None = None
+    container: ContainerConfig | None = None
 
     @field_validator("open_path")
     @classmethod
@@ -213,7 +206,7 @@ class Config(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     default_image: NonBlankString
-    container: ContainerConfig
+    container: ContainerConfig = Field(default_factory=ContainerConfig)
     hosts: dict[HostId, HostConfig]
     projects: dict[str, ProjectConfig]
     tokens: TokensConfig = Field(default_factory=TokensConfig, repr=False)
@@ -242,11 +235,16 @@ class Config(BaseModel):
                 raise ValueError(f"project {project_id!r} must match ^[a-z0-9][a-z0-9-]{{0,31}}$")
             if project.host not in self.hosts:
                 raise ValueError(f"project {project_id!r} references unknown host {project.host!r}")
-            if project.published_ports and not self.hosts[project.host].is_bridge:
+            resolved = self.resolved_container(project_id)
+            if resolved.network_mode is None:
                 raise ValueError(
-                    f"project {project_id!r} sets 'published_ports' but host "
-                    f"{project.host!r} does not use bridge network_mode; port "
-                    "publishing requires a bridge-network host"
+                    f"project {project_id!r} has no resolved container.network_mode; set it on "
+                    "the global, host, or project container block"
+                )
+            if project.published_ports and not resolved.is_bridge:
+                raise ValueError(
+                    f"project {project_id!r} sets 'published_ports' but its resolved "
+                    "container.network_mode is not 'bridge'; port publishing requires bridge mode"
                 )
         return self
 

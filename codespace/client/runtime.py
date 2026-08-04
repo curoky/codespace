@@ -17,7 +17,6 @@ from podman.errors import NotFound, PodmanError
 
 from codespace.client.config import Config, ContainerConfig, ProjectConfig
 from codespace.client.models import (
-    CDI_ALL_GPUS,
     CONTAINER_USER,
     LABEL_IMAGE,
     LABEL_INSTANCE,
@@ -245,9 +244,7 @@ def create_container(
     image: str,
     platform: ImagePlatform | None,
     workspace_root: str,
-    gpu: bool,
     container: ContainerConfig,
-    network_mode: str,
     published_ports: list[tuple[int, int]] | None = None,
 ) -> Container:
     """Create the deterministic development container.
@@ -257,18 +254,19 @@ def create_container(
     container gets its own netns, so sshd is told to bind ``0.0.0.0`` and the
     SSH port is published on the loopback to preserve the existing ProxyCommand
     path unchanged. Business ``published_ports`` are published on all interfaces
-    so a Podman machine forwards them to the macOS host loopback. The
-    ``network_mode`` string is forwarded to ``podman run`` verbatim.
+    so a Podman machine forwards them to the macOS host loopback.
 
-    All non-identity run flags (``cap_add``, ``security_opt``, ``pids_limit``,
-    ``ulimits``, extra ``volumes`` and ``environment``) come from ``container``
-    and are forwarded verbatim; the control plane keeps no implicit defaults for
-    them.
+    All non-identity run flags (``network_mode``, ``cap_add``, ``security_opt``,
+    ``pids_limit``, ``ulimits``, ``devices``, extra ``volumes`` and
+    ``environment``) come from ``container`` and are forwarded verbatim; the
+    control plane keeps no implicit defaults for them. ``network_mode`` is
+    guaranteed non-null by config validation. GPU access is expressed as a CDI
+    device entry such as ``nvidia.com/gpu=all`` in ``container.devices``.
     """
     identity = environment_id(host, project, instance)
     port = ssh_port(identity)
-    bridge = network_mode == "bridge"
-    devices = [CDI_ALL_GPUS] if gpu else []
+    network_mode = container.network_mode
+    bridge = container.is_bridge
     labels = environment_labels(
         project=project,
         instance=instance,
@@ -282,7 +280,7 @@ def create_container(
     # Derived keys are written last so a stray configured env key can never
     # silently override the control-plane values; config.ContainerConfig already
     # rejects the reserved keys at load time, so a collision here is impossible.
-    environment = {**container.environment, "SSHD_PORT": str(port)}
+    environment = {**(container.environment or {}), "SSHD_PORT": str(port)}
     ports: dict[str, object] = {}
     if bridge:
         environment["SSHD_BIND"] = "0.0.0.0"  # noqa: S104
@@ -298,7 +296,7 @@ def create_container(
             "target": WORKSPACE_MOUNT,
         }
     ]
-    for volume in container.volumes:
+    for volume in container.volumes or []:
         mounts.append(
             {
                 "type": "bind",
@@ -307,24 +305,30 @@ def create_container(
                 "read_only": volume.read_only,
             }
         )
+    # Unset (None) service fields mean "engine default": collections normalize to
+    # empty, and pids_limit is only forwarded when set so podman-py does not send
+    # an explicit null limit.
+    run_kwargs: dict[str, Any] = {}
+    if container.pids_limit is not None:
+        run_kwargs["pids_limit"] = container.pids_limit
     created = client.containers.run(
         image,
         name=identity,
         detach=True,
         network_mode=network_mode,
-        cap_add=container.cap_add,
-        security_opt=container.security_opt,
-        pids_limit=container.pids_limit,
+        cap_add=container.cap_add or [],
+        security_opt=container.security_opt or [],
         ulimits=[
             {"Name": name, "Soft": limit.soft, "Hard": limit.hard}
-            for name, limit in container.ulimits.items()
+            for name, limit in (container.ulimits or {}).items()
         ],
         environment=environment,
         platform=platform,
-        devices=devices,
+        devices=container.devices or [],
         ports=ports,
         labels=labels,
         mounts=mounts,
+        **run_kwargs,
     )
     if not isinstance(created, Container):
         raise TypeError(f"expected Container, got {type(created)}")

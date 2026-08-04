@@ -41,6 +41,7 @@ Node.js 构建链。
 default_image: ghcr.io/curoky/devspace:codespace-debian13
 
 container:
+  network_mode: host
   cap_add: [NET_RAW, SYS_ADMIN]
   security_opt: [disable, seccomp=unconfined]
   pids_limit: -1
@@ -54,18 +55,17 @@ container:
 hosts:
   local:
     type: podman-machine
-    network_mode: bridge
     machine: podman-machine-default
+    container:
+      network_mode: bridge
   office:
-    network_mode: host
     podman_socket: /tmp/podmanxd.sock
   gpu-box:
-    network_mode: host
-    gpu: true
     container:
       pids_limit: 4096
+      devices:
+        - nvidia.com/gpu=all
   home:
-    network_mode: host
 
 projects:
   devspace:
@@ -90,11 +90,11 @@ tokens:
   gitlab: glpat-xxx
 ```
 
-顶层必填字段是 `default_image`、`container`、`hosts` 和 `projects`。`hosts` 是以 host alias
-为 key 的映射，值为该 host 的连接设置；每个 host 至少要显式声明 `network_mode`（无隐式默认，
-不能再用留空的 host 值）。每个 project 必须包含 `host`，并按 `type` 决定 repo 相关字段，可选
-`description`、`image`、`platform`、`open_path`、`published_ports` 和 `container`。其他规则
-如下：
+顶层必填字段是 `default_image`、`hosts` 和 `projects`；`container` 可选（省略即全部使用引擎
+默认）。`hosts` 是以 host alias
+为 key 的映射，值为该 host 的连接设置；host 值可以留空（等价默认 SSH host）。每个 project
+必须包含 `host`，并按 `type` 决定 repo 相关字段，可选 `description`、`image`、`platform`、
+`open_path`、`published_ports` 和 `container`。其他规则如下：
 
 - `type` 默认 `repo`，也可设为 `blank`。`repo` 类型必须配置 `repo`（因此带 `provider`）；
   `blank` 类型禁止配置 `repo` 和 `provider`。
@@ -103,35 +103,37 @@ tokens:
   打开挂载点 `/workspace`。编辑器 deep link 按此路径打开。
 - `platform` 只能是 `linux/amd64` 或 `linux/arm64`；省略时使用 host 原生平台。
 - `published_ports` 可选，是要发布到宿主机的端口列表，每项写成 `"<remote>"`（local=remote）
-  或 `"<local>:<remote>"`，端口取值 1-65535，同一 project 内 local 端口不得重复。只有
-  `network_mode: bridge` 的 host 上的 project 可配置 `published_ports`（bridge 容器有独立
-  netns 才能发布端口），`network_mode: host` 的 host 配置 `published_ports` 直接拒绝。改动
+  或 `"<local>:<remote>"`，端口取值 1-65535，同一 project 内 local 端口不得重复。只有解析后
+  `container.network_mode` 为 `bridge` 的 project 可配置 `published_ports`（bridge 容器有独立
+  netns 才能发布端口），解析为 `host` 时配置 `published_ports` 直接拒绝。改动
   `published_ports` 需重建实例才生效。
-- `hosts.<host>.network_mode` 必填，只能是 `host` 或 `bridge`，原样转发给 `podman run
-  --network`。它与 `type` 正交：`host` 让容器共享 host netns；`bridge` 让容器获得独立 netns，
-  sshd 注入 `SSHD_BIND=0.0.0.0` 并发布 SSH 端口和业务端口。podman-machine host 通常配
-  `bridge`，SSH host 通常配 `host`，但两者可自由组合。
 - `hosts.<host>.type` 默认是 `ssh`，也可设为 `podman-machine`。
 - SSH host 可配置绝对路径 `podman_socket`，默认 `/run/podman/podman.sock`，不得配置
   `machine`。
 - Podman Machine host 必须配置 `machine`，不得配置 `podman_socket`。
-- `hosts.<host>.gpu` 默认 `false`；设为 `true` 时容器创建注入 CDI 设备
-  `nvidia.com/gpu=all`（等价 `--device nvidia.com/gpu=all`），要求该 host 已安装 NVIDIA
-  驱动与 CDI 规范文件。
 - `tokens` 中的 `github`、`gitlab` 是可选的非空字符串。
-- 顶层 `container` 是必填块，承载所有非身份的容器 run flag，采用 Docker Compose service 的
+- 顶层 `container` 是可选块，承载所有非身份的容器 run flag，采用 Docker Compose service 的
   字段名与语法子集（解析实现独立在 `client/compose/` 子包中，只做强类型化，不含控制面知识），
-  控制面自身不保留任何隐式默认值。`cap_add`、`security_opt`、`pids_limit`、`ulimits` 必填
-  （对应 `--cap-add`、`--security-opt`、`--pids-limit`、`--ulimit`），`volumes`、`environment`
-  可选、默认空。`ulimits` 是以限制名为 key 的映射，值为 `{soft, hard}` 或裸整数（等价 soft=hard）。
-  `volumes` 支持 Compose 短语法 `source:target[:ro|rw]` 或长语法 `{type: bind, source, target,
-  read_only}`；只支持 `type: bind`，`source`/`target` 必须是绝对路径，`read_only` 默认 `false`。
-  `environment` 是透传给容器的环境变量，支持映射或 `["KEY=value"]` 列表短语法，禁止使用控制面
-  派生的保留键 `SSHD_PORT`、`SSHD_BIND`。这些值原样转发给 `podman run`，控制面不做任何转换或补
-  默认。
-- `hosts.<host>.container` 和 `projects.<project>.container` 是可选覆盖，字段全部可选。已
-  设置的 key 整体替换对应的顶层值（浅层 key 级替换，非深合并），未设置的 key 继承顶层值。
-  优先级 `project > host > global`。覆盖块的 `environment` 同样禁止保留键。
+  控制面自身不保留任何隐式默认值。所有字段（`network_mode`、`cap_add`、`security_opt`、
+  `pids_limit`、`ulimits`、`volumes`、`environment`、`devices`，对应 `--network`、`--cap-add`、
+  `--security-opt`、`--pids-limit`、`--ulimit`、`--device`）全部可选，未设置等价于 Compose 语义
+  下的「引擎默认」：在 runtime 边界处集合归一为空、`pids_limit` 仅在设置时才转发给 `podman run`。
+  `network_mode` 只能是 `host` 或 `bridge`，原样转发给 `--network`：`host` 让容器共享 host netns；
+  `bridge` 让容器获得独立 netns，sshd 注入 `SSHD_BIND=0.0.0.0` 并发布 SSH 端口和业务端口。虽然
+  compose 语义下 `network_mode` 可省略，但控制面要求**每个 project 分层解析后必须有确定的
+  `network_mode`**（缺失即在加载时 fail-fast），因此实践中通常在顶层 `container` 设一次全局默认。
+  `ulimits` 是以限制名为 key 的映射，值为 `{soft, hard}` 或裸整数（等价 soft=hard）。`volumes`
+  支持 Compose 短语法 `source:target[:ro|rw]` 或长语法
+  `{type: bind, source, target, read_only}`；只支持 `type: bind`，`source`/`target` 必须是绝对
+  路径，`read_only` 默认 `false`。`devices` 是原样转发给 `--device` 的字符串列表，GPU 访问用 CDI
+  设备名表达（如 `nvidia.com/gpu=all`），要求该 host 已安装 NVIDIA 驱动与 CDI 规范文件。
+  `environment` 是透传给容器的环境变量，支持映射或
+  `["KEY=value"]` 列表短语法，禁止使用控制面派生的保留键 `SSHD_PORT`、`SSHD_BIND`。这些值原样
+  转发给 `podman run`，控制面不做任何转换。
+- `hosts.<host>.container` 和 `projects.<project>.container` 是可选覆盖，与顶层 `container`
+  共用同一个全可选模型。已设置的 key 整体替换对应的下层值（浅层 key 级替换，非深合并），未设置
+  （`None`）的 key 继承下层值。优先级 `project > host > global`。覆盖块的 `environment` 同样禁止
+  保留键。
 - 拒绝未知字段。
 - Project 和 instance ID 匹配 `^[a-z0-9][a-z0-9-]{0,31}$`。
 - Host alias 匹配 `^[a-z0-9][a-z0-9.-]{0,62}$`。
@@ -231,10 +233,11 @@ host。
 3. 在内存中生成 environment deploy key。
 4. 按 project 平台拉取镜像；未配置时使用 host 原生平台。
 5. 以 SSH 登录用户身份创建 host workspace 目录（`mkdir -p`，无需 `sudo`）。
-6. 按解析后的 `container` 配置创建带完整 label 的 container：非身份 run flag（`cap_add`、
-   `security_opt`、`pids_limit`、`ulimits`、额外 `volumes` 和 `environment`）由 global/host/project
-   分层解析后原样透传，控制面不补默认。host 开启 `gpu` 时额外注入 CDI 设备
-   `nvidia.com/gpu=all`。host 声明的 `network_mode` 原样转发给 `--network`；`bridge` 模式下
+6. 按解析后的 `container` 配置创建带完整 label 的 container：非身份 run flag（`network_mode`、
+   `cap_add`、`security_opt`、`pids_limit`、`ulimits`、`devices`、额外 `volumes` 和
+   `environment`）由 global/host/project 分层解析后原样透传，控制面不补默认。GPU 通过
+   `container.devices` 里的 CDI 设备名（如 `nvidia.com/gpu=all`）表达。解析后的
+   `container.network_mode` 原样转发给 `--network`；`bridge` 模式下
    注入 `SSHD_BIND=0.0.0.0`，发布 SSH 端口到 loopback，并发布 project `published_ports`
    声明的业务端口。
 7. 由容器内 root `chown` 将挂载的 `/workspace` 归属到 `5230:5230`。

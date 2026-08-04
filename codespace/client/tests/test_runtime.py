@@ -211,9 +211,7 @@ def test_create_container_preserves_fixed_runtime_contract(
         image=config.project_image("devspace"),
         platform="linux/arm64",
         workspace_root="/home/x/codespace",
-        gpu=False,
         container=config.resolved_container("devspace"),
-        network_mode="host",
     )
 
     assert result is container
@@ -263,6 +261,11 @@ def test_create_container_injects_gpu_device(
     monkeypatch.setattr(runtime, "Container", FakeContainer)
     client = SimpleNamespace(containers=SimpleNamespace(run=run))
 
+    # A CDI device such as nvidia.com/gpu=all is declared through container.devices
+    # and forwarded verbatim to ``podman run --device``.
+    container_config = config.resolved_container("devspace").model_copy(
+        update={"devices": ["nvidia.com/gpu=all"]}
+    )
     runtime.create_container(
         client,  # type: ignore[arg-type]
         host="home",
@@ -274,9 +277,7 @@ def test_create_container_injects_gpu_device(
         image=config.project_image("devspace"),
         platform="linux/arm64",
         workspace_root="/home/x/codespace",
-        gpu=True,
-        container=config.resolved_container("devspace"),
-        network_mode="host",
+        container=container_config,
     )
 
     _, kwargs = calls[0]
@@ -308,9 +309,9 @@ def test_create_container_bridge_publishes_ports_and_binds_sshd(
         image=config.default_image,
         platform=None,
         workspace_root="/home/x/codespace",
-        gpu=False,
-        container=config.resolved_container("devspace"),
-        network_mode="bridge",
+        container=config.resolved_container("devspace").model_copy(
+            update={"network_mode": "bridge"}
+        ),
         published_ports=[(8080, 8080), (3000, 5000)],
     )
 
@@ -350,9 +351,7 @@ def test_create_container_blank_omits_repo_and_provider_labels(
         image=config.default_image,
         platform=None,
         workspace_root="/home/x/codespace",
-        gpu=False,
         container=config.resolved_container("scratch"),
-        network_mode="host",
     )
 
     _, kwargs = calls[0]

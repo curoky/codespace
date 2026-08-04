@@ -15,18 +15,21 @@ from codespace.client.models import (
 
 # Minimal valid global container block reused by success-path inline configs.
 _CONTAINER: dict[str, object] = {
+    "network_mode": "host",
     "cap_add": ["NET_RAW", "SYS_ADMIN"],
     "security_opt": ["disable", "seccomp=unconfined"],
     "pids_limit": -1,
     "ulimits": {"memlock": {"soft": -1, "hard": -1}},
 }
 
-# Every host must declare network_mode explicitly; there is no default.
-_SSH_HOST: dict[str, object] = {"network_mode": "host"}
+# A host declared with no options: network_mode now lives in the container block,
+# so a plain SSH host needs nothing of its own.
+_SSH_HOST: dict[str, object] = {}
 
 # Same blocks rendered as YAML for the file-based tests.
 _CONTAINER_YAML = """
 container:
+  network_mode: host
   cap_add: [NET_RAW, SYS_ADMIN]
   security_opt: [disable, seccomp=unconfined]
   pids_limit: -1
@@ -43,9 +46,7 @@ default_image: "default:latest"
 {_CONTAINER_YAML}
 hosts:
   home:
-    network_mode: host
   office:
-    network_mode: host
 
 projects:
   devspace:
@@ -79,12 +80,12 @@ def test_config_rejects_invalid_project_platform(config: Config) -> None:
         Config.model_validate(data)
 
 
-def test_config_rejects_host_without_network_mode() -> None:
-    with pytest.raises(ValidationError, match="network_mode"):
+def test_config_rejects_project_without_resolved_network_mode() -> None:
+    with pytest.raises(ValidationError, match=r"no resolved container\.network_mode"):
         Config.model_validate(
             {
                 "default_image": "img",
-                "container": _CONTAINER,
+                "container": {"cap_add": ["NET_RAW"]},
                 "hosts": {"home": None},
                 "projects": {
                     "devspace": {"host": "home", "provider": "github", "repo": "owner/repo"}
@@ -94,12 +95,12 @@ def test_config_rejects_host_without_network_mode() -> None:
 
 
 def test_config_rejects_invalid_network_mode() -> None:
-    with pytest.raises(ValidationError, match=r"host.*bridge"):
+    with pytest.raises(ValidationError, match="network_mode must be"):
         Config.model_validate(
             {
                 "default_image": "img",
-                "container": _CONTAINER,
-                "hosts": {"home": {"network_mode": "none"}},
+                "container": {"network_mode": "none"},
+                "hosts": {"home": _SSH_HOST},
                 "projects": {
                     "devspace": {"host": "home", "provider": "github", "repo": "owner/repo"}
                 },
@@ -208,7 +209,7 @@ def test_config_resolves_per_host_podman_socket() -> None:
             "container": _CONTAINER,
             "hosts": {
                 "home": _SSH_HOST,
-                "office": {"network_mode": "host", "podman_socket": "/tmp/podmanxd.sock"},
+                "office": {"podman_socket": "/tmp/podmanxd.sock"},
             },
             "projects": {
                 "devspace": {
@@ -234,7 +235,6 @@ def test_config_accepts_explicit_podman_machine_host() -> None:
             "hosts": {
                 "local": {
                     "type": "podman-machine",
-                    "network_mode": "bridge",
                     "machine": "podman-machine-default",
                 }
             },
@@ -251,9 +251,6 @@ def test_config_accepts_explicit_podman_machine_host() -> None:
     options = config.host_config("local")
     assert options.type == "podman-machine"
     assert options.machine == "podman-machine-default"
-    assert options.is_bridge is True
-    assert options.network_mode == "bridge"
-    assert config.host_config("local").is_bridge is True
 
     with pytest.raises(ValueError, match="discovered from machine inspect"):
         config.host_config("local").resolved_podman_socket()
@@ -269,17 +266,18 @@ def test_config_ssh_host_uses_host_network() -> None:
         }
     )
 
-    assert config.host_config("home").is_bridge is False
-    assert config.host_config("home").network_mode == "host"
+    assert config.host_config("home").type == "ssh"
+    assert config.resolved_container("devspace").is_bridge is False
+    assert config.resolved_container("devspace").network_mode == "host"
 
 
-def test_config_bridge_ssh_host_enables_port_publishing() -> None:
-    """network_mode is independent of host type: an SSH host may use bridge."""
+def test_config_bridge_via_host_container_enables_port_publishing() -> None:
+    """network_mode lives in the container block and can be set per host override."""
     config = Config.model_validate(
         {
             "default_image": "img",
             "container": _CONTAINER,
-            "hosts": {"home": {"network_mode": "bridge"}},
+            "hosts": {"home": {"container": {"network_mode": "bridge"}}},
             "projects": {
                 "devspace": {
                     "host": "home",
@@ -292,7 +290,7 @@ def test_config_bridge_ssh_host_enables_port_publishing() -> None:
     )
 
     assert config.host_config("home").type == "ssh"
-    assert config.host_config("home").is_bridge is True
+    assert config.resolved_container("devspace").is_bridge is True
     assert config.project_ports("devspace") == [(8080, 8080)]
 
 
@@ -303,8 +301,8 @@ def _bridge_machine_project_config(published_ports: list[str]) -> dict[str, obje
         "hosts": {
             "local": {
                 "type": "podman-machine",
-                "network_mode": "bridge",
                 "machine": "podman-machine-default",
+                "container": {"network_mode": "bridge"},
             },
         },
         "projects": {
@@ -325,7 +323,7 @@ def test_config_parses_project_ports_on_bridge_host() -> None:
 
 
 def test_config_rejects_ports_on_host_network_host() -> None:
-    with pytest.raises(ValidationError, match="requires a bridge-network host"):
+    with pytest.raises(ValidationError, match="port publishing requires bridge mode"):
         Config.model_validate(
             {
                 "default_image": "img",
@@ -377,11 +375,14 @@ def test_config_resolved_container_uses_global_defaults(config: Config) -> None:
     assert resolved.cap_add == ["NET_RAW", "SYS_ADMIN"]
     assert resolved.security_opt == ["disable", "seccomp=unconfined"]
     assert resolved.pids_limit == -1
+    assert resolved.ulimits is not None
     assert {name: (u.soft, u.hard) for name, u in resolved.ulimits.items()} == {"memlock": (-1, -1)}
+    assert resolved.volumes is not None
     assert [(v.source, v.target, v.read_only) for v in resolved.volumes] == [
         ("/etc/krb5.conf", "/etc/krb5.conf", True)
     ]
-    assert resolved.environment == {}
+    # environment is unset in the fixture, so it stays None (engine default)
+    assert resolved.environment is None
 
 
 def test_config_resolved_container_applies_host_and_project_overrides() -> None:
@@ -389,6 +390,7 @@ def test_config_resolved_container_applies_host_and_project_overrides() -> None:
         {
             "default_image": "img",
             "container": {
+                "network_mode": "host",
                 "cap_add": ["NET_RAW"],
                 "security_opt": ["disable"],
                 "pids_limit": -1,
@@ -397,7 +399,6 @@ def test_config_resolved_container_applies_host_and_project_overrides() -> None:
             },
             "hosts": {
                 "home": {
-                    "network_mode": "host",
                     "container": {
                         "cap_add": ["NET_RAW", "SYS_ADMIN"],
                         "pids_limit": 100,
@@ -477,7 +478,6 @@ default_image: "default:latest"
 {_CONTAINER_YAML}
 hosts:
   home:
-    network_mode: host
 
 projects:
   devspace:
@@ -538,25 +538,24 @@ def test_config_rejects_blank_token(provider: str) -> None:
 @pytest.mark.parametrize(
     ("host_options", "message"),
     [
-        ({"network_mode": "host", "podman_socket": "relative.sock"}, "absolute path"),
+        ({"podman_socket": "relative.sock"}, "absolute path"),
         (
-            {"type": "podman-machine", "network_mode": "bridge"},
+            {"type": "podman-machine"},
             "machine is required",
         ),
         (
             {
                 "type": "podman-machine",
-                "network_mode": "bridge",
                 "machine": "podman-machine-default",
                 "podman_socket": "/run/podman/podman.sock",
             },
             "podman_socket is not valid",
         ),
         (
-            {"network_mode": "host", "machine": "podman-machine-default"},
+            {"machine": "podman-machine-default"},
             "machine is only valid",
         ),
-        ({"network_mode": "host", "unknown": "x"}, "Extra inputs"),
+        ({"unknown": "x"}, "Extra inputs"),
     ],
 )
 def test_config_rejects_invalid_host_options(
@@ -646,7 +645,7 @@ def test_config_rejects_unknown_fields(config: Config) -> None:
         Config.model_validate(data)
 
 
-@pytest.mark.parametrize("missing", ["default_image", "container", "hosts", "projects"])
+@pytest.mark.parametrize("missing", ["default_image", "hosts", "projects"])
 def test_config_requires_top_level_fields(config: Config, missing: str) -> None:
     data = config.model_dump()
     data.pop(missing)

@@ -13,6 +13,7 @@ def config() -> Config:
         {
             "default_image": "ghcr.io/curoky/devspace:codespace-debian13",
             "container": {
+                "network_mode": "host",
                 "cap_add": ["NET_RAW", "SYS_ADMIN"],
                 "security_opt": ["disable", "seccomp=unconfined"],
                 "pids_limit": -1,
@@ -20,8 +21,8 @@ def config() -> Config:
                 "volumes": ["/etc/krb5.conf:/etc/krb5.conf:ro"],
             },
             "hosts": {
-                "home": {"network_mode": "host"},
-                "office": {"network_mode": "host"},
+                "home": {},
+                "office": {},
             },
             "projects": {
                 "devspace": {

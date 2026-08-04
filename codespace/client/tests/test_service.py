@@ -7,7 +7,7 @@ from types import SimpleNamespace
 import pytest
 
 from codespace.client import provider, runtime, ssh
-from codespace.client.config import Config
+from codespace.client.config import Config, ContainerConfig
 from codespace.client.models import Environment, RepoGitState, environment_id, ssh_port
 from codespace.client.service import CodespaceService, describe_error
 from codespace.client.transport import SSHRoute
@@ -217,7 +217,9 @@ def test_create_runs_all_stages_in_order(
     ]
     assert pulls == [(service.config.default_image, "linux/arm64")]
     assert platforms == ["linux/arm64"]
-    assert create_kwargs[0]["network_mode"] == "host"
+    resolved = create_kwargs[0]["container"]
+    assert isinstance(resolved, ContainerConfig)
+    assert resolved.network_mode == "host"
     assert create_kwargs[0]["published_ports"] == []
     assert service.operations.list() == []
 
@@ -231,6 +233,7 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
         {
             "default_image": "img:latest",
             "container": {
+                "network_mode": "bridge",
                 "cap_add": ["NET_RAW", "SYS_ADMIN"],
                 "security_opt": ["disable", "seccomp=unconfined"],
                 "pids_limit": -1,
@@ -239,7 +242,6 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
             "hosts": {
                 "local": {
                     "type": "podman-machine",
-                    "network_mode": "bridge",
                     "machine": "podman-machine-default",
                 },
             },
@@ -287,7 +289,9 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
 
     service.create("devspace", "debug")
 
-    assert create_kwargs[0]["network_mode"] == "bridge"
+    resolved = create_kwargs[0]["container"]
+    assert isinstance(resolved, ContainerConfig)
+    assert resolved.network_mode == "bridge"
     assert create_kwargs[0]["published_ports"] == [(8080, 8080), (3000, 5000)]
     assert service.operations.list() == []
 

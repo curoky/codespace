@@ -1,9 +1,11 @@
 """Pydantic models for the supported Compose service subset.
 
-``ServiceSpec`` is the fully-specified block; ``ServiceOverride`` is the
-all-optional variant used for shallow, key-level overrides. Both use Compose
-field names (``volumes``/``environment``) and accept Compose short syntax via
-the ``BeforeValidator`` parsers in :mod:`codespace.client.compose.syntax`.
+``ServiceSpec`` is one Compose service block. Every field is optional, matching
+Compose semantics where an unset key means "engine default"; the same optional
+shape doubles as an override layer, so a single model covers both the base block
+and the per-host/per-project overrides applied on top of it. Field names follow
+Compose (``volumes``/``environment``) and accept Compose short syntax via the
+``BeforeValidator`` parsers in :mod:`codespace.client.compose.syntax`.
 """
 
 from __future__ import annotations
@@ -70,61 +72,45 @@ class Volume(BaseModel):
     read_only: bool = False
 
 
-# Fields shared by ServiceSpec and ServiceOverride, wired to the short-syntax
-# parsers. ServiceSpec makes the runtime flags required; ServiceOverride makes
-# every field optional for shallow key-level overrides.
+# Field types wired to the short-syntax parsers, shared across every field.
 _Ulimits = Annotated[dict[NonBlankString, Ulimit], BeforeValidator(normalize_ulimits)]
 _Volumes = Annotated[list[Volume], BeforeValidator(normalize_volumes)]
 _Environment = Annotated[dict[str, str], BeforeValidator(normalize_environment)]
 
 
 class ServiceSpec(BaseModel):
-    """A fully specified container service.
+    """One Compose service block; every field is optional.
 
-    ``cap_add``/``security_opt``/``pids_limit``/``ulimits`` are required so a
-    top-level service block declares them explicitly; ``volumes``/
-    ``environment`` default to empty as the explicit "none" form.
-    """
-
-    model_config = ConfigDict(extra="forbid")
-
-    cap_add: list[NonBlankString]
-    security_opt: list[NonBlankString]
-    pids_limit: int
-    ulimits: _Ulimits
-    volumes: _Volumes = Field(default_factory=list)
-    environment: _Environment = Field(default_factory=dict)
-
-    def merged_with(self, *overrides: ServiceOverride | None) -> Self:
-        """Return a copy with each override layer applied in order.
-
-        Every set override key replaces the corresponding value wholesale
-        (shallow, key-level replace; there is no deep merge, so e.g. a set
-        ``environment`` fully replaces the base mapping rather than being
-        combined with it). Unset keys inherit the current value. Layers are
-        applied left to right, so a later layer wins over an earlier one. The
-        result is re-validated, so it still honours every model constraint.
-        """
-        merged = self.model_dump()
-        for override in overrides:
-            if override is None:
-                continue
-            merged.update(override.model_dump(exclude_none=True))
-        return self.__class__.model_validate(merged)
-
-
-class ServiceOverride(BaseModel):
-    """Optional override of a ``ServiceSpec``; every field is optional.
-
-    Each set key replaces the corresponding base value wholesale (shallow,
-    key-level replace; no deep merge). Unset keys inherit the base value.
+    An unset (``None``) field means "not specified": at the runtime boundary it
+    maps to the container engine's default, and in ``merged_with`` it inherits
+    the value from the layer below instead of overriding it. The same model is
+    therefore used both for the base block and for override layers.
     """
 
     model_config = ConfigDict(extra="forbid")
 
     cap_add: list[NonBlankString] | None = None
     security_opt: list[NonBlankString] | None = None
+    network_mode: NonBlankString | None = None
     pids_limit: int | None = None
     ulimits: _Ulimits | None = None
     volumes: _Volumes | None = None
     environment: _Environment | None = None
+    devices: list[NonBlankString] | None = None
+
+    def merged_with(self, *overrides: ServiceSpec | None) -> Self:
+        """Return a copy with each override layer applied in order.
+
+        Only the keys a layer actually sets replace the value below it (shallow,
+        key-level replace; there is no deep merge, so e.g. a set ``environment``
+        fully replaces the mapping below rather than being combined with it).
+        Unset (``None``) keys inherit the value below. Layers are applied left to
+        right, so a later layer wins over an earlier one. The result is
+        re-validated, so it still honours every model constraint.
+        """
+        merged = self.model_dump(exclude_none=True)
+        for override in overrides:
+            if override is None:
+                continue
+            merged.update(override.model_dump(exclude_none=True))
+        return self.__class__.model_validate(merged)
