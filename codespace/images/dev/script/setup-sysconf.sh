@@ -18,11 +18,7 @@ echo "x:x123456" | chpasswd
 usermod -aG sudo x
 echo "x ALL=(ALL:ALL) NOPASSWD:ALL" >>/etc/sudoers.d/nopasswd_user
 
-# The Codespace login public key ships under /home/x/.ssh/authorized_keys (via
-# rootfs). `COPY rootfs/ /` lands it as root:root 0644 before user x exists, and
-# sshd StrictModes refuses a key file that is not owned by the login user or is
-# group/world-writable, so fix ownership and modes here at build time.
-chown -R 5230:5230 /home/x/.ssh
+chown -R 5230:5230 /home/x
 chmod 700 /home/x/.ssh
 chmod 600 /home/x/.ssh/authorized_keys
 
