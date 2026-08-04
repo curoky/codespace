@@ -414,7 +414,7 @@ def inject_credentials(
 def clone_repo(container: Container, repo: str, provider: GitProvider) -> None:
     """Clone the configured repo, preserving an existing Git checkout unchanged."""
     target = repo_target(repo)
-    present, _text = _exec(container, ["test", "-d", f"{target}/.git"], user=CONTAINER_USER)
+    present, _out, _err = _exec(container, ["test", "-d", f"{target}/.git"], user=CONTAINER_USER)
     if present == 0:
         return
     _exec_checked(
@@ -433,7 +433,7 @@ def repo_git_state(container: Container, repo: str) -> RepoGitState:
     """
     _ensure_running(container)
     target = repo_target(repo)
-    present, _text = _exec(container, ["test", "-d", f"{target}/.git"], user=CONTAINER_USER)
+    present, _out, _err = _exec(container, ["test", "-d", f"{target}/.git"], user=CONTAINER_USER)
     if present != 0:
         return RepoGitState()
 
@@ -456,10 +456,10 @@ def repo_git_state(container: Container, repo: str) -> RepoGitState:
 
 
 def _git_lines(container: Container, target: str, args: list[str]) -> list[str]:
-    exit_code, text = _exec(container, ["git", "-C", target, *args], user=CONTAINER_USER)
+    exit_code, stdout, stderr = _exec(container, ["git", "-C", target, *args], user=CONTAINER_USER)
     if exit_code != 0:
-        raise RuntimeError(f"exec git {args!r} failed ({exit_code}): {text}")
-    return [line for line in text.splitlines() if line.strip()]
+        raise RuntimeError(f"exec git {args!r} failed ({exit_code}): {stderr or stdout}")
+    return [line for line in stdout.splitlines() if line.strip()]
 
 
 def purge_workspace(
@@ -539,24 +539,33 @@ def _wait_running(container: Container) -> None:
     raise RuntimeError(f"container {_container_name(container)} did not reach running state")
 
 
-def _exec(container: Container, command: list[str], *, user: str) -> tuple[int, str]:
-    """Run one container command, failing fast when Podman returns no exit code.
+def _decode_stream(raw: bytes | None) -> str:
+    return raw.decode("utf-8", "replace") if isinstance(raw, bytes) else ""
 
-    A missing (``None``) exit code means the command status is unknown; treating
-    it as success would silently swallow failures, so it is rejected here. The
-    returned code is a real integer callers can branch on (e.g. ``test -d``).
+
+def _exec(container: Container, command: list[str], *, user: str) -> tuple[int, str, str]:
+    """Run one container command, returning its exit code and split streams.
+
+    ``demux=True`` keeps stdout and stderr separate. Without it Podman returns a
+    single multiplexed attach stream: stderr diagnostics and 8-byte frame
+    headers interleave with stdout, which corrupts callers that parse stdout
+    (e.g. git porcelain output). A missing (``None``) exit code means the status
+    is unknown; treating it as success would silently swallow failures, so it is
+    rejected here. The returned code is a real integer callers can branch on.
     """
-    exit_code, output = container.exec_run(command, user=user)
-    text = output.decode("utf-8", "replace") if isinstance(output, bytes) else str(output)
+    exit_code, output = container.exec_run(command, user=user, demux=True)
+    stdout_raw, stderr_raw = output if isinstance(output, tuple) else (output, None)
+    stdout = _decode_stream(stdout_raw)
+    stderr = _decode_stream(stderr_raw)
     if exit_code is None:
-        raise RuntimeError(f"exec {command!r} returned no exit code: {text}")
-    return exit_code, text
+        raise RuntimeError(f"exec {command!r} returned no exit code: {stderr or stdout}")
+    return exit_code, stdout, stderr
 
 
 def _exec_checked(container: Container, command: list[str], *, user: str) -> None:
-    exit_code, text = _exec(container, command, user=user)
+    exit_code, stdout, stderr = _exec(container, command, user=user)
     if exit_code != 0:
-        raise RuntimeError(f"exec {command!r} failed ({exit_code}): {text}")
+        raise RuntimeError(f"exec {command!r} failed ({exit_code}): {stderr or stdout}")
 
 
 def _ssh_archive(files: list[tuple[str, str, int]]) -> bytes:

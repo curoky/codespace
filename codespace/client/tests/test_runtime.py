@@ -68,9 +68,10 @@ class FakeContainer:
         command: list[str],
         *,
         user: str | None = None,
-    ) -> tuple[int, bytes]:
+        demux: bool = False,
+    ) -> tuple[int, tuple[bytes | None, bytes | None]]:
         self.exec_calls.append((command, user))
-        return 1 if command[0] == "test" else 0, b""
+        return 1 if command[0] == "test" else 0, (None, None)
 
     def put_archive(self, _path: str, archive: bytes) -> bool:
         self.archive = archive
@@ -430,8 +431,8 @@ def test_inject_credentials_does_not_read_existing_container_config() -> None:
 
 def test_clone_reuses_existing_checkout_and_uses_argument_list() -> None:
     container = FakeContainer()
-    container.exec_run = lambda command, user=None: (  # type: ignore[method-assign]
-        container.exec_calls.append((command, user)) or (0, b"")
+    container.exec_run = lambda command, user=None, demux=False: (  # type: ignore[method-assign]
+        container.exec_calls.append((command, user)) or (0, (None, None))
     )
 
     runtime.clone_repo(container, "curoky/devspace", "github")  # type: ignore[arg-type]
@@ -534,9 +535,14 @@ def test_purge_workspace_surfaces_rm_failure(monkeypatch: pytest.MonkeyPatch) ->
 
 
 class GitFakeContainer:
-    """Container stub scripting exec_run replies for git state probes."""
+    """Container stub scripting exec_run replies for git state probes.
 
-    def __init__(self, replies: dict[str, tuple[int, bytes]]) -> None:
+    Replies are ``(exit_code, stdout, stderr)`` and ``exec_run`` honours
+    ``demux=True`` by returning the streams separately, mirroring Podman's real
+    wire format. This lets tests prove stderr never pollutes stdout parsing.
+    """
+
+    def __init__(self, replies: dict[str, tuple[int, bytes, bytes]]) -> None:
         self.replies = replies
         self.calls: list[tuple[list[str], str | None]] = []
         self.status = "running"
@@ -554,12 +560,15 @@ class GitFakeContainer:
         command: list[str],
         *,
         user: str | None = None,
-    ) -> tuple[int, bytes]:
+        demux: bool = False,
+    ) -> tuple[int, tuple[bytes | None, bytes | None]]:
         self.calls.append((command, user))
         if command[0] == "test":
-            return self.replies.get("test", (0, b""))
-        # git commands: key on the subcommand after "-C <target>".
-        return self.replies.get(command[3], (0, b""))
+            code, stdout, stderr = self.replies.get("test", (0, b"", b""))
+        else:
+            # git commands: key on the subcommand after "-C <target>".
+            code, stdout, stderr = self.replies.get(command[3], (0, b"", b""))
+        return code, (stdout or None, stderr or None)
 
 
 def test_repo_git_state_clean_when_nothing_pending() -> None:
@@ -573,6 +582,22 @@ def test_repo_git_state_clean_when_nothing_pending() -> None:
     assert state.detail == []
 
 
+def test_repo_git_state_ignores_stderr_noise() -> None:
+    # Regression: without demux, git/conmon stderr diagnostics leaked into the
+    # stdout parsed for porcelain/log output and falsely blocked deletion.
+    container = GitFakeContainer(
+        {
+            "status": (0, b"", b"warning: could not open directory\n"),
+            "log": (0, b"", b"[conmon:d]: exec with attach got start message\n"),
+        }
+    )
+
+    state = runtime.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+
+    assert state.blocks_delete is False
+    assert state.detail == []
+
+
 def test_repo_git_state_starts_stopped_container() -> None:
     container = GitFakeContainer({})
     container.status = "exited"
@@ -583,7 +608,7 @@ def test_repo_git_state_starts_stopped_container() -> None:
 
 
 def test_repo_git_state_detects_uncommitted() -> None:
-    container = GitFakeContainer({"status": (0, b" M models.py\n")})
+    container = GitFakeContainer({"status": (0, b" M models.py\n", b"")})
 
     state = runtime.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
 
@@ -593,7 +618,7 @@ def test_repo_git_state_detects_uncommitted() -> None:
 
 
 def test_repo_git_state_detects_unpushed() -> None:
-    container = GitFakeContainer({"log": (0, b"abc123 add feature\n")})
+    container = GitFakeContainer({"log": (0, b"abc123 add feature\n", b"")})
 
     state = runtime.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
 
@@ -605,8 +630,8 @@ def test_repo_git_state_detects_unpushed() -> None:
 def test_repo_git_state_detects_both() -> None:
     container = GitFakeContainer(
         {
-            "status": (0, b" M models.py\n"),
-            "log": (0, b"abc123 add feature\n"),
+            "status": (0, b" M models.py\n", b""),
+            "log": (0, b"abc123 add feature\n", b""),
         }
     )
 
@@ -617,7 +642,7 @@ def test_repo_git_state_detects_both() -> None:
 
 
 def test_repo_git_state_skips_absent_checkout() -> None:
-    container = GitFakeContainer({"test": (1, b"")})
+    container = GitFakeContainer({"test": (1, b"", b"")})
 
     state = runtime.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
 
@@ -627,7 +652,7 @@ def test_repo_git_state_skips_absent_checkout() -> None:
 
 
 def test_repo_git_state_raises_on_git_failure() -> None:
-    container = GitFakeContainer({"status": (128, b"fatal: not a git repository")})
+    container = GitFakeContainer({"status": (128, b"", b"fatal: not a git repository")})
 
     with pytest.raises(RuntimeError, match=r"exec git .* failed \(128\)"):
         runtime.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
