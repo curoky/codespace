@@ -16,14 +16,8 @@ def config() -> Config:
                 "cap_add": ["NET_RAW", "SYS_ADMIN"],
                 "security_opt": ["disable", "seccomp=unconfined"],
                 "pids_limit": -1,
-                "ulimits": [{"name": "memlock", "soft": -1, "hard": -1}],
-                "mounts": [
-                    {
-                        "source": "/etc/krb5.conf",
-                        "target": "/etc/krb5.conf",
-                        "read_only": True,
-                    }
-                ],
+                "ulimits": {"memlock": {"soft": -1, "hard": -1}},
+                "volumes": ["/etc/krb5.conf:/etc/krb5.conf:ro"],
             },
             "hosts": {
                 "home": {"network_mode": "host"},

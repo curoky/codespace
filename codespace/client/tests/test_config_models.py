@@ -18,7 +18,7 @@ _CONTAINER: dict[str, object] = {
     "cap_add": ["NET_RAW", "SYS_ADMIN"],
     "security_opt": ["disable", "seccomp=unconfined"],
     "pids_limit": -1,
-    "ulimits": [{"name": "memlock", "soft": -1, "hard": -1}],
+    "ulimits": {"memlock": {"soft": -1, "hard": -1}},
 }
 
 # Every host must declare network_mode explicitly; there is no default.
@@ -31,7 +31,7 @@ container:
   security_opt: [disable, seccomp=unconfined]
   pids_limit: -1
   ulimits:
-    - {name: memlock, soft: -1, hard: -1}
+    memlock: {soft: -1, hard: -1}
 """
 
 
@@ -377,11 +377,11 @@ def test_config_resolved_container_uses_global_defaults(config: Config) -> None:
     assert resolved.cap_add == ["NET_RAW", "SYS_ADMIN"]
     assert resolved.security_opt == ["disable", "seccomp=unconfined"]
     assert resolved.pids_limit == -1
-    assert [(u.name, u.soft, u.hard) for u in resolved.ulimits] == [("memlock", -1, -1)]
-    assert [(m.source, m.target, m.read_only) for m in resolved.mounts] == [
+    assert {name: (u.soft, u.hard) for name, u in resolved.ulimits.items()} == {"memlock": (-1, -1)}
+    assert [(v.source, v.target, v.read_only) for v in resolved.volumes] == [
         ("/etc/krb5.conf", "/etc/krb5.conf", True)
     ]
-    assert resolved.env == {}
+    assert resolved.environment == {}
 
 
 def test_config_resolved_container_applies_host_and_project_overrides() -> None:
@@ -392,8 +392,8 @@ def test_config_resolved_container_applies_host_and_project_overrides() -> None:
                 "cap_add": ["NET_RAW"],
                 "security_opt": ["disable"],
                 "pids_limit": -1,
-                "ulimits": [],
-                "env": {"BASE": "1"},
+                "ulimits": {},
+                "environment": {"BASE": "1"},
             },
             "hosts": {
                 "home": {
@@ -411,7 +411,7 @@ def test_config_resolved_container_applies_host_and_project_overrides() -> None:
                     "repo": "owner/repo",
                     "container": {
                         "pids_limit": 200,
-                        "env": {"PROJECT": "1"},
+                        "environment": {"PROJECT": "1"},
                     },
                 }
             },
@@ -423,8 +423,8 @@ def test_config_resolved_container_applies_host_and_project_overrides() -> None:
     # host override replaces cap_add wholesale; project override wins on pids_limit
     assert resolved.cap_add == ["NET_RAW", "SYS_ADMIN"]
     assert resolved.pids_limit == 200
-    # env is replaced wholesale by the project layer, not deep-merged
-    assert resolved.env == {"PROJECT": "1"}
+    # environment is replaced wholesale by the project layer, not deep-merged
+    assert resolved.environment == {"PROJECT": "1"}
     # security_opt untouched by any override, inherits global
     assert resolved.security_opt == ["disable"]
 
@@ -438,8 +438,8 @@ def test_config_rejects_reserved_container_env_key() -> None:
                     "cap_add": [],
                     "security_opt": [],
                     "pids_limit": -1,
-                    "ulimits": [],
-                    "env": {"SSHD_PORT": "2222"},
+                    "ulimits": {},
+                    "environment": {"SSHD_PORT": "2222"},
                 },
                 "hosts": {"home": _SSH_HOST},
                 "projects": {
@@ -449,7 +449,7 @@ def test_config_rejects_reserved_container_env_key() -> None:
         )
 
 
-def test_config_rejects_relative_container_mount_source() -> None:
+def test_config_rejects_relative_container_volume_source() -> None:
     with pytest.raises(ValidationError, match="must be an absolute path"):
         Config.model_validate(
             {
@@ -458,8 +458,8 @@ def test_config_rejects_relative_container_mount_source() -> None:
                     "cap_add": [],
                     "security_opt": [],
                     "pids_limit": -1,
-                    "ulimits": [],
-                    "mounts": [{"source": "relative", "target": "/etc/x"}],
+                    "ulimits": {},
+                    "volumes": [{"source": "relative", "target": "/etc/x"}],
                 },
                 "hosts": {"home": _SSH_HOST},
                 "projects": {

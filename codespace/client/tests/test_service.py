@@ -234,7 +234,7 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
                 "cap_add": ["NET_RAW", "SYS_ADMIN"],
                 "security_opt": ["disable", "seccomp=unconfined"],
                 "pids_limit": -1,
-                "ulimits": [{"name": "memlock", "soft": -1, "hard": -1}],
+                "ulimits": {"memlock": {"soft": -1, "hard": -1}},
             },
             "hosts": {
                 "local": {

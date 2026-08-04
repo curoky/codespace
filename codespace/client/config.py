@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Annotated, Literal, Self
+from typing import Literal, Self
 
 import yaml
 from pydantic import (
-    AfterValidator,
     BaseModel,
     ConfigDict,
     Field,
@@ -15,6 +14,7 @@ from pydantic import (
     model_validator,
 )
 
+from codespace.client.compose import ServiceOverride, ServiceSpec
 from codespace.client.models import (
     PODMAN_SOCKET,
     RESOURCE_ID_RE,
@@ -32,91 +32,49 @@ from codespace.client.models import (
 CONFIG_PATH = Path.home() / ".config" / "codespace" / "config.yaml"
 
 # Environment keys the control plane derives per container and therefore must
-# not be supplied through the passthrough ``container.env``; a collision is a
-# configuration error rather than a silent override.
+# not be supplied through the passthrough ``container.environment``; a collision
+# is a configuration error rather than a silent override.
 _RESERVED_ENV_KEYS = frozenset({"SSHD_PORT", "SSHD_BIND"})
 
 
-def _absolute_path(value: str) -> str:
-    if not value.startswith("/"):
-        raise ValueError("must be an absolute path")
+def _reject_reserved_env(value: dict[str, str] | None) -> dict[str, str] | None:
+    if value is None:
+        return value
+    reserved = _RESERVED_ENV_KEYS & value.keys()
+    if reserved:
+        raise ValueError(
+            f"container.environment must not set control-plane keys {sorted(reserved)}"
+        )
     return value
 
 
-class Ulimit(BaseModel):
-    """One resource limit forwarded to ``podman run --ulimit``."""
+class ContainerConfig(ServiceSpec):
+    """The global ``container`` block: a Compose service plus reserved-key guard.
 
-    model_config = ConfigDict(extra="forbid")
-
-    name: NonBlankString
-    soft: int
-    hard: int
-
-
-class ExtraMount(BaseModel):
-    """One extra bind mount forwarded verbatim to the container."""
-
-    model_config = ConfigDict(extra="forbid")
-
-    source: Annotated[str, AfterValidator(_absolute_path)]
-    target: Annotated[str, AfterValidator(_absolute_path)]
-    read_only: bool = False
-
-
-class ContainerConfig(BaseModel):
-    """Container run flags forwarded to ``podman run``.
-
-    Every managed container's non-identity run flags come from here so the
-    control plane holds no implicit defaults. Fields are strongly typed rather
-    than opaque kwargs. ``cap_add``/``security_opt``/``pids_limit``/``ulimits``
-    are required so the top-level ``container`` block must declare them
-    explicitly; ``mounts``/``env`` default to empty as the explicit "no extra
-    item" form.
+    Inherits the Compose service subset (``cap_add``/``security_opt``/
+    ``pids_limit``/``ulimits`` required, ``volumes``/``environment`` optional)
+    and only adds the control-plane rule that ``environment`` must not carry the
+    keys the control plane derives itself.
     """
 
-    model_config = ConfigDict(extra="forbid")
-
-    cap_add: list[NonBlankString]
-    security_opt: list[NonBlankString]
-    pids_limit: int
-    ulimits: list[Ulimit]
-    mounts: list[ExtraMount] = Field(default_factory=list)
-    env: dict[str, str] = Field(default_factory=dict)
-
-    @field_validator("env")
+    @field_validator("environment")
     @classmethod
-    def _reject_reserved_env(cls, value: dict[str, str]) -> dict[str, str]:
-        reserved = _RESERVED_ENV_KEYS & value.keys()
-        if reserved:
-            raise ValueError(f"container.env must not set control-plane keys {sorted(reserved)}")
-        return value
+    def _reject_reserved(cls, value: dict[str, str]) -> dict[str, str]:
+        return _reject_reserved_env(value)  # type: ignore[return-value]
 
 
-class ContainerOverride(BaseModel):
-    """Optional per-host or per-project override of the global container flags.
+class ContainerOverride(ServiceOverride):
+    """Optional per-host or per-project override of the global container block.
 
     Each set key replaces the corresponding global value wholesale (shallow,
-    key-level replace; no deep merge). Unset keys inherit the global value.
+    key-level replace; no deep merge). Unset keys inherit the global value. The
+    ``environment`` reserved-key guard applies here too.
     """
 
-    model_config = ConfigDict(extra="forbid")
-
-    cap_add: list[NonBlankString] | None = None
-    security_opt: list[NonBlankString] | None = None
-    pids_limit: int | None = None
-    ulimits: list[Ulimit] | None = None
-    mounts: list[ExtraMount] | None = None
-    env: dict[str, str] | None = None
-
-    @field_validator("env")
+    @field_validator("environment")
     @classmethod
-    def _reject_reserved_env(cls, value: dict[str, str] | None) -> dict[str, str] | None:
-        if value is None:
-            return value
-        reserved = _RESERVED_ENV_KEYS & value.keys()
-        if reserved:
-            raise ValueError(f"container.env must not set control-plane keys {sorted(reserved)}")
-        return value
+    def _reject_reserved(cls, value: dict[str, str] | None) -> dict[str, str] | None:
+        return _reject_reserved_env(value)
 
 
 class HostConfig(BaseModel):
@@ -311,18 +269,14 @@ class Config(BaseModel):
         """Resolve one project's container run flags across the override layers.
 
         Applies host then project overrides on top of the global ``container``
-        block. Each set override key replaces the corresponding value wholesale
-        (shallow, key-level replace); unset keys inherit the global value. The
-        precedence is ``project > host > global``.
+        block. The layering semantics (shallow, key-level replace; precedence
+        ``project > host > global``) live in ``ServiceSpec.merged_with``.
         """
         project = self.projects[project_id]
-        merged = self.container.model_dump()
-        for override in (self.hosts[project.host].container, project.container):
-            if override is None:
-                continue
-            for key, value in override.model_dump(exclude_none=True).items():
-                merged[key] = value
-        return ContainerConfig.model_validate(merged)
+        return self.container.merged_with(
+            self.hosts[project.host].container,
+            project.container,
+        )
 
     def seed_tokens(self) -> dict[GitProvider, str]:
         """Return provider tokens declared in ``tokens`` to seed the store."""

@@ -45,10 +45,10 @@ container:
   security_opt: [disable, seccomp=unconfined]
   pids_limit: -1
   ulimits:
-    - {name: memlock, soft: -1, hard: -1}
-  mounts:
-    - {source: /etc/krb5.conf, target: /etc/krb5.conf, read_only: true}
-  env:
+    memlock: {soft: -1, hard: -1}
+  volumes:
+    - /etc/krb5.conf:/etc/krb5.conf:ro
+  environment:
     HTTP_PROXY: http://proxy:3128
 
 hosts:
@@ -78,7 +78,7 @@ projects:
     image: registry.example.com/codespace-api:latest
     platform: linux/arm64
     container:
-      env:
+      environment:
         NODE_ENV: development
   scratch:
     host: home
@@ -119,15 +119,19 @@ tokens:
   `nvidia.com/gpu=all`（等价 `--device nvidia.com/gpu=all`），要求该 host 已安装 NVIDIA
   驱动与 CDI 规范文件。
 - `tokens` 中的 `github`、`gitlab` 是可选的非空字符串。
-- 顶层 `container` 是必填块，承载所有非身份的容器 run flag，控制面自身不保留任何隐式默认
-  值。`cap_add`、`security_opt`、`pids_limit`、`ulimits` 必填（对应 `--cap-add`、
-  `--security-opt`、`--pids-limit`、`--ulimit`），`mounts`、`env` 可选、默认空。`mounts`
-  每项含绝对路径 `source`/`target` 和可选 `read_only`（默认 `false`）。`env` 是透传给容器
-  的环境变量，禁止使用控制面派生的保留键 `SSHD_PORT`、`SSHD_BIND`。这些值原样转发给
-  `podman run`，控制面不做任何转换或补默认。
+- 顶层 `container` 是必填块，承载所有非身份的容器 run flag，采用 Docker Compose service 的
+  字段名与语法子集（解析实现独立在 `client/compose/` 子包中，只做强类型化，不含控制面知识），
+  控制面自身不保留任何隐式默认值。`cap_add`、`security_opt`、`pids_limit`、`ulimits` 必填
+  （对应 `--cap-add`、`--security-opt`、`--pids-limit`、`--ulimit`），`volumes`、`environment`
+  可选、默认空。`ulimits` 是以限制名为 key 的映射，值为 `{soft, hard}` 或裸整数（等价 soft=hard）。
+  `volumes` 支持 Compose 短语法 `source:target[:ro|rw]` 或长语法 `{type: bind, source, target,
+  read_only}`；只支持 `type: bind`，`source`/`target` 必须是绝对路径，`read_only` 默认 `false`。
+  `environment` 是透传给容器的环境变量，支持映射或 `["KEY=value"]` 列表短语法，禁止使用控制面
+  派生的保留键 `SSHD_PORT`、`SSHD_BIND`。这些值原样转发给 `podman run`，控制面不做任何转换或补
+  默认。
 - `hosts.<host>.container` 和 `projects.<project>.container` 是可选覆盖，字段全部可选。已
   设置的 key 整体替换对应的顶层值（浅层 key 级替换，非深合并），未设置的 key 继承顶层值。
-  优先级 `project > host > global`。覆盖块的 `env` 同样禁止保留键。
+  优先级 `project > host > global`。覆盖块的 `environment` 同样禁止保留键。
 - 拒绝未知字段。
 - Project 和 instance ID 匹配 `^[a-z0-9][a-z0-9-]{0,31}$`。
 - Host alias 匹配 `^[a-z0-9][a-z0-9.-]{0,62}$`。
@@ -228,7 +232,7 @@ host。
 4. 按 project 平台拉取镜像；未配置时使用 host 原生平台。
 5. 以 SSH 登录用户身份创建 host workspace 目录（`mkdir -p`，无需 `sudo`）。
 6. 按解析后的 `container` 配置创建带完整 label 的 container：非身份 run flag（`cap_add`、
-   `security_opt`、`pids_limit`、`ulimits`、额外 `mounts` 和 `env`）由 global/host/project
+   `security_opt`、`pids_limit`、`ulimits`、额外 `volumes` 和 `environment`）由 global/host/project
    分层解析后原样透传，控制面不补默认。host 开启 `gpu` 时额外注入 CDI 设备
    `nvidia.com/gpu=all`。host 声明的 `network_mode` 原样转发给 `--network`；`bridge` 模式下
    注入 `SSHD_BIND=0.0.0.0`，发布 SSH 端口到 loopback，并发布 project `published_ports`
@@ -273,9 +277,16 @@ Include ~/.ssh/codespace/config
 Codespace 完全管理 `~/.ssh/codespace/config` 和 `hosts/*.conf`。只有 inventory 成功后
 才能重写 host 投影；host 离线时保留最后版本，从 YAML 移除后才删除。
 
-每个 environment 使用 `HostName 127.0.0.1`、确定性端口、用户 `x`、全局登录 key 和独立
-known-hosts 文件。SSH host 使用 `ProxyJump <host>`；Podman Machine 使用由 inspect 结果
-构造的专用 `ProxyCommand`。不得解析或合并历史 SSH block。
+每个 environment 使用 `HostName 127.0.0.1`、确定性端口、用户 `x` 和全局登录 key。所有
+environment 运行同一开发镜像、共用镜像内固定的 sshd ed25519 host key，因此不再为每个
+environment 维护独立 known-hosts 文件：全部 environment 通过固定 `HostKeyAlias codespace`
+指向单个被 pin 的 `~/.ssh/codespace/known_hosts/codespace`，并用 `StrictHostKeyChecking yes`
+做真实校验（key 不符即拒绝，而非 accept-new 的首次盲信）。被 pin 的 host key 作为
+code-level 契约常量固化在 `client/ssh.py`（`IMAGE_HOST_KEY`），与镜像
+`images/dev/rootfs/etc/ssh/ssh_host_ed25519_key.pub` 一致；改镜像 host key 必须同步更新它。
+SSH host 使用 `ProxyJump <host>`；Podman Machine 使用由 inspect 结果构造的专用
+`ProxyCommand`，其 `machine-<host>` known-hosts 校验的是 VM 自身 host key（与镜像 host key
+无关），保持 accept-new。不得解析或合并历史 SSH block。
 
 ## Web 契约
 

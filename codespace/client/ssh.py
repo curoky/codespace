@@ -30,6 +30,19 @@ KNOWN_HOSTS_DIR = CODESPACE_DIR / "known_hosts"
 LOGIN_KEY_PATH = CODESPACE_DIR / "id_ed25519"
 INCLUDE_LINE = "Include ~/.ssh/codespace/config"
 HOSTS_INCLUDE_LINE = "Include ~/.ssh/codespace/hosts/*.conf"
+# Every environment runs the same dev image, which ships a fixed sshd host key
+# (images/dev/rootfs/etc/ssh/ssh_host_ed25519_key.pub) and only offers
+# ssh-ed25519. Pinning that key here as a code-level contract lets a single
+# known_hosts entry — keyed by a fixed HostKeyAlias rather than 127.0.0.1:<port>
+# — verify every environment with StrictHostKeyChecking=yes, replacing the
+# per-environment accept-new (TOFU) files that only ever trusted-on-first-use.
+# The pinned file shares the known_hosts dir with the per-machine VM files,
+# which stay accept-new because a Podman Machine VM key is unrelated to the
+# image host key.
+HOST_KEY_ALIAS = "codespace"
+IMAGE_HOST_KEY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKegYIza0zOiYlRp2ln6uffJ5zWg6E189mjz2ktsOfni"
+KNOWN_HOSTS_PATH = KNOWN_HOSTS_DIR / HOST_KEY_ALIAS
+KNOWN_HOSTS_INCLUDE = f"~/.ssh/codespace/known_hosts/{HOST_KEY_ALIAS}"
 _LOCK = threading.RLock()
 _PROBE_TIMEOUT = 30.0
 _PROBE_INTERVAL = 0.5
@@ -138,6 +151,7 @@ def initialize(hosts: list[str]) -> None:
     with _layout_lock():
         _ensure_main_include()
         _write(CODESPACE_CONFIG_PATH, f"{HOSTS_INCLUDE_LINE}\n")
+        _write(KNOWN_HOSTS_PATH, f"{HOST_KEY_ALIAS} {IMAGE_HOST_KEY}\n")
         HOSTS_DIR.mkdir(parents=True, exist_ok=True)
         _ensure_mode(HOSTS_DIR, 0o700)
         configured = {f"{host}.conf" for host in hosts}
@@ -185,9 +199,6 @@ def ensure_login_key() -> str:
 
 def probe(environment: Environment, route: SSHRoute) -> None:
     """Verify actual SSH login through the configured host alias and login key."""
-    known_hosts = KNOWN_HOSTS_DIR / environment.id
-    known_hosts.parent.mkdir(parents=True, exist_ok=True)
-    _ensure_mode(known_hosts.parent, 0o700)
     command = [
         "ssh",
         "-o",
@@ -209,9 +220,11 @@ def probe(environment: Environment, route: SSHRoute) -> None:
         "-o",
         "HostKeyAlgorithms=ssh-ed25519",
         "-o",
-        "StrictHostKeyChecking=accept-new",
+        f"HostKeyAlias={HOST_KEY_ALIAS}",
         "-o",
-        f"UserKnownHostsFile={known_hosts}",
+        "StrictHostKeyChecking=yes",
+        "-o",
+        f"UserKnownHostsFile={KNOWN_HOSTS_PATH}",
         "-o",
         "UpdateHostKeys=no",
         environment.id,
@@ -255,7 +268,6 @@ def write_host(host: str, environments: list[Environment], route: SSHRoute) -> N
 
 
 def _render_environment(environment: Environment, route: SSHRoute) -> str:
-    known_hosts = f"~/.ssh/codespace/known_hosts/{environment.id}"
     proxy_directive = _proxy_option(route).replace("=", " ", 1)
     return "\n".join(
         [
@@ -267,8 +279,9 @@ def _render_environment(environment: Environment, route: SSHRoute) -> str:
             "    IdentityFile ~/.ssh/codespace/id_ed25519",
             "    IdentitiesOnly yes",
             "    HostKeyAlgorithms ssh-ed25519",
-            "    StrictHostKeyChecking accept-new",
-            f"    UserKnownHostsFile {known_hosts}",
+            f"    HostKeyAlias {HOST_KEY_ALIAS}",
+            "    StrictHostKeyChecking yes",
+            f"    UserKnownHostsFile {KNOWN_HOSTS_INCLUDE}",
             "    UpdateHostKeys no",
         ]
     )

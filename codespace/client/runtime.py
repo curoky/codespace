@@ -261,8 +261,9 @@ def create_container(
     ``network_mode`` string is forwarded to ``podman run`` verbatim.
 
     All non-identity run flags (``cap_add``, ``security_opt``, ``pids_limit``,
-    ``ulimits``, extra ``mounts`` and ``env``) come from ``container`` and are
-    forwarded verbatim; the control plane keeps no implicit defaults for them.
+    ``ulimits``, extra ``volumes`` and ``environment``) come from ``container``
+    and are forwarded verbatim; the control plane keeps no implicit defaults for
+    them.
     """
     identity = environment_id(host, project, instance)
     port = ssh_port(identity)
@@ -281,7 +282,7 @@ def create_container(
     # Derived keys are written last so a stray configured env key can never
     # silently override the control-plane values; config.ContainerConfig already
     # rejects the reserved keys at load time, so a collision here is impossible.
-    environment = {**container.env, "SSHD_PORT": str(port)}
+    environment = {**container.environment, "SSHD_PORT": str(port)}
     ports: dict[str, object] = {}
     if bridge:
         environment["SSHD_BIND"] = "0.0.0.0"  # noqa: S104
@@ -297,13 +298,13 @@ def create_container(
             "target": WORKSPACE_MOUNT,
         }
     ]
-    for extra in container.mounts:
+    for volume in container.volumes:
         mounts.append(
             {
                 "type": "bind",
-                "source": extra.source,
-                "target": extra.target,
-                "read_only": extra.read_only,
+                "source": volume.source,
+                "target": volume.target,
+                "read_only": volume.read_only,
             }
         )
     created = client.containers.run(
@@ -315,8 +316,8 @@ def create_container(
         security_opt=container.security_opt,
         pids_limit=container.pids_limit,
         ulimits=[
-            {"Name": limit.name, "Soft": limit.soft, "Hard": limit.hard}
-            for limit in container.ulimits
+            {"Name": name, "Soft": limit.soft, "Hard": limit.hard}
+            for name, limit in container.ulimits.items()
         ],
         environment=environment,
         platform=platform,
