@@ -312,6 +312,62 @@ def test_prepare_workspace_wraps_ssh_failure(
         ssh.prepare_workspace(_remote_route(), "/home/x/codespace/devspace/debug")
 
 
+def test_read_host_environment_returns_only_requested_exported_values(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    commands: list[list[str]] = []
+
+    def run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
+        commands.append(command)
+        return subprocess.CompletedProcess(
+            command,
+            0,
+            stdout=(
+                "PATH=/usr/bin\0HTTP_PROXY=http://proxy:3128\0EMPTY=\0MULTILINE=line 1\nline 2\0"
+            ),
+            stderr="",
+        )
+
+    monkeypatch.setattr(ssh.subprocess, "run", run)
+
+    environment = ssh.read_host_environment(
+        _remote_route(),
+        ["HTTP_PROXY", "EMPTY", "MULTILINE"],
+    )
+
+    assert environment == {
+        "HTTP_PROXY": "http://proxy:3128",
+        "EMPTY": "",
+        "MULTILINE": "line 1\nline 2",
+    }
+    assert commands[0][-2:] == ["home", "env -0"]
+
+
+def test_read_host_environment_rejects_missing_export(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        ssh.subprocess,
+        "run",
+        lambda command, **_kwargs: subprocess.CompletedProcess(
+            command,
+            0,
+            stdout="HTTP_PROXY=http://proxy:3128\0",
+            stderr="",
+        ),
+    )
+
+    with pytest.raises(RuntimeError, match=r"does not export.*\['NO_PROXY'\]"):
+        ssh.read_host_environment(_remote_route(), ["HTTP_PROXY", "NO_PROXY"])
+
+
+def test_read_host_environment_rejects_podman_machine() -> None:
+    route = SSHRoute(host="local", machine="podman-machine-default")
+
+    with pytest.raises(RuntimeError, match="not supported for Podman Machine"):
+        ssh.read_host_environment(route, ["HTTP_PROXY"])
+
+
 def test_podman_machine_workspace_uses_root_route(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

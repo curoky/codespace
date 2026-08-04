@@ -137,6 +137,12 @@ class CodespaceService:
             spec,
         )
 
+        host_environment: dict[str, str] = {}
+        environment_names = self.config.host_config(project.host).environment
+        if environment_names:
+            self._stage(creation, "reading host environment")
+            host_environment = ssh.read_host_environment(creation.route, environment_names)
+
         deploy_keypair = None
         if is_repo:
             self._stage(creation, "generating deploy key")
@@ -158,6 +164,7 @@ class CodespaceService:
             creation.client,
             spec,
             workspace_root,
+            host_environment,
         )
 
         if deploy_keypair is not None:

@@ -42,6 +42,7 @@ _PROBE_TIMEOUT = 30.0
 _PROBE_INTERVAL = 0.5
 _WORKSPACE_ROOT_TIMEOUT = 15.0
 _WORKSPACE_PREPARE_TIMEOUT = 15.0
+_HOST_ENVIRONMENT_TIMEOUT = 15.0
 
 
 @cache
@@ -74,6 +75,37 @@ def prepare_workspace(route: SSHRoute, target: str) -> None:
         timeout=_WORKSPACE_PREPARE_TIMEOUT,
         action=f"prepare workspace {target!r}",
     )
+
+
+def read_host_environment(route: SSHRoute, names: list[str]) -> dict[str, str]:
+    """Read selected exported variables from a remote SSH login environment."""
+    if not names:
+        return {}
+    if route.is_machine:
+        raise RuntimeError("host environment inheritance is not supported for Podman Machine")
+    result = _run_host(
+        route,
+        "env -0",
+        timeout=_HOST_ENVIRONMENT_TIMEOUT,
+        action="read exported environment",
+    )
+    requested = set(names)
+    environment: dict[str, str] = {}
+    for entry in result.stdout.split("\0"):
+        name, separator, value = entry.partition("=")
+        if not separator or name not in requested:
+            continue
+        if name in environment:
+            raise RuntimeError(
+                f"host {route.host!r} exported environment variable {name!r} more than once"
+            )
+        environment[name] = value
+    missing = sorted(requested - environment.keys())
+    if missing:
+        raise RuntimeError(
+            f"host {route.host!r} does not export configured environment variables: {missing}"
+        )
+    return {name: environment[name] for name in names}
 
 
 def _run_host(

@@ -95,12 +95,17 @@ def test_static_assets_are_native_sources(app_client: tuple[TestClient, FakeServ
 
     assert index.status_code == 200
     assert "/static/app.js" in index.text
+    assert 'class="app-header"' in index.text
+    assert 'class="brand-mark"' in index.text
+    assert 'aria-label="Close"' in index.text
     assert "react" not in script.text.lower()
     assert "radix" not in stylesheet.text.lower()
+    assert "project-source" in script.text
     assert "environment.ssh_command" in script.text
     assert "navigator.clipboard.writeText(command)" in script.text
     assert ".ssh-command" in stylesheet.text
     assert ".ssh-command.copied::after" in stylesheet.text
+    assert "prefers-reduced-motion" in stylesheet.text
 
 
 def test_dashboard_returns_all_state_and_token_presence(

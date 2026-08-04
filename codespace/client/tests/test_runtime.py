@@ -188,6 +188,7 @@ def test_create_container_preserves_fixed_runtime_contract(
         client,  # type: ignore[arg-type]
         config.environment_spec("devspace", "debug"),
         "/home/x/codespace",
+        {"HTTP_PROXY": "http://host-proxy:3128"},
     )
 
     assert result is container
@@ -200,7 +201,10 @@ def test_create_container_preserves_fixed_runtime_contract(
     assert kwargs["security_opt"] == ["disable", "seccomp=unconfined"]
     assert kwargs["pids_limit"] == -1
     assert kwargs["ulimits"] == [{"Name": "memlock", "Soft": -1, "Hard": -1}]
-    assert kwargs["environment"] == {"SSHD_PORT": str(ssh_port("codespace-home-devspace-debug"))}
+    assert kwargs["environment"] == {
+        "HTTP_PROXY": "http://host-proxy:3128",
+        "SSHD_PORT": str(ssh_port("codespace-home-devspace-debug")),
+    }
     assert kwargs["ports"] == {}
     assert kwargs["devices"] == []
     assert kwargs["labels"] == {
@@ -221,6 +225,26 @@ def test_create_container_preserves_fixed_runtime_contract(
             "read_only": True,
         },
     ]
+
+
+def test_create_container_rejects_host_environment_collision(
+    config: Config,
+) -> None:
+    spec = config.environment_spec("devspace", "debug")
+    spec = replace(
+        spec,
+        container=spec.container.model_copy(
+            update={"environment": {"HTTP_PROXY": "http://configured:3128"}}
+        ),
+    )
+
+    with pytest.raises(ValueError, match=r"also set in container\.environment"):
+        container_runtime.create_container(
+            SimpleNamespace(),  # type: ignore[arg-type]
+            spec,
+            "/home/x/codespace",
+            {"HTTP_PROXY": "http://host-proxy:3128"},
+        )
 
 
 def test_create_container_injects_gpu_device(

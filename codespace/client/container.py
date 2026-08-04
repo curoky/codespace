@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from typing import Any, cast
 
@@ -50,10 +50,22 @@ def create_container(
     client: PodmanClient,
     spec: EnvironmentSpec,
     workspace_root: str,
+    host_environment: Mapping[str, str] | None = None,
 ) -> Container:
     """Create and start a configured development container."""
     options = spec.container
-    environment = {**(options.environment or {}), "SSHD_PORT": str(spec.ssh_port)}
+    configured_environment = options.environment or {}
+    inherited_environment = host_environment or {}
+    collisions = sorted(inherited_environment.keys() & configured_environment.keys())
+    if collisions:
+        raise ValueError(
+            f"host environment variables also set in container.environment: {collisions}"
+        )
+    environment = {
+        **inherited_environment,
+        **configured_environment,
+        "SSHD_PORT": str(spec.ssh_port),
+    }
     ports: dict[str, object] = {}
     if options.is_bridge:
         environment["SSHD_BIND"] = "0.0.0.0"  # noqa: S104

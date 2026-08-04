@@ -255,6 +255,121 @@ def test_config_accepts_explicit_podman_machine_host() -> None:
         config.host_config("local").resolved_podman_socket()
 
 
+def test_config_accepts_inherited_environment_for_ssh_host() -> None:
+    config = Config.model_validate(
+        {
+            "default_image": "img",
+            "container": _CONTAINER,
+            "hosts": {
+                "home": {
+                    "environment": ["HTTP_PROXY", "_INTERNAL_TOKEN"],
+                }
+            },
+            "projects": {
+                "devspace": {
+                    "host": "home",
+                    "provider": "github",
+                    "repo": "owner/repo",
+                }
+            },
+        }
+    )
+
+    assert config.host_config("home").environment == ["HTTP_PROXY", "_INTERNAL_TOKEN"]
+
+
+@pytest.mark.parametrize("name", ["", "1INVALID", "INVALID-NAME", "INVALID.NAME"])
+def test_config_rejects_invalid_inherited_environment_name(name: str) -> None:
+    with pytest.raises(ValidationError, match="string_pattern_mismatch"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "container": _CONTAINER,
+                "hosts": {"home": {"environment": [name]}},
+                "projects": {
+                    "devspace": {
+                        "host": "home",
+                        "provider": "github",
+                        "repo": "owner/repo",
+                    }
+                },
+            }
+        )
+
+
+def test_config_rejects_duplicate_or_reserved_inherited_environment() -> None:
+    base = {
+        "default_image": "img",
+        "container": _CONTAINER,
+        "projects": {
+            "devspace": {
+                "host": "home",
+                "provider": "github",
+                "repo": "owner/repo",
+            }
+        },
+    }
+    with pytest.raises(ValidationError, match="must not contain duplicates"):
+        Config.model_validate(
+            {
+                **base,
+                "hosts": {"home": {"environment": ["HTTP_PROXY", "HTTP_PROXY"]}},
+            }
+        )
+    with pytest.raises(ValidationError, match="must not inherit control-plane keys"):
+        Config.model_validate(
+            {
+                **base,
+                "hosts": {"home": {"environment": ["SSHD_PORT"]}},
+            }
+        )
+
+
+def test_config_rejects_inherited_environment_for_podman_machine() -> None:
+    with pytest.raises(ValidationError, match="only valid for SSH hosts"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "container": _CONTAINER,
+                "hosts": {
+                    "local": {
+                        "type": "podman-machine",
+                        "machine": "podman-machine-default",
+                        "environment": ["HTTP_PROXY"],
+                    }
+                },
+                "projects": {
+                    "devspace": {
+                        "host": "local",
+                        "provider": "github",
+                        "repo": "owner/repo",
+                    }
+                },
+            }
+        )
+
+
+def test_config_rejects_collision_between_inherited_and_explicit_environment() -> None:
+    with pytest.raises(ValidationError, match="inherited host environment variables"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "container": {
+                    **_CONTAINER,
+                    "environment": {"HTTP_PROXY": "http://configured:3128"},
+                },
+                "hosts": {"home": {"environment": ["HTTP_PROXY"]}},
+                "projects": {
+                    "devspace": {
+                        "host": "home",
+                        "provider": "github",
+                        "repo": "owner/repo",
+                    }
+                },
+            }
+        )
+
+
 def test_config_ssh_host_uses_host_network() -> None:
     config = Config.model_validate(
         {

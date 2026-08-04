@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal, Self
+from typing import Annotated, Literal, Self
 
 import yaml
 from pydantic import (
@@ -34,6 +34,7 @@ CONFIG_PATH = Path.home() / ".config" / "codespace" / "config.yaml"
 
 # Derived per container and forbidden in passthrough environment values.
 _RESERVED_ENV_KEYS = frozenset({"SSHD_PORT", "SSHD_BIND"})
+type EnvironmentName = Annotated[str, Field(pattern=r"^[A-Za-z_][A-Za-z0-9_]*$")]
 
 
 def _reject_reserved_env(value: dict[str, str] | None) -> dict[str, str] | None:
@@ -75,6 +76,7 @@ class HostConfig(BaseModel):
     type: Literal["ssh", "podman-machine"] = "ssh"
     podman_socket: str | None = None
     machine: NonBlankString | None = None
+    environment: list[EnvironmentName] = Field(default_factory=list)
     container: ContainerConfig | None = None
 
     @field_validator("podman_socket")
@@ -82,6 +84,17 @@ class HostConfig(BaseModel):
     def _validate_podman_socket(cls, value: str | None) -> str | None:
         if value is not None and not value.startswith("/"):
             raise ValueError("podman_socket must be an absolute path")
+        return value
+
+    @field_validator("environment")
+    @classmethod
+    def _validate_environment(cls, value: list[str]) -> list[str]:
+        duplicates = sorted({name for name in value if value.count(name) > 1})
+        if duplicates:
+            raise ValueError(f"environment must not contain duplicates: {duplicates}")
+        reserved = _RESERVED_ENV_KEYS & set(value)
+        if reserved:
+            raise ValueError(f"environment must not inherit control-plane keys {sorted(reserved)}")
         return value
 
     @model_validator(mode="after")
@@ -94,6 +107,8 @@ class HostConfig(BaseModel):
             raise ValueError("machine is required for podman-machine hosts")
         if self.podman_socket is not None:
             raise ValueError("podman_socket is not valid for podman-machine hosts")
+        if self.environment:
+            raise ValueError("environment is only valid for SSH hosts")
         return self
 
     def resolved_podman_socket(self) -> str:
@@ -220,6 +235,14 @@ class Config(BaseModel):
                 raise ValueError(
                     f"project {project_id!r} sets 'published_ports' but its resolved "
                     "container.network_mode is not 'bridge'; port publishing requires bridge mode"
+                )
+            inherited = set(self.hosts[project.host].environment)
+            explicit = set(resolved.environment or {})
+            collisions = sorted(inherited & explicit)
+            if collisions:
+                raise ValueError(
+                    f"project {project_id!r} configures inherited host environment variables "
+                    f"{collisions} in container.environment"
                 )
         return self
 

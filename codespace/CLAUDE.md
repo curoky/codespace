@@ -62,6 +62,7 @@ hosts:
       network_mode: bridge
   office:
     podman_socket: /tmp/podmanxd.sock
+    environment: [HTTP_PROXY, HTTPS_PROXY, NO_PROXY]
   gpu-box:
     container:
       pids_limit: 4096
@@ -113,7 +114,12 @@ SSH host）。每个 project 必须包含 `host`，并按 `type` 决定 repo 相
 - `hosts.<host>.type` 默认是 `ssh`，也可设为 `podman-machine`。
 - SSH host 可配置绝对路径 `podman_socket`，默认 `/run/podman/podman.sock`，不得配置
   `machine`。
+- SSH host 可配置 `environment`，值为需要从该 host 的非交互 SSH 登录环境继承到开发容器的
+  变量名列表。变量名必须匹配 `^[A-Za-z_][A-Za-z0-9_]*$`、不得重复，也不得包含控制面保留键
+  `SSHD_PORT`、`SSHD_BIND`。控制面在每次创建实例时读取这些变量；任一变量未导出就终止创建，
+  不传空值或沿用旧值。`container.environment` 仍用于显式固定值，两者不得包含同名变量。
 - Podman Machine host 必须配置 `machine`，不得配置 `podman_socket`。
+- Podman Machine host 不支持 `environment`；该能力只适用于 Linux SSH host。
 - `tokens` 中的 `github`、`gitlab` 是可选的非空字符串。
 - 顶层 `container` 是可选块，承载所有非身份的容器 run flag，采用 Docker Compose service 的
   字段名与语法子集（解析实现独立在 `client/compose/` 子包中，只做强类型化，不含控制面知识），
@@ -130,7 +136,7 @@ SSH host）。每个 project 必须包含 `host`，并按 `type` 决定 repo 相
   `{type: bind, source, target, read_only}`；只支持 `type: bind`，`source`/`target` 必须是绝对
   路径，`read_only` 默认 `false`。`devices` 是原样转发给 `--device` 的字符串列表，GPU 访问用 CDI
   设备名表达（如 `nvidia.com/gpu=all`），要求该 host 已安装 NVIDIA 驱动与 CDI 规范文件。
-  `environment` 是透传给容器的环境变量，支持映射或
+  `container.environment` 是显式透传给容器的固定环境变量，支持映射或
   `["KEY=value"]` 列表短语法，禁止使用控制面派生的保留键 `SSHD_PORT`、`SSHD_BIND`。这些值原样
   转发给 `podman run`，控制面不做任何转换。
 - `hosts.<host>.container` 和 `projects.<project>.container` 是可选覆盖，与顶层 `container`
@@ -158,6 +164,8 @@ Podman Machine host ID 是 Codespace 内的逻辑名称；对应 machine 必须�
 - rootful Podman socket；SSH host 默认是 `/run/podman/podman.sock`，Podman Machine
   通过 `podman machine inspect` 获取 API socket 和 SSH identity；
 - SSH 登录用户的可写 home；workspace root 是绝对路径化后的 `~/codespace`；
+- GNU `env`（支持 `-0`），用于读取 `hosts.<host>.environment` 声明且已在非交互 SSH 会话中
+  导出的变量；
 - 允许开发镜像内 root 将挂载的 `/workspace` `chown` 为 `5230:5230`；
 - 为 environment SSH 保留的端口范围 `20000-29999`；
 - 一个 host 级 sidecar；
@@ -242,33 +250,36 @@ host。
 创建顺序不可调整：
 
 1. 校验 inventory、token、重复 ID 和 SSH 端口冲突。
-2. 在内存中生成 environment deploy key。
-3. 按 project 平台拉取镜像；未配置时使用 host 原生平台。
-4. 以 SSH 登录用户身份创建 host workspace 目录（`mkdir -p`，无需 `sudo`）。
-5. 按解析后的 `container` 配置创建带完整 label 的 container：非身份 run flag（`network_mode`、
+2. 若 `hosts.<host>.environment` 非空，通过该 host 的非交互 SSH 登录环境读取所有声明的变量；
+   任一变量未导出即失败。该步骤只保存本次创建所需的内存快照。
+3. 在内存中生成 environment deploy key。
+4. 按 project 平台拉取镜像；未配置时使用 host 原生平台。
+5. 以 SSH 登录用户身份创建 host workspace 目录（`mkdir -p`，无需 `sudo`）。
+6. 按解析后的 `container` 配置创建带完整 label 的 container：非身份 run flag（`network_mode`、
    `cap_add`、`security_opt`、`pids_limit`、`ulimits`、`devices`、额外 `volumes` 和
-   `environment`）由 global/host/project 分层解析后原样透传，控制面不补默认。GPU 通过
+   `container.environment`）由 global/host/project 分层解析后原样透传，控制面不补默认；
+   第 2 步读取的 host 环境快照同时注入且禁止与显式 `container.environment` 重名。GPU 通过
    `container.devices` 里的 CDI 设备名（如 `nvidia.com/gpu=all`）表达。解析后的
    `container.network_mode` 原样转发给 `--network`；`bridge` 模式下
    注入 `SSHD_BIND=0.0.0.0`，发布 SSH 端口到 loopback，并发布 project `published_ports`
    声明的业务端口。
-6. 镜像内 `workspace-init` 先将挂载的 `/workspace` `chown` 为 `5230:5230`，之后才允许
+7. 镜像内 `workspace-init` 先将挂载的 `/workspace` `chown` 为 `5230:5230`，之后才允许
    `sshd` 和 `onceinit` 启动。
-7. `repo` 类型只把内存中生成的私钥整体写入镜像预创建的
+8. `repo` 类型只把内存中生成的私钥整体写入镜像预创建的
    `/home/x/.ssh/repo_id_ed25519`，再将该文件归属设为 `5230:5230`。Provider SSH config
    和 pinned `known_hosts` 已由镜像安装，控制面不得生成或覆盖。登录公钥已烤进开发镜像的
    `authorized_keys`，控制面只用仓库内固定的登录私钥登录。`blank` 类型不注入任何凭据。
-8. 通过生成的 route 完成真实 SSH 登录验证。
-9. 将 provider 上同名 deploy key 替换为一个可写 key。
-10. 保留现有 Git checkout；目录不存在时使用 `git clone --depth=1` 浅克隆配置的 repository。
-11. 原子更新 host SSH 投影。
+9. 通过生成的 route 完成真实 SSH 登录验证。
+10. 将 provider 上同名 deploy key 替换为一个可写 key。
+11. 保留现有 Git checkout；目录不存在时使用 `git clone --depth=1` 浅克隆配置的 repository。
+12. 原子更新 host SSH 投影。
 
 注册 deploy key 前失败时，回滚 container 但保留 workspace。注册后失败时，必须先撤销
 key；撤销失败则停止并保留带 label 的 container，待 token 恢复后重试正常删除。
 
-`blank` 类型 project 跳过与仓库相关的步骤：不生成或注册 deploy key（步骤 2、9），不 clone
-repository（步骤 10），创建与删除均不需要 provider token；其余步骤与 `repo` 类型一致。由于没有
-clone 产生的 checkout 目录，`blank` 类型在容器内以容器用户身份 `mkdir -p` 其 `open_path`
+`blank` 类型 project 跳过与仓库相关的步骤：不生成或注册 deploy key（步骤 3、10），不 clone
+repository（步骤 11），创建与删除均不需要 provider token；其余步骤与 `repo` 类型一致。由于
+没有 clone 产生的 checkout 目录，`blank` 类型在容器内以容器用户身份 `mkdir -p` 其 `open_path`
 （默认挂载点 `/workspace`），保证编辑器打开的是一个已存在的目录。
 
 删除 `repo` 类型需要 provider token，并在任何远端变更前撤销所有匹配 deploy key。Key 已不

@@ -160,8 +160,10 @@ def test_create_runs_all_stages_in_order(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _queue_with_token(service)
+    service.config.hosts["home"].environment = ["HTTP_PROXY"]
     events: list[str] = []
     specs: list[EnvironmentSpec] = []
+    inherited_environments: list[dict[str, str]] = []
     container = SimpleNamespace(id="container-id")
     inventories = iter(
         [
@@ -170,6 +172,13 @@ def test_create_runs_all_stages_in_order(
         ]
     )
     monkeypatch.setattr(inventory, "list_inventory", lambda *args: next(inventories))
+    monkeypatch.setattr(
+        ssh,
+        "read_host_environment",
+        lambda route, names: (
+            events.append("environment") or {"HTTP_PROXY": "http://host-proxy:3128"}
+        ),
+    )
     monkeypatch.setattr(
         workspace,
         "generate_deploy_keypair",
@@ -193,8 +202,10 @@ def test_create_runs_all_stages_in_order(
         _client: object,
         spec: EnvironmentSpec,
         _workspace_root: str,
+        host_environment: dict[str, str],
     ) -> object:
         specs.append(spec)
+        inherited_environments.append(host_environment)
         events.append("create")
         return container
 
@@ -214,6 +225,7 @@ def test_create_runs_all_stages_in_order(
     service.create("devspace", "debug")
 
     assert events == [
+        "environment",
         "keygen",
         "pull",
         "workspace",
@@ -228,6 +240,7 @@ def test_create_runs_all_stages_in_order(
     assert specs[0].project.platform == "linux/arm64"
     assert specs[0].container.network_mode == "host"
     assert specs[0].published_ports == ()
+    assert inherited_environments == [{"HTTP_PROXY": "http://host-proxy:3128"}]
     assert service.operations.list() == []
 
 
@@ -284,7 +297,7 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
     monkeypatch.setattr(
         containers,
         "create_container",
-        lambda _client, spec, _root: (specs.append(spec), container)[-1],
+        lambda _client, spec, _root, _environment: (specs.append(spec), container)[-1],
     )
     monkeypatch.setattr(workspace, "inject_deploy_key", lambda *args, **kwargs: None)
     monkeypatch.setattr(ssh, "probe", lambda *args: None)
