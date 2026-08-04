@@ -253,8 +253,9 @@ host。
 key；撤销失败则停止并保留带 label 的 container，待 token 恢复后重试正常删除。
 
 `blank` 类型 project 跳过与仓库相关的步骤：不生成或注册 deploy key（步骤 3、10），不 clone
-repository（步骤 11），创建与删除均不需要 provider token；其余步骤与 `repo` 类型一致，
-编辑器按 `open_path`（默认挂载点 `/workspace`）打开。
+repository（步骤 11），创建与删除均不需要 provider token；其余步骤与 `repo` 类型一致。由于没有
+clone 产生的 checkout 目录，`blank` 类型在容器内以容器用户身份 `mkdir -p` 其 `open_path`
+（默认挂载点 `/workspace`），保证编辑器打开的是一个已存在的目录。
 
 删除 `repo` 类型需要 provider token，并在任何远端变更前撤销所有匹配 deploy key。Key 已不
 存在视为幂等成功。`blank` 类型没有 provider 状态，直接进入 container 与 workspace 处理。

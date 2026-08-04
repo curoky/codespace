@@ -331,6 +331,7 @@ def test_create_blank_project_skips_repo_stages(
     monkeypatch.setattr(ssh, "probe", lambda environment, route: events.append("probe"))
     monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
     monkeypatch.setattr(runtime, "clone_repo", lambda *args: events.append("clone"))
+    monkeypatch.setattr(runtime, "prepare_open_path", lambda *args: events.append("open_path"))
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
 
     service.create("scratch", "debug")
@@ -346,6 +347,7 @@ def test_create_blank_project_skips_repo_stages(
         "own",
         "inject",
         "probe",
+        "open_path",
         "projection",
     ]
     assert service.operations.list() == []

@@ -288,6 +288,9 @@ class CodespaceService:
                 self._require_repo(project),
                 self._require_provider(project),
             )
+        else:
+            self._stage(creation, "preparing open path")
+            runtime.prepare_open_path(container, self.config.project_open_path(creation.project_id))
 
         self._stage(creation, "writing ssh config")
         refreshed = runtime.list_inventory(creation.client, project.host, self.config)

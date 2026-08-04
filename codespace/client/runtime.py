@@ -352,6 +352,17 @@ def own_workspace(container: Container) -> None:
     )
 
 
+def prepare_open_path(container: Container, open_path: str) -> None:
+    """Create the editor open path inside the container for a blank project.
+
+    Repo projects get their open directory as a side effect of ``git clone``;
+    blank projects have no checkout, so the configured ``open_path`` (or the
+    default ``/workspace``) would otherwise not exist. Create it as the
+    container user so the editor opens a real directory.
+    """
+    _exec_checked(container, ["mkdir", "-p", "--", open_path], user=CONTAINER_USER)
+
+
 def inject_credentials(
     container: Container,
     *,

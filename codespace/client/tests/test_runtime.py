@@ -458,6 +458,14 @@ def test_clone_missing_checkout_runs_git_without_shell() -> None:
     )
 
 
+def test_prepare_open_path_makes_directory_as_container_user() -> None:
+    container = FakeContainer()
+
+    runtime.prepare_open_path(container, "/workspace/relevance-pipeline")  # type: ignore[arg-type]
+
+    assert container.exec_calls == [(["mkdir", "-p", "--", "/workspace/relevance-pipeline"], "x")]
+
+
 def test_purge_workspace_uses_environment_platform(monkeypatch: pytest.MonkeyPatch) -> None:
     container = SimpleNamespace(stop=lambda *, timeout, ignore=False: None)
     calls: list[tuple[str, dict[str, object]]] = []
