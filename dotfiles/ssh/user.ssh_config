@@ -2,7 +2,7 @@ Host *
   GSSAPIAuthentication yes
   GSSAPIDelegateCredentials yes
 
-  IdentityFile ~/devspace/codespace/client/assets/codespace_login_key
+  # IdentityFile ~/devspace/codespace/client/assets/codespace_login_key
 
   # StrictHostKeyChecking no
   # HashKnownHosts no

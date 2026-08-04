@@ -329,9 +329,11 @@ codespace/client/run.sh
 - `DELETE /api/projects/{project}/instances/{instance}?purge=true|false&force=true|false`
 
 错误格式固定为 `{"error": "..."}`。`DELETE` 成功返回 `{deleted, workspace_removed, state}`，
-`force=false` 时 `deleted=false` 且 `state` 携带 git 检测结果。Dashboard response 是浏览器的唯一事实来源。只在
-create operation 处于 queued 或 running 时轮询。不得增加 SSE、operation dismissal、
-前端 optimistic state、OpenAPI 页面或独立 host/port 配置。
+`force=false` 时 `deleted=false` 且 `state` 携带 git 检测结果。Dashboard response 是浏览器
+的唯一事实来源，Web UI 为每个 environment 显示其中的完整 `ssh_command`；点击命令通过
+Clipboard API 复制，并显示短暂的成功反馈。只在 create operation 处于 queued 或 running
+时轮询。不得增加 SSE、operation dismissal、前端 optimistic state、OpenAPI 页面或独立
+host/port 配置。
 
 ## 安全边界
 

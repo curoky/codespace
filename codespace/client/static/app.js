@@ -20,11 +20,12 @@ document.querySelectorAll("[data-close]").forEach((button) => {
 projectsElement.addEventListener("click", async (event) => {
   const target = event.target.closest("[data-action]");
   if (!target) return;
-  const { action, project, instance } = target.dataset;
+  const { action, project, instance, command } = target.dataset;
   if (action === "new") openInstanceDialog(project);
   if (action === "quick") await submitInstance(project, DEFAULT_INSTANCE);
   if (action === "delete") await deleteInstance(project, instance, false);
   if (action === "purge") await deleteInstance(project, instance, true);
+  if (action === "copy-ssh") await copySshCommand(target, command);
 });
 
 async function api(path, options = {}) {
@@ -152,9 +153,17 @@ function renderEnvironment(environment) {
     element(
       "div",
       "environment-subtitle",
-      `${environment.alias} · ${environment.status || "unknown"} · :${environment.ssh_port}`,
+      `${environment.status || "unknown"} · :${environment.ssh_port}`,
     ),
   );
+  const sshCommand = element("button", "ssh-command", environment.ssh_command);
+  sshCommand.type = "button";
+  sshCommand.title = `Copy ${environment.ssh_command}`;
+  Object.assign(sshCommand.dataset, {
+    action: "copy-ssh",
+    command: environment.ssh_command,
+  });
+  title.append(sshCommand);
   top.append(
     title,
     element("span", "badge", `${environment.image} · ${environment.platform}`),
@@ -308,6 +317,25 @@ async function saveTokens(event) {
 function hasActiveSelection() {
   const selection = window.getSelection();
   return Boolean(selection && !selection.isCollapsed && selection.toString().trim());
+}
+
+async function copySshCommand(button, command) {
+  if (!navigator.clipboard) {
+    notify("Clipboard API is unavailable.");
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(command);
+    button.classList.add("copied");
+    button.title = "Copied";
+    window.setTimeout(() => {
+      if (!button.isConnected) return;
+      button.classList.remove("copied");
+      button.title = `Copy ${command}`;
+    }, 1500);
+  } catch (error) {
+    notify(`Copy failed: ${error.message}`);
+  }
 }
 
 function element(tag, className = "", text = "") {

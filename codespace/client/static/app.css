@@ -267,6 +267,44 @@ button.compact {
   font-size: 0.78rem;
 }
 
+.ssh-command {
+  display: block;
+  margin-top: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: var(--accent-strong);
+  background: transparent;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: copy;
+}
+
+.ssh-command::after {
+  margin-left: 8px;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 700;
+  content: "Copy";
+}
+
+.ssh-command:hover,
+.ssh-command:focus-visible {
+  color: var(--accent);
+  background: transparent;
+  transform: none;
+}
+
+.ssh-command.copied::after {
+  color: var(--accent);
+  content: "Copied";
+}
+
 .environment-actions {
   flex-wrap: wrap;
 }

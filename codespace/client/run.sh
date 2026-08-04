@@ -7,7 +7,7 @@ repo_root="$(cd -- "${script_dir}/../.." && pwd)"
 log_file="${repo_root}/codespace-client.log"
 uv_bin="$(command -v uv)"
 readonly uv_bin
-readonly process_pattern='python -m codespace.client'
+readonly process_pattern='[p]ython[^ ]* -m codespace[.]client'
 
 server_process_exists() {
   pgrep -f "${process_pattern}" >/dev/null 2>&1
@@ -15,6 +15,16 @@ server_process_exists() {
 
 stop_server_processes() {
   local signal="$1"
+  if [[ "${signal}" == "KILL" ]]; then
+    local pid child
+    local -a children=()
+    while IFS= read -r pid; do
+      while IFS= read -r child; do
+        children+=("${child}")
+      done < <(pgrep -P "${pid}" || true)
+    done < <(pgrep -f "${process_pattern}" || true)
+    ((${#children[@]} == 0)) || kill -KILL "${children[@]}" 2>/dev/null || true
+  fi
   pkill -"${signal}" -f "${process_pattern}" 2>/dev/null || true
 }
 
