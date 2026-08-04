@@ -19,6 +19,9 @@ from codespace.client.models import (
     repo_target,
 )
 
+_CLONE_TIMEOUT = 15 * 60.0
+_EMPTY_REPOSITORY_MARKER = "codespace-empty-repository"
+
 
 @dataclass(frozen=True, slots=True)
 class DeployKeypair:
@@ -77,12 +80,56 @@ def clone_repo(container: Container, repo: str, provider: GitProvider) -> None:
         user=CONTAINER_USER,
     )
     if present.code == 0:
-        return
+        head = execute(
+            container,
+            ["git", "-C", target, "rev-parse", "--verify", "HEAD"],
+            user=CONTAINER_USER,
+        )
+        if head.code == 0:
+            return
+        empty = execute(
+            container,
+            ["test", "-f", f"{target}/.git/{_EMPTY_REPOSITORY_MARKER}"],
+            user=CONTAINER_USER,
+        )
+        if empty.code == 0:
+            return
+        execute_checked(container, ["rm", "-rf", "--", target], user=CONTAINER_USER)
+    else:
+        target_exists = execute(
+            container,
+            ["test", "-e", target],
+            user=CONTAINER_USER,
+        )
+        if target_exists.code == 0:
+            raise RuntimeError(f"repository target exists but is not a checkout: {target}")
+
+    temporary = f"{target}.codespace-clone"
+    execute_checked(container, ["rm", "-rf", "--", temporary], user=CONTAINER_USER)
     execute_checked(
         container,
-        ["git", "clone", "--depth=1", f"git@{git_host(provider)}:{repo}.git", target],
+        [
+            "git",
+            "clone",
+            "--depth=1",
+            f"git@{git_host(provider)}:{repo}.git",
+            temporary,
+        ],
+        user=CONTAINER_USER,
+        timeout=_CLONE_TIMEOUT,
+    )
+    head = execute(
+        container,
+        ["git", "-C", temporary, "rev-parse", "--verify", "HEAD"],
         user=CONTAINER_USER,
     )
+    if head.code != 0:
+        execute_checked(
+            container,
+            ["touch", f"{temporary}/.git/{_EMPTY_REPOSITORY_MARKER}"],
+            user=CONTAINER_USER,
+        )
+    execute_checked(container, ["mv", "--", temporary, target], user=CONTAINER_USER)
 
 
 def repo_git_state(container: Container, repo: str) -> RepoGitState:

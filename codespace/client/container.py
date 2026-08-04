@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from typing import Any, cast
 
 from podman import PodmanClient
+from podman.api.output_utils import demux_output
 from podman.domain.containers import Container
 from podman.errors import PodmanError
 from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_fixed
@@ -21,6 +23,8 @@ from codespace.client.models import (
 
 _READY_TIMEOUT = 30.0
 _READY_INTERVAL = 0.25
+_EXEC_TIMEOUT = 60.0
+_PULL_TIMEOUT = 15 * 60.0
 
 
 class _ContainerNotRunning(Exception):
@@ -39,11 +43,19 @@ def pull_image(client: PodmanClient, image: str, platform: ImagePlatform | None)
     kwargs: dict[str, Any] = {"stream": True, "decode": True}
     if platform is not None:
         kwargs["platform"] = platform
-    events = cast("Iterator[dict[str, str]]", client.images.pull(image, **kwargs))
-    for event in events:
-        error = event.get("error") if isinstance(event, dict) else None
-        if error:
-            raise PodmanError(f"failed to pull {image}: {error}")
+    pull_client = PodmanClient(
+        base_url=client.api.base_url.geturl(),
+        version=client.api.version,
+        timeout=_PULL_TIMEOUT,
+    )
+    try:
+        events = cast("Iterator[dict[str, str]]", pull_client.images.pull(image, **kwargs))
+        for event in events:
+            error = event.get("error") if isinstance(event, dict) else None
+            if error:
+                raise PodmanError(f"failed to pull {image}: {error}")
+    finally:
+        pull_client.close()
 
 
 def create_container(
@@ -165,19 +177,66 @@ def ensure_running(container: Container) -> None:
     wait_running(container)
 
 
-def execute(container: Container, command: list[str], *, user: str) -> CommandResult:
+def execute(
+    container: Container,
+    command: list[str],
+    *,
+    user: str,
+    timeout: float = _EXEC_TIMEOUT,
+) -> CommandResult:
     """Execute a command with separate stdout and stderr streams."""
-    exit_code, output = container.exec_run(command, user=user, demux=True)
-    stdout_raw, stderr_raw = output if isinstance(output, tuple) else (output, None)
+    client = container.client
+    if client is None:
+        raise RuntimeError("container has no Podman API client")
+    identity = str(container.id or container.name)
+    response = client.post(
+        f"/containers/{identity}/exec",
+        data=json.dumps(
+            {
+                "AttachStderr": True,
+                "AttachStdin": False,
+                "AttachStdout": True,
+                "Cmd": command,
+                "Env": None,
+                "Privileged": False,
+                "Tty": False,
+                "WorkingDir": None,
+                "User": user,
+            }
+        ),
+    )
+    response.raise_for_status()
+    payload = response.json()
+    exec_id = payload.get("Id") if isinstance(payload, dict) else None
+    if not isinstance(exec_id, str) or not exec_id:
+        raise RuntimeError(f"exec {command!r} returned no exec ID")
+
+    started = client.post(
+        f"/exec/{exec_id}/start",
+        data=json.dumps({"Detach": False, "Tty": False}),
+        timeout=timeout,
+    )
+    started.raise_for_status()
+    inspected = client.get(f"/exec/{exec_id}/json")
+    inspected.raise_for_status()
+    inspected_payload = inspected.json()
+    exit_code = inspected_payload.get("ExitCode") if isinstance(inspected_payload, dict) else None
+    stdout_raw, stderr_raw = demux_output(started.content)
     stdout = _decode_stream(stdout_raw)
     stderr = _decode_stream(stderr_raw)
-    if exit_code is None:
+    if not isinstance(exit_code, int):
         raise RuntimeError(f"exec {command!r} returned no exit code: {stderr or stdout}")
     return CommandResult(code=exit_code, stdout=stdout, stderr=stderr)
 
 
-def execute_checked(container: Container, command: list[str], *, user: str) -> None:
-    result = execute(container, command, user=user)
+def execute_checked(
+    container: Container,
+    command: list[str],
+    *,
+    user: str,
+    timeout: float = _EXEC_TIMEOUT,
+) -> None:
+    result = execute(container, command, user=user, timeout=timeout)
     if result.code != 0:
         raise RuntimeError(
             f"exec {command!r} failed ({result.code}): {result.stderr or result.stdout}"

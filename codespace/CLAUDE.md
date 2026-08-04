@@ -236,7 +236,10 @@ ssh -N -o ExitOnForwardFailure=yes -o StreamLocalBindUnlink=yes \
 
 转发目标是解析后的 `podman_socket`。本地 socket 位于权限为 `0700` 的进程私有 runtime
 目录。SSH keepalive 必须让失效 tunnel 自动退出，Podman 调用必须有超时；进程退出后重建
-tunnel，应用关闭时释放 Podman client 和 SSH 子进程。
+tunnel，应用关闭时释放 Podman client 和 SSH 子进程。Podman client 和常规 container exec
+的读超时均为 60 秒；image pull 通过同一 Unix socket 上的临时 Podman client 使用 15 分钟
+流数据间隔超时，repository clone 的 exec start 也单独使用 15 分钟读超时，不得因此放宽
+Dashboard inventory 等普通 API 的故障边界。临时 pull client 必须在成功或失败后关闭。
 
 Podman Machine 连接从 `podman machine inspect` 读取 API socket、SSH 端口和 identity；
 拒绝已停止或 rootless machine。Dashboard 并发查询各 host，一个离线 host 不得阻塞其他
@@ -272,7 +275,11 @@ host。
    `authorized_keys`，控制面只用仓库内固定的登录私钥登录。`blank` 类型不注入任何凭据。
 9. 通过生成的 route 完成真实 SSH 登录验证。
 10. 将 provider 上同名 deploy key 替换为一个可写 key。
-11. 保留现有 Git checkout；目录不存在时使用 `git clone --depth=1` 浅克隆配置的 repository。
+11. 保留 `HEAD` 有效的现有 Git checkout，以及带
+    `.git/codespace-empty-repository` 标记的已成功空仓库 checkout。存在 `.git` 但两项均不满足
+    时视为中断 clone 的残留并清理；目标路径存在但不是 Git checkout 时拒绝覆盖。新 clone 先清理
+    `<target>.codespace-clone` 临时目录，再以 15 分钟 exec 读超时执行
+    `git clone --depth=1`，成功后原子移动到目标路径；成功 clone 的空仓库写入上述标记。
 12. 原子更新 host SSH 投影。
 
 注册 deploy key 前失败时，回滚 container 但保留 workspace。注册后失败时，必须先撤销

@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import io
+import json
 import tarfile
+from collections.abc import Callable
 from dataclasses import replace
 from types import SimpleNamespace
+from typing import Protocol
 
 import pytest
 from podman.errors import NotFound, PodmanError
@@ -29,6 +32,74 @@ from codespace.client.models import (
     environment_labels,
     ssh_port,
 )
+
+
+class ExecContainer(Protocol):
+    def exec_run(
+        self,
+        command: list[str],
+        *,
+        user: str | None = None,
+        demux: bool = False,
+    ) -> tuple[int, tuple[bytes | None, bytes | None]]: ...
+
+
+class FakeResponse:
+    def __init__(self, *, payload: dict[str, object] | None = None, content: bytes = b"") -> None:
+        self._payload = payload or {}
+        self.content = content
+
+    def raise_for_status(self) -> None:
+        pass
+
+    def json(self) -> dict[str, object]:
+        return self._payload
+
+
+def _frame(stream: int, content: bytes | None) -> bytes:
+    if not content:
+        return b""
+    return bytes([stream, 0, 0, 0]) + len(content).to_bytes(4, "big") + content
+
+
+class FakeAPIClient:
+    def __init__(self, container: ExecContainer) -> None:
+        self.container = container
+        self.exit_code = 0
+        self.output: tuple[bytes | None, bytes | None] = (None, None)
+        self.start_timeouts: list[float | None] = []
+
+    def post(
+        self,
+        path: str,
+        *,
+        data: str,
+        timeout: float | None = None,
+    ) -> FakeResponse:
+        if path.endswith("/exec"):
+            payload = json.loads(data)
+            self.exit_code, self.output = self.container.exec_run(
+                payload["Cmd"],
+                user=payload["User"],
+                demux=True,
+            )
+            return FakeResponse(payload={"Id": "exec-id"})
+        self.start_timeouts.append(timeout)
+        stdout, stderr = self.output
+        return FakeResponse(content=_frame(1, stdout) + _frame(2, stderr))
+
+    def get(self, path: str) -> FakeResponse:
+        assert path == "/exec/exec-id/json"
+        return FakeResponse(payload={"ExitCode": self.exit_code})
+
+
+class FakePullClient:
+    def __init__(self, pull: Callable[..., list[dict[str, str]]]) -> None:
+        self.images = SimpleNamespace(pull=pull)
+        self.closed = False
+
+    def close(self) -> None:
+        self.closed = True
 
 
 class FakeContainer:
@@ -63,6 +134,7 @@ class FakeContainer:
         self.archive: bytes | None = None
         self.archive_path: str | None = None
         self.files: dict[str, bytes] = {}
+        self.client = FakeAPIClient(self)
 
     def reload(self) -> None:
         return None
@@ -109,32 +181,71 @@ def test_read_environment_requires_complete_valid_labels(config: Config) -> None
         inventory.read_environment(container, "home", config)  # type: ignore[arg-type]
 
 
-def test_pull_image_streams_and_passes_platform_only_when_selected() -> None:
+def test_pull_image_streams_with_isolated_long_timeout(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     calls: list[tuple[str, dict[str, object]]] = []
+    clients: list[FakePullClient] = []
+    client_options: list[dict[str, object]] = []
 
     def pull(image: str, **kwargs: object) -> list[dict[str, str]]:
         calls.append((image, kwargs))
         return [{"status": "Pulling"}, {"status": "Download complete"}]
 
-    client = SimpleNamespace(images=SimpleNamespace(pull=pull))
+    def client_factory(**kwargs: object) -> FakePullClient:
+        client_options.append(kwargs)
+        client = FakePullClient(pull)
+        clients.append(client)
+        return client
+
+    monkeypatch.setattr(container_runtime, "PodmanClient", client_factory)
+    client = SimpleNamespace(
+        api=SimpleNamespace(
+            base_url=SimpleNamespace(geturl=lambda: "http+unix://%2Ftmp%2Fpodman.sock"),
+            version="5.8.0",
+        )
+    )
 
     container_runtime.pull_image(client, "image:latest", None)  # type: ignore[arg-type]
     container_runtime.pull_image(client, "image:latest", "linux/arm64")  # type: ignore[arg-type]
 
+    assert client_options == [
+        {
+            "base_url": "http+unix://%2Ftmp%2Fpodman.sock",
+            "version": "5.8.0",
+            "timeout": 15 * 60.0,
+        },
+        {
+            "base_url": "http+unix://%2Ftmp%2Fpodman.sock",
+            "version": "5.8.0",
+            "timeout": 15 * 60.0,
+        },
+    ]
     assert calls == [
         ("image:latest", {"stream": True, "decode": True}),
         ("image:latest", {"stream": True, "decode": True, "platform": "linux/arm64"}),
     ]
+    assert all(client.closed for client in clients)
 
 
-def test_pull_image_raises_on_stream_error() -> None:
+def test_pull_image_raises_on_stream_error_and_closes_client(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     def pull(image: str, **kwargs: object) -> list[dict[str, str]]:
         return [{"status": "Pulling"}, {"error": "manifest unknown"}]
 
-    client = SimpleNamespace(images=SimpleNamespace(pull=pull))
+    pull_client = FakePullClient(pull)
+    monkeypatch.setattr(container_runtime, "PodmanClient", lambda **_kwargs: pull_client)
+    client = SimpleNamespace(
+        api=SimpleNamespace(
+            base_url=SimpleNamespace(geturl=lambda: "http+unix://%2Ftmp%2Fpodman.sock"),
+            version="5.8.0",
+        )
+    )
 
     with pytest.raises(PodmanError, match=r"failed to pull image:latest: manifest unknown"):
         container_runtime.pull_image(client, "image:latest", None)  # type: ignore[arg-type]
+    assert pull_client.closed is True
 
 
 def test_inventory_reports_unknown_project_as_error(config: Config) -> None:
@@ -362,7 +473,7 @@ def test_inject_deploy_key_writes_only_private_key() -> None:
     assert container.exec_calls == [(["chown", "x:x", "/home/x/.ssh/repo_id_ed25519"], "0")]
 
 
-def test_clone_reuses_existing_checkout_and_uses_argument_list() -> None:
+def test_clone_reuses_valid_existing_checkout() -> None:
     container = FakeContainer()
     container.exec_run = lambda command, user=None, demux=False: (  # type: ignore[method-assign]
         container.exec_calls.append((command, user)) or (0, (None, None))
@@ -370,24 +481,118 @@ def test_clone_reuses_existing_checkout_and_uses_argument_list() -> None:
 
     workspace.clone_repo(container, "curoky/devspace", "github")  # type: ignore[arg-type]
 
-    assert container.exec_calls == [(["test", "-d", "/workspace/devspace/.git"], "x")]
+    assert container.exec_calls == [
+        (["test", "-d", "/workspace/devspace/.git"], "x"),
+        (["git", "-C", "/workspace/devspace", "rev-parse", "--verify", "HEAD"], "x"),
+    ]
 
 
-def test_clone_missing_checkout_runs_git_without_shell() -> None:
+def test_clone_missing_checkout_uses_temporary_directory_and_long_timeout() -> None:
     container = FakeContainer()
 
     workspace.clone_repo(container, "group/service-api", "gitlab")  # type: ignore[arg-type]
 
-    assert container.exec_calls[-1] == (
+    assert (
         [
             "git",
             "clone",
             "--depth=1",
             "git@gitlab.com:group/service-api.git",
+            "/workspace/service-api.codespace-clone",
+        ],
+        "x",
+    ) in container.exec_calls
+    assert container.exec_calls[-1] == (
+        [
+            "mv",
+            "--",
+            "/workspace/service-api.codespace-clone",
             "/workspace/service-api",
         ],
         "x",
     )
+    clone_index = next(
+        index
+        for index, (command, _) in enumerate(container.exec_calls)
+        if command[:2] == ["git", "clone"]
+    )
+    assert container.client.start_timeouts[clone_index] == 15 * 60.0
+    assert all(
+        timeout == 60.0
+        for index, timeout in enumerate(container.client.start_timeouts)
+        if index != clone_index
+    )
+
+
+def test_clone_replaces_incomplete_checkout() -> None:
+    container = FakeContainer()
+
+    def exec_run(
+        command: list[str],
+        *,
+        user: str | None = None,
+        demux: bool = False,
+    ) -> tuple[int, tuple[None, None]]:
+        container.exec_calls.append((command, user))
+        if command == ["test", "-d", "/workspace/devspace/.git"]:
+            return 0, (None, None)
+        if command[:3] == ["git", "-C", "/workspace/devspace"]:
+            return 128, (None, None)
+        if command == [
+            "test",
+            "-f",
+            "/workspace/devspace/.git/codespace-empty-repository",
+        ]:
+            return 1, (None, None)
+        return 0, (None, None)
+
+    container.exec_run = exec_run  # type: ignore[method-assign]
+
+    workspace.clone_repo(container, "curoky/devspace", "github")  # type: ignore[arg-type]
+
+    assert (["rm", "-rf", "--", "/workspace/devspace"], "x") in container.exec_calls
+    assert (
+        [
+            "git",
+            "clone",
+            "--depth=1",
+            "git@github.com:curoky/devspace.git",
+            "/workspace/devspace.codespace-clone",
+        ],
+        "x",
+    ) in container.exec_calls
+
+
+def test_clone_reuses_successfully_cloned_empty_repository() -> None:
+    container = FakeContainer()
+
+    def exec_run(
+        command: list[str],
+        *,
+        user: str | None = None,
+        demux: bool = False,
+    ) -> tuple[int, tuple[None, None]]:
+        container.exec_calls.append((command, user))
+        if command[0] == "git":
+            return 128, (None, None)
+        return 0, (None, None)
+
+    container.exec_run = exec_run  # type: ignore[method-assign]
+
+    workspace.clone_repo(container, "curoky/empty", "github")  # type: ignore[arg-type]
+
+    assert container.exec_calls == [
+        (["test", "-d", "/workspace/empty/.git"], "x"),
+        (["git", "-C", "/workspace/empty", "rev-parse", "--verify", "HEAD"], "x"),
+        (
+            [
+                "test",
+                "-f",
+                "/workspace/empty/.git/codespace-empty-repository",
+            ],
+            "x",
+        ),
+    ]
 
 
 def test_prepare_open_path_makes_directory_as_container_user() -> None:
@@ -494,6 +699,9 @@ class GitFakeContainer:
         self.calls: list[tuple[list[str], str | None]] = []
         self.status = "running"
         self.started = False
+        self.id = "git-container-id"
+        self.name = "git-container"
+        self.client = FakeAPIClient(self)
 
     def reload(self) -> None:
         pass
