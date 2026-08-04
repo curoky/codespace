@@ -124,12 +124,10 @@ function renderProjects(dashboard) {
       metadata.append(element("span", "badge", project.provider));
     }
     metadata.append(element("span", "badge badge-type", project.type));
-    title.append(name, metadata);
-    info.append(title);
 
     const source = element("p", "project-source", project.description || label);
     source.title = label;
-    info.append(source);
+    title.append(name, source);
 
     const quickButton = actionButton("Quick Create", "quick", project.id);
     quickButton.classList.add("compact");
@@ -140,7 +138,10 @@ function renderProjects(dashboard) {
     createButton.title = "Create a named instance";
     const headerActions = element("div", "project-header-actions");
     headerActions.append(quickButton, createButton);
-    header.append(info, headerActions);
+    const controls = element("div", "project-controls");
+    controls.append(metadata, headerActions);
+    info.append(title, controls);
+    header.append(info);
     card.append(header);
 
     const list = element("div", "environment-list");

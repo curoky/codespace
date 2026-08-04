@@ -101,6 +101,8 @@ def test_static_assets_are_native_sources(app_client: tuple[TestClient, FakeServ
     assert "react" not in script.text.lower()
     assert "radix" not in stylesheet.text.lower()
     assert "project-source" in script.text
+    assert "title.append(name, source)" in script.text
+    assert "controls.append(metadata, headerActions)" in script.text
     assert "environment.ssh_command" in script.text
     assert "SSH port" not in script.text
     assert script.text.index('link("Trae CN"') < script.text.index("actions.append(sshButton)")

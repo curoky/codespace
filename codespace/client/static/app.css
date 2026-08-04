@@ -83,7 +83,7 @@ input {
 
 .app-header,
 main {
-  width: min(1180px, calc(100% - 32px));
+  width: min(1380px, calc(100% - 32px));
   margin-inline: auto;
 }
 
@@ -167,12 +167,6 @@ button,
   line-height: 1;
   text-decoration: none;
   cursor: pointer;
-  transition:
-    border-color 140ms ease,
-    box-shadow 140ms ease,
-    color 140ms ease,
-    background 140ms ease,
-    transform 140ms ease;
 }
 
 button.secondary,
@@ -378,23 +372,23 @@ main {
 
 .project-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
-  gap: 12px;
+  gap: 9px;
 }
 
 .project-card {
   position: relative;
+  display: grid;
+  grid-template-columns: minmax(320px, 0.8fr) minmax(0, 2fr);
+  align-items: center;
+  gap: 16px;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 16px;
-  padding: 14px;
+  padding: 11px 13px;
   background: var(--panel);
   box-shadow: var(--shadow-sm);
-  transition:
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    transform 160ms ease;
 }
 
 .project-card::before {
@@ -404,41 +398,50 @@ main {
   background: linear-gradient(90deg, #3bad78, #96d9b5 70%, transparent);
   content: "";
   opacity: 0;
-  transition: opacity 160ms ease;
 }
 
 .project-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  min-width: 0;
 }
 
 .project-info {
+  display: grid;
+  gap: 8px;
   min-width: 0;
 }
 
 .project-title {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 7px;
+  min-width: 0;
 }
 
 .project-title h3 {
+  flex: 0 0 auto;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .project-source {
-  margin-top: 5px;
+  flex: 1 1 auto;
+  min-width: 0;
   overflow: hidden;
   color: var(--muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 0.7rem;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.project-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 8px;
+  min-width: 0;
 }
 
 .project-meta {
@@ -496,10 +499,8 @@ button.compact {
 
 .environment-list {
   display: grid;
-  gap: 8px;
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid var(--line);
+  gap: 6px;
+  min-width: 0;
 }
 
 .environment,
@@ -507,16 +508,25 @@ button.compact {
 .empty {
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 10px;
+  padding: 8px 10px;
   background: var(--panel-subtle);
 }
 
 .environment {
+  display: grid;
+  grid-template-columns: minmax(195px, 0.5fr) minmax(140px, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 76%);
 }
 
 .operation {
   position: relative;
+  display: grid;
+  grid-template-columns: minmax(160px, 0.5fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
   overflow: hidden;
   border-color: #ead9ab;
   background: var(--warning-soft);
@@ -554,9 +564,9 @@ button.compact {
 
 .environment-top {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 8px;
 }
 
 .environment-info {
@@ -569,7 +579,6 @@ button.compact {
 }
 
 .environment-subtitle {
-  margin-top: 3px;
   color: var(--muted);
   font-size: 0.7rem;
 }
@@ -611,7 +620,7 @@ button.compact {
 }
 
 .environment-image {
-  margin-top: 7px;
+  min-width: 0;
   overflow: hidden;
   color: var(--muted);
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -621,11 +630,8 @@ button.compact {
 }
 
 .environment-actions {
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 9px;
-  padding-top: 9px;
-  border-top: 1px solid var(--line);
+  flex-wrap: nowrap;
+  gap: 5px;
 }
 
 .environment-actions button,
@@ -643,11 +649,12 @@ button.compact {
 }
 
 .empty {
-  display: grid;
-  justify-items: center;
-  gap: 3px;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
   border-style: dashed;
-  padding: 14px 10px;
+  padding: 9px 10px;
   text-align: center;
 }
 
@@ -814,7 +821,6 @@ input:focus {
     border-color: var(--accent-strong);
     background: var(--accent-strong);
     box-shadow: 0 6px 16px rgb(16 85 59 / 13%);
-    transform: translateY(-1px);
   }
 
   button.secondary:not(:disabled):hover,
@@ -844,7 +850,6 @@ input:focus {
   .project-card:hover {
     border-color: #cadbd1;
     box-shadow: 0 16px 36px rgb(16 44 31 / 9%);
-    transform: translateY(-2px);
   }
 
   .project-card:hover::before {
@@ -856,7 +861,6 @@ input:focus {
     color: var(--accent-strong);
     background: #dff2e7;
     box-shadow: none;
-    transform: none;
   }
 
   .environment-actions .editor-action:hover {
@@ -866,16 +870,40 @@ input:focus {
   }
 }
 
-@media (max-width: 860px) {
-  .project-grid {
+@media (max-width: 1050px) {
+  .project-card {
     grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .environment-list {
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+  }
+}
+
+@media (max-width: 780px) {
+  .environment {
+    grid-template-columns: minmax(150px, 0.45fr) minmax(0, 1fr);
+  }
+
+  .environment-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+    padding-top: 8px;
+    border-top: 1px solid var(--line);
+  }
+
+  .operation {
+    grid-template-columns: 1fr;
+    gap: 3px;
   }
 }
 
 @media (max-width: 620px) {
   .app-header,
   main {
-    width: min(100% - 22px, 1180px);
+    width: min(100% - 22px, 1380px);
   }
 
   .app-header {
@@ -905,28 +933,39 @@ input:focus {
     padding: 12px;
   }
 
-  .project-header,
+  .environment {
+    display: block;
+  }
+
   .environment-top {
     align-items: stretch;
     flex-direction: column;
-  }
-
-  .project-header-actions {
-    align-self: stretch;
-  }
-
-  .project-header-actions button {
-    flex: 1;
   }
 
   .badge-platform {
     align-self: flex-start;
   }
 
+  .environment-image {
+    margin-top: 7px;
+  }
+
+  .environment-actions {
+    flex-wrap: wrap;
+    margin-top: 9px;
+    padding-top: 9px;
+  }
+
   .environment-actions > * {
     flex: 1 1 calc(50% - 9px);
     justify-content: center;
     text-align: center;
+  }
+
+  .empty {
+    align-items: center;
+    flex-direction: column;
+    gap: 3px;
   }
 
   dialog form,
