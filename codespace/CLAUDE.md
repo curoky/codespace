@@ -18,11 +18,12 @@ FastAPI 同时提供 JSON API 和 `client/static/` 中的原生 Web 文件。Git
 
 | 路径 | 职责 |
 | --- | --- |
-| `client/app.py`、`client/__main__.py` | Web 应用与入口 |
+| `client/app.py`、`client/api.py`、`client/__main__.py` | Web 应用装配、HTTP 路由与入口 |
 | `client/config.py`、`client/models.py` | 配置与 API model |
-| `client/transport.py`、`client/runtime.py` | SSH 与 Podman 基础能力 |
-| `client/service.py`、`client/operations.py` | 编排与操作状态 |
-| `client/provider.py`、`client/ssh.py` | Deploy key 与 SSH 投影 |
+| `client/transport.py`、`client/ssh.py` | Host 连接、SSH 操作与本地投影 |
+| `client/inventory.py`、`client/container.py`、`client/workspace.py` | Podman inventory、容器和 workspace 原语 |
+| `client/service.py`、`client/dashboard.py`、`client/operations.py` | 生命周期编排、Dashboard 投影与操作状态 |
+| `client/provider.py` | Git provider deploy key |
 | `client/static/` | FastAPI 直接提供的原生 Web 源码 |
 | `client/tests/` | 按公开模块行为组织的测试 |
 | `client/run.sh` | 本地后台启动器 |

@@ -10,7 +10,6 @@ from codespace.client.models import (
     CreateInstanceRequest,
     environment_id,
     ssh_port,
-    workspace_path,
 )
 
 # Minimal valid global container block reused by success-path inline configs.
@@ -665,13 +664,12 @@ def test_create_request_rejects_invalid_instance(instance: str) -> None:
         CreateInstanceRequest(instance=instance)
 
 
-def test_resource_identity_contract_is_deterministic() -> None:
+def test_resource_identity_contract_is_deterministic(config: Config) -> None:
     identity = environment_id("home", "devspace", "debug")
+    spec = config.environment_spec("devspace", "debug")
 
     assert identity == "codespace-home-devspace-debug"
-    assert (
-        workspace_path("/home/x/codespace", "devspace", "debug")
-        == "/home/x/codespace/devspace/debug"
-    )
+    assert spec.identity == identity
+    assert spec.workspace_path("/home/x/codespace") == "/home/x/codespace/devspace/debug"
     assert ssh_port(identity) == ssh_port(identity)
     assert 20_000 <= ssh_port(identity) <= 29_999

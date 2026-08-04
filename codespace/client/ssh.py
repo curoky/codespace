@@ -15,6 +15,8 @@ from contextlib import contextmanager, suppress
 from functools import cache
 from pathlib import Path
 
+from tenacity import Retrying, retry_if_exception_type, stop_after_delay, wait_fixed
+
 from codespace.client.models import (
     CONTAINER_USER,
     WORKSPACE_DIR_NAME,
@@ -29,22 +31,11 @@ HOSTS_DIR = CODESPACE_DIR / "hosts"
 KNOWN_HOSTS_DIR = CODESPACE_DIR / "known_hosts"
 INCLUDE_LINE = "Include ~/.ssh/codespace/config"
 HOSTS_INCLUDE_LINE = "Include ~/.ssh/codespace/hosts/*.conf"
-# Every environment runs the same dev image, which ships a fixed sshd host key
-# (images/dev/rootfs/etc/ssh/ssh_host_ed25519_key.pub) and only offers
-# ssh-ed25519. Pinning that key here as a code-level contract lets a single
-# known_hosts entry — keyed by a fixed HostKeyAlias rather than 127.0.0.1:<port>
-# — verify every environment with StrictHostKeyChecking=yes, replacing the
-# per-environment accept-new (TOFU) files that only ever trusted-on-first-use.
-# The pinned file shares the known_hosts dir with the per-machine VM files,
-# which stay accept-new because a Podman Machine VM key is unrelated to the
-# image host key.
+# Must match images/dev/rootfs/etc/ssh/ssh_host_ed25519_key.pub.
 HOST_KEY_ALIAS = "codespace"
 IMAGE_HOST_KEY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKegYIza0zOiYlRp2ln6uffJ5zWg6E189mjz2ktsOfni"
 KNOWN_HOSTS_PATH = KNOWN_HOSTS_DIR / HOST_KEY_ALIAS
 KNOWN_HOSTS_INCLUDE = f"~/.ssh/codespace/known_hosts/{HOST_KEY_ALIAS}"
-# The login keypair is a fixed Codespace credential committed to the repo under
-# assets/; its matching public key is baked into the dev image authorized_keys.
-# Resolving it relative to this module means no config field is needed.
 LOGIN_KEY_PATH = Path(__file__).resolve().parent / "assets" / "codespace_login_key"
 _LOCK = threading.RLock()
 _PROBE_TIMEOUT = 30.0
@@ -55,14 +46,8 @@ _WORKSPACE_PREPARE_TIMEOUT = 15.0
 
 @cache
 def remote_workspace_root(route: SSHRoute) -> str:
-    """Resolve and ensure one host's workspace root under the login user's home.
-
-    A Podman bind-mount source cannot contain ``~``, so the absolute path is
-    resolved per route with one cached SSH round-trip that also creates the
-    directory. Ensuring it here means the bind-mount source always exists.
-    """
-    # WORKSPACE_DIR_NAME is a fixed internal constant, so this remote command is
-    # not exposed to injection; "$HOME" expands in the remote login shell.
+    """Resolve and create the absolute workspace root for one SSH route."""
+    # The fixed directory name is safe for expansion by the remote shell.
     remote_command = (
         f'mkdir -p -- "$HOME/{WORKSPACE_DIR_NAME}" && printf %s "$HOME/{WORKSPACE_DIR_NAME}"'
     )
@@ -79,14 +64,7 @@ def remote_workspace_root(route: SSHRoute) -> str:
 
 
 def prepare_workspace(route: SSHRoute, target: str) -> None:
-    """Create one environment's workspace directory through its host route.
-
-    The directory is created as the plain SSH login user without any privilege
-    escalation, so hosts do not need passwordless ``sudo``. Ownership is left as
-    the login user here; the container fixes it to the container uid/gid from the
-    inside via ``runtime.own_workspace`` (rootful Podman exposes host ownership
-    directly, so an in-container ``chown`` as root also updates the host path).
-    """
+    """Create an environment workspace as the host login user."""
     if not target.startswith("/"):
         raise RuntimeError(f"refusing to prepare non-absolute workspace path: {target!r}")
     remote_command = f"mkdir -p -- {shlex.quote(target)}"
@@ -164,16 +142,7 @@ def initialize(hosts: list[str]) -> None:
 
 
 def prepare_login_key() -> Path:
-    """Validate the committed login private key and tighten its permissions.
-
-    The login keypair is a fixed Codespace credential committed to the repo at
-    ``LOGIN_KEY_PATH``; its matching public key is baked into the dev image
-    ``authorized_keys``, so the control plane no longer generates or projects any
-    public key. Git checks the private key out as ``0644`` and OpenSSH refuses a
-    world-readable key, so the mode is forced to ``0600`` here (a no-op in the
-    git index, which tracks only the exec bit). A missing key is a fail-fast
-    error.
-    """
+    """Validate the committed login key and enforce OpenSSH permissions."""
     if not LOGIN_KEY_PATH.exists():
         raise RuntimeError(f"login key is missing from the repo: {LOGIN_KEY_PATH}")
     _ensure_mode(LOGIN_KEY_PATH, 0o600)
@@ -213,23 +182,26 @@ def probe(environment: Environment, route: SSHRoute) -> None:
         environment.id,
         "true",
     ]
-    deadline = time.monotonic() + _PROBE_TIMEOUT
-    while True:
-        try:
-            subprocess.run(  # noqa: S603
-                command,
-                check=True,
-                capture_output=True,
-                stdin=subprocess.DEVNULL,
-            )
-            return
-        except subprocess.CalledProcessError as exc:
-            if time.monotonic() >= deadline:
-                stderr = exc.stderr.decode("utf-8", "replace") if exc.stderr else ""
-                raise RuntimeError(
-                    f"SSH login probe for {environment.id!r} failed: {stderr.strip() or exc}"
-                ) from exc
-            time.sleep(_PROBE_INTERVAL)
+    retryer = Retrying(
+        retry=retry_if_exception_type(subprocess.CalledProcessError),
+        stop=stop_after_delay(_PROBE_TIMEOUT),
+        wait=wait_fixed(_PROBE_INTERVAL),
+        sleep=time.sleep,
+        reraise=True,
+    )
+    try:
+        retryer(
+            subprocess.run,
+            command,
+            check=True,
+            capture_output=True,
+            stdin=subprocess.DEVNULL,
+        )
+    except subprocess.CalledProcessError as exc:
+        stderr = exc.stderr.decode("utf-8", "replace") if exc.stderr else ""
+        raise RuntimeError(
+            f"SSH login probe for {environment.id!r} failed: {stderr.strip() or exc}"
+        ) from exc
 
 
 def write_host(host: str, environments: list[Environment], route: SSHRoute) -> None:

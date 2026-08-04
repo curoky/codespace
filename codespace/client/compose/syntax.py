@@ -1,22 +1,10 @@
-"""Parsers for the Compose short syntaxes into their long (mapping) form.
-
-Each function is a Pydantic ``BeforeValidator`` target: it accepts the raw YAML
-value (short or long) and returns the canonical mapping/list the model fields
-expect. Invalid input raises ``ValueError`` so validation fails fast at load
-time rather than producing a silently wrong container.
-"""
+"""Normalize supported Compose short syntaxes before Pydantic validation."""
 
 from __future__ import annotations
 
 
 def normalize_volumes(value: object) -> object:
-    """Expand each ``volumes`` entry from Compose short syntax to a mapping.
-
-    The short syntax is ``<source>:<target>[:<mode>]`` where ``mode`` may be
-    ``ro`` (read-only) or ``rw`` (the default). Only bind mounts are supported,
-    so both ``source`` and ``target`` must be absolute paths; named volumes and
-    anonymous volumes are rejected. Long-form mappings pass through untouched.
-    """
+    """Expand ``source:target[:ro|rw]`` bind mounts."""
     if not isinstance(value, list):
         return value
     return [_normalize_volume(item) for item in value]
@@ -39,13 +27,7 @@ def _normalize_volume(item: object) -> object:
 
 
 def normalize_environment(value: object) -> object:
-    """Convert a Compose ``environment`` list to a mapping.
-
-    The list short syntax is ``["KEY=value", ...]``; an entry without ``=`` is
-    rejected rather than assigned an implicit empty or host-inherited value, in
-    line with the control plane's fail-fast, no-implicit-defaults stance. A
-    mapping passes through untouched.
-    """
+    """Convert ``KEY=value`` list entries to a mapping."""
     if not isinstance(value, list):
         return value
     result: dict[str, str] = {}
@@ -60,12 +42,7 @@ def normalize_environment(value: object) -> object:
 
 
 def normalize_ulimits(value: object) -> object:
-    """Expand each ``ulimits`` scalar entry to its ``{soft, hard}`` mapping.
-
-    Compose allows a bare integer (``nofile: 65535``) as shorthand for equal
-    soft and hard limits, or a mapping (``memlock: {soft: -1, hard: -1}``). The
-    keys are the limit names; the whole block passes through as a mapping.
-    """
+    """Expand scalar ulimits to equal soft and hard values."""
     if not isinstance(value, dict):
         return value
     return {name: _normalize_ulimit(limit) for name, limit in value.items()}

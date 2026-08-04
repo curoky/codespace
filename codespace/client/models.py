@@ -4,10 +4,14 @@ from __future__ import annotations
 
 import hashlib
 import re
-from typing import Annotated, Literal
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Annotated, Literal
 from urllib.parse import quote
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field
+
+if TYPE_CHECKING:
+    from codespace.client.config import ContainerConfig, ProjectConfig
 
 type GitProvider = Literal["github", "gitlab"]
 type ProjectType = Literal["repo", "blank"]
@@ -18,9 +22,7 @@ type PlatformSelection = Literal["native", "linux/amd64", "linux/arm64"]
 
 CONTAINER_USER = "x"
 WORKSPACE_MOUNT = "/workspace"
-# Host workspace root lives under the SSH login user's home so each host can use
-# its own account. The absolute path is resolved per host at runtime because a
-# Podman bind-mount source cannot contain '~'.
+# A bind-mount source requires the host's resolved absolute home path.
 WORKSPACE_DIR_NAME = "codespace"
 PODMAN_SOCKET = "/run/podman/podman.sock"
 SSH_PORT_START = 20_000
@@ -41,12 +43,7 @@ def _valid_port(value: int) -> int:
 
 
 def parse_port_mapping(value: str) -> tuple[int, int]:
-    """Parse one ``local:remote`` or single-port publish spec into ``(local, remote)``.
-
-    A bare ``"8080"`` maps host 8080 to container 8080; ``"3000:5000"`` maps host
-    3000 to container 5000. Both endpoints must be valid TCP ports. Malformed
-    input raises rather than being silently ignored.
-    """
+    """Parse ``remote`` or ``local:remote`` into a validated port pair."""
     parts = value.split(":")
     if len(parts) == 1:
         remote = _parse_port_int(parts[0], value)
@@ -92,11 +89,7 @@ LABEL_IMAGE = "codespace.image"
 LABEL_PLATFORM = "codespace.platform"
 LABEL_SSH_PORT = "codespace.ssh-port"
 
-# Labels every managed container carries, excluding the LABEL_MANAGED marker
-# which is validated on its own. This tuple is the single source of truth shared
-# by the write side (``environment_labels``) and the read side
-# (``runtime._REQUIRED_LABELS``); the symmetry is asserted in the tests so that
-# adding or removing a label cannot silently desynchronise the two paths.
+# Shared by label generation and inventory validation.
 MANDATORY_LABELS = (
     LABEL_PROJECT,
     LABEL_INSTANCE,
@@ -107,66 +100,82 @@ MANDATORY_LABELS = (
 )
 
 
-def environment_labels(
-    *,
-    project: str,
-    instance: str,
-    project_type: ProjectType,
-    repo: str | None,
-    provider: GitProvider | None,
-    image: str,
-    platform: PlatformSelection,
-    ssh_port: int,
-) -> dict[str, str]:
-    """Build the canonical label set written onto a managed container.
+@dataclass(frozen=True, slots=True)
+class EnvironmentSpec:
+    """Fully resolved inputs for one configured project instance."""
 
-    Single source of truth for the container label contract. ``read_environment``
-    validates the same keys, so both sides stay symmetric (CLAUDE.md 资源标识).
-    """
+    project_id: str
+    instance: str
+    project: ProjectConfig
+    image: str
+    container: ContainerConfig
+    published_ports: tuple[tuple[int, int], ...]
+    open_path: str
+
+    @property
+    def identity(self) -> str:
+        return environment_id(self.project.host, self.project_id, self.instance)
+
+    @property
+    def ssh_port(self) -> int:
+        return ssh_port(self.identity)
+
+    @property
+    def platform_label(self) -> PlatformSelection:
+        return platform_label(self.project.platform)
+
+    def workspace_path(self, workspace_root: str) -> str:
+        return f"{workspace_root}/{self.project_id}/{self.instance}"
+
+    def to_environment(self, container_id: str, *, status: str | None = None) -> Environment:
+        return Environment(
+            id=self.identity,
+            host=self.project.host,
+            project=self.project_id,
+            instance=self.instance,
+            type=self.project.type,
+            repo=self.project.repo,
+            provider=self.project.provider,
+            image=self.image,
+            platform=self.platform_label,
+            ssh_port=self.ssh_port,
+            container_id=container_id,
+            status=status,
+        )
+
+
+def environment_labels(spec: EnvironmentSpec) -> dict[str, str]:
+    """Build the canonical label set for a managed container."""
     labels = {
         LABEL_MANAGED: "true",
-        LABEL_PROJECT: project,
-        LABEL_INSTANCE: instance,
-        LABEL_TYPE: project_type,
-        LABEL_IMAGE: image,
-        LABEL_PLATFORM: platform,
-        LABEL_SSH_PORT: str(ssh_port),
+        LABEL_PROJECT: spec.project_id,
+        LABEL_INSTANCE: spec.instance,
+        LABEL_TYPE: spec.project.type,
+        LABEL_IMAGE: spec.image,
+        LABEL_PLATFORM: spec.platform_label,
+        LABEL_SSH_PORT: str(spec.ssh_port),
     }
-    if repo is not None and provider is not None:
-        labels[LABEL_REPO] = repo
-        labels[LABEL_PROVIDER] = provider
+    if spec.project.repo is not None and spec.project.provider is not None:
+        labels[LABEL_REPO] = spec.project.repo
+        labels[LABEL_PROVIDER] = spec.project.provider
     return labels
 
 
 def environment_id(host: str, project: str, instance: str) -> str:
-    """Return the deterministic identity shared by all environment resources."""
     return f"codespace-{host}-{project}-{instance}"
 
 
-def workspace_path(workspace_root: str, project: str, instance: str) -> str:
-    """Return one environment's workspace path under a resolved host root."""
-    return f"{workspace_root}/{project}/{instance}"
-
-
 def ssh_port(identity: str) -> int:
-    """Map an environment identity to its deterministic reserved SSH port."""
     digest_prefix = hashlib.sha256(identity.encode()).hexdigest()[:4]
     return SSH_PORT_START + int(digest_prefix, 16) % SSH_PORT_COUNT
 
 
 def platform_label(platform: ImagePlatform | None) -> PlatformSelection:
-    """Map an optional image platform to its label value.
-
-    A project without an explicit ``platform`` runs on the host's native
-    platform, recorded as the ``native`` label. Centralising the ``None`` ->
-    ``"native"`` mapping keeps the write side (container labels) and the derived
-    environment state from drifting to separate literals.
-    """
+    """Map an omitted platform to the inventory label ``native``."""
     return platform if platform is not None else "native"
 
 
 def git_host(provider: GitProvider) -> str:
-    """Return the official SSH host for a supported provider."""
     match provider:
         case "github":
             return "github.com"
@@ -175,17 +184,11 @@ def git_host(provider: GitProvider) -> str:
 
 
 def repo_target(repo: str) -> str:
-    """Return the checkout path inside the development container."""
     name = repo.rsplit("/", 1)[-1].removesuffix(".git")
     return f"{WORKSPACE_MOUNT}/{name}"
 
 
 def workspace_open_path(repo: str | None) -> str:
-    """Return the default editor open path for a project.
-
-    A repo project opens its checkout directory; a blank project has no
-    checkout so the editor opens the mounted workspace root directly.
-    """
     return repo_target(repo) if repo is not None else WORKSPACE_MOUNT
 
 
@@ -198,16 +201,12 @@ def trae_url(alias: str, open_path: str, *, scheme: str = "trae") -> str:
 
 
 class CreateInstanceRequest(BaseModel):
-    """Request body for creating one configured project instance."""
-
     model_config = ConfigDict(extra="forbid")
 
     instance: ResourceId
 
 
 class UpdateTokenRequest(BaseModel):
-    """Request body for storing a provider token in process memory."""
-
     model_config = ConfigDict(extra="forbid")
 
     token: TokenString = Field(repr=False)
@@ -226,16 +225,12 @@ class RepoGitState(BaseModel):
 
 
 class DeleteInstanceResult(BaseModel):
-    """Result of an inspect (``force=False``) or delete (``force=True``) call."""
-
     deleted: bool
     workspace_removed: bool = False
     state: RepoGitState = Field(default_factory=RepoGitState)
 
 
 class Environment(BaseModel):
-    """A managed development environment discovered from Podman."""
-
     id: str
     host: str
     project: str
@@ -251,8 +246,6 @@ class Environment(BaseModel):
 
 
 class DashboardEnvironment(BaseModel):
-    """Browser-facing environment projection."""
-
     id: str
     host: str
     project: str
@@ -281,8 +274,6 @@ class DashboardEnvironment(BaseModel):
 
 
 class HostStatus(BaseModel):
-    """Inventory status for one configured host."""
-
     id: str
     status: HostState
     environment_count: int = 0
@@ -291,8 +282,6 @@ class HostStatus(BaseModel):
 
 
 class ProjectSummary(BaseModel):
-    """Browser-facing configured project."""
-
     id: str
     host: str
     type: ProjectType
@@ -305,8 +294,6 @@ class ProjectSummary(BaseModel):
 
 
 class Operation(BaseModel):
-    """Current local create operation for a project instance."""
-
     id: str
     host: str
     project: str
@@ -317,8 +304,6 @@ class Operation(BaseModel):
 
 
 class DashboardResponse(BaseModel):
-    """Complete browser state returned by one dashboard request."""
-
     hosts: list[HostStatus]
     projects: list[ProjectSummary]
     environments: list[DashboardEnvironment]

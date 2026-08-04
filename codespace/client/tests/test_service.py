@@ -6,9 +6,16 @@ from types import SimpleNamespace
 
 import pytest
 
-from codespace.client import provider, runtime, ssh
-from codespace.client.config import Config, ContainerConfig
-from codespace.client.models import Environment, RepoGitState, environment_id, ssh_port
+from codespace.client import container as containers
+from codespace.client import inventory, provider, ssh, workspace
+from codespace.client.config import Config
+from codespace.client.models import (
+    Environment,
+    EnvironmentSpec,
+    RepoGitState,
+    environment_id,
+    ssh_port,
+)
 from codespace.client.service import CodespaceService, describe_error
 from codespace.client.transport import SSHRoute
 
@@ -106,9 +113,9 @@ def test_dashboard_isolates_offline_host_and_rewrites_successful_host(
     transport = FakeTransport({"home": home_client, "office": RuntimeError("ssh down")})
     service = CodespaceService(config, transport=transport)  # type: ignore[arg-type]
     monkeypatch.setattr(
-        runtime,
+        inventory,
         "list_inventory",
-        lambda client, host, cfg: runtime.Inventory([_environment()], []),
+        lambda client, host, cfg: inventory.Inventory([_environment()], []),
     )
 
     dashboard = service.dashboard()
@@ -134,10 +141,12 @@ def test_dashboard_keeps_failed_operation_when_container_was_retained(
         error="rollback stopped: provider unavailable",
     )
     monkeypatch.setattr(
-        runtime,
+        inventory,
         "list_inventory",
         lambda client, host, cfg: (
-            runtime.Inventory([_environment()], []) if host == "home" else runtime.Inventory([], [])
+            inventory.Inventory([_environment()], [])
+            if host == "home"
+            else inventory.Inventory([], [])
         ),
     )
     monkeypatch.setattr(ssh, "write_host", lambda host, environments, route: None)
@@ -155,28 +164,27 @@ def test_create_runs_all_stages_in_order(
 ) -> None:
     _queue_with_token(service)
     events: list[str] = []
-    platforms: list[str | None] = []
-    create_kwargs: list[dict[str, object]] = []
+    specs: list[EnvironmentSpec] = []
     container = SimpleNamespace(id="container-id")
     inventories = iter(
         [
-            runtime.Inventory([], []),
-            runtime.Inventory([_environment()], []),
+            inventory.Inventory([], []),
+            inventory.Inventory([_environment()], []),
         ]
     )
-    monkeypatch.setattr(runtime, "list_inventory", lambda *args: next(inventories))
+    monkeypatch.setattr(inventory, "list_inventory", lambda *args: next(inventories))
     monkeypatch.setattr(ssh, "prepare_login_key", lambda: events.append("login") or None)
     monkeypatch.setattr(
-        runtime,
+        workspace,
         "generate_deploy_keypair",
         lambda: (
             events.append("keygen")
-            or runtime.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC")
+            or workspace.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC")
         ),
     )
     pulls: list[tuple[str, str | None]] = []
     monkeypatch.setattr(
-        runtime,
+        containers,
         "pull_image",
         lambda _client, image, platform: (
             pulls.append((image, platform)),
@@ -184,23 +192,28 @@ def test_create_runs_all_stages_in_order(
         ),
     )
     monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: events.append("workspace"))
+
+    def create_container(
+        _client: object,
+        spec: EnvironmentSpec,
+        _workspace_root: str,
+    ) -> object:
+        specs.append(spec)
+        events.append("create")
+        return container
+
     monkeypatch.setattr(
-        runtime,
+        containers,
         "create_container",
-        lambda *args, **kwargs: (
-            platforms.append(kwargs["platform"]),
-            create_kwargs.append(kwargs),
-            events.append("create"),
-            container,
-        )[-1],
+        create_container,
     )
-    monkeypatch.setattr(runtime, "own_workspace", lambda *args: events.append("own"))
+    monkeypatch.setattr(workspace, "own_workspace", lambda *args: events.append("own"))
     monkeypatch.setattr(
-        runtime, "inject_credentials", lambda *args, **kwargs: events.append("inject")
+        workspace, "inject_credentials", lambda *args, **kwargs: events.append("inject")
     )
     monkeypatch.setattr(ssh, "probe", lambda *args: events.append("probe"))
     monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
-    monkeypatch.setattr(runtime, "clone_repo", lambda *args: events.append("clone"))
+    monkeypatch.setattr(workspace, "clone_repo", lambda *args: events.append("clone"))
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
 
     service.create("devspace", "debug")
@@ -219,11 +232,9 @@ def test_create_runs_all_stages_in_order(
         "projection",
     ]
     assert pulls == [(service.config.default_image, "linux/arm64")]
-    assert platforms == ["linux/arm64"]
-    resolved = create_kwargs[0]["container"]
-    assert isinstance(resolved, ContainerConfig)
-    assert resolved.network_mode == "host"
-    assert create_kwargs[0]["published_ports"] == []
+    assert specs[0].project.platform == "linux/arm64"
+    assert specs[0].container.network_mode == "host"
+    assert specs[0].published_ports == ()
     assert service.operations.list() == []
 
 
@@ -266,37 +277,35 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
     service.set_token("github", "token")
     service.queue_create("devspace", "debug")
 
-    create_kwargs: list[dict[str, object]] = []
+    specs: list[EnvironmentSpec] = []
     container = SimpleNamespace(id="container-id")
     environment = _environment(host="local")
-    inventories = iter([runtime.Inventory([], []), runtime.Inventory([environment], [])])
-    monkeypatch.setattr(runtime, "list_inventory", lambda *args: next(inventories))
+    inventories = iter([inventory.Inventory([], []), inventory.Inventory([environment], [])])
+    monkeypatch.setattr(inventory, "list_inventory", lambda *args: next(inventories))
     monkeypatch.setattr(ssh, "prepare_login_key", lambda: None)
     monkeypatch.setattr(
-        runtime,
+        workspace,
         "generate_deploy_keypair",
-        lambda: runtime.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
+        lambda: workspace.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
     )
-    monkeypatch.setattr(runtime, "pull_image", lambda *args: None)
+    monkeypatch.setattr(containers, "pull_image", lambda *args: None)
     monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
     monkeypatch.setattr(
-        runtime,
+        containers,
         "create_container",
-        lambda *args, **kwargs: (create_kwargs.append(kwargs), container)[-1],
+        lambda _client, spec, _root: (specs.append(spec), container)[-1],
     )
-    monkeypatch.setattr(runtime, "own_workspace", lambda *args: None)
-    monkeypatch.setattr(runtime, "inject_credentials", lambda *args, **kwargs: None)
+    monkeypatch.setattr(workspace, "own_workspace", lambda *args: None)
+    monkeypatch.setattr(workspace, "inject_credentials", lambda *args, **kwargs: None)
     monkeypatch.setattr(ssh, "probe", lambda *args: None)
     monkeypatch.setattr(provider, "register", lambda *args: None)
-    monkeypatch.setattr(runtime, "clone_repo", lambda *args: None)
+    monkeypatch.setattr(workspace, "clone_repo", lambda *args: None)
     monkeypatch.setattr(ssh, "write_host", lambda *args: None)
 
     service.create("devspace", "debug")
 
-    resolved = create_kwargs[0]["container"]
-    assert isinstance(resolved, ContainerConfig)
-    assert resolved.network_mode == "bridge"
-    assert create_kwargs[0]["published_ports"] == [(8080, 8080), (3000, 5000)]
+    assert specs[0].container.network_mode == "bridge"
+    assert specs[0].published_ports == ((8080, 8080), (3000, 5000))
     assert service.operations.list() == []
 
 
@@ -310,32 +319,32 @@ def test_create_blank_project_skips_repo_stages(
     scratch_env = _environment(project="scratch")
     inventories = iter(
         [
-            runtime.Inventory([], []),
-            runtime.Inventory([scratch_env], []),
+            inventory.Inventory([], []),
+            inventory.Inventory([scratch_env], []),
         ]
     )
-    monkeypatch.setattr(runtime, "list_inventory", lambda *args: next(inventories))
+    monkeypatch.setattr(inventory, "list_inventory", lambda *args: next(inventories))
     monkeypatch.setattr(ssh, "prepare_login_key", lambda: events.append("login") or None)
     monkeypatch.setattr(
-        runtime,
+        workspace,
         "generate_deploy_keypair",
-        lambda: events.append("keygen") or runtime.DeployKeypair("PRIVATE", "PUBLIC"),
+        lambda: events.append("keygen") or workspace.DeployKeypair("PRIVATE", "PUBLIC"),
     )
-    monkeypatch.setattr(runtime, "pull_image", lambda *args: events.append("pull"))
+    monkeypatch.setattr(containers, "pull_image", lambda *args: events.append("pull"))
     monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: events.append("workspace"))
     monkeypatch.setattr(
-        runtime,
+        containers,
         "create_container",
         lambda *args, **kwargs: (events.append("create"), container)[-1],
     )
-    monkeypatch.setattr(runtime, "own_workspace", lambda *args: events.append("own"))
+    monkeypatch.setattr(workspace, "own_workspace", lambda *args: events.append("own"))
     monkeypatch.setattr(
-        runtime, "inject_credentials", lambda *args, **kwargs: events.append("inject")
+        workspace, "inject_credentials", lambda *args, **kwargs: events.append("inject")
     )
     monkeypatch.setattr(ssh, "probe", lambda *args: events.append("probe"))
     monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
-    monkeypatch.setattr(runtime, "clone_repo", lambda *args: events.append("clone"))
-    monkeypatch.setattr(runtime, "prepare_open_path", lambda *args: events.append("open_path"))
+    monkeypatch.setattr(workspace, "clone_repo", lambda *args: events.append("clone"))
+    monkeypatch.setattr(workspace, "prepare_open_path", lambda *args: events.append("open_path"))
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
 
     service.create("scratch", "debug")
@@ -369,13 +378,13 @@ def test_create_rejects_duplicate_before_generating_keys(
 ) -> None:
     _queue_with_token(service)
     monkeypatch.setattr(
-        runtime,
+        inventory,
         "list_inventory",
-        lambda *args: runtime.Inventory([_environment()], []),
+        lambda *args: inventory.Inventory([_environment()], []),
     )
     generated: list[bool] = []
     monkeypatch.setattr(
-        runtime,
+        workspace,
         "generate_deploy_keypair",
         lambda: generated.append(True),
     )
@@ -396,9 +405,9 @@ def test_create_rejects_deterministic_port_collision(
     collision = _environment(instance="other")
     collision.ssh_port = ssh_port("codespace-home-devspace-debug")
     monkeypatch.setattr(
-        runtime,
+        inventory,
         "list_inventory",
-        lambda *args: runtime.Inventory([collision], []),
+        lambda *args: inventory.Inventory([collision], []),
     )
 
     service.create("devspace", "debug")
@@ -416,28 +425,28 @@ def test_failure_before_register_removes_container_but_keeps_workspace(
     container = SimpleNamespace(id="container-id")
     removed: list[object] = []
     monkeypatch.setattr(
-        runtime,
+        inventory,
         "list_inventory",
-        lambda *args: runtime.Inventory([], []),
+        lambda *args: inventory.Inventory([], []),
     )
     monkeypatch.setattr(ssh, "prepare_login_key", lambda: None)
     monkeypatch.setattr(
-        runtime,
+        workspace,
         "generate_deploy_keypair",
-        lambda: runtime.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
+        lambda: workspace.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
     )
-    monkeypatch.setattr(runtime, "pull_image", lambda *args: None)
+    monkeypatch.setattr(containers, "pull_image", lambda *args: None)
     monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
-    monkeypatch.setattr(runtime, "create_container", lambda *args, **kwargs: container)
-    monkeypatch.setattr(runtime, "own_workspace", lambda *args: None)
-    monkeypatch.setattr(runtime, "inject_credentials", lambda *args, **kwargs: None)
+    monkeypatch.setattr(containers, "create_container", lambda *args, **kwargs: container)
+    monkeypatch.setattr(workspace, "own_workspace", lambda *args: None)
+    monkeypatch.setattr(workspace, "inject_credentials", lambda *args, **kwargs: None)
     monkeypatch.setattr(
         ssh,
         "probe",
         lambda *args: (_ for _ in ()).throw(RuntimeError("no ssh")),
     )
-    monkeypatch.setattr(runtime, "find_container", lambda *args: container)
-    monkeypatch.setattr(runtime, "remove_container", lambda item: removed.append(item))
+    monkeypatch.setattr(inventory, "find_container", lambda *args: container)
+    monkeypatch.setattr(containers, "remove_container", lambda item: removed.append(item))
     monkeypatch.setattr(provider, "revoke", lambda *args: pytest.fail("must not revoke"))
 
     service.create("devspace", "debug")
@@ -454,25 +463,25 @@ def test_container_run_failure_still_attempts_deterministic_cleanup(
     container = SimpleNamespace(id="container-id")
     removed: list[object] = []
     monkeypatch.setattr(
-        runtime,
+        inventory,
         "list_inventory",
-        lambda *args: runtime.Inventory([], []),
+        lambda *args: inventory.Inventory([], []),
     )
     monkeypatch.setattr(ssh, "prepare_login_key", lambda: None)
     monkeypatch.setattr(
-        runtime,
+        workspace,
         "generate_deploy_keypair",
-        lambda: runtime.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
+        lambda: workspace.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
     )
-    monkeypatch.setattr(runtime, "pull_image", lambda *args: None)
+    monkeypatch.setattr(containers, "pull_image", lambda *args: None)
     monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
     monkeypatch.setattr(
-        runtime,
+        containers,
         "create_container",
         lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("wait failed")),
     )
-    monkeypatch.setattr(runtime, "find_container", lambda *args: container)
-    monkeypatch.setattr(runtime, "remove_container", lambda item: removed.append(item))
+    monkeypatch.setattr(inventory, "find_container", lambda *args: container)
+    monkeypatch.setattr(containers, "remove_container", lambda item: removed.append(item))
 
     service.create("devspace", "debug")
 
@@ -487,28 +496,28 @@ def test_failure_after_register_revokes_then_removes_container(
     _queue_with_token(service)
     events: list[str] = []
     container = SimpleNamespace(id="container-id")
-    monkeypatch.setattr(runtime, "list_inventory", lambda *args: runtime.Inventory([], []))
+    monkeypatch.setattr(inventory, "list_inventory", lambda *args: inventory.Inventory([], []))
     monkeypatch.setattr(ssh, "prepare_login_key", lambda: None)
     monkeypatch.setattr(
-        runtime,
+        workspace,
         "generate_deploy_keypair",
-        lambda: runtime.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
+        lambda: workspace.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
     )
-    monkeypatch.setattr(runtime, "pull_image", lambda *args: None)
+    monkeypatch.setattr(containers, "pull_image", lambda *args: None)
     monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
-    monkeypatch.setattr(runtime, "create_container", lambda *args, **kwargs: container)
-    monkeypatch.setattr(runtime, "own_workspace", lambda *args: None)
-    monkeypatch.setattr(runtime, "inject_credentials", lambda *args, **kwargs: None)
+    monkeypatch.setattr(containers, "create_container", lambda *args, **kwargs: container)
+    monkeypatch.setattr(workspace, "own_workspace", lambda *args: None)
+    monkeypatch.setattr(workspace, "inject_credentials", lambda *args, **kwargs: None)
     monkeypatch.setattr(ssh, "probe", lambda *args: None)
     monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
     monkeypatch.setattr(
-        runtime,
+        workspace,
         "clone_repo",
         lambda *args: (_ for _ in ()).throw(RuntimeError("clone failed")),
     )
-    monkeypatch.setattr(runtime, "find_container", lambda *args: container)
+    monkeypatch.setattr(inventory, "find_container", lambda *args: container)
     monkeypatch.setattr(provider, "revoke", lambda *args: events.append("revoke"))
-    monkeypatch.setattr(runtime, "remove_container", lambda item: events.append("remove"))
+    monkeypatch.setattr(containers, "remove_container", lambda item: events.append("remove"))
 
     service.create("devspace", "debug")
 
@@ -526,22 +535,22 @@ def test_revoke_failure_after_register_retains_container(
         stop=lambda *, timeout: stopped.append(timeout),
     )
     removed: list[object] = []
-    monkeypatch.setattr(runtime, "list_inventory", lambda *args: runtime.Inventory([], []))
+    monkeypatch.setattr(inventory, "list_inventory", lambda *args: inventory.Inventory([], []))
     monkeypatch.setattr(ssh, "prepare_login_key", lambda: None)
     monkeypatch.setattr(
-        runtime,
+        workspace,
         "generate_deploy_keypair",
-        lambda: runtime.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
+        lambda: workspace.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
     )
-    monkeypatch.setattr(runtime, "pull_image", lambda *args: None)
+    monkeypatch.setattr(containers, "pull_image", lambda *args: None)
     monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
-    monkeypatch.setattr(runtime, "create_container", lambda *args, **kwargs: container)
-    monkeypatch.setattr(runtime, "own_workspace", lambda *args: None)
-    monkeypatch.setattr(runtime, "inject_credentials", lambda *args, **kwargs: None)
+    monkeypatch.setattr(containers, "create_container", lambda *args, **kwargs: container)
+    monkeypatch.setattr(workspace, "own_workspace", lambda *args: None)
+    monkeypatch.setattr(workspace, "inject_credentials", lambda *args, **kwargs: None)
     monkeypatch.setattr(ssh, "probe", lambda *args: None)
     monkeypatch.setattr(provider, "register", lambda *args: None)
     monkeypatch.setattr(
-        runtime,
+        workspace,
         "clone_repo",
         lambda *args: (_ for _ in ()).throw(RuntimeError("clone failed")),
     )
@@ -550,8 +559,8 @@ def test_revoke_failure_after_register_retains_container(
         "revoke",
         lambda *args: (_ for _ in ()).throw(RuntimeError("provider unavailable")),
     )
-    monkeypatch.setattr(runtime, "find_container", lambda *args: container)
-    monkeypatch.setattr(runtime, "remove_container", lambda item: removed.append(item))
+    monkeypatch.setattr(inventory, "find_container", lambda *args: container)
+    monkeypatch.setattr(containers, "remove_container", lambda item: removed.append(item))
 
     service.create("devspace", "debug")
 
@@ -567,7 +576,7 @@ def test_delete_requires_token_before_remote_mutation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     touched: list[bool] = []
-    monkeypatch.setattr(runtime, "list_inventory", lambda *args: touched.append(True))
+    monkeypatch.setattr(inventory, "list_inventory", lambda *args: touched.append(True))
 
     with pytest.raises(RuntimeError, match="token is not set"):
         service.delete("devspace", "debug", purge=False)
@@ -593,17 +602,16 @@ def test_delete_revokes_before_container_and_workspace_mutation(
     events: list[str] = []
     inventories = iter(
         [
-            runtime.Inventory([_environment()], []),
-            runtime.Inventory([], []),
+            inventory.Inventory([_environment()], []),
+            inventory.Inventory([], []),
         ]
     )
-    monkeypatch.setattr(runtime, "list_inventory", lambda *args: next(inventories))
-    monkeypatch.setattr(runtime, "find_container", lambda *args: container)
-    monkeypatch.setattr(runtime, "read_environment", lambda *args: _environment())
-    monkeypatch.setattr(runtime, "repo_git_state", lambda *args: RepoGitState())
+    monkeypatch.setattr(inventory, "list_inventory", lambda *args: next(inventories))
+    monkeypatch.setattr(inventory, "find_container", lambda *args: container)
+    monkeypatch.setattr(workspace, "repo_git_state", lambda *args: RepoGitState())
     monkeypatch.setattr(provider, "revoke", lambda *args: events.append("revoke"))
-    monkeypatch.setattr(runtime, "purge_workspace", lambda *args: events.append("purge"))
-    monkeypatch.setattr(runtime, "remove_container", lambda item: events.append("remove"))
+    monkeypatch.setattr(containers, "purge_workspace", lambda *args: events.append("purge"))
+    monkeypatch.setattr(containers, "remove_container", lambda item: events.append("remove"))
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
 
     service.delete("devspace", "debug", purge=purge, force=True)
@@ -619,19 +627,19 @@ def test_delete_revoke_failure_refuses_all_mutation(
     container = object()
     mutations: list[str] = []
     monkeypatch.setattr(
-        runtime,
+        inventory,
         "list_inventory",
-        lambda *args: runtime.Inventory([_environment()], []),
+        lambda *args: inventory.Inventory([_environment()], []),
     )
-    monkeypatch.setattr(runtime, "find_container", lambda *args: container)
-    monkeypatch.setattr(runtime, "repo_git_state", lambda *args: RepoGitState())
+    monkeypatch.setattr(inventory, "find_container", lambda *args: container)
+    monkeypatch.setattr(workspace, "repo_git_state", lambda *args: RepoGitState())
     monkeypatch.setattr(
         provider,
         "revoke",
         lambda *args: (_ for _ in ()).throw(RuntimeError("denied")),
     )
-    monkeypatch.setattr(runtime, "purge_workspace", lambda *args: mutations.append("purge"))
-    monkeypatch.setattr(runtime, "remove_container", lambda item: mutations.append("remove"))
+    monkeypatch.setattr(containers, "purge_workspace", lambda *args: mutations.append("purge"))
+    monkeypatch.setattr(containers, "remove_container", lambda item: mutations.append("remove"))
 
     with pytest.raises(RuntimeError, match="denied"):
         service.delete("devspace", "debug", purge=True, force=True)
@@ -647,19 +655,19 @@ def test_delete_without_force_inspects_and_skips_mutation(
     container = object()
     mutations: list[str] = []
     monkeypatch.setattr(
-        runtime,
+        inventory,
         "list_inventory",
-        lambda *args: runtime.Inventory([_environment()], []),
+        lambda *args: inventory.Inventory([_environment()], []),
     )
-    monkeypatch.setattr(runtime, "find_container", lambda *args: container)
+    monkeypatch.setattr(inventory, "find_container", lambda *args: container)
     monkeypatch.setattr(
-        runtime,
+        workspace,
         "repo_git_state",
         lambda *args: RepoGitState(unpushed=True, detail=["abc add feature"]),
     )
     monkeypatch.setattr(provider, "revoke", lambda *args: mutations.append("revoke"))
-    monkeypatch.setattr(runtime, "purge_workspace", lambda *args: mutations.append("purge"))
-    monkeypatch.setattr(runtime, "remove_container", lambda item: mutations.append("remove"))
+    monkeypatch.setattr(containers, "purge_workspace", lambda *args: mutations.append("purge"))
+    monkeypatch.setattr(containers, "remove_container", lambda item: mutations.append("remove"))
 
     state = service.delete("devspace", "debug", purge=True, force=False)
 
@@ -677,19 +685,19 @@ def test_delete_force_skips_git_check_and_deletes(
     events: list[str] = []
     inventories = iter(
         [
-            runtime.Inventory([_environment()], []),
-            runtime.Inventory([], []),
+            inventory.Inventory([_environment()], []),
+            inventory.Inventory([], []),
         ]
     )
-    monkeypatch.setattr(runtime, "list_inventory", lambda *args: next(inventories))
-    monkeypatch.setattr(runtime, "find_container", lambda *args: container)
+    monkeypatch.setattr(inventory, "list_inventory", lambda *args: next(inventories))
+    monkeypatch.setattr(inventory, "find_container", lambda *args: container)
 
     def _fail_git_state(*_args: object) -> RepoGitState:
         raise AssertionError("repo_git_state must not run when force=True")
 
-    monkeypatch.setattr(runtime, "repo_git_state", _fail_git_state)
+    monkeypatch.setattr(workspace, "repo_git_state", _fail_git_state)
     monkeypatch.setattr(provider, "revoke", lambda *args: events.append("revoke"))
-    monkeypatch.setattr(runtime, "remove_container", lambda item: events.append("remove"))
+    monkeypatch.setattr(containers, "remove_container", lambda item: events.append("remove"))
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
 
     service.delete("devspace", "debug", purge=False, force=True)

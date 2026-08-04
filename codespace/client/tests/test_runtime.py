@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import io
 import tarfile
+from dataclasses import replace
 from types import SimpleNamespace
 
 import pytest
 from podman.errors import NotFound, PodmanError
 
-from codespace.client import runtime
+from codespace.client import container as container_runtime
+from codespace.client import inventory, workspace
 from codespace.client.config import Config
 from codespace.client.models import (
     LABEL_IMAGE,
@@ -22,6 +24,7 @@ from codespace.client.models import (
     LABEL_SSH_PORT,
     LABEL_TYPE,
     MANDATORY_LABELS,
+    Environment,
     environment_id,
     environment_labels,
     ssh_port,
@@ -92,7 +95,7 @@ class FakeContainer:
 def test_read_environment_requires_complete_valid_labels(config: Config) -> None:
     container = FakeContainer()
 
-    environment = runtime.read_environment(container, "home", config)  # type: ignore[arg-type]
+    environment = inventory.read_environment(container, "home", config)  # type: ignore[arg-type]
 
     assert environment.id == "codespace-home-devspace-debug"
     assert environment.repo == "curoky/devspace"
@@ -101,7 +104,7 @@ def test_read_environment_requires_complete_valid_labels(config: Config) -> None
 
     del container.labels[LABEL_REPO]
     with pytest.raises(ValueError, match=r"missing required label codespace.repo"):
-        runtime.read_environment(container, "home", config)  # type: ignore[arg-type]
+        inventory.read_environment(container, "home", config)  # type: ignore[arg-type]
 
 
 def test_pull_image_streams_and_passes_platform_only_when_selected() -> None:
@@ -113,8 +116,8 @@ def test_pull_image_streams_and_passes_platform_only_when_selected() -> None:
 
     client = SimpleNamespace(images=SimpleNamespace(pull=pull))
 
-    runtime.pull_image(client, "image:latest", None)  # type: ignore[arg-type]
-    runtime.pull_image(client, "image:latest", "linux/arm64")  # type: ignore[arg-type]
+    container_runtime.pull_image(client, "image:latest", None)  # type: ignore[arg-type]
+    container_runtime.pull_image(client, "image:latest", "linux/arm64")  # type: ignore[arg-type]
 
     assert calls == [
         ("image:latest", {"stream": True, "decode": True}),
@@ -129,7 +132,7 @@ def test_pull_image_raises_on_stream_error() -> None:
     client = SimpleNamespace(images=SimpleNamespace(pull=pull))
 
     with pytest.raises(PodmanError, match=r"failed to pull image:latest: manifest unknown"):
-        runtime.pull_image(client, "image:latest", None)  # type: ignore[arg-type]
+        container_runtime.pull_image(client, "image:latest", None)  # type: ignore[arg-type]
 
 
 def test_inventory_reports_unknown_project_as_error(config: Config) -> None:
@@ -138,10 +141,10 @@ def test_inventory_reports_unknown_project_as_error(config: Config) -> None:
         containers=SimpleNamespace(list=lambda **_kwargs: [container]),
     )
 
-    inventory = runtime.list_inventory(client, "home", config)  # type: ignore[arg-type]
+    current = inventory.list_inventory(client, "home", config)  # type: ignore[arg-type]
 
-    assert inventory.environments == []
-    assert inventory.errors == [
+    assert current.environments == []
+    assert current.errors == [
         "container codespace-home-unknown-debug references unknown project 'unknown'"
     ]
 
@@ -150,38 +153,16 @@ def test_read_environment_rejects_invalid_platform_label(config: Config) -> None
     container = FakeContainer(platform="linux/riscv64")
 
     with pytest.raises(ValueError, match=r"invalid platform label 'linux/riscv64'"):
-        runtime.read_environment(container, "home", config)  # type: ignore[arg-type]
+        inventory.read_environment(container, "home", config)  # type: ignore[arg-type]
 
 
-def test_written_labels_cover_every_required_label() -> None:
-    """The write side must emit every label the read side validates.
+def test_written_labels_cover_every_required_label(config: Config) -> None:
+    repo_labels = config.environment_spec("devspace", "debug")
+    labels = environment_labels(repo_labels)
 
-    This locks the ``environment_labels`` / ``_REQUIRED_LABELS`` symmetry so a
-    future label addition cannot desynchronise the two paths (CLAUDE.md 资源标识).
-    """
-    repo_labels = environment_labels(
-        project="devspace",
-        instance="debug",
-        project_type="repo",
-        repo="curoky/devspace",
-        provider="github",
-        image="image:latest",
-        platform="native",
-        ssh_port=20001,
-    )
-    assert set(MANDATORY_LABELS) <= set(repo_labels)
-    assert set(MANDATORY_LABELS) == set(runtime._REQUIRED_LABELS)
+    assert set(MANDATORY_LABELS) <= set(labels)
 
-    blank_labels = environment_labels(
-        project="scratch",
-        instance="debug",
-        project_type="blank",
-        repo=None,
-        provider=None,
-        image="image:latest",
-        platform="native",
-        ssh_port=20002,
-    )
+    blank_labels = environment_labels(config.environment_spec("scratch", "debug"))
     assert set(MANDATORY_LABELS) <= set(blank_labels)
     assert LABEL_REPO not in blank_labels
     assert LABEL_PROVIDER not in blank_labels
@@ -198,21 +179,13 @@ def test_create_container_preserves_fixed_runtime_contract(
         calls.append((image, kwargs))
         return container
 
-    monkeypatch.setattr(runtime, "Container", FakeContainer)
+    monkeypatch.setattr(container_runtime, "Container", FakeContainer)
     client = SimpleNamespace(containers=SimpleNamespace(run=run))
 
-    result = runtime.create_container(
+    result = container_runtime.create_container(
         client,  # type: ignore[arg-type]
-        host="home",
-        project="devspace",
-        instance="debug",
-        project_type="repo",
-        repo="curoky/devspace",
-        provider="github",
-        image=config.project_image("devspace"),
-        platform="linux/arm64",
-        workspace_root="/home/x/codespace",
-        container=config.resolved_container("devspace"),
+        config.environment_spec("devspace", "debug"),
+        "/home/x/codespace",
     )
 
     assert result is container
@@ -259,26 +232,18 @@ def test_create_container_injects_gpu_device(
         calls.append((image, kwargs))
         return container
 
-    monkeypatch.setattr(runtime, "Container", FakeContainer)
+    monkeypatch.setattr(container_runtime, "Container", FakeContainer)
     client = SimpleNamespace(containers=SimpleNamespace(run=run))
 
-    # A CDI device such as nvidia.com/gpu=all is declared through container.devices
-    # and forwarded verbatim to ``podman run --device``.
-    container_config = config.resolved_container("devspace").model_copy(
-        update={"devices": ["nvidia.com/gpu=all"]}
+    spec = config.environment_spec("devspace", "debug")
+    spec = replace(
+        spec,
+        container=spec.container.model_copy(update={"devices": ["nvidia.com/gpu=all"]}),
     )
-    runtime.create_container(
+    container_runtime.create_container(
         client,  # type: ignore[arg-type]
-        host="home",
-        project="devspace",
-        instance="debug",
-        project_type="repo",
-        repo="curoky/devspace",
-        provider="github",
-        image=config.project_image("devspace"),
-        platform="linux/arm64",
-        workspace_root="/home/x/codespace",
-        container=container_config,
+        spec,
+        "/home/x/codespace",
     )
 
     _, kwargs = calls[0]
@@ -296,24 +261,20 @@ def test_create_container_bridge_publishes_ports_and_binds_sshd(
         calls.append((image, kwargs))
         return container
 
-    monkeypatch.setattr(runtime, "Container", FakeContainer)
+    monkeypatch.setattr(container_runtime, "Container", FakeContainer)
     client = SimpleNamespace(containers=SimpleNamespace(run=run))
 
-    runtime.create_container(
+    base = config.environment_spec("devspace", "debug")
+    spec = replace(
+        base,
+        project=base.project.model_copy(update={"host": "local", "platform": None}),
+        container=base.container.model_copy(update={"network_mode": "bridge"}),
+        published_ports=((8080, 8080), (3000, 5000)),
+    )
+    container_runtime.create_container(
         client,  # type: ignore[arg-type]
-        host="local",
-        project="devspace",
-        instance="debug",
-        project_type="repo",
-        repo="curoky/devspace",
-        provider="github",
-        image=config.default_image,
-        platform=None,
-        workspace_root="/home/x/codespace",
-        container=config.resolved_container("devspace").model_copy(
-            update={"network_mode": "bridge"}
-        ),
-        published_ports=[(8080, 8080), (3000, 5000)],
+        spec,
+        "/home/x/codespace",
     )
 
     _, kwargs = calls[0]
@@ -338,21 +299,13 @@ def test_create_container_blank_omits_repo_and_provider_labels(
         calls.append((image, kwargs))
         return container
 
-    monkeypatch.setattr(runtime, "Container", FakeContainer)
+    monkeypatch.setattr(container_runtime, "Container", FakeContainer)
     client = SimpleNamespace(containers=SimpleNamespace(run=run))
 
-    runtime.create_container(
+    container_runtime.create_container(
         client,  # type: ignore[arg-type]
-        host="home",
-        project="scratch",
-        instance="debug",
-        project_type="blank",
-        repo=None,
-        provider=None,
-        image=config.default_image,
-        platform=None,
-        workspace_root="/home/x/codespace",
-        container=config.resolved_container("scratch"),
+        config.environment_spec("scratch", "debug"),
+        "/home/x/codespace",
     )
 
     _, kwargs = calls[0]
@@ -363,10 +316,10 @@ def test_create_container_blank_omits_repo_and_provider_labels(
     assert LABEL_PROVIDER not in labels
 
 
-def test_inject_credentials_blank_injects_nothing(config: Config) -> None:
+def test_inject_credentials_blank_injects_nothing() -> None:
     container = FakeContainer()
 
-    runtime.inject_credentials(
+    workspace.inject_credentials(
         container,  # type: ignore[arg-type]
         deploy_private_key=None,
         provider=None,
@@ -393,7 +346,7 @@ def _archived_config(container: FakeContainer) -> str:
 def test_inject_credentials_writes_provider_config_wholesale() -> None:
     container = FakeContainer()
 
-    runtime.inject_credentials(
+    workspace.inject_credentials(
         container,  # type: ignore[arg-type]
         deploy_private_key="PRIVATE",
         provider="github",
@@ -414,7 +367,7 @@ def test_inject_credentials_does_not_read_existing_container_config() -> None:
         b"Host my-server\n    HostName 10.0.0.1\n    User dev\n"
     )
 
-    runtime.inject_credentials(
+    workspace.inject_credentials(
         container,  # type: ignore[arg-type]
         deploy_private_key="PRIVATE",
         provider="github",
@@ -435,7 +388,7 @@ def test_clone_reuses_existing_checkout_and_uses_argument_list() -> None:
         container.exec_calls.append((command, user)) or (0, (None, None))
     )
 
-    runtime.clone_repo(container, "curoky/devspace", "github")  # type: ignore[arg-type]
+    workspace.clone_repo(container, "curoky/devspace", "github")  # type: ignore[arg-type]
 
     assert container.exec_calls == [(["test", "-d", "/workspace/devspace/.git"], "x")]
 
@@ -443,7 +396,7 @@ def test_clone_reuses_existing_checkout_and_uses_argument_list() -> None:
 def test_clone_missing_checkout_runs_git_without_shell() -> None:
     container = FakeContainer()
 
-    runtime.clone_repo(container, "group/service-api", "gitlab")  # type: ignore[arg-type]
+    workspace.clone_repo(container, "group/service-api", "gitlab")  # type: ignore[arg-type]
 
     assert container.exec_calls[-1] == (
         [
@@ -459,9 +412,28 @@ def test_clone_missing_checkout_runs_git_without_shell() -> None:
 def test_prepare_open_path_makes_directory_as_container_user() -> None:
     container = FakeContainer()
 
-    runtime.prepare_open_path(container, "/workspace/relevance-pipeline")  # type: ignore[arg-type]
+    workspace.prepare_open_path(
+        container,  # type: ignore[arg-type]
+        "/workspace/relevance-pipeline",
+    )
 
     assert container.exec_calls == [(["mkdir", "-p", "--", "/workspace/relevance-pipeline"], "x")]
+
+
+def _environment_for_purge(platform: str) -> Environment:
+    return Environment(
+        id="codespace-home-devspace-debug",
+        host="home",
+        project="devspace",
+        instance="debug",
+        type="repo",
+        repo="curoky/devspace",
+        provider="github",
+        image="image:latest",
+        platform=platform,  # type: ignore[arg-type]
+        ssh_port=22000,
+        container_id="container-id",
+    )
 
 
 def test_purge_workspace_uses_environment_platform(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -482,17 +454,14 @@ def test_purge_workspace_uses_environment_platform(monkeypatch: pytest.MonkeyPat
         calls.append((image, kwargs))
         return HelperContainer()
 
-    monkeypatch.setattr(runtime, "Container", HelperContainer)
+    monkeypatch.setattr(container_runtime, "Container", HelperContainer)
     client = SimpleNamespace(containers=SimpleNamespace(run=run))
 
-    runtime.purge_workspace(
+    container_runtime.purge_workspace(
         client,  # type: ignore[arg-type]
         container,  # type: ignore[arg-type]
-        "image:latest",
-        "linux/arm64",
+        _environment_for_purge("linux/arm64"),
         "/home/x/codespace",
-        "devspace",
-        "debug",
     )
 
     assert calls[0][0] == "image:latest"
@@ -515,20 +484,17 @@ def test_purge_workspace_surfaces_rm_failure(monkeypatch: pytest.MonkeyPatch) ->
         def remove(self, **_: object) -> None:
             removed.append(True)
 
-    monkeypatch.setattr(runtime, "Container", HelperContainer)
+    monkeypatch.setattr(container_runtime, "Container", HelperContainer)
     client = SimpleNamespace(
         containers=SimpleNamespace(run=lambda image, **kwargs: HelperContainer()),
     )
 
     with pytest.raises(RuntimeError, match="Device or resource busy"):
-        runtime.purge_workspace(
+        container_runtime.purge_workspace(
             client,  # type: ignore[arg-type]
             container,  # type: ignore[arg-type]
-            "image:latest",
-            None,
+            _environment_for_purge("native"),
             "/home/x/codespace",
-            "devspace",
-            "debug",
         )
 
     assert removed == [True]
@@ -574,7 +540,7 @@ class GitFakeContainer:
 def test_repo_git_state_clean_when_nothing_pending() -> None:
     container = GitFakeContainer({})
 
-    state = runtime.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+    state = workspace.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
 
     assert state.blocks_delete is False
     assert state.unpushed is False
@@ -592,7 +558,7 @@ def test_repo_git_state_ignores_stderr_noise() -> None:
         }
     )
 
-    state = runtime.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+    state = workspace.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
 
     assert state.blocks_delete is False
     assert state.detail == []
@@ -602,7 +568,7 @@ def test_repo_git_state_starts_stopped_container() -> None:
     container = GitFakeContainer({})
     container.status = "exited"
 
-    runtime.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+    workspace.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
 
     assert container.started is True
 
@@ -610,7 +576,7 @@ def test_repo_git_state_starts_stopped_container() -> None:
 def test_repo_git_state_detects_uncommitted() -> None:
     container = GitFakeContainer({"status": (0, b" M models.py\n", b"")})
 
-    state = runtime.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+    state = workspace.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
 
     assert state.uncommitted is True
     assert state.unpushed is False
@@ -620,7 +586,7 @@ def test_repo_git_state_detects_uncommitted() -> None:
 def test_repo_git_state_detects_unpushed() -> None:
     container = GitFakeContainer({"log": (0, b"abc123 add feature\n", b"")})
 
-    state = runtime.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+    state = workspace.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
 
     assert state.unpushed is True
     assert state.uncommitted is False
@@ -635,7 +601,7 @@ def test_repo_git_state_detects_both() -> None:
         }
     )
 
-    state = runtime.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+    state = workspace.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
 
     assert state.blocks_delete is True
     assert state.detail == [" M models.py", "abc123 add feature"]
@@ -644,7 +610,7 @@ def test_repo_git_state_detects_both() -> None:
 def test_repo_git_state_skips_absent_checkout() -> None:
     container = GitFakeContainer({"test": (1, b"", b"")})
 
-    state = runtime.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+    state = workspace.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
 
     assert state.blocks_delete is False
     # Only the presence probe should run when the checkout is missing.
@@ -655,4 +621,4 @@ def test_repo_git_state_raises_on_git_failure() -> None:
     container = GitFakeContainer({"status": (128, b"", b"fatal: not a git repository")})
 
     with pytest.raises(RuntimeError, match=r"exec git .* failed \(128\)"):
-        runtime.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+        workspace.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
