@@ -88,7 +88,7 @@ class CodespaceService:
         operations: OperationStore | None = None,
     ) -> None:
         self.config = config
-        self.transport = transport or PodmanTransport(config.host_configs())
+        self.transport = transport or PodmanTransport(config.hosts)
         self.operations = operations or OperationStore()
         self._tokens: dict[GitProvider, str] = {}
         self._token_lock = Lock()

@@ -92,7 +92,7 @@ uv sync
 uv run python -m codespace.client
 ```
 
-服务只监听 `127.0.0.1:8765`。后台运行使用：
+服务只监听 `127.0.0.1:8003`。后台运行使用：
 
 ```bash
 codespace/client/run.sh

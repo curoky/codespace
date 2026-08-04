@@ -220,8 +220,8 @@ def test_config_resolves_per_host_podman_socket() -> None:
         }
     )
 
-    assert config.podman_socket("office") == "/tmp/podmanxd.sock"
-    assert config.podman_socket("home") == "/run/podman/podman.sock"
+    assert config.host_config("office").resolved_podman_socket() == "/tmp/podmanxd.sock"
+    assert config.host_config("home").resolved_podman_socket() == "/run/podman/podman.sock"
     assert config.host_config("home").type == "ssh"
     assert config.host_config("office").podman_socket == "/tmp/podmanxd.sock"
 
@@ -256,7 +256,7 @@ def test_config_accepts_explicit_podman_machine_host() -> None:
     assert config.host_config("local").is_bridge is True
 
     with pytest.raises(ValueError, match="discovered from machine inspect"):
-        config.podman_socket("local")
+        config.host_config("local").resolved_podman_socket()
 
 
 def test_config_ssh_host_uses_host_network() -> None:

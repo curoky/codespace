@@ -291,7 +291,7 @@ uv run python -m codespace.client
 codespace/client/run.sh
 ```
 
-应用固定使用单 worker 并监听 `127.0.0.1:8765`。只保留以下 API：
+应用固定使用单 worker 并监听 `127.0.0.1:8003`。只保留以下 API：
 
 - `GET /api/dashboard`
 - `PUT /api/tokens/{provider}`

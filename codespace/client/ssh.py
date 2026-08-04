@@ -45,7 +45,21 @@ def remote_workspace_root(route: SSHRoute) -> str:
     resolved per route with one cached SSH round-trip that also creates the
     directory. Ensuring it here means the bind-mount source always exists.
     """
-    return _resolve_remote_workspace_root(route)
+    # WORKSPACE_DIR_NAME is a fixed internal constant, so this remote command is
+    # not exposed to injection; "$HOME" expands in the remote login shell.
+    remote_command = (
+        f'mkdir -p -- "$HOME/{WORKSPACE_DIR_NAME}" && printf %s "$HOME/{WORKSPACE_DIR_NAME}"'
+    )
+    result = _run_host(
+        route,
+        remote_command,
+        timeout=_WORKSPACE_ROOT_TIMEOUT,
+        action="resolve workspace root",
+    )
+    root = result.stdout.strip()
+    if not root.startswith("/"):
+        raise RuntimeError(f"host {route.host!r} returned a non-absolute workspace root: {root!r}")
+    return root
 
 
 def prepare_workspace(route: SSHRoute, target: str) -> None:
@@ -66,24 +80,6 @@ def prepare_workspace(route: SSHRoute, target: str) -> None:
         timeout=_WORKSPACE_PREPARE_TIMEOUT,
         action=f"prepare workspace {target!r}",
     )
-
-
-def _resolve_remote_workspace_root(route: SSHRoute) -> str:
-    # WORKSPACE_DIR_NAME is a fixed internal constant, so this remote command is
-    # not exposed to injection; "$HOME" expands in the remote login shell.
-    remote_command = (
-        f'mkdir -p -- "$HOME/{WORKSPACE_DIR_NAME}" && printf %s "$HOME/{WORKSPACE_DIR_NAME}"'
-    )
-    result = _run_host(
-        route,
-        remote_command,
-        timeout=_WORKSPACE_ROOT_TIMEOUT,
-        action="resolve workspace root",
-    )
-    root = result.stdout.strip()
-    if not root.startswith("/"):
-        raise RuntimeError(f"host {route.host!r} returned a non-absolute workspace root: {root!r}")
-    return root
 
 
 def _run_host(

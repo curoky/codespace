@@ -17,7 +17,6 @@ type ImagePlatform = Literal["linux/amd64", "linux/arm64"]
 type PlatformSelection = Literal["native", "linux/amd64", "linux/arm64"]
 
 CONTAINER_USER = "x"
-CONTAINER_UID = 5230
 WORKSPACE_MOUNT = "/workspace"
 # Host workspace root lives under the SSH login user's home so each host can use
 # its own account. The absolute path is resolved per host at runtime because a
@@ -109,8 +108,6 @@ MANDATORY_LABELS = (
     LABEL_PLATFORM,
     LABEL_SSH_PORT,
 )
-# Extra labels only repo projects carry; blank projects must omit them.
-REPO_LABELS = (LABEL_REPO, LABEL_PROVIDER)
 
 
 def environment_labels(

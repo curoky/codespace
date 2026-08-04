@@ -333,17 +333,9 @@ class Config(BaseModel):
             seeded["gitlab"] = self.tokens.gitlab
         return seeded
 
-    def podman_socket(self, host: str) -> str:
-        """Resolve one host's remote Podman socket, defaulting to the standard path."""
-        return self.host_config(host).resolved_podman_socket()
-
     def host_config(self, host: str) -> HostConfig:
         """Return one host's connection settings."""
         return self.hosts[host]
-
-    def host_configs(self) -> dict[str, HostConfig]:
-        """Map every configured host to its resolved connection settings."""
-        return dict(self.hosts)
 
 
 def load_config(path: Path = CONFIG_PATH) -> Config:
