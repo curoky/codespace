@@ -7,7 +7,7 @@ import tarfile
 from types import SimpleNamespace
 
 import pytest
-from podman.errors import NotFound
+from podman.errors import NotFound, PodmanError
 
 from codespace.client import runtime
 from codespace.client.config import Config
@@ -103,19 +103,32 @@ def test_read_environment_requires_complete_valid_labels(config: Config) -> None
         runtime.read_environment(container, "home", config)  # type: ignore[arg-type]
 
 
-def test_pull_image_passes_configured_platform_only_when_selected() -> None:
-    calls: list[tuple[str, dict[str, str]]] = []
-    client = SimpleNamespace(
-        images=SimpleNamespace(pull=lambda image, **kwargs: calls.append((image, kwargs))),
-    )
+def test_pull_image_streams_and_passes_platform_only_when_selected() -> None:
+    calls: list[tuple[str, dict[str, object]]] = []
+
+    def pull(image: str, **kwargs: object) -> list[dict[str, str]]:
+        calls.append((image, kwargs))
+        return [{"status": "Pulling"}, {"status": "Download complete"}]
+
+    client = SimpleNamespace(images=SimpleNamespace(pull=pull))
 
     runtime.pull_image(client, "image:latest", None)  # type: ignore[arg-type]
     runtime.pull_image(client, "image:latest", "linux/arm64")  # type: ignore[arg-type]
 
     assert calls == [
-        ("image:latest", {}),
-        ("image:latest", {"platform": "linux/arm64"}),
+        ("image:latest", {"stream": True, "decode": True}),
+        ("image:latest", {"stream": True, "decode": True, "platform": "linux/arm64"}),
     ]
+
+
+def test_pull_image_raises_on_stream_error() -> None:
+    def pull(image: str, **kwargs: object) -> list[dict[str, str]]:
+        return [{"status": "Pulling"}, {"error": "manifest unknown"}]
+
+    client = SimpleNamespace(images=SimpleNamespace(pull=pull))
+
+    with pytest.raises(PodmanError, match=r"failed to pull image:latest: manifest unknown"):
+        runtime.pull_image(client, "image:latest", None)  # type: ignore[arg-type]
 
 
 def test_inventory_reports_unknown_project_as_error(config: Config) -> None:

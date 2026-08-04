@@ -5,13 +5,15 @@ from __future__ import annotations
 import io
 import tarfile
 import time
+from collections.abc import Iterator
 from dataclasses import dataclass
+from typing import Any, cast
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from podman import PodmanClient
 from podman.domain.containers import Container
-from podman.errors import NotFound
+from podman.errors import NotFound, PodmanError
 
 from codespace.client.config import Config, ContainerConfig, ProjectConfig
 from codespace.client.models import (
@@ -214,11 +216,21 @@ def pull_image(
     image: str,
     platform: ImagePlatform | None,
 ) -> None:
-    """Pull the configured project image before any helper or container run."""
-    if platform is None:
-        client.images.pull(image)
-    else:
-        client.images.pull(image, platform=platform)
+    """Pull the configured project image before any helper or container run.
+
+    Stream the pull so the client read timeout bounds the gap between progress
+    chunks instead of the whole download; large images would otherwise trip the
+    per-request timeout while data is still flowing. Draining the generator also
+    surfaces mid-stream errors that a non-streaming pull would swallow.
+    """
+    kwargs: dict[str, Any] = {"stream": True, "decode": True}
+    if platform is not None:
+        kwargs["platform"] = platform
+    events = cast("Iterator[dict[str, str]]", client.images.pull(image, **kwargs))
+    for event in events:
+        error = event.get("error") if isinstance(event, dict) else None
+        if error:
+            raise PodmanError(f"failed to pull {image}: {error}")
 
 
 def create_container(
