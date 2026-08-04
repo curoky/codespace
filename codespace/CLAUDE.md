@@ -181,6 +181,7 @@ Codespace 只选择平台，不安装或管理模拟器。
 - 默认 host network，sshd 监听地址由 `SSHD_BIND` 环境变量控制，默认 `127.0.0.1`；
 - Podman security option `disable` 和 `seccomp=unconfined`；
 - 现有 s6 entrypoint、sshd、onceinit、Atuin client、Git 和 OpenSSH client；
+- s6 转储到 `/run/s6/container_environment` 的容器环境仅允许 root 和 `x` 读取；
 - `workspace-init` s6 oneshot，且 `sshd` 和 `onceinit` 均依赖它；
 - 位于 `rootfs/home/x/.ssh/config` 的 container SSH config，为 `Host *` 启用 GSSAPI
   认证与凭据委派，并固定使用 `~/.ssh/repo_id_ed25519` 访问 GitHub 和 GitLab，构建时
