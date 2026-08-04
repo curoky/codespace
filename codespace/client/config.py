@@ -94,7 +94,9 @@ class HostConfig(BaseModel):
             raise ValueError(f"environment must not contain duplicates: {duplicates}")
         reserved = _RESERVED_ENV_KEYS & set(value)
         if reserved:
-            raise ValueError(f"environment must not inherit control-plane keys {sorted(reserved)}")
+            raise ValueError(
+                f"environment must not inherit control-plane keys {sorted(reserved)}"
+            )
         return value
 
     @model_validator(mode="after")

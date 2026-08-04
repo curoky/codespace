@@ -176,7 +176,8 @@ def test_create_runs_all_stages_in_order(
         ssh,
         "read_host_environment",
         lambda route, names: (
-            events.append("environment") or {"HTTP_PROXY": "http://host-proxy:3128"}
+            events.append("environment")
+            or {"HTTP_PROXY": "http://host-proxy:3128"}
         ),
     )
     monkeypatch.setattr(

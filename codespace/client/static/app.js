@@ -87,9 +87,18 @@ function renderHosts(hosts) {
     ...hosts.map((host) => {
       const item = element("div", `host ${host.status}`);
       if (host.inventory_errors.length) item.classList.add("inventory-error");
-      item.append(element("span", "status-dot"));
-      item.append(element("strong", "", host.id));
-      item.append(element("span", "muted", `${host.environment_count} env`));
+
+      const identity = element("div", "host-identity");
+      identity.append(element("span", "status-dot"));
+      identity.append(element("strong", "", host.id));
+      item.append(identity);
+      item.append(element("span", "host-state", host.status));
+      item.append(element("span", "host-count", `${host.environment_count} env`));
+
+      if (host.inventory_errors.length) {
+        const label = host.inventory_errors.length === 1 ? "inventory issue" : "inventory issues";
+        item.append(element("span", "host-warning", `${host.inventory_errors.length} ${label}`));
+      }
       if (host.error) item.append(element("span", "host-error", host.error));
       return item;
     }),
@@ -103,21 +112,31 @@ function renderProjects(dashboard) {
     const card = element("article", "project-card");
 
     const header = element("div", "project-header");
-    const info = element("div", "project-title");
+    const info = element("div", "project-info");
     const name = element("h3", "", project.id);
     const label = project.repo || project.open_path;
     name.title = project.description ? `${label} — ${project.description}` : label;
-    info.append(name);
-    info.append(element("span", "badge", project.host));
+
+    const title = element("div", "project-title");
+    const metadata = element("div", "project-meta");
+    metadata.append(element("span", "badge badge-host", project.host));
     if (project.provider) {
-      info.append(element("span", "badge", project.provider));
+      metadata.append(element("span", "badge", project.provider));
     }
+    metadata.append(element("span", "badge badge-type", project.type));
+    title.append(name, metadata);
+    info.append(title);
+
+    const source = element("p", "project-source", project.description || label);
+    source.title = label;
+    info.append(source);
 
     const quickButton = actionButton("Quick Create", "quick", project.id);
     quickButton.classList.add("compact");
     quickButton.title = `Create instance named "${DEFAULT_INSTANCE}"`;
     const createButton = actionButton("New", "new", project.id);
-    createButton.classList.add("compact");
+    createButton.classList.remove("secondary");
+    createButton.classList.add("compact", "primary");
     createButton.title = "Create a named instance";
     const headerActions = element("div", "project-header-actions");
     headerActions.append(quickButton, createButton);
@@ -128,7 +147,10 @@ function renderProjects(dashboard) {
     operations.forEach((operation) => list.append(renderOperation(operation)));
     environments.forEach((environment) => list.append(renderEnvironment(environment)));
     if (!operations.length && !environments.length) {
-      list.append(element("div", "empty muted", "No environments yet."));
+      const empty = element("div", "empty");
+      empty.append(element("strong", "", "No environments"));
+      empty.append(element("span", "muted", "Create a default or named instance to get started."));
+      list.append(empty);
     }
     card.append(list);
     return card;
@@ -138,7 +160,10 @@ function renderProjects(dashboard) {
 
 function renderOperation(operation) {
   const row = element("div", `operation ${operation.status}`);
-  row.append(element("div", "environment-title", operation.instance));
+  const heading = element("div", "operation-heading");
+  heading.append(element("div", "environment-title", operation.instance));
+  heading.append(element("span", `status-badge ${operation.status}`, operation.status));
+  row.append(heading);
   row.append(element("div", "environment-subtitle", operation.stage));
   if (operation.error) row.append(element("p", "host-error", operation.error));
   return row;
@@ -147,32 +172,39 @@ function renderOperation(operation) {
 function renderEnvironment(environment) {
   const row = element("div", "environment");
   const top = element("div", "environment-top");
-  const title = element("div");
-  title.append(element("div", "environment-title", environment.instance));
-  title.append(
+  const title = element("div", "environment-info");
+  const heading = element("div", "environment-heading");
+  heading.append(element("div", "environment-title", environment.instance));
+  heading.append(
     element(
-      "div",
-      "environment-subtitle",
-      `${environment.status || "unknown"} · :${environment.ssh_port}`,
+      "span",
+      `status-badge ${environment.status || "unknown"}`,
+      environment.status || "unknown",
     ),
   );
-  const sshCommand = element("button", "ssh-command", environment.ssh_command);
-  sshCommand.type = "button";
-  sshCommand.title = `Copy ${environment.ssh_command}`;
-  Object.assign(sshCommand.dataset, {
-    action: "copy-ssh",
-    command: environment.ssh_command,
-  });
-  title.append(sshCommand);
-  top.append(
-    title,
-    element("span", "badge", `${environment.image} · ${environment.platform}`),
-  );
+  title.append(heading);
+  top.append(title, element("span", "badge badge-platform", environment.platform));
   row.append(top);
 
+  const image = element("div", "environment-image", environment.image);
+  image.title = environment.image;
+  row.append(image);
+
   const actions = element("div", "environment-actions");
-  actions.append(link("Trae", environment.trae_url));
+  const traeLink = link("Open in Trae", environment.trae_url);
+  traeLink.classList.add("editor-action");
+  actions.append(traeLink);
   actions.append(link("Trae CN", environment.trae_cn_url));
+  const sshButton = actionButton(
+    "SSH",
+    "copy-ssh",
+    environment.project,
+    environment.instance,
+  );
+  sshButton.classList.add("ssh-command");
+  sshButton.dataset.command = environment.ssh_command;
+  sshButton.title = `Copy ${environment.ssh_command}`;
+  actions.append(sshButton);
   actions.append(actionButton("Keep workspace", "delete", environment.project, environment.instance));
   const purgeButton = actionButton("Purge", "purge", environment.project, environment.instance);
   purgeButton.classList.add("danger");
@@ -327,12 +359,14 @@ async function copySshCommand(button, command) {
   try {
     await navigator.clipboard.writeText(command);
     button.classList.add("copied");
+    button.textContent = "Copied";
     button.title = "Copied";
     window.setTimeout(() => {
       if (!button.isConnected) return;
       button.classList.remove("copied");
+      button.textContent = "SSH";
       button.title = `Copy ${command}`;
-    }, 1500);
+    }, 2000);
   } catch (error) {
     notify(`Copy failed: ${error.message}`);
   }
