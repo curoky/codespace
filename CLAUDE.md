@@ -51,7 +51,8 @@
 中的 s6/execline 二进制生成 `/etc/s6/init` 和 `/etc/s6/db`。
 Container 专用 SSH config 位于 `codespace/images/dev/rootfs/home/x/.ssh/config`，
 为所有目标启用 GSSAPI 认证与凭据委派；不得复用带 host 凭据代理的
-`dotfiles/ssh/user.ssh_config`。
+`dotfiles/ssh/user.ssh_config`。GitHub/GitLab host key 固定在同目录的 `known_hosts`，
+provider 连接必须使用严格校验。
 
 ### Codespace
 

@@ -175,7 +175,9 @@ Codespace 只选择平台，不安装或管理模拟器。
 - `workspace-init` s6 oneshot，且 `sshd` 和 `onceinit` 均依赖它；
 - 位于 `rootfs/home/x/.ssh/config` 的 container SSH config，为 `Host *` 启用 GSSAPI
   认证与凭据委派，并固定使用 `~/.ssh/repo_id_ed25519` 访问 GitHub 和 GitLab，构建时
-  收紧为 `0600`。
+  收紧为 `0600`；
+- 位于同目录的 `known_hosts`，包含 GitHub/GitLab 官方发布的 host key；provider SSH
+  连接必须使用 `StrictHostKeyChecking yes`，不得回退到 `accept-new`。
 
 `network_mode: host` 的容器使用 host network，sshd 绑定 `127.0.0.1`。`network_mode: bridge`
 的容器改用 bridge network：sshd 注入 `SSHD_BIND=0.0.0.0`，SSH 端口发布到 loopback
@@ -250,8 +252,8 @@ host。
    `sshd` 和 `onceinit` 启动。
 8. `repo` 类型只把内存中生成的私钥整体写入镜像预创建的
    `/home/x/.ssh/repo_id_ed25519`，再将该文件归属设为 `5230:5230`。Provider SSH config
-   已由镜像安装，控制面不得生成或覆盖。登录公钥已烤进开发镜像的 `authorized_keys`，
-   控制面只用仓库内固定的登录私钥登录。`blank` 类型不注入任何凭据。
+   和 pinned `known_hosts` 已由镜像安装，控制面不得生成或覆盖。登录公钥已烤进开发镜像的
+   `authorized_keys`，控制面只用仓库内固定的登录私钥登录。`blank` 类型不注入任何凭据。
 9. 通过生成的 route 完成真实 SSH 登录验证。
 10. 将 provider 上同名 deploy key 替换为一个可写 key。
 11. 保留现有 Git checkout，或 clone 配置的 repository。
@@ -336,6 +338,7 @@ create operation 处于 queued 或 running 时轮询。不得增加 SSE、operat
 - Provider token 只能发送给选定 Git provider，不得返回或写入日志。配置文件中的 token
   是明文，只能本地保存、限制权限并排除版本控制；控制面不得回写。
 - Deploy private key 只能存在于对应开发容器。
+- 开发容器访问 GitHub/GitLab 必须使用镜像内 pinned `known_hosts` 做严格 host key 校验。
 - 登录 keypair 是固定的、提交进仓库的共享凭据，公钥烤进开发镜像。该方案仅面向内网、且配置不
   存放 IP/port，威胁模型下私钥泄露无实质影响；不得用它保护任何对外可达的 host。
 - Web 应用不得远程暴露，也不得增加 worker。

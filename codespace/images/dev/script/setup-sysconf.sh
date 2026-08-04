@@ -20,7 +20,7 @@ echo "x ALL=(ALL:ALL) NOPASSWD:ALL" >>/etc/sudoers.d/nopasswd_user
 
 chown -R 5230:5230 /home/x
 chmod 700 /home/x/.ssh
-chmod 600 /home/x/.ssh/authorized_keys /home/x/.ssh/config
+chmod 600 /home/x/.ssh/authorized_keys /home/x/.ssh/config /home/x/.ssh/known_hosts
 
 # change login shell
 echo "/opt/sb/bin/zsh" >>/etc/shells
