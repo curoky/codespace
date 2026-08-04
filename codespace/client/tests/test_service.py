@@ -69,7 +69,6 @@ def service(
     monkeypatch: pytest.MonkeyPatch,
 ) -> CodespaceService:
     monkeypatch.setattr(ssh, "initialize", lambda hosts: None)
-    monkeypatch.setattr(ssh, "prepare_login_key", lambda: None)
     monkeypatch.setattr(ssh, "remote_workspace_root", lambda route: "/home/x/codespace")
     return CodespaceService(
         config,
@@ -87,7 +86,6 @@ def test_service_seeds_tokens_from_config(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(ssh, "initialize", lambda hosts: None)
-    monkeypatch.setattr(ssh, "prepare_login_key", lambda: None)
     seeded = Config.model_validate({**config.model_dump(), "tokens": {"github": "ghp_example"}})
     service = CodespaceService(
         seeded,
@@ -102,7 +100,6 @@ def test_dashboard_isolates_offline_host_and_rewrites_successful_host(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(ssh, "initialize", lambda hosts: None)
-    monkeypatch.setattr(ssh, "prepare_login_key", lambda: None)
     writes: list[tuple[str, list[Environment]]] = []
     monkeypatch.setattr(
         ssh,
@@ -173,7 +170,6 @@ def test_create_runs_all_stages_in_order(
         ]
     )
     monkeypatch.setattr(inventory, "list_inventory", lambda *args: next(inventories))
-    monkeypatch.setattr(ssh, "prepare_login_key", lambda: events.append("login") or None)
     monkeypatch.setattr(
         workspace,
         "generate_deploy_keypair",
@@ -218,7 +214,6 @@ def test_create_runs_all_stages_in_order(
     service.create("devspace", "debug")
 
     assert events == [
-        "login",
         "keygen",
         "pull",
         "workspace",
@@ -240,7 +235,6 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(ssh, "initialize", lambda hosts: None)
-    monkeypatch.setattr(ssh, "prepare_login_key", lambda: None)
     monkeypatch.setattr(ssh, "remote_workspace_root", lambda route: "/home/x/codespace")
     config = Config.model_validate(
         {
@@ -280,7 +274,6 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
     environment = _environment(host="local")
     inventories = iter([inventory.Inventory([], []), inventory.Inventory([environment], [])])
     monkeypatch.setattr(inventory, "list_inventory", lambda *args: next(inventories))
-    monkeypatch.setattr(ssh, "prepare_login_key", lambda: None)
     monkeypatch.setattr(
         workspace,
         "generate_deploy_keypair",
@@ -321,7 +314,6 @@ def test_create_blank_project_skips_repo_stages(
         ]
     )
     monkeypatch.setattr(inventory, "list_inventory", lambda *args: next(inventories))
-    monkeypatch.setattr(ssh, "prepare_login_key", lambda: events.append("login") or None)
     monkeypatch.setattr(
         workspace,
         "generate_deploy_keypair",
@@ -349,7 +341,6 @@ def test_create_blank_project_skips_repo_stages(
     assert "register" not in events
     assert "clone" not in events
     assert events == [
-        "login",
         "pull",
         "workspace",
         "create",
@@ -423,7 +414,6 @@ def test_failure_before_register_removes_container_but_keeps_workspace(
         "list_inventory",
         lambda *args: inventory.Inventory([], []),
     )
-    monkeypatch.setattr(ssh, "prepare_login_key", lambda: None)
     monkeypatch.setattr(
         workspace,
         "generate_deploy_keypair",
@@ -460,7 +450,6 @@ def test_container_run_failure_still_attempts_deterministic_cleanup(
         "list_inventory",
         lambda *args: inventory.Inventory([], []),
     )
-    monkeypatch.setattr(ssh, "prepare_login_key", lambda: None)
     monkeypatch.setattr(
         workspace,
         "generate_deploy_keypair",
@@ -490,7 +479,6 @@ def test_failure_after_register_revokes_then_removes_container(
     events: list[str] = []
     container = SimpleNamespace(id="container-id")
     monkeypatch.setattr(inventory, "list_inventory", lambda *args: inventory.Inventory([], []))
-    monkeypatch.setattr(ssh, "prepare_login_key", lambda: None)
     monkeypatch.setattr(
         workspace,
         "generate_deploy_keypair",
@@ -528,7 +516,6 @@ def test_revoke_failure_after_register_retains_container(
     )
     removed: list[object] = []
     monkeypatch.setattr(inventory, "list_inventory", lambda *args: inventory.Inventory([], []))
-    monkeypatch.setattr(ssh, "prepare_login_key", lambda: None)
     monkeypatch.setattr(
         workspace,
         "generate_deploy_keypair",

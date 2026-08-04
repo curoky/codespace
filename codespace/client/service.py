@@ -68,7 +68,6 @@ class CodespaceService:
         self._tokens: dict[GitProvider, str] = {}
         self._token_lock = Lock()
         self._tokens.update(config.seed_tokens())
-        ssh.prepare_login_key()
         ssh.initialize(list(self.config.hosts))
 
     def close(self) -> None:
@@ -137,9 +136,6 @@ class CodespaceService:
             current.environments,
             spec,
         )
-
-        self._stage(creation, "preparing login key")
-        ssh.prepare_login_key()
 
         deploy_keypair = None
         if is_repo:

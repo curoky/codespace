@@ -1,4 +1,4 @@
-"""Tests for generated SSH projections and the global login key."""
+"""Tests for managed SSH assets and dynamic host projections."""
 
 from __future__ import annotations
 
@@ -17,16 +17,35 @@ from codespace.client.transport import SSHRoute
 def ssh_layout(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     root = tmp_path / ".ssh"
     codespace_dir = root / "codespace"
+    assets_dir = tmp_path / "assets"
+    assets_dir.mkdir()
+    config_asset = assets_dir / "config"
+    config_asset.write_text(
+        "Include ~/.ssh/codespace/hosts/*.conf\n\n"
+        "Host codespace-*\n"
+        "  HostName 127.0.0.1\n"
+        "  User x\n"
+        "  IdentityFile ~/.ssh/codespace/login_key\n"
+        "  IdentitiesOnly yes\n"
+        "  HostKeyAlias codespace\n"
+        "  StrictHostKeyChecking yes\n"
+        "  UserKnownHostsFile ~/.ssh/codespace/known_hosts/codespace\n",
+        encoding="utf-8",
+    )
+    known_hosts_asset = assets_dir / "known_hosts"
+    known_hosts_asset.write_text("codespace ssh-ed25519 HOST_KEY\n", encoding="utf-8")
+    login_key_asset = assets_dir / "login_key"
+    login_key_asset.write_text("PRIVATE\n", encoding="utf-8")
     monkeypatch.setattr(ssh, "SSH_CONFIG_PATH", root / "config")
     monkeypatch.setattr(ssh, "CODESPACE_DIR", codespace_dir)
     monkeypatch.setattr(ssh, "CODESPACE_CONFIG_PATH", codespace_dir / "config")
     monkeypatch.setattr(ssh, "HOSTS_DIR", codespace_dir / "hosts")
     monkeypatch.setattr(ssh, "KNOWN_HOSTS_DIR", codespace_dir / "known_hosts")
     monkeypatch.setattr(ssh, "KNOWN_HOSTS_PATH", codespace_dir / "known_hosts" / "codespace")
-    login_key = tmp_path / "login_key"
-    login_key.write_text("PRIVATE\n", encoding="utf-8")
-    login_key.chmod(0o644)
-    monkeypatch.setattr(ssh, "LOGIN_KEY_PATH", login_key)
+    monkeypatch.setattr(ssh, "LOGIN_KEY_PATH", codespace_dir / "login_key")
+    monkeypatch.setattr(ssh, "SSH_CONFIG_ASSET", config_asset)
+    monkeypatch.setattr(ssh, "KNOWN_HOSTS_ASSET", known_hosts_asset)
+    monkeypatch.setattr(ssh, "LOGIN_KEY_ASSET", login_key_asset)
     return root
 
 
@@ -72,12 +91,15 @@ def test_initialize_generates_include_layout_and_removes_deleted_hosts(
     assert content.count(ssh.INCLUDE_LINE) == 1
     assert content.startswith(f"{ssh.INCLUDE_LINE}\n\n")
     assert "Host existing" in content
-    assert (ssh_layout / "codespace" / "config").read_text() == (
-        "Include ~/.ssh/codespace/hosts/*.conf\n"
-    )
+    managed = ssh_layout / "codespace"
+    assert (managed / "config").read_text() == ssh.SSH_CONFIG_ASSET.read_text()
     known_hosts = ssh_layout / "codespace" / "known_hosts" / "codespace"
-    assert known_hosts.read_text() == f"codespace {ssh.IMAGE_HOST_KEY}\n"
+    assert known_hosts.read_text() == ssh.KNOWN_HOSTS_ASSET.read_text()
+    login_key = managed / "login_key"
+    assert login_key.read_text() == ssh.LOGIN_KEY_ASSET.read_text()
+    assert stat.S_IMODE(login_key.stat().st_mode) == 0o600
     assert stat.S_IMODE(known_hosts.stat().st_mode) == 0o600
+    assert stat.S_IMODE((managed / "config").stat().st_mode) == 0o600
     assert not (hosts / "deleted.conf").exists()
     assert (hosts / "home.conf").read_text() == "preserved until inventory"
     assert stat.S_IMODE(main.stat().st_mode) == 0o600
@@ -86,12 +108,18 @@ def test_initialize_generates_include_layout_and_removes_deleted_hosts(
 def test_initialize_does_not_replace_unchanged_config(ssh_layout: Path) -> None:
     ssh.initialize(["home"])
     main = ssh_layout / "config"
-    managed = ssh_layout / "codespace" / "config"
-    inodes = (main.stat().st_ino, managed.stat().st_ino)
+    managed = ssh_layout / "codespace"
+    paths = (
+        main,
+        managed / "config",
+        managed / "known_hosts" / "codespace",
+        managed / "login_key",
+    )
+    inodes = tuple(path.stat().st_ino for path in paths)
 
     ssh.initialize(["home"])
 
-    assert (main.stat().st_ino, managed.stat().st_ino) == inodes
+    assert tuple(path.stat().st_ino for path in paths) == inodes
 
 
 def test_write_host_replaces_complete_projection(ssh_layout: Path) -> None:
@@ -108,33 +136,25 @@ def test_write_host_replaces_complete_projection(ssh_layout: Path) -> None:
     content = path.read_text(encoding="utf-8")
     assert "old block" not in content
     assert content.count("Host codespace-home-devspace-") == 2
-    assert "HostName 127.0.0.1" in content
     assert "ProxyJump home" in content
-    assert "User x" in content
-    assert f"IdentityFile {ssh.LOGIN_KEY_PATH}" in content
-    assert "HostKeyAlias codespace" in content
-    assert "StrictHostKeyChecking yes" in content
-    assert "UserKnownHostsFile ~/.ssh/codespace/known_hosts/codespace" in content
-    assert "known_hosts/codespace-home-devspace-debug" not in content
+    assert "HostName" not in content
+    assert "IdentityFile" not in content
+    managed_config = (ssh_layout / "codespace" / "config").read_text()
+    assert "Host codespace-*" in managed_config
+    assert "HostName 127.0.0.1" in managed_config
+    assert "IdentityFile ~/.ssh/codespace/login_key" in managed_config
+    assert "HostKeyAlias codespace" in managed_config
+    assert "StrictHostKeyChecking yes" in managed_config
     assert stat.S_IMODE(path.stat().st_mode) == 0o600
 
 
-def test_prepare_login_key_tightens_mode(ssh_layout: Path) -> None:
-    assert stat.S_IMODE(ssh.LOGIN_KEY_PATH.stat().st_mode) == 0o644
-
-    result = ssh.prepare_login_key()
-
-    assert result == ssh.LOGIN_KEY_PATH
-    assert stat.S_IMODE(ssh.LOGIN_KEY_PATH.stat().st_mode) == 0o600
-
-
-def test_prepare_login_key_rejects_missing_key(
+def test_initialize_rejects_missing_asset(
     ssh_layout: Path,
-    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr(ssh, "LOGIN_KEY_PATH", ssh_layout / "absent")
-    with pytest.raises(RuntimeError, match="login key is missing"):
-        ssh.prepare_login_key()
+    ssh.LOGIN_KEY_ASSET.unlink()
+
+    with pytest.raises(RuntimeError, match="SSH asset is missing"):
+        ssh.initialize(["home"])
 
 
 def test_probe_uses_proxyjump_and_environment_alias(

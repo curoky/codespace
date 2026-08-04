@@ -358,6 +358,7 @@ def test_clone_missing_checkout_runs_git_without_shell() -> None:
         [
             "git",
             "clone",
+            "--depth=1",
             "git@gitlab.com:group/service-api.git",
             "/workspace/service-api",
         ],

@@ -24,6 +24,7 @@ FastAPI 同时提供 JSON API 和 `client/static/` 中的原生 Web 文件。Git
 | `client/inventory.py`、`client/container.py`、`client/workspace.py` | Podman inventory、容器和 workspace 原语 |
 | `client/service.py`、`client/dashboard.py`、`client/operations.py` | 生命周期编排、Dashboard 投影与操作状态 |
 | `client/provider.py` | Git provider deploy key |
+| `client/assets/ssh/` | 固定登录 key、SSH 公共配置和 pinned host key |
 | `client/static/` | FastAPI 直接提供的原生 Web 源码 |
 | `client/tests/` | 按公开模块行为组织的测试 |
 | `client/run.sh` | 本地后台启动器 |
@@ -92,11 +93,11 @@ tokens:
 ```
 
 顶层必填字段是 `default_image`、`hosts` 和 `projects`；`container` 可选（省略即全部使用引擎
-默认）。登录容器所用的固定 keypair 私钥（`codespace/client/assets/codespace_login_key`）由
-控制面按模块相对路径定位，无需配置；对应公钥已烤进开发镜像的 `authorized_keys`。`hosts` 是以 host alias
-为 key 的映射，值为该 host 的连接设置；host 值可以留空（等价默认 SSH host）。每个 project
-必须包含 `host`，并按 `type` 决定 repo 相关字段，可选 `description`、`image`、`platform`、
-`open_path`、`published_ports` 和 `container`。其他规则如下：
+默认）。登录容器所用的固定 keypair 位于 `client/assets/ssh/`，控制面启动时把私钥安装到
+`~/.ssh/codespace/login_key`，无需配置；对应公钥已烤进开发镜像的 `authorized_keys`。
+`hosts` 是以 host alias 为 key 的映射，值为该 host 的连接设置；host 值可以留空（等价默认
+SSH host）。每个 project 必须包含 `host`，并按 `type` 决定 repo 相关字段，可选
+`description`、`image`、`platform`、`open_path`、`published_ports` 和 `container`。其他规则如下：
 
 - `type` 默认 `repo`，也可设为 `blank`。`repo` 类型必须配置 `repo`（因此带 `provider`）；
   `blank` 类型禁止配置 `repo` 和 `provider`。
@@ -234,36 +235,39 @@ host。
 
 ## 环境生命周期
 
+控制面启动时必须先校验 `client/assets/ssh/` 中的 `config`、`known_hosts` 和 `login_key`，
+再以 `0600` 原子安装到 `~/.ssh/codespace/`；任一 asset 缺失立即 fail-fast。该初始化不属于
+单个 environment 的创建流程。
+
 创建顺序不可调整：
 
 1. 校验 inventory、token、重复 ID 和 SSH 端口冲突。
-2. 校验仓库内固定登录私钥存在并收紧其权限为 `0600`（缺失即 fail-fast）。
-3. 在内存中生成 environment deploy key。
-4. 按 project 平台拉取镜像；未配置时使用 host 原生平台。
-5. 以 SSH 登录用户身份创建 host workspace 目录（`mkdir -p`，无需 `sudo`）。
-6. 按解析后的 `container` 配置创建带完整 label 的 container：非身份 run flag（`network_mode`、
+2. 在内存中生成 environment deploy key。
+3. 按 project 平台拉取镜像；未配置时使用 host 原生平台。
+4. 以 SSH 登录用户身份创建 host workspace 目录（`mkdir -p`，无需 `sudo`）。
+5. 按解析后的 `container` 配置创建带完整 label 的 container：非身份 run flag（`network_mode`、
    `cap_add`、`security_opt`、`pids_limit`、`ulimits`、`devices`、额外 `volumes` 和
    `environment`）由 global/host/project 分层解析后原样透传，控制面不补默认。GPU 通过
    `container.devices` 里的 CDI 设备名（如 `nvidia.com/gpu=all`）表达。解析后的
    `container.network_mode` 原样转发给 `--network`；`bridge` 模式下
    注入 `SSHD_BIND=0.0.0.0`，发布 SSH 端口到 loopback，并发布 project `published_ports`
    声明的业务端口。
-7. 镜像内 `workspace-init` 先将挂载的 `/workspace` `chown` 为 `5230:5230`，之后才允许
+6. 镜像内 `workspace-init` 先将挂载的 `/workspace` `chown` 为 `5230:5230`，之后才允许
    `sshd` 和 `onceinit` 启动。
-8. `repo` 类型只把内存中生成的私钥整体写入镜像预创建的
+7. `repo` 类型只把内存中生成的私钥整体写入镜像预创建的
    `/home/x/.ssh/repo_id_ed25519`，再将该文件归属设为 `5230:5230`。Provider SSH config
    和 pinned `known_hosts` 已由镜像安装，控制面不得生成或覆盖。登录公钥已烤进开发镜像的
    `authorized_keys`，控制面只用仓库内固定的登录私钥登录。`blank` 类型不注入任何凭据。
-9. 通过生成的 route 完成真实 SSH 登录验证。
-10. 将 provider 上同名 deploy key 替换为一个可写 key。
-11. 保留现有 Git checkout，或 clone 配置的 repository。
-12. 原子更新 host SSH 投影。
+8. 通过生成的 route 完成真实 SSH 登录验证。
+9. 将 provider 上同名 deploy key 替换为一个可写 key。
+10. 保留现有 Git checkout；目录不存在时使用 `git clone --depth=1` 浅克隆配置的 repository。
+11. 原子更新 host SSH 投影。
 
 注册 deploy key 前失败时，回滚 container 但保留 workspace。注册后失败时，必须先撤销
 key；撤销失败则停止并保留带 label 的 container，待 token 恢复后重试正常删除。
 
-`blank` 类型 project 跳过与仓库相关的步骤：不生成或注册 deploy key（步骤 3、10），不 clone
-repository（步骤 11），创建与删除均不需要 provider token；其余步骤与 `repo` 类型一致。由于没有
+`blank` 类型 project 跳过与仓库相关的步骤：不生成或注册 deploy key（步骤 2、9），不 clone
+repository（步骤 10），创建与删除均不需要 provider token；其余步骤与 `repo` 类型一致。由于没有
 clone 产生的 checkout 目录，`blank` 类型在容器内以容器用户身份 `mkdir -p` 其 `open_path`
 （默认挂载点 `/workspace`），保证编辑器打开的是一个已存在的目录。
 
@@ -288,18 +292,16 @@ workspace，最后删除 container。Provider 失败时不得改变 container �
 Include ~/.ssh/codespace/config
 ```
 
-Codespace 完全管理 `~/.ssh/codespace/config` 和 `hosts/*.conf`。只有 inventory 成功后
-才能重写 host 投影；host 离线时保留最后版本，从 YAML 移除后才删除。
+Codespace 完全管理 `~/.ssh/codespace/config`、`login_key`、`known_hosts/` 和
+`hosts/*.conf`。固定文件从 `client/assets/ssh/` 原子安装；只有 inventory 成功后才能重写
+host 投影，host 离线时保留最后版本，从 YAML 移除后才删除。
 
-每个 environment 使用 `HostName 127.0.0.1`、确定性端口、用户 `x` 和全局登录 key。登录 key 是
-仓库内提交的固定 keypair 私钥（`client/ssh.py` 的 `LOGIN_KEY_PATH` 按模块相对路径定位），其
-`IdentityFile` 在 host 投影里直指该绝对路径；对应公钥已烤进开发镜像的 `authorized_keys`，控制面
-不再生成或注入登录公钥，也不需要配置项。所有
-environment 运行同一开发镜像、共用镜像内固定的 sshd ed25519 host key，因此不再为每个
-environment 维护独立 known-hosts 文件：全部 environment 通过固定 `HostKeyAlias codespace`
-指向单个被 pin 的 `~/.ssh/codespace/known_hosts/codespace`，并用 `StrictHostKeyChecking yes`
-做真实校验（key 不符即拒绝，而非 accept-new 的首次盲信）。被 pin 的 host key 作为
-code-level 契约常量固化在 `client/ssh.py`（`IMAGE_HOST_KEY`），与镜像
+静态 `config` 通过 `Host codespace-*` 统一声明 `HostName 127.0.0.1`、用户 `x`、managed
+`IdentityFile` 和 host-key policy；动态 `hosts/*.conf` 每个 environment 只声明确定性端口和
+`ProxyJump`/`ProxyCommand`。登录公钥已烤进开发镜像的 `authorized_keys`，控制面不再生成或
+注入登录公钥。所有 environment 共用镜像内固定的 sshd ed25519 host key，通过
+`HostKeyAlias codespace` 指向单个 pinned `~/.ssh/codespace/known_hosts/codespace`，并用
+`StrictHostKeyChecking yes` 做真实校验。该 known-hosts asset 必须与镜像
 `images/dev/rootfs/etc/ssh/ssh_host_ed25519_key.pub` 一致；改镜像 host key 必须同步更新它。
 SSH host 使用 `ProxyJump <host>`；Podman Machine 使用由 inspect 结果构造的专用
 `ProxyCommand`，其 `machine-<host>` known-hosts 校验的是 VM 自身 host key（与镜像 host key

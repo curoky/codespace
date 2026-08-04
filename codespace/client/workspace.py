@@ -80,7 +80,7 @@ def clone_repo(container: Container, repo: str, provider: GitProvider) -> None:
         return
     execute_checked(
         container,
-        ["git", "clone", f"git@{git_host(provider)}:{repo}.git", target],
+        ["git", "clone", "--depth=1", f"git@{git_host(provider)}:{repo}.git", target],
         user=CONTAINER_USER,
     )
 

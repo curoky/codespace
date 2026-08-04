@@ -66,6 +66,8 @@ uv run python -m codespace.client
 它通过 system OpenSSH 转发远端 rootful Podman Unix socket，或直接连接已运行的 rootful
 Podman Machine；不部署远端 HTTP agent。完整契约见
 [`codespace/CLAUDE.md`](codespace/CLAUDE.md)。
+固定登录 key、SSH 公共配置和 image host key 位于 `codespace/client/assets/ssh/`，启动时
+原子安装到 `~/.ssh/codespace/`；动态 host 文件只保存端口与代理路由。
 
 ### CI 与发布
 

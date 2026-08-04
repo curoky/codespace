@@ -1,4 +1,4 @@
-"""Login-key management, SSH probes and generated Codespace projections."""
+"""Managed SSH assets, login probes and dynamic Codespace projections."""
 
 from __future__ import annotations
 
@@ -30,13 +30,13 @@ CODESPACE_CONFIG_PATH = CODESPACE_DIR / "config"
 HOSTS_DIR = CODESPACE_DIR / "hosts"
 KNOWN_HOSTS_DIR = CODESPACE_DIR / "known_hosts"
 INCLUDE_LINE = "Include ~/.ssh/codespace/config"
-HOSTS_INCLUDE_LINE = "Include ~/.ssh/codespace/hosts/*.conf"
-# Must match images/dev/rootfs/etc/ssh/ssh_host_ed25519_key.pub.
 HOST_KEY_ALIAS = "codespace"
-IMAGE_HOST_KEY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKegYIza0zOiYlRp2ln6uffJ5zWg6E189mjz2ktsOfni"
 KNOWN_HOSTS_PATH = KNOWN_HOSTS_DIR / HOST_KEY_ALIAS
-KNOWN_HOSTS_INCLUDE = f"~/.ssh/codespace/known_hosts/{HOST_KEY_ALIAS}"
-LOGIN_KEY_PATH = Path(__file__).resolve().parent / "assets" / "codespace_login_key"
+LOGIN_KEY_PATH = CODESPACE_DIR / "login_key"
+SSH_ASSETS_DIR = Path(__file__).resolve().parent / "assets" / "ssh"
+SSH_CONFIG_ASSET = SSH_ASSETS_DIR / "config"
+KNOWN_HOSTS_ASSET = SSH_ASSETS_DIR / "known_hosts"
+LOGIN_KEY_ASSET = SSH_ASSETS_DIR / "login_key"
 _LOCK = threading.RLock()
 _PROBE_TIMEOUT = 30.0
 _PROBE_INTERVAL = 0.5
@@ -129,24 +129,22 @@ def _run_host(
 
 def initialize(hosts: list[str]) -> None:
     """Create the managed SSH layout and remove projections for deleted hosts."""
+    assets = (
+        (SSH_CONFIG_ASSET, CODESPACE_CONFIG_PATH),
+        (KNOWN_HOSTS_ASSET, KNOWN_HOSTS_PATH),
+        (LOGIN_KEY_ASSET, LOGIN_KEY_PATH),
+    )
+    contents = [(destination, _read_asset(source)) for source, destination in assets]
     with _layout_lock():
         _ensure_main_include()
-        _write(CODESPACE_CONFIG_PATH, f"{HOSTS_INCLUDE_LINE}\n")
-        _write(KNOWN_HOSTS_PATH, f"{HOST_KEY_ALIAS} {IMAGE_HOST_KEY}\n")
+        for destination, content in contents:
+            _write(destination, content)
         HOSTS_DIR.mkdir(parents=True, exist_ok=True)
         _ensure_mode(HOSTS_DIR, 0o700)
         configured = {f"{host}.conf" for host in hosts}
         for path in HOSTS_DIR.glob("*.conf"):
             if path.name not in configured:
                 path.unlink()
-
-
-def prepare_login_key() -> Path:
-    """Validate the committed login key and enforce OpenSSH permissions."""
-    if not LOGIN_KEY_PATH.exists():
-        raise RuntimeError(f"login key is missing from the repo: {LOGIN_KEY_PATH}")
-    _ensure_mode(LOGIN_KEY_PATH, 0o600)
-    return LOGIN_KEY_PATH
 
 
 def probe(environment: Environment, route: SSHRoute) -> None:
@@ -227,17 +225,8 @@ def _render_environment(environment: Environment, route: SSHRoute) -> str:
     return "\n".join(
         [
             f"Host {environment.id}",
-            "    HostName 127.0.0.1",
             f"    Port {environment.ssh_port}",
-            f"    User {CONTAINER_USER}",
             f"    {proxy_directive}",
-            f"    IdentityFile {LOGIN_KEY_PATH}",
-            "    IdentitiesOnly yes",
-            "    HostKeyAlgorithms ssh-ed25519",
-            f"    HostKeyAlias {HOST_KEY_ALIAS}",
-            "    StrictHostKeyChecking yes",
-            f"    UserKnownHostsFile {KNOWN_HOSTS_INCLUDE}",
-            "    UpdateHostKeys no",
         ]
     )
 
@@ -293,6 +282,12 @@ def _is_codespace_include(line: str) -> bool:
         target.strip("'\"") in {"~/.ssh/codespace/config", str(CODESPACE_CONFIG_PATH)}
         for target in parts[1:]
     )
+
+
+def _read_asset(path: Path) -> str:
+    if not path.is_file():
+        raise RuntimeError(f"SSH asset is missing: {path}")
+    return path.read_text(encoding="utf-8")
 
 
 def _write(path: Path, content: str) -> None:
