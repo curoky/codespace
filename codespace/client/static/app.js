@@ -228,7 +228,11 @@ async function deleteInstance(project, instance, purge) {
   try {
     result = await sendDelete(project, instance, purge, false);
   } catch (error) {
-    deleteStatusElement.textContent = error.message;
+    // A failed or unstartable container blocks the git precheck. Surface it as a
+    // warning but still allow forced deletion so broken environments stay removable.
+    deleteStatusElement.className = "delete-warning";
+    deleteStatusElement.textContent = `Could not inspect repository state: ${error.message}. Forcing deletion may lose unpushed or uncommitted work.`;
+    deleteConfirmButton.disabled = false;
     return;
   }
   if (deleteDialog.open === false || pendingDelete === null) return;
