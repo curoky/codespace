@@ -23,7 +23,10 @@ def ssh_layout(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setattr(ssh, "HOSTS_DIR", codespace_dir / "hosts")
     monkeypatch.setattr(ssh, "KNOWN_HOSTS_DIR", codespace_dir / "known_hosts")
     monkeypatch.setattr(ssh, "KNOWN_HOSTS_PATH", codespace_dir / "known_hosts" / "codespace")
-    monkeypatch.setattr(ssh, "LOGIN_KEY_PATH", codespace_dir / "id_ed25519")
+    login_key = tmp_path / "login_key"
+    login_key.write_text("PRIVATE\n", encoding="utf-8")
+    login_key.chmod(0o644)
+    monkeypatch.setattr(ssh, "LOGIN_KEY_PATH", login_key)
     return root
 
 
@@ -108,7 +111,7 @@ def test_write_host_replaces_complete_projection(ssh_layout: Path) -> None:
     assert "HostName 127.0.0.1" in content
     assert "ProxyJump home" in content
     assert "User x" in content
-    assert "IdentityFile ~/.ssh/codespace/id_ed25519" in content
+    assert f"IdentityFile {ssh.LOGIN_KEY_PATH}" in content
     assert "HostKeyAlias codespace" in content
     assert "StrictHostKeyChecking yes" in content
     assert "UserKnownHostsFile ~/.ssh/codespace/known_hosts/codespace" in content
@@ -116,28 +119,22 @@ def test_write_host_replaces_complete_projection(ssh_layout: Path) -> None:
     assert stat.S_IMODE(path.stat().st_mode) == 0o600
 
 
-def test_ensure_login_key_generates_once(
+def test_prepare_login_key_tightens_mode(ssh_layout: Path) -> None:
+    assert stat.S_IMODE(ssh.LOGIN_KEY_PATH.stat().st_mode) == 0o644
+
+    result = ssh.prepare_login_key()
+
+    assert result == ssh.LOGIN_KEY_PATH
+    assert stat.S_IMODE(ssh.LOGIN_KEY_PATH.stat().st_mode) == 0o600
+
+
+def test_prepare_login_key_rejects_missing_key(
     ssh_layout: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    calls: list[list[str]] = []
-
-    def run(command: list[str], **kwargs: object) -> object:
-        calls.append(command)
-        key_path = Path(command[command.index("-f") + 1])
-        if "-t" in command:
-            key_path.write_text("PRIVATE", encoding="utf-8")
-            return object()
-        return type("Result", (), {"stdout": "ssh-ed25519 PUBLIC\n"})()
-
-    monkeypatch.setattr(ssh.subprocess, "run", run)
-
-    first = ssh.ensure_login_key()
-    second = ssh.ensure_login_key()
-
-    assert first == second == "ssh-ed25519 PUBLIC"
-    assert len(calls) == 2
-    assert stat.S_IMODE((ssh_layout / "codespace" / "id_ed25519").stat().st_mode) == 0o600
+    monkeypatch.setattr(ssh, "LOGIN_KEY_PATH", ssh_layout / "absent")
+    with pytest.raises(RuntimeError, match="login key is missing"):
+        ssh.prepare_login_key()
 
 
 def test_probe_uses_proxyjump_and_environment_alias(
@@ -156,7 +153,7 @@ def test_probe_uses_proxyjump_and_environment_alias(
     command = commands[0]
     assert "ProxyJump=home" in command
     assert "HostName=127.0.0.1" in command
-    assert f"IdentityFile={ssh_layout}/codespace/id_ed25519" in command
+    assert f"IdentityFile={ssh.LOGIN_KEY_PATH}" in command
     assert "HostKeyAlias=codespace" in command
     assert "StrictHostKeyChecking=yes" in command
     assert f"UserKnownHostsFile={ssh_layout}/codespace/known_hosts/codespace" in command

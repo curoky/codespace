@@ -93,6 +93,7 @@ class CodespaceService:
         self._tokens: dict[GitProvider, str] = {}
         self._token_lock = Lock()
         self._tokens.update(config.seed_tokens())
+        ssh.prepare_login_key()
         ssh.initialize(list(self.config.hosts))
 
     def close(self) -> None:
@@ -207,7 +208,7 @@ class CodespaceService:
         )
 
         self._stage(creation, "preparing login key")
-        login_public_key = ssh.ensure_login_key()
+        ssh.prepare_login_key()
 
         deploy_keypair = None
         if is_repo:
@@ -245,7 +246,6 @@ class CodespaceService:
         runtime.own_workspace(container)
         runtime.inject_credentials(
             container,
-            login_public_key=login_public_key,
             deploy_private_key=deploy_keypair.private_key if deploy_keypair else None,
             provider=project.provider,
         )

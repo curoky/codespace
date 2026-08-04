@@ -27,7 +27,6 @@ CODESPACE_DIR = Path.home() / ".ssh" / "codespace"
 CODESPACE_CONFIG_PATH = CODESPACE_DIR / "config"
 HOSTS_DIR = CODESPACE_DIR / "hosts"
 KNOWN_HOSTS_DIR = CODESPACE_DIR / "known_hosts"
-LOGIN_KEY_PATH = CODESPACE_DIR / "id_ed25519"
 INCLUDE_LINE = "Include ~/.ssh/codespace/config"
 HOSTS_INCLUDE_LINE = "Include ~/.ssh/codespace/hosts/*.conf"
 # Every environment runs the same dev image, which ships a fixed sshd host key
@@ -43,6 +42,10 @@ HOST_KEY_ALIAS = "codespace"
 IMAGE_HOST_KEY = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKegYIza0zOiYlRp2ln6uffJ5zWg6E189mjz2ktsOfni"
 KNOWN_HOSTS_PATH = KNOWN_HOSTS_DIR / HOST_KEY_ALIAS
 KNOWN_HOSTS_INCLUDE = f"~/.ssh/codespace/known_hosts/{HOST_KEY_ALIAS}"
+# The login keypair is a fixed Codespace credential committed to the repo under
+# assets/; its matching public key is baked into the dev image authorized_keys.
+# Resolving it relative to this module means no config field is needed.
+LOGIN_KEY_PATH = Path(__file__).resolve().parent / "assets" / "codespace_login_key"
 _LOCK = threading.RLock()
 _PROBE_TIMEOUT = 30.0
 _PROBE_INTERVAL = 0.5
@@ -160,41 +163,21 @@ def initialize(hosts: list[str]) -> None:
                 path.unlink()
 
 
-def ensure_login_key() -> str:
-    """Generate or reuse the single passwordless Codespace login keypair."""
-    with _layout_lock():
-        CODESPACE_DIR.mkdir(parents=True, exist_ok=True)
-        _ensure_mode(CODESPACE_DIR, 0o700)
-        public_path = LOGIN_KEY_PATH.with_suffix(".pub")
-        if not LOGIN_KEY_PATH.exists() or LOGIN_KEY_PATH.stat().st_size == 0:
-            LOGIN_KEY_PATH.unlink(missing_ok=True)
-            public_path.unlink(missing_ok=True)
-            subprocess.run(  # noqa: S603
-                [  # noqa: S607
-                    "ssh-keygen",
-                    "-t",
-                    "ed25519",
-                    "-f",
-                    str(LOGIN_KEY_PATH),
-                    "-N",
-                    "",
-                ],
-                check=True,
-                capture_output=True,
-                stdin=subprocess.DEVNULL,
-            )
-        _ensure_mode(LOGIN_KEY_PATH, 0o600)
-        if not public_path.exists():
-            result = subprocess.run(  # noqa: S603
-                ["ssh-keygen", "-y", "-f", str(LOGIN_KEY_PATH)],  # noqa: S607
-                check=True,
-                capture_output=True,
-                text=True,
-                stdin=subprocess.DEVNULL,
-            )
-            public_path.write_text(result.stdout.rstrip() + "\n", encoding="utf-8")
-        _ensure_mode(public_path, 0o600)
-        return public_path.read_text(encoding="utf-8").strip()
+def prepare_login_key() -> Path:
+    """Validate the committed login private key and tighten its permissions.
+
+    The login keypair is a fixed Codespace credential committed to the repo at
+    ``LOGIN_KEY_PATH``; its matching public key is baked into the dev image
+    ``authorized_keys``, so the control plane no longer generates or projects any
+    public key. Git checks the private key out as ``0644`` and OpenSSH refuses a
+    world-readable key, so the mode is forced to ``0600`` here (a no-op in the
+    git index, which tracks only the exec bit). A missing key is a fail-fast
+    error.
+    """
+    if not LOGIN_KEY_PATH.exists():
+        raise RuntimeError(f"login key is missing from the repo: {LOGIN_KEY_PATH}")
+    _ensure_mode(LOGIN_KEY_PATH, 0o600)
+    return LOGIN_KEY_PATH
 
 
 def probe(environment: Environment, route: SSHRoute) -> None:
@@ -276,7 +259,7 @@ def _render_environment(environment: Environment, route: SSHRoute) -> str:
             f"    Port {environment.ssh_port}",
             f"    User {CONTAINER_USER}",
             f"    {proxy_directive}",
-            "    IdentityFile ~/.ssh/codespace/id_ed25519",
+            f"    IdentityFile {LOGIN_KEY_PATH}",
             "    IdentitiesOnly yes",
             "    HostKeyAlgorithms ssh-ed25519",
             f"    HostKeyAlias {HOST_KEY_ALIAS}",

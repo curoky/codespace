@@ -362,26 +362,25 @@ def test_create_container_blank_omits_repo_and_provider_labels(
     assert LABEL_PROVIDER not in labels
 
 
-def test_inject_credentials_blank_skips_deploy_key(config: Config) -> None:
+def test_inject_credentials_blank_injects_nothing(config: Config) -> None:
     container = FakeContainer()
 
     runtime.inject_credentials(
         container,  # type: ignore[arg-type]
-        login_public_key="ssh-ed25519 LOGIN",
         deploy_private_key=None,
         provider=None,
     )
 
-    assert container.archive is not None
-    with tarfile.open(fileobj=io.BytesIO(container.archive), mode="r") as archive:
-        assert set(archive.getnames()) == {"authorized_keys"}
+    # The login public key ships in the image, and a blank project has no
+    # provider material, so nothing is written into the container.
+    assert container.archive is None
+    assert container.exec_calls == []
 
 
 def _archived_config(container: FakeContainer) -> str:
     assert container.archive is not None
     with tarfile.open(fileobj=io.BytesIO(container.archive), mode="r") as archive:
         assert set(archive.getnames()) == {
-            "authorized_keys",
             "repo_id_ed25519",
             "config",
         }
@@ -395,7 +394,6 @@ def test_inject_credentials_writes_provider_config_wholesale() -> None:
 
     runtime.inject_credentials(
         container,  # type: ignore[arg-type]
-        login_public_key="ssh-ed25519 LOGIN",
         deploy_private_key="PRIVATE",
         provider="github",
     )
@@ -417,7 +415,6 @@ def test_inject_credentials_does_not_read_existing_container_config() -> None:
 
     runtime.inject_credentials(
         container,  # type: ignore[arg-type]
-        login_public_key="ssh-ed25519 LOGIN",
         deploy_private_key="PRIVATE",
         provider="github",
     )

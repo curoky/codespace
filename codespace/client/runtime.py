@@ -366,42 +366,41 @@ def prepare_open_path(container: Container, open_path: str) -> None:
 def inject_credentials(
     container: Container,
     *,
-    login_public_key: str,
     deploy_private_key: str | None,
     provider: GitProvider | None,
 ) -> None:
-    """Write Codespace-owned SSH credentials into the development container.
+    """Write Codespace-owned repo SSH credentials into the development container.
 
-    Every file is a dedicated Codespace artifact written wholesale: the
-    container is a freshly created, Codespace-exclusive resource, so there is no
-    pre-existing user config to preserve or merge. ``authorized_keys`` is always
-    written; repo projects additionally get the deploy key ``repo_id_ed25519``
-    and a fixed provider ``config``, while blank projects have no provider and
-    skip both.
+    The login public key is baked into the dev image ``authorized_keys``, so the
+    control plane no longer projects any login credential. Only repo projects
+    need per-environment material: the deploy key ``repo_id_ed25519`` and a fixed
+    provider ``config``, written wholesale into a freshly created container with
+    no pre-existing user config to preserve or merge. Blank projects have no
+    provider and inject nothing.
     """
+    if provider is None:
+        return
+    if deploy_private_key is None:
+        raise ValueError("deploy_private_key is required for a repo project")
     ssh_dir = f"/home/{CONTAINER_USER}/.ssh"
     _exec_checked(
         container,
         ["install", "-d", "-m", "0700", "-o", CONTAINER_USER, "-g", CONTAINER_USER, ssh_dir],
         user="0",
     )
+    provider_host = git_host(provider)
+    provider_config = (
+        f"Host {provider_host}\n"
+        f"    HostName {provider_host}\n"
+        "    User git\n"
+        "    IdentityFile ~/.ssh/repo_id_ed25519\n"
+        "    IdentitiesOnly yes\n"
+        "    StrictHostKeyChecking accept-new\n"
+    )
     files: list[tuple[str, str, int]] = [
-        ("authorized_keys", login_public_key.rstrip() + "\n", 0o600),
+        ("repo_id_ed25519", deploy_private_key, 0o600),
+        ("config", provider_config, 0o600),
     ]
-    if provider is not None:
-        if deploy_private_key is None:
-            raise ValueError("deploy_private_key is required for a repo project")
-        provider_host = git_host(provider)
-        provider_config = (
-            f"Host {provider_host}\n"
-            f"    HostName {provider_host}\n"
-            "    User git\n"
-            "    IdentityFile ~/.ssh/repo_id_ed25519\n"
-            "    IdentitiesOnly yes\n"
-            "    StrictHostKeyChecking accept-new\n"
-        )
-        files.append(("repo_id_ed25519", deploy_private_key, 0o600))
-        files.append(("config", provider_config, 0o600))
     archive = _ssh_archive(files)
     if not container.put_archive(ssh_dir, archive):
         raise RuntimeError("failed to write container SSH credentials")

@@ -91,7 +91,8 @@ tokens:
 ```
 
 顶层必填字段是 `default_image`、`hosts` 和 `projects`；`container` 可选（省略即全部使用引擎
-默认）。`hosts` 是以 host alias
+默认）。登录容器所用的固定 keypair 私钥（`codespace/client/assets/codespace_login_key`）由
+控制面按模块相对路径定位，无需配置；对应公钥已烤进开发镜像的 `authorized_keys`。`hosts` 是以 host alias
 为 key 的映射，值为该 host 的连接设置；host 值可以留空（等价默认 SSH host）。每个 project
 必须包含 `host`，并按 `type` 决定 repo 相关字段，可选 `description`、`image`、`platform`、
 `open_path`、`published_ports` 和 `container`。其他规则如下：
@@ -229,7 +230,7 @@ host。
 创建顺序不可调整：
 
 1. 校验 inventory、token、重复 ID 和 SSH 端口冲突。
-2. 生成或复用 `~/.ssh/codespace/id_ed25519`。
+2. 校验仓库内固定登录私钥存在并收紧其权限为 `0600`（缺失即 fail-fast）。
 3. 在内存中生成 environment deploy key。
 4. 按 project 平台拉取镜像；未配置时使用 host 原生平台。
 5. 以 SSH 登录用户身份创建 host workspace 目录（`mkdir -p`，无需 `sudo`）。
@@ -241,9 +242,10 @@ host。
    注入 `SSHD_BIND=0.0.0.0`，发布 SSH 端口到 loopback，并发布 project `published_ports`
    声明的业务端口。
 7. 由容器内 root `chown` 将挂载的 `/workspace` 归属到 `5230:5230`。
-8. 整体写入 Codespace 管理的登录与仓库 SSH 凭据。容器是 Codespace 独占的新建资源，
-   `authorized_keys`、`repo_id_ed25519` 和 provider `~/.ssh/config` 均整文件覆盖，不读取
-   或合并容器内既有内容。
+8. 整体写入 Codespace 管理的仓库 SSH 凭据。登录公钥不再注入：它已烤进开发镜像的
+   `authorized_keys`，控制面只用仓库内固定的登录私钥登录。容器是 Codespace 独占的新建
+   资源，`repo_id_ed25519` 和 provider `~/.ssh/config` 均整文件覆盖，不读取或合并容器内既有
+   内容。`blank` 类型不注入任何凭据。
 9. 通过生成的 route 完成真实 SSH 登录验证。
 10. 将 provider 上同名 deploy key 替换为一个可写 key。
 11. 保留现有 Git checkout，或 clone 配置的 repository。
@@ -281,7 +283,10 @@ Include ~/.ssh/codespace/config
 Codespace 完全管理 `~/.ssh/codespace/config` 和 `hosts/*.conf`。只有 inventory 成功后
 才能重写 host 投影；host 离线时保留最后版本，从 YAML 移除后才删除。
 
-每个 environment 使用 `HostName 127.0.0.1`、确定性端口、用户 `x` 和全局登录 key。所有
+每个 environment 使用 `HostName 127.0.0.1`、确定性端口、用户 `x` 和全局登录 key。登录 key 是
+仓库内提交的固定 keypair 私钥（`client/ssh.py` 的 `LOGIN_KEY_PATH` 按模块相对路径定位），其
+`IdentityFile` 在 host 投影里直指该绝对路径；对应公钥已烤进开发镜像的 `authorized_keys`，控制面
+不再生成或注入登录公钥，也不需要配置项。所有
 environment 运行同一开发镜像、共用镜像内固定的 sshd ed25519 host key，因此不再为每个
 environment 维护独立 known-hosts 文件：全部 environment 通过固定 `HostKeyAlias codespace`
 指向单个被 pin 的 `~/.ssh/codespace/known_hosts/codespace`，并用 `StrictHostKeyChecking yes`
@@ -325,6 +330,8 @@ create operation 处于 queued 或 running 时轮询。不得增加 SSE、operat
 - Provider token 只能发送给选定 Git provider，不得返回或写入日志。配置文件中的 token
   是明文，只能本地保存、限制权限并排除版本控制；控制面不得回写。
 - Deploy private key 只能存在于对应开发容器。
+- 登录 keypair 是固定的、提交进仓库的共享凭据，公钥烤进开发镜像。该方案仅面向内网、且配置不
+  存放 IP/port，威胁模型下私钥泄露无实质影响；不得用它保护任何对外可达的 host。
 - Web 应用不得远程暴露，也不得增加 worker。
 - Sidecar 共享服务只能通过 host loopback 暴露；bridge container 只有在 host publish
   限制为 `127.0.0.1` 时，内部才可绑定所有接口。
