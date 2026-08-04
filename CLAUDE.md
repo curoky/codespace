@@ -28,7 +28,8 @@
 
 ### Dotfiles
 
-`dotfiles/` 是用户配置的唯一来源。`dotfiles/setup.sh` 按运行场景分发配置：
+`dotfiles/` 是跨场景用户配置的来源。仅供开发镜像运行时使用的文件放在
+`codespace/images/dev/rootfs/`。`dotfiles/setup.sh` 按运行场景分发配置：
 
 - `link_path` 为可编辑配置创建符号链接。
 - `copy_path` 以 `0600` 权限复制需要独立权限控制的配置。
@@ -48,6 +49,9 @@
 
 开发镜像不使用 s6-overlay。`codespace/images/dev/script/setup-s6.sh` 从 `/opt/sb/store`
 中的 s6/execline 二进制生成 `/etc/s6/init` 和 `/etc/s6/db`。
+Container 专用 SSH config 位于 `codespace/images/dev/rootfs/home/x/.ssh/config`，
+为所有目标启用 GSSAPI 认证与凭据委派；不得复用带 host 凭据代理的
+`dotfiles/ssh/user.ssh_config`。
 
 ### Codespace
 
@@ -129,7 +133,8 @@ task --dir deps/gcc all
    `ghcr.io/curoky/devspace-cache:*`。
 4. **服务管理**：开发容器以自建 s6 init 启动。新增服务必须放入
    `codespace/images/dev/rootfs/etc/s6/s6-rc.d/` 并加入相应 bundle；execline 脚本通过
-   `s6-envdir -Lf -- /run/s6/container_environment` 读取容器环境。
+   `s6-envdir -Lf -- /run/s6/container_environment` 读取容器环境。`workspace-init`
+   必须先于 `sshd` 和 `onceinit` 完成，把挂载的 `/workspace` 归属到 `5230:5230`。
 5. **网络边界**：环境 sshd 只绑定宿主 loopback；访问必须经过配置的 SSH host route。
 6. **共享服务**：每个 Codespace host 只有一个固定名称的 `codespace-sidecar`，不得附属于
    project 或 instance。Atuin 仅通过宿主 `127.0.0.1:8002` 暴露。

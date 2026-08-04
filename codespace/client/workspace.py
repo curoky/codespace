@@ -13,7 +13,6 @@ from podman.domain.containers import Container
 from codespace.client.container import ensure_running, execute, execute_checked
 from codespace.client.models import (
     CONTAINER_USER,
-    WORKSPACE_MOUNT,
     GitProvider,
     RepoGitState,
     git_host,
@@ -46,55 +45,25 @@ def generate_deploy_keypair() -> DeployKeypair:
     return DeployKeypair(private_key=private_openssh, public_key=public_openssh)
 
 
-def own_workspace(container: Container) -> None:
-    execute_checked(
-        container,
-        ["chown", f"{CONTAINER_USER}:{CONTAINER_USER}", WORKSPACE_MOUNT],
-        user="0",
-    )
-
-
 def prepare_open_path(container: Container, open_path: str) -> None:
     execute_checked(container, ["mkdir", "-p", "--", open_path], user=CONTAINER_USER)
 
 
-def inject_credentials(
+def inject_deploy_key(
     container: Container,
-    *,
-    deploy_private_key: str | None,
-    provider: GitProvider | None,
+    deploy_private_key: str,
 ) -> None:
-    """Write the repository key and provider SSH config into a repo environment."""
-    if provider is None:
-        return
-    if deploy_private_key is None:
-        raise ValueError("deploy_private_key is required for a repo project")
+    """Write the repository deploy key into a repo environment."""
     ssh_dir = f"/home/{CONTAINER_USER}/.ssh"
-    execute_checked(
-        container,
-        ["install", "-d", "-m", "0700", "-o", CONTAINER_USER, "-g", CONTAINER_USER, ssh_dir],
-        user="0",
-    )
-    provider_host = git_host(provider)
-    provider_config = (
-        f"Host {provider_host}\n"
-        f"    HostName {provider_host}\n"
-        "    User git\n"
-        "    IdentityFile ~/.ssh/repo_id_ed25519\n"
-        "    IdentitiesOnly yes\n"
-        "    StrictHostKeyChecking accept-new\n"
-    )
-    archive = _ssh_archive(
-        [
-            ("repo_id_ed25519", deploy_private_key, 0o600),
-            ("config", provider_config, 0o600),
-        ]
-    )
-    if not container.put_archive(ssh_dir, archive):
+    if not container.put_archive(ssh_dir, _deploy_key_archive(deploy_private_key)):
         raise RuntimeError("failed to write container SSH credentials")
     execute_checked(
         container,
-        ["chown", "-R", f"{CONTAINER_USER}:{CONTAINER_USER}", ssh_dir],
+        [
+            "chown",
+            f"{CONTAINER_USER}:{CONTAINER_USER}",
+            f"{ssh_dir}/repo_id_ed25519",
+        ],
         user="0",
     )
 
@@ -150,13 +119,12 @@ def _git_lines(container: Container, target: str, args: list[str]) -> list[str]:
     return [line for line in result.stdout.splitlines() if line.strip()]
 
 
-def _ssh_archive(files: list[tuple[str, str, int]]) -> bytes:
+def _deploy_key_archive(content: str) -> bytes:
     buffer = io.BytesIO()
     with tarfile.open(fileobj=buffer, mode="w") as archive:
-        for name, content, mode in files:
-            raw = content.encode()
-            info = tarfile.TarInfo(name=name)
-            info.size = len(raw)
-            info.mode = mode
-            archive.addfile(info, io.BytesIO(raw))
+        raw = content.encode()
+        info = tarfile.TarInfo(name="repo_id_ed25519")
+        info.size = len(raw)
+        info.mode = 0o600
+        archive.addfile(info, io.BytesIO(raw))
     return buffer.getvalue()

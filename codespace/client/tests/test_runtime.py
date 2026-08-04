@@ -61,6 +61,7 @@ class FakeContainer:
         self.status = "running"
         self.exec_calls: list[tuple[list[str], str | None]] = []
         self.archive: bytes | None = None
+        self.archive_path: str | None = None
         self.files: dict[str, bytes] = {}
 
     def reload(self) -> None:
@@ -76,7 +77,8 @@ class FakeContainer:
         self.exec_calls.append((command, user))
         return 1 if command[0] == "test" else 0, (None, None)
 
-    def put_archive(self, _path: str, archive: bytes) -> bool:
+    def put_archive(self, path: str, archive: bytes) -> bool:
+        self.archive_path = path
         self.archive = archive
         return True
 
@@ -316,70 +318,24 @@ def test_create_container_blank_omits_repo_and_provider_labels(
     assert LABEL_PROVIDER not in labels
 
 
-def test_inject_credentials_blank_injects_nothing() -> None:
+def test_inject_deploy_key_writes_only_private_key() -> None:
     container = FakeContainer()
 
-    workspace.inject_credentials(
+    workspace.inject_deploy_key(
         container,  # type: ignore[arg-type]
-        deploy_private_key=None,
-        provider=None,
+        "PRIVATE",
     )
 
-    # The login public key ships in the image, and a blank project has no
-    # provider material, so nothing is written into the container.
-    assert container.archive is None
-    assert container.exec_calls == []
-
-
-def _archived_config(container: FakeContainer) -> str:
+    assert container.archive_path == "/home/x/.ssh"
     assert container.archive is not None
     with tarfile.open(fileobj=io.BytesIO(container.archive), mode="r") as archive:
-        assert set(archive.getnames()) == {
-            "repo_id_ed25519",
-            "config",
-        }
-        config_file = archive.extractfile("config")
-        assert config_file is not None
-        return config_file.read().decode()
-
-
-def test_inject_credentials_writes_provider_config_wholesale() -> None:
-    container = FakeContainer()
-
-    workspace.inject_credentials(
-        container,  # type: ignore[arg-type]
-        deploy_private_key="PRIVATE",
-        provider="github",
-    )
-
-    config = _archived_config(container)
-    assert "Host github.com" in config
-    assert "IdentityFile ~/.ssh/repo_id_ed25519" in config
-    # The container is a fresh Codespace-exclusive resource, so the config is
-    # written wholesale with no marker block and no pre-read of existing files.
-    assert "# >>> codespace managed >>>" not in config
-    assert all(command[0] not in {"sh", "rm"} for command, _user in container.exec_calls)
-
-
-def test_inject_credentials_does_not_read_existing_container_config() -> None:
-    container = FakeContainer()
-    container.files["/home/x/.ssh/config"] = (
-        b"Host my-server\n    HostName 10.0.0.1\n    User dev\n"
-    )
-
-    workspace.inject_credentials(
-        container,  # type: ignore[arg-type]
-        deploy_private_key="PRIVATE",
-        provider="github",
-    )
-
-    config = _archived_config(container)
-    # A wholesale overwrite ignores any pre-existing container config entirely.
-    assert "my-server" not in config
-    assert "Host github.com" in config
-    assert all(
-        command != ["rm", "-f", "/home/x/.ssh/config"] for command, _user in container.exec_calls
-    )
+        assert archive.getnames() == ["repo_id_ed25519"]
+        key = archive.getmember("repo_id_ed25519")
+        assert key.mode == 0o600
+        key_file = archive.extractfile(key)
+        assert key_file is not None
+        assert key_file.read() == b"PRIVATE"
+    assert container.exec_calls == [(["chown", "x:x", "/home/x/.ssh/repo_id_ed25519"], "0")]
 
 
 def test_clone_reuses_existing_checkout_and_uses_argument_list() -> None:

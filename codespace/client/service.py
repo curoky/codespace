@@ -164,13 +164,9 @@ class CodespaceService:
             workspace_root,
         )
 
-        self._stage(creation, "injecting credentials")
-        workspace.own_workspace(container)
-        workspace.inject_credentials(
-            container,
-            deploy_private_key=deploy_keypair.private_key if deploy_keypair else None,
-            provider=project.provider,
-        )
+        if deploy_keypair is not None:
+            self._stage(creation, "injecting deploy key")
+            workspace.inject_deploy_key(container, deploy_keypair.private_key)
 
         environment = spec.to_environment(container.id, status="running")
         self._stage(creation, "probing ssh")

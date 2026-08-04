@@ -78,4 +78,5 @@ alwaysApply: true
 - 系统级/编译器/运行时 → `nix-env -iA nixpkgs.<pkg>`（装到 `~/.nix-profile/bin`）。
 - Python 全局 CLI → `uv tool install <tool>`（装到 `~/.local/bin`）。
 - Node 全局工具 → 优先项目内 `pnpm add -D`。
-- `apt` 需 `sudo`；`/opt`、`/workspace` 归 uid 5230，`~/.rustup` 等部分目录只读，装前先确认可写。
+- `apt` 需 `sudo`；`/opt` 归 uid 5230，挂载的 `/workspace` 由 `workspace-init` 在启动时
+  设为 uid/gid `5230:5230`；`~/.rustup` 等部分目录只读，装前先确认可写。

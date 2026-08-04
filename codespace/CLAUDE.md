@@ -145,9 +145,9 @@ tokens:
 ## Host 契约
 
 SSH host ID 必须是本地 `~/.ssh/config` 中可访问 rootful Podman 的现有 alias。workspace
-目录以普通 SSH 登录用户身份创建（`mkdir -p`），无需免密 `sudo`；容器创建后由容器内 root
-执行 `chown` 将挂载的 `/workspace` 归属到 `5230:5230`（rootful Podman 直接透传 host
-所有权）。身份文件、跳板机和 host key policy 由 system OpenSSH 管理。
+目录以普通 SSH 登录用户身份创建（`mkdir -p`），无需免密 `sudo`；容器启动时由镜像内
+`workspace-init` s6 oneshot 将挂载的 `/workspace` 归属到 `5230:5230`（rootful Podman
+直接透传 host 所有权）。身份文件、跳板机和 host key policy 由 system OpenSSH 管理。
 
 Podman Machine host ID 是 Codespace 内的逻辑名称；对应 machine 必须已存在、正在运行且
 使用 rootful 模式。
@@ -157,7 +157,7 @@ Podman Machine host ID 是 Codespace 内的逻辑名称；对应 machine 必须�
 - rootful Podman socket；SSH host 默认是 `/run/podman/podman.sock`，Podman Machine
   通过 `podman machine inspect` 获取 API socket 和 SSH identity；
 - SSH 登录用户的可写 home；workspace root 是绝对路径化后的 `~/codespace`；
-- 将挂载的 `/workspace` 由容器内 root `chown` 为 `5230:5230` 的权限；
+- 允许开发镜像内 root 将挂载的 `/workspace` `chown` 为 `5230:5230`；
 - 为 environment SSH 保留的端口范围 `20000-29999`；
 - 一个 host 级 sidecar；
 - 满足下述契约的开发镜像。
@@ -171,7 +171,11 @@ Codespace 只选择平台，不安装或管理模拟器。
 - 可写的 `/workspace`；
 - 默认 host network，sshd 监听地址由 `SSHD_BIND` 环境变量控制，默认 `127.0.0.1`；
 - Podman security option `disable` 和 `seccomp=unconfined`；
-- 现有 s6 entrypoint、sshd、onceinit、Atuin client、Git 和 OpenSSH client。
+- 现有 s6 entrypoint、sshd、onceinit、Atuin client、Git 和 OpenSSH client；
+- `workspace-init` s6 oneshot，且 `sshd` 和 `onceinit` 均依赖它；
+- 位于 `rootfs/home/x/.ssh/config` 的 container SSH config，为 `Host *` 启用 GSSAPI
+  认证与凭据委派，并固定使用 `~/.ssh/repo_id_ed25519` 访问 GitHub 和 GitLab，构建时
+  收紧为 `0600`。
 
 `network_mode: host` 的容器使用 host network，sshd 绑定 `127.0.0.1`。`network_mode: bridge`
 的容器改用 bridge network：sshd 注入 `SSHD_BIND=0.0.0.0`，SSH 端口发布到 loopback
@@ -242,11 +246,12 @@ host。
    `container.network_mode` 原样转发给 `--network`；`bridge` 模式下
    注入 `SSHD_BIND=0.0.0.0`，发布 SSH 端口到 loopback，并发布 project `published_ports`
    声明的业务端口。
-7. 由容器内 root `chown` 将挂载的 `/workspace` 归属到 `5230:5230`。
-8. 整体写入 Codespace 管理的仓库 SSH 凭据。登录公钥不再注入：它已烤进开发镜像的
-   `authorized_keys`，控制面只用仓库内固定的登录私钥登录。容器是 Codespace 独占的新建
-   资源，`repo_id_ed25519` 和 provider `~/.ssh/config` 均整文件覆盖，不读取或合并容器内既有
-   内容。`blank` 类型不注入任何凭据。
+7. 镜像内 `workspace-init` 先将挂载的 `/workspace` `chown` 为 `5230:5230`，之后才允许
+   `sshd` 和 `onceinit` 启动。
+8. `repo` 类型只把内存中生成的私钥整体写入镜像预创建的
+   `/home/x/.ssh/repo_id_ed25519`，再将该文件归属设为 `5230:5230`。Provider SSH config
+   已由镜像安装，控制面不得生成或覆盖。登录公钥已烤进开发镜像的 `authorized_keys`，
+   控制面只用仓库内固定的登录私钥登录。`blank` 类型不注入任何凭据。
 9. 通过生成的 route 完成真实 SSH 登录验证。
 10. 将 provider 上同名 deploy key 替换为一个可写 key。
 11. 保留现有 Git checkout，或 clone 配置的 repository。

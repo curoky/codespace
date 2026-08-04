@@ -207,9 +207,8 @@ def test_create_runs_all_stages_in_order(
         "create_container",
         create_container,
     )
-    monkeypatch.setattr(workspace, "own_workspace", lambda *args: events.append("own"))
     monkeypatch.setattr(
-        workspace, "inject_credentials", lambda *args, **kwargs: events.append("inject")
+        workspace, "inject_deploy_key", lambda *args, **kwargs: events.append("inject")
     )
     monkeypatch.setattr(ssh, "probe", lambda *args: events.append("probe"))
     monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
@@ -224,7 +223,6 @@ def test_create_runs_all_stages_in_order(
         "pull",
         "workspace",
         "create",
-        "own",
         "inject",
         "probe",
         "register",
@@ -295,8 +293,7 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
         "create_container",
         lambda _client, spec, _root: (specs.append(spec), container)[-1],
     )
-    monkeypatch.setattr(workspace, "own_workspace", lambda *args: None)
-    monkeypatch.setattr(workspace, "inject_credentials", lambda *args, **kwargs: None)
+    monkeypatch.setattr(workspace, "inject_deploy_key", lambda *args, **kwargs: None)
     monkeypatch.setattr(ssh, "probe", lambda *args: None)
     monkeypatch.setattr(provider, "register", lambda *args: None)
     monkeypatch.setattr(workspace, "clone_repo", lambda *args: None)
@@ -337,9 +334,8 @@ def test_create_blank_project_skips_repo_stages(
         "create_container",
         lambda *args, **kwargs: (events.append("create"), container)[-1],
     )
-    monkeypatch.setattr(workspace, "own_workspace", lambda *args: events.append("own"))
     monkeypatch.setattr(
-        workspace, "inject_credentials", lambda *args, **kwargs: events.append("inject")
+        workspace, "inject_deploy_key", lambda *args, **kwargs: events.append("inject")
     )
     monkeypatch.setattr(ssh, "probe", lambda *args: events.append("probe"))
     monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
@@ -357,8 +353,6 @@ def test_create_blank_project_skips_repo_stages(
         "pull",
         "workspace",
         "create",
-        "own",
-        "inject",
         "probe",
         "open_path",
         "projection",
@@ -438,8 +432,7 @@ def test_failure_before_register_removes_container_but_keeps_workspace(
     monkeypatch.setattr(containers, "pull_image", lambda *args: None)
     monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
     monkeypatch.setattr(containers, "create_container", lambda *args, **kwargs: container)
-    monkeypatch.setattr(workspace, "own_workspace", lambda *args: None)
-    monkeypatch.setattr(workspace, "inject_credentials", lambda *args, **kwargs: None)
+    monkeypatch.setattr(workspace, "inject_deploy_key", lambda *args, **kwargs: None)
     monkeypatch.setattr(
         ssh,
         "probe",
@@ -506,8 +499,7 @@ def test_failure_after_register_revokes_then_removes_container(
     monkeypatch.setattr(containers, "pull_image", lambda *args: None)
     monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
     monkeypatch.setattr(containers, "create_container", lambda *args, **kwargs: container)
-    monkeypatch.setattr(workspace, "own_workspace", lambda *args: None)
-    monkeypatch.setattr(workspace, "inject_credentials", lambda *args, **kwargs: None)
+    monkeypatch.setattr(workspace, "inject_deploy_key", lambda *args, **kwargs: None)
     monkeypatch.setattr(ssh, "probe", lambda *args: None)
     monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
     monkeypatch.setattr(
@@ -545,8 +537,7 @@ def test_revoke_failure_after_register_retains_container(
     monkeypatch.setattr(containers, "pull_image", lambda *args: None)
     monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
     monkeypatch.setattr(containers, "create_container", lambda *args, **kwargs: container)
-    monkeypatch.setattr(workspace, "own_workspace", lambda *args: None)
-    monkeypatch.setattr(workspace, "inject_credentials", lambda *args, **kwargs: None)
+    monkeypatch.setattr(workspace, "inject_deploy_key", lambda *args, **kwargs: None)
     monkeypatch.setattr(ssh, "probe", lambda *args: None)
     monkeypatch.setattr(provider, "register", lambda *args: None)
     monkeypatch.setattr(
