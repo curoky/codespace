@@ -124,9 +124,10 @@ SSH host）。每个 project 必须包含 `host`，并按 `type` 决定 repo 相
 - 顶层 `container` 是可选块，承载所有非身份的容器 run flag，采用 Docker Compose service 的
   字段名与语法子集（解析实现独立在 `client/compose/` 子包中，只做强类型化，不含控制面知识），
   控制面自身不保留任何隐式默认值。所有字段（`network_mode`、`cap_add`、`security_opt`、
-  `pids_limit`、`ulimits`、`volumes`、`environment`、`devices`，对应 `--network`、`--cap-add`、
-  `--security-opt`、`--pids-limit`、`--ulimit`、`--device`）全部可选，未设置等价于 Compose 语义
-  下的「引擎默认」：在 runtime 边界处集合归一为空、`pids_limit` 仅在设置时才转发给 `podman run`。
+  `pids_limit`、`ulimits`、`volumes`、`environment`、`devices`、`shm_size`，对应 `--network`、
+  `--cap-add`、`--security-opt`、`--pids-limit`、`--ulimit`、`--device`、`--shm-size`）全部可选，
+  未设置等价于 Compose 语义下的「引擎默认」：在 runtime 边界处集合归一为空、`pids_limit` 和
+  `shm_size` 仅在设置时才转发给 `podman run`。
   `network_mode` 只能是 `host` 或 `bridge`，原样转发给 `--network`：`host` 让容器共享 host netns；
   `bridge` 让容器获得独立 netns，sshd 注入 `SSHD_BIND=0.0.0.0` 并发布 SSH 端口和业务端口。虽然
   compose 语义下 `network_mode` 可省略，但控制面要求**每个 project 分层解析后必须有确定的
@@ -136,6 +137,8 @@ SSH host）。每个 project 必须包含 `host`，并按 `type` 决定 repo 相
   `{type: bind, source, target, read_only}`；只支持 `type: bind`，`source`/`target` 必须是绝对
   路径，`read_only` 默认 `false`。`devices` 是原样转发给 `--device` 的字符串列表，GPU 访问用 CDI
   设备名表达（如 `nvidia.com/gpu=all`），要求该 host 已安装 NVIDIA 驱动与 CDI 规范文件。
+  `shm_size` 是原样转发给 `--shm-size` 的非空字符串，采用 podman 认的格式（纯字节整数字符串或
+  单字母后缀 `b`/`k`/`m`/`g`，如 `100g`），控制面不做归一。
   `container.environment` 是显式透传给容器的固定环境变量，支持映射或
   `["KEY=value"]` 列表短语法，禁止使用控制面派生的保留键 `SSHD_PORT`、`SSHD_BIND`。这些值原样
   转发给 `podman run`，控制面不做任何转换。

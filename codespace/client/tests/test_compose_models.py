@@ -15,6 +15,19 @@ def test_service_spec_all_fields_default_to_none() -> None:
     assert spec.ulimits is None
     assert spec.volumes is None
     assert spec.environment is None
+    assert spec.devices is None
+    assert spec.shm_size is None
+
+
+def test_shm_size_passes_through_as_string() -> None:
+    spec = ServiceSpec.model_validate({"shm_size": "100g"})
+
+    assert spec.shm_size == "100g"
+
+
+def test_shm_size_rejects_blank_string() -> None:
+    with pytest.raises(ValidationError):
+        ServiceSpec.model_validate({"shm_size": "  "})
 
 
 def test_volumes_short_syntax_expands_to_bind_mount() -> None:

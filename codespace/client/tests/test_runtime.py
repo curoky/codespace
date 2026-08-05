@@ -387,6 +387,43 @@ def test_create_container_injects_gpu_device(
     assert kwargs["devices"] == ["nvidia.com/gpu=all"]
 
 
+def test_create_container_forwards_shm_size_only_when_set(
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    container = FakeContainer()
+    calls: list[tuple[str, dict[str, object]]] = []
+
+    def run(image: str, **kwargs: object) -> FakeContainer:
+        calls.append((image, kwargs))
+        return container
+
+    monkeypatch.setattr(container_runtime, "Container", FakeContainer)
+    client = SimpleNamespace(containers=SimpleNamespace(run=run))
+
+    spec = config.environment_spec("devspace", "debug")
+    container_runtime.create_container(
+        client,  # type: ignore[arg-type]
+        spec,
+        "/home/x/codespace",
+    )
+    _, kwargs = calls[0]
+    assert "shm_size" not in kwargs
+
+    calls.clear()
+    spec = replace(
+        spec,
+        container=spec.container.model_copy(update={"shm_size": "100g"}),
+    )
+    container_runtime.create_container(
+        client,  # type: ignore[arg-type]
+        spec,
+        "/home/x/codespace",
+    )
+    _, kwargs = calls[0]
+    assert kwargs["shm_size"] == "100g"
+
+
 def test_create_container_bridge_publishes_ports_and_binds_sshd(
     config: Config,
     monkeypatch: pytest.MonkeyPatch,

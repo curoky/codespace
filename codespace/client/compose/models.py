@@ -73,6 +73,7 @@ class ServiceSpec(BaseModel):
     volumes: _Volumes | None = None
     environment: _Environment | None = None
     devices: list[NonBlankString] | None = None
+    shm_size: NonBlankString | None = None
 
     def merged_with(self, *overrides: ServiceSpec | None) -> Self:
         """Apply shallow override layers left to right and revalidate."""

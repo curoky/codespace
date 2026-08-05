@@ -105,6 +105,8 @@ def create_container(
     run_kwargs: dict[str, Any] = {}
     if options.pids_limit is not None:
         run_kwargs["pids_limit"] = options.pids_limit
+    if options.shm_size is not None:
+        run_kwargs["shm_size"] = options.shm_size
     created = client.containers.run(
         spec.image,
         name=spec.identity,
