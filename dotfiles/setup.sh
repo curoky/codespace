@@ -44,7 +44,6 @@ function link_path() {
 
 OS_NAME=$(uname -o)
 
-SCENE=${1:-docker}
 CONF_PATH=${2:-$HOME/devspace/dotfiles} # TODO: remove
 
 function common() {
@@ -95,7 +94,7 @@ if [[ $OS_NAME == "Darwin" ]]; then
   link_path $CONF_PATH/launchctl/sh.atuin.daemon.plist "$HOME/Library/LaunchAgents/sh.atuin.daemon.plist"
   # copy_path $CONF_PATH/launchctl/sh.atuin.server.plist "$HOME/Library/LaunchAgents/sh.atuin.server.plist"
 
-elif [[ $SCENE == "docker" ]]; then
+else
   link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.vscode-server/data/Machine/settings.json
   link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.trae-server/data/Machine/settings.json
   link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.trae-cn-server/data/Machine/settings.json

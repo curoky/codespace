@@ -41,7 +41,7 @@ if [[ -d $HOMEBREW_PREFIX ]]; then
   export HOMEBREW_BAT=1
   export HOMEBREW_BAT_CONFIG_PATH=$HOME/.config/bat/config
   export HOMEBREW_CC=gcc
-  export HOMEBREW_GIT_PATH=/nix/var/nix/profiles/default/bin/git
+  # export HOMEBREW_GIT_PATH=/nix/var/nix/profiles/default/bin/git
   # export HOMEBREW_PATCHELF_RB_WRITE=1
   # export HOMEBREW_EDITOR=code
   # export HOMEBREW_TEMP=$XDG_CACHE_HOME/brew  # default: ~/tmp
