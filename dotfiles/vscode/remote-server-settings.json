@@ -58,7 +58,7 @@
   "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx16G -Xms4G",
   "java.trace.server": "verbose",
   "markdown-preview-enhanced.pandocPath": "/nix/var/nix/profiles/default/bin/pandoc",
-  "prettier.prettierPath": "/nix/var/nix/profiles/default/bin/prettier.cjs",
+  "prettier.prettierPath": "/opt/sb/store/prettier/libexec/prettier/bin/prettier.cjs",
   "python.defaultInterpreterPath": "/opt/conda/bin/python3",
   // "python.formatting.yapfPath": "/nix/var/nix/profiles/default/bin/yapf",
   "ruby.interpreter.commandPath": "/nix/var/nix/profiles/default/bin/ruby",
@@ -68,18 +68,18 @@
   ],
   // "ruby.useBundler": true,
   "shellcheck.executablePath": "/nix/var/nix/profiles/default/bin/shellcheck",
-  "typescript.npm": "/nix/var/nix/profiles/default/bin/npm",
+  "typescript.npm": "/home/x/.nix-profile/bin/npm",
   "xml.java.home": "/nix/var/nix/profiles/jdk25/lib/openjdk",
   "xml.server.vmargs": "-Xmx5G",
   "xml.server.binary.path": "/home/x/.nix-profile/bin/lemminx",
-  "nix.formatterPath": "nixfmt",
+  "nix.formatterPath": "/opt/sb/store/nixfmt/bin/nixfmt",
   "nix.serverPath": "/opt/sb/store/nil/bin/nil",
   "nix.enableLanguageServer": true,
   "nix.serverSettings": {
     "nil": {
       "formatting": {
         "command": [
-          "nixfmt"
+          "/opt/sb/store/nixfmt/bin/nixfmt"
         ]
       }
     }
