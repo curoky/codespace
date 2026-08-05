@@ -137,7 +137,7 @@ task --dir deps/gcc all
 4. **服务管理**：开发容器以自建 s6 init 启动。新增服务必须放入
    `codespace/images/dev/rootfs/etc/s6/s6-rc.d/` 并加入相应 bundle；execline 脚本通过
    `s6-envdir -Lf -- /run/s6/container_environment` 读取容器环境，该目录仅允许 root 和
-   `x` 读取。`workspace-init` 必须先于 `sshd` 和 `onceinit` 完成，把挂载的 `/workspace`
+   `x` 读取。`workspace-init` 必须先于 `sshd` 和 `home-init` 完成，把挂载的 `/workspace`
    归属到 `5230:5230`。
 5. **网络边界**：环境 sshd 只绑定宿主 loopback；访问必须经过配置的 SSH host route。
 6. **共享服务**：每个 Codespace host 只有一个固定名称的 `codespace-sidecar`，不得附属于

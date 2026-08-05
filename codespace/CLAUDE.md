@@ -191,9 +191,9 @@ Codespace 只选择平台，不安装或管理模拟器。
 - 可写的 `/workspace`；
 - 默认 host network，sshd 监听地址由 `SSHD_BIND` 环境变量控制，默认 `127.0.0.1`；
 - Podman security option `disable` 和 `seccomp=unconfined`；
-- 现有 s6 entrypoint、sshd、onceinit、Atuin client、Git 和 OpenSSH client；
+- 现有 s6 entrypoint、sshd、home-init、Atuin client、Git 和 OpenSSH client；
 - s6 转储到 `/run/s6/container_environment` 的容器环境仅允许 root 和 `x` 读取；
-- `workspace-init` s6 oneshot，且 `sshd` 和 `onceinit` 均依赖它；
+- `workspace-init` s6 oneshot，且 `sshd` 和 `home-init` 均依赖它；
 - 位于 `rootfs/home/x/.ssh/config` 的 container SSH config，为 `Host *` 启用 GSSAPI
   认证与凭据委派，并固定使用 `~/.ssh/repo_id_ed25519` 访问 GitHub 和 GitLab，构建时
   收紧为 `0600`；
@@ -279,7 +279,7 @@ host。
    注入 `SSHD_BIND=0.0.0.0`，发布 SSH 端口到 loopback，并发布 project `published_ports`
    声明的业务端口。
 7. 镜像内 `workspace-init` 先将挂载的 `/workspace` `chown` 为 `5230:5230`，之后才允许
-   `sshd` 和 `onceinit` 启动。
+   `sshd` 和 `home-init` 启动。
 8. `repo` 类型只把内存中生成的私钥整体写入镜像预创建的
    `/home/x/.ssh/repo_id_ed25519`，再将该文件归属设为 `5230:5230`。Provider SSH config
    和 pinned `known_hosts` 已由镜像安装，控制面不得生成或覆盖。登录公钥已烤进开发镜像的
@@ -386,7 +386,7 @@ host/port 配置。
 
 ## 变更规则
 
-- 不修改 `images/dev/` 中与任务无关的 s6、Atuin client、Ollama、onceinit 和 sshd。
+- 不修改 `images/dev/` 中与任务无关的 s6、Atuin client、Ollama、home-init 和 sshd。
 - Host 共享服务资产只能放在 `images/sidecar/`，不能进入 project 生命周期模块。
 - Sidecar inventory 与 environment inventory 必须分离。
 - Sidecar 不得恢复 Python HTTP agent、Podman socket 或 workspace mount。
