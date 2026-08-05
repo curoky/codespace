@@ -1,0 +1,12 @@
+table {
+  display: block !important;
+  width: max-content !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+}
+
+table th,
+table td {
+  white-space: nowrap !important;
+}
