@@ -735,18 +735,9 @@ class GitFakeContainer:
     def __init__(self, replies: dict[str, tuple[int, bytes, bytes]]) -> None:
         self.replies = replies
         self.calls: list[tuple[list[str], str | None]] = []
-        self.status = "running"
-        self.started = False
         self.id = "git-container-id"
         self.name = "git-container"
         self.client = FakeAPIClient(self)
-
-    def reload(self) -> None:
-        pass
-
-    def start(self) -> None:
-        self.started = True
-        self.status = "running"
 
     def exec_run(
         self,
@@ -789,15 +780,6 @@ def test_repo_git_state_ignores_stderr_noise() -> None:
 
     assert state.blocks_delete is False
     assert state.detail == []
-
-
-def test_repo_git_state_starts_stopped_container() -> None:
-    container = GitFakeContainer({})
-    container.status = "exited"
-
-    workspace.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
-
-    assert container.started is True
 
 
 def test_repo_git_state_detects_uncommitted() -> None:

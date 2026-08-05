@@ -21,11 +21,11 @@ document.querySelectorAll("[data-close]").forEach((button) => {
 projectsElement.addEventListener("click", async (event) => {
   const target = event.target.closest("[data-action]");
   if (!target) return;
-  const { action, project, instance, host, command } = target.dataset;
+  const { action, project, instance, host, command, type, status } = target.dataset;
   if (action === "new") openInstanceDialog(project);
   if (action === "quick") await submitInstance(project, host, DEFAULT_INSTANCE);
-  if (action === "delete") await deleteInstance(project, host, instance, false);
-  if (action === "purge") await deleteInstance(project, host, instance, true);
+  if (action === "delete") await deleteInstance(project, host, instance, false, type, status);
+  if (action === "purge") await deleteInstance(project, host, instance, true, type, status);
   if (action === "copy-ssh") await copySshCommand(target, command);
 });
 
@@ -204,6 +204,8 @@ function renderEnvironment(environment) {
     project: environment.project,
     host: environment.host,
     instance: environment.instance,
+    type: environment.type,
+    status: environment.status || "unknown",
   };
   const actions = element("div", "environment-actions");
   const traeLink = link("Open in Trae", environment.trae_url);
@@ -276,7 +278,7 @@ deleteDialog.addEventListener("close", () => {
 
 let pendingDelete = null;
 
-async function deleteInstance(project, host, instance, purge) {
+async function deleteInstance(project, host, instance, purge, type, status) {
   pendingDelete = { project, host, instance, purge };
   const scope = purge ? "container and workspace" : "container";
   document.querySelector("#delete-eyebrow").textContent = `Delete ${scope}`;
@@ -288,12 +290,19 @@ async function deleteInstance(project, host, instance, purge) {
   deleteConfirmButton.disabled = true;
   deleteDialog.showModal();
 
+  if (type === "repo" && status !== "running") {
+    deleteStatusElement.className = "delete-warning";
+    deleteStatusElement.textContent = `Container is ${status}; repository state was not inspected. Deleting may lose unpushed or uncommitted work.`;
+    deleteConfirmButton.disabled = false;
+    return;
+  }
+
   let result;
   try {
     result = await sendDelete(project, host, instance, purge, false);
   } catch (error) {
-    // A failed or unstartable container blocks the git precheck. Surface it as a
-    // warning but still allow forced deletion so broken environments stay removable.
+    // The container can stop after the dashboard refresh. Keep failed
+    // prechecks actionable so broken environments remain removable.
     deleteStatusElement.className = "delete-warning";
     deleteStatusElement.textContent = `Could not inspect repository state: ${error.message}. Forcing deletion may lose unpushed or uncommitted work.`;
     deleteConfirmButton.disabled = false;
@@ -402,10 +411,14 @@ function element(tag, className = "", text = "") {
   return node;
 }
 
-function actionButton(label, action, { project, host = "", instance = "" }) {
+function actionButton(
+  label,
+  action,
+  { project, host = "", instance = "", type = "", status = "" },
+) {
   const button = element("button", "secondary", label);
   button.type = "button";
-  Object.assign(button.dataset, { action, project, host, instance });
+  Object.assign(button.dataset, { action, project, host, instance, type, status });
   return button;
 }
 

@@ -10,7 +10,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from podman.domain.containers import Container
 
-from codespace.client.container import ensure_running, execute, execute_checked
+from codespace.client.container import execute, execute_checked
 from codespace.client.models import (
     CONTAINER_USER,
     GitProvider,
@@ -134,7 +134,6 @@ def clone_repo(container: Container, repo: str, provider: GitProvider) -> None:
 
 def repo_git_state(container: Container, repo: str) -> RepoGitState:
     """Return uncommitted and unpushed checkout state before deletion."""
-    ensure_running(container)
     target = repo_target(repo)
     present = execute(
         container,

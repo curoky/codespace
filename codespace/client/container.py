@@ -170,15 +170,6 @@ def remove_container(container: Container) -> None:
     container.remove(force=True)
 
 
-def ensure_running(container: Container) -> None:
-    """Start a stopped container before creating exec sessions."""
-    container.reload()
-    if container.status == "running":
-        return
-    container.start()
-    wait_running(container)
-
-
 def execute(
     container: Container,
     command: list[str],

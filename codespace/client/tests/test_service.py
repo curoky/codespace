@@ -43,6 +43,7 @@ def _environment(
     host: str = "home",
     project: str = "devspace",
     instance: str = "debug",
+    status: str = "running",
 ) -> Environment:
     identity = environment_id(host, project, instance)
     provider_name = "github" if host == "home" else "gitlab"
@@ -59,7 +60,7 @@ def _environment(
         platform="native",
         ssh_port=ssh_port(identity),
         container_id="container-id",
-        status="running",
+        status=status,
     )
 
 
@@ -666,6 +667,31 @@ def test_delete_without_force_inspects_and_skips_mutation(
     assert state.unpushed is True
     assert state.detail == ["abc add feature"]
     assert mutations == []
+
+
+def test_delete_without_force_refuses_to_inspect_exited_container(
+    service: CodespaceService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    service.set_token("github", "token")
+    container = object()
+    monkeypatch.setattr(
+        inventory,
+        "list_inventory",
+        lambda *args: inventory.Inventory([_environment(status="exited")], []),
+    )
+    monkeypatch.setattr(inventory, "find_container", lambda *args: container)
+
+    def _fail_git_state(*_args: object) -> RepoGitState:
+        raise AssertionError("repo_git_state must not run for an exited container")
+
+    monkeypatch.setattr(workspace, "repo_git_state", _fail_git_state)
+
+    with pytest.raises(
+        RuntimeError,
+        match=r"is exited; repository state cannot be inspected while it is not running",
+    ):
+        service.delete("devspace", "home", "debug", purge=False, force=False)
 
 
 def test_delete_force_skips_git_check_and_deletes(

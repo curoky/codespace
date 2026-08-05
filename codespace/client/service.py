@@ -238,6 +238,12 @@ class CodespaceService:
 
         if not force:
             if is_repo:
+                if environment.status != "running":
+                    status = environment.status or "unknown"
+                    raise RuntimeError(
+                        f"container {spec.identity!r} is {status}; "
+                        "repository state cannot be inspected while it is not running"
+                    )
                 return workspace.repo_git_state(container, self._require_repo(project))
             return RepoGitState()
 

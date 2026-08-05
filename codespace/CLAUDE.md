@@ -311,8 +311,10 @@ workspace，最后删除 container。Provider 失败时不得改变 container �
 不做任何 container/workspace/provider 变更，返回 `{deleted, workspace_removed, state}`，
 其中 `state` 含 `unpushed`、`uncommitted`、`detail`。WebUI 先以 `force=false` 打开 block
 弹窗展示检测结果，用户确认后再以 `force=true` 真正删除（此时执行撤销 deploy key、按 purge
-清理 workspace、删除 container）。`blank` 类型无 checkout，`state` 恒为空。检测只发生在删除
-路径，dashboard 不受影响。
+清理 workspace、删除 container）。Git 检测仅允许在 `running` container 内执行，不得为预检
+启动已退出或停止的 container；WebUI 根据 Dashboard status 直接显示未检测警告并允许用户确认，
+直接调用 `force=false` API 时则立即返回错误。`blank` 类型无 checkout，`state` 恒为空。检测只
+发生在删除路径，dashboard 不受影响。
 
 ## SSH 投影
 
