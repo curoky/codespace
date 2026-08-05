@@ -12,6 +12,7 @@ from codespace.client.models import (
     HostStatus,
     Operation,
     ProjectSummary,
+    ProjectSummaryHost,
     RepoGitState,
 )
 from codespace.client.operations import OperationStore
@@ -22,8 +23,8 @@ class FakeService:
         self.config = config
         self.operations = OperationStore()
         self.tokens = {"github": False, "gitlab": False}
-        self.created: list[tuple[str, str]] = []
-        self.deleted: list[tuple[str, str, bool, bool]] = []
+        self.created: list[tuple[str, str, str]] = []
+        self.deleted: list[tuple[str, str, str, bool, bool]] = []
         self.state: RepoGitState = RepoGitState()
         self.closed = False
 
@@ -43,7 +44,7 @@ class FakeService:
             projects=[
                 ProjectSummary(
                     id="devspace",
-                    host="home",
+                    hosts=[ProjectSummaryHost(name="home", platform=None)],
                     type="repo",
                     provider="github",
                     repo="curoky/devspace",
@@ -59,24 +60,24 @@ class FakeService:
             },
         )
 
-    def queue_create(self, project: str, instance: str) -> Operation:
+    def queue_create(self, project: str, host: str, instance: str) -> Operation:
         if project not in self.config.projects:
             raise KeyError(f"unknown project: {project}")
         if not self.tokens["github"]:
             raise RuntimeError("github token is not set")
-        return self.operations.create("home", project, instance)
+        return self.operations.create(host, project, instance)
 
-    def create(self, project: str, instance: str) -> None:
-        self.created.append((project, instance))
+    def create(self, project: str, host: str, instance: str) -> None:
+        self.created.append((project, host, instance))
 
     def delete(
-        self, project: str, instance: str, *, purge: bool, force: bool = False
+        self, project: str, host: str, instance: str, *, purge: bool, force: bool = False
     ) -> RepoGitState:
         if project not in self.config.projects:
             raise KeyError(f"unknown project: {project}")
         if not force:
             return self.state
-        self.deleted.append((project, instance, purge, force))
+        self.deleted.append((project, host, instance, purge, force))
         return RepoGitState()
 
 
@@ -153,7 +154,7 @@ def test_create_requires_token_and_returns_local_operation(
 
     missing = client.post(
         "/api/projects/devspace/instances",
-        json={"instance": "debug"},
+        json={"host": "home", "instance": "debug"},
     )
     assert missing.status_code == 409
     assert missing.json() == {"error": "github token is not set"}
@@ -161,7 +162,7 @@ def test_create_requires_token_and_returns_local_operation(
     client.put("/api/tokens/github", json={"token": "token"})
     created = client.post(
         "/api/projects/devspace/instances",
-        json={"instance": "debug"},
+        json={"host": "home", "instance": "debug"},
     )
 
     assert created.status_code == 202
@@ -174,7 +175,7 @@ def test_create_requires_token_and_returns_local_operation(
         "stage": "queued",
         "error": None,
     }
-    assert service.created == [("devspace", "debug")]
+    assert service.created == [("devspace", "home", "debug")]
 
 
 def test_create_rejects_unknown_fields_and_invalid_ids(
@@ -184,11 +185,11 @@ def test_create_rejects_unknown_fields_and_invalid_ids(
 
     invalid_body = client.post(
         "/api/projects/devspace/instances",
-        json={"instance": "debug", "image": "override"},
+        json={"host": "home", "instance": "debug", "image": "override"},
     )
     invalid_path = client.request(
         "DELETE",
-        "/api/projects/devspace/instances/Bad?purge=false",
+        "/api/projects/devspace/hosts/home/instances/Bad?purge=false",
     )
 
     assert invalid_body.status_code == 422
@@ -206,7 +207,7 @@ def test_delete_api_passes_purge_choice(
 
     response = client.request(
         "DELETE",
-        f"/api/projects/devspace/instances/debug?purge={str(purge).lower()}&force=true",
+        f"/api/projects/devspace/hosts/home/instances/debug?purge={str(purge).lower()}&force=true",
     )
 
     assert response.status_code == 200
@@ -215,7 +216,7 @@ def test_delete_api_passes_purge_choice(
         "workspace_removed": purge,
         "state": {"unpushed": False, "uncommitted": False, "detail": []},
     }
-    assert service.deleted == [("devspace", "debug", purge, True)]
+    assert service.deleted == [("devspace", "home", "debug", purge, True)]
 
 
 def test_delete_without_force_returns_git_state_and_skips_delete(
@@ -224,7 +225,7 @@ def test_delete_without_force_returns_git_state_and_skips_delete(
     client, service = app_client
     service.state = RepoGitState(unpushed=True, uncommitted=True, detail=["abc feat", " M x"])
 
-    response = client.request("DELETE", "/api/projects/devspace/instances/debug")
+    response = client.request("DELETE", "/api/projects/devspace/hosts/home/instances/debug")
 
     assert response.status_code == 200
     body = response.json()
@@ -239,11 +240,11 @@ def test_delete_without_force_returns_git_state_and_skips_delete(
 
     forced = client.request(
         "DELETE",
-        "/api/projects/devspace/instances/debug?force=true",
+        "/api/projects/devspace/hosts/home/instances/debug?force=true",
     )
 
     assert forced.status_code == 200
-    assert service.deleted == [("devspace", "debug", False, True)]
+    assert service.deleted == [("devspace", "home", "debug", False, True)]
 
 
 def test_only_documented_api_routes_exist(

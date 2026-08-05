@@ -142,8 +142,8 @@ task --dir deps/gcc all
 5. **网络边界**：环境 sshd 只绑定宿主 loopback；访问必须经过配置的 SSH host route。
 6. **共享服务**：每个 Codespace host 只有一个固定名称的 `codespace-sidecar`，不得附属于
    project 或 instance。Atuin 仅通过宿主 `127.0.0.1:8002` 暴露。
-7. **平台选择**：project `platform` 只能省略或设为 `linux/amd64`、`linux/arm64`；
-   省略时库存 label 使用 `native`。
+7. **平台选择**：project 的每个 `host` 条目 `platform` 只能省略或设为 `linux/amd64`、
+   `linux/arm64`；省略时库存 label 使用 `native`。
 8. **文档语言**：仓库说明与约束文档使用中文；代码标识、命令、协议名和外部 API 保留原文。
 
 ## 变更规则

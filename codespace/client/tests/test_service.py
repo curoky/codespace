@@ -78,7 +78,7 @@ def service(
 
 def _queue_with_token(service: CodespaceService) -> None:
     service.set_token("github", "token")
-    service.queue_create("devspace", "debug")
+    service.queue_create("devspace", "home", "debug")
 
 
 def test_service_seeds_tokens_from_config(
@@ -131,6 +131,7 @@ def test_dashboard_keeps_failed_operation_when_container_was_retained(
 ) -> None:
     _queue_with_token(service)
     service.operations.update(
+        "home",
         "devspace",
         "debug",
         status="failed",
@@ -222,7 +223,7 @@ def test_create_runs_all_stages_in_order(
     monkeypatch.setattr(workspace, "clone_repo", lambda *args: events.append("clone"))
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
 
-    service.create("devspace", "debug")
+    service.create("devspace", "home", "debug")
 
     assert events == [
         "environment",
@@ -237,7 +238,7 @@ def test_create_runs_all_stages_in_order(
         "projection",
     ]
     assert pulls == [(service.config.default_image, "linux/arm64")]
-    assert specs[0].project.platform == "linux/arm64"
+    assert specs[0].platform == "linux/arm64"
     assert specs[0].container.network_mode == "host"
     assert specs[0].published_ports == ()
     assert inherited_environments == [{"HTTP_PROXY": "http://host-proxy:3128"}]
@@ -267,7 +268,7 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
             },
             "projects": {
                 "devspace": {
-                    "host": "local",
+                    "host": [{"name": "local"}],
                     "provider": "github",
                     "repo": "curoky/devspace",
                     "published_ports": ["8080", "3000:5000"],
@@ -280,7 +281,7 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
         transport=FakeTransport({"local": object()}),  # type: ignore[arg-type]
     )
     service.set_token("github", "token")
-    service.queue_create("devspace", "debug")
+    service.queue_create("devspace", "local", "debug")
 
     specs: list[EnvironmentSpec] = []
     container = SimpleNamespace(id="container-id")
@@ -305,7 +306,7 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
     monkeypatch.setattr(workspace, "clone_repo", lambda *args: None)
     monkeypatch.setattr(ssh, "write_host", lambda *args: None)
 
-    service.create("devspace", "debug")
+    service.create("devspace", "local", "debug")
 
     assert specs[0].container.network_mode == "bridge"
     assert specs[0].published_ports == ((8080, 8080), (3000, 5000))
@@ -316,7 +317,7 @@ def test_create_blank_project_skips_repo_stages(
     service: CodespaceService,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    service.queue_create("scratch", "debug")
+    service.queue_create("scratch", "home", "debug")
     events: list[str] = []
     container = SimpleNamespace(id="container-id")
     scratch_env = _environment(project="scratch")
@@ -348,7 +349,7 @@ def test_create_blank_project_skips_repo_stages(
     monkeypatch.setattr(workspace, "prepare_open_path", lambda *args: events.append("open_path"))
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
 
-    service.create("scratch", "debug")
+    service.create("scratch", "home", "debug")
 
     assert "keygen" not in events
     assert "register" not in events
@@ -365,7 +366,7 @@ def test_create_blank_project_skips_repo_stages(
 
 
 def test_queue_create_blank_project_needs_no_token(service: CodespaceService) -> None:
-    operation = service.queue_create("scratch", "debug")
+    operation = service.queue_create("scratch", "home", "debug")
 
     assert operation.project == "scratch"
 
@@ -387,7 +388,7 @@ def test_create_rejects_duplicate_before_generating_keys(
         lambda: generated.append(True),
     )
 
-    service.create("devspace", "debug")
+    service.create("devspace", "home", "debug")
 
     operation = service.operations.list()[0]
     assert operation.status == "failed"
@@ -408,7 +409,7 @@ def test_create_rejects_deterministic_port_collision(
         lambda *args: inventory.Inventory([collision], []),
     )
 
-    service.create("devspace", "debug")
+    service.create("devspace", "home", "debug")
 
     error = service.operations.list()[0].error or ""
     assert "SSH port collision" in error
@@ -445,7 +446,7 @@ def test_failure_before_register_removes_container_but_keeps_workspace(
     monkeypatch.setattr(containers, "remove_container", lambda item: removed.append(item))
     monkeypatch.setattr(provider, "revoke", lambda *args: pytest.fail("must not revoke"))
 
-    service.create("devspace", "debug")
+    service.create("devspace", "home", "debug")
 
     assert removed == [container]
     assert service.operations.list()[0].error == "RuntimeError: no ssh"
@@ -478,7 +479,7 @@ def test_container_run_failure_still_attempts_deterministic_cleanup(
     monkeypatch.setattr(inventory, "find_container", lambda *args: container)
     monkeypatch.setattr(containers, "remove_container", lambda item: removed.append(item))
 
-    service.create("devspace", "debug")
+    service.create("devspace", "home", "debug")
 
     assert removed == [container]
     assert service.operations.list()[0].error == "RuntimeError: wait failed"
@@ -512,7 +513,7 @@ def test_failure_after_register_revokes_then_removes_container(
     monkeypatch.setattr(provider, "revoke", lambda *args: events.append("revoke"))
     monkeypatch.setattr(containers, "remove_container", lambda item: events.append("remove"))
 
-    service.create("devspace", "debug")
+    service.create("devspace", "home", "debug")
 
     assert events == ["register", "revoke", "remove"]
 
@@ -553,7 +554,7 @@ def test_revoke_failure_after_register_retains_container(
     monkeypatch.setattr(inventory, "find_container", lambda *args: container)
     monkeypatch.setattr(containers, "remove_container", lambda item: removed.append(item))
 
-    service.create("devspace", "debug")
+    service.create("devspace", "home", "debug")
 
     assert removed == []
     assert stopped == [10]
@@ -570,7 +571,7 @@ def test_delete_requires_token_before_remote_mutation(
     monkeypatch.setattr(inventory, "list_inventory", lambda *args: touched.append(True))
 
     with pytest.raises(RuntimeError, match="token is not set"):
-        service.delete("devspace", "debug", purge=False)
+        service.delete("devspace", "home", "debug", purge=False)
 
     assert touched == []
 
@@ -605,7 +606,7 @@ def test_delete_revokes_before_container_and_workspace_mutation(
     monkeypatch.setattr(containers, "remove_container", lambda item: events.append("remove"))
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
 
-    service.delete("devspace", "debug", purge=purge, force=True)
+    service.delete("devspace", "home", "debug", purge=purge, force=True)
 
     assert events == expected
 
@@ -633,7 +634,7 @@ def test_delete_revoke_failure_refuses_all_mutation(
     monkeypatch.setattr(containers, "remove_container", lambda item: mutations.append("remove"))
 
     with pytest.raises(RuntimeError, match="denied"):
-        service.delete("devspace", "debug", purge=True, force=True)
+        service.delete("devspace", "home", "debug", purge=True, force=True)
 
     assert mutations == []
 
@@ -660,7 +661,7 @@ def test_delete_without_force_inspects_and_skips_mutation(
     monkeypatch.setattr(containers, "purge_workspace", lambda *args: mutations.append("purge"))
     monkeypatch.setattr(containers, "remove_container", lambda item: mutations.append("remove"))
 
-    state = service.delete("devspace", "debug", purge=True, force=False)
+    state = service.delete("devspace", "home", "debug", purge=True, force=False)
 
     assert state.unpushed is True
     assert state.detail == ["abc add feature"]
@@ -691,7 +692,7 @@ def test_delete_force_skips_git_check_and_deletes(
     monkeypatch.setattr(containers, "remove_container", lambda item: events.append("remove"))
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
 
-    service.delete("devspace", "debug", purge=False, force=True)
+    service.delete("devspace", "home", "debug", purge=False, force=True)
 
     assert events == ["revoke", "remove", "projection"]
 

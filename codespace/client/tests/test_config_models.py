@@ -49,13 +49,15 @@ hosts:
 
 projects:
   devspace:
-    host: "home"
+    host:
+      - name: home
     repo: "github:curoky/devspace"
   service-api:
-    host: "office"
+    host:
+      - name: office
+        platform: "linux/arm64"
     repo: "gitlab:group/service-api"
     image: "custom:latest"
-    platform: "linux/arm64"
 """,
         encoding="utf-8",
     )
@@ -67,13 +69,13 @@ projects:
     assert config.projects["devspace"].provider == "github"
     assert config.projects["devspace"].repo == "curoky/devspace"
     assert config.projects["service-api"].provider == "gitlab"
-    assert config.projects["devspace"].platform is None
-    assert config.projects["service-api"].platform == "linux/arm64"
+    assert config.projects["devspace"].host_platform("home") is None
+    assert config.projects["service-api"].host_platform("office") == "linux/arm64"
 
 
 def test_config_rejects_invalid_project_platform(config: Config) -> None:
     data = config.model_dump()
-    data["projects"]["devspace"]["platform"] = "linux/riscv64"
+    data["projects"]["devspace"]["host"][0]["platform"] = "linux/riscv64"
 
     with pytest.raises(ValidationError, match=r"linux/amd64.*linux/arm64"):
         Config.model_validate(data)
@@ -87,7 +89,11 @@ def test_config_rejects_project_without_resolved_network_mode() -> None:
                 "container": {"cap_add": ["NET_RAW"]},
                 "hosts": {"home": None},
                 "projects": {
-                    "devspace": {"host": "home", "provider": "github", "repo": "owner/repo"}
+                    "devspace": {
+                        "host": [{"name": "home"}],
+                        "provider": "github",
+                        "repo": "owner/repo",
+                    }
                 },
             }
         )
@@ -101,7 +107,11 @@ def test_config_rejects_invalid_network_mode() -> None:
                 "container": {"network_mode": "none"},
                 "hosts": {"home": _SSH_HOST},
                 "projects": {
-                    "devspace": {"host": "home", "provider": "github", "repo": "owner/repo"}
+                    "devspace": {
+                        "host": [{"name": "home"}],
+                        "provider": "github",
+                        "repo": "owner/repo",
+                    }
                 },
             }
         )
@@ -116,7 +126,7 @@ def test_config_rejects_combined_repo_with_separate_provider() -> None:
                 "hosts": {"home": _SSH_HOST},
                 "projects": {
                     "devspace": {
-                        "host": "home",
+                        "host": [{"name": "home"}],
                         "provider": "github",
                         "repo": "github:curoky/devspace",
                     }
@@ -133,11 +143,11 @@ def test_config_accepts_blank_project_and_open_path() -> None:
             "hosts": {"home": _SSH_HOST},
             "projects": {
                 "scratch": {
-                    "host": "home",
+                    "host": [{"name": "home"}],
                     "type": "blank",
                 },
                 "notes": {
-                    "host": "home",
+                    "host": [{"name": "home"}],
                     "type": "blank",
                     "open_path": "/workspace/notes",
                 },
@@ -162,7 +172,7 @@ def test_config_rejects_blank_project_with_repo() -> None:
                 "hosts": {"home": _SSH_HOST},
                 "projects": {
                     "scratch": {
-                        "host": "home",
+                        "host": [{"name": "home"}],
                         "type": "blank",
                         "repo": "github:curoky/devspace",
                     }
@@ -178,7 +188,7 @@ def test_config_rejects_repo_project_without_repo() -> None:
                 "default_image": "img",
                 "container": _CONTAINER,
                 "hosts": {"home": _SSH_HOST},
-                "projects": {"devspace": {"host": "home", "type": "repo"}},
+                "projects": {"devspace": {"host": [{"name": "home"}], "type": "repo"}},
             }
         )
 
@@ -192,7 +202,7 @@ def test_config_rejects_relative_open_path() -> None:
                 "hosts": {"home": _SSH_HOST},
                 "projects": {
                     "scratch": {
-                        "host": "home",
+                        "host": [{"name": "home"}],
                         "type": "blank",
                         "open_path": "relative/path",
                     }
@@ -212,7 +222,7 @@ def test_config_resolves_per_host_podman_socket() -> None:
             },
             "projects": {
                 "devspace": {
-                    "host": "home",
+                    "host": [{"name": "home"}],
                     "provider": "github",
                     "repo": "owner/repo",
                 }
@@ -239,7 +249,7 @@ def test_config_accepts_explicit_podman_machine_host() -> None:
             },
             "projects": {
                 "devspace": {
-                    "host": "local",
+                    "host": [{"name": "local"}],
                     "provider": "github",
                     "repo": "owner/repo",
                 }
@@ -267,7 +277,7 @@ def test_config_accepts_inherited_environment_for_ssh_host() -> None:
             },
             "projects": {
                 "devspace": {
-                    "host": "home",
+                    "host": [{"name": "home"}],
                     "provider": "github",
                     "repo": "owner/repo",
                 }
@@ -288,7 +298,7 @@ def test_config_rejects_invalid_inherited_environment_name(name: str) -> None:
                 "hosts": {"home": {"environment": [name]}},
                 "projects": {
                     "devspace": {
-                        "host": "home",
+                        "host": [{"name": "home"}],
                         "provider": "github",
                         "repo": "owner/repo",
                     }
@@ -303,7 +313,7 @@ def test_config_rejects_duplicate_or_reserved_inherited_environment() -> None:
         "container": _CONTAINER,
         "projects": {
             "devspace": {
-                "host": "home",
+                "host": [{"name": "home"}],
                 "provider": "github",
                 "repo": "owner/repo",
             }
@@ -340,7 +350,7 @@ def test_config_rejects_inherited_environment_for_podman_machine() -> None:
                 },
                 "projects": {
                     "devspace": {
-                        "host": "local",
+                        "host": [{"name": "local"}],
                         "provider": "github",
                         "repo": "owner/repo",
                     }
@@ -361,7 +371,7 @@ def test_config_rejects_collision_between_inherited_and_explicit_environment() -
                 "hosts": {"home": {"environment": ["HTTP_PROXY"]}},
                 "projects": {
                     "devspace": {
-                        "host": "home",
+                        "host": [{"name": "home"}],
                         "provider": "github",
                         "repo": "owner/repo",
                     }
@@ -376,13 +386,15 @@ def test_config_ssh_host_uses_host_network() -> None:
             "default_image": "img",
             "container": _CONTAINER,
             "hosts": {"home": _SSH_HOST},
-            "projects": {"devspace": {"host": "home", "provider": "github", "repo": "owner/repo"}},
+            "projects": {
+                "devspace": {"host": [{"name": "home"}], "provider": "github", "repo": "owner/repo"}
+            },
         }
     )
 
     assert config.host_config("home").type == "ssh"
-    assert config.resolved_container("devspace").is_bridge is False
-    assert config.resolved_container("devspace").network_mode == "host"
+    assert config.resolved_container("devspace", "home").is_bridge is False
+    assert config.resolved_container("devspace", "home").network_mode == "host"
 
 
 def test_config_bridge_via_host_container_enables_port_publishing() -> None:
@@ -394,7 +406,7 @@ def test_config_bridge_via_host_container_enables_port_publishing() -> None:
             "hosts": {"home": {"container": {"network_mode": "bridge"}}},
             "projects": {
                 "devspace": {
-                    "host": "home",
+                    "host": [{"name": "home"}],
                     "provider": "github",
                     "repo": "owner/repo",
                     "published_ports": ["8080"],
@@ -404,7 +416,7 @@ def test_config_bridge_via_host_container_enables_port_publishing() -> None:
     )
 
     assert config.host_config("home").type == "ssh"
-    assert config.resolved_container("devspace").is_bridge is True
+    assert config.resolved_container("devspace", "home").is_bridge is True
     assert config.project_ports("devspace") == [(8080, 8080)]
 
 
@@ -421,7 +433,7 @@ def _bridge_machine_project_config(published_ports: list[str]) -> dict[str, obje
         },
         "projects": {
             "devspace": {
-                "host": "local",
+                "host": [{"name": "local"}],
                 "provider": "github",
                 "repo": "owner/repo",
                 "published_ports": published_ports,
@@ -445,7 +457,7 @@ def test_config_rejects_ports_on_host_network_host() -> None:
                 "hosts": {"home": _SSH_HOST},
                 "projects": {
                     "devspace": {
-                        "host": "home",
+                        "host": [{"name": "home"}],
                         "provider": "github",
                         "repo": "owner/repo",
                         "published_ports": ["8080"],
@@ -476,7 +488,9 @@ def test_config_project_ports_defaults_empty() -> None:
             "default_image": "img",
             "container": _CONTAINER,
             "hosts": {"home": _SSH_HOST},
-            "projects": {"devspace": {"host": "home", "provider": "github", "repo": "owner/repo"}},
+            "projects": {
+                "devspace": {"host": [{"name": "home"}], "provider": "github", "repo": "owner/repo"}
+            },
         }
     )
 
@@ -484,7 +498,7 @@ def test_config_project_ports_defaults_empty() -> None:
 
 
 def test_config_resolved_container_uses_global_defaults(config: Config) -> None:
-    resolved = config.resolved_container("devspace")
+    resolved = config.resolved_container("devspace", "home")
 
     assert resolved.cap_add == ["NET_RAW", "SYS_ADMIN"]
     assert resolved.security_opt == ["disable", "seccomp=unconfined"]
@@ -521,7 +535,7 @@ def test_config_resolved_container_applies_host_and_project_overrides() -> None:
             },
             "projects": {
                 "devspace": {
-                    "host": "home",
+                    "host": [{"name": "home"}],
                     "provider": "github",
                     "repo": "owner/repo",
                     "container": {
@@ -533,7 +547,7 @@ def test_config_resolved_container_applies_host_and_project_overrides() -> None:
         }
     )
 
-    resolved = config.resolved_container("devspace")
+    resolved = config.resolved_container("devspace", "home")
 
     # host override replaces cap_add wholesale; project override wins on pids_limit
     assert resolved.cap_add == ["NET_RAW", "SYS_ADMIN"]
@@ -558,7 +572,11 @@ def test_config_rejects_reserved_container_env_key() -> None:
                 },
                 "hosts": {"home": _SSH_HOST},
                 "projects": {
-                    "devspace": {"host": "home", "provider": "github", "repo": "owner/repo"}
+                    "devspace": {
+                        "host": [{"name": "home"}],
+                        "provider": "github",
+                        "repo": "owner/repo",
+                    }
                 },
             }
         )
@@ -578,7 +596,11 @@ def test_config_rejects_relative_container_volume_source() -> None:
                 },
                 "hosts": {"home": _SSH_HOST},
                 "projects": {
-                    "devspace": {"host": "home", "provider": "github", "repo": "owner/repo"}
+                    "devspace": {
+                        "host": [{"name": "home"}],
+                        "provider": "github",
+                        "repo": "owner/repo",
+                    }
                 },
             }
         )
@@ -595,7 +617,8 @@ hosts:
 
 projects:
   devspace:
-    host: "home"
+    host:
+      - name: home
     repo: "github:curoky/devspace"
 
 tokens:
@@ -618,7 +641,7 @@ def test_config_seed_tokens_defaults_to_empty() -> None:
             "hosts": {"home": _SSH_HOST},
             "projects": {
                 "devspace": {
-                    "host": "home",
+                    "host": [{"name": "home"}],
                     "provider": "github",
                     "repo": "owner/repo",
                 }
@@ -639,7 +662,7 @@ def test_config_rejects_blank_token(provider: str) -> None:
                 "hosts": {"home": _SSH_HOST},
                 "projects": {
                     "devspace": {
-                        "host": "home",
+                        "host": [{"name": "home"}],
                         "provider": "github",
                         "repo": "owner/repo",
                     }
@@ -684,7 +707,7 @@ def test_config_rejects_invalid_host_options(
                 "hosts": {"home": host_options},
                 "projects": {
                     "devspace": {
-                        "host": "home",
+                        "host": [{"name": "home"}],
                         "provider": "github",
                         "repo": "owner/repo",
                     }
@@ -703,7 +726,7 @@ def test_config_rejects_invalid_host_options(
                 "hosts": {},
                 "projects": {
                     "project": {
-                        "host": "home",
+                        "host": [{"name": "home"}],
                         "provider": "github",
                         "repo": "owner/repo",
                     }
@@ -718,7 +741,7 @@ def test_config_rejects_invalid_host_options(
                 "hosts": {"home": _SSH_HOST},
                 "projects": {
                     "Bad": {
-                        "host": "home",
+                        "host": [{"name": "home"}],
                         "provider": "github",
                         "repo": "owner/repo",
                     }
@@ -733,7 +756,7 @@ def test_config_rejects_invalid_host_options(
                 "hosts": {"home": _SSH_HOST},
                 "projects": {
                     "project": {
-                        "host": "office",
+                        "host": [{"name": "office"}],
                         "provider": "github",
                         "repo": "owner/repo",
                     }
@@ -770,18 +793,18 @@ def test_config_requires_top_level_fields(config: Config, missing: str) -> None:
 
 @pytest.mark.parametrize("instance", ["debug", "a1", "a-b", "x" * 32])
 def test_create_request_accepts_valid_instance(instance: str) -> None:
-    assert CreateInstanceRequest(instance=instance).instance == instance
+    assert CreateInstanceRequest(host="home", instance=instance).instance == instance
 
 
 @pytest.mark.parametrize("instance", ["Debug", "-bad", "bad_name", "x" * 33, ""])
 def test_create_request_rejects_invalid_instance(instance: str) -> None:
     with pytest.raises(ValidationError):
-        CreateInstanceRequest(instance=instance)
+        CreateInstanceRequest(host="home", instance=instance)
 
 
 def test_resource_identity_contract_is_deterministic(config: Config) -> None:
     identity = environment_id("home", "devspace", "debug")
-    spec = config.environment_spec("devspace", "debug")
+    spec = config.environment_spec("devspace", "home", "debug")
 
     assert identity == "codespace-home-devspace-debug"
     assert spec.identity == identity

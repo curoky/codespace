@@ -270,12 +270,12 @@ def test_read_environment_rejects_invalid_platform_label(config: Config) -> None
 
 
 def test_written_labels_cover_every_required_label(config: Config) -> None:
-    repo_labels = config.environment_spec("devspace", "debug")
+    repo_labels = config.environment_spec("devspace", "home", "debug")
     labels = environment_labels(repo_labels)
 
     assert set(MANDATORY_LABELS) <= set(labels)
 
-    blank_labels = environment_labels(config.environment_spec("scratch", "debug"))
+    blank_labels = environment_labels(config.environment_spec("scratch", "home", "debug"))
     assert set(MANDATORY_LABELS) <= set(blank_labels)
     assert LABEL_REPO not in blank_labels
     assert LABEL_PROVIDER not in blank_labels
@@ -297,7 +297,7 @@ def test_create_container_preserves_fixed_runtime_contract(
 
     result = container_runtime.create_container(
         client,  # type: ignore[arg-type]
-        config.environment_spec("devspace", "debug"),
+        config.environment_spec("devspace", "home", "debug"),
         "/home/x/codespace",
         {"HTTP_PROXY": "http://host-proxy:3128"},
     )
@@ -341,7 +341,7 @@ def test_create_container_preserves_fixed_runtime_contract(
 def test_create_container_rejects_host_environment_collision(
     config: Config,
 ) -> None:
-    spec = config.environment_spec("devspace", "debug")
+    spec = config.environment_spec("devspace", "home", "debug")
     spec = replace(
         spec,
         container=spec.container.model_copy(
@@ -372,7 +372,7 @@ def test_create_container_injects_gpu_device(
     monkeypatch.setattr(container_runtime, "Container", FakeContainer)
     client = SimpleNamespace(containers=SimpleNamespace(run=run))
 
-    spec = config.environment_spec("devspace", "debug")
+    spec = config.environment_spec("devspace", "home", "debug")
     spec = replace(
         spec,
         container=spec.container.model_copy(update={"devices": ["nvidia.com/gpu=all"]}),
@@ -401,7 +401,7 @@ def test_create_container_forwards_shm_size_only_when_set(
     monkeypatch.setattr(container_runtime, "Container", FakeContainer)
     client = SimpleNamespace(containers=SimpleNamespace(run=run))
 
-    spec = config.environment_spec("devspace", "debug")
+    spec = config.environment_spec("devspace", "home", "debug")
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
         spec,
@@ -438,10 +438,11 @@ def test_create_container_bridge_publishes_ports_and_binds_sshd(
     monkeypatch.setattr(container_runtime, "Container", FakeContainer)
     client = SimpleNamespace(containers=SimpleNamespace(run=run))
 
-    base = config.environment_spec("devspace", "debug")
+    base = config.environment_spec("devspace", "home", "debug")
     spec = replace(
         base,
-        project=base.project.model_copy(update={"host": "local", "platform": None}),
+        host="local",
+        platform=None,
         container=base.container.model_copy(update={"network_mode": "bridge"}),
         published_ports=((8080, 8080), (3000, 5000)),
     )
@@ -478,7 +479,7 @@ def test_create_container_blank_omits_repo_and_provider_labels(
 
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
-        config.environment_spec("scratch", "debug"),
+        config.environment_spec("scratch", "home", "debug"),
         "/home/x/codespace",
     )
 

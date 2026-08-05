@@ -21,11 +21,13 @@ tokens:
 
 projects:
   devspace:
-    host: local
     repo: github:curoky/devspace
-    platform: linux/arm64
+    host:
+      - name: local
+        platform: linux/arm64
 
   standalone-binaries:
-    host: local
     repo: github:curoky/standalone-binaries
-    platform: linux/arm64
+    host:
+      - name: local
+        platform: linux/arm64

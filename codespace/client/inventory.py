@@ -73,10 +73,11 @@ def read_environment(container: Container, host: str, config: Config) -> Environ
     if project not in config.projects:
         raise ValueError(f"container {name} references unknown project {project!r}")
     configured_project = config.projects[project]
-    if configured_project.host != host:
+    if all(entry.name != host for entry in configured_project.host):
+        allowed = sorted(entry.name for entry in configured_project.host)
         raise ValueError(
-            f"container {name} project {project!r} belongs to host "
-            f"{configured_project.host!r}, not {host!r}"
+            f"container {name} project {project!r} is not configured for host "
+            f"{host!r}; allowed hosts: {allowed}"
         )
     if configured_project.type != project_type:
         raise ValueError(
@@ -123,7 +124,7 @@ def find_container(
         container = client.containers.get(spec.identity)
     except NotFound:
         return None
-    environment = read_environment(container, spec.project.host, config)
+    environment = read_environment(container, spec.host, config)
     if environment.project != spec.project_id or environment.instance != spec.instance:
         raise ValueError(f"container {spec.identity} has mismatched identity labels")
     return container

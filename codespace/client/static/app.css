@@ -573,6 +573,13 @@ button.compact {
   min-width: 0;
 }
 
+.environment-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
 .environment-title {
   font-size: 0.82rem;
   font-weight: 800;
@@ -943,6 +950,10 @@ input:focus {
   }
 
   .badge-platform {
+    align-self: flex-start;
+  }
+
+  .environment-badges {
     align-self: flex-start;
   }
 

@@ -19,6 +19,7 @@ from codespace.client.service import CodespaceService, describe_error
 
 router = APIRouter()
 ResourcePath = Annotated[str, ApiPath(pattern=r"^[a-z0-9][a-z0-9-]{0,31}$")]
+HostPath = Annotated[str, ApiPath(pattern=r"^[a-z0-9][a-z0-9.-]{0,62}$")]
 
 
 def _service(request: Request) -> CodespaceService:
@@ -50,18 +51,19 @@ def create_instance(
 ) -> Operation:
     service = _service(request)
     try:
-        operation = service.queue_create(project, payload.instance)
+        operation = service.queue_create(project, payload.host, payload.instance)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc.args[0])) from exc
     except RuntimeError as exc:
         raise HTTPException(status_code=409, detail=str(exc)) from exc
-    background_tasks.add_task(service.create, project, payload.instance)
+    background_tasks.add_task(service.create, project, payload.host, payload.instance)
     return operation
 
 
-@router.delete("/api/projects/{project}/instances/{instance}")
+@router.delete("/api/projects/{project}/hosts/{host}/instances/{instance}")
 def delete_instance(
     project: ResourcePath,
+    host: HostPath,
     instance: ResourcePath,
     request: Request,
     purge: Annotated[bool, Query()] = False,
@@ -69,7 +71,7 @@ def delete_instance(
 ) -> DeleteInstanceResult:
     service = _service(request)
     try:
-        state = service.delete(project, instance, purge=purge, force=force)
+        state = service.delete(project, host, instance, purge=purge, force=force)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc.args[0])) from exc
     except Exception as exc:

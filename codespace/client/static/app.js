@@ -1,5 +1,6 @@
 const DEFAULT_INSTANCE = "default";
 let pollTimer = null;
+let projectHosts = new Map();
 
 const hostsElement = document.querySelector("#hosts");
 const projectsElement = document.querySelector("#projects");
@@ -20,11 +21,11 @@ document.querySelectorAll("[data-close]").forEach((button) => {
 projectsElement.addEventListener("click", async (event) => {
   const target = event.target.closest("[data-action]");
   if (!target) return;
-  const { action, project, instance, command } = target.dataset;
+  const { action, project, instance, host, command } = target.dataset;
   if (action === "new") openInstanceDialog(project);
-  if (action === "quick") await submitInstance(project, DEFAULT_INSTANCE);
-  if (action === "delete") await deleteInstance(project, instance, false);
-  if (action === "purge") await deleteInstance(project, instance, true);
+  if (action === "quick") await submitInstance(project, host, DEFAULT_INSTANCE);
+  if (action === "delete") await deleteInstance(project, host, instance, false);
+  if (action === "purge") await deleteInstance(project, host, instance, true);
   if (action === "copy-ssh") await copySshCommand(target, command);
 });
 
@@ -106,6 +107,7 @@ function renderHosts(hosts) {
 }
 
 function renderProjects(dashboard) {
+  projectHosts = new Map(dashboard.projects.map((project) => [project.id, project.hosts]));
   const cards = dashboard.projects.map((project) => {
     const environments = dashboard.environments.filter((item) => item.project === project.id);
     const operations = dashboard.operations.filter((item) => item.project === project.id);
@@ -119,7 +121,10 @@ function renderProjects(dashboard) {
 
     const title = element("div", "project-title");
     const metadata = element("div", "project-meta");
-    metadata.append(element("span", "badge badge-host", project.host));
+    project.hosts.forEach((host) => {
+      const text = host.platform ? `${host.name} · ${host.platform}` : host.name;
+      metadata.append(element("span", "badge badge-host", text));
+    });
     if (project.provider) {
       metadata.append(element("span", "badge", project.provider));
     }
@@ -129,10 +134,13 @@ function renderProjects(dashboard) {
     source.title = label;
     title.append(name, source);
 
-    const quickButton = actionButton("Quick Create", "quick", project.id);
+    const quickButton = actionButton("Quick Create", "quick", {
+      project: project.id,
+      host: project.hosts[0].name,
+    });
     quickButton.classList.add("compact");
-    quickButton.title = `Create instance named "${DEFAULT_INSTANCE}"`;
-    const createButton = actionButton("New", "new", project.id);
+    quickButton.title = `Create instance named "${DEFAULT_INSTANCE}" on ${project.hosts[0].name}`;
+    const createButton = actionButton("New", "new", { project: project.id });
     createButton.classList.remove("secondary");
     createButton.classList.add("compact", "primary");
     createButton.title = "Create a named instance";
@@ -184,30 +192,33 @@ function renderEnvironment(environment) {
     ),
   );
   title.append(heading);
-  top.append(title, element("span", "badge badge-platform", environment.platform));
+  const badges = element("div", "environment-badges");
+  badges.append(element("span", "badge badge-host", environment.host));
+  badges.append(element("span", "badge badge-platform", environment.platform));
+  top.append(title, badges);
   row.append(top);
 
   const image = element("div", "environment-image", environment.image);
   image.title = environment.image;
   row.append(image);
 
+  const target = {
+    project: environment.project,
+    host: environment.host,
+    instance: environment.instance,
+  };
   const actions = element("div", "environment-actions");
   const traeLink = link("Open in Trae", environment.trae_url);
   traeLink.classList.add("editor-action");
   actions.append(traeLink);
   actions.append(link("Trae CN", environment.trae_cn_url));
-  const sshButton = actionButton(
-    "SSH",
-    "copy-ssh",
-    environment.project,
-    environment.instance,
-  );
+  const sshButton = actionButton("SSH", "copy-ssh", target);
   sshButton.classList.add("ssh-command");
   sshButton.dataset.command = environment.ssh_command;
   sshButton.title = `Copy ${environment.ssh_command}`;
   actions.append(sshButton);
-  actions.append(actionButton("Keep workspace", "delete", environment.project, environment.instance));
-  const purgeButton = actionButton("Purge", "purge", environment.project, environment.instance);
+  actions.append(actionButton("Keep workspace", "delete", target));
+  const purgeButton = actionButton("Purge", "purge", target);
   purgeButton.classList.add("danger");
   actions.append(purgeButton);
   row.append(actions);
@@ -217,6 +228,15 @@ function renderEnvironment(environment) {
 function openInstanceDialog(project) {
   document.querySelector("#instance-project").value = project;
   document.querySelector("#instance-title").textContent = `New ${project} instance`;
+  const hostSelect = document.querySelector("#instance-host");
+  const hosts = projectHosts.get(project) || [];
+  hostSelect.replaceChildren(
+    ...hosts.map((host) => {
+      const option = element("option", "", host.platform ? `${host.name} · ${host.platform}` : host.name);
+      option.value = host.name;
+      return option;
+    }),
+  );
   document.querySelector("#instance-name").value = "";
   instanceDialog.showModal();
   document.querySelector("#instance-name").focus();
@@ -225,17 +245,18 @@ function openInstanceDialog(project) {
 async function createInstance(event) {
   event.preventDefault();
   const project = document.querySelector("#instance-project").value;
+  const host = document.querySelector("#instance-host").value;
   const instance = document.querySelector("#instance-name").value;
-  if (await submitInstance(project, instance)) instanceDialog.close();
+  if (await submitInstance(project, host, instance)) instanceDialog.close();
 }
 
-async function submitInstance(project, instance) {
+async function submitInstance(project, host, instance) {
   try {
     await api(`/api/projects/${encodeURIComponent(project)}/instances`, {
       method: "POST",
-      body: JSON.stringify({ instance }),
+      body: JSON.stringify({ host, instance }),
     });
-    notify(`Queued ${project}/${instance}`);
+    notify(`Queued ${project}/${instance} on ${host}`);
     await refresh();
     return true;
   } catch (error) {
@@ -254,11 +275,11 @@ deleteDialog.addEventListener("close", () => {
 
 let pendingDelete = null;
 
-async function deleteInstance(project, instance, purge) {
-  pendingDelete = { project, instance, purge };
+async function deleteInstance(project, host, instance, purge) {
+  pendingDelete = { project, host, instance, purge };
   const scope = purge ? "container and workspace" : "container";
   document.querySelector("#delete-eyebrow").textContent = `Delete ${scope}`;
-  document.querySelector("#delete-title").textContent = `${project}/${instance}`;
+  document.querySelector("#delete-title").textContent = `${host}/${project}/${instance}`;
   deleteStatusElement.className = "muted";
   deleteStatusElement.textContent = "Checking repository state…";
   deleteDetailElement.hidden = true;
@@ -268,7 +289,7 @@ async function deleteInstance(project, instance, purge) {
 
   let result;
   try {
-    result = await sendDelete(project, instance, purge, false);
+    result = await sendDelete(project, host, instance, purge, false);
   } catch (error) {
     // A failed or unstartable container blocks the git precheck. Surface it as a
     // warning but still allow forced deletion so broken environments stay removable.
@@ -297,12 +318,12 @@ async function deleteInstance(project, instance, purge) {
 
 async function confirmDelete() {
   if (pendingDelete === null) return;
-  const { project, instance, purge } = pendingDelete;
+  const { project, host, instance, purge } = pendingDelete;
   deleteConfirmButton.disabled = true;
   try {
-    await sendDelete(project, instance, purge, true);
+    await sendDelete(project, host, instance, purge, true);
     deleteDialog.close();
-    notify(`Deleted ${project}/${instance}`);
+    notify(`Deleted ${project}/${instance} on ${host}`);
     await refresh();
   } catch (error) {
     deleteStatusElement.className = "delete-warning";
@@ -311,9 +332,9 @@ async function confirmDelete() {
   }
 }
 
-function sendDelete(project, instance, purge, force) {
+function sendDelete(project, host, instance, purge, force) {
   return api(
-    `/api/projects/${encodeURIComponent(project)}/instances/${encodeURIComponent(instance)}?purge=${purge}&force=${force}`,
+    `/api/projects/${encodeURIComponent(project)}/hosts/${encodeURIComponent(host)}/instances/${encodeURIComponent(instance)}?purge=${purge}&force=${force}`,
     { method: "DELETE" },
   );
 }
@@ -380,10 +401,10 @@ function element(tag, className = "", text = "") {
   return node;
 }
 
-function actionButton(label, action, project, instance = "") {
+function actionButton(label, action, { project, host = "", instance = "" }) {
   const button = element("button", "secondary", label);
   button.type = "button";
-  Object.assign(button.dataset, { action, project, instance });
+  Object.assign(button.dataset, { action, project, host, instance });
   return button;
 }
 

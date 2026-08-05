@@ -72,19 +72,24 @@ hosts:
 
 projects:
   devspace:
-    host: home
+    host:
+      - name: home
+      - name: gpu-box
+        platform: linux/amd64
     repo: github:curoky/devspace
     description: Devspace repository
   service-api:
-    host: office
+    host:
+      - name: office
+        platform: linux/arm64
     repo: gitlab:group/service-api
     image: registry.example.com/codespace-api:latest
-    platform: linux/arm64
     container:
       environment:
         NODE_ENV: development
   scratch:
-    host: home
+    host:
+      - name: home
     type: blank
     open_path: /workspace/notes
 
@@ -97,15 +102,17 @@ tokens:
 默认）。登录容器所用的固定 keypair 位于 `client/assets/ssh/`，控制面启动时把私钥安装到
 `~/.ssh/codespace/login_key`，无需配置；对应公钥已烤进开发镜像的 `authorized_keys`。
 `hosts` 是以 host alias 为 key 的映射，值为该 host 的连接设置；host 值可以留空（等价默认
-SSH host）。每个 project 必须包含 `host`，并按 `type` 决定 repo 相关字段，可选
-`description`、`image`、`platform`、`open_path`、`published_ports` 和 `container`。其他规则如下：
+SSH host）。每个 project 用 `host` 声明可启动的 host 列表（同一 repo 只出现一次），列表每项是
+`{name, platform?}`：`name` 引用已配置的 host alias，可选 `platform` 是该 host 上的目标平台。
+project 按 `type` 决定 repo 相关字段，可选
+`description`、`image`、`open_path`、`published_ports` 和 `container`。其他规则如下：
 
 - `type` 默认 `repo`，也可设为 `blank`。`repo` 类型必须配置 `repo`（因此带 `provider`）；
   `blank` 类型禁止配置 `repo` 和 `provider`。
 - `repo` 写成 `<provider>:<owner>/<name>`，`provider` 只能是 `github` 或 `gitlab`。
 - `open_path` 可选，必须是绝对路径；未设置时 `repo` 类型默认打开仓库目录，`blank` 类型默认
   打开挂载点 `/workspace`。编辑器 deep link 按此路径打开。
-- `platform` 只能是 `linux/amd64` 或 `linux/arm64`；省略时使用 host 原生平台。
+- 每个 host 条目的 `platform` 只能是 `linux/amd64` 或 `linux/arm64`；省略时使用该 host 原生平台。
 - `published_ports` 可选，是要发布到宿主机的端口列表，每项写成 `"<remote>"`（local=remote）
   或 `"<local>:<remote>"`，端口取值 1-65535，同一 project 内 local 端口不得重复。只有解析后
   `container.network_mode` 为 `bridge` 的 project 可配置 `published_ports`（bridge 容器有独立
@@ -149,7 +156,8 @@ SSH host）。每个 project 必须包含 `host`，并按 `type` 决定 repo 相
 - 拒绝未知字段。
 - Project 和 instance ID 匹配 `^[a-z0-9][a-z0-9-]{0,31}$`。
 - Host alias 匹配 `^[a-z0-9][a-z0-9.-]{0,62}$`。
-- `hosts` 至少包含一个 host；project 只能引用已配置的 host。
+- `hosts` 至少包含一个 host；project 的 `host` 列表至少一项且 host name 不得重复，每个
+  name 只能引用已配置的 host。
 - Project 未配置 `image` 时使用 `default_image`。
 
 ## Host 契约
@@ -260,7 +268,7 @@ host。
 2. 若 `hosts.<host>.environment` 非空，通过该 host 的非交互 SSH 登录环境读取所有声明的变量；
    任一变量未导出即失败。该步骤只保存本次创建所需的内存快照。
 3. 在内存中生成 environment deploy key。
-4. 按 project 平台拉取镜像；未配置时使用 host 原生平台。
+4. 按所选 host 条目的平台拉取镜像；未配置时使用 host 原生平台。
 5. 以 SSH 登录用户身份创建 host workspace 目录（`mkdir -p`，无需 `sudo`）。
 6. 按解析后的 `container` 配置创建带完整 label 的 container：非身份 run flag（`network_mode`、
    `cap_add`、`security_opt`、`pids_limit`、`ulimits`、`devices`、额外 `volumes` 和
@@ -347,13 +355,18 @@ codespace/client/run.sh
 
 - `GET /api/dashboard`
 - `PUT /api/tokens/{provider}`
-- `POST /api/projects/{project}/instances`
-- `DELETE /api/projects/{project}/instances/{instance}?purge=true|false&force=true|false`
+- `POST /api/projects/{project}/instances`（body 含 `host` 和 `instance`）
+- `DELETE /api/projects/{project}/hosts/{host}/instances/{instance}?purge=true|false&force=true|false`
 
-错误格式固定为 `{"error": "..."}`。`DELETE` 成功返回 `{deleted, workspace_removed, state}`，
+错误格式固定为 `{"error": "..."}`。创建请求 body 用 `host` 显式选择 project 声明的某个 host；
+`host` 必须在 project 的 `host` 列表内，否则拒绝。`DELETE` 路径带 `host`，因为同名 instance
+可分布在不同 host（identity 由 host+project+instance 共同决定）。`DELETE` 成功返回
+`{deleted, workspace_removed, state}`，
 `force=false` 时 `deleted=false` 且 `state` 携带 git 检测结果。Dashboard response 是浏览器
-的唯一事实来源，Web UI 为每个 environment 显示其中的完整 `ssh_command`；点击命令通过
-Clipboard API 复制，并显示短暂的成功反馈。只在 create operation 处于 queued 或 running
+的唯一事实来源；每个 project summary 携带其 `hosts` 列表（各含 `name` 和可选 `platform`），
+Web UI 为每个 environment 显示其中的完整 `ssh_command`；点击命令通过
+Clipboard API 复制，并显示短暂的成功反馈。创建对话框先选 host（Quick Create 用列表首个
+host），只在 create operation 处于 queued 或 running
 时轮询。不得增加 SSE、operation dismissal、前端 optimistic state、OpenAPI 页面或独立
 host/port 配置。
 

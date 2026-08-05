@@ -14,6 +14,7 @@ from codespace.client.models import (
     HostStatus,
     Operation,
     ProjectSummary,
+    ProjectSummaryHost,
 )
 
 
@@ -41,12 +42,14 @@ def build(
         projects=[
             ProjectSummary(
                 id=project_id,
-                host=project.host,
+                hosts=[
+                    ProjectSummaryHost(name=entry.name, platform=entry.platform)
+                    for entry in project.host
+                ],
                 type=project.type,
                 provider=project.provider,
                 repo=project.repo,
                 image=config.project_image(project_id),
-                platform=project.platform,
                 description=project.description,
                 open_path=config.project_open_path(project_id),
             )

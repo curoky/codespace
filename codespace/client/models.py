@@ -106,6 +106,8 @@ class EnvironmentSpec:
 
     project_id: str
     instance: str
+    host: str
+    platform: ImagePlatform | None
     project: ProjectConfig
     image: str
     container: ContainerConfig
@@ -114,7 +116,7 @@ class EnvironmentSpec:
 
     @property
     def identity(self) -> str:
-        return environment_id(self.project.host, self.project_id, self.instance)
+        return environment_id(self.host, self.project_id, self.instance)
 
     @property
     def ssh_port(self) -> int:
@@ -122,7 +124,7 @@ class EnvironmentSpec:
 
     @property
     def platform_label(self) -> PlatformSelection:
-        return platform_label(self.project.platform)
+        return platform_label(self.platform)
 
     def workspace_path(self, workspace_root: str) -> str:
         return f"{workspace_root}/{self.project_id}/{self.instance}"
@@ -130,7 +132,7 @@ class EnvironmentSpec:
     def to_environment(self, container_id: str, *, status: str | None = None) -> Environment:
         return Environment(
             id=self.identity,
-            host=self.project.host,
+            host=self.host,
             project=self.project_id,
             instance=self.instance,
             type=self.project.type,
@@ -203,6 +205,7 @@ def trae_url(alias: str, open_path: str, *, scheme: str = "trae") -> str:
 class CreateInstanceRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    host: HostId
     instance: ResourceId
 
 
@@ -281,14 +284,18 @@ class HostStatus(BaseModel):
     inventory_errors: list[str] = Field(default_factory=list)
 
 
+class ProjectSummaryHost(BaseModel):
+    name: str
+    platform: ImagePlatform | None = None
+
+
 class ProjectSummary(BaseModel):
     id: str
-    host: str
+    hosts: list[ProjectSummaryHost]
     type: ProjectType
     repo: str | None = None
     provider: GitProvider | None = None
     image: str
-    platform: ImagePlatform | None = None
     description: str | None = None
     open_path: str
 

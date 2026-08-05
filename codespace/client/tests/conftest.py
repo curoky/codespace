@@ -26,20 +26,19 @@ def config() -> Config:
             },
             "projects": {
                 "devspace": {
-                    "host": "home",
+                    "host": [{"name": "home", "platform": "linux/arm64"}],
                     "provider": "github",
                     "repo": "curoky/devspace",
                     "description": "Devspace repository",
-                    "platform": "linux/arm64",
                 },
                 "service-api": {
-                    "host": "office",
+                    "host": [{"name": "office"}],
                     "provider": "gitlab",
                     "repo": "group/service-api",
                     "image": "registry.example.com/codespace-api:latest",
                 },
                 "scratch": {
-                    "host": "home",
+                    "host": [{"name": "home"}],
                     "type": "blank",
                     "description": "Repo-less scratch space",
                 },

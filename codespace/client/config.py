@@ -127,21 +127,46 @@ class TokensConfig(BaseModel):
     gitlab: TokenString | None = Field(default=None, repr=False)
 
 
-class ProjectConfig(BaseModel):
-    """Configuration for one project and its target host."""
+class ProjectHost(BaseModel):
+    """One target host for a project with its per-host image platform."""
 
     model_config = ConfigDict(extra="forbid")
 
-    host: HostId
+    name: HostId
+    platform: ImagePlatform | None = None
+
+
+class ProjectConfig(BaseModel):
+    """Configuration for one project and the hosts it can run on."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    host: list[ProjectHost]
     type: ProjectType = "repo"
     provider: GitProvider | None = None
     repo: RepoPath | None = None
     description: NonBlankString | None = None
     image: NonBlankString | None = None
-    platform: ImagePlatform | None = None
     open_path: NonBlankString | None = None
     published_ports: list[str] | None = None
     container: ContainerConfig | None = None
+
+    @field_validator("host")
+    @classmethod
+    def _validate_host(cls, value: list[ProjectHost]) -> list[ProjectHost]:
+        if not value:
+            raise ValueError("host must list at least one target host")
+        duplicates = sorted({e.name for e in value if [x.name for x in value].count(e.name) > 1})
+        if duplicates:
+            raise ValueError(f"host must not list a host more than once: {duplicates}")
+        return value
+
+    def host_platform(self, host: str) -> ImagePlatform | None:
+        """Return the configured image platform for one of the project's hosts."""
+        for entry in self.host:
+            if entry.name == host:
+                return entry.platform
+        raise KeyError(f"project has no host {host!r}")
 
     @field_validator("open_path")
     @classmethod
@@ -223,27 +248,32 @@ class Config(BaseModel):
         for project_id, project in self.projects.items():
             if not RESOURCE_ID_RE.fullmatch(project_id):
                 raise ValueError(f"project {project_id!r} must match ^[a-z0-9][a-z0-9-]{{0,31}}$")
-            if project.host not in self.hosts:
-                raise ValueError(f"project {project_id!r} references unknown host {project.host!r}")
-            resolved = self.resolved_container(project_id)
-            if resolved.network_mode is None:
-                raise ValueError(
-                    f"project {project_id!r} has no resolved container.network_mode; set it on "
-                    "the global, host, or project container block"
-                )
-            if project.published_ports and not resolved.is_bridge:
-                raise ValueError(
-                    f"project {project_id!r} sets 'published_ports' but its resolved "
-                    "container.network_mode is not 'bridge'; port publishing requires bridge mode"
-                )
-            inherited = set(self.hosts[project.host].environment)
-            explicit = set(resolved.environment or {})
-            collisions = sorted(inherited & explicit)
-            if collisions:
-                raise ValueError(
-                    f"project {project_id!r} configures inherited host environment variables "
-                    f"{collisions} in container.environment"
-                )
+            for entry in project.host:
+                if entry.name not in self.hosts:
+                    raise ValueError(
+                        f"project {project_id!r} references unknown host {entry.name!r}"
+                    )
+                resolved = self.resolved_container(project_id, entry.name)
+                if resolved.network_mode is None:
+                    raise ValueError(
+                        f"project {project_id!r} on host {entry.name!r} has no resolved "
+                        "container.network_mode; set it on the global, host, or project "
+                        "container block"
+                    )
+                if project.published_ports and not resolved.is_bridge:
+                    raise ValueError(
+                        f"project {project_id!r} sets 'published_ports' but its resolved "
+                        f"container.network_mode on host {entry.name!r} is not 'bridge'; "
+                        "port publishing requires bridge mode"
+                    )
+                inherited = set(self.hosts[entry.name].environment)
+                explicit = set(resolved.environment or {})
+                collisions = sorted(inherited & explicit)
+                if collisions:
+                    raise ValueError(
+                        f"project {project_id!r} on host {entry.name!r} configures inherited "
+                        f"host environment variables {collisions} in container.environment"
+                    )
         return self
 
     def project_image(self, project_id: str) -> str:
@@ -261,23 +291,25 @@ class Config(BaseModel):
             return []
         return [parse_port_mapping(spec) for spec in ports]
 
-    def resolved_container(self, project_id: str) -> ContainerConfig:
-        """Apply global, host and project container layers in order."""
+    def resolved_container(self, project_id: str, host: str) -> ContainerConfig:
+        """Apply global, host and project container layers in order for one host."""
         project = self.projects[project_id]
         return self.container.merged_with(
-            self.hosts[project.host].container,
+            self.hosts[host].container,
             project.container,
         )
 
-    def environment_spec(self, project_id: str, instance: str) -> EnvironmentSpec:
-        """Resolve all configured inputs for one project instance."""
+    def environment_spec(self, project_id: str, host: str, instance: str) -> EnvironmentSpec:
+        """Resolve all configured inputs for one project instance on one host."""
         project = self.projects[project_id]
         return EnvironmentSpec(
             project_id=project_id,
             instance=instance,
+            host=host,
+            platform=project.host_platform(host),
             project=project,
             image=self.project_image(project_id),
-            container=self.resolved_container(project_id),
+            container=self.resolved_container(project_id, host),
             published_ports=tuple(self.project_ports(project_id)),
             open_path=self.project_open_path(project_id),
         )

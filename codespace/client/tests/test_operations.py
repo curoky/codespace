@@ -13,6 +13,7 @@ def test_store_rejects_concurrent_operation_and_retains_failure() -> None:
         store.create("home", "devspace", "debug")
 
     store.update(
+        "home",
         "devspace",
         "debug",
         status="failed",
@@ -28,11 +29,11 @@ def test_store_rejects_concurrent_operation_and_retains_failure() -> None:
 def test_retry_replaces_failed_operation_and_success_removes_it() -> None:
     store = OperationStore()
     store.create("home", "devspace", "debug")
-    store.update("devspace", "debug", status="failed", error="first failure")
+    store.update("home", "devspace", "debug", status="failed", error="first failure")
 
     retried = store.create("home", "devspace", "debug")
 
     assert retried.status == "queued"
     assert retried.error is None
-    store.remove("devspace", "debug")
+    store.remove("home", "devspace", "debug")
     assert store.list() == []

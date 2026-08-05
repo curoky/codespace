@@ -8,10 +8,10 @@ from codespace.client.models import Operation, OperationStatus, environment_id
 
 
 class OperationStore:
-    """Keep the current operation for each project instance."""
+    """Keep the current operation for each project instance on each host."""
 
     def __init__(self) -> None:
-        self._operations: dict[tuple[str, str], Operation] = {}
+        self._operations: dict[tuple[str, str, str], Operation] = {}
         self._lock = Lock()
 
     def create(self, host: str, project: str, instance: str) -> Operation:
@@ -24,18 +24,20 @@ class OperationStore:
             status="queued",
             stage="queued",
         )
-        key = (project, instance)
+        key = (host, project, instance)
         with self._lock:
             existing = self._operations.get(key)
             if existing is not None and existing.status in {"queued", "running"}:
                 raise RuntimeError(
-                    f"operation already running for project {project!r} instance {instance!r}"
+                    f"operation already running for project {project!r} instance {instance!r} "
+                    f"on host {host!r}"
                 )
             self._operations[key] = operation
         return operation
 
     def update(
         self,
+        host: str,
         project: str,
         instance: str,
         *,
@@ -44,7 +46,7 @@ class OperationStore:
         error: str | None = None,
     ) -> None:
         """Update only supplied fields on an existing operation."""
-        key = (project, instance)
+        key = (host, project, instance)
         with self._lock:
             operation = self._operations[key]
             updates: dict[str, object] = {}
@@ -56,15 +58,15 @@ class OperationStore:
                 updates["error"] = error
             self._operations[key] = operation.model_copy(update=updates)
 
-    def remove(self, project: str, instance: str) -> None:
+    def remove(self, host: str, project: str, instance: str) -> None:
         """Remove a successful operation once inventory is authoritative."""
         with self._lock:
-            self._operations.pop((project, instance), None)
+            self._operations.pop((host, project, instance), None)
 
     def list(self) -> list[Operation]:
-        """Return operations in stable project and instance order."""
+        """Return operations in stable host, project and instance order."""
         with self._lock:
             return sorted(
                 self._operations.values(),
-                key=lambda operation: (operation.project, operation.instance),
+                key=lambda operation: (operation.host, operation.project, operation.instance),
             )

@@ -119,7 +119,7 @@ def create_container(
             for name, limit in (options.ulimits or {}).items()
         ],
         environment=environment,
-        platform=spec.project.platform,
+        platform=spec.platform,
         devices=options.devices or [],
         ports=ports,
         labels=environment_labels(spec),
