@@ -437,21 +437,22 @@ main {
 
 .project-controls {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 6px 8px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
   min-width: 0;
 }
 
 .project-meta {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 5px;
 }
 
 .project-header-actions {
-  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-start;
 }
 
 button.compact {
@@ -513,10 +514,10 @@ button.compact {
 }
 
 .environment {
-  display: grid;
-  grid-template-columns: minmax(195px, 0.5fr) minmax(140px, 1fr) auto;
+  display: flex;
   align-items: center;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 8px 12px;
   min-width: 0;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 76%);
 }
@@ -551,18 +552,7 @@ button.compact {
   display: none;
 }
 
-.operation-heading,
-.environment-heading {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .operation-heading {
-  justify-content: space-between;
-}
-
-.environment-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -570,17 +560,16 @@ button.compact {
 }
 
 .environment-info {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
   min-width: 0;
 }
 
-.environment-badges {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-
 .environment-title {
+  flex: 0 0 auto;
   font-size: 0.82rem;
   font-weight: 800;
 }
@@ -627,6 +616,7 @@ button.compact {
 }
 
 .environment-image {
+  flex: 1 1 140px;
   min-width: 0;
   overflow: hidden;
   color: var(--muted);
@@ -637,7 +627,9 @@ button.compact {
 }
 
 .environment-actions {
+  flex: 0 0 auto;
   flex-wrap: nowrap;
+  margin-left: auto;
   gap: 5px;
 }
 
@@ -890,13 +882,10 @@ input:focus {
 }
 
 @media (max-width: 780px) {
-  .environment {
-    grid-template-columns: minmax(150px, 0.45fr) minmax(0, 1fr);
-  }
-
   .environment-actions {
-    grid-column: 1 / -1;
+    flex: 1 1 100%;
     justify-content: flex-end;
+    margin-left: 0;
     padding-top: 8px;
     border-top: 1px solid var(--line);
   }
@@ -940,31 +929,9 @@ input:focus {
     padding: 12px;
   }
 
-  .environment {
-    display: block;
-  }
-
-  .environment-top {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .badge-platform {
-    align-self: flex-start;
-  }
-
-  .environment-badges {
-    align-self: flex-start;
-  }
-
-  .environment-image {
-    margin-top: 7px;
-  }
-
   .environment-actions {
     flex-wrap: wrap;
-    margin-top: 9px;
-    padding-top: 9px;
+    margin-top: 2px;
   }
 
   .environment-actions > * {

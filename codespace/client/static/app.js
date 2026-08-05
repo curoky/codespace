@@ -134,18 +134,21 @@ function renderProjects(dashboard) {
     source.title = label;
     title.append(name, source);
 
-    const quickButton = actionButton("Quick Create", "quick", {
-      project: project.id,
-      host: project.hosts[0].name,
+    const headerActions = element("div", "project-header-actions");
+    project.hosts.forEach((host) => {
+      const quickButton = actionButton(`Quick · ${host.name}`, "quick", {
+        project: project.id,
+        host: host.name,
+      });
+      quickButton.classList.add("compact");
+      quickButton.title = `Create instance named "${DEFAULT_INSTANCE}" on ${host.name}`;
+      headerActions.append(quickButton);
     });
-    quickButton.classList.add("compact");
-    quickButton.title = `Create instance named "${DEFAULT_INSTANCE}" on ${project.hosts[0].name}`;
-    const createButton = actionButton("New", "new", { project: project.id });
+    const createButton = actionButton("New…", "new", { project: project.id });
     createButton.classList.remove("secondary");
     createButton.classList.add("compact", "primary");
-    createButton.title = "Create a named instance";
-    const headerActions = element("div", "project-header-actions");
-    headerActions.append(quickButton, createButton);
+    createButton.title = "Create a named instance on a chosen host";
+    headerActions.append(createButton);
     const controls = element("div", "project-controls");
     controls.append(metadata, headerActions);
     info.append(title, controls);
@@ -180,27 +183,22 @@ function renderOperation(operation) {
 
 function renderEnvironment(environment) {
   const row = element("div", "environment");
-  const top = element("div", "environment-top");
-  const title = element("div", "environment-info");
-  const heading = element("div", "environment-heading");
-  heading.append(element("div", "environment-title", environment.instance));
-  heading.append(
+
+  const info = element("div", "environment-info");
+  info.append(element("span", "environment-title", environment.instance));
+  info.append(
     element(
       "span",
       `status-badge ${environment.status || "unknown"}`,
       environment.status || "unknown",
     ),
   );
-  title.append(heading);
-  const badges = element("div", "environment-badges");
-  badges.append(element("span", "badge badge-host", environment.host));
-  badges.append(element("span", "badge badge-platform", environment.platform));
-  top.append(title, badges);
-  row.append(top);
-
-  const image = element("div", "environment-image", environment.image);
+  info.append(element("span", "badge badge-host", environment.host));
+  info.append(element("span", "badge badge-platform", environment.platform));
+  const image = element("span", "environment-image", environment.image);
   image.title = environment.image;
-  row.append(image);
+  info.append(image);
+  row.append(info);
 
   const target = {
     project: environment.project,
@@ -217,9 +215,12 @@ function renderEnvironment(environment) {
   sshButton.dataset.command = environment.ssh_command;
   sshButton.title = `Copy ${environment.ssh_command}`;
   actions.append(sshButton);
-  actions.append(actionButton("Keep workspace", "delete", target));
+  const deleteButton = actionButton("Delete", "delete", target);
+  deleteButton.title = "Delete container, keep workspace files";
+  actions.append(deleteButton);
   const purgeButton = actionButton("Purge", "purge", target);
   purgeButton.classList.add("danger");
+  purgeButton.title = "Delete container and workspace files";
   actions.append(purgeButton);
   row.append(actions);
   return row;
