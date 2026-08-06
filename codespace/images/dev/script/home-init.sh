@@ -3,9 +3,9 @@
 set -xeuo pipefail
 
 # clean cache
-rm -rf /home/x/.cache/starship.plugin.zsh \
-  /home/x/.cache/conda.plugin.zsh \
-  /home/x/.cache/atuin.plugin.zsh
+# rm -rf /home/x/.cache/starship.plugin.zsh \
+#   /home/x/.cache/conda.plugin.zsh \
+#   /home/x/.cache/atuin.plugin.zsh
 
 # sudo -E /opt/devspace/codespace/images/dev/script/setup-proxy.sh
 function link() {
