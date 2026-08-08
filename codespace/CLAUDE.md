@@ -358,6 +358,7 @@ codespace/client/run.sh
 - `GET /api/dashboard`
 - `PUT /api/tokens/{provider}`
 - `POST /api/projects/{project}/instances`（body 含 `host` 和 `instance`）
+- `DELETE /api/projects/{project}/hosts/{host}/operations/{instance}`
 - `DELETE /api/projects/{project}/hosts/{host}/instances/{instance}?purge=true|false&force=true|false`
 
 错误格式固定为 `{"error": "..."}`。创建请求 body 用 `host` 显式选择 project 声明的某个 host；
@@ -368,9 +369,10 @@ codespace/client/run.sh
 的唯一事实来源；每个 project summary 携带其 `hosts` 列表（各含 `name` 和可选 `platform`），
 Web UI 为每个 environment 显示其中的完整 `ssh_command`；点击命令通过
 Clipboard API 复制，并显示短暂的成功反馈。创建对话框先选 host（Quick Create 用列表首个
-host），只在 create operation 处于 queued 或 running
-时轮询。不得增加 SSE、operation dismissal、前端 optimistic state、OpenAPI 页面或独立
-host/port 配置。
+host），只在 create operation 处于 queued 或 running 时轮询。失败的 create operation 保留
+错误信息，并提供关闭按钮调用 operation `DELETE` API 清理；该 API 只允许清理 `failed` 状态，
+对不存在的 operation 幂等返回 `{"dismissed": false}`，不得隐藏 queued 或 running operation。
+不得增加 SSE、前端 optimistic state、OpenAPI 页面或独立 host/port 配置。
 
 ## 安全边界
 

@@ -559,6 +559,21 @@ button.compact {
   gap: 8px;
 }
 
+.operation-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+button.operation-dismiss {
+  min-width: 26px;
+  min-height: 26px;
+  border-color: transparent;
+  padding: 3px 7px;
+  color: var(--danger);
+  background: transparent;
+}
+
 .environment-info {
   display: flex;
   flex: 1 1 auto;

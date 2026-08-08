@@ -99,6 +99,11 @@ class CodespaceService:
             self._token(self._require_provider(project))
         return self.operations.create(host, project_id, instance)
 
+    def dismiss_failed_operation(self, project_id: str, host: str, instance: str) -> bool:
+        project = self._project(project_id)
+        self._require_host(project, host)
+        return self.operations.dismiss_failed(host, project_id, instance)
+
     def create(self, project_id: str, host: str, instance: str) -> None:
         project = self._project(project_id)
         self._require_host(project, host)

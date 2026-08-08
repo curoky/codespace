@@ -37,3 +37,17 @@ def test_retry_replaces_failed_operation_and_success_removes_it() -> None:
     assert retried.error is None
     store.remove("home", "devspace", "debug")
     assert store.list() == []
+
+
+def test_dismiss_only_removes_failed_operation() -> None:
+    store = OperationStore()
+    store.create("home", "devspace", "debug")
+
+    with pytest.raises(RuntimeError, match="is still queued"):
+        store.dismiss_failed("home", "devspace", "debug")
+
+    store.update("home", "devspace", "debug", status="failed")
+
+    assert store.dismiss_failed("home", "devspace", "debug") is True
+    assert store.dismiss_failed("home", "devspace", "debug") is False
+    assert store.list() == []

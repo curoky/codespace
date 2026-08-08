@@ -26,6 +26,9 @@ projectsElement.addEventListener("click", async (event) => {
   if (action === "quick") await submitInstance(project, host, DEFAULT_INSTANCE);
   if (action === "delete") await deleteInstance(project, host, instance, false, type, status);
   if (action === "purge") await deleteInstance(project, host, instance, true, type, status);
+  if (action === "dismiss-operation") {
+    await dismissFailedOperation(target, project, host, instance);
+  }
   if (action === "copy-ssh") await copySshCommand(target, command);
 });
 
@@ -174,7 +177,16 @@ function renderOperation(operation) {
   const row = element("div", `operation ${operation.status}`);
   const heading = element("div", "operation-heading");
   heading.append(element("div", "environment-title", operation.instance));
-  heading.append(element("span", `status-badge ${operation.status}`, operation.status));
+  const actions = element("div", "operation-heading-actions");
+  actions.append(element("span", `status-badge ${operation.status}`, operation.status));
+  if (operation.status === "failed") {
+    const dismissButton = actionButton("×", "dismiss-operation", operation);
+    dismissButton.classList.add("icon", "operation-dismiss");
+    dismissButton.setAttribute("aria-label", "Dismiss failed operation");
+    dismissButton.title = "Dismiss failed operation";
+    actions.append(dismissButton);
+  }
+  heading.append(actions);
   row.append(heading);
   row.append(element("div", "environment-subtitle", operation.stage));
   if (operation.error) row.append(element("p", "host-error", operation.error));
@@ -265,6 +277,20 @@ async function submitInstance(project, host, instance) {
   } catch (error) {
     notify(error.message);
     return false;
+  }
+}
+
+async function dismissFailedOperation(button, project, host, instance) {
+  button.disabled = true;
+  try {
+    await api(
+      `/api/projects/${encodeURIComponent(project)}/hosts/${encodeURIComponent(host)}/operations/${encodeURIComponent(instance)}`,
+      { method: "DELETE" },
+    );
+    await refresh();
+  } catch (error) {
+    button.disabled = false;
+    notify(error.message);
   }
 }
 

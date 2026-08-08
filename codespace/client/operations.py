@@ -63,6 +63,21 @@ class OperationStore:
         with self._lock:
             self._operations.pop((host, project, instance), None)
 
+    def dismiss_failed(self, host: str, project: str, instance: str) -> bool:
+        """Remove a failed operation without allowing active work to be hidden."""
+        key = (host, project, instance)
+        with self._lock:
+            operation = self._operations.get(key)
+            if operation is None:
+                return False
+            if operation.status != "failed":
+                raise RuntimeError(
+                    f"operation for project {project!r} instance {instance!r} "
+                    f"on host {host!r} is still {operation.status}"
+                )
+            del self._operations[key]
+            return True
+
     def list(self) -> list[Operation]:
         """Return operations in stable host, project and instance order."""
         with self._lock:

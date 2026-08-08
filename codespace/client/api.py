@@ -60,6 +60,23 @@ def create_instance(
     return operation
 
 
+@router.delete("/api/projects/{project}/hosts/{host}/operations/{instance}")
+def dismiss_failed_operation(
+    project: ResourcePath,
+    host: HostPath,
+    instance: ResourcePath,
+    request: Request,
+) -> dict[str, bool]:
+    service = _service(request)
+    try:
+        dismissed = service.dismiss_failed_operation(project, host, instance)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc.args[0])) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    return {"dismissed": dismissed}
+
+
 @router.delete("/api/projects/{project}/hosts/{host}/instances/{instance}")
 def delete_instance(
     project: ResourcePath,

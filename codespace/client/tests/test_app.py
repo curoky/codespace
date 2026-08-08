@@ -70,6 +70,9 @@ class FakeService:
     def create(self, project: str, host: str, instance: str) -> None:
         self.created.append((project, host, instance))
 
+    def dismiss_failed_operation(self, project: str, host: str, instance: str) -> bool:
+        return self.operations.dismiss_failed(host, project, instance)
+
     def delete(
         self, project: str, host: str, instance: str, *, purge: bool, force: bool = False
     ) -> RepoGitState:
@@ -111,8 +114,11 @@ def test_static_assets_are_native_sources(app_client: tuple[TestClient, FakeServ
     assert 'status: environment.status || "unknown"' in script.text
     assert 'type === "repo" && status !== "running"' in script.text
     assert 'button.textContent = "Copied"' in script.text
+    assert '"dismiss-operation", operation)' in script.text
+    assert 'aria-label", "Dismiss failed operation"' in script.text
     assert ".environment-actions .ssh-command" in stylesheet.text
     assert ".environment-actions .ssh-command.copied" in stylesheet.text
+    assert "button.operation-dismiss" in stylesheet.text
     assert "prefers-reduced-motion" in stylesheet.text
 
 
@@ -198,6 +204,27 @@ def test_create_rejects_unknown_fields_and_invalid_ids(
     assert invalid_body.json()["error"].startswith("body.image:")
     assert invalid_path.status_code == 422
     assert invalid_path.json()["error"].startswith("path.instance:")
+
+
+def test_dismiss_operation_rejects_active_work_and_removes_failure(
+    app_client: tuple[TestClient, FakeService],
+) -> None:
+    client, service = app_client
+    service.operations.create("home", "devspace", "debug")
+    path = "/api/projects/devspace/hosts/home/operations/debug"
+
+    active = client.delete(path)
+
+    assert active.status_code == 409
+    assert active.json()["error"].endswith("is still queued")
+
+    service.operations.update("home", "devspace", "debug", status="failed")
+    dismissed = client.delete(path)
+
+    assert dismissed.status_code == 200
+    assert dismissed.json() == {"dismissed": True}
+    assert service.operations.list() == []
+    assert client.delete(path).json() == {"dismissed": False}
 
 
 @pytest.mark.parametrize("purge", [False, True])
