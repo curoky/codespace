@@ -57,7 +57,6 @@ function common() {
   link_path $CONF_PATH/starship/starship.toml $HOME/.config/starship.toml
   link_path $CONF_PATH/tmux/tmux.conf $HOME/.config/tmux/tmux.conf
   link_path $CONF_PATH/zellij/config.kdl $HOME/.config/zellij/config.kdl
-  link_path $CONF_PATH/mpv/mpv.conf $HOME/.config/mpv/mpv.conf
 
   # link_path $CONF_PATH/gdb/gdbinit $HOME/.gdbinit
   link_path $CONF_PATH/vim/vimrc $HOME/.vimrc
@@ -79,6 +78,8 @@ common
 if [[ $OS_NAME == "Darwin" ]]; then
   # link_path $CONF_PATH/rime/squirrel $HOME/Library/Rime
   link_path $CONF_PATH/snipaste/config.ini $HOME/.snipaste/config.ini
+  link_path $CONF_PATH/mpv/mpv.conf $HOME/.config/mpv/mpv.conf
+  link_path $CONF_PATH/warp/settings.toml $HOME/.warp/settings.toml
 
   link_path $CONF_PATH/vscode/app/snippets "$HOME/Library/Application Support/Code/User/snippets"
   link_path $CONF_PATH/vscode/app/keybindings.json "$HOME/Library/Application Support/Code/User/keybindings.json"
@@ -91,8 +92,6 @@ if [[ $OS_NAME == "Darwin" ]]; then
   link_path $CONF_PATH/vscode/app/settings.json "$HOME/Library/Application Support/Trae CN/User/settings.json"
   link_path $CONF_PATH/vscode/app/keybindings.json "$HOME/Library/Application Support/Trae CN/User/keybindings.json"
   link_path $CONF_PATH/vscode/app/snippets "$HOME/Library/Application Support/Trae CN/User/snippets"
-
-  link_path $CONF_PATH/warp/settings.toml $HOME/.warp/settings.toml
 
   link_path $CONF_PATH/launchctl/sh.atuin.daemon.plist "$HOME/Library/LaunchAgents/sh.atuin.daemon.plist"
   # copy_path $CONF_PATH/launchctl/sh.atuin.server.plist "$HOME/Library/LaunchAgents/sh.atuin.server.plist"
