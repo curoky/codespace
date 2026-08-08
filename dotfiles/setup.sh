@@ -50,7 +50,6 @@ function common() {
   link_path $CONF_PATH/atuin/config.toml $HOME/.config/atuin/config.toml
   link_path $CONF_PATH/bat/config $HOME/.config/bat/config
   link_path $CONF_PATH/conda/condarc $HOME/.config/conda/condarc
-  link_path $CONF_PATH/mpv/mpv.conf $HOME/.config/mpv/mpv.conf
   # link_path $CONF_PATH/croc/classic_enabled $HOME/.config/croc/classic_enabled
   # link_path $CONF_PATH/go/env $HOME/.config/go/env
   link_path $CONF_PATH/nixpkgs/config.nix $HOME/.config/nixpkgs/config.nix
@@ -58,6 +57,7 @@ function common() {
   link_path $CONF_PATH/starship/starship.toml $HOME/.config/starship.toml
   link_path $CONF_PATH/tmux/tmux.conf $HOME/.config/tmux/tmux.conf
   link_path $CONF_PATH/zellij/config.kdl $HOME/.config/zellij/config.kdl
+  link_path $CONF_PATH/mpv/mpv.conf $HOME/.config/mpv/mpv.conf
 
   # link_path $CONF_PATH/gdb/gdbinit $HOME/.gdbinit
   link_path $CONF_PATH/vim/vimrc $HOME/.vimrc
