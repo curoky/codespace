@@ -201,5 +201,5 @@ profiles:
     - gotools
     - impl
     # - go-outline
-    - go-lint
+    - golint
     - revive
