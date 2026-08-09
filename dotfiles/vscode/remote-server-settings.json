@@ -24,18 +24,28 @@
   },
   "git.path": "/opt/sb/store/git/bin/git",
   "go.alternateTools": {
+    // Go SDK
     "go": "/home/x/.nix-profile/bin/go",
+    "gofmt": "/home/x/.nix-profile/bin/gofmt",
+    // Language Server / Debugger
+    "gopls": "/opt/sb/store/gopls/bin/gopls",
     "dlv": "/opt/sb/store/delve/bin/dlv",
-    "dlv-dap": "/opt/sb/store/delve/bin/dlv-dap",
-    "golangci-lint": "/opt/sb/store/golangci-lint/bin/golangci-lint",
-    "gofumpt": "/opt/sb/store/gofumpt/bin/gofumpt",
-    "gotests": "/opt/sb/store/gotests/bin/gotests",
+    // Code generation / Playground
+    "goplay": "/opt/sb/store/goplay/bin/goplay",
     "impl": "/opt/sb/store/impl/bin/impl",
-    "gomodifytags": "/opt/sb/store/gomodifytags/bin/gomodifytags",
+    "gotests": "/opt/sb/store/gotests/bin/gotests",
+    // Formatters
     "goimports": "/opt/sb/store/gotools/bin/goimports",
+    "gofumpt": "/opt/sb/store/gofumpt/bin/gofumpt",
+    // "goformat": "/opt/sb/store/goformat/bin/goformat",
+    // Linters
     "staticcheck": "/opt/sb/store/go-tools/bin/staticcheck",
-    "go-outline": "/opt/sb/store/go-outline/bin/go-outline",
-    "gopls": "/opt/sb/store/gopls/bin/gopls"
+    "golangci-lint": "/opt/sb/store/golangci-lint/bin/golangci-lint",
+    "golangci-lint-v2": "/opt/sb/store/golangci-lint/bin/golangci-lint",
+    "revive": "/opt/sb/store/revive/bin/revive",
+    "golint": "/opt/sb/store/golint/bin/golint"
+    // 仅当 "go.formatTool": "custom" 时配置：
+    // "customFormatter": "/absolute/path/to/custom-formatter"
   },
   "java.configuration.runtimes": [
     {

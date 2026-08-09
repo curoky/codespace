@@ -55,14 +55,14 @@ packages:
     - snappy
     - zip
     - unzip
-    - p7zip
+    - 7zz
     - makeself
 
     # networking
     - curl
     - wget
     - rsync
-    - connect
+    # - connect
     - netcat
     - nettools
     - iproute2
@@ -117,8 +117,8 @@ packages:
     - automake
     - libtool
     - m4
-    - pkg-config
-    - getopt
+    - pkgconf
+    # - getopt
     - bison
     - flex
     # - patchelf
@@ -193,8 +193,10 @@ profiles:
     - go-tools
     - gofumpt
     - golangci-lint
-    - gomodifytags
+    # - gomodifytags
     - gotests
     - gotools
     - impl
-    - go-outline
+    # - go-outline
+    - go-lint
+    - revive
