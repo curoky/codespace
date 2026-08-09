@@ -57,6 +57,7 @@ packages:
     - unzip
     - 7zz
     - makeself
+    - libarchive
 
     # networking
     - curl
@@ -69,6 +70,8 @@ packages:
     - iputils
     - ethtool
     - miniserve
+    - rclone
+    - copyparty
     - openssh_gssapi
     # - inetutils
     # - aria2

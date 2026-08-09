@@ -71,7 +71,8 @@ alwaysApply: true
 - **编辑/终端**：`vim`、`tmux`、`zellij`、`starship`、`atuin`。
 - **数据/DB**：`sqlite3`、`psql`。
 - **诊断**：`gdb`、`strace`、`lsof`、`procs`、`ncdu`/`gdu`、`patchelf`、`cloc`/`scc`。
-- **网络/压缩**：`curl`、`wget`、`nc`、`ssh`、`rsync`、`zstd`、`xz`、`zip`/`unzip`、`7za`。
+- **网络/压缩**：`curl`、`wget`、`nc`、`ssh`、`rsync`、`rclone`、`copyparty`、`zstd`、
+  `xz`、`zip`/`unzip`、`7za`。
 
 ## 装新东西
 

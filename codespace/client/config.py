@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import posixpath
 from pathlib import Path
 from typing import Annotated, Literal, Self
 
@@ -14,7 +15,7 @@ from pydantic import (
     model_validator,
 )
 
-from codespace.client.compose import ServiceSpec
+from codespace.client.compose import ServiceSpec, Volume
 from codespace.client.models import (
     PODMAN_SOCKET,
     RESOURCE_ID_RE,
@@ -34,6 +35,7 @@ CONFIG_PATH = Path.home() / ".config" / "codespace" / "config.yaml"
 
 # Derived per container and forbidden in passthrough environment values.
 _RESERVED_ENV_KEYS = frozenset({"SSHD_PORT", "SSHD_BIND"})
+_RESERVED_MOUNT_TARGETS = ("/workspace", "/upload")
 type EnvironmentName = Annotated[str, Field(pattern=r"^[A-Za-z_][A-Za-z0-9_]*$")]
 
 
@@ -48,6 +50,13 @@ def _reject_reserved_env(value: dict[str, str] | None) -> dict[str, str] | None:
     return value
 
 
+def _mount_targets_overlap(left: str, right: str) -> bool:
+    normalized_left = "/" + posixpath.normpath(left).lstrip("/")
+    normalized_right = "/" + posixpath.normpath(right).lstrip("/")
+    common = posixpath.commonpath((normalized_left, normalized_right))
+    return common in (normalized_left, normalized_right)
+
+
 class ContainerConfig(ServiceSpec):
     """Compose service subset with Codespace-specific validation."""
 
@@ -55,6 +64,31 @@ class ContainerConfig(ServiceSpec):
     @classmethod
     def _reject_reserved(cls, value: dict[str, str] | None) -> dict[str, str] | None:
         return _reject_reserved_env(value)
+
+    @field_validator("volumes")
+    @classmethod
+    def _reject_reserved_mount_targets(
+        cls,
+        value: list[Volume] | None,
+    ) -> list[Volume] | None:
+        if value is None:
+            return value
+        conflicts = sorted(
+            {
+                volume.target
+                for volume in value
+                if any(
+                    _mount_targets_overlap(volume.target, reserved)
+                    for reserved in _RESERVED_MOUNT_TARGETS
+                )
+            }
+        )
+        if conflicts:
+            raise ValueError(
+                "container.volumes must not overlap control-plane mount targets "
+                f"{list(_RESERVED_MOUNT_TARGETS)}: {conflicts}"
+            )
+        return value
 
     @field_validator("network_mode")
     @classmethod

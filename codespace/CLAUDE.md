@@ -142,8 +142,10 @@ project 按 `type` 决定 repo 相关字段，可选
   `ulimits` 是以限制名为 key 的映射，值为 `{soft, hard}` 或裸整数（等价 soft=hard）。`volumes`
   支持 Compose 短语法 `source:target[:ro|rw]` 或长语法
   `{type: bind, source, target, read_only}`；只支持 `type: bind`，`source`/`target` 必须是绝对
-  路径，`read_only` 默认 `false`。`devices` 是原样转发给 `--device` 的字符串列表，GPU 访问用 CDI
-  设备名表达（如 `nvidia.com/gpu=all`），要求该 host 已安装 NVIDIA 驱动与 CDI 规范文件。
+  路径，`read_only` 默认 `false`。`/workspace` 和 `/upload` 是控制面保留的 mount tree；
+  `volumes` 的 target 不得与任一路径相同，也不得是其父目录或子目录。`devices` 是原样转发给
+  `--device` 的字符串列表，GPU 访问用 CDI 设备名表达（如 `nvidia.com/gpu=all`），要求该 host
+  已安装 NVIDIA 驱动与 CDI 规范文件。
   `shm_size` 是原样转发给 `--shm-size` 的非空字符串，采用 podman 认的格式（纯字节整数字符串或
   单字母后缀 `b`/`k`/`m`/`g`，如 `100g`），控制面不做归一。
   `container.environment` 是显式透传给容器的固定环境变量，支持映射或
@@ -194,6 +196,22 @@ Codespace 只选择平台，不安装或管理模拟器。
 - 现有 s6 entrypoint、sshd、home-init、Atuin client、Git 和 OpenSSH client；
 - s6 转储到 `/run/s6/container_environment` 的容器环境仅允许 root 和 `x` 读取；
 - `workspace-init` s6 oneshot，且 `sshd` 和 `home-init` 均依赖它；
+- `rclone-webdav` 和 `copyparty-webdav` s6 longrun 均依赖 `workspace-init`，以用户 `x`
+  分别监听 8004 和 8005；监听地址复用 `SSHD_BIND`，host 模式默认 `127.0.0.1`，bridge 模式为
+  `0.0.0.0`。两个 WebDAV 根目录均只包含 `/workspace` 和 `/upload`：前者直接复用容器内现有
+  `/workspace`，但只在 WebDAV 层授予读取权限；后者是 uid/gid `5230:5230`、mode `0700` 的容器
+  writable-layer 目录，允许完整 WebDAV 读写。容器内 IDE、SSH 和构建工具仍可直接写
+  `/workspace`；`/upload` 在同一 container 的 stop/start 后保留，删除或重建 container 后丢失，
+  不提供 quota 或备份。`rclone` 用只读 union 暴露 workspace；`copyparty` 的 `wram` volflag
+  仅确认接受 writable-layer 的非持久生命周期。
+- 两个 WebDAV 服务均关闭归档、索引、缩略图、媒体处理、分享、管理/状态接口、跨站 CORS、
+  服务发现及 FTP/FTPS/SFTP/TFTP 等额外能力，因此不提供搜索、预览、在线压缩、分享链接、
+  恢复或浏览器跨站访问。`rclone` 同时关闭 HTML 目录页；`copyparty` 的 WebDAV 与 browser
+  listing/上传共用 HTTP handler，无法在进程内彻底剥离后两者，但已关闭 HTML/脚本渲染及所有
+  可独立关闭的 Web UI 扩展。服务为匿名访问且镜像不提供 TLS；bridge 模式需在 project 的
+  `published_ports` 中显式发布端口，跨不可信网络时必须在外层增加 TLS、认证和访问控制。
+  `/workspace` 包含 dotfiles，WebDAV 读取者可看到其中的敏感内容。两个进程不共享 WebDAV
+  `LOCK` 状态，不得经 8004 和 8005 并发修改同一 `/upload` 文件；
 - 位于 `rootfs/home/x/.ssh/config` 的 container SSH config，为 `Host *` 启用 GSSAPI
   认证与凭据委派，并固定使用 `~/.ssh/repo_id_ed25519` 访问 GitHub 和 GitLab，构建时
   收紧为 `0600`；

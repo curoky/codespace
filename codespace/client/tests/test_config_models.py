@@ -606,6 +606,63 @@ def test_config_rejects_relative_container_volume_source() -> None:
         )
 
 
+@pytest.mark.parametrize(
+    "target",
+    [
+        "/workspace",
+        "/workspace/cache",
+        "/workspace/../workspace",
+        "/upload",
+        "/upload/incoming",
+        "/",
+    ],
+)
+def test_config_rejects_control_plane_mount_target_overlap(target: str) -> None:
+    with pytest.raises(ValidationError, match="control-plane mount targets"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "container": {
+                    **_CONTAINER,
+                    "volumes": [{"source": "/host/data", "target": target}],
+                },
+                "hosts": {"home": _SSH_HOST},
+                "projects": {
+                    "devspace": {
+                        "host": [{"name": "home"}],
+                        "provider": "github",
+                        "repo": "owner/repo",
+                    }
+                },
+            }
+        )
+
+
+@pytest.mark.parametrize("target", ["/workspace-old", "/uploads", "/etc/data"])
+def test_config_allows_mount_targets_outside_control_plane_paths(target: str) -> None:
+    config = Config.model_validate(
+        {
+            "default_image": "img",
+            "container": {
+                **_CONTAINER,
+                "volumes": [{"source": "/host/data", "target": target}],
+            },
+            "hosts": {"home": _SSH_HOST},
+            "projects": {
+                "devspace": {
+                    "host": [{"name": "home"}],
+                    "provider": "github",
+                    "repo": "owner/repo",
+                }
+            },
+        }
+    )
+
+    volumes = config.resolved_container("devspace", "home").volumes
+    assert volumes is not None
+    assert volumes[0].target == target
+
+
 def test_config_seeds_tokens_from_tokens_table(tmp_path: Path) -> None:
     path = tmp_path / "config.yaml"
     path.write_text(

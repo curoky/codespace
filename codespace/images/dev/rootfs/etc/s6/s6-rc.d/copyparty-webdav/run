@@ -1,0 +1,66 @@
+#!/opt/sb/profile/s6/bin/execlineb -P
+
+s6-envdir -Lf -- /run/s6/container_environment
+
+fdmove -c 2 1
+redirfd -w 1 /var/log/copyparty-webdav.log
+
+importas -D 127.0.0.1 WEBDAV_BIND SSHD_BIND
+
+foreground { install -d -o 5230 -g 5230 -m 0700 /run/copyparty-webdav }
+
+s6-setuidgid x
+s6-env HOME=/home/x
+s6-env XDG_CONFIG_HOME=/run/copyparty-webdav
+s6-env PYTHONUNBUFFERED=1
+exec /opt/sb/store/copyparty/bin/copyparty
+  -i ${WEBDAV_BIND}
+  -p 8005
+  --dav-port 8005
+  -nc 64
+  --s-thead 30
+  -v /workspace:workspace:r.
+  -v /upload:upload:rwmd.:c,daw,wram
+  --http-only
+  --no-crt
+  --no-bauth
+  --no-ses
+  --idp-store 0
+  --acao ""
+  --ftp 0
+  --ftps 0
+  --sftp 0
+  --tftp 0
+  --xvol
+  --no-thumb
+  --no-acode
+  --no-bacode
+  --no-zip
+  --no-zls
+  --no-lifetime
+  --no-pipe
+  --no-tail
+  --no-fs-abrt
+  --no-db-ip
+  --no-snap
+  --no-rescan
+  --no-reload
+  --no-stack
+  --no-ups-page
+  --no-up-list
+  --dl-list 0
+  --ups-who 0
+  --stack-who no
+  --shr-who no
+  --unpost 0
+  --u2abort 0
+  --md-hist n
+  --urlform ""
+  --smsg ""
+  --no-html
+  --no-script
+  --no-readme
+  --no-logues
+  --no-robots
+  --no-ansi
+  --no-voldump
