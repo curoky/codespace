@@ -444,6 +444,9 @@ host），只在 create operation 处于 queued 或 running 时轮询。失败�
 - 必须保留 system OpenSSH host-key verification。
 - Provider token 只能发送给选定 Git provider，不得返回或写入日志。配置文件中的 token
   是明文，只能本地保存、限制权限并排除版本控制；控制面不得回写。
+- `client/__init__.py` 在导入时调用 `truststore.inject_into_ssl()`，让 HTTPS provider 访问
+  复用操作系统信任库（macOS Keychain / Linux 系统 CA），以信任公司 TLS 检查网关重签发的
+  证书；不得改回仅信任 certifi，也不得为绕过校验关闭 TLS 验证。
 - Deploy private key 只能存在于对应开发容器。
 - 开发容器访问 GitHub/GitLab 必须使用镜像内 pinned `known_hosts` 做严格 host key 校验。
 - 登录 keypair 是固定的、提交进仓库的共享凭据，公钥烤进开发镜像。该方案仅面向内网、且配置不
