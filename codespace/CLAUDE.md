@@ -24,6 +24,7 @@ FastAPI 同时提供 JSON API 和 `client/static/` 中的原生 Web 文件。Git
 | `client/inventory.py`、`client/container.py`、`client/workspace.py` | Podman inventory、容器和 workspace 原语 |
 | `client/service.py`、`client/dashboard.py`、`client/operations.py` | 生命周期编排、Dashboard 投影与操作状态 |
 | `client/provider.py` | Git provider deploy key |
+| `client/tools/` | 不依赖 Web UI 的 Codespace 维护 CLI |
 | `client/assets/ssh/` | 固定登录 key、SSH 公共配置和 pinned host key |
 | `client/static/` | FastAPI 直接提供的原生 Web 源码 |
 | `client/tests/` | 按公开模块行为组织的测试 |
@@ -179,6 +180,7 @@ Podman Machine host ID 是 Codespace 内的逻辑名称；对应 machine 必须�
 - SSH 登录用户的可写 home；workspace root 是绝对路径化后的 `~/codespace`；
 - GNU `env`（支持 `-0`），用于读取 `hosts.<host>.environment` 声明且已在非交互 SSH 会话中
   导出的变量；
+- `find`（支持 `-mindepth`、`-maxdepth` 和 `-print0`），用于维护工具列出 workspace；
 - 允许开发镜像内 root 将挂载的 `/workspace` `chown` 为 `5230:5230`；
 - 为 environment SSH 保留的端口范围 `20000-29999`；
 - 一个 host 级 sidecar；
@@ -333,6 +335,50 @@ workspace，最后删除 container。Provider 失败时不得改变 container �
 启动已退出或停止的 container；WebUI 根据 Dashboard status 直接显示未检测警告并允许用户确认，
 直接调用 `force=false` API 时则立即返回错误。`blank` 类型无 checkout，`state` 恒为空。检测只
 发生在删除路径，dashboard 不受影响。
+
+## Deploy key 清理
+
+未使用 deploy key 由独立 CLI 清理，不增加 Web UI 或 HTTP API：
+
+```bash
+# 只预览
+uv run python -m codespace.client.tools.cleanup_deploy_keys
+
+# 执行删除
+uv run python -m codespace.client.tools.cleanup_deploy_keys --no-dry-run
+```
+
+`client/tools/cleanup_deploy_keys.py` 固定读取 `~/.config/codespace/config.yaml`，并发列出其中
+全部 GitHub/GitLab 仓库的 deploy key，同时读取 host inventory 判断 key 是否仍有对应
+container。输出固定为 `Repository`、`Deploy key`、`In use` 三列表格；`In use` 取值为
+`yes`、`no`、`unknown` 或 `unmanaged`。host 不可用时对应 key 为 `unknown`，非
+`codespace-` key 为 `unmanaged`，二者都不得删除。默认 dry-run，只有 `--no-dry-run` 删除
+`In use=no` 的 key。仓库或 host 查询失败时输出 warning，不影响其他并发查询。
+
+GitHub 不提供账号级 deploy key 枚举 API，因此已从配置移除的仓库无法由该 CLI 自动发现；
+需要先保留或临时恢复对应 project 配置再清理。
+
+## Workspace 清理
+
+容器删除后遗留的 workspace 由独立 CLI 清理：
+
+```bash
+# 只预览
+uv run python -m codespace.client.tools.cleanup_workspaces
+
+# 执行删除
+uv run python -m codespace.client.tools.cleanup_workspaces --no-dry-run
+```
+
+`client/tools/cleanup_workspaces.py` 并发读取每个 host 的 Podman inventory，并列出
+`<login-home>/codespace/<project>/<instance>` 两层目录。输出固定为 `Host`、`Workspace`、
+`In use` 三列表格；存在对应受管 container 时为 `yes`，符合 project/instance ID 规则但无
+container 时为 `no`，其他目录为 `unmanaged`。host 不可用或 inventory 损坏时输出 warning
+并跳过该 host。
+
+默认 dry-run，只有 `--no-dry-run` 删除 `In use=no` 的目录。删除操作按 host 并发、同一 host
+内串行执行，使用 `default_image` 启动 root helper container，并只将 workspace root bind mount
+给 helper；删除目标必须是 workspace root 的严格子路径。`unmanaged` 目录不得删除。
 
 ## SSH 投影
 

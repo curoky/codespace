@@ -22,6 +22,7 @@
 | `.github/workflows/` | 测试、镜像构建、发布和 registry 清理 |
 | `.devcontainer/` | 消费已发布开发镜像的 devcontainer 入口 |
 | `pyproject.toml`、`uv.lock` | Codespace Python 运行时、依赖和开发工具 |
+| `Taskfile.yaml` | 仓库级 `task` 入口，收纳启动、验证、清理和构建常用命令 |
 | `lefthook.yml` | pre-commit 与 commit-msg hook |
 
 ## 组件设计
@@ -80,6 +81,10 @@ Podman Machine；不部署远端 HTTP agent。完整契约见
 
 ## 常用操作
 
+根目录 `Taskfile.yaml` 用 `task` 收纳了下列常用命令，可用 `task --list` 查看全部；清理类
+task 追加 `-- --no-dry-run` 才会执行写操作，例如 `task cleanup:workspaces -- --no-dry-run`。
+下文命令与对应 task 等价，直接运行原始命令同样有效。
+
 ### 配置 Dotfiles
 
 `dotfiles/setup.sh` 接收运行场景和配置目录，可重复执行：
@@ -103,6 +108,20 @@ uv run python -m codespace.client
 
 ```bash
 codespace/client/run.sh
+```
+
+清理当前配置仓库中已无对应 environment 的 deploy key，先预览再显式执行：
+
+```bash
+uv run python -m codespace.client.tools.cleanup_deploy_keys
+uv run python -m codespace.client.tools.cleanup_deploy_keys --no-dry-run
+```
+
+清理各 host 上已无对应 environment container 的 workspace：
+
+```bash
+uv run python -m codespace.client.tools.cleanup_workspaces
+uv run python -m codespace.client.tools.cleanup_workspaces --no-dry-run
 ```
 
 ### 验证 Codespace

@@ -2,12 +2,22 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import gitlab as python_gitlab
 from github import Auth, Github
 
 from codespace.client.models import GitProvider
 
 _HTTP_TIMEOUT = 30.0
+
+
+@dataclass(frozen=True, slots=True)
+class DeployKey:
+    """Provider-neutral deploy key metadata used by maintenance tools."""
+
+    id: int
+    title: str
 
 
 def register(
@@ -77,3 +87,52 @@ def revoke(
                     project.keys.delete(gitlab_key.id)
                     removed += 1
     return removed
+
+
+def list_deploy_keys(
+    provider: GitProvider,
+    token: str,
+    repo: str,
+) -> list[DeployKey]:
+    """List deploy keys attached to one repository."""
+    match provider:
+        case "github":
+            with Github(auth=Auth.Token(token)) as github:
+                repository = github.get_repo(repo)
+                return [
+                    DeployKey(id=int(github_key.id), title=str(github_key.title))
+                    for github_key in repository.get_keys()
+                ]
+        case "gitlab":
+            gitlab = python_gitlab.Gitlab(
+                private_token=token,
+                timeout=_HTTP_TIMEOUT,
+            )
+            project = gitlab.projects.get(repo, lazy=True)
+            return [
+                DeployKey(id=int(gitlab_key.id), title=str(gitlab_key.title))
+                for gitlab_key in project.keys.list(get_all=True)
+            ]
+
+
+def delete_deploy_keys(
+    provider: GitProvider,
+    token: str,
+    repo: str,
+    key_ids: list[int],
+) -> None:
+    """Delete deploy keys by provider ID from one repository."""
+    match provider:
+        case "github":
+            with Github(auth=Auth.Token(token)) as github:
+                repository = github.get_repo(repo)
+                for key_id in key_ids:
+                    repository.get_key(key_id).delete()
+        case "gitlab":
+            gitlab = python_gitlab.Gitlab(
+                private_token=token,
+                timeout=_HTTP_TIMEOUT,
+            )
+            project = gitlab.projects.get(repo, lazy=True)
+            for key_id in key_ids:
+                project.keys.delete(key_id)

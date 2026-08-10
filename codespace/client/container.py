@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import posixpath
 from collections.abc import Iterator, Mapping
 from dataclasses import dataclass
 from typing import Any, cast
@@ -142,16 +143,51 @@ def purge_workspace(
     container.stop(timeout=10, ignore=True)
     target = f"{workspace_root}/{environment.project}/{environment.instance}"
     platform = None if environment.platform == "native" else environment.platform
-    helper = client.containers.run(
+    remove_workspace(
+        client,
         environment.image,
+        workspace_root,
+        target,
+        platform=platform,
+    )
+
+
+def remove_workspace(
+    client: PodmanClient,
+    image: str,
+    workspace_root: str,
+    target: str,
+    *,
+    platform: ImagePlatform | None = None,
+) -> None:
+    """Remove one workspace below the mounted root with a root helper container."""
+    normalized_root = posixpath.normpath(workspace_root)
+    normalized_target = posixpath.normpath(target)
+    if (
+        not normalized_root.startswith("/")
+        or not normalized_target.startswith("/")
+        or posixpath.commonpath((normalized_root, normalized_target)) != normalized_root
+        or normalized_target == normalized_root
+    ):
+        raise RuntimeError(
+            f"refusing to remove workspace {target!r} outside root {workspace_root!r}"
+        )
+    helper = client.containers.run(
+        image,
         name=None,
         entrypoint=["/bin/rm"],
-        command=["-rf", "--", target],
+        command=["-rf", "--", normalized_target],
         detach=True,
         platform=platform,
         user="0",
         security_opt=["disable"],
-        mounts=[{"type": "bind", "source": workspace_root, "target": workspace_root}],
+        mounts=[
+            {
+                "type": "bind",
+                "source": normalized_root,
+                "target": normalized_root,
+            }
+        ],
     )
     if not isinstance(helper, Container):
         raise RuntimeError("expected a detached workspace-removal container")

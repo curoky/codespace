@@ -42,6 +42,7 @@ _PROBE_TIMEOUT = 30.0
 _PROBE_INTERVAL = 0.5
 _WORKSPACE_ROOT_TIMEOUT = 15.0
 _WORKSPACE_PREPARE_TIMEOUT = 15.0
+_WORKSPACE_LIST_TIMEOUT = 30.0
 _HOST_ENVIRONMENT_TIMEOUT = 15.0
 
 
@@ -75,6 +76,23 @@ def prepare_workspace(route: SSHRoute, target: str) -> None:
         timeout=_WORKSPACE_PREPARE_TIMEOUT,
         action=f"prepare workspace {target!r}",
     )
+
+
+def list_workspaces(route: SSHRoute, workspace_root: str) -> list[str]:
+    """List ``<project>/<instance>`` directories below a workspace root."""
+    if not workspace_root.startswith("/"):
+        raise RuntimeError(f"refusing to list non-absolute workspace root: {workspace_root!r}")
+    result = _run_host(
+        route,
+        (f"find {shlex.quote(workspace_root)} -mindepth 2 -maxdepth 2 -type d -print0"),
+        timeout=_WORKSPACE_LIST_TIMEOUT,
+        action=f"list workspaces below {workspace_root!r}",
+    )
+    prefix = workspace_root.rstrip("/") + "/"
+    workspaces = [path for path in result.stdout.split("\0") if path]
+    if any(not path.startswith(prefix) for path in workspaces):
+        raise RuntimeError(f"host {route.host!r} returned a workspace outside {workspace_root!r}")
+    return sorted(workspaces)
 
 
 def read_host_environment(route: SSHRoute, names: list[str]) -> dict[str, str]:

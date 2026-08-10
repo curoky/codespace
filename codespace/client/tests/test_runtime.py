@@ -724,6 +724,20 @@ def test_purge_workspace_surfaces_rm_failure(monkeypatch: pytest.MonkeyPatch) ->
     assert removed == [True]
 
 
+def test_remove_workspace_rejects_target_outside_root() -> None:
+    client = SimpleNamespace(
+        containers=SimpleNamespace(run=lambda *_args, **_kwargs: pytest.fail("helper must not run"))
+    )
+
+    with pytest.raises(RuntimeError, match="outside root"):
+        container_runtime.remove_workspace(
+            client,  # type: ignore[arg-type]
+            "image:latest",
+            "/home/x/codespace",
+            "/home/x/other",
+        )
+
+
 class GitFakeContainer:
     """Container stub scripting exec_run replies for git state probes.
 

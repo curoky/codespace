@@ -312,6 +312,49 @@ def test_prepare_workspace_wraps_ssh_failure(
         ssh.prepare_workspace(_remote_route(), "/home/x/codespace/devspace/debug")
 
 
+def test_list_workspaces_reads_two_directory_levels(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    commands: list[list[str]] = []
+
+    def run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
+        commands.append(command)
+        return subprocess.CompletedProcess(
+            command,
+            0,
+            stdout=("/home/x/codespace/devspace/debug\0/home/x/codespace/service-api/default\0"),
+            stderr="",
+        )
+
+    monkeypatch.setattr(ssh.subprocess, "run", run)
+
+    assert ssh.list_workspaces(_remote_route(), "/home/x/codespace") == [
+        "/home/x/codespace/devspace/debug",
+        "/home/x/codespace/service-api/default",
+    ]
+    assert "find /home/x/codespace" in commands[0][-1]
+    assert "-mindepth 2 -maxdepth 2" in commands[0][-1]
+    assert "-print0" in commands[0][-1]
+
+
+def test_list_workspaces_rejects_path_outside_root(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        ssh.subprocess,
+        "run",
+        lambda command, **_kwargs: subprocess.CompletedProcess(
+            command,
+            0,
+            stdout="/home/x/other/devspace/debug\0",
+            stderr="",
+        ),
+    )
+
+    with pytest.raises(RuntimeError, match="outside"):
+        ssh.list_workspaces(_remote_route(), "/home/x/codespace")
+
+
 def test_read_host_environment_returns_only_requested_exported_values(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
