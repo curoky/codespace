@@ -11,28 +11,28 @@ socket；Podman Machine 使用 `podman machine inspect` 返回的本地 API sock
 
 不得增加远端 HTTP agent，也不得改用 podman-py 的 SSH adapter。
 
-FastAPI 同时提供 JSON API 和 `client/static/` 中的原生 Web 文件。GitHub、GitLab token
+FastAPI 同时提供 JSON API 和 `controller/static/` 中的原生 Web 文件。GitHub、GitLab token
 只保存在进程内存中；`config.yaml` 的可选 `tokens` 可提供启动值，Web UI 可在运行时覆盖。
 
 ## 目录
 
 | 路径 | 职责 |
 | --- | --- |
-| `client/app.py`、`client/api.py`、`client/__main__.py` | Web 应用装配、HTTP 路由与入口 |
-| `client/config.py`、`client/models.py` | 配置与 API model |
-| `client/transport.py`、`client/ssh.py` | Host 连接、SSH 操作与本地投影 |
-| `client/inventory.py`、`client/container.py`、`client/workspace.py` | Podman inventory、容器和 workspace 原语 |
-| `client/service.py`、`client/dashboard.py`、`client/operations.py` | 生命周期编排、Dashboard 投影与操作状态 |
-| `client/provider.py` | Git provider deploy key |
-| `client/tools/` | 不依赖 Web UI 的 Codespace 维护 CLI |
-| `client/assets/ssh/` | 固定登录 key、SSH 公共配置和 pinned host key |
-| `client/static/` | FastAPI 直接提供的原生 Web 源码 |
-| `client/tests/` | 按公开模块行为组织的测试 |
-| `client/run.sh` | 本地后台启动器 |
+| `controller/app.py`、`controller/api.py`、`controller/__main__.py` | Web 应用装配、HTTP 路由与入口 |
+| `controller/config.py`、`controller/models.py` | 配置与 API model |
+| `controller/transport.py`、`controller/ssh.py` | Host 连接、SSH 操作与本地投影 |
+| `controller/inventory.py`、`controller/container.py`、`controller/workspace.py` | Podman inventory、容器和 workspace 原语 |
+| `controller/service.py`、`controller/dashboard.py`、`controller/operations.py` | 生命周期编排、Dashboard 投影与操作状态 |
+| `controller/provider.py` | Git provider deploy key |
+| `controller/tools/` | 不依赖 Web UI 的 Codespace 维护 CLI |
+| `controller/assets/ssh/` | 固定登录 key、SSH 公共配置和 pinned host key |
+| `controller/static/` | FastAPI 直接提供的原生 Web 源码 |
+| `controller/tests/` | 按公开模块行为组织的测试 |
+| `controller/run.sh` | 本地后台启动器 |
 | `images/dev/` | 参考开发镜像 |
 | `images/sidecar/` | Host 级共享服务镜像 |
 
-本地控制面代码全部放在 `client/`。不得恢复 `agent/`、顶层兼容模块、生成式 Web 产物或
+本地控制面代码全部放在 `controller/`。不得恢复 `agent/`、顶层兼容模块、生成式 Web 产物或
 Node.js 构建链。
 
 ## 配置
@@ -100,7 +100,7 @@ tokens:
 ```
 
 顶层必填字段是 `default_image`、`hosts` 和 `projects`；`container` 可选（省略即全部使用引擎
-默认）。登录容器所用的固定 keypair 位于 `client/assets/ssh/`，控制面启动时把私钥安装到
+默认）。登录容器所用的固定 keypair 位于 `controller/assets/ssh/`，控制面启动时把私钥安装到
 `~/.ssh/codespace/login_key`，无需配置；对应公钥已烤进开发镜像的 `authorized_keys`。
 `hosts` 是以 host alias 为 key 的映射，值为该 host 的连接设置；host 值可以留空（等价默认
 SSH host）。每个 project 用 `host` 声明可启动的 host 列表（同一 repo 只出现一次），列表每项是
@@ -130,7 +130,7 @@ project 按 `type` 决定 repo 相关字段，可选
 - Podman Machine host 不支持 `environment`；该能力只适用于 Linux SSH host。
 - `tokens` 中的 `github`、`gitlab` 是可选的非空字符串。
 - 顶层 `container` 是可选块，承载所有非身份的容器 run flag，采用 Docker Compose service 的
-  字段名与语法子集（解析实现独立在 `client/compose/` 子包中，只做强类型化，不含控制面知识），
+  字段名与语法子集（解析实现独立在 `controller/compose/` 子包中，只做强类型化，不含控制面知识），
   控制面自身不保留任何隐式默认值。所有字段（`network_mode`、`cap_add`、`security_opt`、
   `pids_limit`、`ulimits`、`volumes`、`environment`、`devices`、`shm_size`，对应 `--network`、
   `--cap-add`、`--security-opt`、`--pids-limit`、`--ulimit`、`--device`、`--shm-size`）全部可选，
@@ -278,7 +278,7 @@ host。
 
 ## 环境生命周期
 
-控制面启动时必须先校验 `client/assets/ssh/` 中的 `config`、`known_hosts` 和 `login_key`，
+控制面启动时必须先校验 `controller/assets/ssh/` 中的 `config`、`known_hosts` 和 `login_key`，
 再以 `0600` 原子安装到 `~/.ssh/codespace/`；任一 asset 缺失立即 fail-fast。该初始化不属于
 单个 environment 的创建流程。
 
@@ -342,13 +342,13 @@ workspace，最后删除 container。Provider 失败时不得改变 container �
 
 ```bash
 # 只预览
-uv run python -m codespace.client.tools.cleanup_deploy_keys
+uv run python -m codespace.controller.tools.cleanup_deploy_keys
 
 # 执行删除
-uv run python -m codespace.client.tools.cleanup_deploy_keys --no-dry-run
+uv run python -m codespace.controller.tools.cleanup_deploy_keys --no-dry-run
 ```
 
-`client/tools/cleanup_deploy_keys.py` 固定读取 `~/.config/codespace/config.yaml`，并发列出其中
+`controller/tools/cleanup_deploy_keys.py` 固定读取 `~/.config/codespace/config.yaml`，并发列出其中
 全部 GitHub/GitLab 仓库的 deploy key，同时读取 host inventory 判断 key 是否仍有对应
 container。输出固定为 `Repository`、`Deploy key`、`In use` 三列表格；`In use` 取值为
 `yes`、`no`、`unknown` 或 `unmanaged`。host 不可用时对应 key 为 `unknown`，非
@@ -364,13 +364,13 @@ GitHub 不提供账号级 deploy key 枚举 API，因此已从配置移除的仓
 
 ```bash
 # 只预览
-uv run python -m codespace.client.tools.cleanup_workspaces
+uv run python -m codespace.controller.tools.cleanup_workspaces
 
 # 执行删除
-uv run python -m codespace.client.tools.cleanup_workspaces --no-dry-run
+uv run python -m codespace.controller.tools.cleanup_workspaces --no-dry-run
 ```
 
-`client/tools/cleanup_workspaces.py` 并发读取每个 host 的 Podman inventory，并列出
+`controller/tools/cleanup_workspaces.py` 并发读取每个 host 的 Podman inventory，并列出
 `<login-home>/codespace/<project>/<instance>` 两层目录。输出固定为 `Host`、`Workspace`、
 `In use` 三列表格；存在对应受管 container 时为 `yes`，符合 project/instance ID 规则但无
 container 时为 `no`，其他目录为 `unmanaged`。host 不可用或 inventory 损坏时输出 warning
@@ -389,7 +389,7 @@ Include ~/.ssh/codespace/config
 ```
 
 Codespace 完全管理 `~/.ssh/codespace/config`、`login_key`、`known_hosts/` 和
-`hosts/*.conf`。固定文件从 `client/assets/ssh/` 原子安装；只有 inventory 成功后才能重写
+`hosts/*.conf`。固定文件从 `controller/assets/ssh/` 原子安装；只有 inventory 成功后才能重写
 host 投影，host 离线时保留最后版本，从 YAML 移除后才删除。
 
 静态 `config` 通过 `Host codespace-*` 统一声明 `HostName 127.0.0.1`、用户 `x`、managed
@@ -408,13 +408,13 @@ SSH host 使用 `ProxyJump <host>`；Podman Machine 使用由 inspect 结果构�
 前台启动：
 
 ```bash
-uv run python -m codespace.client
+uv run python -m codespace.controller
 ```
 
 后台启动并将日志保存在仓库内：
 
 ```bash
-codespace/client/run.sh
+codespace/controller/run.sh
 ```
 
 应用固定使用单 worker 并监听 `127.0.0.1:8003`。只保留以下 API：
@@ -444,7 +444,7 @@ host），只在 create operation 处于 queued 或 running 时轮询。失败�
 - 必须保留 system OpenSSH host-key verification。
 - Provider token 只能发送给选定 Git provider，不得返回或写入日志。配置文件中的 token
   是明文，只能本地保存、限制权限并排除版本控制；控制面不得回写。
-- `client/__init__.py` 在导入时调用 `truststore.inject_into_ssl()`，让 HTTPS provider 访问
+- `controller/__init__.py` 在导入时调用 `truststore.inject_into_ssl()`，让 HTTPS provider 访问
   复用操作系统信任库（macOS Keychain / Linux 系统 CA），以信任公司 TLS 检查网关重签发的
   证书；不得改回仅信任 certifi，也不得为绕过校验关闭 TLS 验证。
 - Deploy private key 只能存在于对应开发容器。
@@ -461,7 +461,7 @@ host），只在 create operation 处于 queued 或 running 时轮询。失败�
 - Host 共享服务资产只能放在 `images/sidecar/`，不能进入 project 生命周期模块。
 - Sidecar inventory 与 environment inventory 必须分离。
 - Sidecar 不得恢复 Python HTTP agent、Podman socket 或 workspace mount。
-- 本地控制面的 Python、静态资源、启动器和测试全部保留在 `client/`。
+- 本地控制面的 Python、静态资源、启动器和测试全部保留在 `controller/`。
 - Sidecar 的命名、label、image、storage 或生命周期确定后，同时更新本文和
   `images/sidecar/CLAUDE.md`。
 - 优先添加针对受影响模块的聚焦测试，不恢复兼容路径。
@@ -471,9 +471,9 @@ host），只在 create operation 处于 queued 或 running 时轮询。失败�
 先运行最小相关检查，再运行完整 Codespace 检查：
 
 ```bash
-uv run ruff format --check codespace/client
-uv run ruff check codespace/client
-uv run mypy codespace/client
-uv run pytest codespace/client/tests
+uv run ruff format --check codespace/controller
+uv run ruff check codespace/controller
+uv run mypy codespace/controller
+uv run pytest codespace/controller/tests
 uv lock --check
 ```

@@ -29,9 +29,9 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["codespace/client/tests"]
+testpaths = ["codespace/controller/tests"]
 pythonpath = ["."]
-addopts = "--cov=codespace.client --cov-report=term-missing"
+addopts = "--cov=codespace.controller --cov-report=term-missing"
 
 [tool.ruff]
 line-length = 100
@@ -42,8 +42,8 @@ select = ["E", "F", "B", "Q", "I", "UP", "S", "SIM", "RUF", "PTH", "ANN", "C4", 
 
 [tool.ruff.lint.per-file-ignores]
 # Tests may use assert, hardcoded dummy secrets, and fixed socket paths.
-"codespace/client/tests/**" = ["S101", "S105", "S106", "S108"]
+"codespace/controller/tests/**" = ["S101", "S105", "S106", "S108"]
 
 [tool.mypy]
-exclude = ["^codespace/client/tests/"]
+exclude = ["^codespace/controller/tests/"]
 explicit_package_bases = true

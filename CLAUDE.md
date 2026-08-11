@@ -57,17 +57,17 @@ provider 连接必须使用严格校验。
 
 ### Codespace
 
-`codespace/client/` 是完整的本地单进程控制面，包括配置、Podman transport、生命周期、
+`codespace/controller/` 是完整的本地单进程控制面，包括配置、Podman transport、生命周期、
 Git provider、SSH 投影、FastAPI、原生 Web UI 和测试。入口是：
 
 ```bash
-uv run python -m codespace.client
+uv run python -m codespace.controller
 ```
 
 它通过 system OpenSSH 转发远端 rootful Podman Unix socket，或直接连接已运行的 rootful
 Podman Machine；不部署远端 HTTP agent。完整契约见
 [`codespace/CLAUDE.md`](codespace/CLAUDE.md)。
-固定登录 key、SSH 公共配置和 image host key 位于 `codespace/client/assets/ssh/`，启动时
+固定登录 key、SSH 公共配置和 image host key 位于 `codespace/controller/assets/ssh/`，启动时
 原子安装到 `~/.ssh/codespace/`；动态 host 文件只保存端口与代理路由。
 
 ### CI 与发布
@@ -101,36 +101,36 @@ dotfiles/setup.sh host-linux "$PWD/dotfiles"
 
 ```bash
 uv sync
-uv run python -m codespace.client
+uv run python -m codespace.controller
 ```
 
 服务只监听 `127.0.0.1:8003`。后台运行使用：
 
 ```bash
-codespace/client/run.sh
+codespace/controller/run.sh
 ```
 
 清理当前配置仓库中已无对应 environment 的 deploy key，先预览再显式执行：
 
 ```bash
-uv run python -m codespace.client.tools.cleanup_deploy_keys
-uv run python -m codespace.client.tools.cleanup_deploy_keys --no-dry-run
+uv run python -m codespace.controller.tools.cleanup_deploy_keys
+uv run python -m codespace.controller.tools.cleanup_deploy_keys --no-dry-run
 ```
 
 清理各 host 上已无对应 environment container 的 workspace：
 
 ```bash
-uv run python -m codespace.client.tools.cleanup_workspaces
-uv run python -m codespace.client.tools.cleanup_workspaces --no-dry-run
+uv run python -m codespace.controller.tools.cleanup_workspaces
+uv run python -m codespace.controller.tools.cleanup_workspaces --no-dry-run
 ```
 
 ### 验证 Codespace
 
 ```bash
-uv run ruff format --check codespace/client
-uv run ruff check codespace/client
-uv run mypy codespace/client
-uv run pytest codespace/client/tests
+uv run ruff format --check codespace/controller
+uv run ruff check codespace/controller
+uv run mypy codespace/controller
+uv run pytest codespace/controller/tests
 uv lock --check
 ```
 
