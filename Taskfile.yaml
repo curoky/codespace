@@ -15,37 +15,37 @@ tasks:
   start:
     desc: 前台启动本地 Codespace 控制面
     cmds:
-      - uv run python -m codespace.controller
+      - uv run python -m controller
 
   start:bg:
     desc: 后台启动控制面
     cmds:
-      - codespace/controller/run.sh
+      - controller/run.sh
 
   fmt:
     desc: 格式化 Codespace 代码
     cmds:
-      - uv run ruff format codespace/controller
+      - uv run ruff format controller
 
   fmt:check:
     desc: 检查代码格式
     cmds:
-      - uv run ruff format --check codespace/controller
+      - uv run ruff format --check controller
 
   lint:
     desc: Ruff lint 检查
     cmds:
-      - uv run ruff check codespace/controller
+      - uv run ruff check controller
 
   typecheck:
     desc: Mypy 类型检查
     cmds:
-      - uv run mypy codespace/controller
+      - uv run mypy controller
 
   test:
     desc: 运行 Codespace 测试
     cmds:
-      - uv run pytest codespace/controller/tests
+      - uv run pytest controller/tests
 
   lock:check:
     desc: 校验 uv.lock 与 pyproject 一致
@@ -64,19 +64,19 @@ tasks:
   cleanup:deploy-keys:
     desc: 清理未使用的 deploy key（默认 dry-run，追加 -- --no-dry-run 实际删除）
     cmds:
-      - uv run python -m codespace.controller.tools.cleanup_deploy_keys {{.CLI_ARGS}}
+      - uv run python -m controller.tools.cleanup_deploy_keys {{.CLI_ARGS}}
 
   cleanup:workspaces:
     desc: 清理残留 workspace 目录（默认 dry-run，追加 -- --no-dry-run 实际删除）
     cmds:
-      - uv run python -m codespace.controller.tools.cleanup_workspaces {{.CLI_ARGS}}
+      - uv run python -m controller.tools.cleanup_workspaces {{.CLI_ARGS}}
 
   image:dev:
     desc: 构建 Codespace 开发镜像
     cmds:
-      - codespace/images/dev/build.sh
+      - images/dev/build.sh
 
   image:sidecar:
     desc: 构建 sidecar 镜像
     cmds:
-      - codespace/images/sidecar/build.sh
+      - images/sidecar/build.sh

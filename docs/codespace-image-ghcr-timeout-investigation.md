@@ -6,8 +6,8 @@
 
 - 调查时间：2026-08-02
 - 涉及 workflow：`.github/workflows/build-codespace-image.yaml`
-- 涉及 Dockerfile：`codespace/images/dev/Dockerfile`
-- 涉及 package manifest：`codespace/images/dev/script/binman.yaml`
+- 涉及 Dockerfile：`images/dev/Dockerfile`
+- 涉及 package manifest：`images/dev/script/binman.yaml`
 - 涉及外部项目：`curoky/standalone-binaries` 的 `cmd/binman`
 - 当前状态：已定位到客户端请求模型和共享网络路径之间的触发关系；根修复已完成本地实现级验证，仍需在新的 GitHub Actions runner 上完成四组压力 A/B 和完整 workflow 回归
 
@@ -609,7 +609,7 @@ build 结束、没有 `bm sync` 运行时，在同一 runner 连续 5 次访问 
 
 ### 7.1 package 数量
 
-`codespace/images/dev/script/binman.yaml` 包含 116 个顶层 package 和 18 个 profile
+`images/dev/script/binman.yaml` 包含 116 个顶层 package 和 18 个 profile
 package，合并后是日志报告的 134 个唯一 package。一次 sync 会先 resolve 全部 tag，
 再并发下载需要更新的 layer。
 
@@ -1004,8 +1004,8 @@ curl -4 -sS \
 | 证据                | 路径或 commit                                  | 可复核内容                                       |
 | ------------------- | ---------------------------------------------- | ------------------------------------------------ |
 | 当前 workflow       | `.github/workflows/build-codespace-image.yaml` | matrix、QEMU、BuildKit network、tmate            |
-| 当前 Dockerfile     | `codespace/images/dev/Dockerfile`              | `stage_sb`、`TARGETARCH`、bootstrap 和 sync 顺序 |
-| package manifest    | `codespace/images/dev/script/binman.yaml`      | 116 个顶层 package 和 18 个 profile package      |
+| 当前 Dockerfile     | `images/dev/Dockerfile`              | `stage_sb`、`TARGETARCH`、bootstrap 和 sync 顺序 |
+| package manifest    | `images/dev/script/binman.yaml`      | 116 个顶层 package 和 18 个 profile package      |
 | multi-platform 引入 | `04bb3d1`                                      | QEMU setup 和 `linux/amd64,linux/arm64`          |
 | `bm` 迁移           | `5f5970d`                                      | 从旧 `sb` client 切换到 `bm sync`                |
 | host network 演进   | `7a337e7`、`5e4c717`、`8d6bb34`                | build step、driver 和 worker 三层配置            |
