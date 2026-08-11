@@ -6,9 +6,8 @@
 ## 目标
 
 - 在容器和 macOS 主机上提供可复现的个人开发环境。
-- 在一个仓库内管理用户配置、开发镜像、工具链构建和主机初始化。
+- 在一个仓库内管理用户配置、开发镜像和主机初始化。
 - 配置脚本保持声明式、幂等，可安全重复执行。
-- CUDA、GCC、LLVM、Python、TensorFlow 等重型工具链独立构建，再由下游镜像消费。
 
 ## 目录职责
 
@@ -16,14 +15,13 @@
 | --- | --- |
 | `dotfiles/` | 用户级配置及统一入口 `setup.sh` |
 | `codespace/` | 本地控制面、开发镜像、共享服务和 macOS 主机支持 |
-| `images/` | GCC、PyTorch、TensorFlow、ISO 等派生镜像 |
-| `deps/` | CUDA、GCC、LLVM、Python、TensorFlow 等独立构建器 |
 | `tools/` | CI、hook 和仓库维护脚本 |
 | `.github/workflows/` | 测试、镜像构建、发布和 registry 清理 |
 | `.devcontainer/` | 消费已发布开发镜像的 devcontainer 入口 |
 | `pyproject.toml`、`uv.lock` | Codespace Python 运行时、依赖和开发工具 |
 | `Taskfile.yaml` | 仓库级 `task` 入口，收纳启动、验证、清理和构建常用命令 |
 | `lefthook.yml` | pre-commit 与 commit-msg hook |
+| `deprecated/` | 已废弃、不再维护的历史内容（含旧的 `deps/`、`images/` 及其 workflow），仅供归档参考 |
 
 ## 组件设计
 
@@ -41,12 +39,8 @@
 
 ### 镜像
 
-镜像分为三层：
-
-1. `codespace/images/dev/` 构建 Codespace 基础与参考开发镜像。它组合 `/opt/sb` 静态工具、
-   Nix、Rust、Java、Node.js、Go、uv、Conda、dotfiles 和自建 s6 init。
-2. `images/` 在基础镜像之上构建 GCC、PyTorch、TensorFlow 和 ISO 等用途镜像。
-3. `deps/` 独立构建上游工具链，产物供派生镜像或外部流程消费。
+`codespace/images/dev/` 构建 Codespace 基础与参考开发镜像。它组合 `/opt/sb` 静态工具、
+Nix、Rust、Java、Node.js、Go、uv、Conda、dotfiles 和自建 s6 init。
 
 开发镜像不使用 s6-overlay。`codespace/images/dev/script/setup-s6.sh` 从 `/opt/sb/store`
 中的 s6/execline 二进制生成 `/etc/s6/init` 和 `/etc/s6/db`。
@@ -75,8 +69,6 @@ Podman Machine；不部署远端 HTTP agent。完整契约见
 - `ci-codespace.yaml` 运行 Codespace 格式、lint、类型和测试检查。
 - `build-codespace-image.yaml` 在原生 amd64/arm64 runner 上构建并合并多架构开发镜像。
 - `build-codespace-sidecar.yaml` 发布 `ghcr.io/curoky/devspace:codespace-sidecar`。
-- `build-image.yaml` 与 `build-iso.yaml` 构建派生镜像和 ISO。
-- `deps-*.yaml` 独立重建工具链。
 - `delete-untagged-images.yaml` 清理 GHCR 中无 tag 的镜像。
 
 ## 常用操作
@@ -139,7 +131,6 @@ uv lock --check
 ```bash
 codespace/images/dev/build.sh
 codespace/images/sidecar/build.sh
-task --dir deps/gcc all
 ```
 
 本地构建不会发布镜像，发布流程由 `.github/workflows/` 管理。
@@ -168,8 +159,6 @@ task --dir deps/gcc all
 ## 变更规则
 
 - 新增工具配置：更新 `dotfiles/<tool>/` 和 `dotfiles/setup.sh`。
-- 新增派生镜像：创建 `images/<name>/`，并接入对应 workflow matrix。
-- 新增依赖构建器：创建 `deps/<name>/`，并增加 `deps-<name>.yaml`。
 - 修改 Codespace 配置、生命周期、API、host contract 或 sidecar：同步更新
   `codespace/CLAUDE.md`；涉及 sidecar 时还要更新
   `codespace/images/sidecar/CLAUDE.md`。
