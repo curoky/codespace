@@ -3,4 +3,4 @@ fdmove -c 2 1
 s6-envdir -Lf -- /run/s6/container_environment
 s6-setuidgid x
 s6-env HOME=/home/x
-bash /opt/devspace/codespace/images/dev/script/home-init.sh
+bash /opt/devspace/images/dev/script/home-init.sh
