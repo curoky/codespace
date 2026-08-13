@@ -78,7 +78,7 @@ jobs:
             type=registry,ref=ghcr.io/curoky/devspace-cache:codespace-${{ matrix.image.saved_image }}-${{ matrix.platform.arch }}
             type=registry,ref=ghcr.io/curoky/devspace-cache:codespace-${{ matrix.image.saved_image }}-${{ matrix.platform.arch }}-min
           cache-to: type=registry,ref=ghcr.io/curoky/devspace-cache:codespace-${{ matrix.image.saved_image }}-${{ matrix.platform.arch }}${{ env.CACHE_SUFFIX }},mode=${{ env.CACHE_MODE }},oci-mediatypes=true,compression=zstd,compression-level=3
-          no-cache: ${{ github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true }}
+          no-cache: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true) }}
           build-args: BASE_IMAGE=${{ matrix.image.base_image }}
           tags: ghcr.io/curoky/devspace
           outputs: type=image,name-canonical=true,push-by-digest=true,oci-mediatypes=true,compression=zstd,compression-level=3
