@@ -1,61 +1,4 @@
-# Devspace 架构约束
-
-本文是仓库架构、目录职责、常用操作、跨组件契约，以及本地控制面（Codespace）生命周期、
-API 和 host contract 的事实来源。修改这些内容时，必须在同一变更中更新本文。
-
-## 目标
-
-- 在容器和 macOS 主机上提供可复现的个人开发环境。
-- 在一个仓库内管理用户配置、开发镜像和主机初始化。
-- 配置脚本保持声明式、幂等，可安全重复执行。
-
-## 目录职责
-
-| 路径 | 职责 |
-| --- | --- |
-| `dotfiles/` | 用户级配置及统一入口 `setup.sh` |
-| `controller/` | 本地单进程控制面：配置、Podman transport、生命周期、API、Web UI、维护 CLI 和测试 |
-| `images/` | 开发镜像（`dev/`）与 host 级共享服务镜像（`sidecar/`） |
-| `host/` | macOS 主机支持（LaunchAgent、Podman/Colima 启动、Homebrew 与静态包） |
-| `tools/` | CI、hook 和仓库维护脚本 |
-| `.github/workflows/` | 测试、镜像构建、发布和 registry 清理 |
-| `.devcontainer/` | 消费已发布开发镜像的 devcontainer 入口 |
-| `pyproject.toml`、`uv.lock` | Codespace Python 运行时、依赖和开发工具 |
-| `Taskfile.yaml` | 仓库级 `task` 入口，收纳启动、验证、清理和构建常用命令 |
-| `lefthook.yml` | pre-commit 与 commit-msg hook |
-| `config.yaml` | 控制面配置示例 |
-| `deprecated/` | 已废弃、不再维护的历史内容（含旧的 `deps/`、`images/` 及其 workflow），仅供归档参考 |
-
-## 组件设计
-
-### Dotfiles
-
-`dotfiles/` 是跨场景用户配置的来源。仅供开发镜像运行时使用的文件放在
-`images/dev/rootfs/`。`dotfiles/setup.sh` 按运行场景分发配置：
-
-- `link_path` 为可编辑配置创建符号链接。
-- `copy_path` 以 `0600` 权限复制需要独立权限控制的配置。
-- `SCENE` 支持 `docker` 和 `host-linux`；Darwin 分支配置桌面编辑器与 LaunchAgent。
-- `CONF_PATH` 默认是 `$HOME/devspace/dotfiles`，也可由第二个参数显式传入。
-
-`dotfiles/archive/` 只保存未启用的历史配置，不得假定其中内容会被 `setup.sh` 加载。
-
-### 镜像
-
-`images/dev/` 构建 Codespace 基础与参考开发镜像。它组合 `/opt/sb` 静态工具、
-Nix、Rust、Java、Node.js、Go、uv、Conda、dotfiles 和自建 s6 init。
-
-开发镜像不使用 s6-overlay。`images/dev/script/setup-s6.sh` 从 `/opt/sb/store`
-中的 s6/execline 二进制生成 `/etc/s6/init` 和 `/etc/s6/db`。
-Container 专用 SSH config 位于 `images/dev/rootfs/home/x/.ssh/config`，
-为所有目标启用 GSSAPI 认证与凭据委派；不得复用带 host 凭据代理的
-`dotfiles/ssh/user.ssh_config`。GitHub/GitLab host key 固定在同目录的 `known_hosts`，
-provider 连接必须使用严格校验。
-
-Host 级共享服务镜像见 `images/sidecar/`，约束见
-[`images/sidecar/CLAUDE.md`](images/sidecar/CLAUDE.md)。
-
-### 控制面
+# 控制面（Codespace）约束
 
 `controller/` 是完整的本地单进程控制面，包括配置、Podman transport、生命周期、
 Git provider、SSH 投影、FastAPI、原生 Web UI 和测试。入口是：
@@ -65,35 +8,38 @@ uv run python -m controller
 ```
 
 它通过 system OpenSSH 转发远端 rootful Podman Unix socket，或直接连接已运行的 rootful
-Podman Machine；不部署远端 HTTP agent。详细契约见下文「控制面范围」到「安全边界」各节。
-固定登录 key、SSH 公共配置和 image host key 位于 `controller/assets/ssh/`，启动时
-原子安装到 `~/.ssh/codespace/`；动态 host 文件只保存端口与代理路由。
+Podman Machine；不部署远端 HTTP agent。固定登录 key、SSH 公共配置和 image host key 位于
+`controller/assets/ssh/`，启动时原子安装到 `~/.ssh/codespace/`；动态 host 文件只保存端口与
+代理路由。
 
-### CI 与发布
+本文是控制面范围、配置、连接机制、生命周期、SSH 投影、Web/HTTP API 与安全边界的事实来源。
+仓库整体架构、仓库级常用操作与跨组件契约见仓库根 [`AGENTS.md`](../AGENTS.md)；开发镜像契约见
+[`images/dev/AGENTS.md`](../images/dev/AGENTS.md)，host 级共享服务契约见
+[`images/sidecar/AGENTS.md`](../images/sidecar/AGENTS.md)。修改控制面配置、生命周期、API 或
+host contract 时，必须在同一变更中同步更新本文相关章节。
 
-- `ci-codespace.yaml` 运行 Codespace 格式、lint、类型和测试检查。
-- `build-codespace-image.yaml` 在原生 amd64/arm64 runner 上构建并合并多架构开发镜像。
-- `build-codespace-sidecar.yaml` 发布 `ghcr.io/curoky/devspace:codespace-sidecar`。
-- `delete-untagged-images.yaml` 清理 GHCR 中无 tag 的镜像。
+## 模块职责
+
+本地控制面代码全部放在 `controller/`。不得恢复 `agent/`、顶层兼容模块、生成式 Web 产物或
+Node.js 构建链。
+
+| 路径 | 职责 |
+| --- | --- |
+| `controller/app.py`、`controller/api.py`、`controller/__main__.py` | Web 应用装配、HTTP 路由与入口 |
+| `controller/config.py`、`controller/models.py` | 配置与 API model |
+| `controller/transport.py`、`controller/ssh.py` | Host 连接、SSH 操作与本地投影 |
+| `controller/inventory.py`、`controller/container.py`、`controller/workspace.py` | Podman inventory、容器和 workspace 原语 |
+| `controller/service.py`、`controller/dashboard.py`、`controller/operations.py` | 生命周期编排、Dashboard 投影与操作状态 |
+| `controller/provider.py` | Git provider deploy key |
+| `controller/tools/` | 不依赖 Web UI 的 Codespace 维护 CLI |
+| `controller/assets/ssh/` | 固定登录 key、SSH 公共配置和 pinned host key |
+| `controller/static/` | FastAPI 直接提供的原生 Web 源码 |
+| `controller/tests/` | 按公开模块行为组织的测试 |
+| `controller/run.sh` | 本地后台启动器 |
 
 ## 常用操作
 
-根目录 `Taskfile.yaml` 用 `task` 收纳了下列常用命令，可用 `task --list` 查看全部；清理类
-task 追加 `-- --no-dry-run` 才会执行写操作，例如 `task cleanup:workspaces -- --no-dry-run`。
-下文命令与对应 task 等价，直接运行原始命令同样有效。
-
-### 配置 Dotfiles
-
-`dotfiles/setup.sh` 接收运行场景和配置目录，可重复执行：
-
-```bash
-dotfiles/setup.sh docker "$PWD/dotfiles"
-dotfiles/setup.sh host-linux "$PWD/dotfiles"
-```
-
-### 启动 Codespace
-
-先按下文「配置」创建 `~/.config/codespace/config.yaml`，再启动控制面：
+启动 Codespace 前先按下文「配置」创建 `~/.config/codespace/config.yaml`，再启动控制面：
 
 ```bash
 uv sync
@@ -120,7 +66,7 @@ uv run python -m controller.tools.cleanup_workspaces
 uv run python -m controller.tools.cleanup_workspaces --no-dry-run
 ```
 
-### 验证 Codespace
+验证控制面：
 
 ```bash
 uv run ruff format --check controller
@@ -129,15 +75,6 @@ uv run mypy controller
 uv run pytest controller/tests
 uv lock --check
 ```
-
-### 构建镜像
-
-```bash
-images/dev/build.sh
-images/sidecar/build.sh
-```
-
-本地构建不会发布镜像，发布流程由 `.github/workflows/` 管理。
 
 ## 控制面范围
 
@@ -149,25 +86,6 @@ socket；Podman Machine 使用 `podman machine inspect` 返回的本地 API sock
 
 FastAPI 同时提供 JSON API 和 `controller/static/` 中的原生 Web 文件。GitHub、GitLab token
 只保存在进程内存中；`config.yaml` 的可选 `tokens` 可提供启动值，Web UI 可在运行时覆盖。
-
-控制面模块职责：
-
-| 路径 | 职责 |
-| --- | --- |
-| `controller/app.py`、`controller/api.py`、`controller/__main__.py` | Web 应用装配、HTTP 路由与入口 |
-| `controller/config.py`、`controller/models.py` | 配置与 API model |
-| `controller/transport.py`、`controller/ssh.py` | Host 连接、SSH 操作与本地投影 |
-| `controller/inventory.py`、`controller/container.py`、`controller/workspace.py` | Podman inventory、容器和 workspace 原语 |
-| `controller/service.py`、`controller/dashboard.py`、`controller/operations.py` | 生命周期编排、Dashboard 投影与操作状态 |
-| `controller/provider.py` | Git provider deploy key |
-| `controller/tools/` | 不依赖 Web UI 的 Codespace 维护 CLI |
-| `controller/assets/ssh/` | 固定登录 key、SSH 公共配置和 pinned host key |
-| `controller/static/` | FastAPI 直接提供的原生 Web 源码 |
-| `controller/tests/` | 按公开模块行为组织的测试 |
-| `controller/run.sh` | 本地后台启动器 |
-
-本地控制面代码全部放在 `controller/`。不得恢复 `agent/`、顶层兼容模块、生成式 Web 产物或
-Node.js 构建链。
 
 ## 配置
 
@@ -318,49 +236,13 @@ Podman Machine host ID 是 Codespace 内的逻辑名称；对应 machine 必须�
 - 允许开发镜像内 root 将挂载的 `/workspace` `chown` 为 `5230:5230`；
 - 为 environment SSH 保留的端口范围 `20000-29999`；
 - 一个 host 级 sidecar；
-- 满足下述契约的开发镜像。
+- 满足 [`images/dev/AGENTS.md`](../images/dev/AGENTS.md) 契约的开发镜像。
 
 非原生平台依赖 host 已注册持久化 `binfmt_misc` interpreter，通常为 QEMU user-static。
 Codespace 只选择平台，不安装或管理模拟器。
 
-开发镜像必须提供：
-
-- 用户 `x`，uid/gid 为 `5230:5230`；
-- 可写的 `/workspace`；
-- 默认 host network，sshd 监听地址由 `SSHD_BIND` 环境变量控制，默认 `127.0.0.1`；
-- Podman security option `disable` 和 `seccomp=unconfined`；
-- 现有 s6 entrypoint、sshd、home-init、Atuin client、Git 和 OpenSSH client；
-- s6 转储到 `/run/s6/container_environment` 的容器环境仅允许 root 和 `x` 读取；
-- `workspace-init` s6 oneshot，且 `sshd` 和 `home-init` 均依赖它；
-- `rclone-webdav` 和 `copyparty-webdav` s6 longrun 均依赖 `workspace-init`，以用户 `x`
-  分别监听 8004 和 8005；监听地址复用 `SSHD_BIND`，host 模式默认 `127.0.0.1`，bridge 模式为
-  `0.0.0.0`。两个 WebDAV 根目录均只包含 `/workspace` 和 `/upload`：前者直接复用容器内现有
-  `/workspace`，但只在 WebDAV 层授予读取权限；后者是 uid/gid `5230:5230`、mode `0700` 的容器
-  writable-layer 目录，允许完整 WebDAV 读写。容器内 IDE、SSH 和构建工具仍可直接写
-  `/workspace`；`/upload` 在同一 container 的 stop/start 后保留，删除或重建 container 后丢失，
-  不提供 quota 或备份。`rclone` 用只读 union 暴露 workspace；`copyparty` 的 `wram` volflag
-  仅确认接受 writable-layer 的非持久生命周期。
-- 两个 WebDAV 服务均关闭归档、索引、缩略图、媒体处理、分享、管理/状态接口、跨站 CORS、
-  服务发现及 FTP/FTPS/SFTP/TFTP 等额外能力，因此不提供搜索、预览、在线压缩、分享链接、
-  恢复或浏览器跨站访问。`rclone` 同时关闭 HTML 目录页；`copyparty` 的 WebDAV 与 browser
-  listing/上传共用 HTTP handler，无法在进程内彻底剥离后两者，但已关闭 HTML/脚本渲染及所有
-  可独立关闭的 Web UI 扩展。服务为匿名访问且镜像不提供 TLS；bridge 模式需在 project 的
-  `published_ports` 中显式发布端口，跨不可信网络时必须在外层增加 TLS、认证和访问控制。
-  `/workspace` 包含 dotfiles，WebDAV 读取者可看到其中的敏感内容。两个进程不共享 WebDAV
-  `LOCK` 状态，不得经 8004 和 8005 并发修改同一 `/upload` 文件；
-- 位于 `rootfs/home/x/.ssh/config` 的 container SSH config，为 `Host *` 启用 GSSAPI
-  认证与凭据委派，并固定使用 `~/.ssh/repo_id_ed25519` 访问 GitHub 和 GitLab，构建时
-  收紧为 `0600`；
-- 位于同目录的 `known_hosts`，包含 GitHub/GitLab 官方发布的 host key；provider SSH
-  连接必须使用 `StrictHostKeyChecking yes`，不得回退到 `accept-new`。
-
-`network_mode: host` 的容器使用 host network，sshd 绑定 `127.0.0.1`。`network_mode: bridge`
-的容器改用 bridge network：sshd 注入 `SSHD_BIND=0.0.0.0`，SSH 端口发布到 loopback
-`127.0.0.1:<ssh_port>` 以复用现有 ProxyCommand 路径，project `published_ports` 声明的业务
-端口发布后经 gvproxy 转发到 macOS `localhost:<local>`。
-
-Sidecar 镜像和网络细节见
-[`images/sidecar/CLAUDE.md`](images/sidecar/CLAUDE.md)。它必须独立于 project 和
+开发镜像必须提供的完整契约见 [`images/dev/AGENTS.md`](../images/dev/AGENTS.md)。Sidecar 镜像和
+网络细节见 [`images/sidecar/AGENTS.md`](../images/sidecar/AGENTS.md)，它必须独立于 project 和
 instance 资源。
 
 ## 资源标识
@@ -589,47 +471,11 @@ host），只在 create operation 处于 queued 或 running 时轮询。失败�
 - Sidecar 共享服务只能通过 host loopback 暴露；bridge container 只有在 host publish
   限制为 `127.0.0.1` 时，内部才可绑定所有接口。
 
-## 跨组件契约
-
-以下约束同时被多个组件依赖，修改时必须同步更新所有调用方和本文：
-
-1. **容器用户**：开发用户固定为 `x`，uid/gid 为 `5230:5230`。
-2. **仓库路径**：镜像内仓库路径为 `/opt/devspace`，`~/devspace` 指向该目录。
-3. **镜像命名**：基础镜像使用 `ghcr.io/curoky/devspace:base-<distro><version>`，
-   其他镜像使用 `ghcr.io/curoky/devspace:<name>`；缓存位于
-   `ghcr.io/curoky/devspace-cache:*`。
-4. **服务管理**：开发容器以自建 s6 init 启动。新增服务必须放入
-   `images/dev/rootfs/etc/s6/s6-rc.d/` 并加入相应 bundle；execline 脚本通过
-   `s6-envdir -Lf -- /run/s6/container_environment` 读取容器环境，该目录仅允许 root 和
-   `x` 读取。`workspace-init` 必须先于 `sshd` 和 `home-init` 完成，把挂载的 `/workspace`
-   归属到 `5230:5230`。
-5. **网络边界**：环境 sshd 只绑定宿主 loopback；访问必须经过配置的 SSH host route。
-6. **共享服务**：每个 Codespace host 只有一个固定名称的 `codespace-sidecar`，不得附属于
-   project 或 instance。Atuin 仅通过宿主 `127.0.0.1:8002` 暴露。
-7. **平台选择**：project 的每个 `host` 条目 `platform` 只能省略或设为 `linux/amd64`、
-   `linux/arm64`；省略时库存 label 使用 `native`。
-8. **文档语言**：仓库说明与约束文档使用中文；代码标识、命令、协议名和外部 API 保留原文。
-
 ## 变更规则
 
-- 新增工具配置：更新 `dotfiles/<tool>/` 和 `dotfiles/setup.sh`。
 - 修改 Codespace 配置、生命周期、API、host contract：同步更新本文相关章节；涉及 sidecar 时
-  还要更新 `images/sidecar/CLAUDE.md`。
-- 不修改 `images/dev/` 中与任务无关的 s6、Atuin client、Ollama、home-init 和 sshd。
-- Host 共享服务资产只能放在 `images/sidecar/`，不能进入 project 生命周期模块；sidecar
-  inventory 与 environment inventory 必须分离，也不得恢复 Python HTTP agent、Podman socket
-  或 workspace mount。
+  还要更新 [`images/sidecar/AGENTS.md`](../images/sidecar/AGENTS.md)，涉及开发镜像时还要更新
+  [`images/dev/AGENTS.md`](../images/dev/AGENTS.md)。
 - 本地控制面的 Python、静态资源、启动器和测试全部保留在 `controller/`。
 - 优先添加针对受影响模块的聚焦测试，不恢复兼容路径。
 - 不恢复已删除的兼容目录、远端 Python agent 或 Node Web 构建链。
-
-## 相关文档
-
-- `images/dev/dev-environment.md`：开发镜像内的工具路径与使用方式。
-- `images/sidecar/CLAUDE.md`：Host 级共享服务约束。
-- `docs/codespace-image-ghcr-timeout-investigation.md`：多架构镜像访问 GHCR 超时的调查记录。
-
-## 已知边界
-
-- `dotfiles/setup.sh` 的 `CONF_PATH` 默认值仍标记为待移除，变更前需核对所有调用方。
-- workflow 中被注释的 matrix 项表示暂停构建，不代表对应源码已废弃。

@@ -78,6 +78,7 @@ ATUIN_DB_URI=postgres://... images/sidecar/run-macos.sh
 3. 幂等确保每个在线已配置 host 存在固定 sidecar。
 4. 明确报告缺失、停止、重复或格式错误的 sidecar。
 5. 增加生命周期以及在线、离线 host 混合测试。
-6. 用最终 label 和 API 同步更新本文与根 `CLAUDE.md`。
+6. 用最终 label 和 API 同步更新本文、根 [`AGENTS.md`](../../AGENTS.md) 与
+   [`controller/AGENTS.md`](../../controller/AGENTS.md)。
 
 除非明确要求，不增加迁移或兼容行为。
