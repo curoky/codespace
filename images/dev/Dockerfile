@@ -29,8 +29,19 @@ RUN apt-get update -y \
 
 COPY images/dev/script/setup-conda-env.sh /opt/conda/condabin/setup-conda-env.sh
 
+################################# stage/rust ################################
+# rustup 装到自包含的 /opt/rust，与 main 的 nix/python 步骤并行构建；rust 工具链改动
+# 不再让下游 nix/python/conda/devspace 层失效。
+FROM docker.io/debian:stable-slim AS stage_rust
+ENV CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends ca-certificates curl \
+  && curl https://sh.rustup.rs -sSf | sh -s -- -y --profile default --no-modify-path --default-toolchain stable \
+  && rustup component remove rust-docs \
+  && rm -rf /var/lib/apt/lists/*
+
 ################################ stage/vscode extensions ################################
-# 只依赖 extensions.txt 与安装脚本，与 main 的 rust/nix/python 步骤并行构建；无关的仓库
+# 只依赖 extensions.txt 与安装脚本，与 rust/nix/python 步骤并行构建；无关的仓库
 # 改动不再触发几分钟的扩展重装。throwaway 的 code-server 二进制留在本 stage 不入 final image。
 FROM docker.io/debian:stable-slim AS stage_vscode_ext
 
@@ -76,12 +87,6 @@ RUN /tmp/setup-sysconf.sh \
 
 USER x
 
-# setup rust
-ENV CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup
-ENV PATH=${PATH}:/opt/rust/cargo/bin
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --profile default --no-modify-path --default-toolchain stable \
-  && rustup component remove rust-docs
-
 # setup nixpkgs
 ENV PATH=${PATH}:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin
 # Nix's seccomp BPF filter cannot load under buildx's QEMU arm64 emulation.
@@ -105,6 +110,12 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
   && nix-env -iA nixpkgs.gcc15 \
   && nix-collect-garbage -d \
   && nix-store --optimise
+
+# setup rust
+# COPY 放在 nix 之后：rust 工具链改动不会让上面昂贵的 nix 层失效。
+ENV CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup
+ENV PATH=${PATH}:/opt/rust/cargo/bin
+COPY --link --chown=5230:5230 --from=stage_rust /opt/rust /opt/rust
 
 # setup python & tools
 RUN uv python install --no-bin 3.9 3.10 3.11 3.12 3.13 3.14

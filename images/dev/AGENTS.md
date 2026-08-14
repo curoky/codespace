@@ -83,7 +83,7 @@ provider 连接必须使用严格校验。
 构建期由独立 stage `stage_vscode_ext` 运行 `script/setup-vscode-extensions.sh`，用官方
 code-server 把 `dotfiles/vscode/extensions.txt` 里的扩展装进参考副本 `/opt/vscode-extensions`，
 再由 main stage 以 `COPY --from` 取出（code-server 二进制留在构建 stage，不入 final image）。
-该 stage 只依赖 `extensions.txt` 与安装脚本，和 main 的 rust/nix/python 步骤并行构建，无关的
+该 stage 只依赖 `extensions.txt` 与安装脚本，和 `stage_rust`、main 的 nix/python 步骤并行构建，无关的
 仓库改动不会触发扩展重装。`extensions.txt` 是扩展列表的唯一事实来源，脚本安装其中每一行、
 不做二次过滤；纯客户端扩展（`extensionKind` 为 `ui` 的 `remote-ssh` 等，以及主题、图标、
 keymap）由本地 IDE 安装，不写进 `extensions.txt`。

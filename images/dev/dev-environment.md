@@ -47,10 +47,10 @@ alwaysApply: true
 - **周边工具在 sb store，未软链进 PATH，需用绝对路径** `/opt/sb/store/<name>/bin/<name>`：`gopls`、`golangci-lint`、`gofumpt`、`gotests`、`gomodifytags`、`go-outline`、`impl`、`dlv`(delve)。
 - **go-task**（`task`）：`/opt/sb/bin/task`。
 
-### Rust —— 1.96 stable（固定）
+### Rust —— 最新 stable（每次构建时取当时最新）
 
 - **rustc / cargo / clippy / rustfmt / rust-analyzer**：`/opt/rust/cargo/bin/`。
-- 非登录 shell 必须 export `CARGO_HOME=/opt/rust/cargo`、`RUSTUP_HOME=/opt/rust/rustup`，否则会写只读的 `~/.rustup` 报错。工具链固定，别 `rustup update`（home 只读）。
+- 非登录 shell 必须 export `CARGO_HOME=/opt/rust/cargo`、`RUSTUP_HOME=/opt/rust/rustup`，否则会写只读的 `~/.rustup` 报错。运行期 home 只读，别 `rustup update`；升级 stable 需重建镜像（Dockerfile 用 `--default-toolchain stable`，每次构建拉当时最新）。
 
 ### C / C++ / 构建系统
 
