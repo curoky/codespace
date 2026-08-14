@@ -34,6 +34,7 @@ COPY images/dev/script/setup-conda-env.sh /opt/conda/condabin/setup-conda-env.sh
 # 不再让下游 nix/python/conda/devspace 层失效。
 FROM docker.io/debian:stable-slim AS stage_rust
 ENV CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup
+ENV PATH=/opt/rust/cargo/bin:${PATH}
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates curl \
   && curl https://sh.rustup.rs -sSf | sh -s -- -y --profile default --no-modify-path --default-toolchain stable \
