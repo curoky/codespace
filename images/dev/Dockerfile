@@ -29,6 +29,19 @@ RUN apt-get update -y \
 
 COPY images/dev/script/setup-conda-env.sh /opt/conda/condabin/setup-conda-env.sh
 
+################################ stage/vscode extensions ################################
+# 只依赖 extensions.txt 与安装脚本，与 main 的 rust/nix/python 步骤并行构建；无关的仓库
+# 改动不再触发几分钟的扩展重装。throwaway 的 code-server 二进制留在本 stage 不入 final image。
+FROM docker.io/debian:stable-slim AS stage_vscode_ext
+
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends ca-certificates curl \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY dotfiles/vscode/extensions.txt /tmp/extensions.txt
+COPY images/dev/script/setup-vscode-extensions.sh /tmp/setup-vscode-extensions.sh
+RUN bash /tmp/setup-vscode-extensions.sh /tmp/extensions.txt /opt/vscode-extensions
+
 ################################ main ################################
 FROM docker.io/$BASE_IMAGE
 
@@ -111,6 +124,9 @@ RUN bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles \
 
 # setup Trae user rules
 RUN git clone --depth=1 https://github.com/curoky/agent-playbook /opt/agent-playbook
+
+# VSCode Remote 扩展参考副本（stage_vscode_ext 并行构建），运行期由 home-init.sh 播种到各 IDE server。
+COPY --link --chown=5230:5230 --from=stage_vscode_ext /opt/vscode-extensions /opt/vscode-extensions
 
 USER root
 RUN bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles \

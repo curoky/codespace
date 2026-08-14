@@ -15,7 +15,7 @@ Nix、Rust、Java、Node.js、Go、uv、Conda、dotfiles 和自建 s6 init。
 | --- | --- |
 | `Dockerfile` | 组装静态工具、Nix、各语言运行时、dotfiles 和自建 s6 init |
 | `build.sh` | 从仓库根目录构建本地开发镜像 |
-| `script/` | 镜像构建脚本，含 `setup-s6.sh` |
+| `script/` | 镜像构建脚本，含 `setup-s6.sh`、`setup-vscode-extensions.sh`（构建期装扩展）、`seed-vscode-extensions.sh`（启动期播种） |
 | `rootfs/` | 烤进镜像的文件（s6 bundle、sshd、容器 SSH config 与 host key 等） |
 | `dev-environment.md` | 容器内工具链路径与使用方式 |
 
@@ -77,6 +77,23 @@ provider 连接必须使用严格校验。
 镜像内固定的 sshd ed25519 host key（`rootfs/etc/ssh/ssh_host_ed25519_key.pub`）由控制面 pin 在
 `~/.ssh/codespace/known_hosts/codespace`；改镜像 host key 必须同步更新该 asset，详见
 [`controller/AGENTS.md`](../../controller/AGENTS.md) 的「SSH 投影」章节。
+
+## VSCode Remote 扩展预装
+
+构建期由独立 stage `stage_vscode_ext` 运行 `script/setup-vscode-extensions.sh`，用官方
+code-server 把 `dotfiles/vscode/extensions.txt` 里的扩展装进参考副本 `/opt/vscode-extensions`，
+再由 main stage 以 `COPY --from` 取出（code-server 二进制留在构建 stage，不入 final image）。
+该 stage 只依赖 `extensions.txt` 与安装脚本，和 main 的 rust/nix/python 步骤并行构建，无关的
+仓库改动不会触发扩展重装。`extensions.txt` 是扩展列表的唯一事实来源，脚本安装其中每一行、
+不做二次过滤；纯客户端扩展（`extensionKind` 为 `ui` 的 `remote-ssh` 等，以及主题、图标、
+keymap）由本地 IDE 安装，不写进 `extensions.txt`。
+
+因为 `home-init.sh` 启动时把 `~/.vscode-server`、`~/.trae-server`、`~/.trae-cn-server`
+软链到持久化的 `/workspace/.cache`，扩展不能烤进镜像的 `~/.vscode-server`（首启会被
+`rm -rf` 清掉）。运行期 `home-init.sh` 调用 `script/seed-vscode-extensions.sh` 把参考副本
+播种到这三个 server 的 `extensions/` 目录并合并 `extensions.json`（用户已装版本优先），每个
+target 用 `.devspace-extensions-seeded` marker 保证只播种一次；删除该 marker 可重新播种。
+参考副本路径可用 `REF_EXTENSIONS` 覆盖。Trae 与 Trae CN 复用同一份 VSCode 扩展副本。
 
 ## 构建
 
