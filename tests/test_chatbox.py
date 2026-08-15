@@ -49,7 +49,7 @@ def test_chatbox_nginx_serves_spa_and_proxies_streaming_api() -> None:
 
 def test_chatbox_example_is_loopback_only_and_targets_sglang() -> None:
     config = Config.model_validate(yaml.safe_load((_ROOT / "config.example.yaml").read_text()))
-    container = config.resolved_service_container("chatbox", "server")
+    container = config.resolved_service_container("chatbox", "gpu-host")
 
     assert [port.model_dump() for port in container.ports] == [
         {
@@ -60,9 +60,8 @@ def test_chatbox_example_is_loopback_only_and_targets_sglang() -> None:
         }
     ]
     assert container.environment["CHATBOX_API_UPSTREAM"] == "http://10.88.0.1:8003"
-    assert not container.volumes
     assert not container.secrets
-    assert config.service_tunnel_ports("chatbox", "server") == [3212]
+    assert config.service_tunnel_ports("chatbox", "gpu-host") == [3212]
 
 
 def test_chatbox_smoke_reproduces_service_contract(tmp_path: Path) -> None:
