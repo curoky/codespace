@@ -347,6 +347,7 @@ function renderWorkspace(workspace, tunnelPorts) {
   traeLink.classList.add("editor-action");
   actions.append(traeLink);
   actions.append(link("Trae CN", workspace.trae_cn_url));
+  actions.append(link("VSCode", workspace.vscode_url));
   const sshButton = actionButton("SSH", "copy-ssh", target);
   sshButton.classList.add("ssh-command");
   sshButton.dataset.command = workspace.ssh_command;

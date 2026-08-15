@@ -59,6 +59,7 @@ def build(control: ControlPlane) -> dict[str, object]:
                 "trae_cn_url": editor_url(
                     workspace.ssh_alias, workspace.open_path, scheme="trae-cn"
                 ),
+                "vscode_url": editor_url(workspace.ssh_alias, workspace.open_path, scheme="vscode"),
             }
             for workspace in sorted(
                 workspaces,
