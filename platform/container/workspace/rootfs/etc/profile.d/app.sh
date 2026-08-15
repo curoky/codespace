@@ -20,7 +20,7 @@ export PATH="$PATH:/opt/conda/condabin"
 export PATH="$PATH:/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec"
 
 # nix
-export PATH="$PATH:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin"
+export PATH="$PATH:/nix/var/nix/profiles/default/bin"
 
 # cuda
 export CUDA_HOME=/usr/local/cuda
