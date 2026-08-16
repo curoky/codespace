@@ -13,10 +13,11 @@ def config() -> Config:
         {
             "hosts": {
                 "home": {
+                    "bridge_gateway": "10.88.0.1",
                     "forward_environment": ["HTTP_PROXY"],
                     "platform": "linux/arm64",
                 },
-                "office": {},
+                "office": {"bridge_gateway": "10.88.0.1"},
             },
             "project_defaults": {
                 "image": "ghcr.io/curoky/codespace:workspace-debian13",
@@ -82,13 +83,11 @@ def config() -> Config:
                 "support": {
                     "image": "ghcr.io/curoky/codespace:service-support",
                     "hosts": {"home": {}},
-                    "container": {"network_mode": "host"},
                 },
                 "vllm": {
                     "image": "ghcr.io/curoky/codespace:service-vllm",
                     "hosts": {"office": {}},
                     "container": {
-                        "network_mode": "host",
                         "ipc": "host",
                         "devices": ["nvidia.com/gpu=all"],
                         "volumes": [

@@ -1,3 +1,4 @@
+# --------------------------------- Builder ----------------------------------
 FROM docker.io/library/node:22.23.2-bookworm-slim AS build
 
 ARG CHATBOX_VERSION=v1.23.2
@@ -19,12 +20,18 @@ RUN patch --fuzz=0 -p1 </tmp/defaults.patch \
     pnpm exec electron-vite build \
   && find release/app/dist/renderer -type f -name '*.map' -delete
 
-FROM docker.io/library/nginx:1.30.4-alpine-slim
+# --------------------------------- Runtime ----------------------------------
+FROM ghcr.io/curoky/codespace:service-s6
 
-ENV CHATBOX_API_UPSTREAM=http://10.88.0.1:8003 \
-    NGINX_ENVSUBST_FILTER=^CHATBOX_API_UPSTREAM$
+ENV CHATBOX_API_UPSTREAM=http://10.88.0.1:8003
+
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends gettext-base nginx \
+  && rm -rf /var/lib/apt/lists/* \
+  && rm /etc/nginx/sites-enabled/default
 
 COPY --from=build /src/release/app/dist/renderer/ /usr/share/nginx/html/
 COPY platform/container/services/chatbox/default.conf.template /etc/nginx/templates/default.conf.template
-
-EXPOSE 3212/tcp
+COPY platform/container/services/chatbox/rootfs/ /
+RUN chmod +x /opt/chatbox/serve.sh \
+  && /etc/s6/install-s6.sh

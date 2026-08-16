@@ -58,10 +58,12 @@ def test_find_container_returns_none_only_for_not_found() -> None:
     assert container.find_container(client, "missing", labels={}) is None  # type: ignore[arg-type]
 
 
-@pytest.mark.parametrize("data", [{}, {"network_mode": None}])
-def test_runtime_spec_requires_network_mode(data: dict[str, object]) -> None:
-    with pytest.raises(ValidationError, match="network_mode"):
-        ContainerSpec.model_validate(data)
+@pytest.mark.parametrize("model", [ContainerLayer, ContainerSpec])
+def test_container_models_reject_network_mode(
+    model: type[ContainerLayer] | type[ContainerSpec],
+) -> None:
+    with pytest.raises(ValidationError, match="Extra inputs"):
+        model.model_validate({"network_mode": "bridge"})
 
 
 @pytest.mark.parametrize(
@@ -70,15 +72,7 @@ def test_runtime_spec_requires_network_mode(data: dict[str, object]) -> None:
 )
 def test_runtime_spec_rejects_null_collections(field: str) -> None:
     with pytest.raises(ValidationError, match=field):
-        ContainerSpec.model_validate({"network_mode": "bridge", field: None})
-
-
-def test_runtime_spec_rejects_ports_without_bridge() -> None:
-    with pytest.raises(ValidationError, match="only in bridge mode"):
-        ContainerSpec(
-            network_mode="host",
-            ports=[PortSpec(target=80, published=8080, host_ip="127.0.0.1")],
-        )
+        ContainerSpec.model_validate({field: None})
 
 
 @pytest.mark.parametrize("model", [ContainerLayer, ContainerSpec])
@@ -98,7 +92,7 @@ def test_container_rejects_compose_forms_outside_supported_subset(
     field: dict[str, object],
 ) -> None:
     with pytest.raises(ValidationError):
-        model.model_validate({"network_mode": "bridge", **field})
+        model.model_validate(field)
 
 
 @pytest.mark.parametrize("model", [ContainerLayer, ContainerSpec])
@@ -122,7 +116,7 @@ def test_container_rejects_removed_non_compose_syntax(
     field: dict[str, object],
 ) -> None:
     with pytest.raises(ValidationError):
-        model.model_validate({"network_mode": "bridge", **field})
+        model.model_validate(field)
 
 
 @pytest.mark.parametrize("model", [ContainerLayer, ContainerSpec])
@@ -149,7 +143,7 @@ def test_container_rejects_values_outside_compose_subset(
     field: dict[str, object],
 ) -> None:
     with pytest.raises(ValidationError):
-        model.model_validate({"network_mode": "bridge", **field})
+        model.model_validate(field)
 
 
 @pytest.mark.parametrize("model", [ContainerLayer, ContainerSpec])
@@ -158,7 +152,6 @@ def test_volume_short_and_long_syntax_are_normalized(
 ) -> None:
     spec = model.model_validate(
         {
-            "network_mode": "bridge",
             "volumes": [
                 "/host/a:/container/a:ro",
                 {
@@ -191,7 +184,7 @@ def test_volume_short_syntax_rejects_invalid_entries(
     message: str,
 ) -> None:
     with pytest.raises(ValidationError, match=message):
-        model.model_validate({"network_mode": "bridge", "volumes": [volume]})
+        model.model_validate({"volumes": [volume]})
 
 
 def test_secret_long_syntax_uses_compose_semantics() -> None:
@@ -230,7 +223,7 @@ def test_runtime_rejects_unresolved_mount_sources(source: str) -> None:
             SimpleNamespace(),  # type: ignore[arg-type]
             "image",
             name="codespace-service-support",
-            spec=ContainerSpec(network_mode="host", volumes=[volume]),
+            spec=ContainerSpec(volumes=[volume]),
             environment={},
             labels={},
             mounts=[],
@@ -250,7 +243,6 @@ def test_duplicate_port_target_is_rejected(
     with pytest.raises(ValidationError, match="published more than once"):
         model.model_validate(
             {
-                "network_mode": "bridge",
                 "ports": [
                     {"target": 80, "published": 8080, "host_ip": "127.0.0.1"},
                     {"target": 80, "published": 8081, "host_ip": "127.0.0.1"},
@@ -268,7 +260,6 @@ def test_create_container_translates_canonical_options(
     client = SimpleNamespace(secrets=SimpleNamespace(exists=lambda _name: True))
     spec = ContainerSpec.model_validate(
         {
-            "network_mode": "bridge",
             "ipc": "host",
             "pids_limit": 100,
             "shm_size": "8g",
@@ -321,7 +312,7 @@ def test_port_host_ip_requires_an_ip_address(host_ip: object) -> None:
         PortSpec.model_validate({"target": 80, "published": 8080, "host_ip": host_ip})
 
 
-def test_host_network_does_not_prepare_bridge(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_create_container_always_uses_bridge_network(monkeypatch: pytest.MonkeyPatch) -> None:
     captured: dict[str, object] = {}
     monkeypatch.setattr(
         container, "run_container", lambda _client, _image, options: captured.update(options)
@@ -330,14 +321,14 @@ def test_host_network_does_not_prepare_bridge(monkeypatch: pytest.MonkeyPatch) -
     container.create_container(
         SimpleNamespace(),  # type: ignore[arg-type]
         "image",
-        name="host-container",
-        spec=ContainerSpec(network_mode="host"),
+        name="container",
+        spec=ContainerSpec(),
         environment={},
         labels={},
         mounts=[],
     )
 
-    assert captured["network_mode"] == "host"
+    assert captured["network_mode"] == "bridge"
     assert captured["ports"] == {}
     assert "networks" not in captured
 
@@ -345,7 +336,6 @@ def test_host_network_does_not_prepare_bridge(monkeypatch: pytest.MonkeyPatch) -
 def test_missing_secret_fails_before_container_creation() -> None:
     client = SimpleNamespace(secrets=SimpleNamespace(exists=lambda _name: False))
     spec = ContainerSpec(
-        network_mode="host",
         secrets=[SecretSpec(source="api_token")],
     )
 

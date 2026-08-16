@@ -1,0 +1,7 @@
+redirfd -w 1 /var/log/s6.secret-mount.log
+fdmove -c 2 1
+s6-envdir -Lf -- /run/s6/container_environment
+s6-setuidgid x
+s6-env HOME=/home/x
+foreground { /opt/codespace/bin/mount-secret }
+exit 0

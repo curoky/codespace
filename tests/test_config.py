@@ -50,20 +50,47 @@ def test_tunnel_ports_reject_invalid_values(
         Config.model_validate(data)
 
 
-def test_service_tunnel_ports_are_inferred_from_loopback_tcp_publications(config: Config) -> None:
+def test_service_tunnels_use_gateway_tcp_publications(config: Config) -> None:
     data = config.model_dump()
     data["services"]["support"]["container"] = {
-        "network_mode": "bridge",
         "ports": [
-            {"target": 3210, "published": 3210, "host_ip": "127.0.0.1"},
-            {"target": 5353, "published": 5353, "host_ip": "127.0.0.1", "protocol": "udp"},
+            {"target": 3210, "published": 3210, "host_ip": "10.88.0.1"},
+            {"target": 5353, "published": 5353, "host_ip": "10.88.0.1", "protocol": "udp"},
             {"target": 8003, "published": 8003, "host_ip": "10.88.0.1"},
         ],
     }
 
     parsed = Config.model_validate(data)
 
-    assert parsed.service_tunnel_ports("support", "home") == [3210]
+    assert parsed.service_tunnel_ports("support", "home") == [3210, 8003]
+    assert parsed.service_tunnel_host("support", "home", 3210) == "10.88.0.1"
+
+
+@pytest.mark.parametrize(
+    "host_ip",
+    ["127.0.0.1", "0.0.0.0", "::1", "::", "10.89.0.1", "192.168.1.10"],  # noqa: S104
+)
+def test_service_publication_requires_host_gateway(config: Config, host_ip: str) -> None:
+    data = config.model_dump()
+    data["services"]["support"]["container"] = {
+        "ports": [{"target": 8080, "published": 3210, "host_ip": host_ip}]
+    }
+
+    with pytest.raises(ValidationError, match="Host bridge gateway"):
+        Config.model_validate(data)
+
+
+def test_service_tcp_publication_requires_unique_host_port(config: Config) -> None:
+    data = config.model_dump()
+    data["services"]["support"]["container"] = {
+        "ports": [
+            {"target": 8080, "published": 3210, "host_ip": "10.88.0.1"},
+            {"target": 8081, "published": 3210, "host_ip": "10.88.0.1"},
+        ]
+    }
+
+    with pytest.raises(ValidationError, match="published ports must be unique"):
+        Config.model_validate(data)
 
 
 def test_git_source_args_default_empty_and_accept_clone_options(config: Config) -> None:
@@ -108,12 +135,11 @@ def test_example_config_loads() -> None:
         "private-repo",
     ]
     assert config.projects["codespace"].source.args == []
-    assert list(config.services) == ["support", "vllm", "sglang", "lobehub", "chatbox"]
+    assert list(config.services) == ["support", "secret", "vllm", "sglang", "lobehub", "chatbox"]
     assert config.workspace_spec("codespace", "workstation", "default").id == (
         "space:codespace/default@workstation"
     )
     workspace = config.workspace_spec("codespace", "workstation", "default")
-    assert workspace.container.is_bridge
     assert "ATUIN_SYNC_ADDRESS" not in workspace.container.environment
     assert [
         (secret.source, secret.uid, secret.gid, secret.mode)
@@ -122,18 +148,31 @@ def test_example_config_loads() -> None:
         ("huggingface_token", None, None, 0o400),
         ("atuin_db_uri", None, None, 0o400),
         ("github_action_token", "5230", "5230", 0o400),
+        ("secret_webdav_password", "5230", "5230", 0o400),
     ]
     support = config.service_spec("support", "gpu-host").container
-    assert support.is_bridge
     assert not support.ports
     assert not support.secrets
     assert not support.environment
+    assert [volume.target for volume in support.volumes].count("/run/podman/podman.sock") == 1
+    secret = config.service_spec("secret", "workstation").container
+    assert [(port.target, port.published, port.host_ip) for port in secret.ports] == [
+        (8080, 8006, "10.88.0.1")
+    ]
+    assert not secret.environment
+    assert [item.source for item in secret.secrets] == ["secret_webdav_password"]
+    assert {"/srv/keys", "/srv/notes"} <= {volume.target for volume in secret.volumes}
+    for service in ("secret", "vllm", "sglang", "lobehub", "chatbox"):
+        for host in config.services[service].hosts:
+            assert "/run/podman/podman.sock" not in {
+                volume.target for volume in config.resolved_service_container(service, host).volumes
+            }
     for service in ("vllm", "sglang"):
         spec = config.service_spec(service, "gpu-host")
-        assert spec.container.is_bridge
-        assert spec.container.ports
+        assert [(port.target, port.published) for port in spec.container.ports] == [(8080, 8003)]
         assert all(port.host_ip == "10.88.0.1" for port in spec.container.ports)
-        assert spec.container.environment["SERVE_HOST"] == "0.0.0.0"  # noqa: S104
+        assert "SERVE_HOST" not in spec.container.environment
+        assert "SERVE_PORT" not in spec.container.environment
 
 
 def test_load_config_rejects_non_mapping(tmp_path: Path) -> None:
@@ -200,6 +239,14 @@ def test_host_rejects_podman_socket_override(config: Config) -> None:
         Config.model_validate(data)
 
 
+def test_host_requires_bridge_gateway(config: Config) -> None:
+    data = config.model_dump()
+    del data["hosts"]["home"]["bridge_gateway"]
+
+    with pytest.raises(ValidationError, match="bridge_gateway"):
+        Config.model_validate(data)
+
+
 def test_project_layers_apply_host_defaults_and_merge_volumes_by_target(
     config: Config,
 ) -> None:
@@ -260,7 +307,7 @@ def test_service_layers_apply_host_defaults_before_service(config: Config) -> No
     data["services"]["support"]["container"]["environment"] = {"BASE": "1"}
     data["services"]["support"]["hosts"]["home"] = {
         "image": "support:pinned",
-        "container": {"environment": {"PLACEMENT": "1"}, "network_mode": "bridge"},
+        "container": {"environment": {"PLACEMENT": "1"}},
     }
 
     parsed = Config.model_validate(data)
@@ -326,7 +373,6 @@ def test_resolved_containers_have_concrete_collections(config: Config, kind: str
 
     assert resolved.cap_add == []
     assert resolved.security_opt == []
-    assert resolved.network_mode == ("bridge" if kind == "projects" else "host")
     assert resolved.ulimits == {}
     assert resolved.environment == (
         {"CODESPACE_ENCRYPTED_PATH": "/workspace.enc"} if kind == "projects" else {}
@@ -370,14 +416,6 @@ def test_project_cannot_clear_required_volumes(config: Config) -> None:
     data["projects"]["scratch"]["container"] = {"volumes": []}
 
     with pytest.raises(ValidationError, match="missing required targets"):
-        Config.model_validate(data)
-
-
-def test_service_requires_resolved_network_mode(config: Config) -> None:
-    data = config.model_dump()
-    data["services"]["support"]["container"] = {}
-
-    with pytest.raises(ValidationError, match="network_mode"):
         Config.model_validate(data)
 
 
@@ -566,7 +604,6 @@ def test_config_rejects_invalid_mount_sources(
 ) -> None:
     data = config.model_dump()
     data[kind][name]["container"] = {
-        **({"network_mode": "host"} if kind == "services" else {}),
         "volumes": [f"{source}:/data"],
     }
 
@@ -574,39 +611,29 @@ def test_config_rejects_invalid_mount_sources(
         Config.model_validate(data)
 
 
-def test_ports_require_bridge_network(config: Config) -> None:
-    data = config.model_dump()
-    data["services"]["support"]["container"] = {
-        "network_mode": "host",
-        "ports": [
-            {
-                "target": 8080,
-                "published": 3000,
-                "host_ip": "127.0.0.1",
-            }
-        ],
-    }
-
-    with pytest.raises(ValidationError, match="only in bridge mode"):
-        Config.model_validate(data)
-
-
-@pytest.mark.parametrize("scope", ["defaults", "host", "project", "placement"])
-def test_project_network_is_fixed_to_bridge(config: Config, scope: str) -> None:
+@pytest.mark.parametrize(
+    "scope",
+    ["defaults", "host", "project", "project-placement", "service", "service-placement"],
+)
+def test_network_mode_is_not_configurable(config: Config, scope: str) -> None:
     data = config.model_dump()
     match scope:
         case "defaults":
-            data["project_defaults"]["container"]["network_mode"] = "host"
+            data["project_defaults"]["container"]["network_mode"] = "bridge"
         case "host":
-            data["hosts"]["home"]["container"] = {"network_mode": "host"}
+            data["hosts"]["home"]["container"] = {"network_mode": "bridge"}
         case "project":
-            data["projects"]["codespace"]["container"] = {"network_mode": "host"}
-        case "placement":
-            data["projects"]["codespace"]["hosts"]["home"]["container"] = {"network_mode": "host"}
+            data["projects"]["codespace"]["container"] = {"network_mode": "bridge"}
+        case "project-placement":
+            data["projects"]["codespace"]["hosts"]["home"]["container"] = {"network_mode": "bridge"}
+        case "service":
+            data["services"]["support"]["container"]["network_mode"] = "bridge"
+        case "service-placement":
+            data["services"]["support"]["hosts"]["home"]["container"] = {"network_mode": "bridge"}
         case _:
             raise AssertionError(f"unknown scope: {scope}")
 
-    with pytest.raises(ValidationError, match="bridge"):
+    with pytest.raises(ValidationError, match="Extra inputs"):
         Config.model_validate(data)
 
 
@@ -700,7 +727,7 @@ def test_unknown_host_reference_is_rejected(config: Config) -> None:
 
 def test_host_cannot_use_workspace_ssh_prefix(config: Config) -> None:
     data = config.model_dump()
-    data["hosts"]["space-home"] = {}
+    data["hosts"]["space-home"] = {"bridge_gateway": "10.88.0.1"}
 
     with pytest.raises(ValidationError, match="reserved Workspace SSH prefix"):
         Config.model_validate(data)

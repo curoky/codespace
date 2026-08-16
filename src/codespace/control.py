@@ -268,6 +268,11 @@ class ControlPlane:
             route.host,
             port=port,
             local_port=port,
+            remote_host=self.config.service_tunnel_host(
+                resource.name,
+                resource.host,
+                port,
+            ),
             options=[],
             connection_id=actual.container_id,
         )

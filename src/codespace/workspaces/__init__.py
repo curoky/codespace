@@ -125,10 +125,7 @@ type Source = Annotated[ProviderSource | GitSource | EmptySource, Field(discrimi
 _SOURCE: TypeAdapter[Source] = TypeAdapter(Source)
 
 
-class WorkspaceContainerSpec(ContainerSpec):
-    """Resolved container contract for every Workspace."""
-
-    network_mode: Literal["bridge"] = "bridge"
+WorkspaceContainerSpec = ContainerSpec
 
 
 class WorkspaceMetadata(BaseModel):

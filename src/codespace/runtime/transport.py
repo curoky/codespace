@@ -131,7 +131,7 @@ class PodmanTransport:
         self._client_factory = client_factory
         self._run_factory = run_factory
         self._masters: dict[str, _Master] = {}
-        self._tcp_forwards: dict[tuple[str, str, int], _TCPForward] = {}
+        self._tcp_forwards: dict[tuple[str, str, str, int], _TCPForward] = {}
         self._locks = {host: Lock() for host in hosts}
         self._master_start_lock = Lock()
         self._closed = False
@@ -170,13 +170,14 @@ class PodmanTransport:
         destination: str,
         *,
         port: int,
+        remote_host: str = "127.0.0.1",
         local_port: int | None = None,
         options: list[str],
         connection_id: str,
     ) -> int:
-        """Expose a remote loopback port over a managed SSH connection."""
+        """Expose one remote TCP endpoint over a managed SSH connection."""
         with self._locks[self._known(host)]:
-            key = (host, destination, port)
+            key = (host, destination, remote_host, port)
             existing = self._tcp_forwards.get(key)
             if existing is not None:
                 if (
@@ -188,9 +189,12 @@ class PodmanTransport:
                 ):
                     return existing.local_port
                 self._stop(existing.process)
+                existing.control_path.unlink(missing_ok=True)
                 del self._tcp_forwards[key]
 
-            digest = hashlib.sha256(f"{host}\0{destination}\0{port}".encode()).hexdigest()[:16]
+            digest = hashlib.sha256(
+                f"{host}\0{destination}\0{remote_host}\0{port}".encode()
+            ).hexdigest()[:16]
             control_path = self._runtime_dir / f"tcp-{digest}.sock"
             control_path.unlink(missing_ok=True)
             selected_local_port = local_port
@@ -199,16 +203,24 @@ class PodmanTransport:
                 with socket.socket() as listener:
                     listener.bind(("127.0.0.1", 0))
                     selected_local_port = int(listener.getsockname()[1])
+            remote_endpoint = f"[{remote_host}]" if ":" in remote_host else remote_host
             with self._master_start_lock:
+                if local_port is not None:
+                    for competing_key, competing in list(self._tcp_forwards.items()):
+                        if competing.local_port != selected_local_port:
+                            continue
+                        self._stop(competing.process)
+                        competing.control_path.unlink(missing_ok=True)
+                        del self._tcp_forwards[competing_key]
                 process = self._start_tunnel(
                     control_path,
                     destination,
-                    f"127.0.0.1:{selected_local_port}:127.0.0.1:{port}",
+                    f"127.0.0.1:{selected_local_port}:{remote_endpoint}:{port}",
                     ["-o", "GatewayPorts=no", *options],
                 )
-            self._tcp_forwards[key] = _TCPForward(
-                control_path, process, selected_local_port, tuple(options), connection_id
-            )
+                self._tcp_forwards[key] = _TCPForward(
+                    control_path, process, selected_local_port, tuple(options), connection_id
+                )
             return selected_local_port
 
     def close_tcp(self, host: str, destination: str) -> None:

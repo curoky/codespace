@@ -2,8 +2,7 @@
 
 set -euo pipefail
 
-data_root="${LOBEHUB_DATA_DIR:-/var/lib/codespace/lobehub}"
-password_file="${data_root}/config/auto-auth-password"
+readonly password_file=/var/lib/codespace/lobehub/config/auto-auth-password
 
 if [[ ! -s "${password_file}" ]]; then
   echo "automatic authentication password is missing: ${password_file}" >&2

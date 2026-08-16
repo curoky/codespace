@@ -121,6 +121,7 @@ class TestImageContract(unittest.TestCase):
             "ollama",
             "rclone-http",
             "rclone-webdav",
+            "secret-mount",
             "sshd",
             "supercronic",
             "workspace-agent",

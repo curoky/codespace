@@ -67,8 +67,7 @@ def test_dashboard_keeps_actual_metadata_when_config_changes(
     data["projects"]["scratch"]["tunnel_ports"] = []
     data["services"]["support"]["image"] = "support:desired"
     data["services"]["support"]["container"] = {
-        "network_mode": "bridge",
-        "ports": [{"target": 3210, "published": 3210, "host_ip": "127.0.0.1"}],
+        "ports": [{"target": 3210, "published": 3210, "host_ip": "10.88.0.1"}],
     }
     control = ControlPlane(Config.model_validate(data), transport=FakeTransport())  # type: ignore[arg-type]
     monkeypatch.setattr(
