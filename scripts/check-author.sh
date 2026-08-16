@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# Validate Git author identity supplied by a commit hook.
-# Usage: check-author.sh [-n NAME] [-e EMAIL]
-# Requires Bash 3.2 or newer.
 
 set -euo pipefail
 

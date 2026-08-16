@@ -1,8 +1,4 @@
 #!/usr/bin/env bash
-# home-init s6 oneshot (runs as x): prepare persistent IDE state, generate or
-# reuse the deploy key, then seed editor extensions. sshd and workspace-agent
-# depend on this service.
-# Log: /var/log/s6.home-init.log.
 
 set -euo pipefail
 

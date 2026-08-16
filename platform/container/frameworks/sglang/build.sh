@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-# Build an SGLang framework image. Pass a combo name to select a Dockerfile.
-
 set -euo pipefail
 
 if (($# > 1)); then

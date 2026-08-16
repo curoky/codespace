@@ -1,21 +1,5 @@
-# SGLang built from source for 8x H100 (SM 9.0) against CUDA 12.9.
-#
-# 产出可直接 `import sglang` 的 framework image，不包含 s6 或 serving entrypoint。
-#
-# Target driver 535 can run this CUDA 12.9 image through minor-version
-# compatibility.
-#
-# 在匹配 toolkit 的 Ubuntu builder 中安装，避免 Debian final 的 glibc header 与
-# nvcc 冲突；final stage 只接收 venv 和精简后的 toolkit。
-#
-# 从源码编译 vs 装 wheel：clone v0.5.18 tag 后从 python/ 源码 editable 安装 sglang
-# 主包；GPU kernel（sglang-kernel / sgl-deep-gemm）与 torch 三件套从 cu129 官方索引
-# 装预编译 wheel——整栈源码编译 CUDA kernel 成本极高，主包源码编译已满足目标。
-#
-# SGLANG_BUILD_RUST_EXTS=none：跳过 PyO3 Rust 扩展（需 cargo，仅支撑 gRPC/多模态
-# 入口），OpenAI HTTP server 不需要。
-
-# ---- builder stage：Ubuntu 24.04 CUDA devel ----
+# --------------------------------- Builder ----------------------------------
+# The HTTP runtime does not need SGLang's PyO3 entrypoints.
 ARG CUDA_DEVEL_IMAGE=docker.io/nvidia/cuda:12.9.1-cudnn-devel-ubuntu24.04
 ARG CUDA_HOME_DIR=/usr/local/cuda-12.9
 FROM ${CUDA_DEVEL_IMAGE} AS builder
@@ -28,13 +12,9 @@ RUN apt-get update -y \
        --slave /usr/bin/g++ g++ /usr/bin/g++-12 \
   && rm -rf /var/lib/apt/lists/*
 
-# 用 uv 官方 standalone 安装脚本装到 /opt/uv（不引入 binman，也无需 zstd）。
 RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/opt/uv sh
 
-# 源码构建 sglang 主包并装入独立 venv，随后按官方 cu129 recipe 强制重装 cu129 对齐
-# 的 torch 三件套与 GPU kernel，最后清理 cu13 冗余 wheel（sglang 依赖默认拉 cu13，
-# 一台 driver-535/CUDA-12 Host 无法加载 cu13）。卸载错误 backend 后回装目标
-# backend 的共享 library，并断言 torch 最终使用 CUDA 12。
+# Upstream defaults to CUDA 13; normalize the complete stack back to CUDA 12.9.
 ARG SGLANG_REF=v0.5.18
 ARG CUDA_TAG=cu129
 ARG TORCH_SPEC="torch==2.13.0 torchvision==0.28.0 torchaudio==2.11.0"
@@ -67,15 +47,14 @@ RUN set -eux; \
   rm -rf /opt/codespace/frameworks/src/sglang/.git /root/.cache/uv /root/.cache/pip /tmp/*; \
   "${FRAMEWORK_VENV}/bin/python" -c "import torch; assert torch.version.cuda.startswith('12'), torch.version.cuda"
 
-# 保守瘦身 toolkit：删静态库与编译期用不到的目录，供 COPY 进 final 时体积更小。
-# 注意：保留 compat 之外的运行库；sgl-deep-gemm 运行期 JIT 需 nvcc + 头文件。
+# sgl-deep-gemm requires nvcc and headers at runtime.
 RUN set -eux; \
   find "${CUDA_HOME_DIR}" -name '*.a' -delete; \
   rm -rf "${CUDA_HOME_DIR}"/doc "${CUDA_HOME_DIR}"/share "${CUDA_HOME_DIR}"/src \
          "${CUDA_HOME_DIR}"/compute-sanitizer "${CUDA_HOME_DIR}"/extras \
          "${CUDA_HOME_DIR}"/compat
 
-# ---- final stage：debian:trixie-slim ----
+# --------------------------------- Runtime ----------------------------------
 FROM docker.io/debian:trixie-slim
 ARG CUDA_HOME_DIR
 
@@ -88,6 +67,4 @@ COPY --from=builder /opt/codespace/frameworks/venv /opt/codespace/frameworks/ven
 ENV CUDA_HOME="${CUDA_HOME_DIR}"
 ENV PATH="/opt/codespace/frameworks/venv/bin:${CUDA_HOME_DIR}/bin:$PATH"
 
-# 可运行镜像：缺省进 venv 的 python；也可 `python -m sglang.launch_server ...` 起
-# serving。运行需 host NVIDIA Container Toolkit 注入 driver。
 ENTRYPOINT ["/opt/codespace/frameworks/venv/bin/python"]

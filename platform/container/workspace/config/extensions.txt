@@ -1,11 +1,4 @@
-# Workspace remote server 要预装的 VSCode/Trae 扩展，来源为本机 Trae 实际安装列表。
-# 只列在 remote 运行的扩展（extensionKind 含 workspace）；纯客户端扩展不要加进来：
-#   - remote-ssh / remote-ssh-edit / remote-explorer（extensionKind=ui，客户端发起连接）
-#   - 主题 / 图标主题 / keymap（视觉与键位，由本地 IDE 渲染，装到 remote 不激活）
-# 它们由本地 Trae/VSCode 安装，不经此清单。
-# 下面按发布者分两组：官方（平台/语言/工具的官方组织或公司）与社区（个人开发者）。
-
-# ---- 官方：平台 / 语言 / 工具厂商发布 ----
+# Only extensions whose extensionKind includes workspace belong here.
 bazelbuild.vscode-bazel
 bruno-api-client.bruno
 charliermarsh.ruff
@@ -21,7 +14,6 @@ ms-vscode.live-server
 redhat.vscode-xml
 redhat.vscode-yaml
 
-# ---- 社区：个人开发者发布 ----
 chouzz.vscode-better-align
 christian-kohler.path-intellisense
 davidanson.vscode-markdownlint

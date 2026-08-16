@@ -1,13 +1,5 @@
-# PyTorch built from source for 8x H100 (SM 9.0) against CUDA 13.0.
-#
-# 产出可直接 `import torch` 的 framework image，不包含 s6 或 serving entrypoint。
-#
+# --------------------------------- Builder ----------------------------------
 # CUDA 13 跨 major，runtime Host 需要 driver >=580；driver 535 只能构建，不能运行。
-#
-# 在匹配 toolkit 的 Ubuntu builder 中源码编译，避免 Debian final 的 glibc header
-# 与 nvcc 冲突；final stage 只接收 venv 和精简后的 toolkit。
-
-# ---- builder stage：Ubuntu 24.04 CUDA 13 devel ----
 ARG CUDA_DEVEL_IMAGE=docker.io/nvidia/cuda:13.0.1-cudnn-devel-ubuntu24.04
 ARG CUDA_HOME_DIR=/usr/local/cuda-13.0
 FROM ${CUDA_DEVEL_IMAGE} AS builder
@@ -20,7 +12,6 @@ RUN apt-get update -y \
        --slave /usr/bin/g++ g++ /usr/bin/g++-12 \
   && rm -rf /var/lib/apt/lists/*
 
-# 用 uv 官方 standalone 安装脚本装到 /opt/uv（不引入 binman，也无需 zstd）。
 RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/opt/uv sh
 
 ARG TORCH_REF=v2.13.0
@@ -55,14 +46,13 @@ RUN set -eux; \
   "${FRAMEWORK_VENV}/bin/python" -c "import torch, torchvision, torchaudio; \
 print(torch.__version__, torch.version.cuda); assert torch.version.cuda.startswith('13'), torch.version.cuda"
 
-# 保守瘦身 toolkit：删静态库与编译期用不到的目录。
 RUN set -eux; \
   find "${CUDA_HOME_DIR}" -name '*.a' -delete; \
   rm -rf "${CUDA_HOME_DIR}"/doc "${CUDA_HOME_DIR}"/share "${CUDA_HOME_DIR}"/src \
          "${CUDA_HOME_DIR}"/compute-sanitizer "${CUDA_HOME_DIR}"/extras \
          "${CUDA_HOME_DIR}"/compat
 
-# ---- final stage：debian:trixie-slim ----
+# --------------------------------- Runtime ----------------------------------
 FROM docker.io/debian:trixie-slim
 ARG CUDA_HOME_DIR
 

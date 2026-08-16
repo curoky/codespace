@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# Provision the macOS host and install Codespace-managed home configuration.
-# Usage: install.sh [--with-atuin-server]
-# Requires Bash 3.2 or newer, curl, sudo, and Apple Silicon macOS.
 
 link_home_path() {
   local source="$1/$2"

@@ -1,16 +1,6 @@
 #!/usr/bin/env bash
 
-# Export the WSL flavor image as a flat rootfs tarball importable by WSL.
-#
-# WSL only understands a single-layer rootfs tar (optionally gzip'd), not an OCI
-# layered image, so we `docker export` a container (not `docker save` an image).
-# export flattens the filesystem and drops ENTRYPOINT/CMD/ENV, which is exactly
-# what we want: all WSL runtime wiring lives in the rootfs (/etc/wsl.conf,
-# /opt/codespace/wsl/boot.sh) rather than in image metadata.
-#
-# Renaming the output to *.wsl lets it be installed by double-click or
-# `wsl --install --from-file` (WSL >= 2.4.4). It also works with the classic
-# `wsl --import <Distro> <InstallDir> codespace.wsl`.
+# WSL imports a flat rootfs, not an OCI image archive.
 
 set -euo pipefail
 
