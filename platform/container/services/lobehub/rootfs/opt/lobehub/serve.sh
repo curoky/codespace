@@ -26,7 +26,7 @@ if [[ ! -s "${config_dir}/auto-auth-password" ]]; then
 fi
 
 if [[ ! -s "${config_dir}/jwks-key" ]]; then
-  /bin/node /opt/codespace/lobehub/create-jwks.js >"${config_dir}/jwks-key.tmp"
+  /bin/node /opt/lobehub/create-jwks.js >"${config_dir}/jwks-key.tmp"
   mv "${config_dir}/jwks-key.tmp" "${config_dir}/jwks-key"
 fi
 

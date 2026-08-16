@@ -39,7 +39,7 @@ RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs
 # unsafe-best-match lets uv pick the best version across all indexes instead.
 ARG VLLM_COMMIT=e126687a9a828d513c01a07cd69f025f27d63280
 ARG CUDA_TAG=cu129
-ENV SERVE_VENV=/opt/codespace/vllm/venv
+ENV SERVE_VENV=/opt/vllm/venv
 RUN /opt/bm/bin/uv venv "${SERVE_VENV}" --python 3.12 \
   && /opt/bm/bin/uv pip install --python "${SERVE_VENV}/bin/python" \
     --prerelease=allow \
@@ -48,11 +48,11 @@ RUN /opt/bm/bin/uv venv "${SERVE_VENV}" --python 3.12 \
     --extra-index-url "https://wheels.vllm.ai/${VLLM_COMMIT}" \
     --extra-index-url "https://download.pytorch.org/whl/${CUDA_TAG}"
 
-ENV PATH="/opt/codespace/vllm/venv/bin:/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:$PATH"
+ENV PATH="/opt/vllm/venv/bin:/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:$PATH"
 
 COPY platform/container/workspace/rootfs/etc/s6/skel/ /etc/s6/skel/
 COPY platform/container/services/vllm/rootfs/ /
-RUN chmod +x /opt/codespace/vllm/serve.sh
+RUN chmod +x /opt/vllm/serve.sh
 COPY platform/container/workspace/scripts/install-s6.sh /tmp/install-s6.sh
 RUN /tmp/install-s6.sh
 

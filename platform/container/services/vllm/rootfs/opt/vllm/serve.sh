@@ -18,7 +18,7 @@ read -r -a extra_args <<<"${SERVE_EXTRA_ARGS:-}"
 
 # The inference stack lives in a dedicated venv; the s6-generated init PATH does
 # not include it, so reference the venv binary explicitly.
-venv_bin="${SERVE_VENV:-/opt/codespace/vllm/venv}/bin"
+venv_bin="${SERVE_VENV:-/opt/vllm/venv}/bin"
 
 exec "${venv_bin}/vllm" serve "${model}" \
   --host "${host}" \

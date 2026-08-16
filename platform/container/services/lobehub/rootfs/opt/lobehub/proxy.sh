@@ -14,4 +14,4 @@ export LOBEHUB_AUTO_AUTH_EMAIL="codespace@codespace.invalid"
 export LOBEHUB_AUTO_AUTH_PASSWORD
 LOBEHUB_AUTO_AUTH_PASSWORD=$(<"${password_file}")
 
-exec s6-setuidgid nextjs /bin/node /opt/codespace/lobehub/auth-proxy.js
+exec s6-setuidgid nextjs /bin/node /opt/lobehub/auth-proxy.js
