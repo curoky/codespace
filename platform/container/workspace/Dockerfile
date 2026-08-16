@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.9.0
 ARG BASE_IMAGE=debian:13
 
-################################ stage/static tools ################################
+# --------------------------- Standalone binaries ----------------------------
 FROM docker.io/debian:latest AS stage_sb
 RUN apt-get update -y && apt-get install -y curl zstd
 
@@ -12,7 +12,7 @@ RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs
   && ln -s -r /opt/bm/bin/bazelisk /opt/bm/bin/bazel \
   && rm -rf /opt/bm/store/nettools/bin/hostname
 
-################################# stage/conda environ ################################
+# ---------------------------------- Conda -----------------------------------
 FROM docker.io/debian:stable-slim AS stage_conda
 
 RUN apt-get update -y \
@@ -25,7 +25,7 @@ RUN apt-get update -y \
 
 COPY platform/container/workspace/scripts/install-conda-environment.sh /opt/conda/condabin/install-conda-environment
 
-################################# stage/rust ################################
+# ----------------------------------- Rust -----------------------------------
 FROM docker.io/debian:stable-slim AS stage_rust
 ENV CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup
 ENV PATH=/opt/rust/cargo/bin:${PATH}
@@ -35,7 +35,7 @@ RUN apt-get update -y \
   && rustup component remove rust-docs \
   && rm -rf /var/lib/apt/lists/*
 
-################################# stage/python ################################
+# ---------------------------------- Python ----------------------------------
 FROM docker.io/debian:stable-slim AS stage_python
 COPY --from=stage_sb /opt/bm/bin/uv /usr/local/bin/uv
 ENV UV_TOOL_DIR=/opt/uv/tools \
@@ -52,7 +52,7 @@ RUN apt-get update -y \
   && uv tool install tensorboard --python 3.12 --with tensorboard-plugin-profile --with "setuptools==81.0.0" \
   && rm -rf /var/lib/apt/lists/*
 
-################################# stage/nix ################################
+# ----------------------------------- Nix ------------------------------------
 FROM docker.io/debian:stable-slim AS stage_nix
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates curl xz-utils \
@@ -75,36 +75,29 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
     nixpkgs.prettier nixpkgs.mitmproxy \
     nixpkgs.copyparty nixpkgs.dool nixpkgs.git-filter-repo \
     -p /nix/var/nix/profiles/default \
-  # setup java
   && nix-env -iA nixpkgs.maven -p /nix/var/nix/profiles/default \
   && nix-env -iA nixpkgs.jdk8_headless -p /nix/var/nix/profiles/jdk8 \
   && nix-env -iA nixpkgs.jdk25_headless -p /nix/var/nix/profiles/jdk25 \
-  # setup nodejs
   && nix-env -iA nixpkgs.nodejs_24 -p /nix/var/nix/profiles/default \
   && nix-env -iA nixpkgs.nodejs_24 -p /nix/var/nix/profiles/nodejs-24 \
   && nix-env -iA nixpkgs.nodejs_26 -p /nix/var/nix/profiles/nodejs-26 \
-  # setup go
   && nix-env -iA nixpkgs.go_1_26 -p /nix/var/nix/profiles/default \
   && nix-env -iA nixpkgs.go_1_26 -p /nix/var/nix/profiles/go-1_26 \
-  # setup gcc
   && nix-env -iA nixpkgs_2505.gcc12 -p /nix/var/nix/profiles/gcc-12 \
   && nix-env -iA nixpkgs.gcc15 -p /nix/var/nix/profiles/default \
   && nix-env -iA nixpkgs.gcc16 -p /nix/var/nix/profiles/gcc-16 \
-  # setup clang
   && nix-env -iA nixpkgs.clang_21 -p /nix/var/nix/profiles/clang-21 \
   && nix-collect-garbage -d \
   && nix-store --optimise
 
-################################# stage/cuda ################################
-# 仅作为 CUDA toolkit 的搬运源：官方 devel 镜像把整套 CUDA 装在 /usr/local/cuda-12.2，
-# 与发行版无关，故只 COPY 该目录而不 FROM 继承。版本锁定 12.2.2 以匹配 H100 上
-# 535 系列驱动（driver 支持上限 CUDA 12.2），避免 runtime 版本超出驱动。
+# ----------------------------------- CUDA -----------------------------------
+# CUDA 12.2 is the newest toolkit supported by the target Host's 535 driver.
 FROM docker.io/nvidia/cuda:12.2.2-devel-ubuntu22.04 AS stage_cuda
 
-################################ stage/nsight systems ################################
+# ----------------------------- Nsight Systems -------------------------------
 FROM nvcr.io/nvidia/devtools/nsight-systems-cli:2026.3.1-ubuntu22.04 AS stage_nsys
 
-################################ stage/vscode extensions ################################
+# ---------------------------- Editor extensions -----------------------------
 FROM docker.io/debian:stable-slim AS stage_vscode_ext
 
 RUN apt-get update -y \
@@ -115,7 +108,7 @@ COPY platform/container/workspace/config/extensions.txt /tmp/extensions.txt
 COPY platform/container/workspace/scripts/install-editor-extensions.sh /tmp/install-editor-extensions.sh
 RUN bash /tmp/install-editor-extensions.sh /tmp/extensions.txt /opt/editor-extensions
 
-################################ main ################################
+# --------------------------------- Runtime ----------------------------------
 FROM docker.io/$BASE_IMAGE AS workspace
 
 ENV PATH=/opt/bm/bin:${PATH}
@@ -149,7 +142,16 @@ RUN git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-play
 RUN ln -s /nix/var/nix/profiles/default /home/x/.nix-profile
 RUN sudo chown 5230:5230 /opt
 
+# ----------------------------------- Test -----------------------------------
+FROM workspace AS test
+
 RUN --mount=type=bind,source=platform/container/workspace/tests,target=/opt/codespace/tests,ro \
-  /opt/uv/bin/python3 -B /opt/codespace/tests/test_image.py
+  /opt/uv/bin/python3 -B /opt/codespace/tests/test_image.py \
+  && touch /tmp/image-tested
+
+# --------------------------------- Release ----------------------------------
+FROM workspace AS release
+
+COPY --from=test /tmp/image-tested /opt/codespace/.image-tested
 
 ENTRYPOINT ["/etc/s6/init/bin/init"]
