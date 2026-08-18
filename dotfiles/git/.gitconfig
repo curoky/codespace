@@ -15,7 +15,7 @@ smudge = git-lfs smudge -- %f
 ;   branch = yellow black bold ul
 
 [core]
-excludesfile = ~/devspace/dotfiles/git/.gitignore_global
+excludesfile = ~/devspace/images/dev/rootfs/home/x/.gitignore_global
 
 [log]
 date = iso
