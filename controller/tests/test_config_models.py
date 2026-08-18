@@ -163,6 +163,60 @@ def test_config_accepts_blank_project_and_open_path() -> None:
     assert config.projects["notes"].resolved_open_path() == "/workspace/notes"
 
 
+def test_config_accepts_git_project_from_combined_repo() -> None:
+    config = Config.model_validate(
+        {
+            "default_image": "img",
+            "container": _CONTAINER,
+            "hosts": {"home": _SSH_HOST},
+            "projects": {
+                "abbie": {
+                    "host": [{"name": "home"}],
+                    "repo": "git:git@curoky:devspace",
+                }
+            },
+        }
+    )
+
+    abbie = config.projects["abbie"]
+    assert abbie.type == "git"
+    assert abbie.git_url == "git@curoky:devspace"
+    assert abbie.repo is None
+    assert abbie.provider is None
+    assert abbie.resolved_open_path() == "/workspace/devspace"
+
+
+def test_config_rejects_git_project_with_provider() -> None:
+    with pytest.raises(ValidationError, match="git project must not set"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "container": _CONTAINER,
+                "hosts": {"home": _SSH_HOST},
+                "projects": {
+                    "abbie": {
+                        "host": [{"name": "home"}],
+                        "type": "git",
+                        "git_url": "git@curoky:devspace",
+                        "provider": "github",
+                    }
+                },
+            }
+        )
+
+
+def test_config_rejects_git_project_without_git_url() -> None:
+    with pytest.raises(ValidationError, match="git project requires"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "container": _CONTAINER,
+                "hosts": {"home": _SSH_HOST},
+                "projects": {"abbie": {"host": [{"name": "home"}], "type": "git"}},
+            }
+        )
+
+
 def test_config_rejects_blank_project_with_repo() -> None:
     with pytest.raises(ValidationError, match="blank project must not set"):
         Config.model_validate(

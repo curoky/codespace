@@ -120,7 +120,7 @@ def test_static_assets_are_native_sources(app_client: tuple[TestClient, FakeServ
     assert script.text.index('link("Trae CN"') < script.text.index("actions.append(sshButton)")
     assert "navigator.clipboard.writeText(command)" in script.text
     assert 'status: environment.status || "unknown"' in script.text
-    assert 'type === "repo" && status !== "running"' in script.text
+    assert '(type === "repo" || type === "git") && status !== "running"' in script.text
     assert 'button.textContent = "Copied"' in script.text
     assert '"dismiss-operation", operation)' in script.text
     assert 'aria-label", "Dismiss failed operation"' in script.text

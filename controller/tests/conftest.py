@@ -42,6 +42,11 @@ def config() -> Config:
                     "type": "blank",
                     "description": "Repo-less scratch space",
                 },
+                "abbie": {
+                    "host": [{"name": "home"}],
+                    "repo": "git:git@curoky:devspace",
+                    "description": "Raw git+ssh project",
+                },
             },
         }
     )

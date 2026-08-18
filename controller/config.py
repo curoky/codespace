@@ -21,6 +21,7 @@ from controller.models import (
     RESOURCE_ID_RE,
     EnvironmentSpec,
     GitProvider,
+    GitUrl,
     HostId,
     ImagePlatform,
     NonBlankString,
@@ -233,6 +234,7 @@ class ProjectConfig(BaseModel):
     type: ProjectType = "repo"
     provider: GitProvider | None = None
     repo: RepoPath | None = None
+    git_url: GitUrl | None = None
     description: NonBlankString | None = None
     image: NonBlankString | None = None
     open_path: NonBlankString | None = None
@@ -280,12 +282,16 @@ class ProjectConfig(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def _split_provider_repo(cls, data: object) -> object:
-        """Split ``repo: <provider>:<owner>/<name>`` before validation."""
+        """Split ``repo: <provider>:<owner>/<name>`` (or ``repo: git:<url>``) before validation."""
         if isinstance(data, dict) and isinstance(data.get("repo"), str) and ":" in data["repo"]:
+            provider, _, rest = data["repo"].partition(":")
+            if provider == "git":
+                if "git_url" in data:
+                    raise ValueError("set either combined 'repo' or separate 'git_url', not both")
+                return {**data, "type": "git", "git_url": rest, "repo": None}
             if "provider" in data:
                 raise ValueError("set either combined 'repo' or separate 'provider', not both")
-            provider, _, repo = data["repo"].partition(":")
-            return {**data, "provider": provider, "repo": repo}
+            return {**data, "provider": provider, "repo": rest}
         return data
 
     @model_validator(mode="after")
@@ -293,14 +299,22 @@ class ProjectConfig(BaseModel):
         if self.type == "repo":
             if self.repo is None or self.provider is None:
                 raise ValueError("repo project requires 'repo' and 'provider'")
+            if self.git_url is not None:
+                raise ValueError("repo project must not set 'git_url'")
             return self
-        if self.repo is not None or self.provider is not None:
-            raise ValueError("blank project must not set 'repo' or 'provider'")
+        if self.type == "git":
+            if self.git_url is None:
+                raise ValueError("git project requires 'git_url'")
+            if self.repo is not None or self.provider is not None:
+                raise ValueError("git project must not set 'repo' or 'provider'")
+            return self
+        if self.repo is not None or self.provider is not None or self.git_url is not None:
+            raise ValueError("blank project must not set 'repo', 'provider' or 'git_url'")
         return self
 
     def resolved_open_path(self) -> str:
         """Return the editor open path, defaulting per project type."""
-        return self.open_path or workspace_open_path(self.repo)
+        return self.open_path or workspace_open_path(self.repo, self.git_url)
 
 
 class Config(BaseModel):

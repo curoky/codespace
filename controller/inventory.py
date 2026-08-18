@@ -10,6 +10,8 @@ from podman.errors import NotFound
 
 from controller.config import Config, ProjectConfig
 from controller.models import (
+    GIT_URL_RE,
+    LABEL_GIT_URL,
     LABEL_IMAGE,
     LABEL_INSTANCE,
     LABEL_MANAGED,
@@ -85,6 +87,7 @@ def read_environment(container: Container, host: str, config: Config) -> Environ
         )
 
     repo, provider = _read_repo_labels(raw_labels, name, project_type, configured_project)
+    git_url = _read_git_url_label(raw_labels, name, project_type, configured_project)
     identity = environment_id(host, project, instance)
     if name != identity:
         raise ValueError(f"container {name} must use deterministic name {identity!r}")
@@ -106,6 +109,7 @@ def read_environment(container: Container, host: str, config: Config) -> Environ
         type=project_type,
         repo=repo,
         provider=provider,
+        git_url=git_url,
         image=labels[LABEL_IMAGE],
         platform=_platform(labels[LABEL_PLATFORM], name),
         ssh_port=port,
@@ -146,9 +150,9 @@ def _read_repo_labels(
     project_type: ProjectType,
     configured_project: ProjectConfig,
 ) -> tuple[str | None, GitProvider | None]:
-    if project_type == "blank":
+    if project_type != "repo":
         if labels.get(LABEL_REPO) or labels.get(LABEL_PROVIDER):
-            raise ValueError(f"container {name} is blank but has repo or provider label")
+            raise ValueError(f"container {name} is {project_type} but has repo or provider label")
         return None, None
     repo = _required_label(labels, name, LABEL_REPO)
     provider = _provider(_required_label(labels, name, LABEL_PROVIDER), name)
@@ -157,6 +161,24 @@ def _read_repo_labels(
     if configured_project.repo != repo or configured_project.provider != provider:
         raise ValueError(f"container {name} labels do not match project labels")
     return repo, provider
+
+
+def _read_git_url_label(
+    labels: dict[str, str],
+    name: str,
+    project_type: ProjectType,
+    configured_project: ProjectConfig,
+) -> str | None:
+    if project_type != "git":
+        if labels.get(LABEL_GIT_URL):
+            raise ValueError(f"container {name} is {project_type} but has git-url label")
+        return None
+    git_url = _required_label(labels, name, LABEL_GIT_URL)
+    if not GIT_URL_RE.fullmatch(git_url):
+        raise ValueError(f"container {name} has invalid git-url label {git_url!r}")
+    if configured_project.git_url != git_url:
+        raise ValueError(f"container {name} labels do not match project labels")
+    return git_url
 
 
 def _container_name(container: Container) -> str:
@@ -186,6 +208,8 @@ def _project_type(value: str, name: str) -> ProjectType:
             return "repo"
         case "blank":
             return "blank"
+        case "git":
+            return "git"
         case _:
             raise ValueError(f"container {name} has invalid type label {value!r}")
 

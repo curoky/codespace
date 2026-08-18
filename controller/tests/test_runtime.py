@@ -817,6 +817,41 @@ def test_clone_reuses_successfully_cloned_empty_repository() -> None:
     ]
 
 
+def test_clone_git_url_missing_checkout_clones_raw_url() -> None:
+    container = FakeContainer()
+
+    workspace.clone_git_url(container, "git@curoky:devspace")  # type: ignore[arg-type]
+
+    assert (
+        [
+            "git",
+            "clone",
+            "--depth=1",
+            "git@curoky:devspace",
+            "/workspace/devspace.codespace-clone",
+        ],
+        "x",
+    ) in container.exec_calls
+    assert container.exec_calls[-1] == (
+        ["mv", "--", "/workspace/devspace.codespace-clone", "/workspace/devspace"],
+        "x",
+    )
+
+
+def test_clone_git_url_reuses_valid_existing_checkout() -> None:
+    container = FakeContainer()
+    container.exec_run = lambda command, user=None, demux=False: (  # type: ignore[method-assign]
+        container.exec_calls.append((command, user)) or (0, (None, None))
+    )
+
+    workspace.clone_git_url(container, "git@curoky:devspace")  # type: ignore[arg-type]
+
+    assert container.exec_calls == [
+        (["test", "-d", "/workspace/devspace/.git"], "x"),
+        (["git", "-C", "/workspace/devspace", "rev-parse", "--verify", "HEAD"], "x"),
+    ]
+
+
 def test_prepare_open_path_makes_directory_as_container_user() -> None:
     container = FakeContainer()
 

@@ -372,29 +372,57 @@ def test_queue_create_blank_project_needs_no_token(service: CodespaceService) ->
     assert operation.project == "scratch"
 
 
-def test_create_rejects_duplicate_before_generating_keys(
+def test_create_git_project_clones_url_without_deploy_key(
     service: CodespaceService,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    _queue_with_token(service)
-    monkeypatch.setattr(
-        inventory,
-        "list_inventory",
-        lambda *args: inventory.Inventory([_environment()], []),
+    service.queue_create("abbie", "home", "debug")
+    events: list[str] = []
+    cloned: list[str] = []
+    container = SimpleNamespace(id="container-id")
+    abbie_env = _environment(project="abbie")
+    abbie_env.type = "git"
+    abbie_env.repo = None
+    abbie_env.provider = None
+    abbie_env.git_url = "git@curoky:devspace"
+    inventories = iter(
+        [
+            inventory.Inventory([], []),
+            inventory.Inventory([abbie_env], []),
+        ]
     )
-    generated: list[bool] = []
+    monkeypatch.setattr(inventory, "list_inventory", lambda *args: next(inventories))
     monkeypatch.setattr(
         workspace,
         "generate_deploy_keypair",
-        lambda: generated.append(True),
+        lambda: events.append("keygen") or workspace.DeployKeypair("PRIVATE", "PUBLIC"),
     )
+    monkeypatch.setattr(containers, "pull_image", lambda *args: events.append("pull"))
+    monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: events.append("workspace"))
+    monkeypatch.setattr(
+        containers,
+        "create_container",
+        lambda *args, **kwargs: (events.append("create"), container)[-1],
+    )
+    monkeypatch.setattr(
+        workspace, "inject_deploy_key", lambda *args, **kwargs: events.append("inject")
+    )
+    monkeypatch.setattr(ssh, "probe", lambda *args: events.append("probe"))
+    monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
+    monkeypatch.setattr(workspace, "clone_repo", lambda *args: events.append("clone_repo"))
+    monkeypatch.setattr(workspace, "clone_git_url", lambda _container, url: cloned.append(url))
+    monkeypatch.setattr(workspace, "prepare_open_path", lambda *args: events.append("open_path"))
+    monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
 
-    service.create("devspace", "home", "debug")
+    service.create("abbie", "home", "debug")
 
-    operation = service.operations.list()[0]
-    assert operation.status == "failed"
-    assert "already exists" in (operation.error or "")
-    assert generated == []
+    assert "keygen" not in events
+    assert "register" not in events
+    assert "inject" not in events
+    assert "clone_repo" not in events
+    assert cloned == ["git@curoky:devspace"]
+    assert events == ["pull", "workspace", "create", "probe", "projection"]
+    assert service.operations.list() == []
 
 
 def test_create_rejects_deterministic_port_collision(

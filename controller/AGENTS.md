@@ -118,6 +118,10 @@ projects:
       - name: home
     type: blank
     open_path: /workspace/notes
+  abbie:
+    host:
+      - name: home
+    repo: git:git@curoky:devspace
 
 tokens:
   github: ghp_xxx
@@ -134,10 +138,14 @@ secrets:
 声明可启动 host 列表（同一 repo 只出现一次），列表每项 `{name, platform?}`。project 按 `type` 决定 repo
 相关字段，可选 `description`、`image`、`open_path`、`published_ports`、`container`。规则：
 
-- `type` 默认 `repo`，可设 `blank`。`repo` 必须配 `repo`（因此带 `provider`）；`blank` 禁止配 `repo`/`provider`。
-- `repo` 写成 `<provider>:<owner>/<name>`，`provider` 只能 `github` 或 `gitlab`。
-- `open_path` 可选、必须绝对路径；未设时 `repo` 默认打开仓库目录，`blank` 默认打开 `/workspace`。编辑器
-  deep link 按此路径打开。
+- `type` 默认 `repo`，可设 `blank` 或 `git`。`repo` 必须配 `repo`（因此带 `provider`）；`git` 必须配 `git_url`、
+  禁止配 `repo`/`provider`；`blank` 禁止配 `repo`/`provider`/`git_url`。
+- `repo` 写成 `<provider>:<owner>/<name>`，`provider` 只能 `github` 或 `gitlab`。也可写成 `git:<完整 git+ssh URL>`
+  作为 `git_url` 的简写（自动置 `type: git`），如 `repo: git:git@curoky:devspace`。
+- `git` 类型直接 clone 原始 `git@host:owner/name.git`（或 `ssh://` 形式）URL，不生成或注册 deploy key，凭据与
+  host key 校验完全依赖镜像内 SSH 契约（GSSAPI/Kerberos 或运维预置的 `known_hosts`）；控制面不为其管理任何凭据。
+- `open_path` 可选、必须绝对路径；未设时 `repo`/`git` 默认打开仓库目录（`git` 从 URL 末段派生），`blank` 默认打开
+  `/workspace`。编辑器 deep link 按此路径打开。
 - 每个 host 条目 `platform` 只能 `linux/amd64` 或 `linux/arm64`；省略用该 host 原生平台。
 - `published_ports` 可选，每项 `"<remote>"`（local=remote）或 `"<local>:<remote>"`，取值 1-65535，同一
   project 内 local 端口不得重复。只有解析后 `container.network_mode` 为 `bridge` 的 project 可配置
@@ -213,10 +221,11 @@ Host workspace 为 `<login-home>/codespace/<project>/<instance>`，挂载到容�
 不探测替代端口。
 
 Podman inventory 是唯一事实来源。Environment container 必须有 `codespace.managed=true` 及完整的 project、
-instance、type、image、platform、SSH port label。`codespace.type` 只能 `repo` 或 `blank`：`repo` 额外携带
-`codespace.repo` 和 `codespace.provider`，`blank` 不得携带。未选平台时 platform label 为 `native`。缺失、
-格式错误、与配置 `type` 不符或引用未知 project 的 label 都是 inventory error，不得推断默认值。sidecar 是
-host 级单例，不得复用 environment 的 ID、workspace、deploy key 或 SSH 投影。
+instance、type、image、platform、SSH port label。`codespace.type` 只能 `repo`、`blank` 或 `git`：`repo` 额外
+携带 `codespace.repo` 和 `codespace.provider`，`git` 额外携带 `codespace.git-url`，`blank` 三者都不得携带。
+未选平台时 platform label 为 `native`。缺失、格式错误、与配置 `type` 不符或引用未知 project 的 label 都是
+inventory error，不得推断默认值。sidecar 是 host 级单例，不得复用 environment 的 ID、workspace、deploy key
+或 SSH 投影。
 
 ## 连接机制
 
@@ -275,15 +284,19 @@ label 的 container，待 token 恢复后重试正常删除。
 provider token，其余与 `repo` 一致；因无 checkout 目录，`blank` 在容器内以容器用户身份 `mkdir -p` 其
 `open_path`（默认 `/workspace`），保证编辑器打开的是已存在目录。
 
-删除 `repo` 类型需 provider token，并在任何远端变更前撤销所有匹配 deploy key（key 不存在视为幂等成功）。
-`blank` 无 provider 状态，直接进入 container 与 workspace 处理。`purge=false` 只删 container；`purge=true`
-先停 container、再依 image label 清理 workspace、最后删 container。Provider 失败时不得改变 container 和
-workspace。
+`git` 类型同样跳过 deploy key 生成/注册（步骤 3、10）与 provider token，但保留步骤 11 的 clone：直接以 15 分钟
+exec 读超时 `git clone --depth=1 <git_url>`，凭据与 host key 校验完全依赖镜像内 SSH 契约，checkout 目录从 URL
+末段派生。删除与 `repo` 同样两阶段检测未 push/未提交（见下），但无 provider 状态、不撤销任何 key。
 
-删除 `repo` 分两阶段：`force=false` 只在容器内 checkout 目录检测未 push 提交（`git log --branches --not
+删除 `repo` 类型需 provider token，并在任何远端变更前撤销所有匹配 deploy key（key 不存在视为幂等成功）。
+`blank` 与 `git` 无 provider 状态，直接进入 container 与 workspace 处理。`purge=false` 只删 container；
+`purge=true` 先停 container、再依 image label 清理 workspace、最后删 container。Provider 失败时不得改变
+container 和 workspace。
+
+删除 `repo`/`git` 分两阶段：`force=false` 只在容器内 checkout 目录检测未 push 提交（`git log --branches --not
 --remotes`）和未提交/未跟踪改动（`git status --porcelain`），不做任何 container/workspace/provider 变更，
 返回 `{deleted, workspace_removed, state}`（`state` 含 `unpushed`、`uncommitted`、`detail`）。WebUI 先以
-`force=false` 打开 block 弹窗展示检测，确认后再以 `force=true` 真正删除（撤销 deploy key、按 purge 清理
+`force=false` 打开 block 弹窗展示检测，确认后再以 `force=true` 真正删除（`repo` 撤销 deploy key、按 purge 清理
 workspace、删 container）。Git 检测仅允许在 `running` container 内执行，不得为预检启动已退出/停止的 container；
 WebUI 据 Dashboard status 直接显示未检测警告并允许确认，直接调 `force=false` API 时立即返回错误。`blank` 无
 checkout，`state` 恒为空。检测只发生在删除路径，dashboard 不受影响。

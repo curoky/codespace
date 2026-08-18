@@ -32,6 +32,11 @@ Container 专用 SSH config 位于 `rootfs/home/x/.ssh/config`，为 `Host *` �
 `dotfiles/ssh/user.ssh_config`。GitHub/GitLab host key 固定在同目录 `known_hosts`，provider 连接必须
 `StrictHostKeyChecking yes`，不得回退到 `accept-new`。
 
+控制面的 `git` 类型 project 直接 clone 任意内网 `git@host:owner/name.git`（或 `ssh://` 形式）URL，不注入
+deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承担：内网 host 通常经 `Host *` 的 GSSAPI/Kerberos
+（配合宿主 `/etc/krb5.conf` bind-mount）认证；host key 必须预置在同目录 `known_hosts`（或由该 host 的镜像/运维
+资产提供），`StrictHostKeyChecking yes` 下未预置的 host 会被拒绝。新增内网 git host 需在此同步 host key。
+
 ## 镜像 host contract
 
 开发镜像必须提供：
