@@ -663,6 +663,104 @@ def test_config_allows_mount_targets_outside_control_plane_paths(target: str) ->
     assert volumes[0].target == target
 
 
+def _config_with_container(container: dict[str, object]) -> dict[str, object]:
+    return {
+        "default_image": "img",
+        "container": {**_CONTAINER, **container},
+        "hosts": {"home": _SSH_HOST},
+        "projects": {
+            "devspace": {
+                "host": [{"name": "home"}],
+                "provider": "github",
+                "repo": "owner/repo",
+            }
+        },
+    }
+
+
+def test_config_accepts_secrets_and_resolves_them() -> None:
+    config = Config.model_validate(
+        _config_with_container(
+            {
+                "secrets": [
+                    "supabase_service_key",
+                    {"source": "supabase_anon", "mode": "env", "target": "SUPABASE_ANON_KEY"},
+                ],
+            }
+        )
+    )
+
+    resolved = config.resolved_container("devspace", "home")
+    assert resolved.secrets is not None
+    assert [(s.source, s.mode) for s in resolved.secrets] == [
+        ("supabase_service_key", "mount"),
+        ("supabase_anon", "env"),
+    ]
+
+
+def test_config_rejects_reserved_secret_env_target() -> None:
+    with pytest.raises(ValidationError, match="must not use control-plane keys"):
+        Config.model_validate(
+            _config_with_container(
+                {"secrets": [{"source": "x", "mode": "env", "target": "SSHD_PORT"}]}
+            )
+        )
+
+
+def test_config_rejects_duplicate_secret_env_target() -> None:
+    with pytest.raises(ValidationError, match="must not repeat names"):
+        Config.model_validate(
+            _config_with_container(
+                {
+                    "secrets": [
+                        {"source": "a", "mode": "env", "target": "TOKEN"},
+                        {"source": "b", "mode": "env", "target": "TOKEN"},
+                    ]
+                }
+            )
+        )
+
+
+def test_config_rejects_secret_env_target_colliding_with_environment() -> None:
+    with pytest.raises(ValidationError, match=r"collides with container\.environment"):
+        Config.model_validate(
+            _config_with_container(
+                {
+                    "environment": {"TOKEN": "static"},
+                    "secrets": [{"source": "a", "mode": "env", "target": "TOKEN"}],
+                }
+            )
+        )
+
+
+def test_config_rejects_secret_mount_target_overlapping_control_plane() -> None:
+    with pytest.raises(ValidationError, match="control-plane mount targets"):
+        Config.model_validate(
+            _config_with_container({"secrets": [{"source": "a", "target": "/workspace/secret"}]})
+        )
+
+
+def test_config_rejects_secret_env_target_colliding_with_inherited_host_env() -> None:
+    with pytest.raises(ValidationError, match=r"as container\.secrets env target"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "container": {
+                    **_CONTAINER,
+                    "secrets": [{"source": "a", "mode": "env", "target": "HTTP_PROXY"}],
+                },
+                "hosts": {"home": {"environment": ["HTTP_PROXY"]}},
+                "projects": {
+                    "devspace": {
+                        "host": [{"name": "home"}],
+                        "provider": "github",
+                        "repo": "owner/repo",
+                    }
+                },
+            }
+        )
+
+
 def test_config_seeds_tokens_from_tokens_table(tmp_path: Path) -> None:
     path = tmp_path / "config.yaml"
     path.write_text(

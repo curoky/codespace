@@ -54,3 +54,16 @@ def _normalize_ulimit(limit: object) -> object:
     if isinstance(limit, int):
         return {"soft": limit, "hard": limit}
     return limit
+
+
+def normalize_secrets(value: object) -> object:
+    """Expand bare ``name`` secret references to mount entries."""
+    if not isinstance(value, list):
+        return value
+    return [_normalize_secret(item) for item in value]
+
+
+def _normalize_secret(item: object) -> object:
+    if isinstance(item, str):
+        return {"source": item, "mode": "mount"}
+    return item

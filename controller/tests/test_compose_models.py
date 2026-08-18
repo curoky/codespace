@@ -149,3 +149,92 @@ def test_merged_with_result_is_revalidated() -> None:
 
     assert merged.volumes is not None
     assert [(v.source, v.target, v.read_only) for v in merged.volumes] == [("/a", "/b", True)]
+
+
+def test_secrets_bare_name_short_syntax_becomes_mount() -> None:
+    spec = ServiceSpec.model_validate({"secrets": ["supabase_service_key"]})
+
+    assert spec.secrets is not None
+    secret = spec.secrets[0]
+    assert (secret.source, secret.mode, secret.target) == ("supabase_service_key", "mount", None)
+
+
+def test_secrets_long_syntax_env_mode_passes_through() -> None:
+    spec = ServiceSpec.model_validate(
+        {
+            "secrets": [
+                {"source": "supabase_anon", "mode": "env", "target": "SUPABASE_ANON_KEY"},
+            ]
+        }
+    )
+
+    assert spec.secrets is not None
+    secret = spec.secrets[0]
+    assert (secret.source, secret.mode, secret.target) == (
+        "supabase_anon",
+        "env",
+        "SUPABASE_ANON_KEY",
+    )
+
+
+def test_secrets_mount_accepts_ownership_and_mode() -> None:
+    spec = ServiceSpec.model_validate(
+        {
+            "secrets": [
+                {
+                    "source": "db_password",
+                    "target": "/run/secrets/db",
+                    "uid": 1000,
+                    "gid": 1000,
+                    "file_mode": 0o440,
+                }
+            ]
+        }
+    )
+
+    assert spec.secrets is not None
+    secret = spec.secrets[0]
+    assert (secret.target, secret.uid, secret.gid, secret.file_mode) == (
+        "/run/secrets/db",
+        1000,
+        1000,
+        0o440,
+    )
+
+
+def test_secrets_env_mode_requires_target() -> None:
+    with pytest.raises(ValidationError, match="mode 'env' requires 'target'"):
+        ServiceSpec.model_validate({"secrets": [{"source": "x", "mode": "env"}]})
+
+
+@pytest.mark.parametrize("name", ["BAD-NAME", "1BAD", "bad.name"])
+def test_secrets_env_target_must_be_valid_env_name(name: str) -> None:
+    with pytest.raises(ValidationError, match=r"\^\[A-Za-z_\]"):
+        ServiceSpec.model_validate({"secrets": [{"source": "x", "mode": "env", "target": name}]})
+
+
+def test_secrets_env_mode_rejects_ownership_fields() -> None:
+    with pytest.raises(ValidationError, match="must not set uid/gid/file_mode"):
+        ServiceSpec.model_validate(
+            {"secrets": [{"source": "x", "mode": "env", "target": "TOKEN", "uid": 1000}]}
+        )
+
+
+def test_secrets_mount_target_must_be_absolute() -> None:
+    with pytest.raises(ValidationError, match="must be an absolute path"):
+        ServiceSpec.model_validate({"secrets": [{"source": "x", "target": "relative/path"}]})
+
+
+def test_secrets_reject_unknown_fields() -> None:
+    with pytest.raises(ValidationError, match="Extra inputs"):
+        ServiceSpec.model_validate({"secrets": [{"source": "x", "driver": "file"}]})
+
+
+def test_merged_with_replaces_secrets_wholesale() -> None:
+    spec = ServiceSpec.model_validate({"secrets": ["base"]})
+    override = ServiceSpec.model_validate({"secrets": ["project"]})
+
+    merged = spec.merged_with(override)
+
+    assert merged.secrets is not None
+    assert [secret.source for secret in merged.secrets] == ["project"]

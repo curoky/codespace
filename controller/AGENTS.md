@@ -66,6 +66,13 @@ uv run python -m controller.tools.cleanup_workspaces
 uv run python -m controller.tools.cleanup_workspaces --no-dry-run
 ```
 
+把顶层 `secrets` 明文注册为各 host 上的 Podman secret，先预览再显式执行：
+
+```bash
+uv run python -m controller.tools.sync_secrets
+uv run python -m controller.tools.sync_secrets --no-dry-run
+```
+
 验证控制面：
 
 ```bash
@@ -106,6 +113,11 @@ container:
     - /etc/krb5.conf:/etc/krb5.conf:ro
   environment:
     HTTP_PROXY: http://proxy:3128
+  secrets:
+    - supabase_service_key
+    - source: supabase_anon
+      mode: env
+      target: SUPABASE_ANON_KEY
 
 hosts:
   local:
@@ -149,6 +161,10 @@ projects:
 tokens:
   github: ghp_xxx
   gitlab: glpat-xxx
+
+secrets:
+  supabase_service_key: "eyJhbGci..."
+  supabase_anon: "eyJhbGci..."
 ```
 
 顶层必填字段是 `default_image`、`hosts` 和 `projects`；`container` 可选（省略即全部使用引擎
@@ -181,11 +197,16 @@ project 按 `type` 决定 repo 相关字段，可选
 - Podman Machine host 必须配置 `machine`，不得配置 `podman_socket`。
 - Podman Machine host 不支持 `environment`；该能力只适用于 Linux SSH host。
 - `tokens` 中的 `github`、`gitlab` 是可选的非空字符串。
+- 顶层 `secrets` 是可选映射，key 为 secret 名、value 为明文密钥值，供带外 CLI
+  `sync_secrets` 在各 host 上注册 Podman secret（见「Secret 同步」）。它只服务于该 CLI，
+  控制面进程本身不消费这些明文，运行时只按 `container.secrets` 的名字引用已注册 secret。明文
+  写进 `config.yaml` 属于运维取舍：配置文件必须限制权限并排除版本控制。
 - 顶层 `container` 是可选块，承载所有非身份的容器 run flag，采用 Docker Compose service 的
   字段名与语法子集（解析实现独立在 `controller/compose/` 子包中，只做强类型化，不含控制面知识），
   控制面自身不保留任何隐式默认值。所有字段（`network_mode`、`cap_add`、`security_opt`、
-  `pids_limit`、`ulimits`、`volumes`、`environment`、`devices`、`shm_size`，对应 `--network`、
-  `--cap-add`、`--security-opt`、`--pids-limit`、`--ulimit`、`--device`、`--shm-size`）全部可选，
+  `pids_limit`、`ulimits`、`volumes`、`environment`、`secrets`、`devices`、`shm_size`，对应
+  `--network`、`--cap-add`、`--security-opt`、`--pids-limit`、`--ulimit`、`--secret`、`--device`、
+  `--shm-size`）全部可选，
   未设置等价于 Compose 语义下的「引擎默认」：在 runtime 边界处集合归一为空、`pids_limit` 和
   `shm_size` 仅在设置时才转发给 `podman run`。
   `network_mode` 只能是 `host` 或 `bridge`，原样转发给 `--network`：`host` 让容器共享 host netns；
@@ -204,6 +225,15 @@ project 按 `type` 决定 repo 相关字段，可选
   `container.environment` 是显式透传给容器的固定环境变量，支持映射或
   `["KEY=value"]` 列表短语法，禁止使用控制面派生的保留键 `SSHD_PORT`、`SSHD_BIND`。这些值原样
   转发给 `podman run`，控制面不做任何转换。
+  `secrets` 引用 host 上已用 `podman secret create` 预注册的 Podman secret，控制面只按名字引用、
+  绝不持有明文。每项支持裸字符串短语法（等价 `{source: <name>, mode: mount}`）或长语法
+  `{source, mode, target?, uid?, gid?, file_mode?}`。`mode: mount`（默认）把 secret 以文件暴露，
+  `target` 是容器内绝对路径、省略时默认 `/run/secrets/<source>`，`uid`/`gid` 默认容器用户
+  `5230:5230`、`file_mode` 默认 `0o400`，保证只有 `x` 可读；`mode: env` 把 secret 注入为
+  `target` 命名的环境变量，此时必须给出匹配 `^[A-Za-z_][A-Za-z0-9_]*$` 的 `target`，且禁止设置
+  `uid`/`gid`/`file_mode`。`mode: env` 的 `target` 与 `container.environment`、`hosts.<host>.environment`
+  继承变量共享同一命名空间，不得重名，也不得使用保留键 `SSHD_PORT`、`SSHD_BIND`；`mode: mount`
+  的 `target` 不得与保留 mount tree `/workspace`、`/upload` 相同或互为父子路径。
 - `hosts.<host>.container` 和 `projects.<project>.container` 是可选覆盖，与顶层 `container`
   共用同一个全可选模型。已设置的 key 整体替换对应的下层值（浅层 key 级替换，非深合并），未设置
   （`None`）的 key 继承下层值。优先级 `project > host > global`。覆盖块的 `environment` 同样禁止
@@ -310,7 +340,10 @@ host。
    `cap_add`、`security_opt`、`pids_limit`、`ulimits`、`devices`、额外 `volumes` 和
    `container.environment`）由 global/host/project 分层解析后原样透传，控制面不补默认；
    第 2 步读取的 host 环境快照同时注入且禁止与显式 `container.environment` 重名。GPU 通过
-   `container.devices` 里的 CDI 设备名（如 `nvidia.com/gpu=all`）表达。解析后的
+   `container.devices` 里的 CDI 设备名（如 `nvidia.com/gpu=all`）表达。`container.secrets`
+   在此逐个校验对应 Podman secret 已在该 host 注册，缺失即 fail-fast、不创建 container；
+   `mode: mount` 转发为 `--secret`（默认归属 `5230:5230`、mode `0o400`），`mode: env`
+   把 secret 值注入为目标环境变量，与继承和显式环境变量共享命名空间且不得重名。解析后的
    `container.network_mode` 原样转发给 `--network`；`bridge` 模式下
    注入 `SSHD_BIND=0.0.0.0`，发布 SSH 端口到 loopback，并发布 project `published_ports`
    声明的业务端口。
@@ -396,6 +429,25 @@ container 时为 `no`，其他目录为 `unmanaged`。host 不可用或 inventor
 内串行执行，使用 `default_image` 启动 root helper container，并只将 workspace root bind mount
 给 helper；删除目标必须是 workspace root 的严格子路径。`unmanaged` 目录不得删除。
 
+## Secret 同步
+
+控制面创建实例时只校验 `container.secrets` 引用的 Podman secret 已存在，从不创建 secret。
+把顶层 `secrets` 明文注册到各 host 由独立带外 CLI 完成：
+
+```bash
+# 只预览
+uv run python -m controller.tools.sync_secrets
+
+# 执行创建/替换
+uv run python -m controller.tools.sync_secrets --no-dry-run
+```
+
+`controller/tools/sync_secrets.py` 读取顶层 `secrets` 明文映射，把其中**每个** secret 注册到
+`hosts` 里的**每个** host，不做引用分析。输出固定为 `Host`、`Secret`、`Action` 三列表格；
+`Action` 为 `create`（host 上不存在）或 `replace`（已存在，将删后重建让 config 值生效）。默认
+dry-run，只有 `--no-dry-run` 才 `podman secret rm` + `create`。host 查询失败输出 warning，不
+影响其他并发 host。顶层 `secrets` 为空时直接空转、不建立连接。
+
 ## SSH 投影
 
 `~/.ssh/config` 中只增加一个 include：
@@ -464,6 +516,12 @@ host），只在 create operation 处于 queued 或 running 时轮询。失败�
   复用操作系统信任库（macOS Keychain / Linux 系统 CA），以信任公司 TLS 检查网关重签发的
   证书；不得改回仅信任 certifi，也不得为绕过校验关闭 TLS 验证。
 - Deploy private key 只能存在于对应开发容器。
+- 应用级密钥（如 Supabase key）由 host operator 用 `podman secret create` 预注册，控制面只按
+  名字引用、绝不持有明文，也不得回写或落盘。secret 明文只在容器内出现：`mode: mount` 默认以
+  `0o400`、归属 `5230:5230` 暴露文件，只有 `x` 可读；`mode: env` 注入的值同样只存在于容器
+  进程环境。日志中不得出现 secret 明文。顶层 `secrets` 块是唯一例外的明文来源，仅供带外
+  `sync_secrets` CLI 使用；一旦启用，`config.yaml` 就含明文密钥，必须限制文件权限并排除
+  版本控制，控制面运行时进程仍不读取这些值。
 - 开发容器访问 GitHub/GitLab 必须使用镜像内 pinned `known_hosts` 做严格 host key 校验。
 - 登录 keypair 是固定的、提交进仓库的共享凭据，公钥烤进开发镜像。该方案仅面向内网、且配置不
   存放 IP/port，威胁模型下私钥泄露无实质影响；不得用它保护任何对外可达的 host。

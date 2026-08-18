@@ -15,6 +15,7 @@ from podman.errors import NotFound, PodmanError
 
 from controller import container as container_runtime
 from controller import inventory, workspace
+from controller.compose import Secret
 from controller.config import Config
 from controller.models import (
     LABEL_IMAGE,
@@ -422,6 +423,158 @@ def test_create_container_forwards_shm_size_only_when_set(
     )
     _, kwargs = calls[0]
     assert kwargs["shm_size"] == "100g"
+
+
+class FakeSecretsManager:
+    def __init__(self, existing: set[str]) -> None:
+        self.existing = existing
+        self.queried: list[str] = []
+
+    def exists(self, key: str) -> bool:
+        self.queried.append(key)
+        return key in self.existing
+
+
+def _run_capturing(calls: list[tuple[str, dict[str, object]]]) -> Callable[..., FakeContainer]:
+    container = FakeContainer()
+
+    def run(image: str, **kwargs: object) -> FakeContainer:
+        calls.append((image, kwargs))
+        return container
+
+    return run
+
+
+def test_create_container_forwards_registered_secrets(
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, dict[str, object]]] = []
+    secrets = FakeSecretsManager({"supabase_service_key", "supabase_anon"})
+
+    monkeypatch.setattr(container_runtime, "Container", FakeContainer)
+    client = SimpleNamespace(
+        containers=SimpleNamespace(run=_run_capturing(calls)),
+        secrets=secrets,
+    )
+
+    spec = config.environment_spec("devspace", "home", "debug")
+    spec = replace(
+        spec,
+        container=spec.container.model_copy(
+            update={
+                "secrets": [
+                    Secret(source="supabase_service_key"),
+                    Secret(source="supabase_anon", mode="env", target="SUPABASE_ANON_KEY"),
+                ]
+            }
+        ),
+    )
+    container_runtime.create_container(
+        client,  # type: ignore[arg-type]
+        spec,
+        "/home/x/codespace",
+    )
+
+    _, kwargs = calls[0]
+    assert kwargs["secrets"] == [
+        {"source": "supabase_service_key", "uid": 5230, "gid": 5230, "mode": 0o400}
+    ]
+    assert kwargs["secret_env"] == {"SUPABASE_ANON_KEY": "supabase_anon"}
+    assert set(secrets.queried) == {"supabase_service_key", "supabase_anon"}
+    # Env secrets never leak into the plain environment mapping.
+    assert "SUPABASE_ANON_KEY" not in kwargs["environment"]
+
+
+def test_create_container_omits_secret_kwargs_when_unset(
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, dict[str, object]]] = []
+    monkeypatch.setattr(container_runtime, "Container", FakeContainer)
+    client = SimpleNamespace(
+        containers=SimpleNamespace(run=_run_capturing(calls)),
+        secrets=FakeSecretsManager(set()),
+    )
+
+    container_runtime.create_container(
+        client,  # type: ignore[arg-type]
+        config.environment_spec("devspace", "home", "debug"),
+        "/home/x/codespace",
+    )
+
+    _, kwargs = calls[0]
+    assert "secrets" not in kwargs
+    assert "secret_env" not in kwargs
+
+
+def test_create_container_fails_fast_on_missing_secret(config: Config) -> None:
+    calls: list[tuple[str, dict[str, object]]] = []
+    client = SimpleNamespace(
+        containers=SimpleNamespace(run=_run_capturing(calls)),
+        secrets=FakeSecretsManager(set()),
+    )
+
+    spec = config.environment_spec("devspace", "home", "debug")
+    spec = replace(
+        spec,
+        container=spec.container.model_copy(update={"secrets": [Secret(source="absent")]}),
+    )
+
+    with pytest.raises(RuntimeError, match=r"Podman secret 'absent' is not registered"):
+        container_runtime.create_container(
+            client,  # type: ignore[arg-type]
+            spec,
+            "/home/x/codespace",
+        )
+    # The container must not be created when a referenced secret is missing.
+    assert calls == []
+
+
+def test_create_container_honors_custom_secret_mount_ownership(
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, dict[str, object]]] = []
+    monkeypatch.setattr(container_runtime, "Container", FakeContainer)
+    client = SimpleNamespace(
+        containers=SimpleNamespace(run=_run_capturing(calls)),
+        secrets=FakeSecretsManager({"db_password"}),
+    )
+
+    spec = config.environment_spec("devspace", "home", "debug")
+    spec = replace(
+        spec,
+        container=spec.container.model_copy(
+            update={
+                "secrets": [
+                    Secret(
+                        source="db_password",
+                        target="/run/secrets/db",
+                        uid=1000,
+                        gid=1000,
+                        file_mode=0o440,
+                    )
+                ]
+            }
+        ),
+    )
+    container_runtime.create_container(
+        client,  # type: ignore[arg-type]
+        spec,
+        "/home/x/codespace",
+    )
+
+    _, kwargs = calls[0]
+    assert kwargs["secrets"] == [
+        {
+            "source": "db_password",
+            "uid": 1000,
+            "gid": 1000,
+            "mode": 0o440,
+            "target": "/run/secrets/db",
+        }
+    ]
 
 
 def test_create_container_bridge_publishes_ports_and_binds_sshd(
