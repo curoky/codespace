@@ -46,7 +46,18 @@ provider 连接必须使用严格校验。
 - Podman security option `disable` 和 `seccomp=unconfined`；
 - 现有 s6 entrypoint、sshd、home-init、Atuin client、Git 和 OpenSSH client；
 - s6 转储到 `/run/s6/container_environment` 的容器环境仅允许 root 和 `x` 读取；
+- `/etc/zsh/zshenv` 是运行时工具链 PATH 的 rootfs 权威：它重置基础 PATH 后无条件把
+  nix/rust/conda 与 s6（`/opt/sb/profile/s6/bin`、`libexec`）加回（`typeset -U` 去重、
+  `[ -d ]` 跳过缺失目录）。镜像 `ENV` 里的这些路径只对进程环境生效，非交互式 shell
+  （`ssh host <cmd>`、VS Code Remote server）不读 `.zshrc`/dotfiles，故必须在 `.zshenv`
+  层补齐。WSL flavor 依赖此点：其 `docker export` 丢弃 `ENV`，全靠 zshenv 恢复 PATH，
+  改动这些路径必须同步 [`dev-environment.md`](dev-environment.md) 与 [`images/wsl/AGENTS.md`](../wsl/AGENTS.md)；
 - `workspace-init` s6 oneshot，且 `sshd` 和 `home-init` 均依赖它；
+- `atuin-login` s6 oneshot **不依赖** `home-init`：其 `~/.config/atuin/config.toml` 由
+  `setup.sh` 在 dev 构建期烤入，boot 时已就绪，无需 home-init 运行期再建。`setup.sh` 的
+  `link_path` 用 `rename(2)` 原子替换软链（临时名 + `mv -f`），home-init 运行期重跑 `setup.sh`
+  不会产生"config 短暂缺失、atuin 回退公网默认"的窗口，故此前用于串行化的 `atuin-login →
+  home-init` 依赖已删除；`atuin-daemon` 仍依赖 `atuin-login`；
 - `rclone-webdav` 和 `copyparty-webdav` s6 longrun 均依赖 `workspace-init`，以用户 `x`
   分别监听 8004 和 8005；监听地址复用 `SSHD_BIND`，host 模式默认 `127.0.0.1`，bridge 模式为
   `0.0.0.0`。两个 WebDAV 根目录均只包含 `/workspace` 和 `/upload`：前者直接复用容器内现有

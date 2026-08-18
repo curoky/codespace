@@ -18,7 +18,7 @@
 | --- | --- |
 | `dotfiles/` | 用户级配置及统一入口 `setup.sh` |
 | `controller/` | 本地单进程控制面：配置、Podman transport、生命周期、API、Web UI、维护 CLI 和测试；契约见 [`controller/AGENTS.md`](controller/AGENTS.md) |
-| `images/` | 开发镜像（`dev/`）与 host 级共享服务镜像（`sidecar/`），各带子目录 `AGENTS.md` |
+| `images/` | 开发镜像（`dev/`）、host 级共享服务镜像（`sidecar/`）与 WSL 发行版镜像（`wsl/`，二次处理 dev 镜像），各带子目录 `AGENTS.md` |
 | `host/` | macOS 主机支持（LaunchAgent、Podman/Colima 启动、Homebrew 与静态包） |
 | `tools/` | CI、hook 和仓库维护脚本 |
 | `.github/workflows/` | 测试、镜像构建、发布和 registry 清理 |
@@ -45,10 +45,12 @@
 
 ### 镜像
 
-`images/dev/` 构建 Codespace 基础与参考开发镜像，`images/sidecar/` 构建 host 级共享服务镜像。
+`images/dev/` 构建 Codespace 基础与参考开发镜像，`images/sidecar/` 构建 host 级共享服务镜像，
+`images/wsl/` 以 dev 镜像为 `FROM` 二次处理出可导入 WSL2 的发行版 rootfs。
 开发镜像结构、s6 init、容器 SSH 契约与镜像 host contract 见
 [`images/dev/AGENTS.md`](images/dev/AGENTS.md)；sidecar 约束见
-[`images/sidecar/AGENTS.md`](images/sidecar/AGENTS.md)。
+[`images/sidecar/AGENTS.md`](images/sidecar/AGENTS.md)；WSL 镜像约束见
+[`images/wsl/AGENTS.md`](images/wsl/AGENTS.md)。
 
 ### 控制面
 
