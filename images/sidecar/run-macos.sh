@@ -2,6 +2,11 @@
 
 set -euo pipefail
 
+if ! podman secret exists atuin_db_uri; then
+	echo "missing podman secret 'atuin_db_uri'; create it first: printf '%s' \"\$ATUIN_DB_URI\" | podman secret create atuin_db_uri -" >&2
+	exit 1
+fi
+
 podman pull ghcr.io/curoky/devspace:codespace-sidecar
 
 if podman container exists codespace-sidecar; then
@@ -17,9 +22,9 @@ podman run --detach \
 	--publish 127.0.0.1:8002:8002 \
 	--restart unless-stopped \
 	--volume /run/podman/podman.sock:/run/podman/podman.sock \
-	--env ATUIN_DB_URI=postgresql://postgres.hwhoanatmtltozrvpfep:[YOUR-PASSWORD]@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres \
 	--env ATUIN_HOST=0.0.0.0 \
 	--env PODMAN_SOCKET=/run/podman/podman.sock \
+	--secret atuin_db_uri,type=env,target=ATUIN_DB_URI \
 	ghcr.io/curoky/devspace:codespace-sidecar
 
 echo "sidecar 'codespace-sidecar' started on http://127.0.0.1:8002."

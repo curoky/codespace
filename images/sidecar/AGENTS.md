@@ -22,8 +22,9 @@
 镜像固定 `ghcr.io/curoky/devspace:codespace-sidecar`，host 内 container name 固定 `codespace-sidecar`。
 
 容器以 s6 为 PID 1，启动 Atuin server：默认监听 `127.0.0.1`、端口 `8002`、禁开放注册、创建时必须提供
-`ATUIN_DB_URI`。macOS 启动器把容器内监听改为 `0.0.0.0` 以便 Podman 从 bridge network 转发端口，但在 host
-上只 publish 到 `127.0.0.1:8002`。
+`ATUIN_DB_URI`（启动器不再写死连接串，改由宿主 Podman secret `atuin_db_uri` 以 `type=env,target=ATUIN_DB_URI`
+注入；secret 缺失时启动器 fail-fast）。macOS 启动器把容器内监听改为 `0.0.0.0` 以便 Podman 从 bridge network
+转发端口，但在 host 上只 publish 到 `127.0.0.1:8002`。
 
 独立 s6 longrun `supercronic`（`rootfs/etc/s6/s6-rc.d/supercronic`）加载 `rootfs/etc/supercronic/crontab`
 调度 image-prewarm job；脚本 `rootfs/opt/sidecar/image-prewarm.sh` 的 `pull`/`prune` 子命令用镜像内
@@ -40,17 +41,19 @@
 内建 Podman socket、project workspace、SSH 服务、provider token 或 repository credential。Atuin 用外部数据库，
 容器不挂载持久服务数据。
 
-在仓库根手动构建和运行：
+在仓库根手动构建和运行（先注册宿主 Podman secret，两个启动器都从中读取连接串）：
 
 ```bash
 images/sidecar/build.sh
-ATUIN_DB_URI=postgres://... images/sidecar/run-linux.sh
-ATUIN_DB_URI=postgres://... images/sidecar/run-macos.sh
+printf '%s' "$ATUIN_DB_URI" | podman secret create atuin_db_uri -
+images/sidecar/run-linux.sh
+images/sidecar/run-macos.sh
 ```
 
 两个启动器都替换固定名称 container、配置 Podman restart policy，并 bind-mount 宿主
-`/run/podman/podman.sock` 并注入 `PODMAN_SOCKET`。`run-linux.sh` 用 host network；`run-macos.sh` 把
-bridge network 端口 publish 到 macOS loopback。开发镜像中的 Atuin client 始终访问 `http://127.0.0.1:8002`。
+`/run/podman/podman.sock` 并注入 `PODMAN_SOCKET`；连接串以 Podman secret `atuin_db_uri` 注入，缺失即退出。
+`run-linux.sh` 用 host network；`run-macos.sh` 把 bridge network 端口 publish 到 macOS loopback。开发镜像中的
+Atuin client 始终访问 `http://127.0.0.1:8002`。
 
 ## 目录
 
