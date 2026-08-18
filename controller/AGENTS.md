@@ -3,8 +3,6 @@
 `controller/` 是完整的本地单进程控制面，包括配置、Podman transport、生命周期、Git provider、
 SSH 投影、FastAPI、原生 Web UI 和测试，入口 `uv run python -m controller`。它通过 system OpenSSH
 转发远端 rootful Podman Unix socket，或直连已运行的 rootful Podman Machine，不部署远端 HTTP agent。
-固定登录 key、SSH 公共配置和 image host key 位于 `controller/assets/ssh/`，启动时原子安装到
-`~/.ssh/codespace/`；动态 host 文件只保存端口与代理路由。
 
 本文是控制面范围、配置、连接机制、生命周期、SSH 投影、Web/HTTP API 与安全边界的事实来源。整体架构与
 跨组件契约见仓库根 [`AGENTS.md`](../AGENTS.md)；开发镜像契约见 [`images/dev/AGENTS.md`](../images/dev/AGENTS.md)，
@@ -53,13 +51,9 @@ uv lock --check
 
 ## 控制面范围
 
-Codespace 是仅监听 localhost 的单进程开发容器控制面，支持远端 rootful Podman host 和本地 rootful
-Podman Machine。Python 进程通过 system OpenSSH 转发远端 Podman Unix socket；Podman Machine 使用
-`podman machine inspect` 返回的本地 API socket。不得增加远端 HTTP agent，也不得改用 podman-py 的
-SSH adapter。
-
-FastAPI 同时提供 JSON API 和 `controller/static/` 的原生 Web 文件。GitHub、GitLab token 只存进程内存；
-`config.yaml` 的可选 `tokens` 提供启动值，Web UI 可运行时覆盖。
+Codespace 仅监听 localhost，支持远端 rootful Podman host 和本地 rootful Podman Machine；不得增加远端
+HTTP agent，也不得改用 podman-py 的 SSH adapter。FastAPI 同时提供 JSON API 和 `controller/static/` 的
+原生 Web 文件。GitHub、GitLab token 只存进程内存；`config.yaml` 的可选 `tokens` 提供启动值，Web UI 可运行时覆盖。
 
 ## 配置
 
@@ -166,14 +160,13 @@ secrets:
   - `network_mode` 只能 `host` 或 `bridge`：`host` 共享 host netns；`bridge` 获独立 netns，sshd 注入
     `SSHD_BIND=0.0.0.0` 并发布 SSH 与业务端口。虽然 compose 可省略，但控制面要求**每个 project 分层解析后
     必须有确定的 `network_mode`**（缺失即加载时 fail-fast），故通常在顶层 `container` 设一次全局默认。
-  - `ulimits` 以限制名为 key，值为 `{soft, hard}` 或裸整数（soft=hard）。
+  - `ulimits` 值为 `{soft, hard}` 或裸整数（soft=hard）。
   - `volumes` 支持短语法 `source:target[:ro|rw]` 或长语法 `{type: bind, source, target, read_only}`；只支持
     `type: bind`，`source`/`target` 必须绝对路径，`read_only` 默认 `false`。target 不得与保留 mount tree
     `/workspace`、`/upload` 相同或互为父子路径。
   - `devices` 原样转发给 `--device`，GPU 用 CDI 设备名（如 `nvidia.com/gpu=all`），要求该 host 已装 NVIDIA
     驱动与 CDI 规范文件。
-  - `shm_size` 原样转发给 `--shm-size`，采用 podman 认的格式（纯字节整数或 `b`/`k`/`m`/`g` 后缀，如 `100g`），
-    控制面不做归一。
+  - `shm_size` 原样转发给 `--shm-size`（podman 认的格式），控制面不做归一。
   - `environment` 支持映射或 `["KEY=value"]` 列表短语法，禁用保留键 `SSHD_PORT`/`SSHD_BIND`，原样转发。
   - `secrets` 引用 host 上已 `podman secret create` 预注册的 secret，控制面只按名字引用、绝不持有明文。每项
     支持裸字符串（等价 `{source: <name>, mode: mount}`）或长语法 `{source, mode, target?, uid?, gid?,

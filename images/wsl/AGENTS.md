@@ -2,7 +2,7 @@
 
 `images/wsl/` 以 `ghcr.io/curoky/devspace:codespace-ubuntu26.04`（Ubuntu 版 dev 镜像）为
 `FROM`，二次处理成可导入 WSL2 的发行版 rootfs：只叠加 WSL 专属资产并重编译 s6-rc 数据库，
-不改 `images/dev/` 任何文件。选 Ubuntu 是因为 WSL2 用户预期发行版为 Ubuntu，且 CI 已产出该 tag。
+不改 `images/dev/` 任何文件。
 
 本文是 WSL 镜像结构、init、SSH 可达性与 Windows 保活契约的事实来源。整体架构见仓库根
 [`AGENTS.md`](../../AGENTS.md)，被复用的开发镜像契约见 [`images/dev/AGENTS.md`](../dev/AGENTS.md)。
@@ -29,8 +29,6 @@
 2. `mkdir -p /run/s6/container_environment`（`s6-envdir -Lf` strict 模式要求该目录存在，空目录即可）；
 3. 写 `SSHD_BIND=0.0.0.0` 到该目录，让 sshd 监听所有接口；
 4. `exec s6-svscan /run/service`，就绪后后台跑 `s6-rc-init -c /etc/s6/db /run/service` 与 `s6-rc -up change wsl`。
-
-s6-svscan 非 PID 1 也能可靠监督，孤儿由 `/init` 回收。
 
 ## `wsl` s6 bundle
 
@@ -83,11 +81,8 @@ images/wsl/export.sh               # 产出 devspace.wsl
 Windows 上 `wsl --install --from-file devspace.wsl`（或 `wsl --import devspace <InstallDir> devspace.wsl`），
 应用 `windows/wslconfig.sample` 后验证常驻，不生效则跑 `windows/setup-keepalive.ps1`。
 
-CI 由 `.github/workflows/build-codespace-wsl.yaml` 单 job（QEMU 多架构）构建并推送多架构
-`codespace-wsl` 到 GHCR，再按 arch `docker export | gzip` 产出 `devspace-<arch>.wsl` artifact
-（`export` 只 dump 文件系统，异架构无需 QEMU 执行）。OCI 镜像仅供缓存追溯，**不能被 WSL 直接导入**，
-终端用户消费 `.wsl` artifact。触发：`images/wsl/**` 或该 workflow 变更、每周定时。base 镜像依赖
-`build-codespace-image.yaml` 已发布的 `codespace-ubuntu26.04`。
+CI 见 `.github/workflows/build-codespace-wsl.yaml`。关键约束:推送的多架构 OCI `codespace-wsl` 仅供缓存
+追溯，**不能被 WSL 直接导入**;终端用户消费按 arch 导出的 `.wsl` artifact。
 
 ## 变更规则
 
@@ -96,4 +91,3 @@ CI 由 `.github/workflows/build-codespace-wsl.yaml` 单 job（QEMU 多架构）�
 - 增减 WSL bundle 服务后，必须保持 `Dockerfile` 的 `s6-rc-compile` 重编译步骤。
 - 保活与网络属 Windows 侧配置，只能放 `windows/`，不得写进 rootfs。
 - 不引入 systemd、s6-overlay 或第二套 init。
-

@@ -10,13 +10,13 @@ host 级共享服务见 [`images/sidecar/AGENTS.md`](../sidecar/AGENTS.md)，容
 
 ## 目录
 
-| 路径 | 职责 |
-| --- | --- |
-| `Dockerfile` | 组装静态工具、Nix、各语言运行时、dotfiles 和自建 s6 init |
-| `build.sh` | 从仓库根构建本地开发镜像 |
-| `script/` | 构建脚本，含 `setup-s6.sh`、`setup-vscode-extensions.sh`（构建期装扩展）、`seed-vscode-extensions.sh`（启动期播种） |
-| `rootfs/` | 烤进镜像的文件（s6 bundle、sshd、容器 SSH config 与 host key 等） |
-| `dev-environment.md` | 容器内工具链路径与使用方式 |
+| 路径                   | 职责                                                                                           |
+| -------------------- | -------------------------------------------------------------------------------------------- |
+| `Dockerfile`         | 组装静态工具、Nix、各语言运行时、dotfiles 和自建 s6 init                                                       |
+| `build.sh`           | 从仓库根构建本地开发镜像                                                                                 |
+| `script/`            | 构建脚本，含 `setup-s6.sh`、`setup-vscode-extensions.sh`（构建期装扩展）、`seed-vscode-extensions.sh`（启动期播种） |
+| `rootfs/`            | 烤进镜像的文件（s6 bundle、sshd、容器 SSH config 与 host key 等）                                           |
+| `dev-environment.md` | 容器内工具链路径与使用方式                                                                                |
 
 ## s6 init
 
@@ -41,11 +41,6 @@ Container 专用 SSH config 位于 `rootfs/home/x/.ssh/config`，为 `Host *` �
 - Podman security option `disable` 和 `seccomp=unconfined`；
 - 现有 s6 entrypoint、sshd、home-init、Atuin client、Git 和 OpenSSH client；
 - s6 转储到 `/run/s6/container_environment` 的容器环境仅 root 和 `x` 可读；
-- `/etc/zsh/zshenv` 是运行时工具链 PATH 的 rootfs 权威：重置基础 PATH 后无条件加回 nix/rust/conda 与 s6
-  （`/opt/sb/profile/s6/bin`、`libexec`；`typeset -U` 去重、`[ -d ]` 跳缺失）。镜像 `ENV` 里的这些路径只对
-  进程环境生效，非交互式 shell（`ssh host <cmd>`、VS Code Remote server）不读 `.zshrc`/dotfiles，故必须在
-  `.zshenv` 层补齐。WSL flavor 的 `docker export` 丢弃 `ENV`，全靠 zshenv 恢复 PATH，改动这些路径必须同步
-  [`dev-environment.md`](dev-environment.md) 与 [`images/wsl/AGENTS.md`](../wsl/AGENTS.md)；
 - `workspace-init` s6 oneshot，`sshd` 和 `home-init` 均依赖它；
 - `atuin-login` s6 oneshot **不依赖** `home-init`：其 `~/.config/atuin/config.toml` 由 `setup.sh` 在构建期
   烤入、boot 时已就绪；`atuin-daemon` 依赖 `atuin-login`；
@@ -53,15 +48,14 @@ Container 专用 SSH config 位于 `rootfs/home/x/.ssh/config`，为 `Host *` �
   监听地址复用 `SSHD_BIND`（host 默认 `127.0.0.1`，bridge 为 `0.0.0.0`）。两者根目录均只含 `/workspace`
   （复用容器内 `/workspace`，WebDAV 层只读）和 `/upload`（uid/gid `5230:5230`、mode `0700` 的 writable-layer
   目录，允许完整读写）。`/upload` 在同一 container stop/start 后保留，删除或重建 container 后丢失，无 quota
-  或备份。`rclone` 用只读 union 暴露 workspace，`copyparty` 的 `wram` volflag 接受 writable-layer 非持久生命周期；
+  或备份。`rclone` 只读暴露 workspace；
 - 两个 WebDAV 服务均关闭归档、索引、缩略图、媒体处理、分享、管理/状态接口、跨站 CORS、服务发现及
-  FTP/FTPS/SFTP/TFTP。`rclone` 另关 HTML 目录页；`copyparty` 的 WebDAV 与 browser listing/上传共用 HTTP
-  handler 无法进程内彻底剥离，但已关 HTML/脚本渲染及所有可独立关闭的 Web UI 扩展。服务匿名访问、镜像不提供
-  TLS；bridge 模式需在 project `published_ports` 显式发布端口，跨不可信网络必须在外层加 TLS、认证与访问控制。
+  FTP/FTPS/SFTP/TFTP，`rclone` 另关 HTML 目录页、`copyparty` 关 HTML/脚本渲染及所有可独立关闭的 Web UI 扩展。
+  服务匿名访问、镜像不提供 TLS；bridge 模式需在 project `published_ports` 显式发布端口，跨不可信网络必须在外层加 TLS、认证与访问控制。
   `/workspace` 含 dotfiles，WebDAV 读取者可见其中敏感内容。两个进程不共享 WebDAV `LOCK`，不得经 8004/8005
   并发修改同一 `/upload` 文件；
 - `supercronic` s6 longrun，监督守护进程并加载 `rootfs/etc/supercronic/crontab`；该 crontab 目前**有意留空**
-  （零 job），supercronic 零 job 下持续运行。加任务写 5 字段（无 user 列）条目。二进制经 binman
+  （零 job）。加任务写 5 字段（无 user 列）条目。二进制经 binman
   （`script/binman.yaml` 的 `link`）提供，日志写 `/var/log/supercronic.log`。
 
 网络：`network_mode: host` 容器 sshd 绑 `127.0.0.1`。`network_mode: bridge` 容器 sshd 注入
@@ -71,21 +65,6 @@ Container 专用 SSH config 位于 `rootfs/home/x/.ssh/config`，为 `Host *` �
 镜像内固定的 sshd ed25519 host key（`rootfs/etc/ssh/ssh_host_ed25519_key.pub`）由控制面 pin 在
 `~/.ssh/codespace/known_hosts/codespace`；改镜像 host key 必须同步更新该 asset，详见
 [`controller/AGENTS.md`](../../controller/AGENTS.md) 的「SSH 投影」章节。
-
-## VSCode Remote 扩展预装
-
-构建期独立 stage `stage_vscode_ext` 运行 `script/setup-vscode-extensions.sh`，用官方 code-server 把
-`dotfiles/vscode/extensions.txt` 里的扩展装进参考副本 `/opt/vscode-extensions`，再由 main stage 以
-`COPY --from` 取出（code-server 不入 final image）。该 stage 只依赖 `extensions.txt` 与安装脚本，与
-`stage_rust`、main 的 nix/python 步骤并行构建。`extensions.txt` 是扩展列表唯一事实来源，脚本安装其中每一行
-不做二次过滤；纯客户端扩展（`extensionKind` 为 `ui` 的 `remote-ssh` 等，及主题、图标、keymap）由本地 IDE
-安装，不写进 `extensions.txt`。
-
-`home-init.sh` 启动时把 `~/.vscode-server`、`~/.trae-server`、`~/.trae-cn-server` 软链到持久化的
-`/workspace/.cache`，故扩展不能烤进镜像的 `~/.vscode-server`（首启会被 `rm -rf`）。运行期 `home-init.sh`
-调用 `script/seed-vscode-extensions.sh` 把参考副本播种到这三个 server 的 `extensions/` 并合并
-`extensions.json`（用户已装版本优先），每个 target 用 `.devspace-extensions-seeded` marker 保证只播种一次
-（删 marker 可重播）。参考副本路径可用 `REF_EXTENSIONS` 覆盖，Trae 与 Trae CN 复用同一份副本。
 
 ## 构建
 
@@ -99,3 +78,4 @@ images/dev/build.sh    # 仓库根本地构建，不发布；发布由 .github/w
 - 仅供运行时使用的文件放 `rootfs/`；跨场景用户配置来源于 `dotfiles/`。
 - 修改镜像 host contract、sshd 绑定行为或 WebDAV 服务时，同步更新本文与
   [`controller/AGENTS.md`](../../controller/AGENTS.md) 中依赖这些契约的章节。
+
