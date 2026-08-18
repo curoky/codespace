@@ -1,0 +1,12 @@
+#!/opt/sb/profile/s6/bin/execlineb -P
+
+# longrun run script (execline). Load the container environment dumped by the
+# init, redirect output to the log, then exec supercronic against the crontab.
+# The crontab (/etc/supercronic/crontab) ships empty; supercronic keeps running
+# with zero jobs. Add 5-field entries there to schedule work.
+s6-envdir -Lf -- /run/s6/container_environment
+
+fdmove -c 2 1
+redirfd -w 1 /var/log/supercronic.log
+
+exec supercronic /etc/supercronic/crontab

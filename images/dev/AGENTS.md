@@ -68,6 +68,10 @@ provider 连接必须使用严格校验。
   收紧为 `0600`；
 - 位于同目录的 `known_hosts`，包含 GitHub/GitLab 官方发布的 host key；provider SSH
   连接必须使用 `StrictHostKeyChecking yes`，不得回退到 `accept-new`。
+- `supercronic` s6 longrun，监督 supercronic 守护进程并加载 `rootfs/etc/supercronic/crontab`；
+  该 crontab 目前**有意留空**（只有注释，零 job），仅为将来添加定时任务预留服务，supercronic
+  在零 job 下持续运行、不退出。要加任务就在该 crontab 写 5 字段（无 user 列）条目。supercronic
+  二进制经 binman（`script/binman.yaml` 的 `link`）提供，日志写入 `/var/log/supercronic.log`。
 
 `network_mode: host` 的容器使用 host network，sshd 绑定 `127.0.0.1`。`network_mode: bridge`
 的容器改用 bridge network：sshd 注入 `SSHD_BIND=0.0.0.0`，SSH 端口发布到 loopback

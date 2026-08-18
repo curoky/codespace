@@ -1,0 +1,5 @@
+# supercronic crontab for the devspace dev image.
+# Intentionally empty: the supercronic s6 service is provided so scheduled jobs
+# can be added later, but no jobs are defined yet. Add 5-field entries (no user
+# column) below; set CRON_TZ to control the timezone. supercronic loads this
+# file at startup and keeps running with zero jobs.
