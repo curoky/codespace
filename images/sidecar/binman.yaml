@@ -3,6 +3,7 @@ prefix: /opt/sb
 packages:
   link:
     - atuin
+    - supercronic
 
 profiles:
   s6:
