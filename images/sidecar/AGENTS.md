@@ -44,7 +44,7 @@ macOS 启动器将容器内监听地址改为 `0.0.0.0`，使 Podman 能从隔�
 转发端口，但在 macOS host 上只 publish 到 `127.0.0.1:8002`。
 
 同一容器还有一个独立的 s6 longrun 服务 `supercronic`（`rootfs/etc/s6/s6-rc.d/supercronic`），
-只负责监督 supercronic 守护进程并加载 `rootfs/opt/sidecar/crontab`；image-prewarm 只是它
+只负责监督 supercronic 守护进程并加载 `rootfs/etc/supercronic/crontab`；image-prewarm 只是它
 调度的一个 job，不再对应单独的 s6 服务。job 脚本 `rootfs/opt/sidecar/image-prewarm.sh` 接受
 `pull` 或 `prune` 子命令，用镜像内已有的 `bash` 和 `curl` 调用 bind-mount 进来的宿主 rootful
 Podman socket 的 REST API，每次执行一次即退出：
@@ -89,7 +89,7 @@ ATUIN_DB_URI=postgres://... images/sidecar/run-macos.sh
 | `rootfs/` | Sidecar 专用 s6 bundle、Atuin 与 supercronic 服务 |
 | `rootfs/etc/s6/s6-rc.d/supercronic` | 监督 supercronic 守护进程的 s6 longrun |
 | `rootfs/opt/sidecar/image-prewarm.sh` | supercronic 调度的 `pull`/`prune` 子命令脚本 |
-| `rootfs/opt/sidecar/crontab` | supercronic 调度：每 10 分钟 pull、每天 08:00 Asia/Shanghai prune |
+| `rootfs/etc/supercronic/crontab` | supercronic 调度：每 10 分钟 pull、每天 08:00 Asia/Shanghai prune |
 | `build.sh` | 从仓库根目录构建本地镜像 |
 | `run-linux.sh` | 替换 Linux host-network 单例，挂载 Podman socket 并注入 prewarm 配置 |
 | `run-macos.sh` | 替换 macOS bridge-network 单例并限制 loopback publish，挂载 Podman socket 并注入 prewarm 配置 |
