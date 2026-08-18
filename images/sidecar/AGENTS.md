@@ -71,7 +71,12 @@ Atuin client 始终访问 `http://127.0.0.1:8002`。
 
 ## 控制面边界
 
-镜像和手动启动器已存在，但本地控制面尚未 reconcile sidecar。实现该生命周期时必须：
+镜像、手动启动器和带外部署 CLI 均已存在，但常驻控制面进程仍不 reconcile sidecar。带外维护 CLI
+`controller.tools.deploy_sidecar` 复用现有 host Podman transport，把固定 `codespace-sidecar` 单例幂等部署到
+每个 SSH host（`type: ssh`）：默认 dry-run，`--no-dry-run` 时 `podman pull` 固定镜像、按名替换旧容器，并以
+host network、`unless-stopped` restart policy、bind-mount 宿主 Podman socket、`atuin_db_uri` 以 `env` 注入
+`ATUIN_DB_URI` 启动，等价 `run-linux.sh`；secret 缺失的 host 报告并跳过。podman-machine 的 `local` host 用
+`run-macos.sh` 的 bridge 启动器、该 CLI 不覆盖。若后续在常驻进程内实现 sidecar 生命周期，必须：
 
 1. 定义 sidecar 专用 label 和严格 inventory 校验。
 2. 复用现有 host Podman transport，不增加协议。

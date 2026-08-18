@@ -40,6 +40,7 @@ controller/run.sh                 # 后台，日志存仓库内
 uv run python -m controller.tools.cleanup_deploy_keys [--no-dry-run]
 uv run python -m controller.tools.cleanup_workspaces  [--no-dry-run]
 uv run python -m controller.tools.sync_secrets        [--no-dry-run]
+uv run python -m controller.tools.deploy_sidecar      [--no-dry-run]
 
 # 验证
 uv run ruff format --check controller
@@ -289,7 +290,7 @@ checkout，`state` 恒为空。检测只发生在删除路径，dashboard 不受
 
 ## 维护 CLI
 
-三个带外 CLI 都固定读 `~/.config/codespace/config.yaml`，默认 dry-run，仅 `--no-dry-run` 执行写操作，host
+四个带外 CLI 都固定读 `~/.config/codespace/config.yaml`，默认 dry-run，仅 `--no-dry-run` 执行写操作，host
 查询失败输出 warning 且不影响其他并发查询。
 
 - **Deploy key 清理** `controller.tools.cleanup_deploy_keys`：并发列出配置内全部 GitHub/GitLab 仓库的 deploy
@@ -306,6 +307,13 @@ checkout，`state` 恒为空。检测只发生在删除路径，dashboard 不受
   里**每个** host，不做引用分析。输出 `Host`/`Secret`/`Action` 三列；`Action` 为 `create` 或 `replace`
   （已存在，删后重建让 config 值生效）。`--no-dry-run` 才 `podman secret rm` + `create`。顶层 `secrets` 为空
   时空转、不建连接。控制面创建实例时只校验引用的 secret 已存在，从不创建。
+- **Sidecar 部署** `controller.tools.deploy_sidecar`：把固定 `codespace-sidecar` 单例部署到**每个 SSH host**
+  （`type: ssh`），podman-machine 的 `local` host 用 `run-macos.sh` bridge 启动器、此工具跳过。并发探测各
+  host 的 `atuin_db_uri` secret 与已有容器：输出 `Host`/`Sidecar`/`Action` 三列，`Action` 为 `create` 或
+  `replace`（已存在，先删后重建）；secret 缺失的 host 输出 warning 并跳过（先用 `sync_secrets` 注册）。
+  `--no-dry-run` 才 `podman pull` 固定镜像、按名替换旧容器，并以 host network、`unless-stopped` restart
+  policy、bind-mount 宿主 rootful Podman socket 到 `/run/podman/podman.sock`、`atuin_db_uri` 以 `env` 注入
+  `ATUIN_DB_URI` 的方式启动，等价 `images/sidecar/run-linux.sh`。无 SSH host 时空转、不建连接。
 
 ## SSH 投影
 
