@@ -159,7 +159,7 @@ fi
 # export PRE_COMMIT_HOME=/tmp/pre-commit
 
 #-> tmux
-export TMUX_CONF_LOCAL=$CONFIG_HOME/tmux/tmux.conf.local
+export TMUX_CONF_LOCAL=$ROOTFS_HOME/.config/tmux/tmux.conf.local
 
 #-> nixpkgs
 # from source_if_exists ~/.nix-profile/etc/profile.d/nix.sh
