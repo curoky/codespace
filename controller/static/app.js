@@ -8,6 +8,7 @@ const pollStatusElement = document.querySelector("#poll-status");
 const instanceDialog = document.querySelector("#instance-dialog");
 const tokensDialog = document.querySelector("#tokens-dialog");
 const deleteDialog = document.querySelector("#delete-dialog");
+const logsDialog = document.querySelector("#logs-dialog");
 const toastElement = document.querySelector("#toast");
 
 document.querySelector("#refresh-button").addEventListener("click", refresh);
@@ -26,6 +27,7 @@ projectsElement.addEventListener("click", async (event) => {
   if (action === "quick") await submitInstance(project, host, DEFAULT_INSTANCE);
   if (action === "delete") await deleteInstance(project, host, instance, false, type, status);
   if (action === "purge") await deleteInstance(project, host, instance, true, type, status);
+  if (action === "logs") openLogsDialog(project, host, instance);
   if (action === "dismiss-operation") {
     await dismissFailedOperation(target, project, host, instance);
   }
@@ -229,6 +231,9 @@ function renderEnvironment(environment) {
   sshButton.dataset.command = environment.ssh_command;
   sshButton.title = `Copy ${environment.ssh_command}`;
   actions.append(sshButton);
+  const logsButton = actionButton("Logs", "logs", target);
+  logsButton.title = "View recent podman logs";
+  actions.append(logsButton);
   const deleteButton = actionButton("Delete", "delete", target);
   deleteButton.title = "Delete container, keep workspace files";
   actions.append(deleteButton);
@@ -373,6 +378,49 @@ function sendDelete(project, host, instance, purge, force) {
     `/api/projects/${encodeURIComponent(project)}/hosts/${encodeURIComponent(host)}/instances/${encodeURIComponent(instance)}?purge=${purge}&force=${force}`,
     { method: "DELETE" },
   );
+}
+
+const logsStatusElement = document.querySelector("#logs-status");
+const logsOutputElement = document.querySelector("#logs-output");
+document.querySelector("#logs-refresh").addEventListener("click", loadLogs);
+logsDialog.addEventListener("close", () => {
+  pendingLogs = null;
+});
+
+let pendingLogs = null;
+
+function openLogsDialog(project, host, instance) {
+  pendingLogs = { project, host, instance };
+  document.querySelector("#logs-title").textContent = `${host}/${project}/${instance}`;
+  logsDialog.showModal();
+  loadLogs();
+}
+
+async function loadLogs() {
+  if (pendingLogs === null) return;
+  const { project, host, instance } = pendingLogs;
+  logsStatusElement.className = "muted";
+  logsStatusElement.textContent = "Loading logs…";
+  logsStatusElement.hidden = false;
+  logsOutputElement.hidden = true;
+  try {
+    const result = await api(
+      `/api/projects/${encodeURIComponent(project)}/hosts/${encodeURIComponent(host)}/instances/${encodeURIComponent(instance)}/logs`,
+    );
+    if (pendingLogs === null || logsDialog.open === false) return;
+    const logs = result.logs || "";
+    if (logs.trim()) {
+      logsStatusElement.hidden = true;
+      logsOutputElement.textContent = logs;
+      logsOutputElement.hidden = false;
+      logsOutputElement.scrollTop = logsOutputElement.scrollHeight;
+    } else {
+      logsStatusElement.textContent = "No logs available.";
+    }
+  } catch (error) {
+    logsStatusElement.className = "delete-warning";
+    logsStatusElement.textContent = error.message;
+  }
 }
 
 async function saveTokens(event) {

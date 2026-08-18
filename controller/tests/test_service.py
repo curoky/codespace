@@ -723,6 +723,31 @@ def test_delete_force_skips_git_check_and_deletes(
     assert events == ["revoke", "remove", "projection"]
 
 
+def test_logs_returns_container_output_without_token(
+    service: CodespaceService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    container = object()
+    monkeypatch.setattr(inventory, "find_container", lambda *args: container)
+    monkeypatch.setattr(
+        containers,
+        "container_logs",
+        lambda item: "log line\n" if item is container else "wrong",
+    )
+
+    assert service.logs("devspace", "home", "debug") == "log line\n"
+
+
+def test_logs_missing_container_raises(
+    service: CodespaceService,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(inventory, "find_container", lambda *args: None)
+
+    with pytest.raises(RuntimeError, match="not found"):
+        service.logs("devspace", "home", "debug")
+
+
 def test_describe_error_unwraps_cause_chain() -> None:
     cause = TimeoutError("timed out")
     try:

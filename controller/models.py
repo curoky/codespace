@@ -235,6 +235,12 @@ class DeleteInstanceResult(BaseModel):
     state: RepoGitState = Field(default_factory=RepoGitState)
 
 
+class ContainerLogsResult(BaseModel):
+    """Recent combined stdout and stderr for one managed container."""
+
+    logs: str
+
+
 class Environment(BaseModel):
     id: str
     host: str

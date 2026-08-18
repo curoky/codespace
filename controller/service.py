@@ -274,6 +274,17 @@ class CodespaceService:
         ssh.write_host(host, refreshed.environments, route)
         return RepoGitState()
 
+    def logs(self, project_id: str, host: str, instance: str) -> str:
+        """Return the recent podman logs for one managed container."""
+        project = self._project(project_id)
+        self._require_host(project, host)
+        spec = self.config.environment_spec(project_id, host, instance)
+        client = self.transport.client(host)
+        container = inventory.find_container(client, spec, self.config)
+        if container is None:
+            raise RuntimeError(f"environment {spec.identity!r} not found")
+        return containers.container_logs(container)
+
     def _all_host_inventories(self) -> dict[str, dashboard_state.HostInventory]:
         with ThreadPoolExecutor(max_workers=len(self.config.hosts)) as executor:
             inventories = executor.map(self._host_inventory, self.config.hosts)

@@ -136,6 +136,26 @@
       </div>
     </dialog>
 
+    <dialog id="logs-dialog">
+      <div class="dialog-body">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">Podman logs</p>
+            <h2 id="logs-title">Container logs</h2>
+          </div>
+          <button type="button" class="icon secondary" aria-label="Close" data-close="logs-dialog">
+            ×
+          </button>
+        </div>
+        <p id="logs-status" class="muted">Loading logs…</p>
+        <pre id="logs-output" class="logs-output" hidden></pre>
+        <div class="dialog-actions">
+          <button type="button" class="secondary" id="logs-refresh">Refresh</button>
+          <button type="button" class="secondary" data-close="logs-dialog">Close</button>
+        </div>
+      </div>
+    </dialog>
+
     <div id="toast" role="status" aria-live="polite"></div>
   </body>
 </html>

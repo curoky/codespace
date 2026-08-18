@@ -339,10 +339,13 @@ key，通过 `HostKeyAlias codespace` 指向单个 pinned `~/.ssh/codespace/know
 - `GET /api/dashboard`
 - `PUT /api/tokens/{provider}`
 - `POST /api/projects/{project}/instances`（body 含 `host` 和 `instance`）
+- `GET /api/projects/{project}/hosts/{host}/instances/{instance}/logs`
 - `DELETE /api/projects/{project}/hosts/{host}/operations/{instance}`
 - `DELETE /api/projects/{project}/hosts/{host}/instances/{instance}?purge=true|false&force=true|false`
 
 错误格式固定 `{"error": "..."}`。创建 body 用 `host` 显式选 project 声明的某个 host，不在列表内即拒绝。
+`GET .../logs` 只读，返回 `{"logs": "..."}`（container 最近合并 stdout/stderr、带时间戳、末尾 2000 行），不
+存在的 environment 返回 `{"error": ...}`；Web UI 用只读 Logs 弹窗展示，支持手动 Refresh，不轮询、不流式。
 `DELETE` 路径带 `host`（同名 instance 可分布在不同 host，identity 由 host+project+instance 决定），成功返回
 `{deleted, workspace_removed, state}`，`force=false` 时 `deleted=false` 且 `state` 携带 git 检测结果。
 Dashboard response 是浏览器唯一事实来源；每个 project summary 携带 `hosts` 列表（各含 `name` 和可选

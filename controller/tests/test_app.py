@@ -26,6 +26,7 @@ class FakeService:
         self.created: list[tuple[str, str, str]] = []
         self.deleted: list[tuple[str, str, str, bool, bool]] = []
         self.state: RepoGitState = RepoGitState()
+        self.logs_text = "2026-08-19T00:00:00Z boot\n"
         self.closed = False
 
     def close(self) -> None:
@@ -82,6 +83,13 @@ class FakeService:
             return self.state
         self.deleted.append((project, host, instance, purge, force))
         return RepoGitState()
+
+    def logs(self, project: str, host: str, instance: str) -> str:
+        if project not in self.config.projects:
+            raise KeyError(f"unknown project: {project}")
+        if instance == "missing":
+            raise RuntimeError(f"environment {instance!r} not found")
+        return self.logs_text
 
 
 @pytest.fixture
@@ -291,3 +299,43 @@ def test_only_documented_api_routes_exist(
         response = client.get(path)
         assert response.status_code == 404
         assert response.json() == {"error": "Not Found"}
+
+
+def test_logs_returns_container_output(
+    app_client: tuple[TestClient, FakeService],
+) -> None:
+    client, service = app_client
+    service.logs_text = "2026-08-19T00:00:00Z hello\n"
+
+    response = client.get("/api/projects/devspace/hosts/home/instances/debug/logs")
+
+    assert response.status_code == 200
+    assert response.json() == {"logs": "2026-08-19T00:00:00Z hello\n"}
+
+
+def test_logs_missing_environment_returns_conflict(
+    app_client: tuple[TestClient, FakeService],
+) -> None:
+    client, _service = app_client
+
+    response = client.get("/api/projects/devspace/hosts/home/instances/missing/logs")
+
+    assert response.status_code == 409
+    assert response.json()["error"].endswith("not found")
+
+
+def test_logs_ui_wires_button_and_dialog(
+    app_client: tuple[TestClient, FakeService],
+) -> None:
+    client, _service = app_client
+
+    index = client.get("/").text
+    script = client.get("/static/app.js").text
+    stylesheet = client.get("/static/app.css").text
+
+    assert 'id="logs-dialog"' in index
+    assert 'class="logs-output"' in index
+    assert 'actionButton("Logs", "logs", target)' in script
+    assert 'if (action === "logs") openLogsDialog(project, host, instance)' in script
+    assert "/instances/${encodeURIComponent(instance)}/logs" in script
+    assert ".logs-output" in stylesheet

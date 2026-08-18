@@ -135,10 +135,16 @@ class FakeContainer:
         self.archive: bytes | None = None
         self.archive_path: str | None = None
         self.files: dict[str, bytes] = {}
+        self.log_calls: list[dict[str, object]] = []
+        self.log_frames: list[bytes] = []
         self.client = FakeAPIClient(self)
 
     def reload(self) -> None:
         return None
+
+    def logs(self, **kwargs: object) -> list[bytes]:
+        self.log_calls.append(kwargs)
+        return list(self.log_frames)
 
     def exec_run(
         self,
@@ -180,6 +186,31 @@ def test_read_environment_requires_complete_valid_labels(config: Config) -> None
     del container.labels[LABEL_REPO]
     with pytest.raises(ValueError, match=r"missing required label codespace.repo"):
         inventory.read_environment(container, "home", config)  # type: ignore[arg-type]
+
+
+def test_container_logs_requests_tail_and_joins_frames() -> None:
+    container = FakeContainer()
+    container.log_frames = [b"first line\n", b"second line\n"]
+
+    logs = container_runtime.container_logs(container)  # type: ignore[arg-type]
+
+    assert logs == "first line\nsecond line\n"
+    assert container.log_calls == [
+        {
+            "stdout": True,
+            "stderr": True,
+            "stream": False,
+            "timestamps": True,
+            "tail": 2000,
+        }
+    ]
+
+
+def test_container_logs_accepts_bytes_payload() -> None:
+    container = FakeContainer()
+    container.logs = lambda **kwargs: b"single blob"  # type: ignore[method-assign]
+
+    assert container_runtime.container_logs(container) == "single blob"  # type: ignore[arg-type]
 
 
 def test_pull_image_streams_with_isolated_long_timeout(
