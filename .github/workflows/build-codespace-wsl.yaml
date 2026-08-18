@@ -1,0 +1,77 @@
+name: Build codespace WSL image
+
+# The WSL flavor is FROM the already-published dev image (codespace-ubuntu26.04),
+# so this workflow does NOT rebuild dev/dotfiles; it overlays WSL assets, pushes
+# a single multiarch codespace-wsl image to GHCR, then exports a flat rootfs
+# tarball per arch as a build artifact.
+on:
+  push:
+    paths:
+      - '.github/workflows/build-codespace-wsl.yaml'
+      - 'images/wsl/**'
+  schedule:
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+    inputs:
+      disable_docker_cache:
+        description: 'disable docker cache'
+        default: false
+        required: false
+        type: boolean
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v4
+        with:
+          driver-opts: network=host
+          buildkitd-flags: >-
+            --allow-insecure-entitlement network.host
+            --allow-insecure-entitlement security.insecure
+            --oci-worker-net=host
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: images/wsl/Dockerfile
+          push: true
+          provenance: false
+          platforms: linux/amd64,linux/arm64
+          network: host
+          cache-from: |
+            type=registry,ref=ghcr.io/curoky/devspace-cache:codespace-wsl
+            type=registry,ref=ghcr.io/curoky/devspace-cache:codespace-wsl-min
+          cache-to: type=registry,ref=ghcr.io/curoky/devspace-cache:codespace-wsl${{ github.event_name == 'push' && '-min' || '' }},mode=${{ github.event_name == 'push' && 'min' || 'max' }},oci-mediatypes=true,compression=zstd,compression-level=3
+          no-cache: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true) }}
+          build-args: BASE_IMAGE=ghcr.io/curoky/devspace:codespace-ubuntu26.04
+          tags: ghcr.io/curoky/devspace:codespace-wsl
+
+      # Export the flat WSL rootfs per arch from the just-pushed multiarch image.
+      # `docker export` only dumps a container's filesystem (never runs it), so a
+      # foreign-arch image can be created + exported without QEMU execution.
+      - name: Export WSL rootfs
+        shell: bash
+        run: |
+          set -euo pipefail
+          for arch in amd64 arm64; do
+            docker pull --platform "linux/${arch}" ghcr.io/curoky/devspace:codespace-wsl
+            images/wsl/export.sh ghcr.io/curoky/devspace:codespace-wsl "devspace-${arch}.wsl"
+          done
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: devspace-wsl
+          path: devspace-*.wsl
+          if-no-files-found: error
+          retention-days: 7

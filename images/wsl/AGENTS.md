@@ -133,6 +133,15 @@ Windows 上：`wsl --install --from-file devspace.wsl`（或 `wsl --import devsp
 devspace.wsl`），应用 `windows/wslconfig.sample` 后按其中步骤验证常驻；不生效则运行
 `windows/setup-keepalive.ps1`。
 
+CI 由 `.github/workflows/build-codespace-wsl.yaml` 单 job（QEMU 多架构，同 sidecar workflow）
+用 `docker/build-push-action` 一次性构建并推送多架构 `codespace-wsl` 到 GHCR，再按 arch
+`docker pull --platform` + `docker export | gzip` 产出 `devspace-<arch>.wsl` build artifact
+（`docker export` 只 dump 文件系统、不运行容器，故异架构无需 QEMU 执行）。发布 OCI 镜像便于
+缓存与追溯，但**它不能被 WSL 直接导入**——终端用户消费的是 `.wsl` artifact
+（`wsl --import`/`--from-file`）。触发条件为 `images/wsl/**` 变更、该 workflow 自身变更，以及
+每周定时（跟上重建的 base 镜像）。base 镜像不由本 workflow 构建，依赖
+`build-codespace-image.yaml` 已发布的 `codespace-ubuntu26.04`。
+
 ## 变更规则
 
 - 不修改 `images/dev/`：WSL 专属改动全部落在 `images/wsl/`。若确需改动 dev 的 s6/sshd/home-init，

@@ -70,6 +70,8 @@ Podman Machine；不部署远端 HTTP agent。完整的控制面范围、配置�
 - `ci-codespace.yaml` 运行 Codespace 格式、lint、类型和测试检查。
 - `build-codespace-image.yaml` 在原生 amd64/arm64 runner 上构建并合并多架构开发镜像。
 - `build-codespace-sidecar.yaml` 发布 `ghcr.io/curoky/devspace:codespace-sidecar`。
+- `build-codespace-wsl.yaml` 以 dev 镜像为 base 二次处理，单 job 一次性构建并推送多架构
+  `codespace-wsl` 到 GHCR，再按 arch 导出 `devspace-<arch>.wsl` build artifact。
 - `delete-untagged-images.yaml` 清理 GHCR 中无 tag 的镜像。
 
 ## 常用操作
