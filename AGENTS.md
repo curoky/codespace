@@ -14,7 +14,7 @@
 
 | 路径 | 职责 |
 | --- | --- |
-| `dotfiles/` | 用户级配置及统一入口 `setup.sh` |
+| `dotfiles/` | 非容器场景专属配置（macOS 桌面/host）与 host 入口 `setup.sh`；跨场景 home 配置见 `images/dev/rootfs/home/x/` |
 | `controller/` | 本地单进程控制面：配置、Podman transport、生命周期、API、Web UI、维护 CLI 和测试 |
 | `images/` | 开发镜像（`dev/`）、host 级共享服务镜像（`sidecar/`）与 WSL 发行版镜像（`wsl/`），各带子目录 `AGENTS.md` |
 | `host/` | macOS 主机支持（LaunchAgent、Podman/Colima 启动、Homebrew 与静态包） |
@@ -29,10 +29,15 @@
 
 ## 组件设计
 
-- **Dotfiles**：`dotfiles/` 是跨场景用户配置来源，仅供开发镜像运行时使用的文件放 `images/dev/rootfs/`。
-  `setup.sh` 按 `SCENE`（`docker`、`host-linux`，Darwin 分支配桌面编辑器与 LaunchAgent）分发配置：
-  `link_path` 为可编辑配置建软链，`copy_path` 以 `0600` 复制需独立权限的配置；`CONF_PATH` 默认
-  `$HOME/devspace/dotfiles`，可由第二个参数覆盖。`dotfiles/archive/` 只存未启用历史配置，不被 `setup.sh` 加载。
+- **Dotfiles**：跨场景 home 配置的事实来源是 `images/dev/rootfs/home/x/`——这些文件经 `COPY rootfs/ /`
+  直接烤入开发镜像的 `$HOME`，无需构建期 `setup.sh`。`dotfiles/` 只保留非容器场景专属配置（macOS 桌面
+  编辑器、LaunchAgent、warp/snipaste/mpv，以及 host 专属的 zsh `prune.zshrc`、git `.gitconfig` 等）与容器运行期
+  才能落位的模板（trae `sandbox.json`/`traecli.toml`、
+  vscode remote-server settings，它们所在目录会被 `home-init` 在 boot 时重链到 `/workspace`，烤入会被清掉）。
+  `setup.sh` 主要服务 macOS host，按 scene（首参数 `docker`/`host-linux`/`darwin`，缺省按 OS 推断）分发：
+  跨场景 home 配置从 `rootfs/home/x` 建软链（单一来源），场景专属配置从 `dotfiles/` 取；`docker` scene 只在
+  运行期补写被重链目录内的模板。`link_path` 建软链，`copy_path` 以 `0600` 复制需独立权限的配置；`CONF_PATH`
+  默认 `$HOME/devspace/dotfiles`，可由第二参数覆盖。`dotfiles/archive/` 只存未启用历史配置，不被加载。
 - **镜像**：`images/dev/` 构建 Codespace 基础与参考开发镜像，`images/sidecar/` 构建 host 级共享服务镜像，
   `images/wsl/` 以 dev 镜像为 `FROM` 二次处理出 WSL2 rootfs。契约见各子目录 `AGENTS.md`。
 - **控制面**：`controller/` 是完整本地单进程控制面（配置、Podman transport、生命周期、Git provider、
@@ -54,9 +59,10 @@
 `-- --no-dry-run` 才执行写操作。下列原始命令同样有效。
 
 ```bash
-# 配置 dotfiles（可重复执行）
-dotfiles/setup.sh docker "$PWD/dotfiles"
-dotfiles/setup.sh host-linux "$PWD/dotfiles"
+# 配置 dotfiles（可重复执行；scene 缺省按 OS 推断）
+dotfiles/setup.sh docker "$PWD/dotfiles"       # 容器运行期：仅补写被重链目录内模板
+dotfiles/setup.sh host-linux "$PWD/dotfiles"   # 裸 Linux host：链入全部 home 配置
+dotfiles/setup.sh darwin "$PWD/dotfiles"       # macOS host（无参数时的默认）
 
 # 启动控制面（完整命令见 controller/AGENTS.md）
 uv sync
@@ -88,7 +94,8 @@ images/sidecar/build.sh
 
 ## 变更规则
 
-- 新增工具配置：更新 `dotfiles/<tool>/` 和 `dotfiles/setup.sh`。
+- 新增工具配置：跨场景 home 配置放 `images/dev/rootfs/home/x/`（容器经 `COPY rootfs/ /` 自动就位），
+  非容器场景才需的配置放 `dotfiles/<tool>/`，并在 `dotfiles/setup.sh` 相应 scene 里接线。
 - 修改 Codespace 配置、生命周期、API、host contract：同步更新 [`controller/AGENTS.md`](controller/AGENTS.md)；
   涉及开发镜像更新 [`images/dev/AGENTS.md`](images/dev/AGENTS.md)，涉及 sidecar 更新
   [`images/sidecar/AGENTS.md`](images/sidecar/AGENTS.md)；影响跨组件契约时同步本文。
@@ -108,5 +115,6 @@ images/sidecar/build.sh
 
 ## 已知边界
 
-- `dotfiles/setup.sh` 的 `CONF_PATH` 默认值仍待移除，变更前需核对所有调用方。
+- `dotfiles/setup.sh` 的 `CONF_PATH` 默认值仍待移除；它还据此推导 `ROOTFS_HOME=<repo>/images/dev/rootfs/home/x`，
+  变更前需核对所有调用方与仓库布局假设。
 - workflow 中被注释的 matrix 项表示暂停构建，不代表源码已废弃。

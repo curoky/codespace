@@ -130,9 +130,12 @@ RUN conda tos accept --override-channels --channel https://repo.anaconda.com/pkg
   && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
 
 # setup devspace
+# Cross-scene home configs are baked at their $HOME paths via `COPY rootfs/ /`
+# above, so no build-time setup.sh copy is needed. The only runtime-specific
+# bits (trae / vscode-server templates) live in dirs that home-init relinks onto
+# /workspace at boot, so they are (re)applied then via `setup.sh docker`.
 COPY --chown=5230:5230 ./ /opt/devspace
-RUN bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles \
-  && ln -s /opt/devspace ~/devspace
+RUN ln -s /opt/devspace ~/devspace
 
 # setup Trae user rules
 RUN git clone --depth=1 https://github.com/curoky/agent-playbook /opt/agent-playbook
@@ -141,8 +144,7 @@ RUN git clone --depth=1 https://github.com/curoky/agent-playbook /opt/agent-play
 COPY --link --chown=5230:5230 --from=stage_vscode_ext /opt/vscode-extensions /opt/vscode-extensions
 
 USER root
-RUN bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles \
-  && ln -s /opt/devspace ~/devspace
+RUN ln -s /opt/devspace ~/devspace
 
 ENV PATH=${PATH}:/opt/sb/profile/s6/bin:/opt/sb/profile/s6/libexec
 ENTRYPOINT ["/etc/s6/init/bin/init"]

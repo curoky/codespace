@@ -15,7 +15,7 @@ host 级共享服务见 [`images/sidecar/AGENTS.md`](../sidecar/AGENTS.md)，容
 | `Dockerfile`         | 组装静态工具、Nix、各语言运行时、dotfiles 和自建 s6 init                                                       |
 | `build.sh`           | 从仓库根构建本地开发镜像                                                                                 |
 | `script/`            | 构建脚本，含 `setup-s6.sh`、`setup-vscode-extensions.sh`（构建期装扩展）、`seed-vscode-extensions.sh`（启动期播种） |
-| `rootfs/`            | 烤进镜像的文件（s6 bundle、sshd、容器 SSH config 与 host key 等）                                           |
+| `rootfs/`            | 烤进镜像的文件（s6 bundle、sshd、容器 SSH config 与 host key、`home/x/` 下跨场景 home 配置等）                    |
 | `dev-environment.md` | 容器内工具链路径与使用方式                                                                                |
 
 ## s6 init
@@ -47,8 +47,8 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
 - 现有 s6 entrypoint、sshd、home-init、Atuin client、Git 和 OpenSSH client；
 - s6 转储到 `/run/s6/container_environment` 的容器环境仅 root 和 `x` 可读；
 - `workspace-init` s6 oneshot，`sshd` 和 `home-init` 均依赖它；
-- `atuin-login` s6 oneshot **不依赖** `home-init`：其 `~/.config/atuin/config.toml` 由 `setup.sh` 在构建期
-  烤入、boot 时已就绪；`atuin-daemon` 依赖 `atuin-login`；
+- `atuin-login` s6 oneshot **不依赖** `home-init`：其 `~/.config/atuin/config.toml` 经 `COPY rootfs/ /`
+  从 `rootfs/home/x/.config/atuin/config.toml` 烤入、boot 时已就绪；`atuin-daemon` 依赖 `atuin-login`；
 - `rclone-webdav` 和 `copyparty-webdav` s6 longrun 均依赖 `workspace-init`，以用户 `x` 分别监听 8004、8005；
   监听地址复用 `SSHD_BIND`（host 默认 `127.0.0.1`，bridge 为 `0.0.0.0`）。两者根目录均只含 `/workspace`
   （复用容器内 `/workspace`，WebDAV 层只读）和 `/upload`（uid/gid `5230:5230`、mode `0700` 的 writable-layer
@@ -80,7 +80,8 @@ images/dev/build.sh    # 仓库根本地构建，不发布；发布由 .github/w
 ## 变更规则
 
 - 不修改与任务无关的 s6、Atuin client、Ollama、home-init、sshd。
-- 仅供运行时使用的文件放 `rootfs/`；跨场景用户配置来源于 `dotfiles/`。
+- 仅供运行时使用的文件放 `rootfs/`；跨场景 home 配置也放 `rootfs/home/x/`（经 `COPY rootfs/ /` 烤入 `$HOME`，
+  无需构建期 `setup.sh`）。`dotfiles/` 只保留非容器场景专属配置与容器运行期才落位的模板。
 - 修改镜像 host contract、sshd 绑定行为或 WebDAV 服务时，同步更新本文与
   [`controller/AGENTS.md`](../../controller/AGENTS.md) 中依赖这些契约的章节。
 

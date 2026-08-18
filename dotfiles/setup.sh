@@ -59,40 +59,79 @@ function link_path() {
   echo "Linked $src to $dst"
 }
 
-OS_NAME=$(uname -o)
+# CONF_PATH: dotfiles dir (scene-specific / macOS-desktop configs).
+# ROOTFS_HOME: baked container home (images/dev/rootfs/home/x), the source of
+# truth for cross-scene home configs since they are COPYed into the dev image.
+# On non-container scenes we link the same files from here so there is a single
+# source for every shared config.
+CONF_PATH=${2:-$HOME/devspace/dotfiles} # TODO: remove default, verify all callers
+REPO_ROOT=$(cd "$(dirname "$CONF_PATH")" && pwd)
+ROOTFS_HOME="$REPO_ROOT/images/dev/rootfs/home/x"
 
-CONF_PATH=${2:-$HOME/devspace/dotfiles} # TODO: remove
+# Scene selection: explicit first arg wins; otherwise infer from the OS.
+# - docker:     dev container runtime (home-init). Static home configs are
+#               already baked via `COPY rootfs/ /`, so only the dirs that
+#               home-init relinks onto /workspace are (re)written here.
+# - host-linux: bare Linux host without the baked rootfs; provision the full set.
+# - darwin:     macOS host (default when run with no args by setup-homebrew.sh).
+SCENE=${1:-}
+if [[ -z $SCENE ]]; then
+  if [[ $(uname -s) == "Darwin" ]]; then
+    SCENE="darwin"
+  else
+    SCENE="host-linux"
+  fi
+fi
 
-function common() {
-  link_path $CONF_PATH/atuin/config.toml $HOME/.config/atuin/config.toml
-  link_path $CONF_PATH/bat/config $HOME/.config/bat/config
-  link_path $CONF_PATH/conda/condarc $HOME/.config/conda/condarc
-  # link_path $CONF_PATH/croc/classic_enabled $HOME/.config/croc/classic_enabled
-  # link_path $CONF_PATH/go/env $HOME/.config/go/env
-  link_path $CONF_PATH/nixpkgs/config.nix $HOME/.config/nixpkgs/config.nix
-  link_path $CONF_PATH/procps/toprc $HOME/.config/procps/toprc
-  link_path $CONF_PATH/starship/starship.toml $HOME/.config/starship.toml
-  link_path $CONF_PATH/tmux/tmux.conf $HOME/.config/tmux/tmux.conf
-  link_path $CONF_PATH/zellij/config.kdl $HOME/.config/zellij/config.kdl
+# Cross-scene home configs, sourced from the baked container home. Skipped in
+# the docker scene where rootfs already put them at these paths.
+function shared_home() {
+  link_path $ROOTFS_HOME/.config/atuin/config.toml $HOME/.config/atuin/config.toml
+  link_path $ROOTFS_HOME/.config/bat/config $HOME/.config/bat/config
+  link_path $ROOTFS_HOME/.config/conda/condarc $HOME/.config/conda/condarc
+  link_path $ROOTFS_HOME/.config/nixpkgs/config.nix $HOME/.config/nixpkgs/config.nix
+  link_path $ROOTFS_HOME/.config/procps/toprc $HOME/.config/procps/toprc
+  link_path $ROOTFS_HOME/.config/starship.toml $HOME/.config/starship.toml
+  link_path $ROOTFS_HOME/.config/tmux/tmux.conf $HOME/.config/tmux/tmux.conf
+  link_path $ROOTFS_HOME/.config/zellij/config.kdl $HOME/.config/zellij/config.kdl
+  link_path $ROOTFS_HOME/.vimrc $HOME/.vimrc
+}
 
-  # link_path $CONF_PATH/gdb/gdbinit $HOME/.gdbinit
-  link_path $CONF_PATH/vim/vimrc $HOME/.vimrc
-  # link_path $CONF_PATH/tabby-ml/config.toml $HOME/.tabby-client/agent/config.toml
-
+# Configs that land in dirs home-init relinks onto /workspace at boot; baking
+# them into rootfs would be wiped by that relink, so they are (re)applied at
+# runtime from dotfiles instead.
+function trae_runtime() {
   copy_path $CONF_PATH/trae/sandbox.json $HOME/.trae/sandbox.json
   copy_path $CONF_PATH/trae/traecli.toml $HOME/.trae/traecli.toml
   copy_path $CONF_PATH/trae/sandbox.json $HOME/.trae-cn/sandbox.json
   copy_path $CONF_PATH/trae/traecli.toml $HOME/.trae-cn/traecli.toml
-
-  # copy_path $CONF_PATH/zsh/prune.zshrc $HOME/.zshrc
-  # copy_path $CONF_PATH/git/.gitconfig $HOME/.gitconfig
-  # copy_path $CONF_PATH/ssh/user.ssh_config $HOME/.ssh/config
-  # copy_path $CONF_PATH/ssh/authorized_keys $HOME/.ssh/authorized_keys
 }
 
-common
+function vscode_remote_runtime() {
+  link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.vscode-server/data/Machine/settings.json
+  link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.trae-server/data/Machine/settings.json
+  link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.trae-cn-server/data/Machine/settings.json
+}
 
-if [[ $OS_NAME == "Darwin" ]]; then
+case $SCENE in
+docker)
+  trae_runtime
+  vscode_remote_runtime
+  ;;
+
+host-linux)
+  shared_home
+  trae_runtime
+  vscode_remote_runtime
+  link_path $ROOTFS_HOME/.bazelrc $HOME/.bazelrc
+  copy_path $CONF_PATH/zsh/prune.zshrc $HOME/.zshrc
+  copy_path $CONF_PATH/git/.gitconfig $HOME/.gitconfig
+  ;;
+
+darwin)
+  shared_home
+  trae_runtime
+
   # link_path $CONF_PATH/rime/squirrel $HOME/Library/Rime
   link_path $CONF_PATH/snipaste/config.ini $HOME/.snipaste/config.ini
   link_path $CONF_PATH/mpv/mpv.conf $HOME/.config/mpv/mpv.conf
@@ -112,14 +151,10 @@ if [[ $OS_NAME == "Darwin" ]]; then
 
   link_path $CONF_PATH/launchctl/sh.atuin.daemon.plist "$HOME/Library/LaunchAgents/sh.atuin.daemon.plist"
   # copy_path $CONF_PATH/launchctl/sh.atuin.server.plist "$HOME/Library/LaunchAgents/sh.atuin.server.plist"
+  ;;
 
-else
-  link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.vscode-server/data/Machine/settings.json
-  link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.trae-server/data/Machine/settings.json
-  link_path $CONF_PATH/vscode/remote-server-settings.json $HOME/.trae-cn-server/data/Machine/settings.json
-
-  link_path $CONF_PATH/bazel/bazelrc $HOME/.bazelrc
-
-  copy_path $CONF_PATH/zsh/prune.zshrc $HOME/.zshrc
-  copy_path $CONF_PATH/git/.gitconfig $HOME/.gitconfig
-fi
+*)
+  echo "Unknown scene: $SCENE (expected docker|host-linux|darwin)"
+  exit 1
+  ;;
+esac
