@@ -49,6 +49,9 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
 - `workspace-init` s6 oneshot，`sshd` 和 `home-init` 均依赖它；
 - `atuin-login` s6 oneshot **不依赖** `home-init`：其 `~/.config/atuin/config.toml` 经 `COPY rootfs/ /`
   从 `rootfs/home/x/.config/atuin/config.toml` 烤入、boot 时已就绪；`atuin-daemon` 依赖 `atuin-login`；
+- `gitconfig-init` s6 oneshot，无依赖：baked `rootfs/home/x/.gitconfig` 里 `[user]` 的 name/email 注释掉
+  并开 `useConfigOnly = true`（镜像不含身份，误配时 commit 直接报错），boot 时该 oneshot 的 `up` 直接用
+  execline 跑 `git config --global` 写入 `user.name`/`user.email`（幂等，无独立脚本）；
 - `rclone-webdav` 和 `copyparty-webdav` s6 longrun 均依赖 `workspace-init`，以用户 `x` 分别监听 8004、8005；
   监听地址复用 `SSHD_BIND`（host 默认 `127.0.0.1`，bridge 为 `0.0.0.0`）。两者根目录均只含 `/workspace`
   （复用容器内 `/workspace`，WebDAV 层只读）和 `/upload`（uid/gid `5230:5230`、mode `0700` 的 writable-layer
