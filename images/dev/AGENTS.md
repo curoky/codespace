@@ -28,6 +28,9 @@ host 级共享服务见 [`images/sidecar/AGENTS.md`](../sidecar/AGENTS.md)，容
 runlevel 拆成两个 bundle：`user-base` 含除 `gitconfig-init` 外的全部服务；`user-final` 通过
 `contents.d/user-base` 嵌套包含 `user-base`，再加 `gitconfig-init`。`setup-s6.sh` 的
 `s6-linux-init-maker -D user-final` 把默认 runlevel 定为 `user-final`，boot 时 rc.init 拉起它。
+容器可用环境变量 `DEVSPACE_RUNLEVEL` 覆盖初始 bundle（如 `-e DEVSPACE_RUNLEVEL=user-base`）：rc.init
+读 `/run/s6/container_environment/DEVSPACE_RUNLEVEL`，非空时用它，否则回落到 maker 默认。运行期也可
+`s6-rc -up change <bundle>` 在线切换。
 
 ## 容器 SSH 契约
 

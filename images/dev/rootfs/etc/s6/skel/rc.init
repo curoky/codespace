@@ -25,14 +25,24 @@ echo "rc.init: stage 2 starting, runlevel=$1 args=$*"
 rl="$1"
 shift
 
+# Allow the container to pick the initial runlevel (bundle) at boot. In -C
+# container mode there is no kernel cmdline, so $1 is always the maker default
+# ("user-final"). Override it with DEVSPACE_RUNLEVEL when that env var was dumped
+# to /run/s6/container_environment (e.g. `podman run -e DEVSPACE_RUNLEVEL=user-base`);
+# fall back to the maker default when unset or empty.
+if test -s /run/s6/container_environment/DEVSPACE_RUNLEVEL ; then
+  rl="$(cat /run/s6/container_environment/DEVSPACE_RUNLEVEL)"
+fi
+
 # 1. Early preparation (boot only): start the s6-rc service manager on the
 #    scandir, loading the database compiled at image build time.
 echo "rc.init: running s6-rc-init"
 s6-rc-init -c /etc/s6/db /run/service
 
 # 2. Start the wanted set of services by bringing up the bundle named after the
-#    runlevel. $rl defaults to "user-final" (set via the maker -D option). s6-rc-maker
-#    no longer ships a separate scripts/runlevel helper, so call s6-rc directly.
+#    runlevel ($rl, from DEVSPACE_RUNLEVEL or the maker -D default "user-final").
+#    s6-rc-maker no longer ships a separate scripts/runlevel helper, so call
+#    s6-rc directly.
 echo "rc.init: bringing up runlevel $rl"
 s6-rc -v2 -up change "$rl"
 
