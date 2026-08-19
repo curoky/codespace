@@ -136,7 +136,7 @@ secrets:
 `controller/assets/ssh/`，启动时私钥装到 `~/.ssh/codespace/login_key`，公钥已烤进镜像 `authorized_keys`，
 无需配置。`hosts` 以 host alias 为 key，值为连接设置，可留空（等价默认 SSH host）。每个 project 用 `host`
 声明可启动 host 列表（同一 repo 只出现一次），列表每项 `{name, platform?}`。project 按 `type` 决定 repo
-相关字段，可选 `description`、`image`、`open_path`、`published_ports`、`container`。规则：
+相关字段，可选 `description`、`image`、`open_path`、`clone_path`、`published_ports`、`container`。规则：
 
 - `type` 默认 `repo`，可设 `blank` 或 `git`。`repo` 必须配 `repo`（因此带 `provider`）；`git` 必须配 `git_url`、
   禁止配 `repo`/`provider`；`blank` 禁止配 `repo`/`provider`/`git_url`。
@@ -144,8 +144,11 @@ secrets:
   作为 `git_url` 的简写（自动置 `type: git`），如 `repo: git:git@curoky:devspace`。
 - `git` 类型直接 clone 原始 `git@host:owner/name.git`（或 `ssh://` 形式）URL，不生成或注册 deploy key，凭据与
   host key 校验完全依赖镜像内 SSH 契约（GSSAPI/Kerberos 或运维预置的 `known_hosts`）；控制面不为其管理任何凭据。
-- `open_path` 可选、必须绝对路径；未设时 `repo`/`git` 默认打开仓库目录（`git` 从 URL 末段派生），`blank` 默认打开
-  `/workspace`。编辑器 deep link 按此路径打开。
+- `clone_path` 可选（仅 `repo`/`git`，`blank` 禁止配），必须是 `/workspace` 下的严格子路径绝对路径，指定 clone
+  的 checkout 目录；未设时 `repo` 默认 `/workspace/<name>`、`git` 从 URL 末段派生。目标父目录若不存在，clone 前
+  以容器用户 `mkdir -p` 补齐。
+- `open_path` 可选、必须绝对路径；未设时优先回退到 `clone_path`，其次 `repo`/`git` 默认打开仓库目录（`git` 从
+  URL 末段派生），`blank` 默认打开 `/workspace`。编辑器 deep link 按此路径打开。
 - 每个 host 条目 `platform` 只能 `linux/amd64` 或 `linux/arm64`；省略用该 host 原生平台。
 - `published_ports` 可选，每项 `"<remote>"`（local=remote）或 `"<local>:<remote>"`，取值 1-65535，同一
   project 内 local 端口不得重复。只有解析后 `container.network_mode` 为 `bridge` 的 project 可配置
@@ -272,7 +275,8 @@ machine。Dashboard 并发查询各 host，一个离线 host 不得阻塞其他 
 9. 通过生成的 route 完成真实 SSH 登录验证。
 10. 将 provider 上同名 deploy key 替换为一个可写 key。
 11. 保留 `HEAD` 有效的现有 Git checkout，及带 `.git/codespace-empty-repository` 标记的已成功空仓库 checkout；
-    存在 `.git` 但两项均不满足时视为中断 clone 残留并清理，目标路径存在但非 Git checkout 时拒绝覆盖。新 clone
+    存在 `.git` 但两项均不满足时视为中断 clone 残留并清理，目标路径存在但非 Git checkout 时拒绝覆盖。checkout
+    目录取自 `clone_path`（未设时按类型派生），若其父目录不存在先以容器用户 `mkdir -p` 补齐。新 clone
     先清 `<target>.codespace-clone` 临时目录，再以 15 分钟 exec 读超时执行 `git clone --depth=1`，成功后原子
     移动到目标路径；成功 clone 的空仓库写入上述标记。
 12. 原子更新 host SSH 投影。
@@ -285,8 +289,8 @@ provider token，其余与 `repo` 一致；因无 checkout 目录，`blank` 在�
 `open_path`（默认 `/workspace`），保证编辑器打开的是已存在目录。
 
 `git` 类型同样跳过 deploy key 生成/注册（步骤 3、10）与 provider token，但保留步骤 11 的 clone：直接以 15 分钟
-exec 读超时 `git clone --depth=1 <git_url>`，凭据与 host key 校验完全依赖镜像内 SSH 契约，checkout 目录从 URL
-末段派生。删除与 `repo` 同样两阶段检测未 push/未提交（见下），但无 provider 状态、不撤销任何 key。
+exec 读超时 `git clone --depth=1 <git_url>`，凭据与 host key 校验完全依赖镜像内 SSH 契约，checkout 目录取自
+`clone_path`，未设时从 URL 末段派生。删除与 `repo` 同样两阶段检测未 push/未提交（见下），但无 provider 状态、不撤销任何 key。
 
 删除 `repo` 类型需 provider token，并在任何远端变更前撤销所有匹配 deploy key（key 不存在视为幂等成功）。
 `blank` 与 `git` 无 provider 状态，直接进入 container 与 workspace 处理。`purge=false` 只删 container；

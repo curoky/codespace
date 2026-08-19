@@ -186,6 +186,145 @@ def test_config_accepts_git_project_from_combined_repo() -> None:
     assert abbie.resolved_open_path() == "/workspace/devspace"
 
 
+def test_config_clone_path_overrides_target_and_open_path() -> None:
+    config = Config.model_validate(
+        {
+            "default_image": "img",
+            "container": _CONTAINER,
+            "hosts": {"home": _SSH_HOST},
+            "projects": {
+                "playbook": {
+                    "host": [{"name": "home"}],
+                    "repo": "github:curoky/agent-playbook",
+                    "clone_path": "/workspace/space/agent-playbook",
+                    "open_path": "/workspace/space",
+                },
+                "defaulted": {
+                    "host": [{"name": "home"}],
+                    "repo": "github:curoky/agent-playbook",
+                    "clone_path": "/workspace/space/agent-playbook",
+                },
+            },
+        }
+    )
+
+    playbook = config.projects["playbook"]
+    assert playbook.resolved_clone_path() == "/workspace/space/agent-playbook"
+    assert playbook.resolved_open_path() == "/workspace/space"
+    assert config.project_clone_path("playbook") == "/workspace/space/agent-playbook"
+
+    # Without an explicit open_path, it falls back to the checkout directory.
+    assert config.projects["defaulted"].resolved_open_path() == "/workspace/space/agent-playbook"
+
+
+def test_config_clone_path_defaults_to_repo_target() -> None:
+    config = Config.model_validate(
+        {
+            "default_image": "img",
+            "container": _CONTAINER,
+            "hosts": {"home": _SSH_HOST},
+            "projects": {
+                "devspace": {
+                    "host": [{"name": "home"}],
+                    "repo": "github:curoky/devspace",
+                }
+            },
+        }
+    )
+
+    assert config.projects["devspace"].resolved_clone_path() == "/workspace/devspace"
+
+
+def test_config_rejects_clone_path_outside_workspace() -> None:
+    with pytest.raises(ValidationError, match="path must be a directory under /workspace"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "container": _CONTAINER,
+                "hosts": {"home": _SSH_HOST},
+                "projects": {
+                    "devspace": {
+                        "host": [{"name": "home"}],
+                        "repo": "github:curoky/devspace",
+                        "clone_path": "/etc/devspace",
+                    }
+                },
+            }
+        )
+
+
+def test_config_rejects_relative_clone_path() -> None:
+    with pytest.raises(ValidationError, match="path must be a directory under /workspace"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "container": _CONTAINER,
+                "hosts": {"home": _SSH_HOST},
+                "projects": {
+                    "devspace": {
+                        "host": [{"name": "home"}],
+                        "repo": "github:curoky/devspace",
+                        "clone_path": "space/agent-playbook",
+                    }
+                },
+            }
+        )
+
+
+def test_config_rejects_clone_path_equal_to_workspace_mount() -> None:
+    with pytest.raises(ValidationError, match="path must be a directory under /workspace"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "container": _CONTAINER,
+                "hosts": {"home": _SSH_HOST},
+                "projects": {
+                    "devspace": {
+                        "host": [{"name": "home"}],
+                        "repo": "github:curoky/devspace",
+                        "clone_path": "/workspace",
+                    }
+                },
+            }
+        )
+
+
+def test_config_rejects_clone_path_with_parent_segments() -> None:
+    with pytest.raises(ValidationError, match=r"path must not contain '\.\.' segments"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "container": _CONTAINER,
+                "hosts": {"home": _SSH_HOST},
+                "projects": {
+                    "devspace": {
+                        "host": [{"name": "home"}],
+                        "repo": "github:curoky/devspace",
+                        "clone_path": "/workspace/../etc/devspace",
+                    }
+                },
+            }
+        )
+
+
+def test_config_rejects_clone_path_on_blank_project() -> None:
+    with pytest.raises(ValidationError, match="blank project must not set 'clone_path'"):
+        Config.model_validate(
+            {
+                "default_image": "img",
+                "container": _CONTAINER,
+                "hosts": {"home": _SSH_HOST},
+                "projects": {
+                    "scratch": {
+                        "host": [{"name": "home"}],
+                        "type": "blank",
+                        "clone_path": "/workspace/scratch",
+                    }
+                },
+            }
+        )
+
+
 def test_config_rejects_git_project_with_provider() -> None:
     with pytest.raises(ValidationError, match="git project must not set"):
         Config.model_validate(

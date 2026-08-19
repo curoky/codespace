@@ -204,10 +204,11 @@ class CodespaceService:
                 container,
                 self._require_repo(project),
                 self._require_provider(project),
+                spec.clone_path,
             )
         elif project.type == "git":
             self._stage(creation, "cloning repository")
-            workspace.clone_git_url(container, self._require_git_url(project))
+            workspace.clone_git_url(container, self._require_git_url(project), spec.clone_path)
         else:
             self._stage(creation, "preparing open path")
             workspace.prepare_open_path(container, spec.open_path)
@@ -253,8 +254,8 @@ class CodespaceService:
                         "repository state cannot be inspected while it is not running"
                     )
                 if is_repo:
-                    return workspace.repo_git_state(container, self._require_repo(project))
-                return workspace.git_url_git_state(container, self._require_git_url(project))
+                    return workspace.repo_git_state(container, spec.clone_path)
+                return workspace.git_url_git_state(container, spec.clone_path)
             return RepoGitState()
 
         if is_repo and token is not None:

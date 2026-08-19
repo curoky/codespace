@@ -701,7 +701,7 @@ def test_clone_reuses_valid_existing_checkout() -> None:
         container.exec_calls.append((command, user)) or (0, (None, None))
     )
 
-    workspace.clone_repo(container, "curoky/devspace", "github")  # type: ignore[arg-type]
+    workspace.clone_repo(container, "curoky/devspace", "github", "/workspace/devspace")  # type: ignore[arg-type]
 
     assert container.exec_calls == [
         (["test", "-d", "/workspace/devspace/.git"], "x"),
@@ -712,7 +712,7 @@ def test_clone_reuses_valid_existing_checkout() -> None:
 def test_clone_missing_checkout_uses_temporary_directory_and_long_timeout() -> None:
     container = FakeContainer()
 
-    workspace.clone_repo(container, "group/service-api", "gitlab")  # type: ignore[arg-type]
+    workspace.clone_repo(container, "group/service-api", "gitlab", "/workspace/service-api")  # type: ignore[arg-type]
 
     assert (
         [
@@ -746,6 +746,28 @@ def test_clone_missing_checkout_uses_temporary_directory_and_long_timeout() -> N
     )
 
 
+def test_clone_creates_missing_parent_directory_for_nested_target() -> None:
+    container = FakeContainer()
+
+    workspace.clone_repo(  # type: ignore[arg-type]
+        container,
+        "curoky/agent-playbook",
+        "github",
+        "/workspace/space/agent-playbook",
+    )
+
+    assert (["mkdir", "-p", "--", "/workspace/space"], "x") in container.exec_calls
+    assert container.exec_calls[-1] == (
+        [
+            "mv",
+            "--",
+            "/workspace/space/agent-playbook.codespace-clone",
+            "/workspace/space/agent-playbook",
+        ],
+        "x",
+    )
+
+
 def test_clone_replaces_incomplete_checkout() -> None:
     container = FakeContainer()
 
@@ -770,7 +792,7 @@ def test_clone_replaces_incomplete_checkout() -> None:
 
     container.exec_run = exec_run  # type: ignore[method-assign]
 
-    workspace.clone_repo(container, "curoky/devspace", "github")  # type: ignore[arg-type]
+    workspace.clone_repo(container, "curoky/devspace", "github", "/workspace/devspace")  # type: ignore[arg-type]
 
     assert (["rm", "-rf", "--", "/workspace/devspace"], "x") in container.exec_calls
     assert (
@@ -801,7 +823,7 @@ def test_clone_reuses_successfully_cloned_empty_repository() -> None:
 
     container.exec_run = exec_run  # type: ignore[method-assign]
 
-    workspace.clone_repo(container, "curoky/empty", "github")  # type: ignore[arg-type]
+    workspace.clone_repo(container, "curoky/empty", "github", "/workspace/empty")  # type: ignore[arg-type]
 
     assert container.exec_calls == [
         (["test", "-d", "/workspace/empty/.git"], "x"),
@@ -820,7 +842,7 @@ def test_clone_reuses_successfully_cloned_empty_repository() -> None:
 def test_clone_git_url_missing_checkout_clones_raw_url() -> None:
     container = FakeContainer()
 
-    workspace.clone_git_url(container, "git@curoky:devspace")  # type: ignore[arg-type]
+    workspace.clone_git_url(container, "git@curoky:devspace", "/workspace/devspace")  # type: ignore[arg-type]
 
     assert (
         [
@@ -844,7 +866,7 @@ def test_clone_git_url_reuses_valid_existing_checkout() -> None:
         container.exec_calls.append((command, user)) or (0, (None, None))
     )
 
-    workspace.clone_git_url(container, "git@curoky:devspace")  # type: ignore[arg-type]
+    workspace.clone_git_url(container, "git@curoky:devspace", "/workspace/devspace")  # type: ignore[arg-type]
 
     assert container.exec_calls == [
         (["test", "-d", "/workspace/devspace/.git"], "x"),
@@ -991,7 +1013,7 @@ class GitFakeContainer:
 def test_repo_git_state_clean_when_nothing_pending() -> None:
     container = GitFakeContainer({})
 
-    state = workspace.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+    state = workspace.repo_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
 
     assert state.blocks_delete is False
     assert state.unpushed is False
@@ -1009,7 +1031,7 @@ def test_repo_git_state_ignores_stderr_noise() -> None:
         }
     )
 
-    state = workspace.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+    state = workspace.repo_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
 
     assert state.blocks_delete is False
     assert state.detail == []
@@ -1018,7 +1040,7 @@ def test_repo_git_state_ignores_stderr_noise() -> None:
 def test_repo_git_state_detects_uncommitted() -> None:
     container = GitFakeContainer({"status": (0, b" M models.py\n", b"")})
 
-    state = workspace.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+    state = workspace.repo_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
 
     assert state.uncommitted is True
     assert state.unpushed is False
@@ -1028,7 +1050,7 @@ def test_repo_git_state_detects_uncommitted() -> None:
 def test_repo_git_state_detects_unpushed() -> None:
     container = GitFakeContainer({"log": (0, b"abc123 add feature\n", b"")})
 
-    state = workspace.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+    state = workspace.repo_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
 
     assert state.unpushed is True
     assert state.uncommitted is False
@@ -1043,7 +1065,7 @@ def test_repo_git_state_detects_both() -> None:
         }
     )
 
-    state = workspace.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+    state = workspace.repo_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
 
     assert state.blocks_delete is True
     assert state.detail == [" M models.py", "abc123 add feature"]
@@ -1052,7 +1074,7 @@ def test_repo_git_state_detects_both() -> None:
 def test_repo_git_state_skips_absent_checkout() -> None:
     container = GitFakeContainer({"test": (1, b"", b"")})
 
-    state = workspace.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+    state = workspace.repo_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
 
     assert state.blocks_delete is False
     # Only the presence probe should run when the checkout is missing.
@@ -1063,4 +1085,4 @@ def test_repo_git_state_raises_on_git_failure() -> None:
     container = GitFakeContainer({"status": (128, b"", b"fatal: not a git repository")})
 
     with pytest.raises(RuntimeError, match=r"exec git .* failed \(128\)"):
-        workspace.repo_git_state(container, "curoky/devspace")  # type: ignore[arg-type]
+        workspace.repo_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]

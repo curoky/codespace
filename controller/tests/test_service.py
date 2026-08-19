@@ -410,7 +410,9 @@ def test_create_git_project_clones_url_without_deploy_key(
     monkeypatch.setattr(ssh, "probe", lambda *args: events.append("probe"))
     monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
     monkeypatch.setattr(workspace, "clone_repo", lambda *args: events.append("clone_repo"))
-    monkeypatch.setattr(workspace, "clone_git_url", lambda _container, url: cloned.append(url))
+    monkeypatch.setattr(
+        workspace, "clone_git_url", lambda _container, url, _target: cloned.append(url)
+    )
     monkeypatch.setattr(workspace, "prepare_open_path", lambda *args: events.append("open_path"))
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
 

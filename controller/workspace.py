@@ -5,6 +5,7 @@ from __future__ import annotations
 import io
 import tarfile
 from dataclasses import dataclass
+from pathlib import PurePosixPath
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
@@ -16,8 +17,6 @@ from controller.models import (
     GitProvider,
     RepoGitState,
     git_host,
-    git_url_target,
-    repo_target,
 )
 
 _CLONE_TIMEOUT = 15 * 60.0
@@ -72,14 +71,14 @@ def inject_deploy_key(
     )
 
 
-def clone_repo(container: Container, repo: str, provider: GitProvider) -> None:
-    """Clone a provider repository unless its checkout already exists."""
-    _clone_url(container, repo_target(repo), f"git@{git_host(provider)}:{repo}.git")
+def clone_repo(container: Container, repo: str, provider: GitProvider, target: str) -> None:
+    """Clone a provider repository into ``target`` unless its checkout already exists."""
+    _clone_url(container, target, f"git@{git_host(provider)}:{repo}.git")
 
 
-def clone_git_url(container: Container, git_url: str) -> None:
-    """Clone a raw ``git@host:owner/name.git`` URL unless its checkout already exists."""
-    _clone_url(container, git_url_target(git_url), git_url)
+def clone_git_url(container: Container, git_url: str, target: str) -> None:
+    """Clone a raw ``git@host:owner/name.git`` URL into ``target`` unless it already exists."""
+    _clone_url(container, target, git_url)
 
 
 def _clone_url(container: Container, target: str, clone_url: str) -> None:
@@ -114,6 +113,9 @@ def _clone_url(container: Container, target: str, clone_url: str) -> None:
         if target_exists.code == 0:
             raise RuntimeError(f"repository target exists but is not a checkout: {target}")
 
+    parent = str(PurePosixPath(target).parent)
+    if parent not in ("", "/"):
+        execute_checked(container, ["mkdir", "-p", "--", parent], user=CONTAINER_USER)
     temporary = f"{target}.codespace-clone"
     execute_checked(container, ["rm", "-rf", "--", temporary], user=CONTAINER_USER)
     execute_checked(
@@ -142,14 +144,14 @@ def _clone_url(container: Container, target: str, clone_url: str) -> None:
     execute_checked(container, ["mv", "--", temporary, target], user=CONTAINER_USER)
 
 
-def repo_git_state(container: Container, repo: str) -> RepoGitState:
+def repo_git_state(container: Container, target: str) -> RepoGitState:
     """Return uncommitted and unpushed checkout state before deletion."""
-    return checkout_git_state(container, repo_target(repo))
+    return checkout_git_state(container, target)
 
 
-def git_url_git_state(container: Container, git_url: str) -> RepoGitState:
+def git_url_git_state(container: Container, target: str) -> RepoGitState:
     """Return checkout state for a raw-URL ``git`` project before deletion."""
-    return checkout_git_state(container, git_url_target(git_url))
+    return checkout_git_state(container, target)
 
 
 def checkout_git_state(container: Container, target: str) -> RepoGitState:
