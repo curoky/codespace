@@ -31,7 +31,7 @@ echo "rc.init: running s6-rc-init"
 s6-rc-init -c /etc/s6/db /run/service
 
 # 2. Start the wanted set of services by bringing up the bundle named after the
-#    runlevel. $rl defaults to "user" (set via the maker -D option). s6-rc-maker
+#    runlevel. $rl defaults to "user-final" (set via the maker -D option). s6-rc-maker
 #    no longer ships a separate scripts/runlevel helper, so call s6-rc directly.
 echo "rc.init: bringing up runlevel $rl"
 s6-rc -v2 -up change "$rl"
