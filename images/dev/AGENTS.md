@@ -14,8 +14,8 @@ host 级共享服务见 [`images/sidecar/AGENTS.md`](../sidecar/AGENTS.md)，容
 | -------------------- | -------------------------------------------------------------------------------------------- |
 | `Dockerfile`         | 组装静态工具、Nix、各语言运行时、dotfiles 和自建 s6 init                                                       |
 | `build.sh`           | 从仓库根构建本地开发镜像                                                                                 |
-| `script/`            | 构建脚本，含 `setup-s6.sh`、`setup-vscode-extensions.sh`（构建期装扩展）、`seed-vscode-extensions.sh`（启动期播种） |
-| `rootfs/`            | 烤进镜像的文件（s6 bundle、sshd、容器 SSH config 与 host key、`home/x/` 下跨场景 home 配置等）                    |
+| `script/`            | 构建脚本，含 `extensions.txt`（remote server 预装扩展清单）、`setup-s6.sh`、`setup-vscode-extensions.sh`（构建期装扩展）、`seed-vscode-extensions.sh`（启动期播种） |
+| `rootfs/`            | 烤进镜像的文件（s6 bundle、sshd、容器 SSH config 与 host key、`home/x/` 下跨场景 home 配置等）                     |
 | `dev-environment.md` | 容器内工具链路径与使用方式                                                                                |
 
 ## s6 init
@@ -54,8 +54,6 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
 - 现有 s6 entrypoint、sshd、home-init、Atuin client、Git 和 OpenSSH client；
 - s6 转储到 `/run/s6/container_environment` 的容器环境仅 root 和 `x` 可读；
 - `workspace-init` s6 oneshot，`sshd` 和 `home-init` 均依赖它；
-- `atuin-login` s6 oneshot **不依赖** `home-init`：其 `~/.config/atuin/config.toml` 经 `COPY rootfs/ /`
-  从 `rootfs/home/x/.config/atuin/config.toml` 烤入、boot 时已就绪；`atuin-daemon` 依赖 `atuin-login`；
 - `gitconfig-init` s6 oneshot，无依赖：baked `rootfs/home/x/.gitconfig` 里 `[user]` 的 name/email 注释掉
   并开 `useConfigOnly = true`（镜像不含身份，误配时 commit 直接报错），boot 时该 oneshot 的 `up` 直接用
   execline 跑 `git config --global` 写入 `user.name`/`user.email`（幂等，无独立脚本）；
