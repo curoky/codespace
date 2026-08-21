@@ -65,7 +65,9 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
   gocryptfs（binman `gocryptfs`）自身不带 fusermount，挂载时经 PATH 调用它（go-fuse 优先 `fusermount3`
   再回退 `fusermount`），故 binman `link` 另装 `fuse3` 提供 `/opt/sb/bin/fusermount3`；缺它挂载会以
   `fs.Mount failed: exec: "…fusermount…": no such file or directory` 失败，连带 sshd 不起。
-  日志写 `/var/log/workspace-crypt.log`；
+  workspace-crypt 经 `s6-setuidgid x` 降权后挂载，`x` 无 CAP_SYS_ADMIN，故 `setup-sysconf.sh` 构建期给
+  `fusermount3` 加 setuid root（binman 静态包默认不带该位）；缺 setuid 会以 `fusermount3: mount failed:
+  Operation not permitted` 失败。日志写 `/var/log/workspace-crypt.log`；
 - `gitconfig-init` s6 oneshot，无依赖：baked `rootfs/home/x/.gitconfig` 里 `[user]` 的 name/email 注释掉
   并开 `useConfigOnly = true`（镜像不含身份，误配时 commit 直接报错），boot 时该 oneshot 的 `up` 直接用
   execline 跑 `git config --global` 写入 `user.name`/`user.email`（幂等，无独立脚本）；

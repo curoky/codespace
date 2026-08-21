@@ -45,3 +45,12 @@ ln -sf /usr/share/zoneinfo/Asia/Singapore /etc/localtime
 # setup locales from apt
 echo "en_US.UTF-8 UTF-8" >/etc/locale.gen
 locale-gen
+
+# fusermount3 (binman fuse3) needs setuid root so the unprivileged user `x` can
+# mount FUSE: workspace-crypt runs gocryptfs under `s6-setuidgid x`, which drops
+# CAP_SYS_ADMIN, and the binman static build ships fusermount3 without the setuid
+# bit. Without this, gocryptfs mount fails with "fusermount3: mount failed:
+# Operation not permitted" and sshd (which depends on workspace-crypt) never
+# starts. Set on the store target since /opt/sb/bin/fusermount3 is a symlink.
+chown root:root /opt/sb/store/fuse3/bin/fusermount3
+chmod u+s /opt/sb/store/fuse3/bin/fusermount3
