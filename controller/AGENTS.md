@@ -154,6 +154,11 @@ secrets:
 - `published_ports` 可选，每项 `"<remote>"`（local=remote）或 `"<local>:<remote>"`，取值 1-65535，同一
   project 内 local 端口不得重复。只有解析后 `container.network_mode` 为 `bridge` 的 project 可配置
   （bridge 有独立 netns 才能发布端口），解析为 `host` 时配置直接拒绝。改动需重建实例才生效。
+- `encrypt_workspace` 可选布尔，默认 `false`。为 `true` 时该 project 的 workspace 用 gocryptfs 加密：控制面把
+  host 实例目录 bind 到密文根 `/workspace.enc`（而非明文 `/workspace`），并把固定 secret `workspace_crypt_key`
+  以 env `WORKSPACE_CRYPT_KEY` 注入（对齐 sidecar 的 `atuin_db_uri` 模式）；镜像侧 `workspace-crypt` 服务 boot
+  时据此把明文挂到 `/workspace`。secret 须先经 `sync_secrets` 在目标 host 注册，缺失则创建实例时 fail-fast。
+  加密逐 project 独立启用，`false` 的 project 仍直接 bind `/workspace` 且不注入任何 crypt secret。
 - `hosts.<host>.type` 默认 `ssh`，可设 `podman-machine`。SSH host 可配绝对路径 `podman_socket`（默认
   `/run/podman/podman.sock`）、不得配 `machine`；Podman Machine host 必须配 `machine`、不得配 `podman_socket`。
 - SSH host 可配 `environment`（需从非交互 SSH 登录环境继承到容器的变量名列表）：变量名匹配

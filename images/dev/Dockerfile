@@ -76,6 +76,7 @@ COPY images/dev/script/setup-sysconf.sh /tmp/setup-sysconf.sh
 COPY images/dev/script/setup-s6.sh /tmp/setup-s6.sh
 RUN /tmp/setup-sysconf.sh \
   && install -d -o 5230 -g 5230 -m 0755 /workspace \
+  && install -d -o 5230 -g 5230 -m 0755 /workspace.enc \
   && install -d -o 5230 -g 5230 -m 0700 /upload \
   && chown 5230:5230 /opt \
   && /tmp/setup-s6.sh \

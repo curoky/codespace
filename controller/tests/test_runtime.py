@@ -28,6 +28,7 @@ from controller.models import (
     LABEL_TYPE,
     MANDATORY_LABELS,
     Environment,
+    EnvironmentSpec,
     environment_id,
     environment_labels,
     ssh_port,
@@ -561,6 +562,78 @@ def test_create_container_fails_fast_on_missing_secret(config: Config) -> None:
         )
     # The container must not be created when a referenced secret is missing.
     assert calls == []
+
+
+def _encrypted_spec(config: Config) -> EnvironmentSpec:
+    spec = config.environment_spec("devspace", "home", "debug")
+    return replace(spec, project=spec.project.model_copy(update={"encrypt_workspace": True}))
+
+
+def test_create_container_encrypts_workspace_when_enabled(
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, dict[str, object]]] = []
+    monkeypatch.setattr(engine, "Container", FakeContainer)
+    client = SimpleNamespace(
+        containers=SimpleNamespace(run=_run_capturing(calls)),
+        secrets=FakeSecretsManager({"workspace_crypt_key"}),
+    )
+
+    container_runtime.create_container(
+        client,  # type: ignore[arg-type]
+        _encrypted_spec(config),
+        "/home/x/codespace",
+    )
+
+    _, kwargs = calls[0]
+    mounts = kwargs["mounts"]
+    assert isinstance(mounts, list)
+    assert mounts[0]["target"] == "/workspace.enc"
+    # The fixed crypt key is injected as env, like the sidecar's atuin_db_uri.
+    assert kwargs["secret_env"] == {"WORKSPACE_CRYPT_KEY": "workspace_crypt_key"}
+
+
+def test_create_container_fails_fast_on_missing_crypt_secret(config: Config) -> None:
+    calls: list[tuple[str, dict[str, object]]] = []
+    client = SimpleNamespace(
+        containers=SimpleNamespace(run=_run_capturing(calls)),
+        secrets=FakeSecretsManager(set()),
+    )
+
+    with pytest.raises(
+        RuntimeError, match=r"Podman secret 'workspace_crypt_key' is not registered"
+    ):
+        container_runtime.create_container(
+            client,  # type: ignore[arg-type]
+            _encrypted_spec(config),
+            "/home/x/codespace",
+        )
+    assert calls == []
+
+
+def test_create_container_uses_plaintext_workspace_when_disabled(
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, dict[str, object]]] = []
+    monkeypatch.setattr(engine, "Container", FakeContainer)
+    client = SimpleNamespace(
+        containers=SimpleNamespace(run=_run_capturing(calls)),
+        secrets=FakeSecretsManager(set()),
+    )
+
+    container_runtime.create_container(
+        client,  # type: ignore[arg-type]
+        config.environment_spec("devspace", "home", "debug"),
+        "/home/x/codespace",
+    )
+
+    _, kwargs = calls[0]
+    mounts = kwargs["mounts"]
+    assert isinstance(mounts, list)
+    assert mounts[0]["target"] == "/workspace"
+    assert "secret_env" not in kwargs
 
 
 def test_create_container_honors_custom_secret_mount_ownership(

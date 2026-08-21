@@ -23,7 +23,9 @@ host 级共享服务见 [`images/sidecar/AGENTS.md`](../sidecar/AGENTS.md)，容
 开发镜像不使用 s6-overlay。`script/setup-s6.sh` 从 `/opt/sb/store` 的 s6/execline 二进制生成
 `/etc/s6/init` 和 `/etc/s6/db`。新增服务放入 `rootfs/etc/s6/s6-rc.d/` 并加入相应 bundle；execline
 脚本用 `s6-envdir -Lf -- /run/s6/container_environment` 读容器环境，该目录仅 root 和 `x` 可读。
-`workspace-init` 必须先于 `sshd` 和 `home-init` 完成，把挂载的 `/workspace` 归属到 `5230:5230`。
+`workspace-init` 必须先于 `workspace-crypt` 完成，把挂载的 `/workspace` 与密文根 `/workspace.enc`
+归属到 `5230:5230`；`workspace-crypt` 再先于 `sshd`、`home-init` 和两个 WebDAV 服务完成，负责在启用加密时
+把明文挂到 `/workspace`（详见 host contract）。
 
 runlevel 拆成两个 bundle：`user-base` 含除 `gitconfig-init` 外的全部服务；`user-final` 通过
 `contents.d/user-base` 嵌套包含 `user-base`，再加 `gitconfig-init`。`setup-s6.sh` 的
@@ -53,11 +55,18 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
 - Podman security option `disable` 和 `seccomp=unconfined`；
 - 现有 s6 entrypoint、sshd、home-init、Atuin client、Git 和 OpenSSH client；
 - s6 转储到 `/run/s6/container_environment` 的容器环境仅 root 和 `x` 可读；
-- `workspace-init` s6 oneshot，`sshd` 和 `home-init` 均依赖它；
+- `workspace-init` s6 oneshot，`workspace-crypt` 依赖它；
+- `workspace-crypt` s6 oneshot，依赖 `workspace-init`，`sshd`、`home-init` 与两个 WebDAV 服务均依赖它。
+  以容器环境变量 `WORKSPACE_CRYPT_KEY` 是否注入为信号自适应（对齐控制面 project 的 `encrypt_workspace`）：
+  未注入则跳过、`/workspace` 保持明文 bind；注入则用 gocryptfs（`/opt/sb/bin/gocryptfs`）把密文根
+  `/workspace.enc`（host bind 落盘处）解密挂到 `/workspace`，密文根缺 `gocryptfs.conf` 时先 `-init`。
+  gocryptfs 依赖 FUSE：容器须有 `/dev/fuse` 与 `SYS_ADMIN`（或 security option `disable`），镜像预置
+  `/etc/fuse.conf` 的 `user_allow_other` 以支持 `-allow_other`（sshd/WebDAV 等其他用户访问明文）。
+  日志写 `/var/log/workspace-crypt.log`；
 - `gitconfig-init` s6 oneshot，无依赖：baked `rootfs/home/x/.gitconfig` 里 `[user]` 的 name/email 注释掉
   并开 `useConfigOnly = true`（镜像不含身份，误配时 commit 直接报错），boot 时该 oneshot 的 `up` 直接用
   execline 跑 `git config --global` 写入 `user.name`/`user.email`（幂等，无独立脚本）；
-- `rclone-webdav` 和 `copyparty-webdav` s6 longrun 均依赖 `workspace-init`，以用户 `x` 分别监听 8004、8005；
+- `rclone-webdav` 和 `copyparty-webdav` s6 longrun 均依赖 `workspace-crypt`，以用户 `x` 分别监听 8004、8005；
   监听地址复用 `SSHD_BIND`（host 默认 `127.0.0.1`，bridge 为 `0.0.0.0`）。两者根目录均只含 `/workspace`
   （复用容器内 `/workspace`，WebDAV 层只读）和 `/upload`（uid/gid `5230:5230`、mode `0700` 的 writable-layer
   目录，允许完整读写）。`/upload` 在同一 container stop/start 后保留，删除或重建 container 后丢失，无 quota

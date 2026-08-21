@@ -24,6 +24,17 @@ CONTAINER_USER = "x"
 CONTAINER_UID = 5230
 CONTAINER_GID = 5230
 WORKSPACE_MOUNT = "/workspace"
+# The host workspace is bind-mounted to the gocryptfs cipher directory; the
+# image mounts the decrypted plaintext at WORKSPACE_MOUNT at boot, so only
+# ciphertext ever reaches host disk while every /workspace consumer is unchanged.
+WORKSPACE_CIPHER_MOUNT = "/workspace.enc"
+# The gocryptfs password is a fixed secret distributed exactly like the
+# sidecar's atuin_db_uri: declare it once in the top-level `secrets` block and
+# register it out of band with sync_secrets (the sole distribution path). The
+# control plane only injects it as WORKSPACE_CRYPT_KEY for projects that opt in
+# via `encrypt_workspace`; a missing secret then fails container creation fast.
+WORKSPACE_CRYPT_SECRET = "workspace_crypt_key"  # noqa: S105 - secret name, not a value
+WORKSPACE_CRYPT_SECRET_ENV = "WORKSPACE_CRYPT_KEY"  # noqa: S105 - env var name, not a value
 # A bind-mount source requires the host's resolved absolute home path.
 WORKSPACE_DIR_NAME = "codespace"
 PODMAN_SOCKET = "/run/podman/podman.sock"
