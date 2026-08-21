@@ -1,3 +1,4 @@
 foreground { chown 5230:5230 /workspace }
 foreground { chown 5230:5230 /workspace.enc }
-install -d -o 5230 -g 5230 -m 0700 /upload
+foreground { chown 5230:5230 /upload }
+foreground { chown 5230:5230 /cache }

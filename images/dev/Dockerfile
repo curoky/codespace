@@ -78,6 +78,7 @@ RUN /tmp/setup-sysconf.sh \
   && install -d -o 5230 -g 5230 -m 0755 /workspace \
   && install -d -o 5230 -g 5230 -m 0755 /workspace.enc \
   && install -d -o 5230 -g 5230 -m 0700 /upload \
+  && install -d -o 5230 -g 5230 -m 0755 /cache \
   && chown 5230:5230 /opt \
   && /tmp/setup-s6.sh \
   && ln -s /opt/sb/store/zsh/bin/zsh /usr/bin \

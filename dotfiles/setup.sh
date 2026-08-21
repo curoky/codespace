@@ -72,7 +72,7 @@ OS_NAME=$(uname -o)
 
 function common() {
 
-  # trae 配置落在 home-init boot 时重链到 /workspace 的目录里，烤入会被清掉，
+  # trae 配置落在 home-init boot 时重链到 /cache 的目录里，烤入会被清掉，
   # 故仍从 dotfiles 于运行期补写。
   copy_path $CONF_PATH/trae/sandbox.json $HOME/.trae/sandbox.json
   copy_path $CONF_PATH/trae/traecli.toml $HOME/.trae/traecli.toml

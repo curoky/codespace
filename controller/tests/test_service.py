@@ -12,12 +12,19 @@ from controller.config import Config
 from controller.models import (
     Environment,
     EnvironmentSpec,
+    HostRoots,
     RepoGitState,
     environment_id,
     ssh_port,
 )
 from controller.runtime.transport import SSHRoute
 from controller.service import CodespaceService, describe_error
+
+_ROOTS = HostRoots(
+    workspace="/home/x/codespace",
+    upload="/home/x/codespace-upload",
+    cache="/home/x/codespace-cache",
+)
 
 
 class FakeTransport:
@@ -70,7 +77,7 @@ def service(
     monkeypatch: pytest.MonkeyPatch,
 ) -> CodespaceService:
     monkeypatch.setattr(ssh, "initialize", lambda hosts: None)
-    monkeypatch.setattr(ssh, "remote_workspace_root", lambda route: "/home/x/codespace")
+    monkeypatch.setattr(ssh, "remote_instance_roots", lambda route: _ROOTS)
     return CodespaceService(
         config,
         transport=FakeTransport({"home": object(), "office": object()}),  # type: ignore[arg-type]
@@ -198,12 +205,12 @@ def test_create_runs_all_stages_in_order(
             events.append("pull"),
         ),
     )
-    monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: events.append("workspace"))
+    monkeypatch.setattr(ssh, "prepare_instance_dirs", lambda *args: events.append("workspace"))
 
     def create_container(
         _client: object,
         spec: EnvironmentSpec,
-        _workspace_root: str,
+        _roots: HostRoots,
         host_environment: dict[str, str],
     ) -> object:
         specs.append(spec)
@@ -250,7 +257,7 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(ssh, "initialize", lambda hosts: None)
-    monkeypatch.setattr(ssh, "remote_workspace_root", lambda route: "/home/x/codespace")
+    monkeypatch.setattr(ssh, "remote_instance_roots", lambda route: _ROOTS)
     config = Config.model_validate(
         {
             "default_image": "img:latest",
@@ -295,7 +302,7 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
         lambda: workspace.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
     )
     monkeypatch.setattr(containers, "pull_image", lambda *args: None)
-    monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
+    monkeypatch.setattr(ssh, "prepare_instance_dirs", lambda *args: None)
     monkeypatch.setattr(
         containers,
         "create_container",
@@ -335,7 +342,7 @@ def test_create_blank_project_skips_repo_stages(
         lambda: events.append("keygen") or workspace.DeployKeypair("PRIVATE", "PUBLIC"),
     )
     monkeypatch.setattr(containers, "pull_image", lambda *args: events.append("pull"))
-    monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: events.append("workspace"))
+    monkeypatch.setattr(ssh, "prepare_instance_dirs", lambda *args: events.append("workspace"))
     monkeypatch.setattr(
         containers,
         "create_container",
@@ -398,7 +405,7 @@ def test_create_git_project_clones_url_without_deploy_key(
         lambda: events.append("keygen") or workspace.DeployKeypair("PRIVATE", "PUBLIC"),
     )
     monkeypatch.setattr(containers, "pull_image", lambda *args: events.append("pull"))
-    monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: events.append("workspace"))
+    monkeypatch.setattr(ssh, "prepare_instance_dirs", lambda *args: events.append("workspace"))
     monkeypatch.setattr(
         containers,
         "create_container",
@@ -465,7 +472,7 @@ def test_failure_before_register_removes_container_but_keeps_workspace(
         lambda: workspace.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
     )
     monkeypatch.setattr(containers, "pull_image", lambda *args: None)
-    monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
+    monkeypatch.setattr(ssh, "prepare_instance_dirs", lambda *args: None)
     monkeypatch.setattr(containers, "create_container", lambda *args, **kwargs: container)
     monkeypatch.setattr(workspace, "inject_deploy_key", lambda *args, **kwargs: None)
     monkeypatch.setattr(
@@ -501,7 +508,7 @@ def test_container_run_failure_still_attempts_deterministic_cleanup(
         lambda: workspace.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
     )
     monkeypatch.setattr(containers, "pull_image", lambda *args: None)
-    monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
+    monkeypatch.setattr(ssh, "prepare_instance_dirs", lambda *args: None)
     monkeypatch.setattr(
         containers,
         "create_container",
@@ -530,7 +537,7 @@ def test_failure_after_register_revokes_then_removes_container(
         lambda: workspace.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
     )
     monkeypatch.setattr(containers, "pull_image", lambda *args: None)
-    monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
+    monkeypatch.setattr(ssh, "prepare_instance_dirs", lambda *args: None)
     monkeypatch.setattr(containers, "create_container", lambda *args, **kwargs: container)
     monkeypatch.setattr(workspace, "inject_deploy_key", lambda *args, **kwargs: None)
     monkeypatch.setattr(ssh, "probe", lambda *args: None)
@@ -567,7 +574,7 @@ def test_revoke_failure_after_register_retains_container(
         lambda: workspace.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
     )
     monkeypatch.setattr(containers, "pull_image", lambda *args: None)
-    monkeypatch.setattr(ssh, "prepare_workspace", lambda *args: None)
+    monkeypatch.setattr(ssh, "prepare_instance_dirs", lambda *args: None)
     monkeypatch.setattr(containers, "create_container", lambda *args, **kwargs: container)
     monkeypatch.setattr(workspace, "inject_deploy_key", lambda *args, **kwargs: None)
     monkeypatch.setattr(ssh, "probe", lambda *args: None)

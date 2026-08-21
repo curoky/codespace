@@ -163,10 +163,14 @@ class CodespaceService:
         containers.pull_image(creation.client, spec.image, spec.platform)
 
         self._stage(creation, "preparing workspace")
-        workspace_root = ssh.remote_workspace_root(creation.route)
-        ssh.prepare_workspace(
+        roots = ssh.remote_instance_roots(creation.route)
+        ssh.prepare_instance_dirs(
             creation.route,
-            spec.workspace_path(workspace_root),
+            [
+                spec.instance_path(roots.workspace),
+                spec.instance_path(roots.upload),
+                spec.instance_path(roots.cache),
+            ],
         )
 
         self._stage(creation, "creating container")
@@ -174,7 +178,7 @@ class CodespaceService:
         container = containers.create_container(
             creation.client,
             spec,
-            workspace_root,
+            roots,
             host_environment,
         )
 
@@ -268,12 +272,12 @@ class CodespaceService:
                 spec.identity,
             )
         if purge:
-            workspace_root = ssh.remote_workspace_root(route)
+            roots = ssh.remote_instance_roots(route)
             containers.purge_workspace(
                 client,
                 container,
                 environment,
-                workspace_root,
+                roots,
             )
         containers.remove_container(container)
 

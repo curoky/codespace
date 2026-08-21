@@ -29,12 +29,19 @@ from controller.models import (
     MANDATORY_LABELS,
     Environment,
     EnvironmentSpec,
+    HostRoots,
     environment_id,
     environment_labels,
     ssh_port,
 )
 from controller.runtime import engine
 from controller.runtime.compose import Secret
+
+_ROOTS = HostRoots(
+    workspace="/home/x/codespace",
+    upload="/home/x/codespace-upload",
+    cache="/home/x/codespace-cache",
+)
 
 
 class ExecContainer(Protocol):
@@ -332,7 +339,7 @@ def test_create_container_preserves_fixed_runtime_contract(
     result = container_runtime.create_container(
         client,  # type: ignore[arg-type]
         config.environment_spec("devspace", "home", "debug"),
-        "/home/x/codespace",
+        _ROOTS,
         {"HTTP_PROXY": "http://host-proxy:3128"},
     )
 
@@ -365,6 +372,16 @@ def test_create_container_preserves_fixed_runtime_contract(
         },
         {
             "type": "bind",
+            "source": "/home/x/codespace-upload/devspace/debug",
+            "target": "/upload",
+        },
+        {
+            "type": "bind",
+            "source": "/home/x/codespace-cache/devspace/debug",
+            "target": "/cache",
+        },
+        {
+            "type": "bind",
             "source": "/etc/krb5.conf",
             "target": "/etc/krb5.conf",
             "read_only": True,
@@ -387,7 +404,7 @@ def test_create_container_rejects_host_environment_collision(
         container_runtime.create_container(
             SimpleNamespace(),  # type: ignore[arg-type]
             spec,
-            "/home/x/codespace",
+            _ROOTS,
             {"HTTP_PROXY": "http://host-proxy:3128"},
         )
 
@@ -414,7 +431,7 @@ def test_create_container_injects_gpu_device(
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
         spec,
-        "/home/x/codespace",
+        _ROOTS,
     )
 
     _, kwargs = calls[0]
@@ -439,7 +456,7 @@ def test_create_container_forwards_shm_size_only_when_set(
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
         spec,
-        "/home/x/codespace",
+        _ROOTS,
     )
     _, kwargs = calls[0]
     assert "shm_size" not in kwargs
@@ -452,7 +469,7 @@ def test_create_container_forwards_shm_size_only_when_set(
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
         spec,
-        "/home/x/codespace",
+        _ROOTS,
     )
     _, kwargs = calls[0]
     assert kwargs["shm_size"] == "100g"
@@ -506,7 +523,7 @@ def test_create_container_forwards_registered_secrets(
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
         spec,
-        "/home/x/codespace",
+        _ROOTS,
     )
 
     _, kwargs = calls[0]
@@ -533,7 +550,7 @@ def test_create_container_omits_secret_kwargs_when_unset(
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
         config.environment_spec("devspace", "home", "debug"),
-        "/home/x/codespace",
+        _ROOTS,
     )
 
     _, kwargs = calls[0]
@@ -558,7 +575,7 @@ def test_create_container_fails_fast_on_missing_secret(config: Config) -> None:
         container_runtime.create_container(
             client,  # type: ignore[arg-type]
             spec,
-            "/home/x/codespace",
+            _ROOTS,
         )
     # The container must not be created when a referenced secret is missing.
     assert calls == []
@@ -583,7 +600,7 @@ def test_create_container_encrypts_workspace_when_enabled(
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
         _encrypted_spec(config),
-        "/home/x/codespace",
+        _ROOTS,
     )
 
     _, kwargs = calls[0]
@@ -607,7 +624,7 @@ def test_create_container_fails_fast_on_missing_crypt_secret(config: Config) -> 
         container_runtime.create_container(
             client,  # type: ignore[arg-type]
             _encrypted_spec(config),
-            "/home/x/codespace",
+            _ROOTS,
         )
     assert calls == []
 
@@ -626,7 +643,7 @@ def test_create_container_uses_plaintext_workspace_when_disabled(
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
         config.environment_spec("devspace", "home", "debug"),
-        "/home/x/codespace",
+        _ROOTS,
     )
 
     _, kwargs = calls[0]
@@ -667,7 +684,7 @@ def test_create_container_honors_custom_secret_mount_ownership(
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
         spec,
-        "/home/x/codespace",
+        _ROOTS,
     )
 
     _, kwargs = calls[0]
@@ -707,7 +724,7 @@ def test_create_container_bridge_publishes_ports_and_binds_sshd(
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
         spec,
-        "/home/x/codespace",
+        _ROOTS,
     )
 
     _, kwargs = calls[0]
@@ -738,7 +755,7 @@ def test_create_container_blank_omits_repo_and_provider_labels(
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
         config.environment_spec("scratch", "home", "debug"),
-        "/home/x/codespace",
+        _ROOTS,
     )
 
     _, kwargs = calls[0]
@@ -1000,13 +1017,19 @@ def test_purge_workspace_uses_environment_platform(monkeypatch: pytest.MonkeyPat
         client,  # type: ignore[arg-type]
         container,  # type: ignore[arg-type]
         _environment_for_purge("linux/arm64"),
-        "/home/x/codespace",
+        _ROOTS,
     )
 
     assert calls[0][0] == "image:latest"
     assert calls[0][1]["platform"] == "linux/arm64"
     assert calls[0][1]["user"] == "0"
     assert calls[0][1]["security_opt"] == ["disable"]
+    # workspace, upload and cache instance dirs are all removed.
+    assert [call[1]["command"] for call in calls] == [
+        ["-rf", "--", "/home/x/codespace/devspace/debug"],
+        ["-rf", "--", "/home/x/codespace-upload/devspace/debug"],
+        ["-rf", "--", "/home/x/codespace-cache/devspace/debug"],
+    ]
 
 
 def test_purge_workspace_surfaces_rm_failure(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -1033,7 +1056,7 @@ def test_purge_workspace_surfaces_rm_failure(monkeypatch: pytest.MonkeyPatch) ->
             client,  # type: ignore[arg-type]
             container,  # type: ignore[arg-type]
             _environment_for_purge("native"),
-            "/home/x/codespace",
+            _ROOTS,
         )
 
     assert removed == [True]

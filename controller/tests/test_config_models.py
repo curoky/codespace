@@ -807,6 +807,8 @@ def test_config_rejects_relative_container_volume_source() -> None:
         "/workspace/../workspace",
         "/upload",
         "/upload/incoming",
+        "/cache",
+        "/cache/build",
         "/",
     ],
 )
@@ -1156,6 +1158,6 @@ def test_resource_identity_contract_is_deterministic(config: Config) -> None:
 
     assert identity == "codespace-home-devspace-debug"
     assert spec.identity == identity
-    assert spec.workspace_path("/home/x/codespace") == "/home/x/codespace/devspace/debug"
+    assert spec.instance_path("/home/x/codespace") == "/home/x/codespace/devspace/debug"
     assert ssh_port(identity) == ssh_port(identity)
     assert 20_000 <= ssh_port(identity) <= 29_999

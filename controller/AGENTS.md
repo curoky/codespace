@@ -181,7 +181,7 @@ secrets:
   - `ulimits` 值为 `{soft, hard}` 或裸整数（soft=hard）。
   - `volumes` 支持短语法 `source:target[:ro|rw]` 或长语法 `{type: bind, source, target, read_only}`；只支持
     `type: bind`，`source`/`target` 必须绝对路径，`read_only` 默认 `false`。target 不得与保留 mount tree
-    `/workspace`、`/upload` 相同或互为父子路径。
+    `/workspace`、`/upload`、`/cache` 相同或互为父子路径。
   - `devices` 原样转发给 `--device`，GPU 用 CDI 设备名（如 `nvidia.com/gpu=all`），要求该 host 已装 NVIDIA
     驱动与 CDI 规范文件。
   - `shm_size` 原样转发给 `--shm-size`（podman 认的格式），控制面不做归一。
@@ -202,19 +202,21 @@ secrets:
 
 ## Host 契约
 
-SSH host ID 必须是本地 `~/.ssh/config` 中可访问 rootful Podman 的现有 alias。workspace 目录以普通 SSH
-登录用户身份 `mkdir -p` 创建，无需免密 `sudo`；容器启动时由镜像内 `workspace-init` s6 oneshot 把挂载的
-`/workspace` 归属到 `5230:5230`（rootful Podman 直接透传 host 所有权）。身份文件、跳板机、host key policy
+SSH host ID 必须是本地 `~/.ssh/config` 中可访问 rootful Podman 的现有 alias。每实例的 workspace、upload 与
+cache 目录都以普通 SSH 登录用户身份 `mkdir -p` 创建，无需免密 `sudo`；容器启动时由镜像内 `workspace-init`
+s6 oneshot 把挂载的 `/workspace`、`/upload`、`/cache` 归属到 `5230:5230`（rootful Podman 直接透传 host
+所有权）。身份文件、跳板机、host key policy
 由 system OpenSSH 管理。Podman Machine host ID 是逻辑名，对应 machine 必须已存在、运行中且 rootful。
 
 每个 host 必须提供：
 
 - rootful Podman socket（SSH host 默认 `/run/podman/podman.sock`，Podman Machine 通过 `podman machine
   inspect` 获取 API socket 和 SSH identity）；
-- SSH 登录用户的可写 home；workspace root 是绝对路径化后的 `~/codespace`；
+- SSH 登录用户的可写 home；三个实例 mount root 分别是绝对路径化后的 `~/codespace`（workspace）、
+  `~/codespace-upload`（upload）与 `~/codespace-cache`（cache）；
 - GNU `env`（支持 `-0`）读取 `hosts.<host>.environment` 声明且已在非交互 SSH 会话导出的变量；
-- `find`（支持 `-mindepth`、`-maxdepth`、`-print0`）供维护工具列出 workspace；
-- 允许镜像内 root 将挂载的 `/workspace` `chown` 为 `5230:5230`；
+- `find`（支持 `-mindepth`、`-maxdepth`、`-print0`）供维护工具列出各 mount root 下的实例目录；
+- 允许镜像内 root 将挂载的 `/workspace`、`/upload`、`/cache` `chown` 为 `5230:5230`；
 - 为 environment SSH 保留的端口范围 `20000-29999`；
 - 一个 host 级 sidecar（见 [`images/sidecar/AGENTS.md`](../images/sidecar/AGENTS.md)，须独立于 project/instance）；
 - 满足 [`images/dev/AGENTS.md`](../images/dev/AGENTS.md) 契约的开发镜像。
@@ -225,7 +227,10 @@ SSH host ID 必须是本地 `~/.ssh/config` 中可访问 rootful Podman 的现�
 ## 资源标识
 
 Environment 的 container name、本地 SSH alias 和 deploy-key title 共用确定性 ID `codespace-<host>-<project>-<instance>`。
-Host workspace 为 `<login-home>/codespace/<project>/<instance>`，挂载到容器 `/workspace`。SSH 端口为
+每实例有三个宿主数据目录：`<login-home>/codespace/<project>/<instance>` 挂到 `/workspace`、
+`<login-home>/codespace-upload/<project>/<instance>` 挂到 `/upload`、
+`<login-home>/codespace-cache/<project>/<instance>` 挂到 `/cache`（开启 `encrypt_workspace` 时仅 workspace 目录
+改 bind 到密文根 `/workspace.enc`，upload/cache 始终明文）。SSH 端口为
 `20000 + int(sha256(environment_id)[:4], 16) % 10000`；与同 host 其他受管 environment 冲突时直接拒绝，
 不探测替代端口。
 

@@ -39,7 +39,7 @@ CONFIG_PATH = Path.home() / ".config" / "codespace" / "config.yaml"
 
 # Derived per container and forbidden in passthrough environment values.
 _RESERVED_ENV_KEYS = frozenset({"SSHD_PORT", "SSHD_BIND"})
-_RESERVED_MOUNT_TARGETS = ("/workspace", "/upload")
+_RESERVED_MOUNT_TARGETS = ("/workspace", "/upload", "/cache")
 type EnvironmentName = Annotated[str, Field(pattern=r"^[A-Za-z_][A-Za-z0-9_]*$")]
 
 

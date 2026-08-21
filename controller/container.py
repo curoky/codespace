@@ -15,14 +15,17 @@ from podman import PodmanClient
 from podman.domain.containers import Container
 
 from controller.models import (
+    CACHE_MOUNT,
     CONTAINER_GID,
     CONTAINER_UID,
+    UPLOAD_MOUNT,
     WORKSPACE_CIPHER_MOUNT,
     WORKSPACE_CRYPT_SECRET,
     WORKSPACE_CRYPT_SECRET_ENV,
     WORKSPACE_MOUNT,
     Environment,
     EnvironmentSpec,
+    HostRoots,
     ImagePlatform,
     environment_labels,
 )
@@ -55,7 +58,7 @@ __all__ = [
 def create_container(
     client: PodmanClient,
     spec: EnvironmentSpec,
-    workspace_root: str,
+    roots: HostRoots,
     host_environment: Mapping[str, str] | None = None,
 ) -> Container:
     """Create and start a configured development container."""
@@ -83,7 +86,8 @@ def create_container(
     # Encrypted projects bind the host instance dir to the gocryptfs cipher root
     # and inject the fixed WORKSPACE_CRYPT_KEY (like the sidecar's atuin_db_uri);
     # the image mounts the decrypted /workspace at boot. Plaintext projects bind
-    # the host dir straight to /workspace and inject nothing.
+    # the host dir straight to /workspace and inject nothing. /upload and /cache
+    # always bind their own plaintext host roots per instance.
     encrypt = spec.project.encrypt_workspace
     if encrypt:
         _require_secret_exists(client, WORKSPACE_CRYPT_SECRET)
@@ -95,9 +99,19 @@ def create_container(
     mounts: list[dict[str, object]] = [
         {
             "type": "bind",
-            "source": spec.workspace_path(workspace_root),
+            "source": spec.instance_path(roots.workspace),
             "target": WORKSPACE_CIPHER_MOUNT if encrypt else WORKSPACE_MOUNT,
-        }
+        },
+        {
+            "type": "bind",
+            "source": spec.instance_path(roots.upload),
+            "target": UPLOAD_MOUNT,
+        },
+        {
+            "type": "bind",
+            "source": spec.instance_path(roots.cache),
+            "target": CACHE_MOUNT,
+        },
     ]
     mounts.extend(
         {
@@ -181,19 +195,20 @@ def purge_workspace(
     client: PodmanClient,
     container: Container,
     environment: Environment,
-    workspace_root: str,
+    roots: HostRoots,
 ) -> None:
-    """Stop an environment and remove its workspace with a helper container."""
+    """Stop an environment and remove its workspace, upload and cache dirs."""
     container.stop(timeout=10, ignore=True)
-    target = f"{workspace_root}/{environment.project}/{environment.instance}"
     platform = None if environment.platform == "native" else environment.platform
-    remove_workspace(
-        client,
-        environment.image,
-        workspace_root,
-        target,
-        platform=platform,
-    )
+    suffix = f"/{environment.project}/{environment.instance}"
+    for root in (roots.workspace, roots.upload, roots.cache):
+        remove_workspace(
+            client,
+            environment.image,
+            root,
+            f"{root}{suffix}",
+            platform=platform,
+        )
 
 
 def remove_workspace(

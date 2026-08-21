@@ -207,10 +207,10 @@ def test_probe_retries_until_ssh_login_succeeds(
 
 @pytest.fixture(autouse=True)
 def _clear_workspace_root_cache() -> None:
-    ssh.remote_workspace_root.cache_clear()
+    ssh._remote_root.cache_clear()
 
 
-def test_remote_workspace_root_resolves_home_and_creates_dir(
+def test_remote_root_resolves_home_and_creates_dir(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     commands: list[list[str]] = []
@@ -221,7 +221,7 @@ def test_remote_workspace_root_resolves_home_and_creates_dir(
 
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
-    root = ssh.remote_workspace_root(_remote_route())
+    root = ssh._remote_root(_remote_route(), "codespace")
 
     assert root == "/home/x/codespace"
     assert commands[0][0] == "ssh"
@@ -231,7 +231,7 @@ def test_remote_workspace_root_resolves_home_and_creates_dir(
     assert "codespace" in commands[0][-1]
 
 
-def test_remote_workspace_root_is_cached_per_host(
+def test_remote_root_is_cached_per_host(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     calls: list[str] = []
@@ -242,14 +242,36 @@ def test_remote_workspace_root_is_cached_per_host(
 
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
-    first = ssh.remote_workspace_root(_remote_route())
-    second = ssh.remote_workspace_root(_remote_route())
+    first = ssh._remote_root(_remote_route(), "codespace")
+    second = ssh._remote_root(_remote_route(), "codespace")
 
     assert first == second == "/home/x/codespace"
     assert calls == ["home"]
 
 
-def test_remote_workspace_root_rejects_non_absolute_result(
+def test_remote_instance_roots_resolves_workspace_upload_and_cache(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    commands: list[str] = []
+
+    def run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
+        remote = command[-1]
+        commands.append(remote)
+        name = remote.split('"$HOME/', 1)[1].split('"', 1)[0]
+        return subprocess.CompletedProcess(command, 0, stdout=f"/home/x/{name}", stderr="")
+
+    monkeypatch.setattr(ssh.subprocess, "run", run)
+
+    roots = ssh.remote_instance_roots(_remote_route())
+
+    assert roots.workspace == "/home/x/codespace"
+    assert roots.upload == "/home/x/codespace-upload"
+    assert roots.cache == "/home/x/codespace-cache"
+    assert any("codespace-upload" in command for command in commands)
+    assert any("codespace-cache" in command for command in commands)
+
+
+def test_remote_root_rejects_non_absolute_result(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
@@ -260,11 +282,11 @@ def test_remote_workspace_root_rejects_non_absolute_result(
         ),
     )
 
-    with pytest.raises(RuntimeError, match="non-absolute workspace root"):
-        ssh.remote_workspace_root(_remote_route())
+    with pytest.raises(RuntimeError, match="non-absolute codespace root"):
+        ssh._remote_root(_remote_route(), "codespace")
 
 
-def test_remote_workspace_root_wraps_ssh_failure(
+def test_remote_root_wraps_ssh_failure(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     def run(command: list[str], **_kwargs: object) -> None:
@@ -272,8 +294,8 @@ def test_remote_workspace_root_wraps_ssh_failure(
 
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
-    with pytest.raises(RuntimeError, match="failed to resolve workspace root"):
-        ssh.remote_workspace_root(_remote_route())
+    with pytest.raises(RuntimeError, match="failed to resolve codespace root"):
+        ssh._remote_root(_remote_route(), "codespace")
 
 
 def test_prepare_workspace_creates_directory_as_login_user_over_ssh(
@@ -287,7 +309,7 @@ def test_prepare_workspace_creates_directory_as_login_user_over_ssh(
 
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
-    ssh.prepare_workspace(_remote_route(), "/home/x/codespace/devspace/debug")
+    ssh.prepare_instance_dirs(_remote_route(), ["/home/x/codespace/devspace/debug"])
 
     command = commands[0]
     assert command[0] == "ssh"
@@ -296,8 +318,8 @@ def test_prepare_workspace_creates_directory_as_login_user_over_ssh(
 
 
 def test_prepare_workspace_rejects_non_absolute_target() -> None:
-    with pytest.raises(RuntimeError, match="non-absolute workspace path"):
-        ssh.prepare_workspace(_remote_route(), "relative/path")
+    with pytest.raises(RuntimeError, match="non-absolute instance path"):
+        ssh.prepare_instance_dirs(_remote_route(), ["relative/path"])
 
 
 def test_prepare_workspace_wraps_ssh_failure(
@@ -308,8 +330,8 @@ def test_prepare_workspace_wraps_ssh_failure(
 
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
-    with pytest.raises(RuntimeError, match="failed to prepare workspace"):
-        ssh.prepare_workspace(_remote_route(), "/home/x/codespace/devspace/debug")
+    with pytest.raises(RuntimeError, match="failed to prepare instance directories"):
+        ssh.prepare_instance_dirs(_remote_route(), ["/home/x/codespace/devspace/debug"])
 
 
 def test_list_workspaces_reads_two_directory_levels(
@@ -432,8 +454,8 @@ def test_podman_machine_workspace_uses_root_route(
 
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
-    root = ssh.remote_workspace_root(route)
-    ssh.prepare_workspace(route, f"{root}/devspace/debug")
+    root = ssh._remote_root(route, "codespace")
+    ssh.prepare_instance_dirs(route, [f"{root}/devspace/debug"])
 
     assert root == "/root/codespace"
     for command in commands:

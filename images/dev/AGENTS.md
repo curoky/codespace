@@ -50,12 +50,15 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
 
 开发镜像必须提供：
 
-- 用户 `x`（uid/gid `5230:5230`）、可写的 `/workspace`；
+- 用户 `x`（uid/gid `5230:5230`）、可写的 `/workspace`、`/upload` 与 `/cache`；三者都由控制面按实例
+  bind-mount 宿主目录（见 host contract），删除或重建 container 后各自内容按宿主目录留存/清理；
 - 默认 host network，sshd 监听地址由 `SSHD_BIND` 控制，默认 `127.0.0.1`；
 - Podman security option `disable` 和 `seccomp=unconfined`；
 - 现有 s6 entrypoint、sshd、home-init、Atuin client、Git 和 OpenSSH client；
 - s6 转储到 `/run/s6/container_environment` 的容器环境仅 root 和 `x` 可读；
-- `workspace-init` s6 oneshot，`workspace-crypt` 依赖它；
+- `workspace-init` s6 oneshot，`workspace-crypt` 依赖它；把挂载的 `/workspace`、`/workspace.enc`、`/upload`
+  与 `/cache` 都 `chown` 为 `5230:5230`（三个数据 mount 均由控制面按实例 bind 宿主目录，rootful Podman
+  直接透传所有权）；
 - `workspace-crypt` s6 oneshot，依赖 `workspace-init`，`sshd`、`home-init` 与两个 WebDAV 服务均依赖它。
   以容器环境变量 `WORKSPACE_CRYPT_KEY` 是否注入为信号自适应（对齐控制面 project 的 `encrypt_workspace`）：
   未注入则跳过、`/workspace` 保持明文 bind；注入则用 gocryptfs（`/opt/sb/bin/gocryptfs`）把密文根
@@ -73,9 +76,11 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
   execline 跑 `git config --global` 写入 `user.name`/`user.email`（幂等，无独立脚本）；
 - `rclone-webdav` 和 `copyparty-webdav` s6 longrun 均依赖 `workspace-crypt`，以用户 `x` 分别监听 8004、8005；
   监听地址复用 `SSHD_BIND`（host 默认 `127.0.0.1`，bridge 为 `0.0.0.0`）。两者根目录均只含 `/workspace`
-  （复用容器内 `/workspace`，WebDAV 层只读）和 `/upload`（uid/gid `5230:5230`、mode `0700` 的 writable-layer
-  目录，允许完整读写）。`/upload` 在同一 container stop/start 后保留，删除或重建 container 后丢失，无 quota
-  或备份。`rclone` 只读暴露 workspace；
+  （复用容器内 `/workspace`，WebDAV 层只读）和 `/upload`（uid/gid `5230:5230` 的 writable 目录，允许完整读写）。
+  `/upload` 由控制面按实例 bind 宿主目录，跨 container stop/start 与重建都保留，仅 purge 删除该实例宿主目录时
+  丢失，无 quota 或备份。`/cache` 同为按实例 bind 的宿主目录（构建/工具缓存，以及 `home-init` 在 boot 时
+  把 `~/.vscode-server`、`~/.trae-server`、`~/.trae-cn-server` 等 IDE 远端 server 目录软链持久化的落点），但不经 WebDAV 暴露。
+  `rclone` 只读暴露 workspace；
 - 两个 WebDAV 服务均关闭归档、索引、缩略图、媒体处理、分享、管理/状态接口、跨站 CORS、服务发现及
   FTP/FTPS/SFTP/TFTP，`rclone` 另关 HTML 目录页、`copyparty` 关 HTML/脚本渲染及所有可独立关闭的 Web UI 扩展。
   服务匿名访问、镜像不提供 TLS；bridge 模式需在 project `published_ports` 显式发布端口，跨不可信网络必须在外层加 TLS、认证与访问控制。
