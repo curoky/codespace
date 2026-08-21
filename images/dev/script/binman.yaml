@@ -8,6 +8,8 @@
 prefix: /opt/sb
 packages:
   link:
+    - fuse3
+
     # shell & terminal
     - zsh
     - zsh-plugins
@@ -18,6 +20,7 @@ packages:
     - zellij
     - fzf
     - yazi
+
     # - bash
 
     # editor
@@ -42,7 +45,6 @@ packages:
     - gnutar
     - gettext
     - graphviz
-    - gocryptfs
     # - silver-searcher
     # - coreutils
     # - man
@@ -85,6 +87,7 @@ packages:
     - krb5
     - gnupg
     - cacert
+    - gocryptfs
 
     # system & process
     - procps
