@@ -16,7 +16,6 @@ from pydantic import (
     model_validator,
 )
 
-from controller.compose import Secret, ServiceSpec, Volume
 from controller.models import (
     PODMAN_SOCKET,
     RESOURCE_ID_RE,
@@ -33,6 +32,8 @@ from controller.models import (
     parse_port_mapping,
     workspace_open_path,
 )
+from controller.runtime.compose import Secret, ServiceSpec, Volume
+from controller.runtime.transport import HostEndpoint
 
 CONFIG_PATH = Path.home() / ".config" / "codespace" / "config.yaml"
 
@@ -220,6 +221,14 @@ class HostConfig(BaseModel):
         if self.type != "ssh":
             raise ValueError("podman-machine socket is discovered from machine inspect")
         return self.podman_socket or PODMAN_SOCKET
+
+    def endpoint(self) -> HostEndpoint:
+        """Return the neutral Podman endpoint for this host."""
+        return HostEndpoint(
+            type=self.type,
+            podman_socket=self.podman_socket,
+            machine=self.machine,
+        )
 
 
 class TokensConfig(BaseModel):

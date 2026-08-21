@@ -24,7 +24,7 @@ from controller.models import (
     RepoGitState,
 )
 from controller.operations import OperationStore
-from controller.transport import PodmanTransport, SSHRoute
+from controller.runtime.transport import PodmanTransport, SSHRoute
 
 
 def describe_error(exc: BaseException) -> str:
@@ -63,7 +63,9 @@ class CodespaceService:
         operations: OperationStore | None = None,
     ) -> None:
         self.config = config
-        self.transport = transport or PodmanTransport(config.hosts)
+        self.transport = transport or PodmanTransport(
+            {host: hc.endpoint() for host, hc in config.hosts.items()}
+        )
         self.operations = operations or OperationStore()
         self._tokens: dict[GitProvider, str] = {}
         self._token_lock = Lock()

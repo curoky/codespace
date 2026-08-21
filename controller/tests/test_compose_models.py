@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from controller.compose import ServiceSpec
+from controller.runtime.compose import ServiceSpec
 
 
 def test_service_spec_all_fields_default_to_none() -> None:

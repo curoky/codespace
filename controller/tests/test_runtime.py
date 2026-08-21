@@ -15,7 +15,6 @@ from podman.errors import NotFound, PodmanError
 
 from controller import container as container_runtime
 from controller import inventory, workspace
-from controller.compose import Secret
 from controller.config import Config
 from controller.models import (
     LABEL_IMAGE,
@@ -33,6 +32,8 @@ from controller.models import (
     environment_labels,
     ssh_port,
 )
+from controller.runtime import engine
+from controller.runtime.compose import Secret
 
 
 class ExecContainer(Protocol):
@@ -230,7 +231,7 @@ def test_pull_image_streams_with_isolated_long_timeout(
         clients.append(client)
         return client
 
-    monkeypatch.setattr(container_runtime, "PodmanClient", client_factory)
+    monkeypatch.setattr(engine, "PodmanClient", client_factory)
     client = SimpleNamespace(
         api=SimpleNamespace(
             base_url=SimpleNamespace(geturl=lambda: "http+unix://%2Ftmp%2Fpodman.sock"),
@@ -267,7 +268,7 @@ def test_pull_image_raises_on_stream_error_and_closes_client(
         return [{"status": "Pulling"}, {"error": "manifest unknown"}]
 
     pull_client = FakePullClient(pull)
-    monkeypatch.setattr(container_runtime, "PodmanClient", lambda **_kwargs: pull_client)
+    monkeypatch.setattr(engine, "PodmanClient", lambda **_kwargs: pull_client)
     client = SimpleNamespace(
         api=SimpleNamespace(
             base_url=SimpleNamespace(geturl=lambda: "http+unix://%2Ftmp%2Fpodman.sock"),
@@ -324,7 +325,7 @@ def test_create_container_preserves_fixed_runtime_contract(
         calls.append((image, kwargs))
         return container
 
-    monkeypatch.setattr(container_runtime, "Container", FakeContainer)
+    monkeypatch.setattr(engine, "Container", FakeContainer)
     client = SimpleNamespace(containers=SimpleNamespace(run=run))
 
     result = container_runtime.create_container(
@@ -401,7 +402,7 @@ def test_create_container_injects_gpu_device(
         calls.append((image, kwargs))
         return container
 
-    monkeypatch.setattr(container_runtime, "Container", FakeContainer)
+    monkeypatch.setattr(engine, "Container", FakeContainer)
     client = SimpleNamespace(containers=SimpleNamespace(run=run))
 
     spec = config.environment_spec("devspace", "home", "debug")
@@ -430,7 +431,7 @@ def test_create_container_forwards_shm_size_only_when_set(
         calls.append((image, kwargs))
         return container
 
-    monkeypatch.setattr(container_runtime, "Container", FakeContainer)
+    monkeypatch.setattr(engine, "Container", FakeContainer)
     client = SimpleNamespace(containers=SimpleNamespace(run=run))
 
     spec = config.environment_spec("devspace", "home", "debug")
@@ -483,7 +484,7 @@ def test_create_container_forwards_registered_secrets(
     calls: list[tuple[str, dict[str, object]]] = []
     secrets = FakeSecretsManager({"supabase_service_key", "supabase_anon"})
 
-    monkeypatch.setattr(container_runtime, "Container", FakeContainer)
+    monkeypatch.setattr(engine, "Container", FakeContainer)
     client = SimpleNamespace(
         containers=SimpleNamespace(run=_run_capturing(calls)),
         secrets=secrets,
@@ -522,7 +523,7 @@ def test_create_container_omits_secret_kwargs_when_unset(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     calls: list[tuple[str, dict[str, object]]] = []
-    monkeypatch.setattr(container_runtime, "Container", FakeContainer)
+    monkeypatch.setattr(engine, "Container", FakeContainer)
     client = SimpleNamespace(
         containers=SimpleNamespace(run=_run_capturing(calls)),
         secrets=FakeSecretsManager(set()),
@@ -567,7 +568,7 @@ def test_create_container_honors_custom_secret_mount_ownership(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     calls: list[tuple[str, dict[str, object]]] = []
-    monkeypatch.setattr(container_runtime, "Container", FakeContainer)
+    monkeypatch.setattr(engine, "Container", FakeContainer)
     client = SimpleNamespace(
         containers=SimpleNamespace(run=_run_capturing(calls)),
         secrets=FakeSecretsManager({"db_password"}),
@@ -619,7 +620,7 @@ def test_create_container_bridge_publishes_ports_and_binds_sshd(
         calls.append((image, kwargs))
         return container
 
-    monkeypatch.setattr(container_runtime, "Container", FakeContainer)
+    monkeypatch.setattr(engine, "Container", FakeContainer)
     client = SimpleNamespace(containers=SimpleNamespace(run=run))
 
     base = config.environment_spec("devspace", "home", "debug")
@@ -658,7 +659,7 @@ def test_create_container_blank_omits_repo_and_provider_labels(
         calls.append((image, kwargs))
         return container
 
-    monkeypatch.setattr(container_runtime, "Container", FakeContainer)
+    monkeypatch.setattr(engine, "Container", FakeContainer)
     client = SimpleNamespace(containers=SimpleNamespace(run=run))
 
     container_runtime.create_container(
@@ -919,7 +920,7 @@ def test_purge_workspace_uses_environment_platform(monkeypatch: pytest.MonkeyPat
         calls.append((image, kwargs))
         return HelperContainer()
 
-    monkeypatch.setattr(container_runtime, "Container", HelperContainer)
+    monkeypatch.setattr(engine, "Container", HelperContainer)
     client = SimpleNamespace(containers=SimpleNamespace(run=run))
 
     container_runtime.purge_workspace(
@@ -949,7 +950,7 @@ def test_purge_workspace_surfaces_rm_failure(monkeypatch: pytest.MonkeyPatch) ->
         def remove(self, **_: object) -> None:
             removed.append(True)
 
-    monkeypatch.setattr(container_runtime, "Container", HelperContainer)
+    monkeypatch.setattr(engine, "Container", HelperContainer)
     client = SimpleNamespace(
         containers=SimpleNamespace(run=lambda image, **kwargs: HelperContainer()),
     )

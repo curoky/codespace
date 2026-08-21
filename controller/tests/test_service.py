@@ -16,8 +16,8 @@ from controller.models import (
     environment_id,
     ssh_port,
 )
+from controller.runtime.transport import SSHRoute
 from controller.service import CodespaceService, describe_error
-from controller.transport import SSHRoute
 
 
 class FakeTransport:

@@ -10,7 +10,7 @@ import pytest
 
 from controller import ssh
 from controller.models import Environment, ssh_port
-from controller.transport import SSHRoute
+from controller.runtime.transport import SSHRoute
 
 
 @pytest.fixture

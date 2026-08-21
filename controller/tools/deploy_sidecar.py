@@ -27,7 +27,7 @@ from rich.table import Table
 from controller.config import CONFIG_PATH, Config, load_config
 from controller.container import pull_image, wait_running
 from controller.models import PODMAN_SOCKET
-from controller.transport import PodmanTransport
+from controller.runtime.transport import PodmanTransport
 
 SIDECAR_IMAGE = "ghcr.io/curoky/devspace:codespace-sidecar"
 SIDECAR_NAME = "codespace-sidecar"
@@ -54,7 +54,7 @@ def main(
         console.print("No SSH hosts configured; the sidecar runs only on non-local hosts.")
         return
 
-    transport = PodmanTransport(config.hosts)
+    transport = PodmanTransport({host: hc.endpoint() for host, hc in config.hosts.items()})
     try:
         plan, errors = _plan(transport, hosts)
 

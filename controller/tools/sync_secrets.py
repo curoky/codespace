@@ -17,7 +17,7 @@ from rich.console import Console
 from rich.table import Table
 
 from controller.config import CONFIG_PATH, Config, load_config
-from controller.transport import PodmanTransport
+from controller.runtime.transport import PodmanTransport
 
 type Action = Literal["create", "replace"]
 
@@ -38,7 +38,7 @@ def main(
         console.print("No secrets declared in config; nothing to sync.")
         return
 
-    transport = PodmanTransport(config.hosts)
+    transport = PodmanTransport({host: hc.endpoint() for host, hc in config.hosts.items()})
     try:
         plan, errors = _plan(config, transport)
 

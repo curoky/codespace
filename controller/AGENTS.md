@@ -17,8 +17,9 @@ API 或 host contract 时必须同步更新本文相关章节。
 | --- | --- |
 | `controller/app.py`、`api.py`、`__main__.py` | Web 应用装配、HTTP 路由与入口 |
 | `controller/config.py`、`models.py` | 配置与 API model |
-| `controller/transport.py`、`ssh.py` | Host 连接、SSH 操作与本地投影 |
-| `controller/inventory.py`、`container.py`、`workspace.py` | Podman inventory、容器和 workspace 原语 |
+| `controller/runtime/` | 与 codespace 无关的通用底层设施：`engine.py`（Podman image/container/exec 原语）、`transport.py`（Podman Host 连接）、`remote.py`（通用 SSH 远程命令与本地原子文件写）、`compose/`（Compose 语法子集解析）。**不得** import 任何 codespace 业务模块 |
+| `controller/ssh.py` | codespace SSH 投影与登录 probe（`~/.ssh/codespace/` 布局、`codespace-*` 别名），底层远程/文件操作调 `controller/runtime/remote.py` |
+| `controller/inventory.py`、`container.py`、`workspace.py` | Podman inventory、codespace 容器语义（在 `runtime/engine.py` 之上注入 label/workspace mount/secret 默认）和 workspace 原语 |
 | `controller/service.py`、`dashboard.py`、`operations.py` | 生命周期编排、Dashboard 投影与操作状态 |
 | `controller/provider.py` | Git provider deploy key |
 | `controller/tools/` | 不依赖 Web UI 的维护 CLI |
@@ -164,7 +165,7 @@ secrets:
   Podman secret（见「Secret 同步」）。控制面进程本身不消费这些明文，运行时只按 `container.secrets` 名字
   引用已注册 secret。明文写进 `config.yaml` 须限制权限并排除版本控制。
 - 顶层 `container` 是可选块，承载所有非身份容器 run flag，采用 Docker Compose service 字段名与语法子集
-  （解析独立在 `controller/compose/` 子包，只做强类型化、不含控制面知识），控制面不保留隐式默认。所有字段
+  （解析独立在 `controller/runtime/compose/` 子包，只做强类型化、不含控制面知识），控制面不保留隐式默认。所有字段
   （`network_mode`、`cap_add`、`security_opt`、`pids_limit`、`ulimits`、`volumes`、`environment`、`secrets`、
   `devices`、`shm_size`，对应 `--network`、`--cap-add`、`--security-opt`、`--pids-limit`、`--ulimit`、
   `--secret`、`--device`、`--shm-size`）全部可选，未设置等价 Compose 语义的「引擎默认」：集合归一为空、
