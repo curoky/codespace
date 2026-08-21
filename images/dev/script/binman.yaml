@@ -42,6 +42,7 @@ packages:
     - gnutar
     - gettext
     - graphviz
+    - gocryptfs
     # - silver-searcher
     # - coreutils
     # - man
