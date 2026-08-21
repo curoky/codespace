@@ -8,8 +8,6 @@
 prefix: /opt/sb
 packages:
   link:
-    - fuse3
-
     # shell & terminal
     - zsh
     - zsh-plugins
@@ -87,6 +85,9 @@ packages:
     - krb5
     - gnupg
     - cacert
+    # fuse3 提供 fusermount3，gocryptfs 挂载 /workspace 时经 PATH 调用它（gocryptfs
+    # 包有意不自带 fusermount，其 go-fuse 优先找 fusermount3 再回退 fusermount）。
+    - fuse3
     - gocryptfs
 
     # system & process
