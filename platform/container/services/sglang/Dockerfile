@@ -80,7 +80,6 @@ ENV PATH="/opt/sglang/venv/bin:/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profil
 
 COPY --from=s6 /etc/s6/skel/ /etc/s6/skel/
 COPY platform/container/services/sglang/rootfs/ /
-RUN chmod +x /opt/sglang/serve.sh
 COPY --from=s6 /etc/s6/install-s6.sh /tmp/install-s6.sh
 RUN /tmp/install-s6.sh
 

@@ -33,5 +33,4 @@ RUN apt-get update -y \
 COPY --from=build /src/release/app/dist/renderer/ /usr/share/nginx/html/
 COPY platform/container/services/chatbox/default.conf.template /etc/nginx/templates/default.conf.template
 COPY platform/container/services/chatbox/rootfs/ /
-RUN chmod +x /opt/chatbox/serve.sh \
-  && /etc/s6/install-s6.sh
+RUN /etc/s6/install-s6.sh

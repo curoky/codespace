@@ -21,5 +21,4 @@ RUN /opt/bm/bin/uv venv /opt/vllm/venv --python 3.12 \
 ENV PATH="/opt/vllm/venv/bin:$PATH"
 
 COPY platform/container/services/vllm/rootfs/ /
-RUN chmod +x /opt/vllm/serve.sh \
-  && /etc/s6/install-s6.sh
+RUN /etc/s6/install-s6.sh
