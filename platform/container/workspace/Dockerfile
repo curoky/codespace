@@ -111,7 +111,7 @@ RUN bash /tmp/install-editor-extensions.sh /tmp/extensions.txt /opt/editor-exten
 # --------------------------------- Runtime ----------------------------------
 FROM docker.io/$BASE_IMAGE AS workspace
 
-ENV PATH=/opt/bm/bin:${PATH}
+ENV PATH=/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:${PATH}
 
 COPY --link --chown=5230:5230 --from=stage_sb /opt/bm /opt/bm
 COPY --link --chown=5230:5230 --from=stage_nix /nix /nix
@@ -154,4 +154,5 @@ FROM workspace AS release
 
 COPY --from=test /tmp/image-tested /opt/codespace/.image-tested
 
+USER root
 ENTRYPOINT ["/etc/s6/init/bin/init"]
