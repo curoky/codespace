@@ -30,7 +30,6 @@ project_defaults:
       - { source: huggingface_token, mode: 0400 }
       - { source: atuin_db_uri, mode: 0400 }
       - { source: github_action_token, uid: "5230", gid: "5230", mode: 0400 }
-      - { source: secret_webdav_password, uid: "5230", gid: "5230", mode: 0400 }
     cap_add: [NET_RAW, SYS_ADMIN]
     security_opt: [disable, seccomp=unconfined]
     pids_limit: -1
@@ -112,11 +111,6 @@ services:
     container:
       ports:
         - { target: 8080, published: 8006, host_ip: 10.88.0.1 }
-      secrets:
-        - { source: secret_webdav_password, mode: 0400 }
-      volumes:
-        - /home/x/vault/keys:/srv/keys:ro
-        - /home/x/vault/notes:/srv/notes:ro
 
   vllm:
     image: ghcr.io/curoky/codespace:service-vllm
@@ -186,4 +180,3 @@ secrets:
   huggingface_token: hf_REPLACE_WITH_HUGGINGFACE_TOKEN
   atuin_db_uri: postgres://user:REPLACE_WITH_PASSWORD@db.example.com:5432/postgres
   github_action_token: github_pat_REPLACE_WITH_GITHUB_ACTION_TOKEN
-  secret_webdav_password: REPLACE_WITH_SECRET_WEBDAV_PASSWORD
