@@ -193,6 +193,7 @@ class TestImageContract(unittest.TestCase):
         user = pwd.getpwnam("x")
         self.assertEqual((user.pw_uid, user.pw_gid, user.pw_dir), (5230, 5230, "/home/x"))
         self.assertEqual(os.getuid(), 5230)
+        self.assertEqual(os.environ.get("CONDA_PLUGINS_AUTO_ACCEPT_TOS"), "yes")
 
         links = {
             ".trae-cn/sandbox.json": "../.trae/sandbox.json",
