@@ -22,11 +22,12 @@ ARG TORCH_CUDA_ARCH_LIST=9.0a
 ARG MAX_JOBS=4
 ARG NVCC_THREADS=2
 ENV FRAMEWORK_VENV=/opt/codespace/frameworks/venv
+ENV UV_PYTHON_INSTALL_DIR=/opt/codespace/frameworks/python
 ENV UV_LINK_MODE=copy
 ENV CUDA_HOME="${CUDA_HOME_DIR}"
 ENV PATH="${CUDA_HOME_DIR}/bin:/opt/uv:$PATH"
 RUN set -eux; \
-  /opt/uv/uv venv "${FRAMEWORK_VENV}" --python 3.12; \
+  /opt/uv/uv venv "${FRAMEWORK_VENV}" --python 3.12 --managed-python; \
   FRAMEWORK_UV="/opt/uv/uv pip install --python ${FRAMEWORK_VENV}/bin/python"; \
   ${FRAMEWORK_UV} ${TORCH_SPEC} \
     --index-url "https://download.pytorch.org/whl/${CUDA_TAG}"; \
@@ -58,9 +59,12 @@ RUN apt-get update -y \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder "${CUDA_HOME_DIR}" "${CUDA_HOME_DIR}"
+COPY --from=builder /opt/codespace/frameworks/python /opt/codespace/frameworks/python
 COPY --from=builder /opt/codespace/frameworks/venv /opt/codespace/frameworks/venv
 COPY --from=builder /opt/codespace/frameworks/src/vllm /opt/codespace/frameworks/src/vllm
 ENV CUDA_HOME="${CUDA_HOME_DIR}"
 ENV PATH="/opt/codespace/frameworks/venv/bin:${CUDA_HOME_DIR}/bin:$PATH"
+
+RUN python -c "import torch, vllm"
 
 ENTRYPOINT ["/opt/codespace/frameworks/venv/bin/python"]

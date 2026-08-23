@@ -20,26 +20,31 @@ ARG CUDA_TAG=cu129
 ARG TORCH_SPEC="torch==2.13.0 torchvision==0.28.0 torchaudio==2.11.0"
 ARG SGLANG_BUILD_RUST_EXTS=none
 ENV FRAMEWORK_VENV=/opt/codespace/frameworks/venv
+ENV UV_PYTHON_INSTALL_DIR=/opt/codespace/frameworks/python
 ENV UV_LINK_MODE=copy
 ENV CUDA_HOME="${CUDA_HOME_DIR}"
 ENV PATH="${CUDA_HOME_DIR}/bin:/opt/uv:$PATH"
 RUN set -eux; \
-  /opt/uv/uv venv "${FRAMEWORK_VENV}" --python 3.12; \
+  /opt/uv/uv venv "${FRAMEWORK_VENV}" --python 3.12 --managed-python; \
   git clone --filter=blob:none --branch "${SGLANG_REF}" \
     https://github.com/sgl-project/sglang.git /opt/codespace/frameworks/src/sglang; \
+  sed -i 's/cuda-python>=13\.0/cuda-python>=12,<13/' \
+    /opt/codespace/frameworks/src/sglang/python/pyproject.toml; \
+  sed -i 's/flashinfer_python\[cu13\]/flashinfer_python[cu12]/' \
+    /opt/codespace/frameworks/src/sglang/python/pyproject.toml; \
+  sed -i 's/nvidia-cutlass-dsl\[cu13\]/nvidia-cutlass-dsl/' \
+    /opt/codespace/frameworks/src/sglang/python/pyproject.toml; \
   FRAMEWORK_UV="/opt/uv/uv pip install --python ${FRAMEWORK_VENV}/bin/python"; \
   SGLANG_BUILD_RUST_EXTS="${SGLANG_BUILD_RUST_EXTS}" \
     ${FRAMEWORK_UV} --prerelease=allow -e /opt/codespace/frameworks/src/sglang/python; \
   ${FRAMEWORK_UV} --force-reinstall ${TORCH_SPEC} \
     --index-url "https://download.pytorch.org/whl/${CUDA_TAG}"; \
-  ${FRAMEWORK_UV} --force-reinstall sglang-kernel \
+  ${FRAMEWORK_UV} --force-reinstall --no-deps "sglang-kernel==0.4.6.post1" \
     --index-url "https://docs.sglang.ai/whl/${CUDA_TAG}/"; \
-  ${FRAMEWORK_UV} --force-reinstall sgl-deep-gemm --no-deps \
+  ${FRAMEWORK_UV} --force-reinstall --no-deps "sgl-deep-gemm==0.1.5.post3" \
     --index-url "https://docs.sglang.ai/whl/${CUDA_TAG}/"; \
-  CU13_PKGS="$(ls -d ${FRAMEWORK_VENV}/lib/python3.12/site-packages/*.dist-info \
-    | sed 's#.*/##;s/.dist-info//' \
-    | awk -F- '/^nvidia/ {name=$1; ver=$2; if (ver ~ /^13\./ || name ~ /_cu13$/) print name}' \
-    | grep -vE 'nvidia_ml_py')"; \
+  CU13_PKGS="$(/opt/uv/uv pip list --python "${FRAMEWORK_VENV}/bin/python" \
+    --format=freeze | awk -F'==' '/-cu13(==|$)/ {print $1}')"; \
   for p in ${CU13_PKGS}; do /opt/uv/uv pip uninstall --python ${FRAMEWORK_VENV}/bin/python "$p"; done; \
   rm -rf ${FRAMEWORK_VENV}/lib/python3.12/site-packages/nvidia/cu13; \
   ${FRAMEWORK_UV} --reinstall --index-url "https://download.pytorch.org/whl/${CUDA_TAG}" \
@@ -59,12 +64,20 @@ FROM docker.io/debian:trixie-slim
 ARG CUDA_HOME_DIR
 
 RUN apt-get update -y \
-  && apt-get install -y --no-install-recommends ca-certificates libgomp1 \
+  && apt-get install -y --no-install-recommends ca-certificates g++ libgomp1 \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder "${CUDA_HOME_DIR}" "${CUDA_HOME_DIR}"
+COPY --from=builder /opt/codespace/frameworks/python /opt/codespace/frameworks/python
 COPY --from=builder /opt/codespace/frameworks/venv /opt/codespace/frameworks/venv
+COPY --from=builder /opt/codespace/frameworks/src/sglang /opt/codespace/frameworks/src/sglang
 ENV CUDA_HOME="${CUDA_HOME_DIR}"
 ENV PATH="/opt/codespace/frameworks/venv/bin:${CUDA_HOME_DIR}/bin:$PATH"
+
+RUN python -c "import sglang, torch; assert torch.version.cuda.startswith('12')" \
+  && printf '%s\n' '#include <cuda_runtime.h>' '__global__ void kernel() {}' \
+    >/tmp/cuda-smoke.cu \
+  && nvcc -std=c++20 -arch=sm_90a -c /tmp/cuda-smoke.cu -o /tmp/cuda-smoke.o \
+  && rm /tmp/cuda-smoke.cu /tmp/cuda-smoke.o
 
 ENTRYPOINT ["/opt/codespace/frameworks/venv/bin/python"]

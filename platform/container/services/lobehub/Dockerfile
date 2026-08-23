@@ -3,8 +3,7 @@ FROM docker.io/lobehub/lobehub:2.2.17 AS lobehub
 FROM docker.io/library/node:24.21.0-bookworm-slim AS node
 
 # -------------------------------- s6 assets ---------------------------------
-ARG S6_BASE_IMAGE=ghcr.io/curoky/codespace:service-s6
-FROM ${S6_BASE_IMAGE} AS s6
+FROM ghcr.io/curoky/codespace:service-s6 AS s6
 
 # --------------------------------- Runtime ----------------------------------
 FROM docker.io/paradedb/paradedb:0.25.9-pg17
