@@ -44,9 +44,9 @@ stub_external_provisioning() {
 
 file_mode() {
   if [[ "$(uname -s)" == Darwin ]]; then
-    stat -f "%Lp" "$1"
+    stat -L -f "%Lp" "$1"
   else
-    stat -c "%a" "$1"
+    stat -L -c "%a" "$1"
   fi
 }
 
@@ -61,7 +61,7 @@ file_mode() {
     .config/git/ignore \
     .ssh/config \
     .ssh/codespace/config \
-    .ssh/codespace/login_key \
+    .ssh/codespace/workspace_login_key_ed25519 \
     .ssh/codespace/known_hosts/codespace; do
     [ -L "$HOME/$relative_path" ]
     [ "$HOME/$relative_path" -ef "$MACOS_HOME/$relative_path" ]
@@ -74,7 +74,7 @@ file_mode() {
     .config/git/user.gitconfig \
     .ssh/config \
     .ssh/codespace/config \
-    .ssh/codespace/login_key \
+    .ssh/codespace/workspace_login_key_ed25519 \
     .ssh/codespace/known_hosts/codespace; do
     [ "$(file_mode "$MACOS_HOME/$relative_path")" = 600 ]
   done

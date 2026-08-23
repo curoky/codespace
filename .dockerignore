@@ -6,7 +6,9 @@
 **/.DS_Store
 
 # Host-only Workspace login credential is never an image build input.
-/platform/macos/rootfs/Users/x/.ssh/codespace/login_key
+/platform/container/workspace/rootfs/home/x/.ssh/workspace_login_key_ed25519
+/platform/container/workspace/rootfs/home/x/.ssh/workspace_login_key_ed25519.pub
+/platform/macos/rootfs/Users/x/.ssh/codespace/workspace_login_key_ed25519
 
 # Python virtualenvs & caches (regenerated in-image; ~170M of build context)
 .venv

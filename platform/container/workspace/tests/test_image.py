@@ -100,6 +100,8 @@ class TestImageContract(unittest.TestCase):
             (authorized_keys.stat().st_uid, authorized_keys.stat().st_gid),
             (5230, 5230),
         )
+        self.assertFalse((ssh_directory / "workspace_login_key_ed25519").exists())
+        self.assertFalse((ssh_directory / "workspace_login_key_ed25519.pub").exists())
         agent_state = Path("/var/lib/codespace")
         self.assertTrue(agent_state.is_dir())
         self.assertEqual((agent_state.stat().st_uid, agent_state.stat().st_gid), (0, 0))
