@@ -178,7 +178,7 @@ Workspace image 是固定的单用户开发 runtime，用户为 `x`（UID/GID `5
 | --- | --- | --- |
 | 基础初始化 | `workspace-init`、`home-init`、`git-config`、`hosts-blackhole` | 准备 data、home、Git 和网络策略，非法 managed input 直接失败 |
 | Credential | `gh-login`、`atuin-login` | credential 不进入 argv 或公共 s6 environment |
-| 存储挂载 | `secret-mount` | 将内部 WebDAV 挂到 `/mnt/secret`，挂载失败被记录且不阻塞 bundle |
+| 存储挂载 | `secret-mount` | 将内部 WebDAV 直接挂到 `/opt/secret`；Kerberos 等消费者从该统一目录读取凭据，挂载失败被记录且不阻塞 bundle |
 | 控制入口 | `sshd`、`workspace-agent` | SSH 固定监听 `0.0.0.0:22`；Agent 只监听 `/run/codespace-control` 下的 UDS |
 | 本地服务 | `atuin-server`、`rclone-webdav`、`copyparty-webdav`、`ollama`、`rclone-http`、`miniserve-http`、`nixcache` | 只监听 container loopback，使用下表固定端口 |
 | 后台任务 | `atuin-daemon`、`supercronic` | 同步 shell history，并执行 image 声明的维护任务 |
@@ -289,7 +289,7 @@ rootful Podman socket 的 Service，权限仅用于 image maintenance。vLLM 与
 
 | Service | Contract |
 | --- | --- |
-| `secret` | WebDAV root 固定为 `/opt/secret`，数据写入 container layer 且 replace 时丢弃；依赖 bridge gateway 网络边界，不提供应用层认证 |
+| `secret` | Base image 创建并通过 WebDAV 暴露 `/opt/secret`；派生 auth image 负责具体凭据的生成与刷新，数据写入 container layer 且 replace 时丢弃；依赖 bridge gateway 网络边界，不提供应用层认证 |
 | `chatbox` | 提供静态 SPA，并由同源 `/v1` reverse proxy 访问模型 API；会话数据保存在 browser IndexedDB |
 | `lobehub` | 同一容器编排 PostgreSQL 17、应用与自动认证 proxy，持久数据位于 `/var/lib/codespace/lobehub`；`APP_URL` 声明 browser-facing origin，共享 browser session 构成 single-user trust boundary |
 | `vllm`、`sglang` | 使用固定的 8x H100 runtime profile，并竞争同一个模型 endpoint |

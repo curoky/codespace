@@ -223,6 +223,15 @@ class TestImageContract(unittest.TestCase):
 
         condarc = (HOME / ".config/conda/condarc").read_text()
         zshrc = (HOME / ".zshrc").read_text()
+        zshenv = Path("/etc/zsh/zshenv").read_text()
+        app_env = Path("/etc/profile.d/app.sh").read_text()
+        self.assertIn("export KRB5CCNAME=/opt/secret/krb5_ccache", app_env)
+        self.assertEqual(
+            run("zsh", "-c", 'printf %s "$KRB5CCNAME"').stdout,
+            "/opt/secret/krb5_ccache",
+        )
+        self.assertNotIn("KRB5CCNAME", zshrc)
+        self.assertNotIn("KRB5CCNAME", zshenv)
         self.assertIn("auto_activate: false", condarc)
         self.assertNotIn("conda activate", zshrc)
         self.assertIn('source "/opt/conda/etc/profile.d/conda.sh"', zshrc)
