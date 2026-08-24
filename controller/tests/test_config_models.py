@@ -308,7 +308,7 @@ def test_config_rejects_clone_path_with_parent_segments() -> None:
 
 
 def test_config_rejects_clone_path_on_blank_project() -> None:
-    with pytest.raises(ValidationError, match="blank project must not set 'clone_path'"):
+    with pytest.raises(ValidationError, match=r"blank\.clone_path\s+Input should be None"):
         Config.model_validate(
             {
                 "default_image": "img",
@@ -326,7 +326,7 @@ def test_config_rejects_clone_path_on_blank_project() -> None:
 
 
 def test_config_rejects_git_project_with_provider() -> None:
-    with pytest.raises(ValidationError, match="git project must not set"):
+    with pytest.raises(ValidationError, match=r"git\.provider\s+Input should be None"):
         Config.model_validate(
             {
                 "default_image": "img",
@@ -345,7 +345,7 @@ def test_config_rejects_git_project_with_provider() -> None:
 
 
 def test_config_rejects_git_project_without_git_url() -> None:
-    with pytest.raises(ValidationError, match="git project requires"):
+    with pytest.raises(ValidationError, match=r"git\.git_url\s+Field required"):
         Config.model_validate(
             {
                 "default_image": "img",
@@ -357,7 +357,7 @@ def test_config_rejects_git_project_without_git_url() -> None:
 
 
 def test_config_rejects_blank_project_with_repo() -> None:
-    with pytest.raises(ValidationError, match="blank project must not set"):
+    with pytest.raises(ValidationError, match=r"blank\.repo\s+Input should be None"):
         Config.model_validate(
             {
                 "default_image": "img",
@@ -375,7 +375,7 @@ def test_config_rejects_blank_project_with_repo() -> None:
 
 
 def test_config_rejects_repo_project_without_repo() -> None:
-    with pytest.raises(ValidationError, match="repo project requires"):
+    with pytest.raises(ValidationError, match=r"repo\.repo\s+Field required"):
         Config.model_validate(
             {
                 "default_image": "img",

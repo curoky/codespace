@@ -10,6 +10,7 @@ import yaml
 from pydantic import (
     AfterValidator,
     BaseModel,
+    BeforeValidator,
     ConfigDict,
     Field,
     field_validator,
@@ -26,7 +27,6 @@ from controller.models import (
     HostId,
     ImagePlatform,
     NonBlankString,
-    ProjectType,
     RepoPath,
     TokenString,
     parse_port_mapping,
@@ -249,13 +249,18 @@ class ProjectHost(BaseModel):
     platform: ImagePlatform | None = None
 
 
-class ProjectConfig(BaseModel):
-    """Configuration for one project and the hosts it can run on."""
+class _BaseProject(BaseModel):
+    """Fields shared by every project type and the hosts it can run on.
+
+    The concrete ``type`` decides which repository fields are required; that
+    contract is expressed by the ``RepoProject``/``GitProject``/``BlankProject``
+    subclasses below and resolved through the ``ProjectConfig`` discriminated
+    union, so consumers narrow on the class instead of re-checking ``type``.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
     host: list[ProjectHost]
-    type: ProjectType = "repo"
     provider: GitProvider | None = None
     repo: RepoPath | None = None
     git_url: GitUrl | None = None
@@ -305,41 +310,6 @@ class ProjectConfig(BaseModel):
             seen_local.add(local)
         return value
 
-    @model_validator(mode="before")
-    @classmethod
-    def _split_provider_repo(cls, data: object) -> object:
-        """Split ``repo: <provider>:<owner>/<name>`` (or ``repo: git:<url>``) before validation."""
-        if isinstance(data, dict) and isinstance(data.get("repo"), str) and ":" in data["repo"]:
-            provider, _, rest = data["repo"].partition(":")
-            if provider == "git":
-                if "git_url" in data:
-                    raise ValueError("set either combined 'repo' or separate 'git_url', not both")
-                return {**data, "type": "git", "git_url": rest, "repo": None}
-            if "provider" in data:
-                raise ValueError("set either combined 'repo' or separate 'provider', not both")
-            return {**data, "provider": provider, "repo": rest}
-        return data
-
-    @model_validator(mode="after")
-    def _validate_type_fields(self) -> Self:
-        if self.type == "repo":
-            if self.repo is None or self.provider is None:
-                raise ValueError("repo project requires 'repo' and 'provider'")
-            if self.git_url is not None:
-                raise ValueError("repo project must not set 'git_url'")
-            return self
-        if self.type == "git":
-            if self.git_url is None:
-                raise ValueError("git project requires 'git_url'")
-            if self.repo is not None or self.provider is not None:
-                raise ValueError("git project must not set 'repo' or 'provider'")
-            return self
-        if self.repo is not None or self.provider is not None or self.git_url is not None:
-            raise ValueError("blank project must not set 'repo', 'provider' or 'git_url'")
-        if self.clone_path is not None:
-            raise ValueError("blank project must not set 'clone_path'")
-        return self
-
     def resolved_clone_path(self) -> str:
         """Return the checkout directory, defaulting to the workspace-derived target."""
         if self.clone_path is not None:
@@ -349,6 +319,65 @@ class ProjectConfig(BaseModel):
     def resolved_open_path(self) -> str:
         """Return the editor open path, defaulting to the checkout directory."""
         return self.open_path or self.resolved_clone_path()
+
+
+class RepoProject(_BaseProject):
+    """Project cloned from a managed GitHub/GitLab repository via a deploy key."""
+
+    type: Literal["repo"] = "repo"
+    repo: RepoPath
+    provider: GitProvider
+    git_url: None = None
+
+
+class GitProject(_BaseProject):
+    """Project cloned directly from a raw git+ssh URL, with no managed credential."""
+
+    type: Literal["git"]
+    git_url: GitUrl
+    repo: None = None
+    provider: None = None
+
+
+class BlankProject(_BaseProject):
+    """Project with an empty workspace and no repository checkout."""
+
+    type: Literal["blank"]
+    repo: None = None
+    provider: None = None
+    git_url: None = None
+    clone_path: None = None
+
+
+def _normalize_project(data: object) -> object:
+    """Expand the ``repo`` shorthand and default ``type`` before union discrimination.
+
+    Runs before the discriminated union picks a member, so it must set the
+    ``type`` tag that selection relies on. ``repo: <provider>:<owner>/<name>``
+    splits into ``provider``/``repo``; ``repo: git:<url>`` becomes a git project.
+    """
+    if not isinstance(data, dict):
+        return data
+    normalized = dict(data)
+    repo = normalized.get("repo")
+    if isinstance(repo, str) and ":" in repo:
+        provider, _, rest = repo.partition(":")
+        if provider == "git":
+            if "git_url" in normalized:
+                raise ValueError("set either combined 'repo' or separate 'git_url', not both")
+            normalized.update(type="git", git_url=rest, repo=None)
+            return normalized
+        if "provider" in normalized:
+            raise ValueError("set either combined 'repo' or separate 'provider', not both")
+        normalized.update(provider=provider, repo=rest)
+    normalized.setdefault("type", "repo")
+    return normalized
+
+
+type ProjectConfig = Annotated[
+    Annotated[RepoProject | GitProject | BlankProject, Field(discriminator="type")],
+    BeforeValidator(_normalize_project),
+]
 
 
 class Config(BaseModel):
