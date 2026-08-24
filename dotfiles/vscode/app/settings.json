@@ -106,7 +106,6 @@
   "[yaml]": {
     // "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "autoDocstring.includeName": true,
   "bazel.buildifierExecutable": "/opt/sb/store/buildifier/bin/buildifier",
   "bazel.buildifierFixOnFormat": true,
   "bazel.enableCodeLens": true,
