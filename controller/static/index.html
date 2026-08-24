@@ -8,35 +8,32 @@
     <script type="module" src="/static/app.js"></script>
   </head>
   <body>
-    <header class="app-header">
-      <div class="brand">
-        <div class="brand-copy">
-          <p class="eyebrow">Remote development</p>
-          <h1>Codespace</h1>
-        </div>
-      </div>
-      <div class="header-actions">
-        <button id="tokens-button" class="secondary">Tokens</button>
-        <button id="refresh-button">Refresh</button>
-      </div>
-    </header>
+    <div class="app-shell">
+      <main>
+        <header class="app-header" aria-labelledby="hosts-heading">
+          <div class="section-heading">
+            <h2 id="hosts-heading">Hosts</h2>
+            <span id="hosts-summary" class="section-note"></span>
+          </div>
+          <div class="header-actions">
+            <button id="tokens-button" class="secondary">Tokens</button>
+            <button id="refresh-button" class="secondary">Refresh</button>
+          </div>
+        </header>
 
-    <main>
-      <section aria-labelledby="hosts-heading">
-        <div class="section-heading">
-          <h2 id="hosts-heading">Hosts</h2>
-        </div>
-        <div id="hosts" class="host-list"></div>
-      </section>
+        <section aria-label="Hosts list">
+          <div id="hosts" class="host-list"></div>
+        </section>
 
-      <section aria-labelledby="projects-heading">
-        <div class="section-heading">
-          <h2 id="projects-heading">Projects</h2>
-          <span id="poll-status" class="status-message"></span>
-        </div>
-        <div id="projects" class="project-grid"></div>
-      </section>
-    </main>
+        <section aria-labelledby="projects-heading">
+          <div class="section-heading">
+            <h2 id="projects-heading">Projects</h2>
+            <span id="poll-status" class="status-message"></span>
+          </div>
+          <div id="projects" class="project-grid"></div>
+        </section>
+      </main>
+    </div>
 
     <dialog id="instance-dialog">
       <form id="instance-form">
