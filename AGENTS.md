@@ -71,6 +71,9 @@ uv run python -m controller
 # 本地构建镜像（不发布，发布由 .github/workflows/ 管理）
 images/dev/build.sh
 images/sidecar/build.sh
+
+# 在目标 Git 仓库根目录生成 SSH key，并配置当前仓库使用该 key
+$HOME/devspace/tools/setup-git-deploy-key.sh
 ```
 
 ## 跨组件契约
