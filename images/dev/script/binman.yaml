@@ -166,6 +166,7 @@ packages:
     - nil
     - netron
     - exiftool
+    - podman5
     # - dive
 
   unlink:
