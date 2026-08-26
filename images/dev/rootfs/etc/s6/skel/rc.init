@@ -7,7 +7,7 @@
 # rc.init is forked by stage 1 and does not reliably inherit the init's baked
 # PATH, so the s6 / execline tools (s6-rc-init, s6-rc, ...) would not be found.
 # Put the merged s6 profile on PATH explicitly.
-export PATH="/opt/sb/profile/s6/bin:/opt/sb/profile/s6/libexec:${PATH}"
+export PATH="/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:${PATH}"
 
 # s6 dumps the container environment as root-only files before starting stage 2.
 # Let the development user consume values such as HTTP_PROXY without exposing

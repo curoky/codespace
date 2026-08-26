@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # Set up s6 as the container init using the binaries already compiled under
-# /opt/sb/store/s6*. install-sb-pkgs.sh merges every s6 / execline package
-# into the /opt/sb/profile/s6 tree (bin/ + libexec/), which is what we put on
+# /opt/bm/store/s6*. install-sb-pkgs.sh merges every s6 / execline package
+# into the /opt/bm/profile/s6 tree (bin/ + libexec/), which is what we put on
 # the init's PATH.
 #
 # All s6 configuration (s6-rc service definitions, the s6-linux-init skel, and
@@ -13,7 +13,7 @@
 
 set -xeuo pipefail
 
-profile=/opt/sb/profile/s6
+profile=/opt/bm/profile/s6
 # s6-rc resolves s6-rc-oneshot-run / s6-rc-fdholder-filler through PATH.
 export PATH="$profile/bin:$profile/libexec:$PATH"
 

@@ -5,7 +5,7 @@ Wants=network.target
 
 [Service]
 Type=simple
-ExecStart=/opt/sb/store/gost/bin/gost -C /etc/gost/daemon.json
+ExecStart=/opt/bm/store/gost/bin/gost -C /etc/gost/daemon.json
 Restart=on-failure
 
 [Install]

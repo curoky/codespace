@@ -1,4 +1,4 @@
-#!/opt/sb/profile/s6/bin/execlineb -P
+#!/opt/bm/profile/s6/bin/execlineb -P
 
 s6-envdir -Lf -- /run/s6/container_environment
 
@@ -15,4 +15,4 @@ export ATUIN_DB_URI "${ATUIN_DB_URI}"
 
 foreground { mkdir -p /var/log }
 
-exec /opt/sb/store/atuin/bin/atuin server start
+exec /opt/bm/store/atuin/bin/atuin server start

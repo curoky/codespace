@@ -17,7 +17,7 @@
 
 export CONFIG_HOME=~/devspace/dotfiles
 export ROOTFS_HOME=~/devspace/images/dev/rootfs/home/x
-export TOOLS_ROOT=/opt/sb
+export TOOLS_ROOT=/opt/bm
 # if [[ ! -d $TOOLS_ROOT ]]; then
 #   export TOOLS_ROOT=$HOME/app/sbt
 # fi

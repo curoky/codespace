@@ -6,10 +6,10 @@ RUN apt-get update -y \
 
 COPY images/sidecar/binman.yaml /tmp/binman.yaml
 RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
-    | bash -s -- --prefix /opt/sb/bin \
-  && /opt/sb/bin/bm sync /tmp/binman.yaml
+    | bash -s -- --prefix /opt/bm/bin \
+  && /opt/bm/bin/bm sync /tmp/binman.yaml
 
-ENV PATH="/opt/sb/bin:/opt/sb/profile/s6/bin:/opt/sb/profile/s6/libexec:$PATH"
+ENV PATH="/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:$PATH"
 
 COPY images/dev/rootfs/etc/s6/skel /etc/s6/skel
 COPY images/sidecar/rootfs/ /

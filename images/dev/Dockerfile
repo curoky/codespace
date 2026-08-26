@@ -7,14 +7,14 @@ RUN apt-get update -y && apt-get install -y curl zstd
 
 COPY images/dev/script/binman.yaml /tmp/binman.yaml
 RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
-    | bash -s -- --prefix /opt/sb/bin \
-  && /opt/sb/bin/bm sync /tmp/binman.yaml \
-  && ln -s -r /opt/sb/bin/bazelisk /opt/sb/bin/bazel \
-  && rm -rf /opt/sb/store/nettools/bin/hostname \
-  && rm -rf /opt/sb/store/cmake/share/cmake*/Help \
-  && rm -rf /opt/sb/store/cmake/share/doc \
-  && rm -rf /opt/sb/store/vim/share/vim/vim*/doc \
-  && rm -rf /opt/sb/store/protobuf*/lib
+    | bash -s -- --prefix /opt/bm/bin \
+  && /opt/bm/bin/bm sync /tmp/binman.yaml \
+  && ln -s -r /opt/bm/bin/bazelisk /opt/bm/bin/bazel \
+  && rm -rf /opt/bm/store/nettools/bin/hostname \
+  && rm -rf /opt/bm/store/cmake/share/cmake*/Help \
+  && rm -rf /opt/bm/store/cmake/share/doc \
+  && rm -rf /opt/bm/store/vim/share/vim/vim*/doc \
+  && rm -rf /opt/bm/store/protobuf*/lib
 
 ################################# stage/conda environ ################################
 FROM docker.io/debian:stable-slim AS stage_conda
@@ -57,9 +57,9 @@ RUN bash /tmp/setup-vscode-extensions.sh /tmp/extensions.txt /opt/vscode-extensi
 ################################ main ################################
 FROM docker.io/$BASE_IMAGE
 
-ENV PATH=${PATH}:/opt/sb/bin \
+ENV PATH=${PATH}:/opt/bm/bin \
   DEBIAN_FRONTEND=noninteractive
-  # SSL_CERT_FILE=/opt/sb/store/cacert/etc/ssl/certs/ca-certificates.crt
+  # SSL_CERT_FILE=/opt/bm/store/cacert/etc/ssl/certs/ca-certificates.crt
 
 ARG BASE_IMAGE
 COPY images/dev/script/patch-apt.sh /tmp/patch-apt.sh
@@ -69,7 +69,7 @@ RUN /tmp/patch-apt.sh ${BASE_IMAGE} \
 # Static tools and system config must be present before setup-sysconf.sh (it
 # runs `chsh` to the sb zsh and tightens perms on the rootfs-provided /etc/ssh &
 # /etc/sudoers.d files). Lay both down while still root, before `USER x`.
-COPY --link --chown=5230:5230 --from=stage_sb /opt/sb /opt/sb
+COPY --link --chown=5230:5230 --from=stage_sb /opt/bm /opt/bm
 COPY images/dev/rootfs/ /
 
 COPY images/dev/script/setup-sysconf.sh /tmp/setup-sysconf.sh
@@ -81,12 +81,12 @@ RUN /tmp/setup-sysconf.sh \
   && install -d -o 5230 -g 5230 -m 0755 /cache \
   && chown 5230:5230 /opt \
   && /tmp/setup-s6.sh \
-  && ln -s /opt/sb/store/zsh/bin/zsh /usr/bin \
-  && ln -s /opt/sb/store/wget/bin/wget /usr/bin \
-  && ln -s /opt/sb/store/less/bin/less /usr/bin \
-  && ln -s /opt/sb/store/xz/bin/xz /usr/bin \
-  && ln -s /opt/sb/store/git/bin/git /usr/bin \
-  && ln -s /opt/sb/store/openssh_gssapi/bin/ssh /usr/bin
+  && ln -s /opt/bm/store/zsh/bin/zsh /usr/bin \
+  && ln -s /opt/bm/store/wget/bin/wget /usr/bin \
+  && ln -s /opt/bm/store/less/bin/less /usr/bin \
+  && ln -s /opt/bm/store/xz/bin/xz /usr/bin \
+  && ln -s /opt/bm/store/git/bin/git /usr/bin \
+  && ln -s /opt/bm/store/openssh_gssapi/bin/ssh /usr/bin
 
 USER x
 
@@ -148,5 +148,5 @@ COPY --link --chown=5230:5230 --from=stage_vscode_ext /opt/vscode-extensions /op
 USER root
 RUN ln -s /opt/devspace ~/devspace
 
-ENV PATH=${PATH}:/opt/sb/profile/s6/bin:/opt/sb/profile/s6/libexec
+ENV PATH=${PATH}:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec
 ENTRYPOINT ["/etc/s6/init/bin/init"]

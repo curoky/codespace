@@ -60,7 +60,7 @@ standalone-binaries install.sh
   v
 ghcr.io/curoky/standalone-binaries:binman-<architecture>
   |
-  | extracted as /opt/sb/bin/bm
+  | extracted as /opt/bm/bin/bm
   v
 bm sync /tmp/binman.yaml
   |
@@ -284,8 +284,8 @@ RUN case "${TARGETARCH}" in \
     *) echo "unsupported TARGETARCH: ${TARGETARCH}" >&2; exit 1 ;; \
   esac \
   && curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
-    | bash -s -- --prefix /opt/sb/bin --arch "${binman_arch}" \
-  && /opt/sb/bin/bm --arch "${binman_arch}" sync /tmp/binman.yaml
+    | bash -s -- --prefix /opt/bm/bin --arch "${binman_arch}" \
+  && /opt/bm/bin/bm --arch "${binman_arch}" sync /tmp/binman.yaml
 ```
 
 失败集中表现为 arm64 阶段无法与 `ghcr.io:443` 建立 TCP 连接：
@@ -303,7 +303,7 @@ curl: (28) Connection timed out after 20002 milliseconds
 失败日志已经打印：
 
 ```text
-> Installing bm (linux-arm64) into /opt/sb/bin
+> Installing bm (linux-arm64) into /opt/bm/bin
 ```
 
 这说明外层脚本下载和 Bash 启动已经成功。报错中的 `registry challenge attempt` 来自

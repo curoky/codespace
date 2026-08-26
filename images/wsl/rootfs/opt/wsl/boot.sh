@@ -17,8 +17,8 @@
 
 set -eu
 
-profile=/opt/sb/profile/s6
-export PATH="$profile/bin:$profile/libexec:/opt/sb/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+profile=/opt/bm/profile/s6
+export PATH="$profile/bin:$profile/libexec:/opt/bm/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 # Apply the image's sysctl tuning (inotify watches, ptrace_scope). WSL has no
 # systemd here to load /etc/sysctl.d, so do it explicitly; ignore failures on

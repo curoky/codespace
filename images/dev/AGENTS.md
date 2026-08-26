@@ -1,6 +1,6 @@
 # 开发镜像约束
 
-`images/dev/` 构建 Codespace 基础与参考开发镜像，组合 `/opt/sb` 静态工具、Nix、Rust、Java、
+`images/dev/` 构建 Codespace 基础与参考开发镜像，组合 `/opt/bm` 静态工具、Nix、Rust、Java、
 Node.js、Go、uv、Conda、dotfiles 和自建 s6 init。
 
 本文是开发镜像结构、s6 init、容器 SSH 契约与镜像 host contract 的事实来源。整体架构与跨组件契约见
@@ -20,7 +20,7 @@ host 级共享服务见 [`images/sidecar/AGENTS.md`](../sidecar/AGENTS.md)，容
 
 ## s6 init
 
-开发镜像不使用 s6-overlay。`script/setup-s6.sh` 从 `/opt/sb/store` 的 s6/execline 二进制生成
+开发镜像不使用 s6-overlay。`script/setup-s6.sh` 从 `/opt/bm/store` 的 s6/execline 二进制生成
 `/etc/s6/init` 和 `/etc/s6/db`。新增服务放入 `rootfs/etc/s6/s6-rc.d/` 并加入相应 bundle；execline
 脚本用 `s6-envdir -Lf -- /run/s6/container_environment` 读容器环境，该目录仅 root 和 `x` 可读。
 `workspace-init` 必须先于 `workspace-crypt` 完成，把挂载的 `/workspace` 与密文根 `/workspace.enc`
@@ -61,12 +61,12 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
   直接透传所有权）；
 - `workspace-crypt` s6 oneshot，依赖 `workspace-init`，`sshd`、`home-init` 与两个 WebDAV 服务均依赖它。
   以容器环境变量 `WORKSPACE_CRYPT_KEY` 是否注入为信号自适应（对齐控制面 project 的 `encrypt_workspace`）：
-  未注入则跳过、`/workspace` 保持明文 bind；注入则用 gocryptfs（`/opt/sb/bin/gocryptfs`）把密文根
+  未注入则跳过、`/workspace` 保持明文 bind；注入则用 gocryptfs（`/opt/bm/bin/gocryptfs`）把密文根
   `/workspace.enc`（host bind 落盘处）解密挂到 `/workspace`，密文根缺 `gocryptfs.conf` 时先 `-init`。
   gocryptfs 依赖 FUSE：容器须有 `/dev/fuse` 与 `SYS_ADMIN`（或 security option `disable`），镜像预置
   `/etc/fuse.conf` 的 `user_allow_other` 以支持 `-allow_other`（sshd/WebDAV 等其他用户访问明文）。
   gocryptfs（binman `gocryptfs`）自身不带 fusermount，挂载时经 PATH 调用它（go-fuse 优先 `fusermount3`
-  再回退 `fusermount`），故 binman `link` 另装 `fuse3` 提供 `/opt/sb/bin/fusermount3`；缺它挂载会以
+  再回退 `fusermount`），故 binman `link` 另装 `fuse3` 提供 `/opt/bm/bin/fusermount3`；缺它挂载会以
   `fs.Mount failed: exec: "…fusermount…": no such file or directory` 失败，连带 sshd 不起。
   workspace-crypt 经 `s6-setuidgid x` 降权后挂载，`x` 无 CAP_SYS_ADMIN，故 `setup-sysconf.sh` 构建期给
   `fusermount3` 加 setuid root（binman 静态包默认不带该位）；缺 setuid 会以 `fusermount3: mount failed:

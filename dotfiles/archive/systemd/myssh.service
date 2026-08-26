@@ -6,9 +6,9 @@ ConditionPathExists=!/etc/ssh/sshd_not_to_be_run
 
 [Service]
 EnvironmentFile=-/etc/default/ssh
-ExecStartPre=/opt/sb/bin/sshd -t -f /opt/devspace/dotfiles/sshd/sshd_config.conf
-ExecStart=/opt/sb/bin/sshd -D $SSHD_OPTS -f /opt/devspace/dotfiles/sshd/sshd_config.conf
-ExecReload=/opt/sb/bin/sshd -t -f /opt/devspace/dotfiles/sshd/sshd_config.conf
+ExecStartPre=/opt/bm/bin/sshd -t -f /opt/devspace/dotfiles/sshd/sshd_config.conf
+ExecStart=/opt/bm/bin/sshd -D $SSHD_OPTS -f /opt/devspace/dotfiles/sshd/sshd_config.conf
+ExecReload=/opt/bm/bin/sshd -t -f /opt/devspace/dotfiles/sshd/sshd_config.conf
 ExecReload=/bin/kill -HUP $MAINPID
 KillMode=process
 Restart=on-failure

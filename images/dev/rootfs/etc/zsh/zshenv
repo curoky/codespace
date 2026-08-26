@@ -12,7 +12,7 @@
 #
 # Global Order: zshenv, zprofile, zshrc, zlogin
 
-export PATH=/opt/sb/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/rust/cargo/bin:/opt/conda/condabin:/nix/var/nix/profiles/default/bin:/opt/sb/profile/s6/bin:/opt/sb/profile/s6/libexec
+export PATH=/opt/bm/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/rust/cargo/bin:/opt/conda/condabin:/nix/var/nix/profiles/default/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8

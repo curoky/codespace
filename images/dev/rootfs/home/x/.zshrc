@@ -6,7 +6,7 @@ function mkdir_if_not_exists() {
 
 export CONFIG_HOME=~/devspace/dotfiles
 export ROOTFS_HOME=~/devspace/images/dev/rootfs/home/x
-export TOOLS_ROOT=/opt/sb
+export TOOLS_ROOT=/opt/bm
 export WORKSPACE=/workspace
 export MY_HOST_NAME=$(hostname)
 
@@ -28,9 +28,9 @@ export PATH=$PATH:$HOME/.local/bin:$HOME/.nix-profile/bin:$HOME/devspace/tools
 
 #=-> FPATH
 fpath=(
-  "/opt/sb/share/zsh/site-functions"
-  "/opt/sb/store/zsh-bundle/share/oh-my-zsh/custom/plugins/zsh-completions/src"
-  "/opt/sb/store/zsh-bundle/share/oh-my-zsh/custom/plugins/conda-zsh-completion"
+  "/opt/bm/share/zsh/site-functions"
+  "/opt/bm/store/zsh-bundle/share/oh-my-zsh/custom/plugins/zsh-completions/src"
+  "/opt/bm/store/zsh-bundle/share/oh-my-zsh/custom/plugins/conda-zsh-completion"
   $fpath
 )
 
