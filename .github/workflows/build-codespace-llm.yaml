@@ -1,0 +1,43 @@
+name: Build codespace LLM serving images
+
+on:
+  push:
+    paths:
+      - '.github/workflows/build-codespace-llm.yaml'
+      - 'images/llm/**'
+      - 'images/dev/rootfs/etc/s6/skel/**'
+      - 'images/dev/script/setup-s6.sh'
+  schedule:
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: [vllm, sglang]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # amd64 only: the CUDA GPU inference wheels (vLLM / SGLang / flashinfer /
+      # xformers) ship no arm64 build and the target is an x86 8x H100 node.
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: images/llm/${{ matrix.engine }}/Dockerfile
+          push: true
+          provenance: false
+          platforms: linux/amd64
+          no-cache: ${{ github.event_name == 'schedule' }}
+          tags: ghcr.io/curoky/devspace:llm-${{ matrix.engine }}
