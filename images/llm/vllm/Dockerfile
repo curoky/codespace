@@ -30,12 +30,22 @@ RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs
 # Inference stack installed into a dedicated venv via uv (installed by binman).
 # Python 3.12 is the newest version the GPU inference stack supports: vLLM
 # nominally allows 3.10-3.13, but the prebuilt CUDA/flashinfer/xformers wheels
-# only cover up to 3.12; 3.13 fails to build. VLLM_VERSION must resolve to a
-# build with Qwen3.8-Flash-Next support; the wheel pulls its own CUDA runtime.
-ARG VLLM_VERSION=0.10.2
+# only cover up to 3.12; 3.13 fails to build.
+#
+# VLLM_VERSION pins the current stable release; bump it (or the day-0 override
+# below) to a build that carries the Qwen3.8-Flash-Next architecture.
+#
+# TORCH_BACKEND selects the torch/CUDA wheel variant: vLLM's default PyPI wheel
+# now targets CUDA 13 (needs host driver >=580), but the target 8x H100 node runs
+# an older CUDA 12.x driver (535 / CUDA 12.2). We build against cu129 so uv pulls
+# a cu12x torch. It is pinned (not =auto) because the CI builder has no NVIDIA
+# driver to probe; override TORCH_BACKEND=cu130 for a CUDA 13 host.
+ARG VLLM_VERSION=0.23.0
+ARG TORCH_BACKEND=cu129
 ENV LLM_VENV=/opt/llm/venv
 RUN /opt/bm/bin/uv venv "${LLM_VENV}" --python 3.12 \
-  && /opt/bm/bin/uv pip install --python "${LLM_VENV}/bin/python" "vllm==${VLLM_VERSION}"
+  && /opt/bm/bin/uv pip install --python "${LLM_VENV}/bin/python" \
+    --torch-backend="${TORCH_BACKEND}" "vllm==${VLLM_VERSION}"
 
 ENV PATH="/opt/llm/venv/bin:/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:$PATH"
 

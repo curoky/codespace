@@ -27,8 +27,8 @@ rootfs / build.sh / run.sh），互不共享文件。base image 对齐 sidecar�
 
 | 引擎 | 子目录 | 镜像 tag | 推理栈 | s6 longrun |
 | --- | --- | --- | --- | --- |
-| vLLM | `vllm/` | `ghcr.io/curoky/devspace:llm-vllm` | uv venv `vllm==${VLLM_VERSION}` | `llm` |
-| SGLang | `sglang/` | `ghcr.io/curoky/devspace:llm-sglang` | uv venv `sglang[all]==${SGLANG_VERSION}` | `llm` |
+| vLLM | `vllm/` | `ghcr.io/curoky/devspace:llm-vllm` | uv venv `vllm==${VLLM_VERSION}`（默认 `0.23.0`，`--torch-backend`） | `llm` |
+| SGLang | `sglang/` | `ghcr.io/curoky/devspace:llm-sglang` | uv venv `sglang==${SGLANG_VERSION}`（默认 `0.5.18`，cu129 recipe） | `llm` |
 
 两子目录内部结构完全对称，仅推理栈与引擎命令不同；s6 longrun 在各自子目录内统一命名 `llm`（因为一个镜像只
 含一个引擎，无需区分）。组装顺序对齐 sidecar：Debian slim → apt 基础包（含 `python3`）→ binman 装
@@ -38,8 +38,10 @@ standalone s6/execline 与 uv → uv 建 venv 装推理栈 → `COPY <engine>/ro
 的 GPU wheel 与 flashinfer/xformers 等关键依赖的预编译 wheel 目前只稳定覆盖到 3.12，改 3.13 会构建失败。
 CUDA userspace 由 host 的 NVIDIA Container Toolkit 在运行期提供，推理 wheel 自带其余 CUDA runtime 库。
 
-**day-0 架构风险**：稳定 PyPI 的 vLLM/SGLang 可能尚未包含 Qwen3.8-Flash-Next 架构。`VLLM_VERSION`/
-`SGLANG_VERSION`（各 Dockerfile `ARG`）必须锁到含该架构的版本（官方 recipe/cookbook 用专用 tag 或 nightly）；
+**CUDA 版本（默认 cu129）**：vLLM/SGLang 的默认 PyPI wheel 现已升到 CUDA 13（需 host 驱动 ≥580），但目标 8×H100 节点跑 driver 535 / CUDA 12.2，故两镜像默认按 CUDA 12.9 装：vLLM 用 uv `--torch-backend=cu129`（`ARG TORCH_BACKEND`，固定值而非 `auto`，因为 CI builder 无 GPU 驱动可探测）；SGLang 走官方 cu129 recipe——先 `--prerelease=allow` 装 `sglang`（否则 uv 会静默解析到旧版），再从 cu129 index force-reinstall `torch` 与 `sgl-kernel`/`sgl-deep-gemm` GPU kernel（`ARG CUDA_TAG`）。CUDA 13 host 用 `TORCH_BACKEND=cu130` / `CUDA_TAG=cu130` 覆盖。SGLang 不再装 `[all]` extra，改用官方 recipe 的独立 kernel 包。
+
+**day-0 架构风险**：`VLLM_VERSION`/`SGLANG_VERSION`（各 Dockerfile `ARG`）已锁到当前最新稳定版（`0.23.0`/
+`0.5.18`）。若该稳定版尚未包含 Qwen3.8-Flash-Next 架构，需提升到含该架构的版本（官方 recipe/cookbook 用专用 tag 或 nightly）；
 启动报 unknown-architecture 时提升版本。AMD GPU 不用本 CUDA 镜像，改用官方 ROCm 镜像。
 
 ## s6 init

@@ -31,12 +31,30 @@ RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs
 # Inference stack installed into a dedicated venv via uv (installed by binman).
 # Python 3.12 is the newest version the GPU inference stack supports: the SGLang
 # GPU wheel and its flashinfer/xformers deps only ship prebuilt wheels up to
-# 3.12; 3.13 fails to build. SGLANG_VERSION must resolve to a build with
-# Qwen3.8-Flash-Next support; the wheel pulls its own CUDA runtime.
-ARG SGLANG_VERSION=0.4.6
+# 3.12; 3.13 fails to build.
+#
+# SGLANG_VERSION pins the current stable release; bump it to a build that carries
+# the Qwen3.8-Flash-Next architecture.
+#
+# CUDA 12 install (target 8x H100 runs driver 535 / CUDA 12.2, not the CUDA 13
+# default): follow the official SGLang cu129 recipe. --prerelease=allow is
+# required because some SGLang deps only publish pre-releases on PyPI; without it
+# uv silently resolves an older SGLang. After installing sglang, force-reinstall
+# torch and the sgl-kernel / sgl-deep-gemm GPU kernels from the cu129 indexes so
+# they match the CUDA 12.x driver instead of the cu13 PyPI defaults. Override
+# CUDA_TAG=cu130 for a CUDA 13 host.
+ARG SGLANG_VERSION=0.5.18
+ARG CUDA_TAG=cu129
 ENV LLM_VENV=/opt/llm/venv
 RUN /opt/bm/bin/uv venv "${LLM_VENV}" --python 3.12 \
-  && /opt/bm/bin/uv pip install --python "${LLM_VENV}/bin/python" "sglang[all]==${SGLANG_VERSION}"
+  && LLM_UV="/opt/bm/bin/uv pip install --python ${LLM_VENV}/bin/python" \
+  && ${LLM_UV} --prerelease=allow "sglang==${SGLANG_VERSION}" \
+  && ${LLM_UV} --force-reinstall torch torchvision torchaudio \
+       --index-url "https://download.pytorch.org/whl/${CUDA_TAG}" \
+  && ${LLM_UV} --force-reinstall sgl-kernel \
+       --index-url "https://docs.sglang.ai/whl/${CUDA_TAG}/" \
+  && ${LLM_UV} --force-reinstall sgl-deep-gemm --no-deps \
+       --index-url "https://docs.sglang.ai/whl/${CUDA_TAG}/"
 
 ENV PATH="/opt/llm/venv/bin:/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:$PATH"
 
