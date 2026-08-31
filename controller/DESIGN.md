@@ -55,7 +55,7 @@ flowchart TB
     API --> Service["CodespaceService<br/>application orchestration"]
     Service --> Dashboard["dashboard.py<br/>read model"]
     Service --> Operations["OperationStore<br/>in-memory status"]
-    Service --> Workspace["workspace.py<br/>repository operations"]
+    Service --> Workspace["workspace.py<br/>image helper adapter"]
     Service --> Deployment["deployment.py<br/>deployment lifecycle"]
     Service --> Inventory["inventory.py<br/>label validation"]
     Service --> Container["container.py<br/>run option translation"]
@@ -68,6 +68,10 @@ flowchart TB
     CLI --> Provider
 
     Container --> Engine["runtime/engine.py"]
+    Workspace --> DeployKeyHelper["image: codespace-deploy-key"]
+    Workspace --> CheckoutHelper["image: codespace-git-checkout"]
+    Workspace --> OpenPathHelper["image: codespace-workspace-open-path"]
+    Workspace --> StateHelper["image: codespace-workspace-state"]
     SSH --> Remote["runtime/remote.py"]
     Service --> Transport["runtime/transport.py"]
     Engine --> Podman["rootful Podman"]
@@ -212,11 +216,13 @@ sequenceDiagram
     API->>Service: create() in background
     Service->>Host: validate inventory and SSH port
     Service->>Host: read configured environment
-    Service->>Service: generate deploy key for repo type
     Service->>Host: pull image and create three directories
-    Service->>Host: create container and probe SSH
+    Service->>Host: create container
+    Service->>Host: codespace-deploy-key for repo type
+    Service->>Host: probe SSH
     Service->>Provider: register repo deploy key
-    Service->>Host: clone repository or prepare open path
+    Service->>Host: codespace-git-checkout for repo/git type
+    Service->>Host: codespace-workspace-open-path
     Service->>Host: refresh SSH projection
     Service->>Service: remove successful operation
 ```
@@ -240,7 +246,7 @@ sequenceDiagram
     alt running repo/git container
         UI->>API: DELETE ...?force=false
         API->>Service: inspect checkout
-        Service->>Container: git-state
+        Service->>Container: codespace-workspace-state
         Service-->>UI: unpushed/uncommitted/detail
     else state cannot be inspected
         UI->>UI: show explicit data-loss warning
@@ -284,7 +290,8 @@ sequenceDiagram
 ```
 
 重复 deploy 是 reconcile：结果收敛到当前配置，不保留旧 container 形态。Clean 仅删 container，Purge 再删
-deployment data。
+deployment data。Sidecar 的 Atuin 监听端口由 deployment container 环境变量 `ATUIN_PORT` 配置（默认
+`8002`）；使用 bridge network 时，`published_ports` 的容器端口必须同步匹配。
 
 ## Key Interfaces
 
@@ -337,11 +344,31 @@ classDiagram
         +remove_dir_with_helper(client, image, root, target)
     }
 
+    class DeployKeyHelper {
+        +run() public_key
+    }
+
+    class GitCheckoutHelper {
+        +checkout(clone_url, clone_path)
+    }
+
+    class WorkspaceOpenPathHelper {
+        +create(open_path)
+    }
+
+    class WorkspaceStateHelper {
+        +state(clone_path) RepoGitState
+    }
+
     CodespaceService --> Config
     CodespaceService --> PodmanTransport
     CodespaceService --> HostDataPaths
     CodespaceService --> OperationStore
     CodespaceService --> RuntimePrimitives
+    CodespaceService --> DeployKeyHelper
+    CodespaceService --> GitCheckoutHelper
+    CodespaceService --> WorkspaceOpenPathHelper
+    CodespaceService --> WorkspaceStateHelper
 ```
 
 接口设计原则：
@@ -350,7 +377,33 @@ classDiagram
 - `CodespaceService` 拥有进程内 mutable state，但不拥有 host 或 container 持久状态。
 - `PodmanTransport` 是 host 连接生命周期的唯一 owner。
 - `runtime` 函数接收已解析参数，不知道 workspace、deployment 或 label 语义。
+- 四个 image helper 分别拥有 deploy key、Git checkout、open path、Git state 语义；控制面不得复制这些步骤，
+  helper 之间也不共享运行时状态。
 - 只在外部 I/O 需要替换实现时引入 `Protocol`；模块内函数不为测试而包装成 class。
+
+## Image Helper Protocol
+
+控制面以用户 `x` 通过 Podman exec 调用四个独立接口：
+
+```text
+codespace-deploy-key
+codespace-git-checkout <clone-url> <clone-path>
+codespace-workspace-open-path <open-path>
+codespace-workspace-state <clone-path>
+```
+
+- `codespace-deploy-key` 在容器的 `~/.ssh/repo_id_ed25519` 生成或复用 deploy private key，只以 JSON
+  返回公钥。
+- `codespace-git-checkout` 只负责 repo/git workspace 的幂等 clone。
+- 已有有效 checkout 或带空仓标记的 checkout 直接复用；非 checkout 目标拒绝覆盖。
+- `codespace-workspace-open-path` 只负责创建 editor open path。
+- `codespace-workspace-state` 只依赖 Git checkout，通过 `HEAD` 判断空仓，输出 `RepoGitState` 对应的
+  单个 JSON document，detail 最多 20 行。
+- 成功结果写 stdout，诊断写 stderr，非零 exit code 表示整个命令失败。
+- provider token、deploy key 注册、Podman 生命周期、host 数据和 SSH 投影不进入镜像协议；deploy private key
+  不离开容器。
+- Readiness 仍由控制面执行端到端 SSH probe；镜像 helper 不重复实现局部健康检查。
+- 脚本路径与 JSON schema 直接切换，不保留统一 dispatcher、旧参数或版本协商。
 
 ## 一次性运维边界
 

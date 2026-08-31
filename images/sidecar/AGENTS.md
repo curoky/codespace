@@ -22,10 +22,11 @@
 
 镜像固定 `ghcr.io/curoky/devspace:codespace-sidecar`，host 内 container name 固定 `codespace-sidecar`。
 
-容器以 s6 为 PID 1，启动 Atuin server：默认监听 `127.0.0.1`、端口 `8002`、禁开放注册、创建时必须提供
+容器以 s6 为 PID 1，启动 Atuin server：默认监听 `127.0.0.1`，端口由 `ATUIN_PORT` 配置（默认 `8002`），
+禁开放注册、创建时必须提供
 `ATUIN_DB_URI`（启动器不再写死连接串，改由宿主 Podman secret `atuin_db_uri` 以 `type=env,target=ATUIN_DB_URI`
 注入；secret 缺失时启动器 fail-fast）。macOS 启动器把容器内监听改为 `0.0.0.0` 以便 Podman 从 bridge network
-转发端口，但在 host 上只 publish 到 `127.0.0.1:8002`。
+转发端口，并把同一个 `ATUIN_PORT` publish 到 host loopback。
 
 独立 s6 longrun `supercronic`（`rootfs/etc/s6/s6-rc.d/supercronic`）加载 `rootfs/etc/supercronic/crontab`
 调度 image-prewarm job；脚本 `rootfs/opt/sidecar/image-prewarm.sh` 的 `pull`/`prune` 子命令用镜像内
@@ -53,8 +54,9 @@ images/sidecar/run-macos.sh
 
 两个启动器都替换固定名称 container、配置 Podman restart policy，并 bind-mount 宿主
 `/run/podman/podman.sock` 并注入 `PODMAN_SOCKET`；连接串以 Podman secret `atuin_db_uri` 注入，缺失即退出。
-`run-linux.sh` 用 host network；`run-macos.sh` 把 bridge network 端口 publish 到 macOS loopback。开发镜像中的
-Atuin client 始终访问 `http://127.0.0.1:8002`。
+`run-linux.sh` 用 host network；`run-macos.sh` 把 bridge network 的固定端口 `8002` publish 到 macOS
+loopback。两个 smoke-test 启动器不接受端口配置，开发镜像中的 Atuin client 固定访问
+`http://127.0.0.1:8002`。
 
 ## 目录
 
@@ -67,8 +69,8 @@ Atuin client 始终访问 `http://127.0.0.1:8002`。
 | `rootfs/opt/sidecar/image-prewarm.sh` | supercronic 调度的 `pull`/`prune` 子命令脚本 |
 | `rootfs/etc/supercronic/crontab` | image-prewarm 调度表 |
 | `build.sh` | 从仓库根构建本地镜像 |
-| `run-linux.sh` | 替换 Linux host-network 单例，挂载 Podman socket 并注入 prewarm 配置 |
-| `run-macos.sh` | 替换 macOS bridge-network 单例并限 loopback publish，挂载 Podman socket 并注入 prewarm 配置 |
+| `run-linux.sh` | 替换 Linux host-network 单例，使用固定端口 `8002` 并挂载 Podman socket |
+| `run-macos.sh` | 替换 macOS bridge-network 单例，向 loopback publish 固定端口 `8002` 并挂载 Podman socket |
 
 ## 控制面边界
 
@@ -76,7 +78,9 @@ Sidecar 现由控制面作为 host 级 **deployment** 原生管理（配置项 `
 [`controller/DESIGN.md`](../../controller/DESIGN.md#deployment-reconcile)）：容器名 `codespace-sidecar`、只带
 `codespace.deployment*` label、经 `hosts.<host>.deployments` 选择落到哪些 host，UI 上点 Deploy/Clean 即完成
 reconcile 与清理。Atuin 用外部数据库、无持久服务数据，故 deployment 通常无需 `${DEPLOYMENT_DATA}` volume；
-`atuin_db_uri` 仍以 `env` 注入且须先经 `sync_secrets` 注册，缺失即 fail-fast。
+`atuin_db_uri` 仍以 `env` 注入且须先经 `sync_secrets` 注册，缺失即 fail-fast。服务端口由
+`deployments.sidecar.container.environment` 中的 `ATUIN_PORT` 配置，默认 `8002`；bridge network 下必须让
+`published_ports` 的容器端口与它一致。
 
 `run-linux.sh` 与 `run-macos.sh` 只验证镜像运行契约，不是另一套生产生命周期，不得引入独立配置。
 

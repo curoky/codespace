@@ -124,7 +124,6 @@ def build_summaries(
             DeploymentSummary(
                 id=deployment_name,
                 image=deployment.image,
-                description=deployment.description,
                 hosts=hosts,
             )
         )

@@ -197,11 +197,8 @@ def test_create_runs_all_stages_in_order(
     )
     monkeypatch.setattr(
         workspace,
-        "generate_deploy_keypair",
-        lambda: (
-            events.append("keygen")
-            or workspace.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC")
-        ),
+        "generate_deploy_key",
+        lambda _container: events.append("keygen") or "PUBLIC",
     )
     pulls: list[tuple[str, str | None]] = []
     monkeypatch.setattr(
@@ -213,6 +210,7 @@ def test_create_runs_all_stages_in_order(
         ),
     )
     monkeypatch.setattr(ssh, "prepare_directories", lambda *args: events.append("workspace"))
+    bootstraps: list[tuple[str | None, str, str]] = []
 
     def create_container(
         _client: object,
@@ -230,23 +228,26 @@ def test_create_runs_all_stages_in_order(
         "create_container",
         create_container,
     )
-    monkeypatch.setattr(
-        workspace, "inject_deploy_key", lambda *args, **kwargs: events.append("inject")
-    )
     monkeypatch.setattr(ssh, "probe", lambda *args: events.append("probe"))
     monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
-    monkeypatch.setattr(workspace, "clone", lambda *args: events.append("clone"))
+    monkeypatch.setattr(
+        workspace,
+        "bootstrap",
+        lambda _container, *, clone_url, clone_path, open_path: (
+            bootstraps.append((clone_url, clone_path, open_path)),
+            events.append("clone"),
+        ),
+    )
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
 
     service.create("devspace", "home", "debug")
 
     assert events == [
         "environment",
-        "keygen",
         "pull",
         "workspace",
         "create",
-        "inject",
+        "keygen",
         "probe",
         "register",
         "clone",
@@ -257,6 +258,13 @@ def test_create_runs_all_stages_in_order(
     assert specs[0].container.network_mode == "host"
     assert specs[0].published_ports == ()
     assert inherited_environments == [{"HTTP_PROXY": "http://host-proxy:3128"}]
+    assert bootstraps == [
+        (
+            "git@github.com:curoky/devspace.git",
+            "/workspace/devspace",
+            "/workspace/devspace",
+        )
+    ]
     assert service.operations.list() == []
 
 
@@ -309,8 +317,8 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
     monkeypatch.setattr(inventory, "list_inventory", lambda *args: next(inventories))
     monkeypatch.setattr(
         workspace,
-        "generate_deploy_keypair",
-        lambda: workspace.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
+        "generate_deploy_key",
+        lambda _container: "PUBLIC",
     )
     monkeypatch.setattr(containers, "pull_image", lambda *args: None)
     monkeypatch.setattr(ssh, "prepare_directories", lambda *args: None)
@@ -319,10 +327,9 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
         "create_container",
         lambda _client, spec, _root, _environment: (specs.append(spec), container)[-1],
     )
-    monkeypatch.setattr(workspace, "inject_deploy_key", lambda *args, **kwargs: None)
     monkeypatch.setattr(ssh, "probe", lambda *args: None)
     monkeypatch.setattr(provider, "register", lambda *args: None)
-    monkeypatch.setattr(workspace, "clone", lambda *args: None)
+    monkeypatch.setattr(workspace, "bootstrap", lambda *args, **kwargs: None)
     monkeypatch.setattr(ssh, "write_host", lambda *args: None)
 
     service.create("devspace", "local", "debug")
@@ -349,8 +356,8 @@ def test_create_blank_project_skips_repo_stages(
     monkeypatch.setattr(inventory, "list_inventory", lambda *args: next(inventories))
     monkeypatch.setattr(
         workspace,
-        "generate_deploy_keypair",
-        lambda: events.append("keygen") or workspace.DeployKeypair("PRIVATE", "PUBLIC"),
+        "generate_deploy_key",
+        lambda _container: events.append("keygen") or "PUBLIC",
     )
     monkeypatch.setattr(containers, "pull_image", lambda *args: events.append("pull"))
     monkeypatch.setattr(ssh, "prepare_directories", lambda *args: events.append("workspace"))
@@ -359,15 +366,16 @@ def test_create_blank_project_skips_repo_stages(
         "create_container",
         lambda *args, **kwargs: (events.append("create"), container)[-1],
     )
-    monkeypatch.setattr(
-        workspace, "inject_deploy_key", lambda *args, **kwargs: events.append("inject")
-    )
     monkeypatch.setattr(ssh, "probe", lambda *args: events.append("probe"))
     monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
+    bootstraps: list[tuple[str | None, str, str]] = []
     monkeypatch.setattr(
-        containers,
-        "execute_checked",
-        lambda *args, **kwargs: events.append("open_path"),
+        workspace,
+        "bootstrap",
+        lambda _container, *, clone_url, clone_path, open_path: (
+            bootstraps.append((clone_url, clone_path, open_path)),
+            events.append("open_path"),
+        ),
     )
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
 
@@ -384,6 +392,7 @@ def test_create_blank_project_skips_repo_stages(
         "open_path",
         "projection",
     ]
+    assert bootstraps == [(None, "/workspace", "/workspace")]
     assert service.operations.list() == []
 
 
@@ -399,7 +408,7 @@ def test_create_git_project_clones_url_without_deploy_key(
 ) -> None:
     service.queue_create("abbie", "home", "debug")
     events: list[str] = []
-    cloned: list[str] = []
+    bootstraps: list[tuple[str | None, str, str]] = []
     container = SimpleNamespace(id="container-id")
     abbie_env = _environment(workspace="abbie")
     abbie_env.type = "git"
@@ -415,8 +424,8 @@ def test_create_git_project_clones_url_without_deploy_key(
     monkeypatch.setattr(inventory, "list_inventory", lambda *args: next(inventories))
     monkeypatch.setattr(
         workspace,
-        "generate_deploy_keypair",
-        lambda: events.append("keygen") or workspace.DeployKeypair("PRIVATE", "PUBLIC"),
+        "generate_deploy_key",
+        lambda _container: events.append("keygen") or "PUBLIC",
     )
     monkeypatch.setattr(containers, "pull_image", lambda *args: events.append("pull"))
     monkeypatch.setattr(ssh, "prepare_directories", lambda *args: events.append("workspace"))
@@ -425,15 +434,14 @@ def test_create_git_project_clones_url_without_deploy_key(
         "create_container",
         lambda *args, **kwargs: (events.append("create"), container)[-1],
     )
-    monkeypatch.setattr(
-        workspace, "inject_deploy_key", lambda *args, **kwargs: events.append("inject")
-    )
     monkeypatch.setattr(ssh, "probe", lambda *args: events.append("probe"))
     monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
     monkeypatch.setattr(
         workspace,
-        "clone",
-        lambda _container, url, _target: cloned.append(url),
+        "bootstrap",
+        lambda _container, *, clone_url, clone_path, open_path: bootstraps.append(
+            (clone_url, clone_path, open_path)
+        ),
     )
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
 
@@ -441,8 +449,7 @@ def test_create_git_project_clones_url_without_deploy_key(
 
     assert "keygen" not in events
     assert "register" not in events
-    assert "inject" not in events
-    assert cloned == ["git@curoky:devspace"]
+    assert bootstraps == [("git@curoky:devspace", "/workspace/devspace", "/workspace/devspace")]
     assert events == ["pull", "workspace", "create", "probe", "projection"]
     assert service.operations.list() == []
 
@@ -481,13 +488,12 @@ def test_failure_before_register_removes_container_but_keeps_workspace(
     )
     monkeypatch.setattr(
         workspace,
-        "generate_deploy_keypair",
-        lambda: workspace.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
+        "generate_deploy_key",
+        lambda _container: "PUBLIC",
     )
     monkeypatch.setattr(containers, "pull_image", lambda *args: None)
     monkeypatch.setattr(ssh, "prepare_directories", lambda *args: None)
     monkeypatch.setattr(containers, "create_container", lambda *args, **kwargs: container)
-    monkeypatch.setattr(workspace, "inject_deploy_key", lambda *args, **kwargs: None)
     monkeypatch.setattr(
         ssh,
         "probe",
@@ -517,8 +523,8 @@ def test_container_run_failure_still_attempts_deterministic_cleanup(
     )
     monkeypatch.setattr(
         workspace,
-        "generate_deploy_keypair",
-        lambda: workspace.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
+        "generate_deploy_key",
+        lambda _container: "PUBLIC",
     )
     monkeypatch.setattr(containers, "pull_image", lambda *args: None)
     monkeypatch.setattr(ssh, "prepare_directories", lambda *args: None)
@@ -546,19 +552,18 @@ def test_failure_after_register_revokes_then_removes_container(
     monkeypatch.setattr(inventory, "list_inventory", lambda *args: inventory.Inventory([], []))
     monkeypatch.setattr(
         workspace,
-        "generate_deploy_keypair",
-        lambda: workspace.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
+        "generate_deploy_key",
+        lambda _container: "PUBLIC",
     )
     monkeypatch.setattr(containers, "pull_image", lambda *args: None)
     monkeypatch.setattr(ssh, "prepare_directories", lambda *args: None)
     monkeypatch.setattr(containers, "create_container", lambda *args, **kwargs: container)
-    monkeypatch.setattr(workspace, "inject_deploy_key", lambda *args, **kwargs: None)
     monkeypatch.setattr(ssh, "probe", lambda *args: None)
     monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
     monkeypatch.setattr(
         workspace,
-        "clone",
-        lambda *args: (_ for _ in ()).throw(RuntimeError("clone failed")),
+        "bootstrap",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("clone failed")),
     )
     monkeypatch.setattr(inventory, "find_container", lambda *args: container)
     monkeypatch.setattr(provider, "revoke", lambda *args: events.append("revoke"))
@@ -583,19 +588,18 @@ def test_revoke_failure_after_register_retains_container(
     monkeypatch.setattr(inventory, "list_inventory", lambda *args: inventory.Inventory([], []))
     monkeypatch.setattr(
         workspace,
-        "generate_deploy_keypair",
-        lambda: workspace.DeployKeypair(private_key="PRIVATE", public_key="PUBLIC"),
+        "generate_deploy_key",
+        lambda _container: "PUBLIC",
     )
     monkeypatch.setattr(containers, "pull_image", lambda *args: None)
     monkeypatch.setattr(ssh, "prepare_directories", lambda *args: None)
     monkeypatch.setattr(containers, "create_container", lambda *args, **kwargs: container)
-    monkeypatch.setattr(workspace, "inject_deploy_key", lambda *args, **kwargs: None)
     monkeypatch.setattr(ssh, "probe", lambda *args: None)
     monkeypatch.setattr(provider, "register", lambda *args: None)
     monkeypatch.setattr(
         workspace,
-        "clone",
-        lambda *args: (_ for _ in ()).throw(RuntimeError("clone failed")),
+        "bootstrap",
+        lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("clone failed")),
     )
     monkeypatch.setattr(
         provider,

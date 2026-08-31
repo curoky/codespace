@@ -42,6 +42,7 @@ uv run python -m controller.tools.sync_secrets
 task check
 ```
 
+`task check` 还会检查 `images/dev` 的 workspace helper，需要 Bash 5、`shfmt`、ShellCheck 和 Bats。
 维护命令默认只输出计划；显式传入 `--no-dry-run` 才允许修改 host 或 provider 状态。
 
 ## 配置约束
@@ -55,6 +56,10 @@ task check
 - `container` 只接受 `controller/runtime/compose/` 定义的 Compose 子集。最终
   `network_mode` 必须是 `host` 或 `bridge`。
 - `published_ports` 使用 `remote` 或 `local:remote`；workspace 仅允许在 bridge network 发布端口。
+- `sidecar` deployment 通过 `container.environment.ATUIN_PORT` 配置 Atuin 端口（默认 `8002`）；bridge
+  network 下 `published_ports` 的容器端口必须与其一致。
+- `llm-vllm` 与 `llm-sglang` deployment 使用 host network，不声明 `published_ports`，并通过
+  `LLM_HOST=127.0.0.1` 将 API 限制在宿主 loopback。
 - 用户 volume 不得与 `/workspace`、`/workspace.enc`、`/upload`、`/cache` 相同或形成父子覆盖。
 - secret 必须预先注册到目标 Podman host。控制面只引用 secret 名，不读取明文；顶层
   `secrets` 只供带外同步命令使用。
@@ -85,16 +90,18 @@ task check
 
 - Podman inventory 是运行状态的唯一事实来源。缺失、非法或与配置不一致的 label 都是显式错误，
   不推断默认值。
-- Environment 创建必须按 `DESIGN.md` 的顺序执行：校验、读取 host 环境、准备凭据、拉镜像、建目录、
-  建容器、SSH probe、注册 deploy key、checkout、刷新 SSH 投影。
-- `repo` workspace 使用进程内临时生成的 deploy key；`git` workspace 依赖镜像内 SSH 配置；
+- Environment 创建必须按 `DESIGN.md` 的顺序执行：校验、读取 host 环境、拉镜像、建目录、建容器、
+  生成 deploy key、SSH probe、注册 deploy key、bootstrap、刷新 SSH 投影。
+- `repo` workspace 在对应容器内生成 deploy key，控制面只接收公钥；`git` workspace 依赖镜像内 SSH 配置；
   `blank` workspace 不接触 Git provider。
-- 删除 `repo`/`git` environment 先做只读 Git 状态检查，确认后才执行删除。`purge=false` 保留三个
-  host 数据目录，`purge=true` 删除它们。
+- 删除 `repo`/`git` environment 先做只读 Git 状态检查，确认后才执行删除。`purge=false` 保留 instance
+  数据目录，`purge=true` 删除整个 instance 目录。
 - Deployment reconcile 使用确定性容器名：pull image、创建 data root、替换容器并以
   `unless-stopped` 启动。purge 额外删除托管数据目录。
 - 长操作只在进程内 operation store 保存 `queued/running/failed` 状态；进程重启后不恢复。
-- 镜像内多步 checkout/state/open-path 操作由 `/opt/codespace/bin/` helper 实现，Python 只负责调用。
+- 镜像内 deploy key、Git checkout、open path、Git state 分别由 `codespace-deploy-key`、
+  `codespace-git-checkout`、`codespace-workspace-open-path`、`codespace-workspace-state` 实现；
+  `controller/workspace.py` 只负责调用及解析结构化结果。
 
 ## Web 契约
 
@@ -121,7 +128,7 @@ OpenAPI 页面、远程监听或多 worker。
 - Rootful Podman socket 等价于 host root 权限；SSH host key verification 必须开启。
 - Provider token 只存在于配置读取结果或进程内存，不得经 API 返回、写日志或回写配置。
 - `controller/__init__.py` 必须注入 `truststore`，HTTPS provider 使用系统 CA 且不得关闭 TLS 校验。
-- Repository deploy private key 只能写入对应开发容器。
+- Repository deploy private key 只能在对应开发容器内生成和保存，不得进入控制面内存或日志。
 - 登录 keypair 是仓库内固定的内网凭据；应用和容器端口均不得暴露到非可信网络。
 - 用户 volume 和 secret mount 不得覆盖控制面保留 mount tree。
 

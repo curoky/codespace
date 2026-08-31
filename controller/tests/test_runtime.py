@@ -2,16 +2,14 @@
 
 from __future__ import annotations
 
-import io
 import json
-import tarfile
 from collections.abc import Callable
 from dataclasses import replace
 from types import SimpleNamespace
 from typing import Protocol
 
 import pytest
-from podman.errors import NotFound, PodmanError
+from podman.errors import PodmanError
 
 from controller import container as container_runtime
 from controller import deployment as deployment_ops
@@ -142,9 +140,6 @@ class FakeContainer:
         self.attrs = {"State": "running"}
         self.status = "running"
         self.exec_calls: list[tuple[list[str], str | None]] = []
-        self.archive: bytes | None = None
-        self.archive_path: str | None = None
-        self.files: dict[str, bytes] = {}
         self.log_calls: list[dict[str, object]] = []
         self.log_frames: list[bytes] = []
         self.client = FakeAPIClient(self)
@@ -165,22 +160,6 @@ class FakeContainer:
     ) -> tuple[int, tuple[bytes | None, bytes | None]]:
         self.exec_calls.append((command, user))
         return 1 if command[0] == "test" else 0, (None, None)
-
-    def put_archive(self, path: str, archive: bytes) -> bool:
-        self.archive_path = path
-        self.archive = archive
-        return True
-
-    def get_archive(self, path: str) -> tuple[list[bytes], dict[str, object]]:
-        if path not in self.files:
-            raise NotFound(f"no such file: {path}")
-        buffer = io.BytesIO()
-        with tarfile.open(fileobj=buffer, mode="w") as archive:
-            raw = self.files[path]
-            info = tarfile.TarInfo(name=path.rsplit("/", 1)[-1])
-            info.size = len(raw)
-            archive.addfile(info, io.BytesIO(raw))
-        return [buffer.getvalue()], {}
 
 
 def test_read_environment_requires_complete_valid_labels(config: Config) -> None:
@@ -767,59 +746,84 @@ def test_create_container_blank_omits_repo_and_provider_labels(
     assert LABEL_PROVIDER not in labels
 
 
-def test_inject_deploy_key_writes_only_private_key() -> None:
+def test_bootstrap_invokes_workspace_helper_with_long_timeout() -> None:
     container = FakeContainer()
 
-    workspace.inject_deploy_key(
+    workspace.bootstrap(
         container,  # type: ignore[arg-type]
-        "PRIVATE",
-    )
-
-    assert container.archive_path == "/home/x/.ssh"
-    assert container.archive is not None
-    with tarfile.open(fileobj=io.BytesIO(container.archive), mode="r") as archive:
-        assert archive.getnames() == ["repo_id_ed25519"]
-        key = archive.getmember("repo_id_ed25519")
-        assert key.mode == 0o600
-        key_file = archive.extractfile(key)
-        assert key_file is not None
-        assert key_file.read() == b"PRIVATE"
-    assert container.exec_calls == [(["chown", "x:x", "/home/x/.ssh/repo_id_ed25519"], "0")]
-
-
-def test_clone_invokes_checkout_helper_with_long_timeout() -> None:
-    container = FakeContainer()
-
-    workspace.clone(
-        container,  # type: ignore[arg-type]
-        "git@gitlab.com:group/service-api.git",
-        "/workspace/service-api",
+        clone_url="git@gitlab.com:group/service-api.git",
+        clone_path="/workspace/service-api",
+        open_path="/workspace/service-api/src",
     )
 
     assert container.exec_calls == [
         (
             [
-                "/opt/codespace/bin/git-checkout",
+                "/opt/codespace/bin/codespace-git-checkout",
                 "git@gitlab.com:group/service-api.git",
                 "/workspace/service-api",
             ],
             "x",
+        ),
+        (
+            [
+                "/opt/codespace/bin/codespace-workspace-open-path",
+                "/workspace/service-api/src",
+            ],
+            "x",
+        ),
+    ]
+    assert container.client.start_timeouts == [15 * 60.0, 60.0]
+
+
+def test_bootstrap_blank_only_passes_open_path() -> None:
+    container = FakeContainer()
+
+    workspace.bootstrap(
+        container,  # type: ignore[arg-type]
+        clone_url=None,
+        clone_path="/workspace",
+        open_path="/workspace/scratch",
+    )
+
+    assert container.exec_calls == [
+        (
+            [
+                "/opt/codespace/bin/codespace-workspace-open-path",
+                "/workspace/scratch",
+            ],
+            "x",
         )
     ]
-    assert container.client.start_timeouts == [15 * 60.0]
 
 
-def test_clone_raises_when_checkout_helper_fails() -> None:
+def test_bootstrap_raises_when_helper_fails() -> None:
     container = FakeContainer()
     container.exec_run = lambda command, user=None, demux=False: (  # type: ignore[method-assign]
         container.exec_calls.append((command, user)) or (1, (None, b"boom"))
     )
 
-    with pytest.raises(RuntimeError, match=r"git-checkout.* failed \(1\)"):
-        workspace.clone(
+    with pytest.raises(RuntimeError, match=r"codespace-git-checkout.* failed \(1\)"):
+        workspace.bootstrap(
             container,  # type: ignore[arg-type]
-            "git@github.com:curoky/devspace.git",
-            "/workspace/devspace",
+            clone_url="git@github.com:curoky/devspace.git",
+            clone_path="/workspace/devspace",
+            open_path="/workspace/devspace",
+        )
+
+
+def test_bootstrap_raises_when_open_path_helper_fails() -> None:
+    container = FakeContainer()
+    container.exec_run = lambda command, user=None, demux=False: (  # type: ignore[method-assign]
+        container.exec_calls.append((command, user)) or (1, (None, b"boom"))
+    )
+
+    with pytest.raises(RuntimeError, match=r"codespace-workspace-open-path.* failed \(1\)"):
+        workspace.bootstrap(
+            container,  # type: ignore[arg-type]
+            clone_url=None,
+            clone_path="/workspace",
+            open_path="/workspace",
         )
 
 
@@ -921,13 +925,12 @@ def test_remove_data_directory_rejects_target_outside_root() -> None:
         )
 
 
-class GitStateFakeContainer:
-    """Container stub scripting a single git-state helper reply.
+class WorkspaceHelperFakeContainer:
+    """Container stub scripting a single workspace helper reply.
 
-    The multi-step porcelain/log parsing now lives in the in-image git-state
-    helper, which emits one JSON document. The stub returns ``(exit_code,
-    stdout, stderr)`` for that single exec so the Python side only has to prove
-    it invokes the helper and parses its JSON.
+    The in-image ``state`` command emits one JSON document. The stub returns
+    ``(exit_code, stdout, stderr)`` for that single exec so the Python side only
+    has to prove it invokes the helper and parses its JSON.
     """
 
     def __init__(self, reply: tuple[int, bytes, bytes]) -> None:
@@ -949,14 +952,45 @@ class GitStateFakeContainer:
         return code, (stdout or None, stderr or None)
 
 
+def test_generate_deploy_key_invokes_helper_and_returns_public_key() -> None:
+    container = WorkspaceHelperFakeContainer(
+        (0, b'{"public_key":"ssh-ed25519 AAAAC3Nza test"}', b"")
+    )
+
+    public_key = workspace.generate_deploy_key(container)  # type: ignore[arg-type]
+
+    assert public_key == "ssh-ed25519 AAAAC3Nza test"
+    assert container.calls == [
+        (
+            ["/opt/codespace/bin/codespace-deploy-key"],
+            "x",
+        )
+    ]
+
+
+def test_generate_deploy_key_raises_on_helper_failure() -> None:
+    container = WorkspaceHelperFakeContainer((1, b"", b"ssh-keygen failed"))
+
+    with pytest.raises(RuntimeError, match=r"codespace-deploy-key failed \(1\)"):
+        workspace.generate_deploy_key(container)  # type: ignore[arg-type]
+
+
 def test_checkout_git_state_invokes_helper_and_parses_clean_json() -> None:
-    container = GitStateFakeContainer(
+    container = WorkspaceHelperFakeContainer(
         (0, b'{"unpushed": false, "uncommitted": false, "detail": []}', b"")
     )
 
     state = workspace.checkout_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
 
-    assert container.calls == [(["/opt/codespace/bin/git-state", "/workspace/devspace"], "x")]
+    assert container.calls == [
+        (
+            [
+                "/opt/codespace/bin/codespace-workspace-state",
+                "/workspace/devspace",
+            ],
+            "x",
+        )
+    ]
     assert state.blocks_delete is False
     assert state.unpushed is False
     assert state.uncommitted is False
@@ -964,7 +998,7 @@ def test_checkout_git_state_invokes_helper_and_parses_clean_json() -> None:
 
 
 def test_checkout_git_state_parses_detected_changes() -> None:
-    container = GitStateFakeContainer(
+    container = WorkspaceHelperFakeContainer(
         (
             0,
             b'{"unpushed": true, "uncommitted": true, '
@@ -982,9 +1016,9 @@ def test_checkout_git_state_parses_detected_changes() -> None:
 
 
 def test_checkout_git_state_raises_on_helper_failure() -> None:
-    container = GitStateFakeContainer((1, b"", b"boom"))
+    container = WorkspaceHelperFakeContainer((1, b"", b"boom"))
 
-    with pytest.raises(RuntimeError, match=r"git-state failed \(1\)"):
+    with pytest.raises(RuntimeError, match=r"codespace-workspace-state failed \(1\)"):
         workspace.checkout_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
 
 
@@ -1341,7 +1375,6 @@ def _summary_config() -> Config:
             "deployments": {
                 "llm-vllm": {
                     "image": "llm-vllm:latest",
-                    "description": "vLLM serving",
                     "container": {"network_mode": "host"},
                 },
                 "sidecar": {"image": "sidecar:latest", "container": {"network_mode": "host"}},
@@ -1384,7 +1417,6 @@ def test_build_summaries_projects_state_per_declared_host() -> None:
     by_id = {s.id: s for s in summaries}
     # Every catalog entry appears, in catalog order.
     assert [s.id for s in summaries] == ["llm-vllm", "sidecar"]
-    assert by_id["llm-vllm"].description == "vLLM serving"
 
     # llm-vllm only declared on gpu; container missing but an operation is attached.
     (vllm_gpu,) = by_id["llm-vllm"].hosts

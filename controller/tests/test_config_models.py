@@ -1046,6 +1046,21 @@ def test_deployment_resolves_network_from_deployment_container() -> None:
     assert config.deployment_hosts("sidecar") == ["server"]
 
 
+def test_deployment_rejects_description() -> None:
+    with pytest.raises(ValidationError, match="description"):
+        Config.model_validate(
+            _deployment_config(
+                deployments={
+                    "sidecar": {
+                        "image": "sidecar:latest",
+                        "description": "shared services",
+                        "container": {"network_mode": "host"},
+                    }
+                }
+            )
+        )
+
+
 def test_deployment_does_not_inherit_workspace_defaults() -> None:
     """A deployment starts from an empty container block, not workspaces.defaults."""
     config = Config.model_validate(_deployment_config())

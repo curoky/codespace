@@ -24,4 +24,4 @@ podman run --detach \
   --secret atuin_db_uri,type=env,target=ATUIN_DB_URI \
   ghcr.io/curoky/devspace:codespace-sidecar
 
-echo "sidecar 'codespace-sidecar' started."
+echo "sidecar 'codespace-sidecar' started on http://127.0.0.1:8002."

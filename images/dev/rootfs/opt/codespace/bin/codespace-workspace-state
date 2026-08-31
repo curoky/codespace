@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# Inspect one workspace checkout and print RepoGitState-compatible JSON.
+#
+# Usage: codespace-workspace-state <clone-path>
+#
+# Requires git and jq.
+
+set -euo pipefail
+
+emit_state() {
+  jq -n \
+    --argjson unpushed "$1" \
+    --argjson uncommitted "$2" \
+    --args '{unpushed: $unpushed, uncommitted: $uncommitted, detail: $ARGS.positional}' \
+    "${@:3}"
+}
+
+main() {
+  if [[ $# -ne 1 ]]; then
+    echo "usage: codespace-workspace-state <clone-path>" >&2
+    return 2
+  fi
+
+  local target=$1
+  if [[ ! -d "${target}/.git" ]]; then
+    emit_state false false
+    return
+  fi
+
+  local dirty_output
+  local unpushed_output
+  dirty_output=$(git -C "${target}" status --porcelain)
+  if git -C "${target}" rev-parse --verify HEAD >/dev/null 2>&1; then
+    unpushed_output=$(git -C "${target}" log --branches --not --remotes --oneline)
+  else
+    unpushed_output=
+  fi
+
+  local -a dirty=()
+  local -a unpushed=()
+  local -a detail=()
+  if [[ -n ${dirty_output} ]]; then
+    mapfile -t dirty <<<"${dirty_output}"
+  fi
+  if [[ -n ${unpushed_output} ]]; then
+    mapfile -t unpushed <<<"${unpushed_output}"
+  fi
+
+  local line
+  for line in "${dirty[@]}" "${unpushed[@]}"; do
+    [[ -n ${line// /} ]] || continue
+    detail+=("${line}")
+    ((${#detail[@]} < 20)) || break
+  done
+
+  local has_uncommitted=false
+  local has_unpushed=false
+  ((${#dirty[@]} == 0)) || has_uncommitted=true
+  ((${#unpushed[@]} == 0)) || has_unpushed=true
+  emit_state "${has_unpushed}" "${has_uncommitted}" "${detail[@]}"
+}
+
+main "$@"

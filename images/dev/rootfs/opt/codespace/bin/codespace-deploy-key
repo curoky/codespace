@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# Generate or reuse the repository deploy key and print its public key as JSON.
+#
+# Usage: codespace-deploy-key
+#
+# Requires OpenSSH and jq.
+
+set -euo pipefail
+
+main() {
+  if [[ $# -ne 0 ]]; then
+    echo "usage: codespace-deploy-key" >&2
+    return 2
+  fi
+  if [[ -z ${HOME:-} ]]; then
+    echo "HOME is not set" >&2
+    return 1
+  fi
+
+  local ssh_dir="${HOME}/.ssh"
+  local private_key="${ssh_dir}/repo_id_ed25519"
+  install -d -m 0700 -- "${ssh_dir}"
+  if [[ ! -f ${private_key} ]]; then
+    ssh-keygen -q -t ed25519 -N "" -C codespace -f "${private_key}"
+  fi
+  chmod 0600 "${private_key}"
+
+  local public_key
+  public_key=$(ssh-keygen -y -f "${private_key}")
+  rm -f -- "${private_key}.pub"
+  jq -nc --arg public_key "${public_key}" '{public_key: $public_key}'
+}
+
+main "$@"

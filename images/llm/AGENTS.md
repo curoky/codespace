@@ -3,10 +3,10 @@
 本目录保存 host 级 **Qwen3.8-Flash-Next-FP8** 推理 serving 镜像资产，按引擎拆成两个自包含子目录
 [`vllm/`](vllm/) 与 [`sglang/`](sglang/)；本文是两子目录共用的公共契约。镜像管理方案基本对齐
 [`images/sidecar/`](../sidecar/AGENTS.md)：以自建 s6 init 为 PID 1，服务定义放在各子目录的
-`rootfs/etc/s6/s6-rc.d/`，OpenAI 兼容 API 只经 host loopback 暴露。**部署与清理由控制面原生管理**：两镜像作为
+`rootfs/etc/s6/s6-rc.d/`，OpenAI 兼容 API 只经 host loopback 暴露。**部署与清理通常由控制面原生管理**：两镜像作为
 `deployments.llm-vllm` / `deployments.llm-sglang` 纳入 [`controller/`](../../controller/DESIGN.md#deployment-reconcile) 的 deployment
-目录，由 `hosts.<host>.deployments` 选择落到哪个 GPU host，UI 上点 Deploy/Clean 即可（本目录不再保留手动
-`run.sh` 启动器）。整体架构见仓库根
+目录，由 `hosts.<host>.deployments` 选择落到哪个 GPU host，UI 上点 Deploy/Clean 即可。每个引擎也保留
+`run.sh`，用于直接登录 GPU host 时创建同名、带相同 inventory labels 的 deployment 容器。整体架构见仓库根
 [`AGENTS.md`](../../AGENTS.md)。修改本目录契约时必须同步更新本文与根 `AGENTS.md`。
 
 模型事实：Qwen3.8-Flash-Next-FP8 是 2026-08-26 开源的多模态 MoE（125B 主模型 + 51B N-gram embedding，
@@ -16,11 +16,12 @@
 
 - 每个 host 最多一个 LLM serving container，identity 只由 deployment id 决定：作为控制面 deployment，容器名为
   `codespace-<deployment-id>`（`codespace-llm-vllm` 或 `codespace-llm-sglang`），host 单例、不含 workspace/instance
-  ID。不进 workspace 生命周期，不参与 `codespace.managed=true` 的 environment inventory（只带 `codespace.deployment*`
-  label）。一个 host 经 `hosts.<host>.deployments` 至多选一个引擎。
+  ID。不进 workspace 生命周期，不参与 `codespace.managed=true` 的 environment inventory（只带
+  `codespace.deployment*` label）。一个 host 可声明两个引擎，但因二者都占用全部 GPU 和端口 8003，同一时刻只能运行
+  一个；任一 `run.sh` 启动前都会删除两个引擎的现有容器。
 - 单容器只跑单一引擎，即单主推理进程；无 workspace mount、SSH 服务、deploy key、repository 或 SSH 投影。
-- API 只经 host loopback 暴露：bridge network 且仅向 `127.0.0.1:<port>`（默认 8003，避开 sidecar 的 8002）
-  publish 端口。
+- API 使用 host network，并经 `LLM_HOST=127.0.0.1` 只监听 host loopback（默认端口 8003，避开 sidecar 的
+  8002）；不配置 `published_ports`。
 - **模型权重不烤进镜像**：~172 GiB FP8 权重经 bind-mount 的 Hugging Face cache 在首次启动时由引擎拉取；该 cache
   即控制面 deployment 的托管数据目录 `~/codespace/deployments/<id>`（config volume 用 `${DEPLOYMENT_DATA}` 占位符
   引用），`purge` 清理即删该目录。
@@ -29,7 +30,7 @@
 ## 引擎与镜像
 
 vLLM 与 SGLang 都被官方列为 day-0 引擎，各自一个独立子目录、一套完整镜像资产（Dockerfile / binman.yaml /
-rootfs / build.sh），互不共享文件。base image 对齐 sidecar，统一用 `docker.io/debian:trixie-slim`；
+rootfs / build.sh / run.sh），互不共享文件。base image 对齐 sidecar，统一用 `docker.io/debian:trixie-slim`；
 与 sidecar 不同，本镜像需**自装完整 CUDA + 推理栈**（Debian 无 CUDA runtime 与推理引擎）：
 
 | 引擎 | 子目录 | 镜像 tag | 推理栈 | s6 longrun |
@@ -61,7 +62,7 @@ CUDA userspace 由 host 的 NVIDIA Container Toolkit 在运行期提供，推理
 | 环境变量 | 默认 | 说明 |
 | --- | --- | --- |
 | `LLM_MODEL` | `Qwen/Qwen3.8-Flash-Next-FP8` | 模型 id 或本地路径（两引擎） |
-| `LLM_HOST` | `0.0.0.0` | 容器内监听地址（bridge 需 0.0.0.0 才能被 publish 转发，两引擎） |
+| `LLM_HOST` | `0.0.0.0` | 引擎监听地址；deployment 与 `run.sh` 显式设为 `127.0.0.1`（两引擎） |
 | `LLM_PORT` | `8003` | 容器内 OpenAI API 端口（两引擎） |
 | `LLM_EXTRA_ARGS` | 空 | 追加到引擎命令的额外参数（两引擎） |
 
@@ -99,13 +100,16 @@ model/host/port/extra 四个部署相关 env，需临时改参用 `LLM_EXTRA_ARG
 
 ```bash
 images/llm/vllm/build.sh         # 产出 ghcr.io/curoky/devspace:llm-vllm
+images/llm/vllm/run.sh           # 在当前 GPU host 直接启动 vLLM
 images/llm/sglang/build.sh       # 产出 ghcr.io/curoky/devspace:llm-sglang
+images/llm/sglang/run.sh         # 在当前 GPU host 直接启动 SGLang
 ```
 
-**运行由控制面 deployment 负责**（无手动 `run.sh`）：在 config 的 `deployments.llm-vllm` /
+**标准运行路径由控制面 deployment 负责**：在 config 的 `deployments.llm-vllm` /
 `deployments.llm-sglang` 声明镜像与容器块，在目标 GPU host 的 `hosts.<host>.deployments` 里选中该引擎，再于 UI
 点 Deploy（或 `POST /api/deployments/<id>/hosts/<host>/deploy`）。控制面按解析后 `container` 块创建容器，形态与
-下述要求一致（`unless-stopped` restart policy、bridge network 且只 publish 到 `127.0.0.1:<port>`）。与 sidecar
+下述要求一致（`unless-stopped` restart policy、host network 且监听 `127.0.0.1:<port>`）。直接登录 GPU host 时也可
+运行对应 `run.sh`；脚本创建同名并带标准 deployment labels 的容器，控制面可继续识别和清理。与 sidecar
 不同处（LLM 专属，均为新增 mount/device 例外，均在 deployment `container` 块声明）：
 
 - 经 CDI `--device nvidia.com/gpu=all` 请求本机全部 GPU（`container.devices`）；TP8/EP8 多进程通信需要充足的
@@ -130,9 +134,7 @@ host 前置：NVIDIA Container Toolkit 并配好 CDI（`nvidia.com/gpu` 设备�
 | `<engine>/rootfs/etc/s6/s6-rc.d/llm` | 该引擎 s6 longrun |
 | `<engine>/rootfs/etc/s6/s6-rc.d/user-final` | 默认 runlevel bundle，`contents.d/llm` 标记该 longrun |
 | `<engine>/build.sh` | 从仓库根构建本地镜像 `llm-<engine>` |
-
-容器由控制面 deployment 创建，形态在 config 的 `deployments.llm-<engine>.container`
-声明（见「构建与运行」与 [`controller/DESIGN.md`](../../controller/DESIGN.md#deployment-reconcile)）。
+| `<engine>/run.sh` | 在 GPU host 直接替换并启动对应 deployment 容器 |
 
 ## 变更规则
 
@@ -140,8 +142,8 @@ host 前置：NVIDIA Container Toolkit 并配好 CDI（`nvidia.com/gpu` 设备�
 - 不烤入模型权重；不引入 Podman socket、控制面、provider token 或 repository credential。
 - 新增引擎参数优先经 `serve.sh` 环境变量暴露，不写死在 s6 run 脚本；引擎命令随官方 recipe 变化时更新对应
   子目录的 `serve.sh` 并同步本文。
-- 容器运行形态（GPU/IPC、HF cache volume、端口）改动在 config 的 `deployments.llm-<engine>` 声明并同步
-  [`controller/AGENTS.md`](../../controller/AGENTS.md)，不重新引入手动 `run.sh` 启动器。
+- 容器运行形态（GPU/IPC、HF cache volume、网络和端口）改动必须同时更新 config 的
+  `deployments.llm-<engine>`、两个 `run.sh` 与 [`controller/AGENTS.md`](../../controller/AGENTS.md)。
 - day-0 架构支持随各 Dockerfile `ARG` 演进：vLLM 用 `VLLM_VERSION`，SGLang 因尚无 release 用 `SGLANG_REF`
   （PR ref 或未来 tag）；锁定到含 Qwen3.8-Flash-Next 的版本/ref，变更时同步本文表格。
 - 影响跨组件契约时同步根 [`AGENTS.md`](../../AGENTS.md)。

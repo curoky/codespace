@@ -6,7 +6,22 @@ pre-commit:
   jobs:
     - name: shell script
       run: shfmt -w -i 2 -s -l -ci {staged_files}
-      glob: '*.{sh}'
+      glob: '*.{sh,bats}'
+      stage_fixed: false
+
+    - name: codespace-helper-shell
+      run: shfmt -w -i 2 -s -l -ci {staged_files} && shellcheck {staged_files}
+      glob: 'images/dev/rootfs/opt/codespace/bin/*'
+      stage_fixed: false
+
+    - name: codespace-helper-shell-test
+      run: shellcheck {staged_files}
+      glob: 'images/dev/tests/*.bats'
+      stage_fixed: false
+
+    - name: codespace-helper-test
+      run: bats images/dev/tests/*.bats
+      glob: 'images/dev/**/codespace-*'
       stage_fixed: false
 
     - name: python

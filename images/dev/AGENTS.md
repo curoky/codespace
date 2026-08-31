@@ -16,6 +16,7 @@ host 级共享服务见 [`images/sidecar/AGENTS.md`](../sidecar/AGENTS.md)，容
 | `build.sh` | 从仓库根构建本地开发镜像 |
 | `script/` | 构建脚本，含 remote server 扩展安装、播种与 s6 配置 |
 | `rootfs/` | 烤进镜像的 s6、sshd、SSH host key 和跨场景 home 配置 |
+| `tests/` | `/opt/codespace/bin/` helper 的 Bats 行为测试 |
 | `dev-environment.md` | 容器内工具链路径与使用方式 |
 
 ## s6 init
@@ -39,7 +40,8 @@ runlevel 拆成两个 bundle：`user-base` 含除 `gitconfig-init` 外的全部�
 Container 专用 SSH config 位于 `rootfs/home/x/.ssh/config`，为 `Host *` 启用 GSSAPI 认证与凭据委派，
 并固定用 `~/.ssh/repo_id_ed25519` 访问 GitHub/GitLab，构建时收紧为 `0600`；不得复用带 host 凭据代理的
 `dotfiles/ssh/user.ssh_config`。GitHub/GitLab host key 固定在同目录 `known_hosts`，provider 连接必须
-`StrictHostKeyChecking yes`，不得回退到 `accept-new`。
+`StrictHostKeyChecking yes`，不得回退到 `accept-new`。该 private key 由 `codespace-deploy-key`
+在容器内生成，控制面只读取对应公钥。
 
 控制面的 `git` 类型 workspace 直接 clone 任意内网 `git@host:owner/name.git`（或 `ssh://` 形式）URL，不注入
 deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承担：内网 host 通常经 `Host *` 的 GSSAPI/Kerberos
@@ -61,6 +63,7 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
   与 `/cache` 都 `chown` 为 `5230:5230`（三个数据 mount 均由控制面按实例 bind 宿主目录，rootful Podman
   直接透传所有权）；
 - `workspace-crypt` s6 oneshot，依赖 `workspace-init`，`sshd`、`home-init` 与两个 WebDAV 服务均依赖它。
+  它以用户 `x` 执行 `/opt/codespace/bin/codespace-workspace-crypt`。
   以容器环境变量 `WORKSPACE_CRYPT_KEY` 是否注入为信号自适应（对齐控制面 workspace 的 `encrypt_workspace`）：
   未注入则跳过、`/workspace` 保持明文 bind；注入则用 gocryptfs（`/opt/bm/bin/gocryptfs`）把密文根
   `/workspace.enc`（host bind 落盘处）解密挂到 `/workspace`，密文根缺 `gocryptfs.conf` 时先 `-init`。
@@ -90,12 +93,14 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
 - `supercronic` s6 longrun，监督守护进程并加载 `rootfs/etc/supercronic/crontab`；该 crontab 目前**有意留空**
   （零 job）。加任务写 5 字段（无 user 列）条目。二进制经 binman
   （`script/binman.yaml` 的 `link`）提供，日志写 `/var/log/supercronic.log`；
-- `/opt/codespace/bin/` 控制面 helper：`git-checkout <clone_url> <target>`（幂等 clone，复用完好 checkout、
-  空仓打 `codespace-empty-repository` 标记、拒绝覆盖非 checkout 目标，经同级 temp 目录原子落位）、
-  `git-state <target>`（用 `/opt/bm/bin` 的 `jq` 输出 `{unpushed, uncommitted, detail}` JSON，缺 checkout 全 false）、
-  `prepare-open-path <path>`（`mkdir -p` 编辑器 open path）。控制面（`controller/workspace.py`）以用户 `x` 调用它们，
-  把 checkout/state 多步语义留在镜像内、Python 侧只做薄胶水。空仓标记串在 `git-checkout` 与 `git-state` 间共享，
-  必须逐字节一致；`git-state` 的 JSON 字段是与 `RepoGitState` 的契约，改动需两侧同步。
+- `/opt/codespace/bin/` 下五个 runtime helper 分别承担独立职责：
+  `codespace-workspace-crypt` 由 s6 在 boot 时初始化或挂载加密 workspace；
+  `codespace-deploy-key` 生成或复用 deploy private key，并只返回公钥 JSON；
+  `codespace-git-checkout` 幂等 clone；
+  `codespace-workspace-open-path` 创建 editor path；
+  `codespace-workspace-state` 输出 `{unpushed, uncommitted, detail}` JSON。
+  state 通过 Git `HEAD` 判断空仓，不依赖 checkout 的 marker。`controller/workspace.py` 只负责调用及解析结果；
+  修改命令或 JSON contract 时必须同步同名 Bats 测试与控制面。
 
 网络：`network_mode: host` 容器 sshd 绑 `127.0.0.1`。`network_mode: bridge` 容器 sshd 注入
 `SSHD_BIND=0.0.0.0`，SSH 端口发布到 loopback `127.0.0.1:<ssh_port>` 复用 ProxyCommand 路径，workspace
@@ -109,6 +114,7 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
 
 ```bash
 images/dev/build.sh    # 仓库根本地构建，不发布；发布由 .github/workflows/ 管理
+task check             # 含 helper 的 shfmt、ShellCheck 与 Bats
 ```
 
 ## 变更规则

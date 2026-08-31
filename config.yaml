@@ -29,10 +29,10 @@ workspaces:
 deployments:
   sidecar:
     image: ghcr.io/curoky/devspace:codespace-sidecar
-    description: Host-level shared services (atuin sync, image prewarm).
     # published_ports only take effect on hosts whose resolved network_mode is
     # bridge (e.g. a macOS podman-machine host); on Linux host-network hosts
-    # they are ignored and atuin binds host loopback directly.
+    # they are ignored and atuin binds host loopback directly. The container
+    # port must match ATUIN_PORT below.
     published_ports: ["8002:8002"]
     container:
       # network_mode defaults to host here (Linux SSH hosts); a macOS
@@ -41,6 +41,8 @@ deployments:
       # port to loopback. Deployments no longer inherit the development defaults,
       # so this must be declared explicitly.
       network_mode: host
+      environment:
+        - ATUIN_PORT=8002
       volumes:
         - /run/podman/podman.sock:/run/podman/podman.sock
       secrets:
@@ -48,16 +50,14 @@ deployments:
 
   # Qwen3.8-Flash-Next-FP8 serving on a single 8x H100 node. Both engines are
   # self-contained (weights are pulled at run time into the managed HF cache) and
-  # independent: a host opts into at most one via `hosts.<host>.deployments`.
+  # independent: a host may expose both but must run at most one at a time.
   # Each clears the development-only global container defaults (privileged caps,
   # relaxed seccomp, the krb5 mount) it does not need and requests every GPU via
-  # CDI on the bridge network so the OpenAI API is published on port 8003.
+  # CDI on the host network so the OpenAI API listens directly on port 8003.
   llm-vllm:
     image: ghcr.io/curoky/devspace:llm-vllm
-    description: Qwen3.8-Flash-Next-FP8 serving (vLLM engine).
-    published_ports: ["8003:8003"]
     container:
-      network_mode: bridge
+      network_mode: host
       ipc: host
       devices:
         - nvidia.com/gpu=all
@@ -67,14 +67,13 @@ deployments:
         - ${DEPLOYMENT_DATA}:/root/.cache/huggingface
       environment:
         - HF_HOME=/root/.cache/huggingface
+        - LLM_HOST=127.0.0.1
         - LLM_PORT=8003
 
   llm-sglang:
     image: ghcr.io/curoky/devspace:llm-sglang
-    description: Qwen3.8-Flash-Next-FP8 serving (SGLang engine).
-    published_ports: ["8003:8003"]
     container:
-      network_mode: bridge
+      network_mode: host
       ipc: host
       devices:
         - nvidia.com/gpu=all
@@ -82,4 +81,5 @@ deployments:
         - ${DEPLOYMENT_DATA}:/root/.cache/huggingface
       environment:
         - HF_HOME=/root/.cache/huggingface
+        - LLM_HOST=127.0.0.1
         - LLM_PORT=8003

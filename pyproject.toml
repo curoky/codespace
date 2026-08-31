@@ -8,7 +8,6 @@ dependencies = [
     "uvicorn>=0.32.0",
     "podman>=5.0.0",
     "PyGithub>=2.5.0",
-    "cryptography>=44.0.0",
     "loguru>=0.7.2",
     "python-gitlab>=8.4.0",
     "PyYAML>=6.0.2",

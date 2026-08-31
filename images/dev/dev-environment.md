@@ -32,7 +32,7 @@ zsh -lic '<cmd>'
 | Rust env | 非登录 shell 需 `CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup` |
 | C/C++ | `/home/x/.nix-profile/bin/gcc`、`g++`；`clang-format` 在 `/opt/bm/store/clang-tools-*/bin/clang-format` |
 | 构建工具 | `/opt/bm/bin/cmake`、`ninja`、`bazel`、`protoc`、`task` |
-| Shell | `/opt/bm/bin/shfmt`、`shellcheck` |
+| Shell | `/opt/bm/bin/shfmt`、`shellcheck`、`bats` |
 | 常用 CLI | `/opt/bm/bin` 下有 `git`、`gh`、`rg`、`fd`、`jq`、`curl`、`ssh`、`rsync`、`zip` 等 |
 
 ## 安装工具
