@@ -1,15 +1,15 @@
 # Codespace Sidecar 约束
 
 本目录保存 Codespace host 级共享服务的容器资产。每个已配置 host 只有一个 sidecar container，
-服务该 host 上全部开发环境，不属于任何 project/instance。当前共享服务是 Atuin server 和 image-prewarm 定时任务。
+服务该 host 上全部开发环境，不属于任何 workspace/instance。当前共享服务是 Atuin server 和 image-prewarm 定时任务。
 
 ## 不变量
 
-- 每个 host 最多一个 sidecar，identity 只由 host 决定，不含 project/instance ID。
+- 每个 host 最多一个 sidecar，identity 只由 host 决定，不含 workspace/instance ID。
 - 共享服务只经 host loopback 暴露：Linux 用 host network；macOS Podman Machine 用 bridge network 并仅向
   loopback publish 端口。
 - Sidecar inventory 和 label 独立于 `codespace.managed=true` 的 environment inventory。
-- Sidecar 没有 project workspace、environment SSH port、login alias、deploy key、repository 或 SSH 投影。
+- Sidecar 没有 workspace mount、environment SSH port、login alias、deploy key、repository 或 SSH 投影。
 - 创建或删除 environment 不得创建、替换或删除 host sidecar；sidecar 故障可反映在 host 状态，但不得破坏
   environment inventory。
 - 持久服务数据只用 sidecar contract 管理的 host storage，不用 `~/codespace/<workspace>/<instance>`。
@@ -30,7 +30,7 @@
 调度 image-prewarm job；脚本 `rootfs/opt/sidecar/image-prewarm.sh` 的 `pull`/`prune` 子命令用镜像内
 `bash`/`curl` 调宿主 rootful Podman socket REST API。关键约束:
 
-- 预热清单**写死在脚本内**（`PREWARM_IMAGES`），不经启动器/环境变量传入，也不推导 project 配置。
+- 预热清单**写死在脚本内**（`PREWARM_IMAGES`），不经启动器/环境变量传入，也不推导 workspace 配置。
 - `prune` 只清 dangling 镜像（`POST /images/prune` 无 filter、非 `all`），绝不删除仍被 tag 或受管容器引用的镜像。
 - 只预热 host 原生平台。
 
@@ -38,7 +38,7 @@
 （默认 `/run/podman/podman.sock`）、`PREWARM_TIMEOUT_SECONDS`（默认 900）覆盖。
 
 除 image-prewarm 经 bind mount 使用的宿主 Podman socket 外（见「不变量」），镜像不得包含 Python 控制面、
-内建 Podman socket、project workspace、SSH 服务、provider token 或 repository credential。Atuin 用外部数据库，
+内建 Podman socket、workspace mount、SSH 服务、provider token 或 repository credential。Atuin 用外部数据库，
 容器不挂载持久服务数据。
 
 在仓库根手动构建和运行（先注册宿主 Podman secret，两个启动器都从中读取连接串）：

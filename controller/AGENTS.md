@@ -31,7 +31,7 @@ API 或 host contract 时必须同步更新本文相关章节。
 
 ## 常用操作
 
-先按「配置」创建 `~/.config/codespace/config.yaml`，再启动控制面（只监听 `127.0.0.1:8003`）：
+先按「配置」创建 `~/devspace/config.extend.yaml`，再启动控制面（只监听 `127.0.0.1:8003`）：
 
 ```bash
 uv sync
@@ -56,7 +56,7 @@ uv lock --check
 
 Codespace 仅监听 localhost，支持远端 rootful Podman host 和本地 rootful Podman Machine；不得增加远端
 HTTP agent，也不得改用 podman-py 的 SSH adapter。FastAPI 同时提供 JSON API 和 `controller/static/` 的
-原生 Web 文件。GitHub、GitLab token 只存进程内存；`config.yaml` 的可选 `tokens` 提供启动值，Web UI 可运行时覆盖。
+原生 Web 文件。GitHub、GitLab token 只存进程内存；合并后配置的可选 `tokens` 提供启动值，Web UI 可运行时覆盖。
 
 ## 配置
 
@@ -68,6 +68,10 @@ HTTP agent，也不得改用 podman-py 的 SSH adapter。FastAPI 同时提供 JS
 单个键（如某 deployment 的 `image` 或某 host 的 `network_mode`）而无需重述整块。`extends` 相对声明它的文件解析、
 合并前剥除，无 `extends` 时按单文件加载；链路成环即 fail-fast。base 是 fragment，单独不保证能通过校验；私有入口
 `config.extend.yaml` 已排除版本控制。
+
+当前 `~/devspace` 指向仓库目录，因此私有入口物理上位于 Git worktree，仅由根 `.gitignore` 的
+`/config.extend.yaml` 规则阻止入库；不得强制添加该文件。`extends` 相对入口文件解析，所以保持
+`extends: config.yaml` 时共享 base 必须与私有入口同目录。
 
 ```yaml
 # 开发容器默认（仅作用于 workspaces，deployment 不继承）
@@ -239,15 +243,15 @@ secrets:
   设置继承下层。workspace 从开发默认起分层，优先级 `workspace > host > defaults`；deployment **不继承开发默认**，
   从空块起分层，优先级 `deployment > host`。覆盖块 `environment` 同样禁用保留键。因此部署容器天然不带开发默认
   的 `cap_add`/`security_opt`/krb5 mount，只需声明自己要的 `devices`/`ipc`/`network_mode` 等。
-- 拒绝未知字段。Project/instance ID 匹配 `^[a-z0-9][a-z0-9-]{0,31}$`，host alias 匹配
-  `^[a-z0-9][a-z0-9.-]{0,62}$`。`hosts` 至少一个；project 的 `host` 列表至少一项、name 不重复且只能引用已配置
-  host。project 未配 `image` 时用 `default_image`。
+- 拒绝未知字段。Workspace/instance ID 匹配 `^[a-z0-9][a-z0-9-]{0,31}$`，host alias 匹配
+  `^[a-z0-9][a-z0-9.-]{0,62}$`。`hosts` 至少一个；workspace 的 `host` 列表至少一项、name 不重复且只能引用已配置
+  host。workspace 未配 `image` 时用 `workspaces.defaults.image`。
 - 顶层 `deployments` 是可选映射（key 为 deployment id，匹配同一 `^[a-z0-9][a-z0-9-]{0,31}$`），每项声明一个
   **自包含镜像**：必填 `image`，可选 `description`、`published_ports`、`container`。deployment 无 workspace、SSH
-  投影、git checkout 或 provider 凭据，`image` 必填且不回退 `default_image`。`published_ports` 与 project 同规则，
+  投影、git checkout 或 provider 凭据，`image` 必填且不回退 `workspaces.defaults.image`。`published_ports` 与 workspace 同规则，
   但因发布只在解析后 `network_mode` 为 `bridge` 的 host 生效、host-network host 上被忽略，故允许在含 host-network
-  host 的情况下仍声明端口（不像 project 那样直接拒绝）。`container` 与三处 override 共用模型，按
-  `deployment > host > global` 解析，同样要求解析后 `network_mode` 确定（缺失即加载时 fail-fast）。volume `source`
+  host 的情况下仍声明端口（不像 workspace 那样直接拒绝）。`container` 与三处 override 共用模型，按
+  `deployment > host` 解析，同样要求解析后 `network_mode` 确定（缺失即加载时 fail-fast）。volume `source`
   为占位符 `${DEPLOYMENT_DATA}` 时解析到该 deployment 的托管数据根 `~/codespace-deployment/<id>`（见「部署生命
   周期」）；其它 `${...}` 占位符一律拒绝。
 
@@ -270,7 +274,7 @@ s6 oneshot 把挂载的 `/workspace`、`/upload`、`/cache` 归属到 `5230:5230
 - `find`（支持 `-mindepth`、`-maxdepth`、`-print0`）供维护工具列出各 mount root 下的实例目录；
 - 允许镜像内 root 将挂载的 `/workspace`、`/upload`、`/cache` `chown` 为 `5230:5230`；
 - 为 environment SSH 保留的端口范围 `20000-29999`；
-- 一个 host 级 sidecar（见 [`images/sidecar/AGENTS.md`](../images/sidecar/AGENTS.md)，须独立于 project/instance）；
+- 一个 host 级 sidecar（见 [`images/sidecar/AGENTS.md`](../images/sidecar/AGENTS.md)，须独立于 workspace/instance）；
 - 满足 [`images/dev/AGENTS.md`](../images/dev/AGENTS.md) 契约的开发镜像。
 
 非原生平台依赖 host 已注册持久化 `binfmt_misc` interpreter（通常 QEMU user-static）。Codespace 只选平台，
@@ -409,7 +413,7 @@ store 与异步调度。
 
 ## 维护 CLI
 
-四个带外 CLI 都固定读 `~/.config/codespace/config.yaml`，默认 dry-run，仅 `--no-dry-run` 执行写操作，host
+四个带外 CLI 都固定读 `~/devspace/config.extend.yaml`，默认 dry-run，仅 `--no-dry-run` 执行写操作，host
 查询失败输出 warning 且不影响其他并发查询。
 
 - **Deploy key 清理** `controller.tools.cleanup_deploy_keys`：并发列出配置内全部 GitHub/GitLab 仓库的 deploy
@@ -457,24 +461,24 @@ key，通过 `HostKeyAlias codespace` 指向单个 pinned `~/.ssh/codespace/know
 
 - `GET /api/dashboard`
 - `PUT /api/tokens/{provider}`
-- `POST /api/projects/{project}/instances`（body 含 `host` 和 `instance`）
-- `GET /api/projects/{project}/hosts/{host}/instances/{instance}/logs`
-- `DELETE /api/projects/{project}/hosts/{host}/operations/{instance}`
-- `DELETE /api/projects/{project}/hosts/{host}/instances/{instance}?purge=true|false&force=true|false`
+- `POST /api/workspaces/{workspace}/instances`（body 含 `host` 和 `instance`）
+- `GET /api/workspaces/{workspace}/hosts/{host}/instances/{instance}/logs`
+- `DELETE /api/workspaces/{workspace}/hosts/{host}/operations/{instance}`
+- `DELETE /api/workspaces/{workspace}/hosts/{host}/instances/{instance}?purge=true|false&force=true|false`
 - `POST /api/deployments/{deployment}/hosts/{host}/deploy`
 - `GET /api/deployments/{deployment}/hosts/{host}/logs`
 - `DELETE /api/deployments/{deployment}/hosts/{host}?purge=true|false`
 - `DELETE /api/deployments/{deployment}/hosts/{host}/operations`
 
-错误格式固定 `{"error": "..."}`。创建 body 用 `host` 显式选 project 声明的某个 host，不在列表内即拒绝。
+错误格式固定 `{"error": "..."}`。创建 body 用 `host` 显式选 workspace 声明的某个 host，不在列表内即拒绝。
 `GET .../logs` 只读，返回 `{"logs": "..."}`（container 最近合并 stdout/stderr、带时间戳、末尾 2000 行），不
 存在的 environment 返回 `{"error": ...}`；Web UI 用只读 Logs 弹窗展示，支持手动 Refresh，不轮询、不流式。
-`DELETE` 路径带 `host`（同名 instance 可分布在不同 host，identity 由 host+project+instance 决定），成功返回
+`DELETE` 路径带 `host`（同名 instance 可分布在不同 host，identity 由 host+workspace+instance 决定），成功返回
 `{deleted, workspace_removed, state}`，`force=false` 时 `deleted=false` 且 `state` 携带 git 检测结果。
 Deployment 路由都带 `host` 且要求该 host 声明了此 deployment（否则拒绝）：`deploy` 返回 202 与异步
 `DeploymentOperation`、`DELETE` 返回 `{removed, data_removed}`、`logs` 与 environment 同形、`operations` DELETE
 只清 `failed`。
-Dashboard response 是浏览器唯一事实来源；每个 project summary 携带 `hosts` 列表（各含 `name` 和可选
+Dashboard response 是浏览器唯一事实来源；每个 workspace summary 携带 `hosts` 列表（各含 `name` 和可选
 `platform`），`deployments` 段每项携带 `image`、可选 `description` 与逐 host 状态（`state`/`status`/`operation`/
 `error`），Web UI 为每个 environment 显示完整 `ssh_command`，点击经 Clipboard API 复制并显示短暂反馈。
 创建对话框先选 host（Quick Create 用列表首个 host），只在 create operation 为 queued/running 时轮询。失败的

@@ -15,10 +15,10 @@
 ## 不变量
 
 - 每个 host 最多一个 LLM serving container，identity 只由 deployment id 决定：作为控制面 deployment，容器名为
-  `codespace-<deployment-id>`（`codespace-llm-vllm` 或 `codespace-llm-sglang`），host 单例、不含 project/instance
-  ID。不进 project 生命周期，不参与 `codespace.managed=true` 的 environment inventory（只带 `codespace.deployment*`
+  `codespace-<deployment-id>`（`codespace-llm-vllm` 或 `codespace-llm-sglang`），host 单例、不含 workspace/instance
+  ID。不进 workspace 生命周期，不参与 `codespace.managed=true` 的 environment inventory（只带 `codespace.deployment*`
   label）。一个 host 经 `hosts.<host>.deployments` 至多选一个引擎。
-- 单容器只跑单一引擎，即单主推理进程；无 project workspace、SSH 服务、deploy key、repository 或 SSH 投影。
+- 单容器只跑单一引擎，即单主推理进程；无 workspace mount、SSH 服务、deploy key、repository 或 SSH 投影。
 - API 只经 host loopback 暴露：bridge network 且仅向 `127.0.0.1:<port>`（默认 8003，避开 sidecar 的 8002）
   publish 端口。
 - **模型权重不烤进镜像**：~172 GiB FP8 权重经 bind-mount 的 Hugging Face cache 在首次启动时由引擎拉取；该 cache
@@ -108,7 +108,7 @@ images/llm/sglang/build.sh       # 产出 ghcr.io/curoky/devspace:llm-sglang
 不同处（LLM 专属，均为新增 mount/device 例外，均在 deployment `container` 块声明）：
 
 - 经 CDI `--device nvidia.com/gpu=all` 请求本机全部 GPU（`container.devices`）；`--ipc host`（`container.ipc: host`）、
-  `--shm-size 32g`（`container.shm_size`）；并把开发默认的 `cap_add`/`security_opt` 覆盖为 `[]`。
+  `--shm-size 32g`（`container.shm_size`）。Deployment 不继承开发默认，无需反向清除 `cap_add`/`security_opt`。
 - Hugging Face cache 用 `${DEPLOYMENT_DATA}:/root/.cache/huggingface` volume 绑到托管数据根
   `~/codespace-deployment/<id>`，首次启动拉取 ~172 GiB 权重到该目录，需 ≥~200 GiB 空闲空间；容器内经
   `HF_HOME=/root/.cache/huggingface` 指向它。gated/加速下载可先在 `container.environment` 或宿主注册 `HF_TOKEN`。

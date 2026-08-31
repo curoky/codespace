@@ -41,7 +41,7 @@ Container 专用 SSH config 位于 `rootfs/home/x/.ssh/config`，为 `Host *` �
 `dotfiles/ssh/user.ssh_config`。GitHub/GitLab host key 固定在同目录 `known_hosts`，provider 连接必须
 `StrictHostKeyChecking yes`，不得回退到 `accept-new`。
 
-控制面的 `git` 类型 project 直接 clone 任意内网 `git@host:owner/name.git`（或 `ssh://` 形式）URL，不注入
+控制面的 `git` 类型 workspace 直接 clone 任意内网 `git@host:owner/name.git`（或 `ssh://` 形式）URL，不注入
 deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承担：内网 host 通常经 `Host *` 的 GSSAPI/Kerberos
 （配合宿主 `/etc/krb5.conf` bind-mount）认证；host key 必须预置在同目录 `known_hosts`（或由该 host 的镜像/运维
 资产提供），`StrictHostKeyChecking yes` 下未预置的 host 会被拒绝。新增内网 git host 需在此同步 host key。
@@ -60,7 +60,7 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
   与 `/cache` 都 `chown` 为 `5230:5230`（三个数据 mount 均由控制面按实例 bind 宿主目录，rootful Podman
   直接透传所有权）；
 - `workspace-crypt` s6 oneshot，依赖 `workspace-init`，`sshd`、`home-init` 与两个 WebDAV 服务均依赖它。
-  以容器环境变量 `WORKSPACE_CRYPT_KEY` 是否注入为信号自适应（对齐控制面 project 的 `encrypt_workspace`）：
+  以容器环境变量 `WORKSPACE_CRYPT_KEY` 是否注入为信号自适应（对齐控制面 workspace 的 `encrypt_workspace`）：
   未注入则跳过、`/workspace` 保持明文 bind；注入则用 gocryptfs（`/opt/bm/bin/gocryptfs`）把密文根
   `/workspace.enc`（host bind 落盘处）解密挂到 `/workspace`，密文根缺 `gocryptfs.conf` 时先 `-init`。
   gocryptfs 依赖 FUSE：容器须有 `/dev/fuse` 与 `SYS_ADMIN`（或 security option `disable`），镜像预置
@@ -83,7 +83,7 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
   `rclone` 只读暴露 workspace；
 - 两个 WebDAV 服务均关闭归档、索引、缩略图、媒体处理、分享、管理/状态接口、跨站 CORS、服务发现及
   FTP/FTPS/SFTP/TFTP，`rclone` 另关 HTML 目录页、`copyparty` 关 HTML/脚本渲染及所有可独立关闭的 Web UI 扩展。
-  服务匿名访问、镜像不提供 TLS；bridge 模式需在 project `published_ports` 显式发布端口，跨不可信网络必须在外层加 TLS、认证与访问控制。
+  服务匿名访问、镜像不提供 TLS；bridge 模式需在 workspace `published_ports` 显式发布端口，跨不可信网络必须在外层加 TLS、认证与访问控制。
   `/workspace` 含 dotfiles，WebDAV 读取者可见其中敏感内容。两个进程不共享 WebDAV `LOCK`，不得经 8004/8005
   并发修改同一 `/upload` 文件；
 - `supercronic` s6 longrun，监督守护进程并加载 `rootfs/etc/supercronic/crontab`；该 crontab 目前**有意留空**
@@ -97,7 +97,7 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
   必须逐字节一致；`git-state` 的 JSON 字段是与 `RepoGitState` 的契约，改动需两侧同步。
 
 网络：`network_mode: host` 容器 sshd 绑 `127.0.0.1`。`network_mode: bridge` 容器 sshd 注入
-`SSHD_BIND=0.0.0.0`，SSH 端口发布到 loopback `127.0.0.1:<ssh_port>` 复用 ProxyCommand 路径，project
+`SSHD_BIND=0.0.0.0`，SSH 端口发布到 loopback `127.0.0.1:<ssh_port>` 复用 ProxyCommand 路径，workspace
 `published_ports` 声明的业务端口经 gvproxy 转发到 macOS `localhost:<local>`。
 
 镜像内固定的 sshd ed25519 host key（`rootfs/etc/ssh/ssh_host_ed25519_key.pub`）由控制面 pin 在
@@ -117,4 +117,3 @@ images/dev/build.sh    # 仓库根本地构建，不发布；发布由 .github/w
   无需构建期 `setup.sh`）。`dotfiles/` 只保留非容器场景专属配置与容器运行期才落位的模板。
 - 修改镜像 host contract、sshd 绑定行为或 WebDAV 服务时，同步更新本文与
   [`controller/AGENTS.md`](../../controller/AGENTS.md) 中依赖这些契约的章节。
-
