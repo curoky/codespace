@@ -136,6 +136,8 @@ $HOME/devspace/tools/setup-git-deploy-key.sh
   [`images/dev/AGENTS.md`](images/dev/AGENTS.md)、
   [`images/dev/dev-environment.md`](images/dev/dev-environment.md)、[`images/sidecar/AGENTS.md`](images/sidecar/AGENTS.md)、
   [`images/wsl/AGENTS.md`](images/wsl/AGENTS.md)、[`images/llm/AGENTS.md`](images/llm/AGENTS.md)。
+- `docs/codespace-image-ghcr-timeout-investigation.md`：多架构镜像访问 GHCR 超时调查记录。
+- `docs/nix-build-ssl-cert-enterprise-gateway-investigation.md`：Nix 构建企业网关证书问题排查记录。
 
 ## 已知边界
 
