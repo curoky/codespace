@@ -10,13 +10,13 @@ host 级共享服务见 [`images/sidecar/AGENTS.md`](../sidecar/AGENTS.md)，容
 
 ## 目录
 
-| 路径                   | 职责                                                                                           |
-| -------------------- | -------------------------------------------------------------------------------------------- |
-| `Dockerfile`         | 组装静态工具、Nix、各语言运行时、dotfiles 和自建 s6 init                                                       |
-| `build.sh`           | 从仓库根构建本地开发镜像                                                                                 |
-| `script/`            | 构建脚本，含 `extensions.txt`（remote server 预装扩展清单）、`setup-s6.sh`、`setup-vscode-extensions.sh`（构建期装扩展）、`seed-vscode-extensions.sh`（启动期播种） |
-| `rootfs/`            | 烤进镜像的文件（s6 bundle、sshd、容器 SSH config 与 host key、`home/x/` 下跨场景 home 配置等）                     |
-| `dev-environment.md` | 容器内工具链路径与使用方式                                                                                |
+| 路径 | 职责 |
+| --- | --- |
+| `Dockerfile` | 组装静态工具、Nix、各语言运行时、dotfiles 和自建 s6 init |
+| `build.sh` | 从仓库根构建本地开发镜像 |
+| `script/` | 构建脚本，含 remote server 扩展安装、播种与 s6 配置 |
+| `rootfs/` | 烤进镜像的 s6、sshd、SSH host key 和跨场景 home 配置 |
+| `dev-environment.md` | 容器内工具链路径与使用方式 |
 
 ## s6 init
 
@@ -102,7 +102,7 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
 
 镜像内固定的 sshd ed25519 host key（`rootfs/etc/ssh/ssh_host_ed25519_key.pub`）由控制面 pin 在
 `~/.ssh/codespace/known_hosts/codespace`；改镜像 host key 必须同步更新该 asset，详见
-[`controller/AGENTS.md`](../../controller/AGENTS.md) 的「SSH 投影」章节。
+[`controller/DESIGN.md`](../../controller/DESIGN.md#host-数据布局)。
 
 ## 构建
 
@@ -116,4 +116,5 @@ images/dev/build.sh    # 仓库根本地构建，不发布；发布由 .github/w
 - 仅供运行时使用的文件放 `rootfs/`；跨场景 home 配置也放 `rootfs/home/x/`（经 `COPY rootfs/ /` 烤入 `$HOME`，
   无需构建期 `setup.sh`）。`dotfiles/` 只保留非容器场景专属配置与容器运行期才落位的模板。
 - 修改镜像 host contract、sshd 绑定行为或 WebDAV 服务时，同步更新本文与
-  [`controller/AGENTS.md`](../../controller/AGENTS.md) 中依赖这些契约的章节。
+  [`controller/AGENTS.md`](../../controller/AGENTS.md) 及
+  [`controller/DESIGN.md`](../../controller/DESIGN.md) 中依赖这些契约的章节。

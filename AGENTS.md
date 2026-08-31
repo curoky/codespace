@@ -45,7 +45,8 @@
   SSH 投影、FastAPI、原生 Web UI 和测试），入口 `uv run python -m controller`。它通过 system OpenSSH
   转发远端 rootful Podman socket，或直连已运行的 rootful Podman Machine，不部署远端 HTTP agent。除逐 workspace
   的开发 environment 外，它还原生管理 host 级 **deployment**（sidecar、LLM serving 等自包含镜像）：这类容器无
-  workspace/SSH 投影/git checkout，由 `hosts.<host>.deployments` 选择部署到哪些 host，UI 上同样点 Deploy/Clean。
+  workspace/SSH 投影/git checkout，由 `hosts.<host>.deployments` 选择部署到哪些 host。控制面详细设计见
+  [`controller/DESIGN.md`](controller/DESIGN.md)。
 
 ### CI 与发布
 
@@ -95,8 +96,8 @@ $HOME/devspace/tools/setup-git-deploy-key.sh
 5. **网络边界**：环境 sshd 只绑定宿主 loopback；访问必须经配置的 SSH host route。
 6. **共享服务**：每个 host 只有一个固定名称的 `codespace-sidecar`，不附属于 workspace/instance。Atuin 仅经
    宿主 `127.0.0.1:8002` 暴露。sidecar 的 image-prewarm 定时任务是唯一允许 bind-mount 宿主 rootful
-   Podman socket 的共享服务，仅按脚本内写死清单预拉镜像与清理 dangling 镜像。sidecar 现由控制面作为
-   deployment（`deployments.sidecar`）原生管理，但仍保留手动 `run-*.sh` 与带外 `deploy_sidecar` CLI 等价路径。
+   Podman socket 的共享服务，仅按脚本内写死清单预拉镜像与清理 dangling 镜像。生产生命周期由控制面的
+   `deployments.sidecar` 管理。
 7. **平台选择**：workspace 每个 `host` 条目 `platform` 只能省略或设为 `linux/amd64`、`linux/arm64`；
    省略时库存 label 用 `native`。
 8. **文档语言**：说明与约束文档用中文；代码标识、命令、协议名和外部 API 保留原文。
@@ -123,17 +124,18 @@ $HOME/devspace/tools/setup-git-deploy-key.sh
   [`images/sidecar/AGENTS.md`](images/sidecar/AGENTS.md)；影响跨组件契约时同步本文。
 - 不修改与任务无关的 s6、Atuin client、Ollama、home-init、sshd。
 - Host 共享服务资产只放 `images/sidecar/`，不进 workspace 生命周期模块；sidecar inventory 与 environment
-  inventory 必须分离。除 sidecar image-prewarm 的宿主 Podman socket 例外外，不得恢复 Podman socket、
+  inventory 必须分离。除 sidecar image-prewarm 的宿主 Podman socket 例外外，sidecar 不包含 Podman socket、
   Python HTTP agent 或 workspace mount。
-- 本地控制面的 Python、静态资源、启动器和测试全保留在 `controller/`。
-- 优先添加针对受影响模块的聚焦测试；不恢复已删除的兼容目录、远端 Python agent 或 Node Web 构建链。
+- 本地控制面的 Python、静态资源、启动器和测试全放在 `controller/`；Web UI 使用原生静态资源，不引入
+  Node.js 构建链。
+- 优先添加针对受影响模块的聚焦测试。
 
 ## 相关文档
 
-- [`controller/AGENTS.md`](controller/AGENTS.md)、[`images/dev/AGENTS.md`](images/dev/AGENTS.md)、
+- [`controller/AGENTS.md`](controller/AGENTS.md)、[`controller/DESIGN.md`](controller/DESIGN.md)、
+  [`images/dev/AGENTS.md`](images/dev/AGENTS.md)、
   [`images/dev/dev-environment.md`](images/dev/dev-environment.md)、[`images/sidecar/AGENTS.md`](images/sidecar/AGENTS.md)、
   [`images/wsl/AGENTS.md`](images/wsl/AGENTS.md)、[`images/llm/AGENTS.md`](images/llm/AGENTS.md)。
-- `docs/codespace-image-ghcr-timeout-investigation.md`：多架构镜像访问 GHCR 超时调查记录。
 
 ## 已知边界
 

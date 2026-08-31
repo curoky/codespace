@@ -4,7 +4,7 @@
 [`vllm/`](vllm/) 与 [`sglang/`](sglang/)；本文是两子目录共用的公共契约。镜像管理方案基本对齐
 [`images/sidecar/`](../sidecar/AGENTS.md)：以自建 s6 init 为 PID 1，服务定义放在各子目录的
 `rootfs/etc/s6/s6-rc.d/`，OpenAI 兼容 API 只经 host loopback 暴露。**部署与清理由控制面原生管理**：两镜像作为
-`deployments.llm-vllm` / `deployments.llm-sglang` 纳入 [`controller/`](../../controller/AGENTS.md) 的 deployment
+`deployments.llm-vllm` / `deployments.llm-sglang` 纳入 [`controller/`](../../controller/DESIGN.md#deployment-reconcile) 的 deployment
 目录，由 `hosts.<host>.deployments` 选择落到哪个 GPU host，UI 上点 Deploy/Clean 即可（本目录不再保留手动
 `run.sh` 启动器）。整体架构见仓库根
 [`AGENTS.md`](../../AGENTS.md)。修改本目录契约时必须同步更新本文与根 `AGENTS.md`。
@@ -67,6 +67,7 @@ CUDA userspace 由 host 的 NVIDIA Container Toolkit 在运行期提供，推理
 
 两引擎的优化参数均已按实测 8×H100 80GB 拓扑写死在各自 `serve.sh` 里（不再配置化），只保留
 model/host/port/extra 四个部署相关 env，需临时改参用 `LLM_EXTRA_ARGS` 覆盖。写死项：
+
 - vLLM：TEP8（`--tensor-parallel-size 8 --enable-expert-parallel`）、`--max-model-len 262144`、
   `--gpu-memory-utilization 0.90`、`--enable-prefix-caching`、分块 prefill
   （`--enable-chunked-prefill --max-num-batched-tokens 8192`）、`--max-num-seqs 256`。
@@ -130,8 +131,8 @@ host 前置：NVIDIA Container Toolkit 并配好 CDI（`nvidia.com/gpu` 设备�
 | `<engine>/rootfs/etc/s6/s6-rc.d/user-final` | 默认 runlevel bundle，`contents.d/llm` 标记该 longrun |
 | `<engine>/build.sh` | 从仓库根构建本地镜像 `llm-<engine>` |
 
-运行不再有子目录 `run.sh`：容器由控制面 deployment 创建，形态在 config 的 `deployments.llm-<engine>.container`
-声明（见「构建与运行」与 [`controller/AGENTS.md`](../../controller/AGENTS.md) 的「部署生命周期」）。
+容器由控制面 deployment 创建，形态在 config 的 `deployments.llm-<engine>.container`
+声明（见「构建与运行」与 [`controller/DESIGN.md`](../../controller/DESIGN.md#deployment-reconcile)）。
 
 ## 变更规则
 

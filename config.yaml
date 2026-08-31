@@ -2,7 +2,7 @@
 #
 # The private entrypoint ~/devspace/config.extend.yaml points here with
 # `extends: config.yaml` and layers hosts, workspaces.items, tokens and secrets
-# on top (see controller/AGENTS.md "配置"). Mappings deep-merge key by key with
+# on top (see controller/AGENTS.md "配置约束"). Mappings deep-merge key by key with
 # the private layer winning; scalars and lists are replaced. This base therefore
 # declares only the shared development defaults and the deployment catalog; it is
 # a fragment and is not expected to validate on its own.
