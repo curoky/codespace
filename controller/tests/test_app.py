@@ -14,6 +14,7 @@ from controller.models import (
     RepoGitState,
     WorkspaceSummary,
     WorkspaceSummaryHost,
+    environment_id,
 )
 from controller.operations import OperationStore
 
@@ -21,7 +22,7 @@ from controller.operations import OperationStore
 class FakeService:
     def __init__(self, config: Config) -> None:
         self.config = config
-        self.operations = OperationStore()
+        self.operations = OperationStore[Operation]()
         self.tokens = {"github": False, "gitlab": False}
         self.created: list[tuple[str, str, str]] = []
         self.deleted: list[tuple[str, str, str, bool, bool]] = []
@@ -67,13 +68,22 @@ class FakeService:
             raise KeyError(f"unknown workspace: {workspace}")
         if not self.tokens["github"]:
             raise RuntimeError("github token is not set")
-        return self.operations.create(host, workspace, instance)
+        return self.operations.create(
+            Operation(
+                id=environment_id(host, workspace, instance),
+                host=host,
+                workspace=workspace,
+                instance=instance,
+                status="queued",
+                stage="queued",
+            )
+        )
 
     def create(self, workspace: str, host: str, instance: str) -> None:
         self.created.append((workspace, host, instance))
 
     def dismiss_failed_operation(self, workspace: str, host: str, instance: str) -> bool:
-        return self.operations.dismiss_failed(host, workspace, instance)
+        return self.operations.dismiss_failed(host, environment_id(host, workspace, instance))
 
     def delete(
         self, workspace: str, host: str, instance: str, *, purge: bool, force: bool = False
@@ -219,7 +229,16 @@ def test_dismiss_operation_rejects_active_work_and_removes_failure(
     app_client: tuple[TestClient, FakeService],
 ) -> None:
     client, service = app_client
-    service.operations.create("home", "devspace", "debug")
+    operation = service.operations.create(
+        Operation(
+            id=environment_id("home", "devspace", "debug"),
+            host="home",
+            workspace="devspace",
+            instance="debug",
+            status="queued",
+            stage="queued",
+        )
+    )
     path = "/api/workspaces/devspace/hosts/home/operations/debug"
 
     active = client.delete(path)
@@ -227,7 +246,7 @@ def test_dismiss_operation_rejects_active_work_and_removes_failure(
     assert active.status_code == 409
     assert active.json()["error"].endswith("is still queued")
 
-    service.operations.update("home", "devspace", "debug", status="failed")
+    service.operations.update("home", operation.id, status="failed")
     dismissed = client.delete(path)
 
     assert dismissed.status_code == 200

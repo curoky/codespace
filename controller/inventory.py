@@ -8,7 +8,7 @@ from podman import PodmanClient
 from podman.domain.containers import Container
 from podman.errors import NotFound
 
-from controller.config import Config, WorkspaceConfig
+from controller.config import Config, EnvironmentSpec, WorkspaceConfig
 from controller.models import (
     GIT_URL_RE,
     LABEL_DEPLOYMENT,
@@ -29,7 +29,6 @@ from controller.models import (
     RESOURCE_ID_RE,
     Deployment,
     Environment,
-    EnvironmentSpec,
     GitProvider,
     PlatformSelection,
     WorkspaceType,

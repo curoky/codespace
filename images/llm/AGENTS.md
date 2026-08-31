@@ -107,8 +107,9 @@ images/llm/sglang/build.sh       # 产出 ghcr.io/curoky/devspace:llm-sglang
 下述要求一致（`unless-stopped` restart policy、bridge network 且只 publish 到 `127.0.0.1:<port>`）。与 sidecar
 不同处（LLM 专属，均为新增 mount/device 例外，均在 deployment `container` 块声明）：
 
-- 经 CDI `--device nvidia.com/gpu=all` 请求本机全部 GPU（`container.devices`）；`--ipc host`（`container.ipc: host`）、
-  `--shm-size 32g`（`container.shm_size`）。Deployment 不继承开发默认，无需反向清除 `cap_add`/`security_opt`。
+- 经 CDI `--device nvidia.com/gpu=all` 请求本机全部 GPU（`container.devices`）；TP8/EP8 多进程通信需要充足的
+  `/dev/shm`，用 `--ipc host`（`container.ipc: host`）直接复用宿主共享内存，不再设置只作用于私有 IPC
+  namespace 的 `container.shm_size`。Deployment 不继承开发默认，无需反向清除 `cap_add`/`security_opt`。
 - Hugging Face cache 用 `${DEPLOYMENT_DATA}:/root/.cache/huggingface` volume 绑到托管数据根
   `~/codespace-deployment/<id>`，首次启动拉取 ~172 GiB 权重到该目录，需 ≥~200 GiB 空闲空间；容器内经
   `HF_HOME=/root/.cache/huggingface` 指向它。gated/加速下载可先在 `container.environment` 或宿主注册 `HF_TOKEN`。
@@ -138,7 +139,7 @@ host 前置：NVIDIA Container Toolkit 并配好 CDI（`nvidia.com/gpu` 设备�
 - 不烤入模型权重；不引入 Podman socket、控制面、provider token 或 repository credential。
 - 新增引擎参数优先经 `serve.sh` 环境变量暴露，不写死在 s6 run 脚本；引擎命令随官方 recipe 变化时更新对应
   子目录的 `serve.sh` 并同步本文。
-- 容器运行形态（GPU/ipc/shm、HF cache volume、端口）改动在 config 的 `deployments.llm-<engine>` 声明并同步
+- 容器运行形态（GPU/IPC、HF cache volume、端口）改动在 config 的 `deployments.llm-<engine>` 声明并同步
   [`controller/AGENTS.md`](../../controller/AGENTS.md)，不重新引入手动 `run.sh` 启动器。
 - day-0 架构支持随各 Dockerfile `ARG` 演进：vLLM 用 `VLLM_VERSION`，SGLang 因尚无 release 用 `SGLANG_REF`
   （PR ref 或未来 tag）；锁定到含 Qwen3.8-Flash-Next 的版本/ref，变更时同步本文表格。

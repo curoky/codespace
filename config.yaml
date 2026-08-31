@@ -59,7 +59,6 @@ deployments:
     container:
       network_mode: bridge
       ipc: host
-      shm_size: 32g
       devices:
         - nvidia.com/gpu=all
       # ${DEPLOYMENT_DATA} resolves to ~/codespace-deployment/llm-vllm; the ~172
@@ -77,7 +76,6 @@ deployments:
     container:
       network_mode: bridge
       ipc: host
-      shm_size: 32g
       devices:
         - nvidia.com/gpu=all
       volumes:

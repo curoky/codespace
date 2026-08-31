@@ -15,23 +15,19 @@ sequencing out of that environment-focused orchestrator.
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING
+
+from podman import PodmanClient
 
 from controller import container as containers
 from controller import inventory, ssh
+from controller.config import Config, DeploymentSpec
 from controller.models import (
     DeploymentHostStatus,
+    DeploymentOperation,
     DeploymentSummary,
     deployment_id,
 )
-
-if TYPE_CHECKING:
-    from podman import PodmanClient
-
-    from controller.config import Config
-    from controller.inventory import DeploymentInventory
-    from controller.models import Deployment, DeploymentOperation, DeploymentSpec
-    from controller.runtime.transport import SSHRoute
+from controller.runtime.transport import SSHRoute
 
 type Stage = Callable[[str], None]
 
@@ -92,13 +88,18 @@ def teardown(
     if purge:
         stage("removing data")
         data_root = ssh.remote_deployment_root(route)
-        containers.remove_deployment_data(client, spec, data_root)
+        containers.remove_workspace(
+            client,
+            spec.image,
+            data_root,
+            spec.data_path(data_root),
+        )
     return removed
 
 
 def build_summaries(
     config: Config,
-    inventories: dict[str, DeploymentInventory | None],
+    inventories: dict[str, inventory.DeploymentInventory | None],
     operations: dict[tuple[str, str], DeploymentOperation],
 ) -> list[DeploymentSummary]:
     """Project the deployment catalog with each declared host's actual state.
@@ -132,7 +133,7 @@ def build_summaries(
 def _host_status(
     host: str,
     deployment_name: str,
-    host_inventory: DeploymentInventory | None,
+    host_inventory: inventory.DeploymentInventory | None,
     operation: DeploymentOperation | None,
 ) -> DeploymentHostStatus:
     if host_inventory is None:
@@ -142,7 +143,8 @@ def _host_status(
             error="host offline",
             operation=operation,
         )
-    found = _find(host_inventory.deployments, deployment_name)
+    identity = deployment_id(deployment_name)
+    found = next((item for item in host_inventory.deployments if item.id == identity), None)
     if found is None:
         return DeploymentHostStatus(host=host, state="missing", operation=operation)
     return DeploymentHostStatus(
@@ -152,8 +154,3 @@ def _host_status(
         container_id=found.container_id,
         operation=operation,
     )
-
-
-def _find(deployments: list[Deployment], deployment_name: str) -> Deployment | None:
-    identity = deployment_id(deployment_name)
-    return next((item for item in deployments if item.id == identity), None)

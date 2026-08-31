@@ -5,13 +5,10 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Annotated, Literal
+from typing import Annotated, Literal
 from urllib.parse import quote
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field
-
-if TYPE_CHECKING:
-    from controller.config import ContainerConfig, WorkspaceConfig
 
 type GitProvider = Literal["github", "gitlab"]
 type WorkspaceType = Literal["repo", "blank", "git"]
@@ -71,12 +68,6 @@ PORT_MIN = 1
 PORT_MAX = 65_535
 
 
-def _valid_port(value: int) -> int:
-    if not PORT_MIN <= value <= PORT_MAX:
-        raise ValueError(f"port must be between {PORT_MIN} and {PORT_MAX}, got {value}")
-    return value
-
-
 def parse_port_mapping(value: str) -> tuple[int, int]:
     """Parse ``remote`` or ``local:remote`` into a validated port pair."""
     parts = value.split(":")
@@ -93,7 +84,10 @@ def parse_port_mapping(value: str) -> tuple[int, int]:
 def _parse_port_int(token: str, original: str) -> int:
     if not token.isdigit():
         raise ValueError(f"invalid port mapping {original!r}: {token!r} is not a port number")
-    return _valid_port(int(token))
+    port = int(token)
+    if not PORT_MIN <= port <= PORT_MAX:
+        raise ValueError(f"port must be between {PORT_MIN} and {PORT_MAX}, got {port}")
+    return port
 
 
 def _not_blank(value: str) -> str:
@@ -158,74 +152,6 @@ class HostRoots:
     cache: str
 
 
-@dataclass(frozen=True, slots=True)
-class EnvironmentSpec:
-    """Fully resolved inputs for one configured workspace instance."""
-
-    workspace_id: str
-    instance: str
-    host: str
-    platform: ImagePlatform | None
-    workspace: WorkspaceConfig
-    image: str
-    container: ContainerConfig
-    published_ports: tuple[tuple[int, int], ...]
-    open_path: str
-    clone_path: str
-
-    @property
-    def identity(self) -> str:
-        return environment_id(self.host, self.workspace_id, self.instance)
-
-    @property
-    def ssh_port(self) -> int:
-        return ssh_port(self.identity)
-
-    @property
-    def platform_label(self) -> PlatformSelection:
-        return platform_label(self.platform)
-
-    def instance_path(self, root: str) -> str:
-        """Return the ``<root>/<workspace>/<instance>`` host path for one mount root."""
-        return f"{root}/{self.workspace_id}/{self.instance}"
-
-    def to_environment(self, container_id: str, *, status: str | None = None) -> Environment:
-        return Environment(
-            id=self.identity,
-            host=self.host,
-            workspace=self.workspace_id,
-            instance=self.instance,
-            type=self.workspace.type,
-            repo=self.workspace.repo,
-            provider=self.workspace.provider,
-            git_url=self.workspace.git_url,
-            image=self.image,
-            platform=self.platform_label,
-            ssh_port=self.ssh_port,
-            container_id=container_id,
-            status=status,
-        )
-
-
-def environment_labels(spec: EnvironmentSpec) -> dict[str, str]:
-    """Build the canonical label set for a managed container."""
-    labels = {
-        LABEL_MANAGED: "true",
-        LABEL_WORKSPACE: spec.workspace_id,
-        LABEL_INSTANCE: spec.instance,
-        LABEL_TYPE: spec.workspace.type,
-        LABEL_IMAGE: spec.image,
-        LABEL_PLATFORM: spec.platform_label,
-        LABEL_SSH_PORT: str(spec.ssh_port),
-    }
-    if spec.workspace.repo is not None and spec.workspace.provider is not None:
-        labels[LABEL_REPO] = spec.workspace.repo
-        labels[LABEL_PROVIDER] = spec.workspace.provider
-    if spec.workspace.git_url is not None:
-        labels[LABEL_GIT_URL] = spec.workspace.git_url
-    return labels
-
-
 def environment_id(host: str, workspace: str, instance: str) -> str:
     return f"codespace-{host}-{workspace}-{instance}"
 
@@ -237,43 +163,6 @@ def deployment_id(deployment: str) -> str:
     carries no host or instance component: one name per deployment id per host.
     """
     return f"codespace-{deployment}"
-
-
-@dataclass(frozen=True, slots=True)
-class DeploymentSpec:
-    """Fully resolved inputs for one host-level deployment on one host."""
-
-    deployment_id: str
-    host: str
-    image: str
-    container: ContainerConfig
-    published_ports: tuple[tuple[int, int], ...]
-
-    @property
-    def identity(self) -> str:
-        return deployment_id(self.deployment_id)
-
-    def data_path(self, root: str) -> str:
-        """Return the ``<root>/<id>`` managed data path for the deployment root.
-
-        ``root`` is the host's resolved ``~/codespace-deployment`` directory, so
-        each deployment's persistent state lands in its own isolated subdirectory
-        just as an environment's mounts land under ``<root>/<workspace>/<instance>``.
-        """
-        return f"{root}/{self.deployment_id}"
-
-
-def deployment_labels(spec: DeploymentSpec) -> dict[str, str]:
-    """Build the canonical label set for a deployment container.
-
-    Deployments never carry ``codespace.managed`` so they stay invisible to
-    environment inventory; they use their own ``codespace.deployment`` family.
-    """
-    return {
-        LABEL_DEPLOYMENT: "true",
-        LABEL_DEPLOYMENT_ID: spec.deployment_id,
-        LABEL_IMAGE: spec.image,
-    }
 
 
 def ssh_port(identity: str) -> int:
@@ -294,23 +183,12 @@ def git_host(provider: GitProvider) -> str:
             return "gitlab.com"
 
 
-def repo_target(repo: str) -> str:
-    name = repo.rsplit("/", 1)[-1].removesuffix(".git")
-    return f"{WORKSPACE_MOUNT}/{name}"
-
-
-def git_url_target(git_url: str) -> str:
-    """Derive the checkout directory for a raw ``git@host:owner/name.git`` URL."""
-    trimmed = git_url.rstrip("/").removesuffix(".git")
-    name = re.split(r"[/:]", trimmed)[-1]
-    return f"{WORKSPACE_MOUNT}/{name}"
-
-
 def workspace_open_path(repo: str | None, git_url: str | None = None) -> str:
     if repo is not None:
-        return repo_target(repo)
+        return f"{WORKSPACE_MOUNT}/{repo.rsplit('/', 1)[-1].removesuffix('.git')}"
     if git_url is not None:
-        return git_url_target(git_url)
+        trimmed = git_url.rstrip("/").removesuffix(".git")
+        return f"{WORKSPACE_MOUNT}/{re.split(r'[/:]', trimmed)[-1]}"
     return WORKSPACE_MOUNT
 
 

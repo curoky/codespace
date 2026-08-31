@@ -127,6 +127,13 @@ def test_config_rejects_invalid_network_mode() -> None:
         Config.model_validate(_config(container={"network_mode": "none"}))
 
 
+def test_config_rejects_shm_size_with_host_ipc() -> None:
+    with pytest.raises(ValidationError, match=r"shm_size cannot be set.*ipc is 'host'"):
+        Config.model_validate(
+            _config(container={"network_mode": "host", "ipc": "host", "shm_size": "32g"})
+        )
+
+
 def test_config_rejects_combined_repo_with_separate_provider() -> None:
     with pytest.raises(ValidationError, match="either combined 'repo' or separate 'provider'"):
         Config.model_validate(
@@ -1066,6 +1073,26 @@ def test_deployment_host_bridge_override_wins() -> None:
 
     resolved = config.resolved_deployment_container("sidecar", "mac")
     assert resolved.is_bridge
+
+
+def test_deployment_rejects_host_shm_size_with_host_ipc_override() -> None:
+    with pytest.raises(ValidationError, match=r"shm_size cannot be set.*ipc is 'host'"):
+        Config.model_validate(
+            _deployment_config(
+                hosts={
+                    "server": {
+                        "deployments": ["sidecar"],
+                        "container": {"network_mode": "host", "shm_size": "32g"},
+                    }
+                },
+                deployments={
+                    "sidecar": {
+                        "image": "sidecar:latest",
+                        "container": {"ipc": "host"},
+                    }
+                },
+            )
+        )
 
 
 def test_deployment_accepts_data_placeholder_volume() -> None:

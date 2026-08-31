@@ -1,8 +1,9 @@
-"""Strict startup configuration loaded from the fixed Codespace YAML path."""
+"""Codespace configuration schema, resolution and YAML loading."""
 
 from __future__ import annotations
 
 import posixpath
+from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Annotated, Literal, Self, cast
 
@@ -18,20 +19,38 @@ from pydantic import (
 )
 
 from controller.models import (
+    LABEL_DEPLOYMENT,
+    LABEL_DEPLOYMENT_ID,
+    LABEL_GIT_URL,
+    LABEL_IMAGE,
+    LABEL_INSTANCE,
+    LABEL_MANAGED,
+    LABEL_PLATFORM,
+    LABEL_PROVIDER,
+    LABEL_REPO,
+    LABEL_SSH_PORT,
+    LABEL_TYPE,
+    LABEL_WORKSPACE,
     PODMAN_SOCKET,
     RESOURCE_ID_RE,
     WORKSPACE_MOUNT,
-    DeploymentSpec,
-    EnvironmentSpec,
+    Environment,
     GitProvider,
     GitUrl,
     HostId,
     ImagePlatform,
     NonBlankString,
+    PlatformSelection,
     RepoPath,
     TokenString,
+    environment_id,
     parse_port_mapping,
+    platform_label,
+    ssh_port,
     workspace_open_path,
+)
+from controller.models import (
+    deployment_id as deployment_container_id,
 )
 from controller.runtime.compose import Secret, ServiceSpec, Volume
 from controller.runtime.transport import HostEndpoint
@@ -57,17 +76,6 @@ def _require_under_workspace(value: PurePosixPath) -> PurePosixPath:
 type WorkspacePath = Annotated[PurePosixPath, AfterValidator(_require_under_workspace)]
 
 
-def _reject_reserved_env(value: dict[str, str] | None) -> dict[str, str] | None:
-    if value is None:
-        return value
-    reserved = _RESERVED_ENV_KEYS & value.keys()
-    if reserved:
-        raise ValueError(
-            f"container.environment must not set control-plane keys {sorted(reserved)}"
-        )
-    return value
-
-
 def _env_secret_targets(secrets: list[Secret] | None) -> list[str]:
     """Return the environment variable names produced by ``mode: env`` secrets."""
     if secrets is None:
@@ -82,13 +90,31 @@ def _mount_targets_overlap(left: str, right: str) -> bool:
     return common in (normalized_left, normalized_right)
 
 
+def _validate_port_mappings(value: list[str]) -> list[str]:
+    """Reject malformed mappings and duplicate host bindings."""
+    seen_local: set[int] = set()
+    for spec in value:
+        local, _remote = parse_port_mapping(spec)
+        if local in seen_local:
+            raise ValueError(f"duplicate published host port {local}")
+        seen_local.add(local)
+    return value
+
+
+type PublishedPorts = Annotated[list[str], AfterValidator(_validate_port_mappings)]
+
+
 class ContainerConfig(ServiceSpec):
     """Compose service subset with Codespace-specific validation."""
 
     @field_validator("environment")
     @classmethod
     def _reject_reserved(cls, value: dict[str, str] | None) -> dict[str, str] | None:
-        return _reject_reserved_env(value)
+        if value is not None and (reserved := _RESERVED_ENV_KEYS & value.keys()):
+            raise ValueError(
+                f"container.environment must not set control-plane keys {sorted(reserved)}"
+            )
+        return value
 
     @field_validator("volumes")
     @classmethod
@@ -121,6 +147,12 @@ class ContainerConfig(ServiceSpec):
         if value is not None and value not in ("host", "bridge"):
             raise ValueError("network_mode must be 'host' or 'bridge'")
         return value
+
+    @model_validator(mode="after")
+    def _reject_shm_size_with_host_ipc(self) -> Self:
+        if self.ipc == "host" and self.shm_size is not None:
+            raise ValueError("container.shm_size cannot be set when container.ipc is 'host'")
+        return self
 
     @field_validator("secrets")
     @classmethod
@@ -278,7 +310,7 @@ class _BaseWorkspace(BaseModel):
     image: NonBlankString | None = None
     open_path: NonBlankString | None = None
     clone_path: WorkspacePath | None = None
-    published_ports: list[str] | None = None
+    published_ports: PublishedPorts | None = None
     encrypt_workspace: bool = False
     container: ContainerConfig | None = None
 
@@ -304,20 +336,6 @@ class _BaseWorkspace(BaseModel):
     def _validate_open_path(cls, value: str | None) -> str | None:
         if value is not None and not value.startswith("/"):
             raise ValueError("open_path must be an absolute path")
-        return value
-
-    @field_validator("published_ports")
-    @classmethod
-    def _validate_published_ports(cls, value: list[str] | None) -> list[str] | None:
-        """Reject malformed port specs and duplicate host bindings at load time."""
-        if value is None:
-            return value
-        seen_local: set[int] = set()
-        for spec in value:
-            local, _remote = parse_port_mapping(spec)
-            if local in seen_local:
-                raise ValueError(f"duplicate published host port {local}")
-            seen_local.add(local)
         return value
 
     def resolved_clone_path(self) -> str:
@@ -427,28 +445,98 @@ class DeploymentConfig(BaseModel):
 
     image: NonBlankString
     description: NonBlankString | None = None
-    published_ports: list[str] | None = None
+    published_ports: PublishedPorts | None = None
     container: ContainerConfig | None = None
 
-    @field_validator("published_ports")
-    @classmethod
-    def _validate_published_ports(cls, value: list[str] | None) -> list[str] | None:
-        """Reject malformed port specs and duplicate host bindings at load time.
 
-        Publishing only takes effect on hosts whose resolved network_mode is
-        bridge; on host-network hosts these mappings are ignored, so unlike a
-        workspace a deployment may declare ports even when some hosts use host
-        networking.
-        """
-        if value is None:
-            return value
-        seen_local: set[int] = set()
-        for spec in value:
-            local, _remote = parse_port_mapping(spec)
-            if local in seen_local:
-                raise ValueError(f"duplicate published host port {local}")
-            seen_local.add(local)
-        return value
+@dataclass(frozen=True, slots=True)
+class EnvironmentSpec:
+    """Fully resolved inputs for one configured workspace instance."""
+
+    workspace_id: str
+    instance: str
+    host: str
+    platform: ImagePlatform | None
+    workspace: WorkspaceConfig
+    image: str
+    container: ContainerConfig
+    published_ports: tuple[tuple[int, int], ...]
+    open_path: str
+    clone_path: str
+
+    @property
+    def identity(self) -> str:
+        return environment_id(self.host, self.workspace_id, self.instance)
+
+    @property
+    def ssh_port(self) -> int:
+        return ssh_port(self.identity)
+
+    @property
+    def platform_label(self) -> PlatformSelection:
+        return platform_label(self.platform)
+
+    def instance_path(self, root: str) -> str:
+        return f"{root}/{self.workspace_id}/{self.instance}"
+
+    def to_environment(self, container_id: str, *, status: str | None = None) -> Environment:
+        return Environment(
+            id=self.identity,
+            host=self.host,
+            workspace=self.workspace_id,
+            instance=self.instance,
+            type=self.workspace.type,
+            repo=self.workspace.repo,
+            provider=self.workspace.provider,
+            git_url=self.workspace.git_url,
+            image=self.image,
+            platform=self.platform_label,
+            ssh_port=self.ssh_port,
+            container_id=container_id,
+            status=status,
+        )
+
+    def labels(self) -> dict[str, str]:
+        labels = {
+            LABEL_MANAGED: "true",
+            LABEL_WORKSPACE: self.workspace_id,
+            LABEL_INSTANCE: self.instance,
+            LABEL_TYPE: self.workspace.type,
+            LABEL_IMAGE: self.image,
+            LABEL_PLATFORM: self.platform_label,
+            LABEL_SSH_PORT: str(self.ssh_port),
+        }
+        if self.workspace.repo is not None and self.workspace.provider is not None:
+            labels[LABEL_REPO] = self.workspace.repo
+            labels[LABEL_PROVIDER] = self.workspace.provider
+        if self.workspace.git_url is not None:
+            labels[LABEL_GIT_URL] = self.workspace.git_url
+        return labels
+
+
+@dataclass(frozen=True, slots=True)
+class DeploymentSpec:
+    """Fully resolved inputs for one host-level deployment on one host."""
+
+    deployment_id: str
+    host: str
+    image: str
+    container: ContainerConfig
+    published_ports: tuple[tuple[int, int], ...]
+
+    @property
+    def identity(self) -> str:
+        return deployment_container_id(self.deployment_id)
+
+    def data_path(self, root: str) -> str:
+        return f"{root}/{self.deployment_id}"
+
+    def labels(self) -> dict[str, str]:
+        return {
+            LABEL_DEPLOYMENT: "true",
+            LABEL_DEPLOYMENT_ID: self.deployment_id,
+            LABEL_IMAGE: self.image,
+        }
 
 
 class Config(BaseModel):
@@ -551,13 +639,6 @@ class Config(BaseModel):
             host_id for host_id, host in self.hosts.items() if deployment_id in host.deployments
         ]
 
-    def deployment_ports(self, deployment_id: str) -> list[tuple[int, int]]:
-        """Resolve one deployment's published ``(local, remote)`` port mappings."""
-        ports = self.deployments[deployment_id].published_ports
-        if not ports:
-            return []
-        return [parse_port_mapping(spec) for spec in ports]
-
     def resolved_deployment_container(self, deployment_id: str, host: str) -> ContainerConfig:
         """Apply host and deployment container layers in order for one host.
 
@@ -580,7 +661,9 @@ class Config(BaseModel):
             host=host,
             image=deployment.image,
             container=self.resolved_deployment_container(deployment_id, host),
-            published_ports=tuple(self.deployment_ports(deployment_id)),
+            published_ports=tuple(
+                parse_port_mapping(port) for port in deployment.published_ports or []
+            ),
         )
 
     def workspace_image(self, workspace_id: str) -> str:
@@ -641,15 +724,6 @@ class Config(BaseModel):
 
 
 def _merge_layer(base: object, override: object) -> object:
-    """Overlay ``override`` onto ``base`` for the two-file config layering.
-
-    Mappings deep-merge key by key at every level, with the override winning on
-    collisions; scalars and lists replace outright. This keeps the base a
-    shareable, non-secret fragment while the private extend layer adds hosts,
-    workspaces.items and secrets on top and may tweak individual keys (e.g. a
-    single deployment's ``image`` or a host's ``network_mode``) without restating
-    the surrounding block.
-    """
     if isinstance(base, dict) and isinstance(override, dict):
         merged = dict(base)
         for key, value in override.items():
@@ -658,14 +732,9 @@ def _merge_layer(base: object, override: object) -> object:
     return override
 
 
-def _load_layers(path: Path, _seen: frozenset[Path] = frozenset()) -> dict[str, object]:
-    """Load one YAML file and merge it onto the base named by its ``extends`` pointer.
-
-    ``extends`` is resolved relative to the file that declares it and stripped
-    before merging; a config without ``extends`` is returned as-is. Cycles fail fast.
-    """
+def _load_layers(path: Path, seen: frozenset[Path] = frozenset()) -> dict[str, object]:
     resolved = path.resolve()
-    if resolved in _seen:
+    if resolved in seen:
         raise ValueError(f"config 'extends' chain forms a cycle at {resolved}")
     with resolved.open("rb") as config_file:
         raw = yaml.safe_load(config_file) or {}
@@ -676,15 +745,10 @@ def _load_layers(path: Path, _seen: frozenset[Path] = frozenset()) -> dict[str, 
         return raw
     if not isinstance(extends, str) or not extends.strip():
         raise ValueError(f"config {resolved} 'extends' must be a non-empty path string")
-    base_path = (resolved.parent / extends).resolve()
-    base = _load_layers(base_path, _seen | {resolved})
+    base = _load_layers(resolved.parent / extends, seen | {resolved})
     return cast("dict[str, object]", _merge_layer(base, raw))
 
 
 def load_config(path: Path = CONFIG_PATH) -> Config:
-    """Read, layer and validate the fixed-format YAML configuration.
-
-    The entrypoint file may name a shared base with ``extends: <relative-path>``;
-    the two layers are merged (see :func:`_merge_layer`) and validated as one.
-    """
+    """Load all YAML layers and validate the resulting configuration."""
     return Config.model_validate(_load_layers(path))

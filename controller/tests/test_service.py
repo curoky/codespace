@@ -8,10 +8,9 @@ import pytest
 
 from controller import container as containers
 from controller import inventory, provider, ssh, workspace
-from controller.config import Config
+from controller.config import Config, EnvironmentSpec
 from controller.models import (
     Environment,
-    EnvironmentSpec,
     HostRoots,
     RepoGitState,
     environment_id,
@@ -143,10 +142,10 @@ def test_dashboard_keeps_failed_operation_when_container_was_retained(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _queue_with_token(service)
+    operation = service.operations.list()[0]
     service.operations.update(
         "home",
-        "devspace",
-        "debug",
+        operation.id,
         status="failed",
         stage="failed",
         error="rollback stopped: provider unavailable",
@@ -238,7 +237,7 @@ def test_create_runs_all_stages_in_order(
     )
     monkeypatch.setattr(ssh, "probe", lambda *args: events.append("probe"))
     monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
-    monkeypatch.setattr(workspace, "clone_repo", lambda *args: events.append("clone"))
+    monkeypatch.setattr(workspace, "clone", lambda *args: events.append("clone"))
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
 
     service.create("devspace", "home", "debug")
@@ -325,7 +324,7 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
     monkeypatch.setattr(workspace, "inject_deploy_key", lambda *args, **kwargs: None)
     monkeypatch.setattr(ssh, "probe", lambda *args: None)
     monkeypatch.setattr(provider, "register", lambda *args: None)
-    monkeypatch.setattr(workspace, "clone_repo", lambda *args: None)
+    monkeypatch.setattr(workspace, "clone", lambda *args: None)
     monkeypatch.setattr(ssh, "write_host", lambda *args: None)
 
     service.create("devspace", "local", "debug")
@@ -367,8 +366,11 @@ def test_create_blank_project_skips_repo_stages(
     )
     monkeypatch.setattr(ssh, "probe", lambda *args: events.append("probe"))
     monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
-    monkeypatch.setattr(workspace, "clone_repo", lambda *args: events.append("clone"))
-    monkeypatch.setattr(workspace, "prepare_open_path", lambda *args: events.append("open_path"))
+    monkeypatch.setattr(
+        containers,
+        "execute_checked",
+        lambda *args, **kwargs: events.append("open_path"),
+    )
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
 
     service.create("scratch", "home", "debug")
@@ -430,11 +432,11 @@ def test_create_git_project_clones_url_without_deploy_key(
     )
     monkeypatch.setattr(ssh, "probe", lambda *args: events.append("probe"))
     monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
-    monkeypatch.setattr(workspace, "clone_repo", lambda *args: events.append("clone_repo"))
     monkeypatch.setattr(
-        workspace, "clone_git_url", lambda _container, url, _target: cloned.append(url)
+        workspace,
+        "clone",
+        lambda _container, url, _target: cloned.append(url),
     )
-    monkeypatch.setattr(workspace, "prepare_open_path", lambda *args: events.append("open_path"))
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
 
     service.create("abbie", "home", "debug")
@@ -442,7 +444,6 @@ def test_create_git_project_clones_url_without_deploy_key(
     assert "keygen" not in events
     assert "register" not in events
     assert "inject" not in events
-    assert "clone_repo" not in events
     assert cloned == ["git@curoky:devspace"]
     assert events == ["pull", "workspace", "create", "probe", "projection"]
     assert service.operations.list() == []
@@ -558,7 +559,7 @@ def test_failure_after_register_revokes_then_removes_container(
     monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
     monkeypatch.setattr(
         workspace,
-        "clone_repo",
+        "clone",
         lambda *args: (_ for _ in ()).throw(RuntimeError("clone failed")),
     )
     monkeypatch.setattr(inventory, "find_container", lambda *args: container)
@@ -595,7 +596,7 @@ def test_revoke_failure_after_register_retains_container(
     monkeypatch.setattr(provider, "register", lambda *args: None)
     monkeypatch.setattr(
         workspace,
-        "clone_repo",
+        "clone",
         lambda *args: (_ for _ in ()).throw(RuntimeError("clone failed")),
     )
     monkeypatch.setattr(
@@ -652,7 +653,7 @@ def test_delete_revokes_before_container_and_workspace_mutation(
     )
     monkeypatch.setattr(inventory, "list_inventory", lambda *args: next(inventories))
     monkeypatch.setattr(inventory, "find_container", lambda *args: container)
-    monkeypatch.setattr(workspace, "repo_git_state", lambda *args: RepoGitState())
+    monkeypatch.setattr(workspace, "checkout_git_state", lambda *args: RepoGitState())
     monkeypatch.setattr(provider, "revoke", lambda *args: events.append("revoke"))
     monkeypatch.setattr(containers, "purge_workspace", lambda *args: events.append("purge"))
     monkeypatch.setattr(containers, "remove_container", lambda item: events.append("remove"))
@@ -676,7 +677,7 @@ def test_delete_revoke_failure_refuses_all_mutation(
         lambda *args: inventory.Inventory([_environment()], []),
     )
     monkeypatch.setattr(inventory, "find_container", lambda *args: container)
-    monkeypatch.setattr(workspace, "repo_git_state", lambda *args: RepoGitState())
+    monkeypatch.setattr(workspace, "checkout_git_state", lambda *args: RepoGitState())
     monkeypatch.setattr(
         provider,
         "revoke",
@@ -706,7 +707,7 @@ def test_delete_without_force_inspects_and_skips_mutation(
     monkeypatch.setattr(inventory, "find_container", lambda *args: container)
     monkeypatch.setattr(
         workspace,
-        "repo_git_state",
+        "checkout_git_state",
         lambda *args: RepoGitState(unpushed=True, detail=["abc add feature"]),
     )
     monkeypatch.setattr(provider, "revoke", lambda *args: mutations.append("revoke"))
@@ -734,9 +735,9 @@ def test_delete_without_force_refuses_to_inspect_exited_container(
     monkeypatch.setattr(inventory, "find_container", lambda *args: container)
 
     def _fail_git_state(*_args: object) -> RepoGitState:
-        raise AssertionError("repo_git_state must not run for an exited container")
+        raise AssertionError("checkout_git_state must not run for an exited container")
 
-    monkeypatch.setattr(workspace, "repo_git_state", _fail_git_state)
+    monkeypatch.setattr(workspace, "checkout_git_state", _fail_git_state)
 
     with pytest.raises(
         RuntimeError,
@@ -762,9 +763,9 @@ def test_delete_force_skips_git_check_and_deletes(
     monkeypatch.setattr(inventory, "find_container", lambda *args: container)
 
     def _fail_git_state(*_args: object) -> RepoGitState:
-        raise AssertionError("repo_git_state must not run when force=True")
+        raise AssertionError("checkout_git_state must not run when force=True")
 
-    monkeypatch.setattr(workspace, "repo_git_state", _fail_git_state)
+    monkeypatch.setattr(workspace, "checkout_git_state", _fail_git_state)
     monkeypatch.setattr(provider, "revoke", lambda *args: events.append("revoke"))
     monkeypatch.setattr(containers, "remove_container", lambda item: events.append("remove"))
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))

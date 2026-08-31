@@ -11,12 +11,7 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
 from podman.domain.containers import Container
 
 from controller.container import execute, execute_checked
-from controller.models import (
-    CONTAINER_USER,
-    GitProvider,
-    RepoGitState,
-    git_host,
-)
+from controller.models import CONTAINER_USER, RepoGitState
 
 _CLONE_TIMEOUT = 15 * 60.0
 
@@ -50,14 +45,6 @@ def generate_deploy_keypair() -> DeployKeypair:
     return DeployKeypair(private_key=private_openssh, public_key=public_openssh)
 
 
-def prepare_open_path(container: Container, open_path: str) -> None:
-    execute_checked(
-        container,
-        [f"{_BIN}/prepare-open-path", open_path],
-        user=CONTAINER_USER,
-    )
-
-
 def inject_deploy_key(
     container: Container,
     deploy_private_key: str,
@@ -77,17 +64,7 @@ def inject_deploy_key(
     )
 
 
-def clone_repo(container: Container, repo: str, provider: GitProvider, target: str) -> None:
-    """Clone a provider repository into ``target`` unless its checkout already exists."""
-    _clone_url(container, target, f"git@{git_host(provider)}:{repo}.git")
-
-
-def clone_git_url(container: Container, git_url: str, target: str) -> None:
-    """Clone a raw ``git@host:owner/name.git`` URL into ``target`` unless it already exists."""
-    _clone_url(container, target, git_url)
-
-
-def _clone_url(container: Container, target: str, clone_url: str) -> None:
+def clone(container: Container, clone_url: str, target: str) -> None:
     """Clone ``clone_url`` into ``target`` via the in-image checkout helper."""
     execute_checked(
         container,
@@ -95,16 +72,6 @@ def _clone_url(container: Container, target: str, clone_url: str) -> None:
         user=CONTAINER_USER,
         timeout=_CLONE_TIMEOUT,
     )
-
-
-def repo_git_state(container: Container, target: str) -> RepoGitState:
-    """Return uncommitted and unpushed checkout state before deletion."""
-    return checkout_git_state(container, target)
-
-
-def git_url_git_state(container: Container, target: str) -> RepoGitState:
-    """Return checkout state for a raw-URL ``git`` workspace before deletion."""
-    return checkout_git_state(container, target)
 
 
 def checkout_git_state(container: Container, target: str) -> RepoGitState:

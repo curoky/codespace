@@ -14,6 +14,7 @@ from typing import Any
 from podman import PodmanClient
 from podman.domain.containers import Container
 
+from controller.config import DeploymentSpec, EnvironmentSpec
 from controller.models import (
     CACHE_MOUNT,
     CONTAINER_GID,
@@ -24,13 +25,9 @@ from controller.models import (
     WORKSPACE_CRYPT_SECRET,
     WORKSPACE_CRYPT_SECRET_ENV,
     WORKSPACE_MOUNT,
-    DeploymentSpec,
     Environment,
-    EnvironmentSpec,
     HostRoots,
     ImagePlatform,
-    deployment_labels,
-    environment_labels,
 )
 from controller.runtime import engine
 from controller.runtime.compose import Secret, ServiceSpec, Volume
@@ -54,7 +51,6 @@ __all__ = [
     "pull_image",
     "purge_workspace",
     "remove_container",
-    "remove_deployment_data",
     "remove_workspace",
     "wait_running",
 ]
@@ -133,7 +129,7 @@ def create_container(
         options=options,
         environment=environment,
         ports=ports,
-        labels=environment_labels(spec),
+        labels=spec.labels(),
         mounts=mounts,
         secret_mounts=secret_mounts,
         secret_env=secret_env,
@@ -263,7 +259,7 @@ def create_deployment_container(
         options=options,
         environment=environment,
         ports=ports,
-        labels=deployment_labels(spec),
+        labels=spec.labels(),
         mounts=mounts,
         secret_mounts=secret_mounts,
         secret_env=secret_env,
@@ -288,20 +284,6 @@ def _deployment_mount(volume: Volume, data_path: str) -> dict[str, object]:
         "target": volume.target,
         "read_only": volume.read_only,
     }
-
-
-def remove_deployment_data(
-    client: PodmanClient,
-    spec: DeploymentSpec,
-    data_root: str,
-) -> None:
-    """Remove one deployment's managed data directory below the deployment root."""
-    engine.remove_dir_with_helper(
-        client,
-        spec.image,
-        data_root,
-        spec.data_path(data_root),
-    )
 
 
 def purge_workspace(

@@ -16,7 +16,7 @@ from podman.errors import NotFound, PodmanError
 from controller import container as container_runtime
 from controller import deployment as deployment_ops
 from controller import inventory, workspace
-from controller.config import Config
+from controller.config import Config, EnvironmentSpec
 from controller.models import (
     LABEL_DEPLOYMENT,
     LABEL_DEPLOYMENT_ID,
@@ -33,11 +33,9 @@ from controller.models import (
     Deployment,
     DeploymentOperation,
     Environment,
-    EnvironmentSpec,
     HostRoots,
     deployment_id,
     environment_id,
-    environment_labels,
     ssh_port,
 )
 from controller.runtime import engine
@@ -318,11 +316,11 @@ def test_read_environment_rejects_invalid_platform_label(config: Config) -> None
 
 def test_written_labels_cover_every_required_label(config: Config) -> None:
     repo_labels = config.environment_spec("devspace", "home", "debug")
-    labels = environment_labels(repo_labels)
+    labels = repo_labels.labels()
 
     assert set(MANDATORY_LABELS) <= set(labels)
 
-    blank_labels = environment_labels(config.environment_spec("scratch", "home", "debug"))
+    blank_labels = config.environment_spec("scratch", "home", "debug").labels()
     assert set(MANDATORY_LABELS) <= set(blank_labels)
     assert LABEL_REPO not in blank_labels
     assert LABEL_PROVIDER not in blank_labels
@@ -792,12 +790,14 @@ def test_inject_deploy_key_writes_only_private_key() -> None:
     assert container.exec_calls == [(["chown", "x:x", "/home/x/.ssh/repo_id_ed25519"], "0")]
 
 
-def test_clone_repo_invokes_checkout_helper_with_provider_url_and_long_timeout() -> None:
-    # The multi-step checkout logic now lives in the in-image git-checkout
-    # helper; the control plane only invokes it with the resolved clone URL.
+def test_clone_invokes_checkout_helper_with_long_timeout() -> None:
     container = FakeContainer()
 
-    workspace.clone_repo(container, "group/service-api", "gitlab", "/workspace/service-api")  # type: ignore[arg-type]
+    workspace.clone(
+        container,  # type: ignore[arg-type]
+        "git@gitlab.com:group/service-api.git",
+        "/workspace/service-api",
+    )
 
     assert container.exec_calls == [
         (
@@ -812,19 +812,6 @@ def test_clone_repo_invokes_checkout_helper_with_provider_url_and_long_timeout()
     assert container.client.start_timeouts == [15 * 60.0]
 
 
-def test_clone_git_url_invokes_checkout_helper_with_raw_url() -> None:
-    container = FakeContainer()
-
-    workspace.clone_git_url(container, "git@curoky:devspace", "/workspace/devspace")  # type: ignore[arg-type]
-
-    assert container.exec_calls == [
-        (
-            ["/opt/codespace/bin/git-checkout", "git@curoky:devspace", "/workspace/devspace"],
-            "x",
-        )
-    ]
-
-
 def test_clone_raises_when_checkout_helper_fails() -> None:
     container = FakeContainer()
     container.exec_run = lambda command, user=None, demux=False: (  # type: ignore[method-assign]
@@ -832,23 +819,11 @@ def test_clone_raises_when_checkout_helper_fails() -> None:
     )
 
     with pytest.raises(RuntimeError, match=r"git-checkout.* failed \(1\)"):
-        workspace.clone_repo(container, "curoky/devspace", "github", "/workspace/devspace")  # type: ignore[arg-type]
-
-
-def test_prepare_open_path_invokes_helper_as_container_user() -> None:
-    container = FakeContainer()
-    container.exec_run = lambda command, user=None, demux=False: (  # type: ignore[method-assign]
-        container.exec_calls.append((command, user)) or (0, (None, None))
-    )
-
-    workspace.prepare_open_path(
-        container,  # type: ignore[arg-type]
-        "/workspace/relevance-pipeline",
-    )
-
-    assert container.exec_calls == [
-        (["/opt/codespace/bin/prepare-open-path", "/workspace/relevance-pipeline"], "x")
-    ]
+        workspace.clone(
+            container,  # type: ignore[arg-type]
+            "git@github.com:curoky/devspace.git",
+            "/workspace/devspace",
+        )
 
 
 def _environment_for_purge(platform: str) -> Environment:
@@ -979,12 +954,12 @@ class GitStateFakeContainer:
         return code, (stdout or None, stderr or None)
 
 
-def test_repo_git_state_invokes_helper_and_parses_clean_json() -> None:
+def test_checkout_git_state_invokes_helper_and_parses_clean_json() -> None:
     container = GitStateFakeContainer(
         (0, b'{"unpushed": false, "uncommitted": false, "detail": []}', b"")
     )
 
-    state = workspace.repo_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
+    state = workspace.checkout_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
 
     assert container.calls == [(["/opt/codespace/bin/git-state", "/workspace/devspace"], "x")]
     assert state.blocks_delete is False
@@ -993,7 +968,7 @@ def test_repo_git_state_invokes_helper_and_parses_clean_json() -> None:
     assert state.detail == []
 
 
-def test_repo_git_state_parses_detected_changes() -> None:
+def test_checkout_git_state_parses_detected_changes() -> None:
     container = GitStateFakeContainer(
         (
             0,
@@ -1003,7 +978,7 @@ def test_repo_git_state_parses_detected_changes() -> None:
         )
     )
 
-    state = workspace.repo_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
+    state = workspace.checkout_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
 
     assert state.blocks_delete is True
     assert state.unpushed is True
@@ -1011,11 +986,11 @@ def test_repo_git_state_parses_detected_changes() -> None:
     assert state.detail == [" M models.py", "abc123 add feature"]
 
 
-def test_repo_git_state_raises_on_helper_failure() -> None:
+def test_checkout_git_state_raises_on_helper_failure() -> None:
     container = GitStateFakeContainer((1, b"", b"boom"))
 
     with pytest.raises(RuntimeError, match=r"git-state failed \(1\)"):
-        workspace.repo_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
+        workspace.checkout_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
 
 
 # --- Deployment inventory ----------------------------------------------------
@@ -1150,7 +1125,6 @@ def _llm_deployment_config() -> Config:
                     "container": {
                         "network_mode": "bridge",
                         "ipc": "host",
-                        "shm_size": "32g",
                         "cap_add": [],
                         "ulimits": {},
                         "devices": ["nvidia.com/gpu=all"],
@@ -1184,7 +1158,7 @@ def test_create_deployment_container_translates_llm_run_options(
     assert kwargs["name"] == "codespace-llm-vllm"
     assert kwargs["network_mode"] == "bridge"
     assert kwargs["ipc_mode"] == "host"
-    assert kwargs["shm_size"] == "32g"
+    assert "shm_size" not in kwargs
     assert kwargs["devices"] == ["nvidia.com/gpu=all"]
     assert kwargs["ports"] == {"8003/tcp": 8003}
     assert kwargs["restart_policy"] == {"Name": "unless-stopped"}
@@ -1292,7 +1266,7 @@ def test_teardown_removes_container_and_optionally_purges_data(
     config = _llm_deployment_config()
     spec = config.deployment_spec("llm-vllm", "gpu")
     removed: list[object] = []
-    purged: list[str] = []
+    purged: list[tuple[str, str, str]] = []
 
     class Found:
         pass
@@ -1310,8 +1284,8 @@ def test_teardown_removes_container_and_optionally_purges_data(
     )
     monkeypatch.setattr(
         deployment_ops.containers,
-        "remove_deployment_data",
-        lambda _client, _spec, root: purged.append(root),
+        "remove_workspace",
+        lambda _client, image, root, target: purged.append((image, root, target)),
     )
 
     was_removed = deployment_ops.teardown(
@@ -1325,7 +1299,13 @@ def test_teardown_removes_container_and_optionally_purges_data(
 
     assert was_removed is True
     assert removed == [found]
-    assert purged == ["/home/x/codespace-deployment"]
+    assert purged == [
+        (
+            "llm-vllm:latest",
+            "/home/x/codespace-deployment",
+            "/home/x/codespace-deployment/llm-vllm",
+        )
+    ]
 
 
 def test_teardown_reports_missing_container_without_purge(

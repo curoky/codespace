@@ -16,12 +16,12 @@ API 或 host contract 时必须同步更新本文相关章节。
 | 路径 | 职责 |
 | --- | --- |
 | `controller/app.py`、`api.py`、`__main__.py` | Web 应用装配、HTTP 路由与入口 |
-| `controller/config.py`、`models.py` | 配置与 API model |
+| `controller/config.py`、`models.py` | 配置加载、schema、运行规格与 API model |
 | `controller/runtime/` | 与 codespace 无关的通用底层设施：`engine.py`（Podman image/container/exec 原语）、`transport.py`（Podman Host 连接）、`remote.py`（通用 SSH 远程命令与本地原子文件写）、`compose/`（Compose 语法子集解析）。**不得** import 任何 codespace 业务模块 |
 | `controller/ssh.py` | codespace SSH 投影与登录 probe（`~/.ssh/codespace/` 布局、`codespace-*` 别名），底层远程/文件操作调 `controller/runtime/remote.py` |
-| `controller/inventory.py`、`container.py`、`workspace.py` | Podman inventory、codespace 容器语义（在 `runtime/engine.py` 之上注入 label/workspace mount/secret 默认）和 workspace 原语 |
-| `controller/service.py`、`dashboard.py`、`operations.py` | 生命周期编排、Dashboard 投影与操作状态 |
-| `controller/deployment.py` | host 级 deployment（sidecar、LLM serving 等自包含镜像）的 reconcile/clean/purge 编排与 Dashboard 投影，层叠 `container.py`/`inventory.py`/`ssh.py` 原语 |
+| `controller/inventory.py`、`container.py`、`workspace.py` | environment/deployment 共用的 Podman inventory、容器 option 翻译、镜像/日志/删除和 workspace 原语 |
+| `controller/service.py`、`dashboard.py`、`operations.py` | 生命周期编排、Dashboard 投影与共用的线程安全 operation store |
+| `controller/deployment.py` | host 级 deployment（sidecar、LLM serving 等自包含镜像）的 reconcile/clean/purge 编排与 Dashboard 投影 |
 | `controller/provider.py` | Git provider deploy key |
 | `controller/tools/` | 不依赖 Web UI 的维护 CLI |
 | `controller/assets/ssh/` | 固定登录 key、SSH 公共配置和 pinned host key |
@@ -156,7 +156,6 @@ deployments:
     container:
       network_mode: bridge
       ipc: host
-      shm_size: 32g
       devices:
         - nvidia.com/gpu=all
       volumes:
@@ -228,8 +227,10 @@ secrets:
     `/workspace`、`/upload`、`/cache` 相同或互为父子路径。
   - `devices` 原样转发给 `--device`，GPU 用 CDI 设备名（如 `nvidia.com/gpu=all`），要求该 host 已装 NVIDIA
     驱动与 CDI 规范文件。
-  - `shm_size` 原样转发给 `--shm-size`（podman 认的格式），控制面不做归一。
-  - `ipc` 原样转发给 `--ipc`（如 `host`），控制面不做归一；GPU 推理等需共享大 `/dev/shm` 的部署常配 `host`。
+  - `shm_size` 原样转发给 `--shm-size`（podman 认的格式），控制面不做归一；不得与 `ipc: host` 同时设置，
+    Podman 会拒绝为宿主 IPC namespace 配置容器私有 shm 大小。
+  - `ipc` 原样转发给 `--ipc`（如 `host`），控制面不做归一；GPU 推理等需共享大 `/dev/shm` 的部署可配
+    `host`，此时直接使用宿主 `/dev/shm`。
   - `environment` 支持映射或 `["KEY=value"]` 列表短语法，禁用保留键 `SSHD_PORT`/`SSHD_BIND`，原样转发。
   - `secrets` 引用 host 上已 `podman secret create` 预注册的 secret，控制面只按名字引用、绝不持有明文。每项
     支持裸字符串（等价 `{source: <name>, mode: mount}`）或长语法 `{source, mode, target?, uid?, gid?,
