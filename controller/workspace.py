@@ -5,7 +5,6 @@ from __future__ import annotations
 import io
 import tarfile
 from dataclasses import dataclass
-from pathlib import PurePosixPath
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
@@ -20,7 +19,10 @@ from controller.models import (
 )
 
 _CLONE_TIMEOUT = 15 * 60.0
-_EMPTY_REPOSITORY_MARKER = "codespace-empty-repository"
+
+# In-image helpers that carry the multi-step checkout/state logic; the control
+# plane only invokes them so the Python side stays a thin glue layer.
+_BIN = "/opt/codespace/bin"
 
 
 @dataclass(frozen=True, slots=True)
@@ -49,7 +51,11 @@ def generate_deploy_keypair() -> DeployKeypair:
 
 
 def prepare_open_path(container: Container, open_path: str) -> None:
-    execute_checked(container, ["mkdir", "-p", "--", open_path], user=CONTAINER_USER)
+    execute_checked(
+        container,
+        [f"{_BIN}/prepare-open-path", open_path],
+        user=CONTAINER_USER,
+    )
 
 
 def inject_deploy_key(
@@ -82,66 +88,13 @@ def clone_git_url(container: Container, git_url: str, target: str) -> None:
 
 
 def _clone_url(container: Container, target: str, clone_url: str) -> None:
-    """Clone ``clone_url`` into ``target``, reusing a valid existing checkout."""
-    present = execute(
-        container,
-        ["test", "-d", f"{target}/.git"],
-        user=CONTAINER_USER,
-    )
-    if present.code == 0:
-        head = execute(
-            container,
-            ["git", "-C", target, "rev-parse", "--verify", "HEAD"],
-            user=CONTAINER_USER,
-        )
-        if head.code == 0:
-            return
-        empty = execute(
-            container,
-            ["test", "-f", f"{target}/.git/{_EMPTY_REPOSITORY_MARKER}"],
-            user=CONTAINER_USER,
-        )
-        if empty.code == 0:
-            return
-        execute_checked(container, ["rm", "-rf", "--", target], user=CONTAINER_USER)
-    else:
-        target_exists = execute(
-            container,
-            ["test", "-e", target],
-            user=CONTAINER_USER,
-        )
-        if target_exists.code == 0:
-            raise RuntimeError(f"repository target exists but is not a checkout: {target}")
-
-    parent = str(PurePosixPath(target).parent)
-    if parent not in ("", "/"):
-        execute_checked(container, ["mkdir", "-p", "--", parent], user=CONTAINER_USER)
-    temporary = f"{target}.codespace-clone"
-    execute_checked(container, ["rm", "-rf", "--", temporary], user=CONTAINER_USER)
+    """Clone ``clone_url`` into ``target`` via the in-image checkout helper."""
     execute_checked(
         container,
-        [
-            "git",
-            "clone",
-            "--depth=1",
-            clone_url,
-            temporary,
-        ],
+        [f"{_BIN}/git-checkout", clone_url, target],
         user=CONTAINER_USER,
         timeout=_CLONE_TIMEOUT,
     )
-    head = execute(
-        container,
-        ["git", "-C", temporary, "rev-parse", "--verify", "HEAD"],
-        user=CONTAINER_USER,
-    )
-    if head.code != 0:
-        execute_checked(
-            container,
-            ["touch", f"{temporary}/.git/{_EMPTY_REPOSITORY_MARKER}"],
-            user=CONTAINER_USER,
-        )
-    execute_checked(container, ["mv", "--", temporary, target], user=CONTAINER_USER)
 
 
 def repo_git_state(container: Container, target: str) -> RepoGitState:
@@ -150,39 +103,18 @@ def repo_git_state(container: Container, target: str) -> RepoGitState:
 
 
 def git_url_git_state(container: Container, target: str) -> RepoGitState:
-    """Return checkout state for a raw-URL ``git`` project before deletion."""
+    """Return checkout state for a raw-URL ``git`` workspace before deletion."""
     return checkout_git_state(container, target)
 
 
 def checkout_git_state(container: Container, target: str) -> RepoGitState:
-    present = execute(
-        container,
-        ["test", "-d", f"{target}/.git"],
-        user=CONTAINER_USER,
-    )
-    if present.code != 0:
-        return RepoGitState()
-
-    dirty = _git_lines(container, target, ["status", "--porcelain"])
-    unpushed = _git_lines(
-        container,
-        target,
-        ["log", "--branches", "--not", "--remotes", "--oneline"],
-    )
-    return RepoGitState(
-        unpushed=bool(unpushed),
-        uncommitted=bool(dirty),
-        detail=[*dirty, *unpushed][:20],
-    )
-
-
-def _git_lines(container: Container, target: str, args: list[str]) -> list[str]:
-    result = execute(container, ["git", "-C", target, *args], user=CONTAINER_USER)
+    """Return checkout state via the in-image ``git-state`` helper."""
+    result = execute(container, [f"{_BIN}/git-state", target], user=CONTAINER_USER)
     if result.code != 0:
         raise RuntimeError(
-            f"exec git {args!r} failed ({result.code}): {result.stderr or result.stdout}"
+            f"exec git-state failed ({result.code}): {result.stderr or result.stdout}"
         )
-    return [line for line in result.stdout.splitlines() if line.strip()]
+    return RepoGitState.model_validate_json(result.stdout)
 
 
 def _deploy_key_archive(content: str) -> bytes:

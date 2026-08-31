@@ -17,6 +17,7 @@ from tenacity import Retrying, retry_if_exception_type, stop_after_delay, wait_f
 from controller.models import (
     CACHE_DIR_NAME,
     CONTAINER_USER,
+    DEPLOYMENT_DIR_NAME,
     UPLOAD_DIR_NAME,
     WORKSPACE_DIR_NAME,
     Environment,
@@ -73,6 +74,15 @@ def remote_instance_roots(route: SSHRoute) -> HostRoots:
     )
 
 
+def remote_deployment_root(route: SSHRoute) -> str:
+    """Resolve and create the deployment data root ``~/codespace-deployment``.
+
+    Deployments keep their managed state below this root, isolated per id, just
+    as environments keep theirs below the workspace/upload/cache roots.
+    """
+    return _remote_root(route, DEPLOYMENT_DIR_NAME)
+
+
 def prepare_instance_dirs(route: SSHRoute, targets: list[str]) -> None:
     """Create one environment's instance directories as the host login user."""
     if not targets:
@@ -90,7 +100,7 @@ def prepare_instance_dirs(route: SSHRoute, targets: list[str]) -> None:
 
 
 def list_workspaces(route: SSHRoute, workspace_root: str) -> list[str]:
-    """List ``<project>/<instance>`` directories below a workspace root."""
+    """List ``<workspace>/<instance>`` directories below a workspace root."""
     if not workspace_root.startswith("/"):
         raise RuntimeError(f"refusing to list non-absolute workspace root: {workspace_root!r}")
     result = _run_host(
@@ -237,7 +247,7 @@ def write_host(host: str, environments: list[Environment], route: SSHRoute) -> N
         _render_environment(environment, route)
         for environment in sorted(
             environments,
-            key=lambda item: (item.project, item.instance),
+            key=lambda item: (item.workspace, item.instance),
         )
     ]
     content = "\n\n".join(blocks)

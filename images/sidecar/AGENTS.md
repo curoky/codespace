@@ -12,7 +12,7 @@
 - Sidecar 没有 project workspace、environment SSH port、login alias、deploy key、repository 或 SSH 投影。
 - 创建或删除 environment 不得创建、替换或删除 host sidecar；sidecar 故障可反映在 host 状态，但不得破坏
   environment inventory。
-- 持久服务数据只用 sidecar contract 管理的 host storage，不用 `~/codespace/<project>/<instance>`。
+- 持久服务数据只用 sidecar contract 管理的 host storage，不用 `~/codespace/<workspace>/<instance>`。
 - image-prewarm 是本契约**唯一** Podman socket 例外：允许启动器把宿主 rootful Podman socket bind-mount 进
   sidecar 供调用 Podman REST API，且仅用于按清单 `pull` 镜像和清理 dangling 镜像。除此外，镜像与 sidecar
   仍不得携带 Podman socket、控制面、workspace mount、provider token 或 repository credential。
@@ -71,19 +71,19 @@ Atuin client 始终访问 `http://127.0.0.1:8002`。
 
 ## 控制面边界
 
-镜像、手动启动器和带外部署 CLI 均已存在，但常驻控制面进程仍不 reconcile sidecar。带外维护 CLI
-`controller.tools.deploy_sidecar` 复用现有 host Podman transport，把固定 `codespace-sidecar` 单例幂等部署到
-每个 SSH host（`type: ssh`）：默认 dry-run，`--no-dry-run` 时 `podman pull` 固定镜像、按名替换旧容器，并以
-host network、`unless-stopped` restart policy、bind-mount 宿主 Podman socket、`atuin_db_uri` 以 `env` 注入
-`ATUIN_DB_URI` 启动，等价 `run-linux.sh`；secret 缺失的 host 报告并跳过。podman-machine 的 `local` host 用
-`run-macos.sh` 的 bridge 启动器、该 CLI 不覆盖。若后续在常驻进程内实现 sidecar 生命周期，必须：
+Sidecar 现由控制面作为 host 级 **deployment** 原生管理（配置项 `deployments.sidecar`，见
+[`controller/AGENTS.md`](../../controller/AGENTS.md) 的「部署生命周期」）：容器名 `codespace-sidecar`、只带
+`codespace.deployment*` label、经 `hosts.<host>.deployments` 选择落到哪些 host，UI 上点 Deploy/Clean 即完成
+reconcile 与清理。Atuin 用外部数据库、无持久服务数据，故 deployment 通常无需 `${DEPLOYMENT_DATA}` volume；
+`atuin_db_uri` 仍以 `env` 注入且须先经 `sync_secrets` 注册，缺失即 fail-fast。
 
-1. 定义 sidecar 专用 label 和严格 inventory 校验。
-2. 复用现有 host Podman transport，不增加协议。
-3. 幂等确保每个在线已配置 host 存在固定 sidecar。
-4. 明确报告缺失、停止、重复或格式错误的 sidecar。
-5. 增加生命周期以及在线、离线 host 混合测试。
-6. 用最终 label 和 API 同步更新本文、根 [`AGENTS.md`](../../AGENTS.md) 与
-   [`controller/AGENTS.md`](../../controller/AGENTS.md)。
+镜像、手动启动器 `run-*.sh` 与带外 CLI `controller.tools.deploy_sidecar` 仍作为不依赖控制面进程的手动/脚本化
+路径保留，三条路径产出等价容器形态。带外 CLI 复用现有 host Podman transport，把固定 `codespace-sidecar`
+单例幂等部署到每个 SSH host（`type: ssh`）：默认 dry-run，`--no-dry-run` 时 `podman pull` 固定镜像、按名替换
+旧容器，并以 host network、`unless-stopped` restart policy、bind-mount 宿主 Podman socket、`atuin_db_uri` 以
+`env` 注入 `ATUIN_DB_URI` 启动，等价 `run-linux.sh`；secret 缺失的 host 报告并跳过。podman-machine 的 `local`
+host 用 `run-macos.sh` 的 bridge 启动器、该 CLI 不覆盖。
 
-除非明确要求，不增加迁移或兼容行为。
+修改 sidecar 部署形态（label、inventory、容器块、注入 secret）时，必须用最终 label 和 API 同步更新本文、根
+[`AGENTS.md`](../../AGENTS.md) 与 [`controller/AGENTS.md`](../../controller/AGENTS.md)；除非明确要求，不增加
+迁移或兼容行为。

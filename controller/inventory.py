@@ -8,27 +8,32 @@ from podman import PodmanClient
 from podman.domain.containers import Container
 from podman.errors import NotFound
 
-from controller.config import Config, ProjectConfig
+from controller.config import Config, WorkspaceConfig
 from controller.models import (
     GIT_URL_RE,
+    LABEL_DEPLOYMENT,
+    LABEL_DEPLOYMENT_ID,
     LABEL_GIT_URL,
     LABEL_IMAGE,
     LABEL_INSTANCE,
     LABEL_MANAGED,
     LABEL_PLATFORM,
-    LABEL_PROJECT,
     LABEL_PROVIDER,
     LABEL_REPO,
     LABEL_SSH_PORT,
     LABEL_TYPE,
+    LABEL_WORKSPACE,
+    MANDATORY_DEPLOYMENT_LABELS,
     MANDATORY_LABELS,
     REPO_RE,
     RESOURCE_ID_RE,
+    Deployment,
     Environment,
     EnvironmentSpec,
     GitProvider,
     PlatformSelection,
-    ProjectType,
+    WorkspaceType,
+    deployment_id,
     environment_id,
     ssh_port,
 )
@@ -37,6 +42,12 @@ from controller.models import (
 @dataclass(frozen=True, slots=True)
 class Inventory:
     environments: list[Environment]
+    errors: list[str]
+
+
+@dataclass(frozen=True, slots=True)
+class DeploymentInventory:
+    deployments: list[Deployment]
     errors: list[str]
 
 
@@ -53,7 +64,7 @@ def list_inventory(client: PodmanClient, host: str, config: Config) -> Inventory
             environments.append(read_environment(container, host, config))
         except ValueError as exc:
             errors.append(str(exc))
-    environments.sort(key=lambda environment: (environment.project, environment.instance))
+    environments.sort(key=lambda environment: (environment.workspace, environment.instance))
     return Inventory(environments=environments, errors=errors)
 
 
@@ -64,31 +75,31 @@ def read_environment(container: Container, host: str, config: Config) -> Environ
     if raw_labels.get(LABEL_MANAGED) != "true":
         raise ValueError(f"container {name} has invalid label {LABEL_MANAGED}")
     labels = {key: _required_label(raw_labels, name, key) for key in MANDATORY_LABELS}
-    project = labels[LABEL_PROJECT]
+    workspace = labels[LABEL_WORKSPACE]
     instance = labels[LABEL_INSTANCE]
-    project_type = _project_type(labels[LABEL_TYPE], name)
+    workspace_type = _workspace_type(labels[LABEL_TYPE], name)
 
-    if not RESOURCE_ID_RE.fullmatch(project):
-        raise ValueError(f"container {name} has invalid project label {project!r}")
+    if not RESOURCE_ID_RE.fullmatch(workspace):
+        raise ValueError(f"container {name} has invalid workspace label {workspace!r}")
     if not RESOURCE_ID_RE.fullmatch(instance):
         raise ValueError(f"container {name} has invalid instance label {instance!r}")
-    if project not in config.projects:
-        raise ValueError(f"container {name} references unknown project {project!r}")
-    configured_project = config.projects[project]
-    if all(entry.name != host for entry in configured_project.host):
-        allowed = sorted(entry.name for entry in configured_project.host)
+    if workspace not in config.workspaces.items:
+        raise ValueError(f"container {name} references unknown workspace {workspace!r}")
+    configured_workspace = config.workspaces.items[workspace]
+    if all(entry.name != host for entry in configured_workspace.host):
+        allowed = sorted(entry.name for entry in configured_workspace.host)
         raise ValueError(
-            f"container {name} project {project!r} is not configured for host "
+            f"container {name} workspace {workspace!r} is not configured for host "
             f"{host!r}; allowed hosts: {allowed}"
         )
-    if configured_project.type != project_type:
+    if configured_workspace.type != workspace_type:
         raise ValueError(
-            f"container {name} type {project_type!r} does not match project {project!r}"
+            f"container {name} type {workspace_type!r} does not match workspace {workspace!r}"
         )
 
-    repo, provider = _read_repo_labels(raw_labels, name, project_type, configured_project)
-    git_url = _read_git_url_label(raw_labels, name, project_type, configured_project)
-    identity = environment_id(host, project, instance)
+    repo, provider = _read_repo_labels(raw_labels, name, workspace_type, configured_workspace)
+    git_url = _read_git_url_label(raw_labels, name, workspace_type, configured_workspace)
+    identity = environment_id(host, workspace, instance)
     if name != identity:
         raise ValueError(f"container {name} must use deterministic name {identity!r}")
     try:
@@ -104,9 +115,9 @@ def read_environment(container: Container, host: str, config: Config) -> Environ
     return Environment(
         id=identity,
         host=host,
-        project=project,
+        workspace=workspace,
         instance=instance,
-        type=project_type,
+        type=workspace_type,
         repo=repo,
         provider=provider,
         git_url=git_url,
@@ -129,7 +140,7 @@ def find_container(
     except NotFound:
         return None
     environment = read_environment(container, spec.host, config)
-    if environment.project != spec.project_id or environment.instance != spec.instance:
+    if environment.workspace != spec.workspace_id or environment.instance != spec.instance:
         raise ValueError(f"container {spec.identity} has mismatched identity labels")
     return container
 
@@ -144,40 +155,108 @@ def container_status(container: Container) -> str | None:
     return None
 
 
+def list_deployments(client: PodmanClient, host: str, config: Config) -> DeploymentInventory:
+    """Return valid deployment containers and errors for damaged deployment inventory.
+
+    Filters strictly on ``codespace.deployment=true`` so it never sees managed
+    environment containers, and vice versa.
+    """
+    deployments: list[Deployment] = []
+    errors: list[str] = []
+    containers = client.containers.list(
+        all=True,
+        filters={"label": f"{LABEL_DEPLOYMENT}=true"},
+    )
+    for container in containers:
+        try:
+            deployments.append(read_deployment(container, host, config))
+        except ValueError as exc:
+            errors.append(str(exc))
+    deployments.sort(key=lambda deployment: deployment.deployment)
+    return DeploymentInventory(deployments=deployments, errors=errors)
+
+
+def read_deployment(container: Container, host: str, config: Config) -> Deployment:
+    """Validate one container against the deployment label contract."""
+    name = _container_name(container)
+    raw_labels = container.labels or {}
+    if raw_labels.get(LABEL_DEPLOYMENT) != "true":
+        raise ValueError(f"container {name} has invalid label {LABEL_DEPLOYMENT}")
+    if raw_labels.get(LABEL_MANAGED) is not None:
+        raise ValueError(f"deployment container {name} must not carry {LABEL_MANAGED} label")
+    labels = {key: _required_label(raw_labels, name, key) for key in MANDATORY_DEPLOYMENT_LABELS}
+    deployment = labels[LABEL_DEPLOYMENT_ID]
+    if not RESOURCE_ID_RE.fullmatch(deployment):
+        raise ValueError(f"container {name} has invalid deployment label {deployment!r}")
+    if deployment not in config.deployments:
+        raise ValueError(f"container {name} references unknown deployment {deployment!r}")
+    if deployment not in config.hosts[host].deployments:
+        raise ValueError(
+            f"container {name} deployment {deployment!r} is not configured for host {host!r}"
+        )
+    identity = deployment_id(deployment)
+    if name != identity:
+        raise ValueError(f"container {name} must use deterministic name {identity!r}")
+    return Deployment(
+        id=identity,
+        deployment=deployment,
+        host=host,
+        image=labels[LABEL_IMAGE],
+        container_id=container.id,
+        status=container_status(container),
+    )
+
+
+def find_deployment_container(
+    client: PodmanClient,
+    deployment: str,
+    host: str,
+    config: Config,
+) -> Container | None:
+    """Find and validate the deterministic container for a deployment on one host."""
+    identity = deployment_id(deployment)
+    try:
+        container = client.containers.get(identity)
+    except NotFound:
+        return None
+    read_deployment(container, host, config)
+    return container
+
+
 def _read_repo_labels(
     labels: dict[str, str],
     name: str,
-    project_type: ProjectType,
-    configured_project: ProjectConfig,
+    workspace_type: WorkspaceType,
+    configured_workspace: WorkspaceConfig,
 ) -> tuple[str | None, GitProvider | None]:
-    if project_type != "repo":
+    if workspace_type != "repo":
         if labels.get(LABEL_REPO) or labels.get(LABEL_PROVIDER):
-            raise ValueError(f"container {name} is {project_type} but has repo or provider label")
+            raise ValueError(f"container {name} is {workspace_type} but has repo or provider label")
         return None, None
     repo = _required_label(labels, name, LABEL_REPO)
     provider = _provider(_required_label(labels, name, LABEL_PROVIDER), name)
     if not REPO_RE.fullmatch(repo):
         raise ValueError(f"container {name} has invalid repo label {repo!r}")
-    if configured_project.repo != repo or configured_project.provider != provider:
-        raise ValueError(f"container {name} labels do not match project labels")
+    if configured_workspace.repo != repo or configured_workspace.provider != provider:
+        raise ValueError(f"container {name} labels do not match workspace labels")
     return repo, provider
 
 
 def _read_git_url_label(
     labels: dict[str, str],
     name: str,
-    project_type: ProjectType,
-    configured_project: ProjectConfig,
+    workspace_type: WorkspaceType,
+    configured_workspace: WorkspaceConfig,
 ) -> str | None:
-    if project_type != "git":
+    if workspace_type != "git":
         if labels.get(LABEL_GIT_URL):
-            raise ValueError(f"container {name} is {project_type} but has git-url label")
+            raise ValueError(f"container {name} is {workspace_type} but has git-url label")
         return None
     git_url = _required_label(labels, name, LABEL_GIT_URL)
     if not GIT_URL_RE.fullmatch(git_url):
         raise ValueError(f"container {name} has invalid git-url label {git_url!r}")
-    if configured_project.git_url != git_url:
-        raise ValueError(f"container {name} labels do not match project labels")
+    if configured_workspace.git_url != git_url:
+        raise ValueError(f"container {name} labels do not match workspace labels")
     return git_url
 
 
@@ -202,7 +281,7 @@ def _provider(value: str, name: str) -> GitProvider:
             raise ValueError(f"container {name} has invalid provider label {value!r}")
 
 
-def _project_type(value: str, name: str) -> ProjectType:
+def _workspace_type(value: str, name: str) -> WorkspaceType:
     match value:
         case "repo":
             return "repo"

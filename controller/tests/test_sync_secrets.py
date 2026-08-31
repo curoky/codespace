@@ -16,18 +16,19 @@ from controller.tools import sync_secrets
 def config() -> Config:
     return Config.model_validate(
         {
-            "default_image": "image",
-            "container": {"network_mode": "host"},
+            "workspaces": {
+                "defaults": {"image": "image", "container": {"network_mode": "host"}},
+                "items": {
+                    "devspace": {
+                        "repo": "github:owner/repo",
+                        "host": [{"name": "home"}, {"name": "office"}],
+                    }
+                },
+            },
             "hosts": {"home": {}, "office": {}},
             "secrets": {
                 "supabase_service_key": "svc-value",
                 "supabase_anon": "anon-value",
-            },
-            "projects": {
-                "devspace": {
-                    "repo": "github:owner/repo",
-                    "host": [{"name": "home"}, {"name": "office"}],
-                }
             },
         }
     )
@@ -132,10 +133,11 @@ def test_no_dry_run_creates_all_secrets_on_all_hosts(
 def test_no_secrets_declared_is_a_noop(monkeypatch: pytest.MonkeyPatch) -> None:
     config = Config.model_validate(
         {
-            "default_image": "image",
-            "container": {"network_mode": "host"},
+            "workspaces": {
+                "defaults": {"image": "image", "container": {"network_mode": "host"}},
+                "items": {"devspace": {"repo": "github:owner/repo", "host": [{"name": "home"}]}},
+            },
             "hosts": {"home": {}},
-            "projects": {"devspace": {"repo": "github:owner/repo", "host": [{"name": "home"}]}},
         }
     )
     output = StringIO()

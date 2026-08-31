@@ -1,10 +1,12 @@
 const DEFAULT_INSTANCE = "default";
 let pollTimer = null;
-let projectHosts = new Map();
+let workspaceHosts = new Map();
 
 const hostsElement = document.querySelector("#hosts");
 const hostsSummaryElement = document.querySelector("#hosts-summary");
-const projectsElement = document.querySelector("#projects");
+const workspacesElement = document.querySelector("#workspaces");
+const deploymentsElement = document.querySelector("#deployments");
+const deploymentsSummaryElement = document.querySelector("#deployments-summary");
 const pollStatusElement = document.querySelector("#poll-status");
 const instanceDialog = document.querySelector("#instance-dialog");
 const tokensDialog = document.querySelector("#tokens-dialog");
@@ -20,19 +22,32 @@ document.querySelectorAll("[data-close]").forEach((button) => {
   button.addEventListener("click", () => document.querySelector(`#${button.dataset.close}`).close());
 });
 
-projectsElement.addEventListener("click", async (event) => {
+workspacesElement.addEventListener("click", async (event) => {
   const target = event.target.closest("[data-action]");
   if (!target) return;
-  const { action, project, instance, host, command, type, status } = target.dataset;
-  if (action === "new") openInstanceDialog(project);
-  if (action === "quick") await submitInstance(project, host, DEFAULT_INSTANCE);
-  if (action === "delete") await deleteInstance(project, host, instance, false, type, status);
-  if (action === "purge") await deleteInstance(project, host, instance, true, type, status);
-  if (action === "logs") openLogsDialog(project, host, instance);
+  const { action, workspace, instance, host, command, type, status } = target.dataset;
+  if (action === "new") openInstanceDialog(workspace);
+  if (action === "quick") await submitInstance(workspace, host, DEFAULT_INSTANCE);
+  if (action === "delete") await deleteInstance(workspace, host, instance, false, type, status);
+  if (action === "purge") await deleteInstance(workspace, host, instance, true, type, status);
+  if (action === "logs") openLogsDialog(workspace, host, instance);
   if (action === "dismiss-operation") {
-    await dismissFailedOperation(target, project, host, instance);
+    await dismissFailedOperation(target, workspace, host, instance);
   }
   if (action === "copy-ssh") await copySshCommand(target, command);
+});
+
+deploymentsElement.addEventListener("click", async (event) => {
+  const target = event.target.closest("[data-action]");
+  if (!target) return;
+  const { action, deployment, host } = target.dataset;
+  if (action === "deploy") await deployDeployment(target, deployment, host);
+  if (action === "clean") await cleanDeployment(deployment, host, false);
+  if (action === "purge") await cleanDeployment(deployment, host, true);
+  if (action === "logs") openDeploymentLogsDialog(deployment, host);
+  if (action === "dismiss-operation") {
+    await dismissFailedDeploymentOperation(target, deployment, host);
+  }
 });
 
 async function api(path, options = {}) {
@@ -74,10 +89,14 @@ async function refresh() {
 
 function render(dashboard) {
   renderHosts(dashboard.hosts);
-  renderProjects(dashboard);
+  renderWorkspaces(dashboard);
+  renderDeployments(dashboard);
   const savedTokens = Object.values(dashboard.tokens).filter(Boolean).length;
   document.querySelector("#tokens-button").textContent = `Tokens ${savedTokens}/2`;
-  const busy = dashboard.operations.some((operation) =>
+  const deploymentOperations = dashboard.deployments.flatMap((deployment) =>
+    deployment.hosts.map((host) => host.operation).filter(Boolean),
+  );
+  const busy = [...dashboard.operations, ...deploymentOperations].some((operation) =>
     ["queued", "running"].includes(operation.status),
   );
   if (busy && !pollTimer) {
@@ -129,41 +148,41 @@ function renderHosts(hosts) {
   );
 }
 
-// Compose the single-line project source, e.g. "github:curoky/devspace". The
+// Compose the single-line workspace source, e.g. "github:curoky/devspace". The
 // provider and type are implied by this string, so they no longer need tags.
-function projectSource(project) {
-  if (project.repo) {
-    return project.provider ? `${project.provider}:${project.repo}` : project.repo;
+function workspaceSource(workspace) {
+  if (workspace.repo) {
+    return workspace.provider ? `${workspace.provider}:${workspace.repo}` : workspace.repo;
   }
-  return project.git_url || project.open_path;
+  return workspace.git_url || workspace.open_path;
 }
 
-function renderProjects(dashboard) {
-  projectHosts = new Map(dashboard.projects.map((project) => [project.id, project.hosts]));
-  const cards = dashboard.projects.map((project) => {
-    const environments = dashboard.environments.filter((item) => item.project === project.id);
-    const operations = dashboard.operations.filter((item) => item.project === project.id);
-    const card = element("article", "project-card");
+function renderWorkspaces(dashboard) {
+  workspaceHosts = new Map(dashboard.workspaces.map((workspace) => [workspace.id, workspace.hosts]));
+  const cards = dashboard.workspaces.map((workspace) => {
+    const environments = dashboard.environments.filter((item) => item.workspace === workspace.id);
+    const operations = dashboard.operations.filter((item) => item.workspace === workspace.id);
+    const card = element("article", "workspace-card");
 
-    const header = element("div", "project-header");
-    const name = element("h3", "", project.id);
-    const source = projectSource(project);
-    name.title = project.description ? `${source} — ${project.description}` : source;
+    const header = element("div", "workspace-header");
+    const name = element("h3", "", workspace.id);
+    const source = workspaceSource(workspace);
+    name.title = workspace.description ? `${source} — ${workspace.description}` : source;
 
-    // The header row carries the project identity inline: name then source
+    // The header row carries the workspace identity inline: name then source
     // path; the environments listed below already convey how many exist.
-    const title = element("div", "project-title");
-    const sourceLine = element("span", "project-source", source);
-    sourceLine.title = project.description ? `${source} — ${project.description}` : source;
+    const title = element("div", "workspace-title");
+    const sourceLine = element("span", "workspace-source", source);
+    sourceLine.title = workspace.description ? `${source} — ${workspace.description}` : source;
     title.append(name, sourceLine);
 
     // The host chips double as the "quick create" action: clicking one queues a
     // default instance on that host, so the standalone host tag is redundant.
-    const headerActions = element("div", "project-header-actions");
-    project.hosts.forEach((host) => {
+    const headerActions = element("div", "workspace-header-actions");
+    workspace.hosts.forEach((host) => {
       const platformSuffix = host.platform ? ` · ${host.platform}` : "";
       const quickButton = actionButton(`+ ${host.name}${platformSuffix}`, "quick", {
-        project: project.id,
+        workspace: workspace.id,
         host: host.name,
       });
       quickButton.classList.remove("secondary");
@@ -171,7 +190,7 @@ function renderProjects(dashboard) {
       quickButton.title = `Create "${DEFAULT_INSTANCE}" instance on ${host.name}`;
       headerActions.append(quickButton);
     });
-    const createButton = actionButton("New…", "new", { project: project.id });
+    const createButton = actionButton("New…", "new", { workspace: workspace.id });
     createButton.classList.remove("secondary");
     createButton.classList.add("compact", "primary");
     createButton.title = "Create a named instance on a chosen host";
@@ -191,7 +210,111 @@ function renderProjects(dashboard) {
     card.append(list);
     return card;
   });
-  projectsElement.replaceChildren(...cards);
+  workspacesElement.replaceChildren(...cards);
+}
+
+// Deployments mirror the workspace card, but each card is one deployment and its
+// rows are the hosts that declared it: a live/stopped/missing host row with
+// deploy/clean/purge/logs controls, plus any in-flight operation for that host.
+function renderDeployments(dashboard) {
+  const deployments = dashboard.deployments || [];
+  const running = deployments.reduce(
+    (total, deployment) =>
+      total + deployment.hosts.filter((host) => host.state === "running").length,
+    0,
+  );
+  const placements = deployments.reduce((total, deployment) => total + deployment.hosts.length, 0);
+  deploymentsSummaryElement.textContent = placements ? `${running}/${placements} running` : "";
+
+  const cards = deployments.map((deployment) => {
+    const card = element("article", "workspace-card");
+
+    const header = element("div", "workspace-header");
+    const title = element("div", "workspace-title");
+    title.append(element("h3", "", deployment.id));
+    const image = element("span", "workspace-source", deployment.image);
+    image.title = deployment.description
+      ? `${deployment.image} — ${deployment.description}`
+      : deployment.image;
+    title.append(image);
+    header.append(title);
+    card.append(header);
+
+    const list = element("div", "environment-list");
+    if (deployment.hosts.length) {
+      deployment.hosts.forEach((host) => list.append(renderDeploymentHost(deployment, host)));
+    } else {
+      const empty = element("div", "empty");
+      empty.append(element("strong", "", "No hosts"));
+      empty.append(element("span", "muted", "Add this deployment to a host in config."));
+      list.append(empty);
+    }
+    card.append(list);
+    return card;
+  });
+  deploymentsElement.replaceChildren(...cards);
+}
+
+function renderDeploymentHost(deployment, host) {
+  if (host.operation) return renderDeploymentOperation(deployment, host.operation);
+
+  const row = element("div", "environment");
+  const info = element("div", "environment-info");
+  info.append(element("span", `env-status-dot ${host.state}`));
+  info.append(element("span", "environment-title", host.host));
+  const stateLabel = host.status || host.state;
+  info.append(element("span", `status-badge ${host.state}`, stateLabel));
+  if (host.error) info.append(element("span", "environment-image", host.error));
+  row.append(info);
+
+  const target = { deployment: deployment.id, host: host.host };
+  const actions = element("div", "environment-actions");
+  const deployLabel = host.state === "missing" ? "Deploy" : "Redeploy";
+  const deployButton = actionButton(deployLabel, "deploy", target);
+  deployButton.classList.remove("secondary");
+  deployButton.classList.add("primary");
+  deployButton.title =
+    host.state === "missing"
+      ? "Pull the image and start the container"
+      : "Pull the image and replace the container";
+  actions.append(deployButton);
+  if (host.state !== "missing") {
+    const logsButton = actionButton("Logs", "logs", target);
+    logsButton.title = "View recent podman logs";
+    actions.append(logsButton);
+    const cleanButton = actionButton("Clean", "clean", target);
+    cleanButton.title = "Remove the container, keep managed data";
+    actions.append(cleanButton);
+  }
+  const purgeButton = actionButton("Purge", "purge", target);
+  purgeButton.classList.add("danger");
+  purgeButton.title = "Remove the container and its managed data";
+  actions.append(purgeButton);
+  row.append(actions);
+  return row;
+}
+
+function renderDeploymentOperation(deployment, operation) {
+  const row = element("div", `operation ${operation.status}`);
+  const heading = element("div", "operation-heading");
+  heading.append(element("div", "environment-title", operation.host));
+  const actions = element("div", "operation-heading-actions");
+  actions.append(element("span", `status-badge ${operation.status}`, operation.status));
+  if (operation.status === "failed") {
+    const dismissButton = actionButton("×", "dismiss-operation", {
+      deployment: deployment.id,
+      host: operation.host,
+    });
+    dismissButton.classList.add("icon", "operation-dismiss");
+    dismissButton.setAttribute("aria-label", "Dismiss failed operation");
+    dismissButton.title = "Dismiss failed operation";
+    actions.append(dismissButton);
+  }
+  heading.append(actions);
+  row.append(heading);
+  row.append(element("div", "environment-subtitle", operation.stage));
+  if (operation.error) row.append(element("p", "host-error", operation.error));
+  return row;
 }
 
 function renderOperation(operation) {
@@ -237,7 +360,7 @@ function renderEnvironment(environment) {
   row.append(info);
 
   const target = {
-    project: environment.project,
+    workspace: environment.workspace,
     host: environment.host,
     instance: environment.instance,
     type: environment.type,
@@ -267,11 +390,11 @@ function renderEnvironment(environment) {
   return row;
 }
 
-function openInstanceDialog(project) {
-  document.querySelector("#instance-project").value = project;
-  document.querySelector("#instance-title").textContent = `New ${project} instance`;
+function openInstanceDialog(workspace) {
+  document.querySelector("#instance-workspace").value = workspace;
+  document.querySelector("#instance-title").textContent = `New ${workspace} instance`;
   const hostSelect = document.querySelector("#instance-host");
-  const hosts = projectHosts.get(project) || [];
+  const hosts = workspaceHosts.get(workspace) || [];
   hostSelect.replaceChildren(
     ...hosts.map((host) => {
       const option = element("option", "", host.platform ? `${host.name} · ${host.platform}` : host.name);
@@ -286,19 +409,19 @@ function openInstanceDialog(project) {
 
 async function createInstance(event) {
   event.preventDefault();
-  const project = document.querySelector("#instance-project").value;
+  const workspace = document.querySelector("#instance-workspace").value;
   const host = document.querySelector("#instance-host").value;
   const instance = document.querySelector("#instance-name").value;
-  if (await submitInstance(project, host, instance)) instanceDialog.close();
+  if (await submitInstance(workspace, host, instance)) instanceDialog.close();
 }
 
-async function submitInstance(project, host, instance) {
+async function submitInstance(workspace, host, instance) {
   try {
-    await api(`/api/projects/${encodeURIComponent(project)}/instances`, {
+    await api(`/api/workspaces/${encodeURIComponent(workspace)}/instances`, {
       method: "POST",
       body: JSON.stringify({ host, instance }),
     });
-    notify(`Queued ${project}/${instance} on ${host}`);
+    notify(`Queued ${workspace}/${instance} on ${host}`);
     await refresh();
     return true;
   } catch (error) {
@@ -307,11 +430,55 @@ async function submitInstance(project, host, instance) {
   }
 }
 
-async function dismissFailedOperation(button, project, host, instance) {
+async function dismissFailedOperation(button, workspace, host, instance) {
   button.disabled = true;
   try {
     await api(
-      `/api/projects/${encodeURIComponent(project)}/hosts/${encodeURIComponent(host)}/operations/${encodeURIComponent(instance)}`,
+      `/api/workspaces/${encodeURIComponent(workspace)}/hosts/${encodeURIComponent(host)}/operations/${encodeURIComponent(instance)}`,
+      { method: "DELETE" },
+    );
+    await refresh();
+  } catch (error) {
+    button.disabled = false;
+    notify(error.message);
+  }
+}
+
+async function deployDeployment(button, deployment, host) {
+  button.disabled = true;
+  try {
+    await api(
+      `/api/deployments/${encodeURIComponent(deployment)}/hosts/${encodeURIComponent(host)}/deploy`,
+      { method: "POST" },
+    );
+    notify(`Queued ${deployment} on ${host}`);
+    await refresh();
+  } catch (error) {
+    button.disabled = false;
+    notify(error.message);
+  }
+}
+
+async function cleanDeployment(deployment, host, purge) {
+  const scope = purge ? "container and managed data" : "container";
+  if (!window.confirm(`Remove ${deployment} ${scope} on ${host}?`)) return;
+  try {
+    await api(
+      `/api/deployments/${encodeURIComponent(deployment)}/hosts/${encodeURIComponent(host)}?purge=${purge}`,
+      { method: "DELETE" },
+    );
+    notify(`Cleaned ${deployment} on ${host}`);
+    await refresh();
+  } catch (error) {
+    notify(error.message);
+  }
+}
+
+async function dismissFailedDeploymentOperation(button, deployment, host) {
+  button.disabled = true;
+  try {
+    await api(
+      `/api/deployments/${encodeURIComponent(deployment)}/hosts/${encodeURIComponent(host)}/operations`,
       { method: "DELETE" },
     );
     await refresh();
@@ -331,11 +498,11 @@ deleteDialog.addEventListener("close", () => {
 
 let pendingDelete = null;
 
-async function deleteInstance(project, host, instance, purge, type, status) {
-  pendingDelete = { project, host, instance, purge };
+async function deleteInstance(workspace, host, instance, purge, type, status) {
+  pendingDelete = { workspace, host, instance, purge };
   const scope = purge ? "container and workspace" : "container";
   document.querySelector("#delete-eyebrow").textContent = `Delete ${scope}`;
-  document.querySelector("#delete-title").textContent = `${host}/${project}/${instance}`;
+  document.querySelector("#delete-title").textContent = `${host}/${workspace}/${instance}`;
   deleteStatusElement.className = "muted";
   deleteStatusElement.textContent = "Checking repository state…";
   deleteDetailElement.hidden = true;
@@ -352,7 +519,7 @@ async function deleteInstance(project, host, instance, purge, type, status) {
 
   let result;
   try {
-    result = await sendDelete(project, host, instance, purge, false);
+    result = await sendDelete(workspace, host, instance, purge, false);
   } catch (error) {
     // The container can stop after the dashboard refresh. Keep failed
     // prechecks actionable so broken environments remain removable.
@@ -381,12 +548,12 @@ async function deleteInstance(project, host, instance, purge, type, status) {
 
 async function confirmDelete() {
   if (pendingDelete === null) return;
-  const { project, host, instance, purge } = pendingDelete;
+  const { workspace, host, instance, purge } = pendingDelete;
   deleteConfirmButton.disabled = true;
   try {
-    await sendDelete(project, host, instance, purge, true);
+    await sendDelete(workspace, host, instance, purge, true);
     deleteDialog.close();
-    notify(`Deleted ${project}/${instance} on ${host}`);
+    notify(`Deleted ${workspace}/${instance} on ${host}`);
     await refresh();
   } catch (error) {
     deleteStatusElement.className = "delete-warning";
@@ -395,9 +562,9 @@ async function confirmDelete() {
   }
 }
 
-function sendDelete(project, host, instance, purge, force) {
+function sendDelete(workspace, host, instance, purge, force) {
   return api(
-    `/api/projects/${encodeURIComponent(project)}/hosts/${encodeURIComponent(host)}/instances/${encodeURIComponent(instance)}?purge=${purge}&force=${force}`,
+    `/api/workspaces/${encodeURIComponent(workspace)}/hosts/${encodeURIComponent(host)}/instances/${encodeURIComponent(instance)}?purge=${purge}&force=${force}`,
     { method: "DELETE" },
   );
 }
@@ -411,24 +578,36 @@ logsDialog.addEventListener("close", () => {
 
 let pendingLogs = null;
 
-function openLogsDialog(project, host, instance) {
-  pendingLogs = { project, host, instance };
-  document.querySelector("#logs-title").textContent = `${host}/${project}/${instance}`;
+function openLogsDialog(workspace, host, instance) {
+  showLogsDialog(
+    `${host}/${workspace}/${instance}`,
+    `/api/workspaces/${encodeURIComponent(workspace)}/hosts/${encodeURIComponent(host)}/instances/${encodeURIComponent(instance)}/logs`,
+  );
+}
+
+function openDeploymentLogsDialog(deployment, host) {
+  showLogsDialog(
+    `${host}/${deployment}`,
+    `/api/deployments/${encodeURIComponent(deployment)}/hosts/${encodeURIComponent(host)}/logs`,
+  );
+}
+
+function showLogsDialog(title, path) {
+  pendingLogs = { title, path };
+  document.querySelector("#logs-title").textContent = title;
   logsDialog.showModal();
   loadLogs();
 }
 
 async function loadLogs() {
   if (pendingLogs === null) return;
-  const { project, host, instance } = pendingLogs;
+  const { path } = pendingLogs;
   logsStatusElement.className = "muted";
   logsStatusElement.textContent = "Loading logs…";
   logsStatusElement.hidden = false;
   logsOutputElement.hidden = true;
   try {
-    const result = await api(
-      `/api/projects/${encodeURIComponent(project)}/hosts/${encodeURIComponent(host)}/instances/${encodeURIComponent(instance)}/logs`,
-    );
+    const result = await api(path);
     if (pendingLogs === null || logsDialog.open === false) return;
     const logs = result.logs || "";
     if (logs.trim()) {
@@ -507,14 +686,10 @@ function element(tag, className = "", text = "") {
   return node;
 }
 
-function actionButton(
-  label,
-  action,
-  { project, host = "", instance = "", type = "", status = "" },
-) {
+function actionButton(label, action, dataset = {}) {
   const button = element("button", "secondary", label);
   button.type = "button";
-  Object.assign(button.dataset, { action, project, host, instance, type, status });
+  Object.assign(button.dataset, { action, ...dataset });
   return button;
 }
 

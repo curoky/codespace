@@ -11,9 +11,9 @@ from controller.models import (
     DashboardResponse,
     HostStatus,
     Operation,
-    ProjectSummary,
-    ProjectSummaryHost,
     RepoGitState,
+    WorkspaceSummary,
+    WorkspaceSummaryHost,
 )
 from controller.operations import OperationStore
 
@@ -42,18 +42,19 @@ class FakeService:
     def dashboard(self) -> DashboardResponse:
         return DashboardResponse(
             hosts=[HostStatus(id="home", status="online")],
-            projects=[
-                ProjectSummary(
+            workspaces=[
+                WorkspaceSummary(
                     id="devspace",
-                    hosts=[ProjectSummaryHost(name="home", platform=None)],
+                    hosts=[WorkspaceSummaryHost(name="home", platform=None)],
                     type="repo",
                     provider="github",
                     repo="curoky/devspace",
-                    image=self.config.default_image,
+                    image=self.config.workspaces.defaults.image,
                     open_path="/opt/devspace",
                 )
             ],
             environments=[],
+            deployments=[],
             operations=self.operations.list(),
             tokens={  # type: ignore[arg-type]
                 "github": self.tokens["github"],
@@ -61,32 +62,32 @@ class FakeService:
             },
         )
 
-    def queue_create(self, project: str, host: str, instance: str) -> Operation:
-        if project not in self.config.projects:
-            raise KeyError(f"unknown project: {project}")
+    def queue_create(self, workspace: str, host: str, instance: str) -> Operation:
+        if workspace not in self.config.workspaces.items:
+            raise KeyError(f"unknown workspace: {workspace}")
         if not self.tokens["github"]:
             raise RuntimeError("github token is not set")
-        return self.operations.create(host, project, instance)
+        return self.operations.create(host, workspace, instance)
 
-    def create(self, project: str, host: str, instance: str) -> None:
-        self.created.append((project, host, instance))
+    def create(self, workspace: str, host: str, instance: str) -> None:
+        self.created.append((workspace, host, instance))
 
-    def dismiss_failed_operation(self, project: str, host: str, instance: str) -> bool:
-        return self.operations.dismiss_failed(host, project, instance)
+    def dismiss_failed_operation(self, workspace: str, host: str, instance: str) -> bool:
+        return self.operations.dismiss_failed(host, workspace, instance)
 
     def delete(
-        self, project: str, host: str, instance: str, *, purge: bool, force: bool = False
+        self, workspace: str, host: str, instance: str, *, purge: bool, force: bool = False
     ) -> RepoGitState:
-        if project not in self.config.projects:
-            raise KeyError(f"unknown project: {project}")
+        if workspace not in self.config.workspaces.items:
+            raise KeyError(f"unknown workspace: {workspace}")
         if not force:
             return self.state
-        self.deleted.append((project, host, instance, purge, force))
+        self.deleted.append((workspace, host, instance, purge, force))
         return RepoGitState()
 
-    def logs(self, project: str, host: str, instance: str) -> str:
-        if project not in self.config.projects:
-            raise KeyError(f"unknown project: {project}")
+    def logs(self, workspace: str, host: str, instance: str) -> str:
+        if workspace not in self.config.workspaces.items:
+            raise KeyError(f"unknown workspace: {workspace}")
         if instance == "missing":
             raise RuntimeError(f"environment {instance!r} not found")
         return self.logs_text
@@ -112,7 +113,7 @@ def test_static_assets_are_native_sources(app_client: tuple[TestClient, FakeServ
     assert 'aria-label="Close"' in index.text
     assert "react" not in script.text.lower()
     assert "radix" not in stylesheet.text.lower()
-    assert "project-source" in script.text
+    assert "workspace-source" in script.text
     assert "title.append(name, sourceLine)" in script.text
     assert "header.append(title, headerActions)" in script.text
     assert "environment.ssh_command" in script.text
@@ -146,7 +147,7 @@ def test_dashboard_returns_all_state_and_token_presence(
             "inventory_errors": [],
         }
     ]
-    assert body["projects"][0]["id"] == "devspace"
+    assert body["workspaces"][0]["id"] == "devspace"
     assert body["tokens"] == {"github": False, "gitlab": False}
     assert body["operations"] == []
 
@@ -169,7 +170,7 @@ def test_create_requires_token_and_returns_local_operation(
     client, service = app_client
 
     missing = client.post(
-        "/api/projects/devspace/instances",
+        "/api/workspaces/devspace/instances",
         json={"host": "home", "instance": "debug"},
     )
     assert missing.status_code == 409
@@ -177,7 +178,7 @@ def test_create_requires_token_and_returns_local_operation(
 
     client.put("/api/tokens/github", json={"token": "token"})
     created = client.post(
-        "/api/projects/devspace/instances",
+        "/api/workspaces/devspace/instances",
         json={"host": "home", "instance": "debug"},
     )
 
@@ -185,7 +186,7 @@ def test_create_requires_token_and_returns_local_operation(
     assert created.json() == {
         "id": "codespace-home-devspace-debug",
         "host": "home",
-        "project": "devspace",
+        "workspace": "devspace",
         "instance": "debug",
         "status": "queued",
         "stage": "queued",
@@ -200,12 +201,12 @@ def test_create_rejects_unknown_fields_and_invalid_ids(
     client, _service = app_client
 
     invalid_body = client.post(
-        "/api/projects/devspace/instances",
+        "/api/workspaces/devspace/instances",
         json={"host": "home", "instance": "debug", "image": "override"},
     )
     invalid_path = client.request(
         "DELETE",
-        "/api/projects/devspace/hosts/home/instances/Bad?purge=false",
+        "/api/workspaces/devspace/hosts/home/instances/Bad?purge=false",
     )
 
     assert invalid_body.status_code == 422
@@ -219,7 +220,7 @@ def test_dismiss_operation_rejects_active_work_and_removes_failure(
 ) -> None:
     client, service = app_client
     service.operations.create("home", "devspace", "debug")
-    path = "/api/projects/devspace/hosts/home/operations/debug"
+    path = "/api/workspaces/devspace/hosts/home/operations/debug"
 
     active = client.delete(path)
 
@@ -244,7 +245,7 @@ def test_delete_api_passes_purge_choice(
 
     response = client.request(
         "DELETE",
-        f"/api/projects/devspace/hosts/home/instances/debug?purge={str(purge).lower()}&force=true",
+        f"/api/workspaces/devspace/hosts/home/instances/debug?purge={str(purge).lower()}&force=true",
     )
 
     assert response.status_code == 200
@@ -262,7 +263,7 @@ def test_delete_without_force_returns_git_state_and_skips_delete(
     client, service = app_client
     service.state = RepoGitState(unpushed=True, uncommitted=True, detail=["abc feat", " M x"])
 
-    response = client.request("DELETE", "/api/projects/devspace/hosts/home/instances/debug")
+    response = client.request("DELETE", "/api/workspaces/devspace/hosts/home/instances/debug")
 
     assert response.status_code == 200
     body = response.json()
@@ -277,7 +278,7 @@ def test_delete_without_force_returns_git_state_and_skips_delete(
 
     forced = client.request(
         "DELETE",
-        "/api/projects/devspace/hosts/home/instances/debug?force=true",
+        "/api/workspaces/devspace/hosts/home/instances/debug?force=true",
     )
 
     assert forced.status_code == 200
@@ -307,7 +308,7 @@ def test_logs_returns_container_output(
     client, service = app_client
     service.logs_text = "2026-08-19T00:00:00Z hello\n"
 
-    response = client.get("/api/projects/devspace/hosts/home/instances/debug/logs")
+    response = client.get("/api/workspaces/devspace/hosts/home/instances/debug/logs")
 
     assert response.status_code == 200
     assert response.json() == {"logs": "2026-08-19T00:00:00Z hello\n"}
@@ -318,7 +319,7 @@ def test_logs_missing_environment_returns_conflict(
 ) -> None:
     client, _service = app_client
 
-    response = client.get("/api/projects/devspace/hosts/home/instances/missing/logs")
+    response = client.get("/api/workspaces/devspace/hosts/home/instances/missing/logs")
 
     assert response.status_code == 409
     assert response.json()["error"].endswith("not found")
@@ -336,6 +337,6 @@ def test_logs_ui_wires_button_and_dialog(
     assert 'id="logs-dialog"' in index
     assert 'class="logs-output"' in index
     assert 'actionButton("Logs", "logs", target)' in script
-    assert 'if (action === "logs") openLogsDialog(project, host, instance)' in script
+    assert 'if (action === "logs") openLogsDialog(workspace, host, instance)' in script
     assert "/instances/${encodeURIComponent(instance)}/logs" in script
     assert ".logs-output" in stylesheet

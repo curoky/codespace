@@ -21,6 +21,7 @@ API 或 host contract 时必须同步更新本文相关章节。
 | `controller/ssh.py` | codespace SSH 投影与登录 probe（`~/.ssh/codespace/` 布局、`codespace-*` 别名），底层远程/文件操作调 `controller/runtime/remote.py` |
 | `controller/inventory.py`、`container.py`、`workspace.py` | Podman inventory、codespace 容器语义（在 `runtime/engine.py` 之上注入 label/workspace mount/secret 默认）和 workspace 原语 |
 | `controller/service.py`、`dashboard.py`、`operations.py` | 生命周期编排、Dashboard 投影与操作状态 |
+| `controller/deployment.py` | host 级 deployment（sidecar、LLM serving 等自包含镜像）的 reconcile/clean/purge 编排与 Dashboard 投影，层叠 `container.py`/`inventory.py`/`ssh.py` 原语 |
 | `controller/provider.py` | Git provider deploy key |
 | `controller/tools/` | 不依赖 Web UI 的维护 CLI |
 | `controller/assets/ssh/` | 固定登录 key、SSH 公共配置和 pinned host key |
@@ -59,27 +60,62 @@ HTTP agent，也不得改用 podman-py 的 SSH adapter。FastAPI 同时提供 JS
 
 ## 配置
 
-进程启动时只读 `~/.config/codespace/config.yaml`。不得增加 TOML、环境变量覆盖、热加载或备用配置源。
+进程启动时只读 `~/devspace/config.extend.yaml`。不得增加 TOML、环境变量覆盖、热加载或备用配置源。
+
+该入口文件可用 `extends: <相对路径>` 指向一个共享 base 分层（见仓库内 [`config.yaml`](../config.yaml)）：私有入口
+层携带 hosts、workspaces.items、tokens、secrets 等敏感内容，base 只放可入库共享的非敏感开发默认与 deployment
+目录。两层在校验前合并——**映射逐键深合并、override（私有入口层）胜出，标量与列表整体替换**——因此私有层可只改
+单个键（如某 deployment 的 `image` 或某 host 的 `network_mode`）而无需重述整块。`extends` 相对声明它的文件解析、
+合并前剥除，无 `extends` 时按单文件加载；链路成环即 fail-fast。base 是 fragment，单独不保证能通过校验；私有入口
+`config.extend.yaml` 已排除版本控制。
 
 ```yaml
-default_image: ghcr.io/curoky/devspace:codespace-debian13
-
-container:
-  network_mode: host
-  cap_add: [NET_RAW, SYS_ADMIN]
-  security_opt: [disable, seccomp=unconfined]
-  pids_limit: -1
-  ulimits:
-    memlock: {soft: -1, hard: -1}
-  volumes:
-    - /etc/krb5.conf:/etc/krb5.conf:ro
-  environment:
-    HTTP_PROXY: http://proxy:3128
-  secrets:
-    - supabase_service_key
-    - source: supabase_anon
-      mode: env
-      target: SUPABASE_ANON_KEY
+# 开发容器默认（仅作用于 workspaces，deployment 不继承）
+workspaces:
+  defaults:
+    image: ghcr.io/curoky/devspace:codespace-debian13
+    container:
+      network_mode: host
+      cap_add: [NET_RAW, SYS_ADMIN]
+      security_opt: [disable, seccomp=unconfined]
+      pids_limit: -1
+      ulimits:
+        memlock: {soft: -1, hard: -1}
+      volumes:
+        - /etc/krb5.conf:/etc/krb5.conf:ro
+      environment:
+        HTTP_PROXY: http://proxy:3128
+      secrets:
+        - supabase_service_key
+        - source: supabase_anon
+          mode: env
+          target: SUPABASE_ANON_KEY
+  items:
+    devspace:
+      host:
+        - name: home
+        - name: gpu-box
+          platform: linux/amd64
+      repo: github:curoky/devspace
+      description: Devspace repository
+    service-api:
+      host:
+        - name: office
+          platform: linux/arm64
+      repo: gitlab:group/service-api
+      image: registry.example.com/codespace-api:latest
+      container:
+        environment:
+          NODE_ENV: development
+    scratch:
+      host:
+        - name: home
+      type: blank
+      open_path: /workspace/notes
+    abbie:
+      host:
+        - name: home
+      repo: git:git@curoky:devspace
 
 hosts:
   local:
@@ -91,38 +127,38 @@ hosts:
     podman_socket: /tmp/podmanxd.sock
     environment: [HTTP_PROXY, HTTPS_PROXY, NO_PROXY]
   gpu-box:
+    deployments: [llm-vllm]
     container:
       pids_limit: 4096
       devices:
         - nvidia.com/gpu=all
   home:
+    deployments: [sidecar]
 
-projects:
-  devspace:
-    host:
-      - name: home
-      - name: gpu-box
-        platform: linux/amd64
-    repo: github:curoky/devspace
-    description: Devspace repository
-  service-api:
-    host:
-      - name: office
-        platform: linux/arm64
-    repo: gitlab:group/service-api
-    image: registry.example.com/codespace-api:latest
+deployments:
+  sidecar:
+    image: ghcr.io/curoky/devspace:codespace-sidecar
+    description: Host-level shared services.
+    published_ports: ["8002:8002"]
     container:
+      network_mode: host
+      volumes:
+        - /run/podman/podman.sock:/run/podman/podman.sock
+      secrets:
+        - {source: atuin_db_uri, mode: env, target: ATUIN_DB_URI}
+  llm-vllm:
+    image: ghcr.io/curoky/devspace:llm-vllm
+    published_ports: ["8003:8003"]
+    container:
+      network_mode: bridge
+      ipc: host
+      shm_size: 32g
+      devices:
+        - nvidia.com/gpu=all
+      volumes:
+        - ${DEPLOYMENT_DATA}:/root/.cache/huggingface
       environment:
-        NODE_ENV: development
-  scratch:
-    host:
-      - name: home
-    type: blank
-    open_path: /workspace/notes
-  abbie:
-    host:
-      - name: home
-    repo: git:git@curoky:devspace
+        - HF_HOME=/root/.cache/huggingface
 
 tokens:
   github: ghp_xxx
@@ -133,10 +169,11 @@ secrets:
   supabase_anon: "eyJhbGci..."
 ```
 
-顶层必填 `default_image`、`hosts`、`projects`；`container` 可选（省略即全用引擎默认）。登录 keypair 位于
+顶层必填 `workspaces`、`hosts`；`deployments` 可选（省略即无部署目录）。`workspaces` 必含 `defaults`（开发容器
+共享默认：必填 `image`、可选 `container`）与 `items`（各 workspace 蓝图，至少一个）。登录 keypair 位于
 `controller/assets/ssh/`，启动时私钥装到 `~/.ssh/codespace/login_key`，公钥已烤进镜像 `authorized_keys`，
-无需配置。`hosts` 以 host alias 为 key，值为连接设置，可留空（等价默认 SSH host）。每个 project 用 `host`
-声明可启动 host 列表（同一 repo 只出现一次），列表每项 `{name, platform?}`。project 按 `type` 决定 repo
+无需配置。`hosts` 以 host alias 为 key，值为连接设置，可留空（等价默认 SSH host）。每个 workspace 用 `host`
+声明可启动 host 列表（同一 repo 只出现一次），列表每项 `{name, platform?}`。workspace 按 `type` 决定 repo
 相关字段，可选 `description`、`image`、`open_path`、`clone_path`、`published_ports`、`container`。规则：
 
 - `type` 默认 `repo`，可设 `blank` 或 `git`。`repo` 必须配 `repo`（因此带 `provider`）；`git` 必须配 `git_url`、
@@ -152,32 +189,35 @@ secrets:
   URL 末段派生），`blank` 默认打开 `/workspace`。编辑器 deep link 按此路径打开。
 - 每个 host 条目 `platform` 只能 `linux/amd64` 或 `linux/arm64`；省略用该 host 原生平台。
 - `published_ports` 可选，每项 `"<remote>"`（local=remote）或 `"<local>:<remote>"`，取值 1-65535，同一
-  project 内 local 端口不得重复。只有解析后 `container.network_mode` 为 `bridge` 的 project 可配置
+  workspace 内 local 端口不得重复。只有解析后 `container.network_mode` 为 `bridge` 的 workspace 可配置
   （bridge 有独立 netns 才能发布端口），解析为 `host` 时配置直接拒绝。改动需重建实例才生效。
-- `encrypt_workspace` 可选布尔，默认 `false`。为 `true` 时该 project 的 workspace 用 gocryptfs 加密：控制面把
+- `encrypt_workspace` 可选布尔，默认 `false`。为 `true` 时该 workspace 的 workspace 用 gocryptfs 加密：控制面把
   host 实例目录 bind 到密文根 `/workspace.enc`（而非明文 `/workspace`），并把固定 secret `workspace_crypt_key`
   以 env `WORKSPACE_CRYPT_KEY` 注入（对齐 sidecar 的 `atuin_db_uri` 模式）；镜像侧 `workspace-crypt` 服务 boot
   时据此把明文挂到 `/workspace`。secret 须先经 `sync_secrets` 在目标 host 注册，缺失则创建实例时 fail-fast。
-  加密逐 project 独立启用，`false` 的 project 仍直接 bind `/workspace` 且不注入任何 crypt secret。
+  加密逐 workspace 独立启用，`false` 的 workspace 仍直接 bind `/workspace` 且不注入任何 crypt secret。
 - `hosts.<host>.type` 默认 `ssh`，可设 `podman-machine`。SSH host 可配绝对路径 `podman_socket`（默认
   `/run/podman/podman.sock`）、不得配 `machine`；Podman Machine host 必须配 `machine`、不得配 `podman_socket`。
 - SSH host 可配 `environment`（需从非交互 SSH 登录环境继承到容器的变量名列表）：变量名匹配
   `^[A-Za-z_][A-Za-z0-9_]*$`、不得重复、不得含保留键 `SSHD_PORT`/`SSHD_BIND`。控制面每次创建实例时读取，
   任一未导出即终止创建，不传空值或沿用旧值。`container.environment` 用于显式固定值，两者不得同名。Podman
   Machine host 不支持 `environment`。
+- `hosts.<host>.deployments` 可选，是该 host 要运行的 deployment id 列表（不得重复、只能引用顶层 `deployments`
+  已声明的 id）。**由 host 选 deployment，而非由 deployment 选 host**：deployment 目录只声明镜像与容器形态，
+  哪些 host 跑它反过来由各 host 的这个列表决定，同一 deployment 可挂到多个 host。
 - `tokens.github`/`gitlab` 是可选非空字符串。
 - 顶层 `secrets` 是可选映射（key 为 secret 名、value 为明文），供带外 CLI `sync_secrets` 在各 host 注册
   Podman secret（见「Secret 同步」）。控制面进程本身不消费这些明文，运行时只按 `container.secrets` 名字
-  引用已注册 secret。明文写进 `config.yaml` 须限制权限并排除版本控制。
-- 顶层 `container` 是可选块，承载所有非身份容器 run flag，采用 Docker Compose service 字段名与语法子集
+  引用已注册 secret。明文写进私有 `config.extend.yaml` 须限制权限并排除版本控制。
+- `workspaces.defaults.container` 承载所有非身份容器 run flag，采用 Docker Compose service 字段名与语法子集
   （解析独立在 `controller/runtime/compose/` 子包，只做强类型化、不含控制面知识），控制面不保留隐式默认。所有字段
   （`network_mode`、`cap_add`、`security_opt`、`pids_limit`、`ulimits`、`volumes`、`environment`、`secrets`、
-  `devices`、`shm_size`，对应 `--network`、`--cap-add`、`--security-opt`、`--pids-limit`、`--ulimit`、
-  `--secret`、`--device`、`--shm-size`）全部可选，未设置等价 Compose 语义的「引擎默认」：集合归一为空、
-  `pids_limit`/`shm_size` 仅在设置时才转发。
+  `devices`、`shm_size`、`ipc`，对应 `--network`、`--cap-add`、`--security-opt`、`--pids-limit`、`--ulimit`、
+  `--secret`、`--device`、`--shm-size`、`--ipc`）全部可选，未设置等价 Compose 语义的「引擎默认」：集合归一为空、
+  `pids_limit`/`shm_size`/`ipc` 仅在设置时才转发。
   - `network_mode` 只能 `host` 或 `bridge`：`host` 共享 host netns；`bridge` 获独立 netns，sshd 注入
-    `SSHD_BIND=0.0.0.0` 并发布 SSH 与业务端口。虽然 compose 可省略，但控制面要求**每个 project 分层解析后
-    必须有确定的 `network_mode`**（缺失即加载时 fail-fast），故通常在顶层 `container` 设一次全局默认。
+    `SSHD_BIND=0.0.0.0` 并发布 SSH 与业务端口。虽然 compose 可省略，但控制面要求**每个 workspace 分层解析后
+    必须有确定的 `network_mode`**（缺失即加载时 fail-fast），故通常在 `workspaces.defaults.container` 设一次默认。
   - `ulimits` 值为 `{soft, hard}` 或裸整数（soft=hard）。
   - `volumes` 支持短语法 `source:target[:ro|rw]` 或长语法 `{type: bind, source, target, read_only}`；只支持
     `type: bind`，`source`/`target` 必须绝对路径，`read_only` 默认 `false`。target 不得与保留 mount tree
@@ -185,6 +225,7 @@ secrets:
   - `devices` 原样转发给 `--device`，GPU 用 CDI 设备名（如 `nvidia.com/gpu=all`），要求该 host 已装 NVIDIA
     驱动与 CDI 规范文件。
   - `shm_size` 原样转发给 `--shm-size`（podman 认的格式），控制面不做归一。
+  - `ipc` 原样转发给 `--ipc`（如 `host`），控制面不做归一；GPU 推理等需共享大 `/dev/shm` 的部署常配 `host`。
   - `environment` 支持映射或 `["KEY=value"]` 列表短语法，禁用保留键 `SSHD_PORT`/`SSHD_BIND`，原样转发。
   - `secrets` 引用 host 上已 `podman secret create` 预注册的 secret，控制面只按名字引用、绝不持有明文。每项
     支持裸字符串（等价 `{source: <name>, mode: mount}`）或长语法 `{source, mode, target?, uid?, gid?,
@@ -193,12 +234,22 @@ secrets:
     `mode: env` 注入为 `target` 命名的环境变量，必须给出匹配 `^[A-Za-z_][A-Za-z0-9_]*$` 的 `target` 且禁设
     `uid`/`gid`/`file_mode`。`mode: env` 的 `target` 与 `container.environment`、`hosts.<host>.environment`
     继承变量共享命名空间、不得重名、不得用保留键；`mode: mount` 的 `target` 不得与保留 mount tree 相同或互为父子。
-- `hosts.<host>.container` 和 `projects.<project>.container` 是可选覆盖，与顶层共用全可选模型。已设置的 key
-  整体替换下层值（浅层 key 级替换，非深合并），未设置继承下层，优先级 `project > host > global`。覆盖块
-  `environment` 同样禁用保留键。
+- `hosts.<host>.container`、`workspaces.items.<id>.container` 和 `deployments.<id>.container` 是可选覆盖，与
+  `workspaces.defaults.container` 共用全可选模型。已设置的 key 整体替换下层值（浅层 key 级替换，非深合并），未
+  设置继承下层。workspace 从开发默认起分层，优先级 `workspace > host > defaults`；deployment **不继承开发默认**，
+  从空块起分层，优先级 `deployment > host`。覆盖块 `environment` 同样禁用保留键。因此部署容器天然不带开发默认
+  的 `cap_add`/`security_opt`/krb5 mount，只需声明自己要的 `devices`/`ipc`/`network_mode` 等。
 - 拒绝未知字段。Project/instance ID 匹配 `^[a-z0-9][a-z0-9-]{0,31}$`，host alias 匹配
   `^[a-z0-9][a-z0-9.-]{0,62}$`。`hosts` 至少一个；project 的 `host` 列表至少一项、name 不重复且只能引用已配置
   host。project 未配 `image` 时用 `default_image`。
+- 顶层 `deployments` 是可选映射（key 为 deployment id，匹配同一 `^[a-z0-9][a-z0-9-]{0,31}$`），每项声明一个
+  **自包含镜像**：必填 `image`，可选 `description`、`published_ports`、`container`。deployment 无 workspace、SSH
+  投影、git checkout 或 provider 凭据，`image` 必填且不回退 `default_image`。`published_ports` 与 project 同规则，
+  但因发布只在解析后 `network_mode` 为 `bridge` 的 host 生效、host-network host 上被忽略，故允许在含 host-network
+  host 的情况下仍声明端口（不像 project 那样直接拒绝）。`container` 与三处 override 共用模型，按
+  `deployment > host > global` 解析，同样要求解析后 `network_mode` 确定（缺失即加载时 fail-fast）。volume `source`
+  为占位符 `${DEPLOYMENT_DATA}` 时解析到该 deployment 的托管数据根 `~/codespace-deployment/<id>`（见「部署生命
+  周期」）；其它 `${...}` 占位符一律拒绝。
 
 ## Host 契约
 
@@ -213,7 +264,8 @@ s6 oneshot 把挂载的 `/workspace`、`/upload`、`/cache` 归属到 `5230:5230
 - rootful Podman socket（SSH host 默认 `/run/podman/podman.sock`，Podman Machine 通过 `podman machine
   inspect` 获取 API socket 和 SSH identity）；
 - SSH 登录用户的可写 home；三个实例 mount root 分别是绝对路径化后的 `~/codespace`（workspace）、
-  `~/codespace-upload`（upload）与 `~/codespace-cache`（cache）；
+  `~/codespace-upload`（upload）与 `~/codespace-cache`（cache）；跑 deployment 的 host 另加 deployment 托管数据
+  根 `~/codespace-deployment`（逐 deployment id 隔离子目录）；
 - GNU `env`（支持 `-0`）读取 `hosts.<host>.environment` 声明且已在非交互 SSH 会话导出的变量；
 - `find`（支持 `-mindepth`、`-maxdepth`、`-print0`）供维护工具列出各 mount root 下的实例目录；
 - 允许镜像内 root 将挂载的 `/workspace`、`/upload`、`/cache` `chown` 为 `5230:5230`；
@@ -226,20 +278,25 @@ s6 oneshot 把挂载的 `/workspace`、`/upload`、`/cache` 归属到 `5230:5230
 
 ## 资源标识
 
-Environment 的 container name、本地 SSH alias 和 deploy-key title 共用确定性 ID `codespace-<host>-<project>-<instance>`。
-每实例有三个宿主数据目录：`<login-home>/codespace/<project>/<instance>` 挂到 `/workspace`、
-`<login-home>/codespace-upload/<project>/<instance>` 挂到 `/upload`、
-`<login-home>/codespace-cache/<project>/<instance>` 挂到 `/cache`（开启 `encrypt_workspace` 时仅 workspace 目录
+Environment 的 container name、本地 SSH alias 和 deploy-key title 共用确定性 ID `codespace-<host>-<workspace>-<instance>`。
+每实例有三个宿主数据目录：`<login-home>/codespace/<workspace>/<instance>` 挂到 `/workspace`、
+`<login-home>/codespace-upload/<workspace>/<instance>` 挂到 `/upload`、
+`<login-home>/codespace-cache/<workspace>/<instance>` 挂到 `/cache`（开启 `encrypt_workspace` 时仅 workspace 目录
 改 bind 到密文根 `/workspace.enc`，upload/cache 始终明文）。SSH 端口为
 `20000 + int(sha256(environment_id)[:4], 16) % 10000`；与同 host 其他受管 environment 冲突时直接拒绝，
 不探测替代端口。
 
-Podman inventory 是唯一事实来源。Environment container 必须有 `codespace.managed=true` 及完整的 project、
-instance、type、image、platform、SSH port label。`codespace.type` 只能 `repo`、`blank` 或 `git`：`repo` 额外
+Podman inventory 是唯一事实来源。Environment container 必须有 `codespace.managed=true` 及完整的 workspace、
+instance、type、image、platform、SSH port label（`codespace.workspace`、`codespace.instance` 等）。`codespace.type` 只能 `repo`、`blank` 或 `git`：`repo` 额外
 携带 `codespace.repo` 和 `codespace.provider`，`git` 额外携带 `codespace.git-url`，`blank` 三者都不得携带。
-未选平台时 platform label 为 `native`。缺失、格式错误、与配置 `type` 不符或引用未知 project 的 label 都是
-inventory error，不得推断默认值。sidecar 是 host 级单例，不得复用 environment 的 ID、workspace、deploy key
-或 SSH 投影。
+未选平台时 platform label 为 `native`。缺失、格式错误、与配置 `type` 不符或引用未知 workspace 的 label 都是
+inventory error，不得推断默认值。
+
+Deployment container 走独立命名空间：确定性 ID `codespace-<id>`（host 单例、无 host/instance 分量），托管数据
+根 `<login-home>/codespace-deployment/<id>`，label 只用 `codespace.deployment=true` +
+`codespace.deployment-id` + `codespace.image`，**绝不带 `codespace.managed`**。因此 deployment 与
+environment inventory 用不相交 label filter 各自读取，互不串扰；sidecar/LLM 等 deployment 均属此类，不得复用
+environment 的 ID、workspace、deploy key 或 SSH 投影。
 
 ## 连接机制
 
@@ -273,7 +330,7 @@ machine。Dashboard 并发查询各 host，一个离线 host 不得阻塞其他 
 3. 内存中生成 environment deploy key。
 4. 按所选 host 条目平台拉取镜像；未配置用 host 原生平台。
 5. 以 SSH 登录用户身份 `mkdir -p` 创建 host workspace 目录（无需 `sudo`）。
-6. 按解析后 `container` 配置创建带完整 label 的 container：非身份 run flag 由 global/host/project 分层解析后
+6. 按解析后 `container` 配置创建带完整 label 的 container：非身份 run flag 由 workspace defaults/host/workspace 分层解析后
    原样透传、控制面不补默认；第 2 步的 host 环境快照同时注入且不得与显式 `container.environment` 重名。GPU 用
    `container.devices` 的 CDI 名表达。`container.secrets` 在此逐个校验对应 Podman secret 已注册，缺失即
    fail-fast 不创建 container；`mode: mount` 转发 `--secret`（默认 `5230:5230`、`0o400`），`mode: env` 注入
@@ -316,6 +373,40 @@ workspace、删 container）。Git 检测仅允许在 `running` container 内执
 WebUI 据 Dashboard status 直接显示未检测警告并允许确认，直接调 `force=false` API 时立即返回错误。`blank` 无
 checkout，`state` 恒为空。检测只发生在删除路径，dashboard 不受影响。
 
+## 部署（Deployment）生命周期
+
+Deployment 是**自包含部署容器**（sidecar、LLM serving 等），与 environment 明确区分：镜像自理产物，无
+workspace、SSH 投影、git checkout 或 provider 凭据，生命周期只是「reconcile 确定性容器」加可选托管数据清理，
+不复用 environment 的任何流程。编排在 `controller/deployment.py`，由 `service.py` 提供 transport、operation
+store 与异步调度。
+
+- **身份与 label**：容器名确定性 `codespace-<id>`（host 单例，不含 host/instance 分量），只携带
+  `codespace.deployment=true` 与 `codespace.deployment-id=<id>`（`controller/models.py` 的 `LABEL_DEPLOYMENT*`）。
+  **绝不携带 `codespace.managed`**，因此对 environment inventory 完全不可见；两类 inventory 用不相交的 label
+  filter（`inventory.list_deployments` vs `list_inventory`）各自读取。
+- **托管数据根**：每个 deployment 的持久数据落在 host 的 `~/codespace-deployment/<id>`（由
+  `ssh.remote_deployment_root` 与 `DeploymentSpec.data_path` 解析），与 environment 的
+  `~/codespace/<workspace>/<instance>` 等三根平行且隔离。config
+  里 volume 的 `${DEPLOYMENT_DATA}` 占位符即解析到该目录（如 LLM 的 HF cache）；控制面在 reconcile 时以登录
+  用户 `mkdir -p` 创建它。
+- **部署（reconcile）**：`POST /api/deployments/{id}/hosts/{host}/deploy` 校验该 host 是否声明了此 deployment
+  后排入异步 operation，后台顺序为 pull 镜像 → 建数据根 → 强制移除同名旧容器 → 按解析后 `container` 块建带
+  restart policy(`unless-stopped`) 的新容器。因 deployment 独占确定性名，重复 deploy 幂等收敛到配置的镜像与
+  容器形态。
+- **清理（clean/purge）**：`DELETE /api/deployments/{id}/hosts/{host}?purge=true|false`。`purge=false` 只删
+  容器；`purge=true` 删容器后再用 image helper 清除 `~/codespace-deployment/<id>` 托管数据。容器不存在时返回
+  `removed=false`（幂等）。
+- **状态投影**：`deployment.build_summaries` 把目录逐 host 投影，仅列出声明了该 deployment 的 host，join 实时
+  容器状态（`running`/`stopped`/`missing`）与在飞 operation；host 离线时该 host 记 `missing` 且带 `host offline`
+  error。结果进 Dashboard 的 `deployments` 段供 UI 渲染。
+- **日志**：`GET /api/deployments/{id}/hosts/{host}/logs` 只读返回容器最近合并 stdout/stderr（末尾 2000 行），
+  容器不存在返回 error；与 environment logs 一致由 UI 只读弹窗展示、不轮询。
+- **失败 operation 清理**：`DELETE /api/deployments/{id}/hosts/{host}/operations` 只允许清理 `failed`，对不存在
+  的 operation 幂等，不隐藏 queued/running。
+
+带外 CLI `controller.tools.deploy_sidecar` 与镜像内 `run-*.sh` 仍作为不依赖控制面进程的手动/脚本化部署路径保留；
+常驻控制面现已能原生 reconcile 任意 deployment（含 sidecar、LLM），三条路径产出等价容器形态。
+
 ## 维护 CLI
 
 四个带外 CLI 都固定读 `~/.config/codespace/config.yaml`，默认 dry-run，仅 `--no-dry-run` 执行写操作，host
@@ -325,11 +416,11 @@ checkout，`state` 恒为空。检测只发生在删除路径，dashboard 不受
   key，读 host inventory 判断是否仍有对应 container。输出 `Repository`/`Deploy key`/`In use` 三列；`In use`
   为 `yes`/`no`/`unknown`（host 不可用）/`unmanaged`（非 `codespace-` key），后两者不删。`--no-dry-run` 删
   `In use=no`。GitHub 无账号级 deploy key 枚举 API，故已从配置移除的仓库无法自动发现，需先保留或临时恢复对应
-  project 配置再清理。
+  workspace 配置再清理。
 - **Workspace 清理** `controller.tools.cleanup_workspaces`：并发读各 host inventory，列出
-  `<login-home>/codespace/<project>/<instance>` 两层目录。输出 `Host`/`Workspace`/`In use` 三列；有对应受管
+  `<login-home>/codespace/<workspace>/<instance>` 两层目录。输出 `Host`/`Workspace`/`In use` 三列；有对应受管
   container 为 `yes`，符合 ID 规则但无 container 为 `no`，其他为 `unmanaged`（不删）。`--no-dry-run` 删
-  `In use=no`：按 host 并发、同 host 内串行，用 `default_image` 启动 root helper container 并只 bind mount
+  `In use=no`：按 host 并发、同 host 内串行，用 `workspaces.defaults.image` 启动 root helper container 并只 bind mount
   workspace root，删除目标必须是 workspace root 的严格子路径。
 - **Secret 同步** `controller.tools.sync_secrets`：读顶层 `secrets` 明文，把**每个** secret 注册到 `hosts`
   里**每个** host，不做引用分析。输出 `Host`/`Secret`/`Action` 三列；`Action` 为 `create` 或 `replace`
@@ -370,17 +461,26 @@ key，通过 `HostKeyAlias codespace` 指向单个 pinned `~/.ssh/codespace/know
 - `GET /api/projects/{project}/hosts/{host}/instances/{instance}/logs`
 - `DELETE /api/projects/{project}/hosts/{host}/operations/{instance}`
 - `DELETE /api/projects/{project}/hosts/{host}/instances/{instance}?purge=true|false&force=true|false`
+- `POST /api/deployments/{deployment}/hosts/{host}/deploy`
+- `GET /api/deployments/{deployment}/hosts/{host}/logs`
+- `DELETE /api/deployments/{deployment}/hosts/{host}?purge=true|false`
+- `DELETE /api/deployments/{deployment}/hosts/{host}/operations`
 
 错误格式固定 `{"error": "..."}`。创建 body 用 `host` 显式选 project 声明的某个 host，不在列表内即拒绝。
 `GET .../logs` 只读，返回 `{"logs": "..."}`（container 最近合并 stdout/stderr、带时间戳、末尾 2000 行），不
 存在的 environment 返回 `{"error": ...}`；Web UI 用只读 Logs 弹窗展示，支持手动 Refresh，不轮询、不流式。
 `DELETE` 路径带 `host`（同名 instance 可分布在不同 host，identity 由 host+project+instance 决定），成功返回
 `{deleted, workspace_removed, state}`，`force=false` 时 `deleted=false` 且 `state` 携带 git 检测结果。
+Deployment 路由都带 `host` 且要求该 host 声明了此 deployment（否则拒绝）：`deploy` 返回 202 与异步
+`DeploymentOperation`、`DELETE` 返回 `{removed, data_removed}`、`logs` 与 environment 同形、`operations` DELETE
+只清 `failed`。
 Dashboard response 是浏览器唯一事实来源；每个 project summary 携带 `hosts` 列表（各含 `name` 和可选
-`platform`），Web UI 为每个 environment 显示完整 `ssh_command`，点击经 Clipboard API 复制并显示短暂反馈。
+`platform`），`deployments` 段每项携带 `image`、可选 `description` 与逐 host 状态（`state`/`status`/`operation`/
+`error`），Web UI 为每个 environment 显示完整 `ssh_command`，点击经 Clipboard API 复制并显示短暂反馈。
 创建对话框先选 host（Quick Create 用列表首个 host），只在 create operation 为 queued/running 时轮询。失败的
 create operation 保留错误信息并提供关闭按钮调 operation `DELETE` 清理；该 API 只允许清理 `failed`，对不存在的
-operation 幂等返回 `{"dismissed": false}`，不得隐藏 queued/running operation。不得增加 SSE、前端 optimistic
+operation 幂等返回 `{"dismissed": false}`，不得隐藏 queued/running operation。Deployments 卡片组同样提供
+Deploy/Clean/Purge/Logs 按钮，deploy operation queued/running 时轮询。不得增加 SSE、前端 optimistic
 state、OpenAPI 页面或独立 host/port 配置。
 
 ## 安全边界

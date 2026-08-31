@@ -16,15 +16,16 @@ from controller.tools import cleanup_workspaces
 def config() -> Config:
     return Config.model_validate(
         {
-            "default_image": "image",
-            "container": {"network_mode": "host"},
-            "hosts": {"home": {}},
-            "projects": {
-                "devspace": {
-                    "repo": "github:owner/repo",
-                    "host": [{"name": "home"}],
-                }
+            "workspaces": {
+                "defaults": {"image": "image", "container": {"network_mode": "host"}},
+                "items": {
+                    "devspace": {
+                        "repo": "github:owner/repo",
+                        "host": [{"name": "home"}],
+                    }
+                },
             },
+            "hosts": {"home": {}},
         }
     )
 

@@ -17,16 +17,17 @@ from controller.tools import cleanup_deploy_keys
 def config() -> Config:
     return Config.model_validate(
         {
-            "default_image": "image",
-            "container": {"network_mode": "host"},
+            "workspaces": {
+                "defaults": {"image": "image", "container": {"network_mode": "host"}},
+                "items": {
+                    "devspace": {
+                        "repo": "github:owner/repo",
+                        "host": [{"name": "home"}, {"name": "office"}],
+                    }
+                },
+            },
             "hosts": {"home": {}, "office": {}},
             "tokens": {"github": "token"},
-            "projects": {
-                "devspace": {
-                    "repo": "github:owner/repo",
-                    "host": [{"name": "home"}, {"name": "office"}],
-                }
-            },
         }
     )
 

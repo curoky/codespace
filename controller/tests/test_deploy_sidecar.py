@@ -16,20 +16,21 @@ from controller.tools import deploy_sidecar
 def config() -> Config:
     return Config.model_validate(
         {
-            "default_image": "image",
-            "container": {"network_mode": "host"},
+            "workspaces": {
+                "defaults": {"image": "image", "container": {"network_mode": "host"}},
+                "items": {
+                    "devspace": {
+                        "repo": "github:owner/repo",
+                        "host": [{"name": "home"}, {"name": "office"}, {"name": "local"}],
+                    }
+                },
+            },
             "hosts": {
                 "home": {"podman_socket": "/tmp/podmanxd.sock"},
                 "office": {},
                 "local": {"type": "podman-machine", "machine": "podman-machine-default"},
             },
             "secrets": {"atuin_db_uri": "postgres://db"},
-            "projects": {
-                "devspace": {
-                    "repo": "github:owner/repo",
-                    "host": [{"name": "home"}, {"name": "office"}, {"name": "local"}],
-                }
-            },
         }
     )
 
@@ -188,12 +189,13 @@ def test_no_dry_run_deploys_sidecar_on_all_ssh_hosts(
 def test_no_ssh_hosts_is_a_noop(monkeypatch: pytest.MonkeyPatch) -> None:
     config = Config.model_validate(
         {
-            "default_image": "image",
-            "container": {"network_mode": "bridge"},
+            "workspaces": {
+                "defaults": {"image": "image", "container": {"network_mode": "bridge"}},
+                "items": {"devspace": {"repo": "github:owner/repo", "host": [{"name": "local"}]}},
+            },
             "hosts": {
                 "local": {"type": "podman-machine", "machine": "podman-machine-default"},
             },
-            "projects": {"devspace": {"repo": "github:owner/repo", "host": [{"name": "local"}]}},
         }
     )
     output = StringIO()

@@ -17,6 +17,18 @@ def test_service_spec_all_fields_default_to_none() -> None:
     assert spec.environment is None
     assert spec.devices is None
     assert spec.shm_size is None
+    assert spec.ipc is None
+
+
+def test_ipc_passes_through_as_string() -> None:
+    spec = ServiceSpec.model_validate({"ipc": "host"})
+
+    assert spec.ipc == "host"
+
+
+def test_ipc_rejects_blank_string() -> None:
+    with pytest.raises(ValidationError):
+        ServiceSpec.model_validate({"ipc": "  "})
 
 
 def test_shm_size_passes_through_as_string() -> None:

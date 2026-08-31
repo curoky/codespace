@@ -80,6 +80,7 @@ RUN /tmp/setup-sysconf.sh \
   && install -d -o 5230 -g 5230 -m 0700 /upload \
   && install -d -o 5230 -g 5230 -m 0755 /cache \
   && chown 5230:5230 /opt \
+  && chmod -R +x /opt/codespace/bin \
   && /tmp/setup-s6.sh \
   && ln -s /opt/bm/store/zsh/bin/zsh /usr/bin \
   && ln -s /opt/bm/store/wget/bin/wget /usr/bin \

@@ -54,7 +54,7 @@ def _environment(instance: str = "debug") -> Environment:
     return Environment(
         id=identity,
         host="home",
-        project="devspace",
+        workspace="devspace",
         instance=instance,
         type="repo",
         repo="curoky/devspace",

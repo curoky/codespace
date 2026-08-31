@@ -88,7 +88,13 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
   并发修改同一 `/upload` 文件；
 - `supercronic` s6 longrun，监督守护进程并加载 `rootfs/etc/supercronic/crontab`；该 crontab 目前**有意留空**
   （零 job）。加任务写 5 字段（无 user 列）条目。二进制经 binman
-  （`script/binman.yaml` 的 `link`）提供，日志写 `/var/log/supercronic.log`。
+  （`script/binman.yaml` 的 `link`）提供，日志写 `/var/log/supercronic.log`；
+- `/opt/codespace/bin/` 控制面 helper：`git-checkout <clone_url> <target>`（幂等 clone，复用完好 checkout、
+  空仓打 `codespace-empty-repository` 标记、拒绝覆盖非 checkout 目标，经同级 temp 目录原子落位）、
+  `git-state <target>`（用 `/opt/bm/bin` 的 `jq` 输出 `{unpushed, uncommitted, detail}` JSON，缺 checkout 全 false）、
+  `prepare-open-path <path>`（`mkdir -p` 编辑器 open path）。控制面（`controller/workspace.py`）以用户 `x` 调用它们，
+  把 checkout/state 多步语义留在镜像内、Python 侧只做薄胶水。空仓标记串在 `git-checkout` 与 `git-state` 间共享，
+  必须逐字节一致；`git-state` 的 JSON 字段是与 `RepoGitState` 的契约，改动需两侧同步。
 
 网络：`network_mode: host` 容器 sshd 绑 `127.0.0.1`。`network_mode: bridge` 容器 sshd 注入
 `SSHD_BIND=0.0.0.0`，SSH 端口发布到 loopback `127.0.0.1:<ssh_port>` 复用 ProxyCommand 路径，project

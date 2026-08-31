@@ -11,42 +11,46 @@ from controller.config import Config
 def config() -> Config:
     return Config.model_validate(
         {
-            "default_image": "ghcr.io/curoky/devspace:codespace-debian13",
-            "container": {
-                "network_mode": "host",
-                "cap_add": ["NET_RAW", "SYS_ADMIN"],
-                "security_opt": ["disable", "seccomp=unconfined"],
-                "pids_limit": -1,
-                "ulimits": {"memlock": {"soft": -1, "hard": -1}},
-                "volumes": ["/etc/krb5.conf:/etc/krb5.conf:ro"],
+            "workspaces": {
+                "defaults": {
+                    "image": "ghcr.io/curoky/devspace:codespace-debian13",
+                    "container": {
+                        "network_mode": "host",
+                        "cap_add": ["NET_RAW", "SYS_ADMIN"],
+                        "security_opt": ["disable", "seccomp=unconfined"],
+                        "pids_limit": -1,
+                        "ulimits": {"memlock": {"soft": -1, "hard": -1}},
+                        "volumes": ["/etc/krb5.conf:/etc/krb5.conf:ro"],
+                    },
+                },
+                "items": {
+                    "devspace": {
+                        "host": [{"name": "home", "platform": "linux/arm64"}],
+                        "provider": "github",
+                        "repo": "curoky/devspace",
+                        "description": "Devspace repository",
+                    },
+                    "service-api": {
+                        "host": [{"name": "office"}],
+                        "provider": "gitlab",
+                        "repo": "group/service-api",
+                        "image": "registry.example.com/codespace-api:latest",
+                    },
+                    "scratch": {
+                        "host": [{"name": "home"}],
+                        "type": "blank",
+                        "description": "Repo-less scratch space",
+                    },
+                    "abbie": {
+                        "host": [{"name": "home"}],
+                        "repo": "git:git@curoky:devspace",
+                        "description": "Raw git+ssh workspace",
+                    },
+                },
             },
             "hosts": {
                 "home": {},
                 "office": {},
-            },
-            "projects": {
-                "devspace": {
-                    "host": [{"name": "home", "platform": "linux/arm64"}],
-                    "provider": "github",
-                    "repo": "curoky/devspace",
-                    "description": "Devspace repository",
-                },
-                "service-api": {
-                    "host": [{"name": "office"}],
-                    "provider": "gitlab",
-                    "repo": "group/service-api",
-                    "image": "registry.example.com/codespace-api:latest",
-                },
-                "scratch": {
-                    "host": [{"name": "home"}],
-                    "type": "blank",
-                    "description": "Repo-less scratch space",
-                },
-                "abbie": {
-                    "host": [{"name": "home"}],
-                    "repo": "git:git@curoky:devspace",
-                    "description": "Raw git+ssh project",
-                },
             },
         }
     )

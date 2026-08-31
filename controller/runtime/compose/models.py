@@ -36,8 +36,21 @@ def _absolute_path(value: str) -> str:
     return value
 
 
+def _mount_source(value: str) -> str:
+    """Validate a bind-mount source.
+
+    A source is either an absolute host path or a Compose-style ``${VAR}``
+    placeholder that the control plane resolves before container creation
+    (e.g. ``${DEPLOYMENT_DATA}`` for a deployment's managed data root).
+    """
+    if value.startswith(("/", "${")):
+        return value
+    raise ValueError("volume source must be an absolute path or a ${...} placeholder")
+
+
 NonBlankString = Annotated[str, AfterValidator(_not_blank)]
 AbsolutePath = Annotated[str, AfterValidator(_absolute_path)]
+MountSource = Annotated[str, AfterValidator(_mount_source)]
 
 
 class Ulimit(BaseModel):
@@ -55,7 +68,7 @@ class Volume(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     type: Annotated[str, Field(pattern="^bind$")] = "bind"
-    source: AbsolutePath
+    source: MountSource
     target: AbsolutePath
     read_only: bool = False
 
@@ -113,6 +126,7 @@ class ServiceSpec(BaseModel):
     cap_add: list[NonBlankString] | None = None
     security_opt: list[NonBlankString] | None = None
     network_mode: NonBlankString | None = None
+    ipc: NonBlankString | None = None
     pids_limit: int | None = None
     ulimits: _Ulimits | None = None
     volumes: _Volumes | None = None

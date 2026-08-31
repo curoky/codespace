@@ -25,12 +25,20 @@
           <div id="hosts" class="host-list"></div>
         </section>
 
-        <section aria-labelledby="projects-heading">
+        <section aria-labelledby="workspaces-heading">
           <div class="section-heading">
-            <h2 id="projects-heading">Projects</h2>
+            <h2 id="workspaces-heading">Workspaces</h2>
             <span id="poll-status" class="status-message"></span>
           </div>
-          <div id="projects" class="project-grid"></div>
+          <div id="workspaces" class="workspace-grid"></div>
+        </section>
+
+        <section aria-labelledby="deployments-heading">
+          <div class="section-heading">
+            <h2 id="deployments-heading">Deployments</h2>
+            <span id="deployments-summary" class="section-note"></span>
+          </div>
+          <div id="deployments" class="workspace-grid"></div>
         </section>
       </main>
     </div>
@@ -51,7 +59,7 @@
             ×
           </button>
         </div>
-        <input id="instance-project" type="hidden" />
+        <input id="instance-workspace" type="hidden" />
         <label>
           Host
           <select id="instance-host" name="host" required></select>

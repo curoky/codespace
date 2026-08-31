@@ -95,7 +95,7 @@ select {
 /* Flat opaque surfaces (GitHub Primer canvas + border) -------------------- */
 
 .host,
-.project-card,
+.workspace-card,
 .environment,
 .operation,
 dialog,
@@ -138,7 +138,7 @@ h3 {
 .header-actions,
 .dialog-actions,
 .environment-actions,
-.project-header-actions {
+.workspace-header-actions {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -377,14 +377,14 @@ main {
 
 /* Projects ---------------------------------------------------------------- */
 
-.project-grid {
+.workspace-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: 10px;
 }
 
-.project-card {
+.workspace-card {
   display: grid;
   gap: 12px;
   border-radius: var(--radius-lg);
@@ -394,7 +394,7 @@ main {
 
 /* Header packs identity and quick-create controls onto one wrapping row:
    name + counter + source on the left, host chips + New pushed to the right. */
-.project-header {
+.workspace-header {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -404,7 +404,7 @@ main {
   border-bottom: 1px solid var(--hairline);
 }
 
-.project-title {
+.workspace-title {
   display: flex;
   align-items: baseline;
   flex: 1 1 260px;
@@ -413,14 +413,14 @@ main {
   min-width: 0;
 }
 
-.project-title h3 {
+.workspace-title h3 {
   overflow: hidden;
   color: var(--link);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.project-source {
+.workspace-source {
   min-width: 0;
   overflow: hidden;
   color: var(--text-muted);
@@ -429,7 +429,7 @@ main {
   white-space: nowrap;
 }
 
-.project-header-actions {
+.workspace-header-actions {
   flex-wrap: wrap;
   justify-content: flex-end;
   margin-left: auto;
@@ -567,6 +567,12 @@ button.host-action {
 
 .env-status-dot.stopped {
   background: var(--danger);
+}
+
+/* Deployments reuse the environment row layout; a not-yet-deployed host keeps
+   the neutral dot (the default background) so only live/stopped state stands out. */
+.env-status-dot.missing {
+  background: var(--text-muted);
 }
 
 .environment-title {
@@ -863,7 +869,7 @@ select:focus {
 
 @media (hover: hover) {
   .host:hover,
-  .project-card:hover {
+  .workspace-card:hover {
     border-color: var(--hairline-strong);
     box-shadow: var(--shadow-card-hover);
   }

@@ -48,17 +48,17 @@ class FakeTransport:
 def _environment(
     *,
     host: str = "home",
-    project: str = "devspace",
+    workspace: str = "devspace",
     instance: str = "debug",
     status: str = "running",
 ) -> Environment:
-    identity = environment_id(host, project, instance)
+    identity = environment_id(host, workspace, instance)
     provider_name = "github" if host == "home" else "gitlab"
     repo = "curoky/devspace" if host == "home" else "group/service-api"
     return Environment(
         id=identity,
         host=host,
-        project=project,
+        workspace=workspace,
         instance=instance,
         type="repo",
         repo=repo,
@@ -122,6 +122,11 @@ def test_dashboard_isolates_offline_host_and_rewrites_successful_host(
         "list_inventory",
         lambda client, host, cfg: inventory.Inventory([_environment()], []),
     )
+    monkeypatch.setattr(
+        inventory,
+        "list_deployments",
+        lambda client, host, cfg: inventory.DeploymentInventory([], []),
+    )
 
     dashboard = service.dashboard()
 
@@ -154,6 +159,11 @@ def test_dashboard_keeps_failed_operation_when_container_was_retained(
             if host == "home"
             else inventory.Inventory([], [])
         ),
+    )
+    monkeypatch.setattr(
+        inventory,
+        "list_deployments",
+        lambda client, host, cfg: inventory.DeploymentInventory([], []),
     )
     monkeypatch.setattr(ssh, "write_host", lambda host, environments, route: None)
 
@@ -245,7 +255,7 @@ def test_create_runs_all_stages_in_order(
         "clone",
         "projection",
     ]
-    assert pulls == [(service.config.default_image, "linux/arm64")]
+    assert pulls == [(service.config.workspaces.defaults.image, "linux/arm64")]
     assert specs[0].platform == "linux/arm64"
     assert specs[0].container.network_mode == "host"
     assert specs[0].published_ports == ()
@@ -260,27 +270,31 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
     monkeypatch.setattr(ssh, "remote_instance_roots", lambda route: _ROOTS)
     config = Config.model_validate(
         {
-            "default_image": "img:latest",
-            "container": {
-                "network_mode": "bridge",
-                "cap_add": ["NET_RAW", "SYS_ADMIN"],
-                "security_opt": ["disable", "seccomp=unconfined"],
-                "pids_limit": -1,
-                "ulimits": {"memlock": {"soft": -1, "hard": -1}},
+            "workspaces": {
+                "defaults": {
+                    "image": "img:latest",
+                    "container": {
+                        "network_mode": "bridge",
+                        "cap_add": ["NET_RAW", "SYS_ADMIN"],
+                        "security_opt": ["disable", "seccomp=unconfined"],
+                        "pids_limit": -1,
+                        "ulimits": {"memlock": {"soft": -1, "hard": -1}},
+                    },
+                },
+                "items": {
+                    "devspace": {
+                        "host": [{"name": "local"}],
+                        "provider": "github",
+                        "repo": "curoky/devspace",
+                        "published_ports": ["8080", "3000:5000"],
+                    }
+                },
             },
             "hosts": {
                 "local": {
                     "type": "podman-machine",
                     "machine": "podman-machine-default",
                 },
-            },
-            "projects": {
-                "devspace": {
-                    "host": [{"name": "local"}],
-                    "provider": "github",
-                    "repo": "curoky/devspace",
-                    "published_ports": ["8080", "3000:5000"],
-                }
             },
         }
     )
@@ -328,7 +342,7 @@ def test_create_blank_project_skips_repo_stages(
     service.queue_create("scratch", "home", "debug")
     events: list[str] = []
     container = SimpleNamespace(id="container-id")
-    scratch_env = _environment(project="scratch")
+    scratch_env = _environment(workspace="scratch")
     inventories = iter(
         [
             inventory.Inventory([], []),
@@ -376,7 +390,7 @@ def test_create_blank_project_skips_repo_stages(
 def test_queue_create_blank_project_needs_no_token(service: CodespaceService) -> None:
     operation = service.queue_create("scratch", "home", "debug")
 
-    assert operation.project == "scratch"
+    assert operation.workspace == "scratch"
 
 
 def test_create_git_project_clones_url_without_deploy_key(
@@ -387,7 +401,7 @@ def test_create_git_project_clones_url_without_deploy_key(
     events: list[str] = []
     cloned: list[str] = []
     container = SimpleNamespace(id="container-id")
-    abbie_env = _environment(project="abbie")
+    abbie_env = _environment(workspace="abbie")
     abbie_env.type = "git"
     abbie_env.repo = None
     abbie_env.provider = None

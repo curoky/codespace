@@ -1,39 +1,87 @@
-default_image: ghcr.io/curoky/devspace:codespace-debian13
+# Shared, non-secret control-plane base (committed).
+#
+# The private entrypoint ~/devspace/config.extend.yaml points here with
+# `extends: config.yaml` and layers hosts, workspaces.items, tokens and secrets
+# on top (see controller/AGENTS.md "配置"). Mappings deep-merge key by key with
+# the private layer winning; scalars and lists are replaced. This base therefore
+# declares only the shared development defaults and the deployment catalog; it is
+# a fragment and is not expected to validate on its own.
 
-container:
-  cap_add: [NET_RAW, SYS_ADMIN]
-  security_opt: [disable, seccomp=unconfined]
-  pids_limit: -1
-  ulimits:
-    - {name: memlock, soft: -1, hard: -1}
-  mounts:
-    - {source: /etc/krb5.conf, target: /etc/krb5.conf, read_only: true}
+# Development-container defaults shared by every workspace. These privileged,
+# development-only settings serve workspaces only; deployments never inherit them.
+workspaces:
+  defaults:
+    image: ghcr.io/curoky/devspace:codespace-debian13
+    container:
+      network_mode: host
+      cap_add: [NET_RAW, SYS_ADMIN]
+      security_opt: [disable, seccomp=unconfined]
+      pids_limit: -1
+      ulimits:
+        memlock: {soft: -1, hard: -1}
+      volumes:
+        - /etc/krb5.conf:/etc/krb5.conf:ro
 
-hosts:
-  local:
-    type: podman-machine
-    machine: podman-machine-default
-    network_mode: host
+# Deployment catalog: self-contained images with no repository checkout. Which
+# hosts run each entry is declared the other way round, by the private layer's
+# `hosts.<host>.deployments: [<id>, ...]`. A `${DEPLOYMENT_DATA}` volume source
+# resolves to the deployment's managed data root ~/codespace-deployment/<id>.
+deployments:
+  sidecar:
+    image: ghcr.io/curoky/devspace:codespace-sidecar
+    description: Host-level shared services (atuin sync, image prewarm).
+    # published_ports only take effect on hosts whose resolved network_mode is
+    # bridge (e.g. a macOS podman-machine host); on Linux host-network hosts
+    # they are ignored and atuin binds host loopback directly.
+    published_ports: ["8002:8002"]
+    container:
+      # network_mode defaults to host here (Linux SSH hosts); a macOS
+      # podman-machine host overrides it to bridge via hosts.<host>.container,
+      # where ATUIN_HOST=0.0.0.0 is also added so podman can forward the bridge
+      # port to loopback. Deployments no longer inherit the development defaults,
+      # so this must be declared explicitly.
+      network_mode: host
+      volumes:
+        - /run/podman/podman.sock:/run/podman/podman.sock
+      secrets:
+        - {source: atuin_db_uri, mode: env, target: ATUIN_DB_URI}
 
-tokens:
-  github:
-  gitlab:
+  # Qwen3.8-Flash-Next-FP8 serving on a single 8x H100 node. Both engines are
+  # self-contained (weights are pulled at run time into the managed HF cache) and
+  # independent: a host opts into at most one via `hosts.<host>.deployments`.
+  # Each clears the development-only global container defaults (privileged caps,
+  # relaxed seccomp, the krb5 mount) it does not need and requests every GPU via
+  # CDI on the bridge network so the OpenAI API is published on port 8003.
+  llm-vllm:
+    image: ghcr.io/curoky/devspace:llm-vllm
+    description: Qwen3.8-Flash-Next-FP8 serving (vLLM engine).
+    published_ports: ["8003:8003"]
+    container:
+      network_mode: bridge
+      ipc: host
+      shm_size: 32g
+      devices:
+        - nvidia.com/gpu=all
+      # ${DEPLOYMENT_DATA} resolves to ~/codespace-deployment/llm-vllm; the ~172
+      # GiB FP8 weights land there on first start, isolated per deployment.
+      volumes:
+        - ${DEPLOYMENT_DATA}:/root/.cache/huggingface
+      environment:
+        - HF_HOME=/root/.cache/huggingface
+        - LLM_PORT=8003
 
-projects:
-  devspace:
-    repo: github:curoky/devspace
-    host:
-      - name: local
-        platform: linux/arm64
-
-  standalone-binaries:
-    repo: github:curoky/standalone-binaries
-    host:
-      - name: local
-        platform: linux/arm64
-
-  devspace2:
-    repo: git:git@curoky:devspace
-    host:
-      - name: local
-        platform: linux/arm64
+  llm-sglang:
+    image: ghcr.io/curoky/devspace:llm-sglang
+    description: Qwen3.8-Flash-Next-FP8 serving (SGLang engine).
+    published_ports: ["8003:8003"]
+    container:
+      network_mode: bridge
+      ipc: host
+      shm_size: 32g
+      devices:
+        - nvidia.com/gpu=all
+      volumes:
+        - ${DEPLOYMENT_DATA}:/root/.cache/huggingface
+      environment:
+        - HF_HOME=/root/.cache/huggingface
+        - LLM_PORT=8003

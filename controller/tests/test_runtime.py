@@ -14,28 +14,34 @@ import pytest
 from podman.errors import NotFound, PodmanError
 
 from controller import container as container_runtime
+from controller import deployment as deployment_ops
 from controller import inventory, workspace
 from controller.config import Config
 from controller.models import (
+    LABEL_DEPLOYMENT,
+    LABEL_DEPLOYMENT_ID,
     LABEL_IMAGE,
     LABEL_INSTANCE,
     LABEL_MANAGED,
     LABEL_PLATFORM,
-    LABEL_PROJECT,
     LABEL_PROVIDER,
     LABEL_REPO,
     LABEL_SSH_PORT,
     LABEL_TYPE,
+    LABEL_WORKSPACE,
     MANDATORY_LABELS,
+    Deployment,
+    DeploymentOperation,
     Environment,
     EnvironmentSpec,
     HostRoots,
+    deployment_id,
     environment_id,
     environment_labels,
     ssh_port,
 )
 from controller.runtime import engine
-from controller.runtime.compose import Secret
+from controller.runtime.compose import Secret, Volume
 
 _ROOTS = HostRoots(
     workspace="/home/x/codespace",
@@ -117,19 +123,19 @@ class FakeContainer:
         self,
         *,
         host: str = "home",
-        project: str = "devspace",
+        workspace: str = "devspace",
         instance: str = "debug",
         repo: str = "curoky/devspace",
         provider: str = "github",
         image: str = "image:latest",
         platform: str = "native",
     ) -> None:
-        self.name = environment_id(host, project, instance)
+        self.name = environment_id(host, workspace, instance)
         self.id = "container-id"
         identity_port = ssh_port(self.name)
         self.labels = {
             LABEL_MANAGED: "true",
-            LABEL_PROJECT: project,
+            LABEL_WORKSPACE: workspace,
             LABEL_INSTANCE: instance,
             LABEL_TYPE: "repo",
             LABEL_REPO: repo,
@@ -289,8 +295,8 @@ def test_pull_image_raises_on_stream_error_and_closes_client(
     assert pull_client.closed is True
 
 
-def test_inventory_reports_unknown_project_as_error(config: Config) -> None:
-    container = FakeContainer(project="unknown")
+def test_inventory_reports_unknown_workspace_as_error(config: Config) -> None:
+    container = FakeContainer(workspace="unknown")
     client = SimpleNamespace(
         containers=SimpleNamespace(list=lambda **_kwargs: [container]),
     )
@@ -299,7 +305,7 @@ def test_inventory_reports_unknown_project_as_error(config: Config) -> None:
 
     assert current.environments == []
     assert current.errors == [
-        "container codespace-home-unknown-debug references unknown project 'unknown'"
+        "container codespace-home-unknown-debug references unknown workspace 'unknown'"
     ]
 
 
@@ -345,7 +351,7 @@ def test_create_container_preserves_fixed_runtime_contract(
 
     assert result is container
     image, kwargs = calls[0]
-    assert image == config.default_image
+    assert image == config.workspaces.defaults.image
     assert kwargs["name"] == "codespace-home-devspace-debug"
     assert kwargs["network_mode"] == "host"
     assert kwargs["platform"] == "linux/arm64"
@@ -361,7 +367,7 @@ def test_create_container_preserves_fixed_runtime_contract(
     assert kwargs["devices"] == []
     assert kwargs["labels"] == {
         **container.labels,
-        LABEL_IMAGE: config.default_image,
+        LABEL_IMAGE: config.workspaces.defaults.image,
         LABEL_PLATFORM: "linux/arm64",
     }
     assert kwargs["mounts"] == [
@@ -583,7 +589,7 @@ def test_create_container_fails_fast_on_missing_secret(config: Config) -> None:
 
 def _encrypted_spec(config: Config) -> EnvironmentSpec:
     spec = config.environment_spec("devspace", "home", "debug")
-    return replace(spec, project=spec.project.model_copy(update={"encrypt_workspace": True}))
+    return replace(spec, workspace=spec.workspace.model_copy(update={"encrypt_workspace": True}))
 
 
 def test_create_container_encrypts_workspace_when_enabled(
@@ -786,201 +792,70 @@ def test_inject_deploy_key_writes_only_private_key() -> None:
     assert container.exec_calls == [(["chown", "x:x", "/home/x/.ssh/repo_id_ed25519"], "0")]
 
 
-def test_clone_reuses_valid_existing_checkout() -> None:
-    container = FakeContainer()
-    container.exec_run = lambda command, user=None, demux=False: (  # type: ignore[method-assign]
-        container.exec_calls.append((command, user)) or (0, (None, None))
-    )
-
-    workspace.clone_repo(container, "curoky/devspace", "github", "/workspace/devspace")  # type: ignore[arg-type]
-
-    assert container.exec_calls == [
-        (["test", "-d", "/workspace/devspace/.git"], "x"),
-        (["git", "-C", "/workspace/devspace", "rev-parse", "--verify", "HEAD"], "x"),
-    ]
-
-
-def test_clone_missing_checkout_uses_temporary_directory_and_long_timeout() -> None:
+def test_clone_repo_invokes_checkout_helper_with_provider_url_and_long_timeout() -> None:
+    # The multi-step checkout logic now lives in the in-image git-checkout
+    # helper; the control plane only invokes it with the resolved clone URL.
     container = FakeContainer()
 
     workspace.clone_repo(container, "group/service-api", "gitlab", "/workspace/service-api")  # type: ignore[arg-type]
 
-    assert (
-        [
-            "git",
-            "clone",
-            "--depth=1",
-            "git@gitlab.com:group/service-api.git",
-            "/workspace/service-api.codespace-clone",
-        ],
-        "x",
-    ) in container.exec_calls
-    assert container.exec_calls[-1] == (
-        [
-            "mv",
-            "--",
-            "/workspace/service-api.codespace-clone",
-            "/workspace/service-api",
-        ],
-        "x",
-    )
-    clone_index = next(
-        index
-        for index, (command, _) in enumerate(container.exec_calls)
-        if command[:2] == ["git", "clone"]
-    )
-    assert container.client.start_timeouts[clone_index] == 15 * 60.0
-    assert all(
-        timeout == 60.0
-        for index, timeout in enumerate(container.client.start_timeouts)
-        if index != clone_index
-    )
-
-
-def test_clone_creates_missing_parent_directory_for_nested_target() -> None:
-    container = FakeContainer()
-
-    workspace.clone_repo(  # type: ignore[arg-type]
-        container,
-        "curoky/agent-playbook",
-        "github",
-        "/workspace/space/agent-playbook",
-    )
-
-    assert (["mkdir", "-p", "--", "/workspace/space"], "x") in container.exec_calls
-    assert container.exec_calls[-1] == (
-        [
-            "mv",
-            "--",
-            "/workspace/space/agent-playbook.codespace-clone",
-            "/workspace/space/agent-playbook",
-        ],
-        "x",
-    )
-
-
-def test_clone_replaces_incomplete_checkout() -> None:
-    container = FakeContainer()
-
-    def exec_run(
-        command: list[str],
-        *,
-        user: str | None = None,
-        demux: bool = False,
-    ) -> tuple[int, tuple[None, None]]:
-        container.exec_calls.append((command, user))
-        if command == ["test", "-d", "/workspace/devspace/.git"]:
-            return 0, (None, None)
-        if command[:3] == ["git", "-C", "/workspace/devspace"]:
-            return 128, (None, None)
-        if command == [
-            "test",
-            "-f",
-            "/workspace/devspace/.git/codespace-empty-repository",
-        ]:
-            return 1, (None, None)
-        return 0, (None, None)
-
-    container.exec_run = exec_run  # type: ignore[method-assign]
-
-    workspace.clone_repo(container, "curoky/devspace", "github", "/workspace/devspace")  # type: ignore[arg-type]
-
-    assert (["rm", "-rf", "--", "/workspace/devspace"], "x") in container.exec_calls
-    assert (
-        [
-            "git",
-            "clone",
-            "--depth=1",
-            "git@github.com:curoky/devspace.git",
-            "/workspace/devspace.codespace-clone",
-        ],
-        "x",
-    ) in container.exec_calls
-
-
-def test_clone_reuses_successfully_cloned_empty_repository() -> None:
-    container = FakeContainer()
-
-    def exec_run(
-        command: list[str],
-        *,
-        user: str | None = None,
-        demux: bool = False,
-    ) -> tuple[int, tuple[None, None]]:
-        container.exec_calls.append((command, user))
-        if command[0] == "git":
-            return 128, (None, None)
-        return 0, (None, None)
-
-    container.exec_run = exec_run  # type: ignore[method-assign]
-
-    workspace.clone_repo(container, "curoky/empty", "github", "/workspace/empty")  # type: ignore[arg-type]
-
     assert container.exec_calls == [
-        (["test", "-d", "/workspace/empty/.git"], "x"),
-        (["git", "-C", "/workspace/empty", "rev-parse", "--verify", "HEAD"], "x"),
         (
             [
-                "test",
-                "-f",
-                "/workspace/empty/.git/codespace-empty-repository",
+                "/opt/codespace/bin/git-checkout",
+                "git@gitlab.com:group/service-api.git",
+                "/workspace/service-api",
             ],
             "x",
-        ),
+        )
     ]
+    assert container.client.start_timeouts == [15 * 60.0]
 
 
-def test_clone_git_url_missing_checkout_clones_raw_url() -> None:
+def test_clone_git_url_invokes_checkout_helper_with_raw_url() -> None:
     container = FakeContainer()
 
     workspace.clone_git_url(container, "git@curoky:devspace", "/workspace/devspace")  # type: ignore[arg-type]
 
-    assert (
-        [
-            "git",
-            "clone",
-            "--depth=1",
-            "git@curoky:devspace",
-            "/workspace/devspace.codespace-clone",
-        ],
-        "x",
-    ) in container.exec_calls
-    assert container.exec_calls[-1] == (
-        ["mv", "--", "/workspace/devspace.codespace-clone", "/workspace/devspace"],
-        "x",
+    assert container.exec_calls == [
+        (
+            ["/opt/codespace/bin/git-checkout", "git@curoky:devspace", "/workspace/devspace"],
+            "x",
+        )
+    ]
+
+
+def test_clone_raises_when_checkout_helper_fails() -> None:
+    container = FakeContainer()
+    container.exec_run = lambda command, user=None, demux=False: (  # type: ignore[method-assign]
+        container.exec_calls.append((command, user)) or (1, (None, b"boom"))
     )
 
+    with pytest.raises(RuntimeError, match=r"git-checkout.* failed \(1\)"):
+        workspace.clone_repo(container, "curoky/devspace", "github", "/workspace/devspace")  # type: ignore[arg-type]
 
-def test_clone_git_url_reuses_valid_existing_checkout() -> None:
+
+def test_prepare_open_path_invokes_helper_as_container_user() -> None:
     container = FakeContainer()
     container.exec_run = lambda command, user=None, demux=False: (  # type: ignore[method-assign]
         container.exec_calls.append((command, user)) or (0, (None, None))
     )
-
-    workspace.clone_git_url(container, "git@curoky:devspace", "/workspace/devspace")  # type: ignore[arg-type]
-
-    assert container.exec_calls == [
-        (["test", "-d", "/workspace/devspace/.git"], "x"),
-        (["git", "-C", "/workspace/devspace", "rev-parse", "--verify", "HEAD"], "x"),
-    ]
-
-
-def test_prepare_open_path_makes_directory_as_container_user() -> None:
-    container = FakeContainer()
 
     workspace.prepare_open_path(
         container,  # type: ignore[arg-type]
         "/workspace/relevance-pipeline",
     )
 
-    assert container.exec_calls == [(["mkdir", "-p", "--", "/workspace/relevance-pipeline"], "x")]
+    assert container.exec_calls == [
+        (["/opt/codespace/bin/prepare-open-path", "/workspace/relevance-pipeline"], "x")
+    ]
 
 
 def _environment_for_purge(platform: str) -> Environment:
     return Environment(
         id="codespace-home-devspace-debug",
         host="home",
-        project="devspace",
+        workspace="devspace",
         instance="debug",
         type="repo",
         repo="curoky/devspace",
@@ -1076,16 +951,17 @@ def test_remove_workspace_rejects_target_outside_root() -> None:
         )
 
 
-class GitFakeContainer:
-    """Container stub scripting exec_run replies for git state probes.
+class GitStateFakeContainer:
+    """Container stub scripting a single git-state helper reply.
 
-    Replies are ``(exit_code, stdout, stderr)`` and ``exec_run`` honours
-    ``demux=True`` by returning the streams separately, mirroring Podman's real
-    wire format. This lets tests prove stderr never pollutes stdout parsing.
+    The multi-step porcelain/log parsing now lives in the in-image git-state
+    helper, which emits one JSON document. The stub returns ``(exit_code,
+    stdout, stderr)`` for that single exec so the Python side only has to prove
+    it invokes the helper and parses its JSON.
     """
 
-    def __init__(self, replies: dict[str, tuple[int, bytes, bytes]]) -> None:
-        self.replies = replies
+    def __init__(self, reply: tuple[int, bytes, bytes]) -> None:
+        self.reply = reply
         self.calls: list[tuple[list[str], str | None]] = []
         self.id = "git-container-id"
         self.name = "git-container"
@@ -1099,87 +975,472 @@ class GitFakeContainer:
         demux: bool = False,
     ) -> tuple[int, tuple[bytes | None, bytes | None]]:
         self.calls.append((command, user))
-        if command[0] == "test":
-            code, stdout, stderr = self.replies.get("test", (0, b"", b""))
-        else:
-            # git commands: key on the subcommand after "-C <target>".
-            code, stdout, stderr = self.replies.get(command[3], (0, b"", b""))
+        code, stdout, stderr = self.reply
         return code, (stdout or None, stderr or None)
 
 
-def test_repo_git_state_clean_when_nothing_pending() -> None:
-    container = GitFakeContainer({})
-
-    state = workspace.repo_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
-
-    assert state.blocks_delete is False
-    assert state.unpushed is False
-    assert state.uncommitted is False
-    assert state.detail == []
-
-
-def test_repo_git_state_ignores_stderr_noise() -> None:
-    # Regression: without demux, git/conmon stderr diagnostics leaked into the
-    # stdout parsed for porcelain/log output and falsely blocked deletion.
-    container = GitFakeContainer(
-        {
-            "status": (0, b"", b"warning: could not open directory\n"),
-            "log": (0, b"", b"[conmon:d]: exec with attach got start message\n"),
-        }
+def test_repo_git_state_invokes_helper_and_parses_clean_json() -> None:
+    container = GitStateFakeContainer(
+        (0, b'{"unpushed": false, "uncommitted": false, "detail": []}', b"")
     )
 
     state = workspace.repo_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
 
+    assert container.calls == [(["/opt/codespace/bin/git-state", "/workspace/devspace"], "x")]
     assert state.blocks_delete is False
+    assert state.unpushed is False
+    assert state.uncommitted is False
     assert state.detail == []
 
 
-def test_repo_git_state_detects_uncommitted() -> None:
-    container = GitFakeContainer({"status": (0, b" M models.py\n", b"")})
-
-    state = workspace.repo_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
-
-    assert state.uncommitted is True
-    assert state.unpushed is False
-    assert state.detail == [" M models.py"]
-
-
-def test_repo_git_state_detects_unpushed() -> None:
-    container = GitFakeContainer({"log": (0, b"abc123 add feature\n", b"")})
-
-    state = workspace.repo_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
-
-    assert state.unpushed is True
-    assert state.uncommitted is False
-    assert state.detail == ["abc123 add feature"]
-
-
-def test_repo_git_state_detects_both() -> None:
-    container = GitFakeContainer(
-        {
-            "status": (0, b" M models.py\n", b""),
-            "log": (0, b"abc123 add feature\n", b""),
-        }
+def test_repo_git_state_parses_detected_changes() -> None:
+    container = GitStateFakeContainer(
+        (
+            0,
+            b'{"unpushed": true, "uncommitted": true, '
+            b'"detail": [" M models.py", "abc123 add feature"]}',
+            b"",
+        )
     )
 
     state = workspace.repo_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
 
     assert state.blocks_delete is True
+    assert state.unpushed is True
+    assert state.uncommitted is True
     assert state.detail == [" M models.py", "abc123 add feature"]
 
 
-def test_repo_git_state_skips_absent_checkout() -> None:
-    container = GitFakeContainer({"test": (1, b"", b"")})
+def test_repo_git_state_raises_on_helper_failure() -> None:
+    container = GitStateFakeContainer((1, b"", b"boom"))
 
-    state = workspace.repo_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
-
-    assert state.blocks_delete is False
-    # Only the presence probe should run when the checkout is missing.
-    assert container.calls == [(["test", "-d", "/workspace/devspace/.git"], "x")]
-
-
-def test_repo_git_state_raises_on_git_failure() -> None:
-    container = GitFakeContainer({"status": (128, b"", b"fatal: not a git repository")})
-
-    with pytest.raises(RuntimeError, match=r"exec git .* failed \(128\)"):
+    with pytest.raises(RuntimeError, match=r"git-state failed \(1\)"):
         workspace.repo_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
+
+
+# --- Deployment inventory ----------------------------------------------------
+
+
+def _deployment_config() -> Config:
+    return Config.model_validate(
+        {
+            "workspaces": {
+                "defaults": {"image": "img", "container": {"network_mode": "host"}},
+                "items": {
+                    "devspace": {"host": [{"name": "server"}], "provider": "github", "repo": "o/r"}
+                },
+            },
+            "hosts": {"server": {"deployments": ["sidecar"]}, "other": {}},
+            "deployments": {
+                "sidecar": {"image": "sidecar:latest", "container": {"network_mode": "host"}}
+            },
+        }
+    )
+
+
+class FakeDeploymentContainer:
+    def __init__(
+        self,
+        *,
+        deployment: str = "sidecar",
+        image: str = "sidecar:latest",
+        name: str | None = None,
+        managed: bool = False,
+    ) -> None:
+        self.name = name or deployment_id(deployment)
+        self.id = "deployment-id"
+        self.labels: dict[str, str] = {
+            LABEL_DEPLOYMENT: "true",
+            LABEL_DEPLOYMENT_ID: deployment,
+            LABEL_IMAGE: image,
+        }
+        if managed:
+            self.labels[LABEL_MANAGED] = "true"
+        self.attrs = {"State": "running"}
+        self.status = "running"
+
+
+def test_read_deployment_accepts_valid_labels() -> None:
+    config = _deployment_config()
+    container = FakeDeploymentContainer()
+
+    deployment = inventory.read_deployment(container, "server", config)  # type: ignore[arg-type]
+
+    assert deployment.id == "codespace-sidecar"
+    assert deployment.deployment == "sidecar"
+    assert deployment.image == "sidecar:latest"
+    assert deployment.status == "running"
+
+
+def test_read_deployment_rejects_managed_label() -> None:
+    config = _deployment_config()
+    container = FakeDeploymentContainer(managed=True)
+
+    with pytest.raises(ValueError, match=r"must not carry codespace\.managed"):
+        inventory.read_deployment(container, "server", config)  # type: ignore[arg-type]
+
+
+def test_read_deployment_rejects_host_not_declaring_it() -> None:
+    config = _deployment_config()
+    container = FakeDeploymentContainer()
+
+    with pytest.raises(ValueError, match="not configured for host"):
+        inventory.read_deployment(container, "other", config)  # type: ignore[arg-type]
+
+
+def test_list_deployments_collects_errors_for_unknown_deployment() -> None:
+    config = _deployment_config()
+    container = FakeDeploymentContainer(deployment="ghost", name="codespace-ghost")
+    client = SimpleNamespace(
+        containers=SimpleNamespace(list=lambda **_kwargs: [container]),
+    )
+
+    result = inventory.list_deployments(client, "server", config)  # type: ignore[arg-type]
+
+    assert result.deployments == []
+    assert result.errors == ["container codespace-ghost references unknown deployment 'ghost'"]
+
+
+def test_deployment_and_environment_inventory_use_disjoint_filters() -> None:
+    config = _deployment_config()
+    deployment_container = FakeDeploymentContainer()
+    environment_container = FakeContainer(workspace="devspace", host="server")
+
+    def listing(**kwargs: object) -> list[object]:
+        label = kwargs.get("filters", {}).get("label")  # type: ignore[union-attr]
+        if label == f"{LABEL_DEPLOYMENT}=true":
+            return [deployment_container]
+        if label == f"{LABEL_MANAGED}=true":
+            return [environment_container]
+        return []
+
+    client = SimpleNamespace(containers=SimpleNamespace(list=listing))
+
+    deployments = inventory.list_deployments(client, "server", config)  # type: ignore[arg-type]
+    assert [d.deployment for d in deployments.deployments] == ["sidecar"]
+    assert deployments.errors == []
+
+
+# --- Deployment container creation and lifecycle -----------------------------
+
+
+def _llm_deployment_config() -> Config:
+    """A deployment catalog exercising the LLM container shape (ipc/devices/data)."""
+    return Config.model_validate(
+        {
+            "workspaces": {
+                "defaults": {
+                    "image": "img",
+                    "container": {
+                        "network_mode": "host",
+                        "cap_add": ["NET_RAW"],
+                        "ulimits": {"memlock": {"soft": -1, "hard": -1}},
+                        "volumes": ["/etc/krb5.conf:/etc/krb5.conf:ro"],
+                    },
+                },
+                "items": {
+                    "devspace": {"host": [{"name": "gpu"}], "provider": "github", "repo": "o/r"}
+                },
+            },
+            "hosts": {"gpu": {"deployments": ["llm-vllm"]}},
+            "deployments": {
+                "llm-vllm": {
+                    "image": "llm-vllm:latest",
+                    "published_ports": ["8003:8003"],
+                    "container": {
+                        "network_mode": "bridge",
+                        "ipc": "host",
+                        "shm_size": "32g",
+                        "cap_add": [],
+                        "ulimits": {},
+                        "devices": ["nvidia.com/gpu=all"],
+                        "volumes": ["${DEPLOYMENT_DATA}:/root/.cache/huggingface"],
+                        "environment": ["HF_HOME=/root/.cache/huggingface", "LLM_PORT=8003"],
+                    },
+                }
+            },
+        }
+    )
+
+
+def test_create_deployment_container_translates_llm_run_options(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config = _llm_deployment_config()
+    spec = config.deployment_spec("llm-vllm", "gpu")
+    calls: list[tuple[str, dict[str, object]]] = []
+
+    monkeypatch.setattr(engine, "Container", FakeContainer)
+    client = SimpleNamespace(containers=SimpleNamespace(run=_run_capturing(calls)))
+
+    container_runtime.create_deployment_container(
+        client,  # type: ignore[arg-type]
+        spec,
+        "/home/x/codespace-deployment",
+    )
+
+    image, kwargs = calls[0]
+    assert image == "llm-vllm:latest"
+    assert kwargs["name"] == "codespace-llm-vllm"
+    assert kwargs["network_mode"] == "bridge"
+    assert kwargs["ipc_mode"] == "host"
+    assert kwargs["shm_size"] == "32g"
+    assert kwargs["devices"] == ["nvidia.com/gpu=all"]
+    assert kwargs["ports"] == {"8003/tcp": 8003}
+    assert kwargs["restart_policy"] == {"Name": "unless-stopped"}
+    assert kwargs["environment"] == {
+        "HF_HOME": "/root/.cache/huggingface",
+        "LLM_PORT": "8003",
+    }
+    # The development-only global defaults are overridden away for a deployment.
+    assert kwargs["cap_add"] == []
+    assert kwargs["ulimits"] == []
+    labels = kwargs["labels"]
+    assert isinstance(labels, dict)
+    assert labels[LABEL_DEPLOYMENT] == "true"
+    assert labels[LABEL_DEPLOYMENT_ID] == "llm-vllm"
+    assert LABEL_MANAGED not in labels
+    # The ${DEPLOYMENT_DATA} source resolves to the managed per-id data root.
+    assert kwargs["mounts"] == [
+        {
+            "type": "bind",
+            "source": "/home/x/codespace-deployment/llm-vllm",
+            "target": "/root/.cache/huggingface",
+            "read_only": False,
+        }
+    ]
+
+
+def test_create_deployment_container_rejects_unknown_placeholder(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config = _llm_deployment_config()
+    spec = config.deployment_spec("llm-vllm", "gpu")
+    bad = replace(
+        spec,
+        container=spec.container.model_copy(
+            update={
+                "volumes": [Volume(source="${OTHER}", target="/data")],
+            }
+        ),
+    )
+    monkeypatch.setattr(engine, "Container", FakeContainer)
+    client = SimpleNamespace(containers=SimpleNamespace(run=lambda *a, **k: FakeContainer()))
+
+    with pytest.raises(ValueError, match="unknown placeholder"):
+        container_runtime.create_deployment_container(
+            client,  # type: ignore[arg-type]
+            bad,
+            "/home/x/codespace-deployment",
+        )
+
+
+def test_reconcile_replaces_existing_container_and_prepares_data(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config = _llm_deployment_config()
+    spec = config.deployment_spec("llm-vllm", "gpu")
+    stages: list[str] = []
+    removed: list[bool] = []
+    prepared: list[list[str]] = []
+    created: list[str] = []
+
+    class Existing:
+        def remove(self, *, force: bool) -> None:
+            removed.append(force)
+
+    client = SimpleNamespace(
+        containers=SimpleNamespace(
+            exists=lambda _name: True,
+            get=lambda _name: Existing(),
+        )
+    )
+    route = SimpleNamespace(host="gpu")
+
+    monkeypatch.setattr(deployment_ops.containers, "pull_image", lambda *a, **k: None)
+    monkeypatch.setattr(
+        deployment_ops.ssh, "remote_deployment_root", lambda _route: "/home/x/codespace-deployment"
+    )
+    monkeypatch.setattr(
+        deployment_ops.ssh,
+        "prepare_instance_dirs",
+        lambda _route, targets: prepared.append(targets),
+    )
+    monkeypatch.setattr(
+        deployment_ops.containers,
+        "create_deployment_container",
+        lambda _client, _spec, _root: created.append(_spec.identity),
+    )
+
+    deployment_ops.reconcile(
+        client,  # type: ignore[arg-type]
+        route,  # type: ignore[arg-type]
+        spec,
+        stage=stages.append,
+    )
+
+    assert removed == [True]
+    assert prepared == [["/home/x/codespace-deployment/llm-vllm"]]
+    assert created == ["codespace-llm-vllm"]
+    assert stages[0].startswith("pulling image")
+    assert "creating container" in stages
+
+
+def test_teardown_removes_container_and_optionally_purges_data(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config = _llm_deployment_config()
+    spec = config.deployment_spec("llm-vllm", "gpu")
+    removed: list[object] = []
+    purged: list[str] = []
+
+    class Found:
+        pass
+
+    found = Found()
+    client = SimpleNamespace()
+    route = SimpleNamespace(host="gpu")
+
+    monkeypatch.setattr(
+        deployment_ops.inventory, "find_deployment_container", lambda *a, **k: found
+    )
+    monkeypatch.setattr(deployment_ops.containers, "remove_container", removed.append)
+    monkeypatch.setattr(
+        deployment_ops.ssh, "remote_deployment_root", lambda _route: "/home/x/codespace-deployment"
+    )
+    monkeypatch.setattr(
+        deployment_ops.containers,
+        "remove_deployment_data",
+        lambda _client, _spec, root: purged.append(root),
+    )
+
+    was_removed = deployment_ops.teardown(
+        client,  # type: ignore[arg-type]
+        route,  # type: ignore[arg-type]
+        spec,
+        config,
+        purge=True,
+        stage=lambda _stage: None,
+    )
+
+    assert was_removed is True
+    assert removed == [found]
+    assert purged == ["/home/x/codespace-deployment"]
+
+
+def test_teardown_reports_missing_container_without_purge(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    config = _llm_deployment_config()
+    spec = config.deployment_spec("llm-vllm", "gpu")
+
+    monkeypatch.setattr(deployment_ops.inventory, "find_deployment_container", lambda *a, **k: None)
+    monkeypatch.setattr(
+        deployment_ops.containers,
+        "remove_container",
+        lambda *_a: pytest.fail("must not remove a missing container"),
+    )
+
+    was_removed = deployment_ops.teardown(
+        SimpleNamespace(),  # type: ignore[arg-type]
+        SimpleNamespace(host="gpu"),  # type: ignore[arg-type]
+        spec,
+        config,
+        purge=False,
+        stage=lambda _stage: None,
+    )
+
+    assert was_removed is False
+
+
+def _summary_config() -> Config:
+    """A catalog with two deployments spread across two hosts for projection tests."""
+    return Config.model_validate(
+        {
+            "workspaces": {
+                "defaults": {"image": "img", "container": {"network_mode": "host"}},
+                "items": {
+                    "devspace": {"host": [{"name": "gpu"}], "provider": "github", "repo": "o/r"}
+                },
+            },
+            "hosts": {
+                "gpu": {"deployments": ["llm-vllm", "sidecar"]},
+                "edge": {"deployments": ["sidecar"]},
+            },
+            "deployments": {
+                "llm-vllm": {
+                    "image": "llm-vllm:latest",
+                    "description": "vLLM serving",
+                    "container": {"network_mode": "host"},
+                },
+                "sidecar": {"image": "sidecar:latest", "container": {"network_mode": "host"}},
+            },
+        }
+    )
+
+
+def _live_deployment(name: str, *, status: str) -> Deployment:
+    return Deployment(
+        id=deployment_id(name),
+        deployment=name,
+        host="gpu",
+        image=f"{name}:latest",
+        container_id="cid",
+        status=status,
+    )
+
+
+def test_build_summaries_projects_state_per_declared_host() -> None:
+    config = _summary_config()
+    inventories = {
+        "gpu": inventory.DeploymentInventory(
+            deployments=[_live_deployment("sidecar", status="running")],
+            errors=[],
+        ),
+        "edge": None,
+    }
+    operation = DeploymentOperation(
+        id="op-1",
+        host="gpu",
+        deployment="llm-vllm",
+        status="running",
+        stage="pulling image",
+    )
+    operations = {("gpu", "llm-vllm"): operation}
+
+    summaries = deployment_ops.build_summaries(config, inventories, operations)
+
+    by_id = {s.id: s for s in summaries}
+    # Every catalog entry appears, in catalog order.
+    assert [s.id for s in summaries] == ["llm-vllm", "sidecar"]
+    assert by_id["llm-vllm"].description == "vLLM serving"
+
+    # llm-vllm only declared on gpu; container missing but an operation is attached.
+    (vllm_gpu,) = by_id["llm-vllm"].hosts
+    assert (vllm_gpu.host, vllm_gpu.state) == ("gpu", "missing")
+    assert vllm_gpu.operation is operation
+
+    # sidecar declared on both hosts: running on gpu, offline on edge.
+    sidecar_hosts = {h.host: h for h in by_id["sidecar"].hosts}
+    assert sidecar_hosts["gpu"].state == "running"
+    assert sidecar_hosts["gpu"].container_id == "cid"
+    assert sidecar_hosts["edge"].state == "missing"
+    assert sidecar_hosts["edge"].error == "host offline"
+
+
+def test_build_summaries_marks_present_but_stopped_container() -> None:
+    config = _summary_config()
+    inventories = {
+        "gpu": inventory.DeploymentInventory(
+            deployments=[_live_deployment("llm-vllm", status="exited")],
+            errors=[],
+        ),
+        "edge": inventory.DeploymentInventory(deployments=[], errors=[]),
+    }
+
+    summaries = deployment_ops.build_summaries(config, inventories, {})
+
+    vllm = next(s for s in summaries if s.id == "llm-vllm")
+    (vllm_gpu,) = vllm.hosts
+    assert vllm_gpu.state == "stopped"
+    assert vllm_gpu.status == "exited"
