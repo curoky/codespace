@@ -28,7 +28,7 @@ rootfs / build.sh / run.sh），互不共享文件。base image 对齐 sidecar�
 | 引擎 | 子目录 | 镜像 tag | 推理栈 | s6 longrun |
 | --- | --- | --- | --- | --- |
 | vLLM | `vllm/` | `ghcr.io/curoky/devspace:llm-vllm` | uv venv `vllm==${VLLM_VERSION}`（默认 `0.23.0`，`--torch-backend`） | `llm` |
-| SGLang | `sglang/` | `ghcr.io/curoky/devspace:llm-sglang` | uv venv `sglang==${SGLANG_VERSION}`（默认 `0.5.18`，cu129 recipe） | `llm` |
+| SGLang | `sglang/` | `ghcr.io/curoky/devspace:llm-sglang` | uv venv 从 PR 源码装（`${SGLANG_REF}` 默认 `pull/36497/head`，cu129 kernel） | `llm` |
 
 两子目录内部结构完全对称，仅推理栈与引擎命令不同；s6 longrun 在各自子目录内统一命名 `llm`（因为一个镜像只
 含一个引擎，无需区分）。组装顺序对齐 sidecar：Debian slim → apt 基础包（含 `python3`）→ binman 装
@@ -38,41 +38,52 @@ standalone s6/execline 与 uv → uv 建 venv 装推理栈 → `COPY <engine>/ro
 的 GPU wheel 与 flashinfer/xformers 等关键依赖的预编译 wheel 目前只稳定覆盖到 3.12，改 3.13 会构建失败。
 CUDA userspace 由 host 的 NVIDIA Container Toolkit 在运行期提供，推理 wheel 自带其余 CUDA runtime 库。
 
-**CUDA 版本（默认 cu129）**：vLLM/SGLang 的默认 PyPI wheel 现已升到 CUDA 13（需 host 驱动 ≥580），但目标 8×H100 节点跑 driver 535 / CUDA 12.2，故两镜像默认按 CUDA 12.9 装：vLLM 用 uv `--torch-backend=cu129`（`ARG TORCH_BACKEND`，固定值而非 `auto`，因为 CI builder 无 GPU 驱动可探测）；SGLang 走官方 cu129 recipe——先 `--prerelease=allow` 装 `sglang`（否则 uv 会静默解析到旧版），再从 cu129 index force-reinstall `torch` 与 `sgl-kernel`/`sgl-deep-gemm` GPU kernel（`ARG CUDA_TAG`）。CUDA 13 host 用 `TORCH_BACKEND=cu130` / `CUDA_TAG=cu130` 覆盖。SGLang 不再装 `[all]` extra，改用官方 recipe 的独立 kernel 包。
+**CUDA 版本（默认 cu129）**：vLLM/SGLang 的默认 PyPI wheel 现已升到 CUDA 13（需 host 驱动 ≥580），但目标 8×H100 节点跑 driver 535 / CUDA 12.2，故两镜像默认按 CUDA 12.9 装：vLLM 用 uv `--torch-backend=cu129`（`ARG TORCH_BACKEND`，固定值而非 `auto`，因为 CI builder 无 GPU 驱动可探测）；SGLang 走官方 cu129 recipe（对齐 docs.sglang.io 安装文档与上游 `docker/Dockerfile` 的 torch_deps 序列）——从 PR 源码装 `sglang` 后，依次从 cu129 index force-reinstall **pinned torch 三件套**（`ARG TORCH_SPEC`，默认 `torch==2.13.0 torchvision==0.28.0 torchaudio==2.11.0`；裸 `torch` 会拉到 cu13 默认版）、`sglang-kernel`（pip 名，cu129 wheel 内部为 `sglang_kernel`）与 `sgl-deep-gemm`（`--no-deps`），`ARG CUDA_TAG` 选 index。CUDA 13 host 用 `TORCH_BACKEND=cu130` / `CUDA_TAG=cu130` + `TORCH_SPEC="torch torchvision torchaudio"` 覆盖。SGLang 不装 `[all]` extra，改用官方 recipe 的独立 kernel 包。
 
-**day-0 架构风险**：`VLLM_VERSION`/`SGLANG_VERSION`（各 Dockerfile `ARG`）已锁到当前最新稳定版（`0.23.0`/
-`0.5.18`）。若该稳定版尚未包含 Qwen3.8-Flash-Next 架构，需提升到含该架构的版本（官方 recipe/cookbook 用专用 tag 或 nightly）；
-启动报 unknown-architecture 时提升版本。AMD GPU 不用本 CUDA 镜像，改用官方 ROCm 镜像。
+**day-0 架构（Qwen3.8-Flash-Next 尚无 SGLang release）**：SGLang 目前**没有任何含此架构的 tagged release**，PyPI 装不到；按官方 cookbook，模型支持在 PR [#36497](https://github.com/sgl-project/sglang/pull/36497)，故 SGLang 镜像不 pin `SGLANG_VERSION`，改用 `ARG SGLANG_REF`（默认 `pull/36497/head`）从源码 clone 该 PR 后 `uv pip install -e python`（Dockerfile 因此新增 apt `git`）。该源码树用 setuptools-rust 内嵌 3 个 PyO3 crate（`sglang-grpc`/`sglang-mm`/`sglang-server`），editable 装会调 `cargo`；slim 镜像无 Rust 工具链，故 `ARG SGLANG_BUILD_RUST_EXTS=none` 跳过——它们只支撑 gRPC/multimodal/model-gateway 入口，`sglang.launch_server`（OpenAI HTTP）不依赖。需要这些入口时设 `all` 并自备 cargo。待架构进入 release，把 `SGLANG_REF` 指向该 tag 并可回退到 `uv pip install sglang`。vLLM 侧仍以 `VLLM_VERSION`（默认 `0.23.0`）演进；若该稳定版尚未含此架构，提升到含该架构的版本（官方 recipe 用专用 tag 或 nightly），启动报 unknown-architecture 时提升版本。AMD GPU 不用本 CUDA 镜像，改用官方 ROCm 镜像。
 
 ## s6 init
 
 对齐 sidecar：`images/dev/script/setup-s6.sh` 从 `/opt/bm/store` 的 s6/execline 二进制编译 `/etc/s6/db`
 并生成 `/etc/s6/init`，默认 runlevel `user-final`。每个镜像的 `user-final` bundle 只含本引擎的一个 longrun
 `llm`。execline run 脚本用 `s6-envdir -Lf -- /run/s6/container_environment` 读容器环境
-（含 `LLM_PORT`/`TP_SIZE`/`MAX_MODEL_LEN` 等）后 `exec /opt/llm/serve.sh`；日志写 `/var/log/llm.log`。
+（含 `LLM_MODEL`/`LLM_HOST`/`LLM_PORT`/`LLM_EXTRA_ARGS`）后 `exec /opt/llm/serve.sh`；日志写 `/var/log/llm.log`。
 
 每个子目录的 `serve.sh` 是该引擎专用启动脚本（不再有引擎 switch），按环境变量拼命令并 `exec` 引擎：
 
 | 环境变量 | 默认 | 说明 |
 | --- | --- | --- |
-| `LLM_MODEL` | `Qwen/Qwen3.8-Flash-Next-FP8` | 模型 id 或本地路径 |
-| `LLM_HOST` | `0.0.0.0` | 容器内监听地址（bridge 需 0.0.0.0 才能被 publish 转发） |
-| `LLM_PORT` | `8003` | 容器内 OpenAI API 端口 |
-| `TP_SIZE` | `8` | tensor-parallel，匹配 8×H100 |
-| `EP_SIZE` | `8` | expert-parallel（仅 SGLang 的 serve.sh 使用）；TEP8 |
-| `MAX_MODEL_LEN` | `262144` | 原生上下文 |
-| `GPU_MEM_UTIL` | `0.90` | vLLM 映射 `--gpu-memory-utilization`，SGLang 映射 `--mem-fraction-static` |
-| `LLM_EXTRA_ARGS` | 空 | 追加到引擎命令的额外参数 |
+| `LLM_MODEL` | `Qwen/Qwen3.8-Flash-Next-FP8` | 模型 id 或本地路径（两引擎） |
+| `LLM_HOST` | `0.0.0.0` | 容器内监听地址（bridge 需 0.0.0.0 才能被 publish 转发，两引擎） |
+| `LLM_PORT` | `8003` | 容器内 OpenAI API 端口（两引擎） |
+| `LLM_EXTRA_ARGS` | 空 | 追加到引擎命令的额外参数（两引擎） |
+
+两引擎的优化参数均已按实测 8×H100 80GB 拓扑写死在各自 `serve.sh` 里（不再配置化），只保留
+model/host/port/extra 四个部署相关 env，需临时改参用 `LLM_EXTRA_ARGS` 覆盖。写死项：
+- vLLM：TEP8（`--tensor-parallel-size 8 --enable-expert-parallel`）、`--max-model-len 262144`、
+  `--gpu-memory-utilization 0.90`、`--enable-prefix-caching`、分块 prefill
+  （`--enable-chunked-prefill --max-num-batched-tokens 8192`）、`--max-num-seqs 256`。
+- SGLang：TEP8（`--tp-size 8 --ep-size 8`）、`--context-length 262144`、`--mem-fraction-static 0.85`、
+  `--chunked-prefill-size 8192`、`--max-running-requests 96`、GDN+QSA 必需的
+  `--linear-attn-*-backend flashinfer` + `--mamba-ssm-dtype bfloat16`、in-checkpoint MTP head 的 NEXTN
+  speculative decoding。
 
 两引擎均开启 `--reasoning-parser qwen3` 与 `--tool-call-parser qwen3_coder`。
 
 ## 硬件与拓扑（单机 8×H100）
 
-- 8×H100 = 640 GB，FP8 权重 ~172.78 GiB 可放下，KV cache 有余量。H100（Hopper）原生支持 FP8。
+- 实测拓扑（`nvidia-smi`）：8×H100 80GB HBM3、compute cap 9.0（Hopper，原生 FP8 e4m3）、全互联 NVLink
+  （NV18 / NVSwitch，~900 GB/s）、双 NUMA（GPU0-3→node0，GPU4-7→node1）。8×80 GB = 640 GB，FP8 权重
+  ~172.78 GiB 放得下，KV/state cache 有余量但比 cookbook 的 H200 141GB 紧。
 - **8×H100 的 FP8 必须用 TEP8（TP8 + Expert Parallel），不能用普通 TP8**（512 专家 MoE 布局要求）。
   vLLM 以 `--enable-expert-parallel` 开启，SGLang 以 `--ep-size` 开启，两 `serve.sh` 默认即为 TEP8。
-- OOM 时降 `MAX_MODEL_LEN`/`GPU_MEM_UTIL`，或（vLLM）设 `VLLM_PLE_CPU_OFFLOAD=1` 把 51B N-gram 表卸到
-  主机内存（需大内存 host）。
+- 全 NVLink mesh 下 TP8 all-reduce 廉价：无需 `--enable-p2p-check`，custom all-reduce 保持默认开。
+- SGLang serve.sh 针对 80 GB 写死了适配参数：`--mem-fraction-static 0.85` 给 Mamba/GDN state cache 与
+  activation 留余量、`--chunked-prefill-size 8192` 限制长 prompt prefill 峰值。未启用 `--enable-torch-compile`
+  （官方文档标注 out of maintenance，仅利于小模型小 batch）；未默认开 FP8 KV cache（缺 scaling-factor
+  时 scale 默认 1.0 会掉精度），需要时经 `LLM_EXTRA_ARGS` 加 `--kv-cache-dtype fp8_e4m3`。
+- OOM 时：SGLang 经 `LLM_EXTRA_ARGS` 覆盖 `--context-length` / `--mem-fraction-static` 调小；vLLM 降
+  `MAX_MODEL_LEN`/`GPU_MEM_UTIL`，或设 `VLLM_PLE_CPU_OFFLOAD=1` 把 51B N-gram 表卸到主机内存（需大内存 host）。
 
 ## 构建与运行
 
@@ -115,6 +126,6 @@ host 前置：NVIDIA Container Toolkit 并配好 CDI（`nvidia.com/gpu` 设备�
 - 不烤入模型权重；不引入 Podman socket、控制面、provider token 或 repository credential。
 - 新增引擎参数优先经 `serve.sh` 环境变量暴露，不写死在 s6 run 脚本；引擎命令随官方 recipe 变化时更新对应
   子目录的 `serve.sh` 并同步本文。
-- day-0 架构支持随 `VLLM_VERSION`/`SGLANG_VERSION`（各 Dockerfile `ARG`）演进；锁定到含 Qwen3.8-Flash-Next
-  的版本，变更时同步本文表格。
+- day-0 架构支持随各 Dockerfile `ARG` 演进：vLLM 用 `VLLM_VERSION`，SGLang 因尚无 release 用 `SGLANG_REF`
+  （PR ref 或未来 tag）；锁定到含 Qwen3.8-Flash-Next 的版本/ref，变更时同步本文表格。
 - 影响跨组件契约时同步根 [`AGENTS.md`](../../AGENTS.md)。

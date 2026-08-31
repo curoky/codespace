@@ -8,19 +8,23 @@
 # (Debian has no CUDA runtime and no SGLang). The ~172 GiB FP8 weights are NOT
 # baked in; they are resolved at run time from a bind-mounted Hugging Face cache.
 #
-# WARNING (day-0 architecture): the stable PyPI SGLang may not yet include the
-# Qwen3.8-Flash-Next architecture. Pin SGLANG_VERSION to a build that does (the
-# official cookbook uses a dedicated tag / nightly). If startup fails with an
-# unknown-architecture error, bump SGLANG_VERSION. This is a CUDA build; do not
-# use it for AMD GPUs (use the official ROCm image instead).
+# day-0 architecture: Qwen3.8-Flash-Next is NOT in any tagged SGLang release yet,
+# so it cannot be installed from PyPI. Per the official SGLang cookbook, model
+# support lives in PR #36497 and must be built from source. SGLANG_REF pins that
+# PR ref; bump it (or point at a later tag) once the architecture ships in a
+# release, after which the source build can revert to `uv pip install sglang`.
+# This is a CUDA build; do not use it for AMD GPUs (use the official ROCm image).
 FROM docker.io/debian:trixie-slim
 
 # CUDA userspace runtime is provided by the NVIDIA Container Toolkit at run time
-# (mounted from the host driver); the image only needs Python, the CUDA runtime
-# libraries pulled in by the SGLang wheel, and basic tooling.
+# (mounted from the host driver). uv builds its own CPython venv (no system
+# python3 needed) and the CUDA runtime libs come from the SGLang wheels; the
+# image only needs bash (serve.sh), TLS certs, curl (binman installer), git
+# (clone the model-support PR), zstd (binman unpacks .tar.zst) and libgomp1
+# (OpenMP runtime for torch).
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
-    bash ca-certificates curl tzdata zstd python3 python3-venv libgomp1 \
+    bash ca-certificates curl git zstd libgomp1 \
   && rm -rf /var/lib/apt/lists/*
 
 COPY images/llm/sglang/binman.yaml /tmp/binman.yaml
@@ -33,25 +37,42 @@ RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs
 # GPU wheel and its flashinfer/xformers deps only ship prebuilt wheels up to
 # 3.12; 3.13 fails to build.
 #
-# SGLANG_VERSION pins the current stable release; bump it to a build that carries
-# the Qwen3.8-Flash-Next architecture.
+# SGLANG_REF pins the model-support source. Qwen3.8-Flash-Next has no tagged
+# SGLang release, so instead of `uv pip install sglang` we clone the repo and
+# check out PR #36497 (the model-support PR from the official cookbook), then
+# install it editable. Bump SGLANG_REF to a later PR ref or, once the
+# architecture ships in a release, a tag.
 #
 # CUDA 12 install (target 8x H100 runs driver 535 / CUDA 12.2, not the CUDA 13
-# default): follow the official SGLang cu129 recipe. --prerelease=allow is
-# required because some SGLang deps only publish pre-releases on PyPI; without it
-# uv silently resolves an older SGLang. After installing sglang, force-reinstall
-# torch and the sgl-kernel / sgl-deep-gemm GPU kernels from the cu129 indexes so
-# they match the CUDA 12.x driver instead of the cu13 PyPI defaults. Override
-# CUDA_TAG=cu130 for a CUDA 13 host.
-ARG SGLANG_VERSION=0.5.18
+# default): follow the official SGLang cu129 recipe (docs.sglang.io install guide
+# + docker/Dockerfile torch_deps stage). After installing sglang from source,
+# force-reinstall the pinned torch trio and the sglang-kernel / sgl-deep-gemm GPU
+# kernels from the cu129 indexes so they match the CUDA 12.x driver instead of
+# the cu13 PyPI defaults. TORCH_SPEC pins the cu129-matched torch build (the
+# upstream recipe pins torch==2.13.0). For a CUDA 13 host, override
+# CUDA_TAG=cu130 and TORCH_SPEC="torch torchvision torchaudio".
+# SGLANG_BUILD_RUST_EXTS controls the PyO3 Rust extension crates (sglang-grpc,
+# sglang-mm, sglang-server) that the source tree auto-builds via setuptools-rust.
+# They need a cargo toolchain (pinned to Rust 1.90) that this slim CUDA image does
+# not ship, and they only back the gRPC / multimodal / model-gateway entrypoints
+# -- the OpenAI-compatible HTTP server (sglang.launch_server) does not use them.
+# Default to `none` to skip cargo entirely; set `all` (and add a Rust toolchain)
+# if you need those entrypoints.
+ARG SGLANG_REF=pull/36497/head
 ARG CUDA_TAG=cu129
+ARG TORCH_SPEC="torch==2.13.0 torchvision==0.28.0 torchaudio==2.11.0"
+ARG SGLANG_BUILD_RUST_EXTS=none
 ENV LLM_VENV=/opt/llm/venv
 RUN /opt/bm/bin/uv venv "${LLM_VENV}" --python 3.12 \
+  && git clone --filter=blob:none https://github.com/sgl-project/sglang.git /opt/llm/sglang \
+  && git -C /opt/llm/sglang fetch origin "${SGLANG_REF}" \
+  && git -C /opt/llm/sglang checkout FETCH_HEAD \
   && LLM_UV="/opt/bm/bin/uv pip install --python ${LLM_VENV}/bin/python" \
-  && ${LLM_UV} --prerelease=allow "sglang==${SGLANG_VERSION}" \
-  && ${LLM_UV} --force-reinstall torch torchvision torchaudio \
+  && SGLANG_BUILD_RUST_EXTS="${SGLANG_BUILD_RUST_EXTS}" \
+       ${LLM_UV} --prerelease=allow -e /opt/llm/sglang/python \
+  && ${LLM_UV} --force-reinstall ${TORCH_SPEC} \
        --index-url "https://download.pytorch.org/whl/${CUDA_TAG}" \
-  && ${LLM_UV} --force-reinstall sgl-kernel \
+  && ${LLM_UV} --force-reinstall sglang-kernel \
        --index-url "https://docs.sglang.ai/whl/${CUDA_TAG}/" \
   && ${LLM_UV} --force-reinstall sgl-deep-gemm --no-deps \
        --index-url "https://docs.sglang.ai/whl/${CUDA_TAG}/"
