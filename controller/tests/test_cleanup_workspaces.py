@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 from io import StringIO
+from types import SimpleNamespace
 
 import pytest
 from rich.console import Console
 from typer.testing import CliRunner
 
+from controller import inventory
 from controller.config import Config
+from controller.models import HostDataPaths
 from controller.tools import cleanup_workspaces
 
 
@@ -34,17 +37,60 @@ def config() -> Config:
     ("path", "active", "expected"),
     [
         (
-            "/home/x/codespace/devspace/live",
-            {"/home/x/codespace/devspace/live"},
+            "/home/x/codespace/workspaces/devspace/live",
+            {"/home/x/codespace/workspaces/devspace/live"},
             "yes",
         ),
-        ("/home/x/codespace/devspace/old", set(), "no"),
-        ("/home/x/codespace/Invalid/old", set(), "unmanaged"),
+        ("/home/x/codespace/workspaces/devspace/old", set(), "no"),
+        ("/home/x/codespace/workspaces/Invalid/old", set(), "unmanaged"),
         ("/home/x/other/devspace/old", set(), "unmanaged"),
     ],
 )
 def test_usage(path: str, active: set[str], expected: str) -> None:
-    assert cleanup_workspaces._usage("/home/x/codespace", path, active) == expected
+    assert cleanup_workspaces._usage("/home/x/codespace/workspaces", path, active) == expected
+
+
+def test_scan_host_lists_instance_parents_once(
+    monkeypatch: pytest.MonkeyPatch,
+    config: Config,
+) -> None:
+    data_paths = HostDataPaths(root="/home/x/codespace")
+    listed_roots: list[str] = []
+    route = SimpleNamespace(host="home")
+    transport = SimpleNamespace(
+        client=lambda _host: object(),
+        ssh_route=lambda _host: route,
+    )
+    current = inventory.Inventory(
+        environments=[SimpleNamespace(workspace="devspace", instance="live")],  # type: ignore[list-item]
+        errors=[],
+    )
+    monkeypatch.setattr(cleanup_workspaces.inventory, "list_inventory", lambda *args: current)
+    monkeypatch.setattr(cleanup_workspaces.ssh, "remote_data_paths", lambda _route: data_paths)
+    monkeypatch.setattr(
+        cleanup_workspaces.ssh,
+        "list_instances",
+        lambda _route, root: (
+            listed_roots.append(root)
+            or [
+                f"{root}/devspace/live",
+                f"{root}/devspace/old",
+            ]
+        ),
+    )
+
+    scanned, active = cleanup_workspaces._scan_host(  # type: ignore[arg-type]
+        config,
+        transport,
+        "home",
+    )
+
+    assert listed_roots == ["/home/x/codespace/workspaces"]
+    assert scanned == [
+        ("/home/x/codespace/workspaces", "/home/x/codespace/workspaces/devspace/live"),
+        ("/home/x/codespace/workspaces", "/home/x/codespace/workspaces/devspace/old"),
+    ]
+    assert active == {"/home/x/codespace/workspaces/devspace/live"}
 
 
 @pytest.mark.parametrize("arguments", [[], ["--no-dry-run"]])
@@ -53,7 +99,7 @@ def test_cli_only_deletes_unused_workspaces_with_no_dry_run(
     config: Config,
     arguments: list[str],
 ) -> None:
-    root = "/home/x/codespace"
+    root = "/home/x/codespace/workspaces"
     workspaces = [
         (
             "home",

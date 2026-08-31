@@ -51,7 +51,8 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
 开发镜像必须提供：
 
 - 用户 `x`（uid/gid `5230:5230`）、可写的 `/workspace`、`/upload` 与 `/cache`；三者都由控制面按实例
-  bind-mount 宿主目录（见 host contract），删除或重建 container 后各自内容按宿主目录留存/清理；
+  bind-mount `~/codespace/workspaces/<workspace>/<instance>/` 下的同名子目录，删除或重建 container 后
+  各自内容按宿主目录留存/清理；
 - 默认 host network，sshd 监听地址由 `SSHD_BIND` 控制，默认 `127.0.0.1`；
 - Podman security option `disable` 和 `seccomp=unconfined`；
 - 现有 s6 entrypoint、sshd、home-init、Atuin client、Git 和 OpenSSH client；

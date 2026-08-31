@@ -33,7 +33,7 @@ from controller.models import (
     Deployment,
     DeploymentOperation,
     Environment,
-    HostRoots,
+    HostDataPaths,
     deployment_id,
     environment_id,
     ssh_port,
@@ -41,11 +41,8 @@ from controller.models import (
 from controller.runtime import engine
 from controller.runtime.compose import Secret, Volume
 
-_ROOTS = HostRoots(
-    workspace="/home/x/codespace",
-    upload="/home/x/codespace-upload",
-    cache="/home/x/codespace-cache",
-)
+_DATA_PATHS = HostDataPaths(root="/home/x/codespace")
+_INSTANCE_PATHS = _DATA_PATHS.instance("devspace", "debug")
 
 
 class ExecContainer(Protocol):
@@ -343,7 +340,7 @@ def test_create_container_preserves_fixed_runtime_contract(
     result = container_runtime.create_container(
         client,  # type: ignore[arg-type]
         config.environment_spec("devspace", "home", "debug"),
-        _ROOTS,
+        _INSTANCE_PATHS,
         {"HTTP_PROXY": "http://host-proxy:3128"},
     )
 
@@ -371,17 +368,17 @@ def test_create_container_preserves_fixed_runtime_contract(
     assert kwargs["mounts"] == [
         {
             "type": "bind",
-            "source": "/home/x/codespace/devspace/debug",
+            "source": "/home/x/codespace/workspaces/devspace/debug/workspace",
             "target": "/workspace",
         },
         {
             "type": "bind",
-            "source": "/home/x/codespace-upload/devspace/debug",
+            "source": "/home/x/codespace/workspaces/devspace/debug/upload",
             "target": "/upload",
         },
         {
             "type": "bind",
-            "source": "/home/x/codespace-cache/devspace/debug",
+            "source": "/home/x/codespace/workspaces/devspace/debug/cache",
             "target": "/cache",
         },
         {
@@ -408,7 +405,7 @@ def test_create_container_rejects_host_environment_collision(
         container_runtime.create_container(
             SimpleNamespace(),  # type: ignore[arg-type]
             spec,
-            _ROOTS,
+            _INSTANCE_PATHS,
             {"HTTP_PROXY": "http://host-proxy:3128"},
         )
 
@@ -435,7 +432,7 @@ def test_create_container_injects_gpu_device(
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
         spec,
-        _ROOTS,
+        _INSTANCE_PATHS,
     )
 
     _, kwargs = calls[0]
@@ -460,7 +457,7 @@ def test_create_container_forwards_shm_size_only_when_set(
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
         spec,
-        _ROOTS,
+        _INSTANCE_PATHS,
     )
     _, kwargs = calls[0]
     assert "shm_size" not in kwargs
@@ -473,7 +470,7 @@ def test_create_container_forwards_shm_size_only_when_set(
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
         spec,
-        _ROOTS,
+        _INSTANCE_PATHS,
     )
     _, kwargs = calls[0]
     assert kwargs["shm_size"] == "100g"
@@ -527,7 +524,7 @@ def test_create_container_forwards_registered_secrets(
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
         spec,
-        _ROOTS,
+        _INSTANCE_PATHS,
     )
 
     _, kwargs = calls[0]
@@ -554,7 +551,7 @@ def test_create_container_omits_secret_kwargs_when_unset(
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
         config.environment_spec("devspace", "home", "debug"),
-        _ROOTS,
+        _INSTANCE_PATHS,
     )
 
     _, kwargs = calls[0]
@@ -579,7 +576,7 @@ def test_create_container_fails_fast_on_missing_secret(config: Config) -> None:
         container_runtime.create_container(
             client,  # type: ignore[arg-type]
             spec,
-            _ROOTS,
+            _INSTANCE_PATHS,
         )
     # The container must not be created when a referenced secret is missing.
     assert calls == []
@@ -604,7 +601,7 @@ def test_create_container_encrypts_workspace_when_enabled(
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
         _encrypted_spec(config),
-        _ROOTS,
+        _INSTANCE_PATHS,
     )
 
     _, kwargs = calls[0]
@@ -628,7 +625,7 @@ def test_create_container_fails_fast_on_missing_crypt_secret(config: Config) -> 
         container_runtime.create_container(
             client,  # type: ignore[arg-type]
             _encrypted_spec(config),
-            _ROOTS,
+            _INSTANCE_PATHS,
         )
     assert calls == []
 
@@ -647,7 +644,7 @@ def test_create_container_uses_plaintext_workspace_when_disabled(
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
         config.environment_spec("devspace", "home", "debug"),
-        _ROOTS,
+        _INSTANCE_PATHS,
     )
 
     _, kwargs = calls[0]
@@ -688,7 +685,7 @@ def test_create_container_honors_custom_secret_mount_ownership(
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
         spec,
-        _ROOTS,
+        _INSTANCE_PATHS,
     )
 
     _, kwargs = calls[0]
@@ -728,7 +725,7 @@ def test_create_container_bridge_publishes_ports_and_binds_sshd(
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
         spec,
-        _ROOTS,
+        _INSTANCE_PATHS,
     )
 
     _, kwargs = calls[0]
@@ -759,7 +756,7 @@ def test_create_container_blank_omits_repo_and_provider_labels(
     container_runtime.create_container(
         client,  # type: ignore[arg-type]
         config.environment_spec("scratch", "home", "debug"),
-        _ROOTS,
+        _INSTANCE_PATHS,
     )
 
     _, kwargs = calls[0]
@@ -867,18 +864,16 @@ def test_purge_workspace_uses_environment_platform(monkeypatch: pytest.MonkeyPat
         client,  # type: ignore[arg-type]
         container,  # type: ignore[arg-type]
         _environment_for_purge("linux/arm64"),
-        _ROOTS,
+        _INSTANCE_PATHS,
     )
 
     assert calls[0][0] == "image:latest"
     assert calls[0][1]["platform"] == "linux/arm64"
     assert calls[0][1]["user"] == "0"
     assert calls[0][1]["security_opt"] == ["disable"]
-    # workspace, upload and cache instance dirs are all removed.
+    # The instance parent contains workspace, upload and cache, so one removal is enough.
     assert [call[1]["command"] for call in calls] == [
-        ["-rf", "--", "/home/x/codespace/devspace/debug"],
-        ["-rf", "--", "/home/x/codespace-upload/devspace/debug"],
-        ["-rf", "--", "/home/x/codespace-cache/devspace/debug"],
+        ["-rf", "--", "/home/x/codespace/workspaces/devspace/debug"],
     ]
 
 
@@ -906,19 +901,19 @@ def test_purge_workspace_surfaces_rm_failure(monkeypatch: pytest.MonkeyPatch) ->
             client,  # type: ignore[arg-type]
             container,  # type: ignore[arg-type]
             _environment_for_purge("native"),
-            _ROOTS,
+            _INSTANCE_PATHS,
         )
 
     assert removed == [True]
 
 
-def test_remove_workspace_rejects_target_outside_root() -> None:
+def test_remove_data_directory_rejects_target_outside_root() -> None:
     client = SimpleNamespace(
         containers=SimpleNamespace(run=lambda *_args, **_kwargs: pytest.fail("helper must not run"))
     )
 
     with pytest.raises(RuntimeError, match="outside root"):
-        container_runtime.remove_workspace(
+        container_runtime.remove_data_directory(
             client,  # type: ignore[arg-type]
             "image:latest",
             "/home/x/codespace",
@@ -1150,7 +1145,7 @@ def test_create_deployment_container_translates_llm_run_options(
     container_runtime.create_deployment_container(
         client,  # type: ignore[arg-type]
         spec,
-        "/home/x/codespace-deployment",
+        "/home/x/codespace/deployments/llm-vllm",
     )
 
     image, kwargs = calls[0]
@@ -1178,7 +1173,7 @@ def test_create_deployment_container_translates_llm_run_options(
     assert kwargs["mounts"] == [
         {
             "type": "bind",
-            "source": "/home/x/codespace-deployment/llm-vllm",
+            "source": "/home/x/codespace/deployments/llm-vllm",
             "target": "/root/.cache/huggingface",
             "read_only": False,
         }
@@ -1205,7 +1200,7 @@ def test_create_deployment_container_rejects_unknown_placeholder(
         container_runtime.create_deployment_container(
             client,  # type: ignore[arg-type]
             bad,
-            "/home/x/codespace-deployment",
+            "/home/x/codespace/deployments/llm-vllm",
         )
 
 
@@ -1232,12 +1227,10 @@ def test_reconcile_replaces_existing_container_and_prepares_data(
     route = SimpleNamespace(host="gpu")
 
     monkeypatch.setattr(deployment_ops.containers, "pull_image", lambda *a, **k: None)
-    monkeypatch.setattr(
-        deployment_ops.ssh, "remote_deployment_root", lambda _route: "/home/x/codespace-deployment"
-    )
+    monkeypatch.setattr(deployment_ops.ssh, "remote_data_paths", lambda _route: _DATA_PATHS)
     monkeypatch.setattr(
         deployment_ops.ssh,
-        "prepare_instance_dirs",
+        "prepare_directories",
         lambda _route, targets: prepared.append(targets),
     )
     monkeypatch.setattr(
@@ -1254,7 +1247,7 @@ def test_reconcile_replaces_existing_container_and_prepares_data(
     )
 
     assert removed == [True]
-    assert prepared == [["/home/x/codespace-deployment/llm-vllm"]]
+    assert prepared == [["/home/x/codespace/deployments/llm-vllm"]]
     assert created == ["codespace-llm-vllm"]
     assert stages[0].startswith("pulling image")
     assert "creating container" in stages
@@ -1279,12 +1272,10 @@ def test_teardown_removes_container_and_optionally_purges_data(
         deployment_ops.inventory, "find_deployment_container", lambda *a, **k: found
     )
     monkeypatch.setattr(deployment_ops.containers, "remove_container", removed.append)
-    monkeypatch.setattr(
-        deployment_ops.ssh, "remote_deployment_root", lambda _route: "/home/x/codespace-deployment"
-    )
+    monkeypatch.setattr(deployment_ops.ssh, "remote_data_paths", lambda _route: _DATA_PATHS)
     monkeypatch.setattr(
         deployment_ops.containers,
-        "remove_workspace",
+        "remove_data_directory",
         lambda _client, image, root, target: purged.append((image, root, target)),
     )
 
@@ -1302,8 +1293,8 @@ def test_teardown_removes_container_and_optionally_purges_data(
     assert purged == [
         (
             "llm-vllm:latest",
-            "/home/x/codespace-deployment",
-            "/home/x/codespace-deployment/llm-vllm",
+            "/home/x/codespace/deployments",
+            "/home/x/codespace/deployments/llm-vllm",
         )
     ]
 

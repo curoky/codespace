@@ -438,7 +438,7 @@ class DeploymentConfig(BaseModel):
     credential. It names an explicit ``image`` and a reusable ``container`` block;
     which hosts run it is declared the other way round, by ``hosts.<host>.deployments``.
     A ``${DEPLOYMENT_DATA}`` placeholder in a volume source resolves to the
-    deployment's managed data root under ``~/codespace-deployment/<id>``.
+    deployment's managed data directory below the host data root.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -475,9 +475,6 @@ class EnvironmentSpec:
     @property
     def platform_label(self) -> PlatformSelection:
         return platform_label(self.platform)
-
-    def instance_path(self, root: str) -> str:
-        return f"{root}/{self.workspace_id}/{self.instance}"
 
     def to_environment(self, container_id: str, *, status: str | None = None) -> Environment:
         return Environment(
@@ -527,9 +524,6 @@ class DeploymentSpec:
     @property
     def identity(self) -> str:
         return deployment_container_id(self.deployment_id)
-
-    def data_path(self, root: str) -> str:
-        return f"{root}/{self.deployment_id}"
 
     def labels(self) -> dict[str, str]:
         return {

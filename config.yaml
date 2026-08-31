@@ -25,7 +25,7 @@ workspaces:
 # Deployment catalog: self-contained images with no repository checkout. Which
 # hosts run each entry is declared the other way round, by the private layer's
 # `hosts.<host>.deployments: [<id>, ...]`. A `${DEPLOYMENT_DATA}` volume source
-# resolves to the deployment's managed data root ~/codespace-deployment/<id>.
+# resolves to the managed data directory ~/codespace/deployments/<id>.
 deployments:
   sidecar:
     image: ghcr.io/curoky/devspace:codespace-sidecar
@@ -61,7 +61,7 @@ deployments:
       ipc: host
       devices:
         - nvidia.com/gpu=all
-      # ${DEPLOYMENT_DATA} resolves to ~/codespace-deployment/llm-vllm; the ~172
+      # ${DEPLOYMENT_DATA} resolves to ~/codespace/deployments/llm-vllm; the ~172
       # GiB FP8 weights land there on first start, isolated per deployment.
       volumes:
         - ${DEPLOYMENT_DATA}:/root/.cache/huggingface

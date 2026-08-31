@@ -26,8 +26,8 @@ from controller.models import (
     WORKSPACE_CRYPT_SECRET_ENV,
     WORKSPACE_MOUNT,
     Environment,
-    HostRoots,
     ImagePlatform,
+    InstancePaths,
 )
 from controller.runtime import engine
 from controller.runtime.compose import Secret, ServiceSpec, Volume
@@ -51,7 +51,7 @@ __all__ = [
     "pull_image",
     "purge_workspace",
     "remove_container",
-    "remove_workspace",
+    "remove_data_directory",
     "wait_running",
 ]
 
@@ -59,7 +59,7 @@ __all__ = [
 def create_container(
     client: PodmanClient,
     spec: EnvironmentSpec,
-    roots: HostRoots,
+    paths: InstancePaths,
     host_environment: Mapping[str, str] | None = None,
 ) -> Container:
     """Create and start a configured development container."""
@@ -88,7 +88,7 @@ def create_container(
     # and inject the fixed WORKSPACE_CRYPT_KEY (like the sidecar's atuin_db_uri);
     # the image mounts the decrypted /workspace at boot. Plaintext workspaces bind
     # the host dir straight to /workspace and inject nothing. /upload and /cache
-    # always bind their own plaintext host roots per instance.
+    # always bind sibling plaintext directories below the same instance root.
     encrypt = spec.workspace.encrypt_workspace
     if encrypt:
         _require_secret_exists(client, WORKSPACE_CRYPT_SECRET)
@@ -100,17 +100,17 @@ def create_container(
     mounts: list[dict[str, object]] = [
         {
             "type": "bind",
-            "source": spec.instance_path(roots.workspace),
+            "source": paths.workspace,
             "target": WORKSPACE_CIPHER_MOUNT if encrypt else WORKSPACE_MOUNT,
         },
         {
             "type": "bind",
-            "source": spec.instance_path(roots.upload),
+            "source": paths.upload,
             "target": UPLOAD_MOUNT,
         },
         {
             "type": "bind",
-            "source": spec.instance_path(roots.cache),
+            "source": paths.cache,
             "target": CACHE_MOUNT,
         },
     ]
@@ -230,17 +230,16 @@ def _require_secret_exists(client: PodmanClient, name: str) -> None:
 def create_deployment_container(
     client: PodmanClient,
     spec: DeploymentSpec,
-    data_root: str,
+    data_path: str,
 ) -> Container:
     """Create and start a self-contained host-level deployment container.
 
     Unlike an environment, a deployment has no SSH projection, workspace mount or
     git checkout: it runs the image as-is with the resolved container block and a
     restart policy so it survives host reboots. A ``${DEPLOYMENT_DATA}`` volume
-    source is rewritten to the deployment's managed data path below ``data_root``.
+    source is rewritten to ``data_path``.
     """
     options = spec.container
-    data_path = spec.data_path(data_root)
     environment = dict(options.environment or {})
     ports: dict[str, object] = {}
     if options.is_bridge:
@@ -290,29 +289,27 @@ def purge_workspace(
     client: PodmanClient,
     container: Container,
     environment: Environment,
-    roots: HostRoots,
+    paths: InstancePaths,
 ) -> None:
-    """Stop an environment and remove its workspace, upload and cache dirs."""
+    """Stop an environment and remove its complete data directory."""
     container.stop(timeout=10, ignore=True)
     platform = None if environment.platform == "native" else environment.platform
-    suffix = f"/{environment.workspace}/{environment.instance}"
-    for root in (roots.workspace, roots.upload, roots.cache):
-        remove_workspace(
-            client,
-            environment.image,
-            root,
-            f"{root}{suffix}",
-            platform=platform,
-        )
+    remove_data_directory(
+        client,
+        environment.image,
+        paths.workspaces_root,
+        paths.root,
+        platform=platform,
+    )
 
 
-def remove_workspace(
+def remove_data_directory(
     client: PodmanClient,
     image: str,
-    workspace_root: str,
+    data_root: str,
     target: str,
     *,
     platform: ImagePlatform | None = None,
 ) -> None:
-    """Remove one workspace below the mounted root with a root helper container."""
-    engine.remove_dir_with_helper(client, image, workspace_root, target, platform=platform)
+    """Remove one managed directory strictly below its data root."""
+    engine.remove_dir_with_helper(client, image, data_root, target, platform=platform)

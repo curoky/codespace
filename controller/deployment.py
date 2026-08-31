@@ -49,15 +49,16 @@ def reconcile(
     containers.pull_image(client, spec.image, None)
 
     stage("preparing data root")
-    data_root = ssh.remote_deployment_root(route)
-    ssh.prepare_instance_dirs(route, [spec.data_path(data_root)])
+    data_paths = ssh.remote_data_paths(route)
+    data_path = data_paths.deployment(spec.deployment_id)
+    ssh.prepare_directories(route, [data_path])
 
     stage("replacing container")
     if client.containers.exists(spec.identity):
         client.containers.get(spec.identity).remove(force=True)
 
     stage("creating container")
-    containers.create_deployment_container(client, spec, data_root)
+    containers.create_deployment_container(client, spec, data_path)
 
 
 def teardown(
@@ -72,7 +73,7 @@ def teardown(
     """Remove one deployment's container and, when ``purge``, its managed data.
 
     Returns whether a container was found and removed. Purging removes the
-    ``~/codespace-deployment/<id>`` data directory after the container is gone.
+    deployment data directory after the container is gone.
     """
     stage("removing container")
     container = inventory.find_deployment_container(
@@ -87,12 +88,12 @@ def teardown(
 
     if purge:
         stage("removing data")
-        data_root = ssh.remote_deployment_root(route)
-        containers.remove_workspace(
+        data_paths = ssh.remote_data_paths(route)
+        containers.remove_data_directory(
             client,
             spec.image,
-            data_root,
-            spec.data_path(data_root),
+            data_paths.deployments,
+            data_paths.deployment(spec.deployment_id),
         )
     return removed
 

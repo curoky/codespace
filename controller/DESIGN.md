@@ -35,7 +35,7 @@ flowchart LR
 | 对象 | 身份 | 生命周期 | 持久状态 |
 | --- | --- | --- | --- |
 | Workspace | 配置 key | 随配置存在 | 无 |
-| Environment | `host + workspace + instance` | 用户高频创建/删除 | 三个 instance 目录 |
+| Environment | `host + workspace + instance` | 用户高频创建/删除 | 一个 instance 目录及三个数据子目录 |
 | Deployment | 配置 key | 随配置存在 | 无 |
 | Deployment container | `host + deployment` | 运维 reconcile/clean | 一个 deployment data 目录 |
 | Operation | `host + resource id` | 单进程内短期状态 | 无，重启即丢弃 |
@@ -89,14 +89,13 @@ flowchart TB
 逻辑布局。
 
 ```text
-$HOME/
-├── codespace/
-│   └── <workspace>/<instance>/       # workspace 明文或 gocryptfs 密文
-├── codespace-upload/
-│   └── <workspace>/<instance>/       # upload 明文
-├── codespace-cache/
-│   └── <workspace>/<instance>/       # tool/IDE cache 明文
-└── codespace-deployment/
+$HOME/codespace/
+├── workspaces/
+│   └── <workspace>/<instance>/
+│       ├── workspace/                # workspace 明文或 gocryptfs 密文
+│       ├── upload/                   # upload 明文
+│       └── cache/                    # tool/IDE cache 明文
+└── deployments/
     └── <deployment>/                 # deployment 托管数据
 ```
 
@@ -105,9 +104,9 @@ $HOME/
 ```mermaid
 flowchart LR
     subgraph Host["Host login home"]
-        W["~/codespace/W/I"]
-        U["~/codespace-upload/W/I"]
-        C["~/codespace-cache/W/I"]
+        W["~/codespace/workspaces/W/I/workspace"]
+        U["~/codespace/workspaces/W/I/upload"]
+        C["~/codespace/workspaces/W/I/cache"]
     end
 
     subgraph Plain["encrypt_workspace = false"]
@@ -136,15 +135,15 @@ flowchart LR
 - `workspace-init` 先把四个保留 mount path 归属到 `5230:5230`。
 - 加密模式只改变 workspace 的 container target；host 上同一目录存放密文。
 - `/upload` 与 `/cache` 始终明文，并与 workspace/instance 同粒度隔离。
-- `purge=false` 只删除 container；`purge=true` 删除 container 和三个 instance 目录。
+- `purge=false` 只删除 container；`purge=true` 删除包含三个数据子目录的 instance 目录。
 - 用户 volume 不得覆盖任何保留 mount path 或其父子路径。
 
 ### Deployment mounts
 
 ```mermaid
 flowchart LR
-    ConfigPath["volume source<br/>${DEPLOYMENT_DATA}"] --> Resolve["DeploymentSpec.data_path"]
-    Resolve --> HostPath["$HOME/codespace-deployment/<deployment>"]
+    ConfigPath["volume source<br/>${DEPLOYMENT_DATA}"] --> Resolve["HostDataPaths.deployment"]
+    Resolve --> HostPath["$HOME/codespace/deployments/<deployment>"]
     HostPath -->|bind| Target["configured container target"]
 ```
 
@@ -316,6 +315,14 @@ classDiagram
         +close()
     }
 
+    class HostDataPaths {
+        +root str
+        +workspaces str
+        +deployments str
+        +instance(workspace, instance) InstancePaths
+        +deployment(deployment) str
+    }
+
     class OperationStore {
         +create(operation)
         +update(host, resource_id, status, stage, error)
@@ -332,6 +339,7 @@ classDiagram
 
     CodespaceService --> Config
     CodespaceService --> PodmanTransport
+    CodespaceService --> HostDataPaths
     CodespaceService --> OperationStore
     CodespaceService --> RuntimePrimitives
 ```

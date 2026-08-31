@@ -206,11 +206,11 @@ def test_probe_retries_until_ssh_login_succeeds(
 
 
 @pytest.fixture(autouse=True)
-def _clear_workspace_root_cache() -> None:
-    ssh._remote_root.cache_clear()
+def _clear_data_paths_cache() -> None:
+    ssh.remote_data_paths.cache_clear()
 
 
-def test_remote_root_resolves_home_and_creates_dir(
+def test_remote_data_paths_resolves_single_host_root(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     commands: list[list[str]] = []
@@ -221,17 +221,19 @@ def test_remote_root_resolves_home_and_creates_dir(
 
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
-    root = ssh._remote_root(_remote_route(), "codespace")
+    paths = ssh.remote_data_paths(_remote_route())
 
-    assert root == "/home/x/codespace"
+    assert paths.root == "/home/x/codespace"
+    assert paths.workspaces == "/home/x/codespace/workspaces"
+    assert paths.deployments == "/home/x/codespace/deployments"
     assert commands[0][0] == "ssh"
     assert commands[0][-2] == "home"
-    # The remote command both creates the directory and prints the absolute path.
     assert "mkdir -p" in commands[0][-1]
-    assert "codespace" in commands[0][-1]
+    assert '"$HOME/codespace/workspaces"' in commands[0][-1]
+    assert '"$HOME/codespace/deployments"' in commands[0][-1]
 
 
-def test_remote_root_is_cached_per_host(
+def test_remote_data_paths_is_cached_per_host(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     calls: list[str] = []
@@ -242,33 +244,12 @@ def test_remote_root_is_cached_per_host(
 
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
-    first = ssh._remote_root(_remote_route(), "codespace")
-    second = ssh._remote_root(_remote_route(), "codespace")
+    first = ssh.remote_data_paths(_remote_route())
+    second = ssh.remote_data_paths(_remote_route())
 
-    assert first == second == "/home/x/codespace"
+    assert first == second
+    assert first.root == "/home/x/codespace"
     assert calls == ["home"]
-
-
-def test_remote_instance_roots_resolves_workspace_upload_and_cache(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    commands: list[str] = []
-
-    def run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
-        remote = command[-1]
-        commands.append(remote)
-        name = remote.split('"$HOME/', 1)[1].split('"', 1)[0]
-        return subprocess.CompletedProcess(command, 0, stdout=f"/home/x/{name}", stderr="")
-
-    monkeypatch.setattr(ssh.subprocess, "run", run)
-
-    roots = ssh.remote_instance_roots(_remote_route())
-
-    assert roots.workspace == "/home/x/codespace"
-    assert roots.upload == "/home/x/codespace-upload"
-    assert roots.cache == "/home/x/codespace-cache"
-    assert any("codespace-upload" in command for command in commands)
-    assert any("codespace-cache" in command for command in commands)
 
 
 def test_remote_root_rejects_non_absolute_result(
@@ -282,8 +263,8 @@ def test_remote_root_rejects_non_absolute_result(
         ),
     )
 
-    with pytest.raises(RuntimeError, match="non-absolute codespace root"):
-        ssh._remote_root(_remote_route(), "codespace")
+    with pytest.raises(RuntimeError, match="non-absolute codespace data root"):
+        ssh.remote_data_paths(_remote_route())
 
 
 def test_remote_root_wraps_ssh_failure(
@@ -294,8 +275,8 @@ def test_remote_root_wraps_ssh_failure(
 
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
-    with pytest.raises(RuntimeError, match="failed to resolve codespace root"):
-        ssh._remote_root(_remote_route(), "codespace")
+    with pytest.raises(RuntimeError, match="failed to resolve codespace data root"):
+        ssh.remote_data_paths(_remote_route())
 
 
 def test_prepare_workspace_creates_directory_as_login_user_over_ssh(
@@ -309,17 +290,18 @@ def test_prepare_workspace_creates_directory_as_login_user_over_ssh(
 
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
-    ssh.prepare_instance_dirs(_remote_route(), ["/home/x/codespace/devspace/debug"])
+    path = "/home/x/codespace/workspaces/devspace/debug/workspace"
+    ssh.prepare_directories(_remote_route(), [path])
 
     command = commands[0]
     assert command[0] == "ssh"
     assert command[-2] == "home"
-    assert command[-1] == "mkdir -p -- /home/x/codespace/devspace/debug"
+    assert command[-1] == f"mkdir -p -- {path}"
 
 
 def test_prepare_workspace_rejects_non_absolute_target() -> None:
-    with pytest.raises(RuntimeError, match="non-absolute instance path"):
-        ssh.prepare_instance_dirs(_remote_route(), ["relative/path"])
+    with pytest.raises(RuntimeError, match="non-absolute path"):
+        ssh.prepare_directories(_remote_route(), ["relative/path"])
 
 
 def test_prepare_workspace_wraps_ssh_failure(
@@ -330,11 +312,14 @@ def test_prepare_workspace_wraps_ssh_failure(
 
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
-    with pytest.raises(RuntimeError, match="failed to prepare instance directories"):
-        ssh.prepare_instance_dirs(_remote_route(), ["/home/x/codespace/devspace/debug"])
+    with pytest.raises(RuntimeError, match="failed to prepare directories"):
+        ssh.prepare_directories(
+            _remote_route(),
+            ["/home/x/codespace/workspaces/devspace/debug/workspace"],
+        )
 
 
-def test_list_workspaces_reads_two_directory_levels(
+def test_list_instances_reads_two_directory_levels(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     commands: list[list[str]] = []
@@ -344,22 +329,25 @@ def test_list_workspaces_reads_two_directory_levels(
         return subprocess.CompletedProcess(
             command,
             0,
-            stdout=("/home/x/codespace/devspace/debug\0/home/x/codespace/service-api/default\0"),
+            stdout=(
+                "/home/x/codespace/workspaces/devspace/debug\0"
+                "/home/x/codespace/workspaces/service-api/default\0"
+            ),
             stderr="",
         )
 
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
-    assert ssh.list_workspaces(_remote_route(), "/home/x/codespace") == [
-        "/home/x/codespace/devspace/debug",
-        "/home/x/codespace/service-api/default",
+    assert ssh.list_instances(_remote_route(), "/home/x/codespace/workspaces") == [
+        "/home/x/codespace/workspaces/devspace/debug",
+        "/home/x/codespace/workspaces/service-api/default",
     ]
-    assert "find /home/x/codespace" in commands[0][-1]
+    assert "find /home/x/codespace/workspaces" in commands[0][-1]
     assert "-mindepth 2 -maxdepth 2" in commands[0][-1]
     assert "-print0" in commands[0][-1]
 
 
-def test_list_workspaces_rejects_path_outside_root(
+def test_list_instances_rejects_path_outside_root(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
@@ -374,7 +362,7 @@ def test_list_workspaces_rejects_path_outside_root(
     )
 
     with pytest.raises(RuntimeError, match="outside"):
-        ssh.list_workspaces(_remote_route(), "/home/x/codespace")
+        ssh.list_instances(_remote_route(), "/home/x/codespace/workspaces")
 
 
 def test_read_host_environment_returns_only_requested_exported_values(
@@ -454,10 +442,11 @@ def test_podman_machine_workspace_uses_root_route(
 
     monkeypatch.setattr(ssh.subprocess, "run", run)
 
-    root = ssh._remote_root(route, "codespace")
-    ssh.prepare_instance_dirs(route, [f"{root}/devspace/debug"])
+    paths = ssh.remote_data_paths(route)
+    target = f"{paths.workspaces}/devspace/debug/workspace"
+    ssh.prepare_directories(route, [target])
 
-    assert root == "/root/codespace"
+    assert paths.root == "/root/codespace"
     for command in commands:
         assert "-i" in command
         assert str(identity) in command
@@ -466,7 +455,7 @@ def test_podman_machine_workspace_uses_root_route(
         assert "StrictHostKeyChecking=accept-new" in command
         assert any(option.endswith("/known_hosts/machine-local") for option in command)
         assert command[-2] == "root@127.0.0.1"
-    assert commands[1][-1] == "mkdir -p -- /root/codespace/devspace/debug"
+    assert commands[1][-1] == "mkdir -p -- /root/codespace/workspaces/devspace/debug/workspace"
 
 
 def test_podman_machine_projection_and_probe_use_dedicated_proxy_command(

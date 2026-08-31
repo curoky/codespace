@@ -8,6 +8,7 @@ from pydantic import ValidationError
 from controller.config import Config, load_config
 from controller.models import (
     CreateInstanceRequest,
+    HostDataPaths,
     environment_id,
     ssh_port,
 )
@@ -919,7 +920,11 @@ def test_resource_identity_contract_is_deterministic(config: Config) -> None:
 
     assert identity == "codespace-home-devspace-debug"
     assert spec.identity == identity
-    assert spec.instance_path("/home/x/codespace") == "/home/x/codespace/devspace/debug"
+    data_paths = HostDataPaths(root="/home/x/codespace")
+    assert data_paths.instance("devspace", "debug").root == (
+        "/home/x/codespace/workspaces/devspace/debug"
+    )
+    assert data_paths.deployment("sidecar") == "/home/x/codespace/deployments/sidecar"
     assert ssh_port(identity) == ssh_port(identity)
     assert 20_000 <= ssh_port(identity) <= 29_999
 

@@ -12,7 +12,8 @@
 - Sidecar 没有 workspace mount、environment SSH port、login alias、deploy key、repository 或 SSH 投影。
 - 创建或删除 environment 不得创建、替换或删除 host sidecar；sidecar 故障可反映在 host 状态，但不得破坏
   environment inventory。
-- 持久服务数据只用 sidecar contract 管理的 host storage，不用 `~/codespace/<workspace>/<instance>`。
+- 持久服务数据只用 sidecar contract 管理的 host storage，不用
+  `~/codespace/workspaces/<workspace>/<instance>`。
 - image-prewarm 是本契约**唯一** Podman socket 例外：允许启动器把宿主 rootful Podman socket bind-mount 进
   sidecar 供调用 Podman REST API，且仅用于按清单 `pull` 镜像和清理 dangling 镜像。除此外，镜像与 sidecar
   仍不得携带 Podman socket、控制面、workspace mount、provider token 或 repository credential。

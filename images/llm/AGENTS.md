@@ -22,7 +22,7 @@
 - API 只经 host loopback 暴露：bridge network 且仅向 `127.0.0.1:<port>`（默认 8003，避开 sidecar 的 8002）
   publish 端口。
 - **模型权重不烤进镜像**：~172 GiB FP8 权重经 bind-mount 的 Hugging Face cache 在首次启动时由引擎拉取；该 cache
-  即控制面 deployment 的托管数据根 `~/codespace-deployment/<id>`（config volume 用 `${DEPLOYMENT_DATA}` 占位符
+  即控制面 deployment 的托管数据目录 `~/codespace/deployments/<id>`（config volume 用 `${DEPLOYMENT_DATA}` 占位符
   引用），`purge` 清理即删该目录。
 - 镜像不含 Podman socket、控制面、provider token 或 repository credential。
 
@@ -112,7 +112,7 @@ images/llm/sglang/build.sh       # 产出 ghcr.io/curoky/devspace:llm-sglang
   `/dev/shm`，用 `--ipc host`（`container.ipc: host`）直接复用宿主共享内存，不再设置只作用于私有 IPC
   namespace 的 `container.shm_size`。Deployment 不继承开发默认，无需反向清除 `cap_add`/`security_opt`。
 - Hugging Face cache 用 `${DEPLOYMENT_DATA}:/root/.cache/huggingface` volume 绑到托管数据根
-  `~/codespace-deployment/<id>`，首次启动拉取 ~172 GiB 权重到该目录，需 ≥~200 GiB 空闲空间；容器内经
+  `~/codespace/deployments/<id>`，首次启动拉取 ~172 GiB 权重到该目录，需 ≥~200 GiB 空闲空间；容器内经
   `HF_HOME=/root/.cache/huggingface` 指向它。gated/加速下载可先在 `container.environment` 或宿主注册 `HF_TOKEN`。
 
 host 前置：NVIDIA Container Toolkit 并配好 CDI（`nvidia.com/gpu` 设备）。

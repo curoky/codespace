@@ -74,8 +74,9 @@ task check
 - Deployment identity 为 `codespace-<deployment>`，只带 `codespace.deployment*` label；
   两类 inventory 的 label filter 必须互斥。
 - Environment 的 SSH 端口从 identity 确定性映射到 `20000-29999`；冲突直接拒绝。
-- 每个 environment 独占 host 上的 workspace、upload 和 cache 目录；每个 deployment 独占
-  deployment data 目录。准确路径和 mount 关系见 [`DESIGN.md`](DESIGN.md#host-数据布局)。
+- Host 持久数据只使用 `~/codespace`：environment 位于
+  `workspaces/<workspace>/<instance>/{workspace,upload,cache}`，deployment 位于
+  `deployments/<deployment>`。准确 mount 关系见 [`DESIGN.md`](DESIGN.md#host-数据布局)。
 - SSH host 必须提供 rootful Podman Unix socket、可写 login home、GNU `env` 和 `find`。
 - Podman Machine 必须已启动且启用 rootful mode。跨架构镜像依赖 host 预先配置 `binfmt_misc`。
 - SSH host 的 Podman socket 通过进程私有 Unix socket 转发；连接复用、调用有界超时，进程退出时关闭。

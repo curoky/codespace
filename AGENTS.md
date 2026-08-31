@@ -105,14 +105,14 @@ $HOME/devspace/tools/setup-git-deploy-key.sh
    实例目录 bind 到密文根 `/workspace.enc` 并注入固定 secret `workspace_crypt_key`（env `WORKSPACE_CRYPT_KEY`，
    对齐 sidecar `atuin_db_uri` 模式，须经 `sync_secrets` 预注册，缺失即 fail-fast）；镜像侧 `workspace-crypt`
    据此用 gocryptfs 把明文挂到 `/workspace`。关闭时直接 bind 明文 `/workspace`、不注入 secret。加密依赖 FUSE
-   （`/dev/fuse`）。加密仅作用于 `/workspace`；`/upload`、`/cache` 始终明文 bind 各自宿主根，不受影响。
-10. **数据挂载**：每个实例挂载三个宿主目录到 `/workspace`、`/upload`、`/cache`，分别落在独立宿主根
-    `~/codespace`、`~/codespace-upload`、`~/codespace-cache` 下的 `<workspace>/<instance>` 子目录（逐实例隔离，
-    不跨实例/workspace 共享）。三者均为控制面保留 mount target，用户卷不得占用。
+   （`/dev/fuse`）。加密仅作用于实例的 `workspace/` 子目录；`upload/`、`cache/` 始终明文，不受影响。
+10. **数据挂载**：host 数据统一位于 `~/codespace`。每个实例使用
+    `workspaces/<workspace>/<instance>/`，其 `workspace`、`upload`、`cache` 子目录分别挂载到容器内
+    `/workspace`、`/upload`、`/cache`。三者逐实例隔离，且均为控制面保留 mount target。
 11. **Deployment**：host 级自包含部署容器（sidecar、LLM serving 等），与开发 environment 明确区分：容器名
     确定性 `codespace-<id>`、只带 `codespace.deployment*` label（**绝不带 `codespace.managed`**，与 environment
     inventory 用不相交 filter），无 workspace/SSH 投影/git checkout/provider 凭据。哪些 host 跑它由
-    `hosts.<host>.deployments` 决定（host 选 deployment）。持久数据落在独立宿主根 `~/codespace-deployment/<id>`，
+    `hosts.<host>.deployments` 决定（host 选 deployment）。持久数据落在 `~/codespace/deployments/<id>`，
     config volume 用 `${DEPLOYMENT_DATA}` 占位符引用；镜像自装产物、运行形态在 `deployments.<id>.container` 声明。
 
 ## 变更规则
