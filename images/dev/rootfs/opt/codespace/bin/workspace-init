@@ -1,15 +1,8 @@
 #!/usr/bin/env bash
-# Orchestrate one-shot workspace initialization at container boot.
-#
-# Usage: workspace-init
-#
-# 由 workspace-init s6 oneshot 以用户 x 调用，线性两步：
-#   1. sudo chown   把 workspace 数据、密文根与 upload/cache 归属到 5230:5230，
-#                   供后续以 x 运行的服务写入（`x` 有 NOPASSWD sudo，见 setup-sysconf.sh）
-#   2. 加密挂载     按 WORKSPACE_CRYPT_KEY 用 gocryptfs 挂载或直通 workspace（以 x 挂载，
-#                   密文文件属主随之为 x）
-# 完成即视为 workspace 就绪，sshd/webdav 依赖本服务。
-# 五个持久化 IDE home mount 的 chown 归 home-init 负责（它以 x 起、用 sudo chown）。
+# workspace-init s6 oneshot (runs as x): chown the workspace data, ciphertext
+# root and upload/cache to 5230:5230 (x has NOPASSWD sudo), then mount /workspace
+# via gocryptfs when WORKSPACE_CRYPT_KEY is set, else pass it through plaintext.
+# Gates sshd/webdav. The five IDE home mounts are chowned by home-init instead.
 
 set -euo pipefail
 

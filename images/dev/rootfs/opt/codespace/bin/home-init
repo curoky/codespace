@@ -1,23 +1,16 @@
 #!/usr/bin/env bash
-# Initialize the persisted development home for one workspace.
-#
-# Usage: home-init
-#
-# 由 home-init s6 oneshot 以用户 x 调用，线性执行：
-#   1. sudo chown  把五个持久化 IDE home mount 归属到 5230:5230（`x` 有 NOPASSWD sudo）
-#   2. 无条件生成或复用容器内 deploy key（私钥不出容器，控制面只读公钥）
-#   3. 耗时 home 初始化：扩展播种、docker scene dotfiles、agent playbook 与 user rules
-# 成功返回即视为 home 初始化完成，workspace-agent 依赖本服务；
-# 任一步失败都让脚本非零退出、oneshot 失败，排查读 /var/log/home-init.log。
+# home-init s6 oneshot (runs as x): chown the five IDE home mounts, generate or
+# reuse the container deploy key, then seed extensions, dotfiles, agent playbook
+# and user rules. workspace-agent depends on it; failures abort the oneshot.
+# Log: /var/log/home-init.log.
 
 set -euo pipefail
 
-# 五个 IDE home mount 由控制面按实例 bind 宿主目录，rootful Podman 透传所有权。
 sudo chown 5230:5230 \
   /home/x/.vscode-server /home/x/.trae /home/x/.trae-cn \
   /home/x/.trae-server /home/x/.trae-cn-server
 
-# 无条件生成或复用 deploy key；私钥留容器内，控制面只读对应公钥。
+# Private key stays in the container; the controller only reads the public key.
 install -d -m 0700 -- /home/x/.ssh
 if [[ ! -f /home/x/.ssh/repo_id_ed25519 ]]; then
   ssh-keygen -q -t ed25519 -N "" -C codespace -f /home/x/.ssh/repo_id_ed25519
