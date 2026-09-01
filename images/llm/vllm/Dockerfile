@@ -37,17 +37,23 @@ RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs
 # VLLM_VERSION pins the current stable release; bump it (or the day-0 override
 # below) to a build that carries the Qwen3.8-Flash-Next architecture.
 #
-# TORCH_BACKEND selects the torch/CUDA wheel variant: vLLM's default PyPI wheel
-# now targets CUDA 13 (needs host driver >=580), but the target 8x H100 node runs
-# an older CUDA 12.x driver (535 / CUDA 12.2). We build against cu129 so uv pulls
-# a cu12x torch. It is pinned (not =auto) because the CI builder has no NVIDIA
-# driver to probe; override TORCH_BACKEND=cu130 for a CUDA 13 host.
+# CUDA_TAG selects the CUDA build of vLLM. Since v0.20.0 the default PyPI `vllm`
+# wheel (which carries the compiled vllm._C) links CUDA 13 (libcudart.so.13,
+# needs host driver >=580), but the target 8x H100 node runs an older CUDA 12.x
+# driver (535 / CUDA 12.2). `--torch-backend` only swaps the torch wheel, NOT the
+# vllm wheel, so it alone still pulls the cu13 vllm._C and fails at import with
+# `libcudart.so.13: cannot open shared object file`. We therefore install vLLM's
+# CUDA-specific release wheel from GitHub (vllm-<ver>+<cuda>-...whl) and resolve
+# torch from the matching PyTorch index. manylinux_2_28 + x86_64 because the LLM
+# images are amd64-only. Override CUDA_TAG=cu130 for a CUDA 13 host.
 ARG VLLM_VERSION=0.23.0
-ARG TORCH_BACKEND=cu129
+ARG CUDA_TAG=cu129
 ENV LLM_VENV=/opt/llm/venv
 RUN /opt/bm/bin/uv venv "${LLM_VENV}" --python 3.12 \
   && /opt/bm/bin/uv pip install --python "${LLM_VENV}/bin/python" \
-    --torch-backend="${TORCH_BACKEND}" "vllm==${VLLM_VERSION}"
+    --index-strategy unsafe-best-match \
+    "https://github.com/vllm-project/vllm/releases/download/v${VLLM_VERSION}/vllm-${VLLM_VERSION}+${CUDA_TAG}-cp38-abi3-manylinux_2_28_$(uname -m).whl" \
+    --extra-index-url "https://download.pytorch.org/whl/${CUDA_TAG}"
 
 ENV PATH="/opt/llm/venv/bin:/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:$PATH"
 
