@@ -161,7 +161,7 @@ RUN ln -s /opt/devspace ~/devspace
 # setup Trae user rules
 RUN git clone --depth=1 https://github.com/curoky/agent-playbook /opt/agent-playbook
 
-# VSCode Remote 扩展参考副本（stage_vscode_ext 并行构建），运行期由 home-setup 播种到各 IDE server。
+# VSCode Remote 扩展参考副本（stage_vscode_ext 并行构建），运行期由 home-init 播种到各 IDE server。
 COPY --link --chown=5230:5230 --from=stage_vscode_ext /opt/vscode-extensions /opt/vscode-extensions
 
 USER root

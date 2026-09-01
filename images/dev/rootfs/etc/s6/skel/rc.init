@@ -32,7 +32,7 @@ s6-rc-init -c /etc/s6/db /run/service
 
 # 2. Start the wanted set of services by bringing up the bundle named after the
 #    runlevel ($rl, always the maker -D default "user-final"). Controller-managed
-#    environments run the same runlevel; the deploy-key/bootstrap/agent services
+#    environments run the same runlevel; the bootstrap/agent services
 #    self-gate on CODESPACE_WORKSPACE_TYPE. s6-rc-maker no longer ships a separate
 #    scripts/runlevel helper, so call s6-rc directly.
 echo "rc.init: bringing up runlevel $rl"

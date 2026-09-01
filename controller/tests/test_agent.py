@@ -92,25 +92,24 @@ def _agent(
         provider_ready_path=tmp_path / "provider-ready",
         bootstrap_ready_path=tmp_path / "bootstrap.ready",
         bootstrap_failed_path=tmp_path / "bootstrap.failed",
-        home_ready_path=tmp_path / "home.ready",
-        home_failed_path=tmp_path / "home.failed",
     )
     return agent, active_factory
 
 
-def test_s6_user_base_runs_supervised_bootstrap_after_deploy_key() -> None:
-    deploy_key = _S6_ROOT / "workspace-deploy-key"
+def test_s6_user_base_runs_supervised_bootstrap_after_home_init() -> None:
     bootstrap = _S6_ROOT / "workspace-bootstrap"
     agent = _S6_ROOT / "workspace-agent"
     user_base = _S6_ROOT / "user-base"
 
-    assert (deploy_key / "type").read_text(encoding="utf-8").strip() == "oneshot"
     assert (bootstrap / "type").read_text(encoding="utf-8").strip() == "longrun"
-    assert (bootstrap / "dependencies.d" / "workspace-deploy-key").is_file()
-    assert (agent / "dependencies.d" / "workspace-deploy-key").is_file()
+    # deploy key 生成已并入 home-init, 不再有独立 workspace-deploy-key 服务.
+    assert not (_S6_ROOT / "workspace-deploy-key").exists()
+    # home-init 是 oneshot, bootstrap 与 agent 依赖它完成, 故 home 初始化成功才启动.
+    assert (bootstrap / "dependencies.d" / "home-init").is_file()
+    assert (agent / "dependencies.d" / "home-init").is_file()
     assert "workspace-bootstrap" in (bootstrap / "run").read_text(encoding="utf-8")
-    # 三个 controller 专用服务并入单一 runlevel user-base, 按 CODESPACE_WORKSPACE_TYPE 自门控.
-    for service in ("workspace-deploy-key", "workspace-bootstrap", "workspace-agent"):
+    # controller 专用服务并入单一 runlevel user-base, 按 CODESPACE_WORKSPACE_TYPE 自门控.
+    for service in ("workspace-bootstrap", "workspace-agent"):
         assert (user_base / "contents.d" / service).is_file()
     assert not (_S6_ROOT / "managed-workspace").exists()
 
@@ -120,11 +119,16 @@ def test_s6_initializes_workspace_before_sshd_and_home() -> None:
     sshd = _S6_ROOT / "sshd"
     workspace_init = _S6_ROOT / "workspace-init"
 
-    assert (home / "type").read_text(encoding="utf-8").strip() == "longrun"
-    assert (home / "dependencies.d" / "workspace-init").is_file()
+    # home-init 是 oneshot (成功返回=home 初始化完成), 不再依赖 workspace-init,
+    # 自管五个 IDE home mount 的 chown.
+    assert (home / "type").read_text(encoding="utf-8").strip() == "oneshot"
+    assert not (home / "dependencies.d" / "workspace-init").exists()
+    assert not (home / "run").exists()
+    assert "/opt/codespace/bin/home-init" in (home / "up").read_text(encoding="utf-8")
     assert (sshd / "dependencies.d" / "workspace-init").is_file()
     # workspace-init up 是纯调用壳; chown 目标已内联进编排脚本 workspace-init 自身.
     assert "workspace-init" in (workspace_init / "up").read_text(encoding="utf-8")
+    home_script = (_AGENT_ROOT / "bin" / "home-init").read_text(encoding="utf-8")
     init_script = (_AGENT_ROOT / "bin" / "workspace-init").read_text(encoding="utf-8")
     for target in (
         "/home/x/.vscode-server",
@@ -133,7 +137,8 @@ def test_s6_initializes_workspace_before_sshd_and_home() -> None:
         "/home/x/.trae-server",
         "/home/x/.trae-cn-server",
     ):
-        assert target in init_script
+        assert target in home_script
+        assert target not in init_script
     assert not (_AGENT_ROOT / "bin" / "workspace-chown").exists()
     assert not (_S6_ROOT / "workspace-crypt").exists()
     assert (_S6_ROOT / "gitconfig-init" / "type").read_text(encoding="utf-8").strip() == "oneshot"
@@ -166,8 +171,6 @@ def test_repo_status_waits_for_provider_and_exposes_public_key(tmp_path: Path) -
     assert workspace_agent.status().state == "starting"
 
     (tmp_path / "bootstrap.ready").write_text("ready\n", encoding="utf-8")
-    assert workspace_agent.status().state == "starting"
-    (tmp_path / "home.ready").write_text("ready\n", encoding="utf-8")
     assert workspace_agent.status().state == "ready"
 
 
@@ -184,24 +187,9 @@ def test_agent_reports_bootstrap_failure(tmp_path: Path) -> None:
     assert status.error == "workspace bootstrap repository checkout failed (1)"
 
 
-def test_agent_reports_home_initialization_failure(tmp_path: Path) -> None:
-    workspace_agent, _ = _agent(tmp_path, workspace_type="git")
-    (tmp_path / "bootstrap.ready").write_text("ready\n", encoding="utf-8")
-    (tmp_path / "home.failed").write_text(
-        "home initialization failed (1)\n",
-        encoding="utf-8",
-    )
-
-    status = workspace_agent.status()
-
-    assert status.state == "failed"
-    assert status.error == "home initialization failed (1)"
-
-
 def test_blank_workspace_has_no_git_state(tmp_path: Path) -> None:
     workspace_agent, _ = _agent(tmp_path, workspace_type="blank")
     (tmp_path / "bootstrap.ready").write_text("ready\n", encoding="utf-8")
-    (tmp_path / "home.ready").write_text("ready\n", encoding="utf-8")
 
     with pytest.raises(image_agent.APIError, match="no Git state"):
         workspace_agent.git_state()
@@ -210,7 +198,6 @@ def test_blank_workspace_has_no_git_state(tmp_path: Path) -> None:
 def test_git_state_reports_dirty_and_unpushed_changes(tmp_path: Path) -> None:
     workspace_agent, factory = _agent(tmp_path, workspace_type="git")
     (tmp_path / "bootstrap.ready").write_text("ready\n", encoding="utf-8")
-    (tmp_path / "home.ready").write_text("ready\n", encoding="utf-8")
 
     state = workspace_agent.git_state()
 
@@ -246,7 +233,6 @@ def test_git_state_reports_missing_and_empty_repositories_as_clean(
 ) -> None:
     workspace_agent, _ = _agent(tmp_path, workspace_type="git", factory=factory)
     (tmp_path / "bootstrap.ready").write_text("ready\n", encoding="utf-8")
-    (tmp_path / "home.ready").write_text("ready\n", encoding="utf-8")
 
     assert workspace_agent.git_state().model_dump() == expected
 
@@ -259,7 +245,6 @@ def test_git_state_caps_detail_at_twenty_lines(tmp_path: Path) -> None:
         factory=FakeRunFactory(dirty=dirty),
     )
     (tmp_path / "bootstrap.ready").write_text("ready\n", encoding="utf-8")
-    (tmp_path / "home.ready").write_text("ready\n", encoding="utf-8")
 
     state = workspace_agent.git_state()
 
@@ -297,7 +282,6 @@ def test_controller_client_completes_repo_handshake_over_uds(tmp_path: Path) -> 
         status = client.wait_for({"awaiting-provider"}, timeout=2)
         (tmp_path / "provider-ready").write_text("", encoding="utf-8")
         (tmp_path / "bootstrap.ready").write_text("ready\n", encoding="utf-8")
-        (tmp_path / "home.ready").write_text("ready\n", encoding="utf-8")
         ready = client.wait_for({"ready"}, timeout=2)
 
         assert status.public_key == "ssh-ed25519 AAAAC3 test"

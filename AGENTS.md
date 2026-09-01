@@ -96,15 +96,18 @@ $HOME/devspace/tools/setup-git-deploy-key.sh
 4. **服务管理**：开发容器以自建 s6 init 启动。新增服务放入 `images/dev/rootfs/etc/s6/s6-rc.d/` 并加入
    bundle；execline 脚本用 `s6-envdir -Lf -- /run/s6/container_environment` 读容器环境，该目录仅 root 和
    `x` 可读。每个 s6 任务的 `up`/`run` 只做 `exec` 到 `/opt/codespace/bin/` 编排脚本的纯壳，逻辑在 helper 里。
-   `workspace-init` 是唯一 workspace 就绪门控 oneshot：其编排脚本先以 root 把 `/workspace`、密文根
-   `/workspace.enc`、`/upload`、`/cache` 与五个持久化 IDE home mount 都归属到 `5230:5230`，再降权到 `x`
-   完成加密挂载（原 `workspace-crypt` 已并入）。`workspace-init` 先于
-   `sshd`、异步 `home-init` 与 WebDAV 服务；Git 全局身份由独立 `gitconfig-init` oneshot 写入。
-   单一 runlevel `user-final` 含全部服务；`workspace-deploy-key`、`workspace-bootstrap` 和
-   `workspace-agent` 三个 Controller 专用服务按容器环境变量 `CODESPACE_WORKSPACE_TYPE` 是否注入自门控——
-   通用镜像场景（未注入）时 deploy-key 跳过、bootstrap 与 agent 空转，不生成 key、不 clone、不监听
-   `agent.sock`。控制面创建 environment 时固定注入 `CODESPACE_WORKSPACE_TYPE` 等变量激活这三者；后两者
-   依赖 deploy key，agent 在 control目录监听 `agent.sock`，其 Python runtime依赖由
+   `workspace-init` 是唯一 workspace 就绪门控 oneshot：其编排脚本以 `x` 起，先 `sudo chown` 把 `/workspace`、密文根
+   `/workspace.enc`、`/upload`、`/cache` 都归属到 `5230:5230`（`x` 有 NOPASSWD sudo），再以 `x`
+   完成加密挂载（原 `workspace-crypt` 已并入）。五个持久化 IDE home mount 的 chown 不在此处，改由
+   `home-init` 自管（它以 `x` 起、用 sudo chown）。`workspace-init` 先于
+   `sshd` 与 WebDAV 服务；`home-init` 是 oneshot、不依赖 `workspace-init`，并在其中无条件生成或复用容器内
+   deploy key（私钥不出容器，控制面只读公钥），`workspace-bootstrap` 与
+   `workspace-agent` 依赖它完成；Git 全局身份由独立 `gitconfig-init` oneshot 写入。
+   单一 runlevel `user-final` 含全部服务；`workspace-bootstrap` 和
+   `workspace-agent` 两个 Controller 专用服务按容器环境变量 `CODESPACE_WORKSPACE_TYPE` 是否注入自门控——
+   通用镜像场景（未注入）时 bootstrap 与 agent 空转，不 clone、不监听 `agent.sock`；deploy key 由 `home-init`
+   无条件生成，不受门控影响，所有场景都生成。控制面创建 environment 时固定注入 `CODESPACE_WORKSPACE_TYPE`
+   等变量激活这两者；二者依赖 `home-init`，agent 在 control目录监听 `agent.sock`，其 Python runtime依赖由
    `images/dev/rootfs/opt/codespace/` 下的独立 uv项目锁定。
 5. **网络边界**：环境 sshd 只绑定宿主 loopback；访问必须经配置的 SSH host route。
 6. **共享服务**：每个 host 只有一个固定名称的 `codespace-sidecar`，不附属于 workspace/instance。Atuin 仅经
@@ -117,14 +120,14 @@ $HOME/devspace/tools/setup-git-deploy-key.sh
 9. **Workspace 加密**：逐 workspace 可选（控制面 workspace 字段 `encrypt_workspace`，默认关）。开启时控制面把 host
    实例目录 bind 到密文根 `/workspace.enc` 并注入固定 secret `workspace_crypt_key`（env `WORKSPACE_CRYPT_KEY`，
    对齐 sidecar `atuin_db_uri` 模式，须经 `sync_secrets` 预注册，缺失即 fail-fast）；镜像侧 `workspace-init`
-   据此（经 `workspace-crypt` helper）用 gocryptfs 把明文挂到 `/workspace`。关闭时直接 bind 明文 `/workspace`、不注入 secret。加密依赖 FUSE
+   据此（以 `x` 执行，原 `workspace-crypt` helper 已并入）用 gocryptfs 把明文挂到 `/workspace`。关闭时直接 bind 明文 `/workspace`、不注入 secret。加密依赖 FUSE
    （`/dev/fuse`）。加密仅作用于实例的 `workspace/` 子目录；`upload/`、`cache/` 始终明文，不受影响。
 10. **数据挂载**：host 数据统一位于 `~/codespace`。每个实例使用
     `workspaces/<workspace>/<instance>/`，其 `workspace`、`upload`、`cache` 子目录分别挂载到容器内
     `/workspace`、`/upload`、`/cache`；`cache` 下五个 IDE 子目录同时直接挂载到
     `/home/x/.vscode-server`、`/home/x/.trae`、`/home/x/.trae-cn`、`/home/x/.trae-server` 与
     `/home/x/.trae-cn-server`。`control` 子目录挂载到 `/run/codespace-control`，保存
-    bootstrap/home marker、provider-ready marker 和 agent UDS。四者逐实例隔离，且均为
+    bootstrap marker、provider-ready marker 和 agent UDS。四者逐实例隔离，且均为
     控制面保留 mount target。Agent UDS只经 OpenSSH StreamLocal转发到控制面，不发布 TCP端口；provider
     token不得进入容器，deploy private key不得离开容器。
 11. **Deployment**：host 级自包含部署容器（sidecar、LLM serving 等），与开发 environment 明确区分：容器名

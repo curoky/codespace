@@ -26,8 +26,6 @@ SOCKET_PATH = CONTROL_DIR / "agent.sock"
 PROVIDER_READY_PATH = CONTROL_DIR / "provider-ready"
 BOOTSTRAP_READY_PATH = CONTROL_DIR / "bootstrap.ready"
 BOOTSTRAP_FAILED_PATH = CONTROL_DIR / "bootstrap.failed"
-HOME_READY_PATH = CONTROL_DIR / "home.ready"
-HOME_FAILED_PATH = CONTROL_DIR / "home.failed"
 DEPLOY_PUBLIC_KEY_PATH = Path("/home/x/.ssh/repo_id_ed25519.pub")
 
 CONTAINER_UID = 5230
@@ -151,8 +149,6 @@ class WorkspaceAgent:
         provider_ready_path: Path = PROVIDER_READY_PATH,
         bootstrap_ready_path: Path = BOOTSTRAP_READY_PATH,
         bootstrap_failed_path: Path = BOOTSTRAP_FAILED_PATH,
-        home_ready_path: Path = HOME_READY_PATH,
-        home_failed_path: Path = HOME_FAILED_PATH,
     ) -> None:
         self.config = config
         self._runner = runner or CommandRunner()
@@ -160,17 +156,14 @@ class WorkspaceAgent:
         self._provider_ready_path = provider_ready_path
         self._bootstrap_ready_path = bootstrap_ready_path
         self._bootstrap_failed_path = bootstrap_failed_path
-        self._home_ready_path = home_ready_path
-        self._home_failed_path = home_failed_path
 
     def status(self) -> AgentStatus:
+        # home-init 是 oneshot: agent 能运行即代表 home 初始化已成功, 故就绪判定
+        # 只看 bootstrap, 不再读 home marker.
         public_key = self._read_public_key() if self.config.workspace_type == "repo" else None
-        for failure_path in (self._bootstrap_failed_path, self._home_failed_path):
-            if failure := self._read_failure(failure_path):
-                return AgentStatus(state="failed", public_key=public_key, error=failure)
-        if self._path_exists(self._bootstrap_ready_path) and self._path_exists(
-            self._home_ready_path
-        ):
+        if failure := self._read_failure(self._bootstrap_failed_path):
+            return AgentStatus(state="failed", public_key=public_key, error=failure)
+        if self._path_exists(self._bootstrap_ready_path):
             return AgentStatus(state="ready", public_key=public_key)
         if self.config.workspace_type == "repo" and not self._path_exists(
             self._provider_ready_path

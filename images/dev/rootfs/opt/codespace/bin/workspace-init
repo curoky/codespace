@@ -3,25 +3,35 @@
 #
 # Usage: workspace-init
 #
-# 由 workspace-init s6 oneshot 以 root 调用，按序编排两步：
-#   1. 内联 chown   以 root 归属 workspace 数据、密文根、upload/cache 与五个
-#                   持久化 IDE home mount 到 5230:5230，供后续以 x 运行的服务写入
-#   2. workspace-crypt  降权到 x 后按 WORKSPACE_CRYPT_KEY 挂载或直通 workspace
-# 完成即视为 workspace 就绪，sshd/webdav/home-init/deploy-key 依赖本服务。
+# 由 workspace-init s6 oneshot 以用户 x 调用，线性两步：
+#   1. sudo chown   把 workspace 数据、密文根与 upload/cache 归属到 5230:5230，
+#                   供后续以 x 运行的服务写入（`x` 有 NOPASSWD sudo，见 setup-sysconf.sh）
+#   2. 加密挂载     按 WORKSPACE_CRYPT_KEY 用 gocryptfs 挂载或直通 workspace（以 x 挂载，
+#                   密文文件属主随之为 x）
+# 完成即视为 workspace 就绪，sshd/webdav 依赖本服务。
+# 五个持久化 IDE home mount 的 chown 归 home-init 负责（它以 x 起、用 sudo chown）。
 
 set -euo pipefail
 
-for target in \
-  /workspace \
-  /workspace.enc \
-  /upload \
-  /cache \
-  /home/x/.vscode-server \
-  /home/x/.trae \
-  /home/x/.trae-cn \
-  /home/x/.trae-server \
-  /home/x/.trae-cn-server; do
-  chown 5230:5230 "${target}"
-done
+sudo chown 5230:5230 /workspace /workspace.enc /upload /cache
 
-s6-setuidgid x env HOME=/home/x /opt/codespace/bin/workspace-crypt
+# gocryptfs 以 x 挂载：其 FUSE 守护进程用 x 身份读写密文根，落盘密文属主即 5230:5230。
+if [[ -z ${WORKSPACE_CRYPT_KEY-} ]]; then
+  echo "WORKSPACE_CRYPT_KEY unset; workspace encryption disabled, using plaintext /workspace"
+  exit 0
+fi
+
+if grep -q " /workspace fuse.gocryptfs " /proc/mounts; then
+  echo "gocryptfs already mounted at /workspace"
+  exit 0
+fi
+
+if [[ ! -e /workspace.enc/gocryptfs.conf ]]; then
+  # gocryptfs executes the extpass command later.
+  # shellcheck disable=SC2016
+  gocryptfs -init -extpass 'echo "${WORKSPACE_CRYPT_KEY}"' /workspace.enc
+fi
+
+# gocryptfs executes the extpass command later.
+# shellcheck disable=SC2016
+gocryptfs -extpass 'echo "${WORKSPACE_CRYPT_KEY}"' -allow_other /workspace.enc /workspace

@@ -342,8 +342,6 @@ def test_reset_control_state_removes_stale_runtime_files(
     assert f"rm -f -- {control}/agent.sock" in command[-1]
     assert f"{control}/bootstrap.failed" in command[-1]
     assert f"{control}/bootstrap.ready" in command[-1]
-    assert f"{control}/home.failed" in command[-1]
-    assert f"{control}/home.ready" in command[-1]
     assert f"{control}/provider-ready" in command[-1]
     assert kwargs["stdin"] == subprocess.DEVNULL
 

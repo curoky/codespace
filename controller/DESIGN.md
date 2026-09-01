@@ -72,8 +72,7 @@ flowchart TB
     Container --> Engine["runtime/engine.py"]
     Agent --> Tunnel["runtime/transport.py<br/>StreamLocal forward"]
     Tunnel --> ImageAgent["image: Python workspace agent"]
-    DeployKeyService["image: s6 workspace-deploy-key"] --> DeployKeyHelper["deploy-key"]
-    DeployKeyHelper --> DeployKeyPair["~/.ssh/repo_id_ed25519{,.pub}"]
+    HomeInit["image: s6 home-init"] --> DeployKeyPair["~/.ssh/repo_id_ed25519{,.pub}"]
     DeployKeyPair --> ImageBootstrap["image: s6 workspace bootstrap"]
     ImageBootstrap --> CheckoutHelper["git-checkout"]
     ImageAgent <--> BootstrapState["control/bootstrap.* + home.* + provider-ready"]
@@ -159,8 +158,7 @@ flowchart LR
 - `/upload` 与 `/cache` 始终明文，并与 workspace/instance 同粒度隔离。
 - `cache/` 下五个 IDE 子目录直接 bind 到各自 `/home/x/` canonical path；`/cache` 主挂载继续供构建和工具缓存使用。
 - 控制面在创建 container前清空旧 control marker；bootstrap用 `bootstrap.ready` / `bootstrap.failed`
-  记录结果，异步 home初始化用 `home.ready` / `home.failed` 记录结果，agent启动时清理并重建
-  `agent.sock`。
+  记录结果，agent启动时清理并重建 `agent.sock`。
 - `/provider-ready` 在 `control/provider-ready` 原子持久化；同一 container重启后可继续幂等 bootstrap，
   新 create会先清空旧 marker。
 - `purge=false` 只删除 container；`purge=true` 删除包含四个子目录的 instance 目录。
@@ -416,16 +414,17 @@ agent只监听 `/run/codespace-control/agent.sock`，HTTP API固定为：
 | `GET` | `/git-state` | `CODESPACE_CLONE_PATH` 对应 `RepoGitState` |
 
 状态只允许 `starting`、`awaiting-provider`、`ready`、`failed`。单一 runlevel `user-final` 含全部服务；
-`workspace-deploy-key`、`workspace-bootstrap`、`workspace-agent` 按 `CODESPACE_WORKSPACE_TYPE` 是否注入
-自门控（通用镜像未注入时空转），三者在 `workspace-init` 后启动，
-`workspace-bootstrap` 与 `workspace-agent` 均依赖 `workspace-deploy-key`：
+`workspace-bootstrap`、`workspace-agent` 按 `CODESPACE_WORKSPACE_TYPE` 是否注入
+自门控（通用镜像未注入时空转），二者在 `workspace-init` 与 `home-init` 后启动，
+`workspace-bootstrap` 与 `workspace-agent` 均依赖 `home-init`：
 
-- `workspace-deploy-key` 在 `CODESPACE_WORKSPACE_TYPE` 已注入时对所有 workspace无条件生成或复用
-  container-local keypair，private key不离开容器；未注入时跳过。
+- deploy keypair 由 `home-init` 无条件生成或复用（所有 workspace 及通用镜像场景都生成），private key
+  不离开容器；已并入 home-init, 不再有独立 `workspace-deploy-key` 服务。
 - `workspace-bootstrap` 是受监督 longrun，直接执行 Bash helper并按容器环境选择流程；成功写
   `bootstrap.ready`，失败写 `bootstrap.failed`，随后保持运行，不占用 s6-rc oneshot事务。
-- 五个 IDE home目录在 container创建时已经直接挂载；异步 `home-init` 完成或失败后分别写 `home.ready`、
-  `home.failed`。`/status` 只有在 bootstrap与home marker都 ready时才返回 `ready`。
+- 五个 IDE home目录在 container创建时已经直接挂载；`home-init` 是 oneshot，成功返回即视为 home 初始化
+  完成，`workspace-bootstrap` 与 `workspace-agent` 依赖本服务，失败排查读 `/var/log/home-init.log`。
+  `/status` 只看 bootstrap marker：agent能运行即代表 home初始化已成功。
 - `repo`：agent从 `/home/x/.ssh/repo_id_ed25519.pub` 返回公钥并进入 `awaiting-provider`；控制面注册
   deploy key后在 host control目录创建 `provider-ready` marker，bootstrap随后执行 checkout和 open-path helper。
 - `git`：bootstrap直接调用 checkout 和 open-path helper；`blank`：bootstrap只调用 open-path helper。
