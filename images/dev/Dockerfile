@@ -80,6 +80,7 @@ RUN /tmp/setup-sysconf.sh \
   && install -d -o 5230 -g 5230 -m 0700 /upload \
   && install -d -o 5230 -g 5230 -m 0755 /cache \
   && chown 5230:5230 /opt \
+  && chown -R 5230:5230 /opt/codespace \
   && chmod -R +x /opt/codespace/bin \
   && /tmp/setup-s6.sh \
   && ln -s /opt/bm/store/zsh/bin/zsh /usr/bin \
@@ -131,6 +132,9 @@ COPY --link --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
 ENV PATH=${PATH}:/opt/conda/condabin
 RUN conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main \
   && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
+
+# setup /opt/codespace
+RUN UV_LINK_MODE=copy uv sync --project /opt/codespace --locked --no-dev --python 3.14
 
 # setup devspace
 # Cross-scene home configs are baked at their $HOME paths via `COPY rootfs/ /`

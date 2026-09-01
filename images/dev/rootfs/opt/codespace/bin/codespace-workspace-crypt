@@ -6,7 +6,7 @@ set -euo pipefail
 CIPHER_DIR=/workspace.enc
 PLAIN_DIR=/workspace
 
-if [[ -z ${WORKSPACE_CRYPT_KEY:-} ]]; then
+if [[ -z ${WORKSPACE_CRYPT_KEY-} ]]; then
   echo "WORKSPACE_CRYPT_KEY unset; workspace encryption disabled, using plaintext ${PLAIN_DIR}"
   exit 0
 fi

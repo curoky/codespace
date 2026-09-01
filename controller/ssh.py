@@ -45,6 +45,7 @@ _DATA_ROOT_TIMEOUT = 15.0
 _PREPARE_TIMEOUT = 15.0
 _INSTANCE_LIST_TIMEOUT = 30.0
 _HOST_ENVIRONMENT_TIMEOUT = 15.0
+_CONTROL_WRITE_TIMEOUT = 15.0
 
 
 @cache
@@ -82,6 +83,36 @@ def prepare_directories(route: SSHRoute, targets: list[str]) -> None:
         remote_command,
         timeout=_PREPARE_TIMEOUT,
         action=f"prepare directories {targets!r}",
+    )
+
+
+def write_control_request(route: SSHRoute, control_path: str, content: str) -> None:
+    """Create a private control directory and atomically replace its request."""
+    if not control_path.startswith("/"):
+        raise RuntimeError(f"refusing to prepare non-absolute control path: {control_path!r}")
+    directory = shlex.quote(control_path)
+    request_path = shlex.quote(f"{control_path}/request.json")
+    socket_path = shlex.quote(f"{control_path}/agent.sock")
+    remote_command = (
+        "set -eu; "
+        f"mkdir -p -- {directory}; "
+        f"chmod 0700 -- {directory}; "
+        f"rm -f -- {socket_path}; "
+        f"tmp=$(mktemp {request_path}.XXXXXX); "
+        "trap 'rm -f -- \"$tmp\"' EXIT HUP INT TERM; "
+        'cat >"$tmp"; '
+        'chmod 0600 "$tmp"; '
+        f'mv -f -- "$tmp" {request_path}; '
+        "trap - EXIT HUP INT TERM"
+    )
+    machine_known_hosts = _machine_known_hosts(route) if route.is_machine else None
+    remote.run_host(
+        route,
+        remote_command,
+        timeout=_CONTROL_WRITE_TIMEOUT,
+        action=f"write workspace agent request to {control_path!r}",
+        machine_known_hosts=machine_known_hosts,
+        input_text=content,
     )
 
 

@@ -3,7 +3,7 @@
 setup_file() {
   bats_require_minimum_version 1.5.0
   HELPER="${BATS_TEST_DIRNAME}/../rootfs/opt/codespace/bin/codespace-git-checkout"
-  if [[ -n ${CODESPACE_TEST_BASH:-} ]]; then
+  if [[ -n ${CODESPACE_TEST_BASH-} ]]; then
     HELPER_BASH=${CODESPACE_TEST_BASH}
   elif [[ -x /opt/homebrew/opt/bash/bin/bash ]]; then
     HELPER_BASH=/opt/homebrew/opt/bash/bin/bash

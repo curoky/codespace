@@ -5,14 +5,15 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from threading import Lock
+from uuid import uuid4
 
 from loguru import logger
 from podman import PodmanClient
 
+from controller import agent, inventory, provider, ssh
 from controller import container as containers
 from controller import dashboard as dashboard_state
 from controller import deployment as deployment_ops
-from controller import inventory, provider, ssh, workspace
 from controller.config import (
     Config,
     EnvironmentSpec,
@@ -34,6 +35,9 @@ from controller.models import (
 )
 from controller.operations import OperationStore
 from controller.runtime.transport import PodmanTransport, SSHRoute
+
+_AGENT_START_TIMEOUT = 60.0
+_AGENT_READY_TIMEOUT = 15 * 60.0
 
 
 def describe_error(exc: BaseException) -> str:
@@ -203,7 +207,26 @@ class CodespaceService:
                 paths.workspace,
                 paths.upload,
                 paths.cache,
+                paths.control,
             ],
+        )
+        generation = uuid4().hex
+        clone_url: str | None = None
+        if isinstance(ws, RepoWorkspace):
+            clone_url = f"git@{git_host(ws.provider)}:{ws.repo}.git"
+        elif isinstance(ws, GitWorkspace):
+            clone_url = ws.git_url
+        request = agent.WorkspaceAgentRequest(
+            generation=generation,
+            workspace_type=ws.type,
+            clone_url=clone_url,
+            clone_path=spec.clone_path,
+            open_path=spec.open_path,
+        )
+        ssh.write_control_request(
+            creation.route,
+            paths.control,
+            request.model_dump_json() + "\n",
         )
 
         self._stage(creation, "creating container")
@@ -215,17 +238,17 @@ class CodespaceService:
             host_environment,
         )
 
-        deploy_public_key = None
+        self._stage(creation, "waiting for workspace agent")
+        agent_client = agent.WorkspaceAgentClient(
+            self.transport.forward_socket(host, f"{paths.control}/agent.sock"),
+            generation,
+        )
         if isinstance(ws, RepoWorkspace):
-            self._stage(creation, "generating deploy key")
-            deploy_public_key = workspace.generate_deploy_key(container)
-
-        self._stage(creation, "probing ssh")
-        ssh.probe(spec.to_environment(container.id, status="running"), creation.route)
-
-        clone_url: str | None = None
-        if isinstance(ws, RepoWorkspace):
-            if deploy_public_key is None:
+            status = agent_client.wait_for(
+                {"awaiting-provider"},
+                timeout=_AGENT_START_TIMEOUT,
+            )
+            if status.public_key is None:
                 raise RuntimeError("deploy key missing for repo workspace")
             if creation.token is None:
                 raise RuntimeError("provider token missing for repo workspace")
@@ -235,22 +258,22 @@ class CodespaceService:
                 creation.token,
                 ws.repo,
                 spec.identity,
-                deploy_public_key,
+                status.public_key,
             )
             creation.deploy_key_registered = True
+            self._stage(creation, "authorizing repository bootstrap")
+            agent_client.provider_ready()
+        if isinstance(ws, RepoWorkspace | GitWorkspace):
             self._stage(creation, "cloning repository")
-            clone_url = f"git@{git_host(ws.provider)}:{ws.repo}.git"
-        elif isinstance(ws, GitWorkspace):
-            self._stage(creation, "cloning repository")
-            clone_url = ws.git_url
         else:
             self._stage(creation, "preparing open path")
-        workspace.bootstrap(
-            container,
-            clone_url=clone_url,
-            clone_path=spec.clone_path,
-            open_path=spec.open_path,
+        agent_client.wait_for(
+            {"ready"},
+            timeout=_AGENT_READY_TIMEOUT,
         )
+
+        self._stage(creation, "probing ssh")
+        ssh.probe(spec.to_environment(container.id, status="running"), creation.route)
 
         self._stage(creation, "writing ssh config")
         refreshed = inventory.list_inventory(creation.client, host, self.config)
@@ -291,7 +314,11 @@ class CodespaceService:
                         f"container {spec.identity!r} is {status}; "
                         "repository state cannot be inspected while it is not running"
                     )
-                return workspace.checkout_git_state(container, spec.clone_path)
+                paths = ssh.remote_data_paths(route).instance(workspace_id, instance)
+                agent_client = agent.WorkspaceAgentClient(
+                    self.transport.forward_socket(host, f"{paths.control}/agent.sock")
+                )
+                return agent_client.git_state()
             return RepoGitState()
 
         if isinstance(ws, RepoWorkspace) and token is not None:

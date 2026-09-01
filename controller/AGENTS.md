@@ -15,7 +15,7 @@ rootful Podman，或直连本地 rootful Podman Machine，并提供原生 Web UI
 | `config.py`、`models.py` | 配置 schema、运行规格、资源标识和 API model |
 | `service.py` | environment/deployment application service 与 operation 调度 |
 | `dashboard.py`、`operations.py` | Dashboard 只读投影和进程内 operation store |
-| `inventory.py`、`container.py`、`workspace.py` | Podman inventory、容器参数翻译、workspace/repository 原语 |
+| `inventory.py`、`container.py`、`agent.py` | Podman inventory、容器参数翻译、workspace agent contract 与 UDS client |
 | `deployment.py` | host 级 deployment 的 reconcile、clean、purge 和状态投影 |
 | `provider.py`、`ssh.py` | Git provider deploy key 与 SSH 投影 |
 | `runtime/` | 无 Codespace 业务知识的 Podman、SSH、文件和 Compose 原语 |
@@ -60,7 +60,8 @@ task check
   network 下 `published_ports` 的容器端口必须与其一致。
 - `llm-vllm` 与 `llm-sglang` deployment 使用 host network，不声明 `published_ports`，并通过
   `LLM_HOST=127.0.0.1` 将 API 限制在宿主 loopback。
-- 用户 volume 不得与 `/workspace`、`/workspace.enc`、`/upload`、`/cache` 相同或形成父子覆盖。
+- 用户 volume 不得与 `/workspace`、`/workspace.enc`、`/upload`、`/cache`、
+  `/run/codespace-control` 相同或形成父子覆盖。
 - secret 必须预先注册到目标 Podman host。控制面只引用 secret 名，不读取明文；顶层
   `secrets` 只供带外同步命令使用。
 - workspace、instance、deployment ID 匹配 `^[a-z0-9][a-z0-9-]{0,31}$`；host alias 匹配
@@ -80,28 +81,31 @@ task check
   两类 inventory 的 label filter 必须互斥。
 - Environment 的 SSH 端口从 identity 确定性映射到 `20000-29999`；冲突直接拒绝。
 - Host 持久数据只使用 `~/codespace`：environment 位于
-  `workspaces/<workspace>/<instance>/{workspace,upload,cache}`，deployment 位于
+  `workspaces/<workspace>/<instance>/{workspace,upload,cache,control}`，deployment 位于
   `deployments/<deployment>`。准确 mount 关系见 [`DESIGN.md`](DESIGN.md#host-数据布局)。
-- SSH host 必须提供 rootful Podman Unix socket、可写 login home、GNU `env` 和 `find`。
+- SSH host 必须提供 rootful Podman Unix socket、可写 login home、GNU `env` 和 `find`，并允许 OpenSSH
+  StreamLocal forwarding。
 - Podman Machine 必须已启动且启用 rootful mode。跨架构镜像依赖 host 预先配置 `binfmt_misc`。
-- SSH host 的 Podman socket 通过进程私有 Unix socket 转发；连接复用、调用有界超时，进程退出时关闭。
+- SSH host 的 Podman socket和逐实例 agent socket通过进程私有 Unix socket转发；连接复用、调用有界超时，
+  进程退出时关闭。
 
 ## 生命周期约束
 
 - Podman inventory 是运行状态的唯一事实来源。缺失、非法或与配置不一致的 label 都是显式错误，
   不推断默认值。
-- Environment 创建必须按 `DESIGN.md` 的顺序执行：校验、读取 host 环境、拉镜像、建目录、建容器、
-  生成 deploy key、SSH probe、注册 deploy key、bootstrap、刷新 SSH 投影。
-- `repo` workspace 在对应容器内生成 deploy key，控制面只接收公钥；`git` workspace 依赖镜像内 SSH 配置；
-  `blank` workspace 不接触 Git provider。
+- Environment 创建必须按 `DESIGN.md` 的顺序执行：校验、读取 host 环境、拉镜像、建目录、原子写 agent
+  request、建容器、建立 UDS tunnel、完成 provider握手和 bootstrap、SSH probe、刷新 SSH投影。
+- `repo` workspace 的 agent在对应容器内生成 deploy key，控制面只经 `/status` 接收公钥；注册后以带
+  generation 的 `/provider-ready` 放行 checkout。`git` workspace依赖镜像内 SSH配置；`blank` workspace
+  不接触 Git provider。
 - 删除 `repo`/`git` environment 先做只读 Git 状态检查，确认后才执行删除。`purge=false` 保留 instance
   数据目录，`purge=true` 删除整个 instance 目录。
 - Deployment reconcile 使用确定性容器名：pull image、创建 data root、替换容器并以
   `unless-stopped` 启动。purge 额外删除托管数据目录。
 - 长操作只在进程内 operation store 保存 `queued/running/failed` 状态；进程重启后不恢复。
-- 镜像内 deploy key、Git checkout、open path、Git state 分别由 `codespace-deploy-key`、
-  `codespace-git-checkout`、`codespace-workspace-open-path`、`codespace-workspace-state` 实现；
-  `controller/workspace.py` 只负责调用及解析结构化结果。
+- 镜像内 s6-supervised Python agent只暴露 `/status`、`/provider-ready`、`/git-state`，并调用
+  `codespace-deploy-key`、`codespace-git-checkout`、`codespace-workspace-open-path`、
+  `codespace-workspace-state`。控制面不得通过 Podman exec调用这些 helper。
 
 ## Web 契约
 
@@ -129,6 +133,8 @@ OpenAPI 页面、远程监听或多 worker。
 - Provider token 只存在于配置读取结果或进程内存，不得经 API 返回、写日志或回写配置。
 - `controller/__init__.py` 必须注入 `truststore`，HTTPS provider 使用系统 CA 且不得关闭 TLS 校验。
 - Repository deploy private key 只能在对应开发容器内生成和保存，不得进入控制面内存或日志。
+- Agent UDS只存在于 mode `0700` 的逐实例 `control/`，经 OpenSSH StreamLocal访问，不发布 TCP端口；
+  provider token不得写入 request或进入容器。
 - 登录 keypair 是仓库内固定的内网凭据；应用和容器端口均不得暴露到非可信网络。
 - 用户 volume 和 secret mount 不得覆盖控制面保留 mount tree。
 

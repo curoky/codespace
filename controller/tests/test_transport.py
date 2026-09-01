@@ -77,6 +77,8 @@ def test_transport_uses_system_ssh_command_and_private_runtime(tmp_path: Path) -
             "ssh",
             "-N",
             "-o",
+            "BatchMode=yes",
+            "-o",
             "ExitOnForwardFailure=yes",
             "-o",
             "StreamLocalBindUnlink=yes",
@@ -161,6 +163,84 @@ def test_transport_forwards_per_host_remote_socket(tmp_path: Path) -> None:
 
     assert commands[0][-2] == f"{transport.runtime_dir}/boe.sock:/tmp/podmanxd.sock"
 
+    transport.close()
+
+
+def test_transport_reuses_workspace_agent_tunnel(tmp_path: Path) -> None:
+    commands: list[list[str]] = []
+    processes: list[FakeProcess] = []
+
+    def process_factory(command: list[str], **_kwargs: object) -> FakeProcess:
+        commands.append(command)
+        Path(command[-2].split(":", 1)[0]).touch()
+        process = FakeProcess()
+        processes.append(process)
+        return process
+
+    transport = PodmanTransport(
+        {"home": HostEndpoint()},
+        runtime_parent=tmp_path,
+        process_factory=process_factory,
+        client_factory=FakeClient,  # type: ignore[arg-type]
+    )
+    transport.client("home")
+    remote_socket = "/home/x/codespace/workspaces/devspace/debug/control/agent.sock"
+
+    first = transport.forward_socket("home", remote_socket)
+    second = transport.forward_socket("home", remote_socket)
+
+    assert first == second
+    assert first.name.startswith("agent-")
+    assert commands[1][-2] == f"{first}:{remote_socket}"
+    assert len(processes) == 2
+
+    processes[1].return_code = 255
+    third = transport.forward_socket("home", remote_socket)
+
+    assert third == first
+    assert len(processes) == 3
+    transport.close()
+    assert processes[0].terminated is True
+    assert processes[2].terminated is True
+
+
+def test_transport_forwards_agent_socket_through_podman_machine(tmp_path: Path) -> None:
+    api_socket = tmp_path / "machine.sock"
+    identity = tmp_path / "machine-key"
+    api_socket.touch()
+    identity.touch()
+    commands: list[list[str]] = []
+
+    def run_factory(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
+        payload = [
+            {
+                "State": "running",
+                "Rootful": True,
+                "ConnectionInfo": {"PodmanSocket": {"Path": str(api_socket)}},
+                "SSHConfig": {"Port": 54321, "IdentityPath": str(identity)},
+            }
+        ]
+        return subprocess.CompletedProcess(command, 0, stdout=json.dumps(payload), stderr="")
+
+    def process_factory(command: list[str], **_kwargs: object) -> FakeProcess:
+        commands.append(command)
+        Path(command[-2].split(":", 1)[0]).touch()
+        return FakeProcess()
+
+    transport = PodmanTransport(
+        {"local": HostEndpoint(type="podman-machine", machine="default")},
+        runtime_parent=tmp_path,
+        process_factory=process_factory,
+        client_factory=FakeClient,  # type: ignore[arg-type]
+        run_factory=run_factory,
+    )
+
+    socket_path = transport.forward_socket("local", "/root/codespace/control/agent.sock")
+
+    assert commands[0][-1] == "root@127.0.0.1"
+    assert ["-i", str(identity)] == commands[0][commands[0].index("-i") :][:2]
+    assert commands[0][commands[0].index("-p") :][:2] == ["-p", "54321"]
+    assert commands[0][-2] == f"{socket_path}:/root/codespace/control/agent.sock"
     transport.close()
 
 

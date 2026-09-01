@@ -2,18 +2,16 @@
 
 from __future__ import annotations
 
-import json
 from collections.abc import Callable
 from dataclasses import replace
 from types import SimpleNamespace
-from typing import Protocol
 
 import pytest
 from podman.errors import PodmanError
 
 from controller import container as container_runtime
 from controller import deployment as deployment_ops
-from controller import inventory, workspace
+from controller import inventory
 from controller.config import Config, EnvironmentSpec
 from controller.models import (
     LABEL_DEPLOYMENT,
@@ -41,65 +39,6 @@ from controller.runtime.compose import Secret, Volume
 
 _DATA_PATHS = HostDataPaths(root="/home/x/codespace")
 _INSTANCE_PATHS = _DATA_PATHS.instance("devspace", "debug")
-
-
-class ExecContainer(Protocol):
-    def exec_run(
-        self,
-        command: list[str],
-        *,
-        user: str | None = None,
-        demux: bool = False,
-    ) -> tuple[int, tuple[bytes | None, bytes | None]]: ...
-
-
-class FakeResponse:
-    def __init__(self, *, payload: dict[str, object] | None = None, content: bytes = b"") -> None:
-        self._payload = payload or {}
-        self.content = content
-
-    def raise_for_status(self) -> None:
-        pass
-
-    def json(self) -> dict[str, object]:
-        return self._payload
-
-
-def _frame(stream: int, content: bytes | None) -> bytes:
-    if not content:
-        return b""
-    return bytes([stream, 0, 0, 0]) + len(content).to_bytes(4, "big") + content
-
-
-class FakeAPIClient:
-    def __init__(self, container: ExecContainer) -> None:
-        self.container = container
-        self.exit_code = 0
-        self.output: tuple[bytes | None, bytes | None] = (None, None)
-        self.start_timeouts: list[float | None] = []
-
-    def post(
-        self,
-        path: str,
-        *,
-        data: str,
-        timeout: float | None = None,
-    ) -> FakeResponse:
-        if path.endswith("/exec"):
-            payload = json.loads(data)
-            self.exit_code, self.output = self.container.exec_run(
-                payload["Cmd"],
-                user=payload["User"],
-                demux=True,
-            )
-            return FakeResponse(payload={"Id": "exec-id"})
-        self.start_timeouts.append(timeout)
-        stdout, stderr = self.output
-        return FakeResponse(content=_frame(1, stdout) + _frame(2, stderr))
-
-    def get(self, path: str) -> FakeResponse:
-        assert path == "/exec/exec-id/json"
-        return FakeResponse(payload={"ExitCode": self.exit_code})
 
 
 class FakePullClient:
@@ -139,10 +78,8 @@ class FakeContainer:
         }
         self.attrs = {"State": "running"}
         self.status = "running"
-        self.exec_calls: list[tuple[list[str], str | None]] = []
         self.log_calls: list[dict[str, object]] = []
         self.log_frames: list[bytes] = []
-        self.client = FakeAPIClient(self)
 
     def reload(self) -> None:
         return None
@@ -150,16 +87,6 @@ class FakeContainer:
     def logs(self, **kwargs: object) -> list[bytes]:
         self.log_calls.append(kwargs)
         return list(self.log_frames)
-
-    def exec_run(
-        self,
-        command: list[str],
-        *,
-        user: str | None = None,
-        demux: bool = False,
-    ) -> tuple[int, tuple[bytes | None, bytes | None]]:
-        self.exec_calls.append((command, user))
-        return 1 if command[0] == "test" else 0, (None, None)
 
 
 def test_read_environment_requires_complete_valid_labels(config: Config) -> None:
@@ -359,6 +286,11 @@ def test_create_container_preserves_fixed_runtime_contract(
             "type": "bind",
             "source": "/home/x/codespace/workspaces/devspace/debug/cache",
             "target": "/cache",
+        },
+        {
+            "type": "bind",
+            "source": "/home/x/codespace/workspaces/devspace/debug/control",
+            "target": "/run/codespace-control",
         },
         {
             "type": "bind",
@@ -746,87 +678,6 @@ def test_create_container_blank_omits_repo_and_provider_labels(
     assert LABEL_PROVIDER not in labels
 
 
-def test_bootstrap_invokes_workspace_helper_with_long_timeout() -> None:
-    container = FakeContainer()
-
-    workspace.bootstrap(
-        container,  # type: ignore[arg-type]
-        clone_url="git@gitlab.com:group/service-api.git",
-        clone_path="/workspace/service-api",
-        open_path="/workspace/service-api/src",
-    )
-
-    assert container.exec_calls == [
-        (
-            [
-                "/opt/codespace/bin/codespace-git-checkout",
-                "git@gitlab.com:group/service-api.git",
-                "/workspace/service-api",
-            ],
-            "x",
-        ),
-        (
-            [
-                "/opt/codespace/bin/codespace-workspace-open-path",
-                "/workspace/service-api/src",
-            ],
-            "x",
-        ),
-    ]
-    assert container.client.start_timeouts == [15 * 60.0, 60.0]
-
-
-def test_bootstrap_blank_only_passes_open_path() -> None:
-    container = FakeContainer()
-
-    workspace.bootstrap(
-        container,  # type: ignore[arg-type]
-        clone_url=None,
-        clone_path="/workspace",
-        open_path="/workspace/scratch",
-    )
-
-    assert container.exec_calls == [
-        (
-            [
-                "/opt/codespace/bin/codespace-workspace-open-path",
-                "/workspace/scratch",
-            ],
-            "x",
-        )
-    ]
-
-
-def test_bootstrap_raises_when_helper_fails() -> None:
-    container = FakeContainer()
-    container.exec_run = lambda command, user=None, demux=False: (  # type: ignore[method-assign]
-        container.exec_calls.append((command, user)) or (1, (None, b"boom"))
-    )
-
-    with pytest.raises(RuntimeError, match=r"codespace-git-checkout.* failed \(1\)"):
-        workspace.bootstrap(
-            container,  # type: ignore[arg-type]
-            clone_url="git@github.com:curoky/devspace.git",
-            clone_path="/workspace/devspace",
-            open_path="/workspace/devspace",
-        )
-
-
-def test_bootstrap_raises_when_open_path_helper_fails() -> None:
-    container = FakeContainer()
-    container.exec_run = lambda command, user=None, demux=False: (  # type: ignore[method-assign]
-        container.exec_calls.append((command, user)) or (1, (None, b"boom"))
-    )
-
-    with pytest.raises(RuntimeError, match=r"codespace-workspace-open-path.* failed \(1\)"):
-        workspace.bootstrap(
-            container,  # type: ignore[arg-type]
-            clone_url=None,
-            clone_path="/workspace",
-            open_path="/workspace",
-        )
-
-
 def _environment_for_purge(platform: str) -> Environment:
     return Environment(
         id="codespace-home-devspace-debug",
@@ -923,103 +774,6 @@ def test_remove_data_directory_rejects_target_outside_root() -> None:
             "/home/x/codespace",
             "/home/x/other",
         )
-
-
-class WorkspaceHelperFakeContainer:
-    """Container stub scripting a single workspace helper reply.
-
-    The in-image ``state`` command emits one JSON document. The stub returns
-    ``(exit_code, stdout, stderr)`` for that single exec so the Python side only
-    has to prove it invokes the helper and parses its JSON.
-    """
-
-    def __init__(self, reply: tuple[int, bytes, bytes]) -> None:
-        self.reply = reply
-        self.calls: list[tuple[list[str], str | None]] = []
-        self.id = "git-container-id"
-        self.name = "git-container"
-        self.client = FakeAPIClient(self)
-
-    def exec_run(
-        self,
-        command: list[str],
-        *,
-        user: str | None = None,
-        demux: bool = False,
-    ) -> tuple[int, tuple[bytes | None, bytes | None]]:
-        self.calls.append((command, user))
-        code, stdout, stderr = self.reply
-        return code, (stdout or None, stderr or None)
-
-
-def test_generate_deploy_key_invokes_helper_and_returns_public_key() -> None:
-    container = WorkspaceHelperFakeContainer(
-        (0, b'{"public_key":"ssh-ed25519 AAAAC3Nza test"}', b"")
-    )
-
-    public_key = workspace.generate_deploy_key(container)  # type: ignore[arg-type]
-
-    assert public_key == "ssh-ed25519 AAAAC3Nza test"
-    assert container.calls == [
-        (
-            ["/opt/codespace/bin/codespace-deploy-key"],
-            "x",
-        )
-    ]
-
-
-def test_generate_deploy_key_raises_on_helper_failure() -> None:
-    container = WorkspaceHelperFakeContainer((1, b"", b"ssh-keygen failed"))
-
-    with pytest.raises(RuntimeError, match=r"codespace-deploy-key failed \(1\)"):
-        workspace.generate_deploy_key(container)  # type: ignore[arg-type]
-
-
-def test_checkout_git_state_invokes_helper_and_parses_clean_json() -> None:
-    container = WorkspaceHelperFakeContainer(
-        (0, b'{"unpushed": false, "uncommitted": false, "detail": []}', b"")
-    )
-
-    state = workspace.checkout_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
-
-    assert container.calls == [
-        (
-            [
-                "/opt/codespace/bin/codespace-workspace-state",
-                "/workspace/devspace",
-            ],
-            "x",
-        )
-    ]
-    assert state.blocks_delete is False
-    assert state.unpushed is False
-    assert state.uncommitted is False
-    assert state.detail == []
-
-
-def test_checkout_git_state_parses_detected_changes() -> None:
-    container = WorkspaceHelperFakeContainer(
-        (
-            0,
-            b'{"unpushed": true, "uncommitted": true, '
-            b'"detail": [" M models.py", "abc123 add feature"]}',
-            b"",
-        )
-    )
-
-    state = workspace.checkout_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
-
-    assert state.blocks_delete is True
-    assert state.unpushed is True
-    assert state.uncommitted is True
-    assert state.detail == [" M models.py", "abc123 add feature"]
-
-
-def test_checkout_git_state_raises_on_helper_failure() -> None:
-    container = WorkspaceHelperFakeContainer((1, b"", b"boom"))
-
-    with pytest.raises(RuntimeError, match=r"codespace-workspace-state failed \(1\)"):
-        workspace.checkout_git_state(container, "/workspace/devspace")  # type: ignore[arg-type]
 
 
 # --- Deployment inventory ----------------------------------------------------

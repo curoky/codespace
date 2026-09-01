@@ -59,11 +59,15 @@ casks.each do |b|
 end
 
 brews = [
+  'bash',
+  'bats-core',
   'clang-format',
   'python@3',
   'go',
   'node',
   'podman',
+  'shellcheck',
+  'shfmt',
   # 'pre-commit', 'prettier', 'eslint',
   # 'wget',
   # 'smartmontools',
@@ -82,7 +86,7 @@ brews = [
   # 'uv', 'ruff', 'eza', 'bat', 'atuin', 'fd', 'git-absorb', 'starship',
 
   # go
-  # 'git-lfs', 'gost', 'fzf', 'shfmt', 'go-task',
+  # 'git-lfs', 'gost', 'fzf', 'go-task',
 
   # compression
   # 'bzip2', 'xz', 'zstd', 'zip', 'unzip',

@@ -12,7 +12,7 @@ main() {
     echo "usage: codespace-deploy-key" >&2
     return 2
   fi
-  if [[ -z ${HOME:-} ]]; then
+  if [[ -z ${HOME-} ]]; then
     echo "HOME is not set" >&2
     return 1
   fi

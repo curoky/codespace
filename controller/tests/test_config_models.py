@@ -655,6 +655,8 @@ def test_config_rejects_relative_container_volume_source() -> None:
         "/upload/incoming",
         "/cache",
         "/cache/build",
+        "/run/codespace-control",
+        "/run/codespace-control/agent.sock",
         "/",
     ],
 )
@@ -670,7 +672,10 @@ def test_config_rejects_control_plane_mount_target_overlap(target: str) -> None:
         )
 
 
-@pytest.mark.parametrize("target", ["/workspace-old", "/uploads", "/etc/data"])
+@pytest.mark.parametrize(
+    "target",
+    ["/workspace-old", "/uploads", "/run/codespace-control-old", "/etc/data"],
+)
 def test_config_allows_mount_targets_outside_control_plane_paths(target: str) -> None:
     config = Config.model_validate(
         _config(
@@ -921,9 +926,9 @@ def test_resource_identity_contract_is_deterministic(config: Config) -> None:
     assert identity == "codespace-home-devspace-debug"
     assert spec.identity == identity
     data_paths = HostDataPaths(root="/home/x/codespace")
-    assert data_paths.instance("devspace", "debug").root == (
-        "/home/x/codespace/workspaces/devspace/debug"
-    )
+    instance_paths = data_paths.instance("devspace", "debug")
+    assert instance_paths.root == "/home/x/codespace/workspaces/devspace/debug"
+    assert instance_paths.control == "/home/x/codespace/workspaces/devspace/debug/control"
     assert data_paths.deployment("sidecar") == "/home/x/codespace/deployments/sidecar"
     assert ssh_port(identity) == ssh_port(identity)
     assert 20_000 <= ssh_port(identity) <= 29_999

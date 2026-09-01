@@ -7,7 +7,8 @@ on:
       - 'Taskfile.yaml'
       - 'controller/**'
       - 'images/dev/Dockerfile'
-      - 'images/dev/rootfs/opt/codespace/bin/**'
+      - 'images/dev/rootfs/etc/s6/s6-rc.d/**'
+      - 'images/dev/rootfs/opt/codespace/**'
       - 'images/dev/tests/**'
       - 'pyproject.toml'
       - 'uv.lock'
@@ -17,7 +18,8 @@ on:
       - 'Taskfile.yaml'
       - 'controller/**'
       - 'images/dev/Dockerfile'
-      - 'images/dev/rootfs/opt/codespace/bin/**'
+      - 'images/dev/rootfs/etc/s6/s6-rc.d/**'
+      - 'images/dev/rootfs/opt/codespace/**'
       - 'images/dev/tests/**'
       - 'pyproject.toml'
       - 'uv.lock'
@@ -35,7 +37,12 @@ jobs:
           enable-cache: true
 
       - name: Sync dependencies (locked)
-        run: uv sync --locked --dev
+        run: |
+          uv sync --locked --dev
+          uv sync \
+            --project images/dev/rootfs/opt/codespace \
+            --locked \
+            --no-dev
 
       - name: Install shell tools
         run: |
@@ -46,20 +53,37 @@ jobs:
 
       - name: Format check
         run: |
-          uv run ruff format --check controller
+          uv run ruff format --check \
+            --config pyproject.toml \
+            controller \
+            images/dev/rootfs/opt/codespace/codespace_agent \
+            images/dev/rootfs/opt/codespace/workspace_agent.py
           shfmt -d -i 2 -s -ci \
             images/dev/rootfs/opt/codespace/bin/codespace-* \
             images/dev/tests/*.bats
 
       - name: Lint
         run: |
-          uv run ruff check controller
+          uv run ruff check \
+            --config pyproject.toml \
+            controller \
+            images/dev/rootfs/opt/codespace/codespace_agent \
+            images/dev/rootfs/opt/codespace/workspace_agent.py
           shellcheck \
             images/dev/rootfs/opt/codespace/bin/codespace-* \
             images/dev/tests/*.bats
 
       - name: Type check
-        run: uv run mypy controller
+        run: |
+          MYPYPATH=images/dev/rootfs/opt/codespace uv run mypy \
+            controller \
+            images/dev/rootfs/opt/codespace/codespace_agent \
+            images/dev/rootfs/opt/codespace/workspace_agent.py
+          uv run \
+            --project images/dev/rootfs/opt/codespace \
+            --locked \
+            python -c \
+            "import sys; sys.path.insert(0, 'images/dev/rootfs/opt/codespace'); import codespace_agent, workspace_agent"
 
       - name: Test
         run: |

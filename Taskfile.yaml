@@ -11,6 +11,7 @@ tasks:
     desc: 同步 Codespace Python 依赖
     cmds:
       - uv sync
+      - uv sync --project images/dev/rootfs/opt/codespace --locked --no-dev
 
   start:
     desc: 前台启动本地 Codespace 控制面
@@ -25,25 +26,45 @@ tasks:
   fmt:
     desc: 格式化 Codespace Python 与 workspace helper
     cmds:
-      - uv run ruff format controller
+      - >-
+        uv run ruff format --config pyproject.toml
+        controller
+        images/dev/rootfs/opt/codespace/codespace_agent
+        images/dev/rootfs/opt/codespace/workspace_agent.py
       - shfmt -w -i 2 -s -ci images/dev/rootfs/opt/codespace/bin/codespace-* images/dev/tests/*.bats
 
   fmt:check:
     desc: 检查 Python 与 workspace helper 格式
     cmds:
-      - uv run ruff format --check controller
+      - >-
+        uv run ruff format --check --config pyproject.toml
+        controller
+        images/dev/rootfs/opt/codespace/codespace_agent
+        images/dev/rootfs/opt/codespace/workspace_agent.py
       - shfmt -d -i 2 -s -ci images/dev/rootfs/opt/codespace/bin/codespace-* images/dev/tests/*.bats
 
   lint:
     desc: Ruff 与 ShellCheck lint
     cmds:
-      - uv run ruff check controller
+      - >-
+        uv run ruff check --config pyproject.toml
+        controller
+        images/dev/rootfs/opt/codespace/codespace_agent
+        images/dev/rootfs/opt/codespace/workspace_agent.py
       - shellcheck images/dev/rootfs/opt/codespace/bin/codespace-* images/dev/tests/*.bats
 
   typecheck:
     desc: Mypy 类型检查
     cmds:
-      - uv run mypy controller
+      - >-
+        MYPYPATH=images/dev/rootfs/opt/codespace uv run mypy
+        controller
+        images/dev/rootfs/opt/codespace/codespace_agent
+        images/dev/rootfs/opt/codespace/workspace_agent.py
+      - >-
+        uv run --project images/dev/rootfs/opt/codespace --locked python
+        -c "import sys; sys.path.insert(0, 'images/dev/rootfs/opt/codespace');
+        import codespace_agent, workspace_agent"
 
   test:
     desc: 运行 Codespace Python 与 workspace helper 测试
@@ -52,9 +73,10 @@ tasks:
       - bats images/dev/tests/*.bats
 
   lock:check:
-    desc: 校验 uv.lock 与 pyproject 一致
+    desc: 校验控制面与 workspace agent 的 uv lock
     cmds:
       - uv lock --check
+      - uv lock --project images/dev/rootfs/opt/codespace --check
 
   check:
     desc: 运行全部验证（格式、lint、类型、测试、lock）

@@ -13,8 +13,10 @@ host 级自包含镜像（deployment），例如 sidecar 和 LLM serving。
 - reconcile、查看和清理 deployment；
 - 提供 localhost-only Web UI，以及不依赖 Web 进程的维护 CLI。
 
-控制面不负责镜像构建、registry 发布、host 初始化、数据备份、secret 托管、容器内服务编排或远端
-HTTP agent。镜像是运行契约，Podman label 是 inventory 契约，host 文件系统是持久数据契约。
+控制面不负责镜像构建、registry 发布、host 初始化、数据备份、secret 托管或容器内服务编排。开发镜像内
+由 s6 监督的 Python agent 负责 workspace bootstrap 和 Git 状态查询；控制面经逐实例 Unix Domain Socket
+调用它，不开放 TCP 端口。镜像是运行契约，Podman label 是 inventory 契约，host 文件系统是持久数据与
+本机 IPC 契约。
 
 ## Domain Model
 
@@ -26,7 +28,7 @@ flowchart LR
     Deployment --> DeploySpec["DeploymentSpec<br/>deployment + host"]
     Spec --> Environment["Environment container<br/>ephemeral runtime"]
     DeploySpec --> DeployContainer["Deployment container<br/>host singleton"]
-    Environment --> InstanceData["Instance data<br/>workspace/upload/cache"]
+    Environment --> InstanceData["Instance data<br/>workspace/upload/cache/control"]
     DeployContainer --> DeployData["Deployment data"]
 ```
 
@@ -35,7 +37,7 @@ flowchart LR
 | 对象 | 身份 | 生命周期 | 持久状态 |
 | --- | --- | --- | --- |
 | Workspace | 配置 key | 随配置存在 | 无 |
-| Environment | `host + workspace + instance` | 用户高频创建/删除 | 一个 instance 目录及三个数据子目录 |
+| Environment | `host + workspace + instance` | 用户高频创建/删除 | 一个 instance 目录、三个数据子目录及 control IPC 目录 |
 | Deployment | 配置 key | 随配置存在 | 无 |
 | Deployment container | `host + deployment` | 运维 reconcile/clean | 一个 deployment data 目录 |
 | Operation | `host + resource id` | 单进程内短期状态 | 无，重启即丢弃 |
@@ -55,7 +57,7 @@ flowchart TB
     API --> Service["CodespaceService<br/>application orchestration"]
     Service --> Dashboard["dashboard.py<br/>read model"]
     Service --> Operations["OperationStore<br/>in-memory status"]
-    Service --> Workspace["workspace.py<br/>image helper adapter"]
+    Service --> Agent["agent.py<br/>UDS contract + HTTP client"]
     Service --> Deployment["deployment.py<br/>deployment lifecycle"]
     Service --> Inventory["inventory.py<br/>label validation"]
     Service --> Container["container.py<br/>run option translation"]
@@ -68,10 +70,12 @@ flowchart TB
     CLI --> Provider
 
     Container --> Engine["runtime/engine.py"]
-    Workspace --> DeployKeyHelper["image: codespace-deploy-key"]
-    Workspace --> CheckoutHelper["image: codespace-git-checkout"]
-    Workspace --> OpenPathHelper["image: codespace-workspace-open-path"]
-    Workspace --> StateHelper["image: codespace-workspace-state"]
+    Agent --> Tunnel["runtime/transport.py<br/>StreamLocal forward"]
+    Tunnel --> ImageAgent["image: Python workspace agent"]
+    ImageAgent --> DeployKeyHelper["codespace-deploy-key"]
+    ImageAgent --> CheckoutHelper["codespace-git-checkout"]
+    ImageAgent --> OpenPathHelper["codespace-workspace-open-path"]
+    ImageAgent --> StateHelper["codespace-workspace-state"]
     SSH --> Remote["runtime/remote.py"]
     Service --> Transport["runtime/transport.py"]
     Engine --> Podman["rootful Podman"]
@@ -98,7 +102,8 @@ $HOME/codespace/
 │   └── <workspace>/<instance>/
 │       ├── workspace/                # workspace 明文或 gocryptfs 密文
 │       ├── upload/                   # upload 明文
-│       └── cache/                    # tool/IDE cache 明文
+│       ├── cache/                    # tool/IDE cache 明文
+│       └── control/                  # request.json、provider-ready 与 agent.sock，0700
 └── deployments/
     └── <deployment>/                 # deployment 托管数据
 ```
@@ -111,12 +116,14 @@ flowchart LR
         W["~/codespace/workspaces/W/I/workspace"]
         U["~/codespace/workspaces/W/I/upload"]
         C["~/codespace/workspaces/W/I/cache"]
+        X["~/codespace/workspaces/W/I/control"]
     end
 
     subgraph Plain["encrypt_workspace = false"]
         PW["/workspace"]
         PU["/upload"]
         PC["/cache"]
+        PX["/run/codespace-control"]
     end
 
     subgraph Encrypted["encrypt_workspace = true"]
@@ -125,21 +132,28 @@ flowchart LR
         EP["/workspace"]
         EU["/upload"]
         EC["/cache"]
+        EX["/run/codespace-control"]
         EW --> G --> EP
     end
 
     W -->|bind| PW
     U -->|bind| PU
     C -->|bind| PC
+    X -->|bind| PX
     W -->|bind| EW
     U -->|bind| EU
     C -->|bind| EC
+    X -->|bind| EX
 ```
 
-- `workspace-init` 先把四个保留 mount path 归属到 `5230:5230`。
+- `workspace-init` 只把 workspace 数据 mount 归属到 `5230:5230`；`control` 保持 host login user 的
+  `0700` 权限，容器内 agent 以 root 绑定 socket，调用 leaf helper 时降权到用户 `x`。
 - 加密模式只改变 workspace 的 container target；host 上同一目录存放密文。
 - `/upload` 与 `/cache` 始终明文，并与 workspace/instance 同粒度隔离。
-- `purge=false` 只删除 container；`purge=true` 删除包含三个数据子目录的 instance 目录。
+- `request.json` 在创建 container 前原子写入；`agent.sock` 由 agent 启动时清理并重建。
+- `/provider-ready` 在 `control/provider-ready` 原子持久化 generation；同一 container 重启后可继续
+  幂等 bootstrap，新 create 的 generation 不匹配时旧确认自动失效。
+- `purge=false` 只删除 container；`purge=true` 删除包含四个子目录的 instance 目录。
 - 用户 volume 不得覆盖任何保留 mount path 或其父子路径。
 
 ### Deployment mounts
@@ -216,13 +230,18 @@ sequenceDiagram
     API->>Service: create() in background
     Service->>Host: validate inventory and SSH port
     Service->>Host: read configured environment
-    Service->>Host: pull image and create three directories
+    Service->>Host: pull image and create four directories
+    Service->>Host: atomically write control/request.json
     Service->>Host: create container
-    Service->>Host: codespace-deploy-key for repo type
+    Service->>Host: forward agent.sock over SSH
+    Service->>Host: GET /status
+    opt repo workspace
+        Host-->>Service: awaiting-provider + public key
+        Service->>Provider: register repo deploy key
+        Service->>Host: POST /provider-ready
+    end
+    Service->>Host: wait until GET /status is ready
     Service->>Host: probe SSH
-    Service->>Provider: register repo deploy key
-    Service->>Host: codespace-git-checkout for repo/git type
-    Service->>Host: codespace-workspace-open-path
     Service->>Host: refresh SSH projection
     Service->>Service: remove successful operation
 ```
@@ -246,7 +265,7 @@ sequenceDiagram
     alt running repo/git container
         UI->>API: DELETE ...?force=false
         API->>Service: inspect checkout
-        Service->>Container: codespace-workspace-state
+        Service->>Container: GET /git-state over UDS
         Service-->>UI: unpushed/uncommitted/detail
     else state cannot be inspected
         UI->>UI: show explicit data-loss warning
@@ -319,6 +338,7 @@ classDiagram
     class PodmanTransport {
         +client(host) PodmanClient
         +ssh_route(host) SSHRoute
+        +forward_socket(host, remote_socket) Path
         +close()
     }
 
@@ -340,24 +360,13 @@ classDiagram
     class RuntimePrimitives {
         +pull_image(client, image, platform)
         +run_container(client, image, options) Container
-        +execute(container, command, user) CommandResult
         +remove_dir_with_helper(client, image, root, target)
     }
 
-    class DeployKeyHelper {
-        +run() public_key
-    }
-
-    class GitCheckoutHelper {
-        +checkout(clone_url, clone_path)
-    }
-
-    class WorkspaceOpenPathHelper {
-        +create(open_path)
-    }
-
-    class WorkspaceStateHelper {
-        +state(clone_path) RepoGitState
+    class WorkspaceAgentClient {
+        +status() AgentStatus
+        +provider_ready(generation) AgentStatus
+        +git_state() RepoGitState
     }
 
     CodespaceService --> Config
@@ -365,45 +374,58 @@ classDiagram
     CodespaceService --> HostDataPaths
     CodespaceService --> OperationStore
     CodespaceService --> RuntimePrimitives
-    CodespaceService --> DeployKeyHelper
-    CodespaceService --> GitCheckoutHelper
-    CodespaceService --> WorkspaceOpenPathHelper
-    CodespaceService --> WorkspaceStateHelper
+    CodespaceService --> WorkspaceAgentClient
 ```
 
 接口设计原则：
 
 - `Config` 在边界完成校验和分层解析；下游只接收 resolved spec。
 - `CodespaceService` 拥有进程内 mutable state，但不拥有 host 或 container 持久状态。
-- `PodmanTransport` 是 host 连接生命周期的唯一 owner。
+- `PodmanTransport` 是 Podman 连接与所有 SSH tunnel 生命周期的唯一 owner。
 - `runtime` 函数接收已解析参数，不知道 workspace、deployment 或 label 语义。
-- 四个 image helper 分别拥有 deploy key、Git checkout、open path、Git state 语义；控制面不得复制这些步骤，
-  helper 之间也不共享运行时状态。
+- agent 只协调固定 bootstrap 状态机；四个 leaf helper 分别拥有 deploy key、Git checkout、open path、
+  Git state 语义，agent 和控制面都不得复制这些步骤。
 - 只在外部 I/O 需要替换实现时引入 `Protocol`；模块内函数不为测试而包装成 class。
 
-## Image Helper Protocol
+## Workspace Agent Protocol
 
-控制面以用户 `x` 通过 Podman exec 调用四个独立接口：
+控制面在 `<instance>/control/request.json` 写入一次性 bootstrap request：
 
-```text
-codespace-deploy-key
-codespace-git-checkout <clone-url> <clone-path>
-codespace-workspace-open-path <open-path>
-codespace-workspace-state <clone-path>
+```json
+{
+  "generation": "8f92c671f6044f97b6437aeed7b97f50",
+  "workspace_type": "repo",
+  "clone_url": "git@github.com:curoky/devspace.git",
+  "clone_path": "/workspace/devspace",
+  "open_path": "/workspace/devspace"
+}
 ```
 
-- `codespace-deploy-key` 在容器的 `~/.ssh/repo_id_ed25519` 生成或复用 deploy private key，只以 JSON
-  返回公钥。
-- `codespace-git-checkout` 只负责 repo/git workspace 的幂等 clone。
-- 已有有效 checkout 或带空仓标记的 checkout 直接复用；非 checkout 目标拒绝覆盖。
-- `codespace-workspace-open-path` 只负责创建 editor open path。
-- `codespace-workspace-state` 只依赖 Git checkout，通过 `HEAD` 判断空仓，输出 `RepoGitState` 对应的
-  单个 JSON document，detail 最多 20 行。
-- 成功结果写 stdout，诊断写 stderr，非零 exit code 表示整个命令失败。
+`generation` 是每次 create 新生成的 UUID hex。agent 只监听
+`/run/codespace-control/agent.sock`，HTTP API 固定为：
+
+| Method | Path | Result |
+| --- | --- | --- |
+| `GET` | `/status` | `{generation,state,public_key,error}` |
+| `POST` | `/provider-ready` | 校验 body 中的 `generation`，允许 repo bootstrap 继续 |
+| `GET` | `/git-state` | 当前 request 的 `clone_path` 对应 `RepoGitState` |
+
+状态只允许 `starting`、`awaiting-provider`、`ready`、`failed`。agent 先绑定 socket，再在后台执行 bootstrap：
+
+- agent 是 `/opt/codespace` 下的独立 uv application，使用 Pydantic校验协议模型、FastAPI声明固定 route、
+  Uvicorn监听 UDS；依赖由该目录的 `uv.lock` 固定。
+- `repo`：调用 `codespace-deploy-key`，进入 `awaiting-provider`；收到匹配 generation 的
+  `/provider-ready` 后依次调用 checkout 和 open-path helper。
+- `git`：直接调用 checkout 和 open-path helper。
+- `blank`：只调用 open-path helper。
+- helper 以用户 `x` 执行；失败进入 `failed`，`error` 返回有限长度诊断。
+- `/git-state` 仅在 `ready` 的 repo/git workspace 可用，调用 state helper并返回其 JSON。
+- agent 不提供任意 command、path、environment 或 shell 参数；未知 route/method 直接拒绝。
 - provider token、deploy key 注册、Podman 生命周期、host 数据和 SSH 投影不进入镜像协议；deploy private key
   不离开容器。
-- Readiness 仍由控制面执行端到端 SSH probe；镜像 helper 不重复实现局部健康检查。
-- 脚本路径与 JSON schema 直接切换，不保留统一 dispatcher、旧参数或版本协商。
+- agent readiness 后控制面仍执行端到端 SSH probe。
+- UDS 通过 OpenSSH `StreamLocal` 转发到 controller 的私有 runtime 目录，不发布 host/container TCP port。
+- 协议直接使用最终 schema，不提供 exec fallback、旧参数、版本协商或 migration。
 
 ## 一次性运维边界
 
@@ -436,7 +458,7 @@ smoke test，不得形成独立配置或生产生命周期。
 
 - 所有写操作基于确定性 identity，并先验证 inventory。
 - Environment 与 deployment 的 container、label、数据根和生命周期不复用。
-- `/workspace`、`/workspace.enc`、`/upload`、`/cache` 是控制面保留路径。
+- `/workspace`、`/workspace.enc`、`/upload`、`/cache`、`/run/codespace-control` 是控制面保留路径。
 - SSH host key verification、provider TLS verification 和 localhost 网络边界不可放宽。
 - 配置、container label、镜像 helper 和 API model 的同一字段必须同步变更。
 - 不增加兼容字段、迁移分支、旧 label 读取或旧目录探测；需要切换契约时直接修改最终形态。

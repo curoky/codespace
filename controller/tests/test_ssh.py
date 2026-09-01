@@ -319,6 +319,37 @@ def test_prepare_workspace_wraps_ssh_failure(
         )
 
 
+def test_write_control_request_streams_atomic_private_file(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[list[str], dict[str, object]]] = []
+
+    def run(
+        command: list[str],
+        **kwargs: object,
+    ) -> subprocess.CompletedProcess[str]:
+        calls.append((command, kwargs))
+        return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(ssh.subprocess, "run", run)
+    control = "/home/x/codespace/workspaces/devspace/debug/control"
+
+    ssh.write_control_request(_remote_route(), control, '{"generation":"abc"}\n')
+
+    command, kwargs = calls[0]
+    assert command[-2] == "home"
+    assert f"chmod 0700 -- {control}" in command[-1]
+    assert f"rm -f -- {control}/agent.sock" in command[-1]
+    assert f'mv -f -- "$tmp" {control}/request.json' in command[-1]
+    assert kwargs["input"] == '{"generation":"abc"}\n'
+    assert kwargs["stdin"] is None
+
+
+def test_write_control_request_rejects_relative_path() -> None:
+    with pytest.raises(RuntimeError, match="non-absolute control path"):
+        ssh.write_control_request(_remote_route(), "relative/control", "{}")
+
+
 def test_list_instances_reads_two_directory_levels(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
