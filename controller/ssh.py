@@ -87,19 +87,19 @@ def prepare_directories(route: SSHRoute, targets: list[str]) -> None:
 
 
 def reset_control_state(route: SSHRoute, control_path: str) -> None:
-    """Create the private control directory and remove stale runtime state."""
+    """Create the private control directory and clear the stale provider gate.
+
+    The agent owns ``agent.sock`` and unlinks it on startup, so only the
+    persisted ``provider-ready`` marker needs clearing here: it must be dropped
+    on a fresh create (so a repo bootstrap re-awaits provider authorization) yet
+    survive a plain container restart, a distinction only the controller can make.
+    """
     if not control_path.startswith("/"):
         raise RuntimeError(f"refusing to prepare non-absolute control path: {control_path!r}")
     directory = shlex.quote(control_path)
-    stale_paths = " ".join(
-        shlex.quote(f"{control_path}/{name}")
-        for name in (
-            "agent.sock",
-            "provider-ready",
-        )
-    )
+    provider_ready = shlex.quote(f"{control_path}/provider-ready")
     remote_command = (
-        f"set -eu; mkdir -p -- {directory}; chmod 0700 -- {directory}; rm -f -- {stale_paths}"
+        f"set -eu; mkdir -p -- {directory}; chmod 0700 -- {directory}; rm -f -- {provider_ready}"
     )
     transport.run_host(
         route,

@@ -156,8 +156,8 @@ flowchart LR
 - 加密模式只改变 workspace 的 container target；host 上同一目录存放密文。
 - `/upload` 与 `/cache` 始终明文，并与 workspace/instance 同粒度隔离。
 - `cache/` 下五个 IDE 子目录直接 bind 到各自 `/home/x/` canonical path；`/cache` 主挂载继续供构建和工具缓存使用。
-- 控制面在创建 container前清空旧 control marker；bootstrap用 `bootstrap.ready` / `bootstrap.failed`
-  记录结果，agent启动时清理并重建 `agent.sock`。
+- 控制面在创建 container前只清空持久化的 `provider-ready` marker；`agent.sock` 归 agent 所有，
+  agent 启动时自行 unlink 并重建。
 - `/provider-ready` 在 `control/provider-ready` 原子持久化；同一 container重启后可继续幂等 bootstrap，
   新 create会先清空旧 marker。
 - `purge=false` 只删除 container；`purge=true` 删除包含四个子目录的 instance 目录。

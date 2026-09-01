@@ -319,7 +319,7 @@ def test_prepare_workspace_wraps_ssh_failure(
         )
 
 
-def test_reset_control_state_removes_stale_runtime_files(
+def test_reset_control_state_clears_provider_gate(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     calls: list[tuple[list[str], dict[str, object]]] = []
@@ -339,8 +339,8 @@ def test_reset_control_state_removes_stale_runtime_files(
     command, kwargs = calls[0]
     assert command[-2] == "home"
     assert f"chmod 0700 -- {control}" in command[-1]
-    assert f"rm -f -- {control}/agent.sock" in command[-1]
-    assert f"{control}/provider-ready" in command[-1]
+    assert f"rm -f -- {control}/provider-ready" in command[-1]
+    assert "agent.sock" not in command[-1]
     assert kwargs["stdin"] == subprocess.DEVNULL
 
 
