@@ -63,8 +63,8 @@ teardown() {
   [[ -f ${SSH_DIR}/repo_id_ed25519 ]]
   [[ -f ${SSH_DIR}/repo_id_ed25519.pub ]]
   local mode
-  mode=$(stat -f %Lp "${SSH_DIR}/repo_id_ed25519" 2>/dev/null ||
-    stat -c %a "${SSH_DIR}/repo_id_ed25519")
+  mode=$(stat -c %a "${SSH_DIR}/repo_id_ed25519" 2>/dev/null ||
+    stat -f %Lp "${SSH_DIR}/repo_id_ed25519")
   [[ ${mode} == 600 ]]
 
   # 复跑幂等: 公钥保持不变.

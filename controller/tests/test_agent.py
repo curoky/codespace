@@ -194,9 +194,7 @@ def test_repo_status_reports_awaiting_provider_before_marker(
     assert waiting.public_key == "ssh-ed25519 AAAAC3 test"
 
 
-def test_agent_reports_bootstrap_failure(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_agent_reports_bootstrap_failure(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     workspace_agent, _ = _agent(
         tmp_path,
         monkeypatch,
@@ -211,9 +209,7 @@ def test_agent_reports_bootstrap_failure(
     assert "git-checkout failed" in (status.error or "")
 
 
-def test_blank_workspace_has_no_git_state(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_blank_workspace_has_no_git_state(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     workspace_agent, _ = _agent(tmp_path, monkeypatch, workspace_type="blank")
     workspace_agent.run_bootstrap()
 
