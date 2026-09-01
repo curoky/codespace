@@ -56,10 +56,11 @@ jobs:
           uv run ruff format --check \
             --config pyproject.toml \
             controller \
-            images/dev/rootfs/opt/codespace/codespace_agent \
             images/dev/rootfs/opt/codespace/workspace_agent.py
           shfmt -d -i 2 -s -ci \
             images/dev/rootfs/opt/codespace/bin/codespace-* \
+            images/dev/script/home-init.sh \
+            images/dev/script/home-links-init.sh \
             images/dev/tests/*.bats
 
       - name: Lint
@@ -67,23 +68,23 @@ jobs:
           uv run ruff check \
             --config pyproject.toml \
             controller \
-            images/dev/rootfs/opt/codespace/codespace_agent \
             images/dev/rootfs/opt/codespace/workspace_agent.py
           shellcheck \
             images/dev/rootfs/opt/codespace/bin/codespace-* \
+            images/dev/script/home-init.sh \
+            images/dev/script/home-links-init.sh \
             images/dev/tests/*.bats
 
       - name: Type check
         run: |
           MYPYPATH=images/dev/rootfs/opt/codespace uv run mypy \
             controller \
-            images/dev/rootfs/opt/codespace/codespace_agent \
             images/dev/rootfs/opt/codespace/workspace_agent.py
           uv run \
             --project images/dev/rootfs/opt/codespace \
             --locked \
             python -c \
-            "import sys; sys.path.insert(0, 'images/dev/rootfs/opt/codespace'); import codespace_agent, workspace_agent"
+            "import sys; sys.path.insert(0, 'images/dev/rootfs/opt/codespace'); import workspace_agent"
 
       - name: Test
         run: |

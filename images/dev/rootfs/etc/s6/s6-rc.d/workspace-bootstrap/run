@@ -1,0 +1,8 @@
+#!/opt/bm/profile/s6/bin/execlineb -P
+
+s6-envdir -Lf -- /run/s6/container_environment
+
+fdmove -c 2 1
+redirfd -w 1 /var/log/workspace-bootstrap.log
+
+exec /opt/codespace/bin/codespace-workspace-bootstrap

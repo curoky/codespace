@@ -94,8 +94,8 @@ task check
 - Podman inventory 是运行状态的唯一事实来源。缺失、非法或与配置不一致的 label 都是显式错误，
   不推断默认值。
 - Environment 创建必须按 `DESIGN.md` 的顺序执行：校验、读取 host 环境、拉镜像、建目录、清理旧 control
-  marker、以 `CODESPACE_WORKSPACE_*` 环境变量建容器、建立 UDS tunnel、完成 provider握手和 bootstrap、
-  SSH probe、刷新 SSH投影。
+  marker、以 `DEVSPACE_RUNLEVEL=managed-workspace` 和 `CODESPACE_WORKSPACE_*` 环境变量建容器、建立 UDS
+  tunnel、完成 provider握手以及 bootstrap/home初始化、SSH probe、刷新 SSH投影。
 - `repo` workspace 的镜像在对应容器内生成 deploy key，控制面只经 `/status` 接收公钥；注册后以
   `control/provider-ready` marker放行 checkout。`git` workspace依赖镜像内 SSH配置；`blank` workspace不接触
   Git provider。
@@ -105,8 +105,8 @@ task check
   `unless-stopped` 启动。purge 额外删除托管数据目录。
 - 长操作只在进程内 operation store 保存 `queued/running/failed` 状态；进程重启后不恢复。
 - 镜像内 `workspace-deploy-key` s6 oneshot对所有 workspace无条件生成或复用 deploy key；
-  `workspace-bootstrap` s6 oneshot按容器环境自动执行 checkout和 open-path helper；
-  `workspace-agent` 只暴露 `/status`、`/git-state`，通过 control marker观察 bootstrap，
+  `workspace-bootstrap` s6 longrun按容器环境自动执行 checkout和 open-path helper，完成后保持运行；
+  `workspace-agent` 只暴露 `/status`、`/git-state`，通过 control marker聚合 bootstrap和home初始化，
   并直接执行只读 Git查询。控制面不得通过 Podman exec调用镜像 helper。
 
 ## Web 契约

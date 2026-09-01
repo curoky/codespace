@@ -25,7 +25,7 @@ _S6_ROOT = Path(__file__).parents[2] / "images" / "dev" / "rootfs" / "etc" / "s6
 
 def _load_image_agent() -> ModuleType:
     sys.path.insert(0, str(_AGENT_ROOT))
-    return importlib.import_module("codespace_agent")
+    return importlib.import_module("workspace_agent")
 
 
 image_agent = _load_image_agent()
@@ -92,20 +92,37 @@ def _agent(
         provider_ready_path=tmp_path / "provider-ready",
         bootstrap_ready_path=tmp_path / "bootstrap.ready",
         bootstrap_failed_path=tmp_path / "bootstrap.failed",
+        home_ready_path=tmp_path / "home.ready",
+        home_failed_path=tmp_path / "home.failed",
     )
     return agent, active_factory
 
 
-def test_s6_runs_bootstrap_as_oneshot_after_deploy_key() -> None:
+def test_s6_managed_bundle_runs_supervised_bootstrap_after_deploy_key() -> None:
     deploy_key = _S6_ROOT / "workspace-deploy-key"
     bootstrap = _S6_ROOT / "workspace-bootstrap"
     agent = _S6_ROOT / "workspace-agent"
+    managed = _S6_ROOT / "managed-workspace"
 
     assert (deploy_key / "type").read_text(encoding="utf-8").strip() == "oneshot"
-    assert (bootstrap / "type").read_text(encoding="utf-8").strip() == "oneshot"
+    assert (bootstrap / "type").read_text(encoding="utf-8").strip() == "longrun"
     assert (bootstrap / "dependencies.d" / "workspace-deploy-key").is_file()
     assert (agent / "dependencies.d" / "workspace-deploy-key").is_file()
-    assert "codespace-workspace-bootstrap" in (bootstrap / "up").read_text(encoding="utf-8")
+    assert "codespace-workspace-bootstrap" in (bootstrap / "run").read_text(encoding="utf-8")
+    assert (managed / "contents.d" / "user-final").is_file()
+    assert (managed / "contents.d" / "workspace-bootstrap").is_file()
+    assert not (_S6_ROOT / "user-base" / "contents.d" / "workspace-bootstrap").exists()
+
+
+def test_s6_initializes_home_links_before_sshd_and_home() -> None:
+    home_links = _S6_ROOT / "home-links-init"
+    home = _S6_ROOT / "home-init"
+    sshd = _S6_ROOT / "sshd"
+
+    assert (home_links / "type").read_text(encoding="utf-8").strip() == "oneshot"
+    assert (home / "type").read_text(encoding="utf-8").strip() == "longrun"
+    assert (home / "dependencies.d" / "home-links-init").is_file()
+    assert (sshd / "dependencies.d" / "home-links-init").is_file()
 
 
 def test_agent_config_loads_container_environment() -> None:
@@ -134,6 +151,8 @@ def test_repo_status_waits_for_provider_and_exposes_public_key(tmp_path: Path) -
     assert workspace_agent.status().state == "starting"
 
     (tmp_path / "bootstrap.ready").write_text("ready\n", encoding="utf-8")
+    assert workspace_agent.status().state == "starting"
+    (tmp_path / "home.ready").write_text("ready\n", encoding="utf-8")
     assert workspace_agent.status().state == "ready"
 
 
@@ -150,9 +169,24 @@ def test_agent_reports_bootstrap_failure(tmp_path: Path) -> None:
     assert status.error == "workspace bootstrap repository checkout failed (1)"
 
 
+def test_agent_reports_home_initialization_failure(tmp_path: Path) -> None:
+    workspace_agent, _ = _agent(tmp_path, workspace_type="git")
+    (tmp_path / "bootstrap.ready").write_text("ready\n", encoding="utf-8")
+    (tmp_path / "home.failed").write_text(
+        "home initialization failed (1)\n",
+        encoding="utf-8",
+    )
+
+    status = workspace_agent.status()
+
+    assert status.state == "failed"
+    assert status.error == "home initialization failed (1)"
+
+
 def test_blank_workspace_has_no_git_state(tmp_path: Path) -> None:
     workspace_agent, _ = _agent(tmp_path, workspace_type="blank")
     (tmp_path / "bootstrap.ready").write_text("ready\n", encoding="utf-8")
+    (tmp_path / "home.ready").write_text("ready\n", encoding="utf-8")
 
     with pytest.raises(image_agent.APIError, match="no Git state"):
         workspace_agent.git_state()
@@ -161,6 +195,7 @@ def test_blank_workspace_has_no_git_state(tmp_path: Path) -> None:
 def test_git_state_reports_dirty_and_unpushed_changes(tmp_path: Path) -> None:
     workspace_agent, factory = _agent(tmp_path, workspace_type="git")
     (tmp_path / "bootstrap.ready").write_text("ready\n", encoding="utf-8")
+    (tmp_path / "home.ready").write_text("ready\n", encoding="utf-8")
 
     state = workspace_agent.git_state()
 
@@ -196,6 +231,7 @@ def test_git_state_reports_missing_and_empty_repositories_as_clean(
 ) -> None:
     workspace_agent, _ = _agent(tmp_path, workspace_type="git", factory=factory)
     (tmp_path / "bootstrap.ready").write_text("ready\n", encoding="utf-8")
+    (tmp_path / "home.ready").write_text("ready\n", encoding="utf-8")
 
     assert workspace_agent.git_state().model_dump() == expected
 
@@ -208,6 +244,7 @@ def test_git_state_caps_detail_at_twenty_lines(tmp_path: Path) -> None:
         factory=FakeRunFactory(dirty=dirty),
     )
     (tmp_path / "bootstrap.ready").write_text("ready\n", encoding="utf-8")
+    (tmp_path / "home.ready").write_text("ready\n", encoding="utf-8")
 
     state = workspace_agent.git_state()
 
@@ -245,6 +282,7 @@ def test_controller_client_completes_repo_handshake_over_uds(tmp_path: Path) -> 
         status = client.wait_for({"awaiting-provider"}, timeout=2)
         (tmp_path / "provider-ready").write_text("", encoding="utf-8")
         (tmp_path / "bootstrap.ready").write_text("ready\n", encoding="utf-8")
+        (tmp_path / "home.ready").write_text("ready\n", encoding="utf-8")
         ready = client.wait_for({"ready"}, timeout=2)
 
         assert status.public_key == "ssh-ed25519 AAAAC3 test"

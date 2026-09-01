@@ -14,9 +14,9 @@ host 级自包含镜像（deployment），例如 sidecar 和 LLM serving。
 - 提供 localhost-only Web UI，以及不依赖 Web 进程的维护 CLI。
 
 控制面不负责镜像构建、registry 发布、host 初始化、数据备份、secret 托管或容器内服务编排。开发镜像内
-由 s6 监督的 Python agent 负责 workspace bootstrap 和 Git 状态查询；控制面经逐实例 Unix Domain Socket
-调用它，不开放 TCP 端口。镜像是运行契约，Podman label 是 inventory 契约，host 文件系统是持久数据与
-本机 IPC 契约。
+由 s6 监督的 Bash helper负责 workspace bootstrap，Python agent只聚合状态与执行 Git查询；控制面经逐实例
+Unix Domain Socket调用 agent，不开放 TCP端口。镜像是运行契约，Podman label是 inventory契约，host
+文件系统是持久数据与本机 IPC契约。
 
 ## Domain Model
 
@@ -77,7 +77,7 @@ flowchart TB
     DeployKeyPair --> ImageBootstrap["image: s6 workspace bootstrap"]
     ImageBootstrap --> CheckoutHelper["codespace-git-checkout"]
     ImageBootstrap --> OpenPathHelper["codespace-workspace-open-path"]
-    ImageAgent <--> BootstrapState["control/bootstrap.* + provider-ready"]
+    ImageAgent <--> BootstrapState["control/bootstrap.* + home.* + provider-ready"]
     ImageBootstrap <--> BootstrapState
     SSH --> Remote["runtime/remote.py"]
     Service --> Transport["runtime/transport.py"]
@@ -106,7 +106,7 @@ $HOME/codespace/
 │       ├── workspace/                # workspace 明文或 gocryptfs 密文
 │       ├── upload/                   # upload 明文
 │       ├── cache/                    # tool/IDE cache 明文
-│       └── control/                  # bootstrap marker、provider-ready、agent.sock，0700
+│       └── control/                  # bootstrap/home marker、provider-ready、agent.sock，0700
 └── deployments/
     └── <deployment>/                 # deployment 托管数据
 ```
@@ -154,7 +154,8 @@ flowchart LR
 - 加密模式只改变 workspace 的 container target；host 上同一目录存放密文。
 - `/upload` 与 `/cache` 始终明文，并与 workspace/instance 同粒度隔离。
 - 控制面在创建 container前清空旧 control marker；bootstrap用 `bootstrap.ready` / `bootstrap.failed`
-  记录结果，agent启动时清理并重建 `agent.sock`。
+  记录结果，异步 home初始化用 `home.ready` / `home.failed` 记录结果，agent启动时清理并重建
+  `agent.sock`。
 - `/provider-ready` 在 `control/provider-ready` 原子持久化；同一 container重启后可继续幂等 bootstrap，
   新 create会先清空旧 marker。
 - `purge=false` 只删除 container；`purge=true` 删除包含四个子目录的 instance 目录。
@@ -236,7 +237,7 @@ sequenceDiagram
     Service->>Host: read configured environment
     Service->>Host: pull image and create four directories
     Service->>Host: clear stale control markers
-    Service->>Host: create container with CODESPACE_WORKSPACE_* env
+    Service->>Host: create container with managed-workspace runlevel and CODESPACE_WORKSPACE_* env
     Service->>Host: forward agent.sock over SSH
     Service->>Host: GET /status
     opt repo workspace
@@ -397,6 +398,7 @@ classDiagram
 
 | Environment | Value |
 | --- | --- |
+| `DEVSPACE_RUNLEVEL` | 固定为 Controller 专用的 `managed-workspace` |
 | `CODESPACE_WORKSPACE_TYPE` | `repo`、`git` 或 `blank` |
 | `CODESPACE_CLONE_URL` | repo/git 的 SSH clone URL；blank不注入 |
 | `CODESPACE_CLONE_PATH` | checkout target |
@@ -409,18 +411,21 @@ agent只监听 `/run/codespace-control/agent.sock`，HTTP API固定为：
 | `GET` | `/status` | `{state,public_key,error}` |
 | `GET` | `/git-state` | `CODESPACE_CLONE_PATH` 对应 `RepoGitState` |
 
-状态只允许 `starting`、`awaiting-provider`、`ready`、`failed`。s6 在 `workspace-crypt` 后启动
+状态只允许 `starting`、`awaiting-provider`、`ready`、`failed`。默认 `user-final` 不启动 managed
+workspace服务；控制面选择的 `managed-workspace` bundle在 `workspace-crypt` 后启动
 `workspace-deploy-key`，`workspace-bootstrap` 与 `workspace-agent` 均依赖 `workspace-deploy-key`：
 
 - `workspace-deploy-key` 对所有 workspace无条件生成或复用 container-local keypair，private key不离开容器。
-- `workspace-bootstrap` 是 s6 oneshot，直接执行 Bash helper并按容器环境选择流程；成功写
-  `bootstrap.ready`，失败写 `bootstrap.failed`。
+- `workspace-bootstrap` 是受监督 longrun，直接执行 Bash helper并按容器环境选择流程；成功写
+  `bootstrap.ready`，失败写 `bootstrap.failed`，随后保持运行，不占用 s6-rc oneshot事务。
+- `home-links-init` 在 sshd前完成持久化目录链接；异步 `home-init` 完成或失败后分别写 `home.ready`、
+  `home.failed`。`/status` 只有在 bootstrap与home marker都 ready时才返回 `ready`。
 - `repo`：agent从 `/home/x/.ssh/repo_id_ed25519.pub` 返回公钥并进入 `awaiting-provider`；控制面注册
   deploy key后在 host control目录创建 `provider-ready` marker，bootstrap随后执行 checkout和 open-path helper。
 - `git`：bootstrap直接调用 checkout 和 open-path helper；`blank`：bootstrap只调用 open-path helper。
 - checkout/open-path以用户 `x` 执行；失败 marker使 `/status` 进入 `failed` 并返回有限长度诊断。
-- Python只保留一个 agent进程；Pydantic校验环境与响应模型，FastAPI声明固定 route、Uvicorn监听 UDS，
-  依赖由 `/opt/codespace/uv.lock` 固定。
+- Python只保留一个单文件 `workspace_agent.py` 进程；Pydantic校验环境与响应模型，FastAPI声明固定 route、
+  Uvicorn监听 UDS，依赖由 `/opt/codespace/uv.lock` 固定。
 - `/git-state` 仅在 `ready` 的 repo/git workspace 可用，由 agent以用户 `x` 直接执行只读 Git查询。
 - agent 不提供任意 command、path、environment 或 shell 参数；未知 route/method 直接拒绝。
 - provider token、deploy key 注册、Podman 生命周期、host 数据和 SSH 投影不进入镜像协议；deploy private key

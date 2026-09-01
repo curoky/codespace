@@ -1,9 +1,9 @@
 """Codespace container semantics layered over the Podman engine.
 
-This module owns the control-plane-specific translation: reserved environment
-injection (``SSHD_*``/``CODESPACE_WORKSPACE_*``), reserved workspace mounts,
-default secret ownership (``5230:5230``, ``0o400``) and canonical labels. The
-reusable container primitives live in :mod:`controller.runtime.engine`.
+This module owns the control-plane-specific translation: managed runlevel and
+reserved environment injection, reserved workspace mounts, default secret
+ownership (``5230:5230``, ``0o400``) and canonical labels. The reusable
+container primitives live in :mod:`controller.runtime.engine`.
 """
 
 from __future__ import annotations
@@ -21,6 +21,8 @@ from controller.models import (
     CONTAINER_UID,
     CONTROL_MOUNT,
     DEPLOYMENT_DATA_PLACEHOLDER,
+    DEVSPACE_RUNLEVEL_ENV,
+    MANAGED_WORKSPACE_RUNLEVEL,
     UPLOAD_MOUNT,
     WORKSPACE_CIPHER_MOUNT,
     WORKSPACE_CLONE_PATH_ENV,
@@ -74,6 +76,7 @@ def create_container(
     environment = {
         **inherited_environment,
         **configured_environment,
+        DEVSPACE_RUNLEVEL_ENV: MANAGED_WORKSPACE_RUNLEVEL,
         WORKSPACE_TYPE_ENV: spec.workspace.type,
         WORKSPACE_CLONE_PATH_ENV: spec.clone_path,
         WORKSPACE_OPEN_PATH_ENV: spec.open_path,

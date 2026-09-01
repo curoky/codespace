@@ -139,7 +139,7 @@ RUN UV_LINK_MODE=copy uv sync --project /opt/codespace --locked --no-dev --pytho
 # setup devspace
 # Cross-scene home configs are baked at their $HOME paths via `COPY rootfs/ /`
 # above, so no build-time setup.sh copy is needed. The only runtime-specific
-# bits (trae / vscode-server templates) live in dirs that home-init relinks onto
+# bits (trae / vscode-server templates) live in dirs that home-links-init relinks onto
 # /workspace at boot, so they are (re)applied then via `setup.sh docker`.
 COPY --chown=5230:5230 ./ /opt/devspace
 RUN ln -s /opt/devspace ~/devspace

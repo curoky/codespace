@@ -34,7 +34,7 @@
   直接烤入开发镜像的 `$HOME`，无需构建期 `setup.sh`。`dotfiles/` 只保留非容器场景专属配置（macOS 桌面
   编辑器、LaunchAgent、warp/snipaste/mpv，以及 host 专属的 zsh `prune.zshrc`、git `.gitconfig` 等）与容器运行期
   才能落位的模板（trae `sandbox.json`/`traecli.toml`、
-  vscode remote-server settings，它们所在目录会被 `home-init` 在 boot 时重链到 `/cache`，烤入会被清掉）。
+  vscode remote-server settings，它们所在目录会被 `home-links-init` 在 boot 时重链到 `/cache`，烤入会被清掉）。
   `setup.sh` 主要服务 macOS host，按 scene（首参数 `docker`/`host-linux`/`darwin`，缺省按 OS 推断）分发：
   跨场景 home 配置从 `rootfs/home/x` 建软链（单一来源），场景专属配置从 `dotfiles/` 取；`docker` scene 只在
   运行期补写被重链目录内的模板。`link_path` 建软链，`copy_path` 以 `0600` 复制需独立权限的配置；`CONF_PATH`
@@ -96,11 +96,11 @@ $HOME/devspace/tools/setup-git-deploy-key.sh
 4. **服务管理**：开发容器以自建 s6 init 启动。新增服务放入 `images/dev/rootfs/etc/s6/s6-rc.d/` 并加入
    bundle；execline 脚本用 `s6-envdir -Lf -- /run/s6/container_environment` 读容器环境，该目录仅 root 和
    `x` 可读。`workspace-init` 必须先于 `workspace-crypt` 完成，把 `/workspace`、密文根 `/workspace.enc`、
-   `/upload` 与 `/cache` 都归属到 `5230:5230`；`workspace-crypt` 再先于 `sshd`、`home-init` 与 WebDAV 服务完成。
-   `workspace-deploy-key` 依赖 `workspace-crypt`，对所有 workspace 无条件生成或复用 container-local deploy key；
-   `workspace-bootstrap` 依赖它，按控制面注入的 `CODESPACE_WORKSPACE_*` 环境变量自动执行 checkout/open-path；
-   `workspace-agent` 依赖 `workspace-deploy-key`，在同目录监听 `agent.sock` 提供控制协议。Agent 的 Python runtime
-   依赖由 `images/dev/rootfs/opt/codespace/` 下的独立 uv项目锁定。
+   `/upload` 与 `/cache` 都归属到 `5230:5230`；`workspace-crypt` 再先于 `home-links-init` 与 WebDAV 服务，
+   `sshd` 和异步 `home-init` 依赖 `home-links-init`。默认 `user-final` 只含通用镜像服务；控制面创建 environment
+   时固定注入 `DEVSPACE_RUNLEVEL=managed-workspace`，额外启动 `workspace-deploy-key`、受监督的
+   `workspace-bootstrap` 和 `workspace-agent`。后两者依赖 deploy key，agent 在 control目录监听
+   `agent.sock`，其 Python runtime依赖由 `images/dev/rootfs/opt/codespace/` 下的独立 uv项目锁定。
 5. **网络边界**：环境 sshd 只绑定宿主 loopback；访问必须经配置的 SSH host route。
 6. **共享服务**：每个 host 只有一个固定名称的 `codespace-sidecar`，不附属于 workspace/instance。Atuin 仅经
    宿主 loopback 暴露，端口由 `ATUIN_PORT` 配置（默认 `8002`）。sidecar 的 image-prewarm 定时任务是唯一允许
@@ -117,7 +117,7 @@ $HOME/devspace/tools/setup-git-deploy-key.sh
 10. **数据挂载**：host 数据统一位于 `~/codespace`。每个实例使用
     `workspaces/<workspace>/<instance>/`，其 `workspace`、`upload`、`cache` 子目录分别挂载到容器内
     `/workspace`、`/upload`、`/cache`；`control` 子目录挂载到 `/run/codespace-control`，保存
-    bootstrap marker、provider-ready marker 和 agent UDS。四者逐实例隔离，且均为
+    bootstrap/home marker、provider-ready marker 和 agent UDS。四者逐实例隔离，且均为
     控制面保留 mount target。Agent UDS只经 OpenSSH StreamLocal转发到控制面，不发布 TCP端口；provider
     token不得进入容器，deploy private key不得离开容器。
 11. **Deployment**：host 级自包含部署容器（sidecar、LLM serving 等），与开发 environment 明确区分：容器名

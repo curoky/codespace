@@ -23,13 +23,17 @@ write_marker() {
   mv -f -- "${temporary}" "${path}"
 }
 
+settle() {
+  exec s6-pause
+}
+
 fail() {
   local status=$?
   trap - ERR
   local message="workspace bootstrap ${current_step} failed (${status})"
   write_marker "${failed_path}" "${message}"
   echo "${message}" >&2
-  exit "${status}"
+  settle
 }
 
 require_env() {
@@ -61,7 +65,10 @@ main() {
   fi
 
   trap fail ERR
-  rm -f -- "${ready_path}" "${failed_path}"
+  if [[ -f ${ready_path} ]]; then
+    settle
+  fi
+  rm -f -- "${failed_path}"
   require_env CODESPACE_WORKSPACE_TYPE
   require_env CODESPACE_OPEN_PATH
 
@@ -88,6 +95,7 @@ main() {
     /opt/codespace/bin/codespace-workspace-open-path \
     "${CODESPACE_OPEN_PATH}"
   write_marker "${ready_path}" "ready"
+  settle
 }
 
 main "$@"

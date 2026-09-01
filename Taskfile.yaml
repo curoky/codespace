@@ -29,9 +29,13 @@ tasks:
       - >-
         uv run ruff format --config pyproject.toml
         controller
-        images/dev/rootfs/opt/codespace/codespace_agent
         images/dev/rootfs/opt/codespace/workspace_agent.py
-      - shfmt -w -i 2 -s -ci images/dev/rootfs/opt/codespace/bin/codespace-* images/dev/tests/*.bats
+      - >-
+        shfmt -w -i 2 -s -ci
+        images/dev/rootfs/opt/codespace/bin/codespace-*
+        images/dev/script/home-init.sh
+        images/dev/script/home-links-init.sh
+        images/dev/tests/*.bats
 
   fmt:check:
     desc: 检查 Python 与 workspace helper 格式
@@ -39,9 +43,13 @@ tasks:
       - >-
         uv run ruff format --check --config pyproject.toml
         controller
-        images/dev/rootfs/opt/codespace/codespace_agent
         images/dev/rootfs/opt/codespace/workspace_agent.py
-      - shfmt -d -i 2 -s -ci images/dev/rootfs/opt/codespace/bin/codespace-* images/dev/tests/*.bats
+      - >-
+        shfmt -d -i 2 -s -ci
+        images/dev/rootfs/opt/codespace/bin/codespace-*
+        images/dev/script/home-init.sh
+        images/dev/script/home-links-init.sh
+        images/dev/tests/*.bats
 
   lint:
     desc: Ruff 与 ShellCheck lint
@@ -49,9 +57,13 @@ tasks:
       - >-
         uv run ruff check --config pyproject.toml
         controller
-        images/dev/rootfs/opt/codespace/codespace_agent
         images/dev/rootfs/opt/codespace/workspace_agent.py
-      - shellcheck images/dev/rootfs/opt/codespace/bin/codespace-* images/dev/tests/*.bats
+      - >-
+        shellcheck
+        images/dev/rootfs/opt/codespace/bin/codespace-*
+        images/dev/script/home-init.sh
+        images/dev/script/home-links-init.sh
+        images/dev/tests/*.bats
 
   typecheck:
     desc: Mypy 类型检查
@@ -59,12 +71,11 @@ tasks:
       - >-
         MYPYPATH=images/dev/rootfs/opt/codespace uv run mypy
         controller
-        images/dev/rootfs/opt/codespace/codespace_agent
         images/dev/rootfs/opt/codespace/workspace_agent.py
       - >-
         uv run --project images/dev/rootfs/opt/codespace --locked python
         -c "import sys; sys.path.insert(0, 'images/dev/rootfs/opt/codespace');
-        import codespace_agent, workspace_agent"
+        import workspace_agent"
 
   test:
     desc: 运行 Codespace Python 与 workspace helper 测试

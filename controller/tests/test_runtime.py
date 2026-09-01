@@ -262,6 +262,7 @@ def test_create_container_preserves_fixed_runtime_contract(
     assert kwargs["ulimits"] == [{"Name": "memlock", "Soft": -1, "Hard": -1}]
     assert kwargs["environment"] == {
         "HTTP_PROXY": "http://host-proxy:3128",
+        "DEVSPACE_RUNLEVEL": "managed-workspace",
         "CODESPACE_WORKSPACE_TYPE": "repo",
         "CODESPACE_CLONE_URL": "git@github.com:curoky/devspace.git",
         "CODESPACE_CLONE_PATH": "/workspace/devspace",
@@ -647,6 +648,7 @@ def test_create_container_bridge_publishes_ports_and_binds_sshd(
     port = ssh_port("codespace-local-devspace-debug")
     assert kwargs["network_mode"] == "bridge"
     assert kwargs["environment"] == {
+        "DEVSPACE_RUNLEVEL": "managed-workspace",
         "CODESPACE_WORKSPACE_TYPE": "repo",
         "CODESPACE_CLONE_URL": "git@github.com:curoky/devspace.git",
         "CODESPACE_CLONE_PATH": "/workspace/devspace",
@@ -688,6 +690,7 @@ def test_create_container_blank_omits_repo_and_provider_labels(
     assert LABEL_REPO not in labels
     assert LABEL_PROVIDER not in labels
     assert kwargs["environment"] == {
+        "DEVSPACE_RUNLEVEL": "managed-workspace",
         "CODESPACE_WORKSPACE_TYPE": "blank",
         "CODESPACE_CLONE_PATH": "/workspace",
         "CODESPACE_OPEN_PATH": "/workspace",
@@ -711,6 +714,7 @@ def test_create_container_injects_direct_git_workspace_environment(
 
     _, kwargs = calls[0]
     assert kwargs["environment"] == {
+        "DEVSPACE_RUNLEVEL": "managed-workspace",
         "CODESPACE_WORKSPACE_TYPE": "git",
         "CODESPACE_CLONE_URL": "git@curoky:devspace",
         "CODESPACE_CLONE_PATH": "/workspace/devspace",

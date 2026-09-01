@@ -21,6 +21,10 @@ EOF
 shift 2
 exec "$@"
 EOF
+  cat >"${TEST_ROOT}/bin/s6-pause" <<'EOF'
+#!/usr/bin/env bash
+exit 0
+EOF
   cat >"${TEST_ROOT}/bin/codespace-git-checkout" <<'EOF'
 #!/usr/bin/env bash
 printf 'checkout:%s:%s\n' "$1" "$2" >>"${TEST_EVENTS}"
@@ -99,6 +103,20 @@ EOF
     CODESPACE_OPEN_PATH=/workspace/repo \
     "${TEST_ROOT}/helper"
 
-  [[ ${status} -eq 7 ]]
+  [[ ${status} -eq 0 ]]
   [[ $(<"${TEST_ROOT}/control/bootstrap.failed") == "workspace bootstrap repository checkout failed (7)" ]]
+}
+
+@test "completed bootstrap is reused after container restart" {
+  touch "${TEST_ROOT}/control/bootstrap.ready"
+
+  run env \
+    CODESPACE_WORKSPACE_TYPE=git \
+    CODESPACE_CLONE_URL=git@example:repo \
+    CODESPACE_CLONE_PATH=/workspace/repo \
+    CODESPACE_OPEN_PATH=/workspace/repo \
+    "${TEST_ROOT}/helper"
+
+  [[ ${status} -eq 0 ]]
+  [[ ! -e ${TEST_EVENTS} ]]
 }
