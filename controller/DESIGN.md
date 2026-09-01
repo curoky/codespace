@@ -119,6 +119,7 @@ flowchart LR
         W["~/codespace/workspaces/W/I/workspace"]
         U["~/codespace/workspaces/W/I/upload"]
         C["~/codespace/workspaces/W/I/cache"]
+        I["~/codespace/workspaces/W/I/cache/&lt;IDE dir&gt;"]
         X["~/codespace/workspaces/W/I/control"]
     end
 
@@ -139,6 +140,8 @@ flowchart LR
         EW --> G --> EP
     end
 
+    H["/home/x/.vscode-server, .trae, ..."]
+
     W -->|bind| PW
     U -->|bind| PU
     C -->|bind| PC
@@ -147,12 +150,14 @@ flowchart LR
     U -->|bind| EU
     C -->|bind| EC
     X -->|bind| EX
+    I -->|five direct binds| H
 ```
 
 - `workspace-init` 只把 workspace 数据 mount 归属到 `5230:5230`；`control` 保持 host login user 的
   `0700` 权限。容器内 agent以 root绑定 socket，bootstrap helper和 Git查询子进程降权到用户 `x`。
 - 加密模式只改变 workspace 的 container target；host 上同一目录存放密文。
 - `/upload` 与 `/cache` 始终明文，并与 workspace/instance 同粒度隔离。
+- `cache/` 下五个 IDE 子目录直接 bind 到各自 `/home/x/` canonical path；`/cache` 主挂载继续供构建和工具缓存使用。
 - 控制面在创建 container前清空旧 control marker；bootstrap用 `bootstrap.ready` / `bootstrap.failed`
   记录结果，异步 home初始化用 `home.ready` / `home.failed` 记录结果，agent启动时清理并重建
   `agent.sock`。
@@ -418,7 +423,7 @@ workspace服务；控制面选择的 `managed-workspace` bundle在 `workspace-cr
 - `workspace-deploy-key` 对所有 workspace无条件生成或复用 container-local keypair，private key不离开容器。
 - `workspace-bootstrap` 是受监督 longrun，直接执行 Bash helper并按容器环境选择流程；成功写
   `bootstrap.ready`，失败写 `bootstrap.failed`，随后保持运行，不占用 s6-rc oneshot事务。
-- `home-links-init` 在 sshd前完成持久化目录链接；异步 `home-init` 完成或失败后分别写 `home.ready`、
+- 五个 IDE home目录在 container创建时已经直接挂载；异步 `home-init` 完成或失败后分别写 `home.ready`、
   `home.failed`。`/status` 只有在 bootstrap与home marker都 ready时才返回 `ready`。
 - `repo`：agent从 `/home/x/.ssh/repo_id_ed25519.pub` 返回公钥并进入 `awaiting-provider`；控制面注册
   deploy key后在 host control目录创建 `provider-ready` marker，bootstrap随后执行 checkout和 open-path helper。
@@ -465,7 +470,8 @@ smoke test，不得形成独立配置或生产生命周期。
 
 - 所有写操作基于确定性 identity，并先验证 inventory。
 - Environment 与 deployment 的 container、label、数据根和生命周期不复用。
-- `/workspace`、`/workspace.enc`、`/upload`、`/cache`、`/run/codespace-control` 是控制面保留路径。
+- `/workspace`、`/workspace.enc`、`/upload`、`/cache`、`/run/codespace-control` 以及五个
+  `/home/x/` IDE mount target 是控制面保留路径。
 - SSH host key verification、provider TLS verification 和 localhost 网络边界不可放宽。
 - 配置、container label、镜像 helper 和 API model 的同一字段必须同步变更。
 - 不增加兼容字段、迁移分支、旧 label 读取或旧目录探测；需要切换契约时直接修改最终形态。

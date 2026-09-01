@@ -237,7 +237,13 @@ def test_create_runs_all_stages_in_order(
             events.append("pull"),
         ),
     )
-    monkeypatch.setattr(ssh, "prepare_directories", lambda *args: events.append("workspace"))
+    prepared_directories: list[list[str]] = []
+
+    def prepare_directories(_route: object, targets: list[str]) -> None:
+        prepared_directories.append(targets)
+        events.append("workspace")
+
+    monkeypatch.setattr(ssh, "prepare_directories", prepare_directories)
     monkeypatch.setattr(
         ssh,
         "reset_control_state",
@@ -304,6 +310,19 @@ def test_create_runs_all_stages_in_order(
     assert specs[0].container.network_mode == "host"
     assert specs[0].published_ports == ()
     assert inherited_environments == [{"HTTP_PROXY": "http://host-proxy:3128"}]
+    assert prepared_directories == [
+        [
+            "/home/x/codespace/workspaces/devspace/debug/workspace",
+            "/home/x/codespace/workspaces/devspace/debug/upload",
+            "/home/x/codespace/workspaces/devspace/debug/cache",
+            "/home/x/codespace/workspaces/devspace/debug/cache/.vscode-server",
+            "/home/x/codespace/workspaces/devspace/debug/cache/.trae",
+            "/home/x/codespace/workspaces/devspace/debug/cache/.trae-cn",
+            "/home/x/codespace/workspaces/devspace/debug/cache/.trae-server",
+            "/home/x/codespace/workspaces/devspace/debug/cache/.trae-cn-server",
+            "/home/x/codespace/workspaces/devspace/debug/control",
+        ]
+    ]
     assert service.operations.list() == []
 
 

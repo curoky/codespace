@@ -655,12 +655,20 @@ def test_config_rejects_relative_container_volume_source() -> None:
         "/workspace",
         "/workspace/cache",
         "/workspace/../workspace",
+        "/workspace.enc",
         "/upload",
         "/upload/incoming",
         "/cache",
         "/cache/build",
         "/run/codespace-control",
         "/run/codespace-control/agent.sock",
+        "/home/x/.vscode-server",
+        "/home/x/.trae",
+        "/home/x/.trae-cn",
+        "/home/x/.trae-server",
+        "/home/x/.trae-cn-server",
+        "/home/x/.trae/user_rules",
+        "/home/x",
         "/",
     ],
 )
@@ -754,10 +762,11 @@ def test_config_rejects_secret_env_target_colliding_with_environment() -> None:
         )
 
 
-def test_config_rejects_secret_mount_target_overlapping_control_plane() -> None:
+@pytest.mark.parametrize("target", ["/workspace/secret", "/home/x/.trae/secret"])
+def test_config_rejects_secret_mount_target_overlapping_control_plane(target: str) -> None:
     with pytest.raises(ValidationError, match="control-plane mount targets"):
         Config.model_validate(
-            _config_with_container({"secrets": [{"source": "a", "target": "/workspace/secret"}]})
+            _config_with_container({"secrets": [{"source": "a", "target": target}]})
         )
 
 

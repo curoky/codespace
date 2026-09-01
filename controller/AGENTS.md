@@ -61,7 +61,8 @@ task check
 - `llm-vllm` 与 `llm-sglang` deployment 使用 host network，不声明 `published_ports`，并通过
   `LLM_HOST=127.0.0.1` 将 API 限制在宿主 loopback。
 - 用户 volume 不得与 `/workspace`、`/workspace.enc`、`/upload`、`/cache`、
-  `/run/codespace-control` 相同或形成父子覆盖。
+  `/run/codespace-control` 以及 `/home/x/` 下五个受管 IDE目录（`.vscode-server`、`.trae`、`.trae-cn`、
+  `.trae-server`、`.trae-cn-server`）相同或形成父子覆盖。
 - secret 必须预先注册到目标 Podman host。控制面只引用 secret 名，不读取明文；顶层
   `secrets` 只供带外同步命令使用。
 - workspace、instance、deployment ID 匹配 `^[a-z0-9][a-z0-9-]{0,31}$`；host alias 匹配

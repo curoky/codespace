@@ -114,15 +114,24 @@ def test_s6_managed_bundle_runs_supervised_bootstrap_after_deploy_key() -> None:
     assert not (_S6_ROOT / "user-base" / "contents.d" / "workspace-bootstrap").exists()
 
 
-def test_s6_initializes_home_links_before_sshd_and_home() -> None:
-    home_links = _S6_ROOT / "home-links-init"
+def test_s6_initializes_workspace_before_sshd_and_home() -> None:
     home = _S6_ROOT / "home-init"
     sshd = _S6_ROOT / "sshd"
+    workspace_init = _S6_ROOT / "workspace-init"
 
-    assert (home_links / "type").read_text(encoding="utf-8").strip() == "oneshot"
     assert (home / "type").read_text(encoding="utf-8").strip() == "longrun"
-    assert (home / "dependencies.d" / "home-links-init").is_file()
-    assert (sshd / "dependencies.d" / "home-links-init").is_file()
+    assert (home / "dependencies.d" / "workspace-crypt").is_file()
+    assert (sshd / "dependencies.d" / "workspace-crypt").is_file()
+    init_script = (workspace_init / "up").read_text(encoding="utf-8")
+    for target in (
+        "/home/x/.vscode-server",
+        "/home/x/.trae",
+        "/home/x/.trae-cn",
+        "/home/x/.trae-server",
+        "/home/x/.trae-cn-server",
+    ):
+        assert f"chown 5230:5230 {target}" in init_script
+    assert not (_S6_ROOT / "home-links-init").exists()
 
 
 def test_agent_config_loads_container_environment() -> None:

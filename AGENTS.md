@@ -34,10 +34,10 @@
   直接烤入开发镜像的 `$HOME`，无需构建期 `setup.sh`。`dotfiles/` 只保留非容器场景专属配置（macOS 桌面
   编辑器、LaunchAgent、warp/snipaste/mpv，以及 host 专属的 zsh `prune.zshrc`、git `.gitconfig` 等）与容器运行期
   才能落位的模板（trae `sandbox.json`/`traecli.toml`、
-  vscode remote-server settings，它们所在目录会被 `home-links-init` 在 boot 时重链到 `/cache`，烤入会被清掉）。
+  vscode remote-server settings；它们所在目录由控制面从 instance `cache/` 直接挂载，镜像内容会被遮蔽）。
   `setup.sh` 主要服务 macOS host，按 scene（首参数 `docker`/`host-linux`/`darwin`，缺省按 OS 推断）分发：
   跨场景 home 配置从 `rootfs/home/x` 建软链（单一来源），场景专属配置从 `dotfiles/` 取；`docker` scene 只在
-  运行期补写被重链目录内的模板。`link_path` 建软链，`copy_path` 以 `0600` 复制需独立权限的配置；`CONF_PATH`
+  运行期补写被挂载目录内的模板。`link_path` 建软链，`copy_path` 以 `0600` 复制需独立权限的配置；`CONF_PATH`
   默认 `$HOME/devspace/dotfiles`，可由第二参数覆盖。`dotfiles/archive/` 只存未启用历史配置，不被加载。
 - **镜像**：`images/dev/` 构建 Codespace 基础与参考开发镜像，`images/sidecar/` 构建 host 级共享服务镜像，
   `images/llm/` 构建 host 级 LLM serving 镜像，并保留可在 GPU host 直接创建标准 deployment 容器的
@@ -69,7 +69,7 @@
 
 ```bash
 # 配置 dotfiles（可重复执行；scene 缺省按 OS 推断）
-dotfiles/setup.sh docker "$PWD/dotfiles"       # 容器运行期：仅补写被重链目录内模板
+dotfiles/setup.sh docker "$PWD/dotfiles"       # 容器运行期：仅补写被挂载目录内模板
 dotfiles/setup.sh host-linux "$PWD/dotfiles"   # 裸 Linux host：链入全部 home 配置
 dotfiles/setup.sh darwin "$PWD/dotfiles"       # macOS host（无参数时的默认）
 
@@ -96,8 +96,8 @@ $HOME/devspace/tools/setup-git-deploy-key.sh
 4. **服务管理**：开发容器以自建 s6 init 启动。新增服务放入 `images/dev/rootfs/etc/s6/s6-rc.d/` 并加入
    bundle；execline 脚本用 `s6-envdir -Lf -- /run/s6/container_environment` 读容器环境，该目录仅 root 和
    `x` 可读。`workspace-init` 必须先于 `workspace-crypt` 完成，把 `/workspace`、密文根 `/workspace.enc`、
-   `/upload` 与 `/cache` 都归属到 `5230:5230`；`workspace-crypt` 再先于 `home-links-init` 与 WebDAV 服务，
-   `sshd` 和异步 `home-init` 依赖 `home-links-init`。默认 `user-final` 只含通用镜像服务；控制面创建 environment
+   `/upload`、`/cache` 与五个持久化 IDE home mount 都归属到 `5230:5230`；`workspace-crypt` 再先于
+   `sshd`、异步 `home-init` 与 WebDAV 服务。默认 `user-final` 只含通用镜像服务；控制面创建 environment
    时固定注入 `DEVSPACE_RUNLEVEL=managed-workspace`，额外启动 `workspace-deploy-key`、受监督的
    `workspace-bootstrap` 和 `workspace-agent`。后两者依赖 deploy key，agent 在 control目录监听
    `agent.sock`，其 Python runtime依赖由 `images/dev/rootfs/opt/codespace/` 下的独立 uv项目锁定。
@@ -116,7 +116,9 @@ $HOME/devspace/tools/setup-git-deploy-key.sh
    （`/dev/fuse`）。加密仅作用于实例的 `workspace/` 子目录；`upload/`、`cache/` 始终明文，不受影响。
 10. **数据挂载**：host 数据统一位于 `~/codespace`。每个实例使用
     `workspaces/<workspace>/<instance>/`，其 `workspace`、`upload`、`cache` 子目录分别挂载到容器内
-    `/workspace`、`/upload`、`/cache`；`control` 子目录挂载到 `/run/codespace-control`，保存
+    `/workspace`、`/upload`、`/cache`；`cache` 下五个 IDE 子目录同时直接挂载到
+    `/home/x/.vscode-server`、`/home/x/.trae`、`/home/x/.trae-cn`、`/home/x/.trae-server` 与
+    `/home/x/.trae-cn-server`。`control` 子目录挂载到 `/run/codespace-control`，保存
     bootstrap/home marker、provider-ready marker 和 agent UDS。四者逐实例隔离，且均为
     控制面保留 mount target。Agent UDS只经 OpenSSH StreamLocal转发到控制面，不发布 TCP端口；provider
     token不得进入容器，deploy private key不得离开容器。

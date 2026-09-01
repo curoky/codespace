@@ -294,6 +294,31 @@ def test_create_container_preserves_fixed_runtime_contract(
         },
         {
             "type": "bind",
+            "source": "/home/x/codespace/workspaces/devspace/debug/cache/.vscode-server",
+            "target": "/home/x/.vscode-server",
+        },
+        {
+            "type": "bind",
+            "source": "/home/x/codespace/workspaces/devspace/debug/cache/.trae",
+            "target": "/home/x/.trae",
+        },
+        {
+            "type": "bind",
+            "source": "/home/x/codespace/workspaces/devspace/debug/cache/.trae-cn",
+            "target": "/home/x/.trae-cn",
+        },
+        {
+            "type": "bind",
+            "source": "/home/x/codespace/workspaces/devspace/debug/cache/.trae-server",
+            "target": "/home/x/.trae-server",
+        },
+        {
+            "type": "bind",
+            "source": "/home/x/codespace/workspaces/devspace/debug/cache/.trae-cn-server",
+            "target": "/home/x/.trae-cn-server",
+        },
+        {
+            "type": "bind",
             "source": "/home/x/codespace/workspaces/devspace/debug/control",
             "target": "/run/codespace-control",
         },

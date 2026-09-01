@@ -3,9 +3,9 @@
 # 构建期预装 VSCode Remote 扩展。
 #
 # 官方 VSCode Remote-SSH 会在远端 ~/.vscode-server 下放一份 reh（remote extension
-# host）server，并把扩展装到 ~/.vscode-server/extensions。运行期 home-init.sh 会把
-# ~/.vscode-server 等目录软链到持久化的 /cache 下，因此扩展不能直接烤进
-# ~/.vscode-server（首启会被 rm -rf 覆盖）。
+# host）server，并把扩展装到 ~/.vscode-server/extensions。运行期 Controller 会把
+# host cache 下的对应目录直接挂载到 ~/.vscode-server 等路径，因此扩展不能直接烤进
+# 镜像中的这些目录。
 #
 # 本脚本在构建期用官方 code-server 把 extensions.txt 里的扩展装进一份镜像内的参考副本
 # （默认 /opt/vscode-extensions/extensions），运行期由 home-init.sh 播种到各 IDE server

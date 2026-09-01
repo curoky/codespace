@@ -26,9 +26,9 @@ host 级共享服务见 [`images/sidecar/AGENTS.md`](../sidecar/AGENTS.md)，容
 `/etc/s6/init` 和 `/etc/s6/db`。新增服务放入 `rootfs/etc/s6/s6-rc.d/` 并加入相应 bundle；execline
 脚本用 `s6-envdir -Lf -- /run/s6/container_environment` 读容器环境，该目录仅 root 和 `x` 可读。
 `workspace-init` 必须先于 `workspace-crypt` 完成，把挂载的 `/workspace` 与密文根 `/workspace.enc`
-归属到 `5230:5230`；`workspace-crypt` 再先于 `home-links-init`、`workspace-deploy-key` 和两个 WebDAV
-服务完成，负责在启用加密时把明文挂到 `/workspace`（详见 host contract）。`home-links-init` 完成后才启动
-`sshd` 与异步 `home-init`；`workspace-bootstrap` 和 `workspace-agent` 均依赖 `workspace-deploy-key`。
+归属到 `5230:5230`；`workspace-crypt` 再先于 `sshd`、异步 `home-init`、`workspace-deploy-key` 和两个
+WebDAV 服务完成，负责在启用加密时把明文挂到 `/workspace`（详见 host contract）。
+`workspace-bootstrap` 和 `workspace-agent` 均依赖 `workspace-deploy-key`。
 
 runlevel 分三层：`user-base` 含通用开发镜像服务，`user-final` 嵌套 `user-base` 并加入
 `gitconfig-init`，`managed-workspace` 再嵌套 `user-final` 并加入 Controller 专用的 deploy-key、bootstrap
@@ -56,19 +56,20 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
 
 - 用户 `x`（uid/gid `5230:5230`）、可写的 `/workspace`、`/upload` 与 `/cache`；三者都由控制面按实例
   bind-mount `~/codespace/workspaces/<workspace>/<instance>/` 下的同名子目录，删除或重建 container 后
-  各自内容按宿主目录留存/清理；
+  各自内容按宿主目录留存/清理；同一 `cache/` 下的五个 IDE 子目录还分别直接 bind-mount 到
+  `/home/x/.vscode-server`、`/home/x/.trae`、`/home/x/.trae-cn`、`/home/x/.trae-server` 与
+  `/home/x/.trae-cn-server`；
 - 控制面把同一 instance 的 `control/` bind-mount 到 `/run/codespace-control`。Host 目录保持 login user
   所有且 mode `0700`；不由 `workspace-init` chown；
 - 默认 host network，sshd 监听地址由 `SSHD_BIND` 控制，默认 `127.0.0.1`；
 - Podman security option `disable` 和 `seccomp=unconfined`；
-- 现有 s6 entrypoint、sshd、home-links-init、home-init、Atuin client、Git 和 OpenSSH client；
+- 现有 s6 entrypoint、sshd、home-init、Atuin client、Git 和 OpenSSH client；
 - s6 转储到 `/run/s6/container_environment` 的容器环境仅 root 和 `x` 可读；
-- `workspace-init` s6 oneshot，`workspace-crypt` 依赖它；把挂载的 `/workspace`、`/workspace.enc`、`/upload`
-  与 `/cache` 都 `chown` 为 `5230:5230`（三个数据 mount 均由控制面按实例 bind 宿主目录，rootful Podman
-  直接透传所有权）；
-- `workspace-crypt` s6 oneshot，依赖 `workspace-init`；`home-links-init`、`workspace-deploy-key` 与两个
-  WebDAV 服务依赖它，`sshd` 和 `home-init` 依赖 `home-links-init`，`workspace-bootstrap` 与
-  `workspace-agent` 再依赖 `workspace-deploy-key`。
+- `workspace-init` s6 oneshot，`workspace-crypt` 依赖它；把挂载的 `/workspace`、`/workspace.enc`、`/upload`、
+  `/cache` 与五个 IDE home目录都 `chown` 为 `5230:5230`（数据 mount 均由控制面按实例 bind 宿主目录，
+  rootful Podman直接透传所有权）；
+- `workspace-crypt` s6 oneshot，依赖 `workspace-init`；`sshd`、`home-init`、`workspace-deploy-key` 与两个
+  WebDAV 服务依赖它，`workspace-bootstrap` 与 `workspace-agent` 再依赖 `workspace-deploy-key`。
   它以用户 `x` 执行 `/opt/codespace/bin/codespace-workspace-crypt`。
   以容器环境变量 `WORKSPACE_CRYPT_KEY` 是否注入为信号自适应（对齐控制面 workspace 的 `encrypt_workspace`）：
   未注入则跳过、`/workspace` 保持明文 bind；注入则用 gocryptfs（`/opt/bm/bin/gocryptfs`）把密文根
@@ -84,17 +85,16 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
 - `gitconfig-init` s6 oneshot，无依赖：baked `rootfs/home/x/.gitconfig` 里 `[user]` 的 name/email 注释掉
   并开 `useConfigOnly = true`（镜像不含身份，误配时 commit 直接报错），boot 时该 oneshot 的 `up` 直接用
   execline 跑 `git config --global` 写入 `user.name`/`user.email`（幂等，无独立脚本）；
-- `home-links-init` s6 oneshot以用户 `x` 把 `~/.vscode-server`、`~/.trae-server`、
-  `~/.trae-cn-server` 等 IDE目录切换为 `/cache` 下的持久化软链；`sshd` 等它完成，避免 IDE连接与目录替换
-  并发。`home-init` 是受监督 longrun，依赖 `home-links-init`，异步执行扩展播种、docker scene dotfiles、
-  agent playbook与 user rules初始化；完成或失败后保持运行。managed模式分别写
+- `home-init` 是受监督 longrun，依赖 `workspace-crypt`，异步执行扩展播种、docker scene dotfiles、
+  agent playbook与 user rules初始化；五个 IDE home目录在 container创建时已由控制面直接挂载，不需 boot
+  时替换目录。`home-init` 完成或失败后保持运行，managed模式分别写
   `control/home.ready`、`control/home.failed`，通用镜像模式不写 control marker；
 - `rclone-webdav` 和 `copyparty-webdav` s6 longrun 均依赖 `workspace-crypt`，以用户 `x` 分别监听 8004、8005；
   监听地址复用 `SSHD_BIND`（host 默认 `127.0.0.1`，bridge 为 `0.0.0.0`）。两者根目录均只含 `/workspace`
   （复用容器内 `/workspace`，WebDAV 层只读）和 `/upload`（uid/gid `5230:5230` 的 writable 目录，允许完整读写）。
   `/upload` 由控制面按实例 bind 宿主目录，跨 container stop/start 与重建都保留，仅 purge 删除该实例宿主目录时
-  丢失，无 quota 或备份。`/cache` 同为按实例 bind 的宿主目录（构建/工具缓存，以及 `home-links-init` 在 boot 时
-  把 `~/.vscode-server`、`~/.trae-server`、`~/.trae-cn-server` 等 IDE 远端 server 目录软链持久化的落点），但不经 WebDAV 暴露。
+  丢失，无 quota 或备份。`/cache` 同为按实例 bind 的宿主目录，用于构建/工具缓存；其下五个 IDE 子目录
+  同时直接挂载到对应 home路径以持久化 IDE 远端 server 与配置，但不经 WebDAV 暴露。
   `rclone` 只读暴露 workspace；
 - 两个 WebDAV 服务均关闭归档、索引、缩略图、媒体处理、分享、管理/状态接口、跨站 CORS、服务发现及
   FTP/FTPS/SFTP/TFTP，`rclone` 另关 HTML 目录页、`copyparty` 关 HTML/脚本渲染及所有可独立关闭的 Web UI 扩展。

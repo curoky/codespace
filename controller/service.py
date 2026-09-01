@@ -205,6 +205,7 @@ class CodespaceService:
                 paths.workspace,
                 paths.upload,
                 paths.cache,
+                *(mount[0] for mount in paths.home_cache_mounts),
                 paths.control,
             ],
         )

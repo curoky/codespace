@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-# 把构建期预装的扩展播种到各 IDE 远端 server（server 目录已软链到持久化的 /cache）。
+# 把构建期预装的扩展播种到各 IDE 远端 server 持久化目录。
 bash /opt/devspace/images/dev/script/seed-vscode-extensions.sh \
   /home/x/.vscode-server /home/x/.trae-server /home/x/.trae-cn-server
 

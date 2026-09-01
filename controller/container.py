@@ -101,6 +101,8 @@ def create_container(
     # the image mounts the decrypted /workspace at boot. Plaintext workspaces bind
     # the host dir straight to /workspace and inject nothing. /upload and /cache
     # always bind sibling plaintext directories below the same instance root.
+    # IDE state stays below the host cache and is also mounted at each tool's
+    # canonical home directory.
     encrypt = spec.workspace.encrypt_workspace
     if encrypt:
         _require_secret_exists(client, WORKSPACE_CRYPT_SECRET)
@@ -125,12 +127,22 @@ def create_container(
             "source": paths.cache,
             "target": CACHE_MOUNT,
         },
+    ]
+    for source, target in paths.home_cache_mounts:
+        mounts.append(
+            {
+                "type": "bind",
+                "source": source,
+                "target": target,
+            }
+        )
+    mounts.append(
         {
             "type": "bind",
             "source": paths.control,
             "target": CONTROL_MOUNT,
-        },
-    ]
+        }
+    )
     mounts.extend(
         {
             "type": "bind",

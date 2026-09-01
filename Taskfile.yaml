@@ -34,7 +34,6 @@ tasks:
         shfmt -w -i 2 -s -ci
         images/dev/rootfs/opt/codespace/bin/codespace-*
         images/dev/script/home-init.sh
-        images/dev/script/home-links-init.sh
         images/dev/tests/*.bats
 
   fmt:check:
@@ -48,7 +47,6 @@ tasks:
         shfmt -d -i 2 -s -ci
         images/dev/rootfs/opt/codespace/bin/codespace-*
         images/dev/script/home-init.sh
-        images/dev/script/home-links-init.sh
         images/dev/tests/*.bats
 
   lint:
@@ -62,7 +60,6 @@ tasks:
         shellcheck
         images/dev/rootfs/opt/codespace/bin/codespace-*
         images/dev/script/home-init.sh
-        images/dev/script/home-links-init.sh
         images/dev/tests/*.bats
 
   typecheck:

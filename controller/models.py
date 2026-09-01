@@ -20,12 +20,22 @@ type PlatformSelection = Literal["native", "linux/amd64", "linux/arm64"]
 CONTAINER_USER = "x"
 CONTAINER_UID = 5230
 CONTAINER_GID = 5230
+CONTAINER_HOME = f"/home/{CONTAINER_USER}"
 WORKSPACE_MOUNT = "/workspace"
 # Each workspace instance also gets a persistent upload inbox, build cache and
 # private control socket directory. All mounts are siblings below one instance root.
 UPLOAD_MOUNT = "/upload"
 CACHE_MOUNT = "/cache"
 CONTROL_MOUNT = "/run/codespace-control"
+# IDE state remains grouped below the instance cache directory on the host, but
+# is mounted at each tool's canonical home path inside the container.
+HOME_CACHE_MOUNTS = (
+    (".vscode-server", f"{CONTAINER_HOME}/.vscode-server"),
+    (".trae", f"{CONTAINER_HOME}/.trae"),
+    (".trae-cn", f"{CONTAINER_HOME}/.trae-cn"),
+    (".trae-server", f"{CONTAINER_HOME}/.trae-server"),
+    (".trae-cn-server", f"{CONTAINER_HOME}/.trae-cn-server"),
+)
 # The host workspace is bind-mounted to the gocryptfs cipher directory; the
 # image mounts the decrypted plaintext at WORKSPACE_MOUNT at boot, so only
 # ciphertext ever reaches host disk while every /workspace consumer is unchanged.
@@ -150,6 +160,10 @@ class InstancePaths:
     upload: str
     cache: str
     control: str
+
+    @property
+    def home_cache_mounts(self) -> tuple[tuple[str, str], ...]:
+        return tuple((f"{self.cache}/{name}", target) for name, target in HOME_CACHE_MOUNTS)
 
 
 @dataclass(frozen=True, slots=True)

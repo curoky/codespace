@@ -79,6 +79,12 @@ RUN /tmp/setup-sysconf.sh \
   && install -d -o 5230 -g 5230 -m 0755 /workspace.enc \
   && install -d -o 5230 -g 5230 -m 0700 /upload \
   && install -d -o 5230 -g 5230 -m 0755 /cache \
+  && install -d -o 5230 -g 5230 -m 0755 \
+    /home/x/.vscode-server \
+    /home/x/.trae \
+    /home/x/.trae-cn \
+    /home/x/.trae-server \
+    /home/x/.trae-cn-server \
   && chown 5230:5230 /opt \
   && chown -R 5230:5230 /opt/codespace \
   && chmod -R +x /opt/codespace/bin \
@@ -139,8 +145,8 @@ RUN UV_LINK_MODE=copy uv sync --project /opt/codespace --locked --no-dev --pytho
 # setup devspace
 # Cross-scene home configs are baked at their $HOME paths via `COPY rootfs/ /`
 # above, so no build-time setup.sh copy is needed. The only runtime-specific
-# bits (trae / vscode-server templates) live in dirs that home-links-init relinks onto
-# /workspace at boot, so they are (re)applied then via `setup.sh docker`.
+# bits (trae / vscode-server templates) live in persistent directories mounted
+# over their home paths, so they are (re)applied at boot via `setup.sh docker`.
 COPY --chown=5230:5230 ./ /opt/devspace
 RUN ln -s /opt/devspace ~/devspace
 
