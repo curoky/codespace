@@ -2,8 +2,8 @@
 
 本文是仓库整体架构、目录职责、仓库级常用操作与跨组件契约的事实来源。子组件契约见
 [`controller/AGENTS.md`](controller/AGENTS.md)、[`images/dev/AGENTS.md`](images/dev/AGENTS.md)、
-[`images/sidecar/AGENTS.md`](images/sidecar/AGENTS.md)、[`images/wsl/AGENTS.md`](images/wsl/AGENTS.md)、
-[`images/llm/AGENTS.md`](images/llm/AGENTS.md)。
+[`images/deployments/sidecar/AGENTS.md`](images/deployments/sidecar/AGENTS.md)、[`images/wsl/AGENTS.md`](images/wsl/AGENTS.md)、
+[`images/deployments/vllm/AGENTS.md`](images/deployments/vllm/AGENTS.md)、[`images/deployments/sglang/AGENTS.md`](images/deployments/sglang/AGENTS.md)、[`images/deps/AGENTS.md`](images/deps/AGENTS.md)。
 修改本文覆盖的内容或某子组件契约时，必须在同一变更中同步更新对应 `AGENTS.md`。
 
 ## 目标
@@ -17,7 +17,7 @@
 | --- | --- |
 | `dotfiles/` | 非容器场景专属配置（macOS 桌面/host）与 host 入口 `setup.sh`；跨场景 home 配置见 `images/dev/rootfs/home/x/` |
 | `controller/` | 本地单进程控制面：配置、Podman transport、生命周期、API、Web UI、维护 CLI 和测试 |
-| `images/` | 开发镜像（`dev/`）、host 级共享服务镜像（`sidecar/`）、WSL 发行版镜像（`wsl/`）与 host 级 LLM serving 镜像（`llm/`），各带子目录 `AGENTS.md` |
+| `images/` | 开发镜像（`dev/`）、host 级部署镜像（`deployments/`，含 sidecar、vllm、sglang）、WSL 发行版镜像（`wsl/`）与源码编译依赖镜像（`deps/`），各带子目录 `AGENTS.md` |
 | `host/` | macOS 主机支持（LaunchAgent、Podman/Colima 启动、Homebrew 与静态包） |
 | `tools/` | CI、hook 和仓库维护脚本 |
 | `.github/workflows/` | 测试、镜像构建、发布和 registry 清理 |
@@ -39,8 +39,8 @@
   跨场景 home 配置从 `rootfs/home/x` 建软链（单一来源），场景专属配置从 `dotfiles/` 取；`docker` scene 只在
   运行期补写被挂载目录内的模板。`link_path` 建软链，`copy_path` 以 `0600` 复制需独立权限的配置；`CONF_PATH`
   默认 `$HOME/devspace/dotfiles`，可由第二参数覆盖。`dotfiles/archive/` 只存未启用历史配置，不被加载。
-- **镜像**：`images/dev/` 构建 Codespace 基础与参考开发镜像，`images/sidecar/` 构建 host 级共享服务镜像，
-  `images/llm/` 构建 host 级 LLM serving 镜像，并保留可在 GPU host 直接创建标准 deployment 容器的
+- **镜像**：`images/dev/` 构建 Codespace 基础与参考开发镜像，`images/deployments/sidecar/` 构建 host 级共享服务镜像，
+  `images/deployments/vllm/`、`images/deployments/sglang/` 构建 host 级 LLM serving 镜像，并保留可在 GPU host 直接创建标准 deployment 容器的
   `run.sh`；`images/wsl/` 以 dev 镜像为 `FROM` 二次处理出 WSL2 rootfs。开发镜像由 s6 启动逐 instance
   Python agent，控制面经 HTTP over UDS调用容器内 workspace操作。契约见各子目录 `AGENTS.md`。
 - **控制面**：`controller/` 是完整本地单进程控制面（配置、Podman transport、生命周期、Git provider、
@@ -79,7 +79,7 @@ uv run python -m controller
 
 # 本地构建镜像（不发布，发布由 .github/workflows/ 管理）
 images/dev/build.sh
-images/sidecar/build.sh
+images/deployments/sidecar/build.sh
 
 # 在目标 Git 仓库根目录生成 SSH key，并配置当前仓库使用该 key
 $HOME/devspace/tools/setup-git-deploy-key.sh
@@ -142,9 +142,9 @@ $HOME/devspace/tools/setup-git-deploy-key.sh
   非容器场景才需的配置放 `dotfiles/<tool>/`，并在 `dotfiles/setup.sh` 相应 scene 里接线。
 - 修改 Codespace 配置、生命周期、API、host contract：同步更新 [`controller/AGENTS.md`](controller/AGENTS.md)；
   涉及开发镜像更新 [`images/dev/AGENTS.md`](images/dev/AGENTS.md)，涉及 sidecar 更新
-  [`images/sidecar/AGENTS.md`](images/sidecar/AGENTS.md)；影响跨组件契约时同步本文。
+  [`images/deployments/sidecar/AGENTS.md`](images/deployments/sidecar/AGENTS.md)；影响跨组件契约时同步本文。
 - 不修改与任务无关的 s6、Atuin client、Ollama、home-init、sshd。
-- Host 共享服务资产只放 `images/sidecar/`，不进 workspace 生命周期模块；sidecar inventory 与 environment
+- Host 共享服务资产只放 `images/deployments/sidecar/`，不进 workspace 生命周期模块；sidecar inventory 与 environment
   inventory 必须分离。除 sidecar image-prewarm 的宿主 Podman socket 例外外，sidecar 不包含 Podman socket、
   Python HTTP agent 或 workspace mount。
 - 本地控制面的 Python、静态资源、启动器和测试全放在 `controller/`；Web UI 使用原生静态资源，不引入
@@ -155,8 +155,8 @@ $HOME/devspace/tools/setup-git-deploy-key.sh
 
 - [`controller/AGENTS.md`](controller/AGENTS.md)、[`controller/DESIGN.md`](controller/DESIGN.md)、
   [`images/dev/AGENTS.md`](images/dev/AGENTS.md)、
-  [`images/dev/dev-environment.md`](images/dev/dev-environment.md)、[`images/sidecar/AGENTS.md`](images/sidecar/AGENTS.md)、
-  [`images/wsl/AGENTS.md`](images/wsl/AGENTS.md)、[`images/llm/AGENTS.md`](images/llm/AGENTS.md)。
+  [`images/dev/dev-environment.md`](images/dev/dev-environment.md)、[`images/deployments/sidecar/AGENTS.md`](images/deployments/sidecar/AGENTS.md)、
+  [`images/wsl/AGENTS.md`](images/wsl/AGENTS.md)、[`images/deployments/vllm/AGENTS.md`](images/deployments/vllm/AGENTS.md)、[`images/deployments/sglang/AGENTS.md`](images/deployments/sglang/AGENTS.md)。
 - `docs/codespace-image-ghcr-timeout-investigation.md`：多架构镜像访问 GHCR 超时调查记录。
 - `docs/nix-build-ssl-cert-enterprise-gateway-investigation.md`：Nix 构建企业网关证书问题排查记录。
 

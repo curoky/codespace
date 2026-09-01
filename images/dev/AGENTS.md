@@ -5,7 +5,7 @@ Node.js、Go、uv、Conda、dotfiles 和自建 s6 init。
 
 本文是开发镜像结构、s6 init、容器 SSH 契约与镜像 host contract 的事实来源。整体架构见仓库根
 [`AGENTS.md`](../../AGENTS.md)，消费方契约见 [`controller/AGENTS.md`](../../controller/AGENTS.md)，
-host 级共享服务见 [`images/sidecar/AGENTS.md`](../sidecar/AGENTS.md)，容器内工具路径见
+host 级共享服务见 [`images/deployments/sidecar/AGENTS.md`](../deployments/sidecar/AGENTS.md)，容器内工具路径见
 [`dev-environment.md`](dev-environment.md)。修改本目录契约时必须同步更新本文。
 
 ## 目录

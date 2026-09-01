@@ -1,6 +1,6 @@
 # Qwen3.8-Flash-Next-FP8 serving image (vLLM engine).
 #
-# Base image and assembly aligned with images/sidecar/Dockerfile: debian:trixie-slim
+# Base image and assembly aligned with images/deployments/sidecar/Dockerfile: debian:trixie-slim
 # with binman-installed standalone s6/execline as PID 1 and services under
 # rootfs/etc/s6/s6-rc.d.
 #
@@ -28,7 +28,7 @@ RUN apt-get update -y \
     bash ca-certificates curl zstd libgomp1 \
   && rm -rf /var/lib/apt/lists/*
 
-COPY images/llm/vllm/binman.yaml /tmp/binman.yaml
+COPY images/deployments/vllm/binman.yaml /tmp/binman.yaml
 RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
     | bash -s -- --prefix /opt/bm/bin \
   && /opt/bm/bin/bm sync /tmp/binman.yaml
@@ -63,7 +63,7 @@ RUN /opt/bm/bin/uv venv "${LLM_VENV}" --python 3.12 \
 ENV PATH="/opt/llm/venv/bin:/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:$PATH"
 
 COPY images/dev/rootfs/etc/s6/skel /etc/s6/skel
-COPY images/llm/vllm/rootfs/ /
+COPY images/deployments/vllm/rootfs/ /
 RUN chmod +x /opt/llm/serve.sh
 COPY images/dev/script/setup-s6.sh /tmp/setup-s6.sh
 RUN /tmp/setup-s6.sh

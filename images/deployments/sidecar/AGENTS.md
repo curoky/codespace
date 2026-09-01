@@ -46,10 +46,10 @@
 在仓库根构建镜像；`run-*.sh` 仅用于镜像本地 smoke test（先注册宿主 Podman secret）：
 
 ```bash
-images/sidecar/build.sh
+images/deployments/sidecar/build.sh
 printf '%s' "$ATUIN_DB_URI" | podman secret create atuin_db_uri -
-images/sidecar/run-linux.sh
-images/sidecar/run-macos.sh
+images/deployments/sidecar/run-linux.sh
+images/deployments/sidecar/run-macos.sh
 ```
 
 两个启动器都替换固定名称 container、配置 Podman restart policy，并 bind-mount 宿主
@@ -76,7 +76,7 @@ loopback。两个 smoke-test 启动器不接受端口配置，开发镜像中的
 ## 控制面边界
 
 Sidecar 现由控制面作为 host 级 **deployment** 原生管理（配置项 `deployments.sidecar`，见
-[`controller/DESIGN.md`](../../controller/DESIGN.md#deployment-reconcile)）：容器名 `codespace-sidecar`、只带
+[`controller/DESIGN.md`](../../../controller/DESIGN.md#deployment-reconcile)）：容器名 `codespace-sidecar`、只带
 `codespace.deployment*` label、经 `hosts.<host>.deployments` 选择落到哪些 host，UI 上点 Deploy/Clean 即完成
 reconcile 与清理。Atuin 用外部数据库、无持久服务数据，故 deployment 通常无需 `${DEPLOYMENT_DATA}` volume；
 `atuin_db_uri` 仍以 `env` 注入且须先经 `sync_secrets` 注册，缺失即 fail-fast。服务端口由
@@ -86,5 +86,5 @@ reconcile 与清理。Atuin 用外部数据库、无持久服务数据，故 dep
 `run-linux.sh` 与 `run-macos.sh` 只验证镜像运行契约，不是另一套生产生命周期，不得引入独立配置。
 
 修改 sidecar 部署形态（label、inventory、容器块、注入 secret）时，必须用最终 label 和 API 同步更新本文、根
-[`AGENTS.md`](../../AGENTS.md)、[`controller/AGENTS.md`](../../controller/AGENTS.md) 与
-[`controller/DESIGN.md`](../../controller/DESIGN.md)。
+[`AGENTS.md`](../../../AGENTS.md)、[`controller/AGENTS.md`](../../../controller/AGENTS.md) 与
+[`controller/DESIGN.md`](../../../controller/DESIGN.md)。

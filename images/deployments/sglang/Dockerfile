@@ -1,6 +1,6 @@
 # Qwen3.8-Flash-Next-FP8 serving image (SGLang engine).
 #
-# Base image and assembly aligned with images/sidecar/Dockerfile: debian:trixie-slim
+# Base image and assembly aligned with images/deployments/sidecar/Dockerfile: debian:trixie-slim
 # with binman-installed standalone s6/execline as PID 1 and services under
 # rootfs/etc/s6/s6-rc.d.
 #
@@ -27,6 +27,19 @@
 # below. The devel image is ubuntu-based but the toolkit dir is OS-agnostic.
 ARG CUDA_DEVEL_IMAGE=docker.io/nvidia/cuda:12.9.1-devel-ubuntu24.04
 FROM ${CUDA_DEVEL_IMAGE} AS cuda
+# Slim the toolkit before it is copied into the final image. The devel toolkit is
+# ~7.3 GiB, dominated by ~3.7 GiB of static libraries (*.a) that deep_gemm's JIT
+# never uses (it links dynamically), plus NPP image-processing libs and docs that
+# are irrelevant here. Deleting them in this stage keeps the COPY layer small
+# (deleting after COPY would only add a whiteout layer, not shrink the image).
+# nvcc, nvvm, headers and the shared runtime/nvrtc libs deep_gemm needs stay.
+ARG CUDA_HOME_DIR=/usr/local/cuda-12.9
+RUN set -eux; \
+  find "${CUDA_HOME_DIR}" -name '*.a' -delete; \
+  rm -rf "${CUDA_HOME_DIR}"/targets/*/lib/libnpp* \
+         "${CUDA_HOME_DIR}"/doc "${CUDA_HOME_DIR}"/share "${CUDA_HOME_DIR}"/src \
+         "${CUDA_HOME_DIR}"/compute-sanitizer "${CUDA_HOME_DIR}"/extras \
+         "${CUDA_HOME_DIR}"/compat
 
 FROM docker.io/debian:trixie-slim
 
@@ -50,7 +63,7 @@ COPY --from=cuda "${CUDA_HOME_DIR}" "${CUDA_HOME_DIR}"
 ENV CUDA_HOME="${CUDA_HOME_DIR}"
 ENV PATH="${CUDA_HOME_DIR}/bin:$PATH"
 
-COPY images/llm/sglang/binman.yaml /tmp/binman.yaml
+COPY images/deployments/sglang/binman.yaml /tmp/binman.yaml
 RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
     | bash -s -- --prefix /opt/bm/bin \
   && /opt/bm/bin/bm sync /tmp/binman.yaml
@@ -81,6 +94,18 @@ RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs
 # -- the OpenAI-compatible HTTP server (sglang.launch_server) does not use them.
 # Default to `none` to skip cargo entirely; set `all` (and add a Rust toolchain)
 # if you need those entrypoints.
+#
+# cu13 cleanup (last steps of the RUN): installing sglang (its deps request the
+# cu13 flavor) and then force-reinstalling the cu129 torch trio leaves a full
+# duplicate set of nvidia-*-cu13 wheels (~2 GiB under nvidia/cu13/ plus
+# overlapping libs) that a driver-535 / CUDA-12 host can never load (cu13 needs
+# driver >=580). We uninstall every nvidia package whose version is 13.x or whose
+# name ends in _cu13 (keeping nvidia_ml_py) and delete the exclusive nvidia/cu13/
+# tree. Because cu12 and cu13 co-own the cudnn/cusparselt/nccl/nvshmem dirs,
+# uninstalling cu13 also deletes the shared .so files torch needs, so we then
+# reinstall those four cu12 libs to repair torch (otherwise `import torch` dies
+# with `libcudnn.so.9: cannot open shared object file`). Finally drop the sglang
+# .git history (only needed to build) and assert torch still reports CUDA 12.x.
 ARG SGLANG_REF=pull/36497/head
 ARG CUDA_TAG=cu129
 ARG TORCH_SPEC="torch==2.13.0 torchvision==0.28.0 torchaudio==2.11.0"
@@ -98,12 +123,22 @@ RUN /opt/bm/bin/uv venv "${LLM_VENV}" --python 3.12 \
   && ${LLM_UV} --force-reinstall sglang-kernel \
        --index-url "https://docs.sglang.ai/whl/${CUDA_TAG}/" \
   && ${LLM_UV} --force-reinstall sgl-deep-gemm --no-deps \
-       --index-url "https://docs.sglang.ai/whl/${CUDA_TAG}/"
+       --index-url "https://docs.sglang.ai/whl/${CUDA_TAG}/" \
+  && CU13_PKGS="$(ls -d ${LLM_VENV}/lib/python3.12/site-packages/*.dist-info \
+       | sed 's#.*/##;s/.dist-info//' \
+       | awk -F- '/^nvidia/ {name=$1; ver=$2; if (ver ~ /^13\./ || name ~ /_cu13$/) print name}' \
+       | grep -vE 'nvidia_ml_py')" \
+  && for p in ${CU13_PKGS}; do /opt/bm/bin/uv pip uninstall --python ${LLM_VENV}/bin/python "$p"; done \
+  && rm -rf ${LLM_VENV}/lib/python3.12/site-packages/nvidia/cu13 \
+  && ${LLM_UV} --reinstall --index-url "https://download.pytorch.org/whl/${CUDA_TAG}" \
+       nvidia-cudnn-cu12 nvidia-cusparselt-cu12 nvidia-nccl-cu12 nvidia-nvshmem-cu12 \
+  && rm -rf /opt/llm/sglang/.git \
+  && ${LLM_VENV}/bin/python -c "import torch; assert torch.version.cuda.startswith('12'), torch.version.cuda"
 
 ENV PATH="/opt/llm/venv/bin:/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:$PATH"
 
 COPY images/dev/rootfs/etc/s6/skel /etc/s6/skel
-COPY images/llm/sglang/rootfs/ /
+COPY images/deployments/sglang/rootfs/ /
 RUN chmod +x /opt/llm/serve.sh
 COPY images/dev/script/setup-s6.sh /tmp/setup-s6.sh
 RUN /tmp/setup-s6.sh

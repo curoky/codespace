@@ -4,7 +4,7 @@ on:
   push:
     paths:
       - '.github/workflows/build-codespace-sidecar.yaml'
-      - 'images/sidecar/**'
+      - 'images/deployments/sidecar/**'
       - 'images/dev/rootfs/etc/s6/skel/**'
       - 'images/dev/script/setup-s6.sh'
   schedule:
@@ -30,7 +30,7 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: .
-          file: images/sidecar/Dockerfile
+          file: images/deployments/sidecar/Dockerfile
           push: true
           provenance: false
           platforms: linux/amd64,linux/arm64
