@@ -340,8 +340,6 @@ def test_reset_control_state_removes_stale_runtime_files(
     assert command[-2] == "home"
     assert f"chmod 0700 -- {control}" in command[-1]
     assert f"rm -f -- {control}/agent.sock" in command[-1]
-    assert f"{control}/bootstrap.failed" in command[-1]
-    assert f"{control}/bootstrap.ready" in command[-1]
     assert f"{control}/provider-ready" in command[-1]
     assert kwargs["stdin"] == subprocess.DEVNULL
 

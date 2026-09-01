@@ -106,9 +106,9 @@ task check
   `unless-stopped` 启动。purge 额外删除托管数据目录。
 - 长操作只在进程内 operation store 保存 `queued/running/failed` 状态；进程重启后不恢复。
 - 镜像内 `home-init` s6 oneshot对所有 workspace（含通用镜像场景）无条件生成或复用 deploy key；
-  `workspace-bootstrap` s6 longrun按容器环境自动执行 checkout和 open-path helper，完成后保持运行；
-  `workspace-agent` 只暴露 `/status`、`/git-state`，通过 control marker聚合 bootstrap和home初始化，
-  并直接执行只读 Git查询。控制面不得通过 Podman exec调用镜像 helper。
+  `workspace-agent` 进程内后台 bootstrap 线程按容器环境自动执行 checkout 并创建 open path，只暴露
+  `/status`、`/git-state`，bootstrap 状态与诊断由进程内存维护（无 marker 文件），并直接执行只读 Git
+  查询。控制面不得通过 Podman exec调用镜像 helper。
 
 ## Web 契约
 

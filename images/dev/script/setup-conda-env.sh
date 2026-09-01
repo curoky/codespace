@@ -72,7 +72,6 @@ echo "clean_cache: $clean_cache"
 
 env_name=$(grep -oP "name: \K\S+" $env_file)
 python_version=$(grep -oP " python=\K\S+" $env_file)
-# python_short_version=$(conda run -n $env_name python --version 2>&1 | awk '{print $2}' | cut -d '.' -f1,2)
 python_short_version=$(grep -oP " python=\K\S+" $env_file | cut -d '.' -f1,2)
 
 echo "create $env_name($env_file) on $conda_root with python_version=$python_version, python_short_version=$python_short_version"

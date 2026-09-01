@@ -7,7 +7,7 @@
 #   1. sudo chown  把五个持久化 IDE home mount 归属到 5230:5230（`x` 有 NOPASSWD sudo）
 #   2. 无条件生成或复用容器内 deploy key（私钥不出容器，控制面只读公钥）
 #   3. 耗时 home 初始化：扩展播种、docker scene dotfiles、agent playbook 与 user rules
-# 成功返回即视为 home 初始化完成，workspace-bootstrap 与 workspace-agent 依赖本服务；
+# 成功返回即视为 home 初始化完成，workspace-agent 依赖本服务；
 # 任一步失败都让脚本非零退出、oneshot 失败，排查读 /var/log/home-init.log。
 
 set -euo pipefail
@@ -24,11 +24,12 @@ if [[ ! -f /home/x/.ssh/repo_id_ed25519 ]]; then
 fi
 chmod 0600 /home/x/.ssh/repo_id_ed25519
 
-# 把构建期预装的扩展播种到各 IDE 远端 server 持久化目录。
 /opt/codespace/bin/seed-vscode-extensions \
   /home/x/.vscode-server /home/x/.trae-server /home/x/.trae-cn-server
 
 bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles
+
 bash /opt/agent-playbook/install.sh
+
 cp /opt/devspace/images/dev/dev-environment.md /home/x/.trae/user_rules/
 cp /opt/devspace/images/dev/dev-environment.md /home/x/.trae-cn/user_rules/

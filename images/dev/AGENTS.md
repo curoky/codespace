@@ -29,21 +29,19 @@ host 级共享服务见 [`images/sidecar/AGENTS.md`](../sidecar/AGENTS.md)，容
 具体逻辑一律在 helper 脚本里，不写进 execline。`workspace-init` 是唯一的 workspace 就绪门控 oneshot：
 它以用户 `x` 调用编排脚本 `workspace-init`，先 `sudo chown` 把挂载的 `/workspace`、
 密文根 `/workspace.enc`、`/upload`、`/cache` 都归属到 `5230:5230`（`x` 有 NOPASSWD sudo），再
-在启用加密时以 `x` 用 gocryptfs 把明文挂到 `/workspace`（原独立 `workspace-crypt`
-helper 已并入本脚本，详见 host contract）。
+在启用加密时以 `x` 用 gocryptfs 把明文挂到 `/workspace`（详见 host contract）。
 五个持久化 IDE home mount 的 chown 不在此处，而由 `home-init` 负责（它以 `x` 起、用 sudo chown）。
 `sshd` 和两个 WebDAV 服务都依赖 `workspace-init`；`home-init` 是 oneshot、
 不依赖 `workspace-init`，自管这五个 IDE home mount 的所有权，并在其中无条件生成或复用容器内 deploy key
-（私钥不出容器，控制面只读公钥；不再有独立的 `workspace-deploy-key` 服务）；
-`workspace-bootstrap` 和 `workspace-agent` 均依赖 `home-init`。
+（私钥不出容器，控制面只读公钥）；
+`workspace-agent` 依赖 `home-init`。
 
 runlevel 只有一层：`user-base` 含全部服务（通用镜像服务 + `gitconfig-init` oneshot 写 Git 全局身份，
-以及 Controller 专用的 `workspace-bootstrap`、`workspace-agent`），
-`user-final` 嵌套 `user-base` 作为 maker 默认 runlevel。Controller 专用两服务不再靠单独 runlevel 隔离，
-而是各自按容器环境变量 `CODESPACE_WORKSPACE_TYPE` 是否注入自门控：未注入（devcontainer、WSL、裸
-`podman run` 等通用镜像场景）时 bootstrap 与 agent 空转 `s6-pause`，不 clone、不监听 `agent.sock`；
-deploy key 由 `home-init` 无条件生成，不受此门控影响，所有场景都会生成。`setup-s6.sh` 的
-`s6-linux-init-maker -D user-final` 是唯一 runlevel；不再有 `DEVSPACE_RUNLEVEL` 覆盖机制。
+以及 Controller 专用的 `workspace-agent`），
+`user-final` 嵌套 `user-base` 作为 maker 默认 runlevel。Controller 专用的 `workspace-agent` 按容器环境变量
+`CODESPACE_WORKSPACE_TYPE` 是否注入自门控：未注入（devcontainer、WSL、裸
+`podman run` 等通用镜像场景）时 agent 空转 `signal.pause()`，不 bootstrap、不监听 `agent.sock`；
+deploy key 由 `home-init` 无条件生成，不受此门控影响，所有场景都会生成。
 
 ## 容器 SSH 契约
 
@@ -75,11 +73,10 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
 - s6 转储到 `/run/s6/container_environment` 的容器环境仅 root 和 `x` 可读；
 - `workspace-init` s6 oneshot 是唯一 workspace 就绪门控，`up` 只 `exec` 编排脚本
   `/opt/codespace/bin/workspace-init`（以用户 `x` 起，`up` 用 `s6-setuidgid x`）；`sshd`
-  与两个 WebDAV 服务依赖它，`workspace-bootstrap` 与 `workspace-agent` 再依赖 `home-init`。
+  与两个 WebDAV 服务依赖它，`workspace-agent` 再依赖 `home-init`。
   编排脚本先 `sudo chown`（`x` 有 NOPASSWD sudo，见 `setup-sysconf.sh`），把挂载的 `/workspace`、
   `/workspace.enc`、`/upload`、`/cache` 都 `chown` 为 `5230:5230`（数据 mount 均由控制面按实例 bind 宿主目录，
-  rootful Podman直接透传所有权），再以 `x` 完成加密挂载
-  （原独立 `workspace-crypt` helper 已并入本脚本）。
+  rootful Podman直接透传所有权），再以 `x` 完成加密挂载。
   五个 IDE home目录的 chown 不由本服务承担，改由 `home-init` 自管（见下）。
   该加密挂载以容器环境变量 `WORKSPACE_CRYPT_KEY` 是否注入为信号自适应（对齐控制面 workspace 的
   `encrypt_workspace`）：未注入则跳过、`/workspace` 保持明文 bind；注入则用 gocryptfs（`/opt/bm/bin/gocryptfs`）
@@ -119,7 +116,7 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
 - `supercronic` s6 longrun，监督守护进程并加载 `rootfs/etc/supercronic/crontab`；该 crontab 目前**有意留空**
   （零 job）。加任务写 5 字段（无 user 列）条目。二进制经 binman
   （`script/binman.yaml` 的 `link`）提供，日志写 `/var/log/supercronic.log`；
-- deploy keypair 由 `home-init` 无条件生成或复用（见上），不再有独立 `workspace-deploy-key` 服务；
+- deploy keypair 由 `home-init` 无条件生成或复用（见上）；
   private key 不离开容器。`workspace-bootstrap` 与 `workspace-agent` 都属于唯一 runlevel，按
   `CODESPACE_WORKSPACE_TYPE` 是否注入自门控——未注入则 bootstrap 与 agent 空转（deploy key 仍生成）。
   控制面创建容器时固定注入 `CODESPACE_WORKSPACE_TYPE`、
@@ -142,13 +139,12 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
 - `/opt/codespace/bin/` 下五个 runtime helper 均由 s6启动流程执行，不依赖 controller是否调用；s6 只保留
   少量任务，每个任务的 `up`/`run` 是纯壳，`exec` 到对应编排脚本，编排脚本再按序调用单一职责小脚本：
   `workspace-init`（`workspace-init` oneshot 入口，以 `x` 起）先 `sudo chown` `/workspace`、
-  `/workspace.enc`、`/upload`、`/cache`，再以 `x` 完成加密 workspace 的初始化/挂载
-  （原独立 `workspace-crypt` helper 已并入本脚本）；
+  `/workspace.enc`、`/upload`、`/cache`，再以 `x` 完成加密 workspace 的初始化/挂载；
   `workspace-bootstrap`（`workspace-bootstrap` longrun 入口）按容器环境编排 workspace初始化，
   内联创建 editor open path，并调 `git-checkout` 执行幂等 clone；
   `home-init`（`home-init` oneshot 入口，以 `x` 起）线性编排 home 初始化：先 `sudo chown`
   五个 IDE home目录，再无条件生成或复用 deploy key，随后顺序调用 `seed-vscode-extensions`（播种构建期扩展副本到各 IDE
-  server）、dotfiles、agent playbook 与 user rules（原独立 `home-setup`、`deploy-key` helper 均已并入本脚本）；任一步失败即 oneshot 失败，排查读 `/var/log/home-init.log`。
+  server）、dotfiles、agent playbook 与 user rules；任一步失败即 oneshot 失败，排查读 `/var/log/home-init.log`。
   动态 Git state由 agent直接调用 Git计算，空仓通过 `HEAD` 判断，不依赖 checkout marker。
   修改命令、环境变量或 HTTP contract 时必须同步 Bats、agent测试与控制面。
 

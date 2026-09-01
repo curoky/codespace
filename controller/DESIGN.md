@@ -414,21 +414,20 @@ agent只监听 `/run/codespace-control/agent.sock`，HTTP API固定为：
 | `GET` | `/git-state` | `CODESPACE_CLONE_PATH` 对应 `RepoGitState` |
 
 状态只允许 `starting`、`awaiting-provider`、`ready`、`failed`。单一 runlevel `user-final` 含全部服务；
-`workspace-bootstrap`、`workspace-agent` 按 `CODESPACE_WORKSPACE_TYPE` 是否注入
-自门控（通用镜像未注入时空转），二者在 `workspace-init` 与 `home-init` 后启动，
-`workspace-bootstrap` 与 `workspace-agent` 均依赖 `home-init`：
+`workspace-agent` 按 `CODESPACE_WORKSPACE_TYPE` 是否注入自门控（通用镜像未注入时空转），
+它在 `workspace-init` 与 `home-init` 后启动，依赖 `home-init`：
 
 - deploy keypair 由 `home-init` 无条件生成或复用（所有 workspace 及通用镜像场景都生成），private key
   不离开容器；已并入 home-init, 不再有独立 `workspace-deploy-key` 服务。
-- `workspace-bootstrap` 是受监督 longrun，直接执行 Bash helper并按容器环境选择流程；成功写
-  `bootstrap.ready`，失败写 `bootstrap.failed`，随后保持运行，不占用 s6-rc oneshot事务。
+- bootstrap 逻辑已并入 `workspace_agent.py`：agent 进程启动时拉起一个后台 bootstrap 线程，按容器环境
+  选择流程，成功把内存状态翻到 `ready`、失败翻到 `failed` 并保留有限长度诊断；不再有独立
+  `workspace-bootstrap` 服务，也不再落 `bootstrap.ready`/`bootstrap.failed` marker。
 - 五个 IDE home目录在 container创建时已经直接挂载；`home-init` 是 oneshot，成功返回即视为 home 初始化
-  完成，`workspace-bootstrap` 与 `workspace-agent` 依赖本服务，失败排查读 `/var/log/home-init.log`。
-  `/status` 只看 bootstrap marker：agent能运行即代表 home初始化已成功。
+  完成，`workspace-agent` 依赖本服务，失败排查读 `/var/log/home-init.log`。
 - `repo`：agent从 `/home/x/.ssh/repo_id_ed25519.pub` 返回公钥并进入 `awaiting-provider`；控制面注册
-  deploy key后在 host control目录创建 `provider-ready` marker，bootstrap随后执行 checkout和 open-path helper。
-- `git`：bootstrap直接调用 checkout 和 open-path helper；`blank`：bootstrap只调用 open-path helper。
-- checkout/open-path以用户 `x` 执行；失败 marker使 `/status` 进入 `failed` 并返回有限长度诊断。
+  deploy key后在 host control目录创建 `provider-ready` marker，bootstrap线程随后执行 checkout 并创建 open path。
+- `git`：bootstrap线程直接执行 checkout 并创建 open path；`blank`：bootstrap线程只创建 open path。
+- checkout/open-path以用户 `x` 执行；失败时内存状态转 `failed`，`/status` 返回有限长度诊断。
 - Python只保留一个单文件 `workspace_agent.py` 进程；Pydantic校验环境与响应模型，FastAPI声明固定 route、
   Uvicorn监听 UDS，依赖由 `/opt/codespace/uv.lock` 固定。
 - `/git-state` 仅在 `ready` 的 repo/git workspace 可用，由 agent以用户 `x` 直接执行只读 Git查询。

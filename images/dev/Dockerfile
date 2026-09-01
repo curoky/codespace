@@ -59,7 +59,6 @@ FROM docker.io/$BASE_IMAGE
 
 ENV PATH=${PATH}:/opt/bm/bin \
   DEBIAN_FRONTEND=noninteractive
-  # SSL_CERT_FILE=/opt/bm/store/cacert/etc/ssl/certs/ca-certificates.crt
 
 ARG BASE_IMAGE
 COPY images/dev/script/patch-apt.sh /tmp/patch-apt.sh
