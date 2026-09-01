@@ -98,20 +98,21 @@ def _agent(
     return agent, active_factory
 
 
-def test_s6_managed_bundle_runs_supervised_bootstrap_after_deploy_key() -> None:
+def test_s6_user_base_runs_supervised_bootstrap_after_deploy_key() -> None:
     deploy_key = _S6_ROOT / "workspace-deploy-key"
     bootstrap = _S6_ROOT / "workspace-bootstrap"
     agent = _S6_ROOT / "workspace-agent"
-    managed = _S6_ROOT / "managed-workspace"
+    user_base = _S6_ROOT / "user-base"
 
     assert (deploy_key / "type").read_text(encoding="utf-8").strip() == "oneshot"
     assert (bootstrap / "type").read_text(encoding="utf-8").strip() == "longrun"
     assert (bootstrap / "dependencies.d" / "workspace-deploy-key").is_file()
     assert (agent / "dependencies.d" / "workspace-deploy-key").is_file()
     assert "workspace-bootstrap" in (bootstrap / "run").read_text(encoding="utf-8")
-    assert (managed / "contents.d" / "user-final").is_file()
-    assert (managed / "contents.d" / "workspace-bootstrap").is_file()
-    assert not (_S6_ROOT / "user-base" / "contents.d" / "workspace-bootstrap").exists()
+    # 三个 controller 专用服务并入单一 runlevel user-base, 按 CODESPACE_WORKSPACE_TYPE 自门控.
+    for service in ("workspace-deploy-key", "workspace-bootstrap", "workspace-agent"):
+        assert (user_base / "contents.d" / service).is_file()
+    assert not (_S6_ROOT / "managed-workspace").exists()
 
 
 def test_s6_initializes_workspace_before_sshd_and_home() -> None:
@@ -122,13 +123,9 @@ def test_s6_initializes_workspace_before_sshd_and_home() -> None:
     assert (home / "type").read_text(encoding="utf-8").strip() == "longrun"
     assert (home / "dependencies.d" / "workspace-init").is_file()
     assert (sshd / "dependencies.d" / "workspace-init").is_file()
-    # workspace-init up 是纯调用壳；chown 目标在编排脚本调用的 workspace-chown 中。
-    assert "workspace-init" in (workspace_init / "up").read_text(
-        encoding="utf-8"
-    )
-    chown_script = (
-        _AGENT_ROOT / "bin" / "workspace-chown"
-    ).read_text(encoding="utf-8")
+    # workspace-init up 是纯调用壳; chown 目标已内联进编排脚本 workspace-init 自身.
+    assert "workspace-init" in (workspace_init / "up").read_text(encoding="utf-8")
+    init_script = (_AGENT_ROOT / "bin" / "workspace-init").read_text(encoding="utf-8")
     for target in (
         "/home/x/.vscode-server",
         "/home/x/.trae",
@@ -136,9 +133,10 @@ def test_s6_initializes_workspace_before_sshd_and_home() -> None:
         "/home/x/.trae-server",
         "/home/x/.trae-cn-server",
     ):
-        assert target in chown_script
+        assert target in init_script
+    assert not (_AGENT_ROOT / "bin" / "workspace-chown").exists()
     assert not (_S6_ROOT / "workspace-crypt").exists()
-    assert not (_S6_ROOT / "gitconfig-init").exists()
+    assert (_S6_ROOT / "gitconfig-init" / "type").read_text(encoding="utf-8").strip() == "oneshot"
     assert not (_S6_ROOT / "home-links-init").exists()
 
 

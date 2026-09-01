@@ -99,11 +99,13 @@ $HOME/devspace/tools/setup-git-deploy-key.sh
    `workspace-init` 是唯一 workspace 就绪门控 oneshot：其编排脚本先以 root 把 `/workspace`、密文根
    `/workspace.enc`、`/upload`、`/cache` 与五个持久化 IDE home mount 都归属到 `5230:5230`，再降权到 `x`
    完成加密挂载（原 `workspace-crypt` 已并入）。`workspace-init` 先于
-   `sshd`、异步 `home-init`（Git 全局身份也在此异步写入，原 `gitconfig-init` 已并入）与 WebDAV 服务。
-   默认 `user-final` 只含通用镜像服务；控制面创建 environment
-   时固定注入 `DEVSPACE_RUNLEVEL=managed-workspace`，额外启动 `workspace-deploy-key`、受监督的
-   `workspace-bootstrap` 和 `workspace-agent`。后两者依赖 deploy key，agent 在 control目录监听
-   `agent.sock`，其 Python runtime依赖由 `images/dev/rootfs/opt/codespace/` 下的独立 uv项目锁定。
+   `sshd`、异步 `home-init` 与 WebDAV 服务；Git 全局身份由独立 `gitconfig-init` oneshot 写入。
+   单一 runlevel `user-final` 含全部服务；`workspace-deploy-key`、`workspace-bootstrap` 和
+   `workspace-agent` 三个 Controller 专用服务按容器环境变量 `CODESPACE_WORKSPACE_TYPE` 是否注入自门控——
+   通用镜像场景（未注入）时 deploy-key 跳过、bootstrap 与 agent 空转，不生成 key、不 clone、不监听
+   `agent.sock`。控制面创建 environment 时固定注入 `CODESPACE_WORKSPACE_TYPE` 等变量激活这三者；后两者
+   依赖 deploy key，agent 在 control目录监听 `agent.sock`，其 Python runtime依赖由
+   `images/dev/rootfs/opt/codespace/` 下的独立 uv项目锁定。
 5. **网络边界**：环境 sshd 只绑定宿主 loopback；访问必须经配置的 SSH host route。
 6. **共享服务**：每个 host 只有一个固定名称的 `codespace-sidecar`，不附属于 workspace/instance。Atuin 仅经
    宿主 loopback 暴露，端口由 `ATUIN_PORT` 配置（默认 `8002`）。sidecar 的 image-prewarm 定时任务是唯一允许

@@ -615,7 +615,7 @@ def test_config_resolved_container_applies_host_and_workspace_overrides() -> Non
 
 @pytest.mark.parametrize(
     "name",
-    ["SSHD_PORT", "DEVSPACE_RUNLEVEL", "CODESPACE_WORKSPACE_TYPE"],
+    ["SSHD_PORT", "CODESPACE_OPEN_PATH", "CODESPACE_WORKSPACE_TYPE"],
 )
 def test_config_rejects_reserved_container_env_key(name: str) -> None:
     with pytest.raises(ValidationError, match="control-plane keys"):

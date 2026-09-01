@@ -95,7 +95,7 @@ task check
 - Podman inventory 是运行状态的唯一事实来源。缺失、非法或与配置不一致的 label 都是显式错误，
   不推断默认值。
 - Environment 创建必须按 `DESIGN.md` 的顺序执行：校验、读取 host 环境、拉镜像、建目录、清理旧 control
-  marker、以 `DEVSPACE_RUNLEVEL=managed-workspace` 和 `CODESPACE_WORKSPACE_*` 环境变量建容器、建立 UDS
+  marker、以 `CODESPACE_WORKSPACE_*` 环境变量建容器、建立 UDS
   tunnel、完成 provider握手以及 bootstrap/home初始化、SSH probe、刷新 SSH投影。
 - `repo` workspace 的镜像在对应容器内生成 deploy key，控制面只经 `/status` 接收公钥；注册后以
   `control/provider-ready` marker放行 checkout。`git` workspace依赖镜像内 SSH配置；`blank` workspace不接触

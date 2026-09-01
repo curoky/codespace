@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import signal
 import socket
 import subprocess
 from collections.abc import Callable, Mapping
@@ -290,6 +291,12 @@ def build_server(
 
 
 def main() -> None:
+    # Controller-managed environments set CODESPACE_WORKSPACE_TYPE. Generic image
+    # runs have no controller, so idle instead of serving the agent socket.
+    if not os.environ.get(WORKSPACE_TYPE_ENV):
+        print(f"{WORKSPACE_TYPE_ENV} unset; workspace agent idle", flush=True)
+        signal.pause()
+        return
     CONTROL_DIR.mkdir(parents=True, exist_ok=True)
     agent = WorkspaceAgent(AgentConfig.load(os.environ))
     server, server_socket = build_server(agent)

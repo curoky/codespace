@@ -27,19 +27,19 @@ host 级共享服务见 [`images/sidecar/AGENTS.md`](../sidecar/AGENTS.md)，容
 脚本用 `s6-envdir -Lf -- /run/s6/container_environment` 读容器环境，该目录仅 root 和 `x` 可读。
 每个 s6 服务的 `up`/`run` 只做「设置 fd/env 后 `exec` 一个 `/opt/codespace/bin/` 编排脚本」的纯壳，
 具体逻辑一律在 helper 脚本里，不写进 execline。`workspace-init` 是唯一的 workspace 就绪门控 oneshot：
-它以 root 调用编排脚本 `workspace-init`，先 `workspace-chown` 把挂载的 `/workspace`、
+它以 root 调用编排脚本 `workspace-init`，先内联 chown 把挂载的 `/workspace`、
 密文根 `/workspace.enc`、`/upload`、`/cache` 与五个持久化 IDE home mount 都归属到 `5230:5230`，再
 `s6-setuidgid x` 调 `workspace-crypt` 在启用加密时把明文挂到 `/workspace`（详见 host contract）。
 `sshd`、异步 `home-init`、`workspace-deploy-key` 和两个 WebDAV 服务都依赖 `workspace-init`；
 `workspace-bootstrap` 和 `workspace-agent` 均依赖 `workspace-deploy-key`。
 
-runlevel 分三层：`user-base` 含通用开发镜像服务，`user-final` 嵌套 `user-base`（gitconfig 已并入
-`home-init` 的 `home-setup`，不再有独立 `gitconfig-init` 服务），`managed-workspace` 再嵌套
-`user-final` 并加入 Controller 专用的 deploy-key、bootstrap 与 agent。`setup-s6.sh` 的
-`s6-linux-init-maker -D user-final` 保持通用镜像默认 runlevel；控制面创建
-environment时固定注入 `DEVSPACE_RUNLEVEL=managed-workspace`。rc.init读取
-`/run/s6/container_environment/DEVSPACE_RUNLEVEL`，非空时覆盖 maker默认；运行期也可
-`s6-rc -up change <bundle>` 在线切换。
+runlevel 只有一层：`user-base` 含全部服务（通用镜像服务 + `gitconfig-init` oneshot 写 Git 全局身份，
+以及 Controller 专用的 `workspace-deploy-key`、`workspace-bootstrap`、`workspace-agent`），
+`user-final` 嵌套 `user-base` 作为 maker 默认 runlevel。Controller 专用三服务不再靠单独 runlevel 隔离，
+而是各自按容器环境变量 `CODESPACE_WORKSPACE_TYPE` 是否注入自门控：未注入（devcontainer、WSL、裸
+`podman run` 等通用镜像场景）时 deploy-key 直接跳过、bootstrap 与 agent 空转 `s6-pause`，
+不生成 key、不 clone、不监听 `agent.sock`。`setup-s6.sh` 的
+`s6-linux-init-maker -D user-final` 是唯一 runlevel；不再有 `DEVSPACE_RUNLEVEL` 覆盖机制。
 
 ## 容器 SSH 契约
 
@@ -72,7 +72,7 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
 - `workspace-init` s6 oneshot 是唯一 workspace 就绪门控，`up` 只 `exec` 编排脚本
   `/opt/codespace/bin/workspace-init`（以 root 起）；`sshd`、`home-init`、`workspace-deploy-key`
   与两个 WebDAV 服务依赖它，`workspace-bootstrap` 与 `workspace-agent` 再依赖 `workspace-deploy-key`。
-  编排脚本先以 root 跑 `workspace-chown`，把挂载的 `/workspace`、`/workspace.enc`、`/upload`、
+  编排脚本先以 root 内联 chown，把挂载的 `/workspace`、`/workspace.enc`、`/upload`、
   `/cache` 与五个 IDE home目录都 `chown` 为 `5230:5230`（数据 mount 均由控制面按实例 bind 宿主目录，
   rootful Podman直接透传所有权），再 `s6-setuidgid x` 调 `workspace-crypt` 完成加密挂载。
   该 crypt helper 以容器环境变量 `WORKSPACE_CRYPT_KEY` 是否注入为信号自适应（对齐控制面 workspace 的
@@ -86,11 +86,11 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
   crypt 经 `s6-setuidgid x` 降权后挂载，`x` 无 CAP_SYS_ADMIN，故 `setup-sysconf.sh` 构建期给
   `fusermount3` 加 setuid root（binman 静态包默认不带该位）；缺 setuid 会以 `fusermount3: mount failed:
   Operation not permitted` 失败。日志写 `/var/log/workspace-init.log`；
-- Git 全局身份由 `home-init` 的 `home-setup` 调用 `gitconfig` 写入（不再有独立
-  `gitconfig-init` s6 服务）：baked `rootfs/home/x/.gitconfig` 里 `[user]` 的 name/email 注释掉
-  并开 `useConfigOnly = true`（镜像不含身份，误配时 commit 直接报错），`gitconfig` 幂等跑
+- Git 全局身份由独立的 `gitconfig-init` s6 oneshot 以用户 `x` 写入：baked
+  `rootfs/home/x/.gitconfig` 里 `[user]` 的 name/email 注释掉
+  并开 `useConfigOnly = true`（镜像不含身份，误配时 commit 直接报错），`gitconfig-init` 幂等跑
   `git config --global` 写入 `user.name`/`user.email`；
-- `home-init` 是受监督 longrun，依赖 `workspace-init`，异步执行扩展播种、gitconfig、docker scene dotfiles、
+- `home-init` 是受监督 longrun，依赖 `workspace-init`，异步执行扩展播种、docker scene dotfiles、
   agent playbook与 user rules初始化（`home-init` 管理 marker，降权后调用 `home-setup`
   执行实际编排）；五个 IDE home目录在 container创建时已由控制面直接挂载，不需 boot
   时替换目录。`home-init` 完成或失败后保持运行，managed模式分别写
@@ -112,11 +112,13 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
   （`script/binman.yaml` 的 `link`）提供，日志写 `/var/log/supercronic.log`；
 - `workspace-deploy-key` s6 oneshot对 repo、git、blank workspace一律以用户 `x` 执行
   `/opt/codespace/bin/deploy-key`，在 `/home/x/.ssh/` 生成或复用 deploy keypair；
-  private key不离开容器。该服务与 bootstrap、agent仅属于 `managed-workspace` bundle。控制面创建容器时
-  固定注入 `DEVSPACE_RUNLEVEL=managed-workspace`、`CODESPACE_WORKSPACE_TYPE`、
+  private key不离开容器。该服务与 bootstrap、agent 都属于唯一 runlevel，按 `CODESPACE_WORKSPACE_TYPE`
+  是否注入自门控——未注入则 deploy-key 跳过、bootstrap 与 agent 空转。控制面创建容器时
+  固定注入 `CODESPACE_WORKSPACE_TYPE`、
   `CODESPACE_CLONE_URL`（blank不注入）、`CODESPACE_CLONE_PATH` 和 `CODESPACE_OPEN_PATH`；这些保留变量
   不得被用户 container environment或 env secret覆盖。`workspace-bootstrap` s6 longrun执行
-  `/opt/codespace/bin/workspace-bootstrap`：repo等待 `control/provider-ready`，git直接继续，
+  `/opt/codespace/bin/workspace-bootstrap`：`CODESPACE_WORKSPACE_TYPE` 未注入时直接 `s6-pause` 空转，
+  repo等待 `control/provider-ready`，git直接继续，
   blank跳过 checkout，随后调用 checkout/open-path helper；成功写 `control/bootstrap.ready`，失败写
   `control/bootstrap.failed`，然后以 `s6-pause` 保持运行而不阻塞 s6-rc事务。helper以 `5230:5230`、
   `HOME=/home/x` 执行实际 workspace命令；同一 container重启时复用已有 ready marker；
@@ -129,16 +131,16 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
   与 home-init marker聚合状态，并读取 deploy public key；控制面注册 deploy key后直接在 host control目录
   创建 `provider-ready` marker。控制面每次创建 container前清空旧 marker，同一 container重启则复用 marker
   保持幂等；agent Git查询子进程以 `5230:5230`、`HOME=/home/x` 执行；
-- `/opt/codespace/bin/` 下十个 runtime helper 均由 s6启动流程执行，不依赖 controller是否调用；s6 只保留
+- `/opt/codespace/bin/` 下八个 runtime helper 均由 s6启动流程执行，不依赖 controller是否调用；s6 只保留
   少量任务，每个任务的 `up`/`run` 是纯壳，`exec` 到对应编排脚本，编排脚本再按序调用单一职责小脚本：
-  `workspace-init`（`workspace-init` oneshot 入口，root）依次调 `workspace-chown`
-  （chown workspace mount）与降权后的 `workspace-crypt`（初始化/挂载加密 workspace）；
+  `workspace-init`（`workspace-init` oneshot 入口，root）先内联 chown workspace mount，
+  再调降权后的 `workspace-crypt`（初始化/挂载加密 workspace）；
   `deploy-key`（`workspace-deploy-key` oneshot 入口）无条件生成或复用 deploy private key；
   `workspace-bootstrap`（`workspace-bootstrap` longrun 入口）按容器环境编排 workspace初始化，
   内联创建 editor open path，并调 `git-checkout` 执行幂等 clone；
   `home-init`（`home-init` longrun 入口）编排耗时 home初始化并发布 managed状态，降权后调用
   `home-setup`，后者顺序调用 `seed-vscode-extensions`（播种构建期扩展副本到各 IDE
-  server）、`gitconfig`（写 Git 全局身份）、dotfiles、agent playbook 与 user rules。
+  server）、dotfiles、agent playbook 与 user rules。
   动态 Git state由 agent直接调用 Git计算，空仓通过 `HEAD` 判断，不依赖 checkout marker。
   修改命令、环境变量或 HTTP contract 时必须同步 Bats、agent测试与控制面。
 

@@ -13,6 +13,14 @@ main() {
     return 2
   fi
 
+  # Controller-managed environments set CODESPACE_WORKSPACE_TYPE. Generic image
+  # runs (devcontainer, WSL, bare podman run) have no controller, so skip the
+  # deploy key entirely.
+  if [[ -z ${CODESPACE_WORKSPACE_TYPE-} ]]; then
+    echo "CODESPACE_WORKSPACE_TYPE unset; skipping deploy key generation"
+    return 0
+  fi
+
   local ssh_dir="${HOME}/.ssh"
   local private_key="${ssh_dir}/repo_id_ed25519"
   install -d -m 0700 -- "${ssh_dir}"

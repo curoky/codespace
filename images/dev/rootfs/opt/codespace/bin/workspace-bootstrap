@@ -65,6 +65,12 @@ main() {
   fi
 
   trap fail ERR
+  # Controller-managed environments set CODESPACE_WORKSPACE_TYPE. Generic image
+  # runs have no controller, so idle instead of bootstrapping a workspace.
+  if [[ -z ${CODESPACE_WORKSPACE_TYPE-} ]]; then
+    echo "CODESPACE_WORKSPACE_TYPE unset; workspace bootstrap idle"
+    settle
+  fi
   if [[ -f ${ready_path} ]]; then
     settle
   fi

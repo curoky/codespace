@@ -12,7 +12,6 @@ set -euo pipefail
 /opt/codespace/bin/seed-vscode-extensions \
   /home/x/.vscode-server /home/x/.trae-server /home/x/.trae-cn-server
 
-/opt/codespace/bin/gitconfig
 bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles
 bash /opt/agent-playbook/install.sh
 cp /opt/devspace/images/dev/dev-environment.md /home/x/.trae/user_rules/

@@ -242,7 +242,7 @@ sequenceDiagram
     Service->>Host: read configured environment
     Service->>Host: pull image and create four directories
     Service->>Host: clear stale control markers
-    Service->>Host: create container with managed-workspace runlevel and CODESPACE_WORKSPACE_* env
+    Service->>Host: create container with CODESPACE_WORKSPACE_* env
     Service->>Host: forward agent.sock over SSH
     Service->>Host: GET /status
     opt repo workspace
@@ -403,8 +403,7 @@ classDiagram
 
 | Environment | Value |
 | --- | --- |
-| `DEVSPACE_RUNLEVEL` | 固定为 Controller 专用的 `managed-workspace` |
-| `CODESPACE_WORKSPACE_TYPE` | `repo`、`git` 或 `blank` |
+| `CODESPACE_WORKSPACE_TYPE` | `repo`、`git` 或 `blank`；注入即激活 Controller 专用服务 |
 | `CODESPACE_CLONE_URL` | repo/git 的 SSH clone URL；blank不注入 |
 | `CODESPACE_CLONE_PATH` | checkout target |
 | `CODESPACE_OPEN_PATH` | editor open path |
@@ -416,11 +415,13 @@ agent只监听 `/run/codespace-control/agent.sock`，HTTP API固定为：
 | `GET` | `/status` | `{state,public_key,error}` |
 | `GET` | `/git-state` | `CODESPACE_CLONE_PATH` 对应 `RepoGitState` |
 
-状态只允许 `starting`、`awaiting-provider`、`ready`、`failed`。默认 `user-final` 不启动 managed
-workspace服务；控制面选择的 `managed-workspace` bundle在 `workspace-init` 后启动
-`workspace-deploy-key`，`workspace-bootstrap` 与 `workspace-agent` 均依赖 `workspace-deploy-key`：
+状态只允许 `starting`、`awaiting-provider`、`ready`、`failed`。单一 runlevel `user-final` 含全部服务；
+`workspace-deploy-key`、`workspace-bootstrap`、`workspace-agent` 按 `CODESPACE_WORKSPACE_TYPE` 是否注入
+自门控（通用镜像未注入时空转），三者在 `workspace-init` 后启动，
+`workspace-bootstrap` 与 `workspace-agent` 均依赖 `workspace-deploy-key`：
 
-- `workspace-deploy-key` 对所有 workspace无条件生成或复用 container-local keypair，private key不离开容器。
+- `workspace-deploy-key` 在 `CODESPACE_WORKSPACE_TYPE` 已注入时对所有 workspace无条件生成或复用
+  container-local keypair，private key不离开容器；未注入时跳过。
 - `workspace-bootstrap` 是受监督 longrun，直接执行 Bash helper并按容器环境选择流程；成功写
   `bootstrap.ready`，失败写 `bootstrap.failed`，随后保持运行，不占用 s6-rc oneshot事务。
 - 五个 IDE home目录在 container创建时已经直接挂载；异步 `home-init` 完成或失败后分别写 `home.ready`、

@@ -3,12 +3,25 @@
 #
 # Usage: workspace-init
 #
-# 由 workspace-init s6 oneshot 以 root 调用，按序编排两个单一职责步骤：
-#   1. workspace-chown  以 root 归属 workspace mount 到 5230:5230
+# 由 workspace-init s6 oneshot 以 root 调用，按序编排两步：
+#   1. 内联 chown   以 root 归属 workspace 数据、密文根、upload/cache 与五个
+#                   持久化 IDE home mount 到 5230:5230，供后续以 x 运行的服务写入
 #   2. workspace-crypt  降权到 x 后按 WORKSPACE_CRYPT_KEY 挂载或直通 workspace
 # 完成即视为 workspace 就绪，sshd/webdav/home-init/deploy-key 依赖本服务。
 
 set -euo pipefail
 
-/opt/codespace/bin/workspace-chown
+for target in \
+  /workspace \
+  /workspace.enc \
+  /upload \
+  /cache \
+  /home/x/.vscode-server \
+  /home/x/.trae \
+  /home/x/.trae-cn \
+  /home/x/.trae-server \
+  /home/x/.trae-cn-server; do
+  chown 5230:5230 "${target}"
+done
+
 s6-setuidgid x env HOME=/home/x /opt/codespace/bin/workspace-crypt
