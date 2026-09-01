@@ -164,18 +164,10 @@ def test_agent_config_loads_container_environment() -> None:
     assert config.open_path == "/workspace/devspace"
     assert config.clone_url == "git@github.com:curoky/devspace.git"
 
-    with pytest.raises(image_agent.ConfigError, match="CODESPACE_WORKSPACE_TYPE"):
+    # The controller always injects the workspace type; a bare environment is a
+    # contract violation, surfaced as the missing-key KeyError.
+    with pytest.raises(KeyError, match="CODESPACE_WORKSPACE_TYPE"):
         image_agent.AgentConfig.load({})
-
-    # repo/git workspaces must carry a clone URL.
-    with pytest.raises(image_agent.ConfigError, match="clone_url"):
-        image_agent.AgentConfig.load(
-            {
-                "CODESPACE_WORKSPACE_TYPE": "git",
-                "CODESPACE_CLONE_PATH": "/workspace/devspace",
-                "CODESPACE_OPEN_PATH": "/workspace/devspace",
-            }
-        )
 
 
 def test_repo_bootstrap_waits_for_provider_then_checks_out(tmp_path: Path) -> None:

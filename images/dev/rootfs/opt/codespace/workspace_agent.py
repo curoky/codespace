@@ -9,13 +9,14 @@ import subprocess
 import threading
 import time
 from collections.abc import Callable, Mapping
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Literal, cast
 
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ConfigDict, ValidationError, field_validator, model_validator
+from pydantic import BaseModel
 
 type WorkspaceType = Literal["repo", "git", "blank"]
 type AgentState = Literal["starting", "awaiting-provider", "ready", "failed"]
@@ -40,27 +41,15 @@ PROVIDER_POLL_INTERVAL = 0.2
 MAX_ERROR_LENGTH = 4096
 
 
-class ConfigError(ValueError):
-    """Raised when the container environment violates the agent contract."""
+@dataclass(frozen=True, slots=True)
+class AgentConfig:
+    """Workspace parameters injected by the controller.
 
+    The controller is the sole producer of these values and validates them at
+    its own boundary (paths under ``/workspace``, a clone URL for repo/git
+    workspaces), so the agent trusts the environment and only reads it.
+    """
 
-class AgentModel(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
-
-
-def _normalized_workspace_path(value: str) -> str:
-    path = Path(value)
-    if (
-        not path.is_absolute()
-        or ".." in path.parts
-        or str(path) != value
-        or (value != "/workspace" and not value.startswith("/workspace/"))
-    ):
-        raise ValueError("must be a normalized path below /workspace")
-    return value
-
-
-class AgentConfig(AgentModel):
     workspace_type: WorkspaceType
     clone_path: str
     open_path: str
@@ -68,40 +57,21 @@ class AgentConfig(AgentModel):
 
     @classmethod
     def load(cls, environment: Mapping[str, str]) -> AgentConfig:
-        try:
-            values: dict[str, str] = {
-                "workspace_type": environment[WORKSPACE_TYPE_ENV],
-                "clone_path": environment[WORKSPACE_CLONE_PATH_ENV],
-                "open_path": environment[WORKSPACE_OPEN_PATH_ENV],
-            }
-        except KeyError as exc:
-            raise ConfigError(f"missing container environment variable: {exc.args[0]}") from exc
-        if clone_url := environment.get(WORKSPACE_CLONE_URL_ENV):
-            values["clone_url"] = clone_url
-        try:
-            return cls.model_validate(values)
-        except ValidationError as exc:
-            raise ConfigError(str(exc)) from exc
-
-    @field_validator("clone_path", "open_path")
-    @classmethod
-    def _validate_paths(cls, value: str) -> str:
-        return _normalized_workspace_path(value)
-
-    @model_validator(mode="after")
-    def _require_clone_url(self) -> AgentConfig:
-        if self.workspace_type in ("repo", "git") and not self.clone_url:
-            raise ValueError("clone_url is required for repo and git workspaces")
-        return self
+        return cls(
+            workspace_type=cast("WorkspaceType", environment[WORKSPACE_TYPE_ENV]),
+            clone_path=environment[WORKSPACE_CLONE_PATH_ENV],
+            open_path=environment[WORKSPACE_OPEN_PATH_ENV],
+            clone_url=environment.get(WORKSPACE_CLONE_URL_ENV) or None,
+        )
 
 
-class AgentStatus(AgentModel):
+class AgentStatus(BaseModel):
     state: AgentState
     public_key: str | None = None
     error: str | None = None
 
 
-class GitState(AgentModel):
+class GitState(BaseModel):
     unpushed: bool
     uncommitted: bool
     detail: list[str]
@@ -121,10 +91,8 @@ class CommandRunner:
     def __init__(
         self,
         *,
-        run_as_user: bool = True,
         run_factory: Callable[..., subprocess.CompletedProcess[str]] = subprocess.run,
     ) -> None:
-        self._run_as_user = run_as_user
         self._run_factory = run_factory
 
     def run(
@@ -145,9 +113,9 @@ class CommandRunner:
                 timeout=timeout,
                 cwd=HELPER_HOME,
                 env=environment,
-                user=CONTAINER_UID if self._run_as_user else None,
-                group=CONTAINER_GID if self._run_as_user else None,
-                extra_groups=[] if self._run_as_user else None,
+                user=CONTAINER_UID,
+                group=CONTAINER_GID,
+                extra_groups=[],
             )
         except subprocess.CalledProcessError as exc:
             detail = (exc.stderr or exc.stdout or str(exc)).strip()
@@ -209,7 +177,7 @@ class WorkspaceAgent:
         self._runner.run(["mkdir", "-p", "--", self.config.open_path])
 
     def _wait_for_provider(self) -> None:
-        while not self._path_exists(self._provider_ready_path):
+        while not self._provider_ready_path.exists():
             self._sleep(PROVIDER_POLL_INTERVAL)
 
     def _checkout(self) -> None:
@@ -267,16 +235,6 @@ class WorkspaceAgent:
         if not public_key:
             raise APIError(500, "deploy public key is empty")
         return public_key
-
-    @staticmethod
-    def _path_exists(path: Path) -> bool:
-        try:
-            path.stat()
-        except FileNotFoundError:
-            return False
-        except OSError as exc:
-            raise APIError(500, f"cannot inspect workspace bootstrap state: {exc}") from exc
-        return True
 
 
 def _truncate(message: str) -> str:
