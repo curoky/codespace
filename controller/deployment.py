@@ -68,14 +68,12 @@ def teardown(
     config: Config,
     *,
     purge: bool,
-    stage: Stage,
 ) -> bool:
     """Remove one deployment's container and, when ``purge``, its managed data.
 
     Returns whether a container was found and removed. Purging removes the
     deployment data directory after the container is gone.
     """
-    stage("removing container")
     container = inventory.find_deployment_container(
         client,
         spec.deployment_id,
@@ -87,7 +85,6 @@ def teardown(
         containers.remove_container(container)
 
     if purge:
-        stage("removing data")
         data_paths = ssh.remote_data_paths(route)
         containers.remove_data_directory(
             client,

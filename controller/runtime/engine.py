@@ -121,14 +121,14 @@ def remove_container(container: Container) -> None:
     container.remove(force=True)
 
 
-def container_logs(container: Container, *, tail: int = _LOG_TAIL) -> str:
+def container_logs(container: Container) -> str:
     """Return the container's most recent combined stdout and stderr logs."""
     result = container.logs(
         stdout=True,
         stderr=True,
         stream=False,
         timestamps=True,
-        tail=tail,
+        tail=_LOG_TAIL,
     )
     raw = result if isinstance(result, bytes) else b"".join(result)
     return _decode_stream(raw)

@@ -363,7 +363,6 @@ class CodespaceService:
             spec,
             self.config,
             purge=purge,
-            stage=lambda _stage: None,
         )
 
     def deployment_logs(self, deployment: str, host: str) -> str:

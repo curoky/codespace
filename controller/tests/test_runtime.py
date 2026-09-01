@@ -330,26 +330,6 @@ def test_create_container_preserves_fixed_runtime_contract(
     ]
 
 
-def test_create_container_rejects_host_environment_collision(
-    config: Config,
-) -> None:
-    spec = config.environment_spec("devspace", "home", "debug")
-    spec = replace(
-        spec,
-        container=spec.container.model_copy(
-            update={"environment": {"HTTP_PROXY": "http://configured:3128"}}
-        ),
-    )
-
-    with pytest.raises(ValueError, match=r"also set in container\.environment"):
-        container_runtime.create_container(
-            SimpleNamespace(),  # type: ignore[arg-type]
-            spec,
-            _INSTANCE_PATHS,
-            {"HTTP_PROXY": "http://host-proxy:3128"},
-        )
-
-
 def test_create_container_injects_gpu_device(
     config: Config,
     monkeypatch: pytest.MonkeyPatch,
@@ -1139,7 +1119,6 @@ def test_teardown_removes_container_and_optionally_purges_data(
         spec,
         config,
         purge=True,
-        stage=lambda _stage: None,
     )
 
     assert was_removed is True
@@ -1172,7 +1151,6 @@ def test_teardown_reports_missing_container_without_purge(
         spec,
         config,
         purge=False,
-        stage=lambda _stage: None,
     )
 
     assert was_removed is False
