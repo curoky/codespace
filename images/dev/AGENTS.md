@@ -25,14 +25,18 @@ host 级共享服务见 [`images/sidecar/AGENTS.md`](../sidecar/AGENTS.md)，容
 开发镜像不使用 s6-overlay。`script/setup-s6.sh` 从 `/opt/bm/store` 的 s6/execline 二进制生成
 `/etc/s6/init` 和 `/etc/s6/db`。新增服务放入 `rootfs/etc/s6/s6-rc.d/` 并加入相应 bundle；execline
 脚本用 `s6-envdir -Lf -- /run/s6/container_environment` 读容器环境，该目录仅 root 和 `x` 可读。
-`workspace-init` 必须先于 `workspace-crypt` 完成，把挂载的 `/workspace` 与密文根 `/workspace.enc`
-归属到 `5230:5230`；`workspace-crypt` 再先于 `sshd`、异步 `home-init`、`workspace-deploy-key` 和两个
-WebDAV 服务完成，负责在启用加密时把明文挂到 `/workspace`（详见 host contract）。
+每个 s6 服务的 `up`/`run` 只做「设置 fd/env 后 `exec` 一个 `/opt/codespace/bin/` 编排脚本」的纯壳，
+具体逻辑一律在 helper 脚本里，不写进 execline。`workspace-init` 是唯一的 workspace 就绪门控 oneshot：
+它以 root 调用编排脚本 `workspace-init`，先 `workspace-chown` 把挂载的 `/workspace`、
+密文根 `/workspace.enc`、`/upload`、`/cache` 与五个持久化 IDE home mount 都归属到 `5230:5230`，再
+`s6-setuidgid x` 调 `workspace-crypt` 在启用加密时把明文挂到 `/workspace`（详见 host contract）。
+`sshd`、异步 `home-init`、`workspace-deploy-key` 和两个 WebDAV 服务都依赖 `workspace-init`；
 `workspace-bootstrap` 和 `workspace-agent` 均依赖 `workspace-deploy-key`。
 
-runlevel 分三层：`user-base` 含通用开发镜像服务，`user-final` 嵌套 `user-base` 并加入
-`gitconfig-init`，`managed-workspace` 再嵌套 `user-final` 并加入 Controller 专用的 deploy-key、bootstrap
-与 agent。`setup-s6.sh` 的 `s6-linux-init-maker -D user-final` 保持通用镜像默认 runlevel；控制面创建
+runlevel 分三层：`user-base` 含通用开发镜像服务，`user-final` 嵌套 `user-base`（gitconfig 已并入
+`home-init` 的 `home-setup`，不再有独立 `gitconfig-init` 服务），`managed-workspace` 再嵌套
+`user-final` 并加入 Controller 专用的 deploy-key、bootstrap 与 agent。`setup-s6.sh` 的
+`s6-linux-init-maker -D user-final` 保持通用镜像默认 runlevel；控制面创建
 environment时固定注入 `DEVSPACE_RUNLEVEL=managed-workspace`。rc.init读取
 `/run/s6/container_environment/DEVSPACE_RUNLEVEL`，非空时覆盖 maker默认；运行期也可
 `s6-rc -up change <bundle>` 在线切换。
@@ -42,7 +46,7 @@ environment时固定注入 `DEVSPACE_RUNLEVEL=managed-workspace`。rc.init读取
 Container 专用 SSH config 位于 `rootfs/home/x/.ssh/config`，为 `Host *` 启用 GSSAPI 认证与凭据委派，
 并固定用 `~/.ssh/repo_id_ed25519` 访问 GitHub/GitLab，构建时收紧为 `0600`；不得复用带 host 凭据代理的
 `dotfiles/ssh/user.ssh_config`。GitHub/GitLab host key 固定在同目录 `known_hosts`，provider 连接必须
-`StrictHostKeyChecking yes`，不得回退到 `accept-new`。该 private key 由 `codespace-deploy-key`
+`StrictHostKeyChecking yes`，不得回退到 `accept-new`。该 private key 由 `deploy-key`
 在容器内生成，控制面只读取对应公钥。
 
 控制面的 `git` 类型 workspace 直接 clone 任意内网 `git@host:owner/name.git`（或 `ssh://` 形式）URL，不注入
@@ -65,32 +69,33 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
 - Podman security option `disable` 和 `seccomp=unconfined`；
 - 现有 s6 entrypoint、sshd、home-init、Atuin client、Git 和 OpenSSH client；
 - s6 转储到 `/run/s6/container_environment` 的容器环境仅 root 和 `x` 可读；
-- `workspace-init` s6 oneshot，`workspace-crypt` 依赖它；把挂载的 `/workspace`、`/workspace.enc`、`/upload`、
+- `workspace-init` s6 oneshot 是唯一 workspace 就绪门控，`up` 只 `exec` 编排脚本
+  `/opt/codespace/bin/workspace-init`（以 root 起）；`sshd`、`home-init`、`workspace-deploy-key`
+  与两个 WebDAV 服务依赖它，`workspace-bootstrap` 与 `workspace-agent` 再依赖 `workspace-deploy-key`。
+  编排脚本先以 root 跑 `workspace-chown`，把挂载的 `/workspace`、`/workspace.enc`、`/upload`、
   `/cache` 与五个 IDE home目录都 `chown` 为 `5230:5230`（数据 mount 均由控制面按实例 bind 宿主目录，
-  rootful Podman直接透传所有权）；
-- `workspace-crypt` s6 oneshot，依赖 `workspace-init`；`sshd`、`home-init`、`workspace-deploy-key` 与两个
-  WebDAV 服务依赖它，`workspace-bootstrap` 与 `workspace-agent` 再依赖 `workspace-deploy-key`。
-  它以用户 `x` 执行 `/opt/codespace/bin/codespace-workspace-crypt`。
-  以容器环境变量 `WORKSPACE_CRYPT_KEY` 是否注入为信号自适应（对齐控制面 workspace 的 `encrypt_workspace`）：
-  未注入则跳过、`/workspace` 保持明文 bind；注入则用 gocryptfs（`/opt/bm/bin/gocryptfs`）把密文根
-  `/workspace.enc`（host bind 落盘处）解密挂到 `/workspace`，密文根缺 `gocryptfs.conf` 时先 `-init`。
+  rootful Podman直接透传所有权），再 `s6-setuidgid x` 调 `workspace-crypt` 完成加密挂载。
+  该 crypt helper 以容器环境变量 `WORKSPACE_CRYPT_KEY` 是否注入为信号自适应（对齐控制面 workspace 的
+  `encrypt_workspace`）：未注入则跳过、`/workspace` 保持明文 bind；注入则用 gocryptfs（`/opt/bm/bin/gocryptfs`）
+  把密文根 `/workspace.enc`（host bind 落盘处）解密挂到 `/workspace`，密文根缺 `gocryptfs.conf` 时先 `-init`。
   gocryptfs 依赖 FUSE：容器须有 `/dev/fuse` 与 `SYS_ADMIN`（或 security option `disable`），镜像预置
   `/etc/fuse.conf` 的 `user_allow_other` 以支持 `-allow_other`（sshd/WebDAV 等其他用户访问明文）。
   gocryptfs（binman `gocryptfs`）自身不带 fusermount，挂载时经 PATH 调用它（go-fuse 优先 `fusermount3`
   再回退 `fusermount`），故 binman `link` 另装 `fuse3` 提供 `/opt/bm/bin/fusermount3`；缺它挂载会以
   `fs.Mount failed: exec: "…fusermount…": no such file or directory` 失败，连带 sshd 不起。
-  workspace-crypt 经 `s6-setuidgid x` 降权后挂载，`x` 无 CAP_SYS_ADMIN，故 `setup-sysconf.sh` 构建期给
+  crypt 经 `s6-setuidgid x` 降权后挂载，`x` 无 CAP_SYS_ADMIN，故 `setup-sysconf.sh` 构建期给
   `fusermount3` 加 setuid root（binman 静态包默认不带该位）；缺 setuid 会以 `fusermount3: mount failed:
-  Operation not permitted` 失败。日志写 `/var/log/workspace-crypt.log`；
-- `gitconfig-init` s6 oneshot，无依赖：baked `rootfs/home/x/.gitconfig` 里 `[user]` 的 name/email 注释掉
-  并开 `useConfigOnly = true`（镜像不含身份，误配时 commit 直接报错），boot 时该 oneshot 的 `up` 直接用
-  execline 跑 `git config --global` 写入 `user.name`/`user.email`（幂等，无独立脚本）；
-- `home-init` 是受监督 longrun，依赖 `workspace-crypt`，异步执行扩展播种、docker scene dotfiles、
-  agent playbook与 user rules初始化（`codespace-home-init` 管理 marker，降权后调用 `codespace-home-setup`
+  Operation not permitted` 失败。日志写 `/var/log/workspace-init.log`；
+- Git 全局身份由 `home-init` 的 `home-setup` 调用 `gitconfig` 写入（不再有独立
+  `gitconfig-init` s6 服务）：baked `rootfs/home/x/.gitconfig` 里 `[user]` 的 name/email 注释掉
+  并开 `useConfigOnly = true`（镜像不含身份，误配时 commit 直接报错），`gitconfig` 幂等跑
+  `git config --global` 写入 `user.name`/`user.email`；
+- `home-init` 是受监督 longrun，依赖 `workspace-init`，异步执行扩展播种、gitconfig、docker scene dotfiles、
+  agent playbook与 user rules初始化（`home-init` 管理 marker，降权后调用 `home-setup`
   执行实际编排）；五个 IDE home目录在 container创建时已由控制面直接挂载，不需 boot
   时替换目录。`home-init` 完成或失败后保持运行，managed模式分别写
   `control/home.ready`、`control/home.failed`，通用镜像模式不写 control marker；
-- `rclone-webdav` 和 `copyparty-webdav` s6 longrun 均依赖 `workspace-crypt`，以用户 `x` 分别监听 8004、8005；
+- `rclone-webdav` 和 `copyparty-webdav` s6 longrun 均依赖 `workspace-init`，以用户 `x` 分别监听 8004、8005；
   监听地址复用 `SSHD_BIND`（host 默认 `127.0.0.1`，bridge 为 `0.0.0.0`）。两者根目录均只含 `/workspace`
   （复用容器内 `/workspace`，WebDAV 层只读）和 `/upload`（uid/gid `5230:5230` 的 writable 目录，允许完整读写）。
   `/upload` 由控制面按实例 bind 宿主目录，跨 container stop/start 与重建都保留，仅 purge 删除该实例宿主目录时
@@ -106,12 +111,12 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
   （零 job）。加任务写 5 字段（无 user 列）条目。二进制经 binman
   （`script/binman.yaml` 的 `link`）提供，日志写 `/var/log/supercronic.log`；
 - `workspace-deploy-key` s6 oneshot对 repo、git、blank workspace一律以用户 `x` 执行
-  `/opt/codespace/bin/codespace-deploy-key`，在 `/home/x/.ssh/` 生成或复用 deploy keypair；
+  `/opt/codespace/bin/deploy-key`，在 `/home/x/.ssh/` 生成或复用 deploy keypair；
   private key不离开容器。该服务与 bootstrap、agent仅属于 `managed-workspace` bundle。控制面创建容器时
   固定注入 `DEVSPACE_RUNLEVEL=managed-workspace`、`CODESPACE_WORKSPACE_TYPE`、
   `CODESPACE_CLONE_URL`（blank不注入）、`CODESPACE_CLONE_PATH` 和 `CODESPACE_OPEN_PATH`；这些保留变量
   不得被用户 container environment或 env secret覆盖。`workspace-bootstrap` s6 longrun执行
-  `/opt/codespace/bin/codespace-workspace-bootstrap`：repo等待 `control/provider-ready`，git直接继续，
+  `/opt/codespace/bin/workspace-bootstrap`：repo等待 `control/provider-ready`，git直接继续，
   blank跳过 checkout，随后调用 checkout/open-path helper；成功写 `control/bootstrap.ready`，失败写
   `control/bootstrap.failed`，然后以 `s6-pause` 保持运行而不阻塞 s6-rc事务。helper以 `5230:5230`、
   `HOME=/home/x` 执行实际 workspace命令；同一 container重启时复用已有 ready marker；
@@ -124,14 +129,16 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
   与 home-init marker聚合状态，并读取 deploy public key；控制面注册 deploy key后直接在 host control目录
   创建 `provider-ready` marker。控制面每次创建 container前清空旧 marker，同一 container重启则复用 marker
   保持幂等；agent Git查询子进程以 `5230:5230`、`HOME=/home/x` 执行；
-- `/opt/codespace/bin/` 下七个 runtime helper 均由 s6启动流程执行，不依赖 controller是否调用：
-  `codespace-workspace-crypt` 由 s6 在 boot 时初始化或挂载加密 workspace；
-  `codespace-deploy-key` 由独立 s6 oneshot无条件生成或复用 deploy private key；
-  `codespace-workspace-bootstrap` 根据容器环境编排 workspace初始化，内联创建 editor open path；
-  `codespace-home-init` 编排耗时 home初始化并发布 managed状态，降权后调用 `codespace-home-setup`
-  执行扩展播种、dotfiles、agent playbook 与 user rules；`codespace-home-setup` 再调用
-  `codespace-seed-vscode-extensions` 把构建期扩展副本播种到各 IDE server；
-  `codespace-git-checkout` 由 `workspace-bootstrap` 执行幂等 clone。
+- `/opt/codespace/bin/` 下十个 runtime helper 均由 s6启动流程执行，不依赖 controller是否调用；s6 只保留
+  少量任务，每个任务的 `up`/`run` 是纯壳，`exec` 到对应编排脚本，编排脚本再按序调用单一职责小脚本：
+  `workspace-init`（`workspace-init` oneshot 入口，root）依次调 `workspace-chown`
+  （chown workspace mount）与降权后的 `workspace-crypt`（初始化/挂载加密 workspace）；
+  `deploy-key`（`workspace-deploy-key` oneshot 入口）无条件生成或复用 deploy private key；
+  `workspace-bootstrap`（`workspace-bootstrap` longrun 入口）按容器环境编排 workspace初始化，
+  内联创建 editor open path，并调 `git-checkout` 执行幂等 clone；
+  `home-init`（`home-init` longrun 入口）编排耗时 home初始化并发布 managed状态，降权后调用
+  `home-setup`，后者顺序调用 `seed-vscode-extensions`（播种构建期扩展副本到各 IDE
+  server）、`gitconfig`（写 Git 全局身份）、dotfiles、agent playbook 与 user rules。
   动态 Git state由 agent直接调用 Git计算，空仓通过 `HEAD` 判断，不依赖 checkout marker。
   修改命令、环境变量或 HTTP contract 时必须同步 Bats、agent测试与控制面。
 

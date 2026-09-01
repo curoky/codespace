@@ -2,12 +2,12 @@
 
 setup_file() {
   bats_require_minimum_version 1.5.0
-  HELPER="${BATS_TEST_DIRNAME}/../rootfs/opt/codespace/bin/codespace-workspace-bootstrap"
+  HELPER="${BATS_TEST_DIRNAME}/../rootfs/opt/codespace/bin/workspace-bootstrap"
   export HELPER
 }
 
 setup() {
-  TEST_ROOT=$(mktemp -d "${BATS_TEST_TMPDIR}/codespace-workspace-bootstrap.XXXXXX")
+  TEST_ROOT=$(mktemp -d "${BATS_TEST_TMPDIR}/workspace-bootstrap.XXXXXX")
   mkdir -p "${TEST_ROOT}/bin" "${TEST_ROOT}/control"
   export TEST_ROOT
 
@@ -25,7 +25,7 @@ EOF
 #!/usr/bin/env bash
 exit 0
 EOF
-  cat >"${TEST_ROOT}/bin/codespace-git-checkout" <<'EOF'
+  cat >"${TEST_ROOT}/bin/git-checkout" <<'EOF'
 #!/usr/bin/env bash
 printf 'checkout:%s:%s\n' "$1" "$2" >>"${TEST_EVENTS}"
 EOF
@@ -33,7 +33,7 @@ EOF
 
   sed \
     -e "s#/run/codespace-control#${TEST_ROOT}/control#g" \
-    -e "s#/opt/codespace/bin/codespace-git-checkout#${TEST_ROOT}/bin/codespace-git-checkout#g" \
+    -e "s#/opt/codespace/bin/git-checkout#${TEST_ROOT}/bin/git-checkout#g" \
     "${HELPER}" >"${TEST_ROOT}/helper"
   chmod +x "${TEST_ROOT}/helper"
   export PATH="${TEST_ROOT}/bin:${PATH}"
@@ -91,11 +91,11 @@ teardown() {
 }
 
 @test "bootstrap records command failures" {
-  cat >"${TEST_ROOT}/bin/codespace-git-checkout" <<'EOF'
+  cat >"${TEST_ROOT}/bin/git-checkout" <<'EOF'
 #!/usr/bin/env bash
 exit 7
 EOF
-  chmod +x "${TEST_ROOT}/bin/codespace-git-checkout"
+  chmod +x "${TEST_ROOT}/bin/git-checkout"
 
   run env \
     CODESPACE_WORKSPACE_TYPE=git \

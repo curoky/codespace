@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Write the global Git identity for the development user.
+#
+# Usage: gitconfig
+#
+# 以用户 x 执行的幂等 git 全局配置；由 home-setup 调用。
+
+set -euo pipefail
+
+git config --global user.name curoky
+git config --global user.email cccuroky@gmail.com

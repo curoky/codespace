@@ -20,7 +20,7 @@ zsh -lic '<cmd>'
 | 场景 | 路径 / 用法 |
 | --- | --- |
 | Python | 优先 `/opt/bm/bin/uv run <cmd>`；`ruff` 在 `/opt/bm/bin/ruff` |
-| CPython | `/home/x/.local/share/uv/python/cpython-3.<N>-linux-x86_64-gnu/bin/python3`，`N=9..14` |
+| CPython | `/opt/uv/python/cpython-3.<N>-linux-x86_64-gnu/bin/python3`，`N=9..14` |
 | Conda | `/opt/conda/condabin/conda`，仅 conda 生态需要时用 |
 | Java | JDK 25: `JAVA_HOME=/nix/var/nix/profiles/jdk25/lib/openjdk`；JDK 8: `/nix/var/nix/profiles/jdk8/lib/openjdk` |
 | Maven | `/home/x/.nix-profile/bin/mvn` |

@@ -129,6 +129,14 @@ ENV PATH=${PATH}:/opt/rust/cargo/bin
 COPY --link --chown=5230:5230 --from=stage_rust /opt/rust /opt/rust
 
 # setup python & tools
+# uv 的成果物统一落到 /opt/uv：cache-dir 由 system 级 /etc/uv/uv.toml 固定（唯一
+# 支持写进配置文件的目录项，由 COPY rootfs/ / 烤入）；tool/python 的安装目录 uv
+# 没有对应 setting，只能用 UV_* ENV。ENV 与配置同层可靠，且被烤进后续所有层。
+ENV UV_TOOL_DIR=/opt/uv/tools \
+  UV_TOOL_BIN_DIR=/opt/uv/bin \
+  UV_PYTHON_INSTALL_DIR=/opt/uv/python \
+  UV_PYTHON_BIN_DIR=/opt/uv/bin
+ENV PATH=${PATH}:/opt/uv/bin
 RUN uv python install --no-bin 3.9 3.10 3.11 3.12 3.13 3.14
 RUN uv tool install licenseheaders \
   && uv tool install tensorboard --python 3.12 --with tensorboard-plugin-profile --with "setuptools==81.0.0"
@@ -153,7 +161,7 @@ RUN ln -s /opt/devspace ~/devspace
 # setup Trae user rules
 RUN git clone --depth=1 https://github.com/curoky/agent-playbook /opt/agent-playbook
 
-# VSCode Remote 扩展参考副本（stage_vscode_ext 并行构建），运行期由 codespace-home-setup 播种到各 IDE server。
+# VSCode Remote 扩展参考副本（stage_vscode_ext 并行构建），运行期由 home-setup 播种到各 IDE server。
 COPY --link --chown=5230:5230 --from=stage_vscode_ext /opt/vscode-extensions /opt/vscode-extensions
 
 USER root

@@ -2,12 +2,12 @@
 
 setup_file() {
   bats_require_minimum_version 1.5.0
-  HELPER="${BATS_TEST_DIRNAME}/../rootfs/opt/codespace/bin/codespace-home-init"
+  HELPER="${BATS_TEST_DIRNAME}/../rootfs/opt/codespace/bin/home-init"
   export HELPER
 }
 
 setup() {
-  TEST_ROOT=$(mktemp -d "${BATS_TEST_TMPDIR}/codespace-home-init.XXXXXX")
+  TEST_ROOT=$(mktemp -d "${BATS_TEST_TMPDIR}/home-init.XXXXXX")
   mkdir -p "${TEST_ROOT}/bin" "${TEST_ROOT}/control"
   export TEST_ROOT
 
@@ -28,7 +28,7 @@ EOF
 
   sed \
     -e "s#/run/codespace-control#${TEST_ROOT}/control#g" \
-    -e "s#/opt/codespace/bin/codespace-home-setup#${TEST_ROOT}/home-setup#g" \
+    -e "s#/opt/codespace/bin/home-setup#${TEST_ROOT}/home-setup#g" \
     "${HELPER}" >"${TEST_ROOT}/helper"
   chmod +x "${TEST_ROOT}/helper"
   export PATH="${TEST_ROOT}/bin:${PATH}"

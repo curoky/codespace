@@ -1,9 +1,4 @@
-foreground { chown 5230:5230 /workspace }
-foreground { chown 5230:5230 /workspace.enc }
-foreground { chown 5230:5230 /upload }
-foreground { chown 5230:5230 /cache }
-foreground { chown 5230:5230 /home/x/.vscode-server }
-foreground { chown 5230:5230 /home/x/.trae }
-foreground { chown 5230:5230 /home/x/.trae-cn }
-foreground { chown 5230:5230 /home/x/.trae-server }
-foreground { chown 5230:5230 /home/x/.trae-cn-server }
+redirfd -w 1 /var/log/workspace-init.log
+fdmove -c 2 1
+s6-envdir -Lf -- /run/s6/container_environment
+/opt/codespace/bin/workspace-init

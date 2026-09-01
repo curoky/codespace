@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Initialize the persisted development home and publish managed-workspace state.
 #
-# Usage: codespace-home-init
+# Usage: home-init
 #
 # Requires Bash and s6.
 
@@ -44,7 +44,7 @@ fail() {
 
 main() {
   if [[ $# -ne 0 ]]; then
-    echo "usage: codespace-home-init" >&2
+    echo "usage: home-init" >&2
     return 2
   fi
 
@@ -57,7 +57,7 @@ main() {
   fi
 
   s6-setuidgid x env HOME=/home/x \
-    /opt/codespace/bin/codespace-home-setup
+    /opt/codespace/bin/home-setup
 
   if is_managed_workspace; then
     write_marker "${ready_path}" "ready"

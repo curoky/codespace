@@ -58,7 +58,7 @@ jobs:
             controller \
             images/dev/rootfs/opt/codespace/workspace_agent.py
           shfmt -d -i 2 -s -ci \
-            images/dev/rootfs/opt/codespace/bin/codespace-* \
+            images/dev/rootfs/opt/codespace/bin/* \
             images/dev/tests/*.bats
 
       - name: Lint
@@ -68,7 +68,7 @@ jobs:
             controller \
             images/dev/rootfs/opt/codespace/workspace_agent.py
           shellcheck \
-            images/dev/rootfs/opt/codespace/bin/codespace-* \
+            images/dev/rootfs/opt/codespace/bin/* \
             images/dev/tests/*.bats
 
       - name: Type check

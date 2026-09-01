@@ -108,7 +108,7 @@ def test_s6_managed_bundle_runs_supervised_bootstrap_after_deploy_key() -> None:
     assert (bootstrap / "type").read_text(encoding="utf-8").strip() == "longrun"
     assert (bootstrap / "dependencies.d" / "workspace-deploy-key").is_file()
     assert (agent / "dependencies.d" / "workspace-deploy-key").is_file()
-    assert "codespace-workspace-bootstrap" in (bootstrap / "run").read_text(encoding="utf-8")
+    assert "workspace-bootstrap" in (bootstrap / "run").read_text(encoding="utf-8")
     assert (managed / "contents.d" / "user-final").is_file()
     assert (managed / "contents.d" / "workspace-bootstrap").is_file()
     assert not (_S6_ROOT / "user-base" / "contents.d" / "workspace-bootstrap").exists()
@@ -120,9 +120,15 @@ def test_s6_initializes_workspace_before_sshd_and_home() -> None:
     workspace_init = _S6_ROOT / "workspace-init"
 
     assert (home / "type").read_text(encoding="utf-8").strip() == "longrun"
-    assert (home / "dependencies.d" / "workspace-crypt").is_file()
-    assert (sshd / "dependencies.d" / "workspace-crypt").is_file()
-    init_script = (workspace_init / "up").read_text(encoding="utf-8")
+    assert (home / "dependencies.d" / "workspace-init").is_file()
+    assert (sshd / "dependencies.d" / "workspace-init").is_file()
+    # workspace-init up 是纯调用壳；chown 目标在编排脚本调用的 workspace-chown 中。
+    assert "workspace-init" in (workspace_init / "up").read_text(
+        encoding="utf-8"
+    )
+    chown_script = (
+        _AGENT_ROOT / "bin" / "workspace-chown"
+    ).read_text(encoding="utf-8")
     for target in (
         "/home/x/.vscode-server",
         "/home/x/.trae",
@@ -130,7 +136,9 @@ def test_s6_initializes_workspace_before_sshd_and_home() -> None:
         "/home/x/.trae-server",
         "/home/x/.trae-cn-server",
     ):
-        assert f"chown 5230:5230 {target}" in init_script
+        assert target in chown_script
+    assert not (_S6_ROOT / "workspace-crypt").exists()
+    assert not (_S6_ROOT / "gitconfig-init").exists()
     assert not (_S6_ROOT / "home-links-init").exists()
 
 

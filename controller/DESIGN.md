@@ -72,10 +72,10 @@ flowchart TB
     Container --> Engine["runtime/engine.py"]
     Agent --> Tunnel["runtime/transport.py<br/>StreamLocal forward"]
     Tunnel --> ImageAgent["image: Python workspace agent"]
-    DeployKeyService["image: s6 workspace-deploy-key"] --> DeployKeyHelper["codespace-deploy-key"]
+    DeployKeyService["image: s6 workspace-deploy-key"] --> DeployKeyHelper["deploy-key"]
     DeployKeyHelper --> DeployKeyPair["~/.ssh/repo_id_ed25519{,.pub}"]
     DeployKeyPair --> ImageBootstrap["image: s6 workspace bootstrap"]
-    ImageBootstrap --> CheckoutHelper["codespace-git-checkout"]
+    ImageBootstrap --> CheckoutHelper["git-checkout"]
     ImageAgent <--> BootstrapState["control/bootstrap.* + home.* + provider-ready"]
     ImageBootstrap <--> BootstrapState
     SSH --> Remote["runtime/remote.py"]
@@ -152,7 +152,8 @@ flowchart LR
     I -->|five direct binds| H
 ```
 
-- `workspace-init` 只把 workspace 数据 mount 归属到 `5230:5230`；`control` 保持 host login user 的
+- `workspace-init` 把 workspace 数据 mount 归属到 `5230:5230`，并在同一 oneshot 内降权完成加密挂载；
+  `control` 保持 host login user 的
   `0700` 权限。容器内 agent以 root绑定 socket，bootstrap helper和 Git查询子进程降权到用户 `x`。
 - 加密模式只改变 workspace 的 container target；host 上同一目录存放密文。
 - `/upload` 与 `/cache` 始终明文，并与 workspace/instance 同粒度隔离。
@@ -416,7 +417,7 @@ agent只监听 `/run/codespace-control/agent.sock`，HTTP API固定为：
 | `GET` | `/git-state` | `CODESPACE_CLONE_PATH` 对应 `RepoGitState` |
 
 状态只允许 `starting`、`awaiting-provider`、`ready`、`failed`。默认 `user-final` 不启动 managed
-workspace服务；控制面选择的 `managed-workspace` bundle在 `workspace-crypt` 后启动
+workspace服务；控制面选择的 `managed-workspace` bundle在 `workspace-init` 后启动
 `workspace-deploy-key`，`workspace-bootstrap` 与 `workspace-agent` 均依赖 `workspace-deploy-key`：
 
 - `workspace-deploy-key` 对所有 workspace无条件生成或复用 container-local keypair，private key不离开容器。

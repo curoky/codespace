@@ -7,7 +7,7 @@
 # 同名目录，只能在启动时按工作区播种。构建期的参考副本见
 # ../../../script/setup-vscode-extensions.sh。
 #
-# 用法：codespace-seed-vscode-extensions <server_dir> [server_dir...]
+# 用法：seed-vscode-extensions <server_dir> [server_dir...]
 #   每个 server_dir 首启只播种一次（marker 存在即跳过），之后用户自行管理扩展；删掉
 #   marker 可重新播种。Trae/Trae CN 复用同一份 VSCode 扩展副本。
 #   参考副本路径可用 REF_EXTENSIONS 覆盖，默认 /opt/vscode-extensions/extensions。

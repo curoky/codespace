@@ -2,7 +2,7 @@
 
 setup_file() {
   bats_require_minimum_version 1.5.0
-  HELPER="${BATS_TEST_DIRNAME}/../rootfs/opt/codespace/bin/codespace-deploy-key"
+  HELPER="${BATS_TEST_DIRNAME}/../rootfs/opt/codespace/bin/deploy-key"
   if [[ -n ${CODESPACE_TEST_BASH-} ]]; then
     HELPER_BASH=${CODESPACE_TEST_BASH}
   elif [[ -x /opt/homebrew/opt/bash/bin/bash ]]; then
@@ -16,7 +16,7 @@ setup_file() {
 }
 
 setup() {
-  TEST_ROOT=$(mktemp -d "${BATS_TEST_TMPDIR}/codespace-deploy-key.XXXXXX")
+  TEST_ROOT=$(mktemp -d "${BATS_TEST_TMPDIR}/deploy-key.XXXXXX")
   export TEST_ROOT
 }
 
@@ -53,5 +53,5 @@ teardown() {
   run --separate-stderr "${HELPER_BASH}" "${HELPER}" unexpected
 
   [[ ${status} -eq 2 ]]
-  [[ ${stderr} == *"usage: codespace-deploy-key"* ]]
+  [[ ${stderr} == *"usage: deploy-key"* ]]
 }

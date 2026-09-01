@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Bootstrap one workspace from the container environment.
 #
-# Usage: codespace-workspace-bootstrap
+# Usage: workspace-bootstrap
 #
 # Requires Bash, coreutils, and s6-setuidgid.
 
@@ -53,14 +53,14 @@ checkout_repository() {
   require_env CODESPACE_CLONE_PATH
   current_step="repository checkout"
   run_as_workspace_user timeout --foreground 15m \
-    /opt/codespace/bin/codespace-git-checkout \
+    /opt/codespace/bin/git-checkout \
     "${CODESPACE_CLONE_URL}" \
     "${CODESPACE_CLONE_PATH}"
 }
 
 main() {
   if [[ $# -ne 0 ]]; then
-    echo "usage: codespace-workspace-bootstrap" >&2
+    echo "usage: workspace-bootstrap" >&2
     return 2
   fi
 

@@ -8,7 +8,7 @@
 # 镜像中的这些目录。
 #
 # 本脚本在构建期用官方 code-server 把 extensions.txt 里的扩展装进一份镜像内的参考副本
-# （默认 /opt/vscode-extensions/extensions），运行期由 codespace-seed-vscode-extensions 播种到
+# （默认 /opt/vscode-extensions/extensions），运行期由 seed-vscode-extensions 播种到
 # 各 IDE server 的工作区扩展目录。server 二进制只是构建期一次性工具，装完即弃。
 
 set -xeuo pipefail

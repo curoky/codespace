@@ -1,0 +1,4 @@
+# System-level uv config (探索顺序里的 /etc/uv/uv.toml，最广覆盖)。
+# cache-dir 是 uv Settings 里唯一可写进配置文件的目录项；tool/python 的安装
+# 目录没有对应 setting，只能靠 Dockerfile 的 UV_* ENV 固定，故一并落到 /opt/uv。
+cache-dir = "/opt/uv/cache"
