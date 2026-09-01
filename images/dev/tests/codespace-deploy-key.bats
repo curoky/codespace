@@ -31,18 +31,22 @@ teardown() {
   run --separate-stderr env HOME="${home}" "${HELPER_BASH}" "${HELPER}"
 
   [[ ${status} -eq 0 ]]
-  jq -e '.public_key | startswith("ssh-ed25519 ")' <<<"${output}"
+  [[ -z ${output} ]]
   [[ -f ${home}/.ssh/repo_id_ed25519 ]]
-  [[ ! -e ${home}/.ssh/repo_id_ed25519.pub ]]
+  [[ -f ${home}/.ssh/repo_id_ed25519.pub ]]
+  run ssh-keygen -l -f "${home}/.ssh/repo_id_ed25519.pub"
+  [[ ${status} -eq 0 ]]
   local mode
   mode=$(stat -f %Lp "${home}/.ssh/repo_id_ed25519" 2>/dev/null ||
     stat -c %a "${home}/.ssh/repo_id_ed25519")
   [[ ${mode} == 600 ]]
 
-  local first_public_key=$output
+  local first_public_key
+  first_public_key=$(<"${home}/.ssh/repo_id_ed25519.pub")
   run --separate-stderr env HOME="${home}" "${HELPER_BASH}" "${HELPER}"
   [[ ${status} -eq 0 ]]
-  [[ ${output} == "${first_public_key}" ]]
+  [[ -z ${output} ]]
+  [[ $(<"${home}/.ssh/repo_id_ed25519.pub") == "${first_public_key}" ]]
 }
 
 @test "deploy key rejects arguments" {

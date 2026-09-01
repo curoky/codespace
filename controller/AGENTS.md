@@ -103,9 +103,10 @@ task check
 - Deployment reconcile 使用确定性容器名：pull image、创建 data root、替换容器并以
   `unless-stopped` 启动。purge 额外删除托管数据目录。
 - 长操作只在进程内 operation store 保存 `queued/running/failed` 状态；进程重启后不恢复。
-- 镜像内 s6-supervised Python agent只暴露 `/status`、`/provider-ready`、`/git-state`，并调用
-  `codespace-deploy-key`、`codespace-git-checkout`、`codespace-workspace-open-path`、
-  `codespace-workspace-state`。控制面不得通过 Podman exec调用这些 helper。
+- 镜像内 `workspace-deploy-key` s6 oneshot对所有 workspace无条件生成或复用 deploy key；
+  `workspace-bootstrap` 不等待 controller调用即自动执行 checkout和 open-path helper；
+  `workspace-agent` 只暴露 `/status`、`/provider-ready`、`/git-state`，通过 `status.json` 观察 bootstrap，
+  并直接执行只读 Git查询。控制面不得通过 Podman exec调用镜像 helper。
 
 ## Web 契约
 
