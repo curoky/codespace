@@ -76,7 +76,6 @@ flowchart TB
     DeployKeyHelper --> DeployKeyPair["~/.ssh/repo_id_ed25519{,.pub}"]
     DeployKeyPair --> ImageBootstrap["image: s6 workspace bootstrap"]
     ImageBootstrap --> CheckoutHelper["codespace-git-checkout"]
-    ImageBootstrap --> OpenPathHelper["codespace-workspace-open-path"]
     ImageAgent <--> BootstrapState["control/bootstrap.* + home.* + provider-ready"]
     ImageBootstrap <--> BootstrapState
     SSH --> Remote["runtime/remote.py"]

@@ -4,9 +4,10 @@
 #
 # 背景：Controller 把 host cache 下的 ~/.vscode-server、~/.trae-server、
 # ~/.trae-cn-server 数据目录直接挂载到对应 home 路径，因此扩展不能烤进镜像中的
-# 同名目录，只能在启动时按工作区播种。构建期的参考副本见 setup-vscode-extensions.sh。
+# 同名目录，只能在启动时按工作区播种。构建期的参考副本见
+# ../../../script/setup-vscode-extensions.sh。
 #
-# 用法：seed-vscode-extensions.sh <server_dir> [server_dir...]
+# 用法：codespace-seed-vscode-extensions <server_dir> [server_dir...]
 #   每个 server_dir 首启只播种一次（marker 存在即跳过），之后用户自行管理扩展；删掉
 #   marker 可重新播种。Trae/Trae CN 复用同一份 VSCode 扩展副本。
 #   参考副本路径可用 REF_EXTENSIONS 覆盖，默认 /opt/vscode-extensions/extensions。
@@ -28,7 +29,7 @@ function seed_extensions() {
   # 合并前先读取用户已有的 installed manifest，避免被覆盖。
   local target_json="$target/extensions.json"
   local existing='[]'
-  [[ -f $target_json ]] && existing="$(< "$target_json")"
+  [[ -f $target_json ]] && existing="$(<"$target_json")"
 
   # 复制扩展目录，-n 不覆盖用户已装的同名扩展。
   cp -rn "$REF_EXTENSIONS"/. "$target"/ 2>/dev/null || true

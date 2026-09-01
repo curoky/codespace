@@ -91,9 +91,7 @@ main() {
   esac
 
   current_step="open path creation"
-  run_as_workspace_user \
-    /opt/codespace/bin/codespace-workspace-open-path \
-    "${CODESPACE_OPEN_PATH}"
+  run_as_workspace_user mkdir -p -- "${CODESPACE_OPEN_PATH}"
   write_marker "${ready_path}" "ready"
   settle
 }

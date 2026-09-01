@@ -20,15 +20,15 @@ EOF
 #!/usr/bin/env bash
 exit 0
 EOF
-  cat >"${TEST_ROOT}/home-init.sh" <<'EOF'
+  cat >"${TEST_ROOT}/home-setup" <<'EOF'
 #!/usr/bin/env bash
 printf 'initialized\n' >>"${TEST_EVENTS}"
 EOF
-  chmod +x "${TEST_ROOT}/bin/"* "${TEST_ROOT}/home-init.sh"
+  chmod +x "${TEST_ROOT}/bin/"* "${TEST_ROOT}/home-setup"
 
   sed \
     -e "s#/run/codespace-control#${TEST_ROOT}/control#g" \
-    -e "s#/opt/devspace/images/dev/script/home-init.sh#${TEST_ROOT}/home-init.sh#g" \
+    -e "s#/opt/codespace/bin/codespace-home-setup#${TEST_ROOT}/home-setup#g" \
     "${HELPER}" >"${TEST_ROOT}/helper"
   chmod +x "${TEST_ROOT}/helper"
   export PATH="${TEST_ROOT}/bin:${PATH}"
@@ -49,11 +49,11 @@ teardown() {
 }
 
 @test "managed workspace publishes home initialization failure" {
-  cat >"${TEST_ROOT}/home-init.sh" <<'EOF'
+  cat >"${TEST_ROOT}/home-setup" <<'EOF'
 #!/usr/bin/env bash
 exit 7
 EOF
-  chmod +x "${TEST_ROOT}/home-init.sh"
+  chmod +x "${TEST_ROOT}/home-setup"
 
   run env CODESPACE_WORKSPACE_TYPE=blank "${TEST_ROOT}/helper"
 

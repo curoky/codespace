@@ -57,7 +57,7 @@ main() {
   fi
 
   s6-setuidgid x env HOME=/home/x \
-    bash /opt/devspace/images/dev/script/home-init.sh
+    /opt/codespace/bin/codespace-home-setup
 
   if is_managed_workspace; then
     write_marker "${ready_path}" "ready"

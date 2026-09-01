@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
+# Populate the persisted development home for one workspace.
+#
+# Usage: codespace-home-setup
+#
+# 运行期以用户 x 执行的耗时 home 初始化：扩展播种、docker scene dotfiles、agent
+# playbook 与 user rules。由 codespace-home-init 在降权后调用；不做 marker 管理。
 
 set -euo pipefail
 
 # 把构建期预装的扩展播种到各 IDE 远端 server 持久化目录。
-bash /opt/devspace/images/dev/script/seed-vscode-extensions.sh \
+/opt/codespace/bin/codespace-seed-vscode-extensions \
   /home/x/.vscode-server /home/x/.trae-server /home/x/.trae-cn-server
 
 bash /opt/devspace/dotfiles/setup.sh docker /opt/devspace/dotfiles

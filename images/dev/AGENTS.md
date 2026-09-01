@@ -14,7 +14,7 @@ host 级共享服务见 [`images/sidecar/AGENTS.md`](../sidecar/AGENTS.md)，容
 | --- | --- |
 | `Dockerfile` | 组装静态工具、Nix、各语言运行时、dotfiles 和自建 s6 init |
 | `build.sh` | 从仓库根构建本地开发镜像 |
-| `script/` | 构建脚本，含 remote server 扩展安装、播种与 s6 配置 |
+| `script/` | 构建脚本，含 remote server 扩展安装与 s6 配置 |
 | `rootfs/` | 烤进镜像的 s6、sshd、SSH host key 和跨场景 home 配置 |
 | `rootfs/opt/codespace/` | 独立 uv application、workspace agent 与单职责 runtime helper |
 | `tests/` | `/opt/codespace/bin/` helper 的 Bats 行为测试 |
@@ -86,7 +86,8 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
   并开 `useConfigOnly = true`（镜像不含身份，误配时 commit 直接报错），boot 时该 oneshot 的 `up` 直接用
   execline 跑 `git config --global` 写入 `user.name`/`user.email`（幂等，无独立脚本）；
 - `home-init` 是受监督 longrun，依赖 `workspace-crypt`，异步执行扩展播种、docker scene dotfiles、
-  agent playbook与 user rules初始化；五个 IDE home目录在 container创建时已由控制面直接挂载，不需 boot
+  agent playbook与 user rules初始化（`codespace-home-init` 管理 marker，降权后调用 `codespace-home-setup`
+  执行实际编排）；五个 IDE home目录在 container创建时已由控制面直接挂载，不需 boot
   时替换目录。`home-init` 完成或失败后保持运行，managed模式分别写
   `control/home.ready`、`control/home.failed`，通用镜像模式不写 control marker；
 - `rclone-webdav` 和 `copyparty-webdav` s6 longrun 均依赖 `workspace-crypt`，以用户 `x` 分别监听 8004、8005；
@@ -123,13 +124,14 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
   与 home-init marker聚合状态，并读取 deploy public key；控制面注册 deploy key后直接在 host control目录
   创建 `provider-ready` marker。控制面每次创建 container前清空旧 marker，同一 container重启则复用 marker
   保持幂等；agent Git查询子进程以 `5230:5230`、`HOME=/home/x` 执行；
-- `/opt/codespace/bin/` 下六个 runtime helper 均由 s6启动流程执行，不依赖 controller是否调用：
+- `/opt/codespace/bin/` 下七个 runtime helper 均由 s6启动流程执行，不依赖 controller是否调用：
   `codespace-workspace-crypt` 由 s6 在 boot 时初始化或挂载加密 workspace；
   `codespace-deploy-key` 由独立 s6 oneshot无条件生成或复用 deploy private key；
-  `codespace-workspace-bootstrap` 根据容器环境编排 workspace初始化；
-  `codespace-home-init` 编排耗时 home初始化并发布 managed状态；
-  `codespace-git-checkout`、`codespace-workspace-open-path` 由 `workspace-bootstrap` 分别执行幂等 clone、
-  创建 editor path。
+  `codespace-workspace-bootstrap` 根据容器环境编排 workspace初始化，内联创建 editor open path；
+  `codespace-home-init` 编排耗时 home初始化并发布 managed状态，降权后调用 `codespace-home-setup`
+  执行扩展播种、dotfiles、agent playbook 与 user rules；`codespace-home-setup` 再调用
+  `codespace-seed-vscode-extensions` 把构建期扩展副本播种到各 IDE server；
+  `codespace-git-checkout` 由 `workspace-bootstrap` 执行幂等 clone。
   动态 Git state由 agent直接调用 Git计算，空仓通过 `HEAD` 判断，不依赖 checkout marker。
   修改命令、环境变量或 HTTP contract 时必须同步 Bats、agent测试与控制面。
 
