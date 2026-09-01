@@ -77,7 +77,7 @@ flowchart TB
     DeployKeyPair --> ImageBootstrap["image: s6 workspace bootstrap"]
     ImageBootstrap --> CheckoutHelper["codespace-git-checkout"]
     ImageBootstrap --> OpenPathHelper["codespace-workspace-open-path"]
-    ImageAgent <--> BootstrapState["control/status.json + provider-ready"]
+    ImageAgent <--> BootstrapState["control/bootstrap.* + provider-ready"]
     ImageBootstrap <--> BootstrapState
     SSH --> Remote["runtime/remote.py"]
     Service --> Transport["runtime/transport.py"]
@@ -106,7 +106,7 @@ $HOME/codespace/
 │       ├── workspace/                # workspace 明文或 gocryptfs 密文
 │       ├── upload/                   # upload 明文
 │       ├── cache/                    # tool/IDE cache 明文
-│       └── control/                  # request、status、provider-ready、agent.sock，0700
+│       └── control/                  # bootstrap marker、provider-ready、agent.sock，0700
 └── deployments/
     └── <deployment>/                 # deployment 托管数据
 ```
@@ -153,10 +153,10 @@ flowchart LR
   `0700` 权限。容器内 agent以 root绑定 socket，bootstrap helper和 Git查询子进程降权到用户 `x`。
 - 加密模式只改变 workspace 的 container target；host 上同一目录存放密文。
 - `/upload` 与 `/cache` 始终明文，并与 workspace/instance 同粒度隔离。
-- `request.json` 在创建 container 前原子写入；bootstrap 将状态原子写入 `status.json`；`agent.sock`
-  由 agent 启动时清理并重建。
-- `/provider-ready` 在 `control/provider-ready` 原子持久化 generation；同一 container 重启后可继续
-  幂等 bootstrap，新 create 的 generation 不匹配时旧确认自动失效。
+- 控制面在创建 container前清空旧 control marker；bootstrap用 `bootstrap.ready` / `bootstrap.failed`
+  记录结果，agent启动时清理并重建 `agent.sock`。
+- `/provider-ready` 在 `control/provider-ready` 原子持久化；同一 container重启后可继续幂等 bootstrap，
+  新 create会先清空旧 marker。
 - `purge=false` 只删除 container；`purge=true` 删除包含四个子目录的 instance 目录。
 - 用户 volume 不得覆盖任何保留 mount path 或其父子路径。
 
@@ -235,14 +235,14 @@ sequenceDiagram
     Service->>Host: validate inventory and SSH port
     Service->>Host: read configured environment
     Service->>Host: pull image and create four directories
-    Service->>Host: atomically write control/request.json
-    Service->>Host: create container
+    Service->>Host: clear stale control markers
+    Service->>Host: create container with CODESPACE_WORKSPACE_* env
     Service->>Host: forward agent.sock over SSH
     Service->>Host: GET /status
     opt repo workspace
         Host-->>Service: awaiting-provider + public key
         Service->>Provider: register repo deploy key
-        Service->>Host: POST /provider-ready
+        Service->>Host: create control/provider-ready marker
     end
     Service->>Host: wait until GET /status is ready
     Service->>Host: probe SSH
@@ -369,7 +369,6 @@ classDiagram
 
     class WorkspaceAgentClient {
         +status() AgentStatus
-        +provider_ready(generation) AgentStatus
         +git_state() RepoGitState
     }
 
@@ -394,39 +393,34 @@ classDiagram
 
 ## Workspace Agent Protocol
 
-控制面在 `<instance>/control/request.json` 写入一次性 bootstrap request：
+控制面创建 container时注入以下保留环境变量，用户 container environment与 env secret不得覆盖：
 
-```json
-{
-  "generation": "8f92c671f6044f97b6437aeed7b97f50",
-  "workspace_type": "repo",
-  "clone_url": "git@github.com:curoky/devspace.git",
-  "clone_path": "/workspace/devspace",
-  "open_path": "/workspace/devspace"
-}
-```
+| Environment | Value |
+| --- | --- |
+| `CODESPACE_WORKSPACE_TYPE` | `repo`、`git` 或 `blank` |
+| `CODESPACE_CLONE_URL` | repo/git 的 SSH clone URL；blank不注入 |
+| `CODESPACE_CLONE_PATH` | checkout target |
+| `CODESPACE_OPEN_PATH` | editor open path |
 
-`generation` 是每次 create 新生成的 UUID hex。agent 只监听
-`/run/codespace-control/agent.sock`，HTTP API 固定为：
+agent只监听 `/run/codespace-control/agent.sock`，HTTP API固定为：
 
 | Method | Path | Result |
 | --- | --- | --- |
-| `GET` | `/status` | `{generation,state,public_key,error}` |
-| `POST` | `/provider-ready` | 校验 body 中的 `generation`，允许 repo bootstrap 继续 |
-| `GET` | `/git-state` | 当前 request 的 `clone_path` 对应 `RepoGitState` |
+| `GET` | `/status` | `{state,public_key,error}` |
+| `GET` | `/git-state` | `CODESPACE_CLONE_PATH` 对应 `RepoGitState` |
 
 状态只允许 `starting`、`awaiting-provider`、`ready`、`failed`。s6 在 `workspace-crypt` 后启动
-`workspace-deploy-key` 和 `workspace-agent`，`workspace-bootstrap` 再依赖 `workspace-deploy-key`：
+`workspace-deploy-key`，`workspace-bootstrap` 与 `workspace-agent` 均依赖 `workspace-deploy-key`：
 
 - `workspace-deploy-key` 对所有 workspace无条件生成或复用 container-local keypair，private key不离开容器。
-- 两个 Python进程共用 `/opt/codespace` 下的独立 uv application；Pydantic校验协议与状态模型，agent用
-  FastAPI声明固定 route、Uvicorn监听 UDS，依赖由该目录的 `uv.lock` 固定。
-- bootstrap无须 controller调用就从 `request.json` 自动执行，并把状态原子写入 `status.json`。任务完成或
-  失败后 longrun保持运行，避免 s6自动重启导致重复执行。
-- `repo`：bootstrap读取 `/home/x/.ssh/repo_id_ed25519.pub` 后进入 `awaiting-provider`；agent收到匹配 generation 的
-  `/provider-ready` 后原子落盘，bootstrap随后执行 checkout和 open-path helper。
+- `workspace-bootstrap` 是 s6 oneshot，直接执行 Bash helper并按容器环境选择流程；成功写
+  `bootstrap.ready`，失败写 `bootstrap.failed`。
+- `repo`：agent从 `/home/x/.ssh/repo_id_ed25519.pub` 返回公钥并进入 `awaiting-provider`；控制面注册
+  deploy key后在 host control目录创建 `provider-ready` marker，bootstrap随后执行 checkout和 open-path helper。
 - `git`：bootstrap直接调用 checkout 和 open-path helper；`blank`：bootstrap只调用 open-path helper。
-- helper 以用户 `x` 执行；失败进入 `failed`，`error` 返回有限长度诊断。
+- checkout/open-path以用户 `x` 执行；失败 marker使 `/status` 进入 `failed` 并返回有限长度诊断。
+- Python只保留一个 agent进程；Pydantic校验环境与响应模型，FastAPI声明固定 route、Uvicorn监听 UDS，
+  依赖由 `/opt/codespace/uv.lock` 固定。
 - `/git-state` 仅在 `ready` 的 repo/git workspace 可用，由 agent以用户 `x` 直接执行只读 Git查询。
 - agent 不提供任意 command、path、environment 或 shell 参数；未知 route/method 直接拒绝。
 - provider token、deploy key 注册、Podman 生命周期、host 数据和 SSH 投影不进入镜像协议；deploy private key

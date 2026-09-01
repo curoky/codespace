@@ -86,33 +86,43 @@ def prepare_directories(route: SSHRoute, targets: list[str]) -> None:
     )
 
 
-def write_control_request(route: SSHRoute, control_path: str, content: str) -> None:
-    """Create a private control directory and atomically replace its request."""
+def reset_control_state(route: SSHRoute, control_path: str) -> None:
+    """Create the private control directory and remove stale runtime state."""
     if not control_path.startswith("/"):
         raise RuntimeError(f"refusing to prepare non-absolute control path: {control_path!r}")
     directory = shlex.quote(control_path)
-    request_path = shlex.quote(f"{control_path}/request.json")
-    socket_path = shlex.quote(f"{control_path}/agent.sock")
+    stale_paths = " ".join(
+        shlex.quote(f"{control_path}/{name}")
+        for name in (
+            "agent.sock",
+            "bootstrap.failed",
+            "bootstrap.ready",
+            "provider-ready",
+        )
+    )
     remote_command = (
-        "set -eu; "
-        f"mkdir -p -- {directory}; "
-        f"chmod 0700 -- {directory}; "
-        f"rm -f -- {socket_path}; "
-        f"tmp=$(mktemp {request_path}.XXXXXX); "
-        "trap 'rm -f -- \"$tmp\"' EXIT HUP INT TERM; "
-        'cat >"$tmp"; '
-        'chmod 0600 "$tmp"; '
-        f'mv -f -- "$tmp" {request_path}; '
-        "trap - EXIT HUP INT TERM"
+        f"set -eu; mkdir -p -- {directory}; chmod 0700 -- {directory}; rm -f -- {stale_paths}"
     )
     machine_known_hosts = _machine_known_hosts(route) if route.is_machine else None
     remote.run_host(
         route,
         remote_command,
         timeout=_CONTROL_WRITE_TIMEOUT,
-        action=f"write workspace agent request to {control_path!r}",
+        action=f"reset workspace control state in {control_path!r}",
         machine_known_hosts=machine_known_hosts,
-        input_text=content,
+    )
+
+
+def signal_provider_ready(route: SSHRoute, control_path: str) -> None:
+    """Create the provider authorization marker for the s6 bootstrap."""
+    if not control_path.startswith("/"):
+        raise RuntimeError(f"refusing to use non-absolute control path: {control_path!r}")
+    marker = shlex.quote(f"{control_path}/provider-ready")
+    _run_host(
+        route,
+        f"set -eu; umask 077; : >{marker}",
+        timeout=_CONTROL_WRITE_TIMEOUT,
+        action=f"authorize workspace bootstrap in {control_path!r}",
     )
 
 

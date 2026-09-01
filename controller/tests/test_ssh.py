@@ -319,7 +319,7 @@ def test_prepare_workspace_wraps_ssh_failure(
         )
 
 
-def test_write_control_request_streams_atomic_private_file(
+def test_reset_control_state_removes_stale_runtime_files(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     calls: list[tuple[list[str], dict[str, object]]] = []
@@ -334,20 +334,38 @@ def test_write_control_request_streams_atomic_private_file(
     monkeypatch.setattr(ssh.subprocess, "run", run)
     control = "/home/x/codespace/workspaces/devspace/debug/control"
 
-    ssh.write_control_request(_remote_route(), control, '{"generation":"abc"}\n')
+    ssh.reset_control_state(_remote_route(), control)
 
     command, kwargs = calls[0]
     assert command[-2] == "home"
     assert f"chmod 0700 -- {control}" in command[-1]
     assert f"rm -f -- {control}/agent.sock" in command[-1]
-    assert f'mv -f -- "$tmp" {control}/request.json' in command[-1]
-    assert kwargs["input"] == '{"generation":"abc"}\n'
-    assert kwargs["stdin"] is None
+    assert f"{control}/bootstrap.failed" in command[-1]
+    assert f"{control}/bootstrap.ready" in command[-1]
+    assert f"{control}/provider-ready" in command[-1]
+    assert kwargs["stdin"] == subprocess.DEVNULL
 
 
-def test_write_control_request_rejects_relative_path() -> None:
+def test_reset_control_state_rejects_relative_path() -> None:
     with pytest.raises(RuntimeError, match="non-absolute control path"):
-        ssh.write_control_request(_remote_route(), "relative/control", "{}")
+        ssh.reset_control_state(_remote_route(), "relative/control")
+
+
+def test_signal_provider_ready_creates_private_marker(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[list[str]] = []
+
+    def run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
+        calls.append(command)
+        return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(ssh.subprocess, "run", run)
+    control = "/home/x/codespace/workspaces/devspace/debug/control"
+
+    ssh.signal_provider_ready(_remote_route(), control)
+
+    assert f"umask 077; : >{control}/provider-ready" in calls[0][-1]
 
 
 def test_list_instances_reads_two_directory_levels(

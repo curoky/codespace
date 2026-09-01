@@ -262,6 +262,10 @@ def test_create_container_preserves_fixed_runtime_contract(
     assert kwargs["ulimits"] == [{"Name": "memlock", "Soft": -1, "Hard": -1}]
     assert kwargs["environment"] == {
         "HTTP_PROXY": "http://host-proxy:3128",
+        "CODESPACE_WORKSPACE_TYPE": "repo",
+        "CODESPACE_CLONE_URL": "git@github.com:curoky/devspace.git",
+        "CODESPACE_CLONE_PATH": "/workspace/devspace",
+        "CODESPACE_OPEN_PATH": "/workspace/devspace",
         "SSHD_PORT": str(ssh_port("codespace-home-devspace-debug")),
     }
     assert kwargs["ports"] == {}
@@ -642,7 +646,14 @@ def test_create_container_bridge_publishes_ports_and_binds_sshd(
     _, kwargs = calls[0]
     port = ssh_port("codespace-local-devspace-debug")
     assert kwargs["network_mode"] == "bridge"
-    assert kwargs["environment"] == {"SSHD_PORT": str(port), "SSHD_BIND": "0.0.0.0"}  # noqa: S104
+    assert kwargs["environment"] == {
+        "CODESPACE_WORKSPACE_TYPE": "repo",
+        "CODESPACE_CLONE_URL": "git@github.com:curoky/devspace.git",
+        "CODESPACE_CLONE_PATH": "/workspace/devspace",
+        "CODESPACE_OPEN_PATH": "/workspace/devspace",
+        "SSHD_PORT": str(port),
+        "SSHD_BIND": "0.0.0.0",  # noqa: S104
+    }
     assert kwargs["ports"] == {
         f"{port}/tcp": ("127.0.0.1", port),
         "8080/tcp": 8080,
@@ -676,6 +687,36 @@ def test_create_container_blank_omits_repo_and_provider_labels(
     assert labels[LABEL_TYPE] == "blank"
     assert LABEL_REPO not in labels
     assert LABEL_PROVIDER not in labels
+    assert kwargs["environment"] == {
+        "CODESPACE_WORKSPACE_TYPE": "blank",
+        "CODESPACE_CLONE_PATH": "/workspace",
+        "CODESPACE_OPEN_PATH": "/workspace",
+        "SSHD_PORT": str(ssh_port("codespace-home-scratch-debug")),
+    }
+
+
+def test_create_container_injects_direct_git_workspace_environment(
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, dict[str, object]]] = []
+    monkeypatch.setattr(engine, "Container", FakeContainer)
+    client = SimpleNamespace(containers=SimpleNamespace(run=_run_capturing(calls)))
+
+    container_runtime.create_container(
+        client,  # type: ignore[arg-type]
+        config.environment_spec("abbie", "home", "debug"),
+        _INSTANCE_PATHS,
+    )
+
+    _, kwargs = calls[0]
+    assert kwargs["environment"] == {
+        "CODESPACE_WORKSPACE_TYPE": "git",
+        "CODESPACE_CLONE_URL": "git@curoky:devspace",
+        "CODESPACE_CLONE_PATH": "/workspace/devspace",
+        "CODESPACE_OPEN_PATH": "/workspace/devspace",
+        "SSHD_PORT": str(ssh_port("codespace-home-abbie-debug")),
+    }
 
 
 def _environment_for_purge(platform: str) -> Environment:

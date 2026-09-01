@@ -2,51 +2,44 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Literal, Self
+from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator, model_validator
-
-MAX_REQUEST_BYTES = 4096
+from pydantic import BaseModel, ConfigDict, ValidationError, field_validator
 
 type WorkspaceType = Literal["repo", "git", "blank"]
 type AgentState = Literal["starting", "awaiting-provider", "ready", "failed"]
 
+WORKSPACE_TYPE_ENV = "CODESPACE_WORKSPACE_TYPE"
+WORKSPACE_CLONE_PATH_ENV = "CODESPACE_CLONE_PATH"
 
-class RequestError(ValueError):
-    """Raised when request.json violates the fixed agent contract."""
+
+class ConfigError(ValueError):
+    """Raised when the container environment violates the agent contract."""
 
 
 class AgentModel(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, strict=True)
 
 
-class AgentRequest(AgentModel):
-    generation: str = Field(pattern=r"^[0-9a-f]{32}$")
+class AgentConfig(AgentModel):
     workspace_type: WorkspaceType
-    clone_url: str | None
     clone_path: str
-    open_path: str
 
     @classmethod
-    def load(cls, path: Path) -> AgentRequest:
+    def load(cls, environment: Mapping[str, str]) -> AgentConfig:
         try:
-            raw = path.read_bytes()
-        except OSError as exc:
-            raise RequestError(f"cannot read {path}: {exc}") from exc
-        if len(raw) > MAX_REQUEST_BYTES:
-            raise RequestError("request.json exceeds 4096 bytes")
+            values = {
+                "workspace_type": environment[WORKSPACE_TYPE_ENV],
+                "clone_path": environment[WORKSPACE_CLONE_PATH_ENV],
+            }
+        except KeyError as exc:
+            raise ConfigError(f"missing container environment variable: {exc.args[0]}") from exc
         try:
-            return cls.model_validate_json(raw)
+            return cls.model_validate(values)
         except ValidationError as exc:
-            raise RequestError(str(exc)) from exc
-
-    @field_validator("clone_url")
-    @classmethod
-    def _validate_clone_url(cls, value: str | None) -> str | None:
-        if value == "":
-            raise ValueError("clone_url must be null or a non-empty string")
-        return value
+            raise ConfigError(str(exc)) from exc
 
     @field_validator("clone_path")
     @classmethod
@@ -61,31 +54,11 @@ class AgentRequest(AgentModel):
             raise ValueError("clone_path must be a normalized path below /workspace")
         return value
 
-    @field_validator("open_path")
-    @classmethod
-    def _validate_open_path(cls, value: str) -> str:
-        if not Path(value).is_absolute():
-            raise ValueError("open_path must be an absolute path")
-        return value
-
-    @model_validator(mode="after")
-    def _validate_workspace(self) -> Self:
-        if self.workspace_type == "blank" and self.clone_url is not None:
-            raise ValueError("blank workspace must not define clone_url")
-        if self.workspace_type != "blank" and self.clone_url is None:
-            raise ValueError(f"{self.workspace_type} workspace requires clone_url")
-        return self
-
 
 class AgentStatus(AgentModel):
-    generation: str
     state: AgentState
     public_key: str | None = None
     error: str | None = None
-
-
-class ProviderReadyRequest(AgentModel):
-    generation: str = Field(pattern=r"^[0-9a-f]{32}$")
 
 
 class GitState(AgentModel):

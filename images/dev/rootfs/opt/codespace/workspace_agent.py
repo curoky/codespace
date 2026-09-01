@@ -1,10 +1,11 @@
 """s6 entrypoint for the container-side workspace agent."""
 
+import os
+
 from codespace_agent import (
     CONTROL_DIR,
-    REQUEST_PATH,
     SOCKET_PATH,
-    AgentRequest,
+    AgentConfig,
     WorkspaceAgent,
     build_server,
 )
@@ -12,7 +13,7 @@ from codespace_agent import (
 
 def main() -> None:
     CONTROL_DIR.mkdir(parents=True, exist_ok=True)
-    agent = WorkspaceAgent(AgentRequest.load(REQUEST_PATH))
+    agent = WorkspaceAgent(AgentConfig.load(os.environ))
     server, server_socket = build_server(agent)
     try:
         server.run(sockets=[server_socket])

@@ -34,7 +34,11 @@ from controller.models import (
     LABEL_WORKSPACE,
     PODMAN_SOCKET,
     RESOURCE_ID_RE,
+    WORKSPACE_CLONE_PATH_ENV,
+    WORKSPACE_CLONE_URL_ENV,
     WORKSPACE_MOUNT,
+    WORKSPACE_OPEN_PATH_ENV,
+    WORKSPACE_TYPE_ENV,
     Environment,
     GitProvider,
     GitUrl,
@@ -59,7 +63,16 @@ from controller.runtime.transport import HostEndpoint
 CONFIG_PATH = Path.home() / "devspace" / "config.extend.yaml"
 
 # Derived per container and forbidden in passthrough environment values.
-_RESERVED_ENV_KEYS = frozenset({"SSHD_PORT", "SSHD_BIND"})
+_RESERVED_ENV_KEYS = frozenset(
+    {
+        "SSHD_PORT",
+        "SSHD_BIND",
+        WORKSPACE_TYPE_ENV,
+        WORKSPACE_CLONE_URL_ENV,
+        WORKSPACE_CLONE_PATH_ENV,
+        WORKSPACE_OPEN_PATH_ENV,
+    }
+)
 _RESERVED_MOUNT_TARGETS = ("/workspace", "/upload", "/cache", CONTROL_MOUNT)
 type EnvironmentName = Annotated[str, Field(pattern=r"^[A-Za-z_][A-Za-z0-9_]*$")]
 

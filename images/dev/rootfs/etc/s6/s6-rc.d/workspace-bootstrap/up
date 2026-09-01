@@ -1,0 +1,4 @@
+redirfd -w 1 /var/log/workspace-bootstrap.log
+fdmove -c 2 1
+s6-envdir -Lf -- /run/s6/container_environment
+/opt/codespace/bin/codespace-workspace-bootstrap

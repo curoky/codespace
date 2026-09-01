@@ -1,32 +1,30 @@
 """Container-side workspace agent."""
 
 from .api import build_server
-from .models import AgentRequest, AgentStatus, GitState, RequestError
+from .models import AgentConfig, AgentStatus, ConfigError, GitState
 from .service import (
+    BOOTSTRAP_FAILED_PATH,
+    BOOTSTRAP_READY_PATH,
     CONTROL_DIR,
     DEPLOY_PUBLIC_KEY_PATH,
-    REQUEST_PATH,
     SOCKET_PATH,
-    STATUS_PATH,
     APIError,
     CommandRunner,
     WorkspaceAgent,
-    WorkspaceBootstrap,
 )
 
 __all__ = [
+    "BOOTSTRAP_FAILED_PATH",
+    "BOOTSTRAP_READY_PATH",
     "CONTROL_DIR",
     "DEPLOY_PUBLIC_KEY_PATH",
-    "REQUEST_PATH",
     "SOCKET_PATH",
-    "STATUS_PATH",
     "APIError",
-    "AgentRequest",
+    "AgentConfig",
     "AgentStatus",
     "CommandRunner",
+    "ConfigError",
     "GitState",
-    "RequestError",
     "WorkspaceAgent",
-    "WorkspaceBootstrap",
     "build_server",
 ]

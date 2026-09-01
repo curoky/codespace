@@ -10,18 +10,15 @@ import stat
 import subprocess
 import sys
 import threading
-import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 from types import ModuleType
 
 import pytest
-from pydantic import ValidationError
 
-from controller.agent import AgentError, WorkspaceAgentClient, WorkspaceAgentRequest
+from controller.agent import WorkspaceAgentClient
 
-_GENERATION = "a" * 32
 _AGENT_ROOT = Path(__file__).parents[2] / "images" / "dev" / "rootfs" / "opt" / "codespace"
 _S6_ROOT = Path(__file__).parents[2] / "images" / "dev" / "rootfs" / "etc" / "s6" / "s6-rc.d"
 
@@ -34,26 +31,10 @@ def _load_image_agent() -> ModuleType:
 image_agent = _load_image_agent()
 
 
-def test_s6_generates_deploy_key_for_every_workspace_before_bootstrap() -> None:
-    service = _S6_ROOT / "workspace-deploy-key"
-
-    assert (service / "type").read_text(encoding="utf-8").strip() == "oneshot"
-    assert (service / "dependencies.d" / "workspace-crypt").is_file()
-    assert "/opt/codespace/bin/codespace-deploy-key" in (service / "up").read_text(encoding="utf-8")
-    assert (_S6_ROOT / "workspace-bootstrap" / "dependencies.d" / "workspace-deploy-key").is_file()
-
-
-def _request(
-    *,
-    workspace_type: str = "repo",
-    clone_url: str | None = "git@github.com:curoky/devspace.git",
-) -> object:
-    return image_agent.AgentRequest(
-        generation=_GENERATION,
+def _config(*, workspace_type: str = "repo") -> object:
+    return image_agent.AgentConfig(
         workspace_type=workspace_type,
-        clone_url=clone_url,
         clone_path="/workspace/devspace" if workspace_type != "blank" else "/workspace",
-        open_path="/workspace/devspace" if workspace_type != "blank" else "/workspace",
     )
 
 
@@ -95,164 +76,103 @@ class FakeRunFactory:
         return subprocess.CompletedProcess(command, 0, stdout=stdout, stderr="")
 
 
-def _runner(factory: FakeRunFactory) -> object:
-    return image_agent.CommandRunner(run_factory=factory)
-
-
-def _wait_state(agent: object, state: str) -> object:
-    deadline = time.monotonic() + 2
-    while time.monotonic() < deadline:
-        status = agent.status()
-        if status.state == state:
-            return status
-        time.sleep(0.01)
-    raise AssertionError(f"agent did not reach {state!r}")
-
-
-def _components(
+def _agent(
     tmp_path: Path,
     *,
-    request: object | None = None,
+    workspace_type: str = "repo",
     factory: FakeRunFactory | None = None,
-) -> tuple[object, object, FakeRunFactory]:
-    active_request = request or _request()
+) -> tuple[object, FakeRunFactory]:
     active_factory = factory or FakeRunFactory()
-    runner = _runner(active_factory)
-    deploy_public_key_path = tmp_path / "repo_id_ed25519.pub"
-    provider_ready_path = tmp_path / "provider-ready"
-    status_path = tmp_path / "status.json"
-    deploy_public_key_path.write_text("ssh-ed25519 AAAAC3 test\n", encoding="utf-8")
-    bootstrap = image_agent.WorkspaceBootstrap(
-        active_request,
-        runner=runner,
-        deploy_public_key_path=deploy_public_key_path,
-        provider_ready_path=provider_ready_path,
-        status_path=status_path,
-        provider_ready_poll_interval=0.01,
-    )
+    public_key = tmp_path / "repo_id_ed25519.pub"
+    public_key.write_text("ssh-ed25519 AAAAC3 test\n", encoding="utf-8")
     agent = image_agent.WorkspaceAgent(
-        active_request,
-        runner=runner,
-        provider_ready_path=provider_ready_path,
-        status_path=status_path,
+        _config(workspace_type=workspace_type),
+        runner=image_agent.CommandRunner(run_factory=active_factory),
+        deploy_public_key_path=public_key,
+        provider_ready_path=tmp_path / "provider-ready",
+        bootstrap_ready_path=tmp_path / "bootstrap.ready",
+        bootstrap_failed_path=tmp_path / "bootstrap.failed",
     )
-    return bootstrap, agent, active_factory
+    return agent, active_factory
 
 
-def test_request_models_reject_invalid_workspace_contract(tmp_path: Path) -> None:
-    request_path = tmp_path / "request.json"
-    request_path.write_text(
-        json.dumps(
-            {
-                "generation": _GENERATION,
-                "workspace_type": "blank",
-                "clone_url": "git@example:repo",
-                "clone_path": "/workspace",
-                "open_path": "/workspace",
-            }
-        ),
+def test_s6_runs_bootstrap_as_oneshot_after_deploy_key() -> None:
+    deploy_key = _S6_ROOT / "workspace-deploy-key"
+    bootstrap = _S6_ROOT / "workspace-bootstrap"
+    agent = _S6_ROOT / "workspace-agent"
+
+    assert (deploy_key / "type").read_text(encoding="utf-8").strip() == "oneshot"
+    assert (bootstrap / "type").read_text(encoding="utf-8").strip() == "oneshot"
+    assert (bootstrap / "dependencies.d" / "workspace-deploy-key").is_file()
+    assert (agent / "dependencies.d" / "workspace-deploy-key").is_file()
+    assert "codespace-workspace-bootstrap" in (bootstrap / "up").read_text(encoding="utf-8")
+
+
+def test_agent_config_loads_container_environment() -> None:
+    config = image_agent.AgentConfig.load(
+        {
+            "CODESPACE_WORKSPACE_TYPE": "git",
+            "CODESPACE_CLONE_PATH": "/workspace/devspace",
+        }
+    )
+
+    assert config.workspace_type == "git"
+    assert config.clone_path == "/workspace/devspace"
+
+    with pytest.raises(image_agent.ConfigError, match="CODESPACE_WORKSPACE_TYPE"):
+        image_agent.AgentConfig.load({})
+
+
+def test_repo_status_waits_for_provider_and_exposes_public_key(tmp_path: Path) -> None:
+    workspace_agent, _ = _agent(tmp_path)
+
+    waiting = workspace_agent.status()
+    assert waiting.state == "awaiting-provider"
+    assert waiting.public_key == "ssh-ed25519 AAAAC3 test"
+
+    (tmp_path / "provider-ready").write_text("", encoding="utf-8")
+    assert workspace_agent.status().state == "starting"
+
+    (tmp_path / "bootstrap.ready").write_text("ready\n", encoding="utf-8")
+    assert workspace_agent.status().state == "ready"
+
+
+def test_agent_reports_bootstrap_failure(tmp_path: Path) -> None:
+    workspace_agent, _ = _agent(tmp_path, workspace_type="git")
+    (tmp_path / "bootstrap.failed").write_text(
+        "workspace bootstrap repository checkout failed (1)\n",
         encoding="utf-8",
     )
 
-    with pytest.raises(image_agent.RequestError, match="must not define clone_url"):
-        image_agent.AgentRequest.load(request_path)
-    with pytest.raises(ValidationError, match="must not define clone_url"):
-        WorkspaceAgentRequest(
-            generation=_GENERATION,
-            workspace_type="blank",
-            clone_url="git@example:repo",
-            clone_path="/workspace",
-            open_path="/workspace",
-        )
+    status = workspace_agent.status()
+
+    assert status.state == "failed"
+    assert status.error == "workspace bootstrap repository checkout failed (1)"
 
 
-def test_s6_bootstrap_waits_for_provider_then_agent_reports_git_state(
-    tmp_path: Path,
-) -> None:
-    bootstrap, workspace_agent, factory = _components(tmp_path)
+def test_blank_workspace_has_no_git_state(tmp_path: Path) -> None:
+    workspace_agent, _ = _agent(tmp_path, workspace_type="blank")
+    (tmp_path / "bootstrap.ready").write_text("ready\n", encoding="utf-8")
 
-    thread = threading.Thread(target=bootstrap.run, daemon=True)
-    thread.start()
-    waiting = _wait_state(workspace_agent, "awaiting-provider")
+    with pytest.raises(image_agent.APIError, match="no Git state"):
+        workspace_agent.git_state()
 
-    assert waiting.public_key == "ssh-ed25519 AAAAC3 test"
-    with pytest.raises(image_agent.APIError, match="generation does not match"):
-        workspace_agent.provider_ready("b" * 32)
 
-    workspace_agent.provider_ready(_GENERATION)
-    _wait_state(workspace_agent, "ready")
+def test_git_state_reports_dirty_and_unpushed_changes(tmp_path: Path) -> None:
+    workspace_agent, factory = _agent(tmp_path, workspace_type="git")
+    (tmp_path / "bootstrap.ready").write_text("ready\n", encoding="utf-8")
+
     state = workspace_agent.git_state()
-    thread.join(timeout=1)
 
     assert state.model_dump() == {
         "unpushed": True,
         "uncommitted": True,
         "detail": [" M README.md", "abc123 commit"],
     }
-    commands = [Path(call[0][0]).name for call in factory.calls]
-    assert commands[:2] == [
-        "codespace-git-checkout",
-        "codespace-workspace-open-path",
-    ]
-    assert commands[2:] == ["git", "git", "git", "git"]
+    assert [Path(call[0][0]).name for call in factory.calls] == ["git", "git", "git", "git"]
     assert all(call[1]["user"] == 5230 for call in factory.calls)
     assert all(call[1]["group"] == 5230 for call in factory.calls)
     assert all(call[1]["env"]["HOME"] == "/home/x" for call in factory.calls)
-
-
-def test_blank_bootstrap_runs_without_agent_calls(tmp_path: Path) -> None:
-    request = _request(workspace_type="blank", clone_url=None)
-    bootstrap, workspace_agent, factory = _components(tmp_path, request=request)
-
-    status = bootstrap.run()
-
-    assert status.state == "ready"
-    assert workspace_agent.status().state == "ready"
-    assert [Path(call[0][0]).name for call in factory.calls] == ["codespace-workspace-open-path"]
-    with pytest.raises(image_agent.APIError, match="no Git state"):
-        workspace_agent.git_state()
-
-
-def test_bootstrap_failure_is_persisted_for_agent(tmp_path: Path) -> None:
-    factory = FakeRunFactory(fail="codespace-git-checkout")
-    request = _request(workspace_type="git", clone_url="git@example:repo")
-    bootstrap, workspace_agent, _ = _components(
-        tmp_path,
-        request=request,
-        factory=factory,
-    )
-
-    status = bootstrap.run()
-
-    assert status.state == "failed"
-    assert workspace_agent.status() == status
-    assert "codespace-git-checkout failed (1): command failed" in (status.error or "")
-
-
-def test_bootstrap_rejects_empty_deploy_public_key(tmp_path: Path) -> None:
-    bootstrap, workspace_agent, _ = _components(tmp_path)
-    (tmp_path / "repo_id_ed25519.pub").write_text("", encoding="utf-8")
-
-    status = bootstrap.run()
-
-    assert status.state == "failed"
-    assert workspace_agent.status() == status
-    assert status.error == "deploy public key is empty"
-
-
-def test_git_state_command_failure_maps_to_api_error(tmp_path: Path) -> None:
-    factory = FakeRunFactory()
-    request = _request(workspace_type="git", clone_url="git@example:repo")
-    bootstrap, workspace_agent, _ = _components(
-        tmp_path,
-        request=request,
-        factory=factory,
-    )
-    bootstrap.run()
-    factory.fail = "git"
-
-    with pytest.raises(image_agent.APIError, match=r"git failed \(1\)"):
-        workspace_agent.git_state()
 
 
 @pytest.mark.parametrize(
@@ -274,27 +194,20 @@ def test_git_state_reports_missing_and_empty_repositories_as_clean(
     factory: FakeRunFactory,
     expected: dict[str, object],
 ) -> None:
-    request = _request(workspace_type="git", clone_url="git@example:repo")
-    bootstrap, workspace_agent, _ = _components(
-        tmp_path,
-        request=request,
-        factory=factory,
-    )
-    bootstrap.run()
+    workspace_agent, _ = _agent(tmp_path, workspace_type="git", factory=factory)
+    (tmp_path / "bootstrap.ready").write_text("ready\n", encoding="utf-8")
 
     assert workspace_agent.git_state().model_dump() == expected
 
 
 def test_git_state_caps_detail_at_twenty_lines(tmp_path: Path) -> None:
     dirty = "".join(f"?? file-{index}.txt\n" for index in range(25))
-    factory = FakeRunFactory(dirty=dirty)
-    request = _request(workspace_type="git", clone_url="git@example:repo")
-    bootstrap, workspace_agent, _ = _components(
+    workspace_agent, _ = _agent(
         tmp_path,
-        request=request,
-        factory=factory,
+        workspace_type="git",
+        factory=FakeRunFactory(dirty=dirty),
     )
-    bootstrap.run()
+    (tmp_path / "bootstrap.ready").write_text("ready\n", encoding="utf-8")
 
     state = workspace_agent.git_state()
 
@@ -302,51 +215,10 @@ def test_git_state_caps_detail_at_twenty_lines(tmp_path: Path) -> None:
     assert len(state.detail) == 20
 
 
-def test_bootstrap_reuses_durable_provider_acknowledgement(tmp_path: Path) -> None:
-    first_bootstrap, first_agent, _ = _components(tmp_path)
-    first_thread = threading.Thread(target=first_bootstrap.run, daemon=True)
-    first_thread.start()
-    _wait_state(first_agent, "awaiting-provider")
-    first_agent.provider_ready(_GENERATION)
-    _wait_state(first_agent, "ready")
-    first_thread.join(timeout=1)
-
-    restarted_factory = FakeRunFactory()
-    restarted_bootstrap, restarted_agent, _ = _components(
-        tmp_path,
-        factory=restarted_factory,
-    )
-    restarted_bootstrap.run()
-
-    assert restarted_agent.status().state == "ready"
-    assert (tmp_path / "provider-ready").read_text(encoding="utf-8") == f"{_GENERATION}\n"
-    assert [Path(call[0][0]).name for call in restarted_factory.calls] == [
-        "codespace-git-checkout",
-        "codespace-workspace-open-path",
-    ]
-
-
-def test_agent_ignores_status_from_an_old_generation(tmp_path: Path) -> None:
-    (tmp_path / "status.json").write_text(
-        json.dumps(
-            {
-                "generation": "b" * 32,
-                "state": "ready",
-                "public_key": None,
-                "error": None,
-            }
-        ),
-        encoding="utf-8",
-    )
-    _, workspace_agent, _ = _components(tmp_path)
-
-    assert workspace_agent.status().state == "starting"
-
-
 @contextmanager
 def _running_server(tmp_path: Path) -> Iterator[Path]:
     socket_path = tmp_path / "agent.sock"
-    bootstrap, workspace_agent, _ = _components(tmp_path)
+    workspace_agent, _ = _agent(tmp_path)
     server, server_socket = image_agent.build_server(
         socket_path=socket_path,
         agent=workspace_agent,
@@ -356,15 +228,10 @@ def _running_server(tmp_path: Path) -> Iterator[Path]:
         kwargs={"sockets": [server_socket]},
         daemon=True,
     )
-    bootstrap_thread = threading.Thread(target=bootstrap.run, daemon=True)
     server_thread.start()
-    bootstrap_thread.start()
     try:
         yield socket_path
     finally:
-        if workspace_agent.status().state == "awaiting-provider":
-            workspace_agent.provider_ready(_GENERATION)
-        bootstrap_thread.join(timeout=2)
         server.should_exit = True
         server_thread.join(timeout=2)
         server_socket.close()
@@ -373,29 +240,21 @@ def _running_server(tmp_path: Path) -> Iterator[Path]:
 
 def test_controller_client_completes_repo_handshake_over_uds(tmp_path: Path) -> None:
     with _running_server(tmp_path) as socket_path:
-        client = WorkspaceAgentClient(socket_path, _GENERATION)
+        client = WorkspaceAgentClient(socket_path)
 
         status = client.wait_for({"awaiting-provider"}, timeout=2)
-        acknowledged = client.provider_ready()
+        (tmp_path / "provider-ready").write_text("", encoding="utf-8")
+        (tmp_path / "bootstrap.ready").write_text("ready\n", encoding="utf-8")
         ready = client.wait_for({"ready"}, timeout=2)
-        state = client.git_state()
 
         assert status.public_key == "ssh-ed25519 AAAAC3 test"
-        assert acknowledged.generation == _GENERATION
         assert ready.state == "ready"
-        assert state.unpushed is True
         assert stat.S_IMODE(socket_path.stat().st_mode) == 0o666
 
 
-def test_agent_http_rejects_generation_mismatch_and_unknown_route(tmp_path: Path) -> None:
+def test_agent_http_rejects_unknown_route_and_method(tmp_path: Path) -> None:
     with _running_server(tmp_path) as socket_path:
-        client = WorkspaceAgentClient(socket_path, _GENERATION)
-        client.wait_for({"awaiting-provider"}, timeout=2)
-        wrong_client = WorkspaceAgentClient(socket_path, "b" * 32)
-
-        with pytest.raises(AgentError, match=r"failed \(409\).*generation"):
-            wrong_client.provider_ready()
-
+        WorkspaceAgentClient(socket_path).wait_for({"awaiting-provider"}, timeout=2)
         status, payload = _raw_request(socket_path, "GET", "/shell")
         assert status == 404
         assert payload == {"detail": "Not Found"}
@@ -407,10 +266,7 @@ def test_agent_http_rejects_generation_mismatch_and_unknown_route(tmp_path: Path
 def test_agent_server_replaces_stale_socket(tmp_path: Path) -> None:
     socket_path = tmp_path / "agent.sock"
     socket_path.write_text("stale", encoding="utf-8")
-    _, workspace_agent, _ = _components(
-        tmp_path,
-        request=_request(workspace_type="blank", clone_url=None),
-    )
+    workspace_agent, _ = _agent(tmp_path, workspace_type="blank")
 
     server, server_socket = image_agent.build_server(
         socket_path=socket_path,

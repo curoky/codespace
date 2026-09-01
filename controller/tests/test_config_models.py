@@ -613,7 +613,8 @@ def test_config_resolved_container_applies_host_and_workspace_overrides() -> Non
     assert resolved.security_opt == ["disable"]
 
 
-def test_config_rejects_reserved_container_env_key() -> None:
+@pytest.mark.parametrize("name", ["SSHD_PORT", "CODESPACE_WORKSPACE_TYPE"])
+def test_config_rejects_reserved_container_env_key(name: str) -> None:
     with pytest.raises(ValidationError, match="control-plane keys"):
         Config.model_validate(
             _config(
@@ -623,7 +624,7 @@ def test_config_rejects_reserved_container_env_key() -> None:
                     "security_opt": [],
                     "pids_limit": -1,
                     "ulimits": {},
-                    "environment": {"SSHD_PORT": "2222"},
+                    "environment": {name: "override"},
                 }
             )
         )

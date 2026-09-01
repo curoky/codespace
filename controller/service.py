@@ -5,7 +5,6 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from threading import Lock
-from uuid import uuid4
 
 from loguru import logger
 from podman import PodmanClient
@@ -31,7 +30,6 @@ from controller.models import (
     RepoGitState,
     deployment_id,
     environment_id,
-    git_host,
 )
 from controller.operations import OperationStore
 from controller.runtime.transport import PodmanTransport, SSHRoute
@@ -210,24 +208,7 @@ class CodespaceService:
                 paths.control,
             ],
         )
-        generation = uuid4().hex
-        clone_url: str | None = None
-        if isinstance(ws, RepoWorkspace):
-            clone_url = f"git@{git_host(ws.provider)}:{ws.repo}.git"
-        elif isinstance(ws, GitWorkspace):
-            clone_url = ws.git_url
-        request = agent.WorkspaceAgentRequest(
-            generation=generation,
-            workspace_type=ws.type,
-            clone_url=clone_url,
-            clone_path=spec.clone_path,
-            open_path=spec.open_path,
-        )
-        ssh.write_control_request(
-            creation.route,
-            paths.control,
-            request.model_dump_json() + "\n",
-        )
+        ssh.reset_control_state(creation.route, paths.control)
 
         self._stage(creation, "creating container")
         creation.container_created = True
@@ -240,8 +221,7 @@ class CodespaceService:
 
         self._stage(creation, "waiting for workspace agent")
         agent_client = agent.WorkspaceAgentClient(
-            self.transport.forward_socket(host, f"{paths.control}/agent.sock"),
-            generation,
+            self.transport.forward_socket(host, f"{paths.control}/agent.sock")
         )
         if isinstance(ws, RepoWorkspace):
             status = agent_client.wait_for(
@@ -262,7 +242,7 @@ class CodespaceService:
             )
             creation.deploy_key_registered = True
             self._stage(creation, "authorizing repository bootstrap")
-            agent_client.provider_ready()
+            ssh.signal_provider_ready(creation.route, paths.control)
         if isinstance(ws, RepoWorkspace | GitWorkspace):
             self._stage(creation, "cloning repository")
         else:

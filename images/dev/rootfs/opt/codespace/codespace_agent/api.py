@@ -9,7 +9,7 @@ import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from .models import AgentStatus, GitState, ProviderReadyRequest
+from .models import AgentStatus, GitState
 from .service import SOCKET_PATH, APIError, WorkspaceAgent
 
 
@@ -28,10 +28,6 @@ def create_app(agent: WorkspaceAgent) -> FastAPI:
     @app.get("/status")
     def status() -> AgentStatus:
         return agent.status()
-
-    @app.post("/provider-ready")
-    def provider_ready(request: ProviderReadyRequest) -> AgentStatus:
-        return agent.provider_ready(request.generation)
 
     @app.get("/git-state")
     def git_state() -> GitState:

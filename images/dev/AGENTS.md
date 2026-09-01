@@ -28,7 +28,7 @@ host 级共享服务见 [`images/sidecar/AGENTS.md`](../sidecar/AGENTS.md)，容
 `workspace-init` 必须先于 `workspace-crypt` 完成，把挂载的 `/workspace` 与密文根 `/workspace.enc`
 归属到 `5230:5230`；`workspace-crypt` 再先于 `workspace-deploy-key`、`workspace-agent`、`sshd`、
 `home-init` 和两个 WebDAV 服务完成，负责在启用加密时把明文挂到 `/workspace`（详见 host contract）。
-`workspace-bootstrap` 依赖 `workspace-deploy-key`。
+`workspace-bootstrap` 和 `workspace-agent` 均依赖 `workspace-deploy-key`。
 
 runlevel 拆成两个 bundle：`user-base` 含除 `gitconfig-init` 外的全部服务；`user-final` 通过
 `contents.d/user-base` 嵌套包含 `user-base`，再加 `gitconfig-init`。`setup-s6.sh` 的
@@ -100,27 +100,28 @@ deploy key。此类连接的认证与 host key 校验完全由本 SSH 契约承�
   （`script/binman.yaml` 的 `link`）提供，日志写 `/var/log/supercronic.log`；
 - `workspace-deploy-key` s6 oneshot对 repo、git、blank workspace一律以用户 `x` 执行
   `/opt/codespace/bin/codespace-deploy-key`，在 `/home/x/.ssh/` 生成或复用 deploy keypair；
-  `workspace-bootstrap` 直接读取 `repo_id_ed25519.pub`，private key不离开容器。`workspace-bootstrap` 与
-  `workspace-agent` 共用
-  `/opt/codespace` 下的独立 uv application，Python版本由
-  `.python-version` 声明，
+  private key不离开容器。控制面创建容器时注入 `CODESPACE_WORKSPACE_TYPE`、`CODESPACE_CLONE_URL`（blank
+  不注入）、`CODESPACE_CLONE_PATH` 和 `CODESPACE_OPEN_PATH`；这些保留变量不得被用户 container
+  environment或 env secret覆盖。`workspace-bootstrap` s6 oneshot执行
+  `/opt/codespace/bin/codespace-workspace-bootstrap`：repo等待 `control/provider-ready`，git直接继续，
+  blank跳过 checkout，随后调用 checkout/open-path helper；成功写 `control/bootstrap.ready`，失败写
+  `control/bootstrap.failed`。helper以 `5230:5230`、`HOME=/home/x` 执行实际 workspace命令；
+- `workspace-agent` 使用 `/opt/codespace` 下的独立 uv application，Python版本由 `.python-version` 声明，
   FastAPI、Pydantic、Uvicorn依赖由同目录 `pyproject.toml` 与 `uv.lock` 锁定；镜像先以用户 `x` 执行
   `uv python install` 安装 Python 3.14，再复用该 uv-managed Python执行 `uv sync --locked --no-dev`
-  生成 `.venv`。s6 并行启动两个 longrun：`workspace_bootstrap.py` 读取 `control/request.json`，不依赖
-  controller 调用即执行 checkout/open-path，并把 `starting/awaiting-provider/ready/failed` 原子写入
-  `control/status.json`；任务结束后进程保持运行，避免 s6 重启重复执行。
-  `workspace_agent.py` 清理并绑定 `agent.sock`，仅提供 `GET /status`、`POST /provider-ready`、
-  `GET /git-state`；socket 本身 mode `0666`，访问边界由外层 `control/` 的 `0700` 权限保证。
-  `/provider-ready` 把 generation 原子写入 `control/provider-ready`，保证同一 container 重启后可幂等继续；
-  新 request 的 generation 不匹配时不会复用旧确认。bootstrap helper和 agent Git查询子进程均以
-  `5230:5230`、`HOME=/home/x` 执行；
-- `/opt/codespace/bin/` 下四个 runtime helper 均由 s6启动流程执行，不依赖 controller是否调用：
+  生成 `.venv`。`workspace_agent.py` 清理并绑定 `agent.sock`，仅提供 `GET /status`、`GET /git-state`；
+  socket 本身 mode `0666`，访问边界由外层 `control/` 的 `0700` 权限保证。`/status` 从 bootstrap marker
+  和 deploy public key计算状态；控制面注册 deploy key后直接在 host control目录创建 `provider-ready`
+  marker。控制面每次创建 container前清空旧 marker，同一 container重启则复用 marker保持幂等；agent
+  Git查询子进程以 `5230:5230`、`HOME=/home/x` 执行；
+- `/opt/codespace/bin/` 下五个 runtime helper 均由 s6启动流程执行，不依赖 controller是否调用：
   `codespace-workspace-crypt` 由 s6 在 boot 时初始化或挂载加密 workspace；
   `codespace-deploy-key` 由独立 s6 oneshot无条件生成或复用 deploy private key；
+  `codespace-workspace-bootstrap` 根据容器环境编排 workspace初始化；
   `codespace-git-checkout`、`codespace-workspace-open-path` 由 `workspace-bootstrap` 分别执行幂等 clone、
   创建 editor path。
   动态 Git state由 agent直接调用 Git计算，空仓通过 `HEAD` 判断，不依赖 checkout marker。
-  修改命令、request 或 JSON contract 时必须同步 Bats、agent测试与控制面。
+  修改命令、环境变量或 HTTP contract 时必须同步 Bats、agent测试与控制面。
 
 网络：`network_mode: host` 容器 sshd 绑 `127.0.0.1`。`network_mode: bridge` 容器 sshd 注入
 `SSHD_BIND=0.0.0.0`，SSH 端口发布到 loopback `127.0.0.1:<ssh_port>` 复用 ProxyCommand 路径，workspace

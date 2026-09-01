@@ -37,6 +37,10 @@ WORKSPACE_CIPHER_MOUNT = "/workspace.enc"
 # via `encrypt_workspace`; a missing secret then fails container creation fast.
 WORKSPACE_CRYPT_SECRET = "workspace_crypt_key"  # noqa: S105 - secret name, not a value
 WORKSPACE_CRYPT_SECRET_ENV = "WORKSPACE_CRYPT_KEY"  # noqa: S105 - env var name, not a value
+WORKSPACE_TYPE_ENV = "CODESPACE_WORKSPACE_TYPE"
+WORKSPACE_CLONE_URL_ENV = "CODESPACE_CLONE_URL"
+WORKSPACE_CLONE_PATH_ENV = "CODESPACE_CLONE_PATH"
+WORKSPACE_OPEN_PATH_ENV = "CODESPACE_OPEN_PATH"
 HOST_DATA_DIR_NAME = "codespace"
 WORKSPACES_DATA_DIR_NAME = "workspaces"
 DEPLOYMENTS_DATA_DIR_NAME = "deployments"

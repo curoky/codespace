@@ -49,11 +49,10 @@ class FakeAgentClient:
     def __init__(
         self,
         socket_path: Path,
-        generation: str | None = None,
         *,
         timeout: float = 30.0,
     ) -> None:
-        del socket_path, generation, timeout
+        del socket_path, timeout
 
     def wait_for(
         self,
@@ -64,14 +63,10 @@ class FakeAgentClient:
         del timeout
         if "awaiting-provider" in states:
             return agent.AgentStatus(
-                generation="0" * 32,
                 state="awaiting-provider",
                 public_key="PUBLIC",
             )
-        return agent.AgentStatus(generation="0" * 32, state="ready")
-
-    def provider_ready(self) -> agent.AgentStatus:
-        return agent.AgentStatus(generation="0" * 32, state="awaiting-provider")
+        return agent.AgentStatus(state="ready")
 
     def git_state(self) -> RepoGitState:
         return RepoGitState()
@@ -110,7 +105,8 @@ def service(
 ) -> CodespaceService:
     monkeypatch.setattr(ssh, "initialize", lambda hosts: None)
     monkeypatch.setattr(ssh, "remote_data_paths", lambda route: _DATA_PATHS)
-    monkeypatch.setattr(ssh, "write_control_request", lambda *args: None)
+    monkeypatch.setattr(ssh, "reset_control_state", lambda *args: None)
+    monkeypatch.setattr(ssh, "signal_provider_ready", lambda *args: None)
     monkeypatch.setattr(agent, "WorkspaceAgentClient", FakeAgentClient)
     return CodespaceService(
         config,
@@ -242,11 +238,10 @@ def test_create_runs_all_stages_in_order(
         ),
     )
     monkeypatch.setattr(ssh, "prepare_directories", lambda *args: events.append("workspace"))
-    requests: list[str] = []
     monkeypatch.setattr(
         ssh,
-        "write_control_request",
-        lambda _route, _path, content: (requests.append(content), events.append("request")),
+        "reset_control_state",
+        lambda *_args: events.append("control"),
     )
 
     def create_container(
@@ -279,18 +274,14 @@ def test_create_runs_all_stages_in_order(
             if "awaiting-provider" in states:
                 events.append("keygen")
                 return agent.AgentStatus(
-                    generation="0" * 32,
                     state="awaiting-provider",
                     public_key="PUBLIC",
                 )
             events.append("clone")
-            return agent.AgentStatus(generation="0" * 32, state="ready")
-
-        def provider_ready(self) -> agent.AgentStatus:
-            events.append("provider-ready")
-            return agent.AgentStatus(generation="0" * 32, state="awaiting-provider")
+            return agent.AgentStatus(state="ready")
 
     monkeypatch.setattr(agent, "WorkspaceAgentClient", EventAgentClient)
+    monkeypatch.setattr(ssh, "signal_provider_ready", lambda *args: events.append("provider-ready"))
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
 
     service.create("devspace", "home", "debug")
@@ -299,7 +290,7 @@ def test_create_runs_all_stages_in_order(
         "environment",
         "pull",
         "workspace",
-        "request",
+        "control",
         "create",
         "keygen",
         "register",
@@ -313,11 +304,6 @@ def test_create_runs_all_stages_in_order(
     assert specs[0].container.network_mode == "host"
     assert specs[0].published_ports == ()
     assert inherited_environments == [{"HTTP_PROXY": "http://host-proxy:3128"}]
-    request = agent.WorkspaceAgentRequest.model_validate_json(requests[0])
-    assert request.workspace_type == "repo"
-    assert request.clone_url == "git@github.com:curoky/devspace.git"
-    assert request.clone_path == "/workspace/devspace"
-    assert request.open_path == "/workspace/devspace"
     assert service.operations.list() == []
 
 
@@ -360,7 +346,8 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
         config,
         transport=FakeTransport({"local": object()}),  # type: ignore[arg-type]
     )
-    monkeypatch.setattr(ssh, "write_control_request", lambda *args: None)
+    monkeypatch.setattr(ssh, "reset_control_state", lambda *args: None)
+    monkeypatch.setattr(ssh, "signal_provider_ready", lambda *args: None)
     monkeypatch.setattr(agent, "WorkspaceAgentClient", FakeAgentClient)
     service.set_token("github", "token")
     service.queue_create("devspace", "local", "debug")
@@ -405,12 +392,7 @@ def test_create_blank_project_skips_repo_stages(
     monkeypatch.setattr(inventory, "list_inventory", lambda *args: next(inventories))
     monkeypatch.setattr(containers, "pull_image", lambda *args: events.append("pull"))
     monkeypatch.setattr(ssh, "prepare_directories", lambda *args: events.append("workspace"))
-    requests: list[str] = []
-    monkeypatch.setattr(
-        ssh,
-        "write_control_request",
-        lambda _route, _path, content: requests.append(content),
-    )
+    monkeypatch.setattr(ssh, "reset_control_state", lambda *args: None)
     monkeypatch.setattr(
         containers,
         "create_container",
@@ -428,7 +410,7 @@ def test_create_blank_project_skips_repo_stages(
         ) -> agent.AgentStatus:
             del states, timeout
             events.append("open_path")
-            return agent.AgentStatus(generation="0" * 32, state="ready")
+            return agent.AgentStatus(state="ready")
 
     monkeypatch.setattr(agent, "WorkspaceAgentClient", BlankAgentClient)
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
@@ -446,11 +428,6 @@ def test_create_blank_project_skips_repo_stages(
         "probe",
         "projection",
     ]
-    request = agent.WorkspaceAgentRequest.model_validate_json(requests[0])
-    assert request.workspace_type == "blank"
-    assert request.clone_url is None
-    assert request.clone_path == "/workspace"
-    assert request.open_path == "/workspace"
     assert service.operations.list() == []
 
 
@@ -466,7 +443,6 @@ def test_create_git_project_clones_url_without_deploy_key(
 ) -> None:
     service.queue_create("abbie", "home", "debug")
     events: list[str] = []
-    requests: list[str] = []
     container = SimpleNamespace(id="container-id")
     abbie_env = _environment(workspace="abbie")
     abbie_env.type = "git"
@@ -482,11 +458,7 @@ def test_create_git_project_clones_url_without_deploy_key(
     monkeypatch.setattr(inventory, "list_inventory", lambda *args: next(inventories))
     monkeypatch.setattr(containers, "pull_image", lambda *args: events.append("pull"))
     monkeypatch.setattr(ssh, "prepare_directories", lambda *args: events.append("workspace"))
-    monkeypatch.setattr(
-        ssh,
-        "write_control_request",
-        lambda _route, _path, content: requests.append(content),
-    )
+    monkeypatch.setattr(ssh, "reset_control_state", lambda *args: None)
     monkeypatch.setattr(
         containers,
         "create_container",
@@ -504,7 +476,7 @@ def test_create_git_project_clones_url_without_deploy_key(
         ) -> agent.AgentStatus:
             del states, timeout
             events.append("clone")
-            return agent.AgentStatus(generation="0" * 32, state="ready")
+            return agent.AgentStatus(state="ready")
 
     monkeypatch.setattr(agent, "WorkspaceAgentClient", GitAgentClient)
     monkeypatch.setattr(ssh, "write_host", lambda *args: events.append("projection"))
@@ -513,10 +485,6 @@ def test_create_git_project_clones_url_without_deploy_key(
 
     assert "keygen" not in events
     assert "register" not in events
-    request = agent.WorkspaceAgentRequest.model_validate_json(requests[0])
-    assert request.clone_url == "git@curoky:devspace"
-    assert request.clone_path == "/workspace/devspace"
-    assert request.open_path == "/workspace/devspace"
     assert events == ["pull", "workspace", "create", "clone", "probe", "projection"]
     assert service.operations.list() == []
 
@@ -633,7 +601,6 @@ def test_failure_after_register_revokes_then_removes_container(
             self.calls += 1
             if self.calls == 1:
                 return agent.AgentStatus(
-                    generation="0" * 32,
                     state="awaiting-provider",
                     public_key="PUBLIC",
                 )
@@ -680,7 +647,6 @@ def test_revoke_failure_after_register_retains_container(
             self.calls += 1
             if self.calls == 1:
                 return agent.AgentStatus(
-                    generation="0" * 32,
                     state="awaiting-provider",
                     public_key="PUBLIC",
                 )

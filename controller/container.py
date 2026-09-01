@@ -1,9 +1,9 @@
 """Codespace container semantics layered over the Podman engine.
 
 This module owns the control-plane-specific translation: reserved environment
-injection (``SSHD_PORT``/``SSHD_BIND``), the reserved workspace mount, default
-secret ownership (``5230:5230``, ``0o400``) and canonical labels. The reusable
-container primitives live in :mod:`controller.runtime.engine`.
+injection (``SSHD_*``/``CODESPACE_WORKSPACE_*``), reserved workspace mounts,
+default secret ownership (``5230:5230``, ``0o400``) and canonical labels. The
+reusable container primitives live in :mod:`controller.runtime.engine`.
 """
 
 from __future__ import annotations
@@ -23,12 +23,17 @@ from controller.models import (
     DEPLOYMENT_DATA_PLACEHOLDER,
     UPLOAD_MOUNT,
     WORKSPACE_CIPHER_MOUNT,
+    WORKSPACE_CLONE_PATH_ENV,
+    WORKSPACE_CLONE_URL_ENV,
     WORKSPACE_CRYPT_SECRET,
     WORKSPACE_CRYPT_SECRET_ENV,
     WORKSPACE_MOUNT,
+    WORKSPACE_OPEN_PATH_ENV,
+    WORKSPACE_TYPE_ENV,
     Environment,
     ImagePlatform,
     InstancePaths,
+    git_host,
 )
 from controller.runtime import engine
 from controller.runtime.compose import Secret, ServiceSpec, Volume
@@ -69,8 +74,17 @@ def create_container(
     environment = {
         **inherited_environment,
         **configured_environment,
+        WORKSPACE_TYPE_ENV: spec.workspace.type,
+        WORKSPACE_CLONE_PATH_ENV: spec.clone_path,
+        WORKSPACE_OPEN_PATH_ENV: spec.open_path,
         "SSHD_PORT": str(spec.ssh_port),
     }
+    if spec.workspace.repo is not None and spec.workspace.provider is not None:
+        environment[WORKSPACE_CLONE_URL_ENV] = (
+            f"git@{git_host(spec.workspace.provider)}:{spec.workspace.repo}.git"
+        )
+    elif spec.workspace.git_url is not None:
+        environment[WORKSPACE_CLONE_URL_ENV] = spec.workspace.git_url
     ports: dict[str, object] = {}
     if options.is_bridge:
         environment["SSHD_BIND"] = "0.0.0.0"  # noqa: S104
