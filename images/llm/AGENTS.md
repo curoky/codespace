@@ -35,7 +35,7 @@ rootfs / build.sh / run.sh），互不共享文件。base image 对齐 sidecar�
 
 | 引擎 | 子目录 | 镜像 tag | 推理栈 | s6 longrun |
 | --- | --- | --- | --- | --- |
-| vLLM | `vllm/` | `ghcr.io/curoky/devspace:llm-vllm` | uv venv 装 GitHub release 的 CUDA 专属 wheel `vllm-${VLLM_VERSION}+${CUDA_TAG}`（默认 `0.23.0` / `cu129`） | `llm` |
+| vLLM | `vllm/` | `ghcr.io/curoky/devspace:llm-vllm` | uv venv 从 vLLM per-commit nightly index 装 pinned nightly wheel（`${VLLM_COMMIT}` 默认 `e126687`，cu128 torch backend） | `llm` |
 | SGLang | `sglang/` | `ghcr.io/curoky/devspace:llm-sglang` | uv venv 从 PR 源码装（`${SGLANG_REF}` 默认 `pull/36497/head`，cu129 kernel） | `llm` |
 
 两子目录内部结构完全对称，仅推理栈与引擎命令不同；s6 longrun 在各自子目录内统一命名 `llm`（因为一个镜像只
@@ -55,9 +55,9 @@ CUDA userspace runtime 由 host 的 NVIDIA Container Toolkit 在运行期提供�
 目录与 OS 无关，可直接用于 debian:trixie base。`CUDA_HOME_DIR` 须与 devel 镜像的 CUDA 版本对齐。vLLM 不用
 deep_gemm，无需此 toolkit。
 
-**CUDA 版本（默认 cu129）**：vLLM/SGLang 的默认 PyPI wheel 现已升到 CUDA 13（需 host 驱动 ≥580），但目标 8×H100 节点跑 driver 535 / CUDA 12.2，故两镜像默认按 CUDA 12.9 装。vLLM 侧关键点：自 0.20.0 起 PyPI 默认 `vllm` wheel（含编译好的 `vllm._C`）链接 CUDA 13（`libcudart.so.13`），而 `--torch-backend` 只换 torch wheel、不换 vllm wheel——单靠它仍会装到 cu13 的 `vllm._C`，运行期 import 报 `libcudart.so.13: cannot open shared object file`。因此 vLLM 改装 GitHub release 的 **CUDA 专属 wheel** `vllm-${VLLM_VERSION}+${CUDA_TAG}-cp38-abi3-manylinux_2_28_<arch>.whl`（`ARG CUDA_TAG` 默认 `cu129`），并加 `--extra-index-url https://download.pytorch.org/whl/${CUDA_TAG}` 解析匹配的 torch。SGLang 走官方 cu129 recipe（对齐 docs.sglang.io 安装文档与上游 `docker/Dockerfile` 的 torch_deps 序列）——从 PR 源码装 `sglang` 后，依次从 cu129 index force-reinstall **pinned torch 三件套**（`ARG TORCH_SPEC`，默认 `torch==2.13.0 torchvision==0.28.0 torchaudio==2.11.0`；裸 `torch` 会拉到 cu13 默认版）、`sglang-kernel`（pip 名，cu129 wheel 内部为 `sglang_kernel`）与 `sgl-deep-gemm`（`--no-deps`），`ARG CUDA_TAG` 选 index。CUDA 13 host 两镜像都用 `CUDA_TAG=cu130` 覆盖（SGLang 另设 `TORCH_SPEC="torch torchvision torchaudio"`）。SGLang 不装 `[all]` extra，改用官方 recipe 的独立 kernel 包。
+**CUDA 版本（vLLM 默认 cu128、SGLang 默认 cu129）**：vLLM/SGLang 的默认 PyPI wheel 现已升到 CUDA 13（需 host 驱动 ≥580），但目标 8×H100 节点跑 driver 535 / CUDA 12.2，故两镜像默认按 CUDA 12.x 装。vLLM 侧关键点：Qwen3.8-Flash-Next 是 day-0 架构（`Qwen4ExpForConditionalGeneration`），官方 recipe 明确 **PyPI 装法不支持**，只发专用镜像 `vllm/vllm-openai:qwen38-flash-next`（标注「vLLM 0.28.0+ / nightly」），任何 tagged release wheel 都不含此架构。因此 vLLM 改从 vLLM 官方 **per-commit nightly index** 装 pinned nightly wheel（`uv pip install vllm --extra-index-url https://wheels.vllm.ai/${VLLM_COMMIT}`），并加 `--extra-index-url https://download.pytorch.org/whl/${CUDA_TAG}` 解析匹配的 torch；nightly wheel 只编译 **CUDA 12.8**（无独立 cu129 nightly 变体），故 `ARG CUDA_TAG` 默认 `cu128`（H100 driver 535 跑 cu128 wheel 无碍，避开 cu13 默认的 `libcudart.so.13` 报错）。SGLang 走官方 cu129 recipe（对齐 docs.sglang.io 安装文档与上游 `docker/Dockerfile` 的 torch_deps 序列）——从 PR 源码装 `sglang` 后，依次从 cu129 index force-reinstall **pinned torch 三件套**（`ARG TORCH_SPEC`，默认 `torch==2.13.0 torchvision==0.28.0 torchaudio==2.11.0`；裸 `torch` 会拉到 cu13 默认版）、`sglang-kernel`（pip 名，cu129 wheel 内部为 `sglang_kernel`）与 `sgl-deep-gemm`（`--no-deps`），`ARG CUDA_TAG` 选 index。CUDA 13 host 两镜像都用 `CUDA_TAG=cu130` 覆盖（SGLang 另设 `TORCH_SPEC="torch torchvision torchaudio"`）。SGLang 不装 `[all]` extra，改用官方 recipe 的独立 kernel 包。
 
-**day-0 架构（Qwen3.8-Flash-Next 尚无 SGLang release）**：SGLang 目前**没有任何含此架构的 tagged release**，PyPI 装不到；按官方 cookbook，模型支持在 PR [#36497](https://github.com/sgl-project/sglang/pull/36497)，故 SGLang 镜像不 pin `SGLANG_VERSION`，改用 `ARG SGLANG_REF`（默认 `pull/36497/head`）从源码 clone 该 PR 后 `uv pip install -e python`（Dockerfile 因此新增 apt `git`）。该源码树用 setuptools-rust 内嵌 3 个 PyO3 crate（`sglang-grpc`/`sglang-mm`/`sglang-server`），editable 装会调 `cargo`；slim 镜像无 Rust 工具链，故 `ARG SGLANG_BUILD_RUST_EXTS=none` 跳过——它们只支撑 gRPC/multimodal/model-gateway 入口，`sglang.launch_server`（OpenAI HTTP）不依赖。需要这些入口时设 `all` 并自备 cargo。待架构进入 release，把 `SGLANG_REF` 指向该 tag 并可回退到 `uv pip install sglang`。vLLM 侧仍以 `VLLM_VERSION`（默认 `0.23.0`）演进；若该稳定版尚未含此架构，提升到含该架构的版本（官方 recipe 用专用 tag 或 nightly），启动报 unknown-architecture 时提升版本。AMD GPU 不用本 CUDA 镜像，改用官方 ROCm 镜像。
+**day-0 架构（Qwen3.8-Flash-Next 尚无 SGLang release）**：SGLang 目前**没有任何含此架构的 tagged release**，PyPI 装不到；按官方 cookbook，模型支持在 PR [#36497](https://github.com/sgl-project/sglang/pull/36497)，故 SGLang 镜像不 pin `SGLANG_VERSION`，改用 `ARG SGLANG_REF`（默认 `pull/36497/head`）从源码 clone 该 PR 后 `uv pip install -e python`（Dockerfile 因此新增 apt `git`）。该源码树用 setuptools-rust 内嵌 3 个 PyO3 crate（`sglang-grpc`/`sglang-mm`/`sglang-server`），editable 装会调 `cargo`；slim 镜像无 Rust 工具链，故 `ARG SGLANG_BUILD_RUST_EXTS=none` 跳过——它们只支撑 gRPC/multimodal/model-gateway 入口，`sglang.launch_server`（OpenAI HTTP）不依赖。需要这些入口时设 `all` 并自备 cargo。待架构进入 release，把 `SGLANG_REF` 指向该 tag 并可回退到 `uv pip install sglang`。vLLM 同样尚无含此架构的 tagged release：官方 recipe 明确 PyPI 装法不支持、只发专用镜像，模型支持已合入 main（PR [#53896](https://github.com/vllm-project/vllm/pull/53896)，commit `e126687`）。故 vLLM 镜像不 pin `VLLM_VERSION`，改用 `ARG VLLM_COMMIT`（默认 `e126687...`）从 vLLM per-commit nightly index 装 pinned nightly wheel；待架构进入稳定 release，把它指向 tag 并可回退到 release wheel。启动报 unknown-architecture（`Qwen4ExpForConditionalGeneration`）时提升 `VLLM_COMMIT`。AMD GPU 不用本 CUDA 镜像，改用官方 ROCm 镜像。
 
 ## s6 init
 
@@ -78,8 +78,9 @@ deep_gemm，无需此 toolkit。
 两引擎的优化参数均已按实测 8×H100 80GB 拓扑写死在各自 `serve.sh` 里（不再配置化），只保留
 model/host/port/extra 四个部署相关 env，需临时改参用 `LLM_EXTRA_ARGS` 覆盖。写死项：
 
-- vLLM：TEP8（`--tensor-parallel-size 8 --enable-expert-parallel`）、`--max-model-len 262144`、
-  `--gpu-memory-utilization 0.90`、`--enable-prefix-caching`、分块 prefill
+- vLLM：TEP8（`--tensor-parallel-size 8 --enable-expert-parallel`）、Hopper 上的 `--moe-backend triton`、
+  `--max-model-len 262144`、`--gpu-memory-utilization 0.85`、`--no-enable-flashinfer-autotune`、
+  `--enable-prefix-caching`、分块 prefill
   （`--enable-chunked-prefill --max-num-batched-tokens 8192`）、`--max-num-seqs 256`。
 - SGLang：TEP8（`--tp-size 8 --ep-size 8`）、`--context-length 262144`、`--mem-fraction-static 0.85`、
   `--chunked-prefill-size 8192`、`--max-running-requests 96`、GDN+QSA 必需的
@@ -153,6 +154,7 @@ host 前置：NVIDIA Container Toolkit 并配好 CDI（`nvidia.com/gpu` 设备�
   子目录的 `serve.sh` 并同步本文。
 - 容器运行形态（GPU/IPC、HF cache volume、网络和端口）改动必须同时更新 config 的
   `deployments.llm-<engine>`、两个 `run.sh` 与 [`controller/AGENTS.md`](../../controller/AGENTS.md)。
-- day-0 架构支持随各 Dockerfile `ARG` 演进：vLLM 用 `VLLM_VERSION`，SGLang 因尚无 release 用 `SGLANG_REF`
-  （PR ref 或未来 tag）；锁定到含 Qwen3.8-Flash-Next 的版本/ref，变更时同步本文表格。
+- day-0 架构支持随各 Dockerfile `ARG` 演进：两引擎当前都无含此架构的 tagged release——vLLM 用 `VLLM_COMMIT`
+  （vLLM per-commit nightly index），SGLang 用 `SGLANG_REF`（PR ref 或未来 tag）；锁定到含 Qwen3.8-Flash-Next 的
+  commit/ref，变更时同步本文表格。
 - 影响跨组件契约时同步根 [`AGENTS.md`](../../AGENTS.md)。

@@ -29,7 +29,7 @@
 转发端口，并把同一个 `ATUIN_PORT` publish 到 host loopback。
 
 独立 s6 longrun `supercronic`（`rootfs/etc/s6/s6-rc.d/supercronic`）加载 `rootfs/etc/supercronic/crontab`
-调度 image-prewarm job；脚本 `rootfs/opt/sidecar/image-prewarm.sh` 的 `pull`/`prune` 子命令用镜像内
+调度 image-prewarm job；脚本 `rootfs/opt/sidecar/image-pull.sh` 与 `rootfs/opt/sidecar/image-prune.sh` 分别用镜像内
 `bash`/`curl` 调宿主 rootful Podman socket REST API。关键约束:
 
 - 预热清单**写死在脚本内**（`PREWARM_IMAGES`），不经启动器/环境变量传入，也不推导 workspace 配置。
@@ -66,7 +66,8 @@ loopback。两个 smoke-test 启动器不接受端口配置，开发镜像中的
 | `binman.yaml` | Atuin、supercronic 与 s6 的 standalone package 集合 |
 | `rootfs/` | Sidecar 专用 s6 bundle、Atuin 与 supercronic 服务 |
 | `rootfs/etc/s6/s6-rc.d/supercronic` | 监督 supercronic 守护进程的 s6 longrun |
-| `rootfs/opt/sidecar/image-prewarm.sh` | supercronic 调度的 `pull`/`prune` 子命令脚本 |
+| `rootfs/opt/sidecar/image-pull.sh` | supercronic 调度的预热清单 pull 脚本 |
+| `rootfs/opt/sidecar/image-prune.sh` | supercronic 调度的 dangling 镜像 prune 脚本 |
 | `rootfs/etc/supercronic/crontab` | image-prewarm 调度表 |
 | `build.sh` | 从仓库根构建本地镜像 |
 | `run-linux.sh` | 替换 Linux host-network 单例，使用固定端口 `8002` 并挂载 Podman socket |

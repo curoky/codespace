@@ -38,10 +38,14 @@ exec "${venv_bin}/vllm" serve "${model}" \
   --tensor-parallel-size 8 \
   `# FP8 必须叠加 expert parallel（512 专家 MoE 布局要求），不能只用普通 TP8` \
   --enable-expert-parallel \
+  `# Hopper 上 Qwen3.8-Flash-Next FP8 用 Triton MoE backend（官方 recipe 的 8x H100 配方要求）` \
+  --moe-backend triton \
   `# 使用模型原生 262144 上下文` \
   --max-model-len 262144 \
-  `# 静态显存占比 0.90，OOM 时优先经 LLM_EXTRA_ARGS 调小此值或上下文` \
-  --gpu-memory-utilization 0.90 \
+  `# 静态显存占比 0.85（对齐官方 8x H100 recipe，给 Mamba/GDN state 与 activation 留余量），OOM 时经 LLM_EXTRA_ARGS 再调小` \
+  --gpu-memory-utilization 0.85 \
+  `# 关闭 flashinfer autotune：Qwen3.8-Flash-Next 官方 recipe 要求，避免启动期长时间自动调优` \
+  --no-enable-flashinfer-autotune \
   `# 开启前缀缓存复用相同 prompt 前缀，提升多轮/共享前缀场景吞吐` \
   --enable-prefix-caching \
   `# 分块 prefill：限制长 prompt 单步 prefill token 数，避免在较紧的 80GB 卡上撑爆 activation 显存并改善 prefill/decode 交织延迟` \
