@@ -15,8 +15,8 @@ import typer
 from rich.console import Console
 
 from controller.config import CONFIG_PATH, Config, load_config
-from controller.runtime.transport import PodmanTransport
 from controller.tools import support
+from controller.transport import PodmanTransport
 
 type Action = Literal["create", "replace"]
 

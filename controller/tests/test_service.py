@@ -1,4 +1,4 @@
-"""Tests for local lifecycle orchestration and fail-closed rollback."""
+"""Tests for local lifecycle orchestration."""
 
 from __future__ import annotations
 
@@ -18,8 +18,8 @@ from controller.models import (
     environment_id,
     ssh_port,
 )
-from controller.runtime.transport import SSHRoute
 from controller.service import CodespaceService, describe_error
+from controller.transport import SSHRoute
 
 _DATA_PATHS = HostDataPaths(root="/home/x/codespace")
 
@@ -525,50 +525,11 @@ def test_create_rejects_deterministic_port_collision(
     assert "choose a different instance name" in error
 
 
-def test_failure_before_register_removes_container_but_keeps_workspace(
+def test_create_failure_records_failed_operation(
     service: CodespaceService,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     _queue_with_token(service)
-    container = SimpleNamespace(id="container-id")
-    removed: list[object] = []
-    monkeypatch.setattr(
-        inventory,
-        "list_inventory",
-        lambda *args: inventory.Inventory([], []),
-    )
-    monkeypatch.setattr(containers, "pull_image", lambda *args: None)
-    monkeypatch.setattr(ssh, "prepare_directories", lambda *args: None)
-    monkeypatch.setattr(containers, "create_container", lambda *args, **kwargs: container)
-
-    class UnavailableAgentClient(FakeAgentClient):
-        def wait_for(
-            self,
-            states: set[agent.AgentState],
-            *,
-            timeout: float,
-        ) -> agent.AgentStatus:
-            del states, timeout
-            raise RuntimeError("no agent")
-
-    monkeypatch.setattr(agent, "WorkspaceAgentClient", UnavailableAgentClient)
-    monkeypatch.setattr(inventory, "find_container", lambda *args: container)
-    monkeypatch.setattr(containers, "remove_container", lambda item: removed.append(item))
-    monkeypatch.setattr(provider, "revoke", lambda *args: pytest.fail("must not revoke"))
-
-    service.create("devspace", "home", "debug")
-
-    assert removed == [container]
-    assert service.operations.list()[0].error == "RuntimeError: no agent"
-
-
-def test_container_run_failure_still_attempts_deterministic_cleanup(
-    service: CodespaceService,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    _queue_with_token(service)
-    container = SimpleNamespace(id="container-id")
-    removed: list[object] = []
     monkeypatch.setattr(
         inventory,
         "list_inventory",
@@ -581,109 +542,10 @@ def test_container_run_failure_still_attempts_deterministic_cleanup(
         "create_container",
         lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("wait failed")),
     )
-    monkeypatch.setattr(inventory, "find_container", lambda *args: container)
-    monkeypatch.setattr(containers, "remove_container", lambda item: removed.append(item))
 
     service.create("devspace", "home", "debug")
 
-    assert removed == [container]
     assert service.operations.list()[0].error == "RuntimeError: wait failed"
-
-
-def test_failure_after_register_revokes_then_removes_container(
-    service: CodespaceService,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    _queue_with_token(service)
-    events: list[str] = []
-    container = SimpleNamespace(id="container-id")
-    monkeypatch.setattr(inventory, "list_inventory", lambda *args: inventory.Inventory([], []))
-    monkeypatch.setattr(containers, "pull_image", lambda *args: None)
-    monkeypatch.setattr(ssh, "prepare_directories", lambda *args: None)
-    monkeypatch.setattr(containers, "create_container", lambda *args, **kwargs: container)
-    monkeypatch.setattr(ssh, "probe", lambda *args: None)
-    monkeypatch.setattr(provider, "register", lambda *args: events.append("register"))
-
-    class FailingBootstrapAgentClient(FakeAgentClient):
-        calls = 0
-
-        def wait_for(
-            self,
-            states: set[agent.AgentState],
-            *,
-            timeout: float,
-        ) -> agent.AgentStatus:
-            del states, timeout
-            self.calls += 1
-            if self.calls == 1:
-                return agent.AgentStatus(
-                    state="awaiting-provider",
-                    public_key="PUBLIC",
-                )
-            raise RuntimeError("clone failed")
-
-    monkeypatch.setattr(agent, "WorkspaceAgentClient", FailingBootstrapAgentClient)
-    monkeypatch.setattr(inventory, "find_container", lambda *args: container)
-    monkeypatch.setattr(provider, "revoke", lambda *args: events.append("revoke"))
-    monkeypatch.setattr(containers, "remove_container", lambda item: events.append("remove"))
-
-    service.create("devspace", "home", "debug")
-
-    assert events == ["register", "revoke", "remove"]
-
-
-def test_revoke_failure_after_register_retains_container(
-    service: CodespaceService,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    _queue_with_token(service)
-    stopped: list[int] = []
-    container = SimpleNamespace(
-        id="container-id",
-        stop=lambda *, timeout: stopped.append(timeout),
-    )
-    removed: list[object] = []
-    monkeypatch.setattr(inventory, "list_inventory", lambda *args: inventory.Inventory([], []))
-    monkeypatch.setattr(containers, "pull_image", lambda *args: None)
-    monkeypatch.setattr(ssh, "prepare_directories", lambda *args: None)
-    monkeypatch.setattr(containers, "create_container", lambda *args, **kwargs: container)
-    monkeypatch.setattr(ssh, "probe", lambda *args: None)
-    monkeypatch.setattr(provider, "register", lambda *args: None)
-
-    class FailingBootstrapAgentClient(FakeAgentClient):
-        calls = 0
-
-        def wait_for(
-            self,
-            states: set[agent.AgentState],
-            *,
-            timeout: float,
-        ) -> agent.AgentStatus:
-            del states, timeout
-            self.calls += 1
-            if self.calls == 1:
-                return agent.AgentStatus(
-                    state="awaiting-provider",
-                    public_key="PUBLIC",
-                )
-            raise RuntimeError("clone failed")
-
-    monkeypatch.setattr(agent, "WorkspaceAgentClient", FailingBootstrapAgentClient)
-    monkeypatch.setattr(
-        provider,
-        "revoke",
-        lambda *args: (_ for _ in ()).throw(RuntimeError("provider unavailable")),
-    )
-    monkeypatch.setattr(inventory, "find_container", lambda *args: container)
-    monkeypatch.setattr(containers, "remove_container", lambda item: removed.append(item))
-
-    service.create("devspace", "home", "debug")
-
-    assert removed == []
-    assert stopped == [10]
-    assert "rollback stopped: RuntimeError: provider unavailable" in (
-        service.operations.list()[0].error or ""
-    )
 
 
 def test_delete_requires_token_before_remote_mutation(

@@ -53,13 +53,13 @@ Podman inventory 是实际运行状态的唯一来源。配置只表达期望形
 
 ```mermaid
 flowchart TB
-    Browser["Browser<br/>static HTML/CSS/JS"] --> API["api.py<br/>HTTP boundary"]
+    Browser["Browser<br/>static HTML/CSS/JS"] --> API["app.py<br/>HTTP boundary"]
     API --> Service["CodespaceService<br/>application orchestration"]
     Service --> Dashboard["dashboard.py<br/>read model"]
     Service --> Operations["OperationStore<br/>in-memory status"]
     Service --> Agent["agent.py<br/>UDS contract + HTTP client"]
     Service --> Deployment["deployment.py<br/>deployment lifecycle"]
-    Service --> Inventory["inventory.py<br/>label validation"]
+    Service --> Inventory["inventory.py<br/>label reading"]
     Service --> Container["container.py<br/>run option translation"]
     Service --> SSH["ssh.py<br/>host data + SSH projection"]
     Service --> Provider["provider.py<br/>deploy keys"]
@@ -69,16 +69,16 @@ flowchart TB
     CLI --> SSH
     CLI --> Provider
 
-    Container --> Engine["runtime/engine.py"]
-    Agent --> Tunnel["runtime/transport.py<br/>StreamLocal forward"]
+    Container --> Engine["container.py primitives"]
+    Agent --> Tunnel["transport.py<br/>StreamLocal forward"]
     Tunnel --> ImageAgent["image: Python workspace agent"]
     HomeInit["image: s6 home-init"] --> DeployKeyPair["~/.ssh/repo_id_ed25519{,.pub}"]
     DeployKeyPair --> ImageBootstrap["image: s6 workspace bootstrap"]
     ImageBootstrap --> CheckoutHelper["git-checkout"]
     ImageAgent <--> BootstrapState["control/bootstrap.* + home.* + provider-ready"]
     ImageBootstrap <--> BootstrapState
-    SSH --> Remote["runtime/remote.py"]
-    Service --> Transport["runtime/transport.py"]
+    SSH --> Remote["transport.py remote command"]
+    Service --> Transport["transport.py"]
     Engine --> Podman["rootful Podman"]
     Transport --> Podman
     Remote --> Host["SSH host"]
@@ -86,10 +86,10 @@ flowchart TB
 
 分层规则：
 
-1. `runtime/` 只提供 transport、Podman、remote command 和 Compose syntax 原语。
+1. `transport.py`、`compose.py` 提供 transport、Podman、remote command 和 Compose syntax 原语。
 2. `container.py`、`inventory.py`、`ssh.py` 把 Codespace 契约映射到底层原语。
-3. `service.py` 只编排步骤、回滚和 operation 状态，不解析 YAML、不拼 Podman 参数。
-4. `api.py` 只做 HTTP 输入/输出与错误映射；浏览器不直接推导资源状态。
+3. `service.py` 只编排步骤和 operation 状态，不解析 YAML、不拼 Podman 参数；失败不回滚，留残留资源等人工清理。
+4. `app.py` 只做 HTTP 输入/输出与错误映射；浏览器不直接推导资源状态。
 5. 一次性维护命令直接复用业务原语，不经过 HTTP，也不复制生命周期实现。
 
 ## Host 数据布局
@@ -253,8 +253,7 @@ sequenceDiagram
     Service->>Service: remove successful operation
 ```
 
-失败回滚以 provider 状态为边界：deploy key 注册前可直接删 container；注册后必须先撤销 key。撤销失败时停止并
-保留带 label 的 container，避免遗失可恢复状态。Host 数据目录不在创建失败时清理。
+创建失败不做回滚：直接把 operation 标 failed，容器、deploy key 和 host 数据目录原样保留，等人工清理。
 
 ### Delete environment
 
@@ -388,7 +387,7 @@ classDiagram
 - `Config` 在边界完成校验和分层解析；下游只接收 resolved spec。
 - `CodespaceService` 拥有进程内 mutable state，但不拥有 host 或 container 持久状态。
 - `PodmanTransport` 是 Podman 连接与所有 SSH ControlMaster、转发 socket 生命周期的唯一 owner。
-- `runtime` 函数接收已解析参数，不知道 workspace、deployment 或 label 语义。
+- `transport.py`、`compose.py` 的原语函数接收已解析参数，不知道 workspace、deployment 或 label 语义。
 - s6 oneshot无条件生成 deploy key；s6-supervised bootstrap拥有固定启动状态机并调用 Git checkout、
   open path helper；agent只提供协议、持久握手和动态 Git state查询，控制面不得复制或通过 Podman exec
   触发这些步骤。

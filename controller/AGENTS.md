@@ -11,19 +11,19 @@ rootful Podman，并提供原生 Web UI。
 
 | 路径 | 职责 |
 | --- | --- |
-| `app.py`、`api.py`、`__main__.py` | FastAPI 装配、HTTP 路由和进程入口 |
+| `app.py`、`__main__.py` | FastAPI 装配、HTTP 路由和进程入口 |
 | `config.py`、`models.py` | 配置 schema、运行规格、资源标识和 API model |
 | `service.py` | environment/deployment application service 与 operation 调度 |
 | `dashboard.py`、`operations.py` | Dashboard 只读投影和进程内 operation store |
 | `inventory.py`、`container.py`、`agent.py` | Podman inventory、容器参数翻译、workspace agent contract 与 UDS client |
 | `deployment.py` | host 级 deployment 的 reconcile、clean、purge 和状态投影 |
 | `provider.py`、`ssh.py` | Git provider deploy key 与 SSH 投影 |
-| `runtime/` | 无 Codespace 业务知识的 Podman、SSH、文件和 Compose 原语 |
+| `transport.py`、`compose.py` | Podman/SSH transport 与远端命令原语、Compose 子集 schema |
 | `tools/` | 不依赖 Web 进程的 dry-run-first 运维命令 |
 | `assets/ssh/`、`static/`、`tests/` | 固定 SSH 资产、原生 Web UI 和测试 |
 
-依赖只能由业务层指向 `runtime/`。`runtime/` 不得 import 控制面业务模块。配置解析、inventory
-校验、容器参数翻译和生命周期编排保持分离；Web 路由只做输入转换和错误映射。
+这是自用项目，逻辑力求直白：失败直接把 operation 标 failed 并留下残留资源等人工清理，不做回滚；
+inventory 直接信任容器 label，不做交叉校验；测试只保留 smoke。
 
 ## 运行与验证
 
@@ -53,7 +53,7 @@ task check
 - workspace 的 container 解析顺序为 `defaults -> host -> workspace`；每层按字段整体覆盖。
 - deployment 是无 workspace、SSH 投影和 repository credential 的自包含镜像；解析顺序为
   `host -> deployment`，不继承开发容器默认值。部署位置由 `hosts.<host>.deployments` 声明。
-- `container` 只接受 `controller/runtime/compose/` 定义的 Compose 子集。最终
+- `container` 只接受 `controller/compose.py` 定义的 Compose 子集。最终
   `network_mode` 必须是 `host` 或 `bridge`。
 - `published_ports` 使用 `remote` 或 `local:remote`；workspace 仅允许在 bridge network 发布端口。
 - `sidecar` deployment 通过 `container.environment.ATUIN_PORT` 配置 Atuin 端口（默认 `8002`）；bridge
@@ -92,8 +92,7 @@ task check
 
 ## 生命周期约束
 
-- Podman inventory 是运行状态的唯一事实来源。缺失、非法或与配置不一致的 label 都是显式错误，
-  不推断默认值。
+- Podman inventory 是运行状态的唯一事实来源，直接信任容器 label，不做交叉校验或默认值推断。
 - Environment 创建必须按 `DESIGN.md` 的顺序执行：校验、读取 host 环境、拉镜像、建目录、清理旧 control
   marker、以 `CODESPACE_WORKSPACE_*` 环境变量建容器、建立 UDS
   tunnel、完成 provider握手以及 bootstrap/home初始化、SSH probe、刷新 SSH投影。

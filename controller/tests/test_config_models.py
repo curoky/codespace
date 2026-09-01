@@ -1,4 +1,4 @@
-"""Tests for strict YAML configuration and deterministic resource identity."""
+"""Smoke tests for YAML configuration loading, resolution and identity."""
 
 from pathlib import Path
 
@@ -22,8 +22,7 @@ _CONTAINER: dict[str, object] = {
     "ulimits": {"memlock": {"soft": -1, "hard": -1}},
 }
 
-# A host declared with no options: network_mode now lives in the container block,
-# so a plain SSH host needs nothing of its own.
+# A host declared with no options: network_mode lives in the container block.
 _SSH_HOST: dict[str, object] = {}
 
 # Same block rendered as YAML for the file-based tests.
@@ -111,28 +110,6 @@ def test_config_rejects_invalid_workspace_platform(config: Config) -> None:
 
     with pytest.raises(ValidationError, match=r"linux/amd64.*linux/arm64"):
         Config.model_validate(data)
-
-
-def test_config_rejects_workspace_without_resolved_network_mode() -> None:
-    with pytest.raises(ValidationError, match=r"no resolved container\.network_mode"):
-        Config.model_validate(
-            _config(
-                container={"cap_add": ["NET_RAW"]},
-                hosts={"home": None},
-            )
-        )
-
-
-def test_config_rejects_invalid_network_mode() -> None:
-    with pytest.raises(ValidationError, match="network_mode must be"):
-        Config.model_validate(_config(container={"network_mode": "none"}))
-
-
-def test_config_rejects_shm_size_with_host_ipc() -> None:
-    with pytest.raises(ValidationError, match=r"shm_size cannot be set.*ipc is 'host'"):
-        Config.model_validate(
-            _config(container={"network_mode": "host", "ipc": "host", "shm_size": "32g"})
-        )
 
 
 def test_config_rejects_combined_repo_with_separate_provider() -> None:
@@ -227,66 +204,6 @@ def test_config_clone_path_defaults_to_repo_target() -> None:
     assert config.workspaces.items["devspace"].resolved_clone_path() == "/workspace/devspace"
 
 
-def test_config_rejects_clone_path_outside_workspace() -> None:
-    with pytest.raises(ValidationError, match="path must be a directory under /workspace"):
-        Config.model_validate(
-            _config(
-                items={
-                    "devspace": {
-                        "host": [{"name": "home"}],
-                        "repo": "github:curoky/devspace",
-                        "clone_path": "/etc/devspace",
-                    }
-                }
-            )
-        )
-
-
-def test_config_rejects_relative_clone_path() -> None:
-    with pytest.raises(ValidationError, match="path must be a directory under /workspace"):
-        Config.model_validate(
-            _config(
-                items={
-                    "devspace": {
-                        "host": [{"name": "home"}],
-                        "repo": "github:curoky/devspace",
-                        "clone_path": "space/agent-playbook",
-                    }
-                }
-            )
-        )
-
-
-def test_config_rejects_clone_path_equal_to_workspace_mount() -> None:
-    with pytest.raises(ValidationError, match="path must be a directory under /workspace"):
-        Config.model_validate(
-            _config(
-                items={
-                    "devspace": {
-                        "host": [{"name": "home"}],
-                        "repo": "github:curoky/devspace",
-                        "clone_path": "/workspace",
-                    }
-                }
-            )
-        )
-
-
-def test_config_rejects_clone_path_with_parent_segments() -> None:
-    with pytest.raises(ValidationError, match=r"path must not contain '\.\.' segments"):
-        Config.model_validate(
-            _config(
-                items={
-                    "devspace": {
-                        "host": [{"name": "home"}],
-                        "repo": "github:curoky/devspace",
-                        "clone_path": "/workspace/../etc/devspace",
-                    }
-                }
-            )
-        )
-
-
 def test_config_rejects_clone_path_on_blank_workspace() -> None:
     with pytest.raises(ValidationError, match=r"blank\.clone_path\s+Input should be None"):
         Config.model_validate(
@@ -345,21 +262,6 @@ def test_config_rejects_repo_workspace_without_repo() -> None:
         )
 
 
-def test_config_rejects_relative_open_path() -> None:
-    with pytest.raises(ValidationError, match="open_path must be an absolute path"):
-        Config.model_validate(
-            _config(
-                items={
-                    "scratch": {
-                        "host": [{"name": "home"}],
-                        "type": "blank",
-                        "open_path": "relative/path",
-                    }
-                }
-            )
-        )
-
-
 def test_config_resolves_per_host_podman_socket() -> None:
     config = Config.model_validate(
         _config(
@@ -389,28 +291,6 @@ def test_config_rejects_invalid_inherited_environment_name(name: str) -> None:
         Config.model_validate(_config(hosts={"home": {"environment": [name]}}))
 
 
-def test_config_rejects_duplicate_or_reserved_inherited_environment() -> None:
-    with pytest.raises(ValidationError, match="must not contain duplicates"):
-        Config.model_validate(
-            _config(hosts={"home": {"environment": ["HTTP_PROXY", "HTTP_PROXY"]}})
-        )
-    with pytest.raises(ValidationError, match="must not inherit control-plane keys"):
-        Config.model_validate(_config(hosts={"home": {"environment": ["SSHD_PORT"]}}))
-
-
-def test_config_rejects_collision_between_inherited_and_explicit_environment() -> None:
-    with pytest.raises(ValidationError, match="inherited host environment variables"):
-        Config.model_validate(
-            _config(
-                container={
-                    **_CONTAINER,
-                    "environment": {"HTTP_PROXY": "http://configured:3128"},
-                },
-                hosts={"home": {"environment": ["HTTP_PROXY"]}},
-            )
-        )
-
-
 def test_config_ssh_host_uses_host_network() -> None:
     config = Config.model_validate(_config())
 
@@ -438,59 +318,22 @@ def test_config_bridge_via_host_container_enables_port_publishing() -> None:
     assert config.workspace_ports("devspace") == [(8080, 8080)]
 
 
-def _bridge_workspace_config(published_ports: list[str]) -> dict[str, object]:
-    return _config(
-        hosts={
-            "local": {
-                "container": {"network_mode": "bridge"},
+def test_config_parses_workspace_ports_on_bridge_host() -> None:
+    config = Config.model_validate(
+        _config(
+            hosts={"local": {"container": {"network_mode": "bridge"}}},
+            items={
+                "devspace": {
+                    "host": [{"name": "local"}],
+                    "provider": "github",
+                    "repo": "owner/repo",
+                    "published_ports": ["8080", "3000:5000"],
+                }
             },
-        },
-        items={
-            "devspace": {
-                "host": [{"name": "local"}],
-                "provider": "github",
-                "repo": "owner/repo",
-                "published_ports": published_ports,
-            }
-        },
+        )
     )
 
-
-def test_config_parses_workspace_ports_on_bridge_host() -> None:
-    config = Config.model_validate(_bridge_workspace_config(["8080", "3000:5000"]))
-
     assert config.workspace_ports("devspace") == [(8080, 8080), (3000, 5000)]
-
-
-def test_config_rejects_ports_on_host_network_host() -> None:
-    with pytest.raises(ValidationError, match="port publishing requires bridge mode"):
-        Config.model_validate(
-            _config(
-                items={
-                    "devspace": {
-                        "host": [{"name": "home"}],
-                        "provider": "github",
-                        "repo": "owner/repo",
-                        "published_ports": ["8080"],
-                    }
-                }
-            )
-        )
-
-
-def test_config_rejects_malformed_port_mapping() -> None:
-    with pytest.raises(ValidationError, match="not a port number"):
-        Config.model_validate(_bridge_workspace_config(["http"]))
-
-
-def test_config_rejects_out_of_range_port() -> None:
-    with pytest.raises(ValidationError, match="between 1 and 65535"):
-        Config.model_validate(_bridge_workspace_config(["70000"]))
-
-
-def test_config_rejects_duplicate_published_host_port() -> None:
-    with pytest.raises(ValidationError, match="duplicate published host port"):
-        Config.model_validate(_bridge_workspace_config(["8080", "8080:9090"]))
 
 
 def test_config_workspace_ports_defaults_empty() -> None:
@@ -511,7 +354,6 @@ def test_config_resolved_container_uses_defaults(config: Config) -> None:
     assert [(v.source, v.target, v.read_only) for v in resolved.volumes] == [
         ("/etc/krb5.conf", "/etc/krb5.conf", True)
     ]
-    # environment is unset in the fixture, so it stays None (engine default)
     assert resolved.environment is None
 
 
@@ -559,26 +401,6 @@ def test_config_resolved_container_applies_host_and_workspace_overrides() -> Non
     assert resolved.security_opt == ["disable"]
 
 
-@pytest.mark.parametrize(
-    "name",
-    ["SSHD_PORT", "CODESPACE_OPEN_PATH", "CODESPACE_WORKSPACE_TYPE"],
-)
-def test_config_rejects_reserved_container_env_key(name: str) -> None:
-    with pytest.raises(ValidationError, match="control-plane keys"):
-        Config.model_validate(
-            _config(
-                container={
-                    "network_mode": "host",
-                    "cap_add": [],
-                    "security_opt": [],
-                    "pids_limit": -1,
-                    "ulimits": {},
-                    "environment": {name: "override"},
-                }
-            )
-        )
-
-
 def test_config_rejects_relative_container_volume_source() -> None:
     with pytest.raises(ValidationError, match="must be an absolute path"):
         Config.model_validate(
@@ -595,68 +417,26 @@ def test_config_rejects_relative_container_volume_source() -> None:
         )
 
 
-@pytest.mark.parametrize(
-    "target",
-    [
-        "/workspace",
-        "/workspace/cache",
-        "/workspace/../workspace",
-        "/workspace.enc",
-        "/upload",
-        "/upload/incoming",
-        "/cache",
-        "/cache/build",
-        "/run/codespace-control",
-        "/run/codespace-control/agent.sock",
-        "/home/x/.vscode-server",
-        "/home/x/.trae",
-        "/home/x/.trae-cn",
-        "/home/x/.trae-server",
-        "/home/x/.trae-cn-server",
-        "/home/x/.trae/user_rules",
-        "/home/x",
-        "/",
-    ],
-)
-def test_config_rejects_control_plane_mount_target_overlap(target: str) -> None:
-    with pytest.raises(ValidationError, match="control-plane mount targets"):
-        Config.model_validate(
-            _config(
-                container={
-                    **_CONTAINER,
-                    "volumes": [{"source": "/host/data", "target": target}],
-                }
-            )
-        )
-
-
-@pytest.mark.parametrize(
-    "target",
-    ["/workspace-old", "/uploads", "/run/codespace-control-old", "/etc/data"],
-)
-def test_config_allows_mount_targets_outside_control_plane_paths(target: str) -> None:
+def test_config_accepts_mount_target_volume() -> None:
     config = Config.model_validate(
         _config(
             container={
                 **_CONTAINER,
-                "volumes": [{"source": "/host/data", "target": target}],
+                "volumes": [{"source": "/host/data", "target": "/etc/data"}],
             }
         )
     )
 
     volumes = config.resolved_container("devspace", "home").volumes
     assert volumes is not None
-    assert volumes[0].target == target
-
-
-def _config_with_container(container: dict[str, object]) -> dict[str, object]:
-    return _config(container={**_CONTAINER, **container})
+    assert volumes[0].target == "/etc/data"
 
 
 def test_config_accepts_secrets_and_resolves_them() -> None:
     config = Config.model_validate(
-        _config_with_container(
-            {
+        _config(
+            container={
+                **_CONTAINER,
                 "secrets": [
                     "supabase_service_key",
                     {"source": "supabase_anon", "mode": "env", "target": "SUPABASE_ANON_KEY"},
@@ -671,62 +451,6 @@ def test_config_accepts_secrets_and_resolves_them() -> None:
         ("supabase_service_key", "mount"),
         ("supabase_anon", "env"),
     ]
-
-
-def test_config_rejects_reserved_secret_env_target() -> None:
-    with pytest.raises(ValidationError, match="must not use control-plane keys"):
-        Config.model_validate(
-            _config_with_container(
-                {"secrets": [{"source": "x", "mode": "env", "target": "SSHD_PORT"}]}
-            )
-        )
-
-
-def test_config_rejects_duplicate_secret_env_target() -> None:
-    with pytest.raises(ValidationError, match="must not repeat names"):
-        Config.model_validate(
-            _config_with_container(
-                {
-                    "secrets": [
-                        {"source": "a", "mode": "env", "target": "TOKEN"},
-                        {"source": "b", "mode": "env", "target": "TOKEN"},
-                    ]
-                }
-            )
-        )
-
-
-def test_config_rejects_secret_env_target_colliding_with_environment() -> None:
-    with pytest.raises(ValidationError, match=r"collides with container\.environment"):
-        Config.model_validate(
-            _config_with_container(
-                {
-                    "environment": {"TOKEN": "static"},
-                    "secrets": [{"source": "a", "mode": "env", "target": "TOKEN"}],
-                }
-            )
-        )
-
-
-@pytest.mark.parametrize("target", ["/workspace/secret", "/home/x/.trae/secret"])
-def test_config_rejects_secret_mount_target_overlapping_control_plane(target: str) -> None:
-    with pytest.raises(ValidationError, match="control-plane mount targets"):
-        Config.model_validate(
-            _config_with_container({"secrets": [{"source": "a", "target": target}]})
-        )
-
-
-def test_config_rejects_secret_env_target_colliding_with_inherited_host_env() -> None:
-    with pytest.raises(ValidationError, match=r"as container\.secrets env target"):
-        Config.model_validate(
-            _config(
-                container={
-                    **_CONTAINER,
-                    "secrets": [{"source": "a", "mode": "env", "target": "HTTP_PROXY"}],
-                },
-                hosts={"home": {"environment": ["HTTP_PROXY"]}},
-            )
-        )
 
 
 def test_config_seeds_tokens_from_tokens_table(tmp_path: Path) -> None:
@@ -769,69 +493,9 @@ def test_config_rejects_blank_token(provider: str) -> None:
         Config.model_validate(_config(tokens={provider: "   "}))
 
 
-@pytest.mark.parametrize(
-    ("host_options", "message"),
-    [
-        ({"podman_socket": "relative.sock"}, "absolute path"),
-        ({"unknown": "x"}, "Extra inputs"),
-    ],
-)
-def test_config_rejects_invalid_host_options(
-    host_options: dict[str, object],
-    message: str,
-) -> None:
-    with pytest.raises(ValidationError, match=message):
-        Config.model_validate(_config(hosts={"home": host_options}))
-
-
-@pytest.mark.parametrize(
-    ("data", "message"),
-    [
-        (
-            _config(
-                hosts={},
-                items={
-                    "workspace": {
-                        "host": [{"name": "home"}],
-                        "provider": "github",
-                        "repo": "owner/repo",
-                    }
-                },
-            ),
-            "at least one host",
-        ),
-        (
-            _config(
-                items={
-                    "Bad": {
-                        "host": [{"name": "home"}],
-                        "provider": "github",
-                        "repo": "owner/repo",
-                    }
-                }
-            ),
-            "workspace 'Bad'",
-        ),
-        (
-            _config(
-                items={
-                    "workspace": {
-                        "host": [{"name": "office"}],
-                        "provider": "github",
-                        "repo": "owner/repo",
-                    }
-                }
-            ),
-            "unknown host",
-        ),
-    ],
-)
-def test_config_rejects_invalid_cross_field_contract(
-    data: dict[str, object],
-    message: str,
-) -> None:
-    with pytest.raises(ValidationError, match=message):
-        Config.model_validate(data)
+def test_config_rejects_unknown_host_option() -> None:
+    with pytest.raises(ValidationError, match="Extra inputs"):
+        Config.model_validate(_config(hosts={"home": {"unknown": "x"}}))
 
 
 def test_config_rejects_unknown_fields(config: Config) -> None:
@@ -923,7 +587,6 @@ workspaces:
 
     config = load_config(entry)
 
-    # base scalar + block survive; extend adds hosts and workspace items by sub-key union.
     assert config.workspaces.defaults.image == "base:latest"
     assert config.workspaces.defaults.container.network_mode == "host"
     assert "sidecar" in config.deployments
@@ -1041,26 +704,6 @@ def test_deployment_host_bridge_override_wins() -> None:
     assert resolved.is_bridge
 
 
-def test_deployment_rejects_host_shm_size_with_host_ipc_override() -> None:
-    with pytest.raises(ValidationError, match=r"shm_size cannot be set.*ipc is 'host'"):
-        Config.model_validate(
-            _deployment_config(
-                hosts={
-                    "server": {
-                        "deployments": ["sidecar"],
-                        "container": {"network_mode": "host", "shm_size": "32g"},
-                    }
-                },
-                deployments={
-                    "sidecar": {
-                        "image": "sidecar:latest",
-                        "container": {"ipc": "host"},
-                    }
-                },
-            )
-        )
-
-
 def test_deployment_accepts_data_placeholder_volume() -> None:
     config = Config.model_validate(
         _deployment_config(
@@ -1080,18 +723,6 @@ def test_deployment_accepts_data_placeholder_volume() -> None:
     volume = config.deployments["llm-vllm"].container.volumes[0]
     assert volume.source == "${DEPLOYMENT_DATA}"
     assert volume.target == "/root/.cache/huggingface"
-
-
-def test_config_rejects_host_referencing_unknown_deployment() -> None:
-    with pytest.raises(ValidationError, match="unknown deployment"):
-        Config.model_validate(_deployment_config(hosts={"server": {"deployments": ["ghost"]}}))
-
-
-def test_config_rejects_deployment_without_resolved_network_mode() -> None:
-    with pytest.raises(ValidationError, match=r"no resolved container\.network_mode"):
-        Config.model_validate(
-            _deployment_config(deployments={"sidecar": {"image": "sidecar:latest"}})
-        )
 
 
 def test_config_allows_no_deployments() -> None:

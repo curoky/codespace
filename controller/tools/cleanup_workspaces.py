@@ -12,8 +12,8 @@ from rich.console import Console
 from controller import container, inventory, ssh
 from controller.config import CONFIG_PATH, Config, load_config
 from controller.models import RESOURCE_ID_RE
-from controller.runtime.transport import PodmanTransport
 from controller.tools import support
+from controller.transport import PodmanTransport
 
 type Usage = Literal["yes", "no", "unmanaged"]
 type Workspace = tuple[str, str, str]

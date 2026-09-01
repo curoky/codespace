@@ -33,7 +33,7 @@ from controller.models import (
     environment_id,
 )
 from controller.operations import OperationStore
-from controller.runtime.transport import PodmanTransport, SSHRoute
+from controller.transport import PodmanTransport, SSHRoute
 
 _AGENT_START_TIMEOUT = 60.0
 _AGENT_READY_TIMEOUT = 15 * 60.0
@@ -60,8 +60,6 @@ class _Creation:
     token: str | None = None
     client: PodmanClient | None = None
     route: SSHRoute | None = None
-    container_created: bool = False
-    deploy_key_registered: bool = False
 
 
 class CodespaceService:
@@ -151,7 +149,6 @@ class CodespaceService:
             host,
             creation.spec.identity,
             lambda: self._create(creation),
-            on_failure=lambda: self._rollback_message(creation),
         )
 
     def _create(self, creation: _Creation) -> None:
@@ -165,7 +162,6 @@ class CodespaceService:
         creation.client = self.transport.client(host)
         creation.route = self.transport.ssh_route(host)
         current = inventory.list_inventory(creation.client, host, self.config)
-        self._reject_inventory_errors(host, current)
         for environment in current.environments:
             if environment.workspace == spec.workspace_id and environment.instance == spec.instance:
                 raise RuntimeError(f"environment {spec.identity!r} already exists")
@@ -203,7 +199,6 @@ class CodespaceService:
         ssh.reset_control_state(creation.route, paths.control)
 
         self._stage(creation, "creating container")
-        creation.container_created = True
         container = containers.create_container(
             creation.client,
             spec,
@@ -232,7 +227,6 @@ class CodespaceService:
                 spec.identity,
                 status.public_key,
             )
-            creation.deploy_key_registered = True
             self._stage(creation, "authorizing repository bootstrap")
             ssh.signal_provider_ready(creation.route, paths.control)
         if isinstance(ws, RepoWorkspace | GitWorkspace):
@@ -249,7 +243,6 @@ class CodespaceService:
 
         self._stage(creation, "writing ssh config")
         refreshed = inventory.list_inventory(creation.client, host, self.config)
-        self._reject_inventory_errors(host, refreshed)
         ssh.write_host(host, refreshed.environments, creation.route)
 
     def delete(
@@ -263,7 +256,6 @@ class CodespaceService:
         client = self.transport.client(host)
         route = self.transport.ssh_route(host)
         current = inventory.list_inventory(client, host, self.config)
-        self._reject_inventory_errors(host, current)
         environment = next(
             (
                 item
@@ -306,7 +298,6 @@ class CodespaceService:
         containers.remove_container(container)
 
         refreshed = inventory.list_inventory(client, host, self.config)
-        self._reject_inventory_errors(host, refreshed)
         ssh.write_host(host, refreshed.environments, route)
         return RepoGitState()
 
@@ -391,17 +382,13 @@ class CodespaceService:
             client = self.transport.client(host)
             route = self.transport.ssh_route(host)
             current = inventory.list_inventory(client, host, self.config)
-            if not current.errors:
-                ssh.write_host(host, current.environments, route)
+            ssh.write_host(host, current.environments, route)
             deployments = inventory.list_deployments(client, host, self.config)
-            errors = current.errors + deployments.errors
             return dashboard_state.HostInventory(
                 status=HostStatus(
                     id=host,
                     status="online",
                     environment_count=len(current.environments),
-                    inventory_errors=errors,
-                    error="; ".join(errors) if errors else None,
                 ),
                 environments=current.environments,
                 deployments=deployments,
@@ -413,71 +400,23 @@ class CodespaceService:
                 deployments=None,
             )
 
-    def _rollback_create(self, creation: _Creation) -> Exception | None:
-        spec = creation.spec
-        ws = spec.workspace
-        if creation.deploy_key_registered:
-            if creation.token is None:
-                return RuntimeError("provider token is unavailable; container retained")
-            if not isinstance(ws, RepoWorkspace):
-                return RuntimeError("deploy key registered for a non-repo workspace")
-            try:
-                provider.revoke(ws.provider, creation.token, ws.repo, spec.identity)
-            except Exception as exc:
-                if creation.client is not None and creation.container_created:
-                    try:
-                        container = inventory.find_container(
-                            creation.client,
-                            spec,
-                            self.config,
-                        )
-                        if container is not None:
-                            container.stop(timeout=10)
-                    except Exception as stop_exc:
-                        return RuntimeError(f"{exc}; failed to stop retained container: {stop_exc}")
-                return exc
-        if not creation.container_created or creation.client is None:
-            return None
-        try:
-            container = inventory.find_container(creation.client, spec, self.config)
-            if container is not None:
-                containers.remove_container(container)
-        except Exception as exc:
-            return exc
-        return None
-
     def _run_operation(
         self,
         store: OperationStore[Operation] | OperationStore[DeploymentOperation],
         host: str,
         resource_id: str,
         work: Callable[[], object],
-        *,
-        on_failure: Callable[[], str | None] = lambda: None,
     ) -> None:
-        """Run one background operation, recording failure or clearing on success.
-
-        ``work`` performs the operation; on any exception it is logged, the error
-        (optionally augmented by ``on_failure`` for cleanup follow-up) is stored on
-        the operation, and the operation is left in ``failed`` state. On success the
-        operation is removed from the store.
-        """
+        """Run one background operation, recording failure or clearing on success."""
         try:
             work()
         except Exception as exc:
             logger.exception("failed operation {} on host {}", resource_id, host)
-            message = describe_error(exc)
-            if (follow_up := on_failure()) is not None:
-                message = f"{message}; {follow_up}"
-            store.update(host, resource_id, status="failed", stage="failed", error=message)
+            store.update(
+                host, resource_id, status="failed", stage="failed", error=describe_error(exc)
+            )
             return
         store.remove(host, resource_id)
-
-    def _rollback_message(self, creation: _Creation) -> str | None:
-        rollback_error = self._rollback_create(creation)
-        if rollback_error is None:
-            return None
-        return f"rollback stopped: {describe_error(rollback_error)}"
 
     def _stage(
         self,
@@ -513,10 +452,3 @@ class CodespaceService:
         if token is None:
             raise RuntimeError(f"{provider_name} token is not set")
         return token
-
-    @staticmethod
-    def _reject_inventory_errors(host: str, current: inventory.Inventory) -> None:
-        if current.errors:
-            raise RuntimeError(
-                f"host {host!r} has invalid managed inventory: " + "; ".join(current.errors)
-            )

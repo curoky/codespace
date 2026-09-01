@@ -27,7 +27,7 @@ from controller.models import (
     DeploymentSummary,
     deployment_id,
 )
-from controller.runtime.transport import SSHRoute
+from controller.transport import SSHRoute
 
 type Stage = Callable[[str], None]
 

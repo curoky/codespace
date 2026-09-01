@@ -1,19 +1,22 @@
-"""Codespace container semantics layered over the Podman engine.
+"""Codespace container semantics plus the Podman image/container primitives.
 
-This module owns the control-plane-specific translation: managed runlevel and
-reserved environment injection, reserved workspace mounts, default secret
-ownership (``5230:5230``, ``0o400``) and canonical labels. The reusable
-container primitives live in :mod:`controller.runtime.engine`.
+Owns the control-plane translation (managed labels, reserved env injection,
+reserved workspace mounts, default secret ownership) and the reusable Podman
+primitives (image pull, run, logs, removal, directory-removal helper) it drives.
 """
 
 from __future__ import annotations
 
-from collections.abc import Mapping
-from typing import Any
+import posixpath
+from collections.abc import Iterator, Mapping
+from typing import Any, cast
 
 from podman import PodmanClient
 from podman.domain.containers import Container
+from podman.errors import PodmanError
+from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_fixed
 
+from controller.compose import Secret, ServiceSpec, Volume
 from controller.config import DeploymentSpec, EnvironmentSpec
 from controller.models import (
     CACHE_MOUNT,
@@ -35,25 +38,11 @@ from controller.models import (
     InstancePaths,
     git_host,
 )
-from controller.runtime import engine
-from controller.runtime.compose import Secret, ServiceSpec, Volume
-from controller.runtime.engine import (
-    container_logs,
-    pull_image,
-    remove_container,
-    wait_running,
-)
 
-__all__ = [
-    "container_logs",
-    "create_container",
-    "create_deployment_container",
-    "pull_image",
-    "purge_workspace",
-    "remove_container",
-    "remove_data_directory",
-    "wait_running",
-]
+_READY_TIMEOUT = 30.0
+_READY_INTERVAL = 0.25
+_PULL_TIMEOUT = 15 * 60.0
+_LOG_TAIL = 2000
 
 
 def create_container(
@@ -64,8 +53,6 @@ def create_container(
 ) -> Container:
     """Create and start a configured development container."""
     options = spec.container
-    # Config validation already rejects host/container env collisions at load
-    # time (config._validate_workspaces), so the two maps merge cleanly here.
     environment = {
         **(host_environment or {}),
         **(options.environment or {}),
@@ -88,20 +75,15 @@ def create_container(
             ports[f"{remote}/tcp"] = local
 
     secret_mounts, secret_env = _resolve_secrets(client, options.secrets or [])
-    # Encrypted workspaces bind the host instance dir to the gocryptfs cipher root
-    # and inject the fixed WORKSPACE_CRYPT_KEY (like the sidecar's atuin_db_uri);
-    # the image mounts the decrypted /workspace at boot. Plaintext workspaces bind
-    # the host dir straight to /workspace and inject nothing. /upload and /cache
-    # always bind sibling plaintext directories below the same instance root.
-    # IDE state stays below the host cache and is also mounted at each tool's
-    # canonical home directory.
+    # Encrypted workspaces bind the host instance dir to the gocryptfs cipher
+    # root and inject the fixed WORKSPACE_CRYPT_KEY; the image mounts the
+    # decrypted /workspace at boot. Plaintext workspaces bind straight to
+    # /workspace. /upload and /cache always bind sibling plaintext directories;
+    # IDE state stays below cache and is also mounted at each tool's home path.
     encrypt = spec.workspace.encrypt_workspace
     if encrypt:
         _require_secret_exists(client, WORKSPACE_CRYPT_SECRET)
         secret_env[WORKSPACE_CRYPT_SECRET_ENV] = WORKSPACE_CRYPT_SECRET
-    env_collisions = sorted(environment.keys() & secret_env.keys())
-    if env_collisions:
-        raise ValueError(f"container.secrets env target also set in environment: {env_collisions}")
 
     mounts: list[dict[str, object]] = [
         {
@@ -109,32 +91,14 @@ def create_container(
             "source": paths.workspace,
             "target": WORKSPACE_CIPHER_MOUNT if encrypt else WORKSPACE_MOUNT,
         },
-        {
-            "type": "bind",
-            "source": paths.upload,
-            "target": UPLOAD_MOUNT,
-        },
-        {
-            "type": "bind",
-            "source": paths.cache,
-            "target": CACHE_MOUNT,
-        },
+        {"type": "bind", "source": paths.upload, "target": UPLOAD_MOUNT},
+        {"type": "bind", "source": paths.cache, "target": CACHE_MOUNT},
     ]
-    for source, target in paths.home_cache_mounts:
-        mounts.append(
-            {
-                "type": "bind",
-                "source": source,
-                "target": target,
-            }
-        )
-    mounts.append(
-        {
-            "type": "bind",
-            "source": paths.control,
-            "target": CONTROL_MOUNT,
-        }
+    mounts.extend(
+        {"type": "bind", "source": source, "target": target}
+        for source, target in paths.home_cache_mounts
     )
+    mounts.append({"type": "bind", "source": paths.control, "target": CONTROL_MOUNT})
     mounts.extend(
         {
             "type": "bind",
@@ -156,7 +120,7 @@ def create_container(
         secret_env=secret_env,
     )
     run_options["platform"] = spec.platform
-    return engine.run_container(client, spec.image, run_options)
+    return run_container(client, spec.image, run_options)
 
 
 def _build_run_options(
@@ -171,12 +135,7 @@ def _build_run_options(
     secret_env: dict[str, str],
     restart_policy: dict[str, object] | None = None,
 ) -> dict[str, Any]:
-    """Assemble the podman-py run options shared by environments and deployments.
-
-    Callers layer their own specifics on top of the returned dict (an
-    environment adds ``platform``; a deployment passes ``restart_policy``); this
-    only builds the container-block fields both share.
-    """
+    """Assemble the podman-py run options shared by environments and deployments."""
     run_options: dict[str, Any] = {
         "name": name,
         "network_mode": options.network_mode,
@@ -213,11 +172,8 @@ def _resolve_secrets(
 ) -> tuple[list[dict[str, object]], dict[str, str]]:
     """Split configured secrets into podman-py mount and env parameters.
 
-    The control plane only references secrets by name: each ``source`` must
-    already be registered on the host with ``podman secret create``. Missing
-    secrets fail fast before the container is created. Mount secrets default to
-    the development user (``5230:5230``) with mode ``0o400`` so only ``x`` can
-    read the file.
+    Each ``source`` must already be registered on the host; missing secrets fail
+    fast. Mount secrets default to the development user (``5230:5230``, ``0o400``).
     """
     mounts: list[dict[str, object]] = []
     env: dict[str, str] = {}
@@ -241,7 +197,7 @@ def _resolve_secrets(
 
 
 def _require_secret_exists(client: PodmanClient, name: str) -> None:
-    if not engine.secret_exists(client, name):
+    if not client.secrets.exists(name):
         raise RuntimeError(
             f"Podman secret {name!r} is not registered on the host; "
             "create it with `podman secret create` before starting the environment"
@@ -255,10 +211,9 @@ def create_deployment_container(
 ) -> Container:
     """Create and start a self-contained host-level deployment container.
 
-    Unlike an environment, a deployment has no SSH projection, workspace mount or
-    git checkout: it runs the image as-is with the resolved container block and a
-    restart policy so it survives host reboots. A ``${DEPLOYMENT_DATA}`` volume
-    source is rewritten to ``data_path``.
+    Runs the image as-is with the resolved container block and an
+    ``unless-stopped`` restart policy. A ``${DEPLOYMENT_DATA}`` volume source is
+    rewritten to ``data_path``.
     """
     options = spec.container
     environment = dict(options.environment or {})
@@ -268,9 +223,6 @@ def create_deployment_container(
             ports[f"{remote}/tcp"] = local
 
     secret_mounts, secret_env = _resolve_secrets(client, options.secrets or [])
-    # ContainerConfig._validate_env_secret_targets already rejects env-secret /
-    # environment collisions when the deployment config is resolved.
-
     mounts = [_deployment_mount(volume, data_path) for volume in options.volumes or []]
 
     run_options = _build_run_options(
@@ -284,7 +236,7 @@ def create_deployment_container(
         secret_env=secret_env,
         restart_policy={"Name": "unless-stopped"},
     )
-    return engine.run_container(client, spec.image, run_options)
+    return run_container(client, spec.image, run_options)
 
 
 def _deployment_mount(volume: Volume, data_path: str) -> dict[str, object]:
@@ -323,6 +275,38 @@ def purge_workspace(
     )
 
 
+# --- Podman primitives (no control-plane knowledge below this line) ---
+
+
+def pull_image(client: PodmanClient, image: str, platform: ImagePlatform | None) -> None:
+    """Pull an image while surfacing stream errors."""
+    kwargs: dict[str, Any] = {"stream": True, "decode": True}
+    if platform is not None:
+        kwargs["platform"] = platform
+    pull_client = PodmanClient(
+        base_url=client.api.base_url.geturl(),
+        version=client.api.version,
+        timeout=_PULL_TIMEOUT,
+    )
+    try:
+        events = cast("Iterator[dict[str, str]]", pull_client.images.pull(image, **kwargs))
+        for event in events:
+            error = event.get("error") if isinstance(event, dict) else None
+            if error:
+                raise PodmanError(f"failed to pull {image}: {error}")
+    finally:
+        pull_client.close()
+
+
+def run_container(client: PodmanClient, image: str, run_options: dict[str, Any]) -> Container:
+    """Create, start and await a detached container from resolved run options."""
+    created = client.containers.run(image, detach=True, **run_options)
+    if not isinstance(created, Container):
+        raise TypeError(f"expected Container, got {type(created)}")
+    wait_running(created)
+    return created
+
+
 def remove_data_directory(
     client: PodmanClient,
     image: str,
@@ -331,5 +315,76 @@ def remove_data_directory(
     *,
     platform: ImagePlatform | None = None,
 ) -> None:
-    """Remove one managed directory strictly below its data root."""
-    engine.remove_dir_with_helper(client, image, data_root, target, platform=platform)
+    """Remove one directory strictly below ``data_root`` with a root helper container."""
+    normalized_root = posixpath.normpath(data_root)
+    normalized_target = posixpath.normpath(target)
+    if (
+        not normalized_root.startswith("/")
+        or not normalized_target.startswith("/")
+        or posixpath.commonpath((normalized_root, normalized_target)) != normalized_root
+        or normalized_target == normalized_root
+    ):
+        raise RuntimeError(f"refusing to remove {target!r} outside root {data_root!r}")
+    helper = client.containers.run(
+        image,
+        name=None,
+        entrypoint=["/bin/rm"],
+        command=["-rf", "--", normalized_target],
+        detach=True,
+        platform=platform,
+        user="0",
+        security_opt=["disable"],
+        mounts=[{"type": "bind", "source": normalized_root, "target": normalized_root}],
+    )
+    if not isinstance(helper, Container):
+        raise RuntimeError("expected a detached directory-removal container")
+    try:
+        exit_code = helper.wait()
+        if exit_code not in (0, None):
+            logs = helper.logs(stdout=True, stderr=True)
+            raw = logs if isinstance(logs, bytes) else b"".join(logs)
+            text = raw.decode("utf-8", "replace").strip()
+            raise RuntimeError(f"failed to remove {target!r} ({exit_code}): {text}")
+    finally:
+        helper.remove(force=True)
+
+
+def remove_container(container: Container) -> None:
+    container.remove(force=True)
+
+
+def container_logs(container: Container) -> str:
+    """Return the container's most recent combined stdout and stderr logs."""
+    result = container.logs(
+        stdout=True,
+        stderr=True,
+        stream=False,
+        timestamps=True,
+        tail=_LOG_TAIL,
+    )
+    raw = result if isinstance(result, bytes) else b"".join(result)
+    return raw.decode("utf-8", "replace") if isinstance(raw, bytes) else ""
+
+
+class _ContainerNotRunning(Exception):
+    pass
+
+
+def wait_running(container: Container) -> None:
+    try:
+        _reload_until_running(container)
+    except _ContainerNotRunning as exc:
+        raise RuntimeError(str(exc)) from None
+
+
+@retry(
+    retry=retry_if_exception_type(_ContainerNotRunning),
+    stop=stop_after_delay(_READY_TIMEOUT),
+    wait=wait_fixed(_READY_INTERVAL),
+    reraise=True,
+)
+def _reload_until_running(container: Container) -> None:
+    container.reload()
+    if container.status != "running":
+        name = str(getattr(container, "name", None) or container.id)
+        raise _ContainerNotRunning(f"container {name} did not reach running state")

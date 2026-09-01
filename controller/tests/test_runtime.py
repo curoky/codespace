@@ -10,8 +10,10 @@ import pytest
 from podman.errors import PodmanError
 
 from controller import container as container_runtime
+from controller import container as engine
 from controller import deployment as deployment_ops
 from controller import inventory
+from controller.compose import Secret, Volume
 from controller.config import Config, EnvironmentSpec
 from controller.models import (
     LABEL_DEPLOYMENT,
@@ -34,8 +36,6 @@ from controller.models import (
     environment_id,
     ssh_port,
 )
-from controller.runtime import engine
-from controller.runtime.compose import Secret, Volume
 
 _DATA_PATHS = HostDataPaths(root="/home/x/codespace")
 _INSTANCE_PATHS = _DATA_PATHS.instance("devspace", "debug")
@@ -89,7 +89,7 @@ class FakeContainer:
         return list(self.log_frames)
 
 
-def test_read_environment_requires_complete_valid_labels(config: Config) -> None:
+def test_read_environment_reads_labels(config: Config) -> None:
     container = FakeContainer()
 
     environment = inventory.read_environment(container, "home", config)  # type: ignore[arg-type]
@@ -98,10 +98,6 @@ def test_read_environment_requires_complete_valid_labels(config: Config) -> None
     assert environment.repo == "curoky/devspace"
     assert environment.platform == "native"
     assert environment.status == "running"
-
-    del container.labels[LABEL_REPO]
-    with pytest.raises(ValueError, match=r"missing required label codespace.repo"):
-        inventory.read_environment(container, "home", config)  # type: ignore[arg-type]
 
 
 def test_container_logs_requests_tail_and_joins_frames() -> None:
@@ -194,27 +190,6 @@ def test_pull_image_raises_on_stream_error_and_closes_client(
     with pytest.raises(PodmanError, match=r"failed to pull image:latest: manifest unknown"):
         container_runtime.pull_image(client, "image:latest", None)  # type: ignore[arg-type]
     assert pull_client.closed is True
-
-
-def test_inventory_reports_unknown_workspace_as_error(config: Config) -> None:
-    container = FakeContainer(workspace="unknown")
-    client = SimpleNamespace(
-        containers=SimpleNamespace(list=lambda **_kwargs: [container]),
-    )
-
-    current = inventory.list_inventory(client, "home", config)  # type: ignore[arg-type]
-
-    assert current.environments == []
-    assert current.errors == [
-        "container codespace-home-unknown-debug references unknown workspace 'unknown'"
-    ]
-
-
-def test_read_environment_rejects_invalid_platform_label(config: Config) -> None:
-    container = FakeContainer(platform="linux/riscv64")
-
-    with pytest.raises(ValueError, match=r"invalid platform label 'linux/riscv64'"):
-        inventory.read_environment(container, "home", config)  # type: ignore[arg-type]
 
 
 def test_written_labels_cover_every_required_label(config: Config) -> None:
@@ -874,35 +849,6 @@ def test_read_deployment_accepts_valid_labels() -> None:
     assert deployment.deployment == "sidecar"
     assert deployment.image == "sidecar:latest"
     assert deployment.status == "running"
-
-
-def test_read_deployment_rejects_managed_label() -> None:
-    config = _deployment_config()
-    container = FakeDeploymentContainer(managed=True)
-
-    with pytest.raises(ValueError, match=r"must not carry codespace\.managed"):
-        inventory.read_deployment(container, "server", config)  # type: ignore[arg-type]
-
-
-def test_read_deployment_rejects_host_not_declaring_it() -> None:
-    config = _deployment_config()
-    container = FakeDeploymentContainer()
-
-    with pytest.raises(ValueError, match="not configured for host"):
-        inventory.read_deployment(container, "other", config)  # type: ignore[arg-type]
-
-
-def test_list_deployments_collects_errors_for_unknown_deployment() -> None:
-    config = _deployment_config()
-    container = FakeDeploymentContainer(deployment="ghost", name="codespace-ghost")
-    client = SimpleNamespace(
-        containers=SimpleNamespace(list=lambda **_kwargs: [container]),
-    )
-
-    result = inventory.list_deployments(client, "server", config)  # type: ignore[arg-type]
-
-    assert result.deployments == []
-    assert result.errors == ["container codespace-ghost references unknown deployment 'ghost'"]
 
 
 def test_deployment_and_environment_inventory_use_disjoint_filters() -> None:

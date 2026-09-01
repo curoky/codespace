@@ -2,26 +2,21 @@
 
 from __future__ import annotations
 
-import posixpath
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
-from typing import Annotated, Literal, Self, cast
+from typing import Annotated, Literal, cast
 
 import yaml
 from pydantic import (
-    AfterValidator,
     BaseModel,
     BeforeValidator,
     ConfigDict,
     Field,
     field_validator,
-    model_validator,
 )
 
+from controller.compose import ServiceSpec
 from controller.models import (
-    CACHE_MOUNT,
-    CONTROL_MOUNT,
-    HOME_CACHE_MOUNTS,
     LABEL_DEPLOYMENT,
     LABEL_DEPLOYMENT_ID,
     LABEL_GIT_URL,
@@ -34,14 +29,6 @@ from controller.models import (
     LABEL_SSH_PORT,
     LABEL_TYPE,
     LABEL_WORKSPACE,
-    RESOURCE_ID_RE,
-    UPLOAD_MOUNT,
-    WORKSPACE_CIPHER_MOUNT,
-    WORKSPACE_CLONE_PATH_ENV,
-    WORKSPACE_CLONE_URL_ENV,
-    WORKSPACE_MOUNT,
-    WORKSPACE_OPEN_PATH_ENV,
-    WORKSPACE_TYPE_ENV,
     Environment,
     GitProvider,
     GitUrl,
@@ -60,175 +47,19 @@ from controller.models import (
 from controller.models import (
     deployment_id as deployment_container_id,
 )
-from controller.runtime.compose import Secret, ServiceSpec, Volume
-from controller.runtime.transport import HostEndpoint
+from controller.transport import HostEndpoint
 
 CONFIG_PATH = Path.home() / "devspace" / "config.extend.yaml"
 
-# Derived per container and forbidden in passthrough environment values.
-_RESERVED_ENV_KEYS = frozenset(
-    {
-        "SSHD_PORT",
-        "SSHD_BIND",
-        WORKSPACE_TYPE_ENV,
-        WORKSPACE_CLONE_URL_ENV,
-        WORKSPACE_CLONE_PATH_ENV,
-        WORKSPACE_OPEN_PATH_ENV,
-    }
-)
-_RESERVED_MOUNT_TARGETS = (
-    WORKSPACE_MOUNT,
-    WORKSPACE_CIPHER_MOUNT,
-    UPLOAD_MOUNT,
-    CACHE_MOUNT,
-    CONTROL_MOUNT,
-    *(target for _name, target in HOME_CACHE_MOUNTS),
-)
 type EnvironmentName = Annotated[str, Field(pattern=r"^[A-Za-z_][A-Za-z0-9_]*$")]
 
-
-def _require_under_workspace(value: PurePosixPath) -> PurePosixPath:
-    """Require a POSIX path strictly under the reserved workspace mount, without ``..``."""
-    if ".." in value.parts:
-        raise ValueError("path must not contain '..' segments")
-    if PurePosixPath(WORKSPACE_MOUNT) not in value.parents:
-        raise ValueError(f"path must be a directory under {WORKSPACE_MOUNT}")
-    return value
-
-
-# A container checkout directory: an absolute path strictly under ``/workspace``.
-type WorkspacePath = Annotated[PurePosixPath, AfterValidator(_require_under_workspace)]
-
-
-def _env_secret_targets(secrets: list[Secret] | None) -> list[str]:
-    """Return the environment variable names produced by ``mode: env`` secrets."""
-    if secrets is None:
-        return []
-    return [secret.target for secret in secrets if secret.mode == "env" and secret.target]
-
-
-def _duplicates(values: list[str]) -> list[str]:
-    """Return the sorted set of values that appear more than once."""
-    return sorted({value for value in values if values.count(value) > 1})
-
-
-def _mount_targets_overlap(left: str, right: str) -> bool:
-    normalized_left = "/" + posixpath.normpath(left).lstrip("/")
-    normalized_right = "/" + posixpath.normpath(right).lstrip("/")
-    common = posixpath.commonpath((normalized_left, normalized_right))
-    return common in (normalized_left, normalized_right)
-
-
-def _validate_port_mappings(value: list[str]) -> list[str]:
-    """Reject malformed mappings and duplicate host bindings."""
-    seen_local: set[int] = set()
-    for spec in value:
-        local, _remote = parse_port_mapping(spec)
-        if local in seen_local:
-            raise ValueError(f"duplicate published host port {local}")
-        seen_local.add(local)
-    return value
-
-
-type PublishedPorts = Annotated[list[str], AfterValidator(_validate_port_mappings)]
+# A container checkout directory, expected to live under ``/workspace``.
+type WorkspacePath = PurePosixPath
+type PublishedPorts = list[str]
 
 
 class ContainerConfig(ServiceSpec):
-    """Compose service subset with Codespace-specific validation."""
-
-    @field_validator("environment")
-    @classmethod
-    def _reject_reserved(cls, value: dict[str, str] | None) -> dict[str, str] | None:
-        if value is not None and (reserved := _RESERVED_ENV_KEYS & value.keys()):
-            raise ValueError(
-                f"container.environment must not set control-plane keys {sorted(reserved)}"
-            )
-        return value
-
-    @field_validator("volumes")
-    @classmethod
-    def _reject_reserved_mount_targets(
-        cls,
-        value: list[Volume] | None,
-    ) -> list[Volume] | None:
-        if value is None:
-            return value
-        conflicts = sorted(
-            {
-                volume.target
-                for volume in value
-                if any(
-                    _mount_targets_overlap(volume.target, reserved)
-                    for reserved in _RESERVED_MOUNT_TARGETS
-                )
-            }
-        )
-        if conflicts:
-            raise ValueError(
-                "container.volumes must not overlap control-plane mount targets "
-                f"{list(_RESERVED_MOUNT_TARGETS)}: {conflicts}"
-            )
-        return value
-
-    @field_validator("network_mode")
-    @classmethod
-    def _validate_network_mode(cls, value: str | None) -> str | None:
-        if value is not None and value not in ("host", "bridge"):
-            raise ValueError("network_mode must be 'host' or 'bridge'")
-        return value
-
-    @model_validator(mode="after")
-    def _reject_shm_size_with_host_ipc(self) -> Self:
-        if self.ipc == "host" and self.shm_size is not None:
-            raise ValueError("container.shm_size cannot be set when container.ipc is 'host'")
-        return self
-
-    @field_validator("secrets")
-    @classmethod
-    def _reject_reserved_secret_mount_targets(
-        cls,
-        value: list[Secret] | None,
-    ) -> list[Secret] | None:
-        if value is None:
-            return value
-        conflicts = sorted(
-            {
-                secret.target
-                for secret in value
-                if secret.mode == "mount"
-                and secret.target is not None
-                and any(
-                    _mount_targets_overlap(secret.target, reserved)
-                    for reserved in _RESERVED_MOUNT_TARGETS
-                )
-            }
-        )
-        if conflicts:
-            raise ValueError(
-                "container.secrets mount targets must not overlap control-plane mount targets "
-                f"{list(_RESERVED_MOUNT_TARGETS)}: {conflicts}"
-            )
-        return value
-
-    @model_validator(mode="after")
-    def _validate_env_secret_targets(self) -> Self:
-        """Env-mode secrets share the container environment namespace."""
-        targets = _env_secret_targets(self.secrets)
-        reserved = _RESERVED_ENV_KEYS & set(targets)
-        if reserved:
-            raise ValueError(
-                f"container.secrets env target must not use control-plane keys {sorted(reserved)}"
-            )
-        duplicates = _duplicates(targets)
-        if duplicates:
-            raise ValueError(f"container.secrets env target must not repeat names: {duplicates}")
-        explicit = set(self.environment or {})
-        collisions = sorted(explicit & set(targets))
-        if collisions:
-            raise ValueError(
-                f"container.secrets env target collides with container.environment: {collisions}"
-            )
-        return self
+    """Compose service subset resolved into container run options."""
 
     @property
     def is_bridge(self) -> bool:
@@ -244,32 +75,6 @@ class HostConfig(BaseModel):
     environment: list[EnvironmentName] = Field(default_factory=list)
     deployments: list[NonBlankString] = Field(default_factory=list)
     container: ContainerConfig | None = None
-
-    @field_validator("podman_socket")
-    @classmethod
-    def _validate_podman_socket(cls, value: str | None) -> str | None:
-        if value is not None and not value.startswith("/"):
-            raise ValueError("podman_socket must be an absolute path")
-        return value
-
-    @field_validator("deployments")
-    @classmethod
-    def _validate_deployments(cls, value: list[str]) -> list[str]:
-        duplicates = _duplicates(value)
-        if duplicates:
-            raise ValueError(f"deployments must not repeat: {duplicates}")
-        return value
-
-    @field_validator("environment")
-    @classmethod
-    def _validate_environment(cls, value: list[str]) -> list[str]:
-        duplicates = _duplicates(value)
-        if duplicates:
-            raise ValueError(f"environment must not contain duplicates: {duplicates}")
-        reserved = _RESERVED_ENV_KEYS & set(value)
-        if reserved:
-            raise ValueError(f"environment must not inherit control-plane keys {sorted(reserved)}")
-        return value
 
     def endpoint(self) -> HostEndpoint:
         """Return the neutral Podman endpoint for this host."""
@@ -317,29 +122,12 @@ class _BaseWorkspace(BaseModel):
     encrypt_workspace: bool = False
     container: ContainerConfig | None = None
 
-    @field_validator("host")
-    @classmethod
-    def _validate_host(cls, value: list[WorkspaceHost]) -> list[WorkspaceHost]:
-        if not value:
-            raise ValueError("host must list at least one target host")
-        duplicates = _duplicates([entry.name for entry in value])
-        if duplicates:
-            raise ValueError(f"host must not list a host more than once: {duplicates}")
-        return value
-
     def host_platform(self, host: str) -> ImagePlatform | None:
         """Return the configured image platform for one of the workspace's hosts."""
         for entry in self.host:
             if entry.name == host:
                 return entry.platform
         raise KeyError(f"workspace has no host {host!r}")
-
-    @field_validator("open_path")
-    @classmethod
-    def _validate_open_path(cls, value: str | None) -> str | None:
-        if value is not None and not value.startswith("/"):
-            raise ValueError("open_path must be an absolute path")
-        return value
 
     def resolved_clone_path(self) -> str:
         """Return the checkout directory, defaulting to the workspace-derived target."""
@@ -553,81 +341,6 @@ class Config(BaseModel):
         if isinstance(value, dict):
             return {host: options if options is not None else {} for host, options in value.items()}
         return value
-
-    @field_validator("hosts")
-    @classmethod
-    def _validate_hosts(cls, value: dict[HostId, HostConfig]) -> dict[HostId, HostConfig]:
-        if not value:
-            raise ValueError("hosts must contain at least one host")
-        return value
-
-    @model_validator(mode="after")
-    def _validate_workspaces(self) -> Self:
-        if not self.workspaces.items:
-            raise ValueError("workspaces.items must contain at least one workspace")
-        for workspace_id, workspace in self.workspaces.items.items():
-            if not RESOURCE_ID_RE.fullmatch(workspace_id):
-                raise ValueError(
-                    f"workspace {workspace_id!r} must match ^[a-z0-9][a-z0-9-]{{0,31}}$"
-                )
-            for entry in workspace.host:
-                if entry.name not in self.hosts:
-                    raise ValueError(
-                        f"workspace {workspace_id!r} references unknown host {entry.name!r}"
-                    )
-                resolved = self.resolved_container(workspace_id, entry.name)
-                if resolved.network_mode is None:
-                    raise ValueError(
-                        f"workspace {workspace_id!r} on host {entry.name!r} has no resolved "
-                        "container.network_mode; set it on the workspaces.defaults, host, or "
-                        "workspace container block"
-                    )
-                if workspace.published_ports and not resolved.is_bridge:
-                    raise ValueError(
-                        f"workspace {workspace_id!r} sets 'published_ports' but its resolved "
-                        f"container.network_mode on host {entry.name!r} is not 'bridge'; "
-                        "port publishing requires bridge mode"
-                    )
-                inherited = set(self.hosts[entry.name].environment)
-                explicit = set(resolved.environment or {})
-                collisions = sorted(inherited & explicit)
-                if collisions:
-                    raise ValueError(
-                        f"workspace {workspace_id!r} on host {entry.name!r} configures inherited "
-                        f"host environment variables {collisions} in container.environment"
-                    )
-                secret_env = set(_env_secret_targets(resolved.secrets))
-                secret_collisions = sorted(inherited & secret_env)
-                if secret_collisions:
-                    raise ValueError(
-                        f"workspace {workspace_id!r} on host {entry.name!r} configures inherited "
-                        f"host environment variables {secret_collisions} as container.secrets "
-                        "env target"
-                    )
-        return self
-
-    @model_validator(mode="after")
-    def _validate_deployments(self) -> Self:
-        """Check deployment ids and that every host's placement resolves cleanly."""
-        for deployment_id in self.deployments:
-            if not RESOURCE_ID_RE.fullmatch(deployment_id):
-                raise ValueError(
-                    f"deployment {deployment_id!r} must match ^[a-z0-9][a-z0-9-]{{0,31}}$"
-                )
-        for host_id, host in self.hosts.items():
-            for deployment_id in host.deployments:
-                if deployment_id not in self.deployments:
-                    raise ValueError(
-                        f"host {host_id!r} references unknown deployment {deployment_id!r}"
-                    )
-                resolved = self.resolved_deployment_container(deployment_id, host_id)
-                if resolved.network_mode is None:
-                    raise ValueError(
-                        f"deployment {deployment_id!r} on host {host_id!r} has no resolved "
-                        "container.network_mode; set it on the host or deployment "
-                        "container block"
-                    )
-        return self
 
     def deployment_hosts(self, deployment_id: str) -> list[str]:
         """Return the hosts that declared this deployment, in host declaration order."""

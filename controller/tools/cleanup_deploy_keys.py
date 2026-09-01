@@ -11,8 +11,8 @@ from rich.console import Console
 from controller import inventory, provider
 from controller.config import CONFIG_PATH, Config, RepoWorkspace, load_config
 from controller.models import RESOURCE_ID_RE, GitProvider
-from controller.runtime.transport import PodmanTransport
 from controller.tools import support
+from controller.transport import PodmanTransport
 
 type Repository = tuple[GitProvider, str]
 type Route = tuple[str, str]

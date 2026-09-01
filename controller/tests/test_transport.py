@@ -7,7 +7,7 @@ import subprocess
 from collections.abc import Callable
 from pathlib import Path
 
-from controller.runtime.transport import HostEndpoint, PodmanTransport
+from controller.transport import HostEndpoint, PodmanTransport
 
 
 class FakeProcess:
