@@ -133,7 +133,7 @@ def test_static_assets_are_native_sources(app_client: tuple[TestClient, FakeServ
     assert 'status: environment.status || "unknown"' in script.text
     assert '(type === "repo" || type === "git") && status !== "running"' in script.text
     assert 'button.textContent = "Copied"' in script.text
-    assert '"dismiss-operation", operation)' in script.text
+    assert '"dismiss-operation", dismissTarget)' in script.text
     assert 'aria-label", "Dismiss failed operation"' in script.text
     assert ".environment-actions .ssh-command" in stylesheet.text
     assert ".environment-actions .ssh-command.copied" in stylesheet.text

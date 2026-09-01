@@ -271,34 +271,19 @@ def _required_label(labels: dict[str, str], name: str, key: str) -> str:
 
 
 def _provider(value: str, name: str) -> GitProvider:
-    match value:
-        case "github":
-            return "github"
-        case "gitlab":
-            return "gitlab"
-        case _:
-            raise ValueError(f"container {name} has invalid provider label {value!r}")
+    return _enum_label(value, name, "provider", ("github", "gitlab"))
 
 
 def _workspace_type(value: str, name: str) -> WorkspaceType:
-    match value:
-        case "repo":
-            return "repo"
-        case "blank":
-            return "blank"
-        case "git":
-            return "git"
-        case _:
-            raise ValueError(f"container {name} has invalid type label {value!r}")
+    return _enum_label(value, name, "type", ("repo", "blank", "git"))
 
 
 def _platform(value: str, name: str) -> PlatformSelection:
-    match value:
-        case "native":
-            return "native"
-        case "linux/amd64":
-            return "linux/amd64"
-        case "linux/arm64":
-            return "linux/arm64"
-        case _:
-            raise ValueError(f"container {name} has invalid platform label {value!r}")
+    return _enum_label(value, name, "platform", ("native", "linux/amd64", "linux/arm64"))
+
+
+def _enum_label[T: str](value: str, name: str, label: str, allowed: tuple[T, ...]) -> T:
+    """Validate one label value against its permitted set, narrowing the literal type."""
+    if value in allowed:
+        return value  # type: ignore[return-value]
+    raise ValueError(f"container {name} has invalid {label} label {value!r}")

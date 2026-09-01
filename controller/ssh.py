@@ -23,7 +23,7 @@ from controller.models import (
     HostDataPaths,
 )
 from controller.runtime import remote
-from controller.runtime.transport import SSHRoute
+from controller.runtime.transport import SSHRoute, ssh_base_options
 
 SSH_CONFIG_PATH = Path.home() / ".ssh" / "config"
 CODESPACE_DIR = Path.home() / ".ssh" / "codespace"
@@ -101,13 +101,11 @@ def reset_control_state(route: SSHRoute, control_path: str) -> None:
     remote_command = (
         f"set -eu; mkdir -p -- {directory}; chmod 0700 -- {directory}; rm -f -- {stale_paths}"
     )
-    machine_known_hosts = _machine_known_hosts(route) if route.is_machine else None
     remote.run_host(
         route,
         remote_command,
         timeout=_CONTROL_WRITE_TIMEOUT,
         action=f"reset workspace control state in {control_path!r}",
-        machine_known_hosts=machine_known_hosts,
     )
 
 
@@ -145,8 +143,6 @@ def read_host_environment(route: SSHRoute, names: list[str]) -> dict[str, str]:
     """Read selected exported variables from a remote SSH login environment."""
     if not names:
         return {}
-    if route.is_machine:
-        raise RuntimeError("host environment inheritance is not supported for Podman Machine")
     result = _run_host(
         route,
         "env -0",
@@ -179,14 +175,7 @@ def _run_host(
     timeout: float,
     action: str,
 ) -> subprocess.CompletedProcess[str]:
-    machine_known_hosts = _machine_known_hosts(route) if route.is_machine else None
-    return remote.run_host(
-        route,
-        remote_command,
-        timeout=timeout,
-        action=action,
-        machine_known_hosts=machine_known_hosts,
-    )
+    return remote.run_host(route, remote_command, timeout=timeout, action=action)
 
 
 def initialize(hosts: list[str]) -> None:
@@ -213,8 +202,7 @@ def probe(environment: Environment, route: SSHRoute) -> None:
     """Verify actual SSH login through the configured host alias and login key."""
     command = [
         "ssh",
-        "-o",
-        "BatchMode=yes",
+        *ssh_base_options(None),
         "-o",
         "ConnectTimeout=10",
         "-o",
@@ -224,7 +212,7 @@ def probe(environment: Environment, route: SSHRoute) -> None:
         "-o",
         f"User={CONTAINER_USER}",
         "-o",
-        _proxy_option(route),
+        f"ProxyJump={route.host}",
         "-o",
         f"IdentityFile={LOGIN_KEY_PATH}",
         "-o",
@@ -283,45 +271,13 @@ def write_host(host: str, environments: list[Environment], route: SSHRoute) -> N
 
 
 def _render_environment(environment: Environment, route: SSHRoute) -> str:
-    proxy_directive = _proxy_option(route).replace("=", " ", 1)
     return "\n".join(
         [
             f"Host {environment.id}",
             f"    Port {environment.ssh_port}",
-            f"    {proxy_directive}",
+            f"    ProxyJump {route.host}",
         ]
     )
-
-
-def _proxy_option(route: SSHRoute) -> str:
-    if not route.is_machine:
-        return f"ProxyJump={route.host}"
-    if route.port is None or route.identity_path is None:
-        raise RuntimeError(f"Podman Machine SSH route for {route.host!r} is incomplete")
-    machine_known_hosts = _machine_known_hosts(route)
-    command = [
-        "ssh",
-        "-o",
-        "BatchMode=yes",
-        "-o",
-        "IdentitiesOnly=yes",
-        "-o",
-        "StrictHostKeyChecking=accept-new",
-        "-o",
-        f"UserKnownHostsFile={machine_known_hosts}",
-        "-i",
-        str(route.identity_path),
-        "-p",
-        str(route.port),
-        "-W",
-        "%h:%p",
-        "root@127.0.0.1",
-    ]
-    return f"ProxyCommand={shlex.join(command)}"
-
-
-def _machine_known_hosts(route: SSHRoute) -> Path:
-    return KNOWN_HOSTS_DIR / f"machine-{route.host}"
 
 
 def _ensure_main_include() -> None:

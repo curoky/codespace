@@ -370,37 +370,9 @@ def test_config_resolves_per_host_podman_socket() -> None:
         )
     )
 
-    assert config.host_config("office").resolved_podman_socket() == "/tmp/podmanxd.sock"
-    assert config.host_config("home").resolved_podman_socket() == "/run/podman/podman.sock"
-    assert config.host_config("home").type == "ssh"
     assert config.host_config("office").podman_socket == "/tmp/podmanxd.sock"
-
-
-def test_config_accepts_explicit_podman_machine_host() -> None:
-    config = Config.model_validate(
-        _config(
-            hosts={
-                "local": {
-                    "type": "podman-machine",
-                    "machine": "podman-machine-default",
-                }
-            },
-            items={
-                "devspace": {
-                    "host": [{"name": "local"}],
-                    "provider": "github",
-                    "repo": "owner/repo",
-                }
-            },
-        )
-    )
-
-    options = config.host_config("local")
-    assert options.type == "podman-machine"
-    assert options.machine == "podman-machine-default"
-
-    with pytest.raises(ValueError, match="discovered from machine inspect"):
-        config.host_config("local").resolved_podman_socket()
+    assert config.host_config("home").podman_socket is None
+    assert config.host_config("office").endpoint().podman_socket == "/tmp/podmanxd.sock"
 
 
 def test_config_accepts_inherited_environment_for_ssh_host() -> None:
@@ -426,28 +398,6 @@ def test_config_rejects_duplicate_or_reserved_inherited_environment() -> None:
         Config.model_validate(_config(hosts={"home": {"environment": ["SSHD_PORT"]}}))
 
 
-def test_config_rejects_inherited_environment_for_podman_machine() -> None:
-    with pytest.raises(ValidationError, match="only valid for SSH hosts"):
-        Config.model_validate(
-            _config(
-                hosts={
-                    "local": {
-                        "type": "podman-machine",
-                        "machine": "podman-machine-default",
-                        "environment": ["HTTP_PROXY"],
-                    }
-                },
-                items={
-                    "devspace": {
-                        "host": [{"name": "local"}],
-                        "provider": "github",
-                        "repo": "owner/repo",
-                    }
-                },
-            )
-        )
-
-
 def test_config_rejects_collision_between_inherited_and_explicit_environment() -> None:
     with pytest.raises(ValidationError, match="inherited host environment variables"):
         Config.model_validate(
@@ -464,7 +414,6 @@ def test_config_rejects_collision_between_inherited_and_explicit_environment() -
 def test_config_ssh_host_uses_host_network() -> None:
     config = Config.model_validate(_config())
 
-    assert config.host_config("home").type == "ssh"
     assert config.resolved_container("devspace", "home").is_bridge is False
     assert config.resolved_container("devspace", "home").network_mode == "host"
 
@@ -485,17 +434,14 @@ def test_config_bridge_via_host_container_enables_port_publishing() -> None:
         )
     )
 
-    assert config.host_config("home").type == "ssh"
     assert config.resolved_container("devspace", "home").is_bridge is True
     assert config.workspace_ports("devspace") == [(8080, 8080)]
 
 
-def _bridge_machine_workspace_config(published_ports: list[str]) -> dict[str, object]:
+def _bridge_workspace_config(published_ports: list[str]) -> dict[str, object]:
     return _config(
         hosts={
             "local": {
-                "type": "podman-machine",
-                "machine": "podman-machine-default",
                 "container": {"network_mode": "bridge"},
             },
         },
@@ -511,7 +457,7 @@ def _bridge_machine_workspace_config(published_ports: list[str]) -> dict[str, ob
 
 
 def test_config_parses_workspace_ports_on_bridge_host() -> None:
-    config = Config.model_validate(_bridge_machine_workspace_config(["8080", "3000:5000"]))
+    config = Config.model_validate(_bridge_workspace_config(["8080", "3000:5000"]))
 
     assert config.workspace_ports("devspace") == [(8080, 8080), (3000, 5000)]
 
@@ -534,17 +480,17 @@ def test_config_rejects_ports_on_host_network_host() -> None:
 
 def test_config_rejects_malformed_port_mapping() -> None:
     with pytest.raises(ValidationError, match="not a port number"):
-        Config.model_validate(_bridge_machine_workspace_config(["http"]))
+        Config.model_validate(_bridge_workspace_config(["http"]))
 
 
 def test_config_rejects_out_of_range_port() -> None:
     with pytest.raises(ValidationError, match="between 1 and 65535"):
-        Config.model_validate(_bridge_machine_workspace_config(["70000"]))
+        Config.model_validate(_bridge_workspace_config(["70000"]))
 
 
 def test_config_rejects_duplicate_published_host_port() -> None:
     with pytest.raises(ValidationError, match="duplicate published host port"):
-        Config.model_validate(_bridge_machine_workspace_config(["8080", "8080:9090"]))
+        Config.model_validate(_bridge_workspace_config(["8080", "8080:9090"]))
 
 
 def test_config_workspace_ports_defaults_empty() -> None:
@@ -827,22 +773,6 @@ def test_config_rejects_blank_token(provider: str) -> None:
     ("host_options", "message"),
     [
         ({"podman_socket": "relative.sock"}, "absolute path"),
-        (
-            {"type": "podman-machine"},
-            "machine is required",
-        ),
-        (
-            {
-                "type": "podman-machine",
-                "machine": "podman-machine-default",
-                "podman_socket": "/run/podman/podman.sock",
-            },
-            "podman_socket is not valid",
-        ),
-        (
-            {"machine": "podman-machine-default"},
-            "machine is only valid",
-        ),
         ({"unknown": "x"}, "Extra inputs"),
     ],
 )
@@ -1093,8 +1023,6 @@ def test_deployment_host_bridge_override_wins() -> None:
         _deployment_config(
             hosts={
                 "mac": {
-                    "type": "podman-machine",
-                    "machine": "podman-machine-default",
                     "container": {"network_mode": "bridge"},
                     "deployments": ["sidecar"],
                 }

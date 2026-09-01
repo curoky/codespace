@@ -8,7 +8,7 @@ host 级自包含镜像（deployment），例如 sidecar 和 LLM serving。
 控制面负责：
 
 - 加载并校验配置，生成不可变的 `EnvironmentSpec` / `DeploymentSpec`；
-- 通过 SSH tunnel 或 Podman Machine socket 调用 rootful Podman；
+- 通过 per-host OpenSSH ControlMaster 转发的 socket 调用 rootful Podman；
 - 创建、查看和删除 environment，维护 provider deploy key 与本机 SSH 投影；
 - reconcile、查看和清理 deployment；
 - 提供 localhost-only Web UI，以及不依赖 Web 进程的维护 CLI。
@@ -81,7 +81,7 @@ flowchart TB
     Service --> Transport["runtime/transport.py"]
     Engine --> Podman["rootful Podman"]
     Transport --> Podman
-    Remote --> Host["SSH host / Podman Machine"]
+    Remote --> Host["SSH host"]
 ```
 
 分层规则：
@@ -94,8 +94,7 @@ flowchart TB
 
 ## Host 数据布局
 
-所有路径先由 host 登录 shell 展开 `$HOME`，再以绝对路径传给 Podman。SSH host 与 Podman Machine 使用相同
-逻辑布局。
+所有路径先由 host 登录 shell 展开 `$HOME`，再以绝对路径传给 Podman。
 
 ```text
 $HOME/codespace/
@@ -183,7 +182,7 @@ Deployment 没有 `/workspace`、`/upload`、`/cache`、SSH port 或 repository 
 ~/.ssh/config                         # 仅包含 Include
 ~/.ssh/codespace/config               # 公共 Host codespace-* 规则
 ~/.ssh/codespace/login_key            # 固定登录私钥，0600
-~/.ssh/codespace/known_hosts/*         # pinned container/machine host keys
+~/.ssh/codespace/known_hosts/*         # pinned container/host host keys
 ~/.ssh/codespace/hosts/<host>.conf     # 按 host 原子重写的 environment 列表
 ```
 
@@ -388,7 +387,7 @@ classDiagram
 
 - `Config` 在边界完成校验和分层解析；下游只接收 resolved spec。
 - `CodespaceService` 拥有进程内 mutable state，但不拥有 host 或 container 持久状态。
-- `PodmanTransport` 是 Podman 连接与所有 SSH tunnel 生命周期的唯一 owner。
+- `PodmanTransport` 是 Podman 连接与所有 SSH ControlMaster、转发 socket 生命周期的唯一 owner。
 - `runtime` 函数接收已解析参数，不知道 workspace、deployment 或 label 语义。
 - s6 oneshot无条件生成 deploy key；s6-supervised bootstrap拥有固定启动状态机并调用 Git checkout、
   open path helper；agent只提供协议、持久握手和动态 Git state查询，控制面不得复制或通过 Podman exec

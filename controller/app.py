@@ -25,6 +25,16 @@ def _http_error(_request: Request, exc: Exception) -> JSONResponse:
     return JSONResponse(status_code=error.status_code, content={"error": str(error.detail)})
 
 
+def _not_found(_request: Request, exc: Exception) -> JSONResponse:
+    """A service ``KeyError`` names an unknown workspace, host or deployment."""
+    return JSONResponse(status_code=404, content={"error": str(exc.args[0]) if exc.args else ""})
+
+
+def _conflict(_request: Request, exc: Exception) -> JSONResponse:
+    """A service ``RuntimeError`` reports a state conflict the caller can resolve."""
+    return JSONResponse(status_code=409, content={"error": str(exc)})
+
+
 def _validation_error(_request: Request, exc: Exception) -> JSONResponse:
     error = cast("RequestValidationError", exc)
     errors = [
@@ -67,6 +77,8 @@ def create_app(
     app.state.service = resolved_service
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
     app.add_exception_handler(StarletteHTTPException, _http_error)
+    app.add_exception_handler(KeyError, _not_found)
+    app.add_exception_handler(RuntimeError, _conflict)
     app.add_exception_handler(RequestValidationError, _validation_error)
     app.add_exception_handler(Exception, _unexpected_error)
     app.add_api_route("/", _index, methods=["GET"])

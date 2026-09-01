@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from threading import Lock
@@ -145,23 +146,13 @@ class CodespaceService:
         ws = self._workspace(workspace_id)
         self._require_host(ws, host)
         creation = _Creation(spec=self.config.environment_spec(workspace_id, host, instance))
-        try:
-            self._create(creation)
-        except Exception as exc:
-            logger.exception("failed to create {}", creation.spec.identity)
-            rollback_error = self._rollback_create(creation)
-            message = describe_error(exc)
-            if rollback_error is not None:
-                message = f"{message}; rollback stopped: {describe_error(rollback_error)}"
-            self.operations.update(
-                host,
-                creation.spec.identity,
-                status="failed",
-                stage="failed",
-                error=message,
-            )
-            return
-        self.operations.remove(host, creation.spec.identity)
+        self._run_operation(
+            self.operations,
+            host,
+            creation.spec.identity,
+            lambda: self._create(creation),
+            on_failure=lambda: self._rollback_message(creation),
+        )
 
     def _create(self, creation: _Creation) -> None:
         spec = creation.spec
@@ -346,8 +337,11 @@ class CodespaceService:
 
     def deploy(self, deployment: str, host: str) -> None:
         spec = self.config.deployment_spec(deployment, host)
-        try:
-            deployment_ops.reconcile(
+        self._run_operation(
+            self.deployment_operations,
+            host,
+            spec.identity,
+            lambda: deployment_ops.reconcile(
                 self.transport.client(host),
                 self.transport.ssh_route(host),
                 spec,
@@ -357,18 +351,8 @@ class CodespaceService:
                     status="running",
                     stage=stage,
                 ),
-            )
-        except Exception as exc:
-            logger.exception("failed to deploy {}", spec.identity)
-            self.deployment_operations.update(
-                host,
-                spec.identity,
-                status="failed",
-                stage="failed",
-                error=describe_error(exc),
-            )
-            return
-        self.deployment_operations.remove(host, spec.identity)
+            ),
+        )
 
     def clean_deployment(self, deployment: str, host: str, *, purge: bool = False) -> bool:
         self._require_deployment_host(deployment, host)
@@ -462,6 +446,39 @@ class CodespaceService:
         except Exception as exc:
             return exc
         return None
+
+    def _run_operation(
+        self,
+        store: OperationStore[Operation] | OperationStore[DeploymentOperation],
+        host: str,
+        resource_id: str,
+        work: Callable[[], object],
+        *,
+        on_failure: Callable[[], str | None] = lambda: None,
+    ) -> None:
+        """Run one background operation, recording failure or clearing on success.
+
+        ``work`` performs the operation; on any exception it is logged, the error
+        (optionally augmented by ``on_failure`` for cleanup follow-up) is stored on
+        the operation, and the operation is left in ``failed`` state. On success the
+        operation is removed from the store.
+        """
+        try:
+            work()
+        except Exception as exc:
+            logger.exception("failed operation {} on host {}", resource_id, host)
+            message = describe_error(exc)
+            if (follow_up := on_failure()) is not None:
+                message = f"{message}; {follow_up}"
+            store.update(host, resource_id, status="failed", stage="failed", error=message)
+            return
+        store.remove(host, resource_id)
+
+    def _rollback_message(self, creation: _Creation) -> str | None:
+        rollback_error = self._rollback_create(creation)
+        if rollback_error is None:
+            return None
+        return f"rollback stopped: {describe_error(rollback_error)}"
 
     def _stage(
         self,

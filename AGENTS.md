@@ -45,7 +45,7 @@
   Python agent，控制面经 HTTP over UDS调用容器内 workspace操作。契约见各子目录 `AGENTS.md`。
 - **控制面**：`controller/` 是完整本地单进程控制面（配置、Podman transport、生命周期、Git provider、
   SSH 投影、FastAPI、原生 Web UI 和测试），入口 `uv run python -m controller`。它通过 system OpenSSH
-  转发远端 rootful Podman socket 和逐 instance agent UDS，或直连已运行的 rootful Podman Machine；
+  的 per-host ControlMaster 转发远端 rootful Podman socket 和逐 instance agent UDS；
   不部署 host 级 TCP agent。除逐 workspace 的开发 environment 外，它还原生管理 host 级
   **deployment**（sidecar、LLM serving 等自包含镜像）：这类容器无
   workspace/SSH 投影/git checkout，由 `hosts.<host>.deployments` 选择部署到哪些 host。控制面详细设计见

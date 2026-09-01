@@ -1,7 +1,7 @@
 # Codespace 控制面约束
 
 `controller/` 是仅监听本机的单进程控制面。它读取静态配置，通过 system OpenSSH 连接远端
-rootful Podman，或直连本地 rootful Podman Machine，并提供原生 Web UI。
+rootful Podman，并提供原生 Web UI。
 
 本文只记录实现约束和工作入口。架构、数据布局、生命周期、接口关系和后续瘦身边界见
 [`DESIGN.md`](DESIGN.md)。仓库级约束见 [`../AGENTS.md`](../AGENTS.md)，开发镜像契约见
@@ -85,10 +85,10 @@ task check
   `workspaces/<workspace>/<instance>/{workspace,upload,cache,control}`，deployment 位于
   `deployments/<deployment>`。准确 mount 关系见 [`DESIGN.md`](DESIGN.md#host-数据布局)。
 - SSH host 必须提供 rootful Podman Unix socket、可写 login home、GNU `env` 和 `find`，并允许 OpenSSH
-  StreamLocal forwarding。
-- Podman Machine 必须已启动且启用 rootful mode。跨架构镜像依赖 host 预先配置 `binfmt_misc`。
-- SSH host 的 Podman socket和逐实例 agent socket通过进程私有 Unix socket转发；连接复用、调用有界超时，
-  进程退出时关闭。
+  StreamLocal forwarding。跨架构镜像依赖 host 预先配置 `binfmt_misc`。
+- 每个 host 维护单一 OpenSSH ControlMaster：master 进程持有 Podman API socket forward，逐实例 agent
+  socket 通过 `ssh -O forward` 挂到同一 master；命令执行与登录探测复用同一 control socket。连接复用、
+  调用有界超时，进程退出时关闭。
 
 ## 生命周期约束
 
@@ -147,5 +147,5 @@ OpenAPI 页面、远程监听或多 worker。
 - 修改开发镜像 host contract 时同步更新 [`../images/dev/AGENTS.md`](../images/dev/AGENTS.md)；
   修改 sidecar 或 LLM deployment 时同步对应目录的 `AGENTS.md`。
 - 一次性同步、清理和修复操作放进 `tools/` 的单用途 Python CLI，不增加 Web endpoint、UI state 或
-  常驻后台任务。
+  常驻后台任务；跨 host 并发、表格与告警/错误输出统一走 `tools/support.py`。
 - 优先测试公开行为和跨模块契约，不绑定私有实现。

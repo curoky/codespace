@@ -476,7 +476,6 @@ button.host-action {
   border-color: transparent;
 }
 
-.badge-type,
 .badge-platform {
   color: var(--text-muted);
 }

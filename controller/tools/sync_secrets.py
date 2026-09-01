@@ -9,15 +9,14 @@ same-name secrets are replaced so the config value wins.
 
 from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Annotated, Literal
 
 import typer
 from rich.console import Console
-from rich.table import Table
 
 from controller.config import CONFIG_PATH, Config, load_config
 from controller.runtime.transport import PodmanTransport
+from controller.tools import support
 
 type Action = Literal["create", "replace"]
 
@@ -42,16 +41,16 @@ def main(
     try:
         plan, errors = _plan(config, transport)
 
-        table = Table()
-        table.add_column("Host")
-        table.add_column("Secret", overflow="fold")
-        table.add_column("Action", no_wrap=True)
-        for host, name, action in plan:
-            table.add_row(host, name, action)
-        console.print(table)
-
-        for error in errors:
-            console.print(f"[yellow]Warning:[/yellow] {error}")
+        support.render_table(
+            console,
+            [
+                {"header": "Host"},
+                {"header": "Secret", "overflow": "fold"},
+                {"header": "Action", "no_wrap": True},
+            ],
+            plan,
+        )
+        support.print_warnings(console, errors)
 
         if not no_dry_run:
             console.print(
@@ -60,8 +59,7 @@ def main(
             return
 
         applied, apply_errors = _apply(config, transport)
-        for error in apply_errors:
-            console.print(f"[red]Error:[/red] {error}")
+        support.print_errors(console, apply_errors)
         console.print(f"Applied {applied} secret(s).")
     finally:
         transport.close()
@@ -72,24 +70,16 @@ def _plan(
     transport: PodmanTransport,
 ) -> tuple[list[tuple[str, str, Action]], list[str]]:
     names = sorted(config.secrets)
-    plan: list[tuple[str, str, Action]] = []
-    errors: list[str] = []
-    with ThreadPoolExecutor() as executor:
-        futures = {
-            executor.submit(_existing_secrets, transport, host, names): host
-            for host in config.hosts
-        }
-        for future in as_completed(futures):
-            host = futures[future]
-            try:
-                existing = future.result()
-            except Exception as exc:
-                errors.append(f"{host}: {exc}")
-                continue
-            for name in names:
-                plan.append((host, name, "replace" if name in existing else "create"))
+    existing_by_host, failures = support.fan_out(
+        config.hosts, lambda host: _existing_secrets(transport, host, names)
+    )
+    plan: list[tuple[str, str, Action]] = [
+        (host, name, "replace" if name in existing else "create")
+        for host, existing in existing_by_host
+        for name in names
+    ]
     plan.sort(key=lambda item: (item[0], item[1]))
-    return plan, errors
+    return plan, [f"{host}: {exc}" for host, exc in failures]
 
 
 def _existing_secrets(transport: PodmanTransport, host: str, names: list[str]) -> set[str]:
@@ -98,18 +88,14 @@ def _existing_secrets(transport: PodmanTransport, host: str, names: list[str]) -
 
 
 def _apply(config: Config, transport: PodmanTransport) -> tuple[int, list[str]]:
+    results, _failures = support.fan_out(
+        config.hosts, lambda host: _apply_host(transport, host, config.secrets)
+    )
     applied = 0
     errors: list[str] = []
-    with ThreadPoolExecutor() as executor:
-        futures = {
-            executor.submit(_apply_host, transport, host, config.secrets): host
-            for host in config.hosts
-        }
-        for future in as_completed(futures):
-            host = futures[future]
-            host_applied, host_errors = future.result()
-            applied += host_applied
-            errors.extend(f"{host}: {error}" for error in host_errors)
+    for host, (host_applied, host_errors) in results:
+        applied += host_applied
+        errors.extend(f"{host}: {error}" for error in host_errors)
     return applied, errors
 
 
@@ -127,7 +113,7 @@ def _apply_host(
                 client.secrets.remove(name)
             client.secrets.create(name, values[name].encode("utf-8"))
             applied += 1
-        except Exception as exc:
+        except Exception as exc:  # a per-secret failure surfaces in the report
             errors.append(f"{name}: {exc}")
     return applied, errors
 

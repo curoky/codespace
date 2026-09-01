@@ -326,7 +326,7 @@ def test_create_runs_all_stages_in_order(
     assert service.operations.list() == []
 
 
-def test_create_on_podman_machine_host_uses_bridge_and_ports(
+def test_create_on_bridge_host_uses_bridge_and_ports(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(ssh, "initialize", lambda hosts: None)
@@ -354,10 +354,7 @@ def test_create_on_podman_machine_host_uses_bridge_and_ports(
                 },
             },
             "hosts": {
-                "local": {
-                    "type": "podman-machine",
-                    "machine": "podman-machine-default",
-                },
+                "local": {},
             },
         }
     )

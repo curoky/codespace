@@ -233,36 +233,21 @@ class WorkspaceAgent:
         if status.state != "ready":
             raise APIError(409, f"agent state is {status.state!r}")
         target = self.config.clone_path
+
+        def git(*args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
+            return self._runner.run(["git", "-C", target, *args], check=check)
+
         try:
-            repository = self._runner.run(
-                ["git", "-C", target, "rev-parse", "--git-dir"],
-                check=False,
-            )
-            if repository.returncode != 0:
+            if git("rev-parse", "--git-dir", check=False).returncode != 0:
                 return GitState(unpushed=False, uncommitted=False, detail=[])
-            dirty = self._runner.run(["git", "-C", target, "status", "--porcelain"])
-            head = self._runner.run(
-                ["git", "-C", target, "rev-parse", "--verify", "HEAD"],
-                check=False,
-            )
-            unpushed_output = ""
-            if head.returncode == 0:
-                unpushed_output = self._runner.run(
-                    [
-                        "git",
-                        "-C",
-                        target,
-                        "log",
-                        "--branches",
-                        "--not",
-                        "--remotes",
-                        "--oneline",
-                    ]
-                ).stdout
+            dirty_lines = git("status", "--porcelain").stdout.splitlines()
+            unpushed_lines: list[str] = []
+            if git("rev-parse", "--verify", "HEAD", check=False).returncode == 0:
+                unpushed_lines = git(
+                    "log", "--branches", "--not", "--remotes", "--oneline"
+                ).stdout.splitlines()
         except RuntimeError as exc:
             raise APIError(500, str(exc)) from exc
-        dirty_lines = dirty.stdout.splitlines()
-        unpushed_lines = unpushed_output.splitlines()
         return GitState(
             unpushed=bool(unpushed_lines),
             uncommitted=bool(dirty_lines),
