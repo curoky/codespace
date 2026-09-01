@@ -32,14 +32,14 @@ def _load_image_agent() -> ModuleType:
 image_agent = _load_image_agent()
 
 
-def _config(*, workspace_type: str = "repo") -> object:
+def _config(*, workspace_type: str = "repo") -> dict[str, object]:
     blank = workspace_type == "blank"
-    return image_agent.AgentConfig(
-        workspace_type=workspace_type,
-        clone_path="/workspace" if blank else "/workspace/devspace",
-        open_path="/workspace" if blank else "/workspace/devspace",
-        clone_url=None if blank else "git@github.com:curoky/devspace.git",
-    )
+    return {
+        "workspace_type": workspace_type,
+        "clone_path": "/workspace" if blank else "/workspace/devspace",
+        "open_path": "/workspace" if blank else "/workspace/devspace",
+        "clone_url": None if blank else "git@github.com:curoky/devspace.git",
+    }
 
 
 class FakeRunFactory:
@@ -82,17 +82,20 @@ class FakeRunFactory:
 
 def _agent(
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
     *,
     workspace_type: str = "repo",
     factory: FakeRunFactory | None = None,
     sleep: Callable[[float], None] | None = None,
 ) -> tuple[object, FakeRunFactory]:
     active_factory = factory or FakeRunFactory()
+    # The agent runs commands through the module-level run_command; patch its
+    # subprocess.run so tests drive Git and helper behaviour without a container.
+    monkeypatch.setattr(image_agent.subprocess, "run", active_factory)
     public_key = tmp_path / "repo_id_ed25519.pub"
     public_key.write_text("ssh-ed25519 AAAAC3 test\n", encoding="utf-8")
     agent = image_agent.WorkspaceAgent(
-        _config(workspace_type=workspace_type),
-        runner=image_agent.CommandRunner(run_factory=active_factory),
+        **_config(workspace_type=workspace_type),
         deploy_public_key_path=public_key,
         provider_ready_path=tmp_path / "provider-ready",
         sleep=sleep or (lambda _seconds: None),
@@ -149,28 +152,9 @@ def test_s6_initializes_workspace_before_sshd_and_home() -> None:
     assert not (_S6_ROOT / "home-links-init").exists()
 
 
-def test_agent_config_loads_container_environment() -> None:
-    config = image_agent.AgentConfig.load(
-        {
-            "CODESPACE_WORKSPACE_TYPE": "git",
-            "CODESPACE_CLONE_PATH": "/workspace/devspace",
-            "CODESPACE_OPEN_PATH": "/workspace/devspace",
-            "CODESPACE_CLONE_URL": "git@github.com:curoky/devspace.git",
-        }
-    )
-
-    assert config.workspace_type == "git"
-    assert config.clone_path == "/workspace/devspace"
-    assert config.open_path == "/workspace/devspace"
-    assert config.clone_url == "git@github.com:curoky/devspace.git"
-
-    # The controller always injects the workspace type; a bare environment is a
-    # contract violation, surfaced as the missing-key KeyError.
-    with pytest.raises(KeyError, match="CODESPACE_WORKSPACE_TYPE"):
-        image_agent.AgentConfig.load({})
-
-
-def test_repo_bootstrap_waits_for_provider_then_checks_out(tmp_path: Path) -> None:
+def test_repo_bootstrap_waits_for_provider_then_checks_out(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     provider_ready = tmp_path / "provider-ready"
 
     def create_provider_marker(_seconds: float) -> None:
@@ -178,7 +162,7 @@ def test_repo_bootstrap_waits_for_provider_then_checks_out(tmp_path: Path) -> No
         # the in-process wait terminates without a real controller.
         provider_ready.write_text("", encoding="utf-8")
 
-    workspace_agent, factory = _agent(tmp_path, sleep=create_provider_marker)
+    workspace_agent, factory = _agent(tmp_path, monkeypatch, sleep=create_provider_marker)
 
     assert workspace_agent.status().state == "starting"
 
@@ -196,8 +180,10 @@ def test_repo_bootstrap_waits_for_provider_then_checks_out(tmp_path: Path) -> No
     assert commands[1] == ["mkdir", "-p", "--", "/workspace/devspace"]
 
 
-def test_repo_status_reports_awaiting_provider_before_marker(tmp_path: Path) -> None:
-    workspace_agent, _ = _agent(tmp_path)
+def test_repo_status_reports_awaiting_provider_before_marker(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    workspace_agent, _ = _agent(tmp_path, monkeypatch)
 
     # Drive the bootstrap up to the provider wait by stubbing the wait itself,
     # then observe the awaiting-provider state it publishes.
@@ -208,9 +194,12 @@ def test_repo_status_reports_awaiting_provider_before_marker(tmp_path: Path) -> 
     assert waiting.public_key == "ssh-ed25519 AAAAC3 test"
 
 
-def test_agent_reports_bootstrap_failure(tmp_path: Path) -> None:
+def test_agent_reports_bootstrap_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     workspace_agent, _ = _agent(
         tmp_path,
+        monkeypatch,
         workspace_type="git",
         factory=FakeRunFactory(fail="git-checkout"),
     )
@@ -222,16 +211,20 @@ def test_agent_reports_bootstrap_failure(tmp_path: Path) -> None:
     assert "git-checkout failed" in (status.error or "")
 
 
-def test_blank_workspace_has_no_git_state(tmp_path: Path) -> None:
-    workspace_agent, _ = _agent(tmp_path, workspace_type="blank")
+def test_blank_workspace_has_no_git_state(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    workspace_agent, _ = _agent(tmp_path, monkeypatch, workspace_type="blank")
     workspace_agent.run_bootstrap()
 
-    with pytest.raises(image_agent.APIError, match="no Git state"):
+    with pytest.raises(image_agent.HTTPException, match="no Git state"):
         workspace_agent.git_state()
 
 
-def test_git_state_reports_dirty_and_unpushed_changes(tmp_path: Path) -> None:
-    workspace_agent, factory = _agent(tmp_path, workspace_type="git")
+def test_git_state_reports_dirty_and_unpushed_changes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    workspace_agent, factory = _agent(tmp_path, monkeypatch, workspace_type="git")
     workspace_agent._set_state("ready")  # skip bootstrap; focus on git-state
 
     state = workspace_agent.git_state()
@@ -263,19 +256,23 @@ def test_git_state_reports_dirty_and_unpushed_changes(tmp_path: Path) -> None:
 )
 def test_git_state_reports_missing_and_empty_repositories_as_clean(
     tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
     factory: FakeRunFactory,
     expected: dict[str, object],
 ) -> None:
-    workspace_agent, _ = _agent(tmp_path, workspace_type="git", factory=factory)
+    workspace_agent, _ = _agent(tmp_path, monkeypatch, workspace_type="git", factory=factory)
     workspace_agent._set_state("ready")  # skip bootstrap; focus on git-state
 
     assert workspace_agent.git_state().model_dump() == expected
 
 
-def test_git_state_caps_detail_at_twenty_lines(tmp_path: Path) -> None:
+def test_git_state_caps_detail_at_twenty_lines(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     dirty = "".join(f"?? file-{index}.txt\n" for index in range(25))
     workspace_agent, _ = _agent(
         tmp_path,
+        monkeypatch,
         workspace_type="git",
         factory=FakeRunFactory(dirty=dirty),
     )
@@ -288,9 +285,9 @@ def test_git_state_caps_detail_at_twenty_lines(tmp_path: Path) -> None:
 
 
 @contextmanager
-def _running_server(tmp_path: Path) -> Iterator[Path]:
+def _running_server(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Path]:
     socket_path = tmp_path / "agent.sock"
-    workspace_agent, _ = _agent(tmp_path, sleep=lambda _seconds: time.sleep(0.02))
+    workspace_agent, _ = _agent(tmp_path, monkeypatch, sleep=lambda _seconds: time.sleep(0.02))
     # Bootstrap runs in-process just like the real agent, so the handshake
     # progresses awaiting-provider -> ready as the provider marker appears.
     workspace_agent.start_bootstrap()
@@ -313,8 +310,10 @@ def _running_server(tmp_path: Path) -> Iterator[Path]:
         socket_path.unlink(missing_ok=True)
 
 
-def test_controller_client_completes_repo_handshake_over_uds(tmp_path: Path) -> None:
-    with _running_server(tmp_path) as socket_path:
+def test_controller_client_completes_repo_handshake_over_uds(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    with _running_server(tmp_path, monkeypatch) as socket_path:
         client = WorkspaceAgentClient(socket_path)
 
         status = client.wait_for({"awaiting-provider"}, timeout=2)
@@ -326,8 +325,10 @@ def test_controller_client_completes_repo_handshake_over_uds(tmp_path: Path) -> 
         assert stat.S_IMODE(socket_path.stat().st_mode) == 0o666
 
 
-def test_agent_http_rejects_unknown_route_and_method(tmp_path: Path) -> None:
-    with _running_server(tmp_path) as socket_path:
+def test_agent_http_rejects_unknown_route_and_method(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    with _running_server(tmp_path, monkeypatch) as socket_path:
         WorkspaceAgentClient(socket_path).wait_for({"awaiting-provider"}, timeout=2)
         status, payload = _raw_request(socket_path, "GET", "/shell")
         assert status == 404
@@ -337,10 +338,12 @@ def test_agent_http_rejects_unknown_route_and_method(tmp_path: Path) -> None:
         assert method_payload == {"detail": "Method Not Allowed"}
 
 
-def test_agent_server_replaces_stale_socket(tmp_path: Path) -> None:
+def test_agent_server_replaces_stale_socket(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     socket_path = tmp_path / "agent.sock"
     socket_path.write_text("stale", encoding="utf-8")
-    workspace_agent, _ = _agent(tmp_path, workspace_type="blank")
+    workspace_agent, _ = _agent(tmp_path, monkeypatch, workspace_type="blank")
 
     server, server_socket = image_agent.build_server(
         socket_path=socket_path,
