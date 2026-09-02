@@ -7,7 +7,9 @@ import os
 import stat
 import subprocess
 from collections.abc import Callable
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+from threading import Event
 
 from codespace.runtime.transport import HostEndpoint, PodmanTransport
 
@@ -171,6 +173,60 @@ def test_transport_reuses_live_master_and_rebuilds_dead_master(tmp_path: Path) -
 
     transport.close()
     assert clients[1].closed is True
+
+
+def test_transport_serializes_master_startup_across_hosts(tmp_path: Path) -> None:
+    first_factory_entered = Event()
+    release_first_factory = Event()
+    second_call_started = Event()
+    second_factory_entered = Event()
+    processes: list[FakeProcess] = []
+
+    def process_factory(command: list[str], **_kwargs: object) -> FakeProcess:
+        host = command[-1]
+        if host == "first":
+            first_factory_entered.set()
+            assert release_first_factory.wait(timeout=2)
+        else:
+            second_factory_entered.set()
+        control = next(token for token in command if token.startswith("ControlPath="))
+        Path(control.split("=", 1)[1]).touch()
+        process = FakeProcess()
+        processes.append(process)
+        return process
+
+    transport = PodmanTransport(
+        {"first": HostEndpoint(), "second": HostEndpoint()},
+        runtime_parent=tmp_path,
+        process_factory=process_factory,
+        client_factory=FakeClient,  # type: ignore[arg-type]
+    )
+
+    def connect_second() -> object:
+        second_call_started.set()
+        return transport.client("second")
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        first = executor.submit(transport.client, "first")
+        first_started = first_factory_entered.wait(timeout=2)
+        if not first_started:
+            release_first_factory.set()
+        assert first_started
+
+        second = executor.submit(connect_second)
+        second_started = second_call_started.wait(timeout=2)
+        try:
+            assert second_started
+            assert not second_factory_entered.wait(timeout=0.1)
+        finally:
+            release_first_factory.set()
+
+        first.result(timeout=2)
+        second.result(timeout=2)
+
+    assert second_factory_entered.is_set()
+    transport.close()
+    assert all(process.terminated for process in processes)
 
 
 def test_transport_forwards_per_host_remote_socket(tmp_path: Path) -> None:
