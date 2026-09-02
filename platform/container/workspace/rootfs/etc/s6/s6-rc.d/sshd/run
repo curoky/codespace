@@ -17,10 +17,6 @@ importas -D 22 SSHD_PORT SSHD_PORT
 # published SSH port can forward into the container's own netns.
 importas -D 127.0.0.1 SSHD_BIND SSHD_BIND
 
-# Make sure the log dir exists. Host keys live under /etc/ssh with 0600 set at
-# build time (configure-system.sh), so no per-boot permission fixup is needed here.
-foreground { mkdir -p /var/log }
-
 # Override the listen port and bind address on the command line instead of
 # editing the config file.
 # https://github.com/un-def/openssh-static-build/blob/master/run-sshd.sh#L30
