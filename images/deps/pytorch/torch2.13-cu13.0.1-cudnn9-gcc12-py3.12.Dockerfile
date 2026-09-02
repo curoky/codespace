@@ -21,15 +21,13 @@ ARG CUDA_HOME_DIR
 
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
-    ca-certificates curl git zstd gcc-12 g++-12 \
+    ca-certificates curl git gcc-12 g++-12 \
   && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 60 \
        --slave /usr/bin/g++ g++ /usr/bin/g++-12 \
   && rm -rf /var/lib/apt/lists/*
 
-COPY images/deps/pytorch/binman.yaml /tmp/binman.yaml
-RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
-    | bash -s -- --prefix /opt/bm/bin \
-  && /opt/bm/bin/bm sync /tmp/binman.yaml
+# 用 uv 官方 standalone 安装脚本装到 /opt/uv（不引入 binman，也无需 zstd）。
+RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/opt/uv sh
 
 ARG TORCH_REF=v2.13.0
 ARG TORCHVISION_REF=v0.28.0
@@ -40,10 +38,10 @@ ARG NVCC_THREADS=2
 ENV DEPS_VENV=/opt/deps/venv
 ENV UV_LINK_MODE=copy
 ENV CUDA_HOME="${CUDA_HOME_DIR}"
-ENV PATH="${CUDA_HOME_DIR}/bin:/opt/bm/bin:$PATH"
+ENV PATH="${CUDA_HOME_DIR}/bin:/opt/uv:$PATH"
 RUN set -eux; \
-  /opt/bm/bin/uv venv "${DEPS_VENV}" --python 3.12; \
-  DEPS_UV="/opt/bm/bin/uv pip install --python ${DEPS_VENV}/bin/python"; \
+  /opt/uv/uv venv "${DEPS_VENV}" --python 3.12; \
+  DEPS_UV="/opt/uv/uv pip install --python ${DEPS_VENV}/bin/python"; \
   ${DEPS_UV} setuptools wheel ninja "cmake<4" numpy pyyaml typing_extensions; \
   export USE_CUDA=1 USE_CUDNN=1 BUILD_TEST=0 \
          TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST}" \

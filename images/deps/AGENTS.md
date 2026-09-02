@@ -50,7 +50,8 @@ OpenAI serving；**本目录专注用本机 GPU driver 对应的 CUDA 版本从�
 三子目录结构对称，Dockerfile 遵循统一 **两 stage** 套路：
 
 1. **builder stage**：`FROM nvidia/cuda:<cuda>-cudnn-devel-ubuntu24.04 AS builder`，提供 nvcc + cuDNN +
-   头文件，glibc 与 nvcc 匹配。**在此 stage 内**装 gcc-12、binman(`uv`)，`uv venv --python 3.12` 建
+   头文件，glibc 与 nvcc 匹配。**在此 stage 内**装 gcc-12，并用 uv 官方 standalone 脚本
+   （`https://astral.sh/uv/install.sh`，`UV_INSTALL_DIR=/opt/uv`）装 `uv`，`uv venv --python 3.12` 建
    `/opt/deps/venv`，`git clone` 项目 release tag（`ARG <PROJECT>_REF` pin），设编译 env 后从源码编译装入 venv。
    **必须在 builder stage 内编译**：直接在 debian:trixie final stage 内跑 nvcc 会触发 glibc 与 CUDA 头文件的
    cospi/sinpi noexcept 冲突，故在 Ubuntu 24.04 devel 内编译再 COPY 产物。
@@ -128,7 +129,6 @@ Container Toolkit 提供 driver（`--device nvidia.com/gpu=all`）；cu12.9 镜�
 | `AGENTS.md` | 本文，三项目共用公共契约与命名方案 |
 | `<project>/<combo>.Dockerfile` | 该「CUDA×版本×编译器×Python」组合的源码编译 Dockerfile |
 | `<project>/build.sh` | 从仓库根构建该项目镜像，接受 combo 名 `$1` 切换变体 |
-| `<project>/binman.yaml` | binman 清单，link `uv` 到 `/opt/bm` |
 
 ## 变更规则
 

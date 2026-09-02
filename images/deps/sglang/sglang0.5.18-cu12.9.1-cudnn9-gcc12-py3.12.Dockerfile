@@ -27,15 +27,13 @@ ARG CUDA_HOME_DIR
 
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
-    ca-certificates curl git zstd gcc-12 g++-12 \
+    ca-certificates curl git gcc-12 g++-12 \
   && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 60 \
        --slave /usr/bin/g++ g++ /usr/bin/g++-12 \
   && rm -rf /var/lib/apt/lists/*
 
-COPY images/deps/sglang/binman.yaml /tmp/binman.yaml
-RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
-    | bash -s -- --prefix /opt/bm/bin \
-  && /opt/bm/bin/bm sync /tmp/binman.yaml
+# 用 uv 官方 standalone 安装脚本装到 /opt/uv（不引入 binman，也无需 zstd）。
+RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/opt/uv sh
 
 # 源码构建 sglang 主包并装入独立 venv，随后按官方 cu129 recipe 强制重装 cu129 对齐
 # 的 torch 三件套与 GPU kernel，最后清理 cu13 冗余 wheel（sglang 依赖默认拉 cu13，
@@ -50,12 +48,12 @@ ARG SGLANG_BUILD_RUST_EXTS=none
 ENV DEPS_VENV=/opt/deps/venv
 ENV UV_LINK_MODE=copy
 ENV CUDA_HOME="${CUDA_HOME_DIR}"
-ENV PATH="${CUDA_HOME_DIR}/bin:/opt/bm/bin:$PATH"
+ENV PATH="${CUDA_HOME_DIR}/bin:/opt/uv:$PATH"
 RUN set -eux; \
-  /opt/bm/bin/uv venv "${DEPS_VENV}" --python 3.12; \
+  /opt/uv/uv venv "${DEPS_VENV}" --python 3.12; \
   git clone --filter=blob:none --branch "${SGLANG_REF}" \
     https://github.com/sgl-project/sglang.git /opt/deps/src/sglang; \
-  DEPS_UV="/opt/bm/bin/uv pip install --python ${DEPS_VENV}/bin/python"; \
+  DEPS_UV="/opt/uv/uv pip install --python ${DEPS_VENV}/bin/python"; \
   SGLANG_BUILD_RUST_EXTS="${SGLANG_BUILD_RUST_EXTS}" \
     ${DEPS_UV} --prerelease=allow -e /opt/deps/src/sglang/python; \
   ${DEPS_UV} --force-reinstall ${TORCH_SPEC} \
@@ -68,7 +66,7 @@ RUN set -eux; \
     | sed 's#.*/##;s/.dist-info//' \
     | awk -F- '/^nvidia/ {name=$1; ver=$2; if (ver ~ /^13\./ || name ~ /_cu13$/) print name}' \
     | grep -vE 'nvidia_ml_py')"; \
-  for p in ${CU13_PKGS}; do /opt/bm/bin/uv pip uninstall --python ${DEPS_VENV}/bin/python "$p"; done; \
+  for p in ${CU13_PKGS}; do /opt/uv/uv pip uninstall --python ${DEPS_VENV}/bin/python "$p"; done; \
   rm -rf ${DEPS_VENV}/lib/python3.12/site-packages/nvidia/cu13; \
   ${DEPS_UV} --reinstall --index-url "https://download.pytorch.org/whl/${CUDA_TAG}" \
     nvidia-cudnn-cu12 nvidia-cusparselt-cu12 nvidia-nccl-cu12 nvidia-nvshmem-cu12; \

@@ -20,18 +20,16 @@ FROM ${CUDA_DEVEL_IMAGE} AS builder
 ARG CUDA_HOME_DIR
 
 # 编译期系统依赖：gcc-12/g++-12（cu12.9 host compiler，vLLM 要求 gcc>=11.3）、
-# cmake 由 uv 装的 build 依赖提供，git/curl/ca-certificates/zstd 供 clone 与 binman。
+# cmake 由 uv 装的 build 依赖提供，git/curl/ca-certificates 供 clone 与下载 uv。
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
-    ca-certificates curl git zstd gcc-12 g++-12 \
+    ca-certificates curl git gcc-12 g++-12 \
   && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 60 \
        --slave /usr/bin/g++ g++ /usr/bin/g++-12 \
   && rm -rf /var/lib/apt/lists/*
 
-COPY images/deps/vllm/binman.yaml /tmp/binman.yaml
-RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
-    | bash -s -- --prefix /opt/bm/bin \
-  && /opt/bm/bin/bm sync /tmp/binman.yaml
+# 用 uv 官方 standalone 安装脚本装到 /opt/uv（不引入 binman，也无需 zstd）。
+RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/opt/uv sh
 
 # 先装 cu129 对齐的 torch 三件套（vLLM 编译期必须先有 torch），再从源码编译 vLLM
 # 的 CUDA/C++ 内核并装入独立 venv。
@@ -52,10 +50,10 @@ ARG NVCC_THREADS=2
 ENV DEPS_VENV=/opt/deps/venv
 ENV UV_LINK_MODE=copy
 ENV CUDA_HOME="${CUDA_HOME_DIR}"
-ENV PATH="${CUDA_HOME_DIR}/bin:/opt/bm/bin:$PATH"
+ENV PATH="${CUDA_HOME_DIR}/bin:/opt/uv:$PATH"
 RUN set -eux; \
-  /opt/bm/bin/uv venv "${DEPS_VENV}" --python 3.12; \
-  DEPS_UV="/opt/bm/bin/uv pip install --python ${DEPS_VENV}/bin/python"; \
+  /opt/uv/uv venv "${DEPS_VENV}" --python 3.12; \
+  DEPS_UV="/opt/uv/uv pip install --python ${DEPS_VENV}/bin/python"; \
   ${DEPS_UV} ${TORCH_SPEC} \
     --index-url "https://download.pytorch.org/whl/${CUDA_TAG}"; \
   ${DEPS_UV} setuptools wheel "setuptools-scm>=8" setuptools_rust "cmake<4" ninja packaging; \
