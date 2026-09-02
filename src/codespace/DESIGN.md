@@ -88,7 +88,8 @@ $HOME/codespace/
 
 普通 Workspace 把 host `workspace/` bind 到 `/workspace`。加密 Workspace 把同一路径 bind 到
 `/workspace.enc`，由镜像内 gocryptfs 挂载明文 `/workspace`。`upload/`、`cache/` 与五个 IDE home
-目录始终明文。`control/` 权限为 `0700`，保存 `provider-ready` 和 `agent.sock`。
+下的 `bin`、`extensions` 子目录始终明文。`control/` 权限为 `0700`，保存
+`provider-ready` 和 `agent.sock`。
 
 Service 不拥有 Workspace mount、SSH 投影或 repository credential。`${SERVICE_DATA}` 仅在 Service volume
 source 中解析为 `~/codespace/services/<service>`。

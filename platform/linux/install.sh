@@ -60,21 +60,21 @@ main() {
     return 1
   fi
 
-  local script_dir repo_root dotfiles
+  local script_dir repo_root workspace_home
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
   repo_root="$(cd "$script_dir/../.." && pwd -P)"
-  dotfiles="$repo_root/dotfiles"
+  workspace_home="$repo_root/platform/container/workspace/rootfs/home/x"
 
-  link_path "$dotfiles/bin/eza-wrapper" "$HOME/.local/bin/eza-wrapper"
+  link_path "$workspace_home/.local/bin/eza-wrapper" "$HOME/.local/bin/eza-wrapper"
 
-  link_path "$dotfiles/vscode/remote/settings.json" "$HOME/.vscode-server/data/Machine/settings.json"
-  link_path "$dotfiles/vscode/remote/settings.json" "$HOME/.trae-server/data/Machine/settings.json"
-  link_path "$dotfiles/vscode/remote/settings.json" "$HOME/.trae-cn-server/data/Machine/settings.json"
+  link_path "$workspace_home/.vscode-server/data/Machine/settings.json" "$HOME/.vscode-server/data/Machine/settings.json"
+  link_path "$workspace_home/.trae-server/data/Machine/settings.json" "$HOME/.trae-server/data/Machine/settings.json"
+  link_path "$workspace_home/.trae-cn-server/data/Machine/settings.json" "$HOME/.trae-cn-server/data/Machine/settings.json"
 
-  copy_private "$dotfiles/trae/sandbox.json" "$HOME/.trae/sandbox.json"
-  copy_private "$dotfiles/trae/traecli.toml" "$HOME/.trae/traecli.toml"
-  copy_private "$dotfiles/trae/sandbox.json" "$HOME/.trae-cn/sandbox.json"
-  copy_private "$dotfiles/trae/traecli.toml" "$HOME/.trae-cn/traecli.toml"
+  copy_private "$workspace_home/.trae/sandbox.json" "$HOME/.trae/sandbox.json"
+  copy_private "$workspace_home/.trae/traecli.toml" "$HOME/.trae/traecli.toml"
+  copy_private "$workspace_home/.trae-cn/sandbox.json" "$HOME/.trae-cn/sandbox.json"
+  copy_private "$workspace_home/.trae-cn/traecli.toml" "$HOME/.trae-cn/traecli.toml"
 }
 
 main "$@"

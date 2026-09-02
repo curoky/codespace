@@ -1,0 +1,11 @@
+model = "openrouter-3o"
+model_provider = "trae"
+model_reasoning_effort = "xhigh"
+
+
+[projects."/workspace"]
+trust_level = "trusted"
+
+
+[plugins."ai-contribution@traex-bd-plugins"]
+enabled = false

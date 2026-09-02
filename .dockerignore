@@ -1,6 +1,6 @@
 # Repository metadata is not part of image inputs.
 .git
-.trae
+/.trae
 
 # macOS cruft
 **/.DS_Store

@@ -94,8 +94,5 @@
       }
     }
   },
-  "git.autofetch": true,
-  "markdown.styles": [
-    "/opt/codespace/share/dotfiles/vscode/markdown-preview.css"
-  ]
+  "git.autofetch": true
 }

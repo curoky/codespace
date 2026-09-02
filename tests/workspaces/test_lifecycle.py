@@ -216,3 +216,24 @@ def test_workspace_container_uses_reserved_environment_and_mounts(
     assert environment["CODESPACE_CLONE_URL"] == "git@github.com:curoky/codespace.git"
     targets = {mount["target"] for mount in captured["mounts"]}  # type: ignore[index]
     assert {"/workspace", "/upload", "/cache", "/run/codespace-control"} <= targets
+    assert {
+        f"/home/x/{home}/{child}"
+        for home in (
+            ".vscode-server",
+            ".trae",
+            ".trae-cn",
+            ".trae-server",
+            ".trae-cn-server",
+        )
+        for child in ("bin", "extensions")
+    } <= targets
+    assert (
+        not {
+            "/home/x/.vscode-server",
+            "/home/x/.trae",
+            "/home/x/.trae-cn",
+            "/home/x/.trae-server",
+            "/home/x/.trae-cn-server",
+        }
+        & targets
+    )

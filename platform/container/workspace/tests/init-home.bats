@@ -9,29 +9,21 @@ setup_file() {
 setup() {
   TEST_ROOT=$(mktemp -d "${BATS_TEST_TMPDIR}/init-home.XXXXXX")
   HOME_DIR="${TEST_ROOT}/home"
-  SHARE_DIR="${TEST_ROOT}/share"
   SSH_DIR="${HOME_DIR}/.ssh"
-  export TEST_ROOT HOME_DIR SHARE_DIR SSH_DIR TEST_EVENTS="${TEST_ROOT}/events"
+  export TEST_ROOT HOME_DIR SSH_DIR TEST_EVENTS="${TEST_ROOT}/events"
   mkdir -p "${TEST_ROOT}/bin" "${HOME_DIR}" \
-    "${SHARE_DIR}/trae" "${SHARE_DIR}/vscode" "${SHARE_DIR}/agent-playbook"
-  printf '{}\n' >"${SHARE_DIR}/trae/sandbox.json"
-  printf 'model = "test"\n' >"${SHARE_DIR}/trae/traecli.toml"
-  printf '{}\n' >"${SHARE_DIR}/vscode/remote-settings.json"
-  printf '# Workspace rules\n' >"${SHARE_DIR}/agent-rules.md"
-  cat >"${SHARE_DIR}/agent-playbook/install.sh" <<'EOF'
-#!/usr/bin/env bash
-printf 'playbook\n' >>"${TEST_EVENTS}"
-EOF
-  chmod +x "${SHARE_DIR}/agent-playbook/install.sh"
+    "${HOME_DIR}/.trae/user_rules" "${HOME_DIR}/.trae-cn/user_rules" \
+    "${HOME_DIR}/.vscode-server/data/Machine" \
+    "${HOME_DIR}/.trae-server/data/Machine" \
+    "${HOME_DIR}/.trae-cn-server/data/Machine"
+  printf 'image config\n' >"${HOME_DIR}/.trae/sandbox.json"
+  printf 'image settings\n' >"${HOME_DIR}/.vscode-server/data/Machine/settings.json"
+  printf 'image rules\n' >"${HOME_DIR}/.trae/user_rules/workspace.md"
 
-  # sudo/chown/seed 桩为记录事件，只验证顺序与退出码。
+  # sudo/seed 桩为记录事件，只验证顺序与退出码。
   cat >"${TEST_ROOT}/bin/sudo" <<'EOF'
 #!/usr/bin/env bash
-exec "$@"
-EOF
-  cat >"${TEST_ROOT}/bin/chown" <<'EOF'
-#!/usr/bin/env bash
-printf 'chown %s\n' "$*" >>"${TEST_EVENTS}"
+printf 'sudo %s\n' "$*" >>"${TEST_EVENTS}"
 EOF
   cat >"${TEST_ROOT}/bin/seed-editor-extensions" <<'EOF'
 #!/usr/bin/env bash
@@ -43,7 +35,6 @@ EOF
   sed \
     -e "s#/opt/codespace/bin/seed-editor-extensions#seed-editor-extensions#g" \
     -e "s#/home/x#${HOME_DIR}#g" \
-    -e "s#readonly SHARE_DIR=/opt/codespace/share#readonly SHARE_DIR=${SHARE_DIR}#g" \
     "${HELPER}" >"${TEST_ROOT}/helper"
   chmod +x "${TEST_ROOT}/helper"
   export PATH="${TEST_ROOT}/bin:${PATH}"
@@ -53,17 +44,38 @@ teardown() {
   rm -rf -- "${TEST_ROOT}"
 }
 
-@test "home init chowns the five IDE home mounts before setup" {
+@test "IDE configuration is baked into the image home" {
+  local image_home="${BATS_TEST_DIRNAME}/../rootfs/home/x"
+
+  [[ $(readlink "${image_home}/.trae-cn/sandbox.json") == "../.trae/sandbox.json" ]]
+  [[ $(readlink "${image_home}/.trae-cn/traecli.toml") == "../.trae/traecli.toml" ]]
+  [[ $(readlink "${image_home}/.trae-cn/user_rules/workspace.md") == "../../.trae/user_rules/workspace.md" ]]
+  [[ $(readlink "${image_home}/.trae-server/data/Machine/settings.json") == "../../../.vscode-server/data/Machine/settings.json" ]]
+  [[ $(readlink "${image_home}/.trae-cn-server/data/Machine/settings.json") == "../../../.vscode-server/data/Machine/settings.json" ]]
+  cmp -s "${image_home}/.trae/sandbox.json" "${image_home}/.trae-cn/sandbox.json"
+  cmp -s "${image_home}/.trae/traecli.toml" "${image_home}/.trae-cn/traecli.toml"
+  cmp -s \
+    "${image_home}/.trae/user_rules/workspace.md" \
+    "${image_home}/.trae-cn/user_rules/workspace.md"
+  cmp -s \
+    "${image_home}/.vscode-server/data/Machine/settings.json" \
+    "${image_home}/.trae-server/data/Machine/settings.json"
+  cmp -s \
+    "${image_home}/.vscode-server/data/Machine/settings.json" \
+    "${image_home}/.trae-cn-server/data/Machine/settings.json"
+}
+
+@test "home init prepares the persistent IDE subdirectories before setup" {
   run "${TEST_ROOT}/helper"
 
   [[ ${status} -eq 0 ]]
-  grep -qx "chown 5230:5230 ${HOME_DIR}/.vscode-server ${HOME_DIR}/.trae ${HOME_DIR}/.trae-cn ${HOME_DIR}/.trae-server ${HOME_DIR}/.trae-cn-server" "${TEST_EVENTS}"
+  grep -qx "sudo install -d -o 5230 -g 5230 -m 0700 -- ${HOME_DIR}/.vscode-server/bin ${HOME_DIR}/.vscode-server/extensions ${HOME_DIR}/.trae/bin ${HOME_DIR}/.trae/extensions ${HOME_DIR}/.trae-cn/bin ${HOME_DIR}/.trae-cn/extensions ${HOME_DIR}/.trae-server/bin ${HOME_DIR}/.trae-server/extensions ${HOME_DIR}/.trae-cn-server/bin ${HOME_DIR}/.trae-cn-server/extensions" "${TEST_EVENTS}"
   grep -qx "seeded" "${TEST_EVENTS}"
-  # chown must precede the seed/setup steps.
-  local chown_line seed_line
-  chown_line=$(grep -n "^chown " "${TEST_EVENTS}" | cut -d: -f1)
+  # Directory preparation must precede the seed/setup steps.
+  local prepare_line seed_line
+  prepare_line=$(grep -n "^sudo install " "${TEST_EVENTS}" | cut -d: -f1)
   seed_line=$(grep -nx "seeded" "${TEST_EVENTS}" | cut -d: -f1)
-  [[ ${seed_line} -gt ${chown_line} ]]
+  [[ ${seed_line} -gt ${prepare_line} ]]
 }
 
 @test "home init generates and reuses the deploy key" {
@@ -76,8 +88,9 @@ teardown() {
   mode=$(stat -c %a "${SSH_DIR}/repo_id_ed25519" 2>/dev/null ||
     stat -f %Lp "${SSH_DIR}/repo_id_ed25519")
   [[ ${mode} == 600 ]]
-  [[ -f ${HOME_DIR}/.trae/sandbox.json ]]
-  [[ -f ${HOME_DIR}/.vscode-server/data/Machine/settings.json ]]
+  [[ $(<"${HOME_DIR}/.trae/sandbox.json") == "image config" ]]
+  [[ $(<"${HOME_DIR}/.vscode-server/data/Machine/settings.json") == "image settings" ]]
+  [[ $(<"${HOME_DIR}/.trae/user_rules/workspace.md") == "image rules" ]]
 
   # 复跑幂等: 公钥保持不变.
   local first_public_key
