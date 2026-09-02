@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# workspace-init s6 oneshot (runs as x): chown the Workspace data, ciphertext
+# root and upload/cache to 5230:5230 (x has NOPASSWD sudo), then mount /workspace
+# via gocryptfs when CODESPACE_WORKSPACE_KEY is set, else use the plaintext bind.
+# Gates sshd/webdav. The five IDE home mounts are chowned by home-init instead.
+
+set -euo pipefail
+
+sudo chown 5230:5230 /workspace /workspace.enc /upload /cache
+
+# gocryptfs 以 x 挂载：其 FUSE 守护进程用 x 身份读写密文根，落盘密文属主即 5230:5230。
+if [[ -z ${CODESPACE_WORKSPACE_KEY-} ]]; then
+  echo "CODESPACE_WORKSPACE_KEY unset; Workspace encryption disabled, using plaintext /workspace"
+  exit 0
+fi
+
+if grep -q " /workspace fuse.gocryptfs " /proc/mounts; then
+  echo "gocryptfs already mounted at /workspace"
+  exit 0
+fi
+
+if [[ ! -e /workspace.enc/gocryptfs.conf ]]; then
+  # gocryptfs executes the extpass command later.
+  # shellcheck disable=SC2016
+  gocryptfs -init -extpass 'echo "${CODESPACE_WORKSPACE_KEY}"' /workspace.enc
+fi
+
+# gocryptfs executes the extpass command later.
+# shellcheck disable=SC2016
+gocryptfs -extpass 'echo "${CODESPACE_WORKSPACE_KEY}"' -allow_other /workspace.enc /workspace

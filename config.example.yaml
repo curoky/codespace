@@ -1,0 +1,93 @@
+# Copy to ~/.config/codespace/config.yaml and fill in private values.
+
+hosts:
+  server:
+    podman_socket: /run/podman/podman.sock
+    forward_environment: [HTTP_PROXY, HTTPS_PROXY, NO_PROXY]
+
+project_defaults:
+  image: ghcr.io/curoky/codespace:workspace-debian13
+  container:
+    network_mode: host
+    cap_add: [NET_RAW, SYS_ADMIN]
+    security_opt: [disable, seccomp=unconfined]
+    pids_limit: -1
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      kerberos:
+        source: /etc/krb5.conf
+        target: /etc/krb5.conf
+        read_only: true
+
+projects:
+  codespace:
+    description: Personal development platform
+    source:
+      type: github
+      repository: curoky/codespace
+    hosts:
+      server:
+        platform: linux/amd64
+    checkout_path: /workspace/codespace
+    open_path: /workspace/codespace
+    encrypted: false
+    container: {}
+
+services:
+  support:
+    image: ghcr.io/curoky/codespace:service-support
+    hosts:
+      server: {}
+    container:
+      network_mode: host
+      environment:
+        ATUIN_PORT: "8002"
+      volumes:
+        podman:
+          source: /run/podman/podman.sock
+          target: /run/podman/podman.sock
+      secrets:
+        atuin-database:
+          source: atuin_db_uri
+          mode: env
+          target: ATUIN_DB_URI
+
+  vllm:
+    image: ghcr.io/curoky/codespace:service-vllm
+    hosts:
+      server: {}
+    container:
+      network_mode: host
+      ipc: host
+      devices: [nvidia.com/gpu=all]
+      environment:
+        HF_HOME: /root/.cache/huggingface
+        SERVE_HOST: 127.0.0.1
+        SERVE_PORT: "8003"
+      volumes:
+        models:
+          source: ${SERVICE_DATA}
+          target: /root/.cache/huggingface
+
+  sglang:
+    image: ghcr.io/curoky/codespace:service-sglang
+    hosts:
+      server: {}
+    container:
+      network_mode: host
+      ipc: host
+      devices: [nvidia.com/gpu=all]
+      environment:
+        HF_HOME: /root/.cache/huggingface
+        SERVE_HOST: 127.0.0.1
+        SERVE_PORT: "8003"
+      volumes:
+        models:
+          source: ${SERVICE_DATA}
+          target: /root/.cache/huggingface
+
+tokens: {}
+secrets: {}

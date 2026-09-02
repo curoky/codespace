@@ -1,0 +1,52 @@
+name: Checks
+
+on:
+  push:
+    paths:
+      - '.github/workflows/checks.yaml'
+      - 'src/**'
+      - 'tests/**'
+      - 'platform/container/workspace/**'
+      - 'scripts/**'
+      - 'Taskfile.yaml'
+      - 'lefthook.yml'
+      - 'pyproject.toml'
+      - 'uv.lock'
+  pull_request:
+    paths:
+      - '.github/workflows/checks.yaml'
+      - 'src/**'
+      - 'tests/**'
+      - 'platform/container/workspace/**'
+      - 'scripts/**'
+      - 'Taskfile.yaml'
+      - 'lefthook.yml'
+      - 'pyproject.toml'
+      - 'uv.lock'
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install task and shell tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+          brew install bats-core go-task shellcheck shfmt
+          echo "${HOMEBREW_PREFIX}/bin" >>"${GITHUB_PATH}"
+
+      - name: Sync locked dependencies
+        run: task sync
+
+      - name: Run checks
+        run: task check

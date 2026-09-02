@@ -1,6 +1,0 @@
-{
-  "aliases": {
-    "builder": "buildx"
-  },
-  "experimental": "enabled"
-}

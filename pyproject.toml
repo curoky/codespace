@@ -1,7 +1,7 @@
 [project]
-name = "devspace"
+name = "codespace"
 version = "0.1.0"
-description = "Personal development environment and local Codespace control plane"
+description = "Personal development platform and local control plane"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.115.0",
@@ -17,20 +17,28 @@ dependencies = [
     "typer>=0.27.1",
 ]
 
+[project.scripts]
+codespace = "codespace.cli:app"
+
+[build-system]
+requires = ["uv_build>=0.9.30,<0.10.0"]
+build-backend = "uv_build"
+
 [dependency-groups]
 dev = [
-    "httpx2>=2.9.1",
+    "httpx>=0.28.1",
     "ruff>=0.8.0",
     "pytest>=8.3.0",
     "pytest-cov>=6.0.0",
     "mypy>=1.13.0",
     "types-PyYAML>=6.0.12",
+    "httpx2>=2.9.1",
 ]
 
 [tool.pytest.ini_options]
-testpaths = ["controller/tests"]
-pythonpath = ["."]
-addopts = "--cov=controller --cov-report=term-missing"
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "--import-mode=importlib --cov=codespace --cov-report=term-missing"
 
 [tool.ruff]
 line-length = 100
@@ -41,8 +49,10 @@ select = ["E", "F", "B", "Q", "I", "UP", "S", "SIM", "RUF", "PTH", "ANN", "C4", 
 
 [tool.ruff.lint.per-file-ignores]
 # Tests may use assert, hardcoded dummy secrets, and fixed socket paths.
-"controller/tests/**" = ["S101", "S105", "S106", "S108"]
+"tests/**" = ["S101", "S105", "S106", "S108"]
 
 [tool.mypy]
-exclude = ["^controller/tests/"]
+strict = true
+exclude = ["^tests/"]
 explicit_package_bases = true
+mypy_path = "src"

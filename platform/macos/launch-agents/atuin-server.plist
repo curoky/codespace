@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>sh.atuin.server</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/opt/bm/bin/atuin</string>
+    <string>server</string>
+    <string>start</string>
+  </array>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/opt/bm/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>ATUIN_HOST</key>
+    <string>127.0.0.1</string>
+    <key>ATUIN_PORT</key>
+    <string>8002</string>
+    <key>ATUIN_OPEN_REGISTRATION</key>
+    <string>false</string>
+    <key>ATUIN_DB_URI</key>
+    <string>postgres://atuin:atuin@localhost/atuin</string>
+  </dict>
+  <key>StandardOutPath</key>
+  <string>/tmp/atuin.server.log</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/atuin.server.log</string>
+</dict>
+</plist>

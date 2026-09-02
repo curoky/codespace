@@ -1,72 +1,32 @@
-# lefthook install
-# lefthook run pre-commit
-
 pre-commit:
-  fail_on_changes: 'always'
+  parallel: true
   jobs:
-    - name: shell script
-      run: shfmt -w -i 2 -s -l -ci {staged_files}
-      glob: '*.{sh,bats}'
-      stage_fixed: false
-
-    - name: codespace-helper-shell
-      run: shfmt -w -i 2 -s -l -ci {staged_files} && shellcheck {staged_files}
-      glob: 'images/dev/rootfs/opt/codespace/bin/*'
-      stage_fixed: false
-
-    - name: codespace-helper-shell-test
-      run: shellcheck {staged_files}
-      glob: 'images/dev/tests/*.bats'
-      stage_fixed: false
-
-    - name: codespace-helper-test
-      run: bats images/dev/tests/*.bats
-      glob: 'images/dev/**/codespace-*'
-      stage_fixed: false
-
-    - name: python
-      run: ruff format --no-cache --force-exclude {staged_files}
-      glob: '*.{py}'
-      stage_fixed: false
+    - name: python-format
+      glob: '*.py'
+      run: uv run ruff format --check --no-cache --force-exclude {staged_files}
 
     - name: python-lint
-      run: ruff check --no-cache --force-exclude {staged_files}
-      glob: '*.{py}'
-      stage_fixed: false
+      glob: '*.py'
+      run: uv run ruff check --no-cache --force-exclude {staged_files}
 
-    - name: python-type
-      # mypy needs the whole package for cross-module inference, so it ignores
-      # {staged_files} and type-checks the project when any .py file is staged.
-      run: uv run mypy controller
-      glob: '*.{py}'
-      stage_fixed: false
+    - name: shell-format
+      glob: '*.{sh,bats}'
+      run: shfmt -d -i 2 -ci {staged_files}
 
-    - name: codespace-test
-      run: uv run pytest controller/tests
-      glob: 'controller/**/*.py'
-      stage_fixed: false
+    - name: shell-lint
+      glob: '*.{sh,bats}'
+      run: shellcheck {staged_files}
 
-    - name: c/c++
-      run: clang-format -i -style=file {staged_files}
-      glob: '*.{c,cc,cpp,h,hpp}'
-      stage_fixed: false
+pre-push:
+  parallel: true
+  jobs:
+    - name: typecheck
+      run: task typecheck
 
-    - name: protobuf
-      run: clang-format -i -style=file {staged_files}
-      glob: '*.{proto}'
-      stage_fixed: false
-
-    # - name: json
-    #   run: shfmt -w -i 2 -s -l -ci {staged_files}
-    #   glob: '*.{json}'
-    #   stage_fixed: false
-
-    # - name: yaml
-    #   run: shfmt -w -i 2 -s -l -ci {staged_files}
-    #   glob: '*.{yaml}'
-    #   stage_fixed: false
+    - name: test
+      run: task test
 
 commit-msg:
   commands:
     check-git-author:
-      run: tools/check-author.sh -n curoky -e cccuroky@gmail.com
+      run: scripts/hooks/check-author.sh -n curoky -e cccuroky@gmail.com

@@ -1,0 +1,210 @@
+#!/usr/bin/env bash
+# Provision the macOS host and install Codespace-managed dotfiles.
+# Usage: install.sh [--with-atuin-server]
+# Requires Bash 3.2 or newer, curl, sudo, and Apple Silicon macOS.
+
+set -euo pipefail
+
+TEMP_DIR=""
+
+cleanup() {
+  if [[ -n "$TEMP_DIR" ]]; then
+    rm -rf "$TEMP_DIR"
+  fi
+}
+
+link_path() {
+  local source="$1"
+  local destination="$2"
+
+  if [[ ! -e "$source" ]]; then
+    printf 'error: source does not exist: %s\n' "$source" >&2
+    exit 1
+  fi
+  if [[ -L "$destination" && "$(readlink "$destination")" == "$source" ]]; then
+    return
+  fi
+
+  mkdir -p "$(dirname "$destination")"
+  if [[ -e "$destination" || -L "$destination" ]]; then
+    rm -rf "$destination"
+  fi
+  ln -s "$source" "$destination"
+  printf 'linked %s -> %s\n' "$destination" "$source"
+}
+
+copy_path() {
+  local source="$1"
+  local destination="$2"
+  local mode="$3"
+
+  if [[ ! -f "$source" ]]; then
+    printf 'error: source does not exist: %s\n' "$source" >&2
+    exit 1
+  fi
+
+  mkdir -p "$(dirname "$destination")"
+  if [[ -e "$destination" || -L "$destination" ]]; then
+    rm -rf "$destination"
+  fi
+  install -m "$mode" "$source" "$destination"
+  printf 'installed %s\n' "$destination"
+}
+
+install_homebrew() {
+  local script_dir="$1"
+  local temp_dir="$2"
+
+  if [[ ! -x /opt/homebrew/bin/brew ]]; then
+    local installer="$temp_dir/homebrew-install.sh"
+    curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh \
+      -o "$installer"
+    NONINTERACTIVE=1 /bin/bash "$installer"
+  fi
+
+  export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+  /opt/homebrew/bin/brew bundle \
+    --force \
+    --file "$script_dir/Brewfile" \
+    --cleanup \
+    --verbose
+  /opt/homebrew/bin/brew cleanup --prune=all
+}
+
+install_binman() {
+  local script_dir="$1"
+  local temp_dir="$2"
+  local current_user current_group installer
+  current_user="$(id -un)"
+  current_group="$(id -gn)"
+  installer="$temp_dir/binman-install.sh"
+
+  if [[ ! -d /opt/bm ]]; then
+    sudo install -d -o "$current_user" -g "$current_group" /opt/bm
+  fi
+
+  mkdir -p /opt/bm/bin
+  curl -fsSL \
+    https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
+    -o "$installer"
+  /bin/bash "$installer" --prefix /opt/bm/bin
+
+  /opt/bm/bin/bm sync --prefix /opt/bm "$script_dir/binman.yaml"
+  ln -sfn /opt/bm/bin/bazelisk /opt/bm/bin/bazel
+}
+
+install_dotfiles() {
+  local dotfiles="$1"
+  local script_dir="$2"
+
+  link_path "$dotfiles/bin/eza-wrapper" "$HOME/.local/bin/eza-wrapper"
+  link_path "$script_dir/scripts/start-colima.sh" "$HOME/.local/bin/start-colima"
+  link_path "$script_dir/scripts/start-podman.sh" "$HOME/.local/bin/start-podman"
+
+  copy_path "$dotfiles/git/macos.gitconfig" "$HOME/.gitconfig" 0600
+  copy_path "$dotfiles/git/user.gitconfig" "$HOME/.config/git/user.gitconfig" 0600
+  link_path "$dotfiles/git/ignore" "$HOME/.config/git/ignore"
+  copy_path "$dotfiles/ssh/macos.config" "$HOME/.ssh/config" 0600
+
+  link_path "$dotfiles/zsh/macos.zshrc" "$HOME/.zshrc"
+  link_path "$dotfiles/zsh/environment.zsh" "$HOME/.config/zsh/environment.zsh"
+  link_path "$dotfiles/zsh/paths.zsh" "$HOME/.config/zsh/paths.zsh"
+  link_path "$dotfiles/zsh/aliases.zsh" "$HOME/.config/zsh/aliases.zsh"
+  link_path "$dotfiles/zsh/functions.zsh" "$HOME/.config/zsh/functions.zsh"
+  link_path "$dotfiles/zsh/git.zsh" "$HOME/.config/zsh/git.zsh"
+
+  link_path "$dotfiles/mpv/mpv.conf" "$HOME/.config/mpv/mpv.conf"
+  link_path "$dotfiles/snipaste/config.ini" "$HOME/.snipaste/config.ini"
+  link_path "$dotfiles/vscode/markdown-preview.css" "$HOME/.config/vscode/markdown-preview.css"
+
+  local editor_root
+  for editor_root in \
+    "$HOME/Library/Application Support/Code/User" \
+    "$HOME/Library/Application Support/Trae/User" \
+    "$HOME/Library/Application Support/Trae CN/User"; do
+    link_path "$dotfiles/vscode/app/settings.json" "$editor_root/settings.json"
+    link_path "$dotfiles/vscode/app/keybindings.json" "$editor_root/keybindings.json"
+    link_path "$dotfiles/vscode/app/snippets" "$editor_root/snippets"
+  done
+
+  copy_path "$dotfiles/trae/sandbox.json" "$HOME/.trae/sandbox.json" 0600
+  copy_path "$dotfiles/trae/traecli.toml" "$HOME/.trae/traecli.toml" 0600
+  copy_path "$dotfiles/trae/sandbox.json" "$HOME/.trae-cn/sandbox.json" 0600
+  copy_path "$dotfiles/trae/traecli.toml" "$HOME/.trae-cn/traecli.toml" 0600
+}
+
+load_launch_agent() {
+  local label="$1"
+  local plist="$2"
+  local target="$HOME/Library/LaunchAgents/${label}.plist"
+  local domain
+  domain="gui/$(id -u)"
+
+  link_path "$plist" "$target"
+  launchctl bootout "$domain/$label" >/dev/null 2>&1 || true
+  launchctl bootstrap "$domain" "$target"
+  launchctl kickstart -k "$domain/$label"
+}
+
+main() {
+  if ((BASH_VERSINFO[0] < 3)); then
+    printf 'error: Bash 3.2 or newer is required\n' >&2
+    return 2
+  fi
+
+  local with_atuin_server=false
+  while (($# > 0)); do
+    case "$1" in
+      --with-atuin-server) with_atuin_server=true ;;
+      -h | --help)
+        printf 'usage: %s [--with-atuin-server]\n' "${0##*/}"
+        return 0
+        ;;
+      *)
+        printf 'error: unsupported argument: %s\n' "$1" >&2
+        return 2
+        ;;
+    esac
+    shift
+  done
+
+  if [[ "$(uname -s)" != Darwin ]]; then
+    printf 'error: this installer only supports macOS\n' >&2
+    return 1
+  fi
+  if [[ "$(uname -m)" != arm64 ]]; then
+    printf 'error: binman.yaml currently supports only Apple Silicon\n' >&2
+    return 1
+  fi
+
+  command -v curl >/dev/null 2>&1 || {
+    printf 'error: curl is required\n' >&2
+    return 1
+  }
+  command -v sudo >/dev/null 2>&1 || {
+    printf 'error: sudo is required\n' >&2
+    return 1
+  }
+  command -v swift >/dev/null 2>&1 || {
+    printf 'error: swift is required\n' >&2
+    return 1
+  }
+
+  local script_dir repo_root dotfiles
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+  repo_root="$(cd "$script_dir/../.." && pwd -P)"
+  dotfiles="$repo_root/dotfiles"
+  TEMP_DIR="$(mktemp -d)"
+  trap cleanup EXIT
+
+  install_homebrew "$script_dir" "$TEMP_DIR"
+  install_binman "$script_dir" "$TEMP_DIR"
+  install_dotfiles "$dotfiles" "$script_dir"
+  swift "$script_dir/scripts/set-default-apps.swift"
+  load_launch_agent sh.atuin.daemon "$script_dir/launch-agents/atuin-daemon.plist"
+  if [[ "$with_atuin_server" == true ]]; then
+    load_launch_agent sh.atuin.server "$script_dir/launch-agents/atuin-server.plist"
+  fi
+}
+
+main "$@"

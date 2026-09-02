@@ -1,5 +1,0 @@
-CC=gcc
-CXX=g++
-GO111MODULE=on
-# GOPROXY=http://http.proxy.com:3101
-# GOPROXY=https://goproxy.cn,direct

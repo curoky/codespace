@@ -1,0 +1,27 @@
+# WSL flavor of the Workspace image: overlay only WSL-specific
+# assets, and recompile the s6-rc database so the new `wsl` bundle is known.
+#
+# Nothing here configures runtime behavior via image metadata: this image is
+# consumed by `docker export | gzip > *.wsl`, which flattens the filesystem and
+# DROPS ENTRYPOINT/CMD/ENV. WSL never reads OCI config either. All runtime wiring
+# lives inside the rootfs (/etc/wsl.conf + /opt/codespace/wsl/boot.sh).
+ARG BASE_IMAGE=ghcr.io/curoky/codespace:workspace-ubuntu26.04
+FROM ${BASE_IMAGE}
+
+USER root
+
+# Overlay WSL-only assets: /etc/wsl.conf, /opt/codespace/wsl/boot.sh, and the
+# selected-service `wsl` s6-rc bundle.
+#
+# Note on PATH: `docker export` drops the image ENV, so the nix/rust/conda/s6
+# paths it injects are lost in the exported rootfs. They are NOT patched here --
+# the Workspace image's /etc/zsh/zshenv adds them unconditionally,
+# and user `x`'s login shell is zsh (set during Workspace build), so every WSL zsh
+# session recovers the full PATH from the rootfs alone.
+COPY platform/wsl/rootfs/ /
+
+# The base image's s6-rc database was compiled without the `wsl` bundle. Rebuild
+# it in place so boot.sh's `s6-rc -up change wsl` resolves.
+RUN /opt/bm/profile/s6/bin/s6-rc-compile /etc/s6/db.new /etc/s6/s6-rc.d \
+  && rm -rf /etc/s6/db \
+  && mv /etc/s6/db.new /etc/s6/db
