@@ -1,0 +1,141 @@
+#!/usr/bin/env bash
+# Translate common ls flags to eza while preserving ls for pipes and fallback.
+# Usage: eza-wrapper [LS_OPTION...] [PATH...]
+# Requires Bash 3.2 or newer and optionally eza.
+
+set -euo pipefail
+
+show_help() {
+  printf '%s\n' \
+    "Usage: ${0##*/} [OPTION...] [PATH...]" \
+    "  -a  all entries" \
+    "  -A  almost all entries" \
+    "  -1  one entry per line" \
+    "  -x  list across" \
+    "  -l  long format" \
+    "  -G  grid" \
+    "  -k  byte sizes" \
+    "  -h  human-readable sizes" \
+    "  -F  classify" \
+    "  -R  recurse" \
+    "  -r  reverse" \
+    "  -d  list directories themselves" \
+    "  -D  directories only" \
+    "  -P  group directories first" \
+    "  -I GLOB  ignore matching entries" \
+    "  -i  show inodes" \
+    "  -o  show octal permissions" \
+    "  -N  disable color" \
+    "  -S  sort by size" \
+    "  -t  sort by modification time" \
+    "  -u  sort by access time" \
+    "  -c  sort by creation time" \
+    "  -X  sort by extension" \
+    "  -M STYLE  set time style" \
+    "  -T  tree" \
+    "  -L DEPTH  limit tree depth" \
+    "  -s  show filesystem blocks" \
+    "  -g  toggle Git status" \
+    "  -O  toggle icons" \
+    "  -n  honor .gitignore" \
+    "  -b  toggle binary units" \
+    "  -Z  show security context" \
+    "  -@  show extended attributes"
+}
+
+main() {
+  if ((BASH_VERSINFO[0] < 3)); then
+    printf 'error: Bash 3.2 or newer is required\n' >&2
+    return 2
+  fi
+
+  local argument
+  for argument in "$@"; do
+    if [[ "$argument" == --help ]]; then
+      show_help
+      exit 0
+    fi
+  done
+  if ! command -v eza >/dev/null 2>&1 || [[ ! -t 1 ]]; then
+    exec /bin/ls "$@"
+  fi
+
+  local dot=0
+  local human_readable=1
+  local binary_units=1
+  local show_group=0
+  local show_links=0
+  local show_git=1
+  local show_icons=0
+  local show_headers=0
+  local group_directories=0
+  local color=1
+  local reverse=0
+  local option
+  local -a eza_options=()
+
+  while getopts ':aAbtucSI:rkhnsXL:MPNg1lFGRdDioOTxZ@' option; do
+    case "$option" in
+      a) ((dot == 1)) && eza_options+=(-a) || eza_options+=(-a -a) ;;
+      A) eza_options+=(-a) ;;
+      t)
+        eza_options+=(-s modified)
+        reverse=$((reverse + 1))
+        ;;
+      u)
+        eza_options+=(-u -s accessed)
+        reverse=$((reverse + 1))
+        ;;
+      c)
+        eza_options+=(-U -s created)
+        reverse=$((reverse + 1))
+        ;;
+      S)
+        eza_options+=(-s size)
+        reverse=$((reverse + 1))
+        ;;
+      I) eza_options+=(--ignore-glob="$OPTARG") ;;
+      r) reverse=$((reverse + 1)) ;;
+      k) human_readable=$((human_readable - 1)) ;;
+      h) human_readable=$((human_readable + 1)) ;;
+      n) eza_options+=(--git-ignore) ;;
+      s) eza_options+=(-S) ;;
+      X) eza_options+=(-s extension) ;;
+      L) eza_options+=(--level="$OPTARG") ;;
+      o) eza_options+=(--octal-permissions) ;;
+      M) eza_options+=(--time-style="$OPTARG") ;;
+      P) group_directories=$((group_directories + 1)) ;;
+      N) color=0 ;;
+      g) show_git=$((show_git + 1)) ;;
+      O) show_icons=$((show_icons + 1)) ;;
+      b) binary_units=$((binary_units - 1)) ;;
+      1 | l | F | G | R | d | D | i | T | x | Z | @) eza_options+=("-$option") ;;
+      :)
+        printf '%s: -%s requires a value\n' "${0##*/}" "$OPTARG" >&2
+        exit 2
+        ;;
+      *)
+        printf '%s: unsupported option -%s\n' "${0##*/}" "$OPTARG" >&2
+        exit 2
+        ;;
+    esac
+  done
+  shift "$((OPTIND - 1))"
+
+  ((reverse == 1)) && eza_options+=(-r)
+  ((show_group == 0)) && eza_options+=(-g)
+  ((show_links == 0)) && eza_options+=(-H)
+  ((human_readable <= 0)) && eza_options+=(-B)
+  ((show_headers == 1)) && eza_options+=(-h)
+  ((binary_units == 1 && human_readable > 0)) && eza_options+=(-b)
+  ((color == 1)) && eza_options+=(--color=always) || eza_options+=(--color=never)
+  ((group_directories >= 1)) && eza_options+=(--group-directories-first)
+  ((show_icons == 1)) && eza_options+=(--icons)
+  if ((show_git == 1)) && git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    eza_options+=(--git)
+  fi
+
+  exec eza --color-scale "${eza_options[@]}" "$@"
+}
+
+main "$@"

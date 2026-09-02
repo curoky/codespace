@@ -14,7 +14,10 @@ htmlcov/
 # JavaScript
 node_modules/
 
+# OS / local artifacts
+.DS_Store
 *.log
+*.wsl
 
-# Private control-plane entrypoint (layers secrets onto config.yaml).
-/config.extend.yaml
+# The runtime configuration lives outside the repository.
+/config.yaml

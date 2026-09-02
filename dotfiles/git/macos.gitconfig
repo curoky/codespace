@@ -1,0 +1,18 @@
+[pull]
+	rebase = false
+	ff = only
+
+[filter "lfs"]
+	process = git-lfs filter-process
+	required = true
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+
+[core]
+	excludesfile = ~/.config/git/ignore
+
+[log]
+	date = iso
+
+[include]
+	path = ~/.config/git/user.gitconfig
