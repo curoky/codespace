@@ -32,7 +32,7 @@ main() {
 
   mkdir -p -- "$(dirname -- "${target}")"
   rm -rf -- "${temporary}"
-  if ! git clone --depth=1 "${clone_url}" "${temporary}"; then
+  if ! git clone --depth=20 "${clone_url}" "${temporary}"; then
     rm -rf -- "${temporary}"
     return 1
   fi
