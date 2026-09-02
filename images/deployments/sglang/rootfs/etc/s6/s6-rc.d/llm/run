@@ -1,0 +1,10 @@
+#!/opt/bm/profile/s6/bin/execlineb -P
+
+s6-envdir -Lf -- /run/s6/container_environment
+
+fdmove -c 2 1
+redirfd -w 1 /var/log/llm.log
+
+foreground { mkdir -p /var/log }
+
+exec /opt/llm/serve.sh

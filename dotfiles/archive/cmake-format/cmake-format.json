@@ -1,0 +1,9 @@
+{
+  "doc": "https://cmake-format.readthedocs.io/en/latest/configuration.html",
+  "format": {
+    "line_width": 100
+  },
+  "markup": {
+    "enable_markup": false
+  }
+}

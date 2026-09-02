@@ -1,0 +1,48 @@
+[project]
+name = "devspace"
+version = "0.1.0"
+description = "Personal development environment and local Codespace control plane"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn>=0.32.0",
+    "podman>=5.0.0",
+    "PyGithub>=2.5.0",
+    "loguru>=0.7.2",
+    "python-gitlab>=8.4.0",
+    "PyYAML>=6.0.2",
+    "rich>=15.0.0",
+    "tenacity>=9.1.4",
+    "truststore>=0.10.0",
+    "typer>=0.27.1",
+]
+
+[dependency-groups]
+dev = [
+    "httpx2>=2.9.1",
+    "ruff>=0.8.0",
+    "pytest>=8.3.0",
+    "pytest-cov>=6.0.0",
+    "mypy>=1.13.0",
+    "types-PyYAML>=6.0.12",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["controller/tests"]
+pythonpath = ["."]
+addopts = "--cov=controller --cov-report=term-missing"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "Q", "I", "UP", "S", "SIM", "RUF", "PTH", "ANN", "C4", "PIE"]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests may use assert, hardcoded dummy secrets, and fixed socket paths.
+"controller/tests/**" = ["S101", "S105", "S106", "S108"]
+
+[tool.mypy]
+exclude = ["^controller/tests/"]
+explicit_package_bases = true

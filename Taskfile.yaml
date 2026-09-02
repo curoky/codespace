@@ -1,0 +1,128 @@
+version: '3'
+
+tasks:
+  default:
+    desc: 列出所有可用 task
+    cmds:
+      - task --list
+    silent: true
+
+  sync:
+    desc: 同步 Codespace Python 依赖
+    cmds:
+      - uv sync
+      - uv sync --project images/dev/rootfs/opt/codespace --locked --no-dev
+
+  start:
+    desc: 前台启动本地 Codespace 控制面
+    cmds:
+      - uv run python -m controller
+
+  start:bg:
+    desc: 后台启动控制面
+    cmds:
+      - controller/run.sh
+
+  fmt:
+    desc: 格式化 Codespace Python 与 workspace helper
+    cmds:
+      - >-
+        uv run ruff format --config pyproject.toml
+        controller
+        images/dev/rootfs/opt/codespace/workspace_agent.py
+      - >-
+        shfmt -w -i 2 -s -ci
+        images/dev/rootfs/opt/codespace/bin/*
+        images/dev/tests/*.bats
+
+  fmt:check:
+    desc: 检查 Python 与 workspace helper 格式
+    cmds:
+      - >-
+        uv run ruff format --check --config pyproject.toml
+        controller
+        images/dev/rootfs/opt/codespace/workspace_agent.py
+      - >-
+        shfmt -d -i 2 -s -ci
+        images/dev/rootfs/opt/codespace/bin/*
+        images/dev/tests/*.bats
+
+  lint:
+    desc: Ruff 与 ShellCheck lint
+    cmds:
+      - >-
+        uv run ruff check --config pyproject.toml
+        controller
+        images/dev/rootfs/opt/codespace/workspace_agent.py
+      - >-
+        shellcheck
+        images/dev/rootfs/opt/codespace/bin/*
+        images/dev/tests/*.bats
+
+  typecheck:
+    desc: Mypy 类型检查
+    cmds:
+      - >-
+        MYPYPATH=images/dev/rootfs/opt/codespace uv run mypy
+        controller
+        images/dev/rootfs/opt/codespace/workspace_agent.py
+      - >-
+        uv run --project images/dev/rootfs/opt/codespace --locked python
+        -c "import sys; sys.path.insert(0, 'images/dev/rootfs/opt/codespace');
+        import workspace_agent"
+
+  test:
+    desc: 运行 Codespace Python 与 workspace helper 测试
+    cmds:
+      - uv run pytest controller/tests
+      - bats images/dev/tests/*.bats
+
+  lock:check:
+    desc: 校验控制面与 workspace agent 的 uv lock
+    cmds:
+      - uv lock --check
+      - uv lock --project images/dev/rootfs/opt/codespace --check
+
+  check:
+    desc: 运行全部验证（格式、lint、类型、测试、lock）
+    cmds:
+      - task: fmt:check
+      - task: lint
+      - task: typecheck
+      - task: test
+      - task: lock:check
+
+  cleanup:deploy-keys:
+    desc: 清理未使用的 deploy key（默认 dry-run，追加 -- --no-dry-run 实际删除）
+    cmds:
+      - uv run python -m controller.tools.cleanup_deploy_keys {{.CLI_ARGS}}
+
+  cleanup:workspaces:
+    desc: 清理残留 workspace 目录（默认 dry-run，追加 -- --no-dry-run 实际删除）
+    cmds:
+      - uv run python -m controller.tools.cleanup_workspaces {{.CLI_ARGS}}
+
+  secrets:sync:
+    desc: 将顶层 secrets 明文注册为各 host 的 Podman secret（默认 dry-run，追加 -- --no-dry-run 实际执行）
+    cmds:
+      - uv run python -m controller.tools.sync_secrets {{.CLI_ARGS}}
+
+  image:dev:
+    desc: 构建 Codespace 开发镜像
+    cmds:
+      - images/dev/build.sh
+
+  image:sidecar:
+    desc: 构建 sidecar 镜像
+    cmds:
+      - images/deployments/sidecar/build.sh
+
+  image:wsl:
+    desc: 构建 WSL 风味镜像（FROM dev 镜像）
+    cmds:
+      - images/wsl/build.sh
+
+  image:wsl:export:
+    desc: 导出 WSL 发行版 rootfs（devspace.wsl）
+    cmds:
+      - images/wsl/export.sh

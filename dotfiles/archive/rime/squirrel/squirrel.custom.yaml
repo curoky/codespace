@@ -1,0 +1,191 @@
+# Ref:
+# - https://github.com/rime/squirrel/blob/master/data/squirrel.yaml
+# - https://mritd.me/2019/03/23/oh-my-rime/#%E5%9B%9B%E8%87%AA%E5%AE%9A%E4%B9%89%E9%85%8D%E8%89%B2
+# - https://gjrobert.github.io/Rime-See-Me-squirrel/
+
+patch:
+  style:
+    color_scheme: psionics # 方案命名，不能有空格
+    # horizontal: false # 候选条横向显示
+    text_orientation: horizontal
+    inline_preedit: true # 单行显示，false双行显示
+    candidate_list_layout: linear
+    # line_spacing: 100 # 候选条竖向才生效
+    # spacing: 3 # 在非内嵌编码模式下，预编辑和候选词之间的间距
+
+    # 字体相关
+    # font_face: 'PingFangSC-Regular' # 候选词字体
+    # font_face: 'HanziPenTC-W5' # 候选词字体
+    font_face: 'HannotateSC-W7' # 候选词字体
+    font_point: 22 # 候选字词大小
+    label_font_face: 'HannotateSC-W7' # 候选词编号字体
+    label_font_point: 14 # 候选编号大小
+
+    candidate_format: "%c.\u2005%@" # 用 1/6 em 空格 U+2005 来控制编号 %c 和候选词 %@ 前后的空间。
+    # candidate_format: "%c.\u2005%@\u2005" # 用 1/6 em 空格 U+2005 来控制编号 %c 和候选词 %@ 前后的空间。
+    # candidate_format: "%c\u2005%@ \u2005"
+    # candidate_format: "%c %@ "
+
+    corner_radius: 6 # 候选条圆角半径
+    hilited_corner_radius: 0 # 高亮圆角
+
+    # border_height: 5 # 窗口边界高度，大于圆角半径才生效
+    # border_width: 8 # 窗口边界宽度，大于圆角半径才生效
+
+  preet_color_schemes:
+    mritd_dark:
+      name: 漠然／mritd dark
+      border_color_width: 0
+
+      text_color: 0xdedddd # 拼音行文字颜色，24位色值，16进制，BGR顺序
+      back_color: 0x4b4b4b # 候选条背景色
+      label_color: 0x888785 # 预选栏编号颜色
+      border_color: 0x4b4b4b # 边框色
+      candidate_text_color: 0xffffff # 预选项文字颜色
+      hilited_text_color: 0xdedddd # 高亮拼音 (需要开启内嵌编码)
+      hilited_back_color: 0x252320 # 高亮拼音 (需要开启内嵌编码)
+      hilited_candidate_text_color: 0xFFE696 # 第一候选项文字颜色
+      hilited_candidate_back_color: 0x4b4b4b # 第一候选项背景背景色
+      hilited_candidate_label_color: 0xffffff # 第一候选项编号颜色
+      comment_text_color: 0xdedddd # 拼音等提示文字颜色
+
+    # https://gist.github.com/deamwork/7cfb49777c2f163a475c71521cf7dd6e
+    selfae:
+      name: 'Selfae'
+      back_color: 0xFFFFFF # 候选条背景色
+      border_color: 0xE0B693 # 边框色
+
+      text_color: 0xFFFFFF # HEX颜色代码，但是要注意顺序是蓝绿红（倒序）0xBBGGRR
+      candidate_text_color: 0x000000 #非第一候选项
+      hilited_candidate_back_color: 0xD98840 #第一候选项背景
+      hilited_candidate_text_color: 0xFFFFFF #第一候选项
+
+    # https://gist.github.com/singlepig/3dae88024e9e644c5b93e48056eb8340
+    rimeblue:
+      name: 'RimeBlue'
+      back_color: 0x4F4F4F # 候选条背景色
+      border_color: 0xE0B693 # 边框色
+      text_color: 0xFFFFFF # HEX颜色代码，但是要注意顺序是蓝绿红（倒序）0xBBGGRR
+      candidate_text_color: 0xFFFFFF #非第一候选项
+      hilited_candidate_back_color: 0xD1BA53 #第一候选项背景
+      hilited_candidate_text_color: 0xFFFFFF #第一候选项
+
+    psionics:
+      name: 幽能／Psionics
+      text_color: 0xc2c2c2
+      back_color: 0x444444
+      candidate_text_color: 0xeeeeee
+      hilited_text_color: 0xeeeeee
+      hilited_back_color: 0x444444
+      hilited_candidate_label_color: 0xfafafa
+      hilited_candidate_text_color: 0xfafafa
+      hilited_candidate_back_color: 0xd4bc00
+      comment_text_color: 0x808080
+      hilited_comment_text_color: 0x444444
+
+    purity_of_essence:
+      name: 純粹的本質／Purity of Essence
+      text_color: 0x2c2ccc
+      back_color: 0xfafafa
+      candidate_text_color: 0x000000
+      hilited_text_color: 0x000000
+      hilited_back_color: 0xfafafa
+      hilited_candidate_text_color: 0xeeeeee
+      hilited_candidate_back_color: 0x444444
+      comment_text_color: 0x808080
+
+    apathy:
+      name: 冷漠／Apathy
+      back_color: 0xFFFFFF
+      comment_text_color: 0x999999
+      hilited_candidate_back_color: 0xFFF0E4
+      hilited_candidate_text_color: 0xEE6E00
+      text_color: 0x424242
+
+    # https://github.com/Mintimate/oh-my-rime/blob/main/squirrel.yaml#L83-L162
+    mint_light_blue:
+      name: '蓝水鸭／Mint Light Blue'
+      author: Mintimate <"Mintimate's Blog">
+      translucency: true # 磨砂： false | true
+      mutual_exclusive: false # 色不叠加： false | true
+      shadow_size: 0 # 阴影大小
+      line_spacing: 5 # 行间距
+      # base_offset: 0                          # 字基高(Action版本鼠须管会崩溃)
+      alpha: 1 # 透明度，0~1
+      spacing: 10 # 拼音与候选项之间的距离 （inline_preedit: false）
+      back_color: 0xefefef # 底色
+      hilited_candidate_back_color: 0xed9564 # 选中底色
+      label_color: 0xcac9c8 # 序号颜色
+      hilited_candidate_label_color: 0xefefef # 选中序号颜色
+      candidate_text_color: 0x424242 # 文字颜色
+      hilited_candidate_text_color: 0xefefef # 选中文字颜色
+      comment_text_color: 0xcac9c8 # 注颜色
+      hilited_comment_text_color: 0xefefef # 选中注颜色
+      text_color: 0x6495ed # 拼音颜色 （inline_preedit: false）
+      hilited_text_color: 0xed9564 # 选中拼音颜色 （inline_preedit: false）
+
+    mint_dark_blue:
+      name: 黑水鸭／Mint Dark Blue
+      author: Mintimate <"Mintimate's Blog">
+      translucency: true # 磨砂： false | true
+      mutual_exclusive: false # 色不叠加： false | true
+      shadow_size: 0 # 阴影大小
+      line_spacing: 5 # 行间距
+      # base_offset: 0                          # 字基高(Action版本鼠须管会崩溃)
+      alpha: 1 # 透明度，0~1
+      spacing: 10 # 拼音与候选项之间的距离 （inline_preedit: false）
+      back_color: 0x424242 # 底色
+      hilited_candidate_back_color: 0xc6c01a # 选中底色
+      label_color: 0xefefef # 序号颜色
+      hilited_candidate_label_color: 0xefefef # 选中序号颜色
+      candidate_text_color: 0xefefef # 文字颜色
+      hilited_candidate_text_color: 0xefefef # 选中文字颜色
+      comment_text_color: 0xefefef # 注颜色
+      hilited_comment_text_color: 0xffffff # 选中注颜色
+      text_color: 0x6495ed # 拼音颜色 （inline_preedit: false）
+      hilited_text_color: 0xc6c01a # 选中拼音颜色 （inline_preedit: false）
+
+    mint_light_green:
+      name: '碧皓青／Mint Light Green'
+      author: Mintimate <"Mintimate's Blog">
+      translucency: true # 磨砂： false | true
+      mutual_exclusive: false # 色不叠加： false | true
+      color_space: srgb
+      back_color: 0xEFEFEF # 底色
+      candidate_text_color: 0x323232 # 文字颜色
+      comment_text_color: 0x878787 # 注颜色
+      label_color: 0x323232 # 序号颜色
+      hilited_candidate_back_color: 0x7BAE4F # 选中底色
+      hilited_candidate_text_color: 0xFFFFFF # 选中文字颜色
+      hilited_comment_text_color: 0xDFF0EE # 选中注颜色
+      hilited_candidate_label_color: 0xEFEFEF # 选中序号颜色
+      text_color: 0x7BAE4F # 拼音颜色 （inline_preedit: false）
+      hilited_text_color: 0xed9564 # 选中拼音颜色 （inline_preedit: false）
+
+    mint_dark_green:
+      name: '碧月青／Mint Dark Green'
+      author: Mintimate <"Mintimate's Blog">
+      translucency: true # 磨砂： false | true
+      mutual_exclusive: false # 色不叠加： false | true
+      color_space: srgb
+      back_color: 0x323232 # 底色
+      candidate_text_color: 0xE8E8E8 # 文字颜色
+      comment_text_color: 0xBEBEBE # 注颜色
+      label_color: 0xB0B0B0 # 序号颜色
+      hilited_candidate_back_color: 0x83C81C # 选中底色
+      hilited_candidate_text_color: 0xEFEFEF # 选中文字颜色
+      hilited_comment_text_color: 0xF4FAF8 # 选中注颜色
+      hilited_candidate_label_color: 0xEFEFEF # 选中序号颜色
+      text_color: 0x83C81C # 拼音颜色 （inline_preedit: false）
+      hilited_text_color: 0xed9564 # 选中拼音颜色 （inline_preedit: false）
+
+  app_options:
+    # com.microsoft.VSCode:
+    #   ascii_mode: true
+    #   vim_mode: true
+    org.tabby:
+      ascii_mode: true
+    co.zeit.hyper:
+      ascii_mode: true
+    dev.warp.Warp-Stable:
+      ascii_mode: true

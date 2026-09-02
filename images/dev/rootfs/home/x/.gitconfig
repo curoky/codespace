@@ -1,0 +1,37 @@
+[pull]
+rebase = false
+	ff = only
+
+[filter "lfs"]
+process = git-lfs filter-process
+required = true
+clean = git-lfs clean -- %f
+smudge = git-lfs smudge -- %f
+
+; [color "status"]
+;   added = green bold
+;   changed = red bold strike
+;   untracked = cyan
+;   branch = yellow black bold ul
+
+[core]
+excludesfile = ~/devspace/images/dev/rootfs/home/x/.gitignore_global
+
+[log]
+date = iso
+
+# [http]
+# proxy = http://http.proxy.com:3128
+# [https]
+# proxy = http://http.proxy.com:3128
+
+# https://stackoverflow.com/questions/18047652/set-git-ssh-environment-variable-in-gitconfig/45576707#45576707
+# [ssh]
+# variant = ~/.dots/bin/git-proxy-wrapper.sh
+# [core]
+# sshCommand = ~/.dots/bin/git-proxy-wrapper.sh
+
+[user]
+# name = curoky
+# email = cccuroky@gmail.com
+useConfigOnly = true

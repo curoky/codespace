@@ -1,0 +1,15 @@
+{
+  "Debug": false,
+  "Retries": 1,
+  "Routes": [
+    {
+      "Retries": 1,
+      "ServeNodes": ["http://:3014"],
+      "ChainNodes": ["http://http.proxy.com:3004"]
+    },
+    {
+      "Retries": 1,
+      "ServeNodes": ["tcp://:12328/127.0.0.1:12329"]
+    }
+  ]
+}

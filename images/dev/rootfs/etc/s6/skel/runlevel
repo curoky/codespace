@@ -1,0 +1,8 @@
+#!/bin/sh -e
+
+# Called once at boot by rc.init, and again by telinit whenever a runlevel
+# change is requested. Just hand the wanted runlevel (bundle name) to s6-rc.
+
+test "$#" -gt 0 || { echo 'runlevel: fatal: too few arguments' 1>&2 ; exit 100 ; }
+
+exec s6-rc -v2 -up change "$1"

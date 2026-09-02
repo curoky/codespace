@@ -1,0 +1,5 @@
+{
+  "image": "ghcr.io/curoky/devspace:codespace-debian13",
+  "containerUser": "x",
+  "features": {}
+}

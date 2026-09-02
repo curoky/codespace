@@ -1,0 +1,15 @@
+prefix: /opt/bm
+
+packages:
+  link:
+    - atuin
+    - supercronic
+
+profiles:
+  s6:
+    - s6
+    - s6-rc
+    - s6-linux-init
+    - s6-linux-utils
+    - s6-portable-utils
+    - execline
