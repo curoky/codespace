@@ -12,7 +12,10 @@ def config() -> Config:
     return Config.model_validate(
         {
             "hosts": {
-                "home": {"forward_environment": ["HTTP_PROXY"]},
+                "home": {
+                    "forward_environment": ["HTTP_PROXY"],
+                    "platform": "linux/arm64",
+                },
                 "office": {},
             },
             "project_defaults": {
@@ -23,13 +26,7 @@ def config() -> Config:
                     "security_opt": ["disable", "seccomp=unconfined"],
                     "pids_limit": -1,
                     "ulimits": {"memlock": {"soft": -1, "hard": -1}},
-                    "volumes": {
-                        "kerberos": {
-                            "source": "/etc/krb5.conf",
-                            "target": "/etc/krb5.conf",
-                            "read_only": True,
-                        }
-                    },
+                    "volumes": ["/etc/krb5.conf:/etc/krb5.conf:ro"],
                 },
             },
             "projects": {
@@ -40,7 +37,7 @@ def config() -> Config:
                         "repository": "curoky/codespace",
                     },
                     "hosts": {
-                        "home": {"platform": "linux/arm64"},
+                        "home": {},
                     },
                 },
                 "service-api": {
@@ -76,12 +73,9 @@ def config() -> Config:
                         "network_mode": "host",
                         "ipc": "host",
                         "devices": ["nvidia.com/gpu=all"],
-                        "volumes": {
-                            "models": {
-                                "source": "${SERVICE_DATA}",
-                                "target": "/root/.cache/huggingface",
-                            }
-                        },
+                        "volumes": [
+                            "${SERVICE_DATA}:/root/.cache/huggingface",
+                        ],
                     },
                 },
             },

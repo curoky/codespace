@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import os
 import stat
 import subprocess
 from collections.abc import Callable
@@ -89,18 +91,21 @@ def test_transport_uses_control_master_and_private_runtime(tmp_path: Path) -> No
     returned = transport.client("home")
 
     command = commands[0]
+    digest = hashlib.sha256(b"home").hexdigest()[:16]
+    control_path = transport.runtime_dir / f"control-{digest}.sock"
+    podman_socket_path = transport.runtime_dir / f"podman-{digest}.sock"
     assert command[:2] == ["ssh", "-N"]
     assert "BatchMode=yes" in command
-    assert f"ControlPath={transport.runtime_dir}/home.control" in command
+    assert f"ControlPath={control_path}" in command
     assert "ControlMaster=yes" in command
     assert command[-3:] == [
         "-L",
-        f"{transport.runtime_dir}/home.sock:/run/podman/podman.sock",
+        f"{podman_socket_path}:/run/podman/podman.sock",
         "home",
     ]
     assert "StrictHostKeyChecking=no" not in command
     assert returned is clients[0]
-    assert clients[0].base_url == f"unix://{transport.runtime_dir}/home.sock"
+    assert clients[0].base_url == f"unix://{podman_socket_path}"
     assert clients[0].timeout == 60.0
     assert stat.S_IMODE(transport.runtime_dir.stat().st_mode) == 0o700
 
@@ -109,6 +114,32 @@ def test_transport_uses_control_master_and_private_runtime(tmp_path: Path) -> No
     assert processes[0].terminated is True
     assert clients[0].closed is True
     assert not transport.runtime_dir.exists()
+
+
+def test_transport_default_socket_paths_fit_macos_limit() -> None:
+    commands: list[list[str]] = []
+    host = "h" * 63
+    transport = PodmanTransport(
+        {host: HostEndpoint()},
+        process_factory=_master_factory([], commands),
+        client_factory=FakeClient,  # type: ignore[arg-type]
+    )
+
+    try:
+        transport.client(host)
+
+        command = commands[0]
+        control_option = next(value for value in command if value.startswith("ControlPath="))
+        control_path = control_option.split("=", 1)[1]
+        podman_socket_path = command[command.index("-L") + 1].split(":", 1)[0]
+        assert transport.runtime_dir.parent == Path("/tmp")
+        # OpenSSH binds through ``<ControlPath>.<16 random chars>``.
+        assert len(os.fsencode(f"{control_path}.{'x' * 16}")) < 104
+        assert len(os.fsencode(podman_socket_path)) < 104
+        assert host not in control_path
+        assert host not in podman_socket_path
+    finally:
+        transport.close()
 
 
 def test_transport_reuses_live_master_and_rebuilds_dead_master(tmp_path: Path) -> None:
@@ -154,7 +185,8 @@ def test_transport_forwards_per_host_remote_socket(tmp_path: Path) -> None:
 
     transport.client("boe")
 
-    assert commands[0][-2] == f"{transport.runtime_dir}/boe.sock:/tmp/podmanxd.sock"
+    digest = hashlib.sha256(b"boe").hexdigest()[:16]
+    assert commands[0][-2] == (f"{transport.runtime_dir}/podman-{digest}.sock:/tmp/podmanxd.sock")
 
     transport.close()
 

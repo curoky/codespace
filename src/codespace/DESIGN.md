@@ -49,17 +49,26 @@ Manager 只接收 Config 解析出的 immutable spec，不解析 YAML。FastAPI 
 Project 按以下顺序按字段覆盖：
 
 ```text
-project_defaults -> projects.<project> -> projects.<project>.hosts.<host>
+project_defaults.container
+  -> hosts.<host>.container
+  -> projects.<project>.container
+  -> projects.<project>.hosts.<host>.container
 ```
 
 Service 按以下顺序按字段覆盖：
 
 ```text
-services.<service> -> services.<service>.hosts.<host>
+hosts.<host>.container
+  -> services.<service>.container
+  -> services.<service>.hosts.<host>.container
 ```
 
-list 与 mapping 都整体替换。`ContainerSpec` 只接受 canonical mapping，不接受字符串缩写。Config 启动时
-验证 Host 引用、network mode、port 使用、保留 env、保留 mount 和受控 placeholder。
+Host container 是该 Host 上 Project 与 Service 共用的默认层。Project image 仍按
+`project_defaults -> projects.<project> -> projects.<project>.hosts.<host>` 覆盖；platform 按
+`hosts.<host> -> projects.<project>.hosts.<host>` 覆盖。list 与 mapping 都整体替换。
+`ContainerSpec` 使用 Compose service 字段名，volume 接受 Compose short syntax 与 bind long
+syntax，解析后统一为结构化数据。Config 启动时验证 Host 引用、network mode、port 使用、保留
+env、保留 mount 和受控 placeholder。
 
 ## Host Data
 

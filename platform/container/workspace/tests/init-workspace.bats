@@ -46,7 +46,7 @@ EOF
   run --separate-stderr env -u CODESPACE_WORKSPACE_KEY PATH="${PATH}" "${HELPER_BASH}" "${HELPER}"
 
   [[ ${status} -eq 0 ]]
-  [[ ${output} == *"workspace encryption disabled"* ]]
+  [[ ${output} == "CODESPACE_WORKSPACE_KEY unset; Workspace encryption disabled, using plaintext /workspace" ]]
   [[ -z ${stderr} ]]
 }
 

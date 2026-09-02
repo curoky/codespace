@@ -25,6 +25,7 @@ from threading import Lock
 from podman import PodmanClient
 
 _PODMAN_SOCKET = "/run/podman/podman.sock"
+_DEFAULT_RUNTIME_PARENT = Path("/tmp")  # noqa: S108 - short parent; mkdtemp creates mode 0700
 
 _START_TIMEOUT = 10.0
 _START_INTERVAL = 0.05
@@ -160,7 +161,9 @@ class PodmanTransport:
         run_factory: RunFactory = subprocess.run,
     ) -> None:
         self._hosts = dict(hosts)
-        self._runtime_dir = Path(tempfile.mkdtemp(prefix="codespace-", dir=runtime_parent))
+        # OpenSSH adds a temporary suffix while binding; macOS limits Unix paths to 103 bytes.
+        parent = runtime_parent if runtime_parent is not None else _DEFAULT_RUNTIME_PARENT
+        self._runtime_dir = Path(tempfile.mkdtemp(prefix="codespace-", dir=parent))
         self._runtime_dir.chmod(0o700)
         self._process_factory = process_factory
         self._client_factory = client_factory
@@ -233,8 +236,9 @@ class PodmanTransport:
         return master
 
     def _start_master(self, host: str, options: HostEndpoint) -> _Master:
-        control_path = self._runtime_dir / f"{host}.control"
-        socket_path = self._runtime_dir / f"{host}.sock"
+        digest = hashlib.sha256(host.encode()).hexdigest()[:16]
+        control_path = self._runtime_dir / f"control-{digest}.sock"
+        socket_path = self._runtime_dir / f"podman-{digest}.sock"
         control_path.unlink(missing_ok=True)
         socket_path.unlink(missing_ok=True)
         command = [
