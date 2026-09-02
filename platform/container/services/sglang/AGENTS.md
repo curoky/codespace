@@ -1,32 +1,7 @@
-# SGLang Service 约束
+# SGLang Service
 
-本目录构建 `ghcr.io/curoky/codespace:service-sglang`，为
-Qwen3.8-Flash-Next-FP8 提供 OpenAI-compatible API。复杂构建和启动流程见
-[`DESIGN.md`](DESIGN.md)。
+继承父目录 Service 约束，构建与运行流程见 [`DESIGN.md`](DESIGN.md)。
 
-## 不变量
-
-- 容器名为 `codespace-service-sglang`，使用标准 Service labels，不进入 Workspace
-  inventory。
-- Service 使用 host network，`smoke.sh` 固定把 API 绑定到
-  `127.0.0.1:${SERVE_PORT:-8003}`，不发布端口。
-- 运行时通过 CDI 请求 `nvidia.com/gpu=all`，并使用 host IPC 支撑 TP8/EP8 通信。
-- 模型权重不烤入镜像。Hugging Face cache 挂载到
-  `~/codespace/services/sglang`，容器内路径为 `/root/.cache/huggingface`。
-- 镜像不得包含 Podman socket、控制面、SSH、provider token 或 repository
-  credential。
-- `/opt/codespace/sglang/serve.sh` 拥有引擎参数；s6 `serve/run` 只能加载容器环境并
-  exec 该脚本。
-
-## 验证
-
-```bash
-platform/container/services/sglang/build.sh
-platform/container/services/sglang/smoke.sh
-```
-
-host 必须安装 NVIDIA Container Toolkit 并配置 CDI。`smoke.sh` 会替换 vLLM 或
-SGLang 的固定名称容器，因为两者同时占用全部 GPU 与端口 `8003`。
-
-修改模型、source ref、CUDA backend/toolkit 或启动参数时同步更新 `DESIGN.md`。修改
-GPU/IPC/cache/network 形态时同步更新 `smoke.sh` 与控制面 Service 配置。
+- Dockerfile、binman manifest 与 `serve.sh` 是依赖、模型和启动参数的 source of truth。
+- 模型 cache 位于 Host，image 不包含模型、Podman socket 或 credential。
+- 构建、运行或 GPU 边界变化时同步更新 `DESIGN.md`、smoke script 和控制面配置。
