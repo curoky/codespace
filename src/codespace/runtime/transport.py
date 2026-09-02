@@ -170,6 +170,7 @@ class PodmanTransport:
         self._run_factory = run_factory
         self._masters: dict[str, _Master] = {}
         self._locks = {host: Lock() for host in hosts}
+        self._master_start_lock = Lock()
         self._closed = False
 
     @property
@@ -231,7 +232,10 @@ class PodmanTransport:
             master.client.close()  # type: ignore[no-untyped-call]
             self._stop(master.process)
             master.podman_socket_path.unlink(missing_ok=True)
-        master = self._start_master(host, self._hosts[host])
+        # Hosts may share a GSSAPI ProxyJump whose credential cache cannot authenticate
+        # concurrent SSH processes reliably. Only serialize the initial handshakes.
+        with self._master_start_lock:
+            master = self._start_master(host, self._hosts[host])
         self._masters[host] = master
         return master
 

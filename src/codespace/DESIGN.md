@@ -42,7 +42,9 @@ flowchart TB
 ```
 
 `PodmanTransport` 是 Podman clients、per-Host OpenSSH ControlMaster 和 UDS forwards 的唯一 owner。
-Manager 只接收 Config 解析出的 immutable spec，不解析 YAML。FastAPI route 只做输入输出和错误映射。
+ControlMaster 的初始 SSH handshake 跨 Host 串行执行，避免共享 ProxyJump 的并发 GSSAPI
+认证竞争；连接建立后的 Host 操作保持并发。Manager 只接收 Config 解析出的 immutable spec，
+不解析 YAML。FastAPI route 只做输入输出和错误映射。
 
 ## Placement Resolution
 
