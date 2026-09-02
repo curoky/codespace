@@ -10,7 +10,13 @@ from typing import Annotated, Any, Literal, Self, cast
 from podman import PodmanClient
 from podman.domain.containers import Container
 from podman.errors import PodmanError
-from pydantic import AfterValidator, BaseModel, ConfigDict, Field, model_validator
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    Field,
+    model_validator,
+)
 from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_fixed
 
 _READY_TIMEOUT = 30.0
@@ -56,13 +62,31 @@ class UlimitSpec(BaseModel):
 
 
 class VolumeSpec(BaseModel):
-    """One named bind mount."""
+    """One normalized Compose bind mount."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
+    type: Literal["bind"]
     source: MountSource
     target: AbsolutePath
     read_only: bool = False
+
+    @model_validator(mode="before")
+    @classmethod
+    def _expand_short_syntax(cls, value: object) -> object:
+        if not isinstance(value, str):
+            return value
+        parts = value.split(":")
+        if len(parts) not in (2, 3):
+            raise ValueError(f"volume {value!r} must be 'source:target' or 'source:target:ro|rw'")
+        if len(parts) == 3 and parts[2] not in ("ro", "rw"):
+            raise ValueError(f"volume {value!r} mode must be 'ro' or 'rw', got {parts[2]!r}")
+        return {
+            "type": "bind",
+            "source": parts[0],
+            "target": parts[1],
+            "read_only": len(parts) == 3 and parts[2] == "ro",
+        }
 
 
 class SecretSpec(BaseModel):
@@ -116,7 +140,7 @@ class ContainerSpec(BaseModel):
     ipc: NonBlankString | None = None
     pids_limit: int | None = None
     ulimits: dict[NonBlankString, UlimitSpec] | None = None
-    volumes: dict[NonBlankString, VolumeSpec] | None = None
+    volumes: list[VolumeSpec] | None = None
     environment: dict[NonBlankString, str] | None = None
     secrets: dict[NonBlankString, SecretSpec] | None = None
     devices: list[NonBlankString] | None = None
@@ -136,14 +160,14 @@ class ContainerSpec(BaseModel):
 
 
 def configured_mounts(
-    volumes: Mapping[str, VolumeSpec] | None,
+    volumes: list[VolumeSpec] | None,
     *,
     placeholders: Mapping[str, str] | None = None,
 ) -> list[dict[str, object]]:
     """Translate configured volumes and resolve the explicitly allowed placeholders."""
     resolved: list[dict[str, object]] = []
     replacements = placeholders or {}
-    for volume in (volumes or {}).values():
+    for volume in volumes or []:
         source = volume.source
         if source.startswith("${"):
             try:

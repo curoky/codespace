@@ -44,10 +44,10 @@ def build(
                 hosts=[
                     ProjectHostSummary(
                         name=host_name,
-                        platform=placement.platform,
+                        platform=config.project_platform(project_id, host_name),
                         image=config.project_image(project_id, host_name),
                     )
-                    for host_name, placement in project.hosts.items()
+                    for host_name in project.hosts
                 ],
                 source=project.source.type,
                 repository=(

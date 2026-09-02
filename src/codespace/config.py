@@ -90,6 +90,8 @@ class HostConfig(FrozenModel):
 
     podman_socket: str | None = None
     forward_environment: list[EnvironmentName] = Field(default_factory=list)
+    platform: ImagePlatform | None = None
+    container: ContainerSpec | None = None
 
     def endpoint(self) -> HostEndpoint:
         return HostEndpoint(podman_socket=self.podman_socket)
@@ -237,18 +239,26 @@ class Config(FrozenModel):
         configured = self.projects[project]
         placement = configured.hosts[host]
         return self.project_defaults.container.merged_with(
+            self.hosts[host].container,
             configured.container,
             placement.container,
         )
 
     def resolved_service_container(self, service: str, host: str) -> ContainerSpec:
         configured = self.services[service]
-        return configured.container.merged_with(configured.hosts[host].container)
+        return ContainerSpec().merged_with(
+            self.hosts[host].container,
+            configured.container,
+            configured.hosts[host].container,
+        )
 
     def project_image(self, project: str, host: str) -> str:
         configured = self.projects[project]
         placement = configured.hosts[host]
         return placement.image or configured.image or self.project_defaults.image
+
+    def project_platform(self, project: str, host: str) -> ImagePlatform | None:
+        return self.projects[project].hosts[host].platform or self.hosts[host].platform
 
     def service_image(self, service: str, host: str) -> str:
         configured = self.services[service]
@@ -256,7 +266,6 @@ class Config(FrozenModel):
 
     def workspace_spec(self, project: str, host: str, workspace: str) -> WorkspaceSpec:
         configured = self.projects[project]
-        placement = configured.hosts[host]
         source = configured.source
         return WorkspaceSpec(
             project=project,
@@ -266,7 +275,7 @@ class Config(FrozenModel):
             repository=source.repository if isinstance(source, ProviderSource) else None,
             git_url=source.url if isinstance(source, GitSource) else None,
             clone_url=source.clone_url,
-            platform=placement.platform,
+            platform=self.project_platform(project, host),
             image=self.project_image(project, host),
             container=self.resolved_project_container(project, host),
             checkout_path=configured.resolved_checkout_path(),
@@ -309,12 +318,14 @@ class Config(FrozenModel):
         if reserved_environment:
             names = ", ".join(sorted(reserved_environment))
             raise ValueError(f"project {project!r} overrides reserved environment: {names}")
-        for name, volume in (container.volumes or {}).items():
+        for volume in container.volumes or []:
             if volume.source.startswith("${"):
-                raise ValueError(f"project volume {name!r} must use an absolute source")
+                raise ValueError(
+                    f"project volume targeting {volume.target!r} must use an absolute source"
+                )
             if any(_paths_overlap(volume.target, reserved) for reserved in _RESERVED_MOUNTS):
                 raise ValueError(
-                    f"project volume {name!r} overlaps reserved target {volume.target!r}"
+                    f"project volume targeting {volume.target!r} overlaps reserved mount target"
                 )
         for name, secret in (container.secrets or {}).items():
             if secret.mode == "env" and secret.target in _RESERVED_ENVIRONMENT:
@@ -334,10 +345,11 @@ class Config(FrozenModel):
         container: ContainerSpec,
     ) -> None:
         cls._validate_network(f"service {service!r}", host, container)
-        for name, volume in (container.volumes or {}).items():
+        for volume in container.volumes or []:
             if volume.source.startswith("${") and volume.source != SERVICE_DATA_PLACEHOLDER:
                 raise ValueError(
-                    f"service volume {name!r} uses unknown placeholder {volume.source!r}"
+                    f"service volume targeting {volume.target!r} uses unknown placeholder "
+                    f"{volume.source!r}"
                 )
 
 

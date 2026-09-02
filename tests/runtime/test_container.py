@@ -9,45 +9,79 @@ from codespace.runtime import container
 from codespace.runtime.container import ContainerSpec, SecretSpec, VolumeSpec
 
 
-def test_container_layers_replace_named_mappings() -> None:
+def test_container_layers_replace_lists_and_mappings() -> None:
     base = ContainerSpec(
         network_mode="host",
         environment={"BASE": "1"},
-        volumes={
-            "base": VolumeSpec(source="/host/base", target="/container/base"),
-        },
+        volumes=[
+            VolumeSpec(type="bind", source="/host/base", target="/container/base"),
+        ],
     )
     override = ContainerSpec(
         network_mode="bridge",
         environment={"PLACEMENT": "1"},
-        volumes={
-            "placement": VolumeSpec(
+        volumes=[
+            VolumeSpec(
+                type="bind",
                 source="/host/placement",
                 target="/container/placement",
             )
-        },
+        ],
     )
 
     resolved = base.merged_with(override)
 
     assert resolved.network_mode == "bridge"
     assert resolved.environment == {"PLACEMENT": "1"}
-    assert list(resolved.volumes or {}) == ["placement"]
+    assert [volume.source for volume in resolved.volumes or []] == ["/host/placement"]
 
 
 @pytest.mark.parametrize(
     "field",
     [
-        {"volumes": ["/host:/container"]},
         {"environment": ["NAME=value"]},
         {"secrets": ["token"]},
         {"ports": ["8080:80"]},
         {"ulimits": {"memlock": -1}},
     ],
 )
-def test_container_rejects_short_syntax(field: dict[str, object]) -> None:
+def test_container_rejects_unsupported_short_syntax(field: dict[str, object]) -> None:
     with pytest.raises(ValidationError):
         ContainerSpec.model_validate(field)
+
+
+def test_volume_short_and_long_syntax_are_normalized() -> None:
+    spec = ContainerSpec.model_validate(
+        {
+            "volumes": [
+                "/host/a:/container/a:ro",
+                {
+                    "type": "bind",
+                    "source": "/host/b",
+                    "target": "/container/b",
+                },
+            ]
+        }
+    )
+
+    assert spec.volumes is not None
+    assert [(volume.source, volume.target, volume.read_only) for volume in spec.volumes] == [
+        ("/host/a", "/container/a", True),
+        ("/host/b", "/container/b", False),
+    ]
+
+
+@pytest.mark.parametrize(
+    ("volume", "message"),
+    [
+        ("/only-one", "source:target"),
+        ("/host:/container:shared", "ro.*rw"),
+        ("relative:/container", "absolute path"),
+    ],
+)
+def test_volume_short_syntax_rejects_invalid_entries(volume: str, message: str) -> None:
+    with pytest.raises(ValidationError, match=message):
+        ContainerSpec.model_validate({"volumes": [volume]})
 
 
 def test_secret_modes_are_strict() -> None:
@@ -61,9 +95,9 @@ def test_secret_modes_are_strict() -> None:
 
 
 def test_configured_mounts_resolves_only_known_placeholder() -> None:
-    volumes = {
-        "data": VolumeSpec(source="${SERVICE_DATA}", target="/data"),
-    }
+    volumes = [
+        VolumeSpec(type="bind", source="${SERVICE_DATA}", target="/data"),
+    ]
 
     assert container.configured_mounts(
         volumes,
