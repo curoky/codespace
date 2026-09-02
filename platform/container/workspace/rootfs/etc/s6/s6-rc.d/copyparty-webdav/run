@@ -2,8 +2,8 @@
 
 s6-envdir -Lf -- /run/s6/container_environment
 
-fdmove -c 2 1
 redirfd -w 1 /var/log/copyparty-webdav.log
+fdmove -c 2 1
 
 importas -D 127.0.0.1 WEBDAV_BIND SSHD_BIND
 

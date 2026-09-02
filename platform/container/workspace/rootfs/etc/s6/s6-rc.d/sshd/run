@@ -2,8 +2,8 @@
 
 s6-envdir -Lf -- /run/s6/container_environment
 
-fdmove -c 2 1
 redirfd -w 1 /var/log/sshd.stdout.log
+fdmove -c 2 1
 
 # Read SSHD_PORT from the now-loaded environment into an execline variable so it
 # can be substituted into the exec line below (execline expands $vars itself).

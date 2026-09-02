@@ -2,7 +2,7 @@
 
 s6-envdir -Lf -- /run/s6/container_environment
 
-fdmove -c 2 1
 redirfd -w 1 /var/log/workspace-agent.log
+fdmove -c 2 1
 
 exec /opt/codespace/agent/.venv/bin/python /opt/codespace/agent/agent.py
