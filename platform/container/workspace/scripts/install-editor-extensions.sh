@@ -1,15 +1,7 @@
 #!/usr/bin/env bash
 
-# 构建期预装 VSCode Remote 扩展。
-#
-# 官方 VSCode Remote-SSH 会在远端 ~/.vscode-server 下放一份 reh（remote extension
-# host）server，并把扩展装到 ~/.vscode-server/extensions。运行期 control plane 会把
-# host cache 下的对应目录直接挂载到 ~/.vscode-server 等路径，因此扩展不能直接烤进
-# 镜像中的这些目录。
-#
-# 本脚本在构建期用官方 code-server 把 extensions.txt 里的扩展装进一份镜像内的参考副本
-# （默认 /opt/editor-extensions/extensions），运行期由 seed-editor-extensions 播种到
-# 各 IDE server 的工作区扩展目录。server 二进制只是构建期一次性工具，装完即弃。
+# 构建 immutable VSCode Remote extension template。运行期持久 mount 会遮蔽 IDE
+# extension 目录，因此 template 独立于 image home；code-server 仅作构建工具。
 
 set -xeuo pipefail
 
@@ -38,8 +30,7 @@ mkdir -p "$tmp/server"
 tar -xzf "$tmp/vscode-server.tar.gz" -C "$tmp/server" --strip-components=1
 code_server="$tmp/server/bin/code-server"
 
-# UI/客户端专属扩展（remote-ssh、主题、keymap 等）不进 remote server，由 extensions.txt
-# 直接排除——该文件是唯一事实来源，本脚本不再二次过滤。
+# 清单只包含 remote extension；本脚本不做二次分类。
 
 extensions_dir="$dest_dir/extensions"
 mkdir -p "$extensions_dir"
@@ -52,7 +43,7 @@ while IFS= read -r line || [[ -n $line ]]; do
   ids+=("$id")
 done <"$ext_list"
 
-# 隔离到临时 HOME，避免 server 把默认 user-data / 日志写进 /home/x（首启会被清理，且会污染镜像）。
+# 隔离 build tool state，避免污染 image home。
 run_install() {
   env HOME="$tmp/home" "$code_server" \
     --extensions-dir "$extensions_dir" \
@@ -60,7 +51,7 @@ run_install() {
     "$@"
 }
 
-# code-server 支持一次传多个 --install-extension；批量失败时逐个兜底，坏掉的扩展不阻塞其余。
+# 批量失败时逐个重试，单个不可用 extension 不阻塞其余项。
 batch_args=()
 for id in "${ids[@]}"; do
   batch_args+=("--install-extension" "$id")

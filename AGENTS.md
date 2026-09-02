@@ -42,5 +42,8 @@ Codespace 在一个 monorepo 中提供可复现的个人开发 Workspace、Host 
 不变量，复杂流程放同目录 `DESIGN.md`。不要在文档中复制 API、环境变量、版本或文件
 清单。
 
+代码注释只解释当前实现中无法直接读出的意图与约束，不记录演化历史，也不以“参见”
+其他文件代替本地说明。跨文件导航集中放在 `AGENTS.md`，由它单向索引同目录专题文档。
+
 使用 `task --list` 查看入口，提交前运行 `task check`。目录按领域组织，不增加无明确
 ownership 的 `common`、`utils` 或 compatibility package；不要修改无关的用户或远端状态。

@@ -1,8 +1,7 @@
 #!/bin/sh -e
 
-# Stage 2: runs once the s6 supervision tree (s6-svscan) is up.
-# Based on the container + s6-rc path of the upstream s6-linux-init rc.init
-# template: initialize the service manager, then bring up the wanted runlevel.
+# Initialize s6-rc after the supervision tree is ready, then bring up the
+# requested bundle.
 
 # rc.init is forked by stage 1 and does not reliably inherit the init's baked
 # PATH, so the s6 / execline tools (s6-rc-init, s6-rc, ...) would not be found.
@@ -16,9 +15,7 @@ chgrp -R 5230 /run/s6/container_environment
 chmod 0750 /run/s6/container_environment
 find /run/s6/container_environment -type f -exec chmod 0640 {} +
 
-# DEBUG: trace every command; with maker's -1, this output is copied to init's
-# stderr (i.e. `docker logs`). Remove `set -x` and the echo markers once boot
-# is confirmed working.
+# Emit stage-2 progress to the container log.
 set -x
 echo "rc.init: stage 2 starting, runlevel=$1 args=$*"
 
@@ -32,8 +29,6 @@ s6-rc-init -c /etc/s6/db /run/service
 
 # 2. Start the wanted set of services by bringing up the bundle named after the
 #    runlevel ($rl, the maker's `default` bundle unless an image overrides it).
-#    Workspace Agent activation is gated by CODESPACE_SOURCE_TYPE. The maker no
-#    longer ships a separate scripts/runlevel helper, so call s6-rc directly.
 echo "rc.init: bringing up runlevel $rl"
 s6-rc -v2 -up change "$rl"
 

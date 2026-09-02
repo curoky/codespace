@@ -1,14 +1,10 @@
 # SGLang built from source for 8x H100 (SM 9.0) against CUDA 13.0.
 #
-# 与 platform/container/frameworks/AGENTS.md 公共契约一致：从源码编译的开发依赖镜像，产出可
-# `import sglang` 的可运行镜像（无 s6、无 serving entrypoint）。
+# 产出可直接 `import sglang` 的 framework image，不包含 s6 或 serving entrypoint。
 #
-# 版本组合（即文件名声明）：sglang v0.5.18，CUDA 13.0.1，gcc-12，Python 3.12，
-# 依赖 torch==2.13.0。CUDA 13 正是 sglang v0.5.18 的默认目标（cu130），依赖直接走
-# cu13 索引，无需 cu12.9 版本里的 cu13 清理逻辑。
+# Upstream 依赖与 cu130 目标一致，无需 backend 归一化。
 #
-# 注意：CUDA 13 运行需 host driver >=580；本机 driver 535 可编译但无法运行（本机
-# 可运行版本见同目录 cu12.9.1 文件）。
+# CUDA 13 runtime Host 需要 driver >=580；driver 535 只能构建，不能运行。
 #
 # 装配决策：在 cuda(Ubuntu 24.04) devel stage 内安装（glibc 与 toolkit 匹配），
 # venv 再 COPY 进 debian:trixie-slim final。

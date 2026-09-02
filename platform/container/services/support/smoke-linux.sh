@@ -22,9 +22,6 @@ if podman container exists "${name}"; then
   podman rm -f "${name}" >/dev/null
 fi
 
-# supercronic runs image prewarm on a hardcoded schedule: it pulls a hardcoded
-# image list and prunes dangling images (see rootfs/etc/supercronic/crontab and
-# rootfs/opt/codespace/support/{pull,prune}-images.sh).
 podman run --detach \
   --name "${name}" \
   --network host \

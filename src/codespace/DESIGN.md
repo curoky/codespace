@@ -87,12 +87,11 @@ $HOME/codespace/
 ```
 
 普通 Workspace 把 host `workspace/` bind 到 `/workspace`。加密 Workspace 把同一路径 bind 到
-`/workspace.enc`，由镜像内 gocryptfs 挂载明文 `/workspace`。`upload/`、`cache/` 与五个 IDE home
-下的 `bin`、`extensions` 子目录始终明文。`control/` 权限为 `0700`，保存
-`provider-ready` 和 `agent.sock`。
+`/workspace.enc`，由镜像内 gocryptfs 挂载明文 `/workspace`。`upload/`、`cache/` 与 IDE runtime
+目录始终明文。`control/` 权限为 `0700`，保存 provider readiness 与 Agent UDS。
 
-Service 不拥有 Workspace mount、SSH 投影或 repository credential。`${SERVICE_DATA}` 仅在 Service volume
-source 中解析为 `~/codespace/services/<service>`。
+Service 不拥有 Workspace mount、SSH 投影或 repository credential。Service volume 只能通过受控
+placeholder 引用自己的 managed data root。
 
 ## Workspace Create
 
@@ -105,13 +104,13 @@ sequenceDiagram
     participant Agent
     participant Provider
 
-    User->>API: POST /api/projects/P/workspaces
-    API->>Manager: queue_create(P, H, W)
-    Manager-->>API: 202 queued
+    User->>API: create Workspace
+    API->>Manager: queue lifecycle operation
+    Manager-->>API: accepted
     Manager->>Host: validate inventory and SSH port
     Manager->>Host: read forwarded env, pull image, prepare paths
     Manager->>Host: clear provider-ready and create container
-    Manager->>Agent: GET /status over forwarded UDS
+    Manager->>Agent: read status over forwarded UDS
     opt GitHub or GitLab source
         Agent-->>Manager: awaiting-provider + public key
         Manager->>Provider: register deploy key
@@ -125,9 +124,9 @@ sequenceDiagram
 
 ## Workspace Delete
 
-Git-backed Workspace 在 `force=false` 时通过 Agent `/git-state` 做只读预检。停止状态不会被启动用于检查；
-调用方必须显示数据丢失风险后显式 `force=true`。Provider key 撤销必须先成功，之后才允许删除容器或数据。
-`purge=false` 保留 Workspace 数据，`purge=true` 删除完整 Workspace 根目录。
+Git-backed Workspace 默认通过 Agent 做只读 Git state 预检。停止状态不会被启动用于检查；
+调用方必须显示数据丢失风险后显式强制删除。Provider key 撤销必须先成功，之后才允许
+删除容器或数据；是否清理完整 Workspace 数据由调用方明确选择。
 
 ## Service Apply
 
@@ -139,31 +138,23 @@ sequenceDiagram
     participant Host
     participant Podman
 
-    User->>API: POST /api/services/S/hosts/H/apply
-    API->>Manager: queue_apply(S, H)
+    User->>API: apply Service
+    API->>Manager: queue lifecycle operation
     Manager->>Podman: pull configured image
     Manager->>Host: create Service data root
     Manager->>Podman: remove deterministic old container
     Manager->>Podman: create with restart=unless-stopped
 ```
 
-重复 apply 收敛到当前配置。remove 只删容器；`purge=true` 再删托管 Service 数据。
+重复 apply 收敛到当前配置。remove 默认只删容器，显式 purge 才删除 managed Service data。
 
 ## Workspace Agent
 
-Agent 只监听 `/run/codespace-control/agent.sock`：
-
-| Method | Path | Result |
-| --- | --- | --- |
-| `GET` | `/status` | `{state, public_key, error}` |
-| `GET` | `/git-state` | `{unpushed, uncommitted, detail}` |
-
-状态仅为 `starting`、`awaiting-provider`、`ready`、`failed`。控制面只传 source、clone URL、
-checkout/open path，不传 provider token。private key 不离开 Workspace 容器。readiness 后仍执行完整 SSH
-登录探测。
+Agent 只监听 Workspace control UDS，向控制面提供 bootstrap readiness、deploy public key
+与只读 Git state。控制面只传 source 与 checkout specification，不传 provider token；
+private key 不离开 Workspace。Agent ready 后控制面仍执行完整 SSH 登录探测。
 
 ## Maintenance
 
-`secrets sync`、`workspaces prune`、`deploy-keys prune` 都先跨 Host 或 repository 生成完整计划，再由
-`--apply` 执行。单个目标失败必须隔离并进入最终错误汇总；维护逻辑直接复用 Config、inventory、provider、
-Host 和 Podman 原语，不经过 HTTP。
+维护命令先跨 Host 或 repository 生成完整计划，再由显式 apply 执行。单个目标失败必须隔离并进入
+最终错误汇总；维护逻辑直接复用 Config、inventory、provider、Host 和 Podman 原语，不经过 HTTP。

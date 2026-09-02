@@ -1,7 +1,6 @@
 # Container Platform
 
-`platform/container/` 拥有所有 OCI image source。构建 context 固定为仓库根；
-image family、tag、版本和 build matrix 以 build script、Dockerfile 与 workflow 为准。
+`platform/container/` 拥有所有 OCI image source，构建 context 固定为仓库根。
 
 ## 边界
 
@@ -13,4 +12,4 @@ image family、tag、版本和 build matrix 以 build script、Dockerfile 与 wo
 - 每个 leaf 只有一个本地构建入口，必须解析仓库根、校验参数并传播构建失败。
 - 不提交生成的 venv、cache、database 或 image artifact，也不发布兼容 tag。
 
-修改 Workspace s6 bootstrap 时必须检查所有 Service 消费方。
+Workspace s6 bootstrap 的变化必须在所有 Service image 上验证。
