@@ -58,8 +58,8 @@ task check
 - `published_ports` 使用 `remote` 或 `local:remote`；workspace 仅允许在 bridge network 发布端口。
 - `sidecar` deployment 通过 `container.environment.ATUIN_PORT` 配置 Atuin 端口（默认 `8002`）；bridge
   network 下 `published_ports` 的容器端口必须与其一致。
-- `llm-vllm` 与 `llm-sglang` deployment 使用 host network，不声明 `published_ports`，并通过
-  `LLM_HOST=127.0.0.1` 将 API 限制在宿主 loopback。
+- `vllm` 与 `sglang` deployment 使用 host network，不声明 `published_ports`，并通过
+  `SERVE_HOST=127.0.0.1` 将 API 限制在宿主 loopback。
 - 用户 volume 不得与 `/workspace`、`/workspace.enc`、`/upload`、`/cache`、
   `/run/codespace-control` 以及 `/home/x/` 下五个受管 IDE目录（`.vscode-server`、`.trae`、`.trae-cn`、
   `.trae-server`、`.trae-cn-server`）相同或形成父子覆盖。
@@ -144,7 +144,7 @@ OpenAPI 页面、远程监听或多 worker。
 
 - 先修改 [`DESIGN.md`](DESIGN.md) 中受影响的边界或流程，再同步代码、测试和本文约束。
 - 修改开发镜像 host contract 时同步更新 [`../images/dev/AGENTS.md`](../images/dev/AGENTS.md)；
-  修改 sidecar 或 LLM deployment 时同步对应目录的 `AGENTS.md`。
+  修改 sidecar 或 serving deployment 时同步对应目录的 `AGENTS.md`。
 - 一次性同步、清理和修复操作放进 `tools/` 的单用途 Python CLI，不增加 Web endpoint、UI state 或
   常驻后台任务；跨 host 并发、表格与告警/错误输出统一走 `tools/support.py`。
 - 优先测试公开行为和跨模块契约，不绑定私有实现。

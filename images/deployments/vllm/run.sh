@@ -6,11 +6,11 @@
 
 set -euo pipefail
 
-deployment="llm-vllm"
+deployment="vllm"
 name="codespace-${deployment}"
-image="ghcr.io/curoky/devspace:${deployment}"
-port="${LLM_PORT:-8003}"
-listen_host="${LLM_HOST:-127.0.0.1}"
+image="ghcr.io/curoky/devspace:deployments-${deployment}"
+port="${SERVE_PORT:-8003}"
+listen_host="${SERVE_HOST:-127.0.0.1}"
 hf_home="${HF_HOME:-${HOME}/codespace/deployments/${deployment}}"
 
 mkdir -p "${hf_home}"
@@ -18,8 +18,8 @@ mkdir -p "${hf_home}"
 podman pull "${image}"
 
 # The two engines consume all GPUs and share the API port, so starting either
-# one replaces any existing LLM deployment, including the legacy container.
-for existing_name in codespace-llm codespace-llm-vllm codespace-llm-sglang; do
+# one replaces any existing serving deployment.
+for existing_name in codespace-vllm codespace-sglang; do
   if podman container exists "${existing_name}"; then
     podman rm -f "${existing_name}" >/dev/null
   fi
@@ -41,15 +41,15 @@ podman run --detach \
   --ipc host \
   --volume "${hf_home}:/root/.cache/huggingface" \
   --env "HF_HOME=/root/.cache/huggingface" \
-  --env "LLM_HOST=${listen_host}" \
-  --env "LLM_PORT=${port}" \
-  --env "LLM_MODEL=${LLM_MODEL:-Qwen/Qwen3.8-Flash-Next-FP8}" \
-  --env "LLM_EXTRA_ARGS=${LLM_EXTRA_ARGS:-}" \
+  --env "SERVE_HOST=${listen_host}" \
+  --env "SERVE_PORT=${port}" \
+  --env "SERVE_MODEL=${SERVE_MODEL:-Qwen/Qwen3.8-Flash-Next-FP8}" \
+  --env "SERVE_EXTRA_ARGS=${SERVE_EXTRA_ARGS:-}" \
   --label codespace.deployment=true \
   --label "codespace.deployment-id=${deployment}" \
   --label "codespace.image=${image}" \
   "${optional_env_args[@]}" \
   "${image}"
 
-echo "LLM deployment '${deployment}' is starting on http://${listen_host}:${port}."
+echo "Deployment '${deployment}' is starting on http://${listen_host}:${port}."
 echo "Watch startup with: podman logs -f ${name}"

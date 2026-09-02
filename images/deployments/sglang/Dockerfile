@@ -104,42 +104,57 @@ RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs
 # tree. Because cu12 and cu13 co-own the cudnn/cusparselt/nccl/nvshmem dirs,
 # uninstalling cu13 also deletes the shared .so files torch needs, so we then
 # reinstall those four cu12 libs to repair torch (otherwise `import torch` dies
-# with `libcudnn.so.9: cannot open shared object file`). Finally drop the sglang
-# .git history (only needed to build) and assert torch still reports CUDA 12.x.
+# with `libcudnn.so.9: cannot open shared object file`). torchcodec (a transitive
+# sglang dep used by the multimodal ASR processors) is a non-nvidia package so it
+# survives the cu13 purge, but its prebuilt libtorchcodec_core*.so link against
+# `libnvrtc.so.13` -- provided only by the now-removed nvidia-cuda-nvrtc-cu13 --
+# so at import time sglang logs `OSError: libnvrtc.so.13: cannot open shared
+# object file` and skips those processors. Force-reinstall torchcodec from the
+# cu129 index alongside the four cu12 libs so it resolves to the cu12 build that
+# links `libnvrtc.so.12` and pulls nvidia-cuda-nvrtc-cu12 back in. Finally drop
+# the sglang .git history (only needed to build) and assert torch still reports
+# CUDA 12.x.
 ARG SGLANG_REF=pull/36497/head
 ARG CUDA_TAG=cu129
 ARG TORCH_SPEC="torch==2.13.0 torchvision==0.28.0 torchaudio==2.11.0"
 ARG SGLANG_BUILD_RUST_EXTS=none
-ENV LLM_VENV=/opt/llm/venv
-RUN /opt/bm/bin/uv venv "${LLM_VENV}" --python 3.12 \
-  && git clone --filter=blob:none https://github.com/sgl-project/sglang.git /opt/llm/sglang \
-  && git -C /opt/llm/sglang fetch origin "${SGLANG_REF}" \
-  && git -C /opt/llm/sglang checkout FETCH_HEAD \
-  && LLM_UV="/opt/bm/bin/uv pip install --python ${LLM_VENV}/bin/python" \
+ENV SERVE_VENV=/opt/sglang/venv
+# UV_LINK_MODE=copy: uv defaults to hardlinking cached files into the venv, but
+# we delete /root/.cache/uv in the same layer, so copy the files in instead to
+# keep the venv self-contained after the cache is dropped.
+ENV UV_LINK_MODE=copy
+RUN /opt/bm/bin/uv venv "${SERVE_VENV}" --python 3.12 \
+  && git clone --filter=blob:none https://github.com/sgl-project/sglang.git /opt/sglang/sglang \
+  && git -C /opt/sglang/sglang fetch origin "${SGLANG_REF}" \
+  && git -C /opt/sglang/sglang checkout FETCH_HEAD \
+  && SERVE_UV="/opt/bm/bin/uv pip install --python ${SERVE_VENV}/bin/python" \
   && SGLANG_BUILD_RUST_EXTS="${SGLANG_BUILD_RUST_EXTS}" \
-       ${LLM_UV} --prerelease=allow -e /opt/llm/sglang/python \
-  && ${LLM_UV} --force-reinstall ${TORCH_SPEC} \
+       ${SERVE_UV} --prerelease=allow -e /opt/sglang/sglang/python \
+  && ${SERVE_UV} --force-reinstall ${TORCH_SPEC} \
        --index-url "https://download.pytorch.org/whl/${CUDA_TAG}" \
-  && ${LLM_UV} --force-reinstall sglang-kernel \
+  && ${SERVE_UV} --force-reinstall sglang-kernel \
        --index-url "https://docs.sglang.ai/whl/${CUDA_TAG}/" \
-  && ${LLM_UV} --force-reinstall sgl-deep-gemm --no-deps \
+  && ${SERVE_UV} --force-reinstall sgl-deep-gemm --no-deps \
        --index-url "https://docs.sglang.ai/whl/${CUDA_TAG}/" \
-  && CU13_PKGS="$(ls -d ${LLM_VENV}/lib/python3.12/site-packages/*.dist-info \
+  && CU13_PKGS="$(ls -d ${SERVE_VENV}/lib/python3.12/site-packages/*.dist-info \
        | sed 's#.*/##;s/.dist-info//' \
        | awk -F- '/^nvidia/ {name=$1; ver=$2; if (ver ~ /^13\./ || name ~ /_cu13$/) print name}' \
        | grep -vE 'nvidia_ml_py')" \
-  && for p in ${CU13_PKGS}; do /opt/bm/bin/uv pip uninstall --python ${LLM_VENV}/bin/python "$p"; done \
-  && rm -rf ${LLM_VENV}/lib/python3.12/site-packages/nvidia/cu13 \
-  && ${LLM_UV} --reinstall --index-url "https://download.pytorch.org/whl/${CUDA_TAG}" \
+  && for p in ${CU13_PKGS}; do /opt/bm/bin/uv pip uninstall --python ${SERVE_VENV}/bin/python "$p"; done \
+  && rm -rf ${SERVE_VENV}/lib/python3.12/site-packages/nvidia/cu13 \
+  && ${SERVE_UV} --reinstall --index-url "https://download.pytorch.org/whl/${CUDA_TAG}" \
        nvidia-cudnn-cu12 nvidia-cusparselt-cu12 nvidia-nccl-cu12 nvidia-nvshmem-cu12 \
-  && rm -rf /opt/llm/sglang/.git \
-  && ${LLM_VENV}/bin/python -c "import torch; assert torch.version.cuda.startswith('12'), torch.version.cuda"
+       torchcodec \
+  && rm -rf /opt/sglang/sglang/.git \
+  && ${SERVE_VENV}/bin/python -c "import torch; assert torch.version.cuda.startswith('12'), torch.version.cuda" \
+  && ${SERVE_VENV}/bin/python -c "import torchcodec.decoders" \
+  && rm -rf /root/.cache/uv
 
-ENV PATH="/opt/llm/venv/bin:/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:$PATH"
+ENV PATH="/opt/sglang/venv/bin:/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:$PATH"
 
 COPY images/dev/rootfs/etc/s6/skel /etc/s6/skel
 COPY images/deployments/sglang/rootfs/ /
-RUN chmod +x /opt/llm/serve.sh
+RUN chmod +x /opt/sglang/serve.sh
 COPY images/dev/script/setup-s6.sh /tmp/setup-s6.sh
 RUN /tmp/setup-s6.sh
 

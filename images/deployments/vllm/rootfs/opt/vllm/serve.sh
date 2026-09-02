@@ -11,25 +11,25 @@
 # 只有部署环境相关的 model/host/port 保留为环境变量。
 #
 # Environment knobs:
-#   LLM_MODEL        model id or local path (default Qwen/Qwen3.8-Flash-Next-FP8)
-#   LLM_HOST         bind address inside the container (default 0.0.0.0)
-#   LLM_PORT         OpenAI API port inside the container (default 8003)
-#   LLM_EXTRA_ARGS   extra flags appended verbatim to the engine command
+#   SERVE_MODEL      model id or local path (default Qwen/Qwen3.8-Flash-Next-FP8)
+#   SERVE_HOST       bind address inside the container (default 0.0.0.0)
+#   SERVE_PORT       OpenAI API port inside the container (default 8003)
+#   SERVE_EXTRA_ARGS extra flags appended verbatim to the engine command
 #
-# 显存紧张时经 LLM_EXTRA_ARGS 降 --max-model-len / --gpu-memory-utilization，或设
+# 显存紧张时经 SERVE_EXTRA_ARGS 降 --max-model-len / --gpu-memory-utilization，或设
 # VLLM_PLE_CPU_OFFLOAD=1 把 51B N-gram 表卸到主机内存（需大内存 host）。
 
 set -euo pipefail
 
-model="${LLM_MODEL:-Qwen/Qwen3.8-Flash-Next-FP8}"
-host="${LLM_HOST:-0.0.0.0}"
-port="${LLM_PORT:-8003}"
+model="${SERVE_MODEL:-Qwen/Qwen3.8-Flash-Next-FP8}"
+host="${SERVE_HOST:-0.0.0.0}"
+port="${SERVE_PORT:-8003}"
 
-read -r -a extra_args <<<"${LLM_EXTRA_ARGS:-}"
+read -r -a extra_args <<<"${SERVE_EXTRA_ARGS:-}"
 
 # The inference stack lives in a dedicated venv; the s6-generated init PATH does
 # not include it, so reference the venv binary explicitly.
-venv_bin="${LLM_VENV:-/opt/llm/venv}/bin"
+venv_bin="${SERVE_VENV:-/opt/vllm/venv}/bin"
 
 exec "${venv_bin}/vllm" serve "${model}" \
   --host "${host}" \
@@ -42,7 +42,7 @@ exec "${venv_bin}/vllm" serve "${model}" \
   --moe-backend triton \
   `# 使用模型原生 262144 上下文` \
   --max-model-len 262144 \
-  `# 静态显存占比 0.85（对齐官方 8x H100 recipe，给 Mamba/GDN state 与 activation 留余量），OOM 时经 LLM_EXTRA_ARGS 再调小` \
+  `# 静态显存占比 0.85（对齐官方 8x H100 recipe，给 Mamba/GDN state 与 activation 留余量），OOM 时经 SERVE_EXTRA_ARGS 再调小` \
   --gpu-memory-utilization 0.85 \
   `# 关闭 flashinfer autotune：Qwen3.8-Flash-Next 官方 recipe 要求，避免启动期长时间自动调优` \
   --no-enable-flashinfer-autotune \

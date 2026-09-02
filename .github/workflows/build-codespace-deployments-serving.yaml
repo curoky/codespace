@@ -1,9 +1,9 @@
-name: Build codespace LLM serving images
+name: Build codespace deployments serving images
 
 on:
   push:
     paths:
-      - '.github/workflows/build-codespace-llm.yaml'
+      - '.github/workflows/build-codespace-deployments-serving.yaml'
       - 'images/deployments/vllm/**'
       - 'images/deployments/sglang/**'
       - 'images/dev/rootfs/etc/s6/skel/**'
@@ -41,4 +41,4 @@ jobs:
           provenance: false
           platforms: linux/amd64
           no-cache: ${{ github.event_name == 'schedule' }}
-          tags: ghcr.io/curoky/devspace:llm-${{ matrix.engine }}
+          tags: ghcr.io/curoky/devspace:deployments-${{ matrix.engine }}

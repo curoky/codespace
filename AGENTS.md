@@ -57,7 +57,7 @@
   并校验控制面及 agent 两个 uv lock。
 - `build-codespace-image.yaml`：原生 amd64/arm64 runner 构建并合并多架构开发镜像。
 - `build-codespace-sidecar.yaml`：发布 `ghcr.io/curoky/devspace:codespace-sidecar`。
-- `build-codespace-llm.yaml`：matrix 构建推送仅 amd64 的 `llm-vllm`、`llm-sglang` LLM serving 镜像。
+- `build-codespace-deployments-serving.yaml`：matrix 构建推送仅 amd64 的 `deployments-vllm`、`deployments-sglang` serving 镜像。
 - `build-codespace-wsl.yaml`：以 dev 镜像为 base 二次处理，单 job 构建推送多架构 `codespace-wsl`，
   再按 arch 导出 `devspace-<arch>.wsl` artifact。
 - `delete-untagged-images.yaml`：清理 GHCR 无 tag 镜像。
