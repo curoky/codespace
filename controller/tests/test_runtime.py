@@ -874,8 +874,8 @@ def test_deployment_and_environment_inventory_use_disjoint_filters() -> None:
 # --- Deployment container creation and lifecycle -----------------------------
 
 
-def _llm_deployment_config() -> Config:
-    """A deployment catalog exercising the LLM container shape (ipc/devices/data)."""
+def _serving_deployment_config() -> Config:
+    """A deployment catalog exercising the serving container shape (ipc/devices/data)."""
     return Config.model_validate(
         {
             "workspaces": {
@@ -892,10 +892,10 @@ def _llm_deployment_config() -> Config:
                     "devspace": {"host": [{"name": "gpu"}], "provider": "github", "repo": "o/r"}
                 },
             },
-            "hosts": {"gpu": {"deployments": ["llm-vllm"]}},
+            "hosts": {"gpu": {"deployments": ["vllm"]}},
             "deployments": {
-                "llm-vllm": {
-                    "image": "llm-vllm:latest",
+                "vllm": {
+                    "image": "deployments-vllm:latest",
                     "published_ports": ["8003:8003"],
                     "container": {
                         "network_mode": "bridge",
@@ -904,7 +904,7 @@ def _llm_deployment_config() -> Config:
                         "ulimits": {},
                         "devices": ["nvidia.com/gpu=all"],
                         "volumes": ["${DEPLOYMENT_DATA}:/root/.cache/huggingface"],
-                        "environment": ["HF_HOME=/root/.cache/huggingface", "LLM_PORT=8003"],
+                        "environment": ["HF_HOME=/root/.cache/huggingface", "SERVE_PORT=8003"],
                     },
                 }
             },
@@ -912,11 +912,11 @@ def _llm_deployment_config() -> Config:
     )
 
 
-def test_create_deployment_container_translates_llm_run_options(
+def test_create_deployment_container_translates_serving_run_options(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    config = _llm_deployment_config()
-    spec = config.deployment_spec("llm-vllm", "gpu")
+    config = _serving_deployment_config()
+    spec = config.deployment_spec("vllm", "gpu")
     calls: list[tuple[str, dict[str, object]]] = []
 
     monkeypatch.setattr(engine, "Container", FakeContainer)
@@ -925,12 +925,12 @@ def test_create_deployment_container_translates_llm_run_options(
     container_runtime.create_deployment_container(
         client,  # type: ignore[arg-type]
         spec,
-        "/home/x/codespace/deployments/llm-vllm",
+        "/home/x/codespace/deployments/vllm",
     )
 
     image, kwargs = calls[0]
-    assert image == "llm-vllm:latest"
-    assert kwargs["name"] == "codespace-llm-vllm"
+    assert image == "deployments-vllm:latest"
+    assert kwargs["name"] == "codespace-vllm"
     assert kwargs["network_mode"] == "bridge"
     assert kwargs["ipc_mode"] == "host"
     assert "shm_size" not in kwargs
@@ -939,7 +939,7 @@ def test_create_deployment_container_translates_llm_run_options(
     assert kwargs["restart_policy"] == {"Name": "unless-stopped"}
     assert kwargs["environment"] == {
         "HF_HOME": "/root/.cache/huggingface",
-        "LLM_PORT": "8003",
+        "SERVE_PORT": "8003",
     }
     # The development-only global defaults are overridden away for a deployment.
     assert kwargs["cap_add"] == []
@@ -947,13 +947,13 @@ def test_create_deployment_container_translates_llm_run_options(
     labels = kwargs["labels"]
     assert isinstance(labels, dict)
     assert labels[LABEL_DEPLOYMENT] == "true"
-    assert labels[LABEL_DEPLOYMENT_ID] == "llm-vllm"
+    assert labels[LABEL_DEPLOYMENT_ID] == "vllm"
     assert LABEL_MANAGED not in labels
     # The ${DEPLOYMENT_DATA} source resolves to the managed per-id data root.
     assert kwargs["mounts"] == [
         {
             "type": "bind",
-            "source": "/home/x/codespace/deployments/llm-vllm",
+            "source": "/home/x/codespace/deployments/vllm",
             "target": "/root/.cache/huggingface",
             "read_only": False,
         }
@@ -963,8 +963,8 @@ def test_create_deployment_container_translates_llm_run_options(
 def test_create_deployment_container_rejects_unknown_placeholder(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    config = _llm_deployment_config()
-    spec = config.deployment_spec("llm-vllm", "gpu")
+    config = _serving_deployment_config()
+    spec = config.deployment_spec("vllm", "gpu")
     bad = replace(
         spec,
         container=spec.container.model_copy(
@@ -980,15 +980,15 @@ def test_create_deployment_container_rejects_unknown_placeholder(
         container_runtime.create_deployment_container(
             client,  # type: ignore[arg-type]
             bad,
-            "/home/x/codespace/deployments/llm-vllm",
+            "/home/x/codespace/deployments/vllm",
         )
 
 
 def test_reconcile_replaces_existing_container_and_prepares_data(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    config = _llm_deployment_config()
-    spec = config.deployment_spec("llm-vllm", "gpu")
+    config = _serving_deployment_config()
+    spec = config.deployment_spec("vllm", "gpu")
     stages: list[str] = []
     removed: list[bool] = []
     prepared: list[list[str]] = []
@@ -1027,8 +1027,8 @@ def test_reconcile_replaces_existing_container_and_prepares_data(
     )
 
     assert removed == [True]
-    assert prepared == [["/home/x/codespace/deployments/llm-vllm"]]
-    assert created == ["codespace-llm-vllm"]
+    assert prepared == [["/home/x/codespace/deployments/vllm"]]
+    assert created == ["codespace-vllm"]
     assert stages[0].startswith("pulling image")
     assert "creating container" in stages
 
@@ -1036,8 +1036,8 @@ def test_reconcile_replaces_existing_container_and_prepares_data(
 def test_teardown_removes_container_and_optionally_purges_data(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    config = _llm_deployment_config()
-    spec = config.deployment_spec("llm-vllm", "gpu")
+    config = _serving_deployment_config()
+    spec = config.deployment_spec("vllm", "gpu")
     removed: list[object] = []
     purged: list[tuple[str, str, str]] = []
 
@@ -1071,9 +1071,9 @@ def test_teardown_removes_container_and_optionally_purges_data(
     assert removed == [found]
     assert purged == [
         (
-            "llm-vllm:latest",
+            "deployments-vllm:latest",
             "/home/x/codespace/deployments",
-            "/home/x/codespace/deployments/llm-vllm",
+            "/home/x/codespace/deployments/vllm",
         )
     ]
 
@@ -1081,8 +1081,8 @@ def test_teardown_removes_container_and_optionally_purges_data(
 def test_teardown_reports_missing_container_without_purge(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    config = _llm_deployment_config()
-    spec = config.deployment_spec("llm-vllm", "gpu")
+    config = _serving_deployment_config()
+    spec = config.deployment_spec("vllm", "gpu")
 
     monkeypatch.setattr(deployment_ops.inventory, "find_deployment_container", lambda *a, **k: None)
     monkeypatch.setattr(
@@ -1113,12 +1113,12 @@ def _summary_config() -> Config:
                 },
             },
             "hosts": {
-                "gpu": {"deployments": ["llm-vllm", "sidecar"]},
+                "gpu": {"deployments": ["vllm", "sidecar"]},
                 "edge": {"deployments": ["sidecar"]},
             },
             "deployments": {
-                "llm-vllm": {
-                    "image": "llm-vllm:latest",
+                "vllm": {
+                    "image": "deployments-vllm:latest",
                     "container": {"network_mode": "host"},
                 },
                 "sidecar": {"image": "sidecar:latest", "container": {"network_mode": "host"}},
@@ -1150,20 +1150,20 @@ def test_build_summaries_projects_state_per_declared_host() -> None:
     operation = DeploymentOperation(
         id="op-1",
         host="gpu",
-        deployment="llm-vllm",
+        deployment="vllm",
         status="running",
         stage="pulling image",
     )
-    operations = {("gpu", "llm-vllm"): operation}
+    operations = {("gpu", "vllm"): operation}
 
     summaries = deployment_ops.build_summaries(config, inventories, operations)
 
     by_id = {s.id: s for s in summaries}
     # Every catalog entry appears, in catalog order.
-    assert [s.id for s in summaries] == ["llm-vllm", "sidecar"]
+    assert [s.id for s in summaries] == ["vllm", "sidecar"]
 
-    # llm-vllm only declared on gpu; container missing but an operation is attached.
-    (vllm_gpu,) = by_id["llm-vllm"].hosts
+    # vllm only declared on gpu; container missing but an operation is attached.
+    (vllm_gpu,) = by_id["vllm"].hosts
     assert (vllm_gpu.host, vllm_gpu.state) == ("gpu", "missing")
     assert vllm_gpu.operation is operation
 
@@ -1179,7 +1179,7 @@ def test_build_summaries_marks_present_but_stopped_container() -> None:
     config = _summary_config()
     inventories = {
         "gpu": inventory.DeploymentInventory(
-            deployments=[_live_deployment("llm-vllm", status="exited")],
+            deployments=[_live_deployment("vllm", status="exited")],
             errors=[],
         ),
         "edge": inventory.DeploymentInventory(deployments=[], errors=[]),
@@ -1187,7 +1187,7 @@ def test_build_summaries_marks_present_but_stopped_container() -> None:
 
     summaries = deployment_ops.build_summaries(config, inventories, {})
 
-    vllm = next(s for s in summaries if s.id == "llm-vllm")
+    vllm = next(s for s in summaries if s.id == "vllm")
     (vllm_gpu,) = vllm.hosts
     assert vllm_gpu.state == "stopped"
     assert vllm_gpu.status == "exited"

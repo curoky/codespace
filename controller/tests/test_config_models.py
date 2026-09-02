@@ -708,19 +708,19 @@ def test_deployment_accepts_data_placeholder_volume() -> None:
     config = Config.model_validate(
         _deployment_config(
             deployments={
-                "llm-vllm": {
-                    "image": "llm:latest",
+                "vllm": {
+                    "image": "deployments-vllm:latest",
                     "container": {
                         "network_mode": "host",
                         "volumes": ["${DEPLOYMENT_DATA}:/root/.cache/huggingface"],
                     },
                 }
             },
-            hosts={"server": {"deployments": ["llm-vllm"]}},
+            hosts={"server": {"deployments": ["vllm"]}},
         )
     )
 
-    volume = config.deployments["llm-vllm"].container.volumes[0]
+    volume = config.deployments["vllm"].container.volumes[0]
     assert volume.source == "${DEPLOYMENT_DATA}"
     assert volume.target == "/root/.cache/huggingface"
 

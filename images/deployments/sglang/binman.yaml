@@ -12,3 +12,4 @@ profiles:
     - s6-linux-utils
     - s6-portable-utils
     - execline
+    - gdu

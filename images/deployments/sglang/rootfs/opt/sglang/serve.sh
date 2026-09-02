@@ -11,22 +11,22 @@
 # 只有部署环境相关的 model/host/port 保留为环境变量。
 #
 # Environment knobs:
-#   LLM_MODEL          model id or local path (default Qwen/Qwen3.8-Flash-Next-FP8)
-#   LLM_HOST           bind address inside the container (default 0.0.0.0)
-#   LLM_PORT           OpenAI API port inside the container (default 8003)
-#   LLM_EXTRA_ARGS     extra flags appended verbatim to the engine command
+#   SERVE_MODEL        model id or local path (default Qwen/Qwen3.8-Flash-Next-FP8)
+#   SERVE_HOST         bind address inside the container (default 0.0.0.0)
+#   SERVE_PORT         OpenAI API port inside the container (default 8003)
+#   SERVE_EXTRA_ARGS   extra flags appended verbatim to the engine command
 
 set -euo pipefail
 
-model="${LLM_MODEL:-Qwen/Qwen3.8-Flash-Next-FP8}"
-host="${LLM_HOST:-0.0.0.0}"
-port="${LLM_PORT:-8003}"
+model="${SERVE_MODEL:-Qwen/Qwen3.8-Flash-Next-FP8}"
+host="${SERVE_HOST:-0.0.0.0}"
+port="${SERVE_PORT:-8003}"
 
-read -r -a extra_args <<<"${LLM_EXTRA_ARGS:-}"
+read -r -a extra_args <<<"${SERVE_EXTRA_ARGS:-}"
 
 # The inference stack lives in a dedicated venv; the s6-generated init PATH does
 # not include it, so reference the venv binary explicitly.
-venv_bin="${LLM_VENV:-/opt/llm/venv}/bin"
+venv_bin="${SERVE_VENV:-/opt/sglang/venv}/bin"
 
 # sgl-deep-gemm JIT-compiles FP8 kernels at import time and requires a real CUDA
 # Toolkit (nvcc + headers). The image installs it under /usr/local/cuda-12.9 (see
