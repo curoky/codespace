@@ -1,17 +1,11 @@
 # PyTorch built from source for 8x H100 (SM 9.0) against CUDA 13.0.
 #
-# 与 platform/container/frameworks/AGENTS.md 公共契约一致：从源码编译的开发依赖镜像，产出可直接
-# `import torch` 的可运行镜像（无 s6、无 serving entrypoint）。
+# 产出可直接 `import torch` 的 framework image，不包含 s6 或 serving entrypoint。
 #
-# 版本组合（即文件名声明）：torch v2.13.0 + torchvision v0.28.0 + torchaudio v2.11.0
+# CUDA 13 跨 major，runtime Host 需要 driver >=580；driver 535 只能构建，不能运行。
 #
-# 注意：CUDA 13 跨 major，运行需 host driver >=580；本机 driver 535 可编译此镜像但
-# 无法运行（仅本机可运行版本见同目录 cu12.9.1 文件）。本文件用于面向 >=580 驱动
-# 主机的产物构建与在本机的编译验证。
-#
-# 装配决策：与 cu12.9 版本一致，在 cuda(Ubuntu 24.04) devel stage 内源码编译
-# （glibc 与 nvcc 匹配，避开 debian:trixie 头文件冲突），venv 再 COPY 进
-# debian:trixie-slim final。差异仅 CUDA base image / CUDA_HOME_DIR / torch 索引。
+# 在匹配 toolkit 的 Ubuntu builder 中源码编译，避免 Debian final 的 glibc header
+# 与 nvcc 冲突；final stage 只接收 venv 和精简后的 toolkit。
 
 # ---- builder stage：Ubuntu 24.04 CUDA 13 devel ----
 ARG CUDA_DEVEL_IMAGE=docker.io/nvidia/cuda:13.0.1-cudnn-devel-ubuntu24.04

@@ -1,4 +1,3 @@
-# PATH="/opt/bm/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin"
 PATH="/opt/bm/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 LANG=en_US.utf-8
 LC_ALL=en_US.utf-8

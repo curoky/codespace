@@ -1,11 +1,9 @@
 # PyTorch built from source for 8x H100 (SM 9.0) against CUDA 12.9.
 #
-# 与 platform/container/frameworks/AGENTS.md 公共契约一致：从源码编译的开发依赖镜像，产出可直接
-# `import torch` 的可运行镜像（无 s6、无 serving entrypoint），与 platform/container/services/ 的
-# serving 镜像刻意区分。
+# 产出可直接 `import torch` 的 framework image，不包含 s6 或 serving entrypoint。
 #
-# 版本组合（即文件名声明）：torch v2.13.0 + torchvision v0.28.0 + torchaudio v2.11.0
-# 驱动，经 CUDA 12 minor version 前向兼容可运行 cu12.9 编译产物。
+# Target driver 535 can run this CUDA 12.9 image through minor-version
+# compatibility.
 #
 # 关键装配决策——为何在 cuda(Ubuntu 24.04) stage 内编译而非 debian final：
 # nvidia/cuda 的 nvcc 头文件（crt/math_functions.h 的 cospi/sinpi noexcept 声明）
@@ -35,8 +33,8 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/opt/uv sh
 
 # 源码编译 PyTorch 三件套并装入独立 venv。
 #
-# 版本 pin：torch v2.13.0，torchvision v0.28.0，torchaudio v2.11.0（torchaudio 版本
-# 线独立于 torch，2.11.0 是与 torch 2.13.0 配对的版本），见 platform/container/frameworks/AGENTS.md。
+# 版本 pin：torch v2.13.0，torchvision v0.28.0，torchaudio v2.11.0；torchaudio
+# 使用独立版本线。
 #
 # TORCH_CUDA_ARCH_LIST="9.0"：只为本机 H100（Hopper，SM 9.0）编译，显著缩短构建
 # 时间、减小体积。如需 JIT 前向兼容更高驱动可改 "9.0+PTX"。

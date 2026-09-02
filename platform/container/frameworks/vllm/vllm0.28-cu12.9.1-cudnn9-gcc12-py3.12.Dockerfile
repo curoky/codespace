@@ -1,12 +1,9 @@
 # vLLM built from source for 8x H100 (SM 9.0) against CUDA 12.9.
 #
-# 与 platform/container/frameworks/AGENTS.md 公共契约一致：从源码编译的开发依赖镜像，产出可
-# `import vllm` 的可运行镜像（无 s6、无 serving entrypoint）。与 platform/container/services/ 的
-# serving 镜像刻意区分。
+# 产出可直接 `import vllm` 的 framework image，不包含 s6 或 serving entrypoint。
 #
-# 版本组合（即文件名声明）：vllm v0.28.0，CUDA 12.9.1，gcc-12，Python 3.12，
-# 依赖 torch==2.13.0（v0.28.0 的 requirements/cuda.txt 所 pin）。本机 driver 535
-# 经 CUDA 12 minor 前向兼容跑 cu12.9。
+# Target driver 535 can run this CUDA 12.9 image through minor-version
+# compatibility.
 #
 # 装配决策：在 cuda(Ubuntu 24.04) devel stage 内从源码编译 vLLM 的 CUDA/C++ 内核
 # （glibc 与 nvcc 匹配，避开 debian:trixie 的头文件冲突），产出 venv 再 COPY 进

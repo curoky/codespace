@@ -1,15 +1,11 @@
 #!/usr/bin/env bash
 
 # Pull a fixed image list on the host so development containers start from a
-# warm local cache. Invoked by supercronic per the schedule in
-# /etc/supercronic/crontab; runs once and exits.
+# warm local cache. Runs one cycle and exits.
 #
 # Usage: image-pull.sh
 #
-# The image list is hardcoded below (PREWARM_IMAGES); edit it here to change
-# what gets warmed. The pull schedule lives in /etc/supercronic/crontab. The
-# remaining knobs come from the container environment (dumped by s6 into
-# /run/s6/container_environment and loaded by the execline run script):
+# Runtime inputs:
 #
 #   PODMAN_SOCKET            host rootful Podman socket bind-mounted into the
 #                            support service (default /run/podman/podman.sock)
@@ -21,7 +17,6 @@
 
 set -uo pipefail
 
-# Images pre-pulled every cycle. Edit this list to change what gets warmed.
 PREWARM_IMAGES=(
   ghcr.io/curoky/codespace:workspace-debian13
 )

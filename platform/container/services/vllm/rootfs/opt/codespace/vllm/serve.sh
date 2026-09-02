@@ -1,20 +1,9 @@
 #!/usr/bin/env bash
 
-# vLLM entrypoint for the host-level Qwen3.8-Flash-Next-FP8 Service image. Reads
-# knobs from the container environment and launches an OpenAI-compatible server.
-# Model weights are never baked in: the ~172 GiB FP8 weights are resolved from a
-# bind-mounted Hugging Face cache (HF_HOME) and pulled on first start.
+# Launch the Qwen3.8-Flash-Next-FP8 OpenAI-compatible server with fixed tuning
+# for one 8x H100 Host.
 #
-# 针对实测 host GPU 拓扑（nvidia-smi）调优：8x NVIDIA H100 80GB HBM3、compute
-# capability 9.0（Hopper，原生 FP8 e4m3）、全互联 NVLink（NV18 / NVSwitch，
-# ~900 GB/s）、双 NUMA（GPU0-3→node0，GPU4-7→node1）。优化参数已按此拓扑写死，
-# 只有运行环境相关的 model/host/port 保留为环境变量。
-#
-# Environment knobs:
-#   SERVE_MODEL      model id or local path (default Qwen/Qwen3.8-Flash-Next-FP8)
-#   SERVE_HOST       bind address inside the container (default 0.0.0.0)
-#   SERVE_PORT       OpenAI API port inside the container (default 8003)
-#   SERVE_EXTRA_ARGS extra flags appended verbatim to the engine command
+# Runtime inputs: SERVE_MODEL, SERVE_HOST, SERVE_PORT, and SERVE_EXTRA_ARGS.
 #
 # 显存紧张时经 SERVE_EXTRA_ARGS 降 --max-model-len / --gpu-memory-utilization，或设
 # VLLM_PLE_CPU_OFFLOAD=1 把 51B N-gram 表卸到主机内存（需大内存 host）。

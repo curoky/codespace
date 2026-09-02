@@ -6,11 +6,11 @@ WSL 消费单层 rootfs tar，而不是 OCI image metadata：
 
 ```mermaid
 flowchart LR
-    Workspace["workspace-ubuntu26.04"] --> Overlay["WSL rootfs overlay"]
-    Overlay --> Image["workspace-wsl OCI image"]
+    Workspace["Workspace image"] --> Overlay["WSL rootfs overlay"]
+    Overlay --> Image["WSL OCI image"]
     Image --> Create["docker create"]
     Create --> Export["docker export | gzip"]
-    Export --> Artifact["codespace.wsl"]
+    Export --> Artifact["WSL import artifact"]
     Artifact --> Import["wsl --install / --import"]
 ```
 
@@ -48,11 +48,9 @@ Dockerfile 在叠加 `wsl` bundle 后重编译 `/etc/s6/db`。否则 inherited d
 
 `boot.sh` 只负责让 sshd 监听 `0.0.0.0`。LAN 可达性由 Windows 选择：
 
-- Windows 11 mirrored networking 直接使用 Windows LAN address。
+- mirrored networking 直接使用 Windows LAN address。
 - NAT 模式使用 `netsh interface portproxy` 并配置 firewall。
 
 WSL distribution 没有被跟踪的交互会话时可能被自动停止；`[boot] command` 创建的
-service 不构成 keep-alive。`windows/wslconfig.sample` 首选通过
-`instanceIdleTimeout=-1` 与 `vmIdleTimeout=-1` 禁用回收；不支持该设置时，
-`windows/setup-keepalive.ps1` 注册 SYSTEM Scheduled Task，运行
-`wsl.exe -d codespace -u root -- sleep infinity`。
+service 不构成 keep-alive。优先通过 WSL global configuration 禁用 idle 回收；不支持
+该能力时，由 Windows Scheduled Task 持有 distribution 会话。

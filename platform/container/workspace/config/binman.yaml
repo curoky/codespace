@@ -1,5 +1,4 @@
 # binman package manifest for the codespace Workspace image.
-# Consumed by the Workspace Dockerfile via `bm sync`.
 #
 #   packages.link:   linked into the prefix root (/opt/bm/{bin,lib,...}).
 #   packages.unlink: installed into the store only, not linked into the root.

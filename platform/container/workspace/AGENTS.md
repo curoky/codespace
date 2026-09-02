@@ -1,7 +1,7 @@
 # Workspace Image
 
 本目录构建可独立运行、也可由 control plane 管理的开发 Workspace。生命周期见
-[`DESIGN.md`](DESIGN.md)；镜像内容以 Dockerfile、rootfs、config 和 scripts 为准。
+[`DESIGN.md`](DESIGN.md)。
 
 ## 边界
 
@@ -19,5 +19,4 @@
 - Agent 只监听 control UDS；外层目录保持私有并只经 SSH forwarding 访问。
 - encryption 只作用于 Workspace 数据，upload 与 cache 保持明文。
 
-环境变量、mount、s6 dependency 或 Agent 协议变化时，同步控制面调用方、
-[`DESIGN.md`](DESIGN.md) 和行为测试。
+mount、s6 dependency 或 Agent protocol 变化时，必须同步控制面调用方与行为测试。

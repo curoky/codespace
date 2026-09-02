@@ -9,5 +9,4 @@
 - Windows keep-alive 与 Host 配置只放在 `windows/`，不写入 Linux rootfs。
 - 网络暴露由 Windows 管理，不在 WSL rootfs 中增加另一套转发服务。
 
-base image、tag、bundle、artifact 名称和命令以 Dockerfile、rootfs、build/export
-脚本及 workflow 为准；改变启动或导出语义时同步更新 `DESIGN.md`。
+改变启动或导出语义时必须同时验证 WSL import、boot 和 SSH 可达性。

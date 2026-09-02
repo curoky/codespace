@@ -1,14 +1,11 @@
 #!/usr/bin/env bash
 
 # Prune dangling (untagged) images on the host so the local cache does not grow
-# without bound. Invoked by supercronic per the schedule in
-# /etc/supercronic/crontab; runs once and exits.
+# without bound. Runs one cycle and exits.
 #
 # Usage: image-prune.sh
 #
-# The prune schedule lives in /etc/supercronic/crontab. The remaining knobs
-# come from the container environment (dumped by s6 into
-# /run/s6/container_environment and loaded by the execline run script):
+# Runtime inputs:
 #
 #   PODMAN_SOCKET            host rootful Podman socket bind-mounted into the
 #                            support service (default /run/podman/podman.sock)

@@ -4,12 +4,12 @@
 #
 # 背景：control plane 把 host cache 下三个 remote server 的 extensions 子目录
 # 直接挂载到对应 home 路径，因此扩展不能只烤进这些目标目录，必须在启动时按
-# Workspace 播种。构建期的参考副本见 scripts/install-editor-extensions.sh。
+# Workspace 播种。
 #
 # 用法：seed-editor-extensions <server_dir> [server_dir...]
 #   每个 server_dir 首启只播种一次（marker 存在即跳过），之后用户自行管理扩展；删掉
 #   marker 可重新播种。Trae/Trae CN 复用同一份 VSCode 扩展副本。
-#   参考副本路径可用 REF_EXTENSIONS 覆盖，默认
+#   template 路径可用 REF_EXTENSIONS 覆盖，默认
 #   /opt/codespace/share/editor-extensions/extensions。
 
 set -euo pipefail
@@ -34,7 +34,7 @@ function seed_extensions() {
   # 复制扩展目录，-n 不覆盖用户已装的同名扩展。
   cp -rn "$REF_EXTENSIONS"/. "$target"/ 2>/dev/null || true
 
-  # 重写参考 manifest 里的 location 为 target 绝对路径，再按 identifier.id 去重合并到用户
+  # 重写 template manifest 里的 location 为 target 绝对路径，再按 identifier.id 去重合并到用户
   # 已有列表（用户版本优先），最后写回 target 的 installed manifest。
   local ref_json="$REF_EXTENSIONS/extensions.json"
   if [[ -f $ref_json ]]; then

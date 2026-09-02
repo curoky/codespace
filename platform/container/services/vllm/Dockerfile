@@ -1,20 +1,7 @@
 # Qwen3.8-Flash-Next-FP8 serving image (vLLM engine).
 #
-# Base image and assembly are aligned with the support Service: debian:trixie-slim
-# with binman-installed standalone s6/execline as PID 1.
-#
-# Unlike support, this image ships the full CUDA + inference stack itself
-# (Debian has no CUDA runtime and no vLLM). The ~172 GiB FP8 weights are NOT baked
-# in; they are resolved at run time from a bind-mounted Hugging Face cache.
-#
-# day-0 architecture: Qwen3.8-Flash-Next (architecture Qwen4ExpForConditionalGeneration)
-# is NOT in any stable PyPI vLLM release, and the official recipe explicitly states
-# "PyPI installation is not supported" -- it ships only the dedicated
-# vllm/vllm-openai:qwen38-flash-next image (labelled "vLLM 0.28.0+ / nightly").
-# Model support landed on main in PR #53896 (commit pinned by VLLM_COMMIT below);
-# we therefore install a pinned nightly wheel from vLLM's per-commit index instead
-# of a tagged release wheel. Bump VLLM_COMMIT once the architecture ships in a
-# stable release, after which this can revert to a release wheel.
+# The model architecture comes from a pinned per-commit wheel. Model weights stay
+# in the bind-mounted Hugging Face cache rather than the image.
 FROM docker.io/debian:trixie-slim
 
 # CUDA userspace runtime is provided by the NVIDIA Container Toolkit at run time
@@ -37,20 +24,13 @@ RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs
 # nominally allows 3.10-3.13, but the prebuilt CUDA/flashinfer/xformers wheels
 # only cover up to 3.12; 3.13 fails to build.
 #
-# VLLM_COMMIT pins the vLLM main commit whose nightly wheel carries the
-# Qwen3.8-Flash-Next architecture (PR #53896, merged 2026-08-31). Nightly wheels
-# live at https://wheels.vllm.ai/<commit>; the wheel's on-disk version is a
-# placeholder, so we resolve it by index, not by a release URL. Bump the commit
-# to pick up later fixes, or revert to a release wheel once the architecture ships.
+# The per-commit wheel uses a placeholder package version, so resolve it through
+# the commit index rather than a release URL.
 #
 # CUDA_TAG selects the torch CUDA backend resolved from the PyTorch index. This
-# vLLM commit pins torch==2.13.0, which PyTorch publishes for cu126/cu129/cu130
-# but NOT cu128 -- so the previous cu128 default failed to resolve (torch==2.13.0
-# is simply absent from the cu128 index). We default to cu129: the target 8x H100
-# node runs an older CUDA 12.x driver (535 / CUDA 12.2), which runs cu129 (still
-# CUDA 12.x) wheels fine -- this avoids the cu13 default that would fail at import
-# with `libcudart.so.13: cannot open shared object file`. Override CUDA_TAG=cu130
-# for a CUDA 13 host, or cu126 for an even older 12.x driver.
+# source revision pins a torch build published for cu126, cu129, and cu130. The
+# default target Host uses a CUDA 12 driver, so cu129 remains within the same
+# major version.
 #
 # --index-strategy unsafe-best-match: the deps span three indexes (vLLM per-commit,
 # PyTorch cu129, PyPI). uv defaults to taking each package from the FIRST index

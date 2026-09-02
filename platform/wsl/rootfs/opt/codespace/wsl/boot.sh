@@ -32,8 +32,8 @@ sysctl -p /etc/sysctl.d/custom.conf || true
 mkdir -p /run/s6/container_environment /run/service
 
 # Bind sshd to 0.0.0.0 so it is reachable from the LAN (e.g. macOS) through
-# WSL port forwarding or mirrored networking. The dev image's sshd/run reads
-# SSHD_BIND from this dir and defaults to 127.0.0.1 when unset.
+# WSL port forwarding or mirrored networking. The SSH service otherwise
+# defaults to loopback.
 printf '0.0.0.0' >/run/s6/container_environment/SSHD_BIND
 
 # Bring up s6-rc once s6-svscan is ready to accept control commands, which is

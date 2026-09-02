@@ -1,20 +1,9 @@
 #!/usr/bin/env bash
 
-# SGLang entrypoint for the host-level Qwen3.8-Flash-Next-FP8 Service image. Reads
-# knobs from the container environment and launches an OpenAI-compatible server.
-# Model weights are never baked in: the ~172 GiB FP8 weights are resolved from a
-# bind-mounted Hugging Face cache (HF_HOME) and pulled on first start.
+# Launch the Qwen3.8-Flash-Next-FP8 OpenAI-compatible server with fixed tuning
+# for one 8x H100 Host.
 #
-# 针对实测 host GPU 拓扑（nvidia-smi）调优：8x NVIDIA H100 80GB HBM3、compute
-# capability 9.0（Hopper，原生 FP8 e4m3）、全互联 NVLink（NV18 / NVSwitch，
-# ~900 GB/s）、双 NUMA（GPU0-3→node0，GPU4-7→node1）。优化参数已按此拓扑写死，
-# 只有运行环境相关的 model/host/port 保留为环境变量。
-#
-# Environment knobs:
-#   SERVE_MODEL        model id or local path (default Qwen/Qwen3.8-Flash-Next-FP8)
-#   SERVE_HOST         bind address inside the container (default 0.0.0.0)
-#   SERVE_PORT         OpenAI API port inside the container (default 8003)
-#   SERVE_EXTRA_ARGS   extra flags appended verbatim to the engine command
+# Runtime inputs: SERVE_MODEL, SERVE_HOST, SERVE_PORT, and SERVE_EXTRA_ARGS.
 
 set -euo pipefail
 
@@ -28,12 +17,8 @@ read -r -a extra_args <<<"${SERVE_EXTRA_ARGS:-}"
 # not include it, so reference the venv binary explicitly.
 venv_bin="${SERVE_VENV:-/opt/codespace/sglang/venv}/bin"
 
-# sgl-deep-gemm JIT-compiles FP8 kernels at import time and requires a real CUDA
-# Toolkit (nvcc + headers). The image installs it under /usr/local/cuda-12.9 (see
-# Dockerfile); export CUDA_HOME/PATH here as a belt-and-suspenders fallback in
-# case the s6 environment snapshot does not carry the Dockerfile ENV through to
-# this process. Without CUDA_HOME, `import deep_gemm` aborts with
-# `AssertionError` from find_cuda_home().
+# sgl-deep-gemm JIT-compiles FP8 kernels at import time. Export the toolkit path
+# explicitly because the s6 environment snapshot can replace image environment.
 export CUDA_HOME="${CUDA_HOME:-/usr/local/cuda-12.9}"
 export PATH="${CUDA_HOME}/bin:${PATH}"
 
