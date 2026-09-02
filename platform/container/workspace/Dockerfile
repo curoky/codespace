@@ -68,18 +68,8 @@ COPY platform/container/workspace/rootfs/ /
 COPY platform/container/workspace/scripts/configure-system.sh /tmp/configure-system.sh
 COPY platform/container/workspace/scripts/install-s6.sh /tmp/install-s6.sh
 RUN /tmp/configure-system.sh \
-  && install -d -o 5230 -g 5230 -m 0755 \
-    /workspace \
-    /workspace.enc \
-    /cache \
-    /home/x/.vscode-server \
-    /home/x/.trae \
-    /home/x/.trae-cn \
-    /home/x/.trae-server \
-    /home/x/.trae-cn-server \
-  && install -d -o 5230 -g 5230 -m 0700 /upload \
   && chown 5230:5230 /opt \
-  && chown -R 5230:5230 /opt/codespace \
+  && chown -R 5230:5230 /home/x /opt/codespace \
   && chmod -R +x /opt/codespace/bin \
   && /tmp/install-s6.sh \
   && ln -s /opt/bm/store/zsh/bin/zsh /usr/bin \
@@ -89,28 +79,9 @@ RUN /tmp/configure-system.sh \
   && ln -s /opt/bm/store/git/bin/git /usr/bin \
   && ln -s /opt/bm/store/openssh_gssapi/bin/ssh /usr/bin
 
-# Workspace home configuration is owned by rootfs/home/x. Reusable zsh
-# fragments and commands remain explicit inputs from host dotfiles.
-COPY --chown=5230:5230 \
-  dotfiles/zsh/aliases.zsh \
-  dotfiles/zsh/environment.zsh \
-  dotfiles/zsh/functions.zsh \
-  dotfiles/zsh/git.zsh \
-  dotfiles/zsh/paths.zsh \
-  /home/x/.config/zsh/
-COPY --chown=5230:5230 --chmod=0755 dotfiles/bin/eza-wrapper /home/x/.local/bin/eza-wrapper
-
 # Agent runtime and immutable templates use a product-owned prefix; no source
 # checkout is embedded in the image.
 COPY --chown=5230:5230 platform/container/workspace/agent/ /opt/codespace/agent/
-COPY --chown=5230:5230 platform/container/workspace/agent-rules.md /opt/codespace/share/agent-rules.md
-COPY --chown=5230:5230 dotfiles/trae/sandbox.json /opt/codespace/share/trae/sandbox.json
-COPY --chown=5230:5230 dotfiles/trae/traecli.toml /opt/codespace/share/trae/traecli.toml
-COPY --chown=5230:5230 dotfiles/vscode/remote/settings.json /opt/codespace/share/vscode/remote-settings.json
-COPY --chown=5230:5230 dotfiles/vscode/markdown-preview.css /opt/codespace/share/dotfiles/vscode/markdown-preview.css
-RUN chown -R 5230:5230 /home/x /opt/codespace \
-  && chmod 0700 /home/x/.ssh \
-  && chmod 0600 /home/x/.ssh/authorized_keys /home/x/.ssh/config /home/x/.ssh/known_hosts
 
 USER x
 
@@ -167,7 +138,9 @@ RUN conda tos accept --override-channels --channel https://repo.anaconda.com/pkg
 RUN UV_LINK_MODE=copy uv sync --project /opt/codespace/agent --locked --no-dev --python 3.14
 
 # setup Trae user rules
-RUN git clone --depth=1 https://github.com/curoky/agent-playbook /opt/codespace/share/agent-playbook
+RUN git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-playbook \
+  && HOME=/home/x bash /tmp/agent-playbook/install.sh \
+  && rm -rf /tmp/agent-playbook
 
 # Editor Remote 扩展参考副本（stage_vscode_ext 并行构建），运行期由 init-home 播种。
 COPY --link --chown=5230:5230 --from=stage_vscode_ext /opt/editor-extensions /opt/codespace/share/editor-extensions

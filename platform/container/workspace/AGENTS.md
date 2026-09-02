@@ -9,8 +9,8 @@
   选定文件，但不得复制到 `dotfiles/`。
 - Service 只能复用本目录的 s6 skeleton 与安装器，不能依赖其他 Workspace 实现。
 - 运行资产放在 `/opt/codespace/`，image 不包含仓库 checkout 或 Host 固定路径。
-- 被持久 mount 遮蔽的初始配置先作为 immutable template 烤入 image，再由 init
-  helper 幂等播种。
+- `bin`、`extensions` 持久 mount 遮蔽的 editor 扩展先作为 immutable template
+  烤入 image，再由 init helper 幂等播种；其余 home 配置直接放入 rootfs。
 
 ## 安全
 

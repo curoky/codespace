@@ -2,10 +2,9 @@
 
 # 把构建期预装的 editor 扩展播种到各 IDE 远端 server 的扩展目录。
 #
-# 背景：control plane 把 host cache 下的 ~/.vscode-server、~/.trae-server、
-# ~/.trae-cn-server 数据目录直接挂载到对应 home 路径，因此扩展不能烤进镜像中的
-# 镜像中的这些目录，只能在启动时按 Workspace 播种。构建期的参考副本见
-# scripts/install-editor-extensions.sh。
+# 背景：control plane 把 host cache 下三个 remote server 的 extensions 子目录
+# 直接挂载到对应 home 路径，因此扩展不能只烤进这些目标目录，必须在启动时按
+# Workspace 播种。构建期的参考副本见 scripts/install-editor-extensions.sh。
 #
 # 用法：seed-editor-extensions <server_dir> [server_dir...]
 #   每个 server_dir 首启只播种一次（marker 存在即跳过），之后用户自行管理扩展；删掉

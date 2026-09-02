@@ -96,8 +96,9 @@ install_binman() {
 install_dotfiles() {
   local dotfiles="$1"
   local script_dir="$2"
+  local workspace_home="$3"
 
-  link_path "$dotfiles/bin/eza-wrapper" "$HOME/.local/bin/eza-wrapper"
+  link_path "$workspace_home/.local/bin/eza-wrapper" "$HOME/.local/bin/eza-wrapper"
   link_path "$script_dir/scripts/start-colima.sh" "$HOME/.local/bin/start-colima"
   link_path "$script_dir/scripts/start-podman.sh" "$HOME/.local/bin/start-podman"
 
@@ -107,15 +108,22 @@ install_dotfiles() {
   copy_path "$dotfiles/ssh/macos.config" "$HOME/.ssh/config" 0600
 
   link_path "$dotfiles/zsh/macos.zshrc" "$HOME/.zshrc"
-  link_path "$dotfiles/zsh/environment.zsh" "$HOME/.config/zsh/environment.zsh"
-  link_path "$dotfiles/zsh/paths.zsh" "$HOME/.config/zsh/paths.zsh"
-  link_path "$dotfiles/zsh/aliases.zsh" "$HOME/.config/zsh/aliases.zsh"
-  link_path "$dotfiles/zsh/functions.zsh" "$HOME/.config/zsh/functions.zsh"
-  link_path "$dotfiles/zsh/git.zsh" "$HOME/.config/zsh/git.zsh"
+  link_path "$workspace_home/.config/zsh/environment.zsh" "$HOME/.config/zsh/environment.zsh"
+  link_path "$workspace_home/.config/zsh/paths.zsh" "$HOME/.config/zsh/paths.zsh"
+  link_path "$workspace_home/.config/zsh/aliases.zsh" "$HOME/.config/zsh/aliases.zsh"
+  link_path "$workspace_home/.config/zsh/functions.zsh" "$HOME/.config/zsh/functions.zsh"
+  link_path "$workspace_home/.config/zsh/git.zsh" "$HOME/.config/zsh/git.zsh"
+
+  link_path "$workspace_home/.config/atuin/config.toml" "$HOME/.config/atuin/config.toml"
+  link_path "$workspace_home/.config/bat/config" "$HOME/.config/bat/config"
+  link_path "$workspace_home/.config/conda/condarc" "$HOME/.config/conda/condarc"
+  link_path "$workspace_home/.config/nixpkgs/config.nix" "$HOME/.config/nixpkgs/config.nix"
+  link_path "$workspace_home/.config/starship.toml" "$HOME/.config/starship.toml"
+  link_path "$workspace_home/.config/tmux/tmux.conf" "$HOME/.config/tmux/tmux.conf"
+  link_path "$workspace_home/.vimrc" "$HOME/.vimrc"
 
   link_path "$dotfiles/mpv/mpv.conf" "$HOME/.config/mpv/mpv.conf"
   link_path "$dotfiles/snipaste/config.ini" "$HOME/.snipaste/config.ini"
-  link_path "$dotfiles/vscode/markdown-preview.css" "$HOME/.config/vscode/markdown-preview.css"
 
   local editor_root
   for editor_root in \
@@ -127,10 +135,10 @@ install_dotfiles() {
     link_path "$dotfiles/vscode/app/snippets" "$editor_root/snippets"
   done
 
-  copy_path "$dotfiles/trae/sandbox.json" "$HOME/.trae/sandbox.json" 0600
-  copy_path "$dotfiles/trae/traecli.toml" "$HOME/.trae/traecli.toml" 0600
-  copy_path "$dotfiles/trae/sandbox.json" "$HOME/.trae-cn/sandbox.json" 0600
-  copy_path "$dotfiles/trae/traecli.toml" "$HOME/.trae-cn/traecli.toml" 0600
+  copy_path "$workspace_home/.trae/sandbox.json" "$HOME/.trae/sandbox.json" 0600
+  copy_path "$workspace_home/.trae/traecli.toml" "$HOME/.trae/traecli.toml" 0600
+  copy_path "$workspace_home/.trae-cn/sandbox.json" "$HOME/.trae-cn/sandbox.json" 0600
+  copy_path "$workspace_home/.trae-cn/traecli.toml" "$HOME/.trae-cn/traecli.toml" 0600
 }
 
 load_launch_agent() {
@@ -155,7 +163,10 @@ main() {
   local with_atuin_server=false
   while (($# > 0)); do
     case "$1" in
-      --with-atuin-server) with_atuin_server=true ;;
+      --with-atuin-server)
+        # shellcheck disable=SC2034
+        with_atuin_server=true
+        ;;
       -h | --help)
         printf 'usage: %s [--with-atuin-server]\n' "${0##*/}"
         return 0
@@ -190,16 +201,17 @@ main() {
     return 1
   }
 
-  local script_dir repo_root dotfiles
+  local script_dir repo_root dotfiles workspace_home
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
   repo_root="$(cd "$script_dir/../.." && pwd -P)"
   dotfiles="$repo_root/dotfiles"
+  workspace_home="$repo_root/platform/container/workspace/rootfs/home/x"
   TEMP_DIR="$(mktemp -d)"
   trap cleanup EXIT
 
   install_homebrew "$script_dir" "$TEMP_DIR"
   install_binman "$script_dir" "$TEMP_DIR"
-  install_dotfiles "$dotfiles" "$script_dir"
+  install_dotfiles "$dotfiles" "$script_dir" "$workspace_home"
   swift "$script_dir/scripts/set-default-apps.swift"
   load_launch_agent sh.atuin.daemon "$script_dir/launch-agents/atuin-daemon.plist"
   if [[ "$with_atuin_server" == true ]]; then
