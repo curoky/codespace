@@ -6,17 +6,6 @@ function killit() {
   ps aux | grep -v grep | grep "$@" | awk '{print $2}' | xargs sudo kill
 }
 
-function dudir() {
-  local count="${1:-10}"
-  du -ahd1 2>&1 | sort -h | grep -v "Permission denied" | tail -n "$count"
-}
-
-function d() {
-  local selected
-  selected="$(dirs -p | fzf)" || return
-  cd "${selected/#\~/$HOME}" || return
-}
-
 function set-http-proxy() {
   if (( $# != 2 )); then
     print -u2 "usage: set-http-proxy HOST PORT"

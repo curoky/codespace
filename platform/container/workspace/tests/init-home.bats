@@ -20,7 +20,22 @@ setup() {
   printf 'image settings\n' >"${HOME_DIR}/.vscode-server/data/Machine/settings.json"
   printf 'image rules\n' >"${HOME_DIR}/.trae/user_rules/workspace.md"
 
-  # sudo/seed 桩为记录事件，只验证顺序与退出码。
+  # 命令桩记录初始化参数，并输出可识别的插件脚本。
+  cat >"${TEST_ROOT}/bin/conda" <<'EOF'
+#!/usr/bin/env bash
+printf 'conda %s\n' "$*" >>"${TEST_EVENTS}"
+printf '# conda plugin\n'
+EOF
+  cat >"${TEST_ROOT}/bin/starship" <<'EOF'
+#!/usr/bin/env bash
+printf 'starship %s\n' "$*" >>"${TEST_EVENTS}"
+printf '# starship plugin\n'
+EOF
+  cat >"${TEST_ROOT}/bin/atuin" <<'EOF'
+#!/usr/bin/env bash
+printf 'atuin %s\n' "$*" >>"${TEST_EVENTS}"
+printf '# atuin plugin\n'
+EOF
   cat >"${TEST_ROOT}/bin/sudo" <<'EOF'
 #!/usr/bin/env bash
 printf 'sudo %s\n' "$*" >>"${TEST_EVENTS}"
@@ -63,6 +78,26 @@ teardown() {
   cmp -s \
     "${image_home}/.vscode-server/data/Machine/settings.json" \
     "${image_home}/.trae-cn-server/data/Machine/settings.json"
+}
+
+@test "home init generates shell plugins consumed directly by zshrc" {
+  run "${TEST_ROOT}/helper"
+
+  [[ ${status} -eq 0 ]]
+  [[ $(<"${HOME_DIR}/.cache/conda.plugin.zsh") == "# conda plugin" ]]
+  [[ $(<"${HOME_DIR}/.cache/starship.plugin.zsh") == "# starship plugin" ]]
+  [[ $(<"${HOME_DIR}/.cache/atuin.plugin.zsh") == "# atuin plugin" ]]
+  grep -qx "conda shell.zsh hook" "${TEST_EVENTS}"
+  grep -qx "starship init zsh" "${TEST_EVENTS}"
+  grep -qx "atuin init zsh --disable-up-arrow" "${TEST_EVENTS}"
+
+  local zshrc="${BATS_TEST_DIRNAME}/../rootfs/home/x/.zshrc"
+  grep -Fqx "source \"\$XDG_CACHE_HOME/conda.plugin.zsh\"" "${zshrc}"
+  grep -Fqx "source \"\$XDG_CACHE_HOME/starship.plugin.zsh\"" "${zshrc}"
+  grep -Fqx "source \"\$XDG_CACHE_HOME/atuin.plugin.zsh\"" "${zshrc}"
+  run ! grep -Eq 'command -v (conda|starship|atuin)' "${zshrc}"
+
+  [[ -f ${BATS_TEST_DIRNAME}/../rootfs/etc/s6/s6-rc.d/sshd/dependencies.d/home-init ]]
 }
 
 @test "home init prepares the persistent IDE subdirectories before setup" {

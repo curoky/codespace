@@ -1,5 +1,6 @@
 # shellcheck shell=sh
 export PATH="$PATH:/opt/uv/bin:/opt/rust/cargo/bin:/opt/conda/condabin"
+export PATH="$PATH:/opt/bm/bin:/nix/var/nix/profiles/default/bin"
 
 # rust
 export CARGO_HOME=/opt/rust/cargo
