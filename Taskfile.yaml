@@ -54,10 +54,10 @@ tasks:
         uv run --locked python -c "import agent"
 
   test:
-    desc: 运行控制面与 Workspace image 测试
+    desc: 运行控制面、Workspace image 与 macOS installer 测试
     cmds:
       - uv run pytest
-      - bats {{.WORKSPACE_IMAGE}}/tests/*.bats
+      - bats {{.WORKSPACE_IMAGE}}/tests/*.bats platform/macos/tests/*.bats
 
   lock:check:
     desc: 校验两个 uv lock

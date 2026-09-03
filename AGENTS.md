@@ -18,8 +18,7 @@ Codespace 在一个 monorepo 中提供可复现的个人开发 Workspace、Host 
 | --- | --- |
 | `src/codespace/`、`tests/` | 控制面及其行为测试 |
 | `platform/container/` | OCI image |
-| `platform/{linux,macos,wsl}/` | Host 与 WSL 平台入口 |
-| `dotfiles/` | Host 配置与复用片段 |
+| `platform/{linux,macos,wsl}/` | Host、Host rootfs 与 WSL 平台入口 |
 | `scripts/` | 仓库维护和启动脚本 |
 | `.github/workflows/` | CI 与发布 |
 
