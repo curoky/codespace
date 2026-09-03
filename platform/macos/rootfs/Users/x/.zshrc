@@ -18,7 +18,7 @@ mkdir -p "$XDG_CACHE_HOME" "$XDG_RUNTIME_DIR" "$XDG_DATA_HOME" "$TMPDIR"
 path=(
   "$HOME/.local/bin"
   /opt/bm/bin
-  "$HOME/workspace/devspace/platform/container/workspace/rootfs/home/x/.local/bin"
+  "$HOME/workspace/codespace/platform/container/workspace/rootfs/home/x/.local/bin"
   $path
 )
 typeset -U path PATH
@@ -55,8 +55,6 @@ source "$ZSH/plugins/git/git.plugin.zsh"
 
 source "$XDG_CACHE_HOME/conda.plugin.zsh"
 source "$XDG_CACHE_HOME/starship.plugin.zsh"
-
-# Atuin must create its widgets before autosuggestions wraps them.
 source "$XDG_CACHE_HOME/atuin.plugin.zsh"
 
 # User definitions take precedence over framework aliases and functions.
