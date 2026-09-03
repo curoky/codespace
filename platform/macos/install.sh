@@ -98,10 +98,6 @@ install_dotfiles() {
   local script_dir="$2"
   local workspace_home="$3"
 
-  link_path "$workspace_home/.local/bin/eza-wrapper" "$HOME/.local/bin/eza-wrapper"
-  link_path "$script_dir/scripts/start-colima.sh" "$HOME/.local/bin/start-colima"
-  link_path "$script_dir/scripts/start-podman.sh" "$HOME/.local/bin/start-podman"
-
   copy_path "$dotfiles/git/macos.gitconfig" "$HOME/.gitconfig" 0600
   copy_path "$dotfiles/git/user.gitconfig" "$HOME/.config/git/user.gitconfig" 0600
   link_path "$dotfiles/git/ignore" "$HOME/.config/git/ignore"
@@ -178,28 +174,6 @@ main() {
     esac
     shift
   done
-
-  if [[ "$(uname -s)" != Darwin ]]; then
-    printf 'error: this installer only supports macOS\n' >&2
-    return 1
-  fi
-  if [[ "$(uname -m)" != arm64 ]]; then
-    printf 'error: binman.yaml currently supports only Apple Silicon\n' >&2
-    return 1
-  fi
-
-  command -v curl >/dev/null 2>&1 || {
-    printf 'error: curl is required\n' >&2
-    return 1
-  }
-  command -v sudo >/dev/null 2>&1 || {
-    printf 'error: sudo is required\n' >&2
-    return 1
-  }
-  command -v swift >/dev/null 2>&1 || {
-    printf 'error: swift is required\n' >&2
-    return 1
-  }
 
   local script_dir repo_root dotfiles workspace_home
   script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
