@@ -9,8 +9,8 @@
   选定文件，但不得在自身 rootfs 建立副本。
 - Service 只能复用本目录的 s6 skeleton 与安装器，不能依赖其他 Workspace 实现。
 - 运行资产放在 `/opt/codespace/`，image 不包含仓库 checkout 或 Host 固定路径。
-- `bin`、`extensions` 持久 mount 遮蔽的 editor 扩展先作为 immutable template
-  烤入 image，再由 init helper 幂等播种；其余 home 配置直接放入 rootfs。
+- `home-init` 生成 shell integration 并准备持久化 editor state；sshd 与 Agent 等待
+  它完成，其余 home 配置直接来自 rootfs。
 
 ## 安全
 
