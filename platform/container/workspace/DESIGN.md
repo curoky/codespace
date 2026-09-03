@@ -30,6 +30,7 @@ flowchart TD
     Default --> HomeInit["home-init"]
     Default --> GitConfig["git-config"]
     WorkspaceInit --> SSHD["sshd"]
+    HomeInit --> SSHD
     WorkspaceInit --> WebDAV["rclone/copyparty WebDAV"]
     HomeInit --> Agent["workspace-agent"]
     Default --> Other["Atuin / Ollama / supercronic"]
@@ -39,10 +40,10 @@ flowchart TD
 Workspace data、ciphertext root、upload 和 cache。启用 encryption 时初始化或复用
 gocryptfs，再把明文挂到 `/workspace`。
 
-`home-init` 不依赖 `workspace-init`。它准备各 IDE home 下持久化的 `bin` 与
-`extensions` mount，无条件生成或复用 deploy key，并从 image template 幂等播种
-editor extensions。其余 Trae 配置、remote settings 与 rules 直接来自 image home，
-启动时不复制。
+`home-init` 不依赖 `workspace-init`。它生成 shell integration，准备各 IDE home 下
+持久化的 `bin` 与 `extensions` mount，无条件生成或复用 deploy key，并从 image
+template 幂等播种 editor extensions。`sshd` 与 Workspace Agent 均等待它完成。其余
+Trae 配置、remote settings 与 rules 直接来自 image home，启动时不复制。
 
 ## Agent Protocol
 
