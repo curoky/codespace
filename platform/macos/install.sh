@@ -103,8 +103,6 @@ install_home_config() {
   copy_path "$macos_home/.ssh/config" "$HOME/.ssh/config" 0600
 
   link_path "$macos_home/.zshrc" "$HOME/.zshrc"
-  link_path "$workspace_home/.config/zsh/environment.zsh" "$HOME/.config/zsh/environment.zsh"
-  link_path "$workspace_home/.config/zsh/paths.zsh" "$HOME/.config/zsh/paths.zsh"
   link_path "$workspace_home/.config/zsh/aliases.zsh" "$HOME/.config/zsh/aliases.zsh"
   link_path "$workspace_home/.config/zsh/functions.zsh" "$HOME/.config/zsh/functions.zsh"
   link_path "$workspace_home/.config/zsh/git.zsh" "$HOME/.config/zsh/git.zsh"
@@ -133,6 +131,15 @@ install_home_config() {
   copy_path "$workspace_home/.trae/traecli.toml" "$HOME/.trae/traecli.toml" 0600
   copy_path "$workspace_home/.trae-cn/sandbox.json" "$HOME/.trae-cn/sandbox.json" 0600
   copy_path "$workspace_home/.trae-cn/traecli.toml" "$HOME/.trae-cn/traecli.toml" 0600
+}
+
+generate_shell_plugins() {
+  local cache_home="${XDG_CACHE_HOME:-$HOME/.cache}"
+
+  mkdir -p "$cache_home"
+  conda shell.zsh hook >"$cache_home/conda.plugin.zsh" 2>/dev/null
+  starship init zsh >"$cache_home/starship.plugin.zsh"
+  atuin init zsh --disable-up-arrow >"$cache_home/atuin.plugin.zsh"
 }
 
 load_launch_agent() {
@@ -184,10 +191,11 @@ main() {
   # install_homebrew "$script_dir" "$TEMP_DIR"
   # install_binman "$script_dir" "$TEMP_DIR"
   install_home_config "$macos_home" "$workspace_home"
+  generate_shell_plugins
   # swift "$script_dir/scripts/set-default-apps.swift"
   # load_launch_agent sh.atuin.daemon "$macos_home/Library/LaunchAgents/sh.atuin.daemon.plist"
   # if [[ "$with_atuin_server" == true ]]; then
-    # load_launch_agent sh.atuin.server "$macos_home/Library/LaunchAgents/sh.atuin.server.plist"
+  # load_launch_agent sh.atuin.server "$macos_home/Library/LaunchAgents/sh.atuin.server.plist"
   # fi
 }
 
