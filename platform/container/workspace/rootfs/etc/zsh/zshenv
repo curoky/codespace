@@ -28,3 +28,12 @@ export UV_TOOL_DIR=/opt/uv/tools
 export UV_TOOL_BIN_DIR=/opt/uv/bin
 export UV_PYTHON_INSTALL_DIR=/opt/uv/python
 export UV_PYTHON_BIN_DIR=/opt/uv/bin
+
+if [ -d /etc/zshenv.d ]; then
+  for i in /etc/zshenv.d/*.zsh; do
+    if [ -r "$i" ]; then
+      source "$i"
+    fi
+  done
+  unset i
+fi
