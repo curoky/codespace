@@ -14,5 +14,5 @@
 [log]
 	date = iso
 
-[include]
-	path = ~/.config/git/user.gitconfig
+# [include]
+# 	path = ~/.config/git/user.gitconfig

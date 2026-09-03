@@ -53,21 +53,11 @@ source "$ZSH/lib/git.zsh"
 source "$ZSH/plugins/extract/extract.plugin.zsh"
 source "$ZSH/plugins/git/git.plugin.zsh"
 
-if command -v conda >/dev/null 2>&1; then
-  conda shell.zsh hook >|"$XDG_CACHE_HOME/conda.plugin.zsh" 2>/dev/null
-  source "$XDG_CACHE_HOME/conda.plugin.zsh"
-fi
-
-if command -v starship >/dev/null 2>&1; then
-  starship init zsh >|"$XDG_CACHE_HOME/starship.plugin.zsh"
-  source "$XDG_CACHE_HOME/starship.plugin.zsh"
-fi
+source "$XDG_CACHE_HOME/conda.plugin.zsh"
+source "$XDG_CACHE_HOME/starship.plugin.zsh"
 
 # Atuin must create its widgets before autosuggestions wraps them.
-if command -v atuin >/dev/null 2>&1; then
-  atuin init zsh --disable-up-arrow >|"$XDG_CACHE_HOME/atuin.plugin.zsh"
-  source "$XDG_CACHE_HOME/atuin.plugin.zsh"
-fi
+source "$XDG_CACHE_HOME/atuin.plugin.zsh"
 
 # User definitions take precedence over framework aliases and functions.
 source "$XDG_CONFIG_HOME/zsh/aliases.zsh"
