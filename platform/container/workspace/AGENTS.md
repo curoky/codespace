@@ -5,8 +5,8 @@
 
 ## 边界
 
-- `rootfs/home/x/` 是 Workspace-owned home 配置的唯一 source；macOS 可直接链接
-  选定文件，但不得复制到 `dotfiles/`。
+- `rootfs/home/x/` 是 Workspace-owned home 配置的唯一 source；Host 可直接链接
+  选定文件，但不得在自身 rootfs 建立副本。
 - Service 只能复用本目录的 s6 skeleton 与安装器，不能依赖其他 Workspace 实现。
 - 运行资产放在 `/opt/codespace/`，image 不包含仓库 checkout 或 Host 固定路径。
 - `bin`、`extensions` 持久 mount 遮蔽的 editor 扩展先作为 immutable template
