@@ -32,7 +32,7 @@ RUN set -eux; \
     /opt/codespace/frameworks/src/sglang/python/pyproject.toml; \
   sed -i 's/flashinfer_python\[cu13\]/flashinfer_python[cu12]/' \
     /opt/codespace/frameworks/src/sglang/python/pyproject.toml; \
-  sed -i 's/nvidia-cutlass-dsl\[cu13\]/nvidia-cutlass-dsl/' \
+  sed -i 's/nvidia-cutlass-dsl\[cu13\]==4\.6\.2/nvidia-cutlass-dsl==4.5.3/' \
     /opt/codespace/frameworks/src/sglang/python/pyproject.toml; \
   FRAMEWORK_UV="/opt/uv/uv pip install --python ${FRAMEWORK_VENV}/bin/python"; \
   SGLANG_BUILD_RUST_EXTS="${SGLANG_BUILD_RUST_EXTS}" \
