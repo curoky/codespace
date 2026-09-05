@@ -112,7 +112,7 @@ RUN bash /tmp/install-editor-extensions.sh /tmp/extensions.txt /opt/editor-exten
 FROM docker.io/$BASE_IMAGE AS workspace
 
 ENV CONDA_PLUGINS_AUTO_ACCEPT_TOS=yes \
-  PATH=/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:${PATH}
+  PATH=/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:/nix/var/nix/profiles/default/bin:${PATH}
 
 COPY --link --chown=5230:5230 --from=stage_sb /opt/bm /opt/bm
 COPY --link --chown=5230:5230 --from=stage_nix /nix /nix
@@ -135,8 +135,8 @@ RUN --mount=type=bind,source=platform/container/workspace/scripts/install-s6.sh,
 
 USER x
 COPY --chown=5230:5230 platform/container/workspace/agent/ /opt/codespace/agent/
-RUN UV_LINK_MODE=copy uv sync --project /opt/codespace/agent --locked --no-dev --python 3.14
-RUN git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-playbook \
+RUN UV_LINK_MODE=copy uv sync --project /opt/codespace/agent --locked --no-dev --python 3.14 \
+  && git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-playbook \
   && HOME=/home/x bash /tmp/agent-playbook/install.sh \
   && rm -rf /tmp/agent-playbook
 
