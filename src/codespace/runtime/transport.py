@@ -14,7 +14,7 @@ import socket
 import subprocess
 import tempfile
 import time
-from collections.abc import Callable, Collection
+from collections.abc import Collection
 from dataclasses import dataclass, field
 from pathlib import Path
 from threading import Lock
@@ -105,11 +105,6 @@ class _TCPForward:
     connection_id: str
 
 
-ProcessFactory = Callable[..., subprocess.Popen[bytes]]
-ClientFactory = Callable[..., PodmanClient]
-RunFactory = Callable[..., subprocess.CompletedProcess[bytes]]
-
-
 class PodmanTransport:
     """Own reusable Podman connections and SSH tunnels for configured hosts."""
 
@@ -118,18 +113,12 @@ class PodmanTransport:
         hosts: Collection[str],
         *,
         runtime_parent: Path | None = None,
-        process_factory: ProcessFactory = subprocess.Popen,
-        client_factory: ClientFactory = PodmanClient,
-        run_factory: RunFactory = subprocess.run,
     ) -> None:
         self._hosts = frozenset(hosts)
         # OpenSSH adds a temporary suffix while binding; macOS limits Unix paths to 103 bytes.
         parent = runtime_parent if runtime_parent is not None else _DEFAULT_RUNTIME_PARENT
         self._runtime_dir = Path(tempfile.mkdtemp(prefix="codespace-", dir=parent))
         self._runtime_dir.chmod(0o700)
-        self._process_factory = process_factory
-        self._client_factory = client_factory
-        self._run_factory = run_factory
         self._masters: dict[str, _Master] = {}
         self._tcp_forwards: dict[tuple[str, str, str, int], _TCPForward] = {}
         self._locks = {host: Lock() for host in hosts}
@@ -285,7 +274,7 @@ class PodmanTransport:
             f"{socket_path}:{_PODMAN_SOCKET}",
             ["-o", "StreamLocalBindUnlink=yes"],
         )
-        client = self._client_factory(
+        client = PodmanClient(
             base_url=f"unix://{socket_path}",
             timeout=_CLIENT_TIMEOUT,
         )
@@ -319,7 +308,7 @@ class PodmanTransport:
             forward,
             destination,
         ]
-        process = self._process_factory(
+        process = subprocess.Popen(  # noqa: S603
             command,
             stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
@@ -368,7 +357,7 @@ class PodmanTransport:
             f"{socket_path}:{remote_socket}",
             master.route.host,
         ]
-        result = self._run_factory(
+        result = subprocess.run(  # noqa: S603
             command,
             stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
