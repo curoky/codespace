@@ -28,11 +28,9 @@ RUN set -eux; \
   /opt/uv/uv venv "${FRAMEWORK_VENV}" --python 3.12 --managed-python; \
   git clone --filter=blob:none --branch "${SGLANG_REF}" \
     https://github.com/sgl-project/sglang.git /opt/codespace/frameworks/src/sglang; \
-  sed -i 's/cuda-python>=13\.0/cuda-python>=12,<13/' \
-    /opt/codespace/frameworks/src/sglang/python/pyproject.toml; \
   sed -i 's/flashinfer_python\[cu13\]/flashinfer_python[cu12]/' \
     /opt/codespace/frameworks/src/sglang/python/pyproject.toml; \
-  sed -i 's/nvidia-cutlass-dsl\[cu13\]==4\.6\.2/nvidia-cutlass-dsl==4.5.3/' \
+  sed -i 's/nvidia-cutlass-dsl\[cu13\]/nvidia-cutlass-dsl/' \
     /opt/codespace/frameworks/src/sglang/python/pyproject.toml; \
   FRAMEWORK_UV="/opt/uv/uv pip install --python ${FRAMEWORK_VENV}/bin/python"; \
   SGLANG_BUILD_RUST_EXTS="${SGLANG_BUILD_RUST_EXTS}" \
