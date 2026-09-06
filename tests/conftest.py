@@ -13,11 +13,10 @@ def config() -> Config:
         {
             "hosts": {
                 "home": {
-                    "bridge_gateway": "10.88.0.1",
                     "forward_environment": ["HTTP_PROXY"],
                     "platform": "linux/arm64",
                 },
-                "office": {"bridge_gateway": "10.88.0.1"},
+                "office": {},
             },
             "project_defaults": {
                 "image": "ghcr.io/curoky/codespace:workspace-debian13",
@@ -25,26 +24,22 @@ def config() -> Config:
                     "cap_add": ["NET_RAW", "SYS_ADMIN"],
                     "security_opt": ["disable", "seccomp=unconfined"],
                     "pids_limit": -1,
-                    "environment": {
-                        "CODESPACE_ENCRYPTED_PATH": "/workspace.enc",
-                    },
                     "ulimits": {"memlock": {"soft": -1, "hard": -1}},
                     "volumes": [
+                        "/etc/krb5.conf:/etc/krb5.conf:ro",
                         "${RESOURCE_DATA}/workspace:/workspace",
                         "${RESOURCE_DATA}/upload:/upload",
                         "${RESOURCE_DATA}/control:/run/codespace-control",
-                        *(
-                            f"${{RESOURCE_DATA}}/cache/{editor}/{leaf}:/home/x/{editor}/{leaf}"
-                            for editor in (
-                                ".vscode-server",
-                                ".trae",
-                                ".trae-cn",
-                                ".trae-server",
-                                ".trae-cn-server",
-                            )
-                            for leaf in ("bin", "extensions")
-                        ),
-                        "/etc/krb5.conf:/etc/krb5.conf:ro",
+                        "${RESOURCE_DATA}/cache/.vscode-server/bin:/home/x/.vscode-server/bin",
+                        "${RESOURCE_DATA}/cache/.vscode-server/extensions:/home/x/.vscode-server/extensions",
+                        "${RESOURCE_DATA}/cache/.trae/bin:/home/x/.trae/bin",
+                        "${RESOURCE_DATA}/cache/.trae/extensions:/home/x/.trae/extensions",
+                        "${RESOURCE_DATA}/cache/.trae-cn/bin:/home/x/.trae-cn/bin",
+                        "${RESOURCE_DATA}/cache/.trae-cn/extensions:/home/x/.trae-cn/extensions",
+                        "${RESOURCE_DATA}/cache/.trae-server/bin:/home/x/.trae-server/bin",
+                        "${RESOURCE_DATA}/cache/.trae-server/extensions:/home/x/.trae-server/extensions",
+                        "${RESOURCE_DATA}/cache/.trae-cn-server/bin:/home/x/.trae-cn-server/bin",
+                        "${RESOURCE_DATA}/cache/.trae-cn-server/extensions:/home/x/.trae-cn-server/extensions",
                     ],
                 },
             },
@@ -55,38 +50,36 @@ def config() -> Config:
                         "type": "github",
                         "repository": "curoky/codespace",
                     },
-                    "hosts": {
-                        "home": {},
-                    },
+                    "hosts": ["home"],
                 },
                 "service-api": {
                     "source": {
                         "type": "gitlab",
                         "repository": "group/service-api",
                     },
-                    "hosts": {"office": {}},
+                    "hosts": ["office"],
                     "image": "registry.example.com/workspace-api:latest",
                 },
                 "scratch": {
                     "source": {"type": "empty"},
-                    "hosts": {"home": {}},
+                    "hosts": ["home"],
                 },
                 "personal": {
                     "source": {
                         "type": "git",
                         "url": "git@github.com:curoky/codespace.git",
                     },
-                    "hosts": {"home": {}},
+                    "hosts": ["home"],
                 },
             },
             "services": {
                 "support": {
                     "image": "ghcr.io/curoky/codespace:service-support",
-                    "hosts": {"home": {}},
+                    "hosts": ["home"],
                 },
                 "vllm": {
                     "image": "ghcr.io/curoky/codespace:service-vllm",
-                    "hosts": {"office": {}},
+                    "hosts": ["office"],
                     "container": {
                         "ipc": "host",
                         "devices": ["nvidia.com/gpu=all"],

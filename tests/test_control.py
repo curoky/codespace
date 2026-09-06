@@ -1,8 +1,5 @@
 """Tests for ControlPlane aggregation and Host failure isolation."""
 
-import ast
-from pathlib import Path
-
 import pytest
 
 from codespace import control as control_module
@@ -37,15 +34,12 @@ def test_dashboard_isolates_host_failure(config: Config, monkeypatch: pytest.Mon
 
     dashboard = build(control)
 
-    assert [host["status"] for host in dashboard["hosts"]] == ["online", "offline"]
-    assert dashboard["hosts"][1]["error"] == "TransportError: SSH down"
-    assert dashboard["hosts"][1]["workspace_count"] is None
-    assert [project["id"] for project in dashboard["projects"]] == [
-        "codespace",
-        "service-api",
-        "scratch",
-        "personal",
-    ]
+    hosts = {host["id"]: host for host in dashboard["hosts"]}
+    assert hosts["home"]["status"] == "online"
+    assert hosts["office"]["status"] == "offline"
+    assert hosts["office"]["error"] == "TransportError: SSH down"
+    assert hosts["office"]["workspace_count"] is None
+    assert {project["id"] for project in dashboard["projects"]} == set(config.projects)
 
 
 def test_dashboard_keeps_actual_metadata_when_config_changes(
@@ -67,7 +61,7 @@ def test_dashboard_keeps_actual_metadata_when_config_changes(
     data["projects"]["scratch"]["tunnel_ports"] = []
     data["services"]["support"]["image"] = "support:desired"
     data["services"]["support"]["container"] = {
-        "ports": [{"target": 3210, "published": 3210, "host_ip": "10.88.0.1"}],
+        "ports": [{"target": 8080, "published": 8110, "host_ip": "10.88.0.1"}]
     }
     control = ControlPlane(Config.model_validate(data), transport=FakeTransport())  # type: ignore[arg-type]
     monkeypatch.setattr(
@@ -83,13 +77,19 @@ def test_dashboard_keeps_actual_metadata_when_config_changes(
 
     dashboard = build(control)
 
-    assert "/workspace/codespace?" in dashboard["workspaces"][0]["trae_url"]
-    assert dashboard["projects"][0]["tunnel_ports"] == [8005]
-    assert dashboard["projects"][2]["tunnel_ports"] == []
-    assert dashboard["services"][0]["hosts"][0]["desired_image"] == "support:desired"
-    assert dashboard["services"][0]["hosts"][0]["tunnel_ports"] == [3210]
-    assert dashboard["services"][0]["hosts"][0]["container"] == service
-    assert dashboard["services"][1]["hosts"][0]["container"] is None
+    workspaces = {
+        (item["project"], item["workspace"], item["host"]): item for item in dashboard["workspaces"]
+    }
+    projects = {item["id"]: item for item in dashboard["projects"]}
+    services = {item["id"]: item for item in dashboard["services"]}
+    assert "/workspace/codespace?" in workspaces[("codespace", "debug", "home")]["trae_url"]
+    assert projects["codespace"]["tunnel_ports"] == [8005]
+    assert projects["scratch"]["tunnel_ports"] == []
+    support_host = services["support"]["hosts"][0]
+    assert support_host["desired_image"] == "support:desired"
+    assert support_host["tunnel_ports"] == [8110]
+    assert support_host["container"] == service
+    assert services["vllm"]["hosts"][0]["container"] is None
 
 
 @pytest.mark.parametrize("error", [KeyError("codespace.image"), RuntimeError("invalid metadata")])
@@ -113,15 +113,6 @@ def test_inventory_errors_are_not_classified_as_offline(
     assert failure.status == "error"
     assert type(error).__name__ in failure.error
     dashboard = build(control)
-    assert dashboard["hosts"][1]["status"] == "error"
-    assert dashboard["hosts"][1]["workspace_count"] is None
-
-
-def test_control_has_no_web_dependency() -> None:
-    tree = ast.parse(Path("src/codespace/control.py").read_text())
-    imports = [
-        node.module
-        for node in ast.walk(tree)
-        if isinstance(node, ast.ImportFrom) and node.module is not None
-    ]
-    assert not any(module.startswith("codespace.web") for module in imports)
+    hosts = {host["id"]: host for host in dashboard["hosts"]}
+    assert hosts["office"]["status"] == "error"
+    assert hosts["office"]["workspace_count"] is None

@@ -10,25 +10,16 @@ from podman.domain.containers import Container
 
 from codespace.resources import ResourceConflict
 from codespace.runtime import container
-from codespace.runtime.container import PortSpec, SecretSpec
+from codespace.runtime.container import ContainerSpec, PortSpec, SecretSpec
 from codespace.runtime.transport import PodmanTransport
 from codespace.workspaces import (
-    CHECKOUT_PATH_ENV,
-    CLONE_URL_ENV,
-    CONTAINER_GID,
-    CONTAINER_UID,
     CONTROL_MOUNT,
-    ENCRYPTED_ENV,
-    GIT_ARGS_ENV,
-    OPEN_PATH_ENV,
-    SOURCE_TYPE_ENV,
     WORKSPACE_KEY_SECRET,
     WORKSPACE_SSH_PORT,
     EmptySource,
     ProviderSource,
     RepoGitState,
     Workspace,
-    WorkspaceContainerSpec,
     WorkspaceSpec,
     agent,
     list_workspaces,
@@ -68,7 +59,7 @@ def bootstrap(
     stage("waiting for workspace agent")
     control_source = next(
         volume.source
-        for volume in spec.resolve_data_path(data_path).volumes
+        for volume in spec.container.resolve_data_path(data_path).volumes
         if volume.target == CONTROL_MOUNT
     )
     agent_client = agent.WorkspaceAgentClient(
@@ -117,32 +108,31 @@ def create_container(
     environment = {
         **forwarded_environment,
         **spec.container.environment,
-        SOURCE_TYPE_ENV: spec.source.type,
-        CHECKOUT_PATH_ENV: spec.checkout_path,
-        OPEN_PATH_ENV: spec.open_path,
-        ENCRYPTED_ENV: str(spec.encrypted).lower(),
+        "CODESPACE_SOURCE_TYPE": spec.source.type,
+        "CODESPACE_CHECKOUT_PATH": spec.checkout_path,
+        "CODESPACE_OPEN_PATH": spec.open_path,
+        "CODESPACE_ENCRYPTED": str(spec.encrypted).lower(),
     }
     if not isinstance(spec.source, EmptySource):
-        environment[CLONE_URL_ENV] = spec.source.clone_url
-        environment[GIT_ARGS_ENV] = json.dumps(spec.source.args)
+        environment["CODESPACE_CLONE_URL"] = spec.source.clone_url
+        environment["CODESPACE_GIT_ARGS"] = json.dumps(spec.source.args)
 
     secrets = list(spec.container.secrets)
     if spec.encrypted:
         secrets.append(
             SecretSpec(
                 source=WORKSPACE_KEY_SECRET,
-                uid=str(CONTAINER_UID),
-                gid=str(CONTAINER_GID),
+                uid="5230",
+                gid="5230",
                 mode=0o400,
             )
         )
 
-    runtime_spec = WorkspaceContainerSpec.model_validate(
+    runtime_spec = ContainerSpec.model_validate(
         {
-            **spec.resolve_data_path(data_path).model_dump(),
+            **spec.container.resolve_data_path(data_path).model_dump(),
             "secrets": secrets,
             "ports": [
-                *spec.container.ports,
                 PortSpec(
                     target=WORKSPACE_SSH_PORT,
                     published=spec.ssh_host_port,

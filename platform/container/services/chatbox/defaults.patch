@@ -13,7 +13,7 @@ index cd1595e..9a480c8 100644
 +    allowReportingAndTracking: false,
 +    providers: {
 +      [LOCAL_PROVIDER_ID]: {
-+        apiHost: `${globalThis.location?.origin || 'http://localhost:3212'}/v1`,
++        apiHost: `${globalThis.location?.origin || 'http://localhost:8112'}/v1`,
 +        apiKey: 'local',
 +        models: [
 +          {

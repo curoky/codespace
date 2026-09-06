@@ -414,7 +414,6 @@ class TestRuntimeHelpers(unittest.TestCase):
         run("sudo", "install", "-d", "-o", "200", "-g", "65534", "-m", "0755", control)
 
         env = os.environ.copy()
-        env["CODESPACE_ENCRYPTED_PATH"] = "/workspace.enc"
         env.pop("CODESPACE_ENCRYPTED", None)
         result = run(helper, env=env, check=False)
         self.assertNotEqual(result.returncode, 0)
@@ -426,12 +425,6 @@ class TestRuntimeHelpers(unittest.TestCase):
         self.assertEqual(result.stderr.strip(), "CODESPACE_ENCRYPTED must be true or false")
 
         env["CODESPACE_ENCRYPTED"] = "false"
-        env.pop("CODESPACE_ENCRYPTED_PATH")
-        result = run(helper, env=env, check=False)
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("CODESPACE_ENCRYPTED_PATH must be set", result.stderr)
-
-        env["CODESPACE_ENCRYPTED_PATH"] = "/workspace.enc"
         env["CODESPACE_ENCRYPTED"] = "true"
         result = run(helper, env=env, check=False)
         self.assertNotEqual(result.returncode, 0)

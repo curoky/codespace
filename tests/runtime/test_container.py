@@ -123,7 +123,6 @@ def test_container_rejects_removed_non_compose_syntax(
 @pytest.mark.parametrize(
     "field",
     [
-        {"cap_add": ["NET_RAW", "NET_RAW"]},
         {
             "volumes": [
                 "/host/data:/data",
@@ -134,16 +133,32 @@ def test_container_rejects_removed_non_compose_syntax(
                 },
             ]
         },
-        {"ulimits": {"NOFILE": {"soft": 1024, "hard": 1024}}},
-        {"environment": {"VALUE": "${HOST_VALUE}"}},
     ],
 )
-def test_container_rejects_values_outside_compose_subset(
+def test_container_rejects_ambiguous_volume_targets(
     model: type[ContainerLayer] | type[ContainerSpec],
     field: dict[str, object],
 ) -> None:
     with pytest.raises(ValidationError):
         model.model_validate(field)
+
+
+@pytest.mark.parametrize("model", [ContainerLayer, ContainerSpec])
+def test_container_preserves_literal_environment_and_duplicate_options(
+    model: type[ContainerLayer] | type[ContainerSpec],
+) -> None:
+    spec = model.model_validate(
+        {
+            "cap_add": ["NET_RAW", "NET_RAW"],
+            "environment": {"PROMPT": "${USER}:$PATH"},
+            "ulimits": {"NOFILE": {"soft": 1024, "hard": 1024}},
+        }
+    )
+
+    assert spec.cap_add == ["NET_RAW", "NET_RAW"]
+    assert spec.environment == {"PROMPT": "${USER}:$PATH"}
+    assert spec.ulimits is not None
+    assert "NOFILE" in spec.ulimits
 
 
 @pytest.mark.parametrize("model", [ContainerLayer, ContainerSpec])
@@ -189,7 +204,7 @@ def test_volume_short_syntax_rejects_invalid_entries(
 
 def test_secret_long_syntax_uses_compose_semantics() -> None:
     assert SecretSpec(source="token").mode == 0o444
-    assert SecretSpec(source="token", mode=0o666).mode == 0o444
+    assert SecretSpec(source="token", mode=0o600).mode == 0o600
     assert SecretSpec(source="token", target="/run/token").target == "/run/token"
 
     with pytest.raises(ValidationError, match="absolute"):
@@ -214,10 +229,13 @@ def test_volume_rejects_parent_traversal_in_target() -> None:
         VolumeSpec(type="bind", source="/host/data", target="/tmp/../workspace")
 
 
-@pytest.mark.parametrize("source", ["relative", "${RESOURCE_DATA}"])
-def test_runtime_rejects_unresolved_mount_sources(source: str) -> None:
-    volume = VolumeSpec(type="bind", source=source, target="/data")
+def test_volume_rejects_relative_source() -> None:
+    with pytest.raises(ValidationError, match="absolute path"):
+        VolumeSpec(type="bind", source="relative", target="/data")
 
+
+def test_runtime_rejects_unresolved_resource_data_source() -> None:
+    volume = VolumeSpec(type="bind", source="${RESOURCE_DATA}", target="/data")
     with pytest.raises(ValueError):
         container.create_container(
             SimpleNamespace(),  # type: ignore[arg-type]

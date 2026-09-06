@@ -7,7 +7,6 @@ from types import SimpleNamespace
 from typing import Literal
 
 import pytest
-from pydantic import ValidationError
 
 from codespace import workspaces as inventory
 from codespace.config import Config
@@ -210,9 +209,6 @@ def test_deploy_uses_configured_mounts_alongside_host_volumes(
 ) -> None:
     data = config.model_dump()
     volumes = data["project_defaults"]["container"]["volumes"]
-    next(volume for volume in volumes if volume["target"] == "/run/codespace-control")["source"] = (
-        "${RESOURCE_DATA}/agent-control"
-    )
     volumes.append(
         {
             "type": "bind",
@@ -241,8 +237,7 @@ def test_deploy_uses_configured_mounts_alongside_host_volumes(
 
     root = _PATHS.workspace("scratch", "debug")
     assert manager.operations.list() == []
-    assert f"{root}/agent-control" in directories
-    assert f"{root}/control" not in directories
+    assert f"{root}/control" in directories
     assert f"{root}/cache/build" in directories
     assert "/host/file" not in directories
     assert captured["mounts"] == []
@@ -253,7 +248,7 @@ def test_deploy_uses_configured_mounts_alongside_host_volumes(
     assert resolved["/opt/file"].source == "/host/file"
     assert len(resolved) == 16
     assert manager.transport.socket_forwards == [  # type: ignore[attr-defined]
-        ("home", f"{root}/agent-control/agent.sock")
+        ("home", f"{root}/control/agent.sock")
     ]
 
 
@@ -438,7 +433,7 @@ def test_logs_reads_podman_output(
 
 
 @pytest.mark.parametrize("encrypted", [False, True])
-def test_workspace_container_uses_fixed_ssh_listener_and_reserved_mounts(
+def test_workspace_container_uses_fixed_ssh_listener_and_configured_mounts(
     config: Config,
     monkeypatch: pytest.MonkeyPatch,
     encrypted: bool,
@@ -448,7 +443,13 @@ def test_workspace_container_uses_fixed_ssh_listener_and_reserved_mounts(
     data["secrets"]["codespace_workspace_key"] = "test-key"
     data["projects"]["codespace"]["container"] = {
         "secrets": [{"source": "atuin_db_uri", "mode": 0o400}],
-        "ports": [{"target": 8080, "published": 18080, "host_ip": "127.0.0.1"}],
+        "volumes": [
+            {
+                "source": "${RESOURCE_DATA}/workspace",
+                "target": "/workspace.enc" if encrypted else "/workspace",
+                "type": "bind",
+            }
+        ],
     }
     data["projects"]["codespace"]["source"]["args"] = ["--depth=1", "--single-branch"]
     spec = Config.model_validate(data).workspace_spec("codespace", "home", "debug")
@@ -474,7 +475,7 @@ def test_workspace_container_uses_fixed_ssh_listener_and_reserved_mounts(
     assert environment["CODESPACE_CHECKOUT_PATH"] == "/workspace/codespace"
     assert environment["CODESPACE_OPEN_PATH"] == "/workspace/codespace"
     assert environment["CODESPACE_ENCRYPTED"] == str(encrypted).lower()
-    assert environment["CODESPACE_ENCRYPTED_PATH"] == "/workspace.enc"
+    assert "CODESPACE_ENCRYPTED_PATH" not in environment
     assert environment["CODESPACE_CLONE_URL"] == "git@github.com:curoky/codespace.git"
     assert environment["CODESPACE_GIT_ARGS"] == '["--depth=1", "--single-branch"]'
     assert "ATUIN_SYNC_ADDRESS" not in environment
@@ -489,6 +490,12 @@ def test_workspace_container_uses_fixed_ssh_listener_and_reserved_mounts(
         "protocol": "tcp",
     }
     expected_mounts = [
+        {
+            "type": "bind",
+            "source": "/etc/krb5.conf",
+            "target": "/etc/krb5.conf",
+            "read_only": True,
+        },
         {
             "type": "bind",
             "source": "/home/x/codespace/workspaces/codespace/debug/workspace",
@@ -516,42 +523,11 @@ def test_workspace_container_uses_fixed_ssh_listener_and_reserved_mounts(
             }
             for relative in _CACHE_PATHS
         ),
-        {
-            "type": "bind",
-            "source": "/etc/krb5.conf",
-            "target": "/etc/krb5.conf",
-            "read_only": True,
-        },
     ]
     assert captured["mounts"] == []
     assert [volume.mount() for volume in captured["spec"].volumes] == expected_mounts  # type: ignore[union-attr]
-    assert [port.target for port in captured["spec"].ports] == [8080, 22]  # type: ignore[union-attr]
+    assert [port.target for port in captured["spec"].ports] == [22]  # type: ignore[union-attr]
     assert spec.container.model_dump() == original_container
-
-
-def test_workspace_ssh_port_conflict_fails_before_container_creation(
-    config: Config,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    data = config.model_dump()
-    data["projects"]["scratch"]["container"] = {
-        "ports": [{"target": 22, "published": 2222, "host_ip": "127.0.0.1"}],
-    }
-    spec = Config.model_validate(data).workspace_spec("scratch", "home", "debug")
-    created: list[object] = []
-    monkeypatch.setattr(
-        lifecycle.container, "create_container", lambda *_args, **kwargs: created.append(kwargs)
-    )
-
-    with pytest.raises(ValidationError, match="22/tcp is published more than once"):
-        lifecycle.create_container(
-            SimpleNamespace(),  # type: ignore[arg-type]
-            spec,
-            _PATHS.workspace("scratch", "debug"),
-            {},
-        )
-
-    assert created == []
 
 
 def test_encrypted_workspace_mounts_key_as_compose_secret(
@@ -560,6 +536,9 @@ def test_encrypted_workspace_mounts_key_as_compose_secret(
 ) -> None:
     data = config.model_dump()
     data["projects"]["codespace"]["encrypted"] = True
+    data["projects"]["codespace"]["container"] = {
+        "volumes": ["${RESOURCE_DATA}/workspace:/workspace.enc"]
+    }
     data["secrets"]["codespace_workspace_key"] = "test-key"
     spec = Config.model_validate(data).workspace_spec("codespace", "home", "debug")
     captured: dict[str, object] = {}

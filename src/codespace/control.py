@@ -162,7 +162,7 @@ class ControlPlane:
         stage("preparing data root")
         directories = [path]
         if isinstance(spec, WorkspaceSpec):
-            directories.extend(spec.data_directories(path))
+            directories.extend(spec.container.data_directories(path))
         host.prepare_directories(route, directories)
         if isinstance(spec, WorkspaceSpec):
             stage("creating container")
@@ -177,7 +177,7 @@ class ControlPlane:
                 client,
                 spec.image,
                 name=resource.container_name,
-                spec=spec.resolve_data_path(path),
+                spec=spec.container.resolve_data_path(path),
                 environment=spec.container.environment,
                 labels=spec.labels(),
                 mounts=[],

@@ -23,23 +23,9 @@ from codespace.runtime.container import (
 type GitProvider = Literal["github", "gitlab"]
 type PlatformSelection = Literal["native", "linux/amd64", "linux/arm64"]
 
-CONTAINER_USER = "x"
-CONTAINER_UID = 5230
-CONTAINER_GID = 5230
-CONTAINER_HOME = f"/home/{CONTAINER_USER}"
-CONTAINER_STATE_ROOT = "/var/lib/codespace"
 WORKSPACE_MOUNT = "/workspace"
-UPLOAD_MOUNT = "/upload"
 CONTROL_MOUNT = "/run/codespace-control"
 WORKSPACE_KEY_SECRET = "codespace_workspace_key"  # noqa: S105 - secret identifier
-WORKSPACE_KEY_MOUNT = f"/run/secrets/{WORKSPACE_KEY_SECRET}"
-SOURCE_TYPE_ENV = "CODESPACE_SOURCE_TYPE"
-CLONE_URL_ENV = "CODESPACE_CLONE_URL"
-GIT_ARGS_ENV = "CODESPACE_GIT_ARGS"
-CHECKOUT_PATH_ENV = "CODESPACE_CHECKOUT_PATH"
-OPEN_PATH_ENV = "CODESPACE_OPEN_PATH"
-ENCRYPTED_ENV = "CODESPACE_ENCRYPTED"
-ENCRYPTED_PATH_ENV = "CODESPACE_ENCRYPTED_PATH"
 
 LABEL_PROJECT = "codespace.project"
 LABEL_WORKSPACE = "codespace.workspace"
@@ -125,9 +111,6 @@ type Source = Annotated[ProviderSource | GitSource | EmptySource, Field(discrimi
 _SOURCE: TypeAdapter[Source] = TypeAdapter(Source)
 
 
-WorkspaceContainerSpec = ContainerSpec
-
-
 class WorkspaceMetadata(BaseModel):
     """Workspace identity and metadata shared by desired and deployed state."""
 
@@ -166,28 +149,8 @@ class WorkspaceSpec(WorkspaceMetadata):
     """Resolved Project placement and one requested Workspace identity."""
 
     platform: ImagePlatform | None
-    container: WorkspaceContainerSpec
+    container: ContainerSpec
     checkout_path: WorkspacePath
-
-    def resolve_data_path(self, data_path: str) -> WorkspaceContainerSpec:
-        volumes = [volume.resolve_data_path(data_path) for volume in self.container.volumes]
-        if self.encrypted:
-            encrypted_workspace_target = self.container.environment[ENCRYPTED_PATH_ENV]
-            volumes = [
-                volume.model_copy(update={"target": encrypted_workspace_target})
-                if volume.target == WORKSPACE_MOUNT
-                else volume
-                for volume in volumes
-            ]
-        return self.container.model_copy(update={"volumes": volumes})
-
-    def data_directories(self, data_path: str) -> list[str]:
-        resolved = self.resolve_data_path(data_path)
-        return [
-            actual.source
-            for configured, actual in zip(self.container.volumes, resolved.volumes, strict=True)
-            if configured.uses_resource_data
-        ]
 
     def labels(self) -> dict[str, str]:
         labels = {

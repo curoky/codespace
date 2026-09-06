@@ -27,8 +27,6 @@ _READY_TIMEOUT = 30.0
 _READY_INTERVAL = 0.25
 _PULL_TIMEOUT = 15 * 60.0
 _LOG_TAIL = 2000
-_PORT_MIN = 1
-_PORT_MAX = 65_535
 _SECRET_NAME_RE = re.compile(r"^[a-zA-Z0-9._-]+$")
 RESOURCE_DATA_PLACEHOLDER = "${RESOURCE_DATA}"
 
@@ -50,15 +48,9 @@ def _absolute_path(value: str) -> str:
     return str(path)
 
 
-def _compose_literal(value: str) -> str:
-    if "$" in value:
-        raise ValueError("Compose variable interpolation is not supported")
-    return value
-
-
 def _volume_source(value: str) -> str:
     if "$" not in value:
-        return value
+        return _absolute_path(value)
     if value == RESOURCE_DATA_PLACEHOLDER:
         return value
     prefix = f"{RESOURCE_DATA_PLACEHOLDER}/"
@@ -77,21 +69,11 @@ def _secret_name(value: str) -> str:
     return value
 
 
-def _secret_mode(value: int) -> int:
-    return value & ~0o222
-
-
 def _host_ip(value: str) -> str:
     return str(ip_address(value))
 
 
 type NonBlankString = Annotated[str, AfterValidator(_not_blank)]
-type ComposeString = Annotated[str, AfterValidator(_compose_literal)]
-type ComposeNonBlankString = Annotated[
-    str,
-    AfterValidator(_not_blank),
-    AfterValidator(_compose_literal),
-]
 type AbsolutePath = Annotated[str, AfterValidator(_absolute_path)]
 type VolumeSource = Annotated[
     str,
@@ -100,12 +82,6 @@ type VolumeSource = Annotated[
 ]
 type SecretName = Annotated[str, AfterValidator(_secret_name)]
 type SecretId = Annotated[str, Field(pattern=r"^\d+$")]
-type UlimitName = Annotated[str, Field(pattern=r"^[a-z]+$")]
-type SecretMode = Annotated[
-    StrictInt,
-    Field(ge=0, le=0o777),
-    AfterValidator(_secret_mode),
-]
 type ImagePlatform = Literal["linux/amd64", "linux/arm64"]
 
 
@@ -178,7 +154,7 @@ class SecretSpec(BaseModel):
     target: AbsolutePath | None = None
     uid: SecretId | None = None
     gid: SecretId | None = None
-    mode: SecretMode = 0o444
+    mode: StrictInt = Field(default=0o444, ge=0, le=0o777)
 
 
 class PortSpec(BaseModel):
@@ -186,16 +162,10 @@ class PortSpec(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    target: StrictInt = Field(ge=_PORT_MIN, le=_PORT_MAX)
-    published: StrictInt = Field(ge=_PORT_MIN, le=_PORT_MAX)
+    target: StrictInt = Field(ge=1, le=65535)
+    published: StrictInt = Field(ge=1, le=65535)
     host_ip: Annotated[str, AfterValidator(_host_ip)]
     protocol: Literal["tcp", "udp"] = "tcp"
-
-
-def _unique_options(values: list[str]) -> list[str]:
-    if len(values) != len(set(values)):
-        raise ValueError("must not contain duplicate values")
-    return values
 
 
 def _unique_volumes(volumes: list[VolumeSpec]) -> list[VolumeSpec]:
@@ -217,9 +187,6 @@ def _unique_ports(ports: list[PortSpec]) -> list[PortSpec]:
     return ports
 
 
-type UniqueContainerOptions = Annotated[
-    list[ComposeNonBlankString], AfterValidator(_unique_options)
-]
 type ContainerVolumes = Annotated[list[VolumeSpec], AfterValidator(_unique_volumes)]
 type ContainerPorts = Annotated[list[PortSpec], AfterValidator(_unique_ports)]
 
@@ -229,17 +196,30 @@ class ContainerSpec(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    cap_add: UniqueContainerOptions = Field(default_factory=list)
-    security_opt: UniqueContainerOptions = Field(default_factory=list)
-    ipc: ComposeNonBlankString | None = None
+    cap_add: list[NonBlankString] = Field(default_factory=list)
+    security_opt: list[NonBlankString] = Field(default_factory=list)
+    ipc: NonBlankString | None = None
     pids_limit: StrictInt | None = None
-    ulimits: dict[UlimitName, UlimitSpec] = Field(default_factory=dict)
+    ulimits: dict[NonBlankString, UlimitSpec] = Field(default_factory=dict)
     volumes: ContainerVolumes = Field(default_factory=list)
-    environment: dict[NonBlankString, ComposeString] = Field(default_factory=dict)
+    environment: dict[NonBlankString, str] = Field(default_factory=dict)
     secrets: list[SecretSpec] = Field(default_factory=list)
-    devices: list[ComposeNonBlankString] = Field(default_factory=list)
+    devices: list[NonBlankString] = Field(default_factory=list)
     ports: ContainerPorts = Field(default_factory=list)
-    shm_size: ComposeNonBlankString | None = None
+    shm_size: NonBlankString | None = None
+
+    def resolve_data_path(self, data_path: str) -> Self:
+        return self.model_copy(
+            update={"volumes": [volume.resolve_data_path(data_path) for volume in self.volumes]}
+        )
+
+    def data_directories(self, data_path: str) -> list[str]:
+        root = PurePosixPath(data_path)
+        return [
+            volume.source
+            for volume in self.resolve_data_path(data_path).volumes
+            if PurePosixPath(volume.source).is_relative_to(root)
+        ]
 
 
 def create_container(

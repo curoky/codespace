@@ -12,7 +12,6 @@ sysctl -p /etc/sysctl.d/custom.conf || true
 mkdir -p /run/s6/container_environment /run/service
 
 printf 'false' >/run/s6/container_environment/CODESPACE_ENCRYPTED
-printf '/workspace.enc' >/run/s6/container_environment/CODESPACE_ENCRYPTED_PATH
 
 # s6-svscan's fd notification is the readiness signal for s6-rc-init.
 rm -f /run/s6/.wsl-notify
