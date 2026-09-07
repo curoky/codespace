@@ -101,6 +101,7 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
   # setup nodejs
   && nix-env -iA nixpkgs.nodejs_24 -p /nix/var/nix/profiles/default \
   && nix-env -iA nixpkgs.nodejs_24 -p /nix/var/nix/profiles/nodejs-24 \
+  && nix-env -iA nixpkgs.nodejs_26 -p /nix/var/nix/profiles/nodejs-26 \
   # setup go
   && nix-env -iA nixpkgs.go_1_26 -p /nix/var/nix/profiles/default \
   && nix-env -iA nixpkgs.go_1_26 -p /nix/var/nix/profiles/go-1_26 \
