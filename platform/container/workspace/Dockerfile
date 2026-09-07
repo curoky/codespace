@@ -92,6 +92,8 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
   && nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs \
   && nix-channel --update \
   && nix-env -iA nixpkgs.ollama-cpu nixpkgs.lemminx nixpkgs.codex \
+  # setup formatters & linters
+  && nix-env -iA nixpkgs.markdownlint-cli2 nixpkgs.pnpm nixpkgs.prettier \
   # setup java
   && nix-env -iA nixpkgs.maven \
   && nix-env -iA nixpkgs.jdk8_headless -p /nix/var/nix/profiles/jdk8 \

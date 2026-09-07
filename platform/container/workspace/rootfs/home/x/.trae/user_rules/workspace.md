@@ -25,7 +25,7 @@ zsh -lic '<cmd>'
 | Java | JDK 25: `JAVA_HOME=/nix/var/nix/profiles/jdk25/lib/openjdk`；JDK 8: `/nix/var/nix/profiles/jdk8/lib/openjdk` |
 | Maven | `/home/x/.nix-profile/bin/mvn` |
 | Node.js | `/home/x/.nix-profile/bin/node`、`npm`、`npx`、`corepack` |
-| pnpm | `/opt/bm/bin/pnpm`、`/opt/bm/bin/pnpx` |
+| pnpm | `/home/x/.nix-profile/bin/pnpm`、`pnpx` |
 | Go | `/home/x/.nix-profile/bin/go`、`gofmt` |
 | Go tools | `/opt/bm/store/<name>/bin/<name>`，如 `gopls`、`golangci-lint`、`dlv` |
 | Rust | `/opt/rust/cargo/bin/cargo`、`rustc`、`clippy`、`rustfmt`、`rust-analyzer` |
