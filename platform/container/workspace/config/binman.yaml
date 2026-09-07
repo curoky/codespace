@@ -120,7 +120,6 @@ packages:
 
     # language toolchains & package managers
     - uv
-    - pnpm
     - bazelisk
     - buildifier
 
@@ -128,8 +127,6 @@ packages:
     - ruff
     - shfmt
     - nixfmt
-    - prettier
-    - markdownlint-cli2
     - scc
     - cloc
 
@@ -146,10 +143,6 @@ packages:
     - podman5
 
   unlink:
-    - python314
-    - nodejs-slim24
-    - nodejs-slim26
-
     - clang-tools-18
     - clang-tools-19
     - clang-tools-20

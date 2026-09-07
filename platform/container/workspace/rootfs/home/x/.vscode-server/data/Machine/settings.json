@@ -68,7 +68,7 @@
   "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx16G -Xms4G",
   "java.trace.server": "verbose",
   "markdown-preview-enhanced.pandocPath": "/nix/var/nix/profiles/default/bin/pandoc",
-  "prettier.prettierPath": "/opt/bm/store/prettier/libexec/prettier/bin/prettier.cjs",
+  "prettier.prettierPath": "/home/x/.nix-profile/lib/node_modules/prettier",
   "python.defaultInterpreterPath": "/opt/conda/bin/python3",
   // "python.formatting.yapfPath": "/nix/var/nix/profiles/default/bin/yapf",
   "ruby.interpreter.commandPath": "/nix/var/nix/profiles/default/bin/ruby",
