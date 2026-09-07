@@ -23,14 +23,14 @@ zsh -lic '<cmd>'
 | CPython | `/opt/uv/python/cpython-3.<N>-linux-x86_64-gnu/bin/python3`，`N=9..14` |
 | Conda | `/opt/conda/condabin/conda`，仅 conda 生态需要时用 |
 | Java | JDK 25: `JAVA_HOME=/nix/var/nix/profiles/jdk25/lib/openjdk`；JDK 8: `/nix/var/nix/profiles/jdk8/lib/openjdk` |
-| Maven | `/home/x/.nix-profile/bin/mvn` |
-| Node.js | `/home/x/.nix-profile/bin/node`、`npm`、`npx`、`corepack` |
-| pnpm | `/home/x/.nix-profile/bin/pnpm`、`pnpx` |
-| Go | `/home/x/.nix-profile/bin/go`、`gofmt` |
+| Maven | `/nix/var/nix/profiles/default/bin/mvn` |
+| Node.js | `/nix/var/nix/profiles/default/bin/node`、`npm`、`npx`、`corepack` |
+| pnpm | `/nix/var/nix/profiles/default/bin/pnpm`、`pnpx` |
+| Go | `/nix/var/nix/profiles/default/bin/go`、`gofmt` |
 | Go tools | `/opt/bm/store/<name>/bin/<name>`，如 `gopls`、`golangci-lint`、`dlv` |
 | Rust | `/opt/rust/cargo/bin/cargo`、`rustc`、`clippy`、`rustfmt`、`rust-analyzer` |
 | Rust env | 非登录 shell 需 `CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup` |
-| C/C++ | `/home/x/.nix-profile/bin/gcc`、`g++`；`clang-format` 在 `/opt/bm/store/clang-tools-*/bin/clang-format` |
+| C/C++ | `/nix/var/nix/profiles/default/bin/gcc`、`g++`；`clang-format` 在 `/opt/bm/store/clang-tools-*/bin/clang-format` |
 | 构建工具 | `/opt/bm/bin/cmake`、`ninja`、`bazel`、`protoc`、`task` |
 | Shell | `/opt/bm/bin/shfmt`、`shellcheck`、`bats` |
 | 常用 CLI | `/opt/bm/bin` 下有 `git`、`gh`、`rg`、`fd`、`jq`、`curl`、`ssh`、`rsync`、`zip` 等 |

@@ -25,8 +25,8 @@
   "git.path": "/opt/bm/store/git/bin/git",
   "go.alternateTools": {
     // Go SDK
-    "go": "/home/x/.nix-profile/bin/go",
-    "gofmt": "/home/x/.nix-profile/bin/gofmt",
+    "go": "/nix/var/nix/profiles/default/bin/go",
+    "gofmt": "/nix/var/nix/profiles/default/bin/gofmt",
     // Language Server / Debugger
     "gopls": "/opt/bm/store/gopls/bin/gopls",
     "dlv": "/opt/bm/store/delve/bin/dlv",
@@ -68,7 +68,7 @@
   "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx16G -Xms4G",
   "java.trace.server": "verbose",
   "markdown-preview-enhanced.pandocPath": "/nix/var/nix/profiles/default/bin/pandoc",
-  "prettier.prettierPath": "/home/x/.nix-profile/lib/node_modules/prettier",
+  "prettier.prettierPath": "/nix/var/nix/profiles/default/lib/node_modules/prettier",
   "python.defaultInterpreterPath": "/opt/conda/bin/python3",
   // "python.formatting.yapfPath": "/nix/var/nix/profiles/default/bin/yapf",
   "ruby.interpreter.commandPath": "/nix/var/nix/profiles/default/bin/ruby",
@@ -78,10 +78,10 @@
   ],
   // "ruby.useBundler": true,
   "shellcheck.executablePath": "/nix/var/nix/profiles/default/bin/shellcheck",
-  "typescript.npm": "/home/x/.nix-profile/bin/npm",
+  "typescript.npm": "/nix/var/nix/profiles/default/bin/npm",
   "xml.java.home": "/nix/var/nix/profiles/jdk25/lib/openjdk",
   "xml.server.vmargs": "-Xmx5G",
-  "xml.server.binary.path": "/home/x/.nix-profile/bin/lemminx",
+  "xml.server.binary.path": "/nix/var/nix/profiles/default/bin/lemminx",
   "nix.formatterPath": "/opt/bm/store/nixfmt/bin/nixfmt",
   "nix.serverPath": "/opt/bm/store/nil/bin/nil",
   "nix.enableLanguageServer": true,
