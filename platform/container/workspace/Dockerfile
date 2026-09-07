@@ -84,7 +84,7 @@ COPY --chown=5230:5230 platform/container/workspace/agent/ /opt/codespace/agent/
 USER x
 
 # setup nixpkgs
-ENV PATH=${PATH}:/nix/var/nix/profiles/default/bin
+ENV PATH=${PATH}:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin
 # Nix's seccomp BPF filter cannot load under buildx's QEMU arm64 emulation.
 # Keep the override local to this build layer rather than the final image.
 RUN export NIX_CONFIG='filter-syscalls = false' \
