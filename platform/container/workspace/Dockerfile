@@ -84,28 +84,28 @@ COPY --chown=5230:5230 platform/container/workspace/agent/ /opt/codespace/agent/
 USER x
 
 # setup nixpkgs
-ENV PATH=${PATH}:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin
+ENV PATH=${PATH}:/nix/var/nix/profiles/default/bin
 # Nix's seccomp BPF filter cannot load under buildx's QEMU arm64 emulation.
 # Keep the override local to this build layer rather than the final image.
 RUN export NIX_CONFIG='filter-syscalls = false' \
   && curl -fsSL https://nixos.org/nix/install | sh -s -- --no-daemon \
   && nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs \
   && nix-channel --update \
-  && nix-env -iA nixpkgs.ollama-cpu nixpkgs.lemminx nixpkgs.codex \
+  && nix-env -iA nixpkgs.ollama-cpu nixpkgs.lemminx nixpkgs.codex -p /nix/var/nix/profiles/default \
   # setup formatters & linters
-  && nix-env -iA nixpkgs.markdownlint-cli2 nixpkgs.pnpm nixpkgs.prettier \
+  && nix-env -iA nixpkgs.markdownlint-cli2 nixpkgs.pnpm nixpkgs.prettier -p /nix/var/nix/profiles/default \
   # setup java
-  && nix-env -iA nixpkgs.maven \
+  && nix-env -iA nixpkgs.maven -p /nix/var/nix/profiles/default \
   && nix-env -iA nixpkgs.jdk8_headless -p /nix/var/nix/profiles/jdk8 \
   && nix-env -iA nixpkgs.jdk25_headless -p /nix/var/nix/profiles/jdk25 \
   # setup nodejs
-  && nix-env -iA nixpkgs.nodejs_24 \
+  && nix-env -iA nixpkgs.nodejs_24 -p /nix/var/nix/profiles/default \
   && nix-env -iA nixpkgs.nodejs_24 -p /nix/var/nix/profiles/nodejs-24 \
   # setup go
-  && nix-env -iA nixpkgs.go_1_26 \
+  && nix-env -iA nixpkgs.go_1_26 -p /nix/var/nix/profiles/default \
   && nix-env -iA nixpkgs.go_1_26 -p /nix/var/nix/profiles/go-1_26 \
   # setup gcc
-  && nix-env -iA nixpkgs.gcc15 \
+  && nix-env -iA nixpkgs.gcc15 -p /nix/var/nix/profiles/default \
   && nix-collect-garbage -d \
   && nix-store --optimise
 
