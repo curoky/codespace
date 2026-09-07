@@ -122,6 +122,10 @@ ENV UV_TOOL_DIR=/opt/uv/tools \
 ENV PATH=${PATH}:/opt/uv/bin
 RUN uv python install --no-bin 3.9 3.10 3.11 3.12 3.13 3.14
 RUN uv tool install licenseheaders \
+  && uv tool install copyparty \
+  && uv tool install dool \
+  && uv tool install netron \
+  && uv tool install git-filter-repo \
   && uv tool install tensorboard --python 3.12 --with tensorboard-plugin-profile --with "setuptools==81.0.0"
 
 # setup conda

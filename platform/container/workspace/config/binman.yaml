@@ -68,7 +68,6 @@ packages:
     - ethtool
     - miniserve
     - rclone
-    - copyparty
     - openssh_gssapi
 
     # crypto & security
@@ -88,7 +87,6 @@ packages:
     - lsof
     - gdu
     - ncdu_1
-    - dool
     - libcap
     - lsb-release
     - tzdata
@@ -102,7 +100,6 @@ packages:
     - gh
     - git-absorb
     - git-extras
-    - git-filter-repo
     - git-lfs
     - lefthook
 
@@ -145,7 +142,6 @@ packages:
 
     # misc
     - nil
-    - netron
     - exiftool
     - podman5
 

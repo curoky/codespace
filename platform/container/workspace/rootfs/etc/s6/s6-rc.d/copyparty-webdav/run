@@ -13,7 +13,7 @@ s6-setuidgid x
 s6-env HOME=/home/x
 s6-env XDG_CONFIG_HOME=/run/copyparty-webdav
 s6-env PYTHONUNBUFFERED=1
-exec /opt/bm/store/copyparty/bin/copyparty
+exec /opt/uv/bin/copyparty
   -i ${WEBDAV_BIND}
   -p 8005
   --dav-port 8005
