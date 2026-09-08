@@ -1,4 +1,4 @@
-redirfd -w 1 /var/log/git-config.log
+redirfd -w 1 /var/log/s6.git-config.log
 fdmove -c 2 1
 s6-envdir -Lf -- /run/s6/container_environment
 s6-setuidgid x

@@ -827,6 +827,10 @@ select:focus {
   width: min(900px, calc(100% - 28px));
 }
 
+.logs-source {
+  width: min(320px, 100%);
+}
+
 .logs-output {
   max-height: min(60vh, 460px);
   margin: 0;

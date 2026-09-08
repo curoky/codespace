@@ -55,4 +55,4 @@ fi
 podman "${podman_args[@]}" "${image}"
 
 echo "Service '${service}' is starting on http://${listen_host}:${port}."
-echo "Watch startup with: podman exec ${name} tail -f /var/log/serve.log"
+echo "Watch startup with: podman exec ${name} tail -f /var/log/s6.serve.log"

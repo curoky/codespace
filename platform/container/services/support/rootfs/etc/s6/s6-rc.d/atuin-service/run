@@ -2,7 +2,7 @@
 
 s6-envdir -Lf -- /run/s6/container_environment
 
-redirfd -w 1 /var/log/atuin-service.log
+redirfd -w 1 /var/log/s6.atuin-service.log
 fdmove -c 2 1
 
 importas -i ATUIN_DB_URI ATUIN_DB_URI

@@ -33,7 +33,7 @@ flowchart LR
 ## Runtime
 
 s6 的 `default` bundle 启动唯一 longrun `serve`。该 longrun 加载容器环境后 exec
-`/opt/codespace/sglang/serve.sh`，日志写入 `/var/log/serve.log`。
+`/opt/codespace/sglang/serve.sh`，日志写入 `/var/log/s6.serve.log`。
 
 runtime 参数针对单台 8x H100 固定 tensor/expert parallel、长上下文、分块 prefill、
 FlashInfer linear attention 与 speculative decoding。启动脚本显式暴露 CUDA Toolkit，

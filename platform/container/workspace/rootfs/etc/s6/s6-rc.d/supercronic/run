@@ -4,7 +4,7 @@
 # with zero jobs. Add 5-field entries there to schedule work.
 s6-envdir -Lf -- /run/s6/container_environment
 
-redirfd -w 1 /var/log/supercronic.log
+redirfd -w 1 /var/log/s6.supercronic.log
 fdmove -c 2 1
 s6-setuidgid x
 s6-env HOME=/home/x

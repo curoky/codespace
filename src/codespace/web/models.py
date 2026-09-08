@@ -34,6 +34,8 @@ class UpdateTokenRequest(BaseModel):
 
 
 class ContainerLogsResult(BaseModel):
+    source: str
+    sources: list[str]
     logs: str
 
 

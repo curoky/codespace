@@ -104,3 +104,30 @@ def test_remove_can_purge_service_data(
 
     assert manager.remove("support", "home", purge=True) is True
     assert events == ["container", "data"]
+
+
+def test_logs_reads_selected_container_source(
+    manager: ServiceManager,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    running = SimpleNamespace()
+    snapshot = lifecycle.container.LogSnapshot(
+        source="s6.atuin-service.log",
+        sources=("container", "s6.atuin-service.log"),
+        logs="service line\n",
+    )
+    calls: list[tuple[object, str]] = []
+    monkeypatch.setattr(
+        inventory,
+        "list_services",
+        lambda *_args: [SimpleNamespace(id="codespace-service-support")],
+    )
+    monkeypatch.setattr(inventory, "find_container", lambda *_args: running)
+    monkeypatch.setattr(
+        lifecycle.container,
+        "container_log_snapshot",
+        lambda actual, source: (calls.append((actual, source)), snapshot)[-1],
+    )
+
+    assert manager.logs("support", "home", "s6.atuin-service.log") is snapshot
+    assert calls == [(running, "s6.atuin-service.log")]

@@ -248,13 +248,19 @@ class WorkspaceManager:
         ssh.write_host(host_name, inventory.list_workspaces(client, host_name), route)
         return RepoGitState()
 
-    def logs(self, project: str, host_name: str, workspace: str) -> str:
+    def logs(
+        self,
+        project: str,
+        host_name: str,
+        workspace: str,
+        source: str = container.CONTAINER_LOG_SOURCE,
+    ) -> container.LogSnapshot:
         self._project(project, host_name)
         spec = self.config.workspace_spec(project, host_name, workspace)
         running = inventory.find_container(self.transport.client(host_name), spec)
         if running is None:
             raise RuntimeError(f"workspace {spec.identity!r} not found")
-        return container.container_logs(running)
+        return container.container_log_snapshot(running, source)
 
     def _project(self, project: str, host_name: str) -> ProjectConfig:
         try:
