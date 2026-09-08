@@ -19,8 +19,9 @@ setup() {
   STUB_BIN=$(mktemp -d "${BATS_TEST_TMPDIR}/stub.XXXXXX")
   TEST_EVENTS="${STUB_BIN}/events"
   TEST_SUDO_EVENTS="${STUB_BIN}/sudo-events"
+  WORKSPACE_KEY_FILE="${STUB_BIN}/workspace-key"
   REAL_GREP=$(command -v grep)
-  export STUB_BIN TEST_EVENTS TEST_SUDO_EVENTS REAL_GREP
+  export STUB_BIN TEST_EVENTS TEST_SUDO_EVENTS WORKSPACE_KEY_FILE REAL_GREP
   cat >"${STUB_BIN}/sudo" <<'EOF'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >>"${TEST_SUDO_EVENTS}"
@@ -42,31 +43,28 @@ EOF
   export PATH="${STUB_BIN}:${PATH}"
 }
 
-# 明文场景(CODESPACE_WORKSPACE_KEY 未设)直接跳过挂载.
+# 明文场景（Workspace key secret 未挂载）直接跳过挂载。
 @test "workspace init skips plaintext workspaces" {
-  run --separate-stderr env -u CODESPACE_WORKSPACE_KEY PATH="${PATH}" "${HELPER_BASH}" "${HELPER}"
+  run --separate-stderr env PATH="${PATH}" "${HELPER_BASH}" "${HELPER}" "${WORKSPACE_KEY_FILE}"
 
   [[ ${status} -eq 0 ]]
-  [[ ${output} == "CODESPACE_WORKSPACE_KEY unset; Workspace encryption disabled, using plaintext /workspace" ]]
+  [[ ${output} == "Workspace key secret unavailable; encryption disabled, using plaintext /workspace" ]]
   [[ -z ${stderr} ]]
   grep -qx "install -d -o 5230 -g 5230 -m 0700 -- /workspace /workspace.enc /upload /cache" \
     "${TEST_SUDO_EVENTS}"
 }
 
 @test "workspace init mounts encrypted workspaces with the codespace key" {
-  run --separate-stderr env CODESPACE_WORKSPACE_KEY=secret \
-    PATH="${PATH}" "${HELPER_BASH}" "${HELPER}"
+  printf '%s' secret >"${WORKSPACE_KEY_FILE}"
+  run --separate-stderr env PATH="${PATH}" "${HELPER_BASH}" "${HELPER}" "${WORKSPACE_KEY_FILE}"
 
   [[ ${status} -eq 0 ]]
   [[ -z ${stderr} ]]
   grep -qx "install -d -o 5230 -g 5230 -m 0700 -- /workspace /workspace.enc /upload /cache" \
     "${TEST_SUDO_EVENTS}"
   [[ $(wc -l <"${TEST_EVENTS}") -eq 2 ]]
-  # The extpass argument must retain this literal for evaluation by gocryptfs.
-  # shellcheck disable=SC2016
-  local key_expression='${CODESPACE_WORKSPACE_KEY}'
-  grep -qF -- "-init -extpass echo \"${key_expression}\" /workspace.enc" \
+  grep -qF -- "-init -extpass cat -- ${WORKSPACE_KEY_FILE} /workspace.enc" \
     "${TEST_EVENTS}"
-  grep -qF -- "-extpass echo \"${key_expression}\" -allow_other /workspace.enc /workspace" \
+  grep -qF -- "-extpass cat -- ${WORKSPACE_KEY_FILE} -allow_other /workspace.enc /workspace" \
     "${TEST_EVENTS}"
 }

@@ -259,3 +259,36 @@ def test_workspace_container_uses_reserved_environment_and_mounts(
         }
         & targets
     )
+
+
+def test_encrypted_workspace_mounts_key_as_compose_secret(
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    data = config.model_dump()
+    data["projects"]["codespace"]["encrypted"] = True
+    data["secrets"]["codespace_workspace_key"] = "test-key"
+    spec = Config.model_validate(data).workspace_spec("codespace", "home", "debug")
+    captured: dict[str, object] = {}
+    monkeypatch.setattr(
+        lifecycle.container,
+        "create_container",
+        lambda *_args, **kwargs: (captured.update(kwargs), SimpleNamespace())[-1],
+    )
+
+    lifecycle._create_workspace_container(
+        SimpleNamespace(),  # type: ignore[arg-type]
+        spec,
+        _PATHS.workspace("codespace", "debug"),
+        {},
+    )
+
+    runtime_spec = captured["spec"]
+    assert runtime_spec.secrets is not None  # type: ignore[union-attr]
+    assert runtime_spec.secrets[0].model_dump() == {  # type: ignore[union-attr]
+        "source": "codespace_workspace_key",
+        "target": None,
+        "uid": "5230",
+        "gid": "5230",
+        "mode": 0o400,
+    }

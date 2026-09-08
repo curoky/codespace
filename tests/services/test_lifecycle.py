@@ -68,6 +68,7 @@ def test_apply_replaces_container_and_resolves_data_placeholder(
 
     assert events == ["pull", "/home/x/codespace/services/vllm", "remove"]
     assert captured["name"] == "codespace-service-vllm"
+    assert captured["mounts"] == []
     assert captured["volume_placeholders"] == {"${SERVICE_DATA}": "/home/x/codespace/services/vllm"}
     assert captured["restart_policy"] == {"Name": "unless-stopped"}
     assert manager.operations.list() == []

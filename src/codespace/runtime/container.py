@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import posixpath
 import re
-from collections.abc import Iterator, Mapping
+from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Annotated, Any, Literal, Self, cast
 
@@ -16,6 +16,8 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    StrictBool,
+    StrictInt,
     model_validator,
 )
 from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_fixed
@@ -28,8 +30,9 @@ _LOG_FILE_LIMIT = 1024 * 1024
 _LOG_FILE_RE = re.compile(r"^s6\.[A-Za-z0-9][A-Za-z0-9._-]*\.log$", re.ASCII)
 _PORT_MIN = 1
 _PORT_MAX = 65_535
-_ENVIRONMENT_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+_SECRET_NAME_RE = re.compile(r"^[a-zA-Z0-9._-]+$")
 CONTAINER_LOG_SOURCE = "container"
+SERVICE_DATA_PLACEHOLDER = "${SERVICE_DATA}"
 
 
 def _not_blank(value: str) -> str:
@@ -41,18 +44,50 @@ def _not_blank(value: str) -> str:
 def _absolute_path(value: str) -> str:
     if not value.startswith("/"):
         raise ValueError("must be an absolute path")
+    if "$" in value:
+        raise ValueError("Compose variable interpolation is not supported")
     return value
 
 
 def _mount_source(value: str) -> str:
-    if value.startswith(("/", "${")):
+    if value == SERVICE_DATA_PLACEHOLDER:
         return value
-    raise ValueError("volume source must be an absolute path or a ${...} placeholder")
+    return _absolute_path(value)
+
+
+def _compose_literal(value: str) -> str:
+    if "$" in value:
+        raise ValueError("Compose variable interpolation is not supported")
+    return value
+
+
+def _secret_name(value: str) -> str:
+    if not _SECRET_NAME_RE.fullmatch(value):
+        raise ValueError("must be a valid Compose secret name")
+    return value
+
+
+def _secret_mode(value: int) -> int:
+    return value & ~0o222
 
 
 type NonBlankString = Annotated[str, AfterValidator(_not_blank)]
+type ComposeString = Annotated[str, AfterValidator(_compose_literal)]
+type ComposeNonBlankString = Annotated[
+    str,
+    AfterValidator(_not_blank),
+    AfterValidator(_compose_literal),
+]
 type AbsolutePath = Annotated[str, AfterValidator(_absolute_path)]
 type MountSource = Annotated[str, AfterValidator(_mount_source)]
+type SecretName = Annotated[str, AfterValidator(_secret_name)]
+type SecretId = Annotated[str, Field(pattern=r"^\d+$")]
+type UlimitName = Annotated[str, Field(pattern=r"^[a-z]+$")]
+type SecretMode = Annotated[
+    StrictInt,
+    Field(ge=0, le=0o777),
+    AfterValidator(_secret_mode),
+]
 type ImagePlatform = Literal["linux/amd64", "linux/arm64"]
 
 
@@ -70,8 +105,8 @@ class UlimitSpec(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    soft: int
-    hard: int
+    soft: StrictInt
+    hard: StrictInt
 
 
 class VolumeSpec(BaseModel):
@@ -82,7 +117,7 @@ class VolumeSpec(BaseModel):
     type: Literal["bind"]
     source: MountSource
     target: AbsolutePath
-    read_only: bool = False
+    read_only: StrictBool = False
 
     @model_validator(mode="before")
     @classmethod
@@ -103,38 +138,25 @@ class VolumeSpec(BaseModel):
 
 
 class SecretSpec(BaseModel):
-    """One named reference to a pre-registered Podman secret."""
+    """Supported subset of Compose service secret long syntax."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    source: NonBlankString
-    mode: Literal["mount", "env"] = "mount"
-    target: NonBlankString | None = None
-    uid: int | None = None
-    gid: int | None = None
-    file_mode: int | None = Field(default=None, ge=0, le=0o777)
-
-    @model_validator(mode="after")
-    def _validate_target(self) -> Self:
-        if self.mode == "env":
-            if self.target is None:
-                raise ValueError(f"secret {self.source!r} with mode 'env' requires 'target'")
-            if not _ENVIRONMENT_NAME_RE.fullmatch(self.target):
-                raise ValueError(f"secret env target {self.target!r} is not a valid variable name")
-            if self.uid is not None or self.gid is not None or self.file_mode is not None:
-                raise ValueError("env secrets must not set uid, gid, or file_mode")
-        elif self.target is not None and not self.target.startswith("/"):
-            raise ValueError("mount secret target must be an absolute path")
-        return self
+    source: SecretName
+    target: AbsolutePath | None = None
+    uid: SecretId | None = None
+    gid: SecretId | None = None
+    mode: SecretMode = 0o444
 
 
 class PortSpec(BaseModel):
-    """One loopback-only host port mapping."""
+    """Supported subset of Compose service port long syntax."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    host: int = Field(ge=_PORT_MIN, le=_PORT_MAX)
-    container: int = Field(ge=_PORT_MIN, le=_PORT_MAX)
+    target: StrictInt = Field(ge=_PORT_MIN, le=_PORT_MAX)
+    published: StrictInt = Field(ge=_PORT_MIN, le=_PORT_MAX)
+    host_ip: Literal["127.0.0.1"]
     protocol: Literal["tcp", "udp"] = "tcp"
 
 
@@ -147,18 +169,42 @@ class ContainerSpec(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    cap_add: list[NonBlankString] | None = None
-    security_opt: list[NonBlankString] | None = None
+    cap_add: list[ComposeNonBlankString] | None = None
+    security_opt: list[ComposeNonBlankString] | None = None
     network_mode: Literal["host", "bridge"] | None = None
-    ipc: NonBlankString | None = None
-    pids_limit: int | None = None
-    ulimits: dict[NonBlankString, UlimitSpec] | None = None
+    ipc: ComposeNonBlankString | None = None
+    pids_limit: StrictInt | None = None
+    ulimits: dict[UlimitName, UlimitSpec] | None = None
     volumes: list[VolumeSpec] | None = None
-    environment: dict[NonBlankString, str] | None = None
-    secrets: dict[NonBlankString, SecretSpec] | None = None
-    devices: list[NonBlankString] | None = None
-    ports: dict[NonBlankString, PortSpec] | None = None
-    shm_size: NonBlankString | None = None
+    environment: dict[NonBlankString, ComposeString] | None = None
+    secrets: list[SecretSpec] | None = None
+    devices: list[ComposeNonBlankString] | None = None
+    ports: list[PortSpec] | None = None
+    shm_size: ComposeNonBlankString | None = None
+
+    @model_validator(mode="after")
+    def _validate_sequences(self) -> Self:
+        for field_name in ("cap_add", "security_opt"):
+            values = getattr(self, field_name)
+            if values is not None and len(values) != len(set(values)):
+                raise ValueError(f"{field_name} must not contain duplicate values")
+
+        volume_keys = [
+            (volume.type, volume.source, volume.target, volume.read_only)
+            for volume in self.volumes or []
+        ]
+        if len(volume_keys) != len(set(volume_keys)):
+            raise ValueError("volumes must not contain duplicate values")
+
+        destinations: set[tuple[int, str]] = set()
+        for port in self.ports or []:
+            destination = (port.target, port.protocol)
+            if destination in destinations:
+                raise ValueError(
+                    f"port target {port.target}/{port.protocol} is published more than once"
+                )
+            destinations.add(destination)
+        return self
 
     @property
     def is_bridge(self) -> bool:
@@ -177,16 +223,16 @@ def configured_mounts(
     *,
     placeholders: Mapping[str, str] | None = None,
 ) -> list[dict[str, object]]:
-    """Translate configured volumes and resolve the explicitly allowed placeholders."""
+    """Translate configured bind mounts and the managed Service data exception."""
     resolved: list[dict[str, object]] = []
     replacements = placeholders or {}
     for volume in volumes or []:
         source = volume.source
-        if source.startswith("${"):
+        if source == SERVICE_DATA_PLACEHOLDER:
             try:
                 source = replacements[source]
             except KeyError as exc:
-                raise ValueError(f"unknown volume source placeholder {source!r}") from exc
+                raise ValueError(f"unresolved volume source {source!r}") from exc
         resolved.append(
             {
                 "type": "bind",
@@ -211,19 +257,12 @@ def create_container(
     extra_ports: Mapping[str, object] | None = None,
     volume_placeholders: Mapping[str, str] | None = None,
     restart_policy: Mapping[str, object] | None = None,
-    secret_uid: int = 0,
-    secret_gid: int = 0,
 ) -> Container:
     """Create a detached container from a fully resolved canonical specification."""
-    secret_mounts, secret_env = _resolve_secrets(
-        client,
-        spec.secrets or {},
-        default_uid=secret_uid,
-        default_gid=secret_gid,
-    )
+    secret_mounts = _resolve_secrets(client, spec.secrets or [])
     ports: dict[str, object] = {
-        f"{port.container}/{port.protocol}": ("127.0.0.1", port.host)
-        for port in (spec.ports or {}).values()
+        f"{port.target}/{port.protocol}": (port.host_ip, port.published)
+        for port in spec.ports or []
     }
     ports.update(extra_ports or {})
     options: dict[str, Any] = {
@@ -256,37 +295,26 @@ def create_container(
         options["ipc_mode"] = spec.ipc
     if secret_mounts:
         options["secrets"] = secret_mounts
-    if secret_env:
-        options["secret_env"] = secret_env
     return run_container(client, image, options)
 
 
 def _resolve_secrets(
     client: PodmanClient,
-    secrets: Mapping[str, SecretSpec],
-    *,
-    default_uid: int,
-    default_gid: int,
-) -> tuple[list[dict[str, object]], dict[str, str]]:
+    secrets: Sequence[SecretSpec],
+) -> list[dict[str, object]]:
     mounts: list[dict[str, object]] = []
-    environment: dict[str, str] = {}
-    for secret in secrets.values():
+    for secret in secrets:
         require_secret(client, secret.source)
-        if secret.mode == "env":
-            if secret.target is None:
-                raise ValueError(f"env secret {secret.source!r} has no target")
-            environment[secret.target] = secret.source
-            continue
         mount: dict[str, object] = {
             "source": secret.source,
-            "uid": secret.uid if secret.uid is not None else default_uid,
-            "gid": secret.gid if secret.gid is not None else default_gid,
-            "mode": secret.file_mode if secret.file_mode is not None else 0o400,
+            "uid": int(secret.uid) if secret.uid is not None else 0,
+            "gid": int(secret.gid) if secret.gid is not None else 0,
+            "mode": secret.mode,
         }
         if secret.target is not None:
             mount["target"] = secret.target
         mounts.append(mount)
-    return mounts, environment
+    return mounts
 
 
 def require_secret(client: PodmanClient, name: str) -> None:

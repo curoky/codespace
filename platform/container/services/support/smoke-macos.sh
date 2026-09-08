@@ -30,7 +30,7 @@ podman run --detach \
   --volume /run/podman/podman.sock:/run/podman/podman.sock \
   --env ATUIN_HOST=0.0.0.0 \
   --env PODMAN_SOCKET=/run/podman/podman.sock \
-  --secret atuin_db_uri,type=env,target=ATUIN_DB_URI \
+  --secret atuin_db_uri \
   --label codespace.kind=service \
   --label "codespace.service=${service}" \
   --label "codespace.image=${image}" \

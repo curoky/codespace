@@ -15,9 +15,14 @@ from pydantic import (
     model_validator,
 )
 
-from codespace.runtime.container import ContainerSpec, ImagePlatform, NonBlankString
+from codespace.runtime.container import (
+    SERVICE_DATA_PLACEHOLDER,
+    ContainerSpec,
+    ImagePlatform,
+    NonBlankString,
+)
 from codespace.runtime.transport import HostEndpoint
-from codespace.services.models import SERVICE_DATA_PLACEHOLDER, ServiceSpec
+from codespace.services.models import ServiceSpec
 from codespace.workspaces.models import (
     CACHE_MOUNT,
     CHECKOUT_PATH_ENV,
@@ -30,7 +35,7 @@ from codespace.workspaces.models import (
     SSHD_PORT_ENV,
     UPLOAD_MOUNT,
     WORKSPACE_CIPHER_MOUNT,
-    WORKSPACE_KEY_ENV,
+    WORKSPACE_KEY_MOUNT,
     WORKSPACE_KEY_SECRET,
     WORKSPACE_MOUNT,
     GitProvider,
@@ -49,7 +54,6 @@ _RESERVED_ENVIRONMENT = {
     CLONE_URL_ENV,
     CHECKOUT_PATH_ENV,
     OPEN_PATH_ENV,
-    WORKSPACE_KEY_ENV,
     SSHD_PORT_ENV,
     SSHD_BIND_ENV,
 }
@@ -59,6 +63,7 @@ _RESERVED_MOUNTS = (
     UPLOAD_MOUNT,
     CACHE_MOUNT,
     CONTROL_MOUNT,
+    WORKSPACE_KEY_MOUNT,
     *(target for _name, target in HOME_CACHE_MOUNTS),
 )
 
@@ -319,7 +324,7 @@ class Config(FrozenModel):
             names = ", ".join(sorted(reserved_environment))
             raise ValueError(f"project {project!r} overrides reserved environment: {names}")
         for volume in container.volumes or []:
-            if volume.source.startswith("${"):
+            if volume.source == SERVICE_DATA_PLACEHOLDER:
                 raise ValueError(
                     f"project volume targeting {volume.target!r} must use an absolute source"
                 )
@@ -327,15 +332,14 @@ class Config(FrozenModel):
                 raise ValueError(
                     f"project volume targeting {volume.target!r} overlaps reserved mount target"
                 )
-        for name, secret in (container.secrets or {}).items():
-            if secret.mode == "env" and secret.target in _RESERVED_ENVIRONMENT:
-                raise ValueError(f"project secret {name!r} overrides reserved environment")
-            if (
-                secret.mode == "mount"
-                and secret.target is not None
-                and any(_paths_overlap(secret.target, reserved) for reserved in _RESERVED_MOUNTS)
-            ):
-                raise ValueError(f"project secret {name!r} overlaps a reserved mount target")
+        for secret in container.secrets or []:
+            if secret.source == WORKSPACE_KEY_SECRET:
+                raise ValueError(f"project secret {secret.source!r} overrides a reserved secret")
+            target = secret.target or f"/run/secrets/{secret.source}"
+            if any(_paths_overlap(target, reserved) for reserved in _RESERVED_MOUNTS):
+                raise ValueError(
+                    f"project secret {secret.source!r} overlaps a reserved mount target"
+                )
 
     @classmethod
     def _validate_service_container(
@@ -345,12 +349,6 @@ class Config(FrozenModel):
         container: ContainerSpec,
     ) -> None:
         cls._validate_network(f"service {service!r}", host, container)
-        for volume in container.volumes or []:
-            if volume.source.startswith("${") and volume.source != SERVICE_DATA_PLACEHOLDER:
-                raise ValueError(
-                    f"service volume targeting {volume.target!r} uses unknown placeholder "
-                    f"{volume.source!r}"
-                )
 
 
 def _paths_overlap(left: str, right: str) -> bool:

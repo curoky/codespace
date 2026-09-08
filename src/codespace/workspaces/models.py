@@ -38,7 +38,7 @@ HOME_CACHE_MOUNTS = (
     (".trae-cn-server/extensions", f"{CONTAINER_HOME}/.trae-cn-server/extensions"),
 )
 WORKSPACE_KEY_SECRET = "codespace_workspace_key"  # noqa: S105 - secret identifier
-WORKSPACE_KEY_ENV = "CODESPACE_WORKSPACE_KEY"
+WORKSPACE_KEY_MOUNT = f"/run/secrets/{WORKSPACE_KEY_SECRET}"
 SOURCE_TYPE_ENV = "CODESPACE_SOURCE_TYPE"
 CLONE_URL_ENV = "CODESPACE_CLONE_URL"
 CHECKOUT_PATH_ENV = "CODESPACE_CHECKOUT_PATH"

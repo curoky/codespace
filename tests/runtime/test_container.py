@@ -43,9 +43,58 @@ def test_container_layers_replace_lists_and_mappings() -> None:
         {"secrets": ["token"]},
         {"ports": ["8080:80"]},
         {"ulimits": {"memlock": -1}},
+        {"pids_limit": "100"},
+        {"shm_size": 1024},
     ],
 )
-def test_container_rejects_unsupported_short_syntax(field: dict[str, object]) -> None:
+def test_container_rejects_compose_forms_outside_supported_subset(
+    field: dict[str, object],
+) -> None:
+    with pytest.raises(ValidationError):
+        ContainerSpec.model_validate(field)
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        {
+            "secrets": {
+                "api": {
+                    "source": "api_token",
+                    "mode": "env",
+                    "target": "API_TOKEN",
+                }
+            }
+        },
+        {"ports": {"web": {"host": 3000, "container": 8000}}},
+    ],
+)
+def test_container_rejects_removed_non_compose_syntax(field: dict[str, object]) -> None:
+    with pytest.raises(ValidationError):
+        ContainerSpec.model_validate(field)
+
+
+@pytest.mark.parametrize(
+    "field",
+    [
+        {"cap_add": ["NET_RAW", "NET_RAW"]},
+        {
+            "volumes": [
+                "/host/data:/data",
+                {
+                    "type": "bind",
+                    "source": "/host/data",
+                    "target": "/data",
+                },
+            ]
+        },
+        {"ulimits": {"NOFILE": {"soft": 1024, "hard": 1024}}},
+        {"environment": {"VALUE": "${HOST_VALUE}"}},
+    ],
+)
+def test_container_rejects_values_outside_compose_subset(
+    field: dict[str, object],
+) -> None:
     with pytest.raises(ValidationError):
         ContainerSpec.model_validate(field)
 
@@ -77,6 +126,7 @@ def test_volume_short_and_long_syntax_are_normalized() -> None:
         ("/only-one", "source:target"),
         ("/host:/container:shared", "ro.*rw"),
         ("relative:/container", "absolute path"),
+        ("${OTHER_DATA}:/container", "absolute path"),
     ],
 )
 def test_volume_short_syntax_rejects_invalid_entries(volume: str, message: str) -> None:
@@ -84,24 +134,29 @@ def test_volume_short_syntax_rejects_invalid_entries(volume: str, message: str) 
         ContainerSpec.model_validate({"volumes": [volume]})
 
 
-def test_secret_modes_are_strict() -> None:
-    assert SecretSpec(source="token").mode == "mount"
-    assert SecretSpec(source="token", mode="env", target="TOKEN").target == "TOKEN"
+def test_secret_long_syntax_uses_compose_semantics() -> None:
+    assert SecretSpec(source="token").mode == 0o444
+    assert SecretSpec(source="token", mode=0o666).mode == 0o444
+    assert SecretSpec(source="token", target="/run/token").target == "/run/token"
 
-    with pytest.raises(ValidationError, match="requires 'target'"):
-        SecretSpec(source="token", mode="env")
     with pytest.raises(ValidationError, match="absolute"):
         SecretSpec(source="token", target="relative")
+    with pytest.raises(ValidationError, match="valid Compose secret name"):
+        SecretSpec(source="../token")
 
 
-def test_configured_mounts_resolves_only_known_placeholder() -> None:
+def test_configured_mounts_resolves_service_data_exception() -> None:
     volumes = [
-        VolumeSpec(type="bind", source="${SERVICE_DATA}", target="/data"),
+        VolumeSpec(
+            type="bind",
+            source=container.SERVICE_DATA_PLACEHOLDER,
+            target="/data",
+        ),
     ]
 
     assert container.configured_mounts(
         volumes,
-        placeholders={"${SERVICE_DATA}": "/host/data"},
+        placeholders={container.SERVICE_DATA_PLACEHOLDER: "/host/data"},
     ) == [
         {
             "type": "bind",
@@ -110,8 +165,20 @@ def test_configured_mounts_resolves_only_known_placeholder() -> None:
             "read_only": False,
         }
     ]
-    with pytest.raises(ValueError, match="unknown volume source placeholder"):
+    with pytest.raises(ValueError, match="unresolved volume source"):
         container.configured_mounts(volumes)
+
+
+def test_duplicate_port_target_is_rejected() -> None:
+    with pytest.raises(ValidationError, match="published more than once"):
+        ContainerSpec.model_validate(
+            {
+                "ports": [
+                    {"target": 80, "published": 8080, "host_ip": "127.0.0.1"},
+                    {"target": 80, "published": 8081, "host_ip": "127.0.0.1"},
+                ]
+            }
+        )
 
 
 def test_create_container_translates_canonical_options(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -125,8 +192,14 @@ def test_create_container_translates_canonical_options(monkeypatch: pytest.Monke
             "pids_limit": 100,
             "shm_size": "8g",
             "ulimits": {"memlock": {"soft": -1, "hard": -1}},
-            "ports": {"web": {"host": 3000, "container": 8000}},
-            "secrets": {"api": {"source": "api_token", "mode": "env", "target": "API_TOKEN"}},
+            "ports": [
+                {
+                    "target": 8000,
+                    "published": 3000,
+                    "host_ip": "127.0.0.1",
+                }
+            ],
+            "secrets": [{"source": "api_token", "mode": 0o400}],
             "devices": ["nvidia.com/gpu=all"],
         }
     )
@@ -153,7 +226,7 @@ def test_create_container_translates_canonical_options(monkeypatch: pytest.Monke
     assert isinstance(options, dict)
     assert options["ports"] == {"8000/tcp": ("127.0.0.1", 3000)}
     assert options["ipc_mode"] == "host"
-    assert options["secret_env"] == {"API_TOKEN": "api_token"}
+    assert options["secrets"] == [{"source": "api_token", "uid": 0, "gid": 0, "mode": 0o400}]
     assert options["restart_policy"] == {"Name": "unless-stopped"}
 
 
@@ -161,7 +234,7 @@ def test_missing_secret_fails_before_container_creation() -> None:
     client = SimpleNamespace(secrets=SimpleNamespace(exists=lambda _name: False))
     spec = ContainerSpec(
         network_mode="host",
-        secrets={"api": SecretSpec(source="api_token", mode="env", target="API_TOKEN")},
+        secrets=[SecretSpec(source="api_token")],
     )
 
     with pytest.raises(RuntimeError, match="codespace secrets sync --apply"):

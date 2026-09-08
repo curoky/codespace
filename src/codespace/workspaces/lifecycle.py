@@ -30,7 +30,6 @@ from codespace.workspaces.models import (
     SSHD_PORT_ENV,
     UPLOAD_MOUNT,
     WORKSPACE_CIPHER_MOUNT,
-    WORKSPACE_KEY_ENV,
     WORKSPACE_KEY_SECRET,
     WORKSPACE_MOUNT,
     GitProvider,
@@ -318,12 +317,15 @@ def _create_workspace_container(
 
     runtime_spec = spec.container
     if spec.encrypted:
-        secrets = dict(runtime_spec.secrets or {})
-        secrets["workspace-key"] = SecretSpec(
-            source=WORKSPACE_KEY_SECRET,
-            mode="env",
-            target=WORKSPACE_KEY_ENV,
-        )
+        secrets = [
+            *(runtime_spec.secrets or []),
+            SecretSpec(
+                source=WORKSPACE_KEY_SECRET,
+                uid=str(CONTAINER_UID),
+                gid=str(CONTAINER_GID),
+                mode=0o400,
+            ),
+        ]
         runtime_spec = runtime_spec.model_copy(update={"secrets": secrets})
 
     mounts: list[dict[str, object]] = [
@@ -355,6 +357,4 @@ def _create_workspace_container(
         mounts=mounts,
         platform=spec.platform,
         extra_ports=extra_ports,
-        secret_uid=CONTAINER_UID,
-        secret_gid=CONTAINER_GID,
     )

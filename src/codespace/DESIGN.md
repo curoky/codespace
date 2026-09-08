@@ -68,9 +68,11 @@ hosts.<host>.container
 Host container 是该 Host 上 Project 与 Service 共用的默认层。Project image 仍按
 `project_defaults -> projects.<project> -> projects.<project>.hosts.<host>` 覆盖；platform 按
 `hosts.<host> -> projects.<project>.hosts.<host>` 覆盖。list 与 mapping 都整体替换。
-`ContainerSpec` 使用 Compose service 字段名，volume 接受 Compose short syntax 与 bind long
-syntax，解析后统一为结构化数据。Config 启动时验证 Host 引用、network mode、port 使用、保留
-env、保留 mount 和受控 placeholder。
+`ContainerSpec` 只接受控制面实际支持的 Compose service syntax 子集，已接受的字段保持 Compose
+语义；唯一例外是 Service volume source `${SERVICE_DATA}`。volume 限定为 absolute bind short
+syntax、bind long syntax 和这个受控 placeholder。Config 启动时验证 Host 引用、network mode、
+port 使用、保留 env 和保留 mount；除此之外不实现 Compose variable interpolation，并拒绝
+container 字符串值中的 `$`。
 
 ## Host Data
 
@@ -90,8 +92,10 @@ $HOME/codespace/
 `/workspace.enc`，由镜像内 gocryptfs 挂载明文 `/workspace`。`upload/`、`cache/` 与 IDE runtime
 目录始终明文。`control/` 权限为 `0700`，保存 provider readiness 与 Agent UDS。
 
-Service 不拥有 Workspace mount、SSH 投影或 repository credential。Service volume 只能通过受控
-placeholder 引用自己的 managed data root。
+Service 不拥有 Workspace mount、SSH 投影或 repository credential。Service volume 可用
+`${SERVICE_DATA}` 引用自己的 managed data root，Host source 由控制面根据 Service identity
+生成；Project 不允许使用这个 placeholder。Container secret 遵循 Compose file mount 语义；
+需要环境变量的进程由镜像启动逻辑读取 secret 文件后注入。
 
 ## Workspace Create
 

@@ -155,10 +155,24 @@ def test_config_accepts_compose_volume_short_syntax(config: Config) -> None:
     assert parsed.project_defaults.container.volumes[0].read_only is True
 
 
+def test_service_accepts_managed_data_placeholder(config: Config) -> None:
+    volumes = config.resolved_service_container("vllm", "office").volumes
+
+    assert volumes is not None
+    assert volumes[0].source == "${SERVICE_DATA}"
+    assert volumes[0].target == "/root/.cache/huggingface"
+
+
 def test_ports_require_bridge_network(config: Config) -> None:
     data = config.model_dump()
     data["projects"]["codespace"]["container"] = {
-        "ports": {"web": {"host": 3000, "container": 8080}}
+        "ports": [
+            {
+                "target": 8080,
+                "published": 3000,
+                "host_ip": "127.0.0.1",
+            }
+        ]
     }
 
     with pytest.raises(ValidationError, match="only in bridge mode"):
@@ -185,6 +199,21 @@ def test_project_rejects_reserved_environment_and_mounts(config: Config) -> None
     }
     with pytest.raises(ValidationError, match="overlaps reserved"):
         Config.model_validate(volume)
+
+    secret = config.model_dump()
+    secret["projects"]["codespace"]["container"] = {
+        "secrets": [{"source": "codespace_workspace_key"}]
+    }
+    with pytest.raises(ValidationError, match="reserved secret"):
+        Config.model_validate(secret)
+
+
+def test_service_data_placeholder_is_rejected_for_projects(config: Config) -> None:
+    data = config.model_dump()
+    data["projects"]["codespace"]["container"] = {"volumes": ["${SERVICE_DATA}:/workspace/models"]}
+
+    with pytest.raises(ValidationError, match="must use an absolute source"):
+        Config.model_validate(data)
 
 
 def test_unknown_host_reference_is_rejected(config: Config) -> None:
