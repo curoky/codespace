@@ -189,6 +189,28 @@ def test_forced_purge_revokes_key_before_data_and_container(
     assert events == ["revoke", "stop", "data", "container", "projection"]
 
 
+def test_logs_reads_selected_container_source(
+    manager: WorkspaceManager,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    running = SimpleNamespace()
+    snapshot = lifecycle.container.LogSnapshot(
+        source="s6.workspace-agent.log",
+        sources=("container", "s6.workspace-agent.log"),
+        logs="agent line\n",
+    )
+    calls: list[tuple[object, str]] = []
+    monkeypatch.setattr(inventory, "find_container", lambda *_args: running)
+    monkeypatch.setattr(
+        lifecycle.container,
+        "container_log_snapshot",
+        lambda actual, source: (calls.append((actual, source)), snapshot)[-1],
+    )
+
+    assert manager.logs("codespace", "home", "debug", "s6.workspace-agent.log") is snapshot
+    assert calls == [(running, "s6.workspace-agent.log")]
+
+
 def test_workspace_container_uses_reserved_environment_and_mounts(
     config: Config,
     monkeypatch: pytest.MonkeyPatch,

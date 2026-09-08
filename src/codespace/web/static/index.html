@@ -145,13 +145,19 @@
       <div class="dialog-body">
         <div class="dialog-heading">
           <div>
-            <p class="eyebrow">Podman logs</p>
+            <p class="eyebrow">Logs</p>
             <h2 id="logs-title">Container logs</h2>
           </div>
           <button type="button" class="icon secondary" aria-label="Close" data-close="logs-dialog">
             ×
           </button>
         </div>
+        <label class="logs-source">
+          Source
+          <select id="logs-source" disabled>
+            <option value="container">Container</option>
+          </select>
+        </label>
         <p id="logs-status" class="muted">Loading logs…</p>
         <pre id="logs-output" class="logs-output" hidden></pre>
         <div class="dialog-actions">

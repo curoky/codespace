@@ -1,4 +1,4 @@
-redirfd -w 1 /var/log/home-init.log
+redirfd -w 1 /var/log/s6.home-init.log
 fdmove -c 2 1
 s6-envdir -Lf -- /run/s6/container_environment
 s6-setuidgid x

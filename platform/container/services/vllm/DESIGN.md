@@ -27,7 +27,7 @@ flowchart LR
 
 s6 的 `default` bundle 启动唯一 longrun `serve`。该 longrun 加载
 `/run/s6/container_environment` 后 exec `/opt/codespace/vllm/serve.sh`，日志写入
-`/var/log/serve.log`。
+`/var/log/s6.serve.log`。
 
 runtime 参数针对单台 8x H100 固定 tensor/expert parallel、Triton MoE、长上下文、
 分块 prefill、prefix cache 与 Qwen3 parser。显存不足时由运行配置降低上下文或显存
