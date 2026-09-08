@@ -11,7 +11,7 @@ from codespace.operations import Operation, OperationStore, describe_error
 from codespace.runtime import container, host
 from codespace.runtime.transport import PodmanTransport
 from codespace.services import inventory
-from codespace.services.models import SERVICE_DATA_PLACEHOLDER, Service, ServiceSpec
+from codespace.services.models import Service, ServiceSpec
 
 
 class ServiceManager:
@@ -88,7 +88,7 @@ class ServiceManager:
             environment=spec.container.environment or {},
             labels=spec.labels(),
             mounts=[],
-            volume_placeholders={SERVICE_DATA_PLACEHOLDER: data_path},
+            volume_placeholders={container.SERVICE_DATA_PLACEHOLDER: data_path},
             restart_policy={"Name": "unless-stopped"},
         )
 
