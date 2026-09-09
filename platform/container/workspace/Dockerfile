@@ -141,11 +141,10 @@ COPY --link --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
 # Editor Remote extension template，运行期由 home-init 播种。
 COPY --link --chown=5230:5230 --from=stage_vscode_ext /opt/editor-extensions /opt/codespace/share/editor-extensions
 
-# System：apt + rootfs 就绪后配置系统与编译 s6。configure-system 依赖 /opt/bm 与
+# System：rootfs 就绪后配置系统与编译 s6。configure-system 依赖 /opt/bm 与
 # rootfs，install-s6 依赖 s6 profile 与 /etc/s6。
 COPY platform/container/workspace/scripts/configure-apt.sh /tmp/configure-apt.sh
-RUN /tmp/configure-apt.sh "${BASE_IMAGE}" \
-  && apt-get update -y && apt-get install -y locales
+RUN /tmp/configure-apt.sh "${BASE_IMAGE}"
 COPY platform/container/workspace/rootfs/ /
 COPY platform/container/workspace/scripts/configure-system.sh /tmp/configure-system.sh
 COPY platform/container/workspace/scripts/install-s6.sh /tmp/install-s6.sh
