@@ -30,8 +30,8 @@ jobs:
         image:
           - base: 'debian:10'
             tag: 'debian10'
-          - base: 'debian:11'
-            tag: 'debian11'
+          # - base: 'debian:11'
+          #   tag: 'debian11'
           - base: 'debian:12'
             tag: 'debian12'
           - base: 'debian:13'
