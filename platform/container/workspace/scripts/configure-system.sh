@@ -44,6 +44,12 @@ locale-gen
 chown root:root /opt/bm/store/fuse3/bin/fusermount3
 chmod u+s /opt/bm/store/fuse3/bin/fusermount3
 
+# CA bundle now comes from /opt/bm (binman cacert) instead of apt
+# ca-certificates; point the Debian default path at it so consumers that read
+# the fixed location (openssl, curl, git, wget, python) resolve trust anchors.
+install -d /etc/ssl/certs
+ln -sf /opt/bm/etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt
+
 # Expose selected static tools under /usr/bin for consumers that do not inherit
 # /opt/bm/bin on PATH (sshd, sudo secure_path, git subprocess).
 ln -s /opt/bm/store/zsh/bin/zsh /usr/bin
