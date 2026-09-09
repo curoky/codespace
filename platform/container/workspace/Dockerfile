@@ -148,9 +148,8 @@ COPY --link --chown=5230:5230 --from=stage_python /opt/uv /opt/uv
 
 # setup conda
 COPY --link --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
-ENV PATH=${PATH}:/opt/conda/condabin
-RUN conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main \
-  && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
+ENV PATH=${PATH}:/opt/conda/condabin \
+  CONDA_PLUGINS_AUTO_ACCEPT_TOS=yes
 
 # setup Workspace Agent
 RUN UV_LINK_MODE=copy uv sync --project /opt/codespace/agent --locked --no-dev --python 3.14

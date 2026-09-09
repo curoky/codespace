@@ -29,6 +29,9 @@ export UV_TOOL_BIN_DIR=/opt/uv/bin
 export UV_PYTHON_INSTALL_DIR=/opt/uv/python
 export UV_PYTHON_BIN_DIR=/opt/uv/bin
 
+# conda
+export CONDA_PLUGINS_AUTO_ACCEPT_TOS=yes
+
 if [ -d /etc/zshenv.d ]; then
   for i in /etc/zshenv.d/*.zsh; do
     if [ -r "$i" ]; then
