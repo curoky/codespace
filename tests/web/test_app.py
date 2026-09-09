@@ -9,8 +9,14 @@ from codespace.config import Config
 from codespace.operations import Operation, OperationStore
 from codespace.runtime.container import LogSnapshot
 from codespace.web.app import create_app, router
-from codespace.web.models import DashboardResponse, HostStatus, ProjectHostSummary, ProjectSummary
-from codespace.workspaces.models import RepoGitState, workspace_identity
+from codespace.web.models import (
+    DashboardResponse,
+    DashboardWorkspace,
+    HostStatus,
+    ProjectHostSummary,
+    ProjectSummary,
+)
+from codespace.workspaces.models import RepoGitState, Workspace, workspace_identity
 
 
 class FakeTokens:
@@ -179,7 +185,30 @@ def test_static_ui_uses_final_terminology(app_client: tuple[TestClient, FakeCont
     assert "renderServices" in script
     assert "/api/projects/" in script
     assert "/api/services/" in script
+    assert "workspace.encrypted" in script
+    assert "Encrypted Workspace" in script
     assert ".workspace-actions .ssh-command" in stylesheet
+    assert ".workspace-encryption-icon" in stylesheet
+
+
+def test_dashboard_workspace_exposes_container_encryption() -> None:
+    workspace = Workspace(
+        id="codespace-workspace-home-codespace-debug",
+        project="codespace",
+        workspace="debug",
+        host="home",
+        source="empty",
+        image="workspace:latest",
+        platform="native",
+        ssh_port=22000,
+        encrypted=True,
+        container_id="container-id",
+        status="running",
+    )
+
+    dashboard_workspace = DashboardWorkspace.from_workspace(workspace, "/workspace")
+
+    assert dashboard_workspace.encrypted is True
 
 
 def test_dashboard_and_token_endpoint_never_return_token(

@@ -315,6 +315,7 @@ function renderWorkspace(workspace) {
   const info = element("div", "workspace-info");
   info.append(element("span", `workspace-status-dot ${classifyStatus(workspace.status)}`));
   info.append(element("span", "workspace-title", workspace.workspace));
+  if (workspace.encrypted) info.append(encryptedWorkspaceIcon());
   info.append(
     element("span", `status-badge ${workspace.status || "unknown"}`, workspace.status || "unknown"),
   );
@@ -351,6 +352,32 @@ function renderWorkspace(workspace) {
   actions.append(purgeButton);
   row.append(actions);
   return row;
+}
+
+function encryptedWorkspaceIcon() {
+  const namespace = "http://www.w3.org/2000/svg";
+  const icon = document.createElementNS(namespace, "svg");
+  icon.classList.add("workspace-encryption-icon");
+  icon.setAttribute("viewBox", "0 0 24 24");
+  icon.setAttribute("role", "img");
+  icon.setAttribute("aria-label", "Encrypted Workspace");
+
+  const title = document.createElementNS(namespace, "title");
+  title.textContent = "Encrypted Workspace";
+  const body = document.createElementNS(namespace, "rect");
+  body.setAttribute("width", "18");
+  body.setAttribute("height", "12");
+  body.setAttribute("x", "3");
+  body.setAttribute("y", "10");
+  body.setAttribute("rx", "2");
+  const shackle = document.createElementNS(namespace, "path");
+  shackle.setAttribute("d", "M7 10V7a5 5 0 0 1 10 0v3");
+  const keyhole = document.createElementNS(namespace, "circle");
+  keyhole.setAttribute("cx", "12");
+  keyhole.setAttribute("cy", "16");
+  keyhole.setAttribute("r", "1");
+  icon.append(title, body, shackle, keyhole);
+  return icon;
 }
 
 function openWorkspaceDialog(project) {

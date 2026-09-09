@@ -18,7 +18,9 @@ from codespace.workspaces.models import (
     LABEL_SOURCE,
     LABEL_SSH_PORT,
     LABEL_WORKSPACE,
+    WORKSPACE_CIPHER_MOUNT,
     WORKSPACE_KIND,
+    WORKSPACE_MOUNT,
     PlatformSelection,
     SourceType,
     Workspace,
@@ -41,6 +43,16 @@ def read_workspace(container: Container, host: str) -> Workspace:
     labels = container.labels or {}
     project = labels[LABEL_PROJECT]
     workspace = labels[LABEL_WORKSPACE]
+    mounts = container.attrs.get("Mounts")
+    if not isinstance(mounts, list) or not all(isinstance(target, str) for target in mounts):
+        raise TypeError(f"container {container.id!r} returned invalid mount inventory")
+    plaintext_mounts = mounts.count(WORKSPACE_MOUNT)
+    cipher_mounts = mounts.count(WORKSPACE_CIPHER_MOUNT)
+    if plaintext_mounts + cipher_mounts != 1:
+        raise ValueError(
+            f"container {container.id!r} must mount exactly one of "
+            f"{WORKSPACE_MOUNT!r} and {WORKSPACE_CIPHER_MOUNT!r}"
+        )
     return Workspace(
         id=workspace_identity(host, project, workspace),
         project=project,
@@ -52,6 +64,7 @@ def read_workspace(container: Container, host: str) -> Workspace:
         image=labels[LABEL_IMAGE],
         platform=cast("PlatformSelection", labels[LABEL_PLATFORM]),
         ssh_port=int(labels[LABEL_SSH_PORT]),
+        encrypted=cipher_mounts == 1,
         container_id=container.id,
         status=container_status(container),
     )

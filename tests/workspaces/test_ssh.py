@@ -46,6 +46,7 @@ def _workspace(name: str = "debug") -> Workspace:
         image="workspace:latest",
         platform="native",
         ssh_port=workspace_ssh_port(identity),
+        encrypted=False,
         container_id=f"container-{name}",
         status="running",
     )
