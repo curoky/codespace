@@ -11,7 +11,6 @@ echo "root:x123456" | chpasswd
 useradd --create-home --uid 5230 --user-group x
 echo "x:x123456" | chpasswd
 usermod -aG sudo x
-echo "x ALL=(ALL:ALL) NOPASSWD:ALL" >>/etc/sudoers.d/nopasswd_user
 
 install -d -o 5230 -g 5230 -m 0700 /home/x/.ssh
 
@@ -26,9 +25,14 @@ mkdir -p /var/empty
 # start with world-readable host keys.
 chmod 600 /etc/ssh/ssh_host_*_key
 
-# sudoers drop-in shipped via rootfs; Git cannot preserve the 0440 mode sudo
-# requires, so tighten it here at build time.
-chmod 440 /etc/sudoers.d/more_secure_path
+# sudoers shipped via rootfs; Git cannot preserve the 0440 mode sudo requires,
+# so tighten the main file and drop-in here at build time.
+chmod 440 /etc/sudoers /etc/sudoers.d/more_secure_path /etc/sudoers.d/nopasswd_user
+
+# sudo now comes from /opt/bm instead of apt, so set it setuid-root on the store
+# target (the profile entry is a symlink).
+chown root:root /opt/bm/store/sudo/bin/sudo
+chmod u+s /opt/bm/store/sudo/bin/sudo
 
 ln -sf /usr/share/zoneinfo/Asia/Singapore /etc/localtime
 

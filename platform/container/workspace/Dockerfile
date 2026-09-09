@@ -145,7 +145,7 @@ COPY --link --chown=5230:5230 --from=stage_vscode_ext /opt/editor-extensions /op
 # rootfs，install-s6 依赖 s6 profile 与 /etc/s6。
 COPY platform/container/workspace/scripts/configure-apt.sh /tmp/configure-apt.sh
 RUN /tmp/configure-apt.sh "${BASE_IMAGE}" \
-  && apt-get update -y && apt-get install -y sudo locales ca-certificates
+  && apt-get update -y && apt-get install -y locales ca-certificates
 COPY platform/container/workspace/rootfs/ /
 COPY platform/container/workspace/scripts/configure-system.sh /tmp/configure-system.sh
 COPY platform/container/workspace/scripts/install-s6.sh /tmp/install-s6.sh
