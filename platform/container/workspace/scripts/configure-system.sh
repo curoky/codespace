@@ -39,3 +39,12 @@ locale-gen
 # setuid root. Set the store target because the profile entry is a symlink.
 chown root:root /opt/bm/store/fuse3/bin/fusermount3
 chmod u+s /opt/bm/store/fuse3/bin/fusermount3
+
+# Expose selected static tools under /usr/bin for consumers that do not inherit
+# /opt/bm/bin on PATH (sshd, sudo secure_path, git subprocess).
+ln -s /opt/bm/store/zsh/bin/zsh /usr/bin
+ln -s /opt/bm/store/wget/bin/wget /usr/bin
+ln -s /opt/bm/store/less/bin/less /usr/bin
+ln -s /opt/bm/store/xz/bin/xz /usr/bin
+ln -s /opt/bm/store/git/bin/git /usr/bin
+ln -s /opt/bm/store/openssh_gssapi/bin/ssh /usr/bin

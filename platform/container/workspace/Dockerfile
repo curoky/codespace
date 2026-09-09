@@ -56,55 +56,20 @@ RUN apt-get update -y \
   && uv tool install tensorboard --python 3.12 --with tensorboard-plugin-profile --with "setuptools==81.0.0" \
   && rm -rf /var/lib/apt/lists/*
 
-################################ stage/vscode extensions ################################
-# 生成 editor extension template；一次性的 code-server 不进入 final image。
-FROM docker.io/debian:stable-slim AS stage_vscode_ext
-
+################################# stage/nix ################################
+# 在独立 stage 生成 /nix 与 per-user profiles，避免每次改动 main 其他层都重跑耗时的
+# nix 安装；产物保持 nix 默认单用户布局，由 main stage 整体 COPY。
+FROM docker.io/debian:stable-slim AS stage_nix
 RUN apt-get update -y \
-  && apt-get install -y --no-install-recommends ca-certificates curl \
+  && apt-get install -y --no-install-recommends ca-certificates curl xz-utils \
+  && useradd --create-home --uid 5230 --user-group x \
   && rm -rf /var/lib/apt/lists/*
 
-COPY platform/container/workspace/config/extensions.txt /tmp/extensions.txt
-COPY platform/container/workspace/scripts/install-editor-extensions.sh /tmp/install-editor-extensions.sh
-RUN bash /tmp/install-editor-extensions.sh /tmp/extensions.txt /opt/editor-extensions
-
-################################ main ################################
-FROM docker.io/$BASE_IMAGE
-
-ENV PATH=${PATH}:/opt/bm/bin \
-  DEBIAN_FRONTEND=noninteractive \
-  CODESPACE_ENCRYPTED=false
-
-ARG BASE_IMAGE
-COPY platform/container/workspace/scripts/configure-apt.sh /tmp/configure-apt.sh
-RUN /tmp/configure-apt.sh "${BASE_IMAGE}" \
-  && apt-get update -y && apt-get install -y sudo locales ca-certificates
-
-# Static tools and Workspace rootfs must be present before configure-system.sh.
-COPY --link --chown=5230:5230 --from=stage_sb /opt/bm /opt/bm
-COPY platform/container/workspace/rootfs/ /
-
-COPY platform/container/workspace/scripts/configure-system.sh /tmp/configure-system.sh
-COPY platform/container/workspace/scripts/install-s6.sh /tmp/install-s6.sh
-RUN /tmp/configure-system.sh \
-  && chown 5230:5230 /opt \
-  && chown -R 5230:5230 /home/x /opt/codespace \
-  && chmod -R +x /opt/codespace/bin \
-  && /tmp/install-s6.sh \
-  && ln -s /opt/bm/store/zsh/bin/zsh /usr/bin \
-  && ln -s /opt/bm/store/wget/bin/wget /usr/bin \
-  && ln -s /opt/bm/store/less/bin/less /usr/bin \
-  && ln -s /opt/bm/store/xz/bin/xz /usr/bin \
-  && ln -s /opt/bm/store/git/bin/git /usr/bin \
-  && ln -s /opt/bm/store/openssh_gssapi/bin/ssh /usr/bin
-
-# Agent runtime and immutable templates use a product-owned prefix; no source
-# checkout is embedded in the image.
-COPY --chown=5230:5230 platform/container/workspace/agent/ /opt/codespace/agent/
+# unfree 包（如 codex）与 nix.conf 必须在安装期可见，否则 nix-env -iA 失败。
+COPY --chown=5230:5230 platform/container/workspace/rootfs/home/x/.config/nixpkgs/config.nix /home/x/.config/nixpkgs/config.nix
+COPY platform/container/workspace/rootfs/etc/nix/nix.conf /etc/nix/nix.conf
 
 USER x
-
-# setup nixpkgs
 ENV PATH=${PATH}:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin
 # Nix's seccomp BPF filter cannot load under buildx's QEMU arm64 emulation.
 # Keep the override local to this build layer rather than the final image.
@@ -131,38 +96,74 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
   && nix-collect-garbage -d \
   && nix-store --optimise
 
-# setup rust
-ENV CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup
-ENV PATH=${PATH}:/opt/rust/cargo/bin
-COPY --link --chown=5230:5230 --from=stage_rust /opt/rust /opt/rust
+################################ stage/vscode extensions ################################
+# 生成 editor extension template；一次性的 code-server 不进入 final image。
+FROM docker.io/debian:stable-slim AS stage_vscode_ext
 
-# setup python & tools
-# uv 的 cache、tool 与 Python 资产统一放在 /opt/uv；tool/python 目录只能通过
-# UV_* environment 配置。Python 与 uv tools 在 stage_python 中生成。
-ENV UV_TOOL_DIR=/opt/uv/tools \
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends ca-certificates curl \
+  && rm -rf /var/lib/apt/lists/*
+
+COPY platform/container/workspace/config/extensions.txt /tmp/extensions.txt
+COPY platform/container/workspace/scripts/install-editor-extensions.sh /tmp/install-editor-extensions.sh
+RUN bash /tmp/install-editor-extensions.sh /tmp/extensions.txt /opt/editor-extensions
+
+################################ main ################################
+# 布局按“稳定性递减”排列：自包含 toolchain（只随各自 stage 变化）在前，随仓库源码
+# 变动的 system 配置与 Agent 在后，源码日常改动不再使 toolchain 大层失效。
+# 归属在生成时即正确（COPY 用 --chown，写 home 的步骤以 x 身份运行），故不做全树
+# recursive chown；末尾只补 COPY 无法表达的两件事：/opt 根可写、bin 执行位。
+FROM docker.io/$BASE_IMAGE
+ARG BASE_IMAGE
+
+# 环境变量集中声明；PATH 一次拼定，避免层层追加。
+ENV DEBIAN_FRONTEND=noninteractive \
+  CODESPACE_ENCRYPTED=false \
+  CARGO_HOME=/opt/rust/cargo \
+  RUSTUP_HOME=/opt/rust/rustup \
+  UV_TOOL_DIR=/opt/uv/tools \
   UV_TOOL_BIN_DIR=/opt/uv/bin \
   UV_PYTHON_INSTALL_DIR=/opt/uv/python \
-  UV_PYTHON_BIN_DIR=/opt/uv/bin
-ENV PATH=${PATH}:/opt/uv/bin
+  UV_PYTHON_BIN_DIR=/opt/uv/bin \
+  CONDA_PLUGINS_AUTO_ACCEPT_TOS=yes \
+  PATH=/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin:/opt/rust/cargo/bin:/opt/uv/bin:/opt/conda/condabin:${PATH}
+
+# Toolchains：均来自独立 stage，与仓库源码解耦。数字 uid 的 --chown 不要求用户先存在。
+# nix 保持默认单用户布局，home 下指向 /nix 的 symlink 一并带入；uv 资产统一在 /opt/uv。
+COPY --link --chown=5230:5230 --from=stage_sb /opt/bm /opt/bm
+COPY --link --chown=5230:5230 --from=stage_nix /nix /nix
+COPY --link --chown=5230:5230 --from=stage_nix /home/x/.nix-profile /home/x/.nix-profile
+COPY --link --chown=5230:5230 --from=stage_nix /home/x/.nix-defexpr /home/x/.nix-defexpr
+COPY --link --chown=5230:5230 --from=stage_nix /home/x/.nix-channels /home/x/.nix-channels
+COPY --link --chown=5230:5230 --from=stage_rust /opt/rust /opt/rust
 COPY --link --chown=5230:5230 --from=stage_python /opt/uv /opt/uv
-
-# setup conda
 COPY --link --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
-ENV PATH=${PATH}:/opt/conda/condabin \
-  CONDA_PLUGINS_AUTO_ACCEPT_TOS=yes
+# Editor Remote extension template，运行期由 home-init 播种。
+COPY --link --chown=5230:5230 --from=stage_vscode_ext /opt/editor-extensions /opt/codespace/share/editor-extensions
 
-# setup Workspace Agent
+# System：apt + rootfs 就绪后配置系统与编译 s6。configure-system 依赖 /opt/bm 与
+# rootfs，install-s6 依赖 s6 profile 与 /etc/s6。
+COPY platform/container/workspace/scripts/configure-apt.sh /tmp/configure-apt.sh
+RUN /tmp/configure-apt.sh "${BASE_IMAGE}" \
+  && apt-get update -y && apt-get install -y sudo locales ca-certificates
+COPY platform/container/workspace/rootfs/ /
+COPY platform/container/workspace/scripts/configure-system.sh /tmp/configure-system.sh
+COPY platform/container/workspace/scripts/install-s6.sh /tmp/install-s6.sh
+RUN /tmp/configure-system.sh && /tmp/install-s6.sh
+
+# Agent runtime 与 Trae rules 均以 x 身份生成，产物天生属 5230:5230，无需额外 chown。
+# agent 源码改动频繁，故置于 toolchain 之后；uv sync 依赖 /opt/uv 与 agent 源码。
+COPY --chown=5230:5230 platform/container/workspace/agent/ /opt/codespace/agent/
+USER x
 RUN UV_LINK_MODE=copy uv sync --project /opt/codespace/agent --locked --no-dev --python 3.14
-
-# setup Trae user rules
+# install.sh 靠 $HOME 定位；HOME 只是 build-time 需求，局部注入即可，不渗入镜像
+# （运行期各进程自带显式 HOME=/home/x）。
 RUN git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-playbook \
   && HOME=/home/x bash /tmp/agent-playbook/install.sh \
   && rm -rf /tmp/agent-playbook
 
-# Editor Remote extension template，运行期由 home-init 播种。
-COPY --link --chown=5230:5230 --from=stage_vscode_ext /opt/editor-extensions /opt/codespace/share/editor-extensions
-
+# 仅补 COPY 无法表达的：让 x 可写 /opt 根、补齐 rootfs 无法保留的 bin 执行位。
 USER root
+RUN chown 5230:5230 /opt && chmod -R +x /opt/codespace/bin
 
-ENV PATH=${PATH}:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec
 ENTRYPOINT ["/etc/s6/init/bin/init"]
