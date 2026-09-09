@@ -21,4 +21,4 @@ printf 'building %s from %s\n' "$image" "$base_image"
 docker build "$repo_root" --network=host --file "$script_dir/Dockerfile" "$@" \
   --build-arg="BASE_IMAGE=${base_image}" \
   --tag "$image" \
-  --pull=false
+  --pull=missing

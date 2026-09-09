@@ -65,6 +65,10 @@ RUN apt-get update -y \
   && useradd --create-home --uid 5230 --user-group x \
   && rm -rf /var/lib/apt/lists/*
 
+# 预创建 /nix 并归属 x：single-user installer 仅在 /nix 缺失时用 sudo 创建它，
+# 而本 stage 无 sudo。提前建好可让安装器直接跳过该步。
+RUN mkdir -m 0755 /nix && chown 5230:5230 /nix
+
 # unfree 包（如 codex）与 nix.conf 必须在安装期可见，否则 nix-env -iA 失败。
 COPY --chown=5230:5230 platform/container/workspace/rootfs/home/x/.config/nixpkgs/config.nix /home/x/.config/nixpkgs/config.nix
 COPY platform/container/workspace/rootfs/etc/nix/nix.conf /etc/nix/nix.conf

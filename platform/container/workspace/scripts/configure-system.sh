@@ -12,6 +12,10 @@ useradd --create-home --uid 5230 --user-group x
 echo "x:x123456" | chpasswd
 usermod -aG sudo x
 
+# rootfs 的 COPY 先于本脚本执行，已以 root 建好 /home/x，故 useradd 不再改属主；
+# 显式把整个 home 归还 x，避免运行期（如 uv 写 ~/.cache）因 root 属主而权限拒绝。
+chown -R 5230:5230 /home/x
+
 install -d -o 5230 -g 5230 -m 0700 /home/x/.ssh
 
 echo "/opt/bm/bin/zsh" >>/etc/shells
