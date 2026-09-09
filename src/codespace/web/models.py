@@ -85,6 +85,7 @@ class DashboardWorkspace(BaseModel):
     image: str
     platform: str
     ssh_port: int
+    encrypted: bool
     status: str | None = None
     alias: str
     ssh_command: str
