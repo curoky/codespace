@@ -36,6 +36,26 @@ RUN apt-get update -y \
   && rustup component remove rust-docs \
   && rm -rf /var/lib/apt/lists/*
 
+################################# stage/python ################################
+# 独立生成 /opt/uv 下的 Python 与 uv tools，避免占用 main stage 构建层。
+# uv 二进制复用 stage_sb 的 binman 版本；tool/python 目录只能通过 UV_* 配置。
+FROM docker.io/debian:stable-slim AS stage_python
+COPY --from=stage_sb /opt/bm/bin/uv /usr/local/bin/uv
+ENV UV_TOOL_DIR=/opt/uv/tools \
+  UV_TOOL_BIN_DIR=/opt/uv/bin \
+  UV_PYTHON_INSTALL_DIR=/opt/uv/python \
+  UV_PYTHON_BIN_DIR=/opt/uv/bin
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends ca-certificates \
+  && uv python install --no-bin 3.9 3.10 3.11 3.12 3.13 3.14 \
+  && uv tool install licenseheaders \
+  && uv tool install copyparty \
+  && uv tool install dool \
+  && uv tool install netron \
+  && uv tool install git-filter-repo \
+  && uv tool install tensorboard --python 3.12 --with tensorboard-plugin-profile --with "setuptools==81.0.0" \
+  && rm -rf /var/lib/apt/lists/*
+
 ################################ stage/vscode extensions ################################
 # 生成 editor extension template；一次性的 code-server 不进入 final image。
 FROM docker.io/debian:stable-slim AS stage_vscode_ext
@@ -118,19 +138,13 @@ COPY --link --chown=5230:5230 --from=stage_rust /opt/rust /opt/rust
 
 # setup python & tools
 # uv 的 cache、tool 与 Python 资产统一放在 /opt/uv；tool/python 目录只能通过
-# UV_* environment 配置。
+# UV_* environment 配置。Python 与 uv tools 在 stage_python 中生成。
 ENV UV_TOOL_DIR=/opt/uv/tools \
   UV_TOOL_BIN_DIR=/opt/uv/bin \
   UV_PYTHON_INSTALL_DIR=/opt/uv/python \
   UV_PYTHON_BIN_DIR=/opt/uv/bin
 ENV PATH=${PATH}:/opt/uv/bin
-RUN uv python install --no-bin 3.9 3.10 3.11 3.12 3.13 3.14
-RUN uv tool install licenseheaders \
-  && uv tool install copyparty \
-  && uv tool install dool \
-  && uv tool install netron \
-  && uv tool install git-filter-repo \
-  && uv tool install tensorboard --python 3.12 --with tensorboard-plugin-profile --with "setuptools==81.0.0"
+COPY --link --chown=5230:5230 --from=stage_python /opt/uv /opt/uv
 
 # setup conda
 COPY --link --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
