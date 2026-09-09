@@ -6,8 +6,9 @@ Qwen3.8-Flash-Next 的 model support 来自固定 upstream revision，因此 ima
 安装 SGLang，并跳过 OpenAI HTTP server 不需要的 PyO3 extension。
 
 SGLang 的 FP8 路径依赖 `sgl-deep-gemm`，它会在 import 时 JIT 编译 kernel，因此
-镜像必须包含 nvcc 与 CUDA header。独立 CUDA builder stage 先删除 JIT 不需要的
-静态库、NPP 和开发期辅助目录，再把精简后的 toolkit 复制到 Debian final stage。
+镜像必须包含 nvcc、host C++ compiler 与 CUDA header。独立 CUDA builder stage 先删除
+JIT 不需要的静态库、NPP 和开发期辅助目录，再把精简后的 toolkit 复制到匹配 CUDA
+12.9 支持矩阵的 Ubuntu 24.04 final stage。
 
 source 的默认依赖与目标 Host CUDA backend 不一致。安装过程必须在同一 layer 内
 完成依赖归一化：
