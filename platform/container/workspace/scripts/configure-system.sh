@@ -36,9 +36,6 @@ chmod u+s /opt/bm/store/sudo/bin/sudo
 
 ln -sf /usr/share/zoneinfo/Asia/Singapore /etc/localtime
 
-echo "en_US.UTF-8 UTF-8" >/etc/locale.gen
-locale-gen
-
 # gocryptfs runs as x without CAP_SYS_ADMIN, so its fusermount3 helper must be
 # setuid root. Set the store target because the profile entry is a symlink.
 chown root:root /opt/bm/store/fuse3/bin/fusermount3
@@ -48,7 +45,13 @@ chmod u+s /opt/bm/store/fuse3/bin/fusermount3
 # ca-certificates; point the Debian default path at it so consumers that read
 # the fixed location (openssl, curl, git, wget, python) resolve trust anchors.
 install -d /etc/ssl/certs
-ln -sf /opt/bm/etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt
+cp /opt/bm/etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt
+
+# locale-archive comes from /opt/bm (binman glibcLocales, includes en_US.UTF-8)
+# instead of apt locales; point glibc's default lookup path at it so LANG /
+# LC_ALL resolve without any build-time locale-gen.
+install -d /usr/lib/locale
+cp /opt/bm/lib/locale/locale-archive /usr/lib/locale/locale-archive
 
 # Expose selected static tools under /usr/bin for consumers that do not inherit
 # /opt/bm/bin on PATH (sshd, sudo secure_path, git subprocess).
