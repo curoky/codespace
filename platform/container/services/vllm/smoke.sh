@@ -14,7 +14,6 @@ service="vllm"
 name="codespace-service-${service}"
 image="ghcr.io/curoky/codespace:service-${service}"
 port="${SERVE_PORT:-8003}"
-listen_host="${SERVE_HOST:-127.0.0.1}"
 hf_home="${HF_HOME:-${HOME}/codespace/services/${service}}"
 
 mkdir -p -- "${hf_home}"
@@ -39,7 +38,6 @@ podman_args=(
   --ipc host
   --volume "${hf_home}:/root/.cache/huggingface"
   --env "HF_HOME=/root/.cache/huggingface"
-  --env "SERVE_HOST=${listen_host}"
   --env "SERVE_PORT=${port}"
   --env "SERVE_MODEL=${SERVE_MODEL:-Qwen/Qwen3.8-Flash-Next-FP8}"
   --env "SERVE_EXTRA_ARGS=${SERVE_EXTRA_ARGS:-}"
@@ -57,5 +55,5 @@ fi
 
 podman "${podman_args[@]}" "${image}"
 
-echo "Service '${service}' is starting on http://${listen_host}:${port}."
+echo "Service '${service}' is starting on http://127.0.0.1:${port}."
 echo "Watch startup with: podman exec ${name} tail -f /var/log/s6.serve.log"
