@@ -14,6 +14,8 @@ port="${SERVE_PORT:-8003}"
 # not include it, so reference the venv binary explicitly.
 venv_bin="${SERVE_VENV:-/opt/codespace/sglang/venv}/bin"
 
+export SGLANG_ENABLE_TP_MEMORY_INBALANCE_CHECK=false
+
 # sgl-deep-gemm JIT-compiles FP8 kernels at import time. Export the toolkit path
 # explicitly because the s6 environment snapshot can replace image environment.
 export CUDA_HOME="${CUDA_HOME:-/usr/local/cuda-12.9}"
