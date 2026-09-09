@@ -22,17 +22,23 @@ RUN set -eux; \
          "${CUDA_HOME_DIR}"/compute-sanitizer "${CUDA_HOME_DIR}"/extras \
          "${CUDA_HOME_DIR}"/compat
 
-FROM docker.io/debian:trixie-slim
+FROM docker.io/ubuntu:24.04
 
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
-    bash ca-certificates curl git zstd libgomp1 \
+    bash ca-certificates curl g++ git zstd libgomp1 \
+  && command -v cc \
+  && command -v c++ \
   && rm -rf /var/lib/apt/lists/*
 
 ARG CUDA_HOME_DIR=/usr/local/cuda-12.9
 COPY --from=cuda "${CUDA_HOME_DIR}" "${CUDA_HOME_DIR}"
 ENV CUDA_HOME="${CUDA_HOME_DIR}"
 ENV PATH="${CUDA_HOME_DIR}/bin:$PATH"
+RUN printf '%s\n' '#include <cuda_runtime.h>' '__global__ void kernel() {}' \
+      >/tmp/cuda-smoke.cu \
+  && nvcc -std=c++20 -arch=sm_90a -c /tmp/cuda-smoke.cu -o /tmp/cuda-smoke.o \
+  && rm /tmp/cuda-smoke.cu /tmp/cuda-smoke.o
 
 COPY platform/container/services/sglang/binman.yaml /tmp/binman.yaml
 RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
@@ -48,6 +54,9 @@ RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs
 ARG SGLANG_REF=pull/36497/head
 ARG CUDA_TAG=cu129
 ARG TORCH_SPEC="torch==2.13.0 torchvision==0.28.0 torchaudio==2.11.0"
+# b19 matches SGLang's TVM pin but selects CUTLASS's removed legacy fmax signature
+# on CUDA 12.9; force its current signature after installation.
+ARG FLASH_ATTN_SPEC="flash-attn-4==4.0.0b19"
 ARG SGLANG_BUILD_RUST_EXTS=none
 ENV SERVE_VENV=/opt/codespace/sglang/venv
 # UV_LINK_MODE=copy: uv defaults to hardlinking cached files into the venv, but
@@ -61,6 +70,10 @@ RUN /opt/bm/bin/uv venv "${SERVE_VENV}" --python 3.12 \
   && SERVE_UV="/opt/bm/bin/uv pip install --python ${SERVE_VENV}/bin/python" \
   && SGLANG_BUILD_RUST_EXTS="${SGLANG_BUILD_RUST_EXTS}" \
        ${SERVE_UV} --prerelease=allow -e /opt/codespace/sglang/src/python \
+  && ${SERVE_UV} --no-deps ${FLASH_ATTN_SPEC} \
+  && FA4_UTILS="${SERVE_VENV}/lib/python3.12/site-packages/flash_attn/cute/utils.py" \
+  && grep -Fq 'if CUDA_VERSION.major == 12 and CUDA_VERSION.minor == 9:' "${FA4_UTILS}" \
+  && sed -i 's/if CUDA_VERSION.major == 12 and CUDA_VERSION.minor == 9:/if False:/' "${FA4_UTILS}" \
   && ${SERVE_UV} --force-reinstall ${TORCH_SPEC} \
        --index-url "https://download.pytorch.org/whl/${CUDA_TAG}" \
   && ${SERVE_UV} --force-reinstall sglang-kernel \
