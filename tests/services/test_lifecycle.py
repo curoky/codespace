@@ -7,7 +7,7 @@ import pytest
 from codespace.config import Config
 from codespace.runtime.host import HostDataPaths
 from codespace.runtime.transport import SSHRoute
-from codespace.services import inventory, lifecycle
+from codespace.services import lifecycle
 from codespace.services.lifecycle import ServiceManager
 
 
@@ -45,14 +45,7 @@ def test_apply_replaces_container_and_resolves_data_placeholder(
         "prepare_directories",
         lambda _route, paths: events.append(paths[0]),
     )
-    monkeypatch.setattr(
-        inventory,
-        "list_services",
-        lambda *_args: [
-            SimpleNamespace(id="codespace-service-vllm"),
-        ],
-    )
-    monkeypatch.setattr(inventory, "find_container", lambda *_args: running)
+    monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
     monkeypatch.setattr(
         lifecycle.container,
         "remove_container",
@@ -69,9 +62,33 @@ def test_apply_replaces_container_and_resolves_data_placeholder(
     assert events == ["pull", "/home/x/codespace/services/vllm", "remove"]
     assert captured["name"] == "codespace-service-vllm"
     assert captured["mounts"] == []
-    assert captured["volume_placeholders"] == {"${SERVICE_DATA}": "/home/x/codespace/services/vllm"}
+    runtime_spec = captured["spec"]
+    assert runtime_spec.volumes[0].mount() == {  # type: ignore[union-attr]
+        "type": "bind",
+        "source": "/home/x/codespace/services/vllm",
+        "target": "/root/.cache/huggingface",
+        "read_only": False,
+    }
     assert captured["restart_policy"] == {"Name": "unless-stopped"}
     assert manager.operations.list() == []
+
+
+def test_apply_failure_is_retained(
+    manager: ServiceManager, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    manager.queue_apply("support", "home")
+    monkeypatch.setattr(
+        lifecycle.container,
+        "find_container",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(RuntimeError("Podman unavailable")),
+    )
+
+    manager.apply("support", "home")
+
+    failed = manager.operations.list()[0]
+    assert failed.kind == "service"
+    assert failed.status == "failed"
+    assert failed.error == "RuntimeError: Podman unavailable"
 
 
 def test_remove_can_purge_service_data(
@@ -80,13 +97,8 @@ def test_remove_can_purge_service_data(
 ) -> None:
     events: list[str] = []
     monkeypatch.setattr(
-        inventory,
-        "list_services",
-        lambda *_args: [
-            SimpleNamespace(id="codespace-service-support"),
-        ],
+        lifecycle.container, "find_container", lambda *_args, **_kwargs: SimpleNamespace()
     )
-    monkeypatch.setattr(inventory, "find_container", lambda *_args: SimpleNamespace())
     monkeypatch.setattr(
         lifecycle.container,
         "remove_container",
@@ -118,12 +130,7 @@ def test_logs_reads_selected_container_source(
         logs="service line\n",
     )
     calls: list[tuple[object, str]] = []
-    monkeypatch.setattr(
-        inventory,
-        "list_services",
-        lambda *_args: [SimpleNamespace(id="codespace-service-support")],
-    )
-    monkeypatch.setattr(inventory, "find_container", lambda *_args: running)
+    monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
     monkeypatch.setattr(
         lifecycle.container,
         "container_log_snapshot",

@@ -21,6 +21,27 @@ flowchart LR
 Podman inventory 是实际运行状态的唯一来源。Config 只表达期望形态，Dashboard 不缓存容器状态。
 Workspace 与 Service 通过 `codespace.kind` 使用不相交 inventory filter。
 
+## Container Metadata
+
+创建时由同一个 resolved spec 生成容器 labels、environment 和 mounts。已有 Workspace
+的 source、repository、image、platform、SSH port、open path 与 encryption 均读取 labels，
+不与当前 Project 配置合并。Podman 原生 list 和 inspect 的状态结构在 runtime 边界统一读取，
+不追加逐容器 inspect，也不把缺失状态伪装为正常值。
+
+Source 的 Pydantic 判别联合由 Workspace 领域拥有，Config、resolved spec、inventory 与 Web
+共用；repository 和 URL 只存在于对应 Source 分支。容器边界将 Source 映射到 labels 和
+启动 environment，读 inventory 时恢复并校验同一模型。Dashboard 复用 Workspace 字段并
+计算 SSH command 与编辑器链接，不再维护第二份 Workspace 字段定义。
+
+Dashboard 的 Project 与 Service placement 仍表达 Config 中的创建目标；Service placement
+分别携带 desired image 与可空的实际 container，不用期望镜像填补实际 inventory。Host 是否
+离线仅由 Host status 表达。Workspace 编辑器链接使用容器记录的 open path，删除时根据
+容器记录的 source 与 repository 检查 Git state、撤销 deploy key。
+
+按名称执行生命周期操作时，一次 inspect 同时取得容器并核验 kind 与资源 identity labels。
+不先扫描全 Host 再按名称查询同一个容器。SSH port 冲突检测仍使用 Host inventory。
+必需 label 缺失即拒绝读取；部署新契约需重新创建容器，不提供旧契约解析或补齐逻辑。
+
 ## Components
 
 ```mermaid
@@ -45,6 +66,8 @@ flowchart TB
 ControlMaster 的初始 SSH handshake 跨 Host 串行执行，避免共享 ProxyJump 的并发 GSSAPI
 认证竞争；连接建立后的 Host 操作保持并发。Manager 只接收 Config 解析出的 immutable spec，
 不解析 YAML。FastAPI route 只做输入输出和错误映射。
+OperationStore 的执行上下文统一保留失败和清理成功记录；Manager 只编排各自的业务步骤。
+日志 route 直接返回 runtime 的 LogSnapshot，由 FastAPI 序列化。
 
 ## Placement Resolution
 
@@ -94,7 +117,9 @@ $HOME/codespace/
 
 Service 不拥有 Workspace mount、SSH 投影或 repository credential。Service volume 可用
 `${SERVICE_DATA}` 引用自己的 managed data root，Host source 由控制面根据 Service identity
-生成；Project 不允许使用这个 placeholder。Container secret 遵循 Compose file mount 语义；
+生成；Project 不允许使用这个 placeholder。Config 启动时校验 source，Service 在创建前
+将自己的 placeholder 解析为绝对路径；runtime 不认识 Service placeholder，只接受绝对路径
+mount。Container secret 遵循 Compose file mount 语义；
 需要环境变量的进程由镜像启动逻辑读取 secret 文件后注入。
 
 ## Workspace Create

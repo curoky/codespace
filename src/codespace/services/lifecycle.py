@@ -2,16 +2,21 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
-
-from loguru import logger
+from podman.domain.containers import Container
 
 from codespace.config import Config
-from codespace.operations import Operation, OperationStore, describe_error
+from codespace.operations import Operation, OperationStore
 from codespace.runtime import container, host
 from codespace.runtime.transport import PodmanTransport
 from codespace.services import inventory
-from codespace.services.models import Service, ServiceSpec
+from codespace.services.models import (
+    LABEL_KIND,
+    LABEL_SERVICE,
+    SERVICE_KIND,
+    Service,
+    ServiceSpec,
+    service_identity,
+)
 
 
 class ServiceManager:
@@ -54,18 +59,14 @@ class ServiceManager:
 
     def apply(self, service: str, host_name: str) -> None:
         spec = self.config.service_spec(service, host_name)
-        self._run_operation(spec, lambda: self._apply(spec))
+        with self.operations.run(spec.host, spec.identity):
+            self._apply(spec)
 
     def _apply(self, spec: ServiceSpec) -> None:
         client = self.transport.client(spec.host)
         route = self.transport.ssh_route(spec.host)
         self._stage(spec, "checking inventory", running=True)
-        managed = inventory.list_services(client, spec.host)
-        existing = inventory.find_container(client, spec)
-        if existing is not None and all(item.id != spec.identity for item in managed):
-            raise RuntimeError(
-                f"container {spec.identity!r} exists without the required Service labels"
-            )
+        existing = self._container(spec.service, spec.host)
 
         self._stage(spec, f"pulling image {spec.image}")
         container.pull_image(client, spec.image, None)
@@ -84,11 +85,10 @@ class ServiceManager:
             client,
             spec.image,
             name=spec.identity,
-            spec=spec.container,
+            spec=spec.resolve_data_path(data_path),
             environment=spec.container.environment or {},
             labels=spec.labels(),
             mounts=[],
-            volume_placeholders={container.SERVICE_DATA_PLACEHOLDER: data_path},
             restart_policy={"Name": "unless-stopped"},
         )
 
@@ -96,12 +96,7 @@ class ServiceManager:
         self._service(service, host_name)
         spec = self.config.service_spec(service, host_name)
         client = self.transport.client(host_name)
-        managed = inventory.list_services(client, host_name)
-        running = inventory.find_container(client, spec)
-        if running is not None and all(item.id != spec.identity for item in managed):
-            raise RuntimeError(
-                f"container {spec.identity!r} exists without the required Service labels"
-            )
+        running = self._container(service, host_name)
         removed = running is not None
         if running is not None:
             container.remove_container(running)
@@ -122,15 +117,17 @@ class ServiceManager:
         source: str = container.CONTAINER_LOG_SOURCE,
     ) -> container.LogSnapshot:
         self._service(service, host_name)
-        spec = self.config.service_spec(service, host_name)
-        client = self.transport.client(host_name)
-        managed = inventory.list_services(client, host_name)
-        if all(item.id != spec.identity for item in managed):
-            raise RuntimeError(f"service {service!r} not found on host {host_name!r}")
-        running = inventory.find_container(client, spec)
+        running = self._container(service, host_name)
         if running is None:
             raise RuntimeError(f"service {service!r} not found on host {host_name!r}")
         return container.container_log_snapshot(running, source)
+
+    def _container(self, service: str, host_name: str) -> Container | None:
+        return container.find_container(
+            self.transport.client(host_name),
+            service_identity(service),
+            labels={LABEL_KIND: SERVICE_KIND, LABEL_SERVICE: service},
+        )
 
     def _service(self, service: str, host_name: str) -> None:
         if service not in self.config.services:
@@ -140,21 +137,6 @@ class ServiceManager:
             raise KeyError(
                 f"host {host_name!r} is not configured for service {service!r}; allowed: {allowed}"
             )
-
-    def _run_operation(self, spec: ServiceSpec, work: Callable[[], object]) -> None:
-        try:
-            work()
-        except Exception as exc:
-            logger.exception("failed Service operation {} on Host {}", spec.identity, spec.host)
-            self.operations.update(
-                spec.host,
-                spec.identity,
-                status="failed",
-                stage="failed",
-                error=describe_error(exc),
-            )
-            return
-        self.operations.remove(spec.host, spec.identity)
 
     def _stage(self, spec: ServiceSpec, stage: str, *, running: bool = False) -> None:
         self.operations.update(

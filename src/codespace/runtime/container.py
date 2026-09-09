@@ -10,7 +10,7 @@ from typing import Annotated, Any, Literal, Self, cast
 
 from podman import PodmanClient
 from podman.domain.containers import Container
-from podman.errors import PodmanError
+from podman.errors import NotFound, PodmanError
 from pydantic import (
     AfterValidator,
     BaseModel,
@@ -32,7 +32,6 @@ _PORT_MIN = 1
 _PORT_MAX = 65_535
 _SECRET_NAME_RE = re.compile(r"^[a-zA-Z0-9._-]+$")
 CONTAINER_LOG_SOURCE = "container"
-SERVICE_DATA_PLACEHOLDER = "${SERVICE_DATA}"
 
 
 def _not_blank(value: str) -> str:
@@ -47,12 +46,6 @@ def _absolute_path(value: str) -> str:
     if "$" in value:
         raise ValueError("Compose variable interpolation is not supported")
     return value
-
-
-def _mount_source(value: str) -> str:
-    if value == SERVICE_DATA_PLACEHOLDER:
-        return value
-    return _absolute_path(value)
 
 
 def _compose_literal(value: str) -> str:
@@ -79,7 +72,6 @@ type ComposeNonBlankString = Annotated[
     AfterValidator(_compose_literal),
 ]
 type AbsolutePath = Annotated[str, AfterValidator(_absolute_path)]
-type MountSource = Annotated[str, AfterValidator(_mount_source)]
 type SecretName = Annotated[str, AfterValidator(_secret_name)]
 type SecretId = Annotated[str, Field(pattern=r"^\d+$")]
 type UlimitName = Annotated[str, Field(pattern=r"^[a-z]+$")]
@@ -115,7 +107,7 @@ class VolumeSpec(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     type: Literal["bind"]
-    source: MountSource
+    source: NonBlankString
     target: AbsolutePath
     read_only: StrictBool = False
 
@@ -134,6 +126,15 @@ class VolumeSpec(BaseModel):
             "source": parts[0],
             "target": parts[1],
             "read_only": len(parts) == 3 and parts[2] == "ro",
+        }
+
+    def mount(self) -> dict[str, object]:
+        """Produce a Podman mount only after its source is an absolute path."""
+        return {
+            "type": self.type,
+            "source": _absolute_path(self.source),
+            "target": self.target,
+            "read_only": self.read_only,
         }
 
 
@@ -218,32 +219,6 @@ class ContainerSpec(BaseModel):
         return self.__class__.model_validate(merged)
 
 
-def configured_mounts(
-    volumes: list[VolumeSpec] | None,
-    *,
-    placeholders: Mapping[str, str] | None = None,
-) -> list[dict[str, object]]:
-    """Translate configured bind mounts and the managed Service data exception."""
-    resolved: list[dict[str, object]] = []
-    replacements = placeholders or {}
-    for volume in volumes or []:
-        source = volume.source
-        if source == SERVICE_DATA_PLACEHOLDER:
-            try:
-                source = replacements[source]
-            except KeyError as exc:
-                raise ValueError(f"unresolved volume source {source!r}") from exc
-        resolved.append(
-            {
-                "type": "bind",
-                "source": source,
-                "target": volume.target,
-                "read_only": volume.read_only,
-            }
-        )
-    return resolved
-
-
 def create_container(
     client: PodmanClient,
     image: str,
@@ -255,7 +230,6 @@ def create_container(
     mounts: list[dict[str, object]],
     platform: ImagePlatform | None = None,
     extra_ports: Mapping[str, object] | None = None,
-    volume_placeholders: Mapping[str, str] | None = None,
     restart_policy: Mapping[str, object] | None = None,
 ) -> Container:
     """Create a detached container from a fully resolved canonical specification."""
@@ -280,7 +254,7 @@ def create_container(
         "labels": dict(labels),
         "mounts": [
             *mounts,
-            *configured_mounts(spec.volumes, placeholders=volume_placeholders),
+            *(volume.mount() for volume in spec.volumes or []),
         ],
     }
     if platform is not None:
@@ -397,6 +371,25 @@ def remove_data_directory(
 
 def remove_container(container: Container) -> None:
     container.remove(force=True)
+
+
+def find_container(
+    client: PodmanClient, name: str, *, labels: Mapping[str, str]
+) -> Container | None:
+    """Look up a deterministic name and verify ownership before any operation."""
+    try:
+        found = client.containers.get(name)
+    except NotFound:
+        return None
+    if any(found.labels.get(key) != value for key, value in labels.items()):
+        raise RuntimeError(f"container {name!r} exists without the required labels")
+    return found
+
+
+def container_status(container: Container) -> str:
+    # Libpod list returns State as a string; inspect returns State.Status.
+    state = container.attrs["State"]
+    return cast("str", state if isinstance(state, str) else state["Status"])
 
 
 def container_logs(container: Container) -> str:

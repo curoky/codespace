@@ -4,16 +4,17 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 from codespace.operations import Operation
 from codespace.runtime.container import ImagePlatform
+from codespace.services.models import Service
 from codespace.workspaces.models import (
     GitProvider,
     HostId,
     RepoGitState,
     ResourceId,
-    SourceType,
+    Source,
     TokenString,
     Workspace,
     editor_url,
@@ -31,12 +32,6 @@ class UpdateTokenRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     token: TokenString = Field(repr=False)
-
-
-class ContainerLogsResult(BaseModel):
-    source: str
-    sources: list[str]
-    logs: str
 
 
 class DeleteWorkspaceResult(BaseModel):
@@ -66,50 +61,34 @@ class ProjectHostSummary(BaseModel):
 class ProjectSummary(BaseModel):
     id: str
     hosts: list[ProjectHostSummary]
-    source: SourceType
-    repository: str | None = None
-    git_url: str | None = None
+    source: Source
     description: str | None = None
-    checkout_path: str
     open_path: str
 
 
-class DashboardWorkspace(BaseModel):
-    id: str
-    project: str
-    workspace: str
-    host: str
-    source: SourceType
-    repository: str | None = None
-    git_url: str | None = None
-    image: str
-    platform: str
-    ssh_port: int
-    encrypted: bool
-    status: str | None = None
-    alias: str
-    ssh_command: str
-    trae_url: str
-    trae_cn_url: str
+class DashboardWorkspace(Workspace):
+    container_id: str = Field(exclude=True)
 
-    @classmethod
-    def from_workspace(cls, workspace: Workspace, open_path: str) -> DashboardWorkspace:
-        return cls(
-            **workspace.model_dump(exclude={"container_id"}),
-            alias=workspace.id,
-            ssh_command=f"ssh {workspace.id}",
-            trae_url=editor_url(workspace.id, open_path),
-            trae_cn_url=editor_url(workspace.id, open_path, scheme="trae-cn"),
-        )
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def ssh_command(self) -> str:
+        return f"ssh {self.id}"
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def trae_url(self) -> str:
+        return editor_url(self.id, self.open_path)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def trae_cn_url(self) -> str:
+        return editor_url(self.id, self.open_path, scheme="trae-cn")
 
 
 class ServiceHostStatus(BaseModel):
     host: str
-    state: Literal["running", "stopped", "missing"]
-    image: str
-    status: str | None = None
-    container_id: str | None = None
-    error: str | None = None
+    desired_image: str
+    container: Service | None
 
 
 class ServiceSummary(BaseModel):

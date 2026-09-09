@@ -52,7 +52,8 @@ RUN bash /tmp/install-editor-extensions.sh /tmp/extensions.txt /opt/editor-exten
 FROM docker.io/$BASE_IMAGE
 
 ENV PATH=${PATH}:/opt/bm/bin \
-  DEBIAN_FRONTEND=noninteractive
+  DEBIAN_FRONTEND=noninteractive \
+  CODESPACE_ENCRYPTED=false
 
 ARG BASE_IMAGE
 COPY platform/container/workspace/scripts/configure-apt.sh /tmp/configure-apt.sh

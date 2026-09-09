@@ -43,12 +43,11 @@ EOF
   export PATH="${STUB_BIN}:${PATH}"
 }
 
-# 明文场景（Workspace key secret 未挂载）直接跳过挂载。
 @test "workspace init skips plaintext workspaces" {
-  run --separate-stderr env PATH="${PATH}" "${HELPER_BASH}" "${HELPER}" "${WORKSPACE_KEY_FILE}"
+  run --separate-stderr env CODESPACE_ENCRYPTED=false PATH="${PATH}" "${HELPER_BASH}" "${HELPER}" "${WORKSPACE_KEY_FILE}"
 
   [[ ${status} -eq 0 ]]
-  [[ ${output} == "Workspace key secret unavailable; encryption disabled, using plaintext /workspace" ]]
+  [[ ${output} == "Workspace encryption disabled, using plaintext /workspace" ]]
   [[ -z ${stderr} ]]
   grep -qx "install -d -o 5230 -g 5230 -m 0700 -- /workspace /workspace.enc /upload /cache" \
     "${TEST_SUDO_EVENTS}"
@@ -56,7 +55,7 @@ EOF
 
 @test "workspace init mounts encrypted workspaces with the codespace key" {
   printf '%s' secret >"${WORKSPACE_KEY_FILE}"
-  run --separate-stderr env PATH="${PATH}" "${HELPER_BASH}" "${HELPER}" "${WORKSPACE_KEY_FILE}"
+  run --separate-stderr env CODESPACE_ENCRYPTED=true PATH="${PATH}" "${HELPER_BASH}" "${HELPER}" "${WORKSPACE_KEY_FILE}"
 
   [[ ${status} -eq 0 ]]
   [[ -z ${stderr} ]]
@@ -67,4 +66,28 @@ EOF
     "${TEST_EVENTS}"
   grep -qF -- "-extpass cat -- ${WORKSPACE_KEY_FILE} -allow_other /workspace.enc /workspace" \
     "${TEST_EVENTS}"
+}
+
+@test "workspace init fails when encryption key is unavailable" {
+  run --separate-stderr env CODESPACE_ENCRYPTED=true PATH="${PATH}" "${HELPER_BASH}" "${HELPER}" "${WORKSPACE_KEY_FILE}"
+
+  [[ ${status} -ne 0 ]]
+  [[ ${stderr} == "Encrypted Workspace requires a readable key secret" ]]
+  [[ ! -e ${TEST_EVENTS} ]]
+}
+
+@test "workspace init rejects an invalid encryption flag" {
+  run --separate-stderr env CODESPACE_ENCRYPTED=invalid PATH="${PATH}" "${HELPER_BASH}" "${HELPER}" "${WORKSPACE_KEY_FILE}"
+
+  [[ ${status} -ne 0 ]]
+  [[ ${stderr} == "CODESPACE_ENCRYPTED must be true or false" ]]
+  [[ ! -e ${TEST_SUDO_EVENTS} ]]
+}
+
+@test "plaintext workspaces ignore an unrelated key secret" {
+  printf '%s' secret >"${WORKSPACE_KEY_FILE}"
+  run --separate-stderr env CODESPACE_ENCRYPTED=false PATH="${PATH}" "${HELPER_BASH}" "${HELPER}" "${WORKSPACE_KEY_FILE}"
+
+  [[ ${status} -eq 0 ]]
+  [[ ! -e ${TEST_EVENTS} ]]
 }

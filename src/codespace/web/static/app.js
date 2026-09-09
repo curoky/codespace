@@ -132,9 +132,8 @@ const RUNNING_STATES = new Set(["running", "succeeded"]);
 const PENDING_STATES = new Set(["queued", "pending", "created", "paused"]);
 
 function classifyStatus(status) {
-  const value = (status || "unknown").toLowerCase();
-  if (RUNNING_STATES.has(value)) return "running";
-  if (PENDING_STATES.has(value)) return "pending";
+  if (RUNNING_STATES.has(status)) return "running";
+  if (PENDING_STATES.has(status)) return "pending";
   return "stopped";
 }
 
@@ -157,8 +156,10 @@ function renderHosts(hosts) {
 }
 
 function projectSource(project) {
-  if (project.repository) return `${project.source}:${project.repository}`;
-  return project.git_url || project.open_path;
+  const source = project.source;
+  if (source.type === "empty") return project.open_path;
+  if (source.type === "git") return source.url;
+  return `${source.type}:${source.repository}`;
 }
 
 function renderProjects(dashboard) {
@@ -222,9 +223,11 @@ function renderProjects(dashboard) {
 }
 
 function renderServices(dashboard) {
-  const services = dashboard.services || [];
+  const services = dashboard.services;
+  const hosts = new Map(dashboard.hosts.map((host) => [host.id, host]));
   const running = services.reduce(
-    (total, service) => total + service.hosts.filter((host) => host.state === "running").length,
+    (total, service) =>
+      total + service.hosts.filter((host) => host.container?.status === "running").length,
     0,
   );
   const placements = services.reduce((total, service) => total + service.hosts.length, 0);
@@ -248,7 +251,7 @@ function renderServices(dashboard) {
         list.append(
           operation
             ? renderOperation(operation, host.host, { service: service.id, host: host.host })
-            : renderServiceHost(service, host),
+            : renderServiceHost(service, host, hosts.get(host.host)),
         );
       });
     } else {
@@ -262,25 +265,31 @@ function renderServices(dashboard) {
   servicesElement.replaceChildren(...cards);
 }
 
-function renderServiceHost(service, host) {
+function renderServiceHost(service, host, hostStatus) {
+  const actual = host.container;
+  const status = hostStatus.status === "offline" ? "offline" : actual?.status ?? "missing";
+  const state = classifyStatus(status);
   const row = element("div", "workspace");
   const info = element("div", "workspace-info");
-  info.append(element("span", `workspace-status-dot ${host.state}`));
+  info.append(element("span", `workspace-status-dot ${state}`));
   info.append(element("span", "workspace-title", host.host));
-  info.append(element("span", `status-badge ${host.state}`, host.status || host.state));
-  const image = element("span", "workspace-image", host.image);
-  image.title = host.image;
-  info.append(image);
-  if (host.error) info.append(element("span", "host-error", host.error));
+  info.append(element("span", `status-badge ${state}`, status));
+  if (actual !== null) {
+    const image = element("span", "workspace-image", actual.image);
+    image.title = actual.image;
+    info.append(image);
+  }
+  if (hostStatus.error) info.append(element("span", "host-error", hostStatus.error));
   row.append(info);
 
   const target = { service: service.id, host: host.host };
   const actions = element("div", "workspace-actions");
-  const applyButton = actionButton(host.state === "missing" ? "Apply" : "Reapply", "apply", target);
+  const applyButton = actionButton(actual === null ? "Apply" : "Reapply", "apply", target);
+  applyButton.title = host.desired_image;
   applyButton.classList.remove("secondary");
   applyButton.classList.add("primary");
   actions.append(applyButton);
-  if (host.state !== "missing") {
+  if (actual !== null) {
     actions.append(actionButton("Logs", "logs", target));
     actions.append(actionButton("Remove", "remove", target));
   }
@@ -317,10 +326,10 @@ function renderWorkspace(workspace) {
   info.append(element("span", "workspace-title", workspace.workspace));
   if (workspace.encrypted) info.append(encryptedWorkspaceIcon());
   info.append(
-    element("span", `status-badge ${workspace.status || "unknown"}`, workspace.status || "unknown"),
+    element("span", `status-badge ${workspace.status}`, workspace.status),
   );
   info.append(element("span", "badge badge-host", workspace.host));
-  if (workspace.platform && workspace.platform !== "native") {
+  if (workspace.platform !== "native") {
     info.append(element("span", "badge badge-platform", workspace.platform));
   }
   const image = element("span", "workspace-image", workspace.image);
@@ -332,8 +341,8 @@ function renderWorkspace(workspace) {
     project: workspace.project,
     workspace: workspace.workspace,
     host: workspace.host,
-    source: workspace.source,
-    status: workspace.status || "unknown",
+    source: workspace.source.type,
+    status: workspace.status,
   };
   const actions = element("div", "workspace-actions");
   const traeLink = link("Open in Trae", workspace.trae_url);
@@ -384,7 +393,7 @@ function openWorkspaceDialog(project) {
   document.querySelector("#workspace-project").value = project;
   document.querySelector("#workspace-title").textContent = `New ${project} Workspace`;
   const hostSelect = document.querySelector("#workspace-host");
-  const hosts = projectHosts.get(project) || [];
+  const hosts = projectHosts.get(project);
   hostSelect.replaceChildren(
     ...hosts.map((host) => {
       const label = host.platform ? `${host.name} · ${host.platform}` : host.name;
@@ -500,14 +509,14 @@ async function deleteWorkspace(project, host, workspace, purge, source, status) 
   try {
     const result = await sendDelete(project, host, workspace, purge, false);
     if (!deleteDialog.open || pendingDelete === null) return;
-    const state = result.state || {};
+    const state = result.state;
     const reasons = [];
     if (state.unpushed) reasons.push("unpushed commits");
     if (state.uncommitted) reasons.push("uncommitted changes");
     if (reasons.length) {
       deleteStatusElement.className = "delete-warning";
       deleteStatusElement.textContent = `This repository has ${reasons.join(" and ")}.`;
-      deleteDetailElement.textContent = (state.detail || []).join("\n");
+      deleteDetailElement.textContent = state.detail.join("\n");
       deleteDetailElement.hidden = false;
     } else {
       deleteStatusElement.textContent = "No unpushed or uncommitted work detected.";
@@ -574,13 +583,12 @@ async function loadLogs() {
   logsStatusElement.hidden = false;
   logsOutputElement.hidden = true;
   try {
-    const separator = request.path.includes("?") ? "&" : "?";
     const result = await api(
-      `${request.path}${separator}source=${encodeURIComponent(source)}`,
+      `${request.path}?source=${encodeURIComponent(source)}`,
     );
     if (pendingLogs !== request || request.source !== source || !logsDialog.open) return;
     renderLogSources(result.sources, result.source);
-    const logs = result.logs || "";
+    const logs = result.logs;
     if (logs.trim()) {
       logsStatusElement.hidden = true;
       logsOutputElement.textContent = logs;
@@ -597,9 +605,8 @@ async function loadLogs() {
 }
 
 function renderLogSources(sources, selected) {
-  const available = Array.isArray(sources) && sources.length ? sources : ["container"];
   logsSourceElement.replaceChildren(
-    ...available.map((source) => {
+    ...sources.map((source) => {
       const option = document.createElement("option");
       option.value = source;
       option.textContent = source === "container" ? "Container" : source;
@@ -607,7 +614,7 @@ function renderLogSources(sources, selected) {
     }),
   );
   logsSourceElement.value = selected;
-  logsSourceElement.disabled = available.length === 1;
+  logsSourceElement.disabled = sources.length === 1;
 }
 
 async function saveTokens(event) {

@@ -12,7 +12,7 @@ from codespace.runtime.host import HostDataPaths
 from codespace.runtime.transport import SSHRoute
 from codespace.workspaces import agent, inventory, lifecycle, provider, ssh
 from codespace.workspaces.lifecycle import WorkspaceManager
-from codespace.workspaces.models import RepoGitState, Workspace
+from codespace.workspaces.models import RepoGitState
 
 _PATHS = HostDataPaths("/home/x/codespace")
 
@@ -50,13 +50,6 @@ class FakeAgent:
         return RepoGitState(uncommitted=True, detail=[" M file"])
 
 
-def _workspace(config: Config, name: str = "debug") -> Workspace:
-    return config.workspace_spec("codespace", "home", name).to_workspace(
-        "container-id",
-        status="running",
-    )
-
-
 @pytest.fixture
 def manager(config: Config, monkeypatch: pytest.MonkeyPatch) -> WorkspaceManager:
     monkeypatch.setattr(agent, "WorkspaceAgentClient", FakeAgent)
@@ -77,14 +70,18 @@ def test_queue_create_uses_final_identity(manager: WorkspaceManager) -> None:
     assert operation.resource == "debug"
 
 
-def test_create_runs_provider_handshake_and_clears_operation(
+@pytest.mark.parametrize("project", ["codespace", "service-api", "scratch", "personal"])
+def test_create_runs_source_bootstrap_and_clears_operation(
     manager: WorkspaceManager,
     config: Config,
     monkeypatch: pytest.MonkeyPatch,
+    project: str,
 ) -> None:
-    manager.queue_create("codespace", "home", "debug")
+    host = config.project_hosts(project)[0]
+    spec = config.workspace_spec(project, host, "debug")
+    manager.queue_create(project, host, "debug")
     events: list[str] = []
-    inventories = iter([[], [_workspace(config)]])
+    inventories = iter([[], [spec.to_workspace("container-id", status="running")]])
     monkeypatch.setattr(inventory, "list_workspaces", lambda *_args: next(inventories))
     monkeypatch.setattr(lifecycle.host, "read_environment", lambda *_args: {"HTTP_PROXY": "proxy"})
     monkeypatch.setattr(
@@ -110,15 +107,14 @@ def test_create_runs_provider_handshake_and_clears_operation(
     monkeypatch.setattr(ssh, "probe", lambda *_args: events.append("probe"))
     monkeypatch.setattr(ssh, "write_host", lambda *_args: events.append("projection"))
 
-    manager.create("codespace", "home", "debug")
+    manager.create(project, host, "debug")
 
     assert events == [
         "pull",
         "paths",
         "control",
         "create",
-        "register",
-        "ready",
+        *(["register", "ready"] if spec.source.type in {"github", "gitlab"} else []),
         "probe",
         "projection",
     ]
@@ -147,10 +143,13 @@ def test_unforced_delete_returns_git_state_without_mutation(
     config: Config,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    running = SimpleNamespace()
+    running = SimpleNamespace(
+        id="container-id",
+        labels=config.workspace_spec("codespace", "home", "debug").labels(),
+        attrs={"State": {"Status": "running"}},
+    )
     mutations: list[str] = []
-    monkeypatch.setattr(inventory, "list_workspaces", lambda *_args: [_workspace(config)])
-    monkeypatch.setattr(inventory, "find_container", lambda *_args: running)
+    monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
     monkeypatch.setattr(
         lifecycle.container, "remove_container", lambda *_args: mutations.append("remove")
     )
@@ -167,10 +166,14 @@ def test_forced_purge_revokes_key_before_data_and_container(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     events: list[str] = []
-    running = SimpleNamespace(stop=lambda **_kwargs: events.append("stop"))
-    inventories = iter([[_workspace(config)], []])
-    monkeypatch.setattr(inventory, "list_workspaces", lambda *_args: next(inventories))
-    monkeypatch.setattr(inventory, "find_container", lambda *_args: running)
+    running = SimpleNamespace(
+        id="container-id",
+        labels=config.workspace_spec("codespace", "home", "debug").labels(),
+        attrs={"State": {"Status": "running"}},
+        stop=lambda **_kwargs: events.append("stop"),
+    )
+    monkeypatch.setattr(inventory, "list_workspaces", lambda *_args: [])
+    monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
     monkeypatch.setattr(provider, "revoke", lambda *_args: events.append("revoke"))
     monkeypatch.setattr(
         lifecycle.container,
@@ -200,7 +203,7 @@ def test_logs_reads_selected_container_source(
         logs="agent line\n",
     )
     calls: list[tuple[object, str]] = []
-    monkeypatch.setattr(inventory, "find_container", lambda *_args: running)
+    monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
     monkeypatch.setattr(
         lifecycle.container,
         "container_log_snapshot",
@@ -235,6 +238,7 @@ def test_workspace_container_uses_reserved_environment_and_mounts(
     assert environment["CODESPACE_SOURCE_TYPE"] == "github"
     assert environment["CODESPACE_CHECKOUT_PATH"] == "/workspace/codespace"
     assert environment["CODESPACE_OPEN_PATH"] == "/workspace/codespace"
+    assert environment["CODESPACE_ENCRYPTED"] == "false"
     assert environment["CODESPACE_CLONE_URL"] == "git@github.com:curoky/codespace.git"
     targets = {mount["target"] for mount in captured["mounts"]}  # type: ignore[index]
     assert {"/workspace", "/upload", "/cache", "/run/codespace-control"} <= targets
@@ -284,6 +288,8 @@ def test_encrypted_workspace_mounts_key_as_compose_secret(
     )
 
     runtime_spec = captured["spec"]
+    assert captured["environment"]["CODESPACE_ENCRYPTED"] == "true"  # type: ignore[index]
+    assert captured["labels"]["codespace.encrypted"] == "true"  # type: ignore[index]
     assert runtime_spec.secrets is not None  # type: ignore[union-attr]
     assert runtime_spec.secrets[0].model_dump() == {  # type: ignore[union-attr]
         "source": "codespace_workspace_key",
@@ -292,3 +298,29 @@ def test_encrypted_workspace_mounts_key_as_compose_secret(
         "gid": "5230",
         "mode": 0o400,
     }
+
+
+def test_delete_uses_deployed_source_after_config_changes(
+    manager: WorkspaceManager, config: Config, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    running = SimpleNamespace(
+        id="container-id",
+        labels=config.workspace_spec("codespace", "home", "debug").labels(),
+        attrs={"State": {"Status": "running"}},
+    )
+    data = config.model_dump()
+    data["projects"]["codespace"]["source"] = {"type": "empty"}
+    manager.config = Config.model_validate(data)
+    revoked: list[tuple[str, ...]] = []
+    monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
+    monkeypatch.setattr(inventory, "list_workspaces", lambda *_args: [])
+    monkeypatch.setattr(provider, "revoke", lambda *args: revoked.append(args))
+    monkeypatch.setattr(lifecycle.container, "remove_container", lambda _container: None)
+    monkeypatch.setattr(ssh, "write_host", lambda *_args: None)
+
+    assert manager.delete("codespace", "home", "debug", purge=False).uncommitted
+    manager.delete("codespace", "home", "debug", purge=False, force=True)
+
+    assert revoked == [
+        ("github", "token", "curoky/codespace", "codespace-workspace-home-codespace-debug")
+    ]

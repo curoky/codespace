@@ -37,8 +37,9 @@ flowchart TD
 ```
 
 `workspace-init` 是 Workspace 数据就绪门控。它先以 `5230:5230`、`0700` 幂等准备
-Workspace data、ciphertext root、upload 和 cache。启用 encryption 时初始化或复用
-gocryptfs，再把明文挂到 `/workspace`。
+Workspace data、ciphertext root、upload 和 cache。encryption 由显式启动输入决定，镜像
+独立运行时默认明文。启用时必须能读取 key secret，再初始化或复用 gocryptfs 并把明文挂到
+`/workspace`；key 不可用即失败。控制面将同一 encryption 值写入 labels 供 inventory 读取。
 
 `home-init` 不依赖 `workspace-init`。它生成 shell integration，准备各 IDE home 下
 持久化的 `bin` 与 `extensions` mount，无条件生成或复用 deploy key，并从 image

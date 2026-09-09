@@ -8,11 +8,11 @@ from typing import Literal
 
 from rich.console import Console
 
-from codespace.config import CONFIG_PATH, Config, ProviderSource, load_config
+from codespace.config import CONFIG_PATH, Config, load_config
 from codespace.maintenance import output
 from codespace.runtime.transport import PodmanTransport
 from codespace.workspaces import inventory, provider
-from codespace.workspaces.models import RESOURCE_ID_RE, GitProvider
+from codespace.workspaces.models import RESOURCE_ID_RE, GitProvider, ProviderSource
 
 type Repository = tuple[GitProvider, str]
 type Route = tuple[str, str]

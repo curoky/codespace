@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path, PurePosixPath
-from typing import Annotated, Literal
+from typing import Annotated
 
 import yaml
 from pydantic import (
@@ -16,18 +16,18 @@ from pydantic import (
 )
 
 from codespace.runtime.container import (
-    SERVICE_DATA_PLACEHOLDER,
     ContainerSpec,
     ImagePlatform,
     NonBlankString,
 )
 from codespace.runtime.transport import HostEndpoint
-from codespace.services.models import ServiceSpec
+from codespace.services.models import SERVICE_DATA_PLACEHOLDER, ServiceSpec
 from codespace.workspaces.models import (
     CACHE_MOUNT,
     CHECKOUT_PATH_ENV,
     CLONE_URL_ENV,
     CONTROL_MOUNT,
+    ENCRYPTED_ENV,
     HOME_CACHE_MOUNTS,
     OPEN_PATH_ENV,
     SOURCE_TYPE_ENV,
@@ -39,10 +39,9 @@ from codespace.workspaces.models import (
     WORKSPACE_KEY_SECRET,
     WORKSPACE_MOUNT,
     GitProvider,
-    GitUrl,
     HostId,
-    RepositoryPath,
     ResourceId,
+    Source,
     TokenString,
     WorkspaceSpec,
 )
@@ -54,6 +53,7 @@ _RESERVED_ENVIRONMENT = {
     CLONE_URL_ENV,
     CHECKOUT_PATH_ENV,
     OPEN_PATH_ENV,
+    ENCRYPTED_ENV,
     SSHD_PORT_ENV,
     SSHD_BIND_ENV,
 }
@@ -102,51 +102,6 @@ class HostConfig(FrozenModel):
         return HostEndpoint(podman_socket=self.podman_socket)
 
 
-class ProviderSource(FrozenModel):
-    type: GitProvider
-    repository: RepositoryPath
-
-    @property
-    def clone_url(self) -> str:
-        host = "github.com" if self.type == "github" else "gitlab.com"
-        return f"git@{host}:{self.repository}.git"
-
-    @property
-    def checkout_name(self) -> str:
-        return self.repository.rsplit("/", 1)[-1].removesuffix(".git")
-
-
-class GitSource(FrozenModel):
-    type: Literal["git"]
-    url: GitUrl
-
-    @property
-    def clone_url(self) -> str:
-        return self.url
-
-    @property
-    def checkout_name(self) -> str:
-        trimmed = self.url.rstrip("/").removesuffix(".git")
-        return re.split(r"[/:]", trimmed)[-1]
-
-
-class EmptySource(FrozenModel):
-    type: Literal["empty"]
-
-    @property
-    def clone_url(self) -> None:
-        return None
-
-    @property
-    def checkout_name(self) -> None:
-        return None
-
-
-type ProjectSource = Annotated[
-    ProviderSource | GitSource | EmptySource, Field(discriminator="type")
-]
-
-
 class ProjectPlacement(FrozenModel):
     """Overrides applied after Project defaults and Project fields."""
 
@@ -162,7 +117,7 @@ class ProjectDefaults(FrozenModel):
 
 class ProjectConfig(FrozenModel):
     description: NonBlankString | None = None
-    source: ProjectSource
+    source: Source
     hosts: dict[HostId, ProjectPlacement] = Field(min_length=1)
     image: NonBlankString | None = None
     checkout_path: WorkspacePath | None = None
@@ -271,15 +226,11 @@ class Config(FrozenModel):
 
     def workspace_spec(self, project: str, host: str, workspace: str) -> WorkspaceSpec:
         configured = self.projects[project]
-        source = configured.source
         return WorkspaceSpec(
             project=project,
             workspace=workspace,
             host=host,
-            source=source.type,
-            repository=source.repository if isinstance(source, ProviderSource) else None,
-            git_url=source.url if isinstance(source, GitSource) else None,
-            clone_url=source.clone_url,
+            source=configured.source,
             platform=self.project_platform(project, host),
             image=self.project_image(project, host),
             container=self.resolved_project_container(project, host),
@@ -324,10 +275,7 @@ class Config(FrozenModel):
             names = ", ".join(sorted(reserved_environment))
             raise ValueError(f"project {project!r} overrides reserved environment: {names}")
         for volume in container.volumes or []:
-            if volume.source == SERVICE_DATA_PLACEHOLDER:
-                raise ValueError(
-                    f"project volume targeting {volume.target!r} must use an absolute source"
-                )
+            volume.mount()
             if any(_paths_overlap(volume.target, reserved) for reserved in _RESERVED_MOUNTS):
                 raise ValueError(
                     f"project volume targeting {volume.target!r} overlaps reserved mount target"
@@ -349,6 +297,9 @@ class Config(FrozenModel):
         container: ContainerSpec,
     ) -> None:
         cls._validate_network(f"service {service!r}", host, container)
+        for volume in container.volumes or []:
+            if volume.source != SERVICE_DATA_PLACEHOLDER:
+                volume.mount()
 
 
 def _paths_overlap(left: str, right: str) -> bool:
