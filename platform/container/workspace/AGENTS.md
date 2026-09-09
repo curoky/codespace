@@ -18,5 +18,8 @@
 - provider host key verification 不得关闭；sshd 默认只绑定 loopback。
 - Agent 只监听 control UDS；外层目录保持私有并只经 SSH forwarding 访问。
 - encryption 只作用于 Workspace 数据，upload 与 cache 保持明文。
+- encryption 必须显式选择；启用时 key secret 不可读即启动失败，不降级为明文。
+- 控制面从同一 resolved spec 生成 labels 与启动输入；镜像不得通过 secret 是否存在
+  改变已声明的运行模式。
 
 mount、s6 dependency 或 Agent protocol 变化时，必须同步控制面调用方与行为测试。

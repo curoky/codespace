@@ -3,18 +3,15 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from dataclasses import dataclass
-from typing import cast
 
-from loguru import logger
 from podman import PodmanClient
 from podman.domain.containers import Container
 
-from codespace.config import Config, ProjectConfig, ProviderSource
-from codespace.operations import Operation, OperationStatus, OperationStore, describe_error
+from codespace.config import Config, ProjectConfig
+from codespace.operations import Operation, OperationStatus, OperationStore
 from codespace.runtime import container, host
 from codespace.runtime.container import SecretSpec
-from codespace.runtime.transport import PodmanTransport, SSHRoute
+from codespace.runtime.transport import PodmanTransport
 from codespace.workspaces import agent, inventory, provider, ssh
 from codespace.workspaces.models import (
     CACHE_MOUNT,
@@ -23,7 +20,11 @@ from codespace.workspaces.models import (
     CONTAINER_GID,
     CONTAINER_UID,
     CONTROL_MOUNT,
+    ENCRYPTED_ENV,
     HOME_CACHE_MOUNTS,
+    LABEL_KIND,
+    LABEL_PROJECT,
+    LABEL_WORKSPACE,
     OPEN_PATH_ENV,
     SOURCE_TYPE_ENV,
     SSHD_BIND_ENV,
@@ -31,25 +32,20 @@ from codespace.workspaces.models import (
     UPLOAD_MOUNT,
     WORKSPACE_CIPHER_MOUNT,
     WORKSPACE_KEY_SECRET,
+    WORKSPACE_KIND,
     WORKSPACE_MOUNT,
     GitProvider,
+    ProviderSource,
     RepoGitState,
     Workspace,
     WorkspaceSpec,
+    workspace_identity,
 )
 
 _AGENT_START_TIMEOUT = 60.0
 _AGENT_READY_TIMEOUT = 15 * 60.0
 
 type TokenLookup = Callable[[GitProvider], str]
-
-
-@dataclass(slots=True)
-class _Creation:
-    spec: WorkspaceSpec
-    token: str | None = None
-    client: PodmanClient | None = None
-    route: SSHRoute | None = None
 
 
 class WorkspaceManager:
@@ -95,17 +91,20 @@ class WorkspaceManager:
 
     def create(self, project: str, host_name: str, workspace: str) -> None:
         self._project(project, host_name)
-        creation = _Creation(spec=self.config.workspace_spec(project, host_name, workspace))
-        self._run_operation(creation.spec, lambda: self._create(creation))
+        spec = self.config.workspace_spec(project, host_name, workspace)
+        with self.operations.run(spec.host, spec.identity):
+            self._create(spec)
 
-    def _create(self, creation: _Creation) -> None:
-        spec = creation.spec
+    def _create(self, spec: WorkspaceSpec) -> None:
         self._stage(spec, "checking inventory", status="running")
-        if spec.source in {"github", "gitlab"}:
-            creation.token = self._token(cast("GitProvider", spec.source))
-        creation.client = self.transport.client(spec.host)
-        creation.route = self.transport.ssh_route(spec.host)
-        current = inventory.list_workspaces(creation.client, spec.host)
+        credentials = (
+            (spec.source, self._token(spec.source.type))
+            if isinstance(spec.source, ProviderSource)
+            else None
+        )
+        client = self.transport.client(spec.host)
+        route = self.transport.ssh_route(spec.host)
+        current = inventory.list_workspaces(client, spec.host)
         for existing in current:
             if existing.project == spec.project and existing.workspace == spec.workspace:
                 raise RuntimeError(f"workspace {spec.identity!r} already exists")
@@ -120,15 +119,15 @@ class WorkspaceManager:
         names = self.config.hosts[spec.host].forward_environment
         if names:
             self._stage(spec, "reading host environment")
-            forwarded = host.read_environment(creation.route, names)
+            forwarded = host.read_environment(route, names)
 
         self._stage(spec, f"pulling image {spec.image}")
-        container.pull_image(creation.client, spec.image, spec.platform)
+        container.pull_image(client, spec.image, spec.platform)
 
         self._stage(spec, "preparing workspace")
-        paths = host.remote_data_paths(creation.route).workspace(spec.project, spec.workspace)
+        paths = host.remote_data_paths(route).workspace(spec.project, spec.workspace)
         host.prepare_directories(
-            creation.route,
+            route,
             [
                 paths.workspace,
                 paths.upload,
@@ -137,46 +136,45 @@ class WorkspaceManager:
                 paths.control,
             ],
         )
-        host.reset_workspace_control(creation.route, paths.control)
+        host.reset_workspace_control(route, paths.control)
 
         self._stage(spec, "creating container")
-        created = _create_workspace_container(creation.client, spec, paths, forwarded)
+        created = _create_workspace_container(client, spec, paths, forwarded)
 
         self._stage(spec, "waiting for workspace agent")
         agent_client = agent.WorkspaceAgentClient(
             self.transport.forward_socket(spec.host, f"{paths.control}/agent.sock")
         )
-        if spec.source in {"github", "gitlab"}:
+        if credentials is not None:
+            source, token = credentials
             status = agent_client.wait_for({"awaiting-provider"}, timeout=_AGENT_START_TIMEOUT)
             if status.public_key is None:
                 raise RuntimeError("deploy key missing for repository source")
-            if creation.token is None or spec.repository is None:
-                raise RuntimeError("provider credentials are incomplete")
             self._stage(spec, "registering deploy key")
             provider.register(
-                cast("GitProvider", spec.source),
-                creation.token,
-                spec.repository,
+                source.type,
+                token,
+                source.repository,
                 spec.identity,
                 status.public_key,
             )
             self._stage(spec, "authorizing repository checkout")
-            host.signal_provider_ready(creation.route, paths.control)
+            host.signal_provider_ready(route, paths.control)
 
         self._stage(
             spec,
-            "preparing open path" if spec.source == "empty" else "checking out source",
+            "preparing open path" if spec.source.type == "empty" else "checking out source",
         )
         agent_client.wait_for({"ready"}, timeout=_AGENT_READY_TIMEOUT)
 
         self._stage(spec, "probing ssh")
-        ssh.probe(spec.to_workspace(created.id, status="running"), creation.route)
+        ssh.probe(spec.to_workspace(created.id, status="running"), route)
 
         self._stage(spec, "writing ssh config")
         ssh.write_host(
             spec.host,
-            inventory.list_workspaces(creation.client, spec.host),
-            creation.route,
+            inventory.list_workspaces(client, spec.host),
+            route,
         )
 
     def delete(
@@ -188,32 +186,22 @@ class WorkspaceManager:
         purge: bool,
         force: bool = False,
     ) -> RepoGitState:
-        configured = self._project(project, host_name)
-        spec = self.config.workspace_spec(project, host_name, workspace)
-        token = (
-            self._token(configured.source.type)
-            if isinstance(configured.source, ProviderSource)
-            else None
-        )
+        self._project(project, host_name)
         client = self.transport.client(host_name)
         route = self.transport.ssh_route(host_name)
-        current = inventory.list_workspaces(client, host_name)
-        actual = next(
-            (item for item in current if item.project == project and item.workspace == workspace),
-            None,
+        running = self._container(project, host_name, workspace)
+        actual = inventory.read_workspace(running, host_name)
+        credentials = (
+            (actual.source, self._token(actual.source.type))
+            if isinstance(actual.source, ProviderSource)
+            else None
         )
-        if actual is None:
-            raise RuntimeError(f"workspace {spec.identity!r} not found")
-        running = inventory.find_container(client, spec)
-        if running is None:
-            raise RuntimeError(f"workspace {spec.identity!r} not found")
 
         if not force:
-            if spec.source != "empty":
+            if actual.source.type != "empty":
                 if actual.status != "running":
-                    status = actual.status or "unknown"
                     raise RuntimeError(
-                        f"container {spec.identity!r} is {status}; "
+                        f"container {actual.id!r} is {actual.status}; "
                         "repository state cannot be inspected while it is not running"
                     )
                 paths = host.remote_data_paths(route).workspace(project, workspace)
@@ -223,14 +211,13 @@ class WorkspaceManager:
                 return agent_client.git_state()
             return RepoGitState()
 
-        if isinstance(configured.source, ProviderSource):
-            if token is None:
-                raise RuntimeError(f"{configured.source.type} token is not set")
+        if credentials is not None:
+            source, token = credentials
             provider.revoke(
-                configured.source.type,
+                source.type,
                 token,
-                configured.source.repository,
-                spec.identity,
+                source.repository,
+                actual.id,
             )
         if purge:
             paths = host.remote_data_paths(route).workspace(project, workspace)
@@ -255,11 +242,23 @@ class WorkspaceManager:
         source: str = container.CONTAINER_LOG_SOURCE,
     ) -> container.LogSnapshot:
         self._project(project, host_name)
-        spec = self.config.workspace_spec(project, host_name, workspace)
-        running = inventory.find_container(self.transport.client(host_name), spec)
-        if running is None:
-            raise RuntimeError(f"workspace {spec.identity!r} not found")
+        running = self._container(project, host_name, workspace)
         return container.container_log_snapshot(running, source)
+
+    def _container(self, project: str, host_name: str, workspace: str) -> Container:
+        identity = workspace_identity(host_name, project, workspace)
+        running = container.find_container(
+            self.transport.client(host_name),
+            identity,
+            labels={
+                LABEL_KIND: WORKSPACE_KIND,
+                LABEL_PROJECT: project,
+                LABEL_WORKSPACE: workspace,
+            },
+        )
+        if running is None:
+            raise RuntimeError(f"workspace {identity!r} not found")
+        return running
 
     def _project(self, project: str, host_name: str) -> ProjectConfig:
         try:
@@ -272,21 +271,6 @@ class WorkspaceManager:
                 f"allowed: {sorted(configured.hosts)}"
             )
         return configured
-
-    def _run_operation(self, spec: WorkspaceSpec, work: Callable[[], object]) -> None:
-        try:
-            work()
-        except Exception as exc:
-            logger.exception("failed Workspace operation {} on Host {}", spec.identity, spec.host)
-            self.operations.update(
-                spec.host,
-                spec.identity,
-                status="failed",
-                stage="failed",
-                error=describe_error(exc),
-            )
-            return
-        self.operations.remove(spec.host, spec.identity)
 
     def _stage(
         self,
@@ -307,13 +291,14 @@ def _create_workspace_container(
     environment = {
         **forwarded_environment,
         **(spec.container.environment or {}),
-        SOURCE_TYPE_ENV: spec.source,
+        SOURCE_TYPE_ENV: spec.source.type,
         CHECKOUT_PATH_ENV: spec.checkout_path,
         OPEN_PATH_ENV: spec.open_path,
+        ENCRYPTED_ENV: str(spec.encrypted).lower(),
         SSHD_PORT_ENV: str(spec.ssh_port),
     }
-    if spec.clone_url is not None:
-        environment[CLONE_URL_ENV] = spec.clone_url
+    if spec.source.clone_url is not None:
+        environment[CLONE_URL_ENV] = spec.source.clone_url
 
     runtime_spec = spec.container
     if spec.encrypted:

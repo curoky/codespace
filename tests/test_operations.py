@@ -58,3 +58,41 @@ def test_describe_error_includes_cause_chain() -> None:
             raise RuntimeError("request failed") from inner
     except RuntimeError as exc:
         assert describe_error(exc) == "RuntimeError: request failed <- TimeoutError: timed out"
+
+
+def test_run_removes_only_the_completed_operation() -> None:
+    store = OperationStore()
+    operation = store.create(_operation())
+    other = store.create(_operation().model_copy(update={"host": "office"}))
+
+    with store.run(operation.host, operation.id):
+        store.update(operation.host, operation.id, status="running", stage="pulling image")
+        assert len(store.list()) == 2
+
+    assert store.list() == [other]
+
+
+def test_run_retains_failure_and_completed_side_effects() -> None:
+    store = OperationStore()
+    operation = store.create(_operation())
+    events: list[str] = []
+
+    with store.run(operation.host, operation.id):
+        events.append("container created")
+        raise RuntimeError("agent failed")
+
+    failed = store.list()[0]
+    assert failed.status == "failed"
+    assert failed.stage == "failed"
+    assert failed.error == "RuntimeError: agent failed"
+    assert events == ["container created"]
+
+
+def test_run_does_not_swallow_process_interruption() -> None:
+    store = OperationStore()
+    operation = store.create(_operation())
+
+    with pytest.raises(KeyboardInterrupt), store.run(operation.host, operation.id):
+        raise KeyboardInterrupt
+
+    assert store.list() == [operation]

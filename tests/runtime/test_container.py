@@ -3,10 +3,58 @@
 from types import SimpleNamespace
 
 import pytest
+from podman.domain.containers import Container
+from podman.errors import NotFound
 from pydantic import ValidationError
 
 from codespace.runtime import container
 from codespace.runtime.container import ContainerSpec, SecretSpec, VolumeSpec
+
+
+@pytest.mark.parametrize("state", ["running", {"Status": "running"}])
+def test_container_status_accepts_libpod_list_and_inspect(state: object) -> None:
+    actual = Container(attrs={"Id": "container-id", "State": state})
+
+    assert container.container_status(actual) == "running"
+
+
+@pytest.mark.parametrize("state", [{}, {"Other": "running"}])
+def test_container_status_does_not_invent_missing_state(state: dict[str, str]) -> None:
+    with pytest.raises(KeyError):
+        container.container_status(Container(attrs={"State": state}))
+
+
+def test_find_container_checks_ownership_in_one_inspect() -> None:
+    actual = Container(attrs={"Config": {"Labels": {"codespace.kind": "service"}}})
+    calls: list[str] = []
+    client = SimpleNamespace(
+        containers=SimpleNamespace(get=lambda name: (calls.append(name), actual)[-1])
+    )
+
+    assert (
+        container.find_container(
+            client,  # type: ignore[arg-type]
+            "codespace-service-support",
+            labels={"codespace.kind": "service"},
+        )
+        is actual
+    )
+    assert calls == ["codespace-service-support"]
+    with pytest.raises(RuntimeError, match="required labels"):
+        container.find_container(
+            client,  # type: ignore[arg-type]
+            "codespace-service-support",
+            labels={"codespace.kind": "workspace"},
+        )
+
+
+def test_find_container_returns_none_only_for_not_found() -> None:
+    def get(_name: str) -> None:
+        raise NotFound("missing")
+
+    client = SimpleNamespace(containers=SimpleNamespace(get=get))
+
+    assert container.find_container(client, "missing", labels={}) is None  # type: ignore[arg-type]
 
 
 def test_container_layers_replace_lists_and_mappings() -> None:
@@ -125,8 +173,6 @@ def test_volume_short_and_long_syntax_are_normalized() -> None:
     [
         ("/only-one", "source:target"),
         ("/host:/container:shared", "ro.*rw"),
-        ("relative:/container", "absolute path"),
-        ("${OTHER_DATA}:/container", "absolute path"),
     ],
 )
 def test_volume_short_syntax_rejects_invalid_entries(volume: str, message: str) -> None:
@@ -145,28 +191,31 @@ def test_secret_long_syntax_uses_compose_semantics() -> None:
         SecretSpec(source="../token")
 
 
-def test_configured_mounts_resolves_service_data_exception() -> None:
-    volumes = [
-        VolumeSpec(
-            type="bind",
-            source=container.SERVICE_DATA_PLACEHOLDER,
-            target="/data",
-        ),
-    ]
+def test_volume_translates_to_podman_mount() -> None:
+    volume = VolumeSpec(type="bind", source="/host/data", target="/data", read_only=True)
 
-    assert container.configured_mounts(
-        volumes,
-        placeholders={container.SERVICE_DATA_PLACEHOLDER: "/host/data"},
-    ) == [
-        {
-            "type": "bind",
-            "source": "/host/data",
-            "target": "/data",
-            "read_only": False,
-        }
-    ]
-    with pytest.raises(ValueError, match="unresolved volume source"):
-        container.configured_mounts(volumes)
+    assert volume.mount() == {
+        "type": "bind",
+        "source": "/host/data",
+        "target": "/data",
+        "read_only": True,
+    }
+
+
+@pytest.mark.parametrize("source", ["relative", "${SERVICE_DATA}", "${OTHER_DATA}", "/${DATA}"])
+def test_runtime_rejects_unresolved_mount_sources(source: str) -> None:
+    volume = VolumeSpec(type="bind", source=source, target="/data")
+
+    with pytest.raises(ValueError):
+        container.create_container(
+            SimpleNamespace(),  # type: ignore[arg-type]
+            "image",
+            name="codespace-service-support",
+            spec=ContainerSpec(network_mode="host", volumes=[volume]),
+            environment={},
+            labels={},
+            mounts=[],
+        )
 
 
 def test_duplicate_port_target_is_rejected() -> None:

@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+from collections.abc import Generator
+from contextlib import contextmanager
 from threading import Lock
 from typing import Literal
 
+from loguru import logger
 from pydantic import BaseModel, ConfigDict
 
 type OperationStatus = Literal["queued", "running", "failed"]
@@ -80,6 +83,23 @@ class OperationStore:
     def remove(self, host: str, resource_id: str) -> None:
         with self._lock:
             self._operations.pop((host, resource_id), None)
+
+    @contextmanager
+    def run(self, host: str, resource_id: str) -> Generator[None]:
+        """Complete a queued operation or retain its failure without rollback."""
+        try:
+            yield
+        except Exception as exc:
+            logger.exception("failed operation {} on Host {}", resource_id, host)
+            self.update(
+                host,
+                resource_id,
+                status="failed",
+                stage="failed",
+                error=describe_error(exc),
+            )
+        else:
+            self.remove(host, resource_id)
 
     def dismiss_failed(self, host: str, resource_id: str) -> bool:
         with self._lock:

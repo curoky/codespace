@@ -1,18 +1,31 @@
 #!/usr/bin/env bash
 # workspace-init s6 oneshot (runs as x): prepare the Workspace data, ciphertext
 # root and upload/cache as private x-owned directories, then mount /workspace via
-# gocryptfs when its secret is mounted, else use the plaintext bind.
+# gocryptfs when explicitly enabled by the container specification.
 # Gates sshd/webdav. The IDE bin/extensions mounts are prepared by home-init.
 
 set -euo pipefail
 
+case "${CODESPACE_ENCRYPTED:?CODESPACE_ENCRYPTED must be true or false}" in
+  true | false) ;;
+  *)
+    echo "CODESPACE_ENCRYPTED must be true or false" >&2
+    exit 1
+    ;;
+esac
+
 sudo install -d -o 5230 -g 5230 -m 0700 -- /workspace /workspace.enc /upload /cache
+
+if [[ ${CODESPACE_ENCRYPTED} == false ]]; then
+  echo "Workspace encryption disabled, using plaintext /workspace"
+  exit 0
+fi
 
 # gocryptfs 以 x 挂载：其 FUSE 守护进程用 x 身份读写密文根，落盘密文属主即 5230:5230。
 workspace_key_file=${1:-/run/secrets/codespace_workspace_key}
 if [[ ! -r ${workspace_key_file} ]]; then
-  echo "Workspace key secret unavailable; encryption disabled, using plaintext /workspace"
-  exit 0
+  echo "Encrypted Workspace requires a readable key secret" >&2
+  exit 1
 fi
 printf -v workspace_key_command 'cat -- %q' "${workspace_key_file}"
 
