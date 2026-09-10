@@ -1,0 +1,20 @@
+[privacy]
+telemetry_enabled = false
+crash_reporting_enabled = false
+
+[appearance]
+spacing = "normal"
+
+[appearance.text]
+notebook_font_size = 14.0
+font_size = 16.0
+font_name = "FiraCode Nerd Font Mono"
+
+[appearance.themes]
+theme = "dracula"
+
+[appearance.icon]
+app_icon = "warp_one"
+
+[notifications]
+toast_duration_secs = 8

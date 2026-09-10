@@ -117,6 +117,7 @@ install_home_config() {
 
   link_path "$macos_home/.config/mpv/mpv.conf" "$HOME/.config/mpv/mpv.conf"
   link_path "$macos_home/.snipaste/config.ini" "$HOME/.snipaste/config.ini"
+  link_path "$macos_home/.warp/settings.toml" "$HOME/.warp/settings.toml"
 
   local editor editor_source editor_target
   for editor in Code Trae "Trae CN"; do
