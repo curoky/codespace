@@ -100,6 +100,12 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
   && nix-collect-garbage -d \
   && nix-store --optimise
 
+################################# stage/cuda ################################
+# 仅作为 CUDA toolkit 的搬运源：官方 devel 镜像把整套 CUDA 装在 /usr/local/cuda-12.2，
+# 与发行版无关，故只 COPY 该目录而不 FROM 继承。版本锁定 12.2.2 以匹配 H100 上
+# 535 系列驱动（driver 支持上限 CUDA 12.2），避免 runtime 版本超出驱动。
+FROM docker.io/nvidia/cuda:12.2.2-devel-ubuntu22.04 AS stage_cuda
+
 ################################ stage/vscode extensions ################################
 # 生成 editor extension template；一次性的 code-server 不进入 final image。
 FROM docker.io/debian:stable-slim AS stage_vscode_ext
@@ -130,7 +136,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
   UV_PYTHON_INSTALL_DIR=/opt/uv/python \
   UV_PYTHON_BIN_DIR=/opt/uv/bin \
   CONDA_PLUGINS_AUTO_ACCEPT_TOS=yes \
-  PATH=/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin:/opt/rust/cargo/bin:/opt/uv/bin:/opt/conda/condabin:${PATH}
+  CUDA_HOME=/usr/local/cuda \
+  LD_LIBRARY_PATH=/usr/local/cuda/lib64 \
+  PATH=/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin:/opt/rust/cargo/bin:/opt/uv/bin:/opt/conda/condabin:/usr/local/cuda/bin:${PATH}
 
 # Toolchains：均来自独立 stage，与仓库源码解耦。数字 uid 的 --chown 不要求用户先存在。
 # nix 保持默认单用户布局，home 下指向 /nix 的 symlink 一并带入；uv 资产统一在 /opt/uv。
@@ -142,6 +150,10 @@ COPY --link --chown=5230:5230 --from=stage_nix /home/x/.nix-channels /home/x/.ni
 COPY --link --chown=5230:5230 --from=stage_rust /opt/rust /opt/rust
 COPY --link --chown=5230:5230 --from=stage_python /opt/uv /opt/uv
 COPY --link --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
+# CUDA toolkit：只搬实体目录 /usr/local/cuda-12.2；官方镜像的 cuda/cuda-12 软链走
+# alternatives，故在 main stage 重建稳定软链，供 CUDA_HOME 与 PATH 使用。
+COPY --link --chown=5230:5230 --from=stage_cuda /usr/local/cuda-12.2 /usr/local/cuda-12.2
+RUN ln -s cuda-12.2 /usr/local/cuda && ln -s cuda-12.2 /usr/local/cuda-12
 # Editor Remote extension template，运行期由 home-init 播种。
 COPY --link --chown=5230:5230 --from=stage_vscode_ext /opt/editor-extensions /opt/codespace/share/editor-extensions
 
