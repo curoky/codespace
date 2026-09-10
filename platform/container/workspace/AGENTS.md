@@ -17,6 +17,8 @@
 - deploy private key 只在 Workspace 内生成；Agent 只返回 public key。
 - provider host key verification 不得关闭；sshd 默认只绑定 loopback。
 - Agent 只监听 control UDS；外层目录保持私有并只经 SSH forwarding 访问。
+- Atuin server 由 Workspace 持有，默认只监听容器 loopback；外部数据库 credential
+  只通过 root-only secret 文件注入，缺失时不得启动 server 或客户端同步。
 - WebDAV 默认监听 Workspace loopback，通过 Workspace SSH forwarding 访问；
   可显式配置监听地址，不跟随 SSH 的 bridge listen address。开放到容器接口时须自行
   限制网络访问，因为 WebDAV 没有认证。

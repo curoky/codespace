@@ -44,6 +44,11 @@ Workspace image 的 `s6-linux-init` 仅在自身为 PID 1 时有效；WSL 的 PI
 Dockerfile 在叠加 `wsl` bundle 后重编译 `/etc/s6/db`。否则 inherited database
 无法解析新 bundle。
 
+Atuin 登录继承 Workspace 的本地 server readiness 依赖，因此 `wsl` bundle 也会启动
+本地 Atuin server。WSL 不由 Podman 注入 secret，启用前须在运行环境中提供
+`/run/secrets/atuin_db_uri`（root 所有、`0400`），不得把 credential 打入导出 rootfs。
+缺失时 Atuin 不可用，SSH 的独立启动链不依赖它。
+
 ## SSH And Keep-Alive
 
 `boot.sh` 只负责让 sshd 监听 `0.0.0.0`。LAN 可达性由 Windows 选择：

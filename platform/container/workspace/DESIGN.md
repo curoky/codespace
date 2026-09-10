@@ -33,7 +33,10 @@ flowchart TD
     HomeInit --> SSHD
     WorkspaceInit --> WebDAV["rclone/copyparty WebDAV"]
     HomeInit --> Agent["workspace-agent"]
-    Default --> Other["Atuin / Ollama / supercronic"]
+    Default --> AtuinServer["Atuin server"]
+    AtuinServer -->|HTTP ready| AtuinLogin["Atuin login + sync"]
+    AtuinLogin --> AtuinDaemon["Atuin daemon"]
+    Default --> Other["Ollama / supercronic"]
 ```
 
 `workspace-init` 是 Workspace 数据就绪门控。它先以 `5230:5230`、`0700` 幂等准备
@@ -50,6 +53,22 @@ Trae 配置、remote settings 与 rules 直接来自 image home，启动时不�
 配置方式；未设置时使用 `127.0.0.1`，不受 SSH listen address 影响。设置 `0.0.0.0`
 可供 bridge 端口发布访问，但也会开放给同一网络的其他容器。端口保持各自固定值，
 不会因修改监听地址而自动发布。
+
+## Atuin
+
+每个 Workspace 内运行 Atuin server，默认监听 `127.0.0.1:8002`；客户端直接使用
+home 配置中的相同地址，后台同步与 SSH 手动调用不需要额外注入同步地址。
+server 仍使用外部 PostgreSQL，不在 Workspace 内运行数据库。Project container 必须
+挂载 root-only `atuin_db_uri` secret；读取失败或为空时 server 不启动。credential 只进入
+server 进程环境，不写入 home、镜像或 s6 的公共环境目录。
+
+s6 通过 HTTP 检查确认 server 完成启动后才执行登录和首次同步，随后启动 daemon；
+就绪等待有超时，数据库失败不阻塞 SSH 与 Agent 的独立依赖链。Host-network Workspace
+共享端口空间，同一 Host 上多个 server 必须配置不同监听端口及匹配的客户端地址；
+bridge Workspace 则可独立使用默认端口。
+
+多个 Workspace server 共用原有数据库，每个进程会占用数据库连接；容器越多，需要的连接
+额度越高。数据库的 IPv6 出站要求不因 server 迁入 Workspace 而改变。
 
 ## Agent Protocol
 
