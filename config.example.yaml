@@ -6,11 +6,13 @@ hosts:
     forward_environment: [HTTP_PROXY, HTTPS_PROXY, NO_PROXY]
     platform: linux/amd64
     container:
-      network_mode: host
+      network_mode: bridge
 
 project_defaults:
   image: ghcr.io/curoky/codespace:workspace-debian13
   container:
+    environment:
+      ATUIN_SYNC_ADDRESS: http://host.containers.internal:8002
     cap_add: [NET_RAW, SYS_ADMIN]
     security_opt: [disable, seccomp=unconfined]
     pids_limit: -1
@@ -40,7 +42,11 @@ services:
     hosts:
       server: {}
     container:
+      ports:
+        # Use the Host's actual Podman bridge gateway, not its loopback address.
+        - { target: 8002, published: 8002, host_ip: 10.88.0.1 }
       environment:
+        ATUIN_HOST: 0.0.0.0
         ATUIN_PORT: "8002"
       volumes:
         - /run/podman/podman.sock:/run/podman/podman.sock
@@ -53,11 +59,13 @@ services:
     hosts:
       server: {}
     container:
+      ports:
+        - { target: 8003, published: 8003, host_ip: 10.88.0.1 }
       ipc: host
       devices: [nvidia.com/gpu=all]
       environment:
         HF_HOME: /root/.cache/huggingface
-        SERVE_HOST: 127.0.0.1
+        SERVE_HOST: 0.0.0.0
         SERVE_PORT: "8003"
       volumes:
         - ${SERVICE_DATA}:/root/.cache/huggingface
@@ -67,11 +75,13 @@ services:
     hosts:
       server: {}
     container:
+      ports:
+        - { target: 8003, published: 8003, host_ip: 10.88.0.1 }
       ipc: host
       devices: [nvidia.com/gpu=all]
       environment:
         HF_HOME: /root/.cache/huggingface
-        SERVE_HOST: 127.0.0.1
+        SERVE_HOST: 0.0.0.0
         SERVE_PORT: "8003"
       volumes:
         - ${SERVICE_DATA}:/root/.cache/huggingface

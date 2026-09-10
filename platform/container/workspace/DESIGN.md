@@ -46,6 +46,11 @@ Workspace data、ciphertext root、upload 和 cache。encryption 由显式启动
 template 幂等播种 editor extensions。`sshd` 与 Workspace Agent 均等待它完成。其余
 Trae 配置、remote settings 与 rules 直接来自 image home，启动时不复制。
 
+两个 WebDAV 进程通过容器环境中的 `SERVE_HOST` 配置监听地址，与推理 Service 使用相同的
+配置方式；未设置时使用 `127.0.0.1`，不受 SSH listen address 影响。设置 `0.0.0.0`
+可供 bridge 端口发布访问，但也会开放给同一网络的其他容器。端口保持各自固定值，
+不会因修改监听地址而自动发布。
+
 ## Agent Protocol
 
 Workspace Agent 绑定 control UDS，对控制面暴露 readiness、deploy public key 与只读

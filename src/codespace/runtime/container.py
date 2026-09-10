@@ -6,6 +6,7 @@ import posixpath
 import re
 from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass
+from ipaddress import ip_address
 from typing import Annotated, Any, Literal, Self, cast
 
 from podman import PodmanClient
@@ -62,6 +63,10 @@ def _secret_name(value: str) -> str:
 
 def _secret_mode(value: int) -> int:
     return value & ~0o222
+
+
+def _host_ip(value: str) -> str:
+    return str(ip_address(value))
 
 
 type NonBlankString = Annotated[str, AfterValidator(_not_blank)]
@@ -157,7 +162,7 @@ class PortSpec(BaseModel):
 
     target: StrictInt = Field(ge=_PORT_MIN, le=_PORT_MAX)
     published: StrictInt = Field(ge=_PORT_MIN, le=_PORT_MAX)
-    host_ip: Literal["127.0.0.1"]
+    host_ip: Annotated[str, AfterValidator(_host_ip)]
     protocol: Literal["tcp", "udp"] = "tcp"
 
 

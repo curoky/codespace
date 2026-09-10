@@ -14,6 +14,7 @@ service="vllm"
 name="codespace-service-${service}"
 image="ghcr.io/curoky/codespace:service-${service}"
 port="${SERVE_PORT:-8003}"
+host_ip="${PUBLISH_HOST_IP:-10.88.0.1}"
 hf_home="${HF_HOME:-${HOME}/codespace/services/${service}}"
 
 mkdir -p -- "${hf_home}"
@@ -32,12 +33,14 @@ podman_args=(
   run
   --detach
   --name "${name}"
-  --network host
+  --network bridge
+  --publish "${host_ip}:${port}:${port}"
   --restart unless-stopped
   --device nvidia.com/gpu=all
   --ipc host
   --volume "${hf_home}:/root/.cache/huggingface"
   --env "HF_HOME=/root/.cache/huggingface"
+  --env "SERVE_HOST=0.0.0.0"
   --env "SERVE_PORT=${port}"
   --env "SERVE_MODEL=${SERVE_MODEL:-Qwen/Qwen3.8-Flash-Next-FP8}"
   --env "SERVE_EXTRA_ARGS=${SERVE_EXTRA_ARGS:-}"
@@ -55,5 +58,5 @@ fi
 
 podman "${podman_args[@]}" "${image}"
 
-echo "Service '${service}' is starting on http://127.0.0.1:${port}."
+echo "Service '${service}' is starting on http://${host_ip}:${port}."
 echo "Watch startup with: podman exec ${name} tail -f /var/log/s6.serve.log"

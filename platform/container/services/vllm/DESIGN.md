@@ -34,4 +34,5 @@ runtime 参数针对单台 8x H100 固定 tensor/expert parallel、Triton MoE、
 利用率，不改变 image。
 
 模型 cache 由 managed Service data bind mount 提供。控制面与 smoke 入口都必须请求
-全部 GPU、启用 Host IPC，并把对外监听限制在 Host loopback。
+全部 GPU、启用 Host IPC。bridge 内监听容器接口，供 Workspace 访问的端口显式发布到
+Host bridge 网关，其余访问使用 loopback 发布。

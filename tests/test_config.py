@@ -33,6 +33,18 @@ def test_example_config_loads() -> None:
     assert config.workspace_spec("codespace", "server", "default").identity == (
         "codespace-workspace-server-codespace-default"
     )
+    workspace = config.workspace_spec("codespace", "server", "default")
+    assert workspace.container.is_bridge
+    assert workspace.container.environment == {
+        "ATUIN_SYNC_ADDRESS": "http://host.containers.internal:8002"
+    }
+    for service in config.services:
+        spec = config.service_spec(service, "server")
+        assert spec.container.is_bridge
+        assert spec.container.ports
+        assert all(port.host_ip == "10.88.0.1" for port in spec.container.ports)
+        bind_env = "ATUIN_HOST" if service == "support" else "SERVE_HOST"
+        assert (spec.container.environment or {})[bind_env] == "0.0.0.0"  # noqa: S104
 
 
 def test_load_config_rejects_non_mapping(tmp_path: Path) -> None:
