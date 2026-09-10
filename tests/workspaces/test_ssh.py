@@ -89,9 +89,13 @@ def test_probe_keeps_host_key_verification(
         lambda command, **_kwargs: commands.append(command),
     )
 
-    ssh.probe(_workspace(), SSHRoute(host="home"))
+    ssh.probe(_workspace(), SSHRoute(host="home", control_path=Path("/tmp/host.sock")))
 
     command = commands[0]
     assert "StrictHostKeyChecking=yes" in command
-    assert "ProxyJump=home" in command
+    assert (
+        "ProxyCommand=ssh -o BatchMode=yes -o ControlPath=/tmp/host.sock -W %h:%p home" in command
+    )
+    assert f"Port={_workspace().ssh_port}" in command
+    assert f"UserKnownHostsFile={ssh.KNOWN_HOSTS_PATH}" in command
     assert command[-2:] == ["codespace-workspace-home-codespace-debug", "true"]

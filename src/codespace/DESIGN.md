@@ -62,7 +62,8 @@ flowchart TB
     Transport --> Podman["rootful Podman"]
 ```
 
-`PodmanTransport` 是 Podman clients、per-Host OpenSSH ControlMaster 和 UDS forwards 的唯一 owner。
+`PodmanTransport` 是 Podman clients、per-Host OpenSSH ControlMaster、UDS forwards 和
+按需 TCP tunnels 的唯一 owner。
 ControlMaster 的初始 SSH handshake 跨 Host 串行执行，避免共享 ProxyJump 的并发 GSSAPI
 认证竞争；连接建立后的 Host 操作保持并发。Manager 只接收 Config 解析出的 immutable spec，
 不解析 YAML。FastAPI route 只做输入输出和错误映射。
@@ -107,14 +108,22 @@ bridge 网关地址，不要绑定所有外网接口。Host 本身与 SSH tunnel
 
 Service 监听容器接口；Workspace SSH 保持 Host loopback 发布。WebDAV 默认监听
 Workspace loopback 并通过 Workspace SSH forwarding 访问，可显式配置监听地址；
-端口发布仍由 container 配置独立声明。s6 启动的 Atuin 进程通过
-container environment 获取同步地址；Host/placement environment 整体覆盖时须保留该值。
-SSH shell 不自动加载该变量，手动调用与 macOS 均使用基础 Atuin 配置中的 loopback 地址，
-除非显式设置环境变量。
+端口发布仍由 container 配置独立声明。Web UI 按需建立通往 Workspace 的 SSH 连接，
+通过 Host 已认证的 ControlMaster 转发，使用 inventory 中的 SSH metadata 和受管身份验证。
+可打开的端口由 Project 配置继承默认列表或整体覆盖，空列表关闭入口；它属于控制面的
+访问配置，不是容器 metadata，不写入 labels，重启控制面即可生效。未配置的端口拒绝转发。
+本地 TCP listener 只绑定 loopback，SSH 就绪后通过 HTTP redirect 打开目标端口，
+不做业务协议探测。每个端口独立复用连接，连接退出或容器 identity 变化后重新创建；
+删除 Workspace 和关闭控制面时统一释放。隧道只存在于控制面进程生命周期内，
+浏览器须与控制面运行在同一台机器。
+
+Atuin server 与客户端同处 Workspace，使用容器 loopback 通信，不发布 Host 端口。
+数据库 secret 由 Project container 挂载，support Service 只负责镜像维护，不接收它。
+客户端与 macOS 共用的基础配置使用 loopback 地址，不依赖 SSH shell 注入环境变量。
 
 默认 bridge 的 DNS 与 IPv6 能力由 Host 管理。只有 AAAA 记录的数据库要求现有网络具备
 IPv6 出站，或改用数据库提供的 IPv4 endpoint；端口发布不能解决该出站限制。
-配置变化需要重新创建容器，不自动迁移运行中的容器。
+容器配置变化需要重新创建容器，不自动迁移运行中的容器。
 
 ## Host Data
 

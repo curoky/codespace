@@ -13,6 +13,7 @@ import contextlib
 import hashlib
 import os
 import shutil
+import socket
 import stat
 import subprocess
 import tempfile
@@ -143,6 +144,15 @@ class _Master:
         return self.control_path.exists() and self.process.poll() is None
 
 
+@dataclass(slots=True)
+class _TCPForward:
+    control_path: Path
+    process: subprocess.Popen[bytes]
+    local_port: int
+    options: tuple[str, ...]
+    connection_id: str
+
+
 ProcessFactory = Callable[..., subprocess.Popen[bytes]]
 ClientFactory = Callable[..., PodmanClient]
 RunFactory = Callable[..., subprocess.CompletedProcess[bytes]]
@@ -169,6 +179,7 @@ class PodmanTransport:
         self._client_factory = client_factory
         self._run_factory = run_factory
         self._masters: dict[str, _Master] = {}
+        self._tcp_forwards: dict[tuple[str, str, int], _TCPForward] = {}
         self._locks = {host: Lock() for host in hosts}
         self._master_start_lock = Lock()
         self._closed = False
@@ -201,11 +212,95 @@ class PodmanTransport:
             master.forwards[remote_socket] = socket_path
             return socket_path
 
+    def forward_tcp(
+        self,
+        host: str,
+        destination: str,
+        *,
+        port: int,
+        options: list[str],
+        connection_id: str,
+    ) -> int:
+        """Expose a remote loopback port over a managed SSH connection."""
+        with self._locks[self._known(host)]:
+            self._known(host)
+            key = (host, destination, port)
+            existing = self._tcp_forwards.get(key)
+            if existing is not None:
+                if (
+                    existing.process.poll() is None
+                    and existing.control_path.exists()
+                    and existing.options == tuple(options)
+                    and existing.connection_id == connection_id
+                ):
+                    return existing.local_port
+                self._stop(existing.process)
+                del self._tcp_forwards[key]
+
+            digest = hashlib.sha256(f"{host}\0{destination}\0{port}".encode()).hexdigest()[:16]
+            control_path = self._runtime_dir / f"tcp-{digest}.sock"
+            control_path.unlink(missing_ok=True)
+            # OpenSSH cannot allocate a local TCP port with -L port 0.
+            # ExitOnForwardFailure makes a competing bind fail instead of returning a wrong URL.
+            with socket.socket() as listener:
+                listener.bind(("127.0.0.1", 0))
+                local_port = int(listener.getsockname()[1])
+            command = [
+                "ssh",
+                "-F",
+                "/dev/null",
+                "-N",
+                *ssh_base_options(control_path),
+                "-o",
+                "ControlMaster=yes",
+                "-o",
+                "ExitOnForwardFailure=yes",
+                "-o",
+                "GatewayPorts=no",
+                "-o",
+                f"ServerAliveInterval={_SERVER_ALIVE_INTERVAL}",
+                "-o",
+                f"ServerAliveCountMax={_SERVER_ALIVE_COUNT_MAX}",
+                *options,
+                "-L",
+                f"127.0.0.1:{local_port}:127.0.0.1:{port}",
+                destination,
+            ]
+            with self._master_start_lock:
+                process = self._process_factory(
+                    command,
+                    stdin=subprocess.DEVNULL,
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.PIPE,
+                )
+                try:
+                    self._await_control_socket(process, control_path)
+                except BaseException:
+                    self._stop(process)
+                    control_path.unlink(missing_ok=True)
+                    raise
+            self._tcp_forwards[key] = _TCPForward(
+                control_path, process, local_port, tuple(options), connection_id
+            )
+            return local_port
+
+    def close_tcp(self, host: str, destination: str) -> None:
+        """Release all local listeners and SSH connections for a destination."""
+        with self._locks[self._known(host)]:
+            for key in [key for key in self._tcp_forwards if key[:2] == (host, destination)]:
+                forward = self._tcp_forwards.pop(key)
+                self._stop(forward.process)
+                forward.control_path.unlink(missing_ok=True)
+
     def close(self) -> None:
         """Close Podman clients, SSH masters, and the runtime directory."""
         if self._closed:
             return
         self._closed = True
+        for host, lock in self._locks.items():
+            with lock:
+                for key in [key for key in self._tcp_forwards if key[0] == host]:
+                    self._stop(self._tcp_forwards.pop(key).process)
         masters = list(self._masters.values())
         self._masters.clear()
         for master in masters:

@@ -52,6 +52,7 @@ def build(
                 source=project.source,
                 description=project.description,
                 open_path=project.resolved_open_path(),
+                tunnel_ports=config.project_tunnel_ports(project_id),
             )
             for project_id, project in config.projects.items()
         ],

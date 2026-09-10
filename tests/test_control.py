@@ -57,6 +57,8 @@ def test_dashboard_keeps_actual_metadata_when_config_changes(
     )
     data = config.model_dump()
     data["projects"]["codespace"]["open_path"] = "/workspace/changed"
+    data["project_defaults"]["tunnel_ports"] = [8005]
+    data["projects"]["scratch"]["tunnel_ports"] = []
     data["services"]["support"]["image"] = "support:desired"
     monkeypatch.setattr(ssh, "initialize", lambda _hosts: None)
     monkeypatch.setattr(ssh, "write_host", lambda *_args: None)
@@ -67,6 +69,8 @@ def test_dashboard_keeps_actual_metadata_when_config_changes(
     dashboard = control.dashboard()
 
     assert "/workspace/codespace?" in dashboard.workspaces[0].trae_url
+    assert dashboard.projects[0].tunnel_ports == [8005]
+    assert dashboard.projects[2].tunnel_ports == []
     assert dashboard.services[0].hosts[0].desired_image == "support:desired"
     assert dashboard.services[0].hosts[0].container == service
     assert dashboard.services[1].hosts[0].container is None

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import io
 import os
 import stat
 import subprocess
@@ -11,7 +12,10 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from threading import Event
 
-from codespace.runtime.transport import HostEndpoint, PodmanTransport
+import pytest
+
+from codespace.runtime import transport as transport_module
+from codespace.runtime.transport import HostEndpoint, PodmanTransport, TransportError
 
 
 class FakeProcess:
@@ -278,3 +282,119 @@ def test_transport_reuses_workspace_agent_forward(tmp_path: Path) -> None:
 
     transport.close()
     assert processes[0].terminated is True
+
+
+def test_tcp_forward_reuses_serializes_and_rebuilds_connections(tmp_path: Path) -> None:
+    commands: list[list[str]] = []
+    processes: list[FakeProcess] = []
+    transport = PodmanTransport(
+        {"home": HostEndpoint()},
+        runtime_parent=tmp_path,
+        process_factory=_master_factory(processes, commands),
+    )
+
+    def connect(connection_id: str = "container-1") -> int:
+        return transport.forward_tcp(
+            "home",
+            "workspace",
+            port=8005,
+            options=["-o", "Port=22000"],
+            connection_id=connection_id,
+        )
+
+    try:
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            ports = list(executor.map(lambda _: connect(), range(4)))
+        assert len(set(ports)) == 1
+        assert len(processes) == 1
+        command = commands[0]
+        assert command[-3:] == ["-L", f"127.0.0.1:{ports[0]}:127.0.0.1:8005", "workspace"]
+        assert command[:4] == ["ssh", "-F", "/dev/null", "-N"]
+        assert "ExitOnForwardFailure=yes" in command
+        assert "GatewayPorts=no" in command
+        assert "BatchMode=yes" in command
+        assert "Port=22000" in command
+
+        connect("container-2")
+        assert processes[0].terminated
+        assert len(processes) == 2
+
+        processes[1].return_code = 255
+        connect("container-2")
+        assert len(processes) == 3
+
+        transport.close_tcp("home", "workspace")
+        assert processes[2].terminated
+        transport.close_tcp("home", "workspace")
+        connect("container-2")
+    finally:
+        transport.close()
+    assert processes[-1].terminated
+    assert not transport.runtime_dir.exists()
+    with pytest.raises(TransportError, match="closed"):
+        connect()
+
+
+def test_tcp_forwards_isolate_ports_workspaces_and_hosts(tmp_path: Path) -> None:
+    processes: list[FakeProcess] = []
+    transport = PodmanTransport(
+        {"home": HostEndpoint(), "other": HostEndpoint()},
+        runtime_parent=tmp_path,
+        process_factory=_master_factory(processes),
+    )
+    try:
+        for host, destination, port in [
+            ("home", "first", 8005),
+            ("home", "first", 8080),
+            ("home", "second", 8005),
+            ("other", "first", 8005),
+        ]:
+            transport.forward_tcp(host, destination, port=port, options=[], connection_id="c")
+        assert len(processes) == 4
+        assert not any(process.terminated for process in processes)
+        transport.close_tcp("home", "first")
+        assert all(process.terminated for process in processes[:2])
+        assert not any(process.terminated for process in processes[2:])
+    finally:
+        transport.close()
+    assert all(process.terminated for process in processes)
+
+
+def test_tcp_forward_start_failure_is_not_cached(tmp_path: Path) -> None:
+    processes: list[FakeProcess] = []
+
+    def fail(command: list[str], **kwargs: object) -> FakeProcess:
+        process = _master_factory(processes)(command, **kwargs)
+        process.return_code = 255
+        process.stderr = io.BytesIO(b"bind: Address already in use")  # type: ignore[assignment]
+        return process
+
+    transport = PodmanTransport(
+        {"home": HostEndpoint()}, runtime_parent=tmp_path, process_factory=fail
+    )
+    try:
+        for _ in range(2):
+            with pytest.raises(TransportError, match="Address already in use"):
+                transport.forward_tcp("home", "workspace", port=8005, options=[], connection_id="c")
+        assert len(processes) == 2
+        assert not list(transport.runtime_dir.glob("tcp-*.sock"))
+    finally:
+        transport.close()
+
+
+def test_tcp_forward_timeout_terminates_process(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    process = FakeProcess()
+    monkeypatch.setattr(transport_module, "_START_TIMEOUT", 0)
+    transport = PodmanTransport(
+        {"home": HostEndpoint()},
+        runtime_parent=tmp_path,
+        process_factory=lambda *_args, **_kwargs: process,
+    )
+    try:
+        with pytest.raises(TransportError, match="did not create control socket"):
+            transport.forward_tcp("home", "workspace", port=8005, options=[], connection_id="c")
+        assert process.terminated
+    finally:
+        transport.close()

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import fcntl
+import shlex
 import subprocess
 import threading
 import time
@@ -55,11 +56,10 @@ def initialize(hosts: list[str]) -> None:
                 path.unlink()
 
 
-def probe(workspace: Workspace, route: SSHRoute) -> None:
-    """Verify actual SSH login through the Workspace alias."""
-    command = [
-        "ssh",
-        *ssh_base_options(None),
+def connection_options(workspace: Workspace, route: SSHRoute) -> list[str]:
+    """Use deployed SSH metadata and the Host's existing authenticated connection."""
+    proxy = shlex.join(["ssh", *ssh_base_options(route.control_path), "-W", "%h:%p", route.host])
+    return [
         "-o",
         "ConnectTimeout=10",
         "-o",
@@ -69,7 +69,7 @@ def probe(workspace: Workspace, route: SSHRoute) -> None:
         "-o",
         f"User={CONTAINER_USER}",
         "-o",
-        f"ProxyJump={route.host}",
+        f"ProxyCommand={proxy}",
         "-o",
         f"IdentityFile={LOGIN_KEY_PATH}",
         "-o",
@@ -84,6 +84,15 @@ def probe(workspace: Workspace, route: SSHRoute) -> None:
         f"UserKnownHostsFile={KNOWN_HOSTS_PATH}",
         "-o",
         "UpdateHostKeys=no",
+    ]
+
+
+def probe(workspace: Workspace, route: SSHRoute) -> None:
+    """Verify actual SSH login through the Workspace alias."""
+    command = [
+        "ssh",
+        *ssh_base_options(None),
+        *connection_options(workspace, route),
         workspace.id,
         "true",
     ]

@@ -231,8 +231,26 @@ class WorkspaceManager:
                 platform=platform,
             )
         container.remove_container(running)
+        self.transport.close_tcp(host_name, actual.id)
         ssh.write_host(host_name, inventory.list_workspaces(client, host_name), route)
         return RepoGitState()
+
+    def open_tunnel(self, project: str, host_name: str, workspace: str, port: int) -> int:
+        """Forward an explicitly configured Workspace port to local loopback."""
+        self._project(project, host_name)
+        if port not in self.config.project_tunnel_ports(project):
+            raise KeyError(f"tunnel port {port} is not configured for project {project!r}")
+        actual = inventory.read_workspace(self._container(project, host_name, workspace), host_name)
+        if actual.status != "running":
+            raise RuntimeError(f"workspace {actual.id!r} is not running ({actual.status})")
+        route = self.transport.ssh_route(host_name)
+        return self.transport.forward_tcp(
+            host_name,
+            actual.id,
+            port=port,
+            options=ssh.connection_options(actual, route),
+            connection_id=actual.container_id,
+        )
 
     def logs(
         self,

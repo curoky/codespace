@@ -209,7 +209,7 @@ function renderProjects(dashboard) {
         }),
       );
     });
-    workspaces.forEach((workspace) => list.append(renderWorkspace(workspace)));
+    workspaces.forEach((workspace) => list.append(renderWorkspace(workspace, project.tunnel_ports)));
     if (!operations.length && !workspaces.length) {
       const empty = element("div", "empty");
       empty.append(element("strong", "", "No Workspaces"));
@@ -319,7 +319,7 @@ function renderOperation(operation, title, dismissTarget) {
   return row;
 }
 
-function renderWorkspace(workspace) {
+function renderWorkspace(workspace, tunnelPorts) {
   const row = element("div", "workspace");
   const info = element("div", "workspace-info");
   info.append(element("span", `workspace-status-dot ${classifyStatus(workspace.status)}`));
@@ -354,6 +354,19 @@ function renderWorkspace(workspace) {
   sshButton.dataset.command = workspace.ssh_command;
   sshButton.title = `Copy ${workspace.ssh_command}`;
   actions.append(sshButton);
+  for (const port of tunnelPorts) {
+    const form = element("form", "tunnel-action");
+    form.method = "post";
+    form.target = "_blank";
+    form.rel = "noopener noreferrer";
+    form.action = `/api/projects/${encodeURIComponent(workspace.project)}/hosts/${encodeURIComponent(workspace.host)}/workspaces/${encodeURIComponent(workspace.workspace)}/tunnels/${port}`;
+    const button = element("button", "secondary", String(port));
+    button.type = "submit";
+    button.disabled = workspace.status !== "running";
+    button.title = `Open port ${port} via SSH tunnel`;
+    form.append(button);
+    actions.append(form);
+  }
   actions.append(actionButton("Logs", "logs", target));
   actions.append(actionButton("Delete", "delete", target));
   const purgeButton = actionButton("Purge", "purge", target);
