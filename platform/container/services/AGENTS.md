@@ -5,7 +5,8 @@
 
 - Service 独立于 Project/Workspace，不包含 Workspace mount、SSH、deploy key、
   provider token 或控制面。
-- 网络服务默认只绑定 Host loopback。
+- bridge 内的服务监听容器接口，Host 发布端口默认使用 loopback；
+  容器间访问显式绑定 Host bridge 网关，不开放到所有外网接口。
 - Service 仅从 Workspace 复用 s6 bootstrap，自身拥有完整的 service definition。
 - `support` 是唯一允许访问 Host rootful Podman socket 的 Service，能力必须限制在
   image maintenance。

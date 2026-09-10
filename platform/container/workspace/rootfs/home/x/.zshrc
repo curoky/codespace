@@ -21,7 +21,7 @@ if [[ -r /run/s6/container_environment/HTTP_PROXY ]]; then
   export HTTPS_PROXY="$proxy_url"
   export all_proxy="$proxy_url"
   export ALL_PROXY="$proxy_url"
-  export no_proxy="localhost,127.0.0.1,192.168.0.0/16,10.0.0.0/8,releases.nixos.org"
+  export no_proxy="localhost,127.0.0.1,host.containers.internal,192.168.0.0/16,10.0.0.0/8,releases.nixos.org"
   export NO_PROXY="$no_proxy"
   unset proxy_url
 fi

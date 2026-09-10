@@ -5,7 +5,7 @@ s6-envdir -Lf -- /run/s6/container_environment
 redirfd -w 1 /var/log/s6.copyparty-webdav.log
 fdmove -c 2 1
 
-importas -D 127.0.0.1 WEBDAV_BIND SSHD_BIND
+importas -D 127.0.0.1 SERVE_HOST SERVE_HOST
 
 foreground { install -d -o 5230 -g 5230 -m 0700 /run/copyparty-webdav }
 
@@ -14,7 +14,7 @@ s6-env HOME=/home/x
 s6-env XDG_CONFIG_HOME=/run/copyparty-webdav
 s6-env PYTHONUNBUFFERED=1
 exec /opt/uv/bin/copyparty
-  -i ${WEBDAV_BIND}
+  -i ${SERVE_HOST}
   -p 8005
   --dav-port 8005
   -nc 64

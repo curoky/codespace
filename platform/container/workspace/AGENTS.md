@@ -17,6 +17,9 @@
 - deploy private key 只在 Workspace 内生成；Agent 只返回 public key。
 - provider host key verification 不得关闭；sshd 默认只绑定 loopback。
 - Agent 只监听 control UDS；外层目录保持私有并只经 SSH forwarding 访问。
+- WebDAV 默认监听 Workspace loopback，通过 Workspace SSH forwarding 访问；
+  可显式配置监听地址，不跟随 SSH 的 bridge listen address。开放到容器接口时须自行
+  限制网络访问，因为 WebDAV 没有认证。
 - encryption 只作用于 Workspace 数据，upload 与 cache 保持明文。
 - encryption 必须显式选择；启用时 key secret 不可读即启动失败，不降级为明文。
 - 控制面从同一 resolved spec 生成 labels 与启动输入；镜像不得通过 secret 是否存在

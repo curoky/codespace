@@ -3,11 +3,12 @@
 # Launch the Qwen3.8-Flash-Next-FP8 OpenAI-compatible server with fixed tuning
 # for one 8x H100 Host.
 #
-# Runtime inputs: SERVE_MODEL and SERVE_PORT.
+# Runtime inputs: SERVE_MODEL, SERVE_HOST, and SERVE_PORT.
 
 set -euo pipefail
 
 model="${SERVE_MODEL:-Qwen/Qwen3.8-Flash-Next-FP8}"
+host="${SERVE_HOST:-127.0.0.1}"
 port="${SERVE_PORT:-8003}"
 
 # The inference stack lives in a dedicated venv; the s6-generated init PATH does
@@ -23,7 +24,7 @@ export PATH="${CUDA_HOME}/bin:${PATH}"
 
 exec "${venv_bin}/python" -m sglang.launch_server \
   --model-path "${model}" \
-  --host 127.0.0.1 \
+  --host "${host}" \
   --port "${port}" \
   `# 8x H100 的 FP8 必须用 TEP8（TP8 + Expert Parallel）承载 512 专家 MoE 布局；全 NVLink mesh 下 TP8 all-reduce 廉价，无需 --enable-p2p-check` \
   --tp-size 8 \

@@ -13,7 +13,7 @@ importas -D 22 SSHD_PORT SSHD_PORT
 
 # SSHD_BIND selects the listen address. Host-network containers keep the safe
 # 127.0.0.1 default (Codespace reaches sshd through ProxyJump on the shared
-# netns). Bridge-network containers (podman-machine hosts) inject 0.0.0.0 so the
+# netns). Bridge-network containers inject 0.0.0.0 so the
 # published SSH port can forward into the container's own netns.
 importas -D 127.0.0.1 SSHD_BIND SSHD_BIND
 

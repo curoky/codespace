@@ -97,6 +97,25 @@ syntax、bind long syntax 和这个受控 placeholder。Config 启动时验证 H
 port 使用、保留 env 和保留 mount；除此之外不实现 Compose variable interpolation，并拒绝
 container 字符串值中的 `$`。
 
+## Container Networking
+
+bridge 模式直接使用 Podman 默认网络，控制面不创建或修改网络，不依赖容器 DNS。
+Workspace 通过 `host.containers.internal` 访问 Service 的 Host 发布端口。Linux 上
+Host loopback 发布端口不能被 bridge 容器访问；需要在配置中显式绑定 Host 的实际
+bridge 网关地址，不要绑定所有外网接口。Host 本身与 SSH tunnel 也使用该发布地址。
+发布前该网关接口必须已存在；空 Host 上仅有 Podman network 配置不代表接口已创建。
+
+Service 监听容器接口；Workspace SSH 保持 Host loopback 发布。WebDAV 默认监听
+Workspace loopback 并通过 Workspace SSH forwarding 访问，可显式配置监听地址；
+端口发布仍由 container 配置独立声明。s6 启动的 Atuin 进程通过
+container environment 获取同步地址；Host/placement environment 整体覆盖时须保留该值。
+SSH shell 不自动加载该变量，手动调用与 macOS 均使用基础 Atuin 配置中的 loopback 地址，
+除非显式设置环境变量。
+
+默认 bridge 的 DNS 与 IPv6 能力由 Host 管理。只有 AAAA 记录的数据库要求现有网络具备
+IPv6 出站，或改用数据库提供的 IPv4 endpoint；端口发布不能解决该出站限制。
+配置变化需要重新创建容器，不自动迁移运行中的容器。
+
 ## Host Data
 
 ```text

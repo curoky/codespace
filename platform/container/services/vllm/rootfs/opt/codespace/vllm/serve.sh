@@ -3,7 +3,7 @@
 # Launch the Qwen3.8-Flash-Next-FP8 OpenAI-compatible server with fixed tuning
 # for one 8x H100 Host.
 #
-# Runtime inputs: SERVE_MODEL, SERVE_PORT, and SERVE_EXTRA_ARGS.
+# Runtime inputs: SERVE_MODEL, SERVE_HOST, SERVE_PORT, and SERVE_EXTRA_ARGS.
 #
 # 显存紧张时经 SERVE_EXTRA_ARGS 降 --max-model-len / --gpu-memory-utilization，或设
 # VLLM_PLE_CPU_OFFLOAD=1 把 51B N-gram 表卸到主机内存（需大内存 host）。
@@ -11,6 +11,7 @@
 set -euo pipefail
 
 model="${SERVE_MODEL:-Qwen/Qwen3.8-Flash-Next-FP8}"
+host="${SERVE_HOST:-127.0.0.1}"
 port="${SERVE_PORT:-8003}"
 
 read -r -a extra_args <<<"${SERVE_EXTRA_ARGS:-}"
@@ -20,7 +21,7 @@ read -r -a extra_args <<<"${SERVE_EXTRA_ARGS:-}"
 venv_bin="${SERVE_VENV:-/opt/codespace/vllm/venv}/bin"
 
 exec "${venv_bin}/vllm" serve "${model}" \
-  --host 127.0.0.1 \
+  --host "${host}" \
   --port "${port}" \
   `# 8x H100 的 FP8 用 TP8 张量并行匹配 8 卡；全 NVLink mesh 下 all-reduce 廉价` \
   --tensor-parallel-size 8 \

@@ -5,13 +5,13 @@ s6-envdir -Lf -- /run/s6/container_environment
 redirfd -w 1 /var/log/s6.rclone-webdav.log
 fdmove -c 2 1
 
-importas -D 127.0.0.1 WEBDAV_BIND SSHD_BIND
+importas -D 127.0.0.1 SERVE_HOST SERVE_HOST
 
 s6-setuidgid x
 s6-env HOME=/home/x
 exec /opt/bm/store/rclone/bin/rclone serve webdav webdav:
   --config /etc/rclone-webdav.conf
-  --addr ${WEBDAV_BIND}:8004
+  --addr ${SERVE_HOST}:8004
   --disable-dir-list
   --disable-zip
   --dir-cache-time 0
