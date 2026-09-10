@@ -2,37 +2,20 @@
 
 ## Image Build
 
-镜像以 Debian slim 为 base，通过 binman 安装 uv 与 s6 工具，并复用 Workspace
-持有的 s6 bootstrap。inference stack 安装在独立 venv。
+目标模型依赖尚未进入稳定发行版的能力，因此 image 从固定 commit index 安装
+vLLM。commit、backend 与 wheel 版本只在 Dockerfile 中维护。
 
-Qwen3.8-Flash-Next 的 model support 来自固定 upstream revision，因此 image 从 vLLM
-per-commit index 安装 nightly wheel，并从匹配目标 Host driver 的 PyTorch index
-解析 CUDA backend。
+依赖来自 vLLM、PyTorch 与 PyPI 多个 index。解析必须允许跨 index 选择
+满足约束的版本，避免专用 index 的旧辅助 package 抢占结果。
+inference stack 安装在独立 venv，构建结果必须能直接运行。
 
-依赖跨 vLLM、PyTorch 与 PyPI 三个 index，解析必须允许在所有 index 中选择满足约束
-的最佳版本，避免辅助 package 被某个专用 index 的旧副本锁住。vLLM 不使用
-`deep_gemm`，镜像无需完整 CUDA Toolkit；CUDA userspace library 由 wheel 提供，
-Host driver 由 NVIDIA Container Toolkit 注入。
-
-```mermaid
-flowchart LR
-  Base[Debian slim] --> Tools[binman: uv + s6]
-  Tools --> Venv[dedicated Python venv]
-  Venv --> Wheel[pinned vLLM nightly wheel]
-  Wheel --> Rootfs[Service rootfs]
-  Rootfs --> Init[Workspace s6 init]
-```
+vLLM 不依赖 runtime CUDA compilation。CUDA userspace library 由 wheel 提供，GPU
+driver 由 Host 注入，因此 final image 不复制完整 CUDA Toolkit。
 
 ## Runtime
 
-s6 的 `default` bundle 启动唯一 longrun `serve`。该 longrun 加载
-`/run/s6/container_environment` 后 exec `/opt/codespace/vllm/serve.sh`，日志写入
-`/var/log/s6.serve.log`。
+s6 只管理 serving longrun。`serve.sh` 固化目标 Host 的并行、MoE、cache 与上下文
+profile；资源不足时通过其受控附加参数降低内存需求，不派生第二个 image。
 
-runtime 参数针对单台 8x H100 固定 tensor/expert parallel、Triton MoE、长上下文、
-分块 prefill、prefix cache 与 Qwen3 parser。显存不足时由运行配置降低上下文或显存
-利用率，不改变 image。
-
-模型 cache 由 managed Service data bind mount 提供。控制面与 smoke 入口都必须请求
-全部 GPU、启用 Host IPC。bridge 内监听容器接口，供 Workspace 访问的端口显式发布到
-Host bridge 网关，其余访问使用 loopback 发布。
+模型 cache 由 managed Service data 提供。部署必须申请完整 GPU 与 IPC 能力，并
+遵守父目录的网络和 SGLang 互斥约束。

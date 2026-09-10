@@ -1,22 +1,21 @@
 # WSL Platform Design
 
-## Export Model
+## Image And Export
 
-WSL 消费单层 rootfs tar，而不是 OCI image metadata：
+WSL image 继承 Workspace filesystem，叠加 WSL 配置与一个最小 s6 bundle，并重新编译
+service database。导出时把 OCI image 压平为 WSL 消费的 rootfs artifact：
 
 ```mermaid
 flowchart LR
     Workspace["Workspace image"] --> Overlay["WSL rootfs overlay"]
-    Overlay --> Image["WSL OCI image"]
-    Image --> Create["docker create"]
-    Create --> Export["docker export | gzip"]
-    Export --> Artifact["WSL import artifact"]
-    Artifact --> Import["wsl --install / --import"]
+    Overlay --> Compile["compile WSL s6 bundle"]
+    Compile --> Image["temporary OCI image"]
+    Image --> Export["flatten filesystem"]
+    Export --> Import["WSL distribution"]
 ```
 
-`docker export` 会丢弃 `ENTRYPOINT`、`CMD` 与 `ENV`。因此 OCI image 仅提供待压平
-filesystem，WSL 的全部启动 wiring 都由 `/etc/wsl.conf` 和
-`/opt/codespace/wsl/boot.sh` 承担。
+export 会丢弃 OCI metadata，因此 image 只充当 filesystem carrier；启动 wiring 必须
+位于 rootfs，不能依赖 inherited entrypoint 或 environment。
 
 ## Boot Flow
 
@@ -29,7 +28,7 @@ sequenceDiagram
     participant Services as wsl bundle
 
     Init->>Boot: [boot] command as root
-    Boot->>Boot: apply sysctl and seed SSHD_BIND
+    Boot->>Boot: apply sysctl and configure SSH
     Boot->>Scan: start with readiness fd
     Scan-->>Boot: readiness newline
     Boot->>RC: s6-rc-init
@@ -37,25 +36,23 @@ sequenceDiagram
     RC->>Services: start selected services
 ```
 
-Workspace image 的 `s6-linux-init` 仅在自身为 PID 1 时有效；WSL 的 PID 1 固定为
-`/init`，所以 `boot.sh` 直接建立 `/run/service` supervision tree。readiness fd
-保证 `s6-rc-init` 不会在 `s6-svscan` 接管 scandir 前运行。
+Workspace container init 只有作为 PID 1 才能工作，而 WSL 的 PID 1 固定为 Microsoft
+`/init`。boot helper 因此直接建立 supervision tree，并通过 readiness fd 保证
+`s6-rc-init` 在 `s6-svscan` 接管 scandir 后运行。
 
-Dockerfile 在叠加 `wsl` bundle 后重编译 `/etc/s6/db`。否则 inherited database
-无法解析新 bundle。
+WSL bundle 复用 Workspace service dependency，只启动远程登录和 Host 级后台能力；
+不启动需要 control plane bootstrap 的 Workspace Agent。
 
-Atuin 登录继承 Workspace 的本地 server readiness 依赖，因此 `wsl` bundle 也会启动
-本地 Atuin server。WSL 不由 Podman 注入 secret，启用前须在运行环境中提供
-`/run/secrets/atuin_db_uri`（root 所有、`0400`），不得把 credential 打入导出 rootfs。
-缺失时 Atuin 不可用，SSH 的独立启动链不依赖它。
+Atuin login 的依赖会带起本地 server。WSL 没有 Podman secret 注入，数据库
+credential 必须在运行环境单独提供，不能写入导出 artifact；缺失只使 Atuin 链
+失败，SSH 仍独立启动。
 
-## SSH And Keep-Alive
+## Windows Integration
 
-`boot.sh` 只负责让 sshd 监听 `0.0.0.0`。LAN 可达性由 Windows 选择：
+boot helper 只让 sshd 接受外部连接；实际 LAN 可达性由 Windows networking 决定：
 
 - mirrored networking 直接使用 Windows LAN address。
 - NAT 模式使用 `netsh interface portproxy` 并配置 firewall。
 
-WSL distribution 没有被跟踪的交互会话时可能被自动停止；`[boot] command` 创建的
-service 不构成 keep-alive。优先通过 WSL global configuration 禁用 idle 回收；不支持
-该能力时，由 Windows Scheduled Task 持有 distribution 会话。
+`[boot] command` 启动的 service 不构成 WSL keep-alive。优先通过 WSL global config
+禁用 idle 回收；不支持时，由 Windows Scheduled Task 持有 distribution 会话。

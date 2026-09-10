@@ -2,44 +2,23 @@
 
 ## Image Build
 
-Qwen3.8-Flash-Next 的 model support 来自固定 upstream revision，因此 image 从 source
-安装 SGLang，并跳过 OpenAI HTTP server 不需要的 PyO3 extension。
+目标模型依赖尚未进入稳定发行版的能力，因此 image 从固定 upstream revision
+构建 SGLang。revision、backend 与 wheel 版本只在 Dockerfile 中维护。
 
-SGLang 的 FP8 路径依赖 `sgl-deep-gemm`，它会在 import 时 JIT 编译 kernel，因此
-镜像必须包含 nvcc、host C++ compiler 与 CUDA header。独立 CUDA builder stage 先删除
-JIT 不需要的静态库、NPP 和开发期辅助目录，再把精简后的 toolkit 复制到匹配 CUDA
-12.9 支持矩阵的 Ubuntu 24.04 final stage。
+FP8 路径会在 runtime JIT 编译 kernel，因此 final image 必须保留 compiler、
+header 和动态链接库。CUDA builder 先删除 JIT 不需要的静态库与开发资产，
+再把精简后的 toolkit 复制进 final stage；不能改成只依赖 inference wheel
+的形态。
 
-source 的默认依赖与目标 Host CUDA backend 不一致。安装过程必须在同一 layer 内
-完成依赖归一化：
-
-1. 强制安装目标 CUDA backend 的 torch 与 GPU kernel。
-2. 删除错误 backend 的 NVIDIA package。
-3. 重装被共享目录卸载破坏的目标 backend library。
-4. 用 import assertion 验证最终环境。
-
-uv 必须把 package 复制进 venv；清理 build cache 后不能留下指向 cache 的 hardlink。
-
-```mermaid
-flowchart LR
-  CUDA[CUDA devel stage] --> Toolkit[Slimmed toolkit]
-  Base[Debian slim] --> Tools[binman: uv + s6]
-  Tools --> Source[SGLang source]
-  Source --> Wheels[cu129 torch + kernels]
-  Wheels --> Cleanup[remove cu13 packages]
-  Toolkit --> Image[Service image]
-  Cleanup --> Image
-```
+upstream 依赖可能解析到不同 CUDA backend。安装层负责把 torch、GPU kernel 与
+NVIDIA library 归一到同一 backend，并以 compile/import assertion 验证结果。venv
+必须自包含，删除 build cache 后不能留下指向 cache 的 hardlink。
 
 ## Runtime
 
-s6 的 `default` bundle 启动唯一 longrun `serve`。该 longrun 加载容器环境后 exec
-`/opt/codespace/sglang/serve.sh`，日志写入 `/var/log/s6.serve.log`。
+s6 只管理 serving longrun。`serve.sh` 固化目标 Host 的并行、内存、attention 与
+speculative decoding profile，并显式暴露 CUDA toolchain 给 JIT；可配置项只用于
+部署相关的 model 与 listener。
 
-runtime 参数针对单台 8x H100 固定 tensor/expert parallel、长上下文、分块 prefill、
-FlashInfer linear attention 与 speculative decoding。启动脚本显式暴露 CUDA Toolkit，
-保证 `deep_gemm` 能完成 JIT。
-
-模型 cache 由 managed Service data bind mount 提供。控制面与 smoke 入口都必须请求
-全部 GPU、启用 Host IPC。bridge 内监听容器接口，供 Workspace 访问的端口显式发布到
-Host bridge 网关，其余访问使用 loopback 发布。
+模型 cache 由 managed Service data 提供。部署必须申请完整 GPU 与 IPC 能力，并
+遵守父目录的网络和 vLLM 互斥约束。
