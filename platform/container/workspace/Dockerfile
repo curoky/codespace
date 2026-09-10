@@ -80,6 +80,8 @@ ENV PATH=${PATH}:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin
 RUN export NIX_CONFIG='filter-syscalls = false' \
   && curl -fsSL https://nixos.org/nix/install | sh -s -- --no-daemon \
   && nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs \
+  # gcc12 已在 25.11 起从 unstable 移除，锁定仍含 gcc12 的 25.05 channel 单独供其使用。
+  && nix-channel --add https://nixos.org/channels/nixos-25.05 nixpkgs_2505 \
   && nix-channel --update \
   && nix-env -iA nixpkgs.ollama-cpu nixpkgs.lemminx nixpkgs.codex -p /nix/var/nix/profiles/default \
   # setup formatters & linters
@@ -96,7 +98,11 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
   && nix-env -iA nixpkgs.go_1_26 -p /nix/var/nix/profiles/default \
   && nix-env -iA nixpkgs.go_1_26 -p /nix/var/nix/profiles/go-1_26 \
   # setup gcc
+  && nix-env -iA nixpkgs_2505.gcc12 -p /nix/var/nix/profiles/gcc-12 \
   && nix-env -iA nixpkgs.gcc15 -p /nix/var/nix/profiles/default \
+  && nix-env -iA nixpkgs.gcc16 -p /nix/var/nix/profiles/gcc-16 \
+  # setup clang
+  && nix-env -iA nixpkgs.clang_21 -p /nix/var/nix/profiles/clang-21 \
   && nix-collect-garbage -d \
   && nix-store --optimise
 
