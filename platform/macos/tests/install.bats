@@ -56,6 +56,8 @@ teardown() {
   [ "$HOME/.config/git/ignore" -ef "$MACOS_HOME/.config/git/ignore" ]
   [ -L "$HOME/.zshrc" ]
   [ "$HOME/.zshrc" -ef "$MACOS_HOME/.zshrc" ]
+  [ -L "$HOME/.warp/settings.toml" ]
+  [ "$HOME/.warp/settings.toml" -ef "$MACOS_HOME/.warp/settings.toml" ]
   [ -L "$HOME/.config/zsh/aliases.zsh" ]
   [ "$HOME/.config/zsh/aliases.zsh" -ef "$WORKSPACE_HOME/.config/zsh/aliases.zsh" ]
 
