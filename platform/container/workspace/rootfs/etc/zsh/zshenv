@@ -12,25 +12,13 @@
 #
 # Global Order: zshenv, zprofile, zshrc, zlogin
 
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:/nix/var/nix/profiles/default/bin
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
 
-export PATH="$PATH:/opt/uv/bin:/opt/rust/cargo/bin:/opt/conda/condabin"
-
-# rust
-export CARGO_HOME=/opt/rust/cargo
-export RUSTUP_HOME=/opt/rust/rustup
-
-# uv
-export UV_TOOL_DIR=/opt/uv/tools
-export UV_TOOL_BIN_DIR=/opt/uv/bin
-export UV_PYTHON_INSTALL_DIR=/opt/uv/python
-export UV_PYTHON_BIN_DIR=/opt/uv/bin
-
-# conda
-export CONDA_PLUGINS_AUTO_ACCEPT_TOS=yes
+# 工具链 env 与 PATH 由 profile.d 统一维护，POSIX sh 语法在 zsh 下同样可用。
+. /etc/profile.d/app.sh
 
 if [ -d /etc/zshenv.d ]; then
   for i in /etc/zshenv.d/*.zsh; do
