@@ -64,6 +64,7 @@ class ProjectSummary(BaseModel):
     source: Source
     description: str | None = None
     open_path: str
+    tunnel_ports: list[int]
 
 
 class DashboardWorkspace(Workspace):

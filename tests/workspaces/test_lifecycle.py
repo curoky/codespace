@@ -20,6 +20,8 @@ _PATHS = HostDataPaths("/home/x/codespace")
 class FakeTransport:
     def __init__(self) -> None:
         self.client_value = object()
+        self.tcp_forwards: list[tuple[str, str, dict[str, object]]] = []
+        self.closed_tcp: list[tuple[str, str]] = []
 
     def client(self, _host: str) -> object:
         return self.client_value
@@ -29,6 +31,13 @@ class FakeTransport:
 
     def forward_socket(self, host: str, _remote: str) -> Path:
         return Path(f"/tmp/{host}-agent.sock")
+
+    def forward_tcp(self, host: str, destination: str, **kwargs: object) -> int:
+        self.tcp_forwards.append((host, destination, kwargs))
+        return 49123
+
+    def close_tcp(self, host: str, destination: str) -> None:
+        self.closed_tcp.append((host, destination))
 
 
 class FakeAgent:
@@ -158,6 +167,7 @@ def test_unforced_delete_returns_git_state_without_mutation(
 
     assert state.uncommitted is True
     assert mutations == []
+    assert manager.transport.closed_tcp == []  # type: ignore[attr-defined]
 
 
 def test_forced_purge_revokes_key_before_data_and_container(
@@ -190,6 +200,9 @@ def test_forced_purge_revokes_key_before_data_and_container(
     manager.delete("codespace", "home", "debug", purge=True, force=True)
 
     assert events == ["revoke", "stop", "data", "container", "projection"]
+    assert manager.transport.closed_tcp == [  # type: ignore[attr-defined]
+        ("home", "codespace-workspace-home-codespace-debug")
+    ]
 
 
 def test_logs_reads_selected_container_source(
@@ -223,7 +236,7 @@ def test_workspace_container_uses_reserved_environment_and_mounts(
     data = config.model_dump()
     data["projects"]["codespace"]["container"] = {
         "network_mode": network_mode,
-        "environment": {"ATUIN_SYNC_ADDRESS": "http://host.containers.internal:8002"},
+        "secrets": [{"source": "atuin_db_uri", "mode": 0o400}],
     }
     spec = Config.model_validate(data).workspace_spec("codespace", "home", "debug")
     captured: dict[str, object] = {}
@@ -247,7 +260,9 @@ def test_workspace_container_uses_reserved_environment_and_mounts(
     assert environment["CODESPACE_OPEN_PATH"] == "/workspace/codespace"
     assert environment["CODESPACE_ENCRYPTED"] == "false"
     assert environment["CODESPACE_CLONE_URL"] == "git@github.com:curoky/codespace.git"
-    assert environment["ATUIN_SYNC_ADDRESS"] == "http://host.containers.internal:8002"
+    assert "ATUIN_SYNC_ADDRESS" not in environment
+    assert captured["spec"].secrets[0].source == "atuin_db_uri"  # type: ignore[union-attr]
+    assert captured["spec"].secrets[0].mode == 0o400  # type: ignore[union-attr]
     assert environment["SSHD_PORT"] == str(spec.ssh_port)
     if network_mode == "bridge":
         assert environment["SSHD_BIND"] == "0.0.0.0"  # noqa: S104
@@ -339,3 +354,70 @@ def test_delete_uses_deployed_source_after_config_changes(
     assert revoked == [
         ("github", "token", "curoky/codespace", "codespace-workspace-home-codespace-debug")
     ]
+
+
+@pytest.fixture
+def tunnel_container(
+    manager: WorkspaceManager, config: Config, monkeypatch: pytest.MonkeyPatch
+) -> SimpleNamespace:
+    running = SimpleNamespace(
+        id="deployed-container",
+        labels=config.workspace_spec("codespace", "home", "debug").labels(),
+        attrs={"State": {"Status": "running"}},
+    )
+    monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
+    data = config.model_dump()
+    data["project_defaults"]["tunnel_ports"] = [8005, 8080]
+    manager.config = Config.model_validate(data)
+    return running
+
+
+@pytest.mark.parametrize("port", [8005, 8080])
+def test_tunnel_uses_configured_port_and_deployed_ssh_metadata(
+    manager: WorkspaceManager,
+    tunnel_container: SimpleNamespace,
+    port: int,
+) -> None:
+    actual = inventory.read_workspace(tunnel_container, "home")
+
+    assert manager.open_tunnel("codespace", "home", "debug", port) == 49123
+    assert manager.transport.tcp_forwards == [  # type: ignore[attr-defined]
+        (
+            "home",
+            actual.id,
+            {
+                "port": port,
+                "options": ssh.connection_options(actual, SSHRoute(host="home")),
+                "connection_id": "deployed-container",
+            },
+        )
+    ]
+    assert manager.transport.closed_tcp == []  # type: ignore[attr-defined]
+
+
+@pytest.mark.parametrize("status", ["exited", "paused", "created"])
+def test_tunnel_rejects_nonrunning_workspace(
+    manager: WorkspaceManager, tunnel_container: SimpleNamespace, status: str
+) -> None:
+    tunnel_container.attrs["State"]["Status"] = status
+
+    with pytest.raises(RuntimeError, match="is not running"):
+        manager.open_tunnel("codespace", "home", "debug", 8005)
+    assert manager.transport.tcp_forwards == []  # type: ignore[attr-defined]
+
+
+def test_tunnel_rejects_unconfigured_port(
+    manager: WorkspaceManager, tunnel_container: SimpleNamespace
+) -> None:
+    with pytest.raises(KeyError, match="not configured"):
+        manager.open_tunnel("codespace", "home", "debug", 22)
+    assert manager.transport.tcp_forwards == []  # type: ignore[attr-defined]
+
+
+def test_tunnel_rejects_missing_workspace(
+    manager: WorkspaceManager, tunnel_container: SimpleNamespace, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: None)
+    with pytest.raises(RuntimeError, match="not found"):
+        manager.open_tunnel("codespace", "home", "debug", 8005)
+    assert manager.transport.tcp_forwards == []  # type: ignore[attr-defined]

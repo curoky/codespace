@@ -25,6 +25,34 @@ def test_default_config_path_is_xdg_location() -> None:
     assert Path.home() / ".config/codespace/config.yaml" == CONFIG_PATH
 
 
+def test_tunnel_ports_default_and_project_override(config: Config) -> None:
+    assert config.project_tunnel_ports("codespace") == []
+    data = config.model_dump()
+    data["project_defaults"]["tunnel_ports"] = [8005, 8080]
+    data["projects"]["scratch"]["tunnel_ports"] = []
+    data["projects"]["personal"]["tunnel_ports"] = [3000]
+
+    parsed = Config.model_validate(data)
+
+    assert parsed.project_tunnel_ports("codespace") == [8005, 8080]
+    assert parsed.project_tunnel_ports("scratch") == []
+    assert parsed.project_tunnel_ports("personal") == [3000]
+
+
+@pytest.mark.parametrize("ports", [[0], [65536], [True], ["8005"], [8005, 8005]])
+@pytest.mark.parametrize("scope", ["project_defaults", "project"])
+def test_tunnel_ports_reject_invalid_values(
+    config: Config, ports: list[object], scope: str
+) -> None:
+    data = config.model_dump()
+    target = (
+        data["project_defaults"] if scope == "project_defaults" else data["projects"]["codespace"]
+    )
+    target["tunnel_ports"] = ports
+    with pytest.raises(ValidationError):
+        Config.model_validate(data)
+
+
 def test_example_config_loads() -> None:
     config = load_config(Path("config.example.yaml"))
 
@@ -35,16 +63,21 @@ def test_example_config_loads() -> None:
     )
     workspace = config.workspace_spec("codespace", "server", "default")
     assert workspace.container.is_bridge
-    assert workspace.container.environment == {
-        "ATUIN_SYNC_ADDRESS": "http://host.containers.internal:8002"
-    }
-    for service in config.services:
+    assert "ATUIN_SYNC_ADDRESS" not in (workspace.container.environment or {})
+    assert [(secret.source, secret.mode) for secret in workspace.container.secrets or []] == [
+        ("atuin_db_uri", 0o400)
+    ]
+    support = config.service_spec("support", "server").container
+    assert support.is_bridge
+    assert not support.ports
+    assert not support.secrets
+    assert not support.environment
+    for service in ("vllm", "sglang"):
         spec = config.service_spec(service, "server")
         assert spec.container.is_bridge
         assert spec.container.ports
         assert all(port.host_ip == "10.88.0.1" for port in spec.container.ports)
-        bind_env = "ATUIN_HOST" if service == "support" else "SERVE_HOST"
-        assert (spec.container.environment or {})[bind_env] == "0.0.0.0"  # noqa: S104
+        assert (spec.container.environment or {})["SERVE_HOST"] == "0.0.0.0"  # noqa: S104
 
 
 def test_load_config_rejects_non_mapping(tmp_path: Path) -> None:
