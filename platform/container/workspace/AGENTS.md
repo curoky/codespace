@@ -10,8 +10,8 @@
   选定文件，不得建立副本。
 - IDE `bin`/`extensions` 在 image home 中固定链接到 `/cache`；控制面不得感知或
   单独挂载具体 IDE 路径。
-- shell integration 与 IDE 默认 manifest 在构建期准备；运行期不改写固定路径，
-  只初始化尚无 manifest 的持久 IDE cache。
+- shell integration 由 image toolchain package 提供；IDE 默认 manifest 在构建期
+  准备，运行期只初始化尚无 manifest 的持久 IDE cache。
 - `rootfs/` 拥有 Workspace SSH authorized key 与 host key；Host client bundle
   必须与这两项 trust material 保持一致。
 - Service 只能复用本目录公开的 s6 skeleton 与安装器。

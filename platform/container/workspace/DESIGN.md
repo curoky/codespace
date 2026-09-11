@@ -21,8 +21,9 @@ flowchart LR
 source。s6 database 与 container init 在 build 时生成；Service image 只复用这套
 bootstrap。
 
-shell integration 随 image toolchain 在构建期生成，存放于用户 data 目录，不依赖可清理
-的 cache。扩展构建同时生成各 IDE 的固定绝对路径 manifest；缺少声明的扩展时构建失败。
+Starship 与 Atuin 的 shell integration 由 standalone-binaries toolchain package
+直接提供，Conda 直接加载发行版自带的 `profile.d/conda.sh`，image 不再生成用户副本。
+扩展构建同时生成各 IDE 的固定绝对路径 manifest；缺少声明的扩展时构建失败。
 
 ## Startup
 
