@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
@@ -19,6 +20,13 @@ type Route = tuple[str, str]
 type Usage = Literal["yes", "no", "unknown", "unmanaged"]
 
 
+@dataclass(frozen=True, slots=True)
+class KeyCandidate:
+    repository: Repository
+    key: provider.DeployKey
+    usage: Usage
+
+
 def prune(
     *,
     apply: bool,
@@ -30,11 +38,11 @@ def prune(
     config = load_config(config_path)
     repositories = _repositories(config)
     keys, active, scanned_hosts, errors = _collect(config, repositories)
-    rows: list[tuple[Repository, provider.DeployKey, Usage]] = []
+    rows: list[KeyCandidate] = []
     for repository, deploy_keys in sorted(keys.items()):
         for key in sorted(deploy_keys, key=lambda item: item.title):
             rows.append(
-                (
+                KeyCandidate(
                     repository,
                     key,
                     _usage(key.title, repositories[repository], active, scanned_hosts),
@@ -48,16 +56,16 @@ def prune(
             {"header": "In use", "no_wrap": True},
         ],
         [
-            (f"{provider_name}:{repository}", key.title, usage)
-            for (provider_name, repository), key, usage in rows
+            (f"{item.repository[0]}:{item.repository[1]}", item.key.title, item.usage)
+            for item in rows
         ],
     )
     output.print_warnings(target, errors)
-    unused = [(repository, key) for repository, key, usage in rows if usage == "no"]
+    unused = [item for item in rows if item.usage == "no"]
     if not apply:
         target.print(f"Dry run: {len(unused)} unused key(s); pass --apply to delete.")
         return
-    deleted, delete_errors = _delete(config, unused)
+    deleted, delete_errors = _delete(config.seed_tokens(), unused)
     output.print_errors(target, delete_errors)
     target.print(f"Deleted {deleted} unused key(s).")
 
@@ -129,13 +137,12 @@ def _usage(title: str, routes: list[Route], active: set[str], scanned_hosts: set
 
 
 def _delete(
-    config: Config,
-    unused: list[tuple[Repository, provider.DeployKey]],
+    tokens: dict[GitProvider, str],
+    unused: list[KeyCandidate],
 ) -> tuple[int, list[str]]:
     grouped: dict[Repository, list[int]] = defaultdict(list)
-    for repository, key in unused:
-        grouped[repository].append(key.id)
-    tokens = config.seed_tokens()
+    for item in unused:
+        grouped[item.repository].append(item.key.id)
     _results, failures = output.fan_out(
         grouped,
         lambda repository: provider.delete_deploy_keys(

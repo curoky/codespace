@@ -7,13 +7,12 @@ import json
 import socket
 import time
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal, overload
 
-from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError
 
+from codespace.runtime.container import NonBlankString
 from codespace.workspaces.models import RepoGitState
-
-type AgentState = Literal["starting", "awaiting-provider", "ready", "failed"]
 
 _RESPONSE_LIMIT = 64 * 1024
 _DEFAULT_TIMEOUT = 30.0
@@ -28,14 +27,39 @@ class AgentUnavailable(AgentError):
     """Raised when the workspace agent socket cannot be reached."""
 
 
-class AgentStatus(BaseModel):
-    """Current state of the container workspace bootstrap."""
+class _StatusResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True, frozen=True)
 
-    model_config = ConfigDict(extra="forbid")
+    public_key: NonBlankString | None
+    error: NonBlankString | None
 
-    state: AgentState
-    public_key: str | None = None
-    error: str | None = None
+
+class BootstrapStatus(_StatusResponse):
+    state: Literal["starting", "ready"]
+    error: None
+
+
+class ProviderStatus(_StatusResponse):
+    state: Literal["awaiting-provider"]
+    public_key: NonBlankString
+    error: None
+
+
+class FailedStatus(_StatusResponse):
+    state: Literal["failed"]
+    error: NonBlankString
+
+
+type AgentStatus = Annotated[
+    BootstrapStatus | ProviderStatus | FailedStatus, Field(discriminator="state")
+]
+_STATUS: TypeAdapter[AgentStatus] = TypeAdapter(AgentStatus)
+
+
+class _ErrorResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    detail: NonBlankString
 
 
 class _UnixHTTPConnection(http.client.HTTPConnection):
@@ -58,7 +82,7 @@ class WorkspaceAgentClient:
 
     def status(self) -> AgentStatus:
         try:
-            return AgentStatus.model_validate(self._request("GET", "/status"))
+            return _STATUS.validate_python(self._request("GET", "/status"))
         except ValidationError as exc:
             raise AgentError("workspace agent returned an invalid status") from exc
 
@@ -68,12 +92,20 @@ class WorkspaceAgentClient:
         except ValidationError as exc:
             raise AgentError("workspace agent returned an invalid Git state") from exc
 
+    @overload
+    def wait_for(
+        self, state: Literal["awaiting-provider"], *, timeout: float
+    ) -> ProviderStatus: ...
+
+    @overload
+    def wait_for(self, state: Literal["ready"], *, timeout: float) -> BootstrapStatus: ...
+
     def wait_for(
         self,
-        state: AgentState,
+        state: Literal["awaiting-provider", "ready"],
         *,
         timeout: float,
-    ) -> AgentStatus:
+    ) -> BootstrapStatus | ProviderStatus:
         """Wait for the desired state, retrying only socket availability."""
         deadline = time.monotonic() + timeout
         last_unavailable: AgentUnavailable | None = None
@@ -84,7 +116,7 @@ class WorkspaceAgentClient:
                 last_unavailable = exc
             else:
                 if status.state == "failed":
-                    raise AgentError(status.error or "workspace agent bootstrap failed")
+                    raise AgentError(status.error)
                 if status.state == state:
                     return status
             time.sleep(_POLL_INTERVAL)
@@ -116,9 +148,13 @@ class WorkspaceAgentClient:
         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise AgentError("workspace agent returned invalid JSON") from exc
         if not 200 <= response.status < 300:
-            detail = decoded.get("error") if isinstance(decoded, dict) else None
+            try:
+                error = _ErrorResponse.model_validate(decoded)
+            except ValidationError as exc:
+                raise AgentError(
+                    f"workspace agent returned an invalid error response ({response.status})"
+                ) from exc
             raise AgentError(
-                f"workspace agent {method} {target} failed ({response.status}): "
-                f"{detail or response.reason}"
+                f"workspace agent {method} {target} failed ({response.status}): {error.detail}"
             )
         return decoded

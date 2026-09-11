@@ -42,6 +42,15 @@ Web boundary 只负责输入输出、后台任务提交和错误映射。两个 
 自己的领域流程，不相互调用；runtime 只处理容器、Host 与 transport primitives，
 不读取 Config。
 
+ControlPlane 只聚合领域 inventory，不导入 Web model；Dashboard 在 Web 层将
+inventory、Config、operation 与 token presence 组装成响应。单 Host 采集失败保留明确
+的 failure，不伪造空 inventory：SSH transport failure 标记 offline，其他采集错误
+标记 error，数量保持未知。其他 Host 的结果仍可展示。
+
+只有明确的 ResourceNotFound / ResourceConflict 映射到 HTTP 404 / 409。
+metadata 缺失、协议错误和其他意外异常返回 500，不根据 Python 通用异常类型
+推测业务含义。
+
 operation state 只存在于单个控制面进程中。成功后记录消失，失败时保留
 阶段与 cause chain，便于用户检查现场并显式 dismiss；manager 不做隐式回滚。
 
@@ -63,14 +72,20 @@ alias 编码 Host forwarding port、Host、Project 与 Workspace；静态 ProxyC
 filesystem、home、Agent、SSHD 与 local service 布局由 image 在构建期提供，控制面
 只注入 placement 和单 Workspace runtime input。
 
-container 配置从通用层逐步覆盖到具体 placement；只有显式字段参与 merge，
-list 与 mapping 整体替换。Project image、platform 和 tunnel allowlist 各自按其
-resolver 处理，不隐式套用 container merge 规则。Project 最终解析为
-`WorkspaceContainerSpec`，network mode 固定为 bridge；任何层解析出其他模式都直接
-失败。
+`config.ContainerLayer` 表达 YAML 中的 container 覆盖层，从通用层逐步覆盖到具体
+placement；未指定或 `null` 的字段不参与 merge，list 与 mapping 整体替换，显式
+空集合清空继承值。字段校验在每层解析时执行，跨字段约束在 merge 后执行。
+Project image、platform 和 tunnel allowlist 各自按其 resolver 处理，不隐式套用
+container merge 规则。
 
-`ContainerSpec` 只接受控制面实现的 Compose service syntax 子集。runtime 接收完全
-解析后的绝对 bind mount，不实现通用 variable interpolation。Service 的 managed data
+Config resolver 输出 `runtime.container.ContainerSpec`，集合字段始终为确定的
+list 或 mapping，network mode 必须确定；runtime 不接收覆盖层，也不执行 merge。
+未指定的可选 Podman scalar option 保持 `None`，由调用边界决定是否传入。
+Project 使用 `WorkspaceContainerSpec` 将 network mode 固定为 bridge，解析出其他
+模式直接失败。lifecycle 追加实例输入后仍须满足同一 Spec 约束。
+
+配置仅接受控制面实现的 Compose service syntax 子集。runtime 接收完全解析后的
+绝对 bind mount，不实现通用 variable interpolation。Service 的 managed data
 placeholder 在 Service 领域边界解析；Project 不能使用它，也不能覆盖 Workspace
 保留的 runtime input。
 
@@ -125,9 +140,17 @@ sequenceDiagram
 ```
 
 创建失败保留已经产生的容器、Host 数据与 provider side effect，operation 进入
-failed。删除 Git-backed Workspace 前通过 Agent 读取 repository state；停止的
-容器不会为检查而自动启动。provider key 必须先成功撤销，之后才允许
-强制删除容器或数据。
+failed。删除确认前通过只读 deletion check 读取 repository state；停止的容器不会
+为检查而自动启动。检查失败明确显示风险，用户仍可显式确认删除。DELETE 只执行
+已确认的删除，不兼任查询，也不使用 force 参数切换职责。provider key 必须先成功
+撤销，之后才允许删除容器或数据。
+
+Agent 响应在 HTTP client 边界严格校验，状态类型表达各阶段必需的数据；lifecycle
+只使用已经验证的结果，不补公钥、错误原因或 Git 状态。Git 字段缺失不能解释为
+repository clean。empty Workspace 的检查结果在对应分支显式构造，删除结果不携带
+虚构的 Git state。
+启动等待只重试 Agent 暂不可达并等待正常状态推进；协议错误与 failed 状态立即失败，
+不改用默认结果继续执行。HTTP 拒绝原因只读取 Agent 的固定 error response contract。
 
 Service apply 是 replace reconciliation：拉取 desired image、准备 managed data、
 删除确定性旧容器并按当前 spec 重建。普通 remove 保留数据，purge 才删除
@@ -138,3 +161,8 @@ managed data。
 维护命令先跨 Host 或 provider 收集完整计划，再由显式 apply 执行。
 单目标失败不阻断其他目标，但必须进入最终汇总；维护逻辑直接复用
 Config、inventory、provider 与 runtime primitives，不经过 HTTP。
+
+计划使用领域记录保存已决定的目标与操作，执行器不重新遍历 Config 扩展目标。
+secrets 的 create / replace 与值在计划阶段确定；执行前发现存在性与计划不符时
+报告失败，不切换操作。扫描失败的 Host 不进入执行阶段，secret 值不进入计划展示
+或 repr。

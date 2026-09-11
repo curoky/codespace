@@ -10,6 +10,8 @@ from typing import Literal
 from loguru import logger
 from pydantic import BaseModel, ConfigDict
 
+from codespace.errors import ResourceConflict
+
 type OperationStatus = Literal["queued", "running", "failed"]
 type OperationKind = Literal["workspace", "service"]
 
@@ -56,7 +58,7 @@ class OperationStore:
         with self._lock:
             existing = self._operations.get(key)
             if existing is not None and existing.status in {"queued", "running"}:
-                raise RuntimeError(
+                raise ResourceConflict(
                     f"operation already running for {operation.id!r} on host {operation.host!r}"
                 )
             self._operations[key] = operation
@@ -108,7 +110,7 @@ class OperationStore:
             if operation is None:
                 return False
             if operation.status != "failed":
-                raise RuntimeError(
+                raise ResourceConflict(
                     f"operation for {resource_id!r} on host {host!r} is still {operation.status}"
                 )
             del self._operations[key]

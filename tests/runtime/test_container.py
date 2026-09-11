@@ -7,6 +7,7 @@ from podman.domain.containers import Container
 from podman.errors import NotFound
 from pydantic import ValidationError
 
+from codespace.config import ContainerLayer
 from codespace.runtime import container
 from codespace.runtime.container import ContainerSpec, PortSpec, SecretSpec, VolumeSpec
 
@@ -57,33 +58,30 @@ def test_find_container_returns_none_only_for_not_found() -> None:
     assert container.find_container(client, "missing", labels={}) is None  # type: ignore[arg-type]
 
 
-def test_container_layers_replace_lists_and_mappings() -> None:
-    base = ContainerSpec(
-        network_mode="host",
-        environment={"BASE": "1"},
-        volumes=[
-            VolumeSpec(type="bind", source="/host/base", target="/container/base"),
-        ],
-    )
-    override = ContainerSpec(
-        network_mode="bridge",
-        environment={"PLACEMENT": "1"},
-        volumes=[
-            VolumeSpec(
-                type="bind",
-                source="/host/placement",
-                target="/container/placement",
-            )
-        ],
-    )
-
-    resolved = base.merged_with(override)
-
-    assert resolved.network_mode == "bridge"
-    assert resolved.environment == {"PLACEMENT": "1"}
-    assert [volume.source for volume in resolved.volumes or []] == ["/host/placement"]
+@pytest.mark.parametrize("data", [{}, {"network_mode": None}])
+def test_runtime_spec_requires_network_mode(data: dict[str, object]) -> None:
+    with pytest.raises(ValidationError, match="network_mode"):
+        ContainerSpec.model_validate(data)
 
 
+@pytest.mark.parametrize(
+    "field",
+    ["cap_add", "security_opt", "ulimits", "volumes", "environment", "secrets", "devices", "ports"],
+)
+def test_runtime_spec_rejects_null_collections(field: str) -> None:
+    with pytest.raises(ValidationError, match=field):
+        ContainerSpec.model_validate({"network_mode": "bridge", field: None})
+
+
+def test_runtime_spec_rejects_ports_without_bridge() -> None:
+    with pytest.raises(ValidationError, match="only in bridge mode"):
+        ContainerSpec(
+            network_mode="host",
+            ports=[PortSpec(target=80, published=8080, host_ip="127.0.0.1")],
+        )
+
+
+@pytest.mark.parametrize("model", [ContainerLayer, ContainerSpec])
 @pytest.mark.parametrize(
     "field",
     [
@@ -96,12 +94,14 @@ def test_container_layers_replace_lists_and_mappings() -> None:
     ],
 )
 def test_container_rejects_compose_forms_outside_supported_subset(
+    model: type[ContainerLayer] | type[ContainerSpec],
     field: dict[str, object],
 ) -> None:
     with pytest.raises(ValidationError):
-        ContainerSpec.model_validate(field)
+        model.model_validate({"network_mode": "bridge", **field})
 
 
+@pytest.mark.parametrize("model", [ContainerLayer, ContainerSpec])
 @pytest.mark.parametrize(
     "field",
     [
@@ -117,11 +117,15 @@ def test_container_rejects_compose_forms_outside_supported_subset(
         {"ports": {"web": {"host": 3000, "container": 8000}}},
     ],
 )
-def test_container_rejects_removed_non_compose_syntax(field: dict[str, object]) -> None:
+def test_container_rejects_removed_non_compose_syntax(
+    model: type[ContainerLayer] | type[ContainerSpec],
+    field: dict[str, object],
+) -> None:
     with pytest.raises(ValidationError):
-        ContainerSpec.model_validate(field)
+        model.model_validate({"network_mode": "bridge", **field})
 
 
+@pytest.mark.parametrize("model", [ContainerLayer, ContainerSpec])
 @pytest.mark.parametrize(
     "field",
     [
@@ -141,15 +145,20 @@ def test_container_rejects_removed_non_compose_syntax(field: dict[str, object]) 
     ],
 )
 def test_container_rejects_values_outside_compose_subset(
+    model: type[ContainerLayer] | type[ContainerSpec],
     field: dict[str, object],
 ) -> None:
     with pytest.raises(ValidationError):
-        ContainerSpec.model_validate(field)
+        model.model_validate({"network_mode": "bridge", **field})
 
 
-def test_volume_short_and_long_syntax_are_normalized() -> None:
-    spec = ContainerSpec.model_validate(
+@pytest.mark.parametrize("model", [ContainerLayer, ContainerSpec])
+def test_volume_short_and_long_syntax_are_normalized(
+    model: type[ContainerLayer] | type[ContainerSpec],
+) -> None:
+    spec = model.model_validate(
         {
+            "network_mode": "bridge",
             "volumes": [
                 "/host/a:/container/a:ro",
                 {
@@ -157,7 +166,7 @@ def test_volume_short_and_long_syntax_are_normalized() -> None:
                     "source": "/host/b",
                     "target": "/container/b",
                 },
-            ]
+            ],
         }
     )
 
@@ -168,6 +177,7 @@ def test_volume_short_and_long_syntax_are_normalized() -> None:
     ]
 
 
+@pytest.mark.parametrize("model", [ContainerLayer, ContainerSpec])
 @pytest.mark.parametrize(
     ("volume", "message"),
     [
@@ -175,9 +185,13 @@ def test_volume_short_and_long_syntax_are_normalized() -> None:
         ("/host:/container:shared", "ro.*rw"),
     ],
 )
-def test_volume_short_syntax_rejects_invalid_entries(volume: str, message: str) -> None:
+def test_volume_short_syntax_rejects_invalid_entries(
+    model: type[ContainerLayer] | type[ContainerSpec],
+    volume: str,
+    message: str,
+) -> None:
     with pytest.raises(ValidationError, match=message):
-        ContainerSpec.model_validate({"volumes": [volume]})
+        model.model_validate({"network_mode": "bridge", "volumes": [volume]})
 
 
 def test_secret_long_syntax_uses_compose_semantics() -> None:
@@ -223,14 +237,18 @@ def test_runtime_rejects_unresolved_mount_sources(source: str) -> None:
         )
 
 
-def test_duplicate_port_target_is_rejected() -> None:
+@pytest.mark.parametrize("model", [ContainerLayer, ContainerSpec])
+def test_duplicate_port_target_is_rejected(
+    model: type[ContainerLayer] | type[ContainerSpec],
+) -> None:
     with pytest.raises(ValidationError, match="published more than once"):
-        ContainerSpec.model_validate(
+        model.model_validate(
             {
+                "network_mode": "bridge",
                 "ports": [
                     {"target": 80, "published": 8080, "host_ip": "127.0.0.1"},
                     {"target": 80, "published": 8081, "host_ip": "127.0.0.1"},
-                ]
+                ],
             }
         )
 
@@ -358,7 +376,7 @@ def test_remove_data_directory_rejects_unsafe_target(root: str, target: str) -> 
 def test_container_logs_requests_bounded_tail() -> None:
     calls: list[dict[str, object]] = []
     running = SimpleNamespace(
-        logs=lambda **kwargs: (calls.append(kwargs), b"line\n")[-1],
+        logs=lambda **kwargs: (calls.append(kwargs), iter([b"line", b"\n"]))[-1],
     )
 
     assert container.container_logs(running) == "line\n"  # type: ignore[arg-type]
@@ -449,3 +467,41 @@ def test_container_log_snapshot_surfaces_exec_failure() -> None:
 
     with pytest.raises(RuntimeError, match="Permission denied"):
         container.container_log_snapshot(running)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize("exit_code", [0, 1, None])
+def test_remove_data_requires_zero_exit_and_always_removes_helper(
+    monkeypatch: pytest.MonkeyPatch, exit_code: int | None
+) -> None:
+    helper = Container(attrs={"Id": "helper", "Name": "helper"})
+    events: list[str] = []
+    monkeypatch.setattr(helper, "wait", lambda: exit_code)
+    monkeypatch.setattr(helper, "logs", lambda **_kwargs: iter([b"rm failed"]))
+    monkeypatch.setattr(helper, "remove", lambda **_kwargs: events.append("removed"))
+    client = SimpleNamespace(containers=SimpleNamespace(run=lambda *_args, **_kwargs: helper))
+
+    if exit_code == 0:
+        container.remove_data_directory(client, "image", "/data", "/data/workspace")  # type: ignore[arg-type]
+    else:
+        with pytest.raises(RuntimeError, match="rm failed"):
+            container.remove_data_directory(client, "image", "/data", "/data/workspace")  # type: ignore[arg-type]
+    assert events == ["removed"]
+
+
+@pytest.mark.parametrize("event", [{"error": "pull failed"}, "invalid event"])
+def test_pull_does_not_ignore_invalid_events(
+    monkeypatch: pytest.MonkeyPatch, event: object
+) -> None:
+    closed: list[bool] = []
+    pull_client = SimpleNamespace(
+        images=SimpleNamespace(pull=lambda *_args, **_kwargs: iter([event])),
+        close=lambda: closed.append(True),
+    )
+    client = SimpleNamespace(
+        api=SimpleNamespace(base_url=SimpleNamespace(geturl=lambda: "unix:///socket"), version="1")
+    )
+    monkeypatch.setattr(container, "PodmanClient", lambda **_kwargs: pull_client)
+
+    with pytest.raises((container.PodmanError, AttributeError)):
+        container.pull_image(client, "image", None)  # type: ignore[arg-type]
+    assert closed == [True]

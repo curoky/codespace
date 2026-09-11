@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path, PurePosixPath
-from typing import Annotated
+from typing import Annotated, Literal
 
 import yaml
 from pydantic import (
@@ -12,13 +12,22 @@ from pydantic import (
     BaseModel,
     ConfigDict,
     Field,
+    StrictInt,
     model_validator,
 )
 
 from codespace.runtime.container import (
+    ComposeNonBlankString,
+    ComposeString,
+    ContainerPorts,
     ContainerSpec,
+    ContainerVolumes,
     ImagePlatform,
     NonBlankString,
+    SecretSpec,
+    UlimitName,
+    UlimitSpec,
+    UniqueContainerOptions,
 )
 from codespace.services.models import SERVICE_DATA_PLACEHOLDER, ServiceSpec
 from codespace.workspaces.models import (
@@ -88,12 +97,37 @@ class FrozenModel(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
 
 
+class ContainerLayer(FrozenModel):
+    """One configuration override; null inherits and empty collections replace."""
+
+    cap_add: UniqueContainerOptions | None = None
+    security_opt: UniqueContainerOptions | None = None
+    network_mode: Literal["host", "bridge"] | None = None
+    ipc: ComposeNonBlankString | None = None
+    pids_limit: StrictInt | None = None
+    ulimits: dict[UlimitName, UlimitSpec] | None = None
+    volumes: ContainerVolumes | None = None
+    environment: dict[NonBlankString, ComposeString] | None = None
+    secrets: list[SecretSpec] | None = None
+    devices: list[ComposeNonBlankString] | None = None
+    ports: ContainerPorts | None = None
+    shm_size: ComposeNonBlankString | None = None
+
+
+def _merge_container_layers(*layers: ContainerLayer | None) -> dict[str, object]:
+    merged: dict[str, object] = {}
+    for layer in layers:
+        if layer is not None:
+            merged.update(layer.model_dump(exclude_none=True))
+    return merged
+
+
 class HostConfig(FrozenModel):
     """Placement settings for one SSH Host."""
 
     forward_environment: list[EnvironmentName] = Field(default_factory=list)
     platform: ImagePlatform | None = None
-    container: ContainerSpec | None = None
+    container: ContainerLayer | None = None
 
 
 class ProjectPlacement(FrozenModel):
@@ -101,13 +135,13 @@ class ProjectPlacement(FrozenModel):
 
     platform: ImagePlatform | None = None
     image: NonBlankString | None = None
-    container: ContainerSpec | None = None
+    container: ContainerLayer | None = None
 
 
 class ProjectDefaults(FrozenModel):
     image: NonBlankString
     tunnel_ports: TunnelPorts = Field(default_factory=list)
-    container: ContainerSpec = Field(default_factory=ContainerSpec)
+    container: ContainerLayer = Field(default_factory=ContainerLayer)
 
 
 class ProjectConfig(FrozenModel):
@@ -119,7 +153,7 @@ class ProjectConfig(FrozenModel):
     open_path: WorkspacePath | None = None
     encrypted: bool = False
     tunnel_ports: TunnelPorts | None = None
-    container: ContainerSpec | None = None
+    container: ContainerLayer | None = None
 
     def resolved_checkout_path(self) -> str:
         if self.checkout_path is not None:
@@ -135,13 +169,13 @@ class ServicePlacement(FrozenModel):
     """Overrides applied after the Service's base configuration."""
 
     image: NonBlankString | None = None
-    container: ContainerSpec | None = None
+    container: ContainerLayer | None = None
 
 
 class ServiceConfig(FrozenModel):
     image: NonBlankString
     hosts: dict[HostId, ServicePlacement] = Field(min_length=1)
-    container: ContainerSpec = Field(default_factory=ContainerSpec)
+    container: ContainerLayer = Field(default_factory=ContainerLayer)
 
 
 class TokensConfig(FrozenModel):
@@ -180,8 +214,6 @@ class Config(FrozenModel):
                 if host not in self.hosts:
                     raise ValueError(f"service {service_id!r} references unknown host {host!r}")
                 self._validate_service_container(
-                    service_id,
-                    host,
                     self.resolved_service_container(service_id, host),
                 )
         return self
@@ -195,20 +227,22 @@ class Config(FrozenModel):
     def resolved_project_container(self, project: str, host: str) -> WorkspaceContainerSpec:
         configured = self.projects[project]
         placement = configured.hosts[host]
-        return WorkspaceContainerSpec().merged_with(
+        merged = _merge_container_layers(
             self.project_defaults.container,
             self.hosts[host].container,
             configured.container,
             placement.container,
         )
+        return WorkspaceContainerSpec.model_validate(merged)
 
     def resolved_service_container(self, service: str, host: str) -> ContainerSpec:
         configured = self.services[service]
-        return ContainerSpec().merged_with(
+        merged = _merge_container_layers(
             self.hosts[host].container,
             configured.container,
             configured.hosts[host].container,
         )
+        return ContainerSpec.model_validate(merged)
 
     def project_image(self, project: str, host: str) -> str:
         configured = self.projects[project]
@@ -262,17 +296,17 @@ class Config(FrozenModel):
         project: str,
         container: WorkspaceContainerSpec,
     ) -> None:
-        reserved_environment = _RESERVED_ENVIRONMENT.intersection(container.environment or {})
+        reserved_environment = _RESERVED_ENVIRONMENT.intersection(container.environment)
         if reserved_environment:
             names = ", ".join(sorted(reserved_environment))
             raise ValueError(f"project {project!r} overrides reserved environment: {names}")
-        for volume in container.volumes or []:
+        for volume in container.volumes:
             volume.mount()
             if any(_paths_overlap(volume.target, reserved) for reserved in _RESERVED_MOUNTS):
                 raise ValueError(
                     f"project volume targeting {volume.target!r} overlaps reserved mount target"
                 )
-        for secret in container.secrets or []:
+        for secret in container.secrets:
             if secret.source == WORKSPACE_KEY_SECRET:
                 raise ValueError(f"project secret {secret.source!r} overrides a reserved secret")
             target = secret.target or f"/run/secrets/{secret.source}"
@@ -282,18 +316,8 @@ class Config(FrozenModel):
                 )
 
     @staticmethod
-    def _validate_service_container(
-        service: str,
-        host: str,
-        container: ContainerSpec,
-    ) -> None:
-        if container.network_mode is None:
-            raise ValueError(f"service {service!r} on host {host!r} must resolve network_mode")
-        if container.ports and not container.is_bridge:
-            raise ValueError(
-                f"service {service!r} on host {host!r} may publish ports only in bridge mode"
-            )
-        for volume in container.volumes or []:
+    def _validate_service_container(container: ContainerSpec) -> None:
+        for volume in container.volumes:
             if volume.source != SERVICE_DATA_PLACEHOLDER:
                 volume.mount()
 

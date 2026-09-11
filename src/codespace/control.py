@@ -3,16 +3,32 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 from threading import Lock
+from typing import Literal
 
 from codespace.config import Config
+from codespace.errors import ResourceConflict
 from codespace.operations import describe_error
-from codespace.runtime.transport import PodmanTransport
+from codespace.runtime.transport import PodmanTransport, TransportError
 from codespace.services.lifecycle import ServiceManager
-from codespace.web import dashboard as dashboard_state
-from codespace.web.models import DashboardResponse, HostStatus
+from codespace.services.models import Service
 from codespace.workspaces.lifecycle import WorkspaceManager
-from codespace.workspaces.models import GitProvider
+from codespace.workspaces.models import GitProvider, Workspace
+
+
+@dataclass(frozen=True, slots=True)
+class HostInventory:
+    host: str
+    workspaces: list[Workspace]
+    services: list[Service]
+
+
+@dataclass(frozen=True, slots=True)
+class HostFailure:
+    host: str
+    status: Literal["offline", "error"]
+    error: str
 
 
 class TokenStore:
@@ -30,7 +46,7 @@ class TokenStore:
         with self._lock:
             token = self._values.get(provider)
         if token is None:
-            raise RuntimeError(f"{provider} token is not set")
+            raise ResourceConflict(f"{provider} token is not set")
         return token
 
     def status(self) -> dict[GitProvider, bool]:
@@ -59,42 +75,28 @@ class ControlPlane:
     def close(self) -> None:
         self.transport.close()
 
-    def dashboard(self) -> DashboardResponse:
+    def inventory(self) -> dict[str, HostInventory | HostFailure]:
         with ThreadPoolExecutor(max_workers=len(self.config.hosts)) as executor:
-            inventories = dict(
+            return dict(
                 zip(
                     self.config.hosts,
                     executor.map(self._host_inventory, self.config.hosts),
                     strict=True,
                 )
             )
-        return dashboard_state.build(
-            self.config,
-            inventories,
-            operations=[*self.workspaces.operations.list(), *self.services.operations.list()],
-            tokens=self.tokens.status(),
-        )
 
-    def _host_inventory(self, host_name: str) -> dashboard_state.HostInventory:
+    def _host_inventory(self, host_name: str) -> HostInventory | HostFailure:
         try:
             workspaces = self.workspaces.inventory(host_name)
             services = self.services.inventory(host_name)
-            return dashboard_state.HostInventory(
-                status=HostStatus(
-                    id=host_name,
-                    status="online",
-                    workspace_count=len(workspaces),
-                ),
+            return HostInventory(
+                host=host_name,
                 workspaces=workspaces,
                 services=services,
             )
         except Exception as exc:
-            return dashboard_state.HostInventory(
-                status=HostStatus(
-                    id=host_name,
-                    status="offline",
-                    error=describe_error(exc),
-                ),
-                workspaces=[],
-                services=[],
+            return HostFailure(
+                host=host_name,
+                status="offline" if isinstance(exc, TransportError) else "error",
+                error=describe_error(exc),
             )

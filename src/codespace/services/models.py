@@ -46,7 +46,7 @@ class ServiceSpec:
                     volume.model_copy(update={"source": data_path})
                     if volume.source == SERVICE_DATA_PLACEHOLDER
                     else volume
-                    for volume in self.container.volumes or []
+                    for volume in self.container.volumes
                 ]
             }
         )

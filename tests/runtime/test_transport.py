@@ -104,6 +104,7 @@ def test_transport_uses_control_master_and_private_runtime(tmp_path: Path) -> No
     assert "BatchMode=yes" in command
     assert f"ControlPath={control_path}" in command
     assert "ControlMaster=yes" in command
+    assert "ControlPersist=no" in command
     assert command[-3:] == [
         "-L",
         f"{podman_socket_path}:/run/podman/podman.sock",
@@ -292,6 +293,7 @@ def test_tcp_forward_reuses_serializes_and_rebuilds_connections(tmp_path: Path) 
         command = commands[0]
         assert command[-3:] == ["-L", f"127.0.0.1:{ports[0]}:127.0.0.1:8005", "workspace"]
         assert command[:2] == ["ssh", "-N"]
+        assert "ControlPersist=no" in command
         assert "ExitOnForwardFailure=yes" in command
         assert "GatewayPorts=no" in command
         assert "BatchMode=yes" in command

@@ -5,6 +5,7 @@ from __future__ import annotations
 from podman.domain.containers import Container
 
 from codespace.config import Config
+from codespace.errors import ResourceNotFound
 from codespace.operations import Operation, OperationStore
 from codespace.runtime import container, host
 from codespace.runtime.transport import PodmanTransport
@@ -86,7 +87,7 @@ class ServiceManager:
             spec.image,
             name=spec.identity,
             spec=spec.resolve_data_path(data_path),
-            environment=spec.container.environment or {},
+            environment=spec.container.environment,
             labels=spec.labels(),
             mounts=[],
             restart_policy={"Name": "unless-stopped"},
@@ -119,7 +120,7 @@ class ServiceManager:
         self._service(service, host_name)
         running = self._container(service, host_name)
         if running is None:
-            raise RuntimeError(f"service {service!r} not found on host {host_name!r}")
+            raise ResourceNotFound(f"service {service!r} not found on host {host_name!r}")
         return container.container_log_snapshot(running, source)
 
     def _container(self, service: str, host_name: str) -> Container | None:
@@ -131,10 +132,10 @@ class ServiceManager:
 
     def _service(self, service: str, host_name: str) -> None:
         if service not in self.config.services:
-            raise KeyError(f"unknown service: {service}")
+            raise ResourceNotFound(f"unknown service: {service}")
         allowed = self.config.service_hosts(service)
         if host_name not in allowed:
-            raise KeyError(
+            raise ResourceNotFound(
                 f"host {host_name!r} is not configured for service {service!r}; allowed: {allowed}"
             )
 

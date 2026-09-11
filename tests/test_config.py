@@ -62,8 +62,8 @@ def test_example_config_loads() -> None:
     )
     workspace = config.workspace_spec("codespace", "server", "default")
     assert workspace.container.is_bridge
-    assert "ATUIN_SYNC_ADDRESS" not in (workspace.container.environment or {})
-    assert [(secret.source, secret.mode) for secret in workspace.container.secrets or []] == [
+    assert "ATUIN_SYNC_ADDRESS" not in workspace.container.environment
+    assert [(secret.source, secret.mode) for secret in workspace.container.secrets] == [
         ("atuin_db_uri", 0o400)
     ]
     support = config.service_spec("support", "server").container
@@ -76,7 +76,7 @@ def test_example_config_loads() -> None:
         assert spec.container.is_bridge
         assert spec.container.ports
         assert all(port.host_ip == "10.88.0.1" for port in spec.container.ports)
-        assert (spec.container.environment or {})["SERVE_HOST"] == "0.0.0.0"  # noqa: S104
+        assert spec.container.environment["SERVE_HOST"] == "0.0.0.0"  # noqa: S104
 
 
 def test_load_config_rejects_non_mapping(tmp_path: Path) -> None:
@@ -145,6 +145,7 @@ def test_project_layers_apply_host_defaults_and_replace_mappings(config: Config)
         "environment": {"HOST": "1"},
         "devices": ["/dev/fuse"],
         "pids_limit": 64,
+        "volumes": ["/host/base:/data"],
     }
     data["projects"]["codespace"]["container"] = {
         "environment": {"PROJECT": "1"},
@@ -153,6 +154,7 @@ def test_project_layers_apply_host_defaults_and_replace_mappings(config: Config)
     data["projects"]["codespace"]["hosts"]["home"]["container"] = {
         "environment": {"PLACEMENT": "1"},
         "pids_limit": 128,
+        "volumes": ["/host/placement:/placement:ro"],
     }
     data["projects"]["codespace"]["hosts"]["home"]["image"] = "workspace:placement"
 
@@ -163,6 +165,9 @@ def test_project_layers_apply_host_defaults_and_replace_mappings(config: Config)
     assert resolved.devices == ["/dev/fuse"]
     assert resolved.cap_add == ["NET_RAW"]
     assert resolved.pids_limit == 128
+    assert [(volume.source, volume.read_only) for volume in resolved.volumes] == [
+        ("/host/placement", True)
+    ]
     assert parsed.project_image("codespace", "home") == "workspace:placement"
 
 
@@ -197,6 +202,115 @@ def test_service_layers_apply_host_defaults_before_service(config: Config) -> No
     assert resolved.pids_limit == 64
 
 
+@pytest.mark.parametrize("kind", ["projects", "services"])
+@pytest.mark.parametrize(
+    ("override", "cleared"),
+    [
+        (None, False),
+        ({}, False),
+        ({"environment": None, "devices": None, "pids_limit": None}, False),
+        ({"environment": {}, "devices": [], "pids_limit": 0}, True),
+    ],
+)
+def test_container_overrides_distinguish_null_from_empty(
+    config: Config, kind: str, override: object, cleared: bool
+) -> None:
+    data = config.model_dump()
+    data["hosts"]["home"]["container"] = {
+        "environment": {"HOST": "1"},
+        "devices": ["/dev/fuse"],
+        "pids_limit": 64,
+    }
+    resource = "scratch" if kind == "projects" else "support"
+    data[kind][resource]["hosts"]["home"]["container"] = override
+    configured = Config.model_validate(data)
+    resolved = (
+        configured.workspace_spec(resource, "home", "default").container
+        if kind == "projects"
+        else configured.service_spec(resource, "home").container
+    )
+
+    assert resolved.environment == ({} if cleared else {"HOST": "1"})
+    assert resolved.devices == ([] if cleared else ["/dev/fuse"])
+    assert resolved.pids_limit == (0 if cleared else 64)
+    assert configured.model_dump() == Config.model_validate(configured.model_dump()).model_dump()
+
+
+@pytest.mark.parametrize("kind", ["projects", "services"])
+def test_resolved_containers_have_concrete_collections(config: Config, kind: str) -> None:
+    data = config.model_dump()
+    data["project_defaults"]["container"] = {}
+    configured = Config.model_validate(data)
+    before = configured.model_dump()
+    resolved = (
+        configured.workspace_spec("scratch", "home", "default").container
+        if kind == "projects"
+        else configured.service_spec("support", "home").container
+    )
+
+    assert resolved.model_dump() == {
+        "cap_add": [],
+        "security_opt": [],
+        "network_mode": "bridge" if kind == "projects" else "host",
+        "ipc": None,
+        "pids_limit": None,
+        "ulimits": {},
+        "volumes": [],
+        "environment": {},
+        "secrets": [],
+        "devices": [],
+        "ports": [],
+        "shm_size": None,
+    }
+    resolved.environment["LOCAL"] = "1"
+    resolved.devices.append("/dev/fuse")
+    assert configured.model_dump() == before
+
+
+def test_empty_collections_clear_all_inherited_container_values(config: Config) -> None:
+    data = config.model_dump()
+    data["projects"]["scratch"]["container"] = {
+        "environment": {"PROJECT": "1"},
+        "devices": ["/dev/fuse"],
+        "secrets": [{"source": "api_token"}],
+        "ports": [{"target": 80, "published": 8080, "host_ip": "127.0.0.1"}],
+    }
+    empty: dict[str, object] = {
+        "cap_add": [],
+        "security_opt": [],
+        "ulimits": {},
+        "volumes": [],
+        "environment": {},
+        "secrets": [],
+        "devices": [],
+        "ports": [],
+    }
+    data["projects"]["scratch"]["hosts"]["home"]["container"] = empty
+    configured = Config.model_validate(data)
+
+    resolved = configured.workspace_spec("scratch", "home", "default").container
+
+    assert resolved.model_dump(include=set(empty)) == empty
+    assert config.project_defaults.container.cap_add == ["NET_RAW", "SYS_ADMIN"]
+
+
+def test_service_requires_resolved_network_mode(config: Config) -> None:
+    data = config.model_dump()
+    data["services"]["support"]["container"] = {}
+
+    with pytest.raises(ValidationError, match="network_mode"):
+        Config.model_validate(data)
+
+
+def test_invalid_container_layer_is_rejected_even_when_overridden(config: Config) -> None:
+    data = config.model_dump()
+    data["hosts"]["home"]["container"] = {"cap_add": ["NET_RAW", "NET_RAW"]}
+    data["projects"]["scratch"]["container"] = {"cap_add": []}
+
+    with pytest.raises(ValidationError, match="duplicate"):
+        Config.model_validate(data)
+
+
 def test_config_accepts_compose_volume_short_syntax(config: Config) -> None:
     data = config.model_dump()
     data["project_defaults"]["container"]["volumes"] = ["/host/path:/opt/data:ro"]
@@ -211,7 +325,6 @@ def test_config_accepts_compose_volume_short_syntax(config: Config) -> None:
 def test_service_accepts_managed_data_placeholder(config: Config) -> None:
     volumes = config.resolved_service_container("vllm", "office").volumes
 
-    assert volumes is not None
     assert volumes[0].source == "${SERVICE_DATA}"
     assert volumes[0].target == "/root/.cache/huggingface"
 
@@ -228,7 +341,7 @@ def test_service_resolves_data_without_mutating_config(config: Config) -> None:
 
     resolved = spec.resolve_data_path("/home/x/codespace/services/vllm")
 
-    assert [volume.mount() for volume in resolved.volumes or []] == [
+    assert [volume.mount() for volume in resolved.volumes] == [
         {
             "type": "bind",
             "source": "/home/x/codespace/services/vllm",
@@ -243,7 +356,7 @@ def test_service_resolves_data_without_mutating_config(config: Config) -> None:
             "read_only": False,
         },
     ]
-    assert [volume.source for volume in spec.container.volumes or []] == [
+    assert [volume.source for volume in spec.container.volumes] == [
         "${SERVICE_DATA}",
         "/host/cache",
         "${SERVICE_DATA}",

@@ -3,11 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from dataclasses import dataclass
 
 from codespace.config import Config
-from codespace.operations import Operation
-from codespace.services.models import Service
+from codespace.control import ControlPlane, HostFailure, HostInventory
 from codespace.web.models import (
     DashboardResponse,
     DashboardWorkspace,
@@ -17,27 +15,28 @@ from codespace.web.models import (
     ServiceHostStatus,
     ServiceSummary,
 )
-from codespace.workspaces.models import GitProvider, Workspace
 
 
-@dataclass(frozen=True, slots=True)
-class HostInventory:
-    status: HostStatus
-    workspaces: list[Workspace]
-    services: list[Service]
-
-
-def build(
-    config: Config,
-    inventories: Mapping[str, HostInventory],
-    operations: list[Operation],
-    tokens: dict[GitProvider, bool],
-) -> DashboardResponse:
+def build(control: ControlPlane) -> DashboardResponse:
+    config = control.config
+    collected = control.inventory()
+    inventories = {
+        host: result for host, result in collected.items() if isinstance(result, HostInventory)
+    }
     workspaces = [
-        workspace for host_name in config.hosts for workspace in inventories[host_name].workspaces
+        workspace for inventory in inventories.values() for workspace in inventory.workspaces
     ]
     return DashboardResponse(
-        hosts=[inventories[host_name].status for host_name in config.hosts],
+        hosts=[
+            HostStatus(
+                id=result.host, status=result.status, workspace_count=None, error=result.error
+            )
+            if isinstance(result, HostFailure)
+            else HostStatus(
+                id=result.host, status="online", workspace_count=len(result.workspaces), error=None
+            )
+            for result in collected.values()
+        ],
         projects=[
             ProjectSummary(
                 id=project_id,
@@ -64,8 +63,8 @@ def build(
             )
         ],
         services=_service_summaries(config, inventories),
-        operations=operations,
-        tokens=tokens,
+        operations=[*control.workspaces.operations.list(), *control.services.operations.list()],
+        tokens=control.tokens.status(),
     )
 
 
