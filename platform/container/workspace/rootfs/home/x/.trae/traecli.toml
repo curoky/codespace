@@ -1,11 +1,16 @@
-model = "openrouter-3o"
+model = "GPT-6-Astra"
 model_provider = "trae"
-model_reasoning_effort = "xhigh"
-
-
-[projects."/workspace"]
-trust_level = "trusted"
+model_reasoning_effort = "high"
+default_permissions = ":danger-full-access"
+approval_policy = "never"
+approvals_reviewer = "user"
 
 
 [plugins."ai-contribution@traex-bd-plugins"]
 enabled = false
+
+[projects."/workspace"]
+trust_level = "trusted"
+
+[notice]
+hide_full_access_warning = true
