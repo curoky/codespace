@@ -8,9 +8,10 @@ from podman import PodmanClient
 from podman.domain.containers import Container
 
 from codespace.config import Config, ProjectConfig
+from codespace.errors import ResourceConflict, ResourceNotFound
 from codespace.operations import Operation, OperationStatus, OperationStore
 from codespace.runtime import container, host
-from codespace.runtime.container import ContainerSpec, PortSpec, SecretSpec
+from codespace.runtime.container import PortSpec, SecretSpec
 from codespace.runtime.transport import PodmanTransport
 from codespace.workspaces import agent, inventory, provider, ssh
 from codespace.workspaces.models import (
@@ -36,6 +37,7 @@ from codespace.workspaces.models import (
     ProviderSource,
     RepoGitState,
     Workspace,
+    WorkspaceContainerSpec,
     WorkspaceSpec,
     workspace_identity,
 )
@@ -105,9 +107,9 @@ class WorkspaceManager:
         current = inventory.list_workspaces(client, spec.host)
         for existing in current:
             if existing.project == spec.project and existing.workspace == spec.workspace:
-                raise RuntimeError(f"workspace {spec.identity!r} already exists")
+                raise ResourceConflict(f"workspace {spec.identity!r} already exists")
             if existing.ssh_host_port == spec.ssh_host_port:
-                raise RuntimeError(
+                raise ResourceConflict(
                     f"SSH forwarding port collision on host {spec.host!r}: "
                     f"{spec.identity!r} and {existing.id!r} both map to {spec.ssh_host_port}; "
                     "choose a different workspace name"
@@ -145,8 +147,6 @@ class WorkspaceManager:
         if credentials is not None:
             source, token = credentials
             status = agent_client.wait_for("awaiting-provider", timeout=_AGENT_START_TIMEOUT)
-            if status.public_key is None:
-                raise RuntimeError("deploy key missing for repository source")
             self._stage(spec, "registering deploy key")
             provider.register(
                 source.type,
@@ -167,35 +167,30 @@ class WorkspaceManager:
         self._stage(spec, "probing ssh")
         ssh.probe(spec.to_workspace(created.id, status="running"), route)
 
-    def delete(
-        self,
-        project: str,
-        host_name: str,
-        workspace: str,
-        *,
-        purge: bool,
-        force: bool = False,
-    ) -> RepoGitState:
+    def inspect_deletion(self, project: str, host_name: str, workspace: str) -> RepoGitState:
+        """Read repository state without starting or changing the Workspace."""
         self._project(project, host_name)
-        client = self.transport.client(host_name)
-        route = self.transport.ssh_route(host_name)
         running = self._container(project, host_name, workspace)
         actual = inventory.read_workspace(running, host_name)
+        if actual.source.type == "empty":
+            return RepoGitState(unpushed=False, uncommitted=False, detail=[])
+        if actual.status != "running":
+            raise ResourceConflict(
+                f"container {actual.id!r} is {actual.status}; "
+                "repository state cannot be inspected while it is not running"
+            )
+        route = self.transport.ssh_route(host_name)
+        paths = host.remote_data_paths(route).workspace(project, workspace)
+        agent_client = agent.WorkspaceAgentClient(
+            self.transport.forward_socket(host_name, f"{paths.control}/agent.sock")
+        )
+        return agent_client.git_state()
 
-        if not force:
-            if actual.source.type != "empty":
-                if actual.status != "running":
-                    raise RuntimeError(
-                        f"container {actual.id!r} is {actual.status}; "
-                        "repository state cannot be inspected while it is not running"
-                    )
-                paths = host.remote_data_paths(route).workspace(project, workspace)
-                agent_client = agent.WorkspaceAgentClient(
-                    self.transport.forward_socket(host_name, f"{paths.control}/agent.sock")
-                )
-                return agent_client.git_state()
-            return RepoGitState()
-
+    def delete(self, project: str, host_name: str, workspace: str, *, purge: bool) -> None:
+        """Execute an explicitly confirmed deletion, even when Git inspection is unavailable."""
+        self._project(project, host_name)
+        running = self._container(project, host_name, workspace)
+        actual = inventory.read_workspace(running, host_name)
         if isinstance(actual.source, ProviderSource):
             provider.revoke(
                 actual.source.type,
@@ -204,6 +199,8 @@ class WorkspaceManager:
                 actual.id,
             )
         if purge:
+            client = self.transport.client(host_name)
+            route = self.transport.ssh_route(host_name)
             paths = host.remote_data_paths(route).workspace(project, workspace)
             running.stop(timeout=10, ignore=True)
             platform = None if actual.platform == "native" else actual.platform
@@ -216,16 +213,15 @@ class WorkspaceManager:
             )
         container.remove_container(running)
         self.transport.close_tcp(host_name, actual.ssh_alias)
-        return RepoGitState()
 
     def open_tunnel(self, project: str, host_name: str, workspace: str, port: int) -> int:
         """Forward an explicitly configured Workspace port to local loopback."""
         self._project(project, host_name)
         if port not in self.config.project_tunnel_ports(project):
-            raise KeyError(f"tunnel port {port} is not configured for project {project!r}")
+            raise ResourceNotFound(f"tunnel port {port} is not configured for project {project!r}")
         actual = inventory.read_workspace(self._container(project, host_name, workspace), host_name)
         if actual.status != "running":
-            raise RuntimeError(f"workspace {actual.id!r} is not running ({actual.status})")
+            raise ResourceConflict(f"workspace {actual.id!r} is not running ({actual.status})")
         route = self.transport.ssh_route(host_name)
         return self.transport.forward_tcp(
             host_name,
@@ -258,16 +254,15 @@ class WorkspaceManager:
             },
         )
         if running is None:
-            raise RuntimeError(f"workspace {identity!r} not found")
+            raise ResourceNotFound(f"workspace {identity!r} not found")
         return running
 
     def _project(self, project: str, host_name: str) -> ProjectConfig:
-        try:
-            configured = self.config.projects[project]
-        except KeyError as exc:
-            raise KeyError(f"unknown project: {project}") from exc
+        if project not in self.config.projects:
+            raise ResourceNotFound(f"unknown project: {project}")
+        configured = self.config.projects[project]
         if host_name not in configured.hosts:
-            raise KeyError(
+            raise ResourceNotFound(
                 f"host {host_name!r} is not configured for project {project!r}; "
                 f"allowed: {sorted(configured.hosts)}"
             )
@@ -291,7 +286,7 @@ def _create_workspace_container(
 ) -> Container:
     environment = {
         **forwarded_environment,
-        **(spec.container.environment or {}),
+        **spec.container.environment,
         SOURCE_TYPE_ENV: spec.source.type,
         CHECKOUT_PATH_ENV: spec.checkout_path,
         OPEN_PATH_ENV: spec.open_path,
@@ -300,18 +295,16 @@ def _create_workspace_container(
     if spec.source.clone_url is not None:
         environment[CLONE_URL_ENV] = spec.source.clone_url
 
-    runtime_spec = spec.container
+    secrets = list(spec.container.secrets)
     if spec.encrypted:
-        secrets = [
-            *(runtime_spec.secrets or []),
+        secrets.append(
             SecretSpec(
                 source=WORKSPACE_KEY_SECRET,
                 uid=str(CONTAINER_UID),
                 gid=str(CONTAINER_GID),
                 mode=0o400,
-            ),
-        ]
-        runtime_spec = runtime_spec.model_copy(update={"secrets": secrets})
+            )
+        )
 
     mounts: list[dict[str, object]] = [
         {
@@ -323,17 +316,19 @@ def _create_workspace_container(
         {"type": "bind", "source": paths.cache, "target": CACHE_MOUNT},
         {"type": "bind", "source": paths.control, "target": CONTROL_MOUNT},
     ]
-    runtime_spec = runtime_spec.merged_with(
-        ContainerSpec(
-            ports=[
-                *(runtime_spec.ports or []),
+    runtime_spec = WorkspaceContainerSpec.model_validate(
+        {
+            **spec.container.model_dump(),
+            "secrets": secrets,
+            "ports": [
+                *spec.container.ports,
                 PortSpec(
                     target=WORKSPACE_SSH_PORT,
                     published=spec.ssh_host_port,
                     host_ip="127.0.0.1",
                 ),
-            ]
-        )
+            ],
+        }
     )
 
     return container.create_container(

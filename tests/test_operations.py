@@ -2,6 +2,7 @@
 
 import pytest
 
+from codespace.errors import ResourceConflict
 from codespace.operations import Operation, OperationStore, describe_error
 
 
@@ -21,7 +22,7 @@ def test_store_rejects_concurrent_operation_and_retains_failure() -> None:
     store = OperationStore()
     operation = store.create(_operation())
 
-    with pytest.raises(RuntimeError, match="already running"):
+    with pytest.raises(ResourceConflict, match="already running"):
         store.create(_operation())
 
     store.update(
@@ -42,7 +43,7 @@ def test_failed_operation_can_be_replaced_and_dismissed() -> None:
     replacement = store.create(_operation())
     assert replacement.status == "queued"
 
-    with pytest.raises(RuntimeError, match="still queued"):
+    with pytest.raises(ResourceConflict, match="still queued"):
         store.dismiss_failed(operation.host, operation.id)
 
     store.update(operation.host, operation.id, status="failed")

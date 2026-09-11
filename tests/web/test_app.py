@@ -6,16 +6,12 @@ import pytest
 from fastapi.testclient import TestClient
 
 from codespace.config import Config
+from codespace.control import HostInventory
+from codespace.errors import ResourceConflict, ResourceNotFound
 from codespace.operations import Operation, OperationStore
 from codespace.runtime.container import LogSnapshot
 from codespace.web.app import create_app, router
-from codespace.web.models import (
-    DashboardResponse,
-    DashboardWorkspace,
-    HostStatus,
-    ProjectHostSummary,
-    ProjectSummary,
-)
+from codespace.web.models import DashboardWorkspace
 from codespace.workspaces.models import EmptySource, RepoGitState, Workspace, workspace_identity
 
 
@@ -35,10 +31,11 @@ class FakeWorkspaceManager:
     def __init__(self) -> None:
         self.operations = OperationStore()
         self.created: list[tuple[str, str, str]] = []
-        self.deleted: list[tuple[str, str, str, bool, bool]] = []
+        self.deleted: list[tuple[str, str, str, bool]] = []
+        self.inspected: list[tuple[str, str, str]] = []
         self.log_sources: list[str] = []
         self.tunnels_opened: list[tuple[str, str, str, int]] = []
-        self.state = RepoGitState()
+        self.state = RepoGitState(unpushed=False, uncommitted=False, detail=[])
 
     def queue_create(self, project: str, host: str, workspace: str) -> Operation:
         return self.operations.create(
@@ -59,6 +56,10 @@ class FakeWorkspaceManager:
     def dismiss_failed(self, project: str, host: str, workspace: str) -> bool:
         return self.operations.dismiss_failed(host, workspace_identity(host, project, workspace))
 
+    def inspect_deletion(self, project: str, host: str, workspace: str) -> RepoGitState:
+        self.inspected.append((project, host, workspace))
+        return self.state
+
     def delete(
         self,
         project: str,
@@ -66,11 +67,8 @@ class FakeWorkspaceManager:
         workspace: str,
         *,
         purge: bool,
-        force: bool,
-    ) -> RepoGitState:
-        if force:
-            self.deleted.append((project, host, workspace, purge, force))
-        return self.state
+    ) -> None:
+        self.deleted.append((project, host, workspace, purge))
 
     def logs(
         self,
@@ -80,7 +78,7 @@ class FakeWorkspaceManager:
         source: str,
     ) -> LogSnapshot:
         if workspace == "missing":
-            raise RuntimeError("workspace not found")
+            raise ResourceNotFound("workspace not found")
         self.log_sources.append(source)
         return LogSnapshot(
             source=source,
@@ -90,7 +88,7 @@ class FakeWorkspaceManager:
 
     def open_tunnel(self, project: str, host: str, workspace: str, port: int) -> int:
         if workspace == "stopped":
-            raise RuntimeError("Tunnel requires a running Workspace")
+            raise ResourceConflict("Tunnel requires a running Workspace")
         self.tunnels_opened.append((project, host, workspace, port))
         return 49123
 
@@ -137,37 +135,14 @@ class FakeControl:
         self.tokens = FakeTokens()
         self.workspaces = FakeWorkspaceManager()
         self.services = FakeServiceManager()
+        self.inventories = {host: HostInventory(host, [], []) for host in config.hosts}
         self.closed = False
 
     def close(self) -> None:
         self.closed = True
 
-    def dashboard(self) -> DashboardResponse:
-        return DashboardResponse(
-            hosts=[HostStatus(id="home", status="online")],
-            projects=[
-                ProjectSummary(
-                    id="codespace",
-                    hosts=[
-                        ProjectHostSummary(
-                            name="home",
-                            platform="linux/arm64",
-                            image=self.config.project_defaults.image,
-                        )
-                    ],
-                    source=self.config.projects["codespace"].source,
-                    open_path="/workspace/codespace",
-                    tunnel_ports=self.config.project_tunnel_ports("codespace"),
-                )
-            ],
-            workspaces=[],
-            services=[],
-            operations=[
-                *self.workspaces.operations.list(),
-                *self.services.operations.list(),
-            ],
-            tokens=self.tokens.status(),  # type: ignore[arg-type]
-        )
+    def inventory(self) -> dict[str, HostInventory]:
+        return self.inventories
 
 
 @pytest.fixture
@@ -225,9 +200,7 @@ def test_dashboard_workspace_exposes_container_encryption(
     assert "container_id" not in serialized
     assert "alias" not in serialized
     client, control = app_client
-    dashboard = control.dashboard()
-    dashboard.workspaces = [dashboard_workspace]
-    monkeypatch.setattr(control, "dashboard", lambda: dashboard)
+    control.inventories["home"] = HostInventory("home", [workspace], [])
 
     response = client.get("/api/dashboard")
 
@@ -264,7 +237,7 @@ def test_workspace_routes_use_project_and_workspace_identity(
     )
     deleted = client.request(
         "DELETE",
-        "/api/projects/codespace/hosts/home/workspaces/debug?purge=true&force=true",
+        "/api/projects/codespace/hosts/home/workspaces/debug?purge=true",
     )
     logs = client.get("/api/projects/codespace/hosts/home/workspaces/debug/logs")
 
@@ -348,6 +321,7 @@ def test_only_final_api_routes_exist(app_client: tuple[TestClient, FakeControl])
         ("POST", "/api/projects/{project}/workspaces"),
         ("GET", "/api/projects/{project}/hosts/{host}/workspaces/{workspace}/logs"),
         ("POST", "/api/projects/{project}/hosts/{host}/workspaces/{workspace}/tunnels/{port}"),
+        ("GET", "/api/projects/{project}/hosts/{host}/workspaces/{workspace}/deletion-check"),
         ("DELETE", "/api/projects/{project}/hosts/{host}/workspaces/{workspace}"),
         ("DELETE", "/api/projects/{project}/hosts/{host}/operations/{workspace}"),
         ("POST", "/api/services/{service}/hosts/{host}/apply"),
@@ -355,3 +329,51 @@ def test_only_final_api_routes_exist(app_client: tuple[TestClient, FakeControl])
         ("DELETE", "/api/services/{service}/hosts/{host}"),
         ("DELETE", "/api/services/{service}/hosts/{host}/operation"),
     }
+
+
+@pytest.mark.parametrize("purge", [False, True])
+def test_deletion_check_is_read_only_and_delete_only_executes(
+    app_client: tuple[TestClient, FakeControl], purge: bool
+) -> None:
+    client, control = app_client
+    path = "/api/projects/codespace/hosts/home/workspaces/debug"
+    control.workspaces.state = RepoGitState(unpushed=True, uncommitted=False, detail=["commit"])
+
+    checked = client.get(f"{path}/deletion-check")
+    assert checked.json() == control.workspaces.state.model_dump()
+    assert control.workspaces.deleted == []
+    assert control.workspaces.inspected == [("codespace", "home", "debug")]
+    assert client.delete(f"{path}?force=true").status_code == 422
+    assert control.workspaces.deleted == []
+
+    deleted = client.delete(path, params={"purge": str(purge).lower()})
+    assert deleted.json() == {"deleted": True, "data_removed": purge}
+    assert control.workspaces.deleted == [("codespace", "home", "debug", purge)]
+    assert len(control.workspaces.inspected) == 1
+
+
+@pytest.mark.parametrize(
+    ("error", "status"),
+    [
+        (ResourceNotFound("not found"), 404),
+        (ResourceConflict("busy"), 409),
+        (KeyError("codespace.image"), 500),
+        (RuntimeError("runtime failed"), 500),
+    ],
+)
+def test_only_explicit_resource_errors_map_to_client_status(
+    app_client: tuple[TestClient, FakeControl],
+    monkeypatch: pytest.MonkeyPatch,
+    error: Exception,
+    status: int,
+) -> None:
+    original, control = app_client
+
+    def fail(*_args: object) -> None:
+        raise error
+
+    monkeypatch.setattr(control.workspaces, "inspect_deletion", fail)
+    client = TestClient(original.app, raise_server_exceptions=False)
+    response = client.get("/api/projects/codespace/hosts/home/workspaces/debug/deletion-check")
+    assert response.status_code == status
+    assert str(error) in response.json()["error"]

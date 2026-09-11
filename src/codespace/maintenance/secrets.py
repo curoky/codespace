@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
 
@@ -12,6 +14,14 @@ from codespace.maintenance import output
 from codespace.runtime.transport import PodmanTransport
 
 type Action = Literal["create", "replace"]
+
+
+@dataclass(frozen=True, slots=True)
+class SecretChange:
+    host: str
+    name: str
+    action: Action
+    value: str = field(repr=False)
 
 
 def sync(
@@ -37,13 +47,13 @@ def sync(
                 {"header": "Secret", "overflow": "fold"},
                 {"header": "Action", "no_wrap": True},
             ],
-            plan,
+            [(change.host, change.name, change.action) for change in plan],
         )
         output.print_warnings(target, errors)
         if not apply:
             target.print(f"Dry run: {len(plan)} secret(s); pass --apply to execute.")
             return
-        applied, apply_errors = _apply(config, transport)
+        applied, apply_errors = _apply(transport, plan)
         output.print_errors(target, apply_errors)
         target.print(f"Applied {applied} secret(s).")
     finally:
@@ -53,18 +63,18 @@ def sync(
 def _plan(
     config: Config,
     transport: PodmanTransport,
-) -> tuple[list[tuple[str, str, Action]], list[str]]:
+) -> tuple[list[SecretChange], list[str]]:
     names = sorted(config.secrets)
     existing_by_host, failures = output.fan_out(
         config.hosts,
         lambda host: _existing_secrets(transport, host, names),
     )
-    plan: list[tuple[str, str, Action]] = [
-        (host, name, "replace" if name in existing else "create")
+    plan = [
+        SecretChange(host, name, "replace" if name in existing else "create", config.secrets[name])
         for host, existing in existing_by_host
         for name in names
     ]
-    plan.sort(key=lambda item: (item[0], item[1]))
+    plan.sort(key=lambda item: (item.host, item.name))
     return plan, [f"{host}: {exc}" for host, exc in failures]
 
 
@@ -77,10 +87,13 @@ def _existing_secrets(
     return {name for name in names if client.secrets.exists(name)}
 
 
-def _apply(config: Config, transport: PodmanTransport) -> tuple[int, list[str]]:
+def _apply(transport: PodmanTransport, plan: list[SecretChange]) -> tuple[int, list[str]]:
+    grouped: dict[str, list[SecretChange]] = defaultdict(list)
+    for change in plan:
+        grouped[change.host].append(change)
     results, failures = output.fan_out(
-        config.hosts,
-        lambda host: _apply_host(transport, host, config.secrets),
+        grouped,
+        lambda host: _apply_host(transport, host, grouped[host]),
     )
     applied = sum(count for _host, (count, _errors) in results)
     errors = [
@@ -93,17 +106,20 @@ def _apply(config: Config, transport: PodmanTransport) -> tuple[int, list[str]]:
 def _apply_host(
     transport: PodmanTransport,
     host: str,
-    values: dict[str, str],
+    changes: list[SecretChange],
 ) -> tuple[int, list[str]]:
     client = transport.client(host)
     applied = 0
     errors: list[str] = []
-    for name in sorted(values):
+    for change in changes:
         try:
-            if client.secrets.exists(name):
-                client.secrets.remove(name)
-            client.secrets.create(name, values[name].encode())
+            exists = client.secrets.exists(change.name)
+            if exists != (change.action == "replace"):
+                raise RuntimeError("secret state changed since planning; run sync again")
+            if change.action == "replace":
+                client.secrets.remove(change.name)
+            client.secrets.create(change.name, change.value.encode())
             applied += 1
         except Exception as exc:
-            errors.append(f"{name}: {exc}")
+            errors.append(f"{change.name}: {exc}")
     return applied, errors

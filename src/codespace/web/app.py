@@ -16,16 +16,19 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from codespace.config import CONFIG_PATH, Config, load_config
 from codespace.control import ControlPlane
+from codespace.errors import ResourceConflict, ResourceNotFound
 from codespace.operations import Operation, describe_error
 from codespace.runtime.container import LogSnapshot
+from codespace.web import dashboard as dashboard_view
 from codespace.web.models import (
     CreateWorkspaceRequest,
     DashboardResponse,
+    DeleteWorkspaceQuery,
     DeleteWorkspaceResult,
     RemoveServiceResult,
     UpdateTokenRequest,
 )
-from codespace.workspaces.models import GitProvider
+from codespace.workspaces.models import GitProvider, RepoGitState
 
 STATIC_DIR = Path(__file__).parent / "static"
 router = APIRouter()
@@ -47,7 +50,7 @@ def _control(request: Request) -> ControlPlane:
 
 @router.get("/api/dashboard")
 def dashboard(request: Request) -> DashboardResponse:
-    return _control(request).dashboard()
+    return dashboard_view.build(_control(request))
 
 
 @router.put("/api/providers/{provider}/token")
@@ -97,26 +100,33 @@ def open_workspace_tunnel(
     return RedirectResponse(f"http://127.0.0.1:{local_port}/", status_code=303)
 
 
+@router.get("/api/projects/{project}/hosts/{host}/workspaces/{workspace}/deletion-check")
+def inspect_workspace_deletion(
+    project: ResourcePath,
+    host: HostPath,
+    workspace: ResourcePath,
+    request: Request,
+) -> RepoGitState:
+    return _control(request).workspaces.inspect_deletion(project, host, workspace)
+
+
 @router.delete("/api/projects/{project}/hosts/{host}/workspaces/{workspace}")
 def delete_workspace(
     project: ResourcePath,
     host: HostPath,
     workspace: ResourcePath,
     request: Request,
-    purge: Annotated[bool, Query()] = False,
-    force: Annotated[bool, Query()] = False,
+    query: Annotated[DeleteWorkspaceQuery, Query()],
 ) -> DeleteWorkspaceResult:
-    state = _control(request).workspaces.delete(
+    _control(request).workspaces.delete(
         project,
         host,
         workspace,
-        purge=purge,
-        force=force,
+        purge=query.purge,
     )
     return DeleteWorkspaceResult(
-        deleted=force,
-        data_removed=purge and force,
-        state=state,
+        deleted=True,
+        data_removed=query.purge,
     )
 
 
@@ -181,7 +191,7 @@ def _http_error(_request: Request, exc: Exception) -> JSONResponse:
 
 
 def _not_found(_request: Request, exc: Exception) -> JSONResponse:
-    return JSONResponse(status_code=404, content={"error": str(exc.args[0]) if exc.args else ""})
+    return JSONResponse(status_code=404, content={"error": str(exc)})
 
 
 def _conflict(_request: Request, exc: Exception) -> JSONResponse:
@@ -229,8 +239,8 @@ def create_app(
     app.state.control = resolved_control
     app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
     app.add_exception_handler(StarletteHTTPException, _http_error)
-    app.add_exception_handler(KeyError, _not_found)
-    app.add_exception_handler(RuntimeError, _conflict)
+    app.add_exception_handler(ResourceNotFound, _not_found)
+    app.add_exception_handler(ResourceConflict, _conflict)
     app.add_exception_handler(RequestValidationError, _validation_error)
     app.add_exception_handler(Exception, _unexpected_error)
     app.add_api_route("/", _index, methods=["GET"])

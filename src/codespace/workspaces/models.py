@@ -217,11 +217,11 @@ class WorkspaceSpec:
 class RepoGitState(BaseModel):
     """Read-only pre-delete state for a Git-backed Workspace."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", strict=True)
 
-    unpushed: bool = False
-    uncommitted: bool = False
-    detail: list[str] = Field(default_factory=list)
+    unpushed: bool
+    uncommitted: bool
+    detail: list[str]
 
 
 class Workspace(BaseModel):

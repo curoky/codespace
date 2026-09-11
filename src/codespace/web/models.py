@@ -12,7 +12,6 @@ from codespace.services.models import Service
 from codespace.workspaces.models import (
     GitProvider,
     HostId,
-    RepoGitState,
     ResourceId,
     Source,
     TokenString,
@@ -36,8 +35,13 @@ class UpdateTokenRequest(BaseModel):
 
 class DeleteWorkspaceResult(BaseModel):
     deleted: bool
-    data_removed: bool = False
-    state: RepoGitState = Field(default_factory=RepoGitState)
+    data_removed: bool
+
+
+class DeleteWorkspaceQuery(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    purge: bool = False
 
 
 class RemoveServiceResult(BaseModel):
@@ -47,9 +51,9 @@ class RemoveServiceResult(BaseModel):
 
 class HostStatus(BaseModel):
     id: str
-    status: Literal["online", "offline"]
-    workspace_count: int = 0
-    error: str | None = None
+    status: Literal["online", "offline", "error"]
+    workspace_count: int | None
+    error: str | None
 
 
 class ProjectHostSummary(BaseModel):
