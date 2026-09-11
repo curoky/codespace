@@ -72,4 +72,4 @@ def test_failed_agent_state_stops_waiting(
     )
 
     with pytest.raises(agent.AgentError, match="checkout failed"):
-        client.wait_for({"ready"}, timeout=1)
+        client.wait_for("ready", timeout=1)

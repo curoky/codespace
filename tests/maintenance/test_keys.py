@@ -9,13 +9,13 @@ from codespace.maintenance import keys
     ("title", "active", "scanned", "expected"),
     [
         (
-            "codespace-workspace-home-codespace-live",
-            {"codespace-workspace-home-codespace-live"},
+            "codespace-workspace_home_codespace_live",
+            {"codespace-workspace_home_codespace_live"},
             {"home"},
             "yes",
         ),
-        ("codespace-workspace-home-codespace-old", set(), {"home"}, "no"),
-        ("codespace-workspace-office-codespace-live", set(), {"home"}, "unknown"),
+        ("codespace-workspace_home_codespace_old", set(), {"home"}, "no"),
+        ("codespace-workspace_office_codespace_live", set(), {"home"}, "unknown"),
         ("manual-key", set(), {"home"}, "unmanaged"),
     ],
 )

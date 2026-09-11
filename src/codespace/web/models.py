@@ -73,17 +73,17 @@ class DashboardWorkspace(Workspace):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def ssh_command(self) -> str:
-        return f"ssh {self.id}"
+        return f"ssh {self.ssh_alias}"
 
     @computed_field  # type: ignore[prop-decorator]
     @property
     def trae_url(self) -> str:
-        return editor_url(self.id, self.open_path)
+        return editor_url(self.ssh_alias, self.open_path)
 
     @computed_field  # type: ignore[prop-decorator]
     @property
     def trae_cn_url(self) -> str:
-        return editor_url(self.id, self.open_path, scheme="trae-cn")
+        return editor_url(self.ssh_alias, self.open_path, scheme="trae-cn")
 
 
 class ServiceHostStatus(BaseModel):

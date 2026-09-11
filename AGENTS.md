@@ -5,6 +5,10 @@
 Codespace 在一个 monorepo 中提供可复现的个人开发 Workspace、Host 常驻 Service
 以及 Host 配置。声明式操作必须幂等，输入无效时 fail-fast。
 
+control plane client 固定为 `platform/macos/` 管理的 `/Users/x` macOS；远程开发
+runtime 固定为 `platform/container/workspace/`，不支持其他 client 或 Workspace
+contract。
+
 - **Project**：Workspace 的配置蓝图。
 - **Workspace**：Project 在 Host 上的持久副本及运行容器。
 - **Service**：Host 上的单例常驻容器。

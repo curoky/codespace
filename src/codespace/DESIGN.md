@@ -20,7 +20,9 @@ Workspace 与 Service 使用不相交的 inventory kind；Dashboard 不缓存容
 创建时，同一个 resolved specification 同时生成 identity、labels 与 runtime input。
 之后会影响删除、安全判断和用户入口的 deployed metadata 均从 labels 恢复，
 不与当前 Project 配置合并。缺失、冲突或无法验证的 metadata 直接失败；
-契约变化通过重建容器生效。
+identity 与 SSH port 只由已验证的 Host、Project、Workspace 三元组派生，契约变化
+通过重建容器生效。identity 使用资源名中禁止出现的 `_` 分隔字段，不能用 `-`
+拼接这些允许包含连字符的值。
 
 ## Boundaries
 
@@ -49,7 +51,16 @@ Transport 为每个 Host 维护一个 authenticated OpenSSH ControlMaster，并�
 使用独立 SSH connection，并随目标容器 identity 变化、Workspace 删除或控制面
 关闭而释放。
 
+Workspace image 与 Host installer 共同预置固定 SSH trust contract。Workspace SSH
+alias 编码 port、Host、Project 与 Workspace；静态 ProxyCommand 直接解析前两项并经
+Host 跳转。控制面不安装 key，也不生成、解析或改写本地 SSH 文件。
+
 ## Placement And Container Contract
+
+所有 Workspace image 引用都必须是 `platform/container/workspace` contract 的兼容
+构建。控制面不探测 image capability，也不为其他 image 维护 fallback；固定
+filesystem、home、Agent、SSHD 与 local service 布局由 image 在构建期提供，控制面
+只注入 placement 和单 Workspace runtime input。
 
 container 配置从通用层逐步覆盖到具体 placement；只有显式字段参与 merge，
 list 与 mapping 整体替换。Project image、platform 和 tunnel allowlist 各自按其
@@ -82,8 +93,9 @@ Host 的 DNS、bridge gateway 和 IPv6 出站能力属于基础设施前提。�
 managed data。具体路径由 runtime model 唯一生成，调用方不得拼接第二套布局。
 
 普通 Workspace 直接挂载业务数据；加密 Workspace 将同一 Host 目录作为 ciphertext
-root，明文视图由 image 启动链提供。交换数据和 cache 始终明文。control state
-保存 provider readiness 与 Agent UDS，权限必须保持私有。
+root，明文视图由 image 启动链提供。交换数据和单一 cache root 始终明文，具体 IDE
+cache 路径由 image home 的 symlink 定义。control state 保存 provider readiness 与
+Agent UDS，权限必须保持私有。
 
 provider token 只留在控制面内存。deploy key pair 在 Workspace 内生成，控制面
 只读取 public key 并向 provider 注册；Service 不得接触 Workspace credential。
@@ -106,7 +118,7 @@ sequenceDiagram
         Manager->>Host: authorize checkout
     end
     Manager->>Agent: wait for ready
-    Manager->>Host: probe SSH and refresh projection
+    Manager->>Host: probe SSH
 ```
 
 创建失败保留已经产生的容器、Host 数据与 provider side effect，operation 进入

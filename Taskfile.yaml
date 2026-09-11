@@ -31,19 +31,25 @@ tasks:
     desc: 格式化 Python 与 Shell
     cmds:
       - uv run ruff format src tests {{.WORKSPACE_AGENT}}/agent.py
-      - git ls-files -z '*.sh' '*.bats' | xargs -0 shfmt -w -i 2 -ci
+      - >-
+        git ls-files -z --cached --others --exclude-standard -- '*.sh' '*.bats' |
+        xargs -0 -n 1 sh -c 'test ! -f "$1" || shfmt -w -i 2 -ci "$1"' sh
 
   format:check:
     desc: 检查 Python 与 Shell 格式
     cmds:
       - uv run ruff format --check src tests {{.WORKSPACE_AGENT}}/agent.py
-      - git ls-files -z '*.sh' '*.bats' | xargs -0 shfmt -d -i 2 -ci
+      - >-
+        git ls-files -z --cached --others --exclude-standard -- '*.sh' '*.bats' |
+        xargs -0 -n 1 sh -c 'test ! -f "$1" || shfmt -d -i 2 -ci "$1"' sh
 
   lint:
     desc: 运行 Ruff 与 ShellCheck
     cmds:
       - uv run ruff check src tests {{.WORKSPACE_AGENT}}/agent.py
-      - git ls-files -z '*.sh' '*.bats' | xargs -0 shellcheck
+      - >-
+        git ls-files -z --cached --others --exclude-standard -- '*.sh' '*.bats' |
+        xargs -0 -n 1 sh -c 'test ! -f "$1" || shellcheck -x "$1"' sh
 
   typecheck:
     desc: 运行 strict Mypy

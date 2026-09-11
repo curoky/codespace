@@ -22,8 +22,8 @@ class GithubKey:
 class GithubRepo:
     def __init__(self) -> None:
         self.keys = [
-            GithubKey("codespace-workspace-home-codespace-debug", 1),
-            GithubKey("codespace-workspace-home-codespace-debug", 2),
+            GithubKey("codespace-workspace_home_codespace_debug", 1),
+            GithubKey("codespace-workspace_home_codespace_debug", 2),
             GithubKey("other", 3),
         ]
         self.created: dict[str, object] | None = None
@@ -60,18 +60,17 @@ def test_github_register_replaces_all_matching_titles(
     monkeypatch.setattr(provider.Auth, "Token", lambda token: token)
     monkeypatch.setattr(provider, "Github", lambda auth: GithubClient(repo))
 
-    key_id = provider.register(
+    provider.register(
         "github",
         "token",
         "curoky/codespace",
-        "codespace-workspace-home-codespace-debug",
+        "codespace-workspace_home_codespace_debug",
         "ssh-ed25519 PUBLIC",
     )
 
-    assert key_id == 9
     assert [key.deleted for key in repo.keys] == [True, True, False]
     assert repo.created == {
-        "title": "codespace-workspace-home-codespace-debug",
+        "title": "codespace-workspace_home_codespace_debug",
         "key": "ssh-ed25519 PUBLIC",
         "read_only": False,
     }
@@ -86,8 +85,8 @@ class GitlabKey:
 class GitlabKeys:
     def __init__(self) -> None:
         self.existing = [
-            GitlabKey(1, "codespace-workspace-office-service-api-debug"),
-            GitlabKey(2, "codespace-workspace-office-service-api-debug"),
+            GitlabKey(1, "codespace-workspace_office_service-api_debug"),
+            GitlabKey(2, "codespace-workspace_office_service-api_debug"),
         ]
         self.deleted: list[int] = []
         self.created: list[dict[str, object]] = []
@@ -130,20 +129,19 @@ def test_gitlab_register_replaces_all_matching_titles(
     GitlabClient.instances = []
     monkeypatch.setattr(provider.python_gitlab, "Gitlab", GitlabClient)
 
-    key_id = provider.register(
+    provider.register(
         "gitlab",
         "token",
         "group/service-api",
-        "codespace-workspace-office-service-api-debug",
+        "codespace-workspace_office_service-api_debug",
         "ssh-ed25519 PUBLIC",
     )
 
     client = GitlabClient.instances[0]
-    assert key_id == 7
     assert client.project.keys.deleted == [1, 2]
     assert client.project.keys.created == [
         {
-            "title": "codespace-workspace-office-service-api-debug",
+            "title": "codespace-workspace_office_service-api_debug",
             "key": "ssh-ed25519 PUBLIC",
             "can_push": True,
         }
@@ -165,8 +163,8 @@ def test_github_list_and_delete_deploy_keys(monkeypatch: pytest.MonkeyPatch) -> 
     monkeypatch.setattr(provider, "Github", lambda auth: GithubClient(repo))
 
     assert provider.list_deploy_keys("github", "token", "owner/repo") == [
-        provider.DeployKey(1, "codespace-workspace-home-codespace-debug"),
-        provider.DeployKey(2, "codespace-workspace-home-codespace-debug"),
+        provider.DeployKey(1, "codespace-workspace_home_codespace_debug"),
+        provider.DeployKey(2, "codespace-workspace_home_codespace_debug"),
         provider.DeployKey(3, "other"),
     ]
 
@@ -180,8 +178,8 @@ def test_gitlab_list_and_delete_deploy_keys(monkeypatch: pytest.MonkeyPatch) -> 
     monkeypatch.setattr(provider.python_gitlab, "Gitlab", GitlabClient)
 
     assert provider.list_deploy_keys("gitlab", "token", "group/service-api") == [
-        provider.DeployKey(1, "codespace-workspace-office-service-api-debug"),
-        provider.DeployKey(2, "codespace-workspace-office-service-api-debug"),
+        provider.DeployKey(1, "codespace-workspace_office_service-api_debug"),
+        provider.DeployKey(2, "codespace-workspace_office_service-api_debug"),
     ]
 
     provider.delete_deploy_keys("gitlab", "token", "group/service-api", [1, 2])

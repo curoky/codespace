@@ -5,6 +5,9 @@
 # macOS cruft
 **/.DS_Store
 
+# Host-only Workspace login credential is never an image build input.
+/platform/macos/rootfs/Users/x/.ssh/codespace/login_key
+
 # Python virtualenvs & caches (regenerated in-image; ~170M of build context)
 .venv
 **/.venv

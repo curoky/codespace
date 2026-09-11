@@ -20,15 +20,14 @@ from codespace.runtime.container import (
     ImagePlatform,
     NonBlankString,
 )
-from codespace.runtime.transport import HostEndpoint
 from codespace.services.models import SERVICE_DATA_PLACEHOLDER, ServiceSpec
 from codespace.workspaces.models import (
     CACHE_MOUNT,
     CHECKOUT_PATH_ENV,
     CLONE_URL_ENV,
+    CONTAINER_HOME,
     CONTROL_MOUNT,
     ENCRYPTED_ENV,
-    HOME_CACHE_MOUNTS,
     OPEN_PATH_ENV,
     SOURCE_TYPE_ENV,
     SSHD_BIND_ENV,
@@ -43,10 +42,12 @@ from codespace.workspaces.models import (
     ResourceId,
     Source,
     TokenString,
+    WorkspacePath,
     WorkspaceSpec,
+    workspace_path,
 )
 
-CONFIG_PATH = Path.home() / ".config" / "codespace" / "config.yaml"
+CONFIG_PATH = Path("/Users/x/.config/codespace/config.yaml")
 _ENVIRONMENT_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 _RESERVED_ENVIRONMENT = {
     SOURCE_TYPE_ENV,
@@ -64,7 +65,7 @@ _RESERVED_MOUNTS = (
     CACHE_MOUNT,
     CONTROL_MOUNT,
     WORKSPACE_KEY_MOUNT,
-    *(target for _name, target in HOME_CACHE_MOUNTS),
+    CONTAINER_HOME,
 )
 
 
@@ -74,14 +75,6 @@ def _environment_name(value: str) -> str:
     return value
 
 
-def _workspace_path(value: str) -> str:
-    path = PurePosixPath(value)
-    workspace = PurePosixPath(WORKSPACE_MOUNT)
-    if not path.is_absolute() or (path != workspace and workspace not in path.parents):
-        raise ValueError(f"must be {WORKSPACE_MOUNT} or a path below it")
-    return str(path)
-
-
 def _unique_ports(ports: list[int]) -> list[int]:
     if len(ports) != len(set(ports)):
         raise ValueError("tunnel ports must be unique")
@@ -89,7 +82,6 @@ def _unique_ports(ports: list[int]) -> list[int]:
 
 
 type EnvironmentName = Annotated[str, AfterValidator(_environment_name)]
-type WorkspacePath = Annotated[str, AfterValidator(_workspace_path)]
 type TunnelPorts = Annotated[
     list[Annotated[int, Field(strict=True, ge=1, le=65535)]], AfterValidator(_unique_ports)
 ]
@@ -100,15 +92,11 @@ class FrozenModel(BaseModel):
 
 
 class HostConfig(FrozenModel):
-    """SSH and Podman connection settings for one Host."""
+    """Placement settings for one SSH Host."""
 
-    podman_socket: str | None = None
     forward_environment: list[EnvironmentName] = Field(default_factory=list)
     platform: ImagePlatform | None = None
     container: ContainerSpec | None = None
-
-    def endpoint(self) -> HostEndpoint:
-        return HostEndpoint(podman_socket=self.podman_socket)
 
 
 class ProjectPlacement(FrozenModel):
@@ -140,7 +128,7 @@ class ProjectConfig(FrozenModel):
         if self.checkout_path is not None:
             return self.checkout_path
         name = self.source.checkout_name
-        return WORKSPACE_MOUNT if name is None else f"{WORKSPACE_MOUNT}/{name}"
+        return workspace_path(WORKSPACE_MOUNT if name is None else f"{WORKSPACE_MOUNT}/{name}")
 
     def resolved_open_path(self) -> str:
         return self.open_path or self.resolved_checkout_path()
@@ -177,6 +165,8 @@ class Config(FrozenModel):
     @model_validator(mode="after")
     def _validate_contracts(self) -> Config:
         for project_id, project in self.projects.items():
+            project.resolved_checkout_path()
+            project.resolved_open_path()
             for host in project.hosts:
                 if host not in self.hosts:
                     raise ValueError(f"project {project_id!r} references unknown host {host!r}")
@@ -330,7 +320,7 @@ def _paths_overlap(left: str, right: str) -> bool:
 def load_config(path: Path = CONFIG_PATH) -> Config:
     """Read and validate the one canonical YAML configuration file."""
     with path.open("rb") as config_file:
-        raw = yaml.safe_load(config_file) or {}
+        raw = yaml.safe_load(config_file)
     if not isinstance(raw, dict):
         raise ValueError(f"config {path.resolve()} must be a mapping")
     return Config.model_validate(raw)

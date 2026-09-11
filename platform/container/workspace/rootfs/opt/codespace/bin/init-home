@@ -1,22 +1,17 @@
 #!/usr/bin/env bash
-# home-init s6 oneshot (runs as x): prepare shell and IDE state, generate or
+# home-init s6 oneshot (runs as x): prepare persistent IDE state, generate or
 # reuse the deploy key, then seed editor extensions. sshd and workspace-agent
 # depend on this service.
 # Log: /var/log/s6.home-init.log.
 
 set -euo pipefail
 
-install -d -m 0700 -- /home/x/.cache
-conda shell.zsh hook >/home/x/.cache/conda.plugin.zsh
-starship init zsh >/home/x/.cache/starship.plugin.zsh
-atuin init zsh --disable-up-arrow >/home/x/.cache/atuin.plugin.zsh
-
 sudo install -d -o 5230 -g 5230 -m 0700 -- \
-  /home/x/.vscode-server/{bin,extensions} \
-  /home/x/.trae/{bin,extensions} \
-  /home/x/.trae-cn/{bin,extensions} \
-  /home/x/.trae-server/{bin,extensions} \
-  /home/x/.trae-cn-server/{bin,extensions}
+  /cache/.vscode-server/{bin,extensions} \
+  /cache/.trae/{bin,extensions} \
+  /cache/.trae-cn/{bin,extensions} \
+  /cache/.trae-server/{bin,extensions} \
+  /cache/.trae-cn-server/{bin,extensions}
 
 # The private key stays inside the Workspace; the control plane reads only the
 # public key.
@@ -26,5 +21,4 @@ if [[ ! -f /home/x/.ssh/repo_id_ed25519 ]]; then
 fi
 chmod 0600 /home/x/.ssh/repo_id_ed25519
 
-/opt/codespace/bin/seed-editor-extensions \
-  /home/x/.vscode-server /home/x/.trae-server /home/x/.trae-cn-server
+/opt/codespace/bin/seed-editor-extensions

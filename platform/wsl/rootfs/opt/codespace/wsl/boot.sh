@@ -27,13 +27,14 @@ sysctl -p /etc/sysctl.d/custom.conf || true
 
 # s6-envdir in every service's run script uses the strict default: a missing
 # /run/s6/container_environment makes it exit 111 and the service never starts.
-# WSL performs no container-style environment dump, so create the dir (empty is
-# fine) and seed only what the WSL contract needs.
+# WSL performs no container-style environment dump, so create the directory and
+# seed the complete runtime input required by the inherited services.
 mkdir -p /run/s6/container_environment /run/service
 
-# Bind sshd to 0.0.0.0 so it is reachable from the LAN (e.g. macOS) through
-# WSL port forwarding or mirrored networking. The SSH service otherwise
-# defaults to loopback.
+# WSL is always plaintext and exposes sshd on its conventional port. Bind to all
+# interfaces so it is reachable through WSL port forwarding or mirrored networking.
+printf 'false' >/run/s6/container_environment/CODESPACE_ENCRYPTED
+printf '22' >/run/s6/container_environment/SSHD_PORT
 printf '0.0.0.0' >/run/s6/container_environment/SSHD_BIND
 
 # Bring up s6-rc once s6-svscan is ready to accept control commands, which is

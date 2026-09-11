@@ -11,7 +11,6 @@ from codespace.runtime.transport import PodmanTransport
 from codespace.services.lifecycle import ServiceManager
 from codespace.web import dashboard as dashboard_state
 from codespace.web.models import DashboardResponse, HostStatus
-from codespace.workspaces import ssh
 from codespace.workspaces.lifecycle import WorkspaceManager
 from codespace.workspaces.models import GitProvider
 
@@ -52,13 +51,10 @@ class ControlPlane:
         transport: PodmanTransport | None = None,
     ) -> None:
         self.config = config
-        self.transport = transport or PodmanTransport(
-            {host: options.endpoint() for host, options in config.hosts.items()}
-        )
+        self.transport = transport or PodmanTransport(config.hosts)
         self.tokens = TokenStore(config.seed_tokens())
         self.workspaces = WorkspaceManager(config, self.transport, self.tokens.get)
         self.services = ServiceManager(config, self.transport)
-        ssh.initialize(list(config.hosts))
 
     def close(self) -> None:
         self.transport.close()
@@ -81,9 +77,7 @@ class ControlPlane:
 
     def _host_inventory(self, host_name: str) -> dashboard_state.HostInventory:
         try:
-            route = self.transport.ssh_route(host_name)
             workspaces = self.workspaces.inventory(host_name)
-            ssh.write_host(host_name, workspaces, route)
             services = self.services.inventory(host_name)
             return dashboard_state.HostInventory(
                 status=HostStatus(

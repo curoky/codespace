@@ -7,7 +7,7 @@ from codespace.operations import Operation, OperationStore, describe_error
 
 def _operation(*, status: str = "queued") -> Operation:
     return Operation(
-        id="codespace-workspace-home-codespace-debug",
+        id="codespace-workspace_home_codespace_debug",
         kind="workspace",
         host="home",
         resource="debug",

@@ -14,15 +14,14 @@ from codespace.workspaces.models import (
     LABEL_PROJECT,
     LABEL_REPOSITORY,
     LABEL_SOURCE,
-    LABEL_SSH_PORT,
     LABEL_WORKSPACE,
     workspace_identity,
     workspace_ssh_port,
 )
 
 
-def test_default_config_path_is_xdg_location() -> None:
-    assert Path.home() / ".config/codespace/config.yaml" == CONFIG_PATH
+def test_default_config_path_is_managed_macos_location() -> None:
+    assert str(CONFIG_PATH) == "/Users/x/.config/codespace/config.yaml"
 
 
 def test_tunnel_ports_default_and_project_override(config: Config) -> None:
@@ -59,7 +58,7 @@ def test_example_config_loads() -> None:
     assert list(config.projects) == ["codespace"]
     assert list(config.services) == ["support", "vllm", "sglang"]
     assert config.workspace_spec("codespace", "server", "default").identity == (
-        "codespace-workspace-server-codespace-default"
+        "codespace-workspace_server_codespace_default"
     )
     workspace = config.workspace_spec("codespace", "server", "default")
     assert workspace.container.is_bridge
@@ -130,6 +129,14 @@ def test_config_rejects_unknown_top_level_fields(
 ) -> None:
     with pytest.raises(ValidationError, match="Extra inputs"):
         Config.model_validate({**config.model_dump(), **unknown})
+
+
+def test_host_rejects_podman_socket_override(config: Config) -> None:
+    data = config.model_dump()
+    data["hosts"]["home"]["podman_socket"] = "/tmp/podman.sock"
+
+    with pytest.raises(ValidationError, match="Extra inputs"):
+        Config.model_validate(data)
 
 
 def test_project_layers_apply_host_defaults_and_replace_mappings(config: Config) -> None:
@@ -295,12 +302,36 @@ def test_project_rejects_reserved_environment_and_mounts(config: Config) -> None
     with pytest.raises(ValidationError, match="overlaps reserved"):
         Config.model_validate(volume)
 
+    home = config.model_dump()
+    home["projects"]["codespace"]["container"] = {
+        "volumes": ["/tmp/editor:/home/x/.vscode-server/extensions"]
+    }
+    with pytest.raises(ValidationError, match="overlaps reserved"):
+        Config.model_validate(home)
+
     secret = config.model_dump()
     secret["projects"]["codespace"]["container"] = {
         "secrets": [{"source": "codespace_workspace_key"}]
     }
     with pytest.raises(ValidationError, match="reserved secret"):
         Config.model_validate(secret)
+
+
+@pytest.mark.parametrize("path", ["/workspace/../etc", "/workspace/repo/../../tmp"])
+def test_project_rejects_workspace_path_traversal(config: Config, path: str) -> None:
+    data = config.model_dump()
+    data["projects"]["codespace"]["open_path"] = path
+
+    with pytest.raises(ValidationError, match="must not contain"):
+        Config.model_validate(data)
+
+
+def test_project_rejects_escaping_derived_checkout_path(config: Config) -> None:
+    data = config.model_dump()
+    data["projects"]["codespace"]["source"] = {"type": "github", "repository": "owner/.."}
+
+    with pytest.raises(ValidationError, match="must not contain"):
+        Config.model_validate(data)
 
 
 def test_service_data_placeholder_is_rejected_for_projects(config: Config) -> None:
@@ -345,7 +376,7 @@ def test_workspace_identity_labels_and_paths(config: Config) -> None:
     spec = config.workspace_spec("codespace", "home", "debug")
     paths = HostDataPaths("/home/x/codespace")
 
-    assert identity == "codespace-workspace-home-codespace-debug"
+    assert identity == "codespace-workspace_home_codespace_debug"
     assert spec.identity == identity
     assert 20_000 <= workspace_ssh_port(identity) <= 29_999
     assert spec.labels() == {
@@ -356,7 +387,6 @@ def test_workspace_identity_labels_and_paths(config: Config) -> None:
         LABEL_REPOSITORY: "curoky/codespace",
         LABEL_IMAGE: "ghcr.io/curoky/codespace:workspace-debian13",
         LABEL_PLATFORM: "linux/arm64",
-        LABEL_SSH_PORT: str(spec.ssh_port),
         "codespace.open-path": "/workspace/codespace",
         "codespace.encrypted": "false",
     }
@@ -364,3 +394,7 @@ def test_workspace_identity_labels_and_paths(config: Config) -> None:
         "/home/x/codespace/workspaces/codespace/debug"
     )
     assert paths.service("support") == "/home/x/codespace/services/support"
+
+
+def test_workspace_identity_has_unambiguous_component_boundaries() -> None:
+    assert workspace_identity("home", "a-b", "c") != workspace_identity("home", "a", "b-c")

@@ -2,7 +2,7 @@
 # workspace-init s6 oneshot (runs as x): prepare the Workspace data, ciphertext
 # root and upload/cache as private x-owned directories, then mount /workspace via
 # gocryptfs when explicitly enabled by the container specification.
-# Gates sshd/webdav. The IDE bin/extensions mounts are prepared by home-init.
+# Gates sshd/webdav. IDE cache symlink targets are prepared by home-init.
 
 set -euo pipefail
 
@@ -22,7 +22,7 @@ if [[ ${CODESPACE_ENCRYPTED} == false ]]; then
 fi
 
 # gocryptfs 以 x 挂载：其 FUSE 守护进程用 x 身份读写密文根，落盘密文属主即 5230:5230。
-workspace_key_file=${1:-/run/secrets/codespace_workspace_key}
+readonly workspace_key_file=/run/secrets/codespace_workspace_key
 if [[ ! -r ${workspace_key_file} ]]; then
   echo "Encrypted Workspace requires a readable key secret" >&2
   exit 1

@@ -2,7 +2,6 @@
 
 hosts:
   server:
-    podman_socket: /run/podman/podman.sock
     forward_environment: [HTTP_PROXY, HTTPS_PROXY, NO_PROXY]
     platform: linux/amd64
     container:

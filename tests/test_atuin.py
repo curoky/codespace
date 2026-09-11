@@ -19,9 +19,10 @@ def test_workspace_atuin_server_uses_private_secret_and_loopback() -> None:
     secret = "backtick -i ATUIN_DB_URI { cat /run/secrets/atuin_db_uri }"
     assert "if { test -s /run/secrets/atuin_db_uri }" in run
     assert run.index(secret) < run.index("exec /opt/bm/store/atuin/bin/atuin server start")
-    assert 'importas -D "127.0.0.1" ATUIN_HOST ATUIN_HOST' in run
-    assert 'importas -D "8002" ATUIN_PORT ATUIN_PORT' in run
+    assert 'export ATUIN_HOST "127.0.0.1"' in run
+    assert 'export ATUIN_PORT "8002"' in run
     assert 'export ATUIN_OPEN_REGISTRATION "false"' in run
+    assert "importas" not in run
     assert os.access(_SERVICES / "atuin-server/run", os.X_OK)
     config = tomllib.loads((_WORKSPACE / "rootfs/home/x/.config/atuin/config.toml").read_text())
     assert config["sync_address"] == "http://127.0.0.1:8002"
@@ -34,7 +35,7 @@ def test_atuin_clients_depend_on_server_readiness() -> None:
     run = (_SERVICES / "atuin-server/run").read_text()
     assert "s6-notifyoncheck" in run
     assert "--fail" in run
-    assert "http://${ATUIN_HOST}:${ATUIN_PORT}/" in run
+    assert "http://127.0.0.1:8002/" in run
     assert (_SERVICES / "default/contents.d/atuin-server").is_file()
     assert (_SERVICES / "atuin-login/dependencies.d/atuin-server").is_file()
     assert (_SERVICES / "atuin-daemon/dependencies.d/atuin-login").is_file()

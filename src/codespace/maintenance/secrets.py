@@ -27,7 +27,7 @@ def sync(
         target.print("No secrets declared in config; nothing to sync.")
         return
 
-    transport = PodmanTransport({host: value.endpoint() for host, value in config.hosts.items()})
+    transport = PodmanTransport(config.hosts)
     try:
         plan, errors = _plan(config, transport)
         output.render_table(

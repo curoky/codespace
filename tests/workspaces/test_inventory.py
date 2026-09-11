@@ -20,7 +20,6 @@ def _container(encrypted: str) -> SimpleNamespace:
             "codespace.repository": "curoky/codespace",
             "codespace.image": "workspace:latest",
             "codespace.platform": "native",
-            "codespace.ssh-port": "22000",
             "codespace.open-path": "/workspace/codespace",
             "codespace.encrypted": encrypted,
         },
@@ -52,6 +51,14 @@ def test_read_workspace_requires_metadata(label: str) -> None:
 def test_read_workspace_rejects_invalid_encryption_label() -> None:
     with pytest.raises(KeyError):
         inventory.read_workspace(_container("invalid"), "home")  # type: ignore[arg-type]
+
+
+def test_read_workspace_rejects_escaping_open_path() -> None:
+    container = _container("false")
+    container.labels["codespace.open-path"] = "/workspace/../etc"
+
+    with pytest.raises(ValidationError, match="must not contain"):
+        inventory.read_workspace(container, "home")  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize("project", ["codespace", "service-api", "scratch", "personal"])

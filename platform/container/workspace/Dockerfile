@@ -117,7 +117,7 @@ FROM docker.io/nvidia/cuda:12.2.2-devel-ubuntu22.04 AS stage_cuda
 FROM docker.io/debian:stable-slim AS stage_vscode_ext
 
 RUN apt-get update -y \
-  && apt-get install -y --no-install-recommends ca-certificates curl \
+  && apt-get install -y --no-install-recommends ca-certificates curl jq \
   && rm -rf /var/lib/apt/lists/*
 
 COPY platform/container/workspace/config/extensions.txt /tmp/extensions.txt
@@ -134,7 +134,6 @@ ARG BASE_IMAGE
 
 # 环境变量集中声明；PATH 一次拼定，避免层层追加。
 ENV DEBIAN_FRONTEND=noninteractive \
-  CODESPACE_ENCRYPTED=false \
   CARGO_HOME=/opt/rust/cargo \
   RUSTUP_HOME=/opt/rust/rustup \
   UV_TOOL_DIR=/opt/uv/tools \
@@ -172,10 +171,13 @@ COPY platform/container/workspace/scripts/configure-system.sh /tmp/configure-sys
 COPY platform/container/workspace/scripts/install-s6.sh /tmp/install-s6.sh
 RUN /tmp/configure-system.sh && /tmp/install-s6.sh
 
+COPY platform/container/workspace/scripts/prepare-home.sh /tmp/prepare-home.sh
+USER x
+RUN HOME=/home/x bash /tmp/prepare-home.sh
+
 # Agent runtime 与 Trae rules 均以 x 身份生成，产物天生属 5230:5230，无需额外 chown。
 # agent 源码改动频繁，故置于 toolchain 之后；uv sync 依赖 /opt/uv 与 agent 源码。
 COPY --chown=5230:5230 platform/container/workspace/agent/ /opt/codespace/agent/
-USER x
 RUN UV_LINK_MODE=copy uv sync --project /opt/codespace/agent --locked --no-dev --python 3.14
 # install.sh 靠 $HOME 定位；HOME 只是 build-time 需求，局部注入即可，不渗入镜像
 # （运行期各进程自带显式 HOME=/home/x）。

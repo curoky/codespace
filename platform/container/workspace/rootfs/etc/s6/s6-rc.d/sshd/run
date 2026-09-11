@@ -5,17 +5,8 @@ s6-envdir -Lf -- /run/s6/container_environment
 redirfd -w 1 /var/log/s6.sshd.stdout.log
 fdmove -c 2 1
 
-# Read SSHD_PORT from the now-loaded environment into an execline variable so it
-# can be substituted into the exec line below (execline expands $vars itself).
-# Default to 22 when unset so the codespace contract (sshd on container port 22)
-# holds without extra env; callers can still override SSHD_PORT.
-importas -D 22 SSHD_PORT SSHD_PORT
-
-# SSHD_BIND selects the listen address. Host-network containers keep the safe
-# 127.0.0.1 default (Codespace reaches sshd through ProxyJump on the shared
-# netns). Bridge-network containers inject 0.0.0.0 so the
-# published SSH port can forward into the container's own netns.
-importas -D 127.0.0.1 SSHD_BIND SSHD_BIND
+importas SSHD_PORT SSHD_PORT
+importas SSHD_BIND SSHD_BIND
 
 # Override the listen port and bind address on the command line instead of
 # editing the config file.

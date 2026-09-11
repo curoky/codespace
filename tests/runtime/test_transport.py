@@ -15,7 +15,7 @@ from threading import Event
 import pytest
 
 from codespace.runtime import transport as transport_module
-from codespace.runtime.transport import HostEndpoint, PodmanTransport, TransportError
+from codespace.runtime.transport import PodmanTransport, TransportError
 
 
 class FakeProcess:
@@ -88,7 +88,7 @@ def test_transport_uses_control_master_and_private_runtime(tmp_path: Path) -> No
         return client
 
     transport = PodmanTransport(
-        {"home": HostEndpoint()},
+        {"home"},
         runtime_parent=tmp_path,
         process_factory=_master_factory(processes, commands),
         client_factory=client_factory,  # type: ignore[arg-type]
@@ -126,7 +126,7 @@ def test_transport_default_socket_paths_fit_macos_limit() -> None:
     commands: list[list[str]] = []
     host = "h" * 63
     transport = PodmanTransport(
-        {host: HostEndpoint()},
+        {host},
         process_factory=_master_factory([], commands),
         client_factory=FakeClient,  # type: ignore[arg-type]
     )
@@ -158,7 +158,7 @@ def test_transport_reuses_live_master_and_rebuilds_dead_master(tmp_path: Path) -
         return client
 
     transport = PodmanTransport(
-        {"home": HostEndpoint()},
+        {"home"},
         runtime_parent=tmp_path,
         process_factory=_master_factory(processes),
         client_factory=client_factory,  # type: ignore[arg-type]
@@ -200,7 +200,7 @@ def test_transport_serializes_master_startup_across_hosts(tmp_path: Path) -> Non
         return process
 
     transport = PodmanTransport(
-        {"first": HostEndpoint(), "second": HostEndpoint()},
+        {"first", "second"},
         runtime_parent=tmp_path,
         process_factory=process_factory,
         client_factory=FakeClient,  # type: ignore[arg-type]
@@ -233,24 +233,6 @@ def test_transport_serializes_master_startup_across_hosts(tmp_path: Path) -> Non
     assert all(process.terminated for process in processes)
 
 
-def test_transport_forwards_per_host_remote_socket(tmp_path: Path) -> None:
-    commands: list[list[str]] = []
-
-    transport = PodmanTransport(
-        {"boe": HostEndpoint(podman_socket="/tmp/podmanxd.sock")},
-        runtime_parent=tmp_path,
-        process_factory=_master_factory([], commands),
-        client_factory=FakeClient,  # type: ignore[arg-type]
-    )
-
-    transport.client("boe")
-
-    digest = hashlib.sha256(b"boe").hexdigest()[:16]
-    assert commands[0][-2] == (f"{transport.runtime_dir}/podman-{digest}.sock:/tmp/podmanxd.sock")
-
-    transport.close()
-
-
 def test_transport_reuses_workspace_agent_forward(tmp_path: Path) -> None:
     processes: list[FakeProcess] = []
     forward_commands: list[list[str]] = []
@@ -260,7 +242,7 @@ def test_transport_reuses_workspace_agent_forward(tmp_path: Path) -> None:
         return _ok_run(command, **kwargs)
 
     transport = PodmanTransport(
-        {"home": HostEndpoint()},
+        {"home"},
         runtime_parent=tmp_path,
         process_factory=_master_factory(processes),
         client_factory=FakeClient,  # type: ignore[arg-type]
@@ -288,7 +270,7 @@ def test_tcp_forward_reuses_serializes_and_rebuilds_connections(tmp_path: Path) 
     commands: list[list[str]] = []
     processes: list[FakeProcess] = []
     transport = PodmanTransport(
-        {"home": HostEndpoint()},
+        {"home"},
         runtime_parent=tmp_path,
         process_factory=_master_factory(processes, commands),
     )
@@ -298,7 +280,7 @@ def test_tcp_forward_reuses_serializes_and_rebuilds_connections(tmp_path: Path) 
             "home",
             "workspace",
             port=8005,
-            options=["-o", "Port=22000"],
+            options=["-F", "/tmp/workspace.conf", "-o", "Port=22000"],
             connection_id=connection_id,
         )
 
@@ -309,10 +291,11 @@ def test_tcp_forward_reuses_serializes_and_rebuilds_connections(tmp_path: Path) 
         assert len(processes) == 1
         command = commands[0]
         assert command[-3:] == ["-L", f"127.0.0.1:{ports[0]}:127.0.0.1:8005", "workspace"]
-        assert command[:4] == ["ssh", "-F", "/dev/null", "-N"]
+        assert command[:2] == ["ssh", "-N"]
         assert "ExitOnForwardFailure=yes" in command
         assert "GatewayPorts=no" in command
         assert "BatchMode=yes" in command
+        assert "/tmp/workspace.conf" in command
         assert "Port=22000" in command
 
         connect("container-2")
@@ -338,7 +321,7 @@ def test_tcp_forward_reuses_serializes_and_rebuilds_connections(tmp_path: Path) 
 def test_tcp_forwards_isolate_ports_workspaces_and_hosts(tmp_path: Path) -> None:
     processes: list[FakeProcess] = []
     transport = PodmanTransport(
-        {"home": HostEndpoint(), "other": HostEndpoint()},
+        {"home", "other"},
         runtime_parent=tmp_path,
         process_factory=_master_factory(processes),
     )
@@ -369,9 +352,7 @@ def test_tcp_forward_start_failure_is_not_cached(tmp_path: Path) -> None:
         process.stderr = io.BytesIO(b"bind: Address already in use")  # type: ignore[assignment]
         return process
 
-    transport = PodmanTransport(
-        {"home": HostEndpoint()}, runtime_parent=tmp_path, process_factory=fail
-    )
+    transport = PodmanTransport({"home"}, runtime_parent=tmp_path, process_factory=fail)
     try:
         for _ in range(2):
             with pytest.raises(TransportError, match="Address already in use"):
@@ -388,7 +369,7 @@ def test_tcp_forward_timeout_terminates_process(
     process = FakeProcess()
     monkeypatch.setattr(transport_module, "_START_TIMEOUT", 0)
     transport = PodmanTransport(
-        {"home": HostEndpoint()},
+        {"home"},
         runtime_parent=tmp_path,
         process_factory=lambda *_args, **_kwargs: process,
     )
