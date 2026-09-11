@@ -7,7 +7,7 @@ hosts:
 
 project_defaults:
   image: ghcr.io/curoky/codespace:workspace-debian13
-  tunnel_ports: [8005]
+  tunnel_ports: [8005, 8007, 8008]
   container:
     secrets:
       - source: atuin_db_uri

@@ -2,6 +2,7 @@
 
 # ruff: noqa: S104, S603, S607
 
+import configparser
 import os
 import subprocess
 from pathlib import Path
@@ -48,9 +49,14 @@ def test_inference_entrypoint_honors_bind_address(
 
 @pytest.mark.parametrize(
     ("service", "listen"),
-    [("rclone-webdav", "--addr 127.0.0.1:8004"), ("copyparty-webdav", "-i 127.0.0.1")],
+    [
+        ("rclone-webdav", "--addr 127.0.0.1:8004"),
+        ("copyparty-webdav", "-i 127.0.0.1"),
+        ("rclone-http", "--addr 127.0.0.1:8007"),
+        ("miniserve-http", "--interfaces 127.0.0.1"),
+    ],
 )
-def test_workspace_webdav_uses_fixed_loopback_listener(service: str, listen: str) -> None:
+def test_workspace_file_services_use_fixed_loopback_listener(service: str, listen: str) -> None:
     script = (_WORKSPACE_ROOT / f"etc/s6/s6-rc.d/{service}/run").read_text()
 
     assert listen in script
@@ -58,10 +64,54 @@ def test_workspace_webdav_uses_fixed_loopback_listener(service: str, listen: str
     assert "SSHD_BIND" not in script
 
 
+def test_workspace_rclone_services_share_combined_remote() -> None:
+    config = configparser.ConfigParser()
+    config.read(_WORKSPACE_ROOT / "etc/rclone.conf")
+
+    assert config["files"]["type"] == "combine"
+    assert config["files"]["upstreams"].split() == [
+        "workspace=workspace:",
+        "logs=logs:",
+        "upload=/upload",
+    ]
+    assert config["logs"]["upstreams"].split() == ["/var/log:ro", "empty::ro"]
+    for service, protocol in (("rclone-webdav", "webdav"), ("rclone-http", "http")):
+        script = (_WORKSPACE_ROOT / f"etc/s6/s6-rc.d/{service}/run").read_text()
+        assert f"rclone serve {protocol} files:" in script
+        assert "--config /etc/rclone.conf" in script
+        assert (_WORKSPACE_ROOT / f"etc/s6/s6-rc.d/default/contents.d/{service}").exists()
+        assert (
+            _WORKSPACE_ROOT / f"etc/s6/s6-rc.d/{service}/dependencies.d/workspace-init"
+        ).exists()
+
+    http_script = (_WORKSPACE_ROOT / "etc/s6/s6-rc.d/rclone-http/run").read_text()
+    assert "--disable-dir-list" not in http_script
+
+
 def test_workspace_copyparty_exposes_container_logs_read_only() -> None:
     script = (_WORKSPACE_ROOT / "etc/s6/s6-rc.d/copyparty-webdav/run").read_text()
 
     assert "-v /var/log:logs:r\n" in script
+
+
+def test_workspace_miniserve_exposes_container_logs_read_only() -> None:
+    service = _WORKSPACE_ROOT / "etc/s6/s6-rc.d/miniserve-http"
+    script = (service / "run").read_text()
+
+    assert "exec /opt/bm/bin/miniserve" in script
+    assert "--port 8008" in script
+    assert "--no-symlinks" in script
+    assert script.rstrip().endswith("/var/log")
+    for setting in (
+        "MINISERVE_ENABLE_TAR",
+        "MINISERVE_ENABLE_TAR_GZ",
+        "MINISERVE_ENABLE_ZIP",
+        "MINISERVE_SHOW_SYMLINK_INFO",
+        "MINISERVE_SHOW_WGET_FOOTER",
+    ):
+        assert f"s6-env {setting}=false" in script
+    assert all(option not in script for option in ("--upload-files", "--mkdir", "--rm-files"))
+    assert (_WORKSPACE_ROOT / "etc/s6/s6-rc.d/default/contents.d/miniserve-http").exists()
 
 
 def test_workspace_sshd_uses_fixed_listener() -> None:
