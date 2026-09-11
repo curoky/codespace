@@ -5,7 +5,6 @@ from __future__ import annotations
 import posixpath
 import re
 from collections.abc import Iterator, Mapping, Sequence
-from dataclasses import dataclass
 from ipaddress import ip_address
 from pathlib import PurePosixPath
 from typing import Annotated, Any, Literal, Self, cast
@@ -28,12 +27,9 @@ _READY_TIMEOUT = 30.0
 _READY_INTERVAL = 0.25
 _PULL_TIMEOUT = 15 * 60.0
 _LOG_TAIL = 2000
-_LOG_FILE_LIMIT = 1024 * 1024
-_LOG_FILE_RE = re.compile(r"^s6\.[A-Za-z0-9][A-Za-z0-9._-]*\.log$", re.ASCII)
 _PORT_MIN = 1
 _PORT_MAX = 65_535
 _SECRET_NAME_RE = re.compile(r"^[a-zA-Z0-9._-]+$")
-CONTAINER_LOG_SOURCE = "container"
 
 
 def _not_blank(value: str) -> str:
@@ -90,15 +86,6 @@ type SecretMode = Annotated[
     AfterValidator(_secret_mode),
 ]
 type ImagePlatform = Literal["linux/amd64", "linux/arm64"]
-
-
-@dataclass(frozen=True, slots=True)
-class LogSnapshot:
-    """One bounded log view and the sources available in its container."""
-
-    source: str
-    sources: tuple[str, ...]
-    logs: str
 
 
 class UlimitSpec(BaseModel):
@@ -409,85 +396,6 @@ def container_logs(container: Container) -> str:
     )
     raw = b"".join(cast("Iterator[bytes]", result))
     return raw.decode("utf-8", "replace")
-
-
-def container_log_snapshot(
-    container: Container,
-    source: str = CONTAINER_LOG_SOURCE,
-) -> LogSnapshot:
-    if source != CONTAINER_LOG_SOURCE and not _LOG_FILE_RE.fullmatch(source):
-        raise RuntimeError(f"invalid container log source: {source!r}")
-
-    files = _container_log_files(container)
-    sources = (CONTAINER_LOG_SOURCE, *files)
-    if source not in sources:
-        raise RuntimeError(f"container log source {source!r} not found")
-
-    if source == CONTAINER_LOG_SOURCE:
-        logs = container_logs(container)
-    else:
-        logs = _container_file_logs(container, source)
-    return LogSnapshot(source=source, sources=sources, logs=logs)
-
-
-def _container_log_files(container: Container) -> tuple[str, ...]:
-    raw = _container_exec(
-        container,
-        [
-            "find",
-            "/var/log",
-            "-maxdepth",
-            "1",
-            "-type",
-            "f",
-            "-name",
-            "s6.*.log",
-            "-printf",
-            "%f\\0",
-        ],
-        action="list container log files",
-    )
-    files = []
-    for encoded in raw.split(b"\0"):
-        if not encoded:
-            continue
-        name = encoded.decode("utf-8", "replace")
-        if not _LOG_FILE_RE.fullmatch(name):
-            raise RuntimeError(f"container returned invalid log source: {name!r}")
-        files.append(name)
-    return tuple(sorted(set(files)))
-
-
-def _container_file_logs(container: Container, source: str) -> str:
-    raw = _container_exec(
-        container,
-        ["tail", f"--bytes={_LOG_FILE_LIMIT}", "--", f"/var/log/{source}"],
-        action=f"read container log source {source!r}",
-    )
-    return raw.decode("utf-8", "replace")
-
-
-def _container_exec(container: Container, command: list[str], *, action: str) -> bytes:
-    exit_code, output = container.exec_run(
-        command,
-        stdout=True,
-        stderr=True,
-        stream=False,
-        demux=True,
-    )
-    if not isinstance(output, tuple) or len(output) != 2:
-        raise TypeError(f"expected demultiplexed container exec output, got {type(output)}")
-    stdout, stderr = output
-    if stdout is not None and not isinstance(stdout, bytes):
-        raise TypeError(f"expected container exec stdout bytes, got {type(stdout)}")
-    if stderr is not None and not isinstance(stderr, bytes):
-        raise TypeError(f"expected container exec stderr bytes, got {type(stderr)}")
-    stdout = stdout or b""
-    stderr = stderr or b""
-    if exit_code != 0:
-        detail = (stderr or stdout).decode("utf-8", "replace").strip()
-        raise RuntimeError(f"failed to {action}: {detail or f'exit code {exit_code}'}")
-    return stdout
 
 
 class _ContainerNotRunning(Exception):

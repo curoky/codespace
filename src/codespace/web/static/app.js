@@ -20,18 +20,12 @@ const deleteDetailElement = document.querySelector("#delete-detail");
 const deleteConfirmButton = document.querySelector("#delete-confirm");
 const logsStatusElement = document.querySelector("#logs-status");
 const logsOutputElement = document.querySelector("#logs-output");
-const logsSourceElement = document.querySelector("#logs-source");
 
 document.querySelector("#refresh-button").addEventListener("click", refresh);
 document.querySelector("#tokens-button").addEventListener("click", () => tokensDialog.showModal());
 document.querySelector("#workspace-form").addEventListener("submit", createWorkspace);
 document.querySelector("#tokens-form").addEventListener("submit", saveTokens);
 document.querySelector("#logs-refresh").addEventListener("click", loadLogs);
-logsSourceElement.addEventListener("change", () => {
-  if (pendingLogs === null) return;
-  pendingLogs.source = logsSourceElement.value;
-  loadLogs();
-});
 deleteConfirmButton.addEventListener("click", confirmDelete);
 deleteDialog.addEventListener("close", () => {
   pendingDelete = null;
@@ -560,9 +554,8 @@ function openServiceLogsDialog(service, host) {
 }
 
 function showLogsDialog(title, path) {
-  pendingLogs = { title, path, source: "container" };
+  pendingLogs = { path };
   document.querySelector("#logs-title").textContent = title;
-  renderLogSources(["container"], "container");
   logsDialog.showModal();
   loadLogs();
 }
@@ -570,17 +563,13 @@ function showLogsDialog(title, path) {
 async function loadLogs() {
   if (pendingLogs === null) return;
   const request = pendingLogs;
-  const source = request.source;
   logsStatusElement.className = "muted";
   logsStatusElement.textContent = "Loading logs…";
   logsStatusElement.hidden = false;
   logsOutputElement.hidden = true;
   try {
-    const result = await api(
-      `${request.path}?source=${encodeURIComponent(source)}`,
-    );
-    if (pendingLogs !== request || request.source !== source || !logsDialog.open) return;
-    renderLogSources(result.sources, result.source);
+    const result = await api(request.path);
+    if (pendingLogs !== request || !logsDialog.open) return;
     const logs = result.logs;
     if (logs.trim()) {
       logsStatusElement.hidden = true;
@@ -591,23 +580,10 @@ async function loadLogs() {
       logsStatusElement.textContent = "No logs available.";
     }
   } catch (error) {
-    if (pendingLogs !== request || request.source !== source || !logsDialog.open) return;
+    if (pendingLogs !== request || !logsDialog.open) return;
     logsStatusElement.className = "delete-warning";
     logsStatusElement.textContent = error.message;
   }
-}
-
-function renderLogSources(sources, selected) {
-  logsSourceElement.replaceChildren(
-    ...sources.map((source) => {
-      const option = document.createElement("option");
-      option.value = source;
-      option.textContent = source === "container" ? "Container" : source;
-      return option;
-    }),
-  );
-  logsSourceElement.value = selected;
-  logsSourceElement.disabled = sources.length === 1;
 }
 
 async function saveTokens(event) {

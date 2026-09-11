@@ -115,13 +115,12 @@ class ServiceManager:
         self,
         service: str,
         host_name: str,
-        source: str = container.CONTAINER_LOG_SOURCE,
-    ) -> container.LogSnapshot:
+    ) -> str:
         self._service(service, host_name)
         running = self._container(service, host_name)
         if running is None:
             raise ResourceNotFound(f"service {service!r} not found on host {host_name!r}")
-        return container.container_log_snapshot(running, source)
+        return container.container_logs(running)
 
     def _container(self, service: str, host_name: str) -> Container | None:
         return container.find_container(

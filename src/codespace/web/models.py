@@ -49,6 +49,10 @@ class RemoveServiceResult(BaseModel):
     data_removed: bool = False
 
 
+class ContainerLogsResponse(BaseModel):
+    logs: str
+
+
 class HostStatus(BaseModel):
     id: str
     status: Literal["online", "offline", "error"]
