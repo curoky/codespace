@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import re
 from dataclasses import dataclass
+from pathlib import PurePosixPath
 from typing import Annotated, Literal
 from urllib.parse import quote
 
@@ -24,18 +25,6 @@ WORKSPACE_CIPHER_MOUNT = "/workspace.enc"
 UPLOAD_MOUNT = "/upload"
 CACHE_MOUNT = "/cache"
 CONTROL_MOUNT = "/run/codespace-control"
-HOME_CACHE_MOUNTS = (
-    (".vscode-server/bin", f"{CONTAINER_HOME}/.vscode-server/bin"),
-    (".vscode-server/extensions", f"{CONTAINER_HOME}/.vscode-server/extensions"),
-    (".trae/bin", f"{CONTAINER_HOME}/.trae/bin"),
-    (".trae/extensions", f"{CONTAINER_HOME}/.trae/extensions"),
-    (".trae-cn/bin", f"{CONTAINER_HOME}/.trae-cn/bin"),
-    (".trae-cn/extensions", f"{CONTAINER_HOME}/.trae-cn/extensions"),
-    (".trae-server/bin", f"{CONTAINER_HOME}/.trae-server/bin"),
-    (".trae-server/extensions", f"{CONTAINER_HOME}/.trae-server/extensions"),
-    (".trae-cn-server/bin", f"{CONTAINER_HOME}/.trae-cn-server/bin"),
-    (".trae-cn-server/extensions", f"{CONTAINER_HOME}/.trae-cn-server/extensions"),
-)
 WORKSPACE_KEY_SECRET = "codespace_workspace_key"  # noqa: S105 - secret identifier
 WORKSPACE_KEY_MOUNT = f"/run/secrets/{WORKSPACE_KEY_SECRET}"
 SOURCE_TYPE_ENV = "CODESPACE_SOURCE_TYPE"
@@ -54,7 +43,6 @@ LABEL_REPOSITORY = "codespace.repository"
 LABEL_GIT_URL = "codespace.git-url"
 LABEL_IMAGE = "codespace.image"
 LABEL_PLATFORM = "codespace.platform"
-LABEL_SSH_PORT = "codespace.ssh-port"
 LABEL_OPEN_PATH = "codespace.open-path"
 LABEL_ENCRYPTED = "codespace.encrypted"
 WORKSPACE_KIND = "workspace"
@@ -69,28 +57,32 @@ SSH_PORT_START = 20_000
 SSH_PORT_COUNT = 10_000
 
 
-def _not_blank(value: str) -> str:
-    if not value.strip():
-        raise ValueError("must not be blank")
-    return value
-
-
 def _not_blank_token(value: str) -> str:
     if not value.strip():
         raise ValueError("token must not be blank")
     return value
 
 
+def workspace_path(value: str) -> str:
+    path = PurePosixPath(value)
+    workspace = PurePosixPath(WORKSPACE_MOUNT)
+    if ".." in path.parts:
+        raise ValueError("must not contain '..'")
+    if not path.is_absolute() or (path != workspace and workspace not in path.parents):
+        raise ValueError(f"must be {WORKSPACE_MOUNT} or a path below it")
+    return str(path)
+
+
 type ResourceId = Annotated[str, Field(pattern=RESOURCE_ID_RE.pattern)]
 type HostId = Annotated[str, Field(pattern=HOST_RE.pattern)]
 type RepositoryPath = Annotated[str, Field(pattern=REPOSITORY_RE.pattern)]
 type GitUrl = Annotated[str, Field(pattern=GIT_URL_RE.pattern)]
-type NonBlankString = Annotated[str, AfterValidator(_not_blank)]
 type TokenString = Annotated[str, AfterValidator(_not_blank_token)]
+type WorkspacePath = Annotated[str, AfterValidator(workspace_path)]
 
 
 def workspace_identity(host: str, project: str, workspace: str) -> str:
-    return f"codespace-workspace-{host}-{project}-{workspace}"
+    return f"codespace-workspace_{host}_{project}_{workspace}"
 
 
 def workspace_ssh_port(identity: str) -> int:
@@ -169,8 +161,8 @@ class WorkspaceSpec:
     platform: ImagePlatform | None
     image: str
     container: ContainerSpec
-    checkout_path: str
-    open_path: str
+    checkout_path: WorkspacePath
+    open_path: WorkspacePath
     encrypted: bool
 
     @property
@@ -193,7 +185,6 @@ class WorkspaceSpec:
             LABEL_SOURCE: self.source.type,
             LABEL_IMAGE: self.image,
             LABEL_PLATFORM: self.platform_label,
-            LABEL_SSH_PORT: str(self.ssh_port),
             LABEL_OPEN_PATH: self.open_path,
             LABEL_ENCRYPTED: str(self.encrypted).lower(),
         }
@@ -205,14 +196,12 @@ class WorkspaceSpec:
 
     def to_workspace(self, container_id: str, *, status: str) -> Workspace:
         return Workspace(
-            id=self.identity,
             project=self.project,
             workspace=self.workspace,
             host=self.host,
             source=self.source,
             image=self.image,
             platform=self.platform_label,
-            ssh_port=self.ssh_port,
             open_path=self.open_path,
             encrypted=self.encrypted,
             container_id=container_id,
@@ -235,18 +224,28 @@ class Workspace(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    id: str
-    project: str
-    workspace: str
-    host: str
+    project: ResourceId
+    workspace: ResourceId
+    host: HostId
     source: Source
     image: str
     platform: PlatformSelection
-    ssh_port: int
-    open_path: str
+    open_path: WorkspacePath
     encrypted: bool
     container_id: str
     status: str
+
+    @property
+    def id(self) -> str:
+        return workspace_identity(self.host, self.project, self.workspace)
+
+    @property
+    def ssh_port(self) -> int:
+        return workspace_ssh_port(self.id)
+
+    @property
+    def ssh_alias(self) -> str:
+        return f"codespace-workspace-{self.ssh_port}_{self.host}_{self.project}_{self.workspace}"
 
 
 def editor_url(alias: str, open_path: str, *, scheme: str = "trae") -> str:

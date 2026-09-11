@@ -9,9 +9,10 @@ setup_file() {
 setup() {
   TEST_ROOT=$(mktemp -d "${BATS_TEST_TMPDIR}/init-home.XXXXXX")
   HOME_DIR="${TEST_ROOT}/home"
+  CACHE_DIR="${TEST_ROOT}/cache"
   SSH_DIR="${HOME_DIR}/.ssh"
-  export TEST_ROOT HOME_DIR SSH_DIR TEST_EVENTS="${TEST_ROOT}/events"
-  mkdir -p "${TEST_ROOT}/bin" "${HOME_DIR}" \
+  export TEST_ROOT HOME_DIR CACHE_DIR SSH_DIR TEST_EVENTS="${TEST_ROOT}/events"
+  mkdir -p "${TEST_ROOT}/bin" "${HOME_DIR}" "${CACHE_DIR}" \
     "${HOME_DIR}/.trae/user_rules" "${HOME_DIR}/.trae-cn/user_rules" \
     "${HOME_DIR}/.vscode-server/data/Machine" \
     "${HOME_DIR}/.trae-server/data/Machine" \
@@ -50,6 +51,7 @@ EOF
   sed \
     -e "s#/opt/codespace/bin/seed-editor-extensions#seed-editor-extensions#g" \
     -e "s#/home/x#${HOME_DIR}#g" \
+    -e "s#/cache#${CACHE_DIR}#g" \
     "${HELPER}" >"${TEST_ROOT}/helper"
   chmod +x "${TEST_ROOT}/helper"
   export PATH="${TEST_ROOT}/bin:${PATH}"
@@ -78,33 +80,45 @@ teardown() {
   cmp -s \
     "${image_home}/.vscode-server/data/Machine/settings.json" \
     "${image_home}/.trae-cn-server/data/Machine/settings.json"
+  for home in .vscode-server .trae .trae-cn .trae-server .trae-cn-server; do
+    [[ $(readlink "${image_home}/${home}/bin") == "/cache/${home}/bin" ]]
+    [[ $(readlink "${image_home}/${home}/extensions") == "/cache/${home}/extensions" ]]
+  done
 }
 
-@test "home init generates shell plugins consumed directly by zshrc" {
+@test "build prepares shell plugins consumed directly by zshrc" {
+  local prepare="${BATS_TEST_DIRNAME}/../scripts/prepare-home.sh"
+  sed "s#/home/x#${HOME_DIR}#g" "$prepare" >"${TEST_ROOT}/prepare-home.sh"
+
+  run bash "${TEST_ROOT}/prepare-home.sh"
+
+  [[ ${status} -eq 0 ]]
+  [[ $(<"${HOME_DIR}/.local/share/codespace/conda.plugin.zsh") == "# conda plugin" ]]
+  [[ $(<"${HOME_DIR}/.local/share/codespace/starship.plugin.zsh") == "# starship plugin" ]]
+  [[ $(<"${HOME_DIR}/.local/share/codespace/atuin.plugin.zsh") == "# atuin plugin" ]]
+
+  # Runtime startup must not execute the toolchain generators again.
+  rm "${TEST_EVENTS}"
   run "${TEST_ROOT}/helper"
 
   [[ ${status} -eq 0 ]]
-  [[ $(<"${HOME_DIR}/.cache/conda.plugin.zsh") == "# conda plugin" ]]
-  [[ $(<"${HOME_DIR}/.cache/starship.plugin.zsh") == "# starship plugin" ]]
-  [[ $(<"${HOME_DIR}/.cache/atuin.plugin.zsh") == "# atuin plugin" ]]
-  grep -qx "conda shell.zsh hook" "${TEST_EVENTS}"
-  grep -qx "starship init zsh" "${TEST_EVENTS}"
-  grep -qx "atuin init zsh --disable-up-arrow" "${TEST_EVENTS}"
+  run ! grep -Eq "^(conda|starship|atuin) " "${TEST_EVENTS}"
 
   local zshrc="${BATS_TEST_DIRNAME}/../rootfs/home/x/.zshrc"
-  grep -Fqx "source \"\$XDG_CACHE_HOME/conda.plugin.zsh\"" "${zshrc}"
-  grep -Fqx "source \"\$XDG_CACHE_HOME/starship.plugin.zsh\"" "${zshrc}"
-  grep -Fqx "source \"\$XDG_CACHE_HOME/atuin.plugin.zsh\"" "${zshrc}"
+  grep -Fqx "source \"\$XDG_DATA_HOME/codespace/conda.plugin.zsh\"" "${zshrc}"
+  grep -Fqx "source \"\$XDG_DATA_HOME/codespace/starship.plugin.zsh\"" "${zshrc}"
+  grep -Fqx "source \"\$XDG_DATA_HOME/codespace/atuin.plugin.zsh\"" "${zshrc}"
   run ! grep -Eq 'command -v (conda|starship|atuin)' "${zshrc}"
 
+  grep -Fq "RUN HOME=/home/x bash /tmp/prepare-home.sh" "${BATS_TEST_DIRNAME}/../Dockerfile"
   [[ -f ${BATS_TEST_DIRNAME}/../rootfs/etc/s6/s6-rc.d/sshd/dependencies.d/home-init ]]
 }
 
-@test "home init prepares the persistent IDE subdirectories before setup" {
+@test "home init prepares persistent IDE cache targets before setup" {
   run "${TEST_ROOT}/helper"
 
   [[ ${status} -eq 0 ]]
-  grep -qx "sudo install -d -o 5230 -g 5230 -m 0700 -- ${HOME_DIR}/.vscode-server/bin ${HOME_DIR}/.vscode-server/extensions ${HOME_DIR}/.trae/bin ${HOME_DIR}/.trae/extensions ${HOME_DIR}/.trae-cn/bin ${HOME_DIR}/.trae-cn/extensions ${HOME_DIR}/.trae-server/bin ${HOME_DIR}/.trae-server/extensions ${HOME_DIR}/.trae-cn-server/bin ${HOME_DIR}/.trae-cn-server/extensions" "${TEST_EVENTS}"
+  grep -qx "sudo install -d -o 5230 -g 5230 -m 0700 -- ${CACHE_DIR}/.vscode-server/bin ${CACHE_DIR}/.vscode-server/extensions ${CACHE_DIR}/.trae/bin ${CACHE_DIR}/.trae/extensions ${CACHE_DIR}/.trae-cn/bin ${CACHE_DIR}/.trae-cn/extensions ${CACHE_DIR}/.trae-server/bin ${CACHE_DIR}/.trae-server/extensions ${CACHE_DIR}/.trae-cn-server/bin ${CACHE_DIR}/.trae-cn-server/extensions" "${TEST_EVENTS}"
   grep -qx "seeded" "${TEST_EVENTS}"
   # Directory preparation must precede the seed/setup steps.
   local prepare_line seed_line

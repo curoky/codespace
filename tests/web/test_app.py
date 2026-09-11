@@ -201,14 +201,12 @@ def test_dashboard_workspace_exposes_container_encryption(
     app_client: tuple[TestClient, FakeControl], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     workspace = Workspace(
-        id="codespace-workspace-home-codespace-debug",
         project="codespace",
         workspace="debug",
         host="home",
         source=EmptySource(type="empty"),
         image="workspace:latest",
         platform="native",
-        ssh_port=22000,
         open_path="/workspace",
         encrypted=True,
         container_id="container-id",
@@ -220,7 +218,8 @@ def test_dashboard_workspace_exposes_container_encryption(
     assert dashboard_workspace.encrypted is True
     serialized = dashboard_workspace.model_dump()
     assert serialized["source"] == {"type": "empty"}
-    assert serialized["ssh_command"] == f"ssh {workspace.id}"
+    assert serialized["ssh_command"] == "ssh codespace-workspace-24831_home_codespace_debug"
+    assert "ssh-remote+codespace-workspace-24831_home_codespace_debug" in serialized["trae_url"]
     assert "/workspace?" in serialized["trae_url"]
     assert serialized["trae_cn_url"].startswith("trae-cn://")
     assert "container_id" not in serialized
@@ -270,7 +269,7 @@ def test_workspace_routes_use_project_and_workspace_identity(
     logs = client.get("/api/projects/codespace/hosts/home/workspaces/debug/logs")
 
     assert created.status_code == 202
-    assert created.json()["id"] == "codespace-workspace-home-codespace-debug"
+    assert created.json()["id"] == "codespace-workspace_home_codespace_debug"
     assert control.workspaces.created == [("codespace", "home", "debug")]
     assert deleted.json()["data_removed"] is True
     assert control.workspaces.log_sources == ["container"]

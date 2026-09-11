@@ -7,13 +7,11 @@ fdmove -c 2 1
 
 if { test -s /run/secrets/atuin_db_uri }
 backtick -i ATUIN_DB_URI { cat /run/secrets/atuin_db_uri }
-importas -D "127.0.0.1" ATUIN_HOST ATUIN_HOST
-importas -D "8002" ATUIN_PORT ATUIN_PORT
 
-export ATUIN_HOST "${ATUIN_HOST}"
-export ATUIN_PORT "${ATUIN_PORT}"
+export ATUIN_HOST "127.0.0.1"
+export ATUIN_PORT "8002"
 export ATUIN_OPEN_REGISTRATION "false"
 
 s6-notifyoncheck -d -n 0 -w 1000 -t 2000 -T 60000
-  -c "/opt/bm/bin/curl --noproxy * --fail --silent --output /dev/null --max-time 1 http://${ATUIN_HOST}:${ATUIN_PORT}/"
+  -c "/opt/bm/bin/curl --noproxy * --fail --silent --output /dev/null --max-time 1 http://127.0.0.1:8002/"
 exec /opt/bm/store/atuin/bin/atuin server start

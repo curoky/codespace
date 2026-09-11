@@ -31,12 +31,6 @@ class WorkspacePaths:
     cache: str
     control: str
 
-    def home_cache_mounts(
-        self,
-        targets: tuple[tuple[str, str], ...],
-    ) -> tuple[tuple[str, str], ...]:
-        return tuple((f"{self.cache}/{name}", target) for name, target in targets)
-
 
 @dataclass(frozen=True, slots=True)
 class HostDataPaths:

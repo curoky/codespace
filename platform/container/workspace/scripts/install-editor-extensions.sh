@@ -5,12 +5,8 @@
 
 set -xeuo pipefail
 
-ext_list=${1:?usage: install-editor-extensions.sh <extensions.txt> [dest_dir]}
-dest_dir=${2:-/opt/editor-extensions}
-
-# code-server 只用于执行 --install-extension；默认取最新稳定版，可用 commit:<sha> 固定。
-vscode_quality=${VSCODE_SERVER_QUALITY:-latest}
-vscode_channel=${VSCODE_SERVER_CHANNEL:-stable}
+ext_list=${1:?usage: install-editor-extensions.sh <extensions.txt> <dest_dir>}
+dest_dir=${2:?usage: install-editor-extensions.sh <extensions.txt> <dest_dir>}
 
 case "$(uname -m)" in
   x86_64) server_arch=x64 ;;
@@ -24,7 +20,7 @@ esac
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
-server_url="https://update.code.visualstudio.com/${vscode_quality}/server-linux-${server_arch}/${vscode_channel}"
+server_url="https://update.code.visualstudio.com/latest/server-linux-${server_arch}/stable"
 curl -fSL "$server_url" -o "$tmp/vscode-server.tar.gz"
 mkdir -p "$tmp/server"
 tar -xzf "$tmp/vscode-server.tar.gz" -C "$tmp/server" --strip-components=1
@@ -43,25 +39,21 @@ while IFS= read -r line || [[ -n $line ]]; do
   ids+=("$id")
 done <"$ext_list"
 
-# 隔离 build tool state，避免污染 image home。
-run_install() {
-  env HOME="$tmp/home" "$code_server" \
-    --extensions-dir "$extensions_dir" \
-    --force \
-    "$@"
-}
-
-# 批量失败时逐个重试，单个不可用 extension 不阻塞其余项。
 batch_args=()
 for id in "${ids[@]}"; do
   batch_args+=("--install-extension" "$id")
 done
 
-if ! run_install "${batch_args[@]}"; then
-  echo "batch install failed, retrying individually" >&2
-  for id in "${ids[@]}"; do
-    run_install --install-extension "$id" || echo "WARN: failed to install $id" >&2
-  done
-fi
+# 缺少声明的扩展直接使构建失败，不发布部分安装的 template。
+env HOME="$tmp/home" "$code_server" \
+  --extensions-dir "$extensions_dir" --force "${batch_args[@]}"
 
-ls -la "$extensions_dir"
+# 所有 IDE 的目标路径在 image contract 中固定，运行期只复制对应 manifest。
+for server in .vscode-server .trae-server .trae-cn-server; do
+  jq --arg dir "/home/x/$server/extensions" \
+    'map((.location.path | split("/") | last) as $rel
+         | .relativeLocation = $rel
+         | .location = {"$mid":1,"path":($dir + "/" + $rel),"scheme":"file"})' \
+    "$extensions_dir/extensions.json" >"$dest_dir/$server.json"
+done
+rm "$extensions_dir/extensions.json"

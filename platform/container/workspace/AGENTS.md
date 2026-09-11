@@ -1,12 +1,19 @@
 # Workspace Image
 
-本目录构建可独立运行或由 control plane 管理的开发 Workspace。构建与启动模型
-见 [`DESIGN.md`](DESIGN.md)。
+本目录构建 `src/codespace` 唯一支持的远程开发 runtime，只由 control plane 启动，
+不提供 standalone 或其他 Workspace image contract 的兼容路径。构建与启动模型见
+[`DESIGN.md`](DESIGN.md)。
 
 ## 边界
 
 - `rootfs/home/x/` 是 Workspace-owned home 配置的唯一 source；Host 可直接链接
   选定文件，不得建立副本。
+- IDE `bin`/`extensions` 在 image home 中固定链接到 `/cache`；控制面不得感知或
+  单独挂载具体 IDE 路径。
+- shell integration 与 IDE 默认 manifest 在构建期准备；运行期不改写固定路径，
+  只初始化尚无 manifest 的持久 IDE cache。
+- `rootfs/` 拥有 Workspace SSH authorized key 与 host key；Host client bundle
+  必须与这两项 trust material 保持一致。
 - Service 只能复用本目录公开的 s6 skeleton 与安装器。
 - 运行资产放在 `/opt/codespace/`，image 不包含仓库 checkout 或 Host 固定路径。
 - `workspace-init` 只负责 Workspace 数据；`home-init` 只负责用户与 editor state。

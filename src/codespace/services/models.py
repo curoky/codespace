@@ -57,9 +57,12 @@ class Service(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    id: str
     service: str
     host: str
     image: str
     container_id: str
     status: str
+
+    @property
+    def id(self) -> str:
+        return service_identity(self.service)

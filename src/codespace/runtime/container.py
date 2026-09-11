@@ -7,6 +7,7 @@ import re
 from collections.abc import Iterator, Mapping, Sequence
 from dataclasses import dataclass
 from ipaddress import ip_address
+from pathlib import PurePosixPath
 from typing import Annotated, Any, Literal, Self, cast
 
 from podman import PodmanClient
@@ -42,11 +43,14 @@ def _not_blank(value: str) -> str:
 
 
 def _absolute_path(value: str) -> str:
-    if not value.startswith("/"):
+    path = PurePosixPath(value)
+    if not path.is_absolute():
         raise ValueError("must be an absolute path")
+    if ".." in path.parts:
+        raise ValueError("must not contain '..'")
     if "$" in value:
         raise ValueError("Compose variable interpolation is not supported")
-    return value
+    return str(path)
 
 
 def _compose_literal(value: str) -> str:
@@ -234,7 +238,6 @@ def create_container(
     labels: Mapping[str, str],
     mounts: list[dict[str, object]],
     platform: ImagePlatform | None = None,
-    extra_ports: Mapping[str, object] | None = None,
     restart_policy: Mapping[str, object] | None = None,
 ) -> Container:
     """Create a detached container from a fully resolved canonical specification."""
@@ -243,7 +246,6 @@ def create_container(
         f"{port.target}/{port.protocol}": (port.host_ip, port.published)
         for port in spec.ports or []
     }
-    ports.update(extra_ports or {})
     options: dict[str, Any] = {
         "name": name,
         "network_mode": spec.network_mode,

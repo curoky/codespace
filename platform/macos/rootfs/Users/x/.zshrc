@@ -1,10 +1,10 @@
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
-export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
-export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
-export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
-export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-$XDG_CACHE_HOME/runtime}"
-export TMPDIR="${TMPDIR:-$XDG_CACHE_HOME/tmp}"
+export XDG_CACHE_HOME="$HOME/.cache"
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_RUNTIME_DIR="$XDG_CACHE_HOME/runtime"
+export TMPDIR="$XDG_CACHE_HOME/tmp"
 export KRB5CCNAME=/tmp/krb5_ccache
 export NPM_CONFIG_CACHE="$XDG_CACHE_HOME/npm"
 export TMUX_CONF_LOCAL="$XDG_CONFIG_HOME/tmux/tmux.conf.local"
@@ -53,9 +53,9 @@ source "$ZSH/lib/git.zsh"
 source "$ZSH/plugins/extract/extract.plugin.zsh"
 source "$ZSH/plugins/git/git.plugin.zsh"
 
-source "$XDG_CACHE_HOME/conda.plugin.zsh"
-source "$XDG_CACHE_HOME/starship.plugin.zsh"
-source "$XDG_CACHE_HOME/atuin.plugin.zsh"
+source "$XDG_DATA_HOME/codespace/conda.plugin.zsh"
+source "$XDG_DATA_HOME/codespace/starship.plugin.zsh"
+source "$XDG_DATA_HOME/codespace/atuin.plugin.zsh"
 
 # User definitions take precedence over framework aliases and functions.
 source "$XDG_CONFIG_HOME/zsh/aliases.zsh"
