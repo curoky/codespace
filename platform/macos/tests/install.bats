@@ -54,22 +54,32 @@ file_mode() {
   run install_home_config "$MACOS_HOME"
   [ "$status" -eq 0 ]
 
-  [ ! -L "$HOME/.gitconfig" ]
-  cmp "$MACOS_HOME/.gitconfig" "$HOME/.gitconfig"
-  [ ! -L "$HOME/.ssh/config" ]
-  cmp "$MACOS_HOME/.ssh/config" "$HOME/.ssh/config"
-  cmp "$MACOS_HOME/.ssh/codespace/config" "$HOME/.ssh/codespace/config"
-  cmp "$MACOS_HOME/.ssh/codespace/login_key" "$HOME/.ssh/codespace/login_key"
-  cmp "$MACOS_HOME/.ssh/codespace/known_hosts/codespace" \
-    "$HOME/.ssh/codespace/known_hosts/codespace"
-  cmp "$MACOS_HOME/.ssh/codespace/proxy" "$HOME/.ssh/codespace/proxy"
-  [ "$(file_mode "$HOME/.ssh/codespace")" = 700 ]
-  [ "$(file_mode "$HOME/.ssh/codespace/login_key")" = 600 ]
-  [ "$(file_mode "$HOME/.ssh/codespace/known_hosts/codespace")" = 600 ]
-  [ "$(file_mode "$HOME/.ssh/codespace/proxy")" = 700 ]
+  local relative_path
+  for relative_path in \
+    .gitconfig \
+    .config/git/user.gitconfig \
+    .config/git/ignore \
+    .ssh/config \
+    .ssh/codespace/config \
+    .ssh/codespace/login_key \
+    .ssh/codespace/known_hosts/codespace \
+    .ssh/codespace/proxy; do
+    [ -L "$HOME/$relative_path" ]
+    [ "$HOME/$relative_path" -ef "$MACOS_HOME/$relative_path" ]
+  done
 
-  [ -L "$HOME/.config/git/ignore" ]
-  [ "$HOME/.config/git/ignore" -ef "$MACOS_HOME/.config/git/ignore" ]
+  [ "$(file_mode "$HOME/.ssh/codespace")" = 700 ]
+  for relative_path in \
+    .gitconfig \
+    .config/git/user.gitconfig \
+    .ssh/config \
+    .ssh/codespace/config \
+    .ssh/codespace/login_key \
+    .ssh/codespace/known_hosts/codespace; do
+    [ "$(file_mode "$MACOS_HOME/$relative_path")" = 600 ]
+  done
+  [ "$(file_mode "$MACOS_HOME/.ssh/codespace/proxy")" = 700 ]
+
   [ -L "$HOME/.zshrc" ]
   [ "$HOME/.zshrc" -ef "$MACOS_HOME/.zshrc" ]
   [ -L "$HOME/.warp/settings.toml" ]

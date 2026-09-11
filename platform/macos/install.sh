@@ -6,10 +6,14 @@
 link_home_path() {
   local source="$1/$2"
   local destination="$HOME/$2"
+  local mode="${3:-}"
 
   if [[ ! -e "$source" ]]; then
     printf 'error: source does not exist: %s\n' "$source" >&2
     exit 1
+  fi
+  if [[ -n "$mode" ]]; then
+    chmod "$mode" "$source"
   fi
   if [[ -L "$destination" && "$(readlink "$destination")" == "$source" ]]; then
     return
@@ -87,14 +91,14 @@ install_home_config() {
 
   install -d -m 0700 "$HOME/.ssh" "$HOME/.ssh/codespace" \
     "$HOME/.ssh/codespace/known_hosts"
-  copy_home_path "$macos_home" ".gitconfig" 0600
-  copy_home_path "$macos_home" ".config/git/user.gitconfig" 0600
+  link_home_path "$macos_home" ".gitconfig" 0600
+  link_home_path "$macos_home" ".config/git/user.gitconfig" 0600
   link_home_path "$macos_home" ".config/git/ignore"
-  copy_home_path "$macos_home" ".ssh/config" 0600
-  copy_home_path "$macos_home" ".ssh/codespace/config" 0600
-  copy_home_path "$macos_home" ".ssh/codespace/login_key" 0600
-  copy_home_path "$macos_home" ".ssh/codespace/known_hosts/codespace" 0600
-  copy_home_path "$macos_home" ".ssh/codespace/proxy" 0700
+  link_home_path "$macos_home" ".ssh/config" 0600
+  link_home_path "$macos_home" ".ssh/codespace/config" 0600
+  link_home_path "$macos_home" ".ssh/codespace/login_key" 0600
+  link_home_path "$macos_home" ".ssh/codespace/known_hosts/codespace" 0600
+  link_home_path "$macos_home" ".ssh/codespace/proxy" 0700
 
   link_home_path "$macos_home" ".zshrc"
   link_home_path "$macos_home" ".config/zsh/aliases.zsh"
