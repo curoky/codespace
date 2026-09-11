@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Provision the macOS host and install Codespace-managed home configuration.
 # Usage: install.sh [--with-atuin-server]
-# Requires Bash 3.2 or newer, curl, sudo, conda, and Apple Silicon macOS.
+# Requires Bash 3.2 or newer, curl, sudo, and Apple Silicon macOS.
 
 link_home_path() {
   local source="$1/$2"
@@ -103,7 +103,6 @@ install_home_config() {
 
   link_home_path "$macos_home" ".config/atuin/config.toml"
   link_home_path "$macos_home" ".config/bat/config"
-  link_home_path "$macos_home" ".config/conda/condarc"
   link_home_path "$macos_home" ".config/nixpkgs/config.nix"
   link_home_path "$macos_home" ".config/starship.toml"
   link_home_path "$macos_home" ".config/tmux/tmux.conf"
@@ -124,15 +123,6 @@ install_home_config() {
   copy_home_path "$macos_home" ".trae/traecli.toml" 0600
   copy_home_path "$macos_home" ".trae-cn/sandbox.json" 0600
   copy_home_path "$macos_home" ".trae-cn/traecli.toml" 0600
-}
-
-generate_shell_plugins() {
-  local integration_home="$HOME/.local/share/codespace"
-
-  mkdir -p "$integration_home"
-  conda shell.zsh hook >"$integration_home/conda.plugin.zsh"
-  starship init zsh >"$integration_home/starship.plugin.zsh"
-  atuin init zsh --disable-up-arrow >"$integration_home/atuin.plugin.zsh"
 }
 
 load_launch_agent() {
@@ -180,7 +170,6 @@ main() {
   install_binman "$script_dir" "$temp_dir"
   export PATH="/opt/bm/bin:$PATH"
   install_home_config "$macos_home"
-  generate_shell_plugins
   swift "$script_dir/scripts/set-default-apps.swift"
   load_launch_agent "$macos_home" sh.atuin.daemon
   if [[ "$with_atuin_server" == true ]]; then

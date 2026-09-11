@@ -21,22 +21,6 @@ setup() {
   printf 'image settings\n' >"${HOME_DIR}/.vscode-server/data/Machine/settings.json"
   printf 'image rules\n' >"${HOME_DIR}/.trae/user_rules/workspace.md"
 
-  # 命令桩记录初始化参数，并输出可识别的插件脚本。
-  cat >"${TEST_ROOT}/bin/conda" <<'EOF'
-#!/usr/bin/env bash
-printf 'conda %s\n' "$*" >>"${TEST_EVENTS}"
-printf '# conda plugin\n'
-EOF
-  cat >"${TEST_ROOT}/bin/starship" <<'EOF'
-#!/usr/bin/env bash
-printf 'starship %s\n' "$*" >>"${TEST_EVENTS}"
-printf '# starship plugin\n'
-EOF
-  cat >"${TEST_ROOT}/bin/atuin" <<'EOF'
-#!/usr/bin/env bash
-printf 'atuin %s\n' "$*" >>"${TEST_EVENTS}"
-printf '# atuin plugin\n'
-EOF
   cat >"${TEST_ROOT}/bin/sudo" <<'EOF'
 #!/usr/bin/env bash
 printf 'sudo %s\n' "$*" >>"${TEST_EVENTS}"
@@ -86,32 +70,15 @@ teardown() {
   done
 }
 
-@test "build prepares shell plugins consumed directly by zshrc" {
-  local prepare="${BATS_TEST_DIRNAME}/../scripts/prepare-home.sh"
-  sed "s#/home/x#${HOME_DIR}#g" "$prepare" >"${TEST_ROOT}/prepare-home.sh"
-
-  run bash "${TEST_ROOT}/prepare-home.sh"
-
-  [[ ${status} -eq 0 ]]
-  [[ $(<"${HOME_DIR}/.local/share/codespace/conda.plugin.zsh") == "# conda plugin" ]]
-  [[ $(<"${HOME_DIR}/.local/share/codespace/starship.plugin.zsh") == "# starship plugin" ]]
-  [[ $(<"${HOME_DIR}/.local/share/codespace/atuin.plugin.zsh") == "# atuin plugin" ]]
-
-  # Runtime startup must not execute the toolchain generators again.
-  rm "${TEST_EVENTS}"
-  run "${TEST_ROOT}/helper"
-
-  [[ ${status} -eq 0 ]]
-  run ! grep -Eq "^(conda|starship|atuin) " "${TEST_EVENTS}"
-
+@test "zshrc consumes packaged shell integrations" {
   local zshrc="${BATS_TEST_DIRNAME}/../rootfs/home/x/.zshrc"
-  grep -Fqx "source \"\$XDG_DATA_HOME/codespace/conda.plugin.zsh\"" "${zshrc}"
-  grep -Fqx "source \"\$XDG_DATA_HOME/codespace/starship.plugin.zsh\"" "${zshrc}"
-  grep -Fqx "source \"\$XDG_DATA_HOME/codespace/atuin.plugin.zsh\"" "${zshrc}"
-  run ! grep -Eq 'command -v (conda|starship|atuin)' "${zshrc}"
+  local manifest="${BATS_TEST_DIRNAME}/../config/binman.yaml"
 
-  grep -Fq "RUN HOME=/home/x bash /tmp/prepare-home.sh" "${BATS_TEST_DIRNAME}/../Dockerfile"
-  [[ -f ${BATS_TEST_DIRNAME}/../rootfs/etc/s6/s6-rc.d/sshd/dependencies.d/home-init ]]
+  grep -Fqx 'source "/opt/conda/etc/profile.d/conda.sh"' "${zshrc}"
+  grep -Fqx 'source "/opt/bm/store/starship/share/starship/init.zsh"' "${zshrc}"
+  grep -Fqx 'source "/opt/bm/store/atuin/share/atuin/init.zsh"' "${zshrc}"
+  grep -Eq '^    - starship$' "${manifest}"
+  grep -Eq '^    - atuin$' "${manifest}"
 }
 
 @test "home init prepares persistent IDE cache targets before setup" {

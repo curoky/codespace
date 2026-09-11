@@ -26,7 +26,6 @@ typeset -U path PATH
 fpath=(
   /opt/bm/share/zsh/site-functions
   /opt/bm/store/zsh-plugins/share/oh-my-zsh/custom/plugins/zsh-completions/src
-  /opt/bm/store/zsh-plugins/share/oh-my-zsh/custom/plugins/conda-zsh-completion
   $fpath
 )
 typeset -U fpath FPATH
@@ -53,9 +52,8 @@ source "$ZSH/lib/git.zsh"
 source "$ZSH/plugins/extract/extract.plugin.zsh"
 source "$ZSH/plugins/git/git.plugin.zsh"
 
-source "$XDG_DATA_HOME/codespace/conda.plugin.zsh"
-source "$XDG_DATA_HOME/codespace/starship.plugin.zsh"
-source "$XDG_DATA_HOME/codespace/atuin.plugin.zsh"
+source "/opt/bm/store/starship/share/starship/init.zsh"
+source "/opt/bm/store/atuin/share/atuin/init.zsh"
 
 # User definitions take precedence over framework aliases and functions.
 source "$XDG_CONFIG_HOME/zsh/aliases.zsh"

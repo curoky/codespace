@@ -58,11 +58,9 @@ source "$ZSH/lib/git.zsh"
 source "$ZSH/plugins/extract/extract.plugin.zsh"
 source "$ZSH/plugins/git/git.plugin.zsh"
 
-source "$XDG_DATA_HOME/codespace/conda.plugin.zsh"
-source "$XDG_DATA_HOME/codespace/starship.plugin.zsh"
-
-# Atuin must create its widgets before autosuggestions wraps them.
-source "$XDG_DATA_HOME/codespace/atuin.plugin.zsh"
+source "/opt/conda/etc/profile.d/conda.sh"
+source "/opt/bm/store/starship/share/starship/init.zsh"
+source "/opt/bm/store/atuin/share/atuin/init.zsh"
 
 # User definitions take precedence over framework aliases and functions.
 source "$XDG_CONFIG_HOME/zsh/aliases.zsh"
