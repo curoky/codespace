@@ -31,11 +31,8 @@ sysctl -p /etc/sysctl.d/custom.conf || true
 # seed the complete runtime input required by the inherited services.
 mkdir -p /run/s6/container_environment /run/service
 
-# WSL is always plaintext and exposes sshd on its conventional port. Bind to all
-# interfaces so it is reachable through WSL port forwarding or mirrored networking.
+# WSL is always plaintext. The inherited sshd config exposes port 22 on all interfaces.
 printf 'false' >/run/s6/container_environment/CODESPACE_ENCRYPTED
-printf '22' >/run/s6/container_environment/SSHD_PORT
-printf '0.0.0.0' >/run/s6/container_environment/SSHD_BIND
 
 # Bring up s6-rc once s6-svscan is ready to accept control commands, which is
 # exactly the precondition s6-rc-init needs. Readiness is NOT the mere existence

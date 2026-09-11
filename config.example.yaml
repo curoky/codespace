@@ -4,8 +4,6 @@ hosts:
   server:
     forward_environment: [HTTP_PROXY, HTTPS_PROXY, NO_PROXY]
     platform: linux/amd64
-    container:
-      network_mode: bridge
 
 project_defaults:
   image: ghcr.io/curoky/codespace:workspace-debian13
@@ -35,7 +33,6 @@ projects:
     checkout_path: /workspace/codespace
     open_path: /workspace/codespace
     encrypted: false
-    container: {}
 
 services:
   support:
@@ -43,6 +40,7 @@ services:
     hosts:
       server: {}
     container:
+      network_mode: bridge
       volumes:
         - /run/podman/podman.sock:/run/podman/podman.sock
 
@@ -51,6 +49,7 @@ services:
     hosts:
       server: {}
     container:
+      network_mode: bridge
       ports:
         - { target: 8003, published: 8003, host_ip: 10.88.0.1 }
       ipc: host
@@ -67,6 +66,7 @@ services:
     hosts:
       server: {}
     container:
+      network_mode: bridge
       ports:
         - { target: 8003, published: 8003, host_ip: 10.88.0.1 }
       ipc: host
