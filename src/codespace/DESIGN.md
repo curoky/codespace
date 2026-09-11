@@ -20,9 +20,9 @@ Workspace 与 Service 使用不相交的 inventory kind；Dashboard 不缓存容
 创建时，同一个 resolved specification 同时生成 identity、labels 与 runtime input。
 之后会影响删除、安全判断和用户入口的 deployed metadata 均从 labels 恢复，
 不与当前 Project 配置合并。缺失、冲突或无法验证的 metadata 直接失败；
-identity 与 SSH port 只由已验证的 Host、Project、Workspace 三元组派生，契约变化
-通过重建容器生效。identity 使用资源名中禁止出现的 `_` 分隔字段，不能用 `-`
-拼接这些允许包含连字符的值。
+identity 与 SSH Host forwarding port 只由已验证的 Host、Project、Workspace 三元组
+派生，契约变化通过重建容器生效。identity 使用资源名中禁止出现的 `_` 分隔字段，
+不能用 `-` 拼接这些允许包含连字符的值。
 
 ## Boundaries
 
@@ -52,8 +52,9 @@ Transport 为每个 Host 维护一个 authenticated OpenSSH ControlMaster，并�
 关闭而释放。
 
 Workspace image 与 Host installer 共同预置固定 SSH trust contract。Workspace SSH
-alias 编码 port、Host、Project 与 Workspace；静态 ProxyCommand 直接解析前两项并经
-Host 跳转。控制面不安装 key，也不生成、解析或改写本地 SSH 文件。
+alias 编码 Host forwarding port、Host、Project 与 Workspace；静态 ProxyCommand
+直接解析前两项并经 Host 跳转。控制面不安装 key，也不生成、解析或改写本地 SSH
+文件。
 
 ## Placement And Container Contract
 
@@ -64,7 +65,9 @@ filesystem、home、Agent、SSHD 与 local service 布局由 image 在构建期�
 
 container 配置从通用层逐步覆盖到具体 placement；只有显式字段参与 merge，
 list 与 mapping 整体替换。Project image、platform 和 tunnel allowlist 各自按其
-resolver 处理，不隐式套用 container merge 规则。
+resolver 处理，不隐式套用 container merge 规则。Project 最终解析为
+`WorkspaceContainerSpec`，network mode 固定为 bridge；任何层解析出其他模式都直接
+失败。
 
 `ContainerSpec` 只接受控制面实现的 Compose service syntax 子集。runtime 接收完全
 解析后的绝对 bind mount，不实现通用 variable interpolation。Service 的 managed data
@@ -73,10 +76,10 @@ placeholder 在 Service 领域边界解析；Project 不能使用它，也不能
 
 ## Networking And Access
 
-bridge 模式使用 Podman 默认网络，控制面不创建网络或依赖容器 DNS。
-Workspace SSH 发布到 Host loopback；需要被 Workspace 访问的 Service 则显式
-发布到 Host bridge gateway。公网或 LAN 暴露不属于默认行为，必须由部署配置
-明确选择。
+Workspace 固定使用 Podman 默认 bridge network，控制面不创建网络或依赖容器 DNS。
+其 SSHD 固定监听容器内 `0.0.0.0:22`，并以每个 Workspace 唯一的端口发布到 Host
+loopback。需要被 Workspace 访问的 Service 则显式发布到 Host bridge gateway。
+公网或 LAN 暴露不属于默认行为，必须由部署配置明确选择。
 
 Web UI 的 Workspace port 入口不要求额外 Podman port publication。控制面先复用到
 Host 的认证连接，再通过 Workspace SSH 将 allowlist 中的容器 loopback port 映射到

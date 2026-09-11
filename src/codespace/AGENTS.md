@@ -10,6 +10,7 @@
 - YAML 只在入口读取；Pydantic model 是运行期唯一配置来源。
 - Config 表达 desired placement；deployed metadata 只读 labels，状态只读 Podman。
 - 固定 filesystem、用户 home 与进程布局归 platform；控制面只传 placement 和实例输入。
+- Workspace 的 network mode 固定为 bridge；只有 Service 可在配置中选择网络模式。
 - 缺失或冲突的容器 metadata 必须失败，不从 Config、mount 或 environment 补齐。
 - lifecycle failure 保留现场和 failed operation，不做隐式回滚。
 - 维护命令先形成完整计划并隔离单目标失败；只有显式 apply 才修改远端状态。

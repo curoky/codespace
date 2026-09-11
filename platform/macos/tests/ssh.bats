@@ -61,7 +61,7 @@ teardown() {
   [[ "$output" == *'proxycommand ~/.ssh/codespace/proxy %n'* ]]
 }
 
-@test "proxy derives the Host route and SSH port from the alias" {
+@test "proxy derives the Host route and forwarding port from the alias" {
   run "$SSH_DIR/proxy" \
     codespace-workspace-23456_home-dev.example_codespace_debug
 
@@ -76,5 +76,5 @@ teardown() {
     codespace-workspace-19999_home_codespace_debug
 
   [ "$status" -eq 2 ]
-  [[ "$output" == "invalid Workspace SSH port: 19999" ]]
+  [[ "$output" == "invalid Workspace SSH Host port: 19999" ]]
 }

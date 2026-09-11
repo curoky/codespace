@@ -25,7 +25,7 @@ def connection_options(workspace: Workspace, route: SSHRoute) -> list[str]:
         "-F",
         str(SSH_CONFIG_PATH),
         "-o",
-        f"Port={workspace.ssh_port}",
+        f"Port={workspace.ssh_host_port}",
         "-o",
         f"ProxyCommand={proxy}",
     ]

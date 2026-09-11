@@ -377,7 +377,7 @@ def test_container_log_snapshot_lists_and_reads_file_source() -> None:
     calls: list[tuple[list[str], dict[str, object]]] = []
     responses = iter(
         [
-            (0, (b"s6.workspace-agent.log\0s6.sshd.stdout.log\0", None)),
+            (0, (b"s6.workspace-agent.log\0s6.sshd.log\0", None)),
             (0, (b"agent line\n", None)),
         ]
     )
@@ -396,7 +396,7 @@ def test_container_log_snapshot_lists_and_reads_file_source() -> None:
     assert snapshot.source == "s6.workspace-agent.log"
     assert snapshot.sources == (
         "container",
-        "s6.sshd.stdout.log",
+        "s6.sshd.log",
         "s6.workspace-agent.log",
     )
     assert snapshot.logs == "agent line\n"

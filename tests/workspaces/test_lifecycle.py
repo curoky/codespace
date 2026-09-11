@@ -222,15 +222,12 @@ def test_logs_reads_selected_container_source(
     assert calls == [(running, "s6.workspace-agent.log")]
 
 
-@pytest.mark.parametrize("network_mode", ["host", "bridge"])
-def test_workspace_container_uses_reserved_environment_and_mounts(
+def test_workspace_container_uses_fixed_ssh_listener_and_reserved_mounts(
     config: Config,
     monkeypatch: pytest.MonkeyPatch,
-    network_mode: str,
 ) -> None:
     data = config.model_dump()
     data["projects"]["codespace"]["container"] = {
-        "network_mode": network_mode,
         "secrets": [{"source": "atuin_db_uri", "mode": 0o400}],
     }
     spec = Config.model_validate(data).workspace_spec("codespace", "home", "debug")
@@ -258,18 +255,14 @@ def test_workspace_container_uses_reserved_environment_and_mounts(
     assert "ATUIN_SYNC_ADDRESS" not in environment
     assert captured["spec"].secrets[0].source == "atuin_db_uri"  # type: ignore[union-attr]
     assert captured["spec"].secrets[0].mode == 0o400  # type: ignore[union-attr]
-    assert environment["SSHD_PORT"] == str(spec.ssh_port)
-    if network_mode == "bridge":
-        assert environment["SSHD_BIND"] == "0.0.0.0"  # noqa: S104
-        assert captured["spec"].ports[-1].model_dump() == {  # type: ignore[union-attr]
-            "target": spec.ssh_port,
-            "published": spec.ssh_port,
-            "host_ip": "127.0.0.1",
-            "protocol": "tcp",
-        }
-    else:
-        assert environment["SSHD_BIND"] == "127.0.0.1"
-        assert captured["spec"].ports is None
+    assert "SSHD_PORT" not in environment
+    assert "SSHD_BIND" not in environment
+    assert captured["spec"].ports[-1].model_dump() == {  # type: ignore[union-attr]
+        "target": 22,
+        "published": spec.ssh_host_port,
+        "host_ip": "127.0.0.1",
+        "protocol": "tcp",
+    }
     targets = {mount["target"] for mount in captured["mounts"]}  # type: ignore[index]
     assert targets == {"/workspace", "/upload", "/cache", "/run/codespace-control"}
 

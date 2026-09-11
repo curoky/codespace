@@ -21,7 +21,6 @@ def config() -> Config:
             "project_defaults": {
                 "image": "ghcr.io/curoky/codespace:workspace-debian13",
                 "container": {
-                    "network_mode": "host",
                     "cap_add": ["NET_RAW", "SYS_ADMIN"],
                     "security_opt": ["disable", "seccomp=unconfined"],
                     "pids_limit": -1,

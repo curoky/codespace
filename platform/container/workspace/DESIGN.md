@@ -52,9 +52,9 @@ shell integration 和其余 home 配置直接来自 image。
 manifest。之后扩展完全由 IDE 管理，重建容器不合并 manifest、不重新安装用户删除的
 扩展。复制失败不发布 manifest，下次启动可以重试。
 
-image 只由 control plane 启动。Agent、SSHD 与 workspace-init 直接要求完整 runtime
-environment；缺失 source、path、SSH 或 encryption 输入时进程失败，不进入 idle
-模式，也不使用 standalone 默认值。
+image 只由 control plane 启动。Agent 与 workspace-init 直接要求完整 runtime
+environment；缺失 source、path 或 encryption 输入时进程失败，不进入 idle 模式，
+也不使用 standalone 默认值。
 
 ## Local Services
 
@@ -62,18 +62,20 @@ WebDAV 与 Atuin listener 固定绑定 container loopback 和各自固定端口�
 Workspace SSH tunnel 或容器内进程访问。WebDAV 没有认证，不提供 bind address
 override。
 
+SSHD 固定监听 `0.0.0.0:22`。Workspace 只使用 bridge network，Host 仅在 loopback
+发布每个 Workspace 唯一的 forwarding port；WSL 则通过自己的网络直接暴露 `22`。
+
 macOS rootfs 预置固定 SSH client config、login key、known host 和 ProxyCommand
 helper，并由 Host installer 按同路径安装。用户侧 alias 采用
-`codespace-workspace-<port>_<host>_<project>_<workspace>`；helper 只解析 port 与
-Host，直接建立到 Workspace loopback listener 的 stdio tunnel，不生成 per-Workspace
-配置文件。
+`codespace-workspace-<host-port>_<host>_<project>_<workspace>`；helper 只解析 Host
+forwarding port 与 Host，直接建立到 Host loopback listener 的 stdio tunnel，不生成
+per-Workspace 配置文件。
 
 每个 Workspace 自带 Atuin server，但数据库仍在外部。server 就绪后才执行登录和
 首次同步，再启动 daemon；数据库失败不阻塞独立的 SSH 与 Agent 启动链。
 credential 只进入 server 进程，不写入 home、image 或 s6 公共环境。
 
-Host network 下多个 Workspace 共享端口空间，部署方必须避免 listener 冲突；bridge
-模式各自隔离。WSL 通过自己的 bundle 选择复用这些 service，见
+WSL 通过自己的 bundle 选择复用这些 service，见
 [`platform/wsl/DESIGN.md`](../../wsl/DESIGN.md)。
 
 ## Agent Contract

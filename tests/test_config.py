@@ -16,7 +16,7 @@ from codespace.workspaces.models import (
     LABEL_SOURCE,
     LABEL_WORKSPACE,
     workspace_identity,
-    workspace_ssh_port,
+    workspace_ssh_host_port,
 )
 
 
@@ -257,7 +257,7 @@ def test_config_rejects_invalid_mount_sources(
 ) -> None:
     data = config.model_dump()
     data[kind][name]["container"] = {
-        "network_mode": "host",
+        **({"network_mode": "host"} if kind == "services" else {}),
         "volumes": [f"{source}:/data"],
     }
 
@@ -267,17 +267,37 @@ def test_config_rejects_invalid_mount_sources(
 
 def test_ports_require_bridge_network(config: Config) -> None:
     data = config.model_dump()
-    data["projects"]["codespace"]["container"] = {
+    data["services"]["support"]["container"] = {
+        "network_mode": "host",
         "ports": [
             {
                 "target": 8080,
                 "published": 3000,
                 "host_ip": "127.0.0.1",
             }
-        ]
+        ],
     }
 
     with pytest.raises(ValidationError, match="only in bridge mode"):
+        Config.model_validate(data)
+
+
+@pytest.mark.parametrize("scope", ["defaults", "host", "project", "placement"])
+def test_project_network_is_fixed_to_bridge(config: Config, scope: str) -> None:
+    data = config.model_dump()
+    match scope:
+        case "defaults":
+            data["project_defaults"]["container"]["network_mode"] = "host"
+        case "host":
+            data["hosts"]["home"]["container"] = {"network_mode": "host"}
+        case "project":
+            data["projects"]["codespace"]["container"] = {"network_mode": "host"}
+        case "placement":
+            data["projects"]["codespace"]["hosts"]["home"]["container"] = {"network_mode": "host"}
+        case _:
+            raise AssertionError(f"unknown scope: {scope}")
+
+    with pytest.raises(ValidationError, match="bridge"):
         Config.model_validate(data)
 
 
@@ -378,7 +398,7 @@ def test_workspace_identity_labels_and_paths(config: Config) -> None:
 
     assert identity == "codespace-workspace_home_codespace_debug"
     assert spec.identity == identity
-    assert 20_000 <= workspace_ssh_port(identity) <= 29_999
+    assert 20_000 <= workspace_ssh_host_port(identity) <= 29_999
     assert spec.labels() == {
         LABEL_KIND: "workspace",
         LABEL_PROJECT: "codespace",

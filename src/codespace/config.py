@@ -30,8 +30,6 @@ from codespace.workspaces.models import (
     ENCRYPTED_ENV,
     OPEN_PATH_ENV,
     SOURCE_TYPE_ENV,
-    SSHD_BIND_ENV,
-    SSHD_PORT_ENV,
     UPLOAD_MOUNT,
     WORKSPACE_CIPHER_MOUNT,
     WORKSPACE_KEY_MOUNT,
@@ -42,6 +40,7 @@ from codespace.workspaces.models import (
     ResourceId,
     Source,
     TokenString,
+    WorkspaceContainerSpec,
     WorkspacePath,
     WorkspaceSpec,
     workspace_path,
@@ -55,8 +54,6 @@ _RESERVED_ENVIRONMENT = {
     CHECKOUT_PATH_ENV,
     OPEN_PATH_ENV,
     ENCRYPTED_ENV,
-    SSHD_PORT_ENV,
-    SSHD_BIND_ENV,
 }
 _RESERVED_MOUNTS = (
     WORKSPACE_MOUNT,
@@ -172,7 +169,6 @@ class Config(FrozenModel):
                     raise ValueError(f"project {project_id!r} references unknown host {host!r}")
                 self._validate_project_container(
                     project_id,
-                    host,
                     self.resolved_project_container(project_id, host),
                 )
             if project.encrypted and WORKSPACE_KEY_SECRET not in self.secrets:
@@ -196,10 +192,11 @@ class Config(FrozenModel):
     def service_hosts(self, service: str) -> list[str]:
         return list(self.services[service].hosts)
 
-    def resolved_project_container(self, project: str, host: str) -> ContainerSpec:
+    def resolved_project_container(self, project: str, host: str) -> WorkspaceContainerSpec:
         configured = self.projects[project]
         placement = configured.hosts[host]
-        return self.project_defaults.container.merged_with(
+        return WorkspaceContainerSpec().merged_with(
+            self.project_defaults.container,
             self.hosts[host].container,
             configured.container,
             placement.container,
@@ -261,20 +258,10 @@ class Config(FrozenModel):
         return tokens
 
     @staticmethod
-    def _validate_network(resource: str, host: str, container: ContainerSpec) -> None:
-        if container.network_mode is None:
-            raise ValueError(f"{resource} on host {host!r} must resolve network_mode")
-        if container.ports and not container.is_bridge:
-            raise ValueError(f"{resource} on host {host!r} may publish ports only in bridge mode")
-
-    @classmethod
     def _validate_project_container(
-        cls,
         project: str,
-        host: str,
-        container: ContainerSpec,
+        container: WorkspaceContainerSpec,
     ) -> None:
-        cls._validate_network(f"project {project!r}", host, container)
         reserved_environment = _RESERVED_ENVIRONMENT.intersection(container.environment or {})
         if reserved_environment:
             names = ", ".join(sorted(reserved_environment))
@@ -294,14 +281,18 @@ class Config(FrozenModel):
                     f"project secret {secret.source!r} overlaps a reserved mount target"
                 )
 
-    @classmethod
+    @staticmethod
     def _validate_service_container(
-        cls,
         service: str,
         host: str,
         container: ContainerSpec,
     ) -> None:
-        cls._validate_network(f"service {service!r}", host, container)
+        if container.network_mode is None:
+            raise ValueError(f"service {service!r} on host {host!r} must resolve network_mode")
+        if container.ports and not container.is_bridge:
+            raise ValueError(
+                f"service {service!r} on host {host!r} may publish ports only in bridge mode"
+            )
         for volume in container.volumes or []:
             if volume.source != SERVICE_DATA_PLACEHOLDER:
                 volume.mount()
