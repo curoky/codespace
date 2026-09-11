@@ -9,7 +9,7 @@
 - s6 skeleton 与安装器由 Workspace 持有；Service 只复用 bootstrap，自身拥有
   service definition。
 - s6 service 的文件日志统一使用 `/var/log/s6.*.log` 命名；控制面只读取 Podman
-  logs，Workspace 通过 copyparty 只读暴露 `/var/log`。
+  logs，Workspace 通过 loopback file services 只读暴露 `/var/log`。
 - runtime helper 必须 executable；secret 文件不得向无关用户开放。
 - 不提交生成的 venv、cache、database 或 image artifact。
 

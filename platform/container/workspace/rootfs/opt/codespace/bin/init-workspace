@@ -2,7 +2,8 @@
 # workspace-init s6 oneshot (runs as x): prepare the Workspace data, ciphertext
 # root and upload/cache as private x-owned directories, then mount /workspace via
 # gocryptfs when explicitly enabled by the container specification.
-# Gates sshd/webdav. IDE cache symlink targets are prepared by home-init.
+# Gates sshd and Workspace file services. IDE cache symlink targets are prepared
+# by home-init.
 
 set -euo pipefail
 

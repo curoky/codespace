@@ -1,0 +1,23 @@
+#!/opt/bm/profile/s6/bin/execlineb -P
+
+s6-envdir -Lf -- /run/s6/container_environment
+
+redirfd -w 1 /var/log/s6.miniserve-http.log
+fdmove -c 2 1
+
+s6-setuidgid x
+s6-env HOME=/home/x
+s6-env MINISERVE_ENABLE_TAR=false
+s6-env MINISERVE_ENABLE_TAR_GZ=false
+s6-env MINISERVE_ENABLE_ZIP=false
+s6-env MINISERVE_SHOW_SYMLINK_INFO=false
+s6-env MINISERVE_SHOW_WGET_FOOTER=false
+exec /opt/bm/bin/miniserve
+  --interfaces 127.0.0.1
+  --port 8008
+  --no-symlinks
+  --dirs-first
+  --title codespace-logs
+  --hide-version-footer
+  --hide-theme-selector
+  /var/log

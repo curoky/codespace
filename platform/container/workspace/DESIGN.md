@@ -34,6 +34,8 @@ flowchart TD
     Data --> SSHD
     Home --> SSHD
     Data --> WebDAV
+    Data --> HTTP["rclone HTTP"]
+    Default --> Logs["miniserve logs"]
     Home --> Agent["Workspace Agent"]
     Default --> AtuinServer["Atuin server"]
     AtuinServer -->|ready| AtuinLogin["login + initial sync"]
@@ -58,10 +60,13 @@ environment；缺失 source、path 或 encryption 输入时进程失败，不进
 
 ## Local Services
 
-WebDAV 与 Atuin listener 固定绑定 container loopback 和各自固定端口，只允许经
-Workspace SSH tunnel 或容器内进程访问。WebDAV 没有认证，不提供 bind address
-override。copyparty 除 Workspace 数据与上传目录外，还将 `/var/log` 暴露为只读
-volume，供用户检查 s6 文件日志；控制面日志接口只读取 Podman stdout/stderr。
+rclone HTTP、miniserve log HTTP、WebDAV 与 Atuin listener 固定绑定 container
+loopback 和各自固定端口，只允许经 Workspace SSH tunnel 或容器内进程访问。这些
+file service 没有认证，不提供 bind address override。rclone HTTP 与 WebDAV 共用一个
+combine remote，将 Workspace 数据、容器日志与上传目录分别暴露为 `/workspace`、
+只读 `/logs` 和 `/upload`；HTTP 仅提供只读访问。miniserve 专门将 `/var/log` 映射为
+只读目录，copyparty 也包含同一只读 volume，供用户检查 s6 文件日志；控制面日志接口
+只读取 Podman stdout/stderr。
 
 SSHD 固定监听 `0.0.0.0:22`。Workspace 只使用 bridge network，Host 仅在 loopback
 发布每个 Workspace 唯一的 forwarding port；WSL 则通过自己的网络直接暴露 `22`。

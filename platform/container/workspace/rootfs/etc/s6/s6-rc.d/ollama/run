@@ -8,8 +8,8 @@ redirfd -w 1 /var/log/s6.ollama.log
 fdmove -c 2 1
 
 # Bind loopback by default like the other workspace listeners; port 8006
-# continues the 800x scheme (8002 atuin, 8004 rclone, 8005 copyparty). Callers
-# can still override OLLAMA_HOST for bridge exposure.
+# continues the 800x scheme (8002 atuin, 8004 rclone WebDAV, 8005 copyparty,
+# 8007 rclone HTTP). Callers can still override OLLAMA_HOST for bridge exposure.
 importas -D 127.0.0.1:8006 OLLAMA_HOST OLLAMA_HOST
 export OLLAMA_HOST ${OLLAMA_HOST}
 
