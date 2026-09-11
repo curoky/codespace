@@ -236,11 +236,10 @@ class WorkspaceManager:
         project: str,
         host_name: str,
         workspace: str,
-        source: str = container.CONTAINER_LOG_SOURCE,
-    ) -> container.LogSnapshot:
+    ) -> str:
         self._project(project, host_name)
         running = self._container(project, host_name, workspace)
-        return container.container_log_snapshot(running, source)
+        return container.container_logs(running)
 
     def _container(self, project: str, host_name: str, workspace: str) -> Container:
         identity = workspace_identity(host_name, project, workspace)

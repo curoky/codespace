@@ -60,7 +60,8 @@ environment；缺失 source、path 或 encryption 输入时进程失败，不进
 
 WebDAV 与 Atuin listener 固定绑定 container loopback 和各自固定端口，只允许经
 Workspace SSH tunnel 或容器内进程访问。WebDAV 没有认证，不提供 bind address
-override。
+override。copyparty 除 Workspace 数据与上传目录外，还将 `/var/log` 暴露为只读
+volume，供用户检查 s6 文件日志；控制面日志接口只读取 Podman stdout/stderr。
 
 SSHD 固定监听 `0.0.0.0:22`。Workspace 只使用 bridge network，Host 仅在 loopback
 发布每个 Workspace 唯一的 forwarding port；WSL 则通过自己的网络直接暴露 `22`。

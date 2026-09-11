@@ -9,7 +9,6 @@ from codespace.config import Config
 from codespace.control import HostInventory
 from codespace.errors import ResourceConflict, ResourceNotFound
 from codespace.operations import Operation, OperationStore
-from codespace.runtime.container import LogSnapshot
 from codespace.web.app import create_app, router
 from codespace.web.models import DashboardWorkspace
 from codespace.workspaces.models import EmptySource, RepoGitState, Workspace, workspace_identity
@@ -33,7 +32,7 @@ class FakeWorkspaceManager:
         self.created: list[tuple[str, str, str]] = []
         self.deleted: list[tuple[str, str, str, bool]] = []
         self.inspected: list[tuple[str, str, str]] = []
-        self.log_sources: list[str] = []
+        self.logs_read: list[tuple[str, str, str]] = []
         self.tunnels_opened: list[tuple[str, str, str, int]] = []
         self.state = RepoGitState(unpushed=False, uncommitted=False, detail=[])
 
@@ -72,19 +71,14 @@ class FakeWorkspaceManager:
 
     def logs(
         self,
-        _project: str,
-        _host: str,
+        project: str,
+        host: str,
         workspace: str,
-        source: str,
-    ) -> LogSnapshot:
+    ) -> str:
         if workspace == "missing":
             raise ResourceNotFound("workspace not found")
-        self.log_sources.append(source)
-        return LogSnapshot(
-            source=source,
-            sources=("container", "s6.workspace-agent.log"),
-            logs="log line\n",
-        )
+        self.logs_read.append((project, host, workspace))
+        return "log line\n"
 
     def open_tunnel(self, project: str, host: str, workspace: str, port: int) -> int:
         if workspace == "stopped":
@@ -97,7 +91,7 @@ class FakeServiceManager:
     def __init__(self) -> None:
         self.operations = OperationStore()
         self.applied: list[tuple[str, str]] = []
-        self.log_sources: list[str] = []
+        self.logs_read: list[tuple[str, str]] = []
 
     def queue_apply(self, service: str, host: str) -> Operation:
         return self.operations.create(
@@ -120,13 +114,9 @@ class FakeServiceManager:
     def remove(self, _service: str, _host: str, *, purge: bool) -> bool:
         return True
 
-    def logs(self, _service: str, _host: str, source: str) -> LogSnapshot:
-        self.log_sources.append(source)
-        return LogSnapshot(
-            source=source,
-            sources=("container", "s6.supercronic.log"),
-            logs="service log\n",
-        )
+    def logs(self, service: str, host: str) -> str:
+        self.logs_read.append((service, host))
+        return "service log\n"
 
 
 class FakeControl:
@@ -168,6 +158,9 @@ def test_static_ui_uses_final_terminology(app_client: tuple[TestClient, FakeCont
     assert "/api/services/" in script
     assert "workspace.encrypted" in script
     assert "Encrypted Workspace" in script
+    assert "logs-source" not in index
+    assert "renderLogSources" not in script
+    assert "?source=" not in script
     assert ".workspace-actions .ssh-command" in stylesheet
     assert ".workspace-encryption-icon" in stylesheet
 
@@ -245,12 +238,8 @@ def test_workspace_routes_use_project_and_workspace_identity(
     assert created.json()["id"] == "codespace-workspace_home_codespace_debug"
     assert control.workspaces.created == [("codespace", "home", "debug")]
     assert deleted.json()["data_removed"] is True
-    assert control.workspaces.log_sources == ["container"]
-    assert logs.json() == {
-        "source": "container",
-        "sources": ["container", "s6.workspace-agent.log"],
-        "logs": "log line\n",
-    }
+    assert control.workspaces.logs_read == [("codespace", "home", "debug")]
+    assert logs.json() == {"logs": "log line\n"}
 
 
 def test_tunnel_route_redirects_and_reports_failure(
@@ -279,34 +268,14 @@ def test_service_routes_apply_log_and_remove(
     client, control = app_client
 
     applied = client.post("/api/services/support/hosts/home/apply")
-    logs = client.get("/api/services/support/hosts/home/logs?source=s6.supercronic.log")
+    logs = client.get("/api/services/support/hosts/home/logs")
     removed = client.request("DELETE", "/api/services/support/hosts/home?purge=true")
 
     assert applied.status_code == 202
     assert control.services.applied == [("support", "home")]
-    assert control.services.log_sources == ["s6.supercronic.log"]
-    assert logs.json() == {
-        "source": "s6.supercronic.log",
-        "sources": ["container", "s6.supercronic.log"],
-        "logs": "service log\n",
-    }
+    assert control.services.logs_read == [("support", "home")]
+    assert logs.json() == {"logs": "service log\n"}
     assert removed.json() == {"removed": True, "data_removed": True}
-
-
-@pytest.mark.parametrize("source", ["../s6.supercronic.log", "supercronic.log"])
-def test_log_source_query_rejects_non_s6_files_and_paths(
-    app_client: tuple[TestClient, FakeControl],
-    source: str,
-) -> None:
-    client, control = app_client
-
-    response = client.get(
-        "/api/services/support/hosts/home/logs",
-        params={"source": source},
-    )
-
-    assert response.status_code == 422
-    assert control.services.log_sources == []
 
 
 def test_only_final_api_routes_exist(app_client: tuple[TestClient, FakeControl]) -> None:

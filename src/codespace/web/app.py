@@ -18,9 +18,9 @@ from codespace.config import CONFIG_PATH, Config, load_config
 from codespace.control import ControlPlane
 from codespace.errors import ResourceConflict, ResourceNotFound
 from codespace.operations import Operation, describe_error
-from codespace.runtime.container import LogSnapshot
 from codespace.web import dashboard as dashboard_view
 from codespace.web.models import (
+    ContainerLogsResponse,
     CreateWorkspaceRequest,
     DashboardResponse,
     DeleteWorkspaceQuery,
@@ -34,14 +34,6 @@ STATIC_DIR = Path(__file__).parent / "static"
 router = APIRouter()
 ResourcePath = Annotated[str, ApiPath(pattern=r"^[a-z0-9][a-z0-9-]{0,31}$")]
 HostPath = Annotated[str, ApiPath(pattern=r"^[a-z0-9][a-z0-9.-]{0,62}$")]
-LogSourceQuery = Annotated[
-    str,
-    Query(
-        min_length=1,
-        max_length=128,
-        pattern=r"^(?:container|s6\.[A-Za-z0-9][A-Za-z0-9._-]*\.log)$",
-    ),
-]
 
 
 def _control(request: Request) -> ControlPlane:
@@ -83,9 +75,9 @@ def workspace_logs(
     host: HostPath,
     workspace: ResourcePath,
     request: Request,
-    source: LogSourceQuery = "container",
-) -> LogSnapshot:
-    return _control(request).workspaces.logs(project, host, workspace, source)
+) -> ContainerLogsResponse:
+    logs = _control(request).workspaces.logs(project, host, workspace)
+    return ContainerLogsResponse(logs=logs)
 
 
 @router.post("/api/projects/{project}/hosts/{host}/workspaces/{workspace}/tunnels/{port}")
@@ -159,9 +151,9 @@ def service_logs(
     service: ResourcePath,
     host: HostPath,
     request: Request,
-    source: LogSourceQuery = "container",
-) -> LogSnapshot:
-    return _control(request).services.logs(service, host, source)
+) -> ContainerLogsResponse:
+    logs = _control(request).services.logs(service, host)
+    return ContainerLogsResponse(logs=logs)
 
 
 @router.delete("/api/services/{service}/hosts/{host}")

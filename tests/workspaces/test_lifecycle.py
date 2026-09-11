@@ -288,26 +288,21 @@ def test_stopped_workspace_requires_explicit_delete_without_inspection(
     assert mutations == ["container"]
 
 
-def test_logs_reads_selected_container_source(
+def test_logs_reads_podman_output(
     manager: WorkspaceManager,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     running = SimpleNamespace()
-    snapshot = lifecycle.container.LogSnapshot(
-        source="s6.workspace-agent.log",
-        sources=("container", "s6.workspace-agent.log"),
-        logs="agent line\n",
-    )
-    calls: list[tuple[object, str]] = []
+    calls: list[object] = []
     monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
     monkeypatch.setattr(
         lifecycle.container,
-        "container_log_snapshot",
-        lambda actual, source: (calls.append((actual, source)), snapshot)[-1],
+        "container_logs",
+        lambda actual: (calls.append(actual), "agent line\n")[-1],
     )
 
-    assert manager.logs("codespace", "home", "debug", "s6.workspace-agent.log") is snapshot
-    assert calls == [(running, "s6.workspace-agent.log")]
+    assert manager.logs("codespace", "home", "debug") == "agent line\n"
+    assert calls == [running]
 
 
 def test_workspace_container_uses_fixed_ssh_listener_and_reserved_mounts(
