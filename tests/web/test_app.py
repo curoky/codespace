@@ -156,6 +156,9 @@ def test_static_ui_uses_final_terminology(app_client: tuple[TestClient, FakeCont
     assert "renderServices" in script
     assert "/api/projects/" in script
     assert "/api/services/" in script
+    assert 'portLink.target = "_blank"' in script
+    assert "openWorkspaceTunnel" not in script
+    assert 'form.target = "_blank"' not in script
     assert "workspace.encrypted" in script
     assert "Encrypted Workspace" in script
     assert "logs-source" not in index
@@ -248,18 +251,18 @@ def test_tunnel_route_redirects_and_reports_failure(
     client, control = app_client
     path = "/api/projects/codespace/hosts/home/workspaces"
 
-    opened = client.post(f"{path}/debug/tunnels/8005", follow_redirects=False)
+    opened = client.get(f"{path}/debug/tunnels/8005", follow_redirects=False)
     assert opened.status_code == 303
     assert opened.headers["location"] == "http://127.0.0.1:49123/"
     assert control.workspaces.tunnels_opened == [("codespace", "home", "debug", 8005)]
 
-    stopped = client.post(f"{path}/stopped/tunnels/8005")
+    stopped = client.get(f"{path}/stopped/tunnels/8005")
     assert stopped.status_code == 409
     assert stopped.json() == {"error": "Tunnel requires a running Workspace"}
-    assert client.get(f"{path}/debug/tunnels/8005").status_code == 405
-    assert client.post(f"{path}/bad_name/tunnels/8005").status_code == 422
+    assert client.post(f"{path}/debug/tunnels/8005").status_code == 405
+    assert client.get(f"{path}/bad_name/tunnels/8005").status_code == 422
     for port in ("0", "65536", "invalid"):
-        assert client.post(f"{path}/debug/tunnels/{port}").status_code == 422
+        assert client.get(f"{path}/debug/tunnels/{port}").status_code == 422
 
 
 def test_service_routes_apply_log_and_remove(
@@ -289,7 +292,7 @@ def test_only_final_api_routes_exist(app_client: tuple[TestClient, FakeControl])
         ("PUT", "/api/providers/{provider}/token"),
         ("POST", "/api/projects/{project}/workspaces"),
         ("GET", "/api/projects/{project}/hosts/{host}/workspaces/{workspace}/logs"),
-        ("POST", "/api/projects/{project}/hosts/{host}/workspaces/{workspace}/tunnels/{port}"),
+        ("GET", "/api/projects/{project}/hosts/{host}/workspaces/{workspace}/tunnels/{port}"),
         ("GET", "/api/projects/{project}/hosts/{host}/workspaces/{workspace}/deletion-check"),
         ("DELETE", "/api/projects/{project}/hosts/{host}/workspaces/{workspace}"),
         ("DELETE", "/api/projects/{project}/hosts/{host}/operations/{workspace}"),
