@@ -70,11 +70,14 @@ teardown() {
   done
 }
 
-@test "zshrc consumes packaged shell integrations" {
+@test "zshrc consumes packaged shell integrations without activating conda" {
   local zshrc="${BATS_TEST_DIRNAME}/../rootfs/home/x/.zshrc"
+  local condarc="${BATS_TEST_DIRNAME}/../rootfs/home/x/.config/conda/condarc"
   local manifest="${BATS_TEST_DIRNAME}/../config/binman.yaml"
 
   grep -Fqx 'source "/opt/conda/etc/profile.d/conda.sh"' "${zshrc}"
+  grep -Fqx 'auto_activate: false' "${condarc}"
+  run ! grep -Eq '(^|[[:space:]])conda activate([[:space:]]|$)' "${zshrc}"
   grep -Fqx 'source "/opt/bm/store/starship/share/starship/init.zsh"' "${zshrc}"
   grep -Fqx 'source "/opt/bm/store/atuin/share/atuin/init.zsh"' "${zshrc}"
   grep -Eq '^    - starship$' "${manifest}"
