@@ -10,6 +10,7 @@ s6-env HOME=/home/x
 exec /opt/bm/store/rclone/bin/rclone serve http files:
   --config /etc/rclone.conf
   --addr 127.0.0.1:8007
+  --response-header "Content-Disposition: inline"
   --disable-zip
   --dir-cache-time 0
   --poll-interval 0
