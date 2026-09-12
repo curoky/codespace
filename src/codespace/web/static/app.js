@@ -337,17 +337,20 @@ function renderWorkspace(workspace, tunnelPorts) {
   sshButton.title = `Copy ${workspace.ssh_command}`;
   actions.append(sshButton);
   for (const port of tunnelPorts) {
-    const form = element("form", "tunnel-action");
-    form.method = "post";
-    form.target = "_blank";
-    form.rel = "noopener noreferrer";
-    form.action = `/api/projects/${encodeURIComponent(workspace.project)}/hosts/${encodeURIComponent(workspace.host)}/workspaces/${encodeURIComponent(workspace.workspace)}/tunnels/${port}`;
-    const button = element("button", "secondary", String(port));
-    button.type = "submit";
-    button.disabled = workspace.status !== "running";
-    button.title = `Open port ${port} via SSH tunnel`;
-    form.append(button);
-    actions.append(form);
+    const path = `/api/projects/${encodeURIComponent(workspace.project)}/hosts/${encodeURIComponent(workspace.host)}/workspaces/${encodeURIComponent(workspace.workspace)}/tunnels/${port}`;
+    if (workspace.status === "running") {
+      const portLink = link(String(port), path);
+      portLink.target = "_blank";
+      portLink.rel = "noopener noreferrer";
+      portLink.title = `Open port ${port} via SSH tunnel`;
+      actions.append(portLink);
+    } else {
+      const button = element("button", "secondary", String(port));
+      button.type = "button";
+      button.disabled = true;
+      button.title = `Open port ${port} via SSH tunnel`;
+      actions.append(button);
+    }
   }
   actions.append(actionButton("Logs", "logs", target));
   actions.append(actionButton("Delete", "delete", target));
