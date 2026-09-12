@@ -146,22 +146,6 @@ services:
       secrets:
         - { source: huggingface_token, mode: 0400 }
 
-  lobehub:
-    hosts: [gpu-host]
-    container:
-      image: ghcr.io/curoky/codespace:service-lobehub
-      platform: linux/amd64
-      pull_policy: always
-      network_mode: bridge
-      restart: unless-stopped
-      ports:
-        - { target: 8080, published: 8110, host_ip: 127.0.0.1 }
-      environment:
-        APP_URL: http://localhost:8110
-        OPENAI_PROXY_URL: http://codespace-service-sglang:8080/v1
-      volumes:
-        - ${RESOURCE_DATA}:/var/lib/codespace/lobehub
-
   chatbox:
     hosts: [gpu-host]
     container:

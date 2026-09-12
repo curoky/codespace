@@ -57,8 +57,6 @@ jobs:
             platforms: linux/amd64
           - service: sglang
             platforms: linux/amd64
-          - service: lobehub
-            platforms: linux/amd64
           - service: chatbox
             platforms: linux/amd64
     steps:
