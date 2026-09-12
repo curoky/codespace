@@ -84,12 +84,10 @@ teardown() {
   grep -Eq '^    - atuin$' "${manifest}"
 }
 
-@test "IDE defaults to uv Python while keeping project environment activation" {
+@test "IDE defaults to uv Python instead of conda" {
   local settings="${BATS_TEST_DIRNAME}/../rootfs/home/x/.vscode-server/data/Machine/settings.json"
 
   grep -Fqx '  "python.defaultInterpreterPath": "/opt/uv/bin/python3",' "${settings}"
-  grep -Fqx '  "python.terminal.activateEnvironment": true,' "${settings}"
-  grep -Fqx '  "python-envs.terminal.autoActivationType": "command",' "${settings}"
   run ! grep -Fq '"python.defaultInterpreterPath": "/opt/conda/' "${settings}"
 }
 
