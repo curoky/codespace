@@ -134,7 +134,7 @@ RUN bash /tmp/install-editor-extensions.sh /tmp/extensions.txt /opt/editor-exten
 # 变动的 system 配置与 Agent 在后，源码日常改动不再使 toolchain 大层失效。
 # 归属在生成时即正确（COPY 用 --chown，写 home 的步骤以 x 身份运行），故不做全树
 # recursive chown；末尾只补 COPY 无法表达的两件事：/opt 根可写、bin 执行位。
-FROM docker.io/$BASE_IMAGE
+FROM docker.io/$BASE_IMAGE AS workspace
 ARG BASE_IMAGE
 
 # 环境变量集中声明；PATH 一次拼定，避免层层追加。
@@ -191,5 +191,18 @@ RUN git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-play
 # 仅补 COPY 无法表达的：让 x 可写 /opt 根、补齐 rootfs 无法保留的 bin 执行位。
 USER root
 RUN chown 5230:5230 /opt && chmod -R +x /opt/codespace/bin
+
+################################ test ################################
+# 在隔离 stage 中验证最终镜像；helper 产生的 Workspace、cache 与 key 不进入发布层。
+FROM workspace AS workspace-test
+USER x
+RUN --mount=type=bind,source=platform/container/workspace/tests,target=/opt/codespace/tests,ro \
+  python3 -B /opt/codespace/tests/test_image.py \
+  && touch /tmp/workspace-image-tested
+
+################################ final ################################
+FROM workspace
+COPY --from=workspace-test /tmp/workspace-image-tested /tmp/workspace-image-tested
+RUN rm /tmp/workspace-image-tested
 
 ENTRYPOINT ["/etc/s6/init/bin/init"]

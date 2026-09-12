@@ -30,7 +30,7 @@ tasks:
   format:
     desc: 格式化 Python 与 Shell
     cmds:
-      - uv run ruff format src tests {{.WORKSPACE_AGENT}}/agent.py
+      - uv run ruff format src tests {{.WORKSPACE_AGENT}}/agent.py {{.WORKSPACE_IMAGE}}/tests
       - >-
         git ls-files -z --cached --others --exclude-standard -- '*.sh' '*.bats' |
         xargs -0 -P 6 -n 1 sh -c 'test ! -f "$1" || shfmt -w -i 2 -ci "$1"' sh
@@ -38,7 +38,7 @@ tasks:
   format:check:
     desc: 检查 Python 与 Shell 格式
     cmds:
-      - uv run ruff format --check src tests {{.WORKSPACE_AGENT}}/agent.py
+      - uv run ruff format --check src tests {{.WORKSPACE_AGENT}}/agent.py {{.WORKSPACE_IMAGE}}/tests
       - >-
         git ls-files -z --cached --others --exclude-standard -- '*.sh' '*.bats' |
         xargs -0 -P 6 -n 1 sh -c 'test ! -f "$1" || shfmt -d -i 2 -ci "$1"' sh
@@ -46,7 +46,7 @@ tasks:
   lint:
     desc: 运行 Ruff 与 ShellCheck
     cmds:
-      - uv run ruff check src tests {{.WORKSPACE_AGENT}}/agent.py
+      - uv run ruff check src tests {{.WORKSPACE_AGENT}}/agent.py {{.WORKSPACE_IMAGE}}/tests
       - >-
         git ls-files -z --cached --others --exclude-standard -- '*.sh' '*.bats' |
         xargs -0 -P 6 -n 1 sh -c 'test ! -f "$1" || shellcheck -x "$1"' sh
@@ -60,7 +60,7 @@ tasks:
         uv run --locked python -c "import agent"
 
   test:
-    desc: 运行控制面、Workspace image 与 macOS installer 测试
+    desc: 运行控制面与 macOS installer 测试
     deps:
       - task: test:python
       - task: test:shell
@@ -74,7 +74,7 @@ tasks:
     internal: true
     cmds:
       - >-
-        find {{.WORKSPACE_IMAGE}}/tests platform/macos/tests -type f -name '*.bats' -print0 |
+        find platform/macos/tests -type f -name '*.bats' -print0 |
         xargs -0 -P 6 -n 1 bats
 
   lock:check:

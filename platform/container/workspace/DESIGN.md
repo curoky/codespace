@@ -21,6 +21,11 @@ flowchart LR
 source。s6 database 与 container init 在 build 时生成；Service image 只复用这套
 bootstrap。
 
+final image 完成后会派生隔离的 test stage，以用户 `x` 执行镜像内 Python 验收。
+test stage 直接验证最终 filesystem、权限和 runtime helper；其生成的 Workspace、
+editor cache 与 deploy key 不进入发布 stage。发布 stage 通过 test marker 建立构建
+依赖，因此验收失败时不能产出 image。
+
 Starship 与 Atuin 的 shell integration 由 standalone-binaries toolchain package
 直接提供，Conda 直接加载发行版自带的 `profile.d/conda.sh`，image 不再生成用户副本。
 扩展构建同时生成各 IDE 的固定绝对路径 manifest；缺少声明的扩展时构建失败。
