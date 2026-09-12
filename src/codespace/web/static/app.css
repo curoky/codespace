@@ -32,7 +32,7 @@
   --danger-soft: rgb(220 50 47 / 14%);
   --neutral-soft: rgb(101 123 131 / 14%);
 
-  --radius-lg: 12px;
+  --radius-lg: 8px;
   --radius-md: 8px;
   --radius-sm: 6px;
 
@@ -62,6 +62,7 @@ body {
   background: var(--bg-base);
   font-size: 13px;
   line-height: 1.5;
+  letter-spacing: 0;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -96,7 +97,6 @@ select {
 
 .host,
 .project-card,
-.workspace,
 .operation,
 dialog,
 #toast {
@@ -110,16 +110,19 @@ dialog,
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-top: 18px;
-  padding-bottom: 14px;
+  gap: 12px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--hairline);
+}
+
+.app-header .section-heading {
+  justify-content: flex-start;
+  margin-bottom: 0;
 }
 
 h2 {
   font-size: 1.02rem;
   font-weight: 650;
-  letter-spacing: -0.01em;
 }
 
 h3 {
@@ -131,7 +134,6 @@ h3 {
   color: var(--text-muted);
   font-size: 0.64rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -246,8 +248,8 @@ button.compact {
 
 main {
   display: grid;
-  gap: 18px;
-  padding: 18px 0 44px;
+  gap: 12px;
+  padding: 12px 0 32px;
 }
 
 .section-heading {
@@ -255,7 +257,7 @@ main {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 9px;
+  margin-bottom: 6px;
 }
 
 .section-note,
@@ -283,8 +285,8 @@ main {
 
 .host-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 8px;
 }
 
 .host {
@@ -295,7 +297,7 @@ main {
   gap: 7px;
   overflow: hidden;
   border-radius: var(--radius-md);
-  padding: 9px 12px;
+  padding: 7px 10px;
   box-shadow: var(--shadow-card);
 }
 
@@ -335,7 +337,6 @@ main {
   color: var(--success);
   font-size: 0.62rem;
   font-weight: 750;
-  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
@@ -381,46 +382,43 @@ main {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
-  gap: 10px;
+  gap: 8px;
 }
 
 .project-card {
   display: grid;
-  gap: 12px;
+  gap: 6px;
   border-radius: var(--radius-lg);
-  padding: 14px 16px;
+  padding: 8px 12px;
   box-shadow: var(--shadow-card);
 }
 
-/* Header packs identity and quick-create controls onto one wrapping row:
-   name + counter + source on the left, host chips + New pushed to the right. */
 .project-header {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px 12px;
+  gap: 6px 12px;
   min-width: 0;
-  padding-bottom: 12px;
+  padding-bottom: 6px;
   border-bottom: 1px solid var(--hairline);
 }
 
-.workspace-title {
+.project-title {
   display: flex;
   align-items: baseline;
   flex: 1 1 260px;
-  flex-wrap: wrap;
-  gap: 6px 10px;
+  gap: 10px;
   min-width: 0;
 }
 
-.workspace-title h3 {
-  overflow: hidden;
-  color: var(--link);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.project-title h3 {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .project-source {
+  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   color: var(--text-muted);
@@ -432,17 +430,21 @@ main {
 .project-header-actions {
   flex-wrap: wrap;
   justify-content: flex-end;
+  gap: 5px;
+  min-width: 0;
+  max-width: 100%;
   margin-left: auto;
 }
 
-/* Host chips act as quick-create buttons: neutral GitHub-style pills whose
-   "+" already signals the create action, so they carry no accent fill. */
 button.host-action {
+  max-width: 100%;
   border-color: var(--hairline);
   color: var(--text);
   background: var(--surface-inset);
   box-shadow: none;
   font-weight: 600;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 @media (hover: hover) {
@@ -514,34 +516,37 @@ button.host-action {
 
 .workspace-list {
   display: grid;
-  gap: 8px;
+  gap: 0;
   min-width: 0;
 }
 
-.workspace,
 .operation,
 .empty {
   border-radius: var(--radius-md);
-  padding: 9px 12px;
+  padding: 6px 8px;
   background: var(--surface-inset);
 }
 
 .empty {
-  border: 1px dashed var(--hairline-strong);
+  background: transparent;
 }
 
 .workspace {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px 12px;
+  gap: 6px 10px;
   min-width: 0;
-  box-shadow: var(--shadow-card);
+  padding: 5px 0;
+}
+
+.workspace + .workspace {
+  border-top: 1px solid var(--hairline);
 }
 
 .workspace-info {
   display: flex;
-  flex: 1 1 auto;
+  flex: 1 1 360px;
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 8px;
@@ -575,9 +580,11 @@ button.host-action {
 }
 
 .workspace-title {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
   font-size: 0.9rem;
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .workspace-encryption-icon {
@@ -692,10 +699,12 @@ button.host-action {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  min-width: 0;
 }
 
 .operation-heading-actions {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   gap: 6px;
 }
@@ -718,7 +727,7 @@ button.operation-dismiss {
   align-items: baseline;
   justify-content: center;
   gap: 7px;
-  padding: 11px 12px;
+  padding: 5px 0;
   text-align: center;
 }
 
@@ -905,8 +914,7 @@ select:focus {
     flex: 1 1 100%;
     justify-content: flex-end;
     margin-left: 0;
-    padding-top: 8px;
-    border-top: 1px solid var(--hairline);
+    padding-top: 2px;
   }
 
   .operation {
@@ -922,6 +930,17 @@ select:focus {
 
   .host-list {
     grid-template-columns: 1fr;
+  }
+
+  .project-title {
+    flex-basis: 100%;
+    flex-wrap: wrap;
+    gap: 2px 8px;
+  }
+
+  .project-header-actions {
+    justify-content: flex-start;
+    margin-left: 0;
   }
 
   .workspace-actions {
@@ -953,10 +972,6 @@ select:focus {
 
   .header-actions button {
     flex: 1;
-  }
-
-  .workspace-actions > * {
-    flex-basis: 100%;
   }
 
   .dialog-actions button {
