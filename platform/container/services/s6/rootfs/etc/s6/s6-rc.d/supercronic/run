@@ -1,8 +1,0 @@
-#!/opt/bm/profile/s6/bin/execlineb -P
-
-s6-envdir -Lf -- /run/s6/container_environment
-
-redirfd -w 1 /var/log/s6.supercronic.log
-fdmove -c 2 1
-
-exec /opt/bm/store/supercronic/bin/supercronic /etc/supercronic/crontab

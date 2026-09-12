@@ -10,3 +10,4 @@ profiles:
     - execline
     - supercronic
     - gdu
+    - miniserve
