@@ -46,4 +46,5 @@ Codespace 在 monorepo 中维护个人开发 Workspace、Host 常驻 Service 及
 - 目录按领域组织，不增加无明确 ownership 的 `common`、`utils` 或 compatibility
   package。
 
-使用 `task --list` 查看入口，提交前运行 `task check`。不修改无关的用户或远端状态。
+使用 `task --list` 查看入口；开发循环运行 `task check`，提交前运行
+`task check:full`。不修改无关的用户或远端状态。
