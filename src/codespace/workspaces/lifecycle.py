@@ -10,11 +10,10 @@ from podman.domain.containers import Container
 
 from codespace.resources import ResourceConflict
 from codespace.runtime import container
-from codespace.runtime.container import ContainerSpec, PortSpec, SecretSpec
+from codespace.runtime.container import ContainerSpec, PortSpec
 from codespace.runtime.transport import PodmanTransport
 from codespace.workspaces import (
     CONTROL_MOUNT,
-    WORKSPACE_KEY_SECRET,
     WORKSPACE_SSH_PORT,
     EmptySource,
     ProviderSource,
@@ -117,22 +116,12 @@ def create_container(
         environment["CODESPACE_CLONE_URL"] = spec.source.clone_url
         environment["CODESPACE_GIT_ARGS"] = json.dumps(spec.source.args)
 
-    secrets = list(spec.container.secrets)
-    if spec.encrypted:
-        secrets.append(
-            SecretSpec(
-                source=WORKSPACE_KEY_SECRET,
-                uid="5230",
-                gid="5230",
-                mode=0o400,
-            )
-        )
-
     runtime_spec = ContainerSpec.model_validate(
         {
             **spec.container.resolve_data_path(data_path).model_dump(),
-            "secrets": secrets,
+            "environment": environment,
             "ports": [
+                *spec.container.ports,
                 PortSpec(
                     target=WORKSPACE_SSH_PORT,
                     published=spec.ssh_host_port,
@@ -143,11 +132,7 @@ def create_container(
     )
     return container.create_container(
         client,
-        spec.image,
         name=spec.container_name,
         spec=runtime_spec,
-        environment=environment,
         labels=spec.labels(),
-        mounts=[],
-        platform=spec.platform,
     )

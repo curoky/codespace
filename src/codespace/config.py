@@ -21,6 +21,8 @@ from codespace.runtime.container import (
     ContainerVolumes,
     ImagePlatform,
     NonBlankString,
+    PullPolicy,
+    RestartPolicy,
     SecretSpec,
     UlimitSpec,
 )
@@ -50,6 +52,11 @@ class FrozenModel(BaseModel):
 class ContainerLayer(FrozenModel):
     """One configuration override; null inherits and empty collections replace."""
 
+    image: NonBlankString | None = None
+    platform: ImagePlatform | None = None
+    pull_policy: PullPolicy | None = None
+    network_mode: NonBlankString | None = None
+    restart: RestartPolicy | None = None
     cap_add: list[NonBlankString] | None = None
     security_opt: list[NonBlankString] | None = None
     ipc: NonBlankString | None = None
@@ -104,12 +111,10 @@ class HostConfig(FrozenModel):
     """Placement settings for one SSH Host."""
 
     forward_environment: list[NonBlankString] = Field(default_factory=list)
-    platform: ImagePlatform | None = None
     container: ContainerLayer | None = None
 
 
 class ProjectDefaults(FrozenModel):
-    image: NonBlankString
     encrypted: bool = False
     tunnel_ports: TunnelPorts = Field(default_factory=list)
     container: ContainerLayer = Field(default_factory=ContainerLayer)
@@ -119,7 +124,6 @@ class ProjectConfig(FrozenModel):
     description: NonBlankString | None = None
     source: Source
     hosts: list[HostId]
-    image: NonBlankString | None = None
     checkout_path: WorkspacePath | None = None
     open_path: WorkspacePath | None = None
     encrypted: bool | None = None
@@ -137,7 +141,6 @@ class ProjectConfig(FrozenModel):
 
 
 class ServiceConfig(FrozenModel):
-    image: NonBlankString
     hosts: list[HostId]
     container: ContainerLayer = Field(default_factory=ContainerLayer)
 
@@ -159,11 +162,21 @@ class Config(FrozenModel):
 
     @model_validator(mode="after")
     def _validate_contracts(self) -> Config:
+        if self.project_defaults.container.image is None:
+            raise ValueError("project_defaults.container.image is required")
         for project_id, project in self.projects.items():
             project.resolved_checkout_path()
             for host in project.hosts:
                 if host not in self.hosts:
                     raise ValueError(f"project {project_id!r} references unknown host {host!r}")
+                resolved = self.resolved_project_container(project_id, host)
+                if self.project_encrypted(project_id) and not any(
+                    secret.source == WORKSPACE_KEY_SECRET for secret in resolved.secrets
+                ):
+                    raise ValueError(
+                        f"encrypted project {project_id!r} must mount secret "
+                        f"{WORKSPACE_KEY_SECRET!r} in container config"
+                    )
             if self.project_encrypted(project_id) and WORKSPACE_KEY_SECRET not in self.secrets:
                 raise ValueError(
                     f"encrypted project {project_id!r} requires secret {WORKSPACE_KEY_SECRET!r}"
@@ -172,6 +185,7 @@ class Config(FrozenModel):
             for host in service.hosts:
                 if host not in self.hosts:
                     raise ValueError(f"service {service_id!r} references unknown host {host!r}")
+                self.resolved_service_container(service_id, host)
         return self
 
     def resolved_project_container(self, project: str, host: str) -> ContainerSpec:
@@ -191,10 +205,6 @@ class Config(FrozenModel):
         )
         return ContainerSpec.model_validate(merged)
 
-    def project_image(self, project: str) -> str:
-        configured = self.projects[project]
-        return configured.image or self.project_defaults.image
-
     def project_tunnel_ports(self, project: str) -> list[int]:
         ports = self.projects[project].tunnel_ports
         return self.project_defaults.tunnel_ports if ports is None else ports
@@ -202,6 +212,13 @@ class Config(FrozenModel):
     def project_encrypted(self, project: str) -> bool:
         encrypted = self.projects[project].encrypted
         return self.project_defaults.encrypted if encrypted is None else encrypted
+
+    def workspace_helper_image(self, host: str) -> str:
+        merged = _merge_container_layers(
+            self.project_defaults.container,
+            self.hosts[host].container,
+        )
+        return ContainerSpec.model_validate(merged).image
 
     def service_tunnel_ports(self, service: str, host: str) -> list[int]:
         return [
@@ -220,25 +237,27 @@ class Config(FrozenModel):
 
     def workspace_spec(self, project: str, host: str, workspace: str) -> WorkspaceSpec:
         configured = self.projects[project]
+        container = self.resolved_project_container(project, host)
         return WorkspaceSpec(
             project=project,
             workspace=workspace,
             host=host,
             source=configured.source,
-            platform=self.hosts[host].platform,
-            image=self.project_image(project),
-            container=self.resolved_project_container(project, host),
+            platform=container.platform,
+            image=container.image,
+            container=container,
             checkout_path=configured.resolved_checkout_path(),
             open_path=configured.resolved_open_path(),
             encrypted=self.project_encrypted(project),
         )
 
     def service_spec(self, service: str, host: str) -> ServiceSpec:
+        container = self.resolved_service_container(service, host)
         return ServiceSpec(
             service=service,
             host=host,
-            image=self.services[service].image,
-            container=self.resolved_service_container(service, host),
+            image=container.image,
+            container=container,
         )
 
     def resource_spec(self, resource: Resource) -> WorkspaceSpec | ServiceSpec:

@@ -61,6 +61,6 @@ def test_prune_executes_only_unused_candidates_from_successful_hosts(
 
     workspaces.prune(apply=apply, console=Console(file=stream, width=120))
 
-    assert removed == ([("home", config.project_defaults.image, old)] if apply else [])
+    assert removed == ([("home", config.workspace_helper_image("home"), old)] if apply else [])
     assert "scan failed" in stream.getvalue()
     assert closed == [True]

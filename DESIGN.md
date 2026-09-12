@@ -53,14 +53,18 @@ flowchart LR
 
 配置在进程入口一次性读取并由 Pydantic 转换为 immutable model：
 
-- `hosts` 声明 SSH Host、image platform、需要转发的环境变量和 Host container input。
-- `project_defaults` 提供所有 Workspace 的默认 image、encryption、tunnel allowlist
-  与 container input。
+- `hosts` 声明 SSH Host、需要转发的环境变量和 Host container override。
+- `project_defaults` 提供所有 Workspace 的默认 encryption、tunnel allowlist 与
+  Compose service input。
 - `projects` 和 `services` 的 `hosts` 只声明 placement，不提供 Host-specific resource
   override；Host 差异写入 Host，资源差异写入 Project 或 Service。
 - Project container 按 `project_defaults -> Host -> Project` 合并，Service container
   按 `Host -> Service` 合并。environment 按变量名合并，volume 按 source 或 target
   替换，其余 collection 整体替换。
+- `container` 使用受支持的 Compose service 字段，包括 `image`、`platform`、
+  `pull_policy`、`network_mode`、`restart`、environment、mount、secret 与 resource
+  limit。完成 layer merge 和动态资源解析后，runtime 只做一次到 podman-py kwargs
+  的机械映射；配置不使用 Podman 专有字段名。
 - `${RESOURCE_DATA}` 只允许出现在 volume source，并在部署时解析到该资源的 Host
   data root；任何解析结果都不得逃逸该目录。
 
@@ -81,7 +85,7 @@ worker 协调或隐式 rollback。
 Workspace create 的核心顺序是：
 
 1. 校验 placement、identity、现有 inventory 与确定性 SSH port 冲突。
-2. 拉取 image，准备 Host data root 并创建 bridge container。
+2. 按最终 Compose service 拉取 image、准备 Host data root 并创建 container。
 3. 通过 bind-mounted Unix socket 等待 Workspace Agent。
 4. provider source 注册 Workspace 内生成的 deploy public key，再授权 checkout。
 5. Agent ready 后在 macOS 写入持久 SSH route。
@@ -103,13 +107,15 @@ SSH process，并随控制面进程关闭。
 控制面沿用系统 OpenSSH config、host key verification、credential 与代理链，不接管
 Host 登录材料。
 
-所有容器固定使用 Podman bridge mode：
+默认配置使用 Podman bridge mode：
 
 - 同一 Host 上的容器间请求使用默认 `podman` network 的 DNS，以
   `codespace-service-<service>:<target-port>` 访问；被调用服务监听 container
   `0.0.0.0`，但不为内部通信配置 Host port publication。
 - Workspace SSH 只发布到 Host loopback；Workspace 内 HTTP service 应监听 container
   loopback，并且只有 Project `tunnel_ports` 中的端口可由 Web UI 打开。
+- Workspace 的 source metadata、转发环境变量和确定性 SSH publication 由实例 identity
+  在创建前合入最终 container spec；encryption secret mount 必须显式写入配置。
 - Service 的 `container.ports` 仅声明需要从 Host 或控制面 tunnel 进入的端口，不用于
   容器间服务发现；其中已发布的 TCP port 同时是 Web UI 可打开的 tunnel，UDP 不进入
   Web UI。所有 publication 必须绑定 Host loopback；schema 拒绝 wildcard、bridge

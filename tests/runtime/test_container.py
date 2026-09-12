@@ -59,11 +59,24 @@ def test_find_container_returns_none_only_for_not_found() -> None:
 
 
 @pytest.mark.parametrize("model", [ContainerLayer, ContainerSpec])
-def test_container_models_reject_network_mode(
+def test_container_models_accept_standard_compose_service_fields(
     model: type[ContainerLayer] | type[ContainerSpec],
 ) -> None:
-    with pytest.raises(ValidationError, match="Extra inputs"):
-        model.model_validate({"network_mode": "bridge"})
+    values = {
+        "image": "registry.example.com/app:latest",
+        "platform": "linux/amd64",
+        "pull_policy": "always",
+        "network_mode": "bridge",
+        "restart": "unless-stopped",
+    }
+
+    spec = model.model_validate(values)
+
+    assert spec.image == "registry.example.com/app:latest"
+    assert spec.platform == "linux/amd64"
+    assert spec.pull_policy == "always"
+    assert spec.network_mode == "bridge"
+    assert spec.restart == "unless-stopped"
 
 
 @pytest.mark.parametrize(
@@ -149,6 +162,7 @@ def test_container_preserves_literal_environment_and_duplicate_options(
 ) -> None:
     spec = model.model_validate(
         {
+            **({"image": "image"} if model is ContainerSpec else {}),
             "cap_add": ["NET_RAW", "NET_RAW"],
             "environment": {"PROMPT": "${USER}:$PATH"},
             "ulimits": {"NOFILE": {"soft": 1024, "hard": 1024}},
@@ -167,6 +181,7 @@ def test_volume_short_and_long_syntax_are_normalized(
 ) -> None:
     spec = model.model_validate(
         {
+            **({"image": "image"} if model is ContainerSpec else {}),
             "volumes": [
                 "/host/a:/container/a:ro",
                 {
@@ -239,12 +254,9 @@ def test_runtime_rejects_unresolved_resource_data_source() -> None:
     with pytest.raises(ValueError):
         container.create_container(
             SimpleNamespace(),  # type: ignore[arg-type]
-            "image",
             name="codespace-service-support",
-            spec=ContainerSpec(volumes=[volume]),
-            environment={},
+            spec=ContainerSpec(image="image", volumes=[volume]),
             labels={},
-            mounts=[],
         )
 
 
@@ -278,6 +290,11 @@ def test_create_container_translates_canonical_options(
     client = SimpleNamespace(secrets=SimpleNamespace(exists=lambda _name: True))
     spec = ContainerSpec.model_validate(
         {
+            "image": "image:latest",
+            "platform": "linux/amd64",
+            "pull_policy": "always",
+            "network_mode": "bridge",
+            "restart": "unless-stopped",
             "ipc": "host",
             "pids_limit": 100,
             "shm_size": "8g",
@@ -291,6 +308,7 @@ def test_create_container_translates_canonical_options(
             ],
             "secrets": [{"source": "api_token", "mode": 0o400}],
             "devices": ["nvidia.com/gpu=all"],
+            "environment": {"SERVE_HOST": "127.0.0.1"},
         }
     )
 
@@ -302,22 +320,21 @@ def test_create_container_translates_canonical_options(
 
     result = container.create_container(
         client,  # type: ignore[arg-type]
-        "image:latest",
         name="codespace-service-api",
         spec=spec,
-        environment={"SERVE_HOST": "127.0.0.1"},
         labels={"codespace.kind": "service"},
-        mounts=[],
-        restart_policy={"Name": "unless-stopped"},
     )
 
     assert result is fake
+    assert captured["image"] == "image:latest"
     options = captured["options"]
     assert isinstance(options, dict)
     assert options["network_mode"] == "bridge"
+    assert options["platform"] == "linux/amd64"
     assert "networks" not in options
     assert options["ports"] == {"8000/tcp": (host_ip, 3000)}
     assert options["ipc_mode"] == "host"
+    assert options["environment"] == {"SERVE_HOST": "127.0.0.1"}
     assert options["secrets"] == [{"source": "api_token", "uid": 0, "gid": 0, "mode": 0o400}]
     assert options["restart_policy"] == {"Name": "unless-stopped"}
 
@@ -340,7 +357,7 @@ def test_port_host_ip_requires_a_loopback_address(host_ip: object) -> None:
         PortSpec.model_validate({"target": 80, "published": 8080, "host_ip": host_ip})
 
 
-def test_create_container_always_uses_bridge_network(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_create_container_uses_configured_network(monkeypatch: pytest.MonkeyPatch) -> None:
     captured: dict[str, object] = {}
     monkeypatch.setattr(
         container, "run_container", lambda _client, _image, options: captured.update(options)
@@ -348,15 +365,12 @@ def test_create_container_always_uses_bridge_network(monkeypatch: pytest.MonkeyP
 
     container.create_container(
         SimpleNamespace(),  # type: ignore[arg-type]
-        "image",
         name="container",
-        spec=ContainerSpec(),
-        environment={},
+        spec=ContainerSpec(image="image", network_mode="host"),
         labels={},
-        mounts=[],
     )
 
-    assert captured["network_mode"] == "bridge"
+    assert captured["network_mode"] == "host"
     assert captured["ports"] == {}
     assert "networks" not in captured
 
@@ -364,18 +378,16 @@ def test_create_container_always_uses_bridge_network(monkeypatch: pytest.MonkeyP
 def test_missing_secret_fails_before_container_creation() -> None:
     client = SimpleNamespace(secrets=SimpleNamespace(exists=lambda _name: False))
     spec = ContainerSpec(
+        image="image",
         secrets=[SecretSpec(source="api_token")],
     )
 
     with pytest.raises(RuntimeError, match="codespace secrets sync --apply"):
         container.create_container(
             client,  # type: ignore[arg-type]
-            "image",
             name="name",
             spec=spec,
-            environment={},
             labels={},
-            mounts=[],
         )
 
 
@@ -463,8 +475,11 @@ def test_pull_does_not_ignore_invalid_events(
     monkeypatch: pytest.MonkeyPatch, event: object
 ) -> None:
     closed: list[bool] = []
+    calls: list[tuple[str, dict[str, object]]] = []
     pull_client = SimpleNamespace(
-        images=SimpleNamespace(pull=lambda *_args, **_kwargs: iter([event])),
+        images=SimpleNamespace(
+            pull=lambda image, **kwargs: (calls.append((image, kwargs)), iter([event]))[-1]
+        ),
         close=lambda: closed.append(True),
     )
     client = SimpleNamespace(
@@ -473,5 +488,21 @@ def test_pull_does_not_ignore_invalid_events(
     monkeypatch.setattr(container, "PodmanClient", lambda **_kwargs: pull_client)
 
     with pytest.raises((container.PodmanError, AttributeError)):
-        container.pull_image(client, "image", None)  # type: ignore[arg-type]
+        container.pull_image(  # type: ignore[arg-type]
+            client,
+            "image",
+            "linux/amd64",
+            "never",
+        )
+    assert calls == [
+        (
+            "image",
+            {
+                "stream": True,
+                "decode": True,
+                "policy": "never",
+                "platform": "linux/amd64",
+            },
+        )
+    ]
     assert closed == [True]

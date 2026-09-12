@@ -1,7 +1,6 @@
 hosts:
   workstation:
     forward_environment: [HTTP_PROXY, HTTPS_PROXY, NO_PROXY]
-    platform: linux/amd64
     container:
       devices: [/dev/fuse]
       volumes:
@@ -9,7 +8,6 @@ hosts:
 
   gpu-host:
     forward_environment: [HOST_IP, HOST_IPV6]
-    platform: linux/amd64
     container:
       devices: [nvidia.com/gpu=all, /dev/fuse]
       volumes:
@@ -17,13 +15,17 @@ hosts:
         - /opt/tmp:/opt/tmp
 
 project_defaults:
-  image: ghcr.io/curoky/codespace:workspace-debian13
   encrypted: true
   tunnel_ports: [8007, 8008]
   container:
+    image: ghcr.io/curoky/codespace:workspace-debian13
+    platform: linux/amd64
+    pull_policy: always
+    network_mode: bridge
     secrets:
-      - { source: huggingface_token, mode: 0400 }
-      - { source: atuin_db_uri, mode: 0400 }
+      - { source: codespace_workspace_key, uid: "5230", gid: "5230", mode: 0400 }
+      - { source: huggingface_token, uid: "5230", gid: "5230", mode: 0400 }
+      - { source: atuin_db_uri, uid: "5230", gid: "5230", mode: 0400 }
       - { source: github_action_token, uid: "5230", gid: "5230", mode: 0400 }
     cap_add: [NET_RAW, SYS_ADMIN]
     security_opt: [disable, seccomp=unconfined]
@@ -34,7 +36,7 @@ project_defaults:
       - ${RESOURCE_DATA}/workspace:/workspace.enc
       - ${RESOURCE_DATA}/upload:/upload
       - ${RESOURCE_DATA}/control:/run/codespace-control
-      - ${RESOURCE_DATA}/cache/.vscode-server/bin:/home/x/.vscode-server/bin
+      - ${RESOURCE_DATA}/cache/.vscode-server/cli:/home/x/.vscode-server/cli
       - ${RESOURCE_DATA}/cache/.vscode-server/extensions:/home/x/.vscode-server/extensions
       - ${RESOURCE_DATA}/cache/.trae/bin:/home/x/.trae/bin
       - ${RESOURCE_DATA}/cache/.trae/extensions:/home/x/.trae/extensions
@@ -76,28 +78,40 @@ projects:
     source: { type: git, url: "git@git.example.com:team/private-repo" }
     hosts: [gpu-host]
     encrypted: false
-    image: registry.example.com/base/dev-image:latest
     container:
+      image: registry.example.com/base/dev-image:latest
       volumes:
         - ${RESOURCE_DATA}/workspace:/workspace
-      secrets: []
 
 services:
   support:
-    image: ghcr.io/curoky/codespace:service-support
     hosts: [workstation, gpu-host]
     container:
+      image: ghcr.io/curoky/codespace:service-support
+      platform: linux/amd64
+      pull_policy: always
+      network_mode: bridge
+      restart: unless-stopped
       volumes:
         - /run/podman/podman.sock:/run/podman/podman.sock
 
   secret:
-    image: ghcr.io/curoky/codespace:service-secret
     hosts: [workstation, gpu-host]
+    container:
+      image: ghcr.io/curoky/codespace:service-secret
+      platform: linux/amd64
+      pull_policy: always
+      network_mode: bridge
+      restart: unless-stopped
 
   vllm:
-    image: ghcr.io/curoky/codespace:service-vllm
     hosts: [gpu-host]
     container:
+      image: ghcr.io/curoky/codespace:service-vllm
+      platform: linux/amd64
+      pull_policy: always
+      network_mode: bridge
+      restart: unless-stopped
       ports:
         - { target: 8080, published: 8103, host_ip: 127.0.0.1 }
       ipc: host
@@ -112,9 +126,13 @@ services:
         - { source: huggingface_token, mode: 0400 }
 
   sglang:
-    image: ghcr.io/curoky/codespace:service-sglang
     hosts: [gpu-host]
     container:
+      image: ghcr.io/curoky/codespace:service-sglang
+      platform: linux/amd64
+      pull_policy: always
+      network_mode: bridge
+      restart: unless-stopped
       ports:
         - { target: 8080, published: 8104, host_ip: 127.0.0.1 }
       ipc: host
@@ -129,9 +147,13 @@ services:
         - { source: huggingface_token, mode: 0400 }
 
   lobehub:
-    image: ghcr.io/curoky/codespace:service-lobehub
     hosts: [gpu-host]
     container:
+      image: ghcr.io/curoky/codespace:service-lobehub
+      platform: linux/amd64
+      pull_policy: always
+      network_mode: bridge
+      restart: unless-stopped
       ports:
         - { target: 8080, published: 8110, host_ip: 127.0.0.1 }
       environment:
@@ -141,9 +163,13 @@ services:
         - ${RESOURCE_DATA}:/var/lib/codespace/lobehub
 
   chatbox:
-    image: ghcr.io/curoky/codespace:service-chatbox
     hosts: [gpu-host]
     container:
+      image: ghcr.io/curoky/codespace:service-chatbox
+      platform: linux/amd64
+      pull_policy: always
+      network_mode: bridge
+      restart: unless-stopped
       ports:
         - { target: 8080, published: 8112, host_ip: 127.0.0.1 }
       environment:

@@ -40,18 +40,16 @@ def test_tunnel_ports_reject_invalid_values(
 
 def test_service_tunnel_ports_are_derived_from_tcp_publications(config: Config) -> None:
     data = config.model_dump()
-    data["services"]["support"]["container"] = {
-        "ports": [
-            {"target": 8080, "published": 8110, "host_ip": "127.0.0.1"},
-            {"target": 8081, "published": 8111, "host_ip": "127.0.0.1"},
-            {
-                "target": 5353,
-                "published": 5353,
-                "host_ip": "127.0.0.1",
-                "protocol": "udp",
-            },
-        ]
-    }
+    data["services"]["support"]["container"]["ports"] = [
+        {"target": 8080, "published": 8110, "host_ip": "127.0.0.1"},
+        {"target": 8081, "published": 8111, "host_ip": "127.0.0.1"},
+        {
+            "target": 5353,
+            "published": 5353,
+            "host_ip": "127.0.0.1",
+            "protocol": "udp",
+        },
+    ]
 
     parsed = Config.model_validate(data)
 
@@ -162,7 +160,7 @@ def test_project_layers_apply_host_defaults_and_merge_volumes_by_source_or_targe
     }
     data["projects"]["codespace"]["container"]["pids_limit"] = 128
     data["projects"]["codespace"]["container"]["volumes"].append("/host/project:/data:ro")
-    data["projects"]["codespace"]["image"] = "workspace:project"
+    data["projects"]["codespace"]["container"]["image"] = "workspace:project"
 
     parsed = Config.model_validate(data)
     resolved = parsed.resolved_project_container("codespace", "home")
@@ -180,12 +178,12 @@ def test_project_layers_apply_host_defaults_and_merge_volumes_by_source_or_targe
     assert "/host/base" not in {volume.source for volume in resolved.volumes}
     assert volumes["/workspace.enc"].source == "${RESOURCE_DATA}/workspace"
     assert "/workspace" not in volumes
-    assert parsed.project_image("codespace") == "workspace:project"
+    assert resolved.image == "workspace:project"
 
 
 def test_workspace_uses_host_platform(config: Config) -> None:
     data = config.model_dump()
-    data["hosts"]["home"]["platform"] = "linux/amd64"
+    data["hosts"]["home"]["container"] = {"platform": "linux/amd64"}
 
     parsed = Config.model_validate(data)
 
@@ -198,13 +196,14 @@ def test_service_layers_apply_host_defaults_before_service(config: Config) -> No
         "devices": ["/dev/fuse"],
         "pids_limit": 64,
     }
-    data["services"]["support"]["image"] = "support:pinned"
+    data["services"]["support"]["container"]["image"] = "support:pinned"
     data["services"]["support"]["container"]["environment"] = {"SERVICE": "1"}
 
     parsed = Config.model_validate(data)
     resolved = parsed.resolved_service_container("support", "home")
 
     assert parsed.service_spec("support", "home").image == "support:pinned"
+    assert resolved.restart == "unless-stopped"
     assert resolved.environment == {"SERVICE": "1"}
     assert resolved.devices == ["/dev/fuse"]
     assert resolved.pids_limit == 64
@@ -278,7 +277,10 @@ def test_encrypted_workspace_uses_configured_ciphertext_target(config: Config) -
     data = config.model_dump()
     data["projects"]["codespace"]["encrypted"] = True
     data["projects"]["codespace"]["container"] = {
-        "volumes": ["${RESOURCE_DATA}/workspace:/workspace.enc"]
+        "volumes": ["${RESOURCE_DATA}/workspace:/workspace.enc"],
+        "secrets": [
+            {"source": "codespace_workspace_key", "uid": "5230", "gid": "5230", "mode": 0o400}
+        ],
     }
     data["secrets"]["codespace_workspace_key"] = "test-key"
 
@@ -368,6 +370,9 @@ def test_encrypted_project_requires_syncable_key(config: Config) -> None:
         Config.model_validate(data)
 
     data["secrets"]["codespace_workspace_key"] = "test-key"
+    data["projects"]["codespace"]["container"] = {
+        "secrets": [{"source": "codespace_workspace_key"}]
+    }
     assert (
         Config.model_validate(data).workspace_spec("codespace", "home", "default").encrypted is True
     )
@@ -376,6 +381,7 @@ def test_encrypted_project_requires_syncable_key(config: Config) -> None:
 def test_project_inherits_default_encryption(config: Config) -> None:
     data = config.model_dump()
     data["project_defaults"]["encrypted"] = True
+    data["project_defaults"]["container"]["secrets"] = [{"source": "codespace_workspace_key"}]
     data["secrets"]["codespace_workspace_key"] = "test-key"
 
     inherited = Config.model_validate(data)

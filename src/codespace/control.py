@@ -151,8 +151,12 @@ class ControlPlane:
             )
 
         stage(f"pulling image {spec.image}")
-        platform = spec.platform if isinstance(spec, WorkspaceSpec) else None
-        container.pull_image(client, spec.image, platform)
+        container.pull_image(
+            client,
+            spec.container.image,
+            spec.container.platform,
+            spec.container.pull_policy,
+        )
         data = host.remote_data_paths(route)
         path = (
             data.workspace(spec.project, spec.workspace)
@@ -175,13 +179,9 @@ class ControlPlane:
             stage("creating container")
             container.create_container(
                 client,
-                spec.image,
                 name=resource.container_name,
                 spec=spec.container.resolve_data_path(path),
-                environment=spec.container.environment,
                 labels=spec.labels(),
-                mounts=[],
-                restart_policy={"Name": "unless-stopped"},
             )
 
     def inspect_deletion(self, resource: Resource) -> RepoGitState:

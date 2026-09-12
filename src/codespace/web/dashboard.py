@@ -39,8 +39,10 @@ def build(control: ControlPlane) -> dict[str, object]:
                 "hosts": [
                     {
                         "name": host_name,
-                        "platform": config.hosts[host_name].platform,
-                        "image": config.project_image(project_id),
+                        "platform": config.resolved_project_container(
+                            project_id, host_name
+                        ).platform,
+                        "image": config.resolved_project_container(project_id, host_name).image,
                     }
                     for host_name in project.hosts
                 ],
@@ -72,7 +74,9 @@ def build(control: ControlPlane) -> dict[str, object]:
                 "hosts": [
                     {
                         "host": host_name,
-                        "desired_image": service.image,
+                        "desired_image": config.resolved_service_container(
+                            service_id, host_name
+                        ).image,
                         "tunnel_ports": config.service_tunnel_ports(service_id, host_name),
                         "container": services.get((host_name, service_id)),
                     }

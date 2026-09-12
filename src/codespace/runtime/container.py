@@ -86,6 +86,8 @@ type VolumeSource = Annotated[
 type SecretName = Annotated[str, AfterValidator(_secret_name)]
 type SecretId = Annotated[str, Field(pattern=r"^\d+$")]
 type ImagePlatform = Literal["linux/amd64", "linux/arm64"]
+type PullPolicy = Literal["always", "missing", "never"]
+type RestartPolicy = Literal["no", "always", "on-failure", "unless-stopped"]
 
 
 class UlimitSpec(BaseModel):
@@ -195,10 +197,15 @@ type ContainerPorts = Annotated[list[PortSpec], AfterValidator(_unique_ports)]
 
 
 class ContainerSpec(BaseModel):
-    """Resolved placement for a bridge-mode container."""
+    """Resolved supported subset of a Compose service."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
+    image: NonBlankString
+    platform: ImagePlatform | None = None
+    pull_policy: PullPolicy = "missing"
+    network_mode: NonBlankString = "bridge"
+    restart: RestartPolicy = "no"
     cap_add: list[NonBlankString] = Field(default_factory=list)
     security_opt: list[NonBlankString] = Field(default_factory=list)
     ipc: NonBlankString | None = None
@@ -224,55 +231,53 @@ class ContainerSpec(BaseModel):
             if PurePosixPath(volume.source).is_relative_to(root)
         ]
 
+    def to_podman_options(self, client: PodmanClient) -> dict[str, Any]:
+        """Translate the resolved Compose service to podman-py create options."""
+        options: dict[str, Any] = {
+            "network_mode": self.network_mode,
+            "restart_policy": {"Name": self.restart},
+            "cap_add": self.cap_add,
+            "security_opt": self.security_opt,
+            "ulimits": [
+                {"Name": resource, "Soft": limit.soft, "Hard": limit.hard}
+                for resource, limit in self.ulimits.items()
+            ],
+            "environment": self.environment,
+            "devices": self.devices,
+            "ports": {
+                f"{port.target}/{port.protocol}": (port.host_ip, port.published)
+                for port in self.ports
+            },
+            "mounts": [volume.mount() for volume in self.volumes],
+        }
+        if self.platform is not None:
+            options["platform"] = self.platform
+        if self.pids_limit is not None:
+            options["pids_limit"] = self.pids_limit
+        if self.shm_size is not None:
+            options["shm_size"] = self.shm_size
+        if self.ipc is not None:
+            options["ipc_mode"] = self.ipc
+        secret_mounts = _resolve_secrets(client, self.secrets)
+        if secret_mounts:
+            options["secrets"] = secret_mounts
+        return options
+
 
 def create_container(
     client: PodmanClient,
-    image: str,
     *,
     name: str,
     spec: ContainerSpec,
-    environment: Mapping[str, str],
     labels: Mapping[str, str],
-    mounts: list[dict[str, object]],
-    platform: ImagePlatform | None = None,
-    restart_policy: Mapping[str, object] | None = None,
 ) -> Container:
-    """Create a detached container from a fully resolved canonical specification."""
-    secret_mounts = _resolve_secrets(client, spec.secrets)
-    ports: dict[str, object] = {
-        f"{port.target}/{port.protocol}": (port.host_ip, port.published) for port in spec.ports
-    }
-    options: dict[str, Any] = {
+    """Create a detached container from one resolved Compose service."""
+    options = {
+        **spec.to_podman_options(client),
         "name": name,
-        "network_mode": "bridge",
-        "cap_add": spec.cap_add,
-        "security_opt": spec.security_opt,
-        "ulimits": [
-            {"Name": resource, "Soft": limit.soft, "Hard": limit.hard}
-            for resource, limit in spec.ulimits.items()
-        ],
-        "environment": dict(environment),
-        "devices": spec.devices,
-        "ports": ports,
         "labels": dict(labels),
-        "mounts": [
-            *mounts,
-            *(volume.mount() for volume in spec.volumes),
-        ],
     }
-    if platform is not None:
-        options["platform"] = platform
-    if restart_policy is not None:
-        options["restart_policy"] = dict(restart_policy)
-    if spec.pids_limit is not None:
-        options["pids_limit"] = spec.pids_limit
-    if spec.shm_size is not None:
-        options["shm_size"] = spec.shm_size
-    if spec.ipc is not None:
-        options["ipc_mode"] = spec.ipc
-    if secret_mounts:
-        options["secrets"] = secret_mounts
-    return run_container(client, image, options)
+    return run_container(client, spec.image, options)
 
 
 def _resolve_secrets(
@@ -302,9 +307,14 @@ def require_secret(client: PodmanClient, name: str) -> None:
         )
 
 
-def pull_image(client: PodmanClient, image: str, platform: ImagePlatform | None) -> None:
+def pull_image(
+    client: PodmanClient,
+    image: str,
+    platform: ImagePlatform | None,
+    policy: PullPolicy = "always",
+) -> None:
     """Pull an image while surfacing errors from the streaming API."""
-    kwargs: dict[str, Any] = {"stream": True, "decode": True}
+    kwargs: dict[str, Any] = {"stream": True, "decode": True, "policy": policy}
     if platform is not None:
         kwargs["platform"] = platform
     pull_client = PodmanClient(

@@ -59,10 +59,10 @@ def test_dashboard_keeps_actual_metadata_when_config_changes(
     data["projects"]["codespace"]["open_path"] = "/workspace/changed"
     data["project_defaults"]["tunnel_ports"] = [8005]
     data["projects"]["scratch"]["tunnel_ports"] = []
-    data["services"]["support"]["image"] = "support:desired"
-    data["services"]["support"]["container"] = {
-        "ports": [{"target": 8080, "published": 8110, "host_ip": "127.0.0.1"}]
-    }
+    data["services"]["support"]["container"]["image"] = "support:desired"
+    data["services"]["support"]["container"]["ports"] = [
+        {"target": 8080, "published": 8110, "host_ip": "127.0.0.1"}
+    ]
     control = ControlPlane(Config.model_validate(data), transport=FakeTransport())  # type: ignore[arg-type]
     monkeypatch.setattr(
         control_module.workspaces,

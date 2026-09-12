@@ -69,7 +69,6 @@ def test_apply_replaces_container_and_resolves_data_placeholder(
 
     assert events == ["pull", "/home/x/codespace/services/vllm", "remove"]
     assert captured["name"] == "codespace-service-vllm"
-    assert captured["mounts"] == []
     runtime_spec = captured["spec"]
     assert runtime_spec.volumes[0].mount() == {  # type: ignore[union-attr]
         "type": "bind",
@@ -77,7 +76,7 @@ def test_apply_replaces_container_and_resolves_data_placeholder(
         "target": "/root/.cache/huggingface",
         "read_only": False,
     }
-    assert captured["restart_policy"] == {"Name": "unless-stopped"}
+    assert runtime_spec.restart == "unless-stopped"  # type: ignore[union-attr]
     assert manager.operations.list() == []
 
 
@@ -148,9 +147,9 @@ def test_tunnel_forwards_explicitly_configured_loopback_port(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     data = config.model_dump()
-    data["services"]["support"]["container"] = {
-        "ports": [{"target": 8080, "published": 8110, "host_ip": "127.0.0.1"}]
-    }
+    data["services"]["support"]["container"]["ports"] = [
+        {"target": 8080, "published": 8110, "host_ip": "127.0.0.1"}
+    ]
     manager.config = Config.model_validate(data)
     running = SimpleNamespace(
         id="deployed-container",
@@ -187,9 +186,9 @@ def test_tunnel_rejects_stopped_service(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     data = manager.config.model_dump()
-    data["services"]["support"]["container"] = {
-        "ports": [{"target": 8080, "published": 8110, "host_ip": "127.0.0.1"}]
-    }
+    data["services"]["support"]["container"]["ports"] = [
+        {"target": 8080, "published": 8110, "host_ip": "127.0.0.1"}
+    ]
     manager.config = Config.model_validate(data)
     running = SimpleNamespace(
         id="deployed-container",

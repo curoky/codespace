@@ -20,7 +20,7 @@ from codespace.workspaces.agent import WorkspaceAgentClient
 
 _PATHS = HostDataPaths("/home/x/codespace")
 _CACHE_PATHS = (
-    ".vscode-server/bin",
+    ".vscode-server/cli",
     ".vscode-server/extensions",
     ".trae/bin",
     ".trae/extensions",
@@ -240,7 +240,6 @@ def test_deploy_uses_configured_mounts_alongside_host_volumes(
     assert f"{root}/control" in directories
     assert f"{root}/cache/build" in directories
     assert "/host/file" not in directories
-    assert captured["mounts"] == []
     resolved = {  # type: ignore[union-attr]
         volume.target: volume for volume in captured["spec"].volumes
     }
@@ -441,8 +440,18 @@ def test_workspace_container_uses_fixed_ssh_listener_and_configured_mounts(
     data = config.model_dump()
     data["projects"]["codespace"]["encrypted"] = encrypted
     data["secrets"]["codespace_workspace_key"] = "test-key"
+    configured_secrets = [{"source": "atuin_db_uri", "mode": 0o400}]
+    if encrypted:
+        configured_secrets.append(
+            {
+                "source": "codespace_workspace_key",
+                "uid": "5230",
+                "gid": "5230",
+                "mode": 0o400,
+            }
+        )
     data["projects"]["codespace"]["container"] = {
-        "secrets": [{"source": "atuin_db_uri", "mode": 0o400}],
+        "secrets": configured_secrets,
         "volumes": [
             {
                 "source": "${RESOURCE_DATA}/workspace",
@@ -469,7 +478,7 @@ def test_workspace_container_uses_fixed_ssh_listener_and_configured_mounts(
     )
 
     assert captured["name"] == "space-codespace-debug"
-    environment = captured["environment"]
+    environment = captured["spec"].environment  # type: ignore[union-attr]
     assert isinstance(environment, dict)
     assert environment["CODESPACE_SOURCE_TYPE"] == "github"
     assert environment["CODESPACE_CHECKOUT_PATH"] == "/workspace/codespace"
@@ -524,20 +533,27 @@ def test_workspace_container_uses_fixed_ssh_listener_and_configured_mounts(
             for relative in _CACHE_PATHS
         ),
     ]
-    assert captured["mounts"] == []
     assert [volume.mount() for volume in captured["spec"].volumes] == expected_mounts  # type: ignore[union-attr]
     assert [port.target for port in captured["spec"].ports] == [22]  # type: ignore[union-attr]
     assert spec.container.model_dump() == original_container
 
 
-def test_encrypted_workspace_mounts_key_as_compose_secret(
+def test_encrypted_workspace_uses_configured_compose_secret(
     config: Config,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     data = config.model_dump()
     data["projects"]["codespace"]["encrypted"] = True
     data["projects"]["codespace"]["container"] = {
-        "volumes": ["${RESOURCE_DATA}/workspace:/workspace.enc"]
+        "volumes": ["${RESOURCE_DATA}/workspace:/workspace.enc"],
+        "secrets": [
+            {
+                "source": "codespace_workspace_key",
+                "uid": "5230",
+                "gid": "5230",
+                "mode": 0o400,
+            }
+        ],
     }
     data["secrets"]["codespace_workspace_key"] = "test-key"
     spec = Config.model_validate(data).workspace_spec("codespace", "home", "debug")
@@ -556,10 +572,10 @@ def test_encrypted_workspace_mounts_key_as_compose_secret(
     )
 
     runtime_spec = captured["spec"]
-    assert captured["environment"]["CODESPACE_ENCRYPTED"] == "true"  # type: ignore[index]
-    assert captured["environment"]["CODESPACE_GIT_ARGS"] == "[]"  # type: ignore[index]
+    assert runtime_spec.environment["CODESPACE_ENCRYPTED"] == "true"  # type: ignore[union-attr]
+    assert runtime_spec.environment["CODESPACE_GIT_ARGS"] == "[]"  # type: ignore[union-attr]
     assert captured["labels"]["codespace.encrypted"] == "true"  # type: ignore[index]
-    assert spec.container.secrets == []
+    assert spec.container.secrets == runtime_spec.secrets  # type: ignore[union-attr]
     assert runtime_spec.secrets[0].model_dump() == {  # type: ignore[union-attr]
         "source": "codespace_workspace_key",
         "target": None,

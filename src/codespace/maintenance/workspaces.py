@@ -68,7 +68,9 @@ def _collect(
 ) -> tuple[list[WorkspaceCandidate], list[str]]:
     scanned_by_host, failures = maintenance.fan_out(
         config.hosts,
-        lambda host_name: _scan_host(transport, host_name, config.project_defaults.image),
+        lambda host_name: _scan_host(
+            transport, host_name, config.workspace_helper_image(host_name)
+        ),
     )
     candidates = [item for _host, scanned in scanned_by_host for item in scanned]
     candidates.sort(key=lambda item: (item.host, item.path))
