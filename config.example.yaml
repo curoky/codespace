@@ -93,16 +93,13 @@ services:
   secret:
     image: ghcr.io/curoky/codespace:service-secret
     hosts: [workstation, gpu-host]
-    container:
-      ports:
-        - { target: 8080, published: 8106, host_ip: 10.89.0.1 }
 
   vllm:
     image: ghcr.io/curoky/codespace:service-vllm
     hosts: [gpu-host]
     container:
       ports:
-        - { target: 8080, published: 8103, host_ip: 10.89.0.1 }
+        - { target: 8080, published: 8103, host_ip: 127.0.0.1 }
       ipc: host
       pids_limit: -1
       devices: [nvidia.com/gpu=all]
@@ -119,7 +116,7 @@ services:
     hosts: [gpu-host]
     container:
       ports:
-        - { target: 8080, published: 8104, host_ip: 10.89.0.1 }
+        - { target: 8080, published: 8104, host_ip: 127.0.0.1 }
       ipc: host
       pids_limit: -1
       devices: [nvidia.com/gpu=all]
@@ -136,10 +133,10 @@ services:
     hosts: [gpu-host]
     container:
       ports:
-        - { target: 8080, published: 8110, host_ip: 10.89.0.1 }
+        - { target: 8080, published: 8110, host_ip: 127.0.0.1 }
       environment:
         APP_URL: http://localhost:8110
-        OPENAI_PROXY_URL: http://10.89.0.1:8104/v1
+        OPENAI_PROXY_URL: http://codespace-service-sglang:8080/v1
       volumes:
         - ${RESOURCE_DATA}:/var/lib/codespace/lobehub
 
@@ -148,9 +145,9 @@ services:
     hosts: [gpu-host]
     container:
       ports:
-        - { target: 8080, published: 8112, host_ip: 10.89.0.1 }
+        - { target: 8080, published: 8112, host_ip: 127.0.0.1 }
       environment:
-        CHATBOX_API_UPSTREAM: http://10.89.0.1:8104
+        CHATBOX_API_UPSTREAM: http://codespace-service-sglang:8080
 
 tokens:
   github: github_pat_REPLACE_WITH_GITHUB_TOKEN

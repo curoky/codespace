@@ -30,7 +30,7 @@ ENV PATH="/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:/usr/lib
     AUTH_COOKIE_PREFIX=codespace-lobehub \
     ENABLED_OPENAI=1 \
     OPENAI_API_KEY=local \
-    OPENAI_PROXY_URL=http://10.89.0.1:8104/v1 \
+    OPENAI_PROXY_URL=http://codespace-service-sglang:8080/v1 \
     OPENAI_MODEL_LIST="-all,+Qwen/Qwen3.8-Flash-Next-FP8=Qwen3.8 Flash Next FP8"
 
 COPY --from=s6 /etc/s6/skel/ /etc/s6/skel/

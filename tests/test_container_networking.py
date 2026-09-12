@@ -11,6 +11,12 @@ import pytest
 _CONTAINER = Path(__file__).resolve().parents[1] / "platform/container"
 
 
+def test_workspace_secret_mount_uses_default_network_dns() -> None:
+    helper = _CONTAINER / "workspace/rootfs/opt/codespace/bin/mount-secret"
+
+    assert 'local url="http://codespace-service-secret:8080"' in helper.read_text()
+
+
 @pytest.mark.parametrize("service", ["vllm", "sglang"])
 def test_inference_entrypoint_uses_fixed_bridge_listener(tmp_path: Path, service: str) -> None:
     venv = tmp_path / "venv"

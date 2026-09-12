@@ -105,12 +105,20 @@ Host 登录材料。
 
 所有容器固定使用 Podman bridge mode：
 
+- 同一 Host 上的容器间请求使用默认 `podman` network 的 DNS，以
+  `codespace-service-<service>:<target-port>` 访问；被调用服务监听 container
+  `0.0.0.0`，但不为内部通信配置 Host port publication。
 - Workspace SSH 只发布到 Host loopback；Workspace 内 HTTP service 应监听 container
   loopback，并且只有 Project `tunnel_ports` 中的端口可由 Web UI 打开。
-- Service 的 `container.ports` 是完整 publication 声明；其中已发布的 TCP port 同时是
-  Web UI 可打开的 tunnel，UDP 不进入 Web UI。
-- Service port 的 `host_ip`、冲突和 Host 网络可达性属于 deployment config，最终由
-  Podman apply 结果判定。公网或 LAN 暴露不属于 Codespace contract。
+- Service 的 `container.ports` 仅声明需要从 Host 或控制面 tunnel 进入的端口，不用于
+  容器间服务发现；其中已发布的 TCP port 同时是 Web UI 可打开的 tunnel，UDP 不进入
+  Web UI。所有 publication 必须绑定 Host loopback；schema 拒绝 wildcard、bridge
+  gateway、LAN 或公网地址。
+- Service port 冲突最终由 Podman apply 结果判定。
+
+默认 `podman` network 是 Host-local 的共享信任域：DNS 名只在同一 Host 上有效，
+Service replacement 期间允许短暂解析或连接失败，调用方必须容忍目标尚未 ready。
+需要隔离不同容器时应调整网络模型，不能把 DNS 名当作访问控制。
 
 安全边界如下：
 

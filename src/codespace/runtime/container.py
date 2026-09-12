@@ -70,7 +70,10 @@ def _secret_name(value: str) -> str:
 
 
 def _host_ip(value: str) -> str:
-    return str(ip_address(value))
+    address = ip_address(value)
+    if not address.is_loopback:
+        raise ValueError("must be a loopback address")
+    return str(address)
 
 
 type NonBlankString = Annotated[str, AfterValidator(_not_blank)]
@@ -158,7 +161,7 @@ class SecretSpec(BaseModel):
 
 
 class PortSpec(BaseModel):
-    """Supported subset of Compose service port long syntax."""
+    """Loopback-only subset of Compose service port long syntax."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 

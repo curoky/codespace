@@ -42,12 +42,12 @@ def test_service_tunnel_ports_are_derived_from_tcp_publications(config: Config) 
     data = config.model_dump()
     data["services"]["support"]["container"] = {
         "ports": [
-            {"target": 8080, "published": 8110, "host_ip": "10.88.0.1"},
-            {"target": 8081, "published": 8111, "host_ip": "10.88.0.1"},
+            {"target": 8080, "published": 8110, "host_ip": "127.0.0.1"},
+            {"target": 8081, "published": 8111, "host_ip": "127.0.0.1"},
             {
                 "target": 5353,
                 "published": 5353,
-                "host_ip": "10.88.0.1",
+                "host_ip": "127.0.0.1",
                 "protocol": "udp",
             },
         ]
@@ -56,7 +56,7 @@ def test_service_tunnel_ports_are_derived_from_tcp_publications(config: Config) 
     parsed = Config.model_validate(data)
 
     assert parsed.service_tunnel_ports("support", "home") == [8110, 8111]
-    assert parsed.service_tunnel_host("support", "home", 8110) == "10.88.0.1"
+    assert parsed.service_tunnel_host("support", "home", 8110) == "127.0.0.1"
 
 
 def test_git_source_args_default_empty_and_accept_clone_options(config: Config) -> None:
@@ -98,6 +98,13 @@ def test_example_config_loads() -> None:
     for service_id, service in config.services.items():
         for host in service.hosts:
             config.service_spec(service_id, host)
+
+
+def test_example_internal_only_service_has_no_host_publication() -> None:
+    config = load_config(Path("config.example.yaml"))
+
+    for host in config.services["secret"].hosts:
+        assert config.resolved_service_container("secret", host).ports == []
 
 
 def test_load_config_rejects_non_mapping(tmp_path: Path) -> None:
