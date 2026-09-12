@@ -63,8 +63,12 @@ def test_example_config_loads() -> None:
     workspace = config.workspace_spec("codespace", "server", "default")
     assert workspace.container.is_bridge
     assert "ATUIN_SYNC_ADDRESS" not in workspace.container.environment
-    assert [(secret.source, secret.mode) for secret in workspace.container.secrets] == [
-        ("atuin_db_uri", 0o400)
+    assert [
+        (secret.source, secret.uid, secret.gid, secret.mode)
+        for secret in workspace.container.secrets
+    ] == [
+        ("atuin_db_uri", None, None, 0o400),
+        ("github_action_token", "5230", "5230", 0o400),
     ]
     support = config.service_spec("support", "server").container
     assert support.is_bridge
