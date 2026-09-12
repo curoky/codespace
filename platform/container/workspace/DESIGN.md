@@ -31,6 +31,7 @@ Starship 与 Atuin 的 shell integration 由 standalone-binaries toolchain packa
 flowchart TD
     Default["s6 default bundle"] --> Data["workspace-init"]
     Default --> Home["home-init"]
+    Home --> GitHubLogin["gh login"]
     Data --> SSHD
     Home --> SSHD
     Data --> WebDAV
@@ -49,6 +50,10 @@ secret，初始化或复用 gocryptfs，并挂载明文视图。运行模式由�
 `home-init` 与 Workspace 数据独立。它只准备持久化 editor state、生成或复用 deploy
 key，并从 immutable template 播种 extensions。sshd 与 Agent 在它完成后启动；
 shell integration 和其余 home 配置直接来自 image。
+
+`gh-login` 在 `home-init` 后以用户 `x` 从 private secret 的 stdin 完成非交互登录。
+token 不进入 argv、container environment 或 s6 environment snapshot；`gh` 将认证
+状态写入当前容器的 home，容器重建时由 oneshot 重新生成。
 
 每个 IDE cache 只在不存在 installed manifest 时播种：先复制扩展，再原子发布预生成
 manifest。之后扩展完全由 IDE 管理，重建容器不合并 manifest、不重新安装用户删除的
