@@ -45,7 +45,7 @@ jobs:
           file: platform/wsl/Dockerfile
           push: true
           provenance: false
-          platforms: linux/amd64,linux/arm64
+          platforms: linux/amd64
           network: host
           cache-from: |
             type=registry,ref=ghcr.io/curoky/codespace-cache:workspace-wsl
@@ -60,10 +60,8 @@ jobs:
         run: |
           set -euo pipefail
           image='ghcr.io/curoky/codespace:workspace-wsl'
-          for arch in amd64 arm64; do
-            docker pull --platform "linux/${arch}" "${image}"
-            platform/wsl/export.sh "${image}" "codespace-${arch}.wsl"
-          done
+          docker pull --platform linux/amd64 "${image}"
+          platform/wsl/export.sh "${image}" "codespace-amd64.wsl"
 
       - uses: actions/upload-artifact@v7
         with:
