@@ -55,6 +55,7 @@ def test_inference_entrypoint_honors_bind_address(
         ("copyparty-webdav", "-i 127.0.0.1"),
         ("rclone-http", "--addr 127.0.0.1:8007"),
         ("miniserve-http", "--interfaces 127.0.0.1"),
+        ("nixcache", "--host 127.0.0.1"),
     ],
 )
 def test_workspace_file_services_use_fixed_loopback_listener(service: str, listen: str) -> None:
@@ -119,6 +120,20 @@ def test_workspace_miniserve_exposes_container_logs_read_only() -> None:
         assert f"s6-env {setting}=false" in script
     assert all(option not in script for option in ("--upload-files", "--mkdir", "--rm-files"))
     assert (_WORKSPACE_ROOT / "etc/s6/s6-rc.d/default/contents.d/miniserve-http").exists()
+
+
+def test_workspace_nixcache_runs_as_user_in_default_bundle() -> None:
+    service = _WORKSPACE_ROOT / "etc/s6/s6-rc.d/nixcache"
+    script = (service / "run").read_text()
+
+    assert (service / "type").read_text().strip() == "longrun"
+    assert os.access(service / "run", os.X_OK)
+    assert "s6-envdir -Lf -- /run/s6/container_environment" in script
+    assert "redirfd -w 1 /var/log/s6.nixcache.log" in script
+    assert "fdmove -c 2 1" in script
+    assert "s6-setuidgid x\ns6-env HOME=/home/x\n" in script
+    assert "exec /opt/bm/bin/nixcache serve\n  --host 127.0.0.1\n  --port 8009\n" in script
+    assert (_WORKSPACE_ROOT / "etc/s6/s6-rc.d/default/contents.d/nixcache").is_file()
 
 
 def test_workspace_sshd_uses_fixed_listener() -> None:

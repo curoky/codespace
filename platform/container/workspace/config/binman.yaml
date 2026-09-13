@@ -67,6 +67,7 @@ packages:
     - iputils
     - ethtool
     - miniserve
+    - nixcache
     - rclone
     - openssh_gssapi
 

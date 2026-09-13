@@ -53,6 +53,7 @@ class TestImageContract(unittest.TestCase):
             "ssh": ("-V",),
             "sudo": ("-V",),
             "gocryptfs": ("-version",),
+            "nixcache": ("serve", "--host", "127.0.0.1", "--port", "8009", "--help"),
         }
         for command, arguments in commands.items():
             with self.subTest(command=command):
@@ -107,6 +108,7 @@ class TestImageContract(unittest.TestCase):
             "git-config",
             "home-init",
             "miniserve-http",
+            "nixcache",
             "ollama",
             "rclone-http",
             "rclone-webdav",
