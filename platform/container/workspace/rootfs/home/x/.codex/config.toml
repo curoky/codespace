@@ -21,7 +21,7 @@ log_user_prompt = false          # 不把 prompt 写入 trace(默认 false,显�
 
 [model_providers.traexbridge]
 name = "traexbridge"
-base_url = "http://10.89.0.1:8081/v1"
+base_url = "http://codespace-service-secret:8081/v1"
 wire_api = "responses"           # 必须 responses
 
 [projects."/workspace"]
