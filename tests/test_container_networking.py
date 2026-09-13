@@ -17,6 +17,19 @@ def test_workspace_secret_mount_uses_default_network_dns() -> None:
     assert 'local url="http://codespace-service-secret:8080"' in helper.read_text()
 
 
+def test_log_server_listener_is_configured_by_each_image() -> None:
+    run = (_CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/miniserve-http/run").read_text()
+    workspace = (_CONTAINER / "workspace/Dockerfile").read_text()
+    service = (_CONTAINER / "services/s6/Dockerfile").read_text()
+
+    assert "importas -S -D 127.0.0.1 MINISERVE_INTERFACES" in run
+    assert "--interfaces ${MINISERVE_INTERFACES}" in run
+    assert "exec miniserve" in run
+    assert "MINISERVE_INTERFACES" not in workspace
+    assert "MINISERVE_INTERFACES=0.0.0.0" in service
+    assert "chown -R x:x /opt/bm" in service
+
+
 @pytest.mark.parametrize("service", ["vllm", "sglang"])
 def test_inference_entrypoint_uses_fixed_bridge_listener(tmp_path: Path, service: str) -> None:
     venv = tmp_path / "venv"
