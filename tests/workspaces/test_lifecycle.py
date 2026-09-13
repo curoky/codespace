@@ -16,7 +16,7 @@ from codespace.runtime.transport import SSHRoute
 from codespace.workspaces import agent, inventory, lifecycle, provider, ssh
 from codespace.workspaces.agent import WorkspaceAgentClient
 from codespace.workspaces.lifecycle import WorkspaceManager
-from codespace.workspaces.models import RepoGitState
+from codespace.workspaces.models import RepoGitState, Workspace
 
 _PATHS = HostDataPaths("/home/x/codespace")
 
@@ -74,10 +74,124 @@ def manager(config: Config, monkeypatch: pytest.MonkeyPatch) -> WorkspaceManager
     )
 
 
+def test_resolve_ssh_alias_uses_actual_labels_not_project_config(
+    manager: WorkspaceManager, config: Config, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    actual = (
+        config.workspace_spec("codespace", "home", "debug")
+        .to_workspace("container-id", status="running")
+        .model_copy(update={"project": "removed-project", "workspace": "my-debug"})
+    )
+    scanned: list[str] = []
+
+    def list_actual(host: str) -> list[Workspace]:
+        scanned.append(host)
+        return [actual] if host == "home" else []
+
+    monkeypatch.setattr(manager, "inventory", list_actual)
+    assert manager.resolve_ssh_alias("space-removed-project-my-debug-home") == actual
+    assert scanned == list(config.hosts)
+
+
+def test_resolve_ssh_alias_rejects_unknown_name(
+    manager: WorkspaceManager, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(manager, "inventory", lambda _host: [])
+    with pytest.raises(ResourceNotFound, match="not found"):
+        manager.resolve_ssh_alias("space-codespace-missing-home")
+
+
+@pytest.mark.parametrize("status", ["exited", "created", "paused"])
+def test_resolve_ssh_alias_rejects_stopped_workspace(
+    manager: WorkspaceManager, config: Config, monkeypatch: pytest.MonkeyPatch, status: str
+) -> None:
+    actual = config.workspace_spec("codespace", "home", "debug").to_workspace(
+        "container-id", status=status
+    )
+    monkeypatch.setattr(manager, "inventory", lambda host: [actual] if host == "home" else [])
+    with pytest.raises(ResourceConflict, match="not running"):
+        manager.resolve_ssh_alias(actual.ssh_alias)
+
+
+def test_resolve_ssh_alias_rejects_cross_host_ambiguity(
+    manager: WorkspaceManager, config: Config, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    data = config.model_dump()
+    data["hosts"]["debug-home"] = {}
+    manager.config = Config.model_validate(data)
+    first = config.workspace_spec("scratch", "home", "my-debug").to_workspace(
+        "first", status="running"
+    )
+    second = first.model_copy(
+        update={"host": "debug-home", "workspace": "my", "container_id": "second"}
+    )
+    monkeypatch.setattr(
+        manager, "inventory", lambda host: [w for w in [first, second] if w.host == host]
+    )
+    assert first.ssh_alias == second.ssh_alias
+    with pytest.raises(ResourceConflict, match="ambiguous"):
+        manager.resolve_ssh_alias(first.ssh_alias)
+
+
+def test_resolve_ssh_alias_does_not_trust_partial_inventory(
+    manager: WorkspaceManager, config: Config, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    actual = config.workspace_spec("codespace", "home", "debug").to_workspace(
+        "container-id", status="running"
+    )
+
+    def list_actual(host: str) -> list[Workspace]:
+        if host == "office":
+            raise RuntimeError("Host unavailable")
+        return [actual]
+
+    monkeypatch.setattr(manager, "inventory", list_actual)
+    with pytest.raises(RuntimeError, match="Host unavailable"):
+        manager.resolve_ssh_alias(actual.ssh_alias)
+
+
+def test_container_name_collision_fails_before_creation(
+    manager: WorkspaceManager, config: Config, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    spec = config.workspace_spec("scratch", "home", "a-b")
+    existing = spec.to_workspace("existing", status="running").model_copy(
+        update={"project": "scratch-a", "workspace": "b"}
+    )
+    monkeypatch.setattr(inventory, "list_workspaces", lambda *_args: [existing])
+    manager.queue_create("scratch", "home", "a-b")
+    manager.create("scratch", "home", "a-b")
+    failed = manager.operations.list()[0]
+    assert failed.status == "failed"
+    assert "container name collision" in (failed.error or "")
+
+
+def test_container_lookup_uses_short_name_and_ownership_labels(
+    manager: WorkspaceManager, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    captured: list[tuple[str, dict[str, str]]] = []
+
+    def lookup(_client: object, name: str, *, labels: dict[str, str]) -> None:
+        captured.append((name, labels))
+
+    monkeypatch.setattr(lifecycle.container, "find_container", lookup)
+    with pytest.raises(ResourceNotFound):
+        manager._container("codespace", "home", "debug")
+    assert captured == [
+        (
+            "space-codespace-debug",
+            {
+                "codespace.kind": "workspace",
+                "codespace.project": "codespace",
+                "codespace.workspace": "debug",
+            },
+        )
+    ]
+
+
 def test_queue_create_uses_final_identity(manager: WorkspaceManager) -> None:
     operation = manager.queue_create("codespace", "home", "debug")
 
-    assert operation.id == "codespace-workspace_home_codespace_debug"
+    assert operation.id == "space:codespace/debug@home"
     assert operation.kind == "workspace"
     assert operation.project == "codespace"
     assert operation.resource == "debug"
@@ -167,6 +281,7 @@ def test_deletion_check_returns_git_state_without_mutation(
 ) -> None:
     running = SimpleNamespace(
         id="container-id",
+        name="space-codespace-debug",
         labels=config.workspace_spec("codespace", "home", "debug").labels(),
         attrs={"State": {"Status": "running"}},
     )
@@ -193,6 +308,7 @@ def test_delete_inspection_never_defaults_an_invalid_agent_response_to_clean(
 ) -> None:
     running = SimpleNamespace(
         id="container-id",
+        name=f"space-{project}-debug",
         labels=config.workspace_spec(project, "home", "debug").labels(),
         attrs={"State": {"Status": "running"}},
     )
@@ -231,6 +347,7 @@ def test_purge_revokes_key_before_data_and_container(
     events: list[str] = []
     running = SimpleNamespace(
         id="container-id",
+        name="space-codespace-debug",
         labels=config.workspace_spec("codespace", "home", "debug").labels(),
         attrs={"State": {"Status": "running"}},
         stop=lambda **_kwargs: events.append("stop"),
@@ -263,7 +380,7 @@ def test_purge_revokes_key_before_data_and_container(
 
     assert events == ["revoke", "stop", "data", "container"]
     assert manager.transport.closed_tcp == [  # type: ignore[attr-defined]
-        ("home", "codespace-workspace-24831_home_codespace_debug")
+        ("home", "space-codespace-debug-home")
     ]
 
 
@@ -273,6 +390,7 @@ def test_stopped_workspace_requires_explicit_delete_without_inspection(
     mutations: list[str] = []
     running = SimpleNamespace(
         id="container-id",
+        name="space-personal-debug",
         labels=config.workspace_spec("personal", "home", "debug").labels(),
         attrs={"State": {"Status": "exited"}},
     )
@@ -330,6 +448,7 @@ def test_workspace_container_uses_fixed_ssh_listener_and_reserved_mounts(
         {"HTTP_PROXY": "proxy"},
     )
 
+    assert captured["name"] == "space-codespace-debug"
     environment = captured["environment"]
     assert isinstance(environment, dict)
     assert environment["CODESPACE_SOURCE_TYPE"] == "github"
@@ -419,6 +538,7 @@ def test_delete_uses_deployed_source_after_config_changes(
 ) -> None:
     running = SimpleNamespace(
         id="container-id",
+        name="space-codespace-debug",
         labels=config.workspace_spec("codespace", "home", "debug").labels(),
         attrs={"State": {"Status": "running"}},
     )
@@ -433,9 +553,7 @@ def test_delete_uses_deployed_source_after_config_changes(
     assert manager.inspect_deletion("codespace", "home", "debug").uncommitted
     manager.delete("codespace", "home", "debug", purge=False)
 
-    assert revoked == [
-        ("github", "token", "curoky/codespace", "codespace-workspace_home_codespace_debug")
-    ]
+    assert revoked == [("github", "token", "curoky/codespace", "space:codespace/debug@home")]
 
 
 @pytest.fixture
@@ -444,6 +562,7 @@ def tunnel_container(
 ) -> SimpleNamespace:
     running = SimpleNamespace(
         id="deployed-container",
+        name="space-codespace-debug",
         labels=config.workspace_spec("codespace", "home", "debug").labels(),
         attrs={"State": {"Status": "running"}},
     )

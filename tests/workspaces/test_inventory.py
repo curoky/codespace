@@ -12,6 +12,7 @@ from codespace.workspaces import inventory
 def _container(encrypted: str) -> SimpleNamespace:
     return SimpleNamespace(
         id="container-id",
+        name="space-codespace-debug",
         labels={
             "codespace.kind": "workspace",
             "codespace.project": "codespace",
@@ -48,6 +49,15 @@ def test_read_workspace_requires_metadata(label: str) -> None:
         inventory.read_workspace(container, "home")  # type: ignore[arg-type]
 
 
+@pytest.mark.parametrize("name", ["unmanaged-container", "space-other-debug"])
+def test_read_workspace_rejects_name_mismatching_labels(name: str) -> None:
+    container = _container("false")
+    container.name = name
+
+    with pytest.raises(RuntimeError, match="expected name 'space-codespace-debug'"):
+        inventory.read_workspace(container, "home")  # type: ignore[arg-type]
+
+
 def test_read_workspace_rejects_invalid_encryption_label() -> None:
     with pytest.raises(KeyError):
         inventory.read_workspace(_container("invalid"), "home")  # type: ignore[arg-type]
@@ -65,7 +75,12 @@ def test_read_workspace_rejects_escaping_open_path() -> None:
 def test_created_labels_round_trip_inventory(config: Config, project: str) -> None:
     host = config.project_hosts(project)[0]
     spec = config.workspace_spec(project, host, "debug")
-    container = SimpleNamespace(id="container-id", labels=spec.labels(), attrs={"State": "running"})
+    container = SimpleNamespace(
+        id="container-id",
+        name=spec.container_name,
+        labels=spec.labels(),
+        attrs={"State": "running"},
+    )
 
     assert inventory.read_workspace(container, host) == spec.to_workspace(  # type: ignore[arg-type]
         "container-id", status="running"

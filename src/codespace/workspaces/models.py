@@ -81,11 +81,15 @@ type WorkspacePath = Annotated[str, AfterValidator(workspace_path)]
 
 
 def workspace_identity(host: str, project: str, workspace: str) -> str:
-    return f"codespace-workspace_{host}_{project}_{workspace}"
+    return f"space:{project}/{workspace}@{host}"
 
 
-def workspace_ssh_host_port(identity: str) -> int:
-    digest_prefix = hashlib.sha256(identity.encode()).hexdigest()[:4]
+def workspace_container_name(project: str, workspace: str) -> str:
+    return f"space-{project}-{workspace}"
+
+
+def workspace_ssh_host_port(container_name: str) -> int:
+    digest_prefix = hashlib.sha256(container_name.encode()).hexdigest()[:4]
     return SSH_HOST_PORT_START + int(digest_prefix, 16) % SSH_HOST_PORT_COUNT
 
 
@@ -175,8 +179,12 @@ class WorkspaceSpec:
         return workspace_identity(self.host, self.project, self.workspace)
 
     @property
+    def container_name(self) -> str:
+        return workspace_container_name(self.project, self.workspace)
+
+    @property
     def ssh_host_port(self) -> int:
-        return workspace_ssh_host_port(self.identity)
+        return workspace_ssh_host_port(self.container_name)
 
     @property
     def platform_label(self) -> PlatformSelection:
@@ -246,13 +254,15 @@ class Workspace(BaseModel):
 
     @property
     def ssh_host_port(self) -> int:
-        return workspace_ssh_host_port(self.id)
+        return workspace_ssh_host_port(self.container_name)
+
+    @property
+    def container_name(self) -> str:
+        return workspace_container_name(self.project, self.workspace)
 
     @property
     def ssh_alias(self) -> str:
-        return (
-            f"codespace-workspace-{self.ssh_host_port}_{self.host}_{self.project}_{self.workspace}"
-        )
+        return f"{self.container_name}-{self.host}"
 
 
 def editor_url(alias: str, open_path: str, *, scheme: str = "trae") -> str:

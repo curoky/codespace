@@ -195,6 +195,9 @@ class Config(FrozenModel):
 
     @model_validator(mode="after")
     def _validate_contracts(self) -> Config:
+        for host in self.hosts:
+            if host.startswith("space-"):
+                raise ValueError(f"host {host!r} uses the reserved Workspace SSH prefix 'space-'")
         for project_id, project in self.projects.items():
             project.resolved_checkout_path()
             project.resolved_open_path()

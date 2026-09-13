@@ -83,9 +83,9 @@ SSHD 固定监听 `0.0.0.0:22`。Workspace 只使用 bridge network，Host 仅�
 
 macOS rootfs 预置固定 SSH client config、login key、known host 和 ProxyCommand
 helper，并由 Host installer 按同路径安装。用户侧 alias 采用
-`codespace-workspace-<host-port>_<host>_<project>_<workspace>`；helper 只解析 Host
-forwarding port 与 Host，直接建立到 Host loopback listener 的 stdio tunnel，不生成
-per-Workspace 配置文件。
+`space-{project}-{workspace}-{host}`；helper 向本地控制面查询实际 Host 与 forwarding
+port，再建立到 Host loopback listener 的 stdio tunnel，不生成 per-Workspace 配置
+文件。外部 SSH 新连接要求本地控制面运行。
 
 每个 Workspace 自带 Atuin server，但数据库仍在外部。server 就绪后才执行登录和
 首次同步，再启动 daemon；数据库失败不阻塞独立的 SSH 与 Agent 启动链。

@@ -47,7 +47,7 @@ def read_workspace(container: Container, host: str) -> Workspace:
     for field, label in (("repository", LABEL_REPOSITORY), ("url", LABEL_GIT_URL)):
         if label in labels:
             source[field] = labels[label]
-    return Workspace(
+    actual = Workspace(
         project=project,
         workspace=workspace,
         host=host,
@@ -59,3 +59,9 @@ def read_workspace(container: Container, host: str) -> Workspace:
         container_id=container.id,
         status=container_status(container),
     )
+    if container.name != actual.container_name:
+        raise RuntimeError(
+            f"workspace container {container.name!r} does not match its labels; "
+            f"expected name {actual.container_name!r}"
+        )
+    return actual

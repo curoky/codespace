@@ -15,14 +15,18 @@ from codespace.workspaces.provider import DeployKey
     ("title", "active", "scanned", "expected"),
     [
         (
-            "codespace-workspace_home_codespace_live",
-            {"codespace-workspace_home_codespace_live"},
+            "space:codespace/live@home",
+            {"space:codespace/live@home"},
             {"home"},
             "yes",
         ),
-        ("codespace-workspace_home_codespace_old", set(), {"home"}, "no"),
-        ("codespace-workspace_office_codespace_live", set(), {"home"}, "unknown"),
+        ("space:codespace/old@home", set(), {"home"}, "no"),
+        ("space:codespace/live@office", set(), {"home"}, "unknown"),
         ("manual-key", set(), {"home"}, "unmanaged"),
+        ("space:other/live@home", set(), {"home"}, "unmanaged"),
+        ("space:codespace/live@unknown", set(), {"home"}, "unmanaged"),
+        ("space:codespace/invalid/name@home", set(), {"home"}, "unmanaged"),
+        ("space:codespace/@home", set(), {"home"}, "unmanaged"),
     ],
 )
 def test_usage(
@@ -48,7 +52,7 @@ def test_prune_deletes_only_planned_unused_keys(
     )
     listed = [
         DeployKey(1, active.id),
-        DeployKey(2, "codespace-workspace_home_codespace_old"),
+        DeployKey(2, "space:codespace/old@home"),
         DeployKey(3, "manual-key"),
     ]
     deleted: list[list[int]] = []

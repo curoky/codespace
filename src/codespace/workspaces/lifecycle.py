@@ -39,7 +39,7 @@ from codespace.workspaces.models import (
     Workspace,
     WorkspaceContainerSpec,
     WorkspaceSpec,
-    workspace_identity,
+    workspace_container_name,
 )
 
 _AGENT_START_TIMEOUT = 60.0
@@ -66,6 +66,22 @@ class WorkspaceManager:
 
     def inventory(self, host_name: str) -> list[Workspace]:
         return inventory.list_workspaces(self.transport.client(host_name), host_name)
+
+    def resolve_ssh_alias(self, alias: str) -> Workspace:
+        matches = [
+            workspace
+            for host_name in self.config.hosts
+            for workspace in self.inventory(host_name)
+            if workspace.ssh_alias == alias
+        ]
+        if not matches:
+            raise ResourceNotFound(f"Workspace SSH alias {alias!r} not found")
+        if len(matches) != 1:
+            raise ResourceConflict(f"Workspace SSH alias {alias!r} is ambiguous")
+        actual = matches[0]
+        if actual.status != "running":
+            raise ResourceConflict(f"workspace {actual.id!r} is not running ({actual.status})")
+        return actual
 
     def queue_create(self, project: str, host_name: str, workspace: str) -> Operation:
         configured = self._project(project, host_name)
@@ -108,6 +124,11 @@ class WorkspaceManager:
         for existing in current:
             if existing.project == spec.project and existing.workspace == spec.workspace:
                 raise ResourceConflict(f"workspace {spec.identity!r} already exists")
+            if existing.container_name == spec.container_name:
+                raise ResourceConflict(
+                    f"container name collision on host {spec.host!r}: "
+                    f"{spec.identity!r} and {existing.id!r} both use {spec.container_name!r}"
+                )
             if existing.ssh_host_port == spec.ssh_host_port:
                 raise ResourceConflict(
                     f"SSH forwarding port collision on host {spec.host!r}: "
@@ -242,10 +263,10 @@ class WorkspaceManager:
         return container.container_logs(running)
 
     def _container(self, project: str, host_name: str, workspace: str) -> Container:
-        identity = workspace_identity(host_name, project, workspace)
+        name = workspace_container_name(project, workspace)
         running = container.find_container(
             self.transport.client(host_name),
-            identity,
+            name,
             labels={
                 LABEL_KIND: WORKSPACE_KIND,
                 LABEL_PROJECT: project,
@@ -253,7 +274,7 @@ class WorkspaceManager:
             },
         )
         if running is None:
-            raise ResourceNotFound(f"workspace {identity!r} not found")
+            raise ResourceNotFound(f"workspace container {name!r} not found on host {host_name!r}")
         return running
 
     def _project(self, project: str, host_name: str) -> ProjectConfig:
@@ -333,7 +354,7 @@ def _create_workspace_container(
     return container.create_container(
         client,
         spec.image,
-        name=spec.identity,
+        name=spec.container_name,
         spec=runtime_spec,
         environment=environment,
         labels=spec.labels(),
