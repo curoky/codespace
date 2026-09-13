@@ -43,7 +43,6 @@
     "golangci-lint": "/opt/bm/store/golangci-lint/bin/golangci-lint",
     "golangci-lint-v2": "/opt/bm/store/golangci-lint/bin/golangci-lint",
     "revive": "/opt/bm/store/revive/bin/revive",
-    "golint": "/opt/bm/store/golint/bin/golint"
     // 仅当 "go.formatTool": "custom" 时配置：
     // "customFormatter": "/absolute/path/to/custom-formatter"
   },
