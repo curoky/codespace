@@ -116,10 +116,11 @@ Host 登录材料。
   loopback，并且只有 Project `tunnel_ports` 中的端口可由 Web UI 打开。
 - Workspace 的 source metadata、转发环境变量和确定性 SSH publication 由实例 identity
   在创建前合入最终 container spec；encryption secret mount 必须显式写入配置。
-- Service 的 `container.ports` 仅声明需要从 Host 或控制面 tunnel 进入的端口，不用于
-  容器间服务发现；其中已发布的 TCP port 同时是 Web UI 可打开的 tunnel，UDP 不进入
-  Web UI。所有 publication 必须绑定 Host loopback；schema 拒绝 wildcard、bridge
-  gateway、LAN 或公网地址。
+- Service 的 `container.ports` 仅声明需要固定 Host port 的入口，不用于容器间服务
+  发现；`tunnel_ports` 与 Workspace 一样声明 Web UI 可打开的容器 TCP port。没有显式
+  publication 的 tunnel port 在部署时自动绑定到 Host loopback 随机端口，避免同一
+  Host 上多个 Service 的端口冲突。所有 publication 必须绑定 Host loopback；schema
+  拒绝 wildcard、bridge gateway、LAN 或公网地址。
 - Service port 冲突最终由 Podman apply 结果判定。
 
 默认 `podman` network 是 Host-local 的共享信任域：DNS 名只在同一 Host 上有效，

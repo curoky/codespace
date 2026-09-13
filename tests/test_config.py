@@ -23,7 +23,7 @@ def test_tunnel_ports_default_and_project_override(config: Config) -> None:
 
 
 @pytest.mark.parametrize("ports", [[0], [65536], [True], ["8005"]])
-@pytest.mark.parametrize("scope", ["project_defaults", "project"])
+@pytest.mark.parametrize("scope", ["project_defaults", "project", "service"])
 def test_tunnel_ports_reject_invalid_values(
     config: Config, ports: list[object], scope: str
 ) -> None:
@@ -31,6 +31,7 @@ def test_tunnel_ports_reject_invalid_values(
     targets = {
         "project_defaults": data["project_defaults"],
         "project": data["projects"]["codespace"],
+        "service": data["services"]["support"],
     }
     target = targets[scope]
     target["tunnel_ports"] = ports
@@ -38,8 +39,9 @@ def test_tunnel_ports_reject_invalid_values(
         Config.model_validate(data)
 
 
-def test_service_tunnel_ports_are_derived_from_tcp_publications(config: Config) -> None:
+def test_service_tunnel_ports_are_explicit_container_ports(config: Config) -> None:
     data = config.model_dump()
+    data["services"]["support"]["tunnel_ports"] = [8080, 8008]
     data["services"]["support"]["container"]["ports"] = [
         {"target": 8080, "published": 8110, "host_ip": "127.0.0.1"},
         {"target": 8081, "published": 8111, "host_ip": "127.0.0.1"},
@@ -53,8 +55,9 @@ def test_service_tunnel_ports_are_derived_from_tcp_publications(config: Config) 
 
     parsed = Config.model_validate(data)
 
-    assert parsed.service_tunnel_ports("support", "home") == [8110, 8111]
-    assert parsed.service_tunnel_host("support", "home", 8110) == "127.0.0.1"
+    assert parsed.service_tunnel_ports("support") == [8080, 8008]
+    assert parsed.service_port_publication("support", "home", 8080) == ("127.0.0.1", 8110)
+    assert parsed.service_port_publication("support", "home", 8008) is None
 
 
 def test_git_source_args_default_empty_and_accept_clone_options(config: Config) -> None:
@@ -103,6 +106,20 @@ def test_example_internal_only_service_has_no_host_publication() -> None:
 
     for host in config.services["secret"].hosts:
         assert config.resolved_service_container("secret", host).ports == []
+
+
+@pytest.mark.parametrize("service", ["vllm", "sglang"])
+def test_example_gpu_service_sets_huggingface_environment_at_startup(service: str) -> None:
+    config = load_config(Path("config.example.yaml"))
+    script_path = Path(
+        f"platform/container/services/{service}/rootfs/opt/{service}/serve.sh"
+    )
+    script = script_path.read_text()
+
+    for host in config.services[service].hosts:
+        assert config.resolved_service_container(service, host).environment == {}
+    assert "export HF_HOME=/root/.cache/huggingface" in script
+    assert "export HF_TOKEN_PATH=/run/secrets/huggingface_token" in script
 
 
 def test_load_config_rejects_non_mapping(tmp_path: Path) -> None:

@@ -38,6 +38,9 @@ def test_apply_replaces_container_and_resolves_data_placeholder(
     manager: ControlPlane,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    data = manager.config.model_dump()
+    data["services"]["vllm"]["tunnel_ports"] = [8008]
+    manager.config = Config.model_validate(data)
     events: list[str] = []
     running = SimpleNamespace()
     captured: dict[str, object] = {}
@@ -77,6 +80,7 @@ def test_apply_replaces_container_and_resolves_data_placeholder(
         "read_only": False,
     }
     assert runtime_spec.restart == "unless-stopped"  # type: ignore[union-attr]
+    assert captured["random_tcp_ports"] == [8008]
     assert manager.operations.list() == []
 
 
@@ -147,6 +151,7 @@ def test_tunnel_forwards_explicitly_configured_loopback_port(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     data = config.model_dump()
+    data["services"]["support"]["tunnel_ports"] = [8080]
     data["services"]["support"]["container"]["ports"] = [
         {"target": 8080, "published": 8110, "host_ip": "127.0.0.1"}
     ]
@@ -154,11 +159,18 @@ def test_tunnel_forwards_explicitly_configured_loopback_port(
     running = SimpleNamespace(
         id="deployed-container",
         labels=manager.config.service_spec("support", "home").labels(),
-        attrs={"State": {"Status": "running"}},
+        attrs={
+            "State": {"Status": "running"},
+            "NetworkSettings": {
+                "Ports": {
+                    "8080/tcp": [{"HostIp": "127.0.0.1", "HostPort": "8110"}],
+                }
+            },
+        },
     )
     monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
 
-    assert manager.open_tunnel(Resource("home", "support"), 8110) == 49123
+    assert manager.open_tunnel(Resource("home", "support"), 8080) == 49123
     assert manager.transport.tcp_forwards == [  # type: ignore[attr-defined]
         (
             "home",
@@ -174,11 +186,66 @@ def test_tunnel_forwards_explicitly_configured_loopback_port(
     ]
 
 
-def test_tunnel_rejects_unpublished_service_port(
+def test_tunnel_forwards_randomly_published_service_port(
+    manager: ControlPlane,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    data = manager.config.model_dump()
+    data["services"]["support"]["tunnel_ports"] = [8008]
+    manager.config = Config.model_validate(data)
+    running = SimpleNamespace(
+        id="deployed-container",
+        labels=manager.config.service_spec("support", "home").labels(),
+        attrs={
+            "State": {"Status": "running"},
+            "NetworkSettings": {
+                "Ports": {
+                    "8008/tcp": [{"HostIp": "127.0.0.1", "HostPort": "42345"}],
+                }
+            },
+        },
+    )
+    monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
+
+    assert manager.open_tunnel(Resource("home", "support"), 8008) == 49123
+    assert manager.transport.tcp_forwards == [  # type: ignore[attr-defined]
+        (
+            "home",
+            "home",
+            {
+                "port": 42345,
+                "local_port": None,
+                "remote_host": "127.0.0.1",
+                "options": [],
+                "connection_id": "deployed-container",
+            },
+        )
+    ]
+
+
+def test_tunnel_rejects_unconfigured_service_port(
     manager: ControlPlane,
 ) -> None:
     with pytest.raises(lifecycle.ResourceNotFound, match="not configured"):
         manager.open_tunnel(Resource("home", "support"), 8110)
+
+
+def test_tunnel_requires_service_reapply_for_missing_publication(
+    manager: ControlPlane,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    data = manager.config.model_dump()
+    data["services"]["support"]["tunnel_ports"] = [8008]
+    manager.config = Config.model_validate(data)
+    running = SimpleNamespace(
+        id="deployed-container",
+        labels=manager.config.service_spec("support", "home").labels(),
+        attrs={"State": {"Status": "running"}, "NetworkSettings": {"Ports": {}}},
+    )
+    monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
+
+    with pytest.raises(lifecycle.ResourceConflict, match="reapply"):
+        manager.open_tunnel(Resource("home", "support"), 8008)
 
 
 def test_tunnel_rejects_stopped_service(
@@ -186,6 +253,7 @@ def test_tunnel_rejects_stopped_service(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     data = manager.config.model_dump()
+    data["services"]["support"]["tunnel_ports"] = [8080]
     data["services"]["support"]["container"]["ports"] = [
         {"target": 8080, "published": 8110, "host_ip": "127.0.0.1"}
     ]
@@ -198,4 +266,4 @@ def test_tunnel_rejects_stopped_service(
     monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
 
     with pytest.raises(lifecycle.ResourceConflict, match="is not running"):
-        manager.open_tunnel(Resource("home", "support"), 8110)
+        manager.open_tunnel(Resource("home", "support"), 8080)

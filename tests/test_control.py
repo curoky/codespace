@@ -60,6 +60,7 @@ def test_dashboard_keeps_actual_metadata_when_config_changes(
     data["project_defaults"]["tunnel_ports"] = [8005]
     data["projects"]["scratch"]["tunnel_ports"] = []
     data["services"]["support"]["container"]["image"] = "support:desired"
+    data["services"]["support"]["tunnel_ports"] = [8080, 8008]
     data["services"]["support"]["container"]["ports"] = [
         {"target": 8080, "published": 8110, "host_ip": "127.0.0.1"}
     ]
@@ -87,7 +88,7 @@ def test_dashboard_keeps_actual_metadata_when_config_changes(
     assert projects["scratch"]["tunnel_ports"] == []
     support_host = services["support"]["hosts"][0]
     assert support_host["desired_image"] == "support:desired"
-    assert support_host["tunnel_ports"] == [8110]
+    assert support_host["tunnel_ports"] == [8080, 8008]
     assert support_host["container"] == service
     assert services["vllm"]["hosts"][0]["container"] is None
 

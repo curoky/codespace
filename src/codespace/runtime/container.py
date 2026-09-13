@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import posixpath
 import re
-from collections.abc import Iterator, Mapping, Sequence
+from collections.abc import Collection, Iterator, Mapping, Sequence
 from ipaddress import ip_address
 from pathlib import PurePosixPath
 from typing import Annotated, Any, Literal, Self, cast
@@ -231,8 +231,18 @@ class ContainerSpec(BaseModel):
             if PurePosixPath(volume.source).is_relative_to(root)
         ]
 
-    def to_podman_options(self, client: PodmanClient) -> dict[str, Any]:
+    def to_podman_options(
+        self,
+        client: PodmanClient,
+        *,
+        random_tcp_ports: Collection[int] = (),
+    ) -> dict[str, Any]:
         """Translate the resolved Compose service to podman-py create options."""
+        ports: dict[str, tuple[str, int]] = {
+            f"{port.target}/{port.protocol}": (port.host_ip, port.published) for port in self.ports
+        }
+        for target in random_tcp_ports:
+            ports.setdefault(f"{target}/tcp", ("127.0.0.1", 0))
         options: dict[str, Any] = {
             "network_mode": self.network_mode,
             "restart_policy": {"Name": self.restart},
@@ -244,10 +254,7 @@ class ContainerSpec(BaseModel):
             ],
             "environment": self.environment,
             "devices": self.devices,
-            "ports": {
-                f"{port.target}/{port.protocol}": (port.host_ip, port.published)
-                for port in self.ports
-            },
+            "ports": ports,
             "mounts": [volume.mount() for volume in self.volumes],
         }
         if self.platform is not None:
@@ -270,10 +277,11 @@ def create_container(
     name: str,
     spec: ContainerSpec,
     labels: Mapping[str, str],
+    random_tcp_ports: Collection[int] = (),
 ) -> Container:
     """Create a detached container from one resolved Compose service."""
     options = {
-        **spec.to_podman_options(client),
+        **spec.to_podman_options(client, random_tcp_ports=random_tcp_ports),
         "name": name,
         "labels": dict(labels),
     }
@@ -413,6 +421,24 @@ def container_logs(container: Container) -> str:
     )
     raw = b"".join(cast("Iterator[bytes]", result))
     return raw.decode("utf-8", "replace")
+
+
+def published_tcp_endpoint(container: Container, target_port: int) -> tuple[str, int] | None:
+    bindings = container.attrs.get("NetworkSettings", {}).get("Ports", {}).get(f"{target_port}/tcp")
+    if bindings is None:
+        return None
+    if not isinstance(bindings, list) or len(bindings) != 1:
+        raise RuntimeError(
+            f"container port {target_port}/tcp must have exactly one Host publication"
+        )
+    binding = bindings[0]
+    if not isinstance(binding, dict):
+        raise RuntimeError(f"container port {target_port}/tcp has invalid publication metadata")
+    host_ip = binding.get("HostIp")
+    host_port = binding.get("HostPort")
+    if not isinstance(host_ip, str) or not isinstance(host_port, str) or not host_port.isdigit():
+        raise RuntimeError(f"container port {target_port}/tcp has invalid publication metadata")
+    return _host_ip(host_ip), int(host_port)
 
 
 class _ContainerNotRunning(Exception):

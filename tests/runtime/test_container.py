@@ -375,6 +375,47 @@ def test_create_container_uses_configured_network(monkeypatch: pytest.MonkeyPatc
     assert "networks" not in captured
 
 
+def test_create_container_publishes_additional_tcp_ports_on_random_loopback_ports(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+    monkeypatch.setattr(
+        container, "run_container", lambda _client, _image, options: captured.update(options)
+    )
+    spec = ContainerSpec(
+        image="image",
+        ports=[PortSpec(target=8080, published=8110, host_ip="127.0.0.1")],
+    )
+
+    container.create_container(
+        SimpleNamespace(),  # type: ignore[arg-type]
+        name="container",
+        spec=spec,
+        labels={},
+        random_tcp_ports=[8080, 8008],
+    )
+
+    assert captured["ports"] == {
+        "8080/tcp": ("127.0.0.1", 8110),
+        "8008/tcp": ("127.0.0.1", 0),
+    }
+
+
+def test_published_tcp_endpoint_reads_loopback_binding() -> None:
+    running = Container(
+        attrs={
+            "NetworkSettings": {
+                "Ports": {
+                    "8008/tcp": [{"HostIp": "127.0.0.1", "HostPort": "42345"}],
+                }
+            }
+        }
+    )
+
+    assert container.published_tcp_endpoint(running, 8008) == ("127.0.0.1", 42345)
+    assert container.published_tcp_endpoint(running, 8080) is None
+
+
 def test_missing_secret_fails_before_container_creation() -> None:
     client = SimpleNamespace(secrets=SimpleNamespace(exists=lambda _name: False))
     spec = ContainerSpec(

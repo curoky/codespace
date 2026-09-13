@@ -86,6 +86,7 @@ projects:
 services:
   support:
     hosts: [workstation, gpu-host]
+    tunnel_ports: [8008]
     container:
       image: ghcr.io/curoky/codespace:service-support
       platform: linux/amd64
@@ -97,6 +98,7 @@ services:
 
   secret:
     hosts: [workstation, gpu-host]
+    tunnel_ports: [8008]
     container:
       image: ghcr.io/curoky/codespace:service-secret
       platform: linux/amd64
@@ -106,20 +108,16 @@ services:
 
   vllm:
     hosts: [gpu-host]
+    tunnel_ports: [8080, 8008]
     container:
       image: ghcr.io/curoky/codespace:service-vllm
       platform: linux/amd64
       pull_policy: always
       network_mode: bridge
       restart: unless-stopped
-      ports:
-        - { target: 8080, published: 8103, host_ip: 127.0.0.1 }
       ipc: host
       pids_limit: -1
       devices: [nvidia.com/gpu=all]
-      environment:
-        HF_HOME: /root/.cache/huggingface
-        HF_TOKEN_PATH: /run/secrets/huggingface_token
       volumes:
         - ${RESOURCE_DATA}:/root/.cache/huggingface
       secrets:
@@ -127,20 +125,16 @@ services:
 
   sglang:
     hosts: [gpu-host]
+    tunnel_ports: [8080, 8008]
     container:
       image: ghcr.io/curoky/codespace:service-sglang
       platform: linux/amd64
       pull_policy: always
       network_mode: bridge
       restart: unless-stopped
-      ports:
-        - { target: 8080, published: 8104, host_ip: 127.0.0.1 }
       ipc: host
       pids_limit: -1
       devices: [nvidia.com/gpu=all]
-      environment:
-        HF_HOME: /root/.cache/huggingface
-        HF_TOKEN_PATH: /run/secrets/huggingface_token
       volumes:
         - ${RESOURCE_DATA}:/root/.cache/huggingface
       secrets:
@@ -148,16 +142,13 @@ services:
 
   chatbox:
     hosts: [gpu-host]
+    tunnel_ports: [8080, 8008]
     container:
       image: ghcr.io/curoky/codespace:service-chatbox
       platform: linux/amd64
       pull_policy: always
       network_mode: bridge
       restart: unless-stopped
-      ports:
-        - { target: 8080, published: 8112, host_ip: 127.0.0.1 }
-      environment:
-        CHATBOX_API_UPSTREAM: http://codespace-service-sglang:8080
 
 tokens:
   github: github_pat_REPLACE_WITH_GITHUB_TOKEN

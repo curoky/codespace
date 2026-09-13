@@ -67,10 +67,11 @@ USER x
 ENV PATH=${PATH}:/nix/var/nix/profiles/default/bin:/home/x/.nix-profile/bin
 RUN export NIX_CONFIG='filter-syscalls = false' \
   && curl -fsSL https://nixos.org/nix/install | sh -s -- --no-daemon \
-  && nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs \
+  && nix-channel --add https://nixos.org/channels/nixpkgs-unstable nixpkgs_unstable \
+  && nix-channel --add https://nixos.org/channels/nixos-26.05 nixpkgs \
   && nix-channel --add https://nixos.org/channels/nixos-25.05 nixpkgs_2505 \
   && nix-channel --update \
-  && nix-env -iA nixpkgs.ollama-cpu nixpkgs.lemminx nixpkgs.codex \
+  && nix-env -iA nixpkgs.ollama-cpu nixpkgs.lemminx nixpkgs_unstable.codex \
     nixpkgs.ghidra nixpkgs.markdownlint-cli2 nixpkgs.pnpm \
     nixpkgs.prettier nixpkgs.mitmproxy \
     nixpkgs.copyparty nixpkgs.dool nixpkgs.git-filter-repo \

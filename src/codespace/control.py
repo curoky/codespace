@@ -182,6 +182,7 @@ class ControlPlane:
                 name=resource.container_name,
                 spec=spec.container.resolve_data_path(path),
                 labels=spec.labels(),
+                random_tcp_ports=spec.tunnel_ports,
             )
 
     def inspect_deletion(self, resource: Resource) -> RepoGitState:
@@ -238,7 +239,7 @@ class ControlPlane:
         ports = (
             self.config.project_tunnel_ports(resource.project)
             if resource.project is not None
-            else self.config.service_tunnel_ports(resource.name, resource.host)
+            else self.config.service_tunnel_ports(resource.name)
         )
         if port not in ports:
             raise ResourceNotFound(
@@ -263,16 +264,28 @@ class ControlPlane:
                 options=ssh.connection_options(actual, route),
                 connection_id=actual.container_id,
             )
+        endpoint = container.published_tcp_endpoint(running, port)
+        if endpoint is None:
+            raise ResourceConflict(
+                f"service {actual.id!r} does not publish tunnel port {port}; reapply it"
+            )
+        remote_host, remote_port = endpoint
+        configured_publication = self.config.service_port_publication(
+            resource.name,
+            resource.host,
+            port,
+        )
+        if configured_publication is not None and endpoint != configured_publication:
+            raise ResourceConflict(
+                f"service {actual.id!r} tunnel port {port} has stale publication metadata; "
+                "reapply it"
+            )
         return self.transport.forward_tcp(
             resource.host,
             route.host,
-            port=port,
-            local_port=port,
-            remote_host=self.config.service_tunnel_host(
-                resource.name,
-                resource.host,
-                port,
-            ),
+            port=remote_port,
+            local_port=None if configured_publication is None else remote_port,
+            remote_host=remote_host,
             options=[],
             connection_id=actual.container_id,
         )

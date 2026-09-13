@@ -77,7 +77,7 @@ def build(control: ControlPlane) -> dict[str, object]:
                         "desired_image": config.resolved_service_container(
                             service_id, host_name
                         ).image,
-                        "tunnel_ports": config.service_tunnel_ports(service_id, host_name),
+                        "tunnel_ports": config.service_tunnel_ports(service_id),
                         "container": services.get((host_name, service_id)),
                     }
                     for host_name in service.hosts

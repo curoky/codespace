@@ -34,6 +34,7 @@ class ServiceSpec(ServiceMetadata):
     """Resolved Service placement on one Host."""
 
     container: ContainerSpec
+    tunnel_ports: list[int]
 
     def labels(self) -> dict[str, str]:
         return {**self.resource.labels, LABEL_IMAGE: self.image}

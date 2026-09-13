@@ -2,6 +2,9 @@
 
 set -euo pipefail
 
+export HF_HOME=/root/.cache/huggingface
+export HF_TOKEN_PATH=/run/secrets/huggingface_token
+
 model="${SERVE_MODEL:-Qwen/Qwen3.8-Flash-Next-FP8}"
 
 export SGLANG_ENABLE_TP_MEMORY_INBALANCE_CHECK=false

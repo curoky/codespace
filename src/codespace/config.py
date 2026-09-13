@@ -142,6 +142,7 @@ class ProjectConfig(FrozenModel):
 
 class ServiceConfig(FrozenModel):
     hosts: list[HostId]
+    tunnel_ports: TunnelPorts = Field(default_factory=list)
     container: ContainerLayer = Field(default_factory=ContainerLayer)
 
 
@@ -220,20 +221,16 @@ class Config(FrozenModel):
         )
         return ContainerSpec.model_validate(merged).image
 
-    def service_tunnel_ports(self, service: str, host: str) -> list[int]:
-        return [
-            port.published
-            for port in self.resolved_service_container(service, host).ports
-            if port.protocol == "tcp"
-        ]
+    def service_tunnel_ports(self, service: str) -> list[int]:
+        return self.services[service].tunnel_ports
 
-    def service_tunnel_host(self, service: str, host: str, published_port: int) -> str:
+    def service_port_publication(
+        self, service: str, host: str, target_port: int
+    ) -> tuple[str, int] | None:
         for port in self.resolved_service_container(service, host).ports:
-            if port.protocol == "tcp" and port.published == published_port:
-                return port.host_ip
-        raise ResourceNotFound(
-            f"tunnel port {published_port} is not published for service {service!r}"
-        )
+            if port.protocol == "tcp" and port.target == target_port:
+                return port.host_ip, port.published
+        return None
 
     def workspace_spec(self, project: str, host: str, workspace: str) -> WorkspaceSpec:
         configured = self.projects[project]
@@ -258,6 +255,7 @@ class Config(FrozenModel):
             host=host,
             image=container.image,
             container=container,
+            tunnel_ports=self.service_tunnel_ports(service),
         )
 
     def resource_spec(self, resource: Resource) -> WorkspaceSpec | ServiceSpec:
