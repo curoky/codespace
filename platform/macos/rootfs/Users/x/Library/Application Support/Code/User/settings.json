@@ -287,10 +287,7 @@
   "markdown-preview-enhanced.liveUpdate": true,
   "markdown-preview-enhanced.previewTheme": "solarized-light.css",
   "markdown.extension.toc.updateOnSave": false,
-  "markdown.preview.fontSize": 21,
-  "markdown.styles": [
-    "file:///Users/x/Library/Application%20Support/Code/User/markdown-preview.css"
-  ],
+  "markdown.preview.fontSize": 18,
   "notebook.cellToolbarLocation": {
     "default": "right",
     "jupyter-notebook": "left"
