@@ -143,5 +143,5 @@ EOF
   run /usr/bin/ssh -G -F "$SSH_DIR/config" home-dev.example
   [ "$status" -eq 0 ]
   [[ "$output" == *$'hostname home-dev.example\n'* ]]
-  [[ "$output" != *'proxycommand '* ]]
+  [[ $'\n'"$output"$'\n' != *$'\nproxycommand '* ]]
 }
