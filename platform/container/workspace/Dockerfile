@@ -135,7 +135,6 @@ RUN bash /tmp/install-editor-extensions.sh /tmp/extensions.txt /opt/editor-exten
 # 归属在生成时即正确（COPY 用 --chown，写 home 的步骤以 x 身份运行），故不做全树
 # recursive chown；末尾只补 COPY 无法表达的两件事：/opt 根可写、bin 执行位。
 FROM docker.io/$BASE_IMAGE AS workspace
-ARG BASE_IMAGE
 
 # 环境变量集中声明；PATH 一次拼定，避免层层追加。
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -170,8 +169,6 @@ COPY --link --chown=5230:5230 --from=stage_vscode_ext /opt/editor-extensions /op
 
 # System：rootfs 就绪后配置系统与编译 s6。configure-system 依赖 /opt/bm 与
 # rootfs，install-s6 依赖 s6 profile 与 /etc/s6。
-COPY platform/container/workspace/scripts/configure-apt.sh /tmp/configure-apt.sh
-RUN /tmp/configure-apt.sh "${BASE_IMAGE}"
 COPY platform/container/workspace/rootfs/ /
 COPY platform/container/workspace/scripts/configure-system.sh /tmp/configure-system.sh
 COPY platform/container/workspace/scripts/install-s6.sh /tmp/install-s6.sh
