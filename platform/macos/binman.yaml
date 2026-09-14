@@ -3,6 +3,7 @@ arch: darwin-arm64
 packages:
   link:
     - zsh-plugins
+    - smartmontools
     - starship
     - atuin
     - fzf
