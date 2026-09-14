@@ -1,3 +1,5 @@
+tap "julyx10/lap"
+
 cask "font-fira-code-nerd-font"
 cask "font-lxgw-wenkai"
 cask "font-ubuntu-mono-nerd-font"
@@ -12,6 +14,7 @@ cask "secretive"
 cask "obs"
 cask "gimp"
 cask "finetune"
+cask "lap"
 
 # Optional casks
 # tap "ecopastehub/ecopaste"
@@ -50,14 +53,14 @@ cask "finetune"
 # cask "lyricsx" # https://github.com/ddddxxx/LyricsX
 
 brew "bash"
-brew "bats-core"
+# brew "bats-core"
 brew "clang-format"
 brew "python@3"
 brew "go"
 brew "node"
-brew "podman"
+# brew "podman"
 brew "shellcheck"
-brew "shfmt"
+# brew "shfmt"
 
 # Optional development tools
 # brew "pre-commit"

@@ -294,6 +294,7 @@
   },
   // "notebook.formatOnSave.enabled": true,
   "notebook.lineNumbers": "on",
+  "python-envs.terminal.autoActivationType": "shellStartup",
   "python-envs.terminal.showActivateButton": true,
   "python.analysis.autoFormatStrings": true,
   "python.analysis.autoImportCompletions": true,
@@ -375,6 +376,7 @@
   "testMate.cpp.test.executables": "{_build,build,Build,BUILD,out,Out,OUT}/**/*{test,Test,TEST}*",
   "testMate.cpp.test.parallelExecutionLimit": 8,
   "thunder-client.saveToWorkspace": true,
+  "trae.network.proxy.effectiveMode": "system",
   "typescript.surveys.enabled": false,
   "update.showReleaseNotes": false,
   "window.nativeTabs": true,
@@ -391,12 +393,17 @@
     "minimap.background": "#1f1f2256"
   },
   "workbench.colorTheme": "Better Solarized Light",
+  "workbench.diffEditorAssociations": {
+    "*.md": "default"
+  },
   "workbench.editor.highlightModifiedTabs": true,
   "workbench.editor.useModal": "off",
   "workbench.editor.wrapTabs": true,
   "workbench.editorAssociations": {
+    "*.copilotmd": "vscode.markdown.preview.editor",
     "*.hex": "hexEditor.hexedit",
     "*.ipynb": "jupyter-notebook",
+    "*.md": "vscode.markdown.preview.editor",
     "*.plist": "default",
     "*.spec": "default"
   },
@@ -414,6 +421,5 @@
   "yaml.disableSchemaDetection": [],
   "yaml.format.enable": true,
   "yaml.format.singleQuote": true,
-  "trae.network.proxy.effectiveMode": "system",
   "security.promptForRemoteFileProtocolHandling": false
 }
