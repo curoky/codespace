@@ -47,17 +47,17 @@ packages:
     - bazelisk
     - buildifier
     - uv
-    - pnpm
+    # - pnpm
     - shfmt
     - ruff
-    - prettier
+    # - prettier
     # - biome
     - cloc
     - exiftool
     - bats
 
   unlink:
-    - nodejs-slim26
+    # - nodejs-slim26
     - perl
 profiles:
   go:
