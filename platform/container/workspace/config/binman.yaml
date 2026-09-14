@@ -9,6 +9,8 @@ packages:
   link:
     - shellcheck
     - bats
+    - lark-cli
+
     # shell & terminal
     - zsh
     - zsh-plugins
