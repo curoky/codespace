@@ -1,0 +1,13 @@
+/* 让宽表格横向滚动，而不是把单元格文字折成多行 */
+table {
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* 单元格内容保持单行 */
+th,
+td {
+  white-space: nowrap;
+}
