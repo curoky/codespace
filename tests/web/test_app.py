@@ -206,7 +206,11 @@ def test_dashboard_workspace_exposes_container_encryption(
     assert response.status_code == 200
     assert response.json()["workspaces"] == [serialized]
     project = response.json()["projects"][0]
-    assert project["source"] == {"type": "github", "repository": "curoky/codespace"}
+    assert project["source"] == {
+        "type": "github",
+        "repository": "curoky/codespace",
+        "args": [],
+    }
     assert not {"repository", "git_url", "checkout_path"} & project.keys()
 
 

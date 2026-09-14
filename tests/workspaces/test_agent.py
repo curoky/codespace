@@ -265,6 +265,54 @@ def image_agent(monkeypatch: pytest.MonkeyPatch) -> ModuleType:
     return module
 
 
+@pytest.mark.parametrize(
+    ("git_args", "expected_checkout"),
+    [
+        (
+            [],
+            ["/opt/codespace/bin/checkout", "git@example.com:owner/repo.git", "/workspace/repo"],
+        ),
+        (
+            ["--depth=1", "--single-branch"],
+            [
+                "/opt/codespace/bin/checkout",
+                "git@example.com:owner/repo.git",
+                "/workspace/repo",
+                "--depth=1",
+                "--single-branch",
+            ],
+        ),
+    ],
+)
+def test_image_bootstrap_passes_git_args(
+    image_agent: ModuleType,
+    monkeypatch: pytest.MonkeyPatch,
+    git_args: list[str],
+    expected_checkout: list[str],
+) -> None:
+    commands: list[list[str]] = []
+    worker = image_agent.WorkspaceAgent(
+        "git",
+        "/workspace/repo",
+        "/workspace/repo",
+        clone_url="git@example.com:owner/repo.git",
+        git_args=git_args,
+    )
+    monkeypatch.setattr(
+        image_agent,
+        "run_command",
+        lambda command, **_kwargs: (
+            commands.append(command),
+            subprocess.CompletedProcess(command, 0, stdout="", stderr=""),
+        )[-1],
+    )
+
+    worker.run_bootstrap()
+
+    assert commands[0] == expected_checkout
+    assert worker.status().state == "ready"
+
+
 @pytest.mark.parametrize("source", ["empty", "git", "github"])
 @pytest.mark.parametrize("fail", [False, True])
 def test_image_bootstrap_responses_satisfy_client_contract(

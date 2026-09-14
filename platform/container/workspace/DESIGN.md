@@ -119,8 +119,10 @@ sequenceDiagram
     Agent-->>CP: status ready
 ```
 
-checkout 对完整 repository 和已标记的 empty repository 幂等；其他既有 target
-fail-fast，避免覆盖持久数据。Git state 只在 bootstrap ready 后读取。
+checkout 默认 clone 完整 repository；Git-backed source 配置的 `args` 作为独立
+参数透传给 `git clone`。完整 repository、shallow repository 和已标记的 empty
+repository 均可幂等复用；其他既有 target fail-fast，避免覆盖持久数据。Git state
+只在 bootstrap ready 后读取。
 
 control plane 分别持久化 Workspace 数据、交换目录、editor cache 与 control state。
 encryption 只覆盖 Workspace 数据；交换目录和 cache 始终明文。Agent helper 以固定

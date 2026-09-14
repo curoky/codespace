@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Callable
 
 from podman import PodmanClient
@@ -22,6 +23,7 @@ from codespace.workspaces.models import (
     CONTAINER_UID,
     CONTROL_MOUNT,
     ENCRYPTED_ENV,
+    GIT_ARGS_ENV,
     LABEL_KIND,
     LABEL_PROJECT,
     LABEL_WORKSPACE,
@@ -314,6 +316,8 @@ def _create_workspace_container(
     }
     if spec.source.clone_url is not None:
         environment[CLONE_URL_ENV] = spec.source.clone_url
+    if spec.source.args:
+        environment[GIT_ARGS_ENV] = json.dumps(spec.source.args)
 
     secrets = list(spec.container.secrets)
     if spec.encrypted:

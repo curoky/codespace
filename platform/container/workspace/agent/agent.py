@@ -7,6 +7,7 @@ environment and keeps the logic flat. The whole implementation lives here.
 
 from __future__ import annotations
 
+import json
 import os
 import socket
 import subprocess
@@ -84,6 +85,7 @@ class WorkspaceAgent:
         checkout_path: str,
         open_path: str,
         clone_url: str | None = None,
+        git_args: list[str] | None = None,
         *,
         deploy_public_key_path: Path = DEPLOY_PUBLIC_KEY_PATH,
         provider_ready_path: Path = PROVIDER_READY_PATH,
@@ -93,6 +95,7 @@ class WorkspaceAgent:
         self.checkout_path = checkout_path
         self.open_path = open_path
         self.clone_url = clone_url
+        self.git_args = git_args or []
         self._deploy_public_key_path = deploy_public_key_path
         self._provider_ready_path = provider_ready_path
         self._sleep = sleep
@@ -116,8 +119,14 @@ class WorkspaceAgent:
                     self._sleep(PROVIDER_POLL_INTERVAL)
                 self._set_state("starting")
             if self.source_type != "empty":
+                checkout_command = [
+                    CHECKOUT,
+                    cast("str", self.clone_url),
+                    self.checkout_path,
+                    *self.git_args,
+                ]
                 run_command(
-                    [CHECKOUT, cast("str", self.clone_url), self.checkout_path],
+                    checkout_command,
                     timeout=CHECKOUT_TIMEOUT,
                 )
             run_command(["mkdir", "-p", "--", self.open_path])
@@ -200,6 +209,10 @@ def main() -> None:
         checkout_path=os.environ["CODESPACE_CHECKOUT_PATH"],
         open_path=os.environ["CODESPACE_OPEN_PATH"],
         clone_url=None if source_type == "empty" else os.environ["CODESPACE_CLONE_URL"],
+        git_args=cast(
+            "list[str]",
+            json.loads(os.environ.get("CODESPACE_GIT_ARGS", "[]")),
+        ),
     )
     agent.start_bootstrap()
     server, server_socket = build_server(agent)

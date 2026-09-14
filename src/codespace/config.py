@@ -37,6 +37,7 @@ from codespace.workspaces.models import (
     CONTAINER_HOME,
     CONTROL_MOUNT,
     ENCRYPTED_ENV,
+    GIT_ARGS_ENV,
     OPEN_PATH_ENV,
     SOURCE_TYPE_ENV,
     UPLOAD_MOUNT,
@@ -60,6 +61,7 @@ _ENVIRONMENT_NAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 _RESERVED_ENVIRONMENT = {
     SOURCE_TYPE_ENV,
     CLONE_URL_ENV,
+    GIT_ARGS_ENV,
     CHECKOUT_PATH_ENV,
     OPEN_PATH_ENV,
     ENCRYPTED_ENV,
