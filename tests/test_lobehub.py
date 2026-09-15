@@ -53,6 +53,7 @@ def test_lobehub_example_is_loopback_only_and_targets_sglang() -> None:
     ]
     assert container.environment["OPENAI_PROXY_URL"] == "http://10.88.0.1:8003/v1"
     assert [volume.target for volume in container.volumes] == ["/var/lib/codespace/lobehub"]
+    assert config.service_tunnel_ports("lobehub", "server") == [3210]
 
 
 def test_lobehub_smoke_reproduces_service_contract(tmp_path: Path) -> None:

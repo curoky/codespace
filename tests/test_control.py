@@ -56,6 +56,10 @@ def test_dashboard_keeps_actual_metadata_when_config_changes(config: Config) -> 
     data["project_defaults"]["tunnel_ports"] = [8005]
     data["projects"]["scratch"]["tunnel_ports"] = []
     data["services"]["support"]["image"] = "support:desired"
+    data["services"]["support"]["container"] = {
+        "network_mode": "bridge",
+        "ports": [{"target": 3210, "published": 3210, "host_ip": "127.0.0.1"}],
+    }
     control = ControlPlane(Config.model_validate(data), transport=FakeTransport())  # type: ignore[arg-type]
     control.workspaces.inventory = lambda host: [workspace] if host == "home" else []
     control.services.inventory = lambda host: [service] if host == "home" else []
@@ -66,6 +70,7 @@ def test_dashboard_keeps_actual_metadata_when_config_changes(config: Config) -> 
     assert dashboard.projects[0].tunnel_ports == [8005]
     assert dashboard.projects[2].tunnel_ports == []
     assert dashboard.services[0].hosts[0].desired_image == "support:desired"
+    assert dashboard.services[0].hosts[0].tunnel_ports == [3210]
     assert dashboard.services[0].hosts[0].container == service
     assert dashboard.services[1].hosts[0].container is None
 

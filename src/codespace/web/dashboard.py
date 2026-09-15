@@ -84,6 +84,7 @@ def _service_summaries(
                 ServiceHostStatus(
                     host=host_name,
                     desired_image=config.service_image(service_id, host_name),
+                    tunnel_ports=config.service_tunnel_ports(service_id, host_name),
                     container=actual.get((host_name, service_id)),
                 )
                 for host_name in config.service_hosts(service_id)

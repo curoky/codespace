@@ -171,6 +171,7 @@ class PodmanTransport:
         destination: str,
         *,
         port: int,
+        local_port: int | None = None,
         options: list[str],
         connection_id: str,
     ) -> int:
@@ -182,6 +183,7 @@ class PodmanTransport:
                 if (
                     existing.process.poll() is None
                     and existing.control_path.exists()
+                    and (local_port is None or existing.local_port == local_port)
                     and existing.options == tuple(options)
                     and existing.connection_id == connection_id
                 ):
@@ -192,11 +194,12 @@ class PodmanTransport:
             digest = hashlib.sha256(f"{host}\0{destination}\0{port}".encode()).hexdigest()[:16]
             control_path = self._runtime_dir / f"tcp-{digest}.sock"
             control_path.unlink(missing_ok=True)
-            # OpenSSH cannot allocate a local TCP port with -L port 0.
-            # ExitOnForwardFailure makes a competing bind fail instead of returning a wrong URL.
-            with socket.socket() as listener:
-                listener.bind(("127.0.0.1", 0))
-                local_port = int(listener.getsockname()[1])
+            selected_local_port = local_port
+            if selected_local_port is None:
+                # OpenSSH cannot allocate a local TCP port with -L port 0.
+                with socket.socket() as listener:
+                    listener.bind(("127.0.0.1", 0))
+                    selected_local_port = int(listener.getsockname()[1])
             command = [
                 "ssh",
                 "-N",
@@ -215,7 +218,7 @@ class PodmanTransport:
                 f"ServerAliveCountMax={_SERVER_ALIVE_COUNT_MAX}",
                 *options,
                 "-L",
-                f"127.0.0.1:{local_port}:127.0.0.1:{port}",
+                f"127.0.0.1:{selected_local_port}:127.0.0.1:{port}",
                 destination,
             ]
             with self._master_start_lock:
@@ -232,9 +235,9 @@ class PodmanTransport:
                     control_path.unlink(missing_ok=True)
                     raise
             self._tcp_forwards[key] = _TCPForward(
-                control_path, process, local_port, tuple(options), connection_id
+                control_path, process, selected_local_port, tuple(options), connection_id
             )
-            return local_port
+            return selected_local_port
 
     def close_tcp(self, host: str, destination: str) -> None:
         """Release all local listeners and SSH connections for a destination."""

@@ -52,6 +52,22 @@ def test_tunnel_ports_reject_invalid_values(
         Config.model_validate(data)
 
 
+def test_service_tunnel_ports_are_inferred_from_loopback_tcp_publications(config: Config) -> None:
+    data = config.model_dump()
+    data["services"]["support"]["container"] = {
+        "network_mode": "bridge",
+        "ports": [
+            {"target": 3210, "published": 3210, "host_ip": "127.0.0.1"},
+            {"target": 5353, "published": 5353, "host_ip": "127.0.0.1", "protocol": "udp"},
+            {"target": 8003, "published": 8003, "host_ip": "10.88.0.1"},
+        ],
+    }
+
+    parsed = Config.model_validate(data)
+
+    assert parsed.service_tunnel_ports("support", "home") == [3210]
+
+
 def test_git_source_args_default_empty_and_accept_clone_options(config: Config) -> None:
     assert config.workspace_spec("codespace", "home", "default").source.args == []
     data = config.model_dump()

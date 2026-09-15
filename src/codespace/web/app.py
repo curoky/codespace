@@ -171,6 +171,17 @@ def service_logs(
     return ContainerLogsResponse(logs=logs)
 
 
+@router.get("/api/services/{service}/hosts/{host}/tunnels/{port}")
+def open_service_tunnel(
+    service: ResourcePath,
+    host: HostPath,
+    port: Annotated[int, ApiPath(ge=1, le=65535)],
+    request: Request,
+) -> RedirectResponse:
+    local_port = _control(request).services.open_tunnel(service, host, port)
+    return RedirectResponse(f"http://127.0.0.1:{local_port}/", status_code=303)
+
+
 @router.delete("/api/services/{service}/hosts/{host}")
 def remove_service(
     service: ResourcePath,

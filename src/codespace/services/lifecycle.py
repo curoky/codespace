@@ -5,7 +5,7 @@ from __future__ import annotations
 from podman.domain.containers import Container
 
 from codespace.config import Config
-from codespace.errors import ResourceNotFound
+from codespace.errors import ResourceConflict, ResourceNotFound
 from codespace.operations import Operation, OperationStore
 from codespace.runtime import container, host
 from codespace.runtime.transport import PodmanTransport
@@ -121,6 +121,27 @@ class ServiceManager:
         if running is None:
             raise ResourceNotFound(f"service {service!r} not found on host {host_name!r}")
         return container.container_logs(running)
+
+    def open_tunnel(self, service: str, host_name: str, port: int) -> int:
+        """Forward a configured Host-loopback Service port to local loopback."""
+        self._service(service, host_name)
+        if port not in self.config.service_tunnel_ports(service, host_name):
+            raise ResourceNotFound(f"tunnel port {port} is not configured for service {service!r}")
+        running = self._container(service, host_name)
+        if running is None:
+            raise ResourceNotFound(f"service {service!r} not found on host {host_name!r}")
+        actual = inventory.read_service(running, host_name)
+        if actual.status != "running":
+            raise ResourceConflict(f"service {actual.id!r} is not running ({actual.status})")
+        route = self.transport.ssh_route(host_name)
+        return self.transport.forward_tcp(
+            host_name,
+            route.host,
+            port=port,
+            local_port=port,
+            options=[],
+            connection_id=actual.container_id,
+        )
 
     def _container(self, service: str, host_name: str) -> Container | None:
         return container.find_container(

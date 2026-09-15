@@ -265,6 +265,13 @@ class Config(FrozenModel):
         configured = self.services[service]
         return configured.hosts[host].image or configured.image
 
+    def service_tunnel_ports(self, service: str, host: str) -> list[int]:
+        return [
+            port.published
+            for port in self.resolved_service_container(service, host).ports
+            if port.protocol == "tcp" and port.host_ip == "127.0.0.1"
+        ]
+
     def workspace_spec(self, project: str, host: str, workspace: str) -> WorkspaceSpec:
         configured = self.projects[project]
         return WorkspaceSpec(
