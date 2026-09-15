@@ -8,11 +8,7 @@ index cd1595e..9a480c8 100644
 +
 +const LOCAL_PROVIDER_ID = 'custom-provider-codespace-sglang'
 +const LOCAL_MODEL_ID = 'Qwen/Qwen3.8-Flash-Next-FP8'
-@@ -38,8 +41,34 @@ export function createDefaultSettings(): Settings {
-     language: 'en',
-     fontSize: 14,
-     spellCheck: true,
-     defaultPrompt: DEFAULT_SYSTEM_PROMPT,
+@@ -42 +45,27 @@ export function createDefaultSettings(): Settings {
 -    allowReportingAndTracking: true,
 +    allowReportingAndTracking: false,
 +    providers: {
@@ -41,6 +37,3 @@ index cd1595e..9a480c8 100644
 +      provider: LOCAL_PROVIDER_ID,
 +      model: LOCAL_MODEL_ID,
 +    },
-     hasExpiredLicense: false,
-     chatboxAIDesktopPromptDismissed: false,
-     enableMarkdownRendering: true,

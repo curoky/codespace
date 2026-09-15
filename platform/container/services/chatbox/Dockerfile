@@ -10,11 +10,11 @@ WORKDIR /src
 RUN curl -fsSL "https://github.com/chatboxai/chatbox/archive/refs/tags/${CHATBOX_VERSION}.tar.gz" \
     | tar -xz --strip-components=1 \
   && corepack enable \
-  && corepack prepare pnpm@10.33.0 --activate \
-  && pnpm install --frozen-lockfile
+  && corepack prepare pnpm@10.33.0 --activate
 
 COPY platform/container/services/chatbox/defaults.patch /tmp/defaults.patch
 RUN patch --fuzz=0 -p1 </tmp/defaults.patch \
+  && pnpm install --frozen-lockfile \
   && CHATBOX_BUILD_PLATFORM=web CHATBOX_ELECTRON_VITE_TARGET=renderer \
     pnpm exec electron-vite build \
   && find release/app/dist/renderer -type f -name '*.map' -delete
