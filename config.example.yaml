@@ -83,5 +83,20 @@ services:
       volumes:
         - ${SERVICE_DATA}:/root/.cache/huggingface
 
+  lobehub:
+    image: ghcr.io/curoky/codespace:service-lobehub
+    hosts:
+      server: {}
+    container:
+      network_mode: bridge
+      ports:
+        - { target: 3210, published: 3210, host_ip: 127.0.0.1 }
+      environment:
+        LOBEHUB_HOST: 0.0.0.0
+        APP_URL: http://localhost:3210
+        OPENAI_PROXY_URL: http://10.88.0.1:8003/v1
+      volumes:
+        - ${SERVICE_DATA}:/var/lib/codespace/lobehub
+
 tokens: {}
 secrets: {}

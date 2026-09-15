@@ -132,6 +132,11 @@ tasks:
     cmds:
       - platform/container/services/sglang/build.sh {{.CLI_ARGS}}
 
+  platform:lobehub:
+    desc: 构建 LobeHub Service image
+    cmds:
+      - platform/container/services/lobehub/build.sh {{.CLI_ARGS}}
+
   platform:framework:pytorch:
     desc: 构建 PyTorch framework image
     cmds:

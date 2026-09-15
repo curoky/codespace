@@ -87,7 +87,7 @@ def test_example_config_loads() -> None:
 
     assert list(config.projects) == ["codespace"]
     assert config.projects["codespace"].source.args == ["--depth=1"]
-    assert list(config.services) == ["support", "vllm", "sglang"]
+    assert list(config.services) == ["support", "vllm", "sglang", "lobehub"]
     assert config.workspace_spec("codespace", "server", "default").identity == (
         "space:codespace/default@server"
     )
