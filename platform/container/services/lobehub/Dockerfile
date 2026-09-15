@@ -30,7 +30,7 @@ ENV PATH="/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:/usr/lib
     APP_URL=http://localhost:3210 \
     ENABLED_OPENAI=1 \
     OPENAI_API_KEY=local \
-    OPENAI_PROXY_URL=http://10.88.0.1:8003/v1 \
+    OPENAI_PROXY_URL=http://10.89.0.1:8003/v1 \
     OPENAI_MODEL_LIST="-all,+Qwen/Qwen3.8-Flash-Next-FP8=Qwen3.8 Flash Next FP8"
 
 COPY platform/container/workspace/rootfs/etc/s6/skel/ /etc/s6/skel/
