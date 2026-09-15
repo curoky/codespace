@@ -4,7 +4,8 @@ set -euo pipefail
 
 data_root="${LOBEHUB_DATA_DIR:-/var/lib/codespace/lobehub}"
 config_dir="${data_root}/config"
-port=3210
+port="${LOBEHUB_INTERNAL_PORT:-3211}"
+auto_auth_email="codespace@codespace.invalid"
 
 install -d -m 0700 "${config_dir}"
 umask 077
@@ -19,6 +20,11 @@ if [[ ! -s "${config_dir}/auth-secret" ]]; then
   mv "${config_dir}/auth-secret.tmp" "${config_dir}/auth-secret"
 fi
 
+if [[ ! -s "${config_dir}/auto-auth-password" ]]; then
+  openssl rand -base64 36 >"${config_dir}/auto-auth-password.tmp"
+  mv "${config_dir}/auto-auth-password.tmp" "${config_dir}/auto-auth-password"
+fi
+
 if [[ ! -s "${config_dir}/jwks-key" ]]; then
   /bin/node /opt/codespace/lobehub/create-jwks.js >"${config_dir}/jwks-key.tmp"
   mv "${config_dir}/jwks-key.tmp" "${config_dir}/jwks-key"
@@ -29,11 +35,12 @@ if [[ "$(psql --username=postgres --dbname=postgres --tuples-only --no-align \
   createdb --username=postgres --owner=postgres lobehub
 fi
 
-export APP_URL="${APP_URL:-http://localhost:${port}}"
+export APP_URL="${APP_URL:-http://localhost:3210}"
+export AUTH_ALLOWED_EMAILS="${auto_auth_email}"
 export AUTH_SECRET
 AUTH_SECRET=$(<"${config_dir}/auth-secret")
 export DATABASE_URL="${DATABASE_URL:-postgresql://postgres@127.0.0.1:5432/lobehub}"
-export HOSTNAME="${LOBEHUB_HOST:-0.0.0.0}"
+export HOSTNAME=127.0.0.1
 export INTERNAL_APP_URL="http://127.0.0.1:${port}"
 export JWKS_KEY
 JWKS_KEY=$(<"${config_dir}/jwks-key")
