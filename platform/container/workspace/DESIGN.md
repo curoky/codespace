@@ -81,11 +81,12 @@ combine remote，将 Workspace 数据、容器日志与上传目录分别暴露�
 SSHD 固定监听 `0.0.0.0:22`。Workspace 只使用 bridge network，Host 仅在 loopback
 发布每个 Workspace 唯一的 forwarding port；WSL 则通过自己的网络直接暴露 `22`。
 
-macOS rootfs 预置固定 SSH client config、login key、known host 和 ProxyCommand
-helper，并由 Host installer 按同路径安装。用户侧 alias 采用
-`space-{project}-{workspace}-{host}`；helper 向本地控制面查询实际 Host 与 forwarding
-port，再建立到 Host loopback listener 的 stdio tunnel，不生成 per-Workspace 配置
-文件。外部 SSH 新连接要求本地控制面运行。
+macOS rootfs 预置固定 SSH client config、login key 与 known host，并由 Host
+installer 按同路径安装。用户侧 alias 采用
+`space-{project}-{workspace}-{host}`；control plane 在 Workspace 创建成功后写入
+独立 route 文件，记录实际 Host 与 forwarding port，删除容器后移除。SSH client
+直接按持久 route 建立到 Host loopback listener 的 stdio tunnel，新连接不要求
+control plane 运行。
 
 每个 Workspace 自带 Atuin server，但数据库仍在外部。server 就绪后才执行登录和
 首次同步，再启动 daemon；数据库失败不阻塞独立的 SSH 与 Agent 启动链。

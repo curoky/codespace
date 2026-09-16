@@ -19,7 +19,8 @@
 ## 安全边界
 
 - Rootful Podman socket 视为 Host root 权限，SSH host key verification 不得关闭。
-- Workspace SSH client contract 由 platform 预置；控制面不得写本地 SSH 文件。
+- Workspace SSH client contract 由 platform 预置；控制面只维护每个 Workspace 的
+  `~/.ssh/codespace/workspaces/` route 文件。
 - provider token 只存在于配置和进程内存；deploy private key 只存在于 Workspace。
 - Project 配置不得覆盖控制面保留的 runtime input。
 

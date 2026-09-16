@@ -36,9 +36,6 @@ class FakeWorkspaceManager:
         self.tunnels_opened: list[tuple[str, str, str, int]] = []
         self.state = RepoGitState(unpushed=False, uncommitted=False, detail=[])
 
-    def resolve_ssh_alias(self, alias: str) -> Workspace:
-        raise ResourceNotFound(f"Workspace SSH alias {alias!r} not found")
-
     def queue_create(self, project: str, host: str, workspace: str) -> Operation:
         return self.operations.create(
             Operation(
@@ -220,63 +217,6 @@ def test_dashboard_workspace_exposes_container_encryption(
     assert not {"repository", "git_url", "checkout_path"} & project.keys()
 
 
-def test_ssh_route_returns_only_host_and_port(
-    app_client: tuple[TestClient, FakeControl], config: Config, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    client, control = app_client
-    actual = (
-        config.workspace_spec("codespace", "home", "debug")
-        .to_workspace("container-id", status="running")
-        .model_copy(update={"host": "home-dev.example"})
-    )
-    requested: list[str] = []
-    monkeypatch.setattr(
-        control.workspaces,
-        "resolve_ssh_alias",
-        lambda alias: (requested.append(alias), actual)[1],
-    )
-    response = client.get(f"/api/ssh/{actual.ssh_alias}")
-    assert response.status_code == 200
-    assert response.headers["content-type"].startswith("text/plain")
-    assert response.text == f"home-dev.example {actual.ssh_host_port}\n"
-    assert requested == ["space-codespace-debug-home-dev.example"]
-
-
-@pytest.mark.parametrize("alias", ["invalid-alias", "space-a-b-!", "space-a-b-h%0A"])
-def test_ssh_route_rejects_invalid_alias(
-    app_client: tuple[TestClient, FakeControl], alias: str
-) -> None:
-    client, _control = app_client
-    assert client.get(f"/api/ssh/{alias}").status_code == 422
-
-
-@pytest.mark.parametrize(
-    ("error", "status"),
-    [
-        (ResourceNotFound("missing"), 404),
-        (ResourceConflict("ambiguous"), 409),
-        (RuntimeError("incomplete inventory"), 500),
-    ],
-)
-def test_ssh_route_reports_resolution_errors(
-    app_client: tuple[TestClient, FakeControl],
-    monkeypatch: pytest.MonkeyPatch,
-    error: Exception,
-    status: int,
-) -> None:
-    original, control = app_client
-
-    def fail(_alias: str) -> Workspace:
-        raise error
-
-    monkeypatch.setattr(control.workspaces, "resolve_ssh_alias", fail)
-    client = TestClient(original.app, raise_server_exceptions=False)
-    response = client.get("/api/ssh/space-codespace-debug-home")
-    assert response.status_code == status
-    message = str(error) if status != 500 else "RuntimeError: incomplete inventory"
-    assert response.json() == {"error": message}
-
-
 def test_dashboard_and_token_endpoint_never_return_token(
     app_client: tuple[TestClient, FakeControl],
 ) -> None:
@@ -374,7 +314,6 @@ def test_only_final_api_routes_exist(app_client: tuple[TestClient, FakeControl])
 
     assert routes == {
         ("GET", "/api/dashboard"),
-        ("GET", "/api/ssh/{alias}"),
         ("PUT", "/api/providers/{provider}/token"),
         ("POST", "/api/projects/{project}/workspaces"),
         ("GET", "/api/projects/{project}/hosts/{host}/workspaces/{workspace}/logs"),

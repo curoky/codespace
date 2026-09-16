@@ -28,7 +28,7 @@
 - `workspace-init` 只负责 Workspace 数据；`home-init` 只负责用户与 editor state。
 - 服务依赖必须表达在 s6 graph 中，不在 runtime helper 内轮询其他服务。
 - SSHD 固定监听容器 `0.0.0.0:22`，Workspace 固定使用 bridge network；Host
-  loopback forwarding 与 macOS SSH alias 属于 control plane 和 Host client。
+  loopback forwarding 与持久 macOS SSH route 属于 control plane 和 Host client。
 - 无认证 file service 必须固定监听容器 loopback，不提供 bind override，只经 SSH
   tunnel 或容器内进程访问；写权限仅授予 `/upload`，Workspace 与日志视图只读。
 

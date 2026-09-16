@@ -16,7 +16,7 @@ from codespace.runtime.transport import SSHRoute
 from codespace.workspaces import agent, inventory, lifecycle, provider, ssh
 from codespace.workspaces.agent import WorkspaceAgentClient
 from codespace.workspaces.lifecycle import WorkspaceManager
-from codespace.workspaces.models import RepoGitState, Workspace
+from codespace.workspaces.models import RepoGitState
 
 _PATHS = HostDataPaths("/home/x/codespace")
 
@@ -67,87 +67,13 @@ class FakeAgent:
 def manager(config: Config, monkeypatch: pytest.MonkeyPatch) -> WorkspaceManager:
     monkeypatch.setattr(agent, "WorkspaceAgentClient", FakeAgent)
     monkeypatch.setattr(lifecycle.host, "remote_data_paths", lambda _route: _PATHS)
+    monkeypatch.setattr(ssh, "write_route", lambda _workspace: None)
+    monkeypatch.setattr(ssh, "remove_route", lambda _workspace: None)
     return WorkspaceManager(
         config,
         FakeTransport(),  # type: ignore[arg-type]
         lambda _provider: "token",
     )
-
-
-def test_resolve_ssh_alias_uses_actual_labels_not_project_config(
-    manager: WorkspaceManager, config: Config, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    actual = (
-        config.workspace_spec("codespace", "home", "debug")
-        .to_workspace("container-id", status="running")
-        .model_copy(update={"project": "removed-project", "workspace": "my-debug"})
-    )
-    scanned: list[str] = []
-
-    def list_actual(host: str) -> list[Workspace]:
-        scanned.append(host)
-        return [actual] if host == "home" else []
-
-    monkeypatch.setattr(manager, "inventory", list_actual)
-    assert manager.resolve_ssh_alias("space-removed-project-my-debug-home") == actual
-    assert scanned == list(config.hosts)
-
-
-def test_resolve_ssh_alias_rejects_unknown_name(
-    manager: WorkspaceManager, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setattr(manager, "inventory", lambda _host: [])
-    with pytest.raises(ResourceNotFound, match="not found"):
-        manager.resolve_ssh_alias("space-codespace-missing-home")
-
-
-@pytest.mark.parametrize("status", ["exited", "created", "paused"])
-def test_resolve_ssh_alias_rejects_stopped_workspace(
-    manager: WorkspaceManager, config: Config, monkeypatch: pytest.MonkeyPatch, status: str
-) -> None:
-    actual = config.workspace_spec("codespace", "home", "debug").to_workspace(
-        "container-id", status=status
-    )
-    monkeypatch.setattr(manager, "inventory", lambda host: [actual] if host == "home" else [])
-    with pytest.raises(ResourceConflict, match="not running"):
-        manager.resolve_ssh_alias(actual.ssh_alias)
-
-
-def test_resolve_ssh_alias_rejects_cross_host_ambiguity(
-    manager: WorkspaceManager, config: Config, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    data = config.model_dump()
-    data["hosts"]["debug-home"] = {}
-    manager.config = Config.model_validate(data)
-    first = config.workspace_spec("scratch", "home", "my-debug").to_workspace(
-        "first", status="running"
-    )
-    second = first.model_copy(
-        update={"host": "debug-home", "workspace": "my", "container_id": "second"}
-    )
-    monkeypatch.setattr(
-        manager, "inventory", lambda host: [w for w in [first, second] if w.host == host]
-    )
-    assert first.ssh_alias == second.ssh_alias
-    with pytest.raises(ResourceConflict, match="ambiguous"):
-        manager.resolve_ssh_alias(first.ssh_alias)
-
-
-def test_resolve_ssh_alias_does_not_trust_partial_inventory(
-    manager: WorkspaceManager, config: Config, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    actual = config.workspace_spec("codespace", "home", "debug").to_workspace(
-        "container-id", status="running"
-    )
-
-    def list_actual(host: str) -> list[Workspace]:
-        if host == "office":
-            raise RuntimeError("Host unavailable")
-        return [actual]
-
-    monkeypatch.setattr(manager, "inventory", list_actual)
-    with pytest.raises(RuntimeError, match="Host unavailable"):
-        manager.resolve_ssh_alias(actual.ssh_alias)
 
 
 def test_container_name_collision_fails_before_creation(
@@ -233,6 +159,7 @@ def test_create_handles_source_bootstrap_and_agent_protocol_failure(
     )
     monkeypatch.setattr(provider, "register", lambda *_args: events.append("register"))
     monkeypatch.setattr(ssh, "probe", lambda *_args: events.append("probe"))
+    monkeypatch.setattr(ssh, "write_route", lambda _workspace: events.append("route"))
     if invalid_status:
         client = WorkspaceAgentClient(Path("/tmp/agent.sock"))
         monkeypatch.setattr(client, "_request", lambda *_args: {})
@@ -253,6 +180,7 @@ def test_create_handles_source_bootstrap_and_agent_protocol_failure(
         "create",
         *(["register", "ready"] if spec.source.type in {"github", "gitlab"} else []),
         "probe",
+        "route",
     ]
     assert manager.operations.list() == []
 
@@ -370,6 +298,7 @@ def test_purge_revokes_key_before_data_and_container(
         "remove_container",
         lambda *_args: events.append("container"),
     )
+    monkeypatch.setattr(ssh, "remove_route", lambda _workspace: events.append("route"))
     if revoke_fails:
         with pytest.raises(RuntimeError, match="provider unavailable"):
             manager.delete("codespace", "home", "debug", purge=True)
@@ -378,7 +307,7 @@ def test_purge_revokes_key_before_data_and_container(
         return
     manager.delete("codespace", "home", "debug", purge=True)
 
-    assert events == ["revoke", "stop", "data", "container"]
+    assert events == ["revoke", "stop", "data", "container", "route"]
     assert manager.transport.closed_tcp == [  # type: ignore[attr-defined]
         ("home", "space-codespace-debug-home")
     ]

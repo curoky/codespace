@@ -91,7 +91,7 @@ install_home_config() {
   local macos_home="$1"
 
   install -d -m 0700 "$HOME/.ssh" "$HOME/.ssh/codespace" \
-    "$HOME/.ssh/codespace/known_hosts"
+    "$HOME/.ssh/codespace/known_hosts" "$HOME/.ssh/codespace/workspaces"
   link_home_path "$macos_home" ".gitconfig" 0600
   link_home_path "$macos_home" ".config/git/user.gitconfig" 0600
   link_home_path "$macos_home" ".config/git/ignore"
@@ -99,7 +99,6 @@ install_home_config() {
   link_home_path "$macos_home" ".ssh/codespace/config" 0600
   link_home_path "$macos_home" ".ssh/codespace/login_key" 0600
   link_home_path "$macos_home" ".ssh/codespace/known_hosts/codespace" 0600
-  link_home_path "$macos_home" ".ssh/codespace/proxy" 0700
 
   link_home_path "$macos_home" ".zshrc"
   link_home_path "$macos_home" ".config/zsh/aliases.zsh"

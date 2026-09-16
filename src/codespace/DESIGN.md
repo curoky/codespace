@@ -63,12 +63,17 @@ Transport 为每个 Host 维护一个 authenticated OpenSSH ControlMaster，并�
 关闭而释放。
 
 Workspace image 与 Host installer 共同预置固定 SSH trust contract。Workspace SSH
-alias 为 `{container_name}-{host}`，`space-` 前缀不允许用于真实 Host。
-静态 ProxyCommand 向本地控制面查询完整 alias，再经返回的 Host 和端口跳转。
-解析只读取所有 Host 的 Workspace inventory，不拆解连字符、不使用 Project desired
-config 补齐字段；无匹配、重名、未运行或 inventory 不完整时拒绝连接。
-新的外部 SSH 连接依赖控制面运行；内部探测和隧道使用已知 route，不依赖 HTTP。
-控制面不安装 key，也不生成、解析或改写本地 SSH 文件。
+alias 为 `{container_name}-{host}`，`space-` 前缀不允许用于真实 Host。每次成功创建
+Workspace 后，manager 将 deployed Host 与 forwarding port 原子写入
+`~/.ssh/codespace/workspaces/{alias}`；删除容器后移除同一文件。静态 SSH config
+include 这些独立 route，连接时直接经 Host 跳转到其 loopback listener，不访问
+control plane。不同 Workspace 不共享可变文件，因此并发 lifecycle operation
+不需要 SSH config 全局锁。
+
+route 是从已部署 Workspace metadata 生成的持久连接入口，不是容器 inventory 或
+desired state。控制面不从 route 恢复资源，也不接受 route 作为删除、安全判断或
+Dashboard 状态的输入。内部探测和隧道继续使用已知 transport route，不依赖持久
+route 文件。控制面不安装或改写 SSH key、known hosts 与顶层 client config。
 
 ## Placement And Container Contract
 
@@ -131,6 +136,7 @@ sequenceDiagram
     participant Host
     participant Agent
     participant Provider
+    participant Client
 
     Manager->>Host: validate inventory, pull image, prepare data
     Manager->>Host: create container from resolved specification
@@ -142,13 +148,14 @@ sequenceDiagram
     end
     Manager->>Agent: wait for ready
     Manager->>Host: probe SSH
+    Manager->>Client: persist SSH route
 ```
 
 创建失败保留已经产生的容器、Host 数据与 provider side effect，operation 进入
 failed。删除确认前通过只读 deletion check 读取 repository state；停止的容器不会
 为检查而自动启动。检查失败明确显示风险，用户仍可显式确认删除。DELETE 只执行
 已确认的删除，不兼任查询，也不使用 force 参数切换职责。provider key 必须先成功
-撤销，之后才允许删除容器或数据。
+撤销，之后才允许删除容器或数据；容器删除后移除本地 SSH route。
 
 Agent 响应在 HTTP client 边界严格校验，状态类型表达各阶段必需的数据；lifecycle
 只使用已经验证的结果，不补公钥、错误原因或 Git 状态。Git 字段缺失不能解释为

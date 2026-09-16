@@ -12,6 +12,8 @@ installer、package manifest 与 Host helper。
   rootfs source，不建立副本；installer 仍只消费本 rootfs。
 - Workspace SSH client bundle 属于 macOS Host；需要独立权限的配置使用 copy，
   其余 home 配置使用 symlink。
+- `~/.ssh/codespace/workspaces/` 由 control plane lifecycle 写入持久 route，installer
+  只创建目录，不管理其中内容。
 - Brewfile 声明完整的 Homebrew 软件状态；installer 卸载 manifest 外的依赖。
 - 可选 daemon 必须显式启用；installer 不负责启动 Podman machine。
 
