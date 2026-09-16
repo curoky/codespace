@@ -7,7 +7,7 @@ from dataclasses import dataclass
 import gitlab as python_gitlab
 from github import Auth, Github
 
-from codespace.workspaces.models import GitProvider
+from codespace.workspaces import GitProvider
 
 _HTTP_TIMEOUT = 30.0
 

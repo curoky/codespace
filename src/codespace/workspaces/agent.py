@@ -2,17 +2,16 @@
 
 from __future__ import annotations
 
-import http.client
 import json
-import socket
 import time
 from pathlib import Path
 from typing import Annotated, Literal, overload
 
+import httpx
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError
 
 from codespace.runtime.container import NonBlankString
-from codespace.workspaces.models import RepoGitState
+from codespace.workspaces import RepoGitState
 
 _RESPONSE_LIMIT = 64 * 1024
 _DEFAULT_TIMEOUT = 30.0
@@ -60,18 +59,6 @@ class _ErrorResponse(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
     detail: NonBlankString
-
-
-class _UnixHTTPConnection(http.client.HTTPConnection):
-    def __init__(self, socket_path: Path, timeout: float) -> None:
-        super().__init__("localhost", timeout=timeout)
-        self._socket_path = socket_path
-
-    def connect(self) -> None:
-        connection = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        connection.settimeout(self.timeout)
-        connection.connect(str(self._socket_path))
-        self.sock = connection
 
 
 class WorkspaceAgentClient:
@@ -130,31 +117,37 @@ class WorkspaceAgentClient:
         method: str,
         target: str,
     ) -> object:
-        connection = _UnixHTTPConnection(self._socket_path, _DEFAULT_TIMEOUT)
         try:
-            connection.request(method, target)
-            response = connection.getresponse()
-            raw = response.read(_RESPONSE_LIMIT + 1)
-        except (OSError, http.client.HTTPException) as exc:
+            with (
+                httpx.Client(
+                    transport=httpx.HTTPTransport(uds=str(self._socket_path)),
+                    base_url="http://localhost",
+                    timeout=_DEFAULT_TIMEOUT,
+                    trust_env=False,
+                ) as client,
+                client.stream(method, target) as response,
+            ):
+                raw = bytearray()
+                for chunk in response.iter_bytes(chunk_size=8192):
+                    raw.extend(chunk)
+                    if len(raw) > _RESPONSE_LIMIT:
+                        raise AgentError("workspace agent response exceeds 64 KiB")
+        except httpx.RequestError as exc:
             raise AgentUnavailable(
                 f"workspace agent at {self._socket_path} is unavailable: {exc}"
             ) from exc
-        finally:
-            connection.close()
-        if len(raw) > _RESPONSE_LIMIT:
-            raise AgentError("workspace agent response exceeds 64 KiB")
         try:
             decoded = json.loads(raw)
         except (UnicodeDecodeError, json.JSONDecodeError) as exc:
             raise AgentError("workspace agent returned invalid JSON") from exc
-        if not 200 <= response.status < 300:
+        if not response.is_success:
             try:
                 error = _ErrorResponse.model_validate(decoded)
             except ValidationError as exc:
                 raise AgentError(
-                    f"workspace agent returned an invalid error response ({response.status})"
+                    f"workspace agent returned an invalid error response ({response.status_code})"
                 ) from exc
             raise AgentError(
-                f"workspace agent {method} {target} failed ({response.status}): {error.detail}"
+                f"workspace agent {method} {target} failed ({response.status_code}): {error.detail}"
             )
         return decoded

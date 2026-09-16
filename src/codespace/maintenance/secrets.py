@@ -8,9 +8,10 @@ from pathlib import Path
 from typing import Literal
 
 from rich.console import Console
+from rich.table import Column
 
+from codespace import maintenance
 from codespace.config import CONFIG_PATH, Config, load_config
-from codespace.maintenance import output
 from codespace.runtime.transport import PodmanTransport
 
 type Action = Literal["create", "replace"]
@@ -40,21 +41,21 @@ def sync(
     transport = PodmanTransport(config.hosts)
     try:
         plan, errors = _plan(config, transport)
-        output.render_table(
+        maintenance.render_table(
             target,
             [
-                {"header": "Host"},
-                {"header": "Secret", "overflow": "fold"},
-                {"header": "Action", "no_wrap": True},
+                "Host",
+                Column("Secret", overflow="fold"),
+                Column("Action", no_wrap=True),
             ],
             [(change.host, change.name, change.action) for change in plan],
         )
-        output.print_warnings(target, errors)
+        maintenance.print_errors(target, errors, level="Warning")
         if not apply:
             target.print(f"Dry run: {len(plan)} secret(s); pass --apply to execute.")
             return
         applied, apply_errors = _apply(transport, plan)
-        output.print_errors(target, apply_errors)
+        maintenance.print_errors(target, apply_errors)
         target.print(f"Applied {applied} secret(s).")
     finally:
         transport.close()
@@ -65,7 +66,7 @@ def _plan(
     transport: PodmanTransport,
 ) -> tuple[list[SecretChange], list[str]]:
     names = sorted(config.secrets)
-    existing_by_host, failures = output.fan_out(
+    existing_by_host, failures = maintenance.fan_out(
         config.hosts,
         lambda host: _existing_secrets(transport, host, names),
     )
@@ -91,7 +92,7 @@ def _apply(transport: PodmanTransport, plan: list[SecretChange]) -> tuple[int, l
     grouped: dict[str, list[SecretChange]] = defaultdict(list)
     for change in plan:
         grouped[change.host].append(change)
-    results, failures = output.fan_out(
+    results, failures = maintenance.fan_out(
         grouped,
         lambda host: _apply_host(transport, host, grouped[host]),
     )

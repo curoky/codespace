@@ -200,40 +200,13 @@ class PodmanTransport:
                 with socket.socket() as listener:
                     listener.bind(("127.0.0.1", 0))
                     selected_local_port = int(listener.getsockname()[1])
-            command = [
-                "ssh",
-                "-N",
-                *ssh_base_options(control_path),
-                "-o",
-                "ControlMaster=yes",
-                "-o",
-                "ControlPersist=no",
-                "-o",
-                "ExitOnForwardFailure=yes",
-                "-o",
-                "GatewayPorts=no",
-                "-o",
-                f"ServerAliveInterval={_SERVER_ALIVE_INTERVAL}",
-                "-o",
-                f"ServerAliveCountMax={_SERVER_ALIVE_COUNT_MAX}",
-                *options,
-                "-L",
-                f"127.0.0.1:{selected_local_port}:127.0.0.1:{port}",
-                destination,
-            ]
             with self._master_start_lock:
-                process = self._process_factory(
-                    command,
-                    stdin=subprocess.DEVNULL,
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.PIPE,
+                process = self._start_tunnel(
+                    control_path,
+                    destination,
+                    f"127.0.0.1:{selected_local_port}:127.0.0.1:{port}",
+                    ["-o", "GatewayPorts=no", *options],
                 )
-                try:
-                    self._await_control_socket(process, control_path)
-                except BaseException:
-                    self._stop(process)
-                    control_path.unlink(missing_ok=True)
-                    raise
             self._tcp_forwards[key] = _TCPForward(
                 control_path, process, selected_local_port, tuple(options), connection_id
             )
@@ -295,33 +268,12 @@ class PodmanTransport:
         socket_path = self._runtime_dir / f"podman-{digest}.sock"
         control_path.unlink(missing_ok=True)
         socket_path.unlink(missing_ok=True)
-        command = [
-            "ssh",
-            "-N",
-            *ssh_base_options(control_path),
-            "-o",
-            "ControlMaster=yes",
-            "-o",
-            "ControlPersist=no",
-            "-o",
-            "ExitOnForwardFailure=yes",
-            "-o",
-            "StreamLocalBindUnlink=yes",
-            "-o",
-            f"ServerAliveInterval={_SERVER_ALIVE_INTERVAL}",
-            "-o",
-            f"ServerAliveCountMax={_SERVER_ALIVE_COUNT_MAX}",
-            "-L",
-            f"{socket_path}:{_PODMAN_SOCKET}",
+        process = self._start_tunnel(
+            control_path,
             host,
-        ]
-        process = self._process_factory(
-            command,
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
+            f"{socket_path}:{_PODMAN_SOCKET}",
+            ["-o", "StreamLocalBindUnlink=yes"],
         )
-        self._await_control_socket(process, control_path)
         client = self._client_factory(
             base_url=f"unix://{socket_path}",
             timeout=_CLIENT_TIMEOUT,
@@ -333,6 +285,42 @@ class PodmanTransport:
             route=SSHRoute(host=host, control_path=control_path),
             process=process,
         )
+
+    def _start_tunnel(
+        self, control_path: Path, destination: str, forward: str, options: list[str]
+    ) -> subprocess.Popen[bytes]:
+        command = [
+            "ssh",
+            "-N",
+            *ssh_base_options(control_path),
+            "-o",
+            "ControlMaster=yes",
+            "-o",
+            "ControlPersist=no",
+            "-o",
+            "ExitOnForwardFailure=yes",
+            "-o",
+            f"ServerAliveInterval={_SERVER_ALIVE_INTERVAL}",
+            "-o",
+            f"ServerAliveCountMax={_SERVER_ALIVE_COUNT_MAX}",
+            *options,
+            "-L",
+            forward,
+            destination,
+        ]
+        process = self._process_factory(
+            command,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+        )
+        try:
+            self._await_control_socket(process, control_path)
+        except BaseException:
+            self._stop(process)
+            control_path.unlink(missing_ok=True)
+            raise
+        return process
 
     def _await_control_socket(
         self,

@@ -5,8 +5,8 @@
 ```mermaid
 flowchart LR
     Config["Config<br/>desired state"] --> Specs["resolved specifications"]
-    Specs --> Managers["Workspace / Service managers"]
-    Managers --> Runtime["container runtime"]
+    Specs --> Control["ControlPlane"]
+    Control --> Runtime["container runtime"]
     Runtime --> Podman["Host Podman"]
     Podman --> Inventory["label-based inventory<br/>actual state"]
     Config --> Dashboard
@@ -16,6 +16,12 @@ flowchart LR
 Config 只表达创建目标和 placement，Podman inventory 是实际运行状态的唯一来源。
 Workspace 与 Service 使用不相交的 inventory kind；Dashboard 不缓存容器状态，
 也不以 desired value 填补实际容器字段。
+
+Resource 是 Host 上的操作目标：Service 由 Host 与 name 定位，Workspace 还包含
+Project。kind、内部 identity、容器名和 ownership labels 都从同一个 Resource 派生，
+名称与 Host 校验类型也在该模块定义。每个领域的 desired Spec 与 deployed model
+共用 Metadata 字段和身份属性，但 Spec 独有 container input，deployed model 独有
+container ID 和实际状态。
 
 创建时，同一个 resolved specification 同时生成 identity、labels 与 runtime input。
 之后会影响删除、安全判断和用户入口的 deployed metadata 均从 labels 恢复，
@@ -31,21 +37,26 @@ labels 一致。部署契约变化通过重建容器生效。
 ```mermaid
 flowchart TB
     Browser --> Web["HTTP + static UI"]
-    Web --> Control["composition root"]
-    Control --> Workspaces["Workspace manager"]
-    Control --> Services["Service manager"]
-    Workspaces --> Runtime
-    Services --> Runtime
+    Web --> Control["ControlPlane"]
+    Control --> Workspace["Workspace bootstrap / Git inspection"]
+    Control --> Runtime
+    Workspace --> Runtime
     Runtime --> Transport["SSH / Podman transport"]
     Transport --> Hosts["remote Hosts"]
 ```
 
-Web boundary 只负责输入输出、后台任务提交和错误映射。两个 manager 分别编排
-自己的领域流程，不相互调用；runtime 只处理容器、Host 与 transport primitives，
-不读取 Config。
+Web boundary 只负责输入输出、后台任务提交和错误映射，并将领域 URL 转成 Resource。
+ControlPlane 统一排队、部署、删除、日志、隧道和 failed operation dismiss，
+Config 在统一入口验证 placement。生命周期通过具体 Spec 区分必要的行为，
+不引入插件注册表或继承式 Manager。runtime 只处理容器、Host 与 transport primitives，
+不读取 Config。Workspace 模块只编排 source bootstrap、Agent readiness 和 Git inspection。
 
-ControlPlane 只聚合领域 inventory，不导入 Web model；Dashboard 在 Web 层将
-inventory、Config、operation 与 token presence 组装成响应。单 Host 采集失败保留明确
+ControlPlane 持有 transport、operation store 与受锁保护的进程内 token，并聚合
+领域 inventory，不导入 Web model。Service 模块与 Workspace package 分别拥有
+对应的 specification、deployed metadata 与 label 读取逻辑。
+Dashboard 在 Web 层直接将已验证的 inventory、Config、operation 与 token presence
+投影为响应；简单结果使用原生 mapping，输入与外部协议仍在边界验证。
+单 Host 采集失败保留明确
 的 failure，不伪造空 inventory：SSH transport failure 标记 offline，其他采集错误
 标记 error，数量保持未知。其他 Host 的结果仍可展示。
 
@@ -54,7 +65,9 @@ metadata 缺失、协议错误和其他意外异常返回 500，不根据 Python
 推测业务含义。
 
 operation state 只存在于单个控制面进程中。成功后记录消失，失败时保留
-阶段与 cause chain，便于用户检查现场并显式 dismiss；manager 不做隐式回滚。
+阶段与 cause chain，便于用户检查现场并显式 dismiss；ControlPlane 不做隐式回滚。
+所有资源共用一个 OperationStore，key 为 Host 与 Resource identity；同名的不同 kind
+以及不同 Host 彼此隔离。
 
 Transport 为每个 Host 维护一个 authenticated OpenSSH ControlMaster，并在其上
 复用 Podman socket 与 Agent UDS forwarding。初始 SSH handshake 跨 Host 串行，
@@ -62,9 +75,15 @@ Transport 为每个 Host 维护一个 authenticated OpenSSH ControlMaster，并�
 使用独立 SSH connection，并随目标容器 identity 变化、Workspace 删除或控制面
 关闭而释放。
 
+Host socket forward 与 TCP forward 共用 SSH 进程启动、readiness 和失败清理流程。
+Podman SDK 负责 API 与容器对象；其内置 SSH adapter 显式关闭 host key verification，
+不能用于这里的 trust contract。保留 system OpenSSH 也使 ProxyJump 和共享认证链保持
+同一个实现来源。配置与协议校验复用 Pydantic，Web 使用 FastAPI，Agent 的
+HTTP-over-UDS 使用 HTTPX 原生 UDS transport，容器与 SSH readiness 重试使用 Tenacity。
+
 Workspace image 与 Host installer 共同预置固定 SSH trust contract。Workspace SSH
 alias 为 `{container_name}-{host}`，`space-` 前缀不允许用于真实 Host。每次成功创建
-Workspace 后，manager 将 deployed Host 与 forwarding port 原子写入
+Workspace 后，bootstrap 将 deployed Host 与 forwarding port 原子写入
 `~/.ssh/codespace/workspaces/{alias}`；删除容器后移除同一文件。静态 SSH config
 include 这些独立 route，连接时直接经 Host 跳转到其 loopback listener，不访问
 control plane。不同 Workspace 不共享可变文件，因此并发 lifecycle operation
@@ -132,23 +151,23 @@ provider token 只留在控制面内存。deploy key pair 在 Workspace 内生�
 
 ```mermaid
 sequenceDiagram
-    participant Manager
+    participant ControlPlane
     participant Host
     participant Agent
     participant Provider
     participant Client
 
-    Manager->>Host: validate inventory, pull image, prepare data
-    Manager->>Host: create container from resolved specification
-    Manager->>Agent: wait for bootstrap state
+    ControlPlane->>Host: validate inventory, pull image, prepare data
+    ControlPlane->>Host: create container from resolved specification
+    ControlPlane->>Agent: wait for bootstrap state
     opt provider-backed source
-        Agent-->>Manager: public key
-        Manager->>Provider: register deploy key
-        Manager->>Host: authorize checkout
+        Agent-->>ControlPlane: public key
+        ControlPlane->>Provider: register deploy key
+        ControlPlane->>Host: authorize checkout
     end
-    Manager->>Agent: wait for ready
-    Manager->>Host: probe SSH
-    Manager->>Client: persist SSH route
+    ControlPlane->>Agent: wait for ready
+    ControlPlane->>Host: probe SSH
+    ControlPlane->>Client: persist SSH route
 ```
 
 创建失败保留已经产生的容器、Host 数据与 provider side effect，operation 进入
@@ -163,6 +182,9 @@ repository clean。empty Workspace 的检查结果在对应分支显式构造，
 虚构的 Git state。
 启动等待只重试 Agent 暂不可达并等待正常状态推进；协议错误与 failed 状态立即失败，
 不改用默认结果继续执行。HTTP 拒绝原因只读取 Agent 的固定 error response contract。
+每次请求在 context manager 内流式读取，响应超过 64 KiB 立即失败；成功、超限、
+读取失败和进程中断均释放 response 与 client。客户端不使用环境代理或隐式 HTTP 重试。
+状态等待保留单一 deadline，在正常进展或暂不可达时轮询，不将协议错误交给重试器。
 
 Service apply 是 replace reconciliation：拉取 desired image、准备 managed data、
 删除确定性旧容器并按当前 spec 重建。普通 remove 保留数据，purge 才删除

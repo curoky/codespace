@@ -5,8 +5,12 @@
 
 ## 模块边界
 
-- 依赖方向为 `web -> control -> workspaces/services -> runtime`；`runtime/` 不依赖
-  Config、manager 或 Web，Workspace 与 Service 不互相调用。
+- 依赖方向为 `web -> control -> workspaces/services -> runtime`；
+  `resources.py` 拥有跨领域身份、名称约束与业务错误，`runtime/` 不依赖 Config 或 Web。
+- Service 与 Workspace 共用 ControlPlane 和 OperationStore；领域模块只承载 metadata、
+  inventory 与 Workspace bootstrap，不各自实现排队、日志或隧道管理入口。
+- HTTP 输入与 Agent 响应由 Pydantic 校验；Dashboard 直接投影已验证的领域数据。
+  Agent HTTP-over-UDS 使用 HTTPX，必须保持有界读取与异常路径的连接释放。
 - YAML 只在入口读取；Pydantic model 是运行期唯一配置来源。
 - container 覆盖层只由 Config 合并；runtime Spec 的集合不可为 `None`，network 必须确定。
 - Config 表达 desired placement；deployed metadata 只读 labels，状态只读 Podman。

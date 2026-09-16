@@ -2,8 +2,8 @@
 
 import pytest
 
-from codespace.errors import ResourceConflict
 from codespace.operations import Operation, OperationStore, describe_error
+from codespace.resources import ResourceConflict
 
 
 def _operation(*, status: str = "queued") -> Operation:

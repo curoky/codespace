@@ -8,13 +8,14 @@ from pathlib import Path, PurePosixPath
 from typing import Literal
 
 from rich.console import Console
+from rich.table import Column
 
+from codespace import maintenance
+from codespace import workspaces as inventory
 from codespace.config import CONFIG_PATH, Config, load_config
-from codespace.maintenance import output
+from codespace.resources import RESOURCE_ID_RE
 from codespace.runtime import container, host
 from codespace.runtime.transport import PodmanTransport
-from codespace.workspaces import inventory
-from codespace.workspaces.models import RESOURCE_ID_RE
 
 type Usage = Literal["yes", "no", "unmanaged"]
 
@@ -40,22 +41,22 @@ def prune(
     transport = PodmanTransport(config.hosts)
     try:
         candidates, errors = _collect(config, transport)
-        output.render_table(
+        maintenance.render_table(
             target,
             [
-                {"header": "Host"},
-                {"header": "Workspace", "overflow": "fold"},
-                {"header": "In use", "no_wrap": True},
+                "Host",
+                Column("Workspace", overflow="fold"),
+                Column("In use", no_wrap=True),
             ],
             [(item.host, item.path, item.usage) for item in candidates],
         )
-        output.print_warnings(target, errors)
+        maintenance.print_errors(target, errors, level="Warning")
         unused = [item for item in candidates if item.usage == "no"]
         if not apply:
             target.print(f"Dry run: {len(unused)} unused Workspace(s); pass --apply to delete.")
             return
         deleted, delete_errors = _delete(transport, unused)
-        output.print_errors(target, delete_errors)
+        maintenance.print_errors(target, delete_errors)
         target.print(f"Deleted {deleted} unused Workspace(s).")
     finally:
         transport.close()
@@ -65,7 +66,7 @@ def _collect(
     config: Config,
     transport: PodmanTransport,
 ) -> tuple[list[WorkspaceCandidate], list[str]]:
-    scanned_by_host, failures = output.fan_out(
+    scanned_by_host, failures = maintenance.fan_out(
         config.hosts,
         lambda host_name: _scan_host(transport, host_name, config.project_defaults.image),
     )
@@ -112,7 +113,7 @@ def _delete(
     grouped: dict[str, list[WorkspaceCandidate]] = defaultdict(list)
     for item in workspaces:
         grouped[item.host].append(item)
-    results, failures = output.fan_out(
+    results, failures = maintenance.fan_out(
         grouped,
         lambda host_name: _delete_host(
             transport,

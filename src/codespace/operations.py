@@ -10,10 +10,9 @@ from typing import Literal
 from loguru import logger
 from pydantic import BaseModel, ConfigDict
 
-from codespace.errors import ResourceConflict
+from codespace.resources import ResourceConflict, ResourceKind
 
 type OperationStatus = Literal["queued", "running", "failed"]
-type OperationKind = Literal["workspace", "service"]
 
 
 def describe_error(exc: BaseException) -> str:
@@ -37,7 +36,7 @@ class Operation(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     id: str
-    kind: OperationKind
+    kind: ResourceKind
     host: str
     resource: str
     project: str | None = None
