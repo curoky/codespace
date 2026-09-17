@@ -143,15 +143,19 @@ class TestImageContract(unittest.TestCase):
         self.assertEqual(default_services, expected_services)
         self.assertEqual(sshd_dependencies, {"home-init", "workspace-init"})
         self.assertEqual(agent_dependencies, {"sshd"})
+        # s6-rc-compile injects s6rc-oneshot-runner as an implicit dependency of
+        # every oneshot service, so home-init is never dependency-free.
         self.assertEqual(
             set(run("s6-rc-db", "-c", database, "dependencies", "home-init").stdout.splitlines()),
-            set(),
+            {"s6rc-oneshot-runner"},
         )
 
     def test_ssh_listener_and_readiness_contract(self) -> None:
         sshd = "/opt/bm/store/openssh_gssapi/bin/sshd"
         run("sudo", sshd, "-t")
-        config = run("sudo", sshd, "-T").stdout.splitlines()
+        # sshd -T keeps the original casing for some keywords (e.g.
+        # PubkeyAuthentication) while lowercasing others; normalize before matching.
+        config = [line.lower() for line in run("sudo", sshd, "-T").stdout.splitlines()]
         for setting in (
             "port 22",
             "listenaddress 0.0.0.0:22",

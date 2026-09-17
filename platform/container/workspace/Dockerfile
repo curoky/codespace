@@ -85,7 +85,7 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
   && nix-channel --add https://nixos.org/channels/nixos-25.05 nixpkgs_2505 \
   && nix-channel --update \
   && nix-env -iA nixpkgs.ollama-cpu nixpkgs.lemminx nixpkgs.codex \
-    nixpkgs.ghidra nixpkgs.markdownlint-cli2 nixpkgs.pnpm
+    nixpkgs.ghidra nixpkgs.markdownlint-cli2 nixpkgs.pnpm \
     nixpkgs.prettier -p /nix/var/nix/profiles/default \
   # setup java
   && nix-env -iA nixpkgs.maven -p /nix/var/nix/profiles/default \
