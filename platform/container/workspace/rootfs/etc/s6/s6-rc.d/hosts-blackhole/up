@@ -1,0 +1,3 @@
+redirfd -w 1 /var/log/s6.hosts-blackhole.log
+fdmove -c 2 1
+/opt/codespace/bin/init-hosts-blackhole

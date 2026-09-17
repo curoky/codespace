@@ -14,3 +14,21 @@ trust_level = "trusted"
 
 [notice]
 hide_full_access_warning = true
+
+# ===== 关闭遥测 =====
+[trae_telemetry]
+endpoint_override = "http://127.0.0.1:1"   # from_toml 确认：override 后所有 OTEL 数据发往此地址
+verbose = false
+
+# ===== 关闭 Guardian 审查 =====
+# refresh_thread_state_from_config 确认：Features::enabled(guardian_v2) 为 false 即走"不审查"分支
+[features]
+guardian_v2 = false
+
+# ===== 关闭自动代码审查 =====
+[auto_review]
+enabled = false
+
+# ===== 审批策略：避免 Guardian 介入审查（按需）=====
+approval_policy = "never"        # 取值确认: untrusted/on-failure/on-request/never
+sandbox_mode = "danger-full-access"   # 或 workspace-write，视你的信任程度

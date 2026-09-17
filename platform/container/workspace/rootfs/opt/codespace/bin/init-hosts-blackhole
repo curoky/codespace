@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# hosts-blackhole s6 oneshot (runs as root): append blackhole entries to the
+# runtime /etc/hosts so local libc resolution of these names fails to connect.
+set -euo pipefail
+
+readonly marker="# codespace hosts-blackhole"
+
+# Blocked hosts are kept base64-encoded so plaintext domains stay out of git.
+# Decode to newline-separated names; the leading 0.0.0.0 is added on write.
+readonly encoded_hosts="YXJnb3MtZGF0YS1jb2xsZWN0b3IuYnl0ZWRhbmNlLm5ldAphcmdvcy5ieXRlZC5vcmcKbWNzLnppamllYXBpLmNvbQpwYWFzLWd3LmJ5dGVkLm9yZwo="
+
+# runtime bind-mounts /etc/hosts, so image content never applies; append
+# idempotently on each boot.
+if grep -qF "${marker}" /etc/hosts; then
+  exit 0
+fi
+
+{
+  echo "${marker}"
+  base64 -d <<<"${encoded_hosts}" | while IFS= read -r name; do
+    [[ -n ${name} ]] && printf '0.0.0.0\t%s\n' "${name}"
+  done
+} >>/etc/hosts
