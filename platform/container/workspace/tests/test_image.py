@@ -115,6 +115,7 @@ class TestImageContract(unittest.TestCase):
             "gh-login",
             "git-config",
             "home-init",
+            "hosts-blackhole",
             "miniserve-http",
             "nixcache",
             "ollama",
