@@ -49,11 +49,10 @@
 
 ## Verification
 
-- Workspace image 验收位于 `tests/test_image.py`，只在 Dockerfile 的隔离
-  `workspace-test` stage 中以用户 `x` 对已组装镜像运行；不要为兼容宿主机环境而
-  mock Linux filesystem、权限或 runtime helper。
-- 发布 stage 必须通过 test marker 依赖 `workspace-test`，确保普通镜像构建也执行
-  验收；测试产生的 Workspace、editor cache 与 deploy key 不得进入发布层。
+- Workspace image 验收位于 `tests/test_image.py`，在发布 stage 末尾以用户 `x`
+  对已组装镜像运行，保证普通镜像构建也执行验收；不要为兼容宿主机环境而 mock
+  Linux filesystem、权限或 runtime helper。测试产生的 Workspace、editor cache
+  与 deploy key 落在发布层，重建镜像即清理。
 - `task test` 不构建或验收 Workspace image；修改 image contract 后运行
   `task platform:workspace`，提交前仍运行仓库级 `task check:full`。
 
