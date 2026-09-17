@@ -33,9 +33,9 @@ def test_prune_executes_only_unused_candidates_from_successful_hosts(
     config: Config, monkeypatch: pytest.MonkeyPatch, apply: bool
 ) -> None:
     paths = HostDataPaths("/home/x/codespace")
-    live = paths.workspace("codespace", "live").root
-    old = paths.workspace("codespace", "old").root
-    manual = paths.workspace("Invalid", "manual").root
+    live = paths.workspace("codespace", "live")
+    old = paths.workspace("codespace", "old")
+    manual = paths.workspace("Invalid", "manual")
     removed: list[tuple[str, str, str]] = []
     closed: list[bool] = []
     transport = SimpleNamespace(

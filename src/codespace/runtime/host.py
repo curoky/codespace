@@ -17,19 +17,6 @@ _DATA_ROOT_TIMEOUT = 15.0
 _PREPARE_TIMEOUT = 15.0
 _WORKSPACE_LIST_TIMEOUT = 30.0
 _HOST_ENVIRONMENT_TIMEOUT = 15.0
-_CONTROL_WRITE_TIMEOUT = 15.0
-
-
-@dataclass(frozen=True, slots=True)
-class WorkspacePaths:
-    """Absolute host paths owned by one Workspace."""
-
-    root: str
-    workspaces_root: str
-    workspace: str
-    upload: str
-    cache: str
-    control: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -46,16 +33,8 @@ class HostDataPaths:
     def services(self) -> str:
         return f"{self.root}/{SERVICES_DATA_DIR_NAME}"
 
-    def workspace(self, project: str, workspace: str) -> WorkspacePaths:
-        root = f"{self.workspaces}/{project}/{workspace}"
-        return WorkspacePaths(
-            root=root,
-            workspaces_root=self.workspaces,
-            workspace=f"{root}/workspace",
-            upload=f"{root}/upload",
-            cache=f"{root}/cache",
-            control=f"{root}/control",
-        )
+    def workspace(self, project: str, workspace: str) -> str:
+        return f"{self.workspaces}/{project}/{workspace}"
 
     def service(self, service: str) -> str:
         return f"{self.services}/{service}"
@@ -93,31 +72,6 @@ def prepare_directories(route: SSHRoute, targets: list[str]) -> None:
         "mkdir -p -- " + " ".join(shlex.quote(target) for target in targets),
         timeout=_PREPARE_TIMEOUT,
         action=f"prepare directories {targets!r}",
-    )
-
-
-def reset_workspace_control(route: SSHRoute, control_path: str) -> None:
-    if not control_path.startswith("/"):
-        raise RuntimeError(f"refusing to prepare non-absolute control path: {control_path!r}")
-    directory = shlex.quote(control_path)
-    provider_ready = shlex.quote(f"{control_path}/provider-ready")
-    transport.run_host(
-        route,
-        f"set -eu; mkdir -p -- {directory}; chmod 0700 -- {directory}; rm -f -- {provider_ready}",
-        timeout=_CONTROL_WRITE_TIMEOUT,
-        action=f"reset workspace control state in {control_path!r}",
-    )
-
-
-def signal_provider_ready(route: SSHRoute, control_path: str) -> None:
-    if not control_path.startswith("/"):
-        raise RuntimeError(f"refusing to use non-absolute control path: {control_path!r}")
-    marker = shlex.quote(f"{control_path}/provider-ready")
-    transport.run_host(
-        route,
-        f"set -eu; umask 077; : >{marker}",
-        timeout=_CONTROL_WRITE_TIMEOUT,
-        action=f"authorize workspace bootstrap in {control_path!r}",
     )
 
 

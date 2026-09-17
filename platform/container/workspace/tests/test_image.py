@@ -12,9 +12,9 @@ from pathlib import Path
 
 BIN = Path("/opt/codespace/bin")
 HOME = Path("/home/x")
-CACHE = Path("/cache")
 EXTENSION_TEMPLATE = Path("/opt/codespace/share/editor-extensions")
 SERVERS = (".vscode-server", ".trae-server", ".trae-cn-server")
+EDITOR_HOMES = (*SERVERS, ".trae", ".trae-cn")
 
 
 def run(
@@ -44,7 +44,7 @@ class TestImageContract(unittest.TestCase):
 
         result = run(agent_python, "-c", code, env=env)
 
-        self.assertEqual(result.stdout.splitlines(), ["/git-state", "/status"])
+        self.assertEqual(result.stdout.splitlines(), ["/git-state", "/provider-ready", "/status"])
 
     def test_critical_commands_start(self) -> None:
         commands = {
@@ -96,6 +96,10 @@ class TestImageContract(unittest.TestCase):
             (authorized_keys.stat().st_uid, authorized_keys.stat().st_gid),
             (5230, 5230),
         )
+        agent_state = Path("/var/lib/codespace")
+        self.assertTrue(agent_state.is_dir())
+        self.assertEqual((agent_state.stat().st_uid, agent_state.stat().st_gid), (0, 0))
+        self.assertEqual(stat.S_IMODE(agent_state.stat().st_mode), 0o700)
 
     def test_s6_database_contains_workspace_service_graph(self) -> None:
         database = Path("/etc/s6/db")
@@ -138,7 +142,29 @@ class TestImageContract(unittest.TestCase):
         self.assertLessEqual(expected_services, services)
         self.assertEqual(default_services, expected_services)
         self.assertEqual(sshd_dependencies, {"home-init", "workspace-init"})
-        self.assertEqual(agent_dependencies, {"home-init"})
+        self.assertEqual(agent_dependencies, {"sshd"})
+        self.assertEqual(
+            set(run("s6-rc-db", "-c", database, "dependencies", "home-init").stdout.splitlines()),
+            set(),
+        )
+
+    def test_ssh_listener_and_readiness_contract(self) -> None:
+        sshd = "/opt/bm/store/openssh_gssapi/bin/sshd"
+        run("sudo", sshd, "-t")
+        config = run("sudo", sshd, "-T").stdout.splitlines()
+        for setting in (
+            "port 22",
+            "listenaddress 0.0.0.0:22",
+            "pubkeyauthentication yes",
+            "passwordauthentication no",
+            "authorizedkeysfile .ssh/authorized_keys",
+            "hostkey /etc/ssh/ssh_host_ed25519_key",
+        ):
+            self.assertIn(setting, config)
+        service = Path("/etc/s6/s6-rc.d/sshd")
+        self.assertEqual((service / "notification-fd").read_text().strip(), "3")
+        self.assertIsNotNone(shutil.which("s6-notifyoncheck"))
+        self.assertIsNotNone(shutil.which("s6-tcpclient"))
 
     def test_user_and_home_configuration(self) -> None:
         user = pwd.getpwnam("x")
@@ -159,22 +185,11 @@ class TestImageContract(unittest.TestCase):
             with self.subTest(path=relative_path):
                 self.assertEqual(str((HOME / relative_path).readlink()), target)
 
-        for editor_home in (
-            ".vscode-server",
-            ".trae",
-            ".trae-cn",
-            ".trae-server",
-            ".trae-cn-server",
-        ):
-            with self.subTest(editor_home=editor_home):
-                self.assertEqual(
-                    str((HOME / editor_home / "bin").readlink()),
-                    f"/cache/{editor_home}/bin",
-                )
-                self.assertEqual(
-                    str((HOME / editor_home / "extensions").readlink()),
-                    f"/cache/{editor_home}/extensions",
-                )
+        for editor_home in EDITOR_HOMES:
+            for leaf in ("bin", "extensions"):
+                with self.subTest(editor_home=editor_home, leaf=leaf):
+                    self.assertFalse((HOME / editor_home / leaf).is_symlink())
+        self.assertFalse(os.path.lexists("/cache"))
 
         settings = (HOME / ".vscode-server/data/Machine/settings.json").read_text()
         self.assertIn(
@@ -290,6 +305,16 @@ class TestCheckout(unittest.TestCase):
         self.assertIn("exists but is not a checkout", result.stderr)
         self.assertTrue(occupied_file.is_file())
 
+        incomplete = self.root / "workspace/incomplete"
+        self.init_repository(incomplete)
+        incomplete_file = incomplete / "keep.txt"
+        incomplete_file.write_text("uncommitted work\n")
+        result = run(helper, f"file://{origin}", incomplete, check=False)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("not a reusable checkout", result.stderr)
+        self.assertEqual(incomplete_file.read_text(), "uncommitted work\n")
+        self.assertFalse((incomplete / "README.md").exists())
+
         result = run(helper, "only-one", check=False)
         self.assertEqual(result.returncode, 2)
         self.assertIn("usage: checkout", result.stderr)
@@ -298,9 +323,25 @@ class TestCheckout(unittest.TestCase):
 class TestRuntimeHelpers(unittest.TestCase):
     def test_home_init_is_idempotent_and_preserves_editor_state(self) -> None:
         for server in SERVERS[1:]:
-            target = CACHE / server / "extensions"
+            target = HOME / server / "extensions"
             run("sudo", "install", "-d", "-o", "5230", "-g", "5230", "-m", "0700", target)
             (target / "extensions.json").write_text("[]\n")
+
+        # Bind sources prepared by the Host need not arrive owned by x.
+        for editor_home in EDITOR_HOMES:
+            for leaf in ("bin", "extensions"):
+                run(
+                    "sudo",
+                    "install",
+                    "-d",
+                    "-o",
+                    "0",
+                    "-g",
+                    "0",
+                    "-m",
+                    "0755",
+                    HOME / editor_home / leaf,
+                )
 
         run(BIN / "init-home")
 
@@ -311,7 +352,7 @@ class TestRuntimeHelpers(unittest.TestCase):
         self.assertEqual(stat.S_IMODE(private_key.stat().st_mode), 0o600)
         first_public_key = public_key.read_text()
 
-        vscode_extensions = CACHE / ".vscode-server/extensions"
+        vscode_extensions = HOME / ".vscode-server/extensions"
         manifest = vscode_extensions / "extensions.json"
         self.assertTrue(manifest.is_file())
         installed = json.loads(manifest.read_text())
@@ -325,23 +366,22 @@ class TestRuntimeHelpers(unittest.TestCase):
         self.assertEqual(public_key.read_text(), first_public_key)
         self.assertEqual(json.loads(manifest.read_text()), [])
         self.assertFalse(removed.exists())
-        for editor_home in (
-            ".vscode-server",
-            ".trae",
-            ".trae-cn",
-            ".trae-server",
-            ".trae-cn-server",
-        ):
+        for editor_home in EDITOR_HOMES:
             for leaf in ("bin", "extensions"):
-                path = CACHE / editor_home / leaf
+                path = HOME / editor_home / leaf
                 self.assertTrue(path.is_dir())
+                self.assertFalse(path.is_symlink())
                 self.assertEqual((path.stat().st_uid, path.stat().st_gid), (5230, 5230))
                 self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o700)
 
     def test_workspace_init_validates_mode_and_prepares_plaintext_paths(self) -> None:
         helper = BIN / "init-workspace"
+        # A Host login UID can differ from x; initialization must retain it.
+        control = Path("/run/codespace-control")
+        run("sudo", "install", "-d", "-o", "200", "-g", "65534", "-m", "0755", control)
 
         env = os.environ.copy()
+        env["CODESPACE_ENCRYPTED_PATH"] = "/workspace.enc"
         env.pop("CODESPACE_ENCRYPTED", None)
         result = run(helper, env=env, check=False)
         self.assertNotEqual(result.returncode, 0)
@@ -352,6 +392,13 @@ class TestRuntimeHelpers(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(result.stderr.strip(), "CODESPACE_ENCRYPTED must be true or false")
 
+        env["CODESPACE_ENCRYPTED"] = "false"
+        env.pop("CODESPACE_ENCRYPTED_PATH")
+        result = run(helper, env=env, check=False)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("CODESPACE_ENCRYPTED_PATH must be set", result.stderr)
+
+        env["CODESPACE_ENCRYPTED_PATH"] = "/workspace.enc"
         env["CODESPACE_ENCRYPTED"] = "true"
         result = run(helper, env=env, check=False)
         self.assertNotEqual(result.returncode, 0)
@@ -366,11 +413,19 @@ class TestRuntimeHelpers(unittest.TestCase):
             result.stdout.strip(),
             "Workspace encryption disabled, using plaintext /workspace",
         )
-        for path in (Path("/workspace"), Path("/workspace.enc"), Path("/upload"), CACHE):
+        for path in (Path("/workspace"), Path("/workspace.enc"), Path("/upload")):
             with self.subTest(path=path):
                 self.assertTrue(path.is_dir())
+                self.assertFalse(path.is_symlink())
                 self.assertEqual((path.stat().st_uid, path.stat().st_gid), (5230, 5230))
                 self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o700)
+        self.assertEqual((control.stat().st_uid, control.stat().st_gid), (200, 65534))
+        self.assertEqual(stat.S_IMODE(control.stat().st_mode), 0o700)
+        marker = Path("/workspace/keep")
+        marker.write_text("persistent\n")
+        run(helper, env=env)
+        self.assertEqual(marker.read_text(), "persistent\n")
+        self.assertEqual((control.stat().st_uid, control.stat().st_gid), (200, 65534))
 
 
 if __name__ == "__main__":

@@ -79,7 +79,8 @@ Host socket forward 与 TCP forward 共用 SSH 进程启动、readiness 和失�
 Podman SDK 负责 API 与容器对象；其内置 SSH adapter 显式关闭 host key verification，
 不能用于这里的 trust contract。保留 system OpenSSH 也使 ProxyJump 和共享认证链保持
 同一个实现来源。配置与协议校验复用 Pydantic，Web 使用 FastAPI，Agent 的
-HTTP-over-UDS 使用 HTTPX 原生 UDS transport，容器与 SSH readiness 重试使用 Tenacity。
+HTTP-over-UDS 使用 HTTPX 原生 UDS transport，Podman readiness 重试使用 Tenacity；
+Workspace SSH readiness 由 image 的 s6 graph 门控。
 
 Workspace image 与 Host installer 共同预置固定 SSH trust contract。Workspace SSH
 alias 为 `{container_name}-{host}`，`space-` 前缀不允许用于真实 Host。每次成功创建
@@ -91,7 +92,7 @@ control plane。不同 Workspace 不共享可变文件，因此并发 lifecycle 
 
 route 是从已部署 Workspace metadata 生成的持久连接入口，不是容器 inventory 或
 desired state。控制面不从 route 恢复资源，也不接受 route 作为删除、安全判断或
-Dashboard 状态的输入。内部探测和隧道继续使用已知 transport route，不依赖持久
+Dashboard 状态的输入。内部隧道继续使用已知 transport route，不依赖持久
 route 文件。控制面不安装或改写 SSH key、known hosts 与顶层 client config。
 
 ## Placement And Container Contract
@@ -102,8 +103,10 @@ filesystem、home、Agent、SSHD 与 local service 布局由 image 在构建期�
 只注入 placement 和单 Workspace runtime input。
 
 `config.ContainerLayer` 表达 YAML 中的 container 覆盖层，从通用层逐步覆盖到具体
-placement；未指定或 `null` 的字段不参与 merge，list 与 mapping 整体替换，显式
-空集合清空继承值。字段校验在每层解析时执行，跨字段约束在 merge 后执行。
+placement；未指定或 `null` 的字段不参与 merge，普通 list 与 mapping 整体替换。
+`environment` 按变量名合并，`volumes` 按容器 target 合并，同 key 的后层定义覆盖
+前层；volume 显式空列表清空全部继承值。字段校验在每层解析时执行，跨字段约束在
+merge 后执行。
 Project image、platform 和 tunnel allowlist 各自按其 resolver 处理，不隐式套用
 container merge 规则。
 
@@ -113,10 +116,12 @@ list 或 mapping，network mode 必须确定；runtime 不接收覆盖层，也�
 Project 使用 `WorkspaceContainerSpec` 将 network mode 固定为 bridge，解析出其他
 模式直接失败。lifecycle 追加实例输入后仍须满足同一 Spec 约束。
 
-配置仅接受控制面实现的 Compose service syntax 子集。runtime 接收完全解析后的
-绝对 bind mount，不实现通用 variable interpolation。Service 的 managed data
-placeholder 在 Service 领域边界解析；Project 不能使用它，也不能覆盖 Workspace
-保留的 runtime input。
+配置仅接受控制面实现的 Compose service syntax 子集。`container.volumes` 保持
+Compose short/long bind syntax，Workspace 与 Service 均可在 source 使用
+`${RESOURCE_DATA}` 或其子路径，领域边界将其解析为对应实例 root；不支持其他
+variable interpolation。Project 的 `/workspace` volume 在加密模式下改挂到
+`container.environment.CODESPACE_ENCRYPTED_PATH`；控制面与 image 读取同一个值。
+runtime 最终只接收绝对 bind source。
 
 ## Networking And Access
 
@@ -135,14 +140,29 @@ Host 的 DNS、bridge gateway 和 IPv6 出站能力属于基础设施前提。�
 
 ## Persistent State
 
-每个 Host 的受管数据根分为 Workspace 与 Service 两棵目录。每个 Workspace 再隔离
-业务数据、交换数据、editor cache 和 private control state；Service 只拥有自己的
-managed data。具体路径由 runtime model 唯一生成，调用方不得拼接第二套布局。
+每个 Host 的受管数据根分为 Workspace 与 Service 两棵目录。两种资源各自拥有
+一个实例 root。控制面提前创建 Workspace 的 bind source：`workspace/`、`upload/`、
+`control/` 和 `cache/` 下的各 IDE 缓存叶目录，目录准备与容器挂载均读取解析后的
+`container.volumes`。只为使用 `${RESOURCE_DATA}` 的 volume 创建目录，绝对 source
+必须已经存在。Service 使用同一个 placeholder 解析自己的 managed data。
+Host 实例路径由 runtime model 唯一生成。
 
-普通 Workspace 直接挂载业务数据；加密 Workspace 将同一 Host 目录作为 ciphertext
-root，明文视图由 image 启动链提供。交换数据和单一 cache root 始终明文，具体 IDE
-cache 路径由 image home 的 symlink 定义。control state 保存 provider readiness 与
-Agent UDS，权限必须保持私有。
+普通模式将 `workspace/` 直接挂到 `/workspace`；加密模式将它挂到 `/workspace.enc`，
+由 gocryptfs 在 `/workspace` 挂出明文视图。`upload/` 直接挂到 `/upload`；
+`control/` 直接挂到 `/run/codespace-control`，只承载 Agent UDS。
+workspace-init 将数据与上传目录设为 x-owned，并保留 control 的 Host 属主与私有权限。
+
+IDE 缓存叶目录直接挂到 home，home-init 准备其权限与默认扩展。volume 在配置中
+显式维护，容器内路径仍须满足 Workspace image contract，IDE 只挂载缓存叶目录，
+不覆盖 image-owned 配置。Config 校验两种加密模式的必需挂载、目标冲突及 managed
+source 不得越出实例 root；附加 volume 与 secret 不能覆盖受管挂载。
+所有数据目录均不使用中转 root 或 symlink。交换数据与 cache 始终明文，与其他实例
+数据一起保留或 purge。
+provider readiness 由 Agent 维护在容器可写层，不写 Host 持久目录。
+
+bootstrap 从解析后的 volume 定位 Agent UDS 的 Host source；删除前 Git inspection
+从已部署容器的实际 Mounts 定位它，不读取当前配置的 source。修改清单只影响随后
+创建的容器，不迁移既有数据。
 
 provider token 只留在控制面内存。deploy key pair 在 Workspace 内生成，控制面
 只读取 public key 并向 provider 注册；Service 不得接触 Workspace credential。
@@ -163,10 +183,9 @@ sequenceDiagram
     opt provider-backed source
         Agent-->>ControlPlane: public key
         ControlPlane->>Provider: register deploy key
-        ControlPlane->>Host: authorize checkout
+        ControlPlane->>Agent: authorize checkout over UDS
     end
     ControlPlane->>Agent: wait for ready
-    ControlPlane->>Host: probe SSH
     ControlPlane->>Client: persist SSH route
 ```
 
@@ -185,6 +204,10 @@ repository clean。empty Workspace 的检查结果在对应分支显式构造，
 每次请求在 context manager 内流式读取，响应超过 64 KiB 立即失败；成功、超限、
 读取失败和进程中断均释放 response 与 client。客户端不使用环境代理或隐式 HTTP 重试。
 状态等待保留单一 deadline，在正常进展或暂不可达时轮询，不将协议错误交给重试器。
+provider 注册成功后通过同一 UDS 授权 checkout，重复请求幂等，重建容器必须重新
+授权，同一容器重启可继续 bootstrap。image 用 s6 保证目录、home 与 SSH listener
+先于 Agent 就绪，控制面不再
+远程探测 SSH 登录；image 验收与 macOS bundle 测试共同验证固定 SSH trust。
 
 Service apply 是 replace reconciliation：拉取 desired image、准备 managed data、
 删除确定性旧容器并按当前 spec 重建。普通 remove 保留数据，purge 才删除

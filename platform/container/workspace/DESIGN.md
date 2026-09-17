@@ -37,24 +37,41 @@ flowchart TD
     Default["s6 default bundle"] --> Data["workspace-init"]
     Default --> Home["home-init"]
     Home --> GitHubLogin["gh login"]
-    Data --> SSHD
     Home --> SSHD
+    Data --> SSHD
     Data --> WebDAV
     Data --> HTTP["rclone HTTP"]
     Default --> Logs["miniserve logs"]
-    Home --> Agent["Workspace Agent"]
+    SSHD -->|ready| Agent["Workspace Agent"]
     Default --> AtuinServer["Atuin server"]
     AtuinServer -->|ready| AtuinLogin["login + initial sync"]
     AtuinLogin --> AtuinDaemon["sync daemon"]
 ```
 
-`workspace-init` 是数据就绪门控。它幂等准备持久目录；启用 encryption 时读取
-secret，初始化或复用 gocryptfs，并挂载明文视图。运行模式由控制面
-显式声明，不能根据 secret 是否存在自行切换。
+控制面按 `container.volumes` 中使用 `${RESOURCE_DATA}` 的条目提前创建 Host bind
+source 并直接挂载。加密 target 由 `container.environment.CODESPACE_ENCRYPTED_PATH`
+配置，控制面与 image 使用同一个值；容器内路径遵循本 image contract：
+普通模式将 `workspace/` 挂到 `/workspace`；加密模式将同一 source 挂到
+`/workspace.enc`，由 `workspace-init` 读取 secret，初始化或复用 gocryptfs，
+在 `/workspace` 挂出明文视图。模式由配置显式指定，缺少 secret 时失败。
+`upload/` 始终直接挂到 `/upload`，业务数据与上传目录均由 image 设为 x-owned 0700。
 
-`home-init` 与 Workspace 数据独立。它只准备持久化 editor state、生成或复用 deploy
-key，并从 immutable template 播种 extensions。sshd 与 Agent 在它完成后启动；
-shell integration 和其余 home 配置直接来自 image。
+`control/` 独立挂到 `/run/codespace-control`，`workspace-init` 保留其 Host 属主并
+设为 0700，确保 SSH login UID 与容器 x 不同时仍能访问 UDS。
+Agent 以 root 监听 UDS，外层私有目录控制访问。
+
+IDE 的 `bin` 与 `extensions` 在创建容器时由 Podman 逐项 bind mount：
+Host 的 `<workspace-root>/cache/<IDE>/<leaf>` 直接对应
+`/home/x/<IDE>/<leaf>`。控制面提前创建 bind source；每个 Workspace 独立保存 cache，
+普通删除保留、purge 随实例 root 删除。只挂载缓存叶目录，IDE 配置继续来自 image。
+
+`home-init` 直接将 home 内的缓存目录设为 x-owned 0700，生成或复用 deploy key，
+并从 immutable template 播种 extensions。`.ssh` 的布局与权限在 build 时确定，
+私钥权限由 ssh-keygen 设置；运行期只在密钥缺失时生成，保留同一容器的 provider 身份。
+它与 workspace-init 可独立运行，
+不做 cache 路径重定向。shell integration 和其余 home 配置
+直接来自 image。sshd 使用 s6-notifyoncheck 与 s6-tcpclient 报告 listener readiness，
+Agent 依赖该通知，因此 bootstrap ready 同时意味着 SSH listener 已启动。
 
 `gh-login` 在 `home-init` 后以用户 `x` 从 private secret 的 stdin 完成非交互登录。
 token 不进入 argv、container environment 或 s6 environment snapshot；`gh` 将认证
@@ -120,13 +137,20 @@ sequenceDiagram
     Agent-->>CP: status ready
 ```
 
-checkout 默认 clone 完整 repository；Git-backed source 配置的 `args` 作为独立
-参数透传给 `git clone`。完整 repository、shallow repository 和已标记的 empty
+checkout 默认 clone 完整 repository；控制面始终为 Git-backed source 传入 `args`
+（无参数时为 `[]`），Agent 将其作为独立参数透传给 `git clone`。
+完整 repository、shallow repository 和已标记的 empty
 repository 均可幂等复用；其他既有 target fail-fast，避免覆盖持久数据。Git state
-只在 bootstrap ready 后读取。
+只在 bootstrap ready 后读取，直接查询工作区、HEAD 及本地引用；
+空仓库、orphan branch 和 detached HEAD 均由 Git 自身处理。
+Git 查询失败直接报错，不返回 clean。
 
-control plane 分别持久化 Workspace 数据、交换目录、editor cache 与 control state。
-encryption 只覆盖 Workspace 数据；交换目录和 cache 始终明文。Agent helper 以固定
-开发用户执行，provider token 不进入 image，deploy private key 不离开 Workspace。
-image home 中各 IDE 的 `bin`/`extensions` 直接链接到 `/cache`，控制面只挂载一个
-cache root，不感知具体 IDE 路径。
+control plane 分别挂载 Workspace 业务数据、交换目录、control 与各 IDE 缓存目录。
+encryption 只覆盖业务数据，交换目录和 cache 始终明文。Agent helper 以固定开发用户执行，provider token
+不进入 image，deploy private key 不离开 Workspace。
+
+provider 注册成功后，control plane 通过同一个 UDS 发送幂等授权请求。Agent 的
+Event 释放 checkout；确认状态写在持久 mount 外的容器可写层，使 Agent 或同一
+容器重启时可继续 bootstrap，重建容器时必须重新授权。Agent 不轮询文件，
+控制面不读写授权文件。未进入等待阶段或失败后的授权请求拒绝，重复授权不会
+重复执行 checkout。

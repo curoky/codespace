@@ -41,7 +41,11 @@ Workspace container init 只有作为 PID 1 才能工作，而 WSL 的 PID 1 固
 `s6-rc-init` 在 `s6-svscan` 接管 scandir 后运行。
 
 WSL bundle 复用 Workspace service dependency，只启动远程登录和 Host 级后台能力；
-不启动需要 control plane bootstrap 的 Workspace Agent。
+不启动需要 control plane bootstrap 的 Workspace Agent。boot 显式选择明文模式，
+workspace-init 在 distribution filesystem 内准备根目录下的数据目录，home-init 独立在
+`/home/x` 的 IDE 实际目录准备 editor state；这些目录直接保存在 distribution
+filesystem，无需 cache symlink 或 OCI bind mount。两项初始化完成后启动 sshd，
+通过同一 s6 readiness 通知报告就绪，不需要单独的 WSL 目录初始化实现。
 
 Atuin login 的依赖会带起本地 server。WSL 没有 Podman secret 注入，数据库
 credential 必须在运行环境单独提供，不能写入导出 artifact；缺失只使 Atuin 链

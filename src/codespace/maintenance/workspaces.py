@@ -85,7 +85,7 @@ def _scan_host(
     root = data_paths.workspaces
     scanned = host.list_workspaces(route, root)
     active = {
-        data_paths.workspace(workspace.project, workspace.workspace).root
+        data_paths.workspace(workspace.project, workspace.workspace)
         for workspace in inventory.list_workspaces(transport.client(host_name), host_name)
     }
     return [

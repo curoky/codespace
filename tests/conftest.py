@@ -24,8 +24,27 @@ def config() -> Config:
                     "cap_add": ["NET_RAW", "SYS_ADMIN"],
                     "security_opt": ["disable", "seccomp=unconfined"],
                     "pids_limit": -1,
+                    "environment": {
+                        "CODESPACE_ENCRYPTED_PATH": "/workspace.enc",
+                    },
                     "ulimits": {"memlock": {"soft": -1, "hard": -1}},
-                    "volumes": ["/etc/krb5.conf:/etc/krb5.conf:ro"],
+                    "volumes": [
+                        "${RESOURCE_DATA}/workspace:/workspace",
+                        "${RESOURCE_DATA}/upload:/upload",
+                        "${RESOURCE_DATA}/control:/run/codespace-control",
+                        *(
+                            f"${{RESOURCE_DATA}}/cache/{editor}/{leaf}:/home/x/{editor}/{leaf}"
+                            for editor in (
+                                ".vscode-server",
+                                ".trae",
+                                ".trae-cn",
+                                ".trae-server",
+                                ".trae-cn-server",
+                            )
+                            for leaf in ("bin", "extensions")
+                        ),
+                        "/etc/krb5.conf:/etc/krb5.conf:ro",
+                    ],
                 },
             },
             "projects": {
@@ -73,7 +92,7 @@ def config() -> Config:
                         "ipc": "host",
                         "devices": ["nvidia.com/gpu=all"],
                         "volumes": [
-                            "${SERVICE_DATA}:/root/.cache/huggingface",
+                            "${RESOURCE_DATA}:/root/.cache/huggingface",
                         ],
                     },
                 },

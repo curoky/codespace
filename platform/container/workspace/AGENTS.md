@@ -19,14 +19,20 @@
   构建，不从本目录直接执行 `docker build`。
 - 运行资产放在 `/opt/codespace/`；image 不包含 repository checkout 或 Host
   固定路径。
-- 控制面只挂载一个 editor cache root，不得感知或单独挂载具体 IDE 路径。
-- IDE `bin` 与 `extensions` 由 image home 固定链接到 `/cache`。默认 extensions
-  与各 IDE 的绝对路径 manifest 在 build 时生成，运行期只播种尚无 manifest 的
-  cache，不合并或恢复用户之后删除的 extension。
+- Workspace 数据与上传目录直接挂载到根目录下的实际路径；加密模式由 gocryptfs
+  挂出明文视图，不使用中转 root 或 symlink。control 独立挂载且必须保留 Host
+  login UID 的访问能力，不能假定它与容器 x 相同；密文路径由受管
+  `CODESPACE_ENCRYPTED_PATH` 输入提供。
+- IDE cache 在创建容器时直接 bind mount 到 home 内的实际目录；不得使用中转
+  目录或 cache symlink，也不得遮盖 image-owned IDE 配置。默认 extensions 与各 IDE
+  的绝对路径 manifest 在 build 时生成，运行期只播种尚无 manifest 的 cache，
+  不合并或恢复用户之后删除的 extension。
 - `rootfs/` 拥有 Workspace SSH authorized key 与 host key；Host client bundle
   必须与这两项 trust material 保持一致。
 - `workspace-init` 只负责 Workspace 数据；`home-init` 只负责用户与 editor state。
 - 服务依赖必须表达在 s6 graph 中，不在 runtime helper 内轮询其他服务。
+- Agent 的 bootstrap 必须在 SSH listener readiness 之后开始；provider 授权只属于
+  当前容器的可写层，不能进入 Host 持久数据，新容器必须重新授权。
 - SSHD 固定监听容器 `0.0.0.0:22`，Workspace 固定使用 bridge network；Host
   loopback forwarding 与持久 macOS SSH route 属于 control plane 和 Host client。
 - 无认证 file service 必须固定监听容器 loopback，不提供 bind override，只经 SSH

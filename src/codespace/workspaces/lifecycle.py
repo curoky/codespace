@@ -9,11 +9,10 @@ from podman import PodmanClient
 from podman.domain.containers import Container
 
 from codespace.resources import ResourceConflict
-from codespace.runtime import container, host
+from codespace.runtime import container
 from codespace.runtime.container import PortSpec, SecretSpec
 from codespace.runtime.transport import PodmanTransport
 from codespace.workspaces import (
-    CACHE_MOUNT,
     CHECKOUT_PATH_ENV,
     CLONE_URL_ENV,
     CONTAINER_GID,
@@ -23,10 +22,7 @@ from codespace.workspaces import (
     GIT_ARGS_ENV,
     OPEN_PATH_ENV,
     SOURCE_TYPE_ENV,
-    UPLOAD_MOUNT,
-    WORKSPACE_CIPHER_MOUNT,
     WORKSPACE_KEY_SECRET,
-    WORKSPACE_MOUNT,
     WORKSPACE_SSH_PORT,
     EmptySource,
     ProviderSource,
@@ -65,14 +61,18 @@ def bootstrap(
     spec: WorkspaceSpec,
     created: Container,
     transport: PodmanTransport,
-    paths: host.WorkspacePaths,
+    data_path: str,
     credentials: tuple[ProviderSource, str] | None,
     stage: Callable[[str], None],
 ) -> None:
-    route = transport.ssh_route(spec.host)
     stage("waiting for workspace agent")
+    control_source = next(
+        volume.source
+        for volume in spec.resolve_data_path(data_path).volumes
+        if volume.target == CONTROL_MOUNT
+    )
     agent_client = agent.WorkspaceAgentClient(
-        transport.forward_socket(spec.host, f"{paths.control}/agent.sock")
+        transport.forward_socket(spec.host, f"{control_source}/agent.sock")
     )
     if credentials is not None:
         source, token = credentials
@@ -80,17 +80,16 @@ def bootstrap(
         stage("registering deploy key")
         provider.register(source.type, token, source.repository, spec.id, status.public_key)
         stage("authorizing repository checkout")
-        host.signal_provider_ready(route, paths.control)
+        agent_client.authorize_provider()
     stage("preparing open path" if spec.source.type == "empty" else "checking out source")
     agent_client.wait_for("ready", timeout=_AGENT_READY_TIMEOUT)
-    stage("probing ssh")
-    actual = spec.to_workspace(created.id, status="running")
-    ssh.probe(actual, route)
     stage("writing ssh config")
-    ssh.write_route(actual)
+    ssh.write_route(spec.to_workspace(created.id, status="running"))
 
 
-def inspect_deletion(actual: Workspace, transport: PodmanTransport) -> RepoGitState:
+def inspect_deletion(
+    actual: Workspace, transport: PodmanTransport, running: Container
+) -> RepoGitState:
     """Read repository state without starting or changing the Workspace."""
     if actual.source.type == "empty":
         return RepoGitState(unpushed=False, uncommitted=False, detail=[])
@@ -99,18 +98,20 @@ def inspect_deletion(actual: Workspace, transport: PodmanTransport) -> RepoGitSt
             f"container {actual.id!r} is {actual.status}; "
             "repository state cannot be inspected while it is not running"
         )
-    paths = host.remote_data_paths(transport.ssh_route(actual.host)).workspace(
-        actual.project, actual.workspace
+    control_source = next(
+        mount["Source"]
+        for mount in running.attrs["Mounts"]
+        if mount["Destination"] == CONTROL_MOUNT
     )
     return agent.WorkspaceAgentClient(
-        transport.forward_socket(actual.host, f"{paths.control}/agent.sock")
+        transport.forward_socket(actual.host, f"{control_source}/agent.sock")
     ).git_state()
 
 
 def create_container(
     client: PodmanClient,
     spec: WorkspaceSpec,
-    paths: host.WorkspacePaths,
+    data_path: str,
     forwarded_environment: dict[str, str],
 ) -> Container:
     environment = {
@@ -123,8 +124,7 @@ def create_container(
     }
     if not isinstance(spec.source, EmptySource):
         environment[CLONE_URL_ENV] = spec.source.clone_url
-        if spec.source.args:
-            environment[GIT_ARGS_ENV] = json.dumps(spec.source.args)
+        environment[GIT_ARGS_ENV] = json.dumps(spec.source.args)
 
     secrets = list(spec.container.secrets)
     if spec.encrypted:
@@ -137,19 +137,9 @@ def create_container(
             )
         )
 
-    mounts: list[dict[str, object]] = [
-        {
-            "type": "bind",
-            "source": paths.workspace,
-            "target": WORKSPACE_CIPHER_MOUNT if spec.encrypted else WORKSPACE_MOUNT,
-        },
-        {"type": "bind", "source": paths.upload, "target": UPLOAD_MOUNT},
-        {"type": "bind", "source": paths.cache, "target": CACHE_MOUNT},
-        {"type": "bind", "source": paths.control, "target": CONTROL_MOUNT},
-    ]
     runtime_spec = WorkspaceContainerSpec.model_validate(
         {
-            **spec.container.model_dump(),
+            **spec.resolve_data_path(data_path).model_dump(),
             "secrets": secrets,
             "ports": [
                 *spec.container.ports,
@@ -161,7 +151,6 @@ def create_container(
             ],
         }
     )
-
     return container.create_container(
         client,
         spec.image,
@@ -169,6 +158,6 @@ def create_container(
         spec=runtime_spec,
         environment=environment,
         labels=spec.labels(),
-        mounts=mounts,
+        mounts=[],
         platform=spec.platform,
     )

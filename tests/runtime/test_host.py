@@ -29,9 +29,7 @@ def test_remote_data_paths_uses_final_layout(monkeypatch: pytest.MonkeyPatch) ->
 
     paths = host.remote_data_paths(SSHRoute(host="home"))
 
-    assert paths.workspace("codespace", "debug").root == (
-        "/home/x/codespace/workspaces/codespace/debug"
-    )
+    assert paths.workspace("codespace", "debug") == ("/home/x/codespace/workspaces/codespace/debug")
     assert paths.service("support") == "/home/x/codespace/services/support"
 
 

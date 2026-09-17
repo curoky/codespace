@@ -137,7 +137,8 @@ def test_workspace_nixcache_runs_as_user_in_default_bundle() -> None:
 
 
 def test_workspace_sshd_uses_fixed_listener() -> None:
-    script = (_WORKSPACE_ROOT / "etc/s6/s6-rc.d/sshd/run").read_text()
+    service = _WORKSPACE_ROOT / "etc/s6/s6-rc.d/sshd"
+    script = (service / "run").read_text()
     config = (_WORKSPACE_ROOT / "etc/ssh/sshd_config").read_text()
 
     assert "SSHD_PORT" not in script
@@ -148,6 +149,9 @@ def test_workspace_sshd_uses_fixed_listener() -> None:
     assert "\n  -E " not in script
     assert "\nPort 22\n" in config
     assert "\nListenAddress 0.0.0.0\n" in config
+    assert "s6-notifyoncheck" in script
+    assert "s6-tcpclient -H -t 1 127.0.0.1 22 /bin/true" in script
+    assert (service / "notification-fd").read_text().strip() == "3"
 
 
 def test_workspace_agent_requires_managed_bootstrap_environment() -> None:
@@ -163,5 +167,18 @@ def test_wsl_declares_inherited_workspace_runtime_input() -> None:
     script = _WSL_BOOT.read_text()
 
     assert "container_environment/CODESPACE_ENCRYPTED" in script
+    assert "container_environment/CODESPACE_ENCRYPTED_PATH" in script
     assert "SSHD_PORT" not in script
     assert "SSHD_BIND" not in script
+
+    graph = _WORKSPACE_ROOT / "etc/s6/s6-rc.d"
+    dependencies = {
+        "home-init": set(),
+        "sshd": {"home-init", "workspace-init"},
+        "workspace-agent": {"sshd"},
+    }
+    for service, expected in dependencies.items():
+        assert {path.name for path in (graph / service / "dependencies.d").glob("*")} == expected
+    bundle = _WSL_BOOT.parents[3] / "etc/s6/s6-rc.d/wsl/contents.d"
+    assert (bundle / "sshd").exists()
+    assert not (bundle / "workspace-agent").exists()

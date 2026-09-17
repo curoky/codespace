@@ -160,6 +160,16 @@ def test_http_error_reports_agent_detail(
         client.git_state()
 
 
+@pytest.mark.parametrize("payload", [True, {}, {"authorized": True}, "null"])
+def test_provider_authorization_rejects_invalid_response(
+    client: agent.WorkspaceAgentClient, responses: list[httpx.Response], payload: object
+) -> None:
+    responses.append(httpx.Response(200, json=payload))
+
+    with pytest.raises(agent.AgentError, match="invalid authorization response"):
+        client.authorize_provider()
+
+
 @pytest.mark.parametrize("payload", [{}, {"error": "wrong schema"}, {"detail": ""}])
 def test_malformed_http_error_is_rejected(
     client: agent.WorkspaceAgentClient,
@@ -296,6 +306,7 @@ def test_http_client_uses_real_unix_socket(monkeypatch: pytest.MonkeyPatch) -> N
     payloads = {
         "/status": {"state": "ready", "public_key": None, "error": None},
         "/git-state": {"unpushed": False, "uncommitted": True, "detail": [" M file"]},
+        "/provider-ready": None,
     }
 
     class Handler(BaseRequestHandler):
@@ -322,8 +333,15 @@ def test_http_client_uses_real_unix_socket(monkeypatch: pytest.MonkeyPatch) -> N
                 handled = executor.submit(server.handle_request)
                 assert read().model_dump() == payloads[target]
                 handled.result(timeout=3)
+            handled = executor.submit(server.handle_request)
+            assert client.authorize_provider() is None
+            handled.result(timeout=3)
 
-    assert requests == ["GET /status HTTP/1.1\r\n", "GET /git-state HTTP/1.1\r\n"]
+    assert requests == [
+        "GET /status HTTP/1.1\r\n",
+        "GET /git-state HTTP/1.1\r\n",
+        "POST /provider-ready HTTP/1.1\r\n",
+    ]
 
 
 @pytest.fixture
@@ -385,12 +403,10 @@ def test_image_bootstrap_passes_git_args(
     assert worker.status().state == "ready"
 
 
-@pytest.mark.parametrize("source", ["empty", "git", "github"])
+@pytest.mark.parametrize("source", ["empty", "git", "github", "gitlab"])
 @pytest.mark.parametrize("fail", [False, True])
 def test_image_bootstrap_responses_satisfy_client_contract(
     image_agent: ModuleType,
-    client: agent.WorkspaceAgentClient,
-    responses: list[httpx.Response],
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
     source: str,
@@ -398,44 +414,98 @@ def test_image_bootstrap_responses_satisfy_client_contract(
 ) -> None:
     key = tmp_path / "key.pub"
     key.write_text("ssh-ed25519 PUBLIC\n")
-    authorized = tmp_path / "provider-ready"
+    authorized = tmp_path / "container/provider-authorized"
+    authorized.parent.mkdir()
     worker = image_agent.WorkspaceAgent(
         source,
         "/workspace/repo",
         "/workspace/repo",
         clone_url=None if source == "empty" else "git@example.com:owner/repo.git",
         deploy_public_key_path=key,
-        provider_ready_path=authorized,
+        provider_authorization_path=authorized,
     )
     states: list[str] = []
+    commands: list[list[str]] = []
     with TestClient(image_agent.create_app(worker)) as server:
 
+        def request(request: httpx.Request) -> httpx.Response:
+            response = server.request(request.method, request.url.path)
+            return httpx.Response(response.status_code, content=response.content)
+
+        monkeypatch.setattr(
+            httpx,
+            "HTTPTransport",
+            lambda **_kwargs: httpx.MockTransport(request),
+        )
+        client = agent.WorkspaceAgentClient(tmp_path / "agent.sock")
+
         def read_status() -> None:
-            response = server.get("/status")
-            assert response.status_code == 200
-            responses.append(httpx.Response(response.status_code, content=response.content))
             states.append(client.status().state)
 
-        def authorize(_interval: float) -> None:
-            read_status()
-            authorized.touch()
-
         def run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
+            commands.append(command)
             if fail:
                 raise RuntimeError("checkout failed")
             return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
 
-        worker._sleep = authorize
         monkeypatch.setattr(image_agent, "run_command", run)
         read_status()
-        worker.run_bootstrap()
+        with pytest.raises(agent.AgentError, match=r"failed \(409\)"):
+            client.authorize_provider()
+        if source in {"github", "gitlab"}:
+            thread = worker.start_bootstrap()
+            try:
+                client.wait_for("awaiting-provider", timeout=2)
+                read_status()
+                assert commands == []
+                client.authorize_provider()
+                thread.join(timeout=2)
+                assert not thread.is_alive()
+            finally:
+                worker._provider_authorized.set()
+                thread.join(timeout=2)
+        else:
+            worker.run_bootstrap()
         read_status()
+        if source in {"github", "gitlab"} and not fail:
+            client.authorize_provider()
+            client.authorize_provider()
+            assert len(commands) == 2
+        else:
+            with pytest.raises(agent.AgentError, match=r"failed \(409\)"):
+                client.authorize_provider()
+        if source in {"github", "gitlab"}:
+            restarted = image_agent.WorkspaceAgent(
+                source,
+                "/workspace/repo",
+                "/workspace/repo",
+                clone_url="git@example.com:owner/repo.git",
+                deploy_public_key_path=key,
+                provider_authorization_path=authorized,
+            )
+            thread = restarted.start_bootstrap()
+            try:
+                thread.join(timeout=2)
+                assert not thread.is_alive()
+                assert restarted.status().state == ("failed" if fail else "ready")
+            finally:
+                restarted._provider_authorized.set()
+                thread.join(timeout=2)
 
     assert states == [
         "starting",
-        *(["awaiting-provider"] if source == "github" else []),
+        *(["awaiting-provider"] if source in {"github", "gitlab"} else []),
         "failed" if fail else "ready",
     ]
+    replacement = image_agent.WorkspaceAgent(
+        source,
+        "/workspace/repo",
+        "/workspace/repo",
+        deploy_public_key_path=key,
+        provider_authorization_path=tmp_path / "replacement/provider-authorized",
+    )
+    with TestClient(image_agent.create_app(replacement)) as server:
+        assert server.post("/provider-ready").status_code == 409
 
 
 def test_image_git_and_error_responses_satisfy_client_contract(
@@ -468,3 +538,65 @@ def test_image_git_and_error_responses_satisfy_client_contract(
             "uncommitted": False,
             "detail": [],
         }
+
+
+@pytest.mark.parametrize(
+    "state", ["missing", "not-repository", "empty", "orphan", "detached", "dirty"]
+)
+def test_image_git_state_reads_actual_repository_state(
+    image_agent: ModuleType,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    state: str,
+) -> None:
+    checkout = tmp_path / "checkout"
+
+    def run(command: list[str], *, check: bool = True) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(command, check=check, capture_output=True, text=True)  # noqa: S603
+
+    if state != "missing":
+        checkout.mkdir()
+    if state not in {"missing", "not-repository"}:
+        run(["git", "init", "-q", str(checkout)])
+    if state in {"orphan", "detached"}:
+        run(
+            [
+                "git",
+                "-C",
+                str(checkout),
+                "-c",
+                "user.name=Test",
+                "-c",
+                "user.email=test@example.com",
+                "commit",
+                "--allow-empty",
+                "-qm",
+                "unpublished commit",
+            ]
+        )
+        if state == "orphan":
+            run(["git", "-C", str(checkout), "checkout", "--orphan", "new-branch"])
+        else:
+            run(["git", "-C", str(checkout), "checkout", "--detach"])
+            for ref in run(
+                ["git", "-C", str(checkout), "for-each-ref", "--format=%(refname)", "refs/heads"]
+            ).stdout.splitlines():
+                run(["git", "-C", str(checkout), "update-ref", "-d", ref])
+    if state == "dirty":
+        (checkout / "untracked.txt").write_text("local work\n")
+
+    worker = image_agent.WorkspaceAgent("git", str(checkout), str(checkout))
+    worker._set_state("ready")
+    monkeypatch.setattr(image_agent, "run_command", run)
+    with TestClient(image_agent.create_app(worker), raise_server_exceptions=False) as server:
+        response = server.get("/git-state")
+
+    if state in {"missing", "not-repository"}:
+        assert response.status_code == 500
+    else:
+        assert response.status_code == 200
+        result = response.json()
+        assert result["unpushed"] is (state in {"orphan", "detached"})
+        assert result["uncommitted"] is (state == "dirty")
+        if state in {"orphan", "detached"}:
+            assert result["detail"][0].endswith(" unpublished commit")

@@ -33,6 +33,7 @@ mkdir -p /run/s6/container_environment /run/service
 
 # WSL is always plaintext. The inherited sshd config exposes port 22 on all interfaces.
 printf 'false' >/run/s6/container_environment/CODESPACE_ENCRYPTED
+printf '/workspace.enc' >/run/s6/container_environment/CODESPACE_ENCRYPTED_PATH
 
 # Bring up s6-rc once s6-svscan is ready to accept control commands, which is
 # exactly the precondition s6-rc-init needs. Readiness is NOT the mere existence

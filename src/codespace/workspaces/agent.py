@@ -79,6 +79,11 @@ class WorkspaceAgentClient:
         except ValidationError as exc:
             raise AgentError("workspace agent returned an invalid Git state") from exc
 
+    def authorize_provider(self) -> None:
+        """Release checkout after deploy-key registration; repeating this is safe."""
+        if self._request("POST", "/provider-ready") is not None:
+            raise AgentError("workspace agent returned an invalid authorization response")
+
     @overload
     def wait_for(
         self, state: Literal["awaiting-provider"], *, timeout: float

@@ -2,8 +2,7 @@
 
 One OpenSSH ControlMaster is kept per host: the master process holds the Podman
 API socket forward; per-Workspace agent sockets are added with ``ssh -O forward``.
-Command execution and the SSH login probe reuse the same control socket, so a
-single base option set describes every SSH invocation.
+Host commands and Workspace tunnel proxies reuse the same control socket.
 """
 
 from __future__ import annotations
