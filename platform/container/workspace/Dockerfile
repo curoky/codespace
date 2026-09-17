@@ -151,6 +151,6 @@ RUN git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-play
 RUN sudo chown 5230:5230 /opt
 
 RUN --mount=type=bind,source=platform/container/workspace/tests,target=/opt/codespace/tests,ro \
-  python3 -B /opt/codespace/tests/test_image.py
+  /opt/uv/bin/python3 -B /opt/codespace/tests/test_image.py
 
 ENTRYPOINT ["/etc/s6/init/bin/init"]
