@@ -1,30 +1,42 @@
 # Copy to ~/.config/codespace/config.yaml and fill in private values.
 
 hosts:
-  server:
+  workstation:
     forward_environment: [HTTP_PROXY, HTTPS_PROXY, NO_PROXY]
     platform: linux/amd64
+    container:
+      devices: [/dev/fuse]
+      volumes:
+        - /etc/krb5.conf:/etc/krb5.conf:ro
+        - /run/podman/podman.sock:/run/podman/podman.sock
+
+  gpu-host:
+    forward_environment: [HOST_IP, HOST_IPV6]
+    platform: linux/amd64
+    container:
+      devices: [nvidia.com/gpu=all, /dev/fuse]
+      volumes:
+        - /etc/krb5.conf:/etc/krb5.conf:ro
+        - /opt/tmp:/opt/tmp
+        - /run/podman/podman.sock:/run/podman/podman.sock
 
 project_defaults:
   image: ghcr.io/curoky/codespace:workspace-debian13
-  tunnel_ports: [8005, 8007, 8008]
+  tunnel_ports: [8007, 8008]
   container:
+    network_mode: bridge
     environment:
       CODESPACE_ENCRYPTED_PATH: /workspace.enc
+      KRB5CCNAME: /tmp/krb5_ccache
     secrets:
-      - source: atuin_db_uri
-        mode: 0400
-      - source: github_action_token
-        uid: "5230"
-        gid: "5230"
-        mode: 0400
+      - { source: huggingface_token, mode: 0400 }
+      - { source: atuin_db_uri, mode: 0400 }
+      - { source: github_action_token, uid: "5230", gid: "5230", mode: 0400 }
     cap_add: [NET_RAW, SYS_ADMIN]
     security_opt: [disable, seccomp=unconfined]
     pids_limit: -1
     ulimits:
-      memlock:
-        soft: -1
-        hard: -1
+      memlock: { soft: -1, hard: -1 }
     volumes:
       - ${RESOURCE_DATA}/workspace:/workspace
       - ${RESOURCE_DATA}/upload:/upload
@@ -39,26 +51,56 @@ project_defaults:
       - ${RESOURCE_DATA}/cache/.trae-server/extensions:/home/x/.trae-server/extensions
       - ${RESOURCE_DATA}/cache/.trae-cn-server/bin:/home/x/.trae-cn-server/bin
       - ${RESOURCE_DATA}/cache/.trae-cn-server/extensions:/home/x/.trae-cn-server/extensions
-      - /etc/krb5.conf:/etc/krb5.conf:ro
 
 projects:
   codespace:
     description: Personal development platform
-    source:
-      type: github
-      repository: curoky/codespace
-      args: [--depth=1]
+    source: { type: github, repository: curoky/codespace }
     hosts:
-      server: {}
-    checkout_path: /workspace/codespace
-    open_path: /workspace/codespace
+      workstation: {}
+      gpu-host: {}
+    encrypted: true
+
+  learn-ml:
+    source: { type: github, repository: curoky/learn-ml }
+    hosts:
+      gpu-host: {}
+    encrypted: true
+
+  standalone-binaries:
+    source: { type: github, repository: curoky/standalone-binaries }
+    hosts:
+      gpu-host: {}
     encrypted: false
+
+  notes:
+    source: { type: gitlab, repository: my-namespace/notes }
+    hosts:
+      workstation: {}
+    encrypted: true
+
+  scratch:
+    source: { type: empty }
+    hosts:
+      gpu-host: {}
+    encrypted: true
+    open_path: /workspace
+
+  private-repo:
+    source: { type: git, url: "git@git.example.com:team/private-repo" }
+    hosts:
+      gpu-host: {}
+    encrypted: false
+    image: registry.example.com/base/dev-image:latest
+    container:
+      secrets: []
 
 services:
   support:
     image: ghcr.io/curoky/codespace:service-support
     hosts:
-      server: {}
+      workstation: {}
+      gpu-host: {}
     container:
       network_mode: bridge
       volumes:
@@ -67,41 +109,49 @@ services:
   vllm:
     image: ghcr.io/curoky/codespace:service-vllm
     hosts:
-      server: {}
+      gpu-host: {}
     container:
       network_mode: bridge
       ports:
         - { target: 8003, published: 8003, host_ip: 10.88.0.1 }
       ipc: host
+      pids_limit: -1
       devices: [nvidia.com/gpu=all]
       environment:
         HF_HOME: /root/.cache/huggingface
+        HF_TOKEN_PATH: /run/secrets/huggingface_token
         SERVE_HOST: 0.0.0.0
         SERVE_PORT: "8003"
       volumes:
         - ${RESOURCE_DATA}:/root/.cache/huggingface
+      secrets:
+        - { source: huggingface_token, mode: 0400 }
 
   sglang:
     image: ghcr.io/curoky/codespace:service-sglang
     hosts:
-      server: {}
+      gpu-host: {}
     container:
       network_mode: bridge
       ports:
         - { target: 8003, published: 8003, host_ip: 10.88.0.1 }
       ipc: host
+      pids_limit: -1
       devices: [nvidia.com/gpu=all]
       environment:
         HF_HOME: /root/.cache/huggingface
+        HF_TOKEN_PATH: /run/secrets/huggingface_token
         SERVE_HOST: 0.0.0.0
         SERVE_PORT: "8003"
       volumes:
         - ${RESOURCE_DATA}:/root/.cache/huggingface
+      secrets:
+        - { source: huggingface_token, mode: 0400 }
 
   lobehub:
     image: ghcr.io/curoky/codespace:service-lobehub
     hosts:
-      server: {}
+      gpu-host: {}
     container:
       network_mode: bridge
       ports:
@@ -116,7 +166,7 @@ services:
   chatbox:
     image: ghcr.io/curoky/codespace:service-chatbox
     hosts:
-      server: {}
+      gpu-host: {}
     container:
       network_mode: bridge
       ports:
@@ -124,5 +174,13 @@ services:
       environment:
         CHATBOX_API_UPSTREAM: http://10.88.0.1:8003
 
-tokens: {}
-secrets: {}
+# Fill in private values before use; keep real tokens and secrets out of version control.
+tokens:
+  github: github_pat_REPLACE_WITH_GITHUB_TOKEN
+  gitlab: glpat-REPLACE_WITH_GITLAB_TOKEN
+
+secrets:
+  codespace_workspace_key: REPLACE_WITH_WORKSPACE_ENCRYPTION_KEY
+  huggingface_token: hf_REPLACE_WITH_HUGGINGFACE_TOKEN
+  atuin_db_uri: postgres://user:REPLACE_WITH_PASSWORD@db.example.com:5432/postgres
+  github_action_token: github_pat_REPLACE_WITH_GITHUB_ACTION_TOKEN
