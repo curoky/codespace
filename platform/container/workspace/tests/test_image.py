@@ -12,6 +12,8 @@ from pathlib import Path
 
 BIN = Path("/opt/codespace/bin")
 HOME = Path("/home/x")
+S6_PROFILE = Path("/opt/bm/profile/s6")
+S6_BIN = S6_PROFILE / "bin"
 EXTENSION_TEMPLATE = Path("/opt/codespace/share/editor-extensions")
 SERVERS = (".vscode-server", ".trae-server", ".trae-cn-server")
 EDITOR_HOMES = (*SERVERS, ".trae", ".trae-cn")
@@ -48,7 +50,8 @@ class TestImageContract(unittest.TestCase):
 
     def test_critical_commands_start(self) -> None:
         commands = {
-            "python3": ("--version",),
+            # python3 resolves through the uv-managed prefix, not PATH.
+            "/opt/uv/bin/python3": ("--version",),
             "git": ("--version",),
             "ssh": ("-V",),
             "sudo": ("-V",),
@@ -57,7 +60,7 @@ class TestImageContract(unittest.TestCase):
         }
         for command, arguments in commands.items():
             with self.subTest(command=command):
-                executable = shutil.which(command)
+                executable = command if Path(command).is_absolute() else shutil.which(command)
                 self.assertIsNotNone(executable)
                 result = run(executable, *arguments)
                 self.assertTrue(result.stdout or result.stderr)
@@ -103,6 +106,7 @@ class TestImageContract(unittest.TestCase):
 
     def test_s6_database_contains_workspace_service_graph(self) -> None:
         database = Path("/etc/s6/db")
+        s6_rc_db = S6_BIN / "s6-rc-db"
         expected_services = {
             "atuin-daemon",
             "atuin-login",
@@ -122,16 +126,16 @@ class TestImageContract(unittest.TestCase):
             "workspace-init",
         }
 
-        services = set(run("s6-rc-db", "-c", database, "list", "all").stdout.splitlines())
+        services = set(run(s6_rc_db, "-c", database, "list", "all").stdout.splitlines())
         default_services = set(
-            run("s6-rc-db", "-c", database, "contents", "default").stdout.splitlines()
+            run(s6_rc_db, "-c", database, "contents", "default").stdout.splitlines()
         )
         sshd_dependencies = set(
-            run("s6-rc-db", "-c", database, "dependencies", "sshd").stdout.splitlines()
+            run(s6_rc_db, "-c", database, "dependencies", "sshd").stdout.splitlines()
         )
         agent_dependencies = set(
             run(
-                "s6-rc-db",
+                s6_rc_db,
                 "-c",
                 database,
                 "dependencies",
@@ -146,7 +150,7 @@ class TestImageContract(unittest.TestCase):
         # s6-rc-compile injects s6rc-oneshot-runner as an implicit dependency of
         # every oneshot service, so home-init is never dependency-free.
         self.assertEqual(
-            set(run("s6-rc-db", "-c", database, "dependencies", "home-init").stdout.splitlines()),
+            set(run(s6_rc_db, "-c", database, "dependencies", "home-init").stdout.splitlines()),
             {"s6rc-oneshot-runner"},
         )
 
@@ -167,8 +171,18 @@ class TestImageContract(unittest.TestCase):
             self.assertIn(setting, config)
         service = Path("/etc/s6/s6-rc.d/sshd")
         self.assertEqual((service / "notification-fd").read_text().strip(), "3")
-        self.assertIsNotNone(shutil.which("s6-notifyoncheck"))
-        self.assertIsNotNone(shutil.which("s6-tcpclient"))
+        self.assertIsNotNone(self.locate_s6_tool("s6-notifyoncheck"))
+        self.assertIsNotNone(self.locate_s6_tool("s6-tcpclient"))
+
+    @staticmethod
+    def locate_s6_tool(name: str) -> Path | None:
+        # s6 splits user commands into bin and internal helpers into libexec, so
+        # readiness tools may live in either directory of the merged profile.
+        for directory in (S6_PROFILE / "bin", S6_PROFILE / "libexec"):
+            candidate = directory / name
+            if candidate.is_file() and os.access(candidate, os.X_OK):
+                return candidate
+        return None
 
     def test_user_and_home_configuration(self) -> None:
         user = pwd.getpwnam("x")
