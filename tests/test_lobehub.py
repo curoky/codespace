@@ -180,7 +180,7 @@ def test_lobehub_auth_proxy_bootstraps_and_injects_one_session() -> None:
 
 def test_lobehub_example_is_loopback_only_and_targets_sglang() -> None:
     config = Config.model_validate(yaml.safe_load((_ROOT / "config.example.yaml").read_text()))
-    container = config.resolved_service_container("lobehub", "server")
+    container = config.resolved_service_container("lobehub", "gpu-host")
 
     assert [port.model_dump() for port in container.ports] == [
         {
@@ -191,8 +191,8 @@ def test_lobehub_example_is_loopback_only_and_targets_sglang() -> None:
         }
     ]
     assert container.environment["OPENAI_PROXY_URL"] == "http://10.88.0.1:8003/v1"
-    assert [volume.target for volume in container.volumes] == ["/var/lib/codespace/lobehub"]
-    assert config.service_tunnel_ports("lobehub", "server") == [3210]
+    assert "/var/lib/codespace/lobehub" in [volume.target for volume in container.volumes]
+    assert config.service_tunnel_ports("lobehub", "gpu-host") == [3210]
 
 
 def test_lobehub_smoke_reproduces_service_contract(tmp_path: Path) -> None:

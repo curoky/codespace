@@ -28,12 +28,12 @@ export PATH="$PATH:/usr/local/cuda/bin:/opt/nvidia/nsight-systems-cli/2026.3.1/b
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/cuda/lib64"
 
 # trae
-# —— 遥测三链路 ——
-export TRAECLI_TRACE_ENABLED=false          # trace 硬开关（resolve_traecli_trace_enabled 确认：env 优先级最高，完全覆盖配置）
-export TRAECLI_TRACE_INGEST_ENDPOINT="http://127.0.0.1:1"   # trace 端点导向黑洞
-export TRAECLI_METRICS_ENDPOINT="http://127.0.0.1:1"        # metrics 端点
-export TRAECLI_FILE_LOG_ENDPOINT="http://127.0.0.1:1"       # 本地文件日志上报端点
-# —— 反馈上报 ——
+# 遥测三链路
+export TRAECLI_TRACE_ENABLED=false                        # trace 硬开关（反编译确认，env 优先级最高）
+export TRAECLI_TRACE_INGEST_ENDPOINT="http://127.0.0.1:1" # trace 端点导向黑洞
+export TRAECLI_METRICS_ENDPOINT="http://127.0.0.1:1"      # metrics 端点
+export TRAECLI_FILE_LOG_ENDPOINT="http://127.0.0.1:1"     # 本地文件日志上报端点
+# 反馈上报
 export TRAE_ACTIVE_FEEDBACK_REPORT_ENDPOINT="http://127.0.0.1:1"
 export TRAEX_FEEDBACK_UPLOAD_BASE_URL="http://127.0.0.1:1"
 export TRAECLI_FEEDBACK_UPLOAD_BASE_URL="http://127.0.0.1:1"

@@ -99,29 +99,37 @@ def test_empty_source_rejects_git_args(config: Config) -> None:
 def test_example_config_loads() -> None:
     config = load_config(Path("config.example.yaml"))
 
-    assert list(config.projects) == ["codespace"]
-    assert config.projects["codespace"].source.args == ["--depth=1"]
+    assert list(config.projects) == [
+        "codespace",
+        "learn-ml",
+        "standalone-binaries",
+        "notes",
+        "scratch",
+        "private-repo",
+    ]
+    assert config.projects["codespace"].source.args == []
     assert list(config.services) == ["support", "vllm", "sglang", "lobehub", "chatbox"]
-    assert config.workspace_spec("codespace", "server", "default").id == (
-        "space:codespace/default@server"
+    assert config.workspace_spec("codespace", "workstation", "default").id == (
+        "space:codespace/default@workstation"
     )
-    workspace = config.workspace_spec("codespace", "server", "default")
+    workspace = config.workspace_spec("codespace", "workstation", "default")
     assert workspace.container.is_bridge
     assert "ATUIN_SYNC_ADDRESS" not in workspace.container.environment
     assert [
         (secret.source, secret.uid, secret.gid, secret.mode)
         for secret in workspace.container.secrets
     ] == [
+        ("huggingface_token", None, None, 0o400),
         ("atuin_db_uri", None, None, 0o400),
         ("github_action_token", "5230", "5230", 0o400),
     ]
-    support = config.service_spec("support", "server").container
+    support = config.service_spec("support", "gpu-host").container
     assert support.is_bridge
     assert not support.ports
     assert not support.secrets
     assert not support.environment
     for service in ("vllm", "sglang"):
-        spec = config.service_spec(service, "server")
+        spec = config.service_spec(service, "gpu-host")
         assert spec.container.is_bridge
         assert spec.container.ports
         assert all(port.host_ip == "10.88.0.1" for port in spec.container.ports)
