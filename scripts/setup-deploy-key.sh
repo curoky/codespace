@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# Create a repository-local deploy key and configure Git to use it.
-# Usage: setup-deploy-key.sh
-# Requires Bash 3.2 or newer, Git, OpenSSH, and a repository with a .git directory.
 
 set -euo pipefail
 

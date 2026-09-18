@@ -30,8 +30,6 @@ jobs:
         image:
           - base: 'debian:10'
             tag: 'debian10'
-          # - base: 'debian:11'
-          #   tag: 'debian11'
           - base: 'debian:12'
             tag: 'debian12'
           - base: 'debian:13'
@@ -197,7 +195,6 @@ jobs:
       matrix:
         tag:
           - debian10
-          # - debian11
           - debian12
           - debian13
           - ubuntu26.04

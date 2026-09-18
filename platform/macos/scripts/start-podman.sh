@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# Start a rootful Podman machine with the host development profile.
-# Usage: start-podman
-# Requires the Homebrew Podman managed by this platform.
 
 set -euo pipefail
 

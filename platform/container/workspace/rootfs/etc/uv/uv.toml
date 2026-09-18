@@ -1,4 +1,0 @@
-# System-level uv config (探索顺序里的 /etc/uv/uv.toml，最广覆盖)。
-# cache-dir 是 uv Settings 里唯一可写进配置文件的目录项；tool/python 的安装
-# 目录由 UV_* environment 固定，所有 uv 资产统一放在 /opt/uv。
-# cache-dir = "/opt/uv/cache"

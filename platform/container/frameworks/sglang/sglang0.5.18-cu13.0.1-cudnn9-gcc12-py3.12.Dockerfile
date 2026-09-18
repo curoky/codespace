@@ -1,15 +1,5 @@
-# SGLang built from source for 8x H100 (SM 9.0) against CUDA 13.0.
-#
-# 产出可直接 `import sglang` 的 framework image，不包含 s6 或 serving entrypoint。
-#
-# Upstream 依赖与 cu130 目标一致，无需 backend 归一化。
-#
+# --------------------------------- Builder ----------------------------------
 # CUDA 13 runtime Host 需要 driver >=580；driver 535 只能构建，不能运行。
-#
-# 装配决策：在 cuda(Ubuntu 24.04) devel stage 内安装（glibc 与 toolkit 匹配），
-# venv 再 COPY 进 debian:trixie-slim final。
-
-# ---- builder stage：Ubuntu 24.04 CUDA 13 devel ----
 ARG CUDA_DEVEL_IMAGE=docker.io/nvidia/cuda:13.0.1-cudnn-devel-ubuntu24.04
 ARG CUDA_HOME_DIR=/usr/local/cuda-13.0
 FROM ${CUDA_DEVEL_IMAGE} AS builder
@@ -22,11 +12,8 @@ RUN apt-get update -y \
        --slave /usr/bin/g++ g++ /usr/bin/g++-12 \
   && rm -rf /var/lib/apt/lists/*
 
-# 用 uv 官方 standalone 安装脚本装到 /opt/uv（不引入 binman，也无需 zstd）。
 RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/opt/uv sh
 
-# 源码构建 sglang 主包并装入独立 venv，随后按 cu130 索引强制重装 torch 三件套与 GPU
-# kernel（cu13 是 sglang v0.5.18 默认目标，依赖天然拉 cu13，无需清理）。
 ARG SGLANG_REF=v0.5.18
 ARG CUDA_TAG=cu130
 ARG TORCH_SPEC="torch==2.13.0 torchvision==0.28.0 torchaudio==2.11.0"
@@ -51,14 +38,13 @@ RUN set -eux; \
   rm -rf /opt/codespace/frameworks/src/sglang/.git /root/.cache/uv /root/.cache/pip /tmp/*; \
   "${FRAMEWORK_VENV}/bin/python" -c "import torch; assert torch.version.cuda.startswith('13'), torch.version.cuda"
 
-# 保守瘦身 toolkit：删静态库与编译期用不到的目录。
 RUN set -eux; \
   find "${CUDA_HOME_DIR}" -name '*.a' -delete; \
   rm -rf "${CUDA_HOME_DIR}"/doc "${CUDA_HOME_DIR}"/share "${CUDA_HOME_DIR}"/src \
          "${CUDA_HOME_DIR}"/compute-sanitizer "${CUDA_HOME_DIR}"/extras \
          "${CUDA_HOME_DIR}"/compat
 
-# ---- final stage：debian:trixie-slim ----
+# --------------------------------- Runtime ----------------------------------
 FROM docker.io/debian:trixie-slim
 ARG CUDA_HOME_DIR
 

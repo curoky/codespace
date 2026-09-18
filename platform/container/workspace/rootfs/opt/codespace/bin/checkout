@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# Clone a Git repository into one Workspace path.
-#
-# Usage: checkout <clone-url> <checkout-path> [git-clone-arg ...]
 
 set -euo pipefail
 

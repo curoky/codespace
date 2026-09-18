@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# Restart the local Codespace control plane in the background.
-# Usage: run-control-plane.sh
-# Requires Bash 3.2 or newer, uv, and standard ps/kill utilities.
 
 set -euo pipefail
 

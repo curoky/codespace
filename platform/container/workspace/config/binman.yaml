@@ -1,9 +1,3 @@
-# binman package manifest for the codespace Workspace image.
-#
-#   packages.link:   linked into the prefix root (/opt/bm/{bin,lib,...}).
-#   packages.unlink: installed into the store only, not linked into the root.
-#   profiles:        installed into the store and aggregated under
-#                    /opt/bm/profile/<name>/ via relative symlinks.
 prefix: /opt/bm
 packages:
   link:
@@ -13,7 +7,6 @@ packages:
     - radare2
     - rizin
 
-    # shell & terminal
     - zsh
     - zsh-plugins
     - starship
@@ -24,11 +17,9 @@ packages:
     - fzf
     - yazi
 
-    # editor
     - vim
     - vim-plugins
 
-    # file & text utilities
     - ripgrep
     - fd
     - bat
@@ -47,7 +38,6 @@ packages:
     - gettext
     - graphviz
 
-    # compression & archive
     - gzip
     - bzip2
     - xz
@@ -61,7 +51,6 @@ packages:
     - makeself
     - libarchive
 
-    # networking
     - curl
     - wget
     - rsync
@@ -75,7 +64,6 @@ packages:
     - rclone
     - openssh_gssapi
 
-    # crypto & security
     - openssl
     - krb5
     - gnupg
@@ -85,7 +73,6 @@ packages:
     - fuse3
     - gocryptfs
 
-    # system & process
     - sudo
     - procps
     - procs
@@ -101,7 +88,6 @@ packages:
     - supercronic
     - parallel
 
-    # version control
     - git
     - gh
     - git-absorb
@@ -109,7 +95,6 @@ packages:
     - git-lfs
     - lefthook
 
-    # build tools
     - cmake
     - ninja
     - gnumake
@@ -124,26 +109,21 @@ packages:
     - go-task
     - clang-tools-22
 
-    # language toolchains & package managers
     - uv
     - bazelisk
     - buildifier
 
-    # linters & formatters
     - ruff
     - shfmt
     - nixfmt
     - scc
     - cloc
 
-    # databases
     - sqlite
     - postgresql
 
-    # languages & debuggers
     - perl
 
-    # misc
     - nil
     - exiftool
     - podman5
@@ -171,7 +151,6 @@ profiles:
     - s6-dns
     - execline
 
-  # vscode go tools
   go:
     - gopls
     - delve
