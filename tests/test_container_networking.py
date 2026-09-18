@@ -55,10 +55,16 @@ def test_inference_entrypoint_uses_fixed_bridge_listener(tmp_path: Path, service
 
 
 def test_secret_entrypoint_uses_fixed_bridge_listener() -> None:
-    script = (_CONTAINER / "services/secret/rootfs/opt/secret/serve.sh").read_text()
+    dockerfile = (_CONTAINER / "services/secret/Dockerfile").read_text()
+    script_path = _CONTAINER / "services/secret/rootfs/opt/codespace/bin/serve-secret"
+    script = script_path.read_text()
     service = _CONTAINER / "services/secret/rootfs/etc/s6/s6-rc.d/serve"
     run = (service / "run").read_text()
 
+    assert os.access(script_path, os.X_OK)
+    assert "install -d -m 0700 /opt/secret" in dockerfile
+    assert "/opt/codespace/bin/serve-secret" in run
+    assert "/opt/secret/serve.sh" not in run
     assert '--addr "0.0.0.0:8080"' in script
     assert "SERVE_HOST" not in script
     assert "SERVE_PORT" not in script
@@ -85,9 +91,11 @@ def test_sglang_runtime_copies_binman_before_installing_uv() -> None:
     )
 
 
-def test_workspace_secret_mount_only_configures_gateway_url() -> None:
+def test_workspace_secret_mount_uses_shared_contract_path() -> None:
     path = _WORKSPACE_ROOT / "opt/codespace/bin/mount-secret"
     script = path.read_text()
+    dockerfile = (_CONTAINER / "workspace/Dockerfile").read_text()
+    app_env = (_WORKSPACE_ROOT / "etc/profile.d/app.sh").read_text()
 
     assert os.access(path, os.X_OK)
     assert "CODESPACE_SECRET_URL" in script
@@ -99,9 +107,20 @@ def test_workspace_secret_mount_only_configures_gateway_url() -> None:
         "RCLONE_CONFIG_SECRET_PASS",
         "secret_webdav_password",
         "${RCLONE",
+        "/mnt/secret",
+        "/tmp/krb5_ccache",
+        "mount --bind",
     ):
         assert name not in script
-    assert "readonly mount_point=/mnt/secret" in script
+    assert "RCLONE_CONFIG_SECRET_" not in script
+    assert 'export PATH="/opt/bm/store/rclone/bin:${PATH}"' in script
+    assert "readonly mount_point=" not in script
+    assert "readonly krb5_cache_" not in script
+    assert "rclone mount :webdav: /opt/secret" in script
+    assert '--webdav-url "${url}"' in script
+    assert "--webdav-vendor rclone" in script
+    assert "KRB5CCNAME" not in dockerfile
+    assert "export KRB5CCNAME=/opt/secret/krb5_ccache" in app_env
 
 
 @pytest.mark.parametrize(

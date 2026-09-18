@@ -24,7 +24,6 @@ project_defaults:
   container:
     environment:
       CODESPACE_ENCRYPTED_PATH: /workspace.enc
-      KRB5CCNAME: /tmp/krb5_ccache
       CODESPACE_SECRET_URL: http://10.88.0.1:8006
     secrets:
       - { source: huggingface_token, mode: 0400 }

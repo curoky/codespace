@@ -141,6 +141,7 @@ def test_example_config_loads() -> None:
     )
     workspace = config.workspace_spec("codespace", "workstation", "default")
     assert "ATUIN_SYNC_ADDRESS" not in workspace.container.environment
+    assert "KRB5CCNAME" not in workspace.container.environment
     assert [
         (secret.source, secret.uid, secret.gid, secret.mode)
         for secret in workspace.container.secrets
