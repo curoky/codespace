@@ -39,7 +39,7 @@ macOS 环境固定为 `/Users/x`，由 `platform/macos/` 管理。安装器声�
 binman、shell、IDE 与 SSH client 配置，并保持重复执行幂等：
 
 ```bash
-task platform:macos:install
+platform/macos/install.sh
 task sync
 ```
 
@@ -354,14 +354,15 @@ distribution filesystem。SSH 的 LAN 可达性由 Windows mirrored networking �
 NAT portproxy/firewall 负责，distribution keep-alive 也属于 Windows 配置，不属于
 Codespace 控制面。
 
-可用构建入口以 `task --list` 为准，常用入口包括：
+各 platform artifact 由所属目录的构建脚本或 Dockerfile 构建，例如：
 
 ```bash
-task platform:workspace
-task platform:s6
-task platform:<service>
-task platform:framework:<framework>
-task platform:wsl
+platform/container/workspace/build.sh
+platform/container/frameworks/<framework>/build.sh
+platform/wsl/build.sh
+docker build . --network=host \
+  --file platform/container/services/<service>/Dockerfile \
+  --tag ghcr.io/curoky/codespace:service-<service>
 ```
 
 ## Development
@@ -385,7 +386,7 @@ task check:full
 运行：
 
 ```bash
-task platform:workspace
+platform/container/workspace/build.sh
 ```
 
 修改 s6 base 时验证所有 Service leaf；修改共享 home 或 SSH trust material 时同时
