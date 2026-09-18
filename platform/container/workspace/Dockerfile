@@ -48,10 +48,7 @@ RUN apt-get update -y \
   && mkdir -p /opt/uv/bin \
   && ln -s "$(uv python find --managed-python 3.14)" /opt/uv/bin/python3 \
   && uv tool install licenseheaders \
-  && uv tool install copyparty \
-  && uv tool install dool \
   && uv tool install netron \
-  && uv tool install git-filter-repo \
   && uv tool install tensorboard --python 3.12 --with tensorboard-plugin-profile --with "setuptools==81.0.0" \
   && rm -rf /var/lib/apt/lists/*
 
@@ -75,7 +72,9 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
   && nix-channel --update \
   && nix-env -iA nixpkgs.ollama-cpu nixpkgs.lemminx nixpkgs.codex \
     nixpkgs.ghidra nixpkgs.markdownlint-cli2 nixpkgs.pnpm \
-    nixpkgs.prettier -p /nix/var/nix/profiles/default \
+    nixpkgs.prettier nixpkgs.mitmproxy \
+    nixpkgs.copyparty nixpkgs.dool nixpkgs.git-filter-repo \
+    -p /nix/var/nix/profiles/default \
   # setup java
   && nix-env -iA nixpkgs.maven -p /nix/var/nix/profiles/default \
   && nix-env -iA nixpkgs.jdk8_headless -p /nix/var/nix/profiles/jdk8 \
@@ -123,7 +122,6 @@ ENV PATH=/opt/bm/bin:${PATH}
 
 COPY --link --chown=5230:5230 --from=stage_sb /opt/bm /opt/bm
 COPY --link --chown=5230:5230 --from=stage_nix /nix /nix
-COPY --link --chown=5230:5230 --from=stage_nix /home/x/.nix-profile /home/x/.nix-profile
 COPY --link --chown=5230:5230 --from=stage_nix /home/x/.nix-defexpr /home/x/.nix-defexpr
 COPY --link --chown=5230:5230 --from=stage_nix /home/x/.nix-channels /home/x/.nix-channels
 COPY --link --chown=5230:5230 --from=stage_rust /opt/rust /opt/rust
@@ -148,6 +146,7 @@ RUN git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-play
   && HOME=/home/x bash /tmp/agent-playbook/install.sh \
   && rm -rf /tmp/agent-playbook
 
+RUN ln -s /nix/var/nix/profiles/default /home/x/.nix-profile
 RUN sudo chown 5230:5230 /opt
 
 RUN --mount=type=bind,source=platform/container/workspace/tests,target=/opt/codespace/tests,ro \

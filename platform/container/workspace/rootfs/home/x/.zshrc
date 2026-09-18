@@ -26,7 +26,7 @@ if [[ -r /run/s6/container_environment/HTTP_PROXY ]]; then
   unset proxy_url
 fi
 
-export PATH="$PATH:$HOME/.local/bin:$HOME/.nix-profile/bin"
+export PATH="$PATH:$HOME/.local/bin"
 
 fpath=(
   /opt/bm/share/zsh/site-functions
