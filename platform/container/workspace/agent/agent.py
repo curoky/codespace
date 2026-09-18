@@ -24,7 +24,7 @@ type AgentState = Literal["starting", "awaiting-provider", "ready", "failed"]
 
 SOCKET_PATH = Path("/run/codespace-control/agent.sock")
 PROVIDER_AUTHORIZATION_PATH = Path("/var/lib/codespace/provider-authorized")
-DEPLOY_PUBLIC_KEY_PATH = Path("/home/x/.ssh/repo_id_ed25519.pub")
+DEPLOY_PUBLIC_KEY_PATH = Path("/home/x/.ssh/git_deploy_key_ed25519.pub")
 CHECKOUT = "/opt/codespace/bin/checkout"
 
 CONTAINER_UID = 5230

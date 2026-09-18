@@ -366,8 +366,8 @@ class TestRuntimeHelpers(unittest.TestCase):
 
         run(BIN / "init-home")
 
-        private_key = HOME / ".ssh/repo_id_ed25519"
-        public_key = HOME / ".ssh/repo_id_ed25519.pub"
+        private_key = HOME / ".ssh/git_deploy_key_ed25519"
+        public_key = HOME / ".ssh/git_deploy_key_ed25519.pub"
         self.assertTrue(private_key.is_file())
         self.assertTrue(public_key.is_file())
         self.assertEqual(stat.S_IMODE(private_key.stat().st_mode), 0o600)

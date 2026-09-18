@@ -6,8 +6,8 @@ sudo install -d -o 5230 -g 5230 -m 0700 -- \
   /home/x/{.vscode-server,.trae,.trae-cn,.trae-server,.trae-cn-server}/{bin,extensions}
 
 # Preserve the provider-registered identity across restarts of this container.
-if [[ ! -f /home/x/.ssh/repo_id_ed25519 ]]; then
-  ssh-keygen -q -t ed25519 -N "" -C codespace -f /home/x/.ssh/repo_id_ed25519
+if [[ ! -f /home/x/.ssh/git_deploy_key_ed25519 ]]; then
+  ssh-keygen -q -t ed25519 -N "" -C codespace -f /home/x/.ssh/git_deploy_key_ed25519
 fi
 
 /opt/codespace/bin/seed-editor-extensions
