@@ -429,8 +429,23 @@ class _ContainerNotRunning(Exception):
 def wait_running(container: Container) -> None:
     try:
         _reload_until_running(container)
-    except _ContainerNotRunning as exc:
-        raise RuntimeError(str(exc)) from None
+    except _ContainerNotRunning:
+        container.reload()
+        state = container.attrs["State"]
+        details = [f"status={container.status}"]
+        if isinstance(state, dict):
+            exit_code = state.get("ExitCode")
+            if exit_code is not None:
+                details.append(f"exit_code={exit_code}")
+            if state.get("OOMKilled"):
+                details.append("oom_killed=true")
+            if error := state.get("Error"):
+                details.append(f"error={error}")
+        logs = container_logs(container).strip()
+        suffix = f": {logs}" if logs else ""
+        raise RuntimeError(
+            f"container {container.name} did not reach running state ({', '.join(details)}){suffix}"
+        ) from None
 
 
 @retry(

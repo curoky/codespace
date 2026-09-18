@@ -387,6 +387,30 @@ def test_container_logs_requests_bounded_tail() -> None:
     ]
 
 
+def test_wait_running_reports_exit_state_and_logs(monkeypatch: pytest.MonkeyPatch) -> None:
+    stopped = SimpleNamespace(
+        name="space-codespace-default",
+        status="exited",
+        attrs={"State": {"Status": "exited", "ExitCode": 127, "OOMKilled": False, "Error": ""}},
+        reload=lambda: None,
+        logs=lambda **_kwargs: iter([b"env: 'execlineb': No such file or directory\n"]),
+    )
+
+    def fail(_container: object) -> None:
+        raise container._ContainerNotRunning("not running")
+
+    monkeypatch.setattr(container, "_reload_until_running", fail)
+
+    with pytest.raises(
+        RuntimeError,
+        match=(
+            r"container space-codespace-default did not reach running state "
+            r"\(status=exited, exit_code=127\): env: 'execlineb': No such file or directory"
+        ),
+    ):
+        container.wait_running(stopped)  # type: ignore[arg-type]
+
+
 @pytest.mark.parametrize("exit_code", [0, 1, None])
 def test_remove_data_requires_zero_exit_and_always_removes_helper(
     monkeypatch: pytest.MonkeyPatch, exit_code: int | None
