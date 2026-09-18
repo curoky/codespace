@@ -49,6 +49,7 @@ class TestImageContract(unittest.TestCase):
         self.assertEqual(result.stdout.splitlines(), ["/git-state", "/provider-ready", "/status"])
 
     def test_critical_commands_start(self) -> None:
+        self.assertEqual(shutil.which("execlineb"), str(S6_BIN / "execlineb"))
         commands = {
             # python3 resolves through the uv-managed prefix, not PATH.
             "/opt/uv/bin/python3": ("--version",),
