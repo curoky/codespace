@@ -148,7 +148,6 @@ def test_example_config_loads() -> None:
         ("huggingface_token", None, None, 0o400),
         ("atuin_db_uri", None, None, 0o400),
         ("github_action_token", "5230", "5230", 0o400),
-        ("secret_webdav_password", "5230", "5230", 0o400),
     ]
     support = config.service_spec("support", "gpu-host").container
     assert not support.ports
@@ -160,8 +159,8 @@ def test_example_config_loads() -> None:
         (8080, 8006, "10.88.0.1")
     ]
     assert not secret.environment
-    assert [item.source for item in secret.secrets] == ["secret_webdav_password"]
-    assert {"/srv/keys", "/srv/notes"} <= {volume.target for volume in secret.volumes}
+    assert not secret.secrets
+    assert all(not volume.target.startswith("/opt/secret") for volume in secret.volumes)
     for service in ("secret", "vllm", "sglang", "lobehub", "chatbox"):
         for host in config.services[service].hosts:
             assert "/run/podman/podman.sock" not in {

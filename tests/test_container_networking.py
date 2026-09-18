@@ -65,13 +65,15 @@ def test_secret_entrypoint_uses_fixed_bridge_listener() -> None:
     assert "SERVE_ROOT" not in script
     assert "SERVE_USER" not in script
     assert "SERVE_PASS" not in script
-    assert "readonly root=/srv" in script
-    assert "readonly pass_file=/run/secrets/secret_webdav_password" in script
+    assert "serve webdav /opt/secret" in script
+    assert "--user" not in script
+    assert "--pass" not in script
+    assert "secret_webdav_password" not in script
     assert (service / "notification-fd").read_text().strip() == "3"
     assert (service / "timeout-up").read_text().strip() == "35000"
     assert "s6-notifyoncheck" in run
-    assert "--user" in run
-    assert "secret_webdav_password" in run
+    assert "--user" not in run
+    assert "secret_webdav_password" not in run
     assert "http://127.0.0.1:8080/" in run
 
 
@@ -93,11 +95,13 @@ def test_workspace_secret_mount_only_configures_gateway_url() -> None:
         "CODESPACE_SECRET_MOUNT",
         "CODESPACE_SECRET_USER",
         "CODESPACE_SECRET_PASS",
+        "RCLONE_CONFIG_SECRET_USER",
+        "RCLONE_CONFIG_SECRET_PASS",
+        "secret_webdav_password",
         "${RCLONE",
     ):
         assert name not in script
     assert "readonly mount_point=/mnt/secret" in script
-    assert "RCLONE_CONFIG_SECRET_USER=codespace" in script
 
 
 @pytest.mark.parametrize(
