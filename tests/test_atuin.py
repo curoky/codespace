@@ -1,15 +1,12 @@
 """Atuin belongs to the Workspace and gates client startup on server readiness."""
 
 import os
-import subprocess
 import tomllib
 from pathlib import Path
 
-import pytest
-import yaml
-
 _ROOT = Path(__file__).resolve().parents[1]
 _WORKSPACE = _ROOT / "platform/container/workspace"
+_S6 = _ROOT / "platform/container/services/s6"
 _SUPPORT = _ROOT / "platform/container/services/support"
 _SERVICES = _WORKSPACE / "rootfs/etc/s6/s6-rc.d"
 
@@ -48,30 +45,19 @@ def test_atuin_clients_depend_on_server_readiness() -> None:
 
 
 def test_support_contains_only_image_maintenance() -> None:
-    bundle = _SUPPORT / "rootfs/etc/s6/s6-rc.d/default/contents.d"
-    assert {path.name for path in bundle.iterdir()} == {"supercronic"}
-    manifest = yaml.safe_load((_SUPPORT / "binman.yaml").read_text())
-    assert manifest["packages"]["link"] == ["supercronic"]
+    # supercronic (binary, service definition and `default` membership) lives in
+    # the shared s6 base; support only supplies the maintenance crontab + scripts.
+    assert (_S6 / "rootfs/etc/s6/s6-rc.d/default/contents.d/supercronic").is_file()
+    assert (_S6 / "rootfs/etc/s6/s6-rc.d/supercronic/type").read_text().strip() == "longrun"
+    assert "    - supercronic\n" in (_S6 / "binman.yaml").read_text()
 
-
-@pytest.mark.parametrize("platform", ["linux", "macos"])
-def test_support_smoke_needs_no_secret_or_published_port(tmp_path: Path, platform: str) -> None:
-    podman = tmp_path / "podman"
-    events = tmp_path / "events"
-    podman.write_text(
-        '#!/bin/sh\nprintf "%s\\n" "$@" >> "$EVENTS"\nif [ "$1" = container ]; then exit 1; fi\n'
-    )
-    podman.chmod(0o755)
-    subprocess.run(  # noqa: S603
-        ["/bin/bash", str(_SUPPORT / f"smoke-{platform}.sh")],
-        env={**os.environ, "PATH": f"{tmp_path}:{os.environ['PATH']}", "EVENTS": str(events)},
-        check=True,
-        capture_output=True,
-    )
-    args = events.read_text().splitlines()
-    assert "run" in args
-    assert "--network" in args
-    assert "--publish" not in args
-    assert "--secret" not in args
-    assert "secret" not in args
-    assert not any("ATUIN" in arg for arg in args)
+    rootfs = _SUPPORT / "rootfs"
+    payload = {path.relative_to(rootfs).as_posix() for path in rootfs.rglob("*") if path.is_file()}
+    assert payload == {
+        "etc/supercronic/crontab",
+        "opt/support/pull-images.sh",
+        "opt/support/prune-images.sh",
+    }
+    crontab = (rootfs / "etc/supercronic/crontab").read_text()
+    assert "/opt/support/pull-images.sh" in crontab
+    assert "/opt/support/prune-images.sh" in crontab

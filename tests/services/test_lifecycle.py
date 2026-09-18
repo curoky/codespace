@@ -142,15 +142,14 @@ def test_logs_reads_podman_output(
     assert calls == [running]
 
 
-def test_tunnel_forwards_configured_loopback_port(
+def test_tunnel_forwards_configured_gateway_port(
     manager: ControlPlane,
     config: Config,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     data = config.model_dump()
     data["services"]["support"]["container"] = {
-        "network_mode": "bridge",
-        "ports": [{"target": 3210, "published": 3210, "host_ip": "127.0.0.1"}],
+        "ports": [{"target": 3210, "published": 3210, "host_ip": "10.88.0.1"}],
     }
     manager.config = Config.model_validate(data)
     running = SimpleNamespace(
@@ -168,6 +167,7 @@ def test_tunnel_forwards_configured_loopback_port(
             {
                 "port": 3210,
                 "local_port": 3210,
+                "remote_host": "10.88.0.1",
                 "options": [],
                 "connection_id": "deployed-container",
             },
@@ -184,8 +184,7 @@ def test_tunnel_rejects_unconfigured_or_stopped_service(
 
     data = manager.config.model_dump()
     data["services"]["support"]["container"] = {
-        "network_mode": "bridge",
-        "ports": [{"target": 3210, "published": 3210, "host_ip": "127.0.0.1"}],
+        "ports": [{"target": 3210, "published": 3210, "host_ip": "10.88.0.1"}],
     }
     manager.config = Config.model_validate(data)
     running = SimpleNamespace(

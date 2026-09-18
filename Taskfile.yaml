@@ -117,30 +117,58 @@ tasks:
     cmds:
       - platform/container/workspace/build.sh {{.CLI_ARGS}}
 
+  platform:s6:
+    desc: 构建 s6 base Service image
+    cmds:
+      - task: platform:service
+        vars: { SERVICE: s6 }
+
   platform:support:
     desc: 构建 support Service image
     cmds:
-      - platform/container/services/support/build.sh {{.CLI_ARGS}}
+      - task: platform:service
+        vars: { SERVICE: support }
+
+  platform:secret:
+    desc: 构建 secret WebDAV Service image
+    cmds:
+      - task: platform:service
+        vars: { SERVICE: secret }
 
   platform:vllm:
     desc: 构建 vLLM Service image
     cmds:
-      - platform/container/services/vllm/build.sh {{.CLI_ARGS}}
+      - task: platform:service
+        vars: { SERVICE: vllm }
 
   platform:sglang:
     desc: 构建 SGLang Service image
     cmds:
-      - platform/container/services/sglang/build.sh {{.CLI_ARGS}}
+      - task: platform:service
+        vars: { SERVICE: sglang }
 
   platform:lobehub:
     desc: 构建 LobeHub Service image
     cmds:
-      - platform/container/services/lobehub/build.sh {{.CLI_ARGS}}
+      - task: platform:service
+        vars: { SERVICE: lobehub }
 
   platform:chatbox:
     desc: 构建 Chatbox Service image
     cmds:
-      - platform/container/services/chatbox/build.sh {{.CLI_ARGS}}
+      - task: platform:service
+        vars: { SERVICE: chatbox }
+
+  platform:service:
+    internal: true
+    requires:
+      vars: [SERVICE]
+    cmds:
+      - >-
+        docker build . --network=host
+        --file platform/container/services/{{.SERVICE}}/Dockerfile
+        --tag ghcr.io/curoky/codespace:service-{{.SERVICE}}
+        {{.CLI_ARGS}}
 
   platform:framework:pytorch:
     desc: 构建 PyTorch framework image

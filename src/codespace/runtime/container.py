@@ -225,13 +225,12 @@ type ContainerPorts = Annotated[list[PortSpec], AfterValidator(_unique_ports)]
 
 
 class ContainerSpec(BaseModel):
-    """Resolved placement with concrete collections and an explicit network mode."""
+    """Resolved placement for a bridge-mode container."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
     cap_add: UniqueContainerOptions = Field(default_factory=list)
     security_opt: UniqueContainerOptions = Field(default_factory=list)
-    network_mode: Literal["host", "bridge"]
     ipc: ComposeNonBlankString | None = None
     pids_limit: StrictInt | None = None
     ulimits: dict[UlimitName, UlimitSpec] = Field(default_factory=dict)
@@ -241,16 +240,6 @@ class ContainerSpec(BaseModel):
     devices: list[ComposeNonBlankString] = Field(default_factory=list)
     ports: ContainerPorts = Field(default_factory=list)
     shm_size: ComposeNonBlankString | None = None
-
-    @model_validator(mode="after")
-    def _validate_network(self) -> Self:
-        if self.ports and not self.is_bridge:
-            raise ValueError("ports may be published only in bridge mode")
-        return self
-
-    @property
-    def is_bridge(self) -> bool:
-        return self.network_mode == "bridge"
 
 
 def create_container(
@@ -272,7 +261,7 @@ def create_container(
     }
     options: dict[str, Any] = {
         "name": name,
-        "network_mode": spec.network_mode,
+        "network_mode": "bridge",
         "cap_add": spec.cap_add,
         "security_opt": spec.security_opt,
         "ulimits": [

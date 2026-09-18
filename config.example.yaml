@@ -1,16 +1,15 @@
-# Copy to ~/.config/codespace/config.yaml and fill in private values.
-
 hosts:
   workstation:
+    bridge_gateway: 10.88.0.1
     forward_environment: [HTTP_PROXY, HTTPS_PROXY, NO_PROXY]
     platform: linux/amd64
     container:
       devices: [/dev/fuse]
       volumes:
         - /etc/krb5.conf:/etc/krb5.conf:ro
-        - /run/podman/podman.sock:/run/podman/podman.sock
 
   gpu-host:
+    bridge_gateway: 10.88.0.1
     forward_environment: [HOST_IP, HOST_IPV6]
     platform: linux/amd64
     container:
@@ -18,20 +17,20 @@ hosts:
       volumes:
         - /etc/krb5.conf:/etc/krb5.conf:ro
         - /opt/tmp:/opt/tmp
-        - /run/podman/podman.sock:/run/podman/podman.sock
 
 project_defaults:
   image: ghcr.io/curoky/codespace:workspace-debian13
   tunnel_ports: [8007, 8008]
   container:
-    network_mode: bridge
     environment:
       CODESPACE_ENCRYPTED_PATH: /workspace.enc
       KRB5CCNAME: /tmp/krb5_ccache
+      CODESPACE_SECRET_URL: http://10.88.0.1:8006
     secrets:
       - { source: huggingface_token, mode: 0400 }
       - { source: atuin_db_uri, mode: 0400 }
       - { source: github_action_token, uid: "5230", gid: "5230", mode: 0400 }
+      - { source: secret_webdav_password, uid: "5230", gid: "5230", mode: 0400 }
     cap_add: [NET_RAW, SYS_ADMIN]
     security_opt: [disable, seccomp=unconfined]
     pids_limit: -1
@@ -102,26 +101,36 @@ services:
       workstation: {}
       gpu-host: {}
     container:
-      network_mode: bridge
       volumes:
         - /run/podman/podman.sock:/run/podman/podman.sock
+
+  secret:
+    image: ghcr.io/curoky/codespace:service-secret
+    hosts:
+      workstation: {}
+      gpu-host: {}
+    container:
+      ports:
+        - { target: 8080, published: 8006, host_ip: 10.88.0.1 }
+      secrets:
+        - { source: secret_webdav_password, mode: 0400 }
+      volumes:
+        - /home/x/vault/keys:/srv/keys:ro
+        - /home/x/vault/notes:/srv/notes:ro
 
   vllm:
     image: ghcr.io/curoky/codespace:service-vllm
     hosts:
       gpu-host: {}
     container:
-      network_mode: bridge
       ports:
-        - { target: 8003, published: 8003, host_ip: 10.88.0.1 }
+        - { target: 8080, published: 8003, host_ip: 10.88.0.1 }
       ipc: host
       pids_limit: -1
       devices: [nvidia.com/gpu=all]
       environment:
         HF_HOME: /root/.cache/huggingface
         HF_TOKEN_PATH: /run/secrets/huggingface_token
-        SERVE_HOST: 0.0.0.0
-        SERVE_PORT: "8003"
       volumes:
         - ${RESOURCE_DATA}:/root/.cache/huggingface
       secrets:
@@ -132,17 +141,14 @@ services:
     hosts:
       gpu-host: {}
     container:
-      network_mode: bridge
       ports:
-        - { target: 8003, published: 8003, host_ip: 10.88.0.1 }
+        - { target: 8080, published: 8003, host_ip: 10.88.0.1 }
       ipc: host
       pids_limit: -1
       devices: [nvidia.com/gpu=all]
       environment:
         HF_HOME: /root/.cache/huggingface
         HF_TOKEN_PATH: /run/secrets/huggingface_token
-        SERVE_HOST: 0.0.0.0
-        SERVE_PORT: "8003"
       volumes:
         - ${RESOURCE_DATA}:/root/.cache/huggingface
       secrets:
@@ -153,11 +159,9 @@ services:
     hosts:
       gpu-host: {}
     container:
-      network_mode: bridge
       ports:
-        - { target: 3210, published: 3210, host_ip: 127.0.0.1 }
+        - { target: 8080, published: 3210, host_ip: 10.88.0.1 }
       environment:
-        LOBEHUB_HOST: 0.0.0.0
         APP_URL: http://localhost:3210
         OPENAI_PROXY_URL: http://10.88.0.1:8003/v1
       volumes:
@@ -168,13 +172,11 @@ services:
     hosts:
       gpu-host: {}
     container:
-      network_mode: bridge
       ports:
-        - { target: 3212, published: 3212, host_ip: 127.0.0.1 }
+        - { target: 8080, published: 3212, host_ip: 10.88.0.1 }
       environment:
         CHATBOX_API_UPSTREAM: http://10.88.0.1:8003
 
-# Fill in private values before use; keep real tokens and secrets out of version control.
 tokens:
   github: github_pat_REPLACE_WITH_GITHUB_TOKEN
   gitlab: glpat-REPLACE_WITH_GITLAB_TOKEN
@@ -184,3 +186,4 @@ secrets:
   huggingface_token: hf_REPLACE_WITH_HUGGINGFACE_TOKEN
   atuin_db_uri: postgres://user:REPLACE_WITH_PASSWORD@db.example.com:5432/postgres
   github_action_token: github_pat_REPLACE_WITH_GITHUB_ACTION_TOKEN
+  secret_webdav_password: REPLACE_WITH_SECRET_WEBDAV_PASSWORD

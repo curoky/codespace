@@ -3,14 +3,29 @@
 const http = require('node:http');
 
 const backendHost = '127.0.0.1';
-const backendPort = Number.parseInt(process.env.LOBEHUB_INTERNAL_PORT || '3211', 10);
-const listenHost = process.env.LOBEHUB_HOST || '0.0.0.0';
-const listenPort = Number.parseInt(process.env.LOBEHUB_PROXY_PORT || '3210', 10);
-const appUrl = new URL(process.env.APP_URL || `http://localhost:${listenPort}`);
+const backendPort = 8081;
+const listenHost = '0.0.0.0';
+const listenPort = 8080;
+const externalUrl = process.env.APP_URL;
 const email = process.env.LOBEHUB_AUTO_AUTH_EMAIL;
 const password = process.env.LOBEHUB_AUTO_AUTH_PASSWORD;
 const cookiePrefix = process.env.AUTH_COOKIE_PREFIX || 'codespace-lobehub';
 const refreshIntervalMs = 24 * 60 * 60 * 1000;
+
+if (!externalUrl) {
+  throw new Error('APP_URL is required');
+}
+const appUrl = new URL(externalUrl);
+if (
+  !['http:', 'https:'].includes(appUrl.protocol) ||
+  appUrl.username ||
+  appUrl.password ||
+  appUrl.pathname !== '/' ||
+  appUrl.search ||
+  appUrl.hash
+) {
+  throw new Error('APP_URL must be an HTTP(S) origin without credentials, path, query, or fragment');
+}
 
 if (!email || !password) {
   throw new Error('LOBEHUB_AUTO_AUTH_EMAIL and LOBEHUB_AUTO_AUTH_PASSWORD are required');

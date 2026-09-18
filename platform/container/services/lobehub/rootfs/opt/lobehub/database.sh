@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-pgdata="${PGDATA:-/var/lib/codespace/lobehub/postgresql}"
+readonly pgdata=/var/lib/codespace/lobehub/postgresql
 
 install -d -m 0700 -o postgres -g postgres "${pgdata}"
 install -d -m 2775 -o postgres -g postgres /run/postgresql

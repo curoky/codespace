@@ -1,9 +1,5 @@
 prefix: /opt/bm
 
-packages:
-  link:
-    - supercronic
-
 profiles:
   s6:
     - s6
@@ -12,3 +8,5 @@ profiles:
     - s6-linux-utils
     - s6-portable-utils
     - execline
+    - supercronic
+    - gdu

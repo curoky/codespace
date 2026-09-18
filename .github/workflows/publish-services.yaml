@@ -1,0 +1,83 @@
+name: Publish service images
+
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-services.yaml'
+      - 'platform/container/services/**'
+      - 'platform/container/workspace/rootfs/etc/s6/skel/**'
+      - 'platform/container/workspace/scripts/install-s6.sh'
+  schedule:
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+
+jobs:
+  base:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v4
+
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: platform/container/services/s6/Dockerfile
+          push: true
+          provenance: false
+          platforms: linux/amd64,linux/arm64
+          no-cache: ${{ github.event_name == 'schedule' }}
+          tags: ghcr.io/curoky/codespace:service-s6
+
+  images:
+    name: images (${{ matrix.service }})
+    needs: base
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: secret
+            platforms: linux/amd64,linux/arm64
+          - service: support
+            platforms: linux/amd64,linux/arm64
+          - service: vllm
+            platforms: linux/amd64
+          - service: sglang
+            platforms: linux/amd64
+          - service: lobehub
+            platforms: linux/amd64
+          - service: chatbox
+            platforms: linux/amd64
+    steps:
+      - uses: actions/checkout@v5
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v4
+
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: platform/container/services/${{ matrix.service }}/Dockerfile
+          push: true
+          provenance: false
+          platforms: ${{ matrix.platforms }}
+          no-cache: ${{ github.event_name == 'schedule' }}
+          tags: ghcr.io/curoky/codespace:service-${{ matrix.service }}

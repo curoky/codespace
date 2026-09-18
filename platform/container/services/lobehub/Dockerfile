@@ -1,9 +1,15 @@
+# ------------------------------- Source images ------------------------------
 FROM docker.io/lobehub/lobehub:2.2.17 AS lobehub
 FROM docker.io/library/node:24.21.0-bookworm-slim AS node
+
+# -------------------------------- s6 assets ---------------------------------
+ARG S6_BASE_IMAGE=ghcr.io/curoky/codespace:service-s6
+FROM ${S6_BASE_IMAGE} AS s6
+
+# --------------------------------- Runtime ----------------------------------
 FROM docker.io/paradedb/paradedb:0.25.9-pg17
 
-# LobeHub's official runtime is a scratch image. Reuse its prebuilt application
-# while keeping ParadeDB's PostgreSQL 17, pg_search, and pgvector installation.
+# LobeHub publishes a scratch runtime, so its application is copied into ParadeDB.
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends proxychains4 \
   && rm -rf /var/lib/apt/lists/* \
@@ -14,10 +20,7 @@ RUN apt-get update -y \
 COPY --from=node /usr/local/bin/node /bin/node
 COPY --from=lobehub --chown=nextjs:nodejs /app /app
 
-COPY platform/container/services/lobehub/binman.yaml /tmp/binman.yaml
-RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
-    | bash -s -- --prefix /opt/bm/bin \
-  && /opt/bm/bin/bm sync /tmp/binman.yaml
+COPY --from=s6 /opt/bm /opt/bm
 
 ENV PATH="/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:/usr/lib/postgresql/17/bin:$PATH" \
     NODE_ENV=production \
@@ -25,22 +28,16 @@ ENV PATH="/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:/usr/lib
     SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt \
     MIDDLEWARE_REWRITE_THROUGH_LOCAL=1 \
     DATABASE_DRIVER=node \
-    PGDATA=/var/lib/codespace/lobehub/postgresql \
-    LOBEHUB_HOST=0.0.0.0 \
-    LOBEHUB_INTERNAL_PORT=3211 \
-    APP_URL=http://localhost:3210 \
     AUTH_COOKIE_PREFIX=codespace-lobehub \
     ENABLED_OPENAI=1 \
     OPENAI_API_KEY=local \
     OPENAI_PROXY_URL=http://10.89.0.1:8003/v1 \
     OPENAI_MODEL_LIST="-all,+Qwen/Qwen3.8-Flash-Next-FP8=Qwen3.8 Flash Next FP8"
 
-COPY platform/container/workspace/rootfs/etc/s6/skel/ /etc/s6/skel/
+COPY --from=s6 /etc/s6/skel/ /etc/s6/skel/
 COPY platform/container/services/lobehub/rootfs/ /
 RUN chmod +x /opt/lobehub/*.sh
-COPY platform/container/workspace/scripts/install-s6.sh /tmp/install-s6.sh
+COPY --from=s6 /etc/s6/install-s6.sh /tmp/install-s6.sh
 RUN /tmp/install-s6.sh
-
-EXPOSE 3210/tcp
 
 ENTRYPOINT ["/etc/s6/init/bin/init"]

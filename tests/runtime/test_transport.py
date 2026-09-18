@@ -359,13 +359,85 @@ def test_tcp_forward_can_preserve_remote_port_locally(tmp_path: Path) -> None:
             "home",
             "home",
             port=3210,
+            remote_host="10.88.0.1",
             local_port=3210,
             options=[],
             connection_id="service-container",
         )
 
         assert local_port == 3210
-        assert commands[0][-3:] == ["-L", "127.0.0.1:3210:127.0.0.1:3210", "home"]
+        assert commands[0][-3:] == ["-L", "127.0.0.1:3210:10.88.0.1:3210", "home"]
+    finally:
+        transport.close()
+
+
+def test_tcp_forward_replaces_conflicting_local_listener(tmp_path: Path) -> None:
+    commands: list[list[str]] = []
+    processes: list[FakeProcess] = []
+    transport = PodmanTransport(
+        {"home", "other"},
+        runtime_parent=tmp_path,
+        process_factory=_master_factory(processes, commands),
+    )
+
+    try:
+        transport.forward_tcp(
+            "home",
+            "home",
+            port=3210,
+            remote_host="10.88.0.1",
+            local_port=3210,
+            options=[],
+            connection_id="home-service",
+        )
+        first_control = next(
+            Path(value.split("=", 1)[1])
+            for value in commands[0]
+            if value.startswith("ControlPath=")
+        )
+
+        transport.forward_tcp(
+            "other",
+            "other",
+            port=3210,
+            remote_host="10.89.0.1",
+            local_port=3210,
+            options=[],
+            connection_id="other-service",
+        )
+
+        assert len(processes) == 2
+        assert processes[0].terminated is True
+        assert processes[1].terminated is False
+        assert not first_control.exists()
+        assert commands[1][-3:] == ["-L", "127.0.0.1:3210:10.89.0.1:3210", "other"]
+    finally:
+        transport.close()
+
+
+def test_tcp_forward_brackets_remote_ipv6_address(tmp_path: Path) -> None:
+    commands: list[list[str]] = []
+    transport = PodmanTransport(
+        {"home"},
+        runtime_parent=tmp_path,
+        process_factory=_master_factory([], commands),
+    )
+
+    try:
+        local_port = transport.forward_tcp(
+            "home",
+            "home",
+            port=8080,
+            remote_host="fd00::1",
+            options=[],
+            connection_id="service-container",
+        )
+
+        assert commands[0][-3:] == [
+            "-L",
+            f"127.0.0.1:{local_port}:[fd00::1]:8080",
+            "home",
+        ]
     finally:
         transport.close()
 

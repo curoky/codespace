@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import re
+from ipaddress import ip_address
 from pathlib import Path, PurePosixPath
-from typing import Annotated, Literal, cast
+from typing import Annotated, cast
 
 import yaml
 from pydantic import (
@@ -88,10 +89,18 @@ def _unique_ports(ports: list[int]) -> list[int]:
     return ports
 
 
+def _bridge_gateway(value: str) -> str:
+    address = ip_address(value)
+    if address.is_loopback or address.is_unspecified:
+        raise ValueError("must be a Podman bridge gateway address")
+    return str(address)
+
+
 type EnvironmentName = Annotated[str, AfterValidator(_environment_name)]
 type TunnelPorts = Annotated[
     list[Annotated[int, Field(strict=True, ge=1, le=65535)]], AfterValidator(_unique_ports)
 ]
+type BridgeGateway = Annotated[str, AfterValidator(_bridge_gateway)]
 
 
 class FrozenModel(BaseModel):
@@ -103,7 +112,6 @@ class ContainerLayer(FrozenModel):
 
     cap_add: UniqueContainerOptions | None = None
     security_opt: UniqueContainerOptions | None = None
-    network_mode: Literal["host", "bridge"] | None = None
     ipc: ComposeNonBlankString | None = None
     pids_limit: StrictInt | None = None
     ulimits: dict[UlimitName, UlimitSpec] | None = None
@@ -149,6 +157,7 @@ def _merge_container_layers(*layers: ContainerLayer | None) -> dict[str, object]
 class HostConfig(FrozenModel):
     """Placement settings for one SSH Host."""
 
+    bridge_gateway: BridgeGateway
     forward_environment: list[EnvironmentName] = Field(default_factory=list)
     platform: ImagePlatform | None = None
     container: ContainerLayer | None = None
@@ -241,6 +250,8 @@ class Config(FrozenModel):
                 if host not in self.hosts:
                     raise ValueError(f"service {service_id!r} references unknown host {host!r}")
                 self._validate_service_container(
+                    service_id,
+                    self.hosts[host].bridge_gateway,
                     self.resolved_service_container(service_id, host),
                 )
         return self
@@ -285,8 +296,16 @@ class Config(FrozenModel):
         return [
             port.published
             for port in self.resolved_service_container(service, host).ports
-            if port.protocol == "tcp" and port.host_ip == "127.0.0.1"
+            if port.protocol == "tcp"
         ]
+
+    def service_tunnel_host(self, service: str, host: str, published_port: int) -> str:
+        for port in self.resolved_service_container(service, host).ports:
+            if port.protocol == "tcp" and port.published == published_port:
+                return port.host_ip
+        raise ResourceNotFound(
+            f"tunnel port {published_port} is not configured for service {service!r}"
+        )
 
     def workspace_spec(self, project: str, host: str, workspace: str) -> WorkspaceSpec:
         configured = self.projects[project]
@@ -411,7 +430,22 @@ class Config(FrozenModel):
                 )
 
     @staticmethod
-    def _validate_service_container(container: ContainerSpec) -> None:
+    def _validate_service_container(
+        service: str,
+        bridge_gateway: str,
+        container: ContainerSpec,
+    ) -> None:
+        published_tcp: set[int] = set()
+        for port in container.ports:
+            if port.host_ip != bridge_gateway:
+                raise ValueError(
+                    f"service {service!r} ports must publish to Host bridge gateway "
+                    f"{bridge_gateway}"
+                )
+            if port.protocol == "tcp" and port.published in published_tcp:
+                raise ValueError("service TCP published ports must be unique")
+            if port.protocol == "tcp":
+                published_tcp.add(port.published)
         for volume in container.volumes:
             volume.resolve_data_path("/managed").mount()
 

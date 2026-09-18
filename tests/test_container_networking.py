@@ -11,30 +11,36 @@ from pathlib import Path
 import pytest
 
 _CONTAINER = Path(__file__).resolve().parents[1] / "platform/container"
+_SERVICES = _CONTAINER / "services"
 _WORKSPACE_ROOT = _CONTAINER / "workspace/rootfs"
 _WORKSPACE_AGENT = _CONTAINER / "workspace/agent/agent.py"
 _WSL_BOOT = Path(__file__).resolve().parents[1] / "platform/wsl/rootfs/opt/codespace/wsl/boot.sh"
 
 
+@pytest.mark.parametrize("service", ["chatbox", "lobehub", "secret", "sglang", "support", "vllm"])
+def test_service_images_use_s6_without_expose_metadata(service: str) -> None:
+    dockerfile = (_SERVICES / service / "Dockerfile").read_text()
+
+    assert "service-s6" in dockerfile
+    assert "EXPOSE" not in dockerfile
+
+
 @pytest.mark.parametrize("service", ["vllm", "sglang"])
-@pytest.mark.parametrize("bind", [None, "0.0.0.0"])
-def test_inference_entrypoint_honors_bind_address(
-    tmp_path: Path, service: str, bind: str | None
-) -> None:
+def test_inference_entrypoint_uses_fixed_bridge_listener(tmp_path: Path, service: str) -> None:
     venv = tmp_path / "venv"
     binary = venv / "bin" / ("vllm" if service == "vllm" else "python")
     binary.parent.mkdir(parents=True)
     binary.write_text("#!/bin/sh\nprintf '%s\\n' \"$@\"\n")
     binary.chmod(0o755)
+    source = (_CONTAINER / f"services/{service}/rootfs/opt/{service}/serve.sh").read_text()
+    assert "SERVE_VENV" not in source
+    script = tmp_path / f"{service}-serve.sh"
+    script.write_text(source.replace(f"/opt/{service}/venv", str(venv)))
     environment = {key: value for key, value in os.environ.items() if not key.startswith("SERVE_")}
-    environment.update(
-        SERVE_VENV=str(venv), SERVE_PORT="18003", SERVE_EXTRA_ARGS="--max-model-len 8192"
-    )
-    if bind is not None:
-        environment["SERVE_HOST"] = bind
+    environment["SERVE_EXTRA_ARGS"] = "--max-model-len 8192"
 
     result = subprocess.run(
-        ["bash", str(_CONTAINER / f"services/{service}/rootfs/opt/codespace/{service}/serve.sh")],
+        ["bash", str(script)],
         env=environment,
         check=True,
         capture_output=True,
@@ -42,10 +48,56 @@ def test_inference_entrypoint_honors_bind_address(
     )
 
     args = result.stdout.splitlines()
-    assert args[args.index("--host") + 1] == (bind or "127.0.0.1")
-    assert args[args.index("--port") + 1] == "18003"
+    assert args[args.index("--host") + 1] == "0.0.0.0"
+    assert args[args.index("--port") + 1] == "8080"
     if service == "vllm":
         assert args[-2:] == ["--max-model-len", "8192"]
+
+
+def test_secret_entrypoint_uses_fixed_bridge_listener() -> None:
+    script = (_CONTAINER / "services/secret/rootfs/opt/secret/serve.sh").read_text()
+    service = _CONTAINER / "services/secret/rootfs/etc/s6/s6-rc.d/serve"
+    run = (service / "run").read_text()
+
+    assert '--addr "0.0.0.0:8080"' in script
+    assert "SERVE_HOST" not in script
+    assert "SERVE_PORT" not in script
+    assert "SERVE_ROOT" not in script
+    assert "SERVE_USER" not in script
+    assert "SERVE_PASS" not in script
+    assert "readonly root=/srv" in script
+    assert "readonly pass_file=/run/secrets/secret_webdav_password" in script
+    assert (service / "notification-fd").read_text().strip() == "3"
+    assert (service / "timeout-up").read_text().strip() == "35000"
+    assert "s6-notifyoncheck" in run
+    assert "--user" in run
+    assert "secret_webdav_password" in run
+    assert "http://127.0.0.1:8080/" in run
+
+
+def test_sglang_runtime_copies_binman_before_installing_uv() -> None:
+    dockerfile = (_CONTAINER / "services/sglang/Dockerfile").read_text()
+
+    assert dockerfile.index("COPY --from=s6 /opt/bm /opt/bm") < dockerfile.index(
+        "RUN /opt/bm/bin/bm install uv"
+    )
+
+
+def test_workspace_secret_mount_only_configures_gateway_url() -> None:
+    path = _WORKSPACE_ROOT / "opt/codespace/bin/mount-secret"
+    script = path.read_text()
+
+    assert os.access(path, os.X_OK)
+    assert "CODESPACE_SECRET_URL" in script
+    for name in (
+        "CODESPACE_SECRET_MOUNT",
+        "CODESPACE_SECRET_USER",
+        "CODESPACE_SECRET_PASS",
+        "${RCLONE",
+    ):
+        assert name not in script
+    assert "readonly mount_point=/mnt/secret" in script
+    assert "RCLONE_CONFIG_SECRET_USER=codespace" in script
 
 
 @pytest.mark.parametrize(
@@ -152,6 +204,13 @@ def test_workspace_sshd_uses_fixed_listener() -> None:
     assert "s6-notifyoncheck" in script
     assert "s6-tcpclient -H -t 1 127.0.0.1 22 /bin/true" in script
     assert (service / "notification-fd").read_text().strip() == "3"
+
+
+def test_workspace_ollama_uses_fixed_loopback_listener() -> None:
+    script = (_WORKSPACE_ROOT / "etc/s6/s6-rc.d/ollama/run").read_text()
+
+    assert "export OLLAMA_HOST 127.0.0.1:8006" in script
+    assert "importas" not in script
 
 
 def test_workspace_agent_requires_managed_bootstrap_environment() -> None:

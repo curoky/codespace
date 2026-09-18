@@ -1,31 +1,14 @@
 #!/usr/bin/env bash
 
-# Pull a fixed image list on the host so development containers start from a
-# warm local cache. Runs one cycle and exits.
-#
-# Usage: image-pull.sh
-#
-# Runtime inputs:
-#
-#   PODMAN_SOCKET            host rootful Podman socket bind-mounted into the
-#                            support service (default /run/podman/podman.sock)
-#   PREWARM_TIMEOUT_SECONDS  per-request curl timeout in seconds (default 900)
-#
-# The support service only pulls images; it never removes tagged images, so images
-# referenced by managed containers are always safe. Only the host native
-# platform is warmed.
-
 set -uo pipefail
 
-PREWARM_IMAGES=(
+readonly -a PREWARM_IMAGES=(
   ghcr.io/curoky/codespace:workspace-debian13
 )
 
-socket="${PODMAN_SOCKET:-/run/podman/podman.sock}"
-timeout_seconds="${PREWARM_TIMEOUT_SECONDS:-900}"
+readonly socket=/run/podman/podman.sock
+readonly timeout_seconds=900
 
-# Any semver in [3.1.0, server] selects the libpod routes; v4.0.0 works on
-# Podman 4.x and 5.x hosts alike.
 api_base="http://d/v4.0.0/libpod"
 
 log() {
