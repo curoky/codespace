@@ -23,6 +23,9 @@ export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/cuda/lib64"
 
 export KRB5CCNAME=/opt/secret/krb5_ccache
 
+export GOPROXY="https://goproxy.cn,direct"
+
+
 export TRAECLI_TRACE_ENABLED=false
 export TRAECLI_TRACE_INGEST_ENDPOINT="http://127.0.0.1:1"
 export TRAECLI_METRICS_ENDPOINT="http://127.0.0.1:1"

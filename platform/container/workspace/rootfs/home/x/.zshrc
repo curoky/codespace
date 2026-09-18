@@ -5,7 +5,6 @@ export XDG_RUNTIME_DIR="$XDG_CACHE_HOME/runtime"
 export TMPDIR="$XDG_CACHE_HOME/tmp"
 export NPM_CONFIG_CACHE="$XDG_CACHE_HOME/npm"
 export TMUX_CONF_LOCAL="$XDG_CONFIG_HOME/tmux/tmux.conf.local"
-export GOPROXY="https://goproxy.cn,direct"
 export WORKSPACE=/workspace
 
 mkdir -p "$XDG_CACHE_HOME" "$XDG_RUNTIME_DIR" "$XDG_DATA_HOME" "$TMPDIR"
