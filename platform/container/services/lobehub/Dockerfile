@@ -37,7 +37,7 @@ ENV PATH="/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:/usr/lib
 
 COPY platform/container/workspace/rootfs/etc/s6/skel/ /etc/s6/skel/
 COPY platform/container/services/lobehub/rootfs/ /
-RUN chmod +x /opt/codespace/lobehub/*.sh
+RUN chmod +x /opt/lobehub/*.sh
 COPY platform/container/workspace/scripts/install-s6.sh /tmp/install-s6.sh
 RUN /tmp/install-s6.sh
 

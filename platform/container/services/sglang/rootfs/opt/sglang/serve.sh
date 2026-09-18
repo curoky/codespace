@@ -13,7 +13,7 @@ port="${SERVE_PORT:-8003}"
 
 # The inference stack lives in a dedicated venv; the s6-generated init PATH does
 # not include it, so reference the venv binary explicitly.
-venv_bin="${SERVE_VENV:-/opt/codespace/sglang/venv}/bin"
+venv_bin="${SERVE_VENV:-/opt/sglang/venv}/bin"
 
 export SGLANG_ENABLE_TP_MEMORY_INBALANCE_CHECK=false
 

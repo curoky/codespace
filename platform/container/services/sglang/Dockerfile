@@ -58,18 +58,18 @@ ARG TORCH_SPEC="torch==2.13.0 torchvision==0.28.0 torchaudio==2.11.0"
 # on CUDA 12.9; force its current signature after installation.
 ARG FLASH_ATTN_SPEC="flash-attn-4==4.0.0b19"
 ARG SGLANG_BUILD_RUST_EXTS=none
-ENV SERVE_VENV=/opt/codespace/sglang/venv
+ENV SERVE_VENV=/opt/sglang/venv
 # UV_LINK_MODE=copy: uv defaults to hardlinking cached files into the venv, but
 # we delete /root/.cache/uv in the same layer, so copy the files in instead to
 # keep the venv self-contained after the cache is dropped.
 ENV UV_LINK_MODE=copy
 RUN /opt/bm/bin/uv venv "${SERVE_VENV}" --python 3.12 \
-  && git clone --filter=blob:none https://github.com/sgl-project/sglang.git /opt/codespace/sglang/src \
-  && git -C /opt/codespace/sglang/src fetch origin "${SGLANG_REF}" \
-  && git -C /opt/codespace/sglang/src checkout FETCH_HEAD \
+  && git clone --filter=blob:none https://github.com/sgl-project/sglang.git /opt/sglang/src \
+  && git -C /opt/sglang/src fetch origin "${SGLANG_REF}" \
+  && git -C /opt/sglang/src checkout FETCH_HEAD \
   && SERVE_UV="/opt/bm/bin/uv pip install --python ${SERVE_VENV}/bin/python" \
   && SGLANG_BUILD_RUST_EXTS="${SGLANG_BUILD_RUST_EXTS}" \
-       ${SERVE_UV} --prerelease=allow -e /opt/codespace/sglang/src/python \
+       ${SERVE_UV} --prerelease=allow -e /opt/sglang/src/python \
   && ${SERVE_UV} --no-deps ${FLASH_ATTN_SPEC} \
   && FA4_UTILS="${SERVE_VENV}/lib/python3.12/site-packages/flash_attn/cute/utils.py" \
   && grep -Fq 'if CUDA_VERSION.major == 12 and CUDA_VERSION.minor == 9:' "${FA4_UTILS}" \
@@ -89,16 +89,16 @@ RUN /opt/bm/bin/uv venv "${SERVE_VENV}" --python 3.12 \
   && ${SERVE_UV} --reinstall --index-url "https://download.pytorch.org/whl/${CUDA_TAG}" \
        nvidia-cudnn-cu12 nvidia-cusparselt-cu12 nvidia-nccl-cu12 nvidia-nvshmem-cu12 \
        torchcodec \
-  && rm -rf /opt/codespace/sglang/src/.git \
+  && rm -rf /opt/sglang/src/.git \
   && ${SERVE_VENV}/bin/python -c "import torch; assert torch.version.cuda.startswith('12'), torch.version.cuda" \
   && ${SERVE_VENV}/bin/python -c "import torchcodec.decoders" \
   && rm -rf /root/.cache/uv
 
-ENV PATH="/opt/codespace/sglang/venv/bin:/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:$PATH"
+ENV PATH="/opt/sglang/venv/bin:/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:$PATH"
 
 COPY platform/container/workspace/rootfs/etc/s6/skel/ /etc/s6/skel/
 COPY platform/container/services/sglang/rootfs/ /
-RUN chmod +x /opt/codespace/sglang/serve.sh
+RUN chmod +x /opt/sglang/serve.sh
 COPY platform/container/workspace/scripts/install-s6.sh /tmp/install-s6.sh
 RUN /tmp/install-s6.sh
 
