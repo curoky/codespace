@@ -142,6 +142,8 @@ def test_dashboard_workspace_exposes_container_encryption(
     assert "ssh-remote+space-codespace-debug-home" in serialized["trae_url"]
     assert "/workspace?" in serialized["trae_url"]
     assert serialized["trae_cn_url"].startswith("trae-cn://")
+    assert serialized["vscode_url"].startswith("vscode://")
+    assert "ssh-remote+space-codespace-debug-home" in serialized["vscode_url"]
     assert "container_id" not in serialized
     assert "alias" not in serialized
     project = response.json()["projects"][0]

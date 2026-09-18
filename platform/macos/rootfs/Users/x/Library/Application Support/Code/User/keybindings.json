@@ -128,5 +128,10 @@
     "key": "f5",
     "command": "-debug.openView",
     "when": "!debuggersAvailable"
-  }
+  },
+  {
+  "key": "cmd+alt+shift+f12",
+  "command": "workbench.action.chat.openNewChatSessionInPlace.agent-host-codex",
+  "args": "sidebar"
+}
 ]

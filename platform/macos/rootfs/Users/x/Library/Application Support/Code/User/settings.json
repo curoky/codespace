@@ -397,7 +397,6 @@
   "workbench.editor.useModal": "off",
   "workbench.editor.wrapTabs": true,
   "workbench.editorAssociations": {
-    "*.hex": "hexEditor.hexedit",
     "*.ipynb": "jupyter-notebook",
     "*.plist": "default",
     "*.spec": "default"
