@@ -94,7 +94,7 @@ install_home_config() {
   link_home_path "$macos_home" ".config/git/ignore"
   link_home_path "$macos_home" ".ssh/config" 0600
   link_home_path "$macos_home" ".ssh/codespace/config" 0600
-  link_home_path "$macos_home" ".ssh/codespace/login_key" 0600
+  link_home_path "$macos_home" ".ssh/codespace/workspace_login_key_ed25519" 0600
   link_home_path "$macos_home" ".ssh/codespace/known_hosts/codespace" 0600
 
   link_home_path "$macos_home" ".zshrc"

@@ -10,8 +10,8 @@ setup() {
   WORKSPACE_DIR="$REPO_ROOT/platform/container/workspace"
   SSH_DIR="$MACOS_DIR/rootfs/Users/x/.ssh/codespace"
   TEST_ROOT="$(mktemp -d "${BATS_TEST_TMPDIR}/ssh-assets.XXXXXX")"
-  cp "$SSH_DIR/login_key" "$TEST_ROOT/login_key"
-  chmod 0600 "$TEST_ROOT/login_key"
+  cp "$SSH_DIR/workspace_login_key_ed25519" "$TEST_ROOT/workspace_login_key_ed25519"
+  chmod 0600 "$TEST_ROOT/workspace_login_key_ed25519"
 }
 
 teardown() {
@@ -23,7 +23,7 @@ teardown() {
   authorized_key="$(awk '{ print $1 " " $2 }' \
     "$WORKSPACE_DIR/rootfs/home/x/.ssh/authorized_keys")"
 
-  run ssh-keygen -y -f "$TEST_ROOT/login_key"
+  run ssh-keygen -y -f "$TEST_ROOT/workspace_login_key_ed25519"
   public_key="$(printf '%s\n' "$output" | awk '{ print $1 " " $2 }')"
 
   [ "$status" -eq 0 ]
