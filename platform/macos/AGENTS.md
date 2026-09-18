@@ -1,23 +1,8 @@
-# macOS Host
+# macOS Platform
 
-本目录拥有 control plane 唯一支持的 client 环境：`x` 用户的 macOS home 配置、
-installer、package manifest 与 Host helper。
-
-- `install.sh` 必须幂等，只管理仓库声明的状态，不删除未受管 home 配置。
-- `rootfs/Users/x/` 按 macOS 绝对路径保存 Host-owned home 配置；同内容的多个
-  target 使用相对 symlink，不建立副本。
-- installer 按相对 home path 安装文件；source 与 `$HOME` target 布局必须一致，
-  不维护 source-to-target 映射。
-- Workspace-owned home 配置在本 rootfs 的对应路径使用相对 symlink 指向 Workspace
-  rootfs source，不建立副本；installer 仍只消费本 rootfs。
-- Workspace SSH client bundle 属于 macOS Host；需要独立权限的配置使用 copy，
-  其余 home 配置使用 symlink。
-- 固定 SSH 用户、loopback 目标、非交互登录与 trust 由本层配置；实例 route 只
-  表达 Host 跳转和 forwarding port。控制面隧道复用 Host 的已认证连接。
-- `~/.ssh/codespace/workspaces/` 由 control plane lifecycle 写入持久 route，installer
-  只创建目录，不管理其中内容。
-- Brewfile 声明完整的 Homebrew 软件状态；installer 卸载 manifest 外的依赖。
+- `rootfs/Users/x/` 按 macOS home 相对路径保存 source；相同内容使用相对 symlink，
+  不维护额外 source-to-target 映射。
+- 需要独立权限或运行期修改的文件使用 copy，其余 home 配置使用 symlink。
+- Brewfile 是完整 Homebrew 状态，`brew bundle --force-cleanup` 会移除 manifest 外依赖。
 - 可选 daemon 必须显式启用；installer 不负责启动 Podman machine。
-
-修改 installer、home source 或 LaunchAgent 后运行 `task check`；plist 变化另做语法
-校验。
+- LaunchAgent plist 变化必须额外做 `plutil` 语法校验。
