@@ -48,9 +48,8 @@ RUN /opt/bm/bin/uv venv /opt/sglang/venv --python 3.12 \
   && git clone --filter=blob:none https://github.com/sgl-project/sglang.git /opt/sglang/src \
   && git -C /opt/sglang/src fetch origin "${SGLANG_REF}" \
   && git -C /opt/sglang/src checkout FETCH_HEAD \
-  && sed -i 's/cuda-python>=13\.0/cuda-python>=12,<13/' /opt/sglang/src/python/pyproject.toml \
   && sed -i 's/flashinfer_python\[cu13\]/flashinfer_python[cu12]/' /opt/sglang/src/python/pyproject.toml \
-  && sed -i 's/nvidia-cutlass-dsl\[cu13\]==4\.6\.2/nvidia-cutlass-dsl==4.5.3/' /opt/sglang/src/python/pyproject.toml \
+  && sed -i 's/nvidia-cutlass-dsl\[cu13\]/nvidia-cutlass-dsl/' /opt/sglang/src/python/pyproject.toml \
   && SERVE_UV="/opt/bm/bin/uv pip install --python /opt/sglang/venv/bin/python" \
   && SGLANG_BUILD_RUST_EXTS="${SGLANG_BUILD_RUST_EXTS}" \
        ${SERVE_UV} --prerelease=allow -e /opt/sglang/src/python \
