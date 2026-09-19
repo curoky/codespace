@@ -119,9 +119,9 @@ services:
       pids_limit: -1
       devices: [nvidia.com/gpu=all]
       volumes:
-        - ${RESOURCE_DATA}:/root/.cache/huggingface
+        - ${RESOURCE_DATA}:/home/x/.cache/huggingface
       secrets:
-        - { source: huggingface_token, mode: 0400 }
+        - { source: huggingface_token, uid: "5230", gid: "5230", mode: 0400 }
 
   sglang:
     hosts: [gpu-host]

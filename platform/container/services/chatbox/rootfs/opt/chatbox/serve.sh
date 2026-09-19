@@ -4,8 +4,10 @@ set -euo pipefail
 
 export CHATBOX_API_UPSTREAM=http://codespace-service-sglang:8080
 
+config_dir=/tmp/chatbox/nginx/conf.d
+mkdir -p "${config_dir}"
 envsubst "\${CHATBOX_API_UPSTREAM}" \
   </etc/nginx/templates/default.conf.template \
-  >/etc/nginx/conf.d/default.conf
+  >"${config_dir}/default.conf"
 
-exec nginx -g "daemon off;"
+exec nginx -c /opt/chatbox/nginx.conf -g "daemon off;"

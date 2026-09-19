@@ -76,7 +76,7 @@ def test_apply_replaces_container_and_resolves_data_placeholder(
     assert runtime_spec.volumes[0].mount() == {  # type: ignore[union-attr]
         "type": "bind",
         "source": "/home/x/codespace/services/vllm",
-        "target": "/root/.cache/huggingface",
+        "target": "/home/x/.cache/huggingface",
         "read_only": False,
     }
     assert runtime_spec.restart == "unless-stopped"  # type: ignore[union-attr]

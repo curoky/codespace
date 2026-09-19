@@ -11,6 +11,24 @@ import pytest
 _CONTAINER = Path(__file__).resolve().parents[1] / "platform/container"
 
 
+def _s6_service_entrypoints() -> list[Path]:
+    entrypoints = [
+        _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/miniserve-http/run",
+        _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/supercronic/run",
+    ]
+    for dockerfile in (_CONTAINER / "services").glob("*/Dockerfile"):
+        base_images = [
+            line.split()[1]
+            for line in dockerfile.read_text().splitlines()
+            if line.startswith("FROM ")
+        ]
+        if base_images[-1] != "ghcr.io/curoky/codespace:service-s6":
+            continue
+        service_files = dockerfile.parent.glob("rootfs/etc/s6/s6-rc.d/*/*")
+        entrypoints.extend(path for path in service_files if path.name in {"run", "up"})
+    return sorted(entrypoints)
+
+
 def test_workspace_secret_mount_uses_default_network_dns() -> None:
     helper = _CONTAINER / "workspace/rootfs/opt/codespace/bin/mount-secret"
 
@@ -28,6 +46,14 @@ def test_log_server_listener_is_configured_by_each_image() -> None:
     assert "MINISERVE_INTERFACES" not in workspace
     assert "MINISERVE_INTERFACES=0.0.0.0" in service
     assert "chown -R x:x /opt/bm" in service
+
+
+@pytest.mark.parametrize("entrypoint", _s6_service_entrypoints())
+def test_s6_service_processes_run_as_x(entrypoint: Path) -> None:
+    run = entrypoint.read_text()
+
+    assert "s6-setuidgid x" in run
+    assert "s6-env HOME=/home/x" in run
 
 
 @pytest.mark.parametrize("service", ["vllm", "sglang"])

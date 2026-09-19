@@ -90,7 +90,7 @@ def config() -> Config:
                         "ipc": "host",
                         "devices": ["nvidia.com/gpu=all"],
                         "volumes": [
-                            "${RESOURCE_DATA}:/root/.cache/huggingface",
+                            "${RESOURCE_DATA}:/home/x/.cache/huggingface",
                         ],
                     },
                 },
