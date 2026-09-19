@@ -1,3 +1,5 @@
 redirfd -w 1 /var/log/s6.hosts-blackhole.log
 fdmove -c 2 1
+s6-setuidgid x
+s6-env HOME=/home/x
 /opt/codespace/bin/init-hosts-blackhole

@@ -8,4 +8,4 @@ redirfd -w 1 /var/log/s6.supercronic.log
 fdmove -c 2 1
 s6-setuidgid x
 s6-env HOME=/home/x
-exec supercronic /etc/supercronic/crontab
+exec /opt/bm/store/supercronic/bin/supercronic /etc/supercronic/crontab

@@ -13,10 +13,11 @@ case "${CODESPACE_ENCRYPTED:?CODESPACE_ENCRYPTED must be true or false}" in
 esac
 readonly encrypted_path=/workspace.enc
 
-# Rootful Podman preserves Host IDs. SSH must reach the UDS as the Host login
-# user, so retain the bind source's owner on the control directory.
+# Rootful Podman preserves Host IDs. Keep the Host login user as owner for SSH
+# access and grant the container user group write access for the Agent socket.
 sudo mkdir -p -- /run/codespace-control
-sudo chmod 0700 -- /run/codespace-control
+sudo chgrp 5230 -- /run/codespace-control
+sudo chmod 0730 -- /run/codespace-control
 sudo install -d -o 5230 -g 5230 -m 0700 -- /workspace "${encrypted_path}" /upload
 
 if [[ ${CODESPACE_ENCRYPTED} == false ]]; then

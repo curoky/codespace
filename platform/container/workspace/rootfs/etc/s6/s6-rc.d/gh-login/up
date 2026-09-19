@@ -5,7 +5,7 @@ if { test -s /run/secrets/github_action_token }
 s6-setuidgid x
 s6-env HOME=/home/x
 redirfd -r 0 /run/secrets/github_action_token
-gh auth login
+/opt/bm/store/gh/bin/gh auth login
   --hostname github.com
   --git-protocol ssh
   --skip-ssh-key

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# hosts-blackhole s6 oneshot (runs as root): append blackhole entries to the
-# runtime /etc/hosts so local libc resolution of these names fails to connect.
+# hosts-blackhole s6 oneshot: append blackhole entries to the runtime /etc/hosts
+# so local libc resolution of these names fails to connect.
 set -euo pipefail
 
 readonly marker="# codespace hosts-blackhole"
@@ -20,4 +20,4 @@ fi
   base64 -d <<<"${encoded_hosts}" | while IFS= read -r name; do
     [[ -n ${name} ]] && printf '0.0.0.0\t%s\n' "${name}"
   done
-} >>/etc/hosts
+} | sudo tee -a /etc/hosts >/dev/null

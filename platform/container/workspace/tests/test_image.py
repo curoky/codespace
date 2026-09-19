@@ -441,13 +441,13 @@ class TestRuntimeHelpers(unittest.TestCase):
                 self.assertFalse(path.is_symlink())
                 self.assertEqual((path.stat().st_uid, path.stat().st_gid), (5230, 5230))
                 self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o700)
-        self.assertEqual((control.stat().st_uid, control.stat().st_gid), (200, 65534))
-        self.assertEqual(stat.S_IMODE(control.stat().st_mode), 0o700)
+        self.assertEqual((control.stat().st_uid, control.stat().st_gid), (200, 5230))
+        self.assertEqual(stat.S_IMODE(control.stat().st_mode), 0o730)
         marker = Path("/workspace/keep")
         marker.write_text("persistent\n")
         run(helper, env=env)
         self.assertEqual(marker.read_text(), "persistent\n")
-        self.assertEqual((control.stat().st_uid, control.stat().st_gid), (200, 65534))
+        self.assertEqual((control.stat().st_uid, control.stat().st_gid), (200, 5230))
 
 
 if __name__ == "__main__":

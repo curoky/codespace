@@ -26,8 +26,6 @@ SOCKET_PATH = Path("/run/codespace-control/agent.sock")
 DEPLOY_PUBLIC_KEY_PATH = Path("/home/x/.ssh/git_deploy_key_ed25519.pub")
 CHECKOUT = "/opt/codespace/bin/checkout"
 
-CONTAINER_UID = 5230
-CONTAINER_GID = 5230
 HELPER_HOME = "/home/x"
 HELPER_TIMEOUT = 60.0
 CHECKOUT_TIMEOUT = 900.0
@@ -51,7 +49,7 @@ def run_command(
     check: bool = True,
     timeout: float = HELPER_TIMEOUT,
 ) -> subprocess.CompletedProcess[str]:
-    """Run a helper or Git command as the unprivileged container user."""
+    """Run a helper or Git command with the Workspace user environment."""
     try:
         return subprocess.run(  # noqa: S603
             command,
@@ -62,9 +60,6 @@ def run_command(
             timeout=timeout,
             cwd=HELPER_HOME,
             env={**os.environ, "HOME": HELPER_HOME},
-            user=CONTAINER_UID,
-            group=CONTAINER_GID,
-            extra_groups=[],
         )
     except subprocess.CalledProcessError as exc:
         detail = (exc.stderr or exc.stdout or str(exc)).strip()

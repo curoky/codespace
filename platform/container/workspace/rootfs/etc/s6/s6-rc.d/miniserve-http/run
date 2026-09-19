@@ -13,7 +13,7 @@ s6-env MINISERVE_ENABLE_TAR_GZ=false
 s6-env MINISERVE_ENABLE_ZIP=false
 s6-env MINISERVE_SHOW_SYMLINK_INFO=false
 s6-env MINISERVE_SHOW_WGET_FOOTER=false
-exec miniserve
+exec /opt/bm/store/miniserve/bin/miniserve
   --interfaces ${MINISERVE_INTERFACES}
   --port 8008
   --no-symlinks

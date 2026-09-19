@@ -355,6 +355,27 @@ def image_agent(monkeypatch: pytest.MonkeyPatch) -> ModuleType:
     return module
 
 
+def test_image_run_command_inherits_agent_identity(
+    image_agent: ModuleType,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, object] = {}
+
+    def run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        captured.update(kwargs)
+        return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(image_agent.subprocess, "run", run)
+
+    image_agent.run_command(["git", "status"])
+
+    environment = captured["env"]
+    assert isinstance(environment, dict)
+    assert environment["HOME"] == "/home/x"
+    assert captured["cwd"] == "/home/x"
+    assert {"user", "group", "extra_groups"}.isdisjoint(captured)
+
+
 @pytest.mark.parametrize(
     ("git_args", "expected_checkout"),
     [

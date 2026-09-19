@@ -5,6 +5,8 @@ s6-envdir -Lf -- /run/s6/container_environment
 redirfd -w 1 /var/log/s6.atuin-server.log
 fdmove -c 2 1
 
+s6-setuidgid x
+s6-env HOME=/home/x
 if { test -s /run/secrets/atuin_db_uri }
 backtick -i ATUIN_DB_URI { cat /run/secrets/atuin_db_uri }
 
