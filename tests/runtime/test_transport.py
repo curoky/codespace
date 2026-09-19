@@ -77,7 +77,14 @@ def _ok_run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess
     return subprocess.CompletedProcess(command, 0, stdout=b"", stderr=b"")
 
 
-def test_transport_uses_control_master_and_private_runtime(tmp_path: Path) -> None:
+@pytest.fixture(autouse=True)
+def _fake_podman_client(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(transport_module, "PodmanClient", FakeClient)
+
+
+def test_transport_uses_control_master_and_private_runtime(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     commands: list[list[str]] = []
     processes: list[FakeProcess] = []
     clients: list[FakeClient] = []
@@ -87,11 +94,11 @@ def test_transport_uses_control_master_and_private_runtime(tmp_path: Path) -> No
         clients.append(client)
         return client
 
+    monkeypatch.setattr(transport_module.subprocess, "Popen", _master_factory(processes, commands))
+    monkeypatch.setattr(transport_module, "PodmanClient", client_factory)
     transport = PodmanTransport(
         {"home"},
         runtime_parent=tmp_path,
-        process_factory=_master_factory(processes, commands),
-        client_factory=client_factory,  # type: ignore[arg-type]
     )
 
     returned = transport.client("home")
@@ -123,14 +130,13 @@ def test_transport_uses_control_master_and_private_runtime(tmp_path: Path) -> No
     assert not transport.runtime_dir.exists()
 
 
-def test_transport_default_socket_paths_fit_macos_limit() -> None:
+def test_transport_default_socket_paths_fit_macos_limit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     commands: list[list[str]] = []
     host = "h" * 63
-    transport = PodmanTransport(
-        {host},
-        process_factory=_master_factory([], commands),
-        client_factory=FakeClient,  # type: ignore[arg-type]
-    )
+    monkeypatch.setattr(transport_module.subprocess, "Popen", _master_factory([], commands))
+    transport = PodmanTransport({host})
 
     try:
         transport.client(host)
@@ -149,7 +155,9 @@ def test_transport_default_socket_paths_fit_macos_limit() -> None:
         transport.close()
 
 
-def test_transport_reuses_live_master_and_rebuilds_dead_master(tmp_path: Path) -> None:
+def test_transport_reuses_live_master_and_rebuilds_dead_master(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     processes: list[FakeProcess] = []
     clients: list[FakeClient] = []
 
@@ -158,11 +166,11 @@ def test_transport_reuses_live_master_and_rebuilds_dead_master(tmp_path: Path) -
         clients.append(client)
         return client
 
+    monkeypatch.setattr(transport_module.subprocess, "Popen", _master_factory(processes))
+    monkeypatch.setattr(transport_module, "PodmanClient", client_factory)
     transport = PodmanTransport(
         {"home"},
         runtime_parent=tmp_path,
-        process_factory=_master_factory(processes),
-        client_factory=client_factory,  # type: ignore[arg-type]
     )
 
     first = transport.client("home")
@@ -180,7 +188,9 @@ def test_transport_reuses_live_master_and_rebuilds_dead_master(tmp_path: Path) -
     assert clients[1].closed is True
 
 
-def test_transport_serializes_master_startup_across_hosts(tmp_path: Path) -> None:
+def test_transport_serializes_master_startup_across_hosts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     first_factory_entered = Event()
     release_first_factory = Event()
     second_call_started = Event()
@@ -200,11 +210,10 @@ def test_transport_serializes_master_startup_across_hosts(tmp_path: Path) -> Non
         processes.append(process)
         return process
 
+    monkeypatch.setattr(transport_module.subprocess, "Popen", process_factory)
     transport = PodmanTransport(
         {"first", "second"},
         runtime_parent=tmp_path,
-        process_factory=process_factory,
-        client_factory=FakeClient,  # type: ignore[arg-type]
     )
 
     def connect_second() -> object:
@@ -234,7 +243,9 @@ def test_transport_serializes_master_startup_across_hosts(tmp_path: Path) -> Non
     assert all(process.terminated for process in processes)
 
 
-def test_transport_reuses_workspace_agent_forward(tmp_path: Path) -> None:
+def test_transport_reuses_workspace_agent_forward(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     processes: list[FakeProcess] = []
     forward_commands: list[list[str]] = []
 
@@ -242,12 +253,11 @@ def test_transport_reuses_workspace_agent_forward(tmp_path: Path) -> None:
         forward_commands.append(command)
         return _ok_run(command, **kwargs)
 
+    monkeypatch.setattr(transport_module.subprocess, "Popen", _master_factory(processes))
+    monkeypatch.setattr(transport_module.subprocess, "run", run_factory)
     transport = PodmanTransport(
         {"home"},
         runtime_parent=tmp_path,
-        process_factory=_master_factory(processes),
-        client_factory=FakeClient,  # type: ignore[arg-type]
-        run_factory=run_factory,
     )
     transport.client("home")
     remote_socket = "/home/x/codespace/workspaces/codespace/debug/control/agent.sock"
@@ -267,13 +277,15 @@ def test_transport_reuses_workspace_agent_forward(tmp_path: Path) -> None:
     assert processes[0].terminated is True
 
 
-def test_tcp_forward_reuses_serializes_and_rebuilds_connections(tmp_path: Path) -> None:
+def test_tcp_forward_reuses_serializes_and_rebuilds_connections(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     commands: list[list[str]] = []
     processes: list[FakeProcess] = []
+    monkeypatch.setattr(transport_module.subprocess, "Popen", _master_factory(processes, commands))
     transport = PodmanTransport(
         {"home"},
         runtime_parent=tmp_path,
-        process_factory=_master_factory(processes, commands),
     )
 
     def connect(connection_id: str = "container-1") -> int:
@@ -320,12 +332,14 @@ def test_tcp_forward_reuses_serializes_and_rebuilds_connections(tmp_path: Path) 
         connect()
 
 
-def test_tcp_forwards_isolate_ports_workspaces_and_hosts(tmp_path: Path) -> None:
+def test_tcp_forwards_isolate_ports_workspaces_and_hosts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     processes: list[FakeProcess] = []
+    monkeypatch.setattr(transport_module.subprocess, "Popen", _master_factory(processes))
     transport = PodmanTransport(
         {"home", "other"},
         runtime_parent=tmp_path,
-        process_factory=_master_factory(processes),
     )
     try:
         for host, destination, port in [
@@ -345,13 +359,15 @@ def test_tcp_forwards_isolate_ports_workspaces_and_hosts(tmp_path: Path) -> None
     assert all(process.terminated for process in processes)
 
 
-def test_tcp_forward_can_preserve_remote_port_locally(tmp_path: Path) -> None:
+def test_tcp_forward_can_preserve_remote_port_locally(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     commands: list[list[str]] = []
     processes: list[FakeProcess] = []
+    monkeypatch.setattr(transport_module.subprocess, "Popen", _master_factory(processes, commands))
     transport = PodmanTransport(
         {"home"},
         runtime_parent=tmp_path,
-        process_factory=_master_factory(processes, commands),
     )
 
     try:
@@ -371,13 +387,15 @@ def test_tcp_forward_can_preserve_remote_port_locally(tmp_path: Path) -> None:
         transport.close()
 
 
-def test_tcp_forward_replaces_conflicting_local_listener(tmp_path: Path) -> None:
+def test_tcp_forward_replaces_conflicting_local_listener(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     commands: list[list[str]] = []
     processes: list[FakeProcess] = []
+    monkeypatch.setattr(transport_module.subprocess, "Popen", _master_factory(processes, commands))
     transport = PodmanTransport(
         {"home", "other"},
         runtime_parent=tmp_path,
-        process_factory=_master_factory(processes, commands),
     )
 
     try:
@@ -415,12 +433,14 @@ def test_tcp_forward_replaces_conflicting_local_listener(tmp_path: Path) -> None
         transport.close()
 
 
-def test_tcp_forward_brackets_remote_ipv6_address(tmp_path: Path) -> None:
+def test_tcp_forward_brackets_remote_ipv6_address(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     commands: list[list[str]] = []
+    monkeypatch.setattr(transport_module.subprocess, "Popen", _master_factory([], commands))
     transport = PodmanTransport(
         {"home"},
         runtime_parent=tmp_path,
-        process_factory=_master_factory([], commands),
     )
 
     try:
@@ -442,7 +462,9 @@ def test_tcp_forward_brackets_remote_ipv6_address(tmp_path: Path) -> None:
         transport.close()
 
 
-def test_tcp_forward_start_failure_is_not_cached(tmp_path: Path) -> None:
+def test_tcp_forward_start_failure_is_not_cached(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     processes: list[FakeProcess] = []
 
     def fail(command: list[str], **kwargs: object) -> FakeProcess:
@@ -451,7 +473,8 @@ def test_tcp_forward_start_failure_is_not_cached(tmp_path: Path) -> None:
         process.stderr = io.BytesIO(b"bind: Address already in use")  # type: ignore[assignment]
         return process
 
-    transport = PodmanTransport({"home"}, runtime_parent=tmp_path, process_factory=fail)
+    monkeypatch.setattr(transport_module.subprocess, "Popen", fail)
+    transport = PodmanTransport({"home"}, runtime_parent=tmp_path)
     try:
         for _ in range(2):
             with pytest.raises(TransportError, match="Address already in use"):
@@ -467,11 +490,8 @@ def test_tcp_forward_timeout_terminates_process(
 ) -> None:
     process = FakeProcess()
     monkeypatch.setattr(transport_module, "_START_TIMEOUT", 0)
-    transport = PodmanTransport(
-        {"home"},
-        runtime_parent=tmp_path,
-        process_factory=lambda *_args, **_kwargs: process,
-    )
+    monkeypatch.setattr(transport_module.subprocess, "Popen", lambda *_args, **_kwargs: process)
+    transport = PodmanTransport({"home"}, runtime_parent=tmp_path)
     try:
         with pytest.raises(TransportError, match="did not create control socket"):
             transport.forward_tcp("home", "workspace", port=8005, options=[], connection_id="c")
