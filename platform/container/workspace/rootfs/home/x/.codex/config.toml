@@ -1,0 +1,10 @@
+model = "gpt-5.6-sol"
+model_provider = "traexbridge"
+approval_policy = "never"
+sandbox_mode = "danger-full-access"
+model_reasoning_effort = "xhigh" # traex 认 low/medium/high/xhigh
+
+[model_providers.traexbridge]
+name = "traexbridge"
+base_url = "http://10.89.0.1:8081/v1"
+wire_api = "responses"           # 必须 responses
