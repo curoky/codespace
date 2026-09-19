@@ -102,10 +102,6 @@ class TestImageContract(unittest.TestCase):
         )
         self.assertFalse((ssh_directory / "workspace_login_key_ed25519").exists())
         self.assertFalse((ssh_directory / "workspace_login_key_ed25519.pub").exists())
-        agent_state = Path("/var/lib/codespace")
-        self.assertTrue(agent_state.is_dir())
-        self.assertEqual((agent_state.stat().st_uid, agent_state.stat().st_gid), (0, 0))
-        self.assertEqual(stat.S_IMODE(agent_state.stat().st_mode), 0o700)
 
     def test_s6_database_contains_workspace_service_graph(self) -> None:
         database = Path("/etc/s6/db")

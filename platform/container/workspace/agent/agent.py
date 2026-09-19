@@ -23,7 +23,6 @@ type SourceType = Literal["github", "gitlab", "git", "empty"]
 type AgentState = Literal["starting", "awaiting-provider", "ready", "failed"]
 
 SOCKET_PATH = Path("/run/codespace-control/agent.sock")
-PROVIDER_AUTHORIZATION_PATH = Path("/var/lib/codespace/provider-authorized")
 DEPLOY_PUBLIC_KEY_PATH = Path("/home/x/.ssh/git_deploy_key_ed25519.pub")
 CHECKOUT = "/opt/codespace/bin/checkout"
 
@@ -49,13 +48,14 @@ class GitState(BaseModel):
 def run_command(
     command: list[str],
     *,
+    check: bool = True,
     timeout: float = HELPER_TIMEOUT,
 ) -> subprocess.CompletedProcess[str]:
     """Run a helper or Git command as the unprivileged container user."""
     try:
         return subprocess.run(  # noqa: S603
             command,
-            check=True,
+            check=check,
             capture_output=True,
             text=True,
             stdin=subprocess.DEVNULL,
@@ -83,7 +83,6 @@ class WorkspaceAgent:
         git_args: list[str] | None = None,
         *,
         deploy_public_key_path: Path = DEPLOY_PUBLIC_KEY_PATH,
-        provider_authorization_path: Path = PROVIDER_AUTHORIZATION_PATH,
     ) -> None:
         self.source_type = source_type
         self.checkout_path = checkout_path
@@ -91,10 +90,7 @@ class WorkspaceAgent:
         self.clone_url = clone_url
         self.git_args = git_args or []
         self._deploy_public_key_path = deploy_public_key_path
-        self._provider_authorization_path = provider_authorization_path
         self._provider_authorized = threading.Event()
-        if source_type in ("github", "gitlab") and provider_authorization_path.exists():
-            self._provider_authorized.set()
         self._state: AgentState = "starting"
         self._error: str | None = None
 
@@ -109,7 +105,7 @@ class WorkspaceAgent:
         # Runs in-process: on success state flips to ready, on any error to
         # failed with the message; /status reads that state, no on-disk marker.
         try:
-            if self.source_type in ("github", "gitlab"):
+            if self.source_type in ("github", "gitlab") and not self._probe_provider():
                 self._set_state("awaiting-provider")
                 self._provider_authorized.wait()
                 self._set_state("starting")
@@ -135,8 +131,6 @@ class WorkspaceAgent:
             self._state != "awaiting-provider" and not self._provider_authorized.is_set()
         ):
             raise HTTPException(409, f"agent state is {self._state!r}")
-        # Container-local state survives Agent/container restarts, never rebuilds.
-        self._provider_authorization_path.touch(mode=0o600)
         self._provider_authorized.set()
 
     def status(self) -> AgentStatus:
@@ -167,6 +161,16 @@ class WorkspaceAgent:
     def _set_state(self, state: AgentState, error: str | None = None) -> None:
         self._state = state
         self._error = error
+
+    def _probe_provider(self) -> bool:
+        command = ["git", "ls-remote", cast("str", self.clone_url)]
+        result = run_command(command, check=False)
+        if result.returncode == 0:
+            return True
+        detail = (result.stderr or result.stdout or "unknown error").strip()
+        if "permission denied (publickey)" in detail.lower():
+            return False
+        raise RuntimeError(f"git failed ({result.returncode}): {detail}")
 
 
 def create_app(agent: WorkspaceAgent) -> FastAPI:

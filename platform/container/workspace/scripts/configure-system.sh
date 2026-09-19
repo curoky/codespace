@@ -12,7 +12,6 @@ usermod -aG sudo x
 chown -R 5230:5230 /home/x
 
 install -d -o 5230 -g 5230 -m 0700 /home/x/.ssh
-install -d -m 0700 /var/lib/codespace
 
 echo "/opt/bm/bin/zsh" >>/etc/shells
 chsh -s /opt/bm/bin/zsh root

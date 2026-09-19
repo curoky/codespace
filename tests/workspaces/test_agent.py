@@ -403,7 +403,7 @@ def test_image_bootstrap_passes_git_args(
     assert worker.status().state == "ready"
 
 
-@pytest.mark.parametrize("source", ["empty", "git", "github", "gitlab"])
+@pytest.mark.parametrize("source", ["empty", "git"])
 @pytest.mark.parametrize("fail", [False, True])
 def test_image_bootstrap_responses_satisfy_client_contract(
     image_agent: ModuleType,
@@ -414,18 +414,13 @@ def test_image_bootstrap_responses_satisfy_client_contract(
 ) -> None:
     key = tmp_path / "key.pub"
     key.write_text("ssh-ed25519 PUBLIC\n")
-    authorized = tmp_path / "container/provider-authorized"
-    authorized.parent.mkdir()
     worker = image_agent.WorkspaceAgent(
         source,
         "/workspace/repo",
         "/workspace/repo",
         clone_url=None if source == "empty" else "git@example.com:owner/repo.git",
         deploy_public_key_path=key,
-        provider_authorization_path=authorized,
     )
-    states: list[str] = []
-    commands: list[list[str]] = []
     with TestClient(image_agent.create_app(worker)) as server:
 
         def request(request: httpx.Request) -> httpx.Response:
@@ -439,73 +434,153 @@ def test_image_bootstrap_responses_satisfy_client_contract(
         )
         client = agent.WorkspaceAgentClient(tmp_path / "agent.sock")
 
-        def read_status() -> None:
-            states.append(client.status().state)
-
         def run(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
-            commands.append(command)
             if fail:
                 raise RuntimeError("checkout failed")
             return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
 
         monkeypatch.setattr(image_agent, "run_command", run)
-        read_status()
         with pytest.raises(agent.AgentError, match=r"failed \(409\)"):
             client.authorize_provider()
-        if source in {"github", "gitlab"}:
-            thread = worker.start_bootstrap()
-            try:
-                client.wait_for("awaiting-provider", timeout=2)
-                read_status()
-                assert commands == []
-                client.authorize_provider()
-                thread.join(timeout=2)
-                assert not thread.is_alive()
-            finally:
-                worker._provider_authorized.set()
-                thread.join(timeout=2)
-        else:
-            worker.run_bootstrap()
-        read_status()
-        if source in {"github", "gitlab"} and not fail:
+        worker.run_bootstrap()
+        assert client.status().state == ("failed" if fail else "ready")
+        with pytest.raises(agent.AgentError, match=r"failed \(409\)"):
             client.authorize_provider()
-            client.authorize_provider()
-            assert len(commands) == 2
-        else:
-            with pytest.raises(agent.AgentError, match=r"failed \(409\)"):
-                client.authorize_provider()
-        if source in {"github", "gitlab"}:
-            restarted = image_agent.WorkspaceAgent(
-                source,
-                "/workspace/repo",
-                "/workspace/repo",
-                clone_url="git@example.com:owner/repo.git",
-                deploy_public_key_path=key,
-                provider_authorization_path=authorized,
-            )
-            thread = restarted.start_bootstrap()
-            try:
-                thread.join(timeout=2)
-                assert not thread.is_alive()
-                assert restarted.status().state == ("failed" if fail else "ready")
-            finally:
-                restarted._provider_authorized.set()
-                thread.join(timeout=2)
 
-    assert states == [
-        "starting",
-        *(["awaiting-provider"] if source in {"github", "gitlab"} else []),
-        "failed" if fail else "ready",
-    ]
-    replacement = image_agent.WorkspaceAgent(
+
+@pytest.mark.parametrize("source", ["github", "gitlab"])
+@pytest.mark.parametrize("checkout_fails", [False, True])
+def test_image_provider_bootstrap_waits_for_publickey_authorization(
+    image_agent: ModuleType,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    source: str,
+    checkout_fails: bool,
+) -> None:
+    key = tmp_path / "key.pub"
+    key.write_text("ssh-ed25519 PUBLIC\n")
+    worker = image_agent.WorkspaceAgent(
         source,
         "/workspace/repo",
         "/workspace/repo",
+        clone_url="git@example.com:owner/repo.git",
         deploy_public_key_path=key,
-        provider_authorization_path=tmp_path / "replacement/provider-authorized",
     )
-    with TestClient(image_agent.create_app(replacement)) as server:
-        assert server.post("/provider-ready").status_code == 409
+    commands: list[list[str]] = []
+
+    def run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        commands.append(command)
+        if command[:2] == ["git", "ls-remote"]:
+            assert kwargs == {"check": False}
+            return subprocess.CompletedProcess(
+                command,
+                128,
+                stdout="",
+                stderr="git@example.com: Permission denied (publickey).\n",
+            )
+        if checkout_fails and command[0] == image_agent.CHECKOUT:
+            raise RuntimeError("checkout failed")
+        return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(image_agent, "run_command", run)
+    with TestClient(image_agent.create_app(worker)) as server:
+
+        def request(request: httpx.Request) -> httpx.Response:
+            response = server.request(request.method, request.url.path)
+            return httpx.Response(response.status_code, content=response.content)
+
+        monkeypatch.setattr(
+            httpx,
+            "HTTPTransport",
+            lambda **_kwargs: httpx.MockTransport(request),
+        )
+        client = agent.WorkspaceAgentClient(tmp_path / "agent.sock")
+        thread = worker.start_bootstrap()
+        try:
+            status = client.wait_for("awaiting-provider", timeout=2)
+            assert status.public_key == "ssh-ed25519 PUBLIC"
+            assert commands == [["git", "ls-remote", "git@example.com:owner/repo.git"]]
+            client.authorize_provider()
+            thread.join(timeout=2)
+            assert not thread.is_alive()
+        finally:
+            worker._provider_authorized.set()
+            thread.join(timeout=2)
+
+        assert client.status().state == ("failed" if checkout_fails else "ready")
+        if checkout_fails:
+            with pytest.raises(agent.AgentError, match=r"failed \(409\)"):
+                client.authorize_provider()
+        else:
+            client.authorize_provider()
+            client.authorize_provider()
+
+
+def test_image_provider_probe_reports_network_failure(
+    image_agent: ModuleType,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    key = tmp_path / "key.pub"
+    key.write_text("ssh-ed25519 PUBLIC\n")
+    worker = image_agent.WorkspaceAgent(
+        "github",
+        "/workspace/repo",
+        "/workspace/repo",
+        clone_url="git@example.com:owner/repo.git",
+        deploy_public_key_path=key,
+    )
+    monkeypatch.setattr(
+        image_agent,
+        "run_command",
+        lambda command, **_kwargs: subprocess.CompletedProcess(
+            command,
+            128,
+            stdout="",
+            stderr="ssh: Could not resolve hostname example.com: Name or service not known\n",
+        ),
+    )
+
+    worker.run_bootstrap()
+
+    assert worker.status().state == "failed"
+    assert "Could not resolve hostname" in worker.status().error
+
+
+@pytest.mark.parametrize("source", ["github", "gitlab"])
+def test_image_provider_restart_rechecks_remote_without_local_state(
+    image_agent: ModuleType,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    source: str,
+) -> None:
+    key = tmp_path / "key.pub"
+    key.write_text("ssh-ed25519 PUBLIC\n")
+    commands: list[list[str]] = []
+    monkeypatch.setattr(
+        image_agent,
+        "run_command",
+        lambda command, **_kwargs: (
+            commands.append(command),
+            subprocess.CompletedProcess(command, 0, stdout="", stderr=""),
+        )[-1],
+    )
+    worker = image_agent.WorkspaceAgent(
+        source,
+        "/workspace/repo",
+        "/workspace/repo",
+        clone_url="git@example.com:owner/repo.git",
+        deploy_public_key_path=key,
+    )
+
+    worker.run_bootstrap()
+
+    assert worker.status().state == "ready"
+    assert commands == [
+        ["git", "ls-remote", "git@example.com:owner/repo.git"],
+        [image_agent.CHECKOUT, "git@example.com:owner/repo.git", "/workspace/repo"],
+        ["mkdir", "-p", "--", "/workspace/repo"],
+    ]
 
 
 def test_image_git_and_error_responses_satisfy_client_contract(
