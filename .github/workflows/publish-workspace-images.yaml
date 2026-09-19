@@ -17,8 +17,8 @@ on:
 
 jobs:
   build:
-    name: build (${{ matrix.image.tag }}, ${{ matrix.platform.arch }})
-    runs-on: ${{ matrix.platform.runner }}
+    name: build (${{ matrix.image.tag }})
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
@@ -30,17 +30,12 @@ jobs:
         image:
           - base: 'debian:10'
             tag: 'debian10'
-          - base: 'debian:12'
-            tag: 'debian12'
+          # - base: 'debian:12'
+          #   tag: 'debian12'
           - base: 'debian:13'
             tag: 'debian13'
           - base: 'ubuntu:26.04'
             tag: 'ubuntu26.04'
-        platform:
-          - arch: amd64
-            runner: ubuntu-24.04
-          - arch: arm64
-            runner: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v5
 
@@ -58,193 +53,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - id: build
-        uses: docker/build-push-action@v7
+      - uses: docker/build-push-action@v7
         with:
           context: .
           file: platform/container/workspace/Dockerfile
           push: true
           provenance: false
-          platforms: linux/${{ matrix.platform.arch }}
+          platforms: linux/amd64
           network: host
           cache-from: |
-            type=registry,ref=ghcr.io/curoky/codespace-cache:workspace-${{ matrix.image.tag }}-${{ matrix.platform.arch }}
-            type=registry,ref=ghcr.io/curoky/codespace-cache:workspace-${{ matrix.image.tag }}-${{ matrix.platform.arch }}-min
-          cache-to: type=registry,ref=ghcr.io/curoky/codespace-cache:workspace-${{ matrix.image.tag }}-${{ matrix.platform.arch }}${{ env.CACHE_SUFFIX }},mode=${{ env.CACHE_MODE }},oci-mediatypes=true,compression=zstd,compression-level=3
+            type=registry,ref=ghcr.io/curoky/codespace-cache:workspace-${{ matrix.image.tag }}-amd64
+            type=registry,ref=ghcr.io/curoky/codespace-cache:workspace-${{ matrix.image.tag }}-amd64-min
+          cache-to: type=registry,ref=ghcr.io/curoky/codespace-cache:workspace-${{ matrix.image.tag }}-amd64${{ env.CACHE_SUFFIX }},mode=${{ env.CACHE_MODE }},oci-mediatypes=true,compression=zstd,compression-level=3
           no-cache: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true) }}
           build-args: BASE_IMAGE=${{ matrix.image.base }}
-          tags: ghcr.io/curoky/codespace
-          outputs: type=image,name-canonical=true,push-by-digest=true,oci-mediatypes=true,compression=zstd,compression-level=3
-
-      - name: Export digest
-        shell: bash
-        run: |
-          set -euo pipefail
-          digest='${{ steps.build.outputs.digest }}'
-          if [[ ! "${digest}" =~ ^sha256:[0-9a-f]{64}$ ]]; then
-            echo "invalid image digest: ${digest}" >&2
-            exit 1
-          fi
-          mkdir -p "${RUNNER_TEMP}/digests"
-          touch "${RUNNER_TEMP}/digests/${digest#sha256:}"
-
-      - name: Generate image report
-        shell: bash
-        env:
-          BUILD_METADATA: ${{ steps.build.outputs.metadata }}
-          IMAGE_DIGEST: ${{ steps.build.outputs.digest }}
-        run: |
-          set -euo pipefail
-
-          report_dir="${RUNNER_TEMP}/image-report"
-          image="ghcr.io/curoky/codespace@${IMAGE_DIGEST}"
-          mkdir -p "${report_dir}"
-
-          docker pull "${image}"
-          docker pull docker.io/wagoodman/dive:v0.13.1
-          printf '%s\n' "${BUILD_METADATA}" | jq . > "${report_dir}/build-metadata.json"
-          docker buildx imagetools inspect --raw "${image}" \
-            | jq . > "${report_dir}/manifest.json"
-          docker image inspect "${image}" \
-            | jq . > "${report_dir}/image-inspect.json"
-          docker history --no-trunc --format '{{json .}}' "${image}" \
-            | jq --slurp . > "${report_dir}/history.json"
-          docker history --no-trunc \
-            --format 'table {{.Size}}\t{{.CreatedBy}}' "${image}" \
-            > "${report_dir}/history.txt"
-
-          set +e
-          docker run --rm \
-            --env CI=true \
-            --env NO_COLOR=1 \
-            --volume /var/run/docker.sock:/var/run/docker.sock \
-            docker.io/wagoodman/dive:v0.13.1 "${image}" 2>&1 \
-            | tee "${report_dir}/dive.txt"
-          dive_status="${PIPESTATUS[0]}"
-          set -e
-          printf '%s\n' "${dive_status}" > "${report_dir}/dive-exit-code.txt"
-
-          compressed_bytes="$(
-            jq '[.layers[].size] | add // 0' "${report_dir}/manifest.json"
-          )"
-          unpacked_bytes="$(
-            jq '.[0].Size' "${report_dir}/image-inspect.json"
-          )"
-          layer_count="$(
-            jq '.layers | length' "${report_dir}/manifest.json"
-          )"
-
-          {
-            echo '# Workspace image report'
-            echo
-            echo '| Metric | Value |'
-            echo '| --- | --- |'
-            echo "| Image | \`${image}\` |"
-            echo "| Platform | \`linux/${{ matrix.platform.arch }}\` |"
-            echo "| Compressed size | $(numfmt --to=iec-i --suffix=B "${compressed_bytes}") (${compressed_bytes} bytes) |"
-            echo "| Unpacked size | $(numfmt --to=iec-i --suffix=B "${unpacked_bytes}") (${unpacked_bytes} bytes) |"
-            echo "| Layer count | ${layer_count} |"
-            echo '| Dive version | 0.13.1 |'
-            echo "| Dive exit code | ${dive_status} |"
-            echo
-            echo '## Largest compressed layers'
-            echo
-            echo '| Index | Size | Digest |'
-            echo '| ---: | ---: | --- |'
-            jq --raw-output \
-              '.layers
-               | to_entries
-               | sort_by(.value.size)
-               | reverse
-               | .[:10][]
-               | [.key, .value.size, .value.digest]
-               | @tsv' \
-              "${report_dir}/manifest.json" \
-              | while IFS=$'\t' read -r index size digest; do
-                  printf "| %s | %s | \`%s\` |\n" \
-                    "${index}" \
-                    "$(numfmt --to=iec-i --suffix=B "${size}")" \
-                    "${digest}"
-                done
-          } > "${report_dir}/summary.md"
-
-      - name: Upload image report
-        if: ${{ always() && steps.build.outcome == 'success' }}
-        uses: actions/upload-artifact@v7
-        with:
-          name: image-report-${{ matrix.image.tag }}-${{ matrix.platform.arch }}
-          path: ${{ runner.temp }}/image-report
-          if-no-files-found: error
-          retention-days: 30
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: digests-${{ matrix.image.tag }}-${{ matrix.platform.arch }}
-          path: ${{ runner.temp }}/digests/*
-          if-no-files-found: error
-          retention-days: 1
-
-  merge:
-    name: merge (${{ matrix.tag }})
-    needs: build
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      packages: write
-    strategy:
-      matrix:
-        tag:
-          - debian10
-          - debian12
-          - debian13
-          - ubuntu26.04
-    steps:
-      - uses: docker/setup-buildx-action@v4
-
-      - uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: actions/download-artifact@v8
-        with:
-          pattern: digests-${{ matrix.tag }}-*
-          path: ${{ runner.temp }}/digests
-          merge-multiple: true
-
-      - name: Create multi-platform manifest
-        shell: bash
-        run: |
-          set -euo pipefail
-          shopt -s nullglob
-          digest_files=("${RUNNER_TEMP}"/digests/*)
-          if (( ${#digest_files[@]} != 2 )); then
-            echo "expected 2 image digests, found ${#digest_files[@]}" >&2
-            exit 1
-          fi
-
-          sources=()
-          for digest_file in "${digest_files[@]}"; do
-            digest="$(basename "${digest_file}")"
-            if [[ ! "${digest}" =~ ^[0-9a-f]{64}$ ]]; then
-              echo "invalid image digest file: ${digest}" >&2
-              exit 1
-            fi
-            sources+=("ghcr.io/curoky/codespace@sha256:${digest}")
-          done
-
-          image="ghcr.io/curoky/codespace:workspace-${{ matrix.tag }}"
-          docker buildx imagetools create --tag "${image}" "${sources[@]}"
-
-          platforms="$(
-            docker buildx imagetools inspect --raw "${image}" \
-              | jq -r '.manifests[].platform | "\(.os)/\(.architecture)"' \
-              | sort
-          )"
-          expected_platforms=$'linux/amd64\nlinux/arm64'
-          if [[ "${platforms}" != "${expected_platforms}" ]]; then
-            echo "unexpected manifest platforms:" >&2
-            printf '%s\n' "${platforms}" >&2
-            exit 1
-          fi
+          tags: ghcr.io/curoky/codespace:workspace-${{ matrix.image.tag }}
+          outputs: type=image,oci-mediatypes=true,compression=zstd,compression-level=3
