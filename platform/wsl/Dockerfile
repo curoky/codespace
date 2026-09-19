@@ -1,5 +1,4 @@
-ARG BASE_IMAGE=ghcr.io/curoky/codespace:workspace-ubuntu26.04
-FROM ${BASE_IMAGE}
+FROM ghcr.io/curoky/codespace:workspace-ubuntu26.04
 
 USER root
 

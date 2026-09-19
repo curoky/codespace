@@ -52,7 +52,6 @@ jobs:
             type=registry,ref=ghcr.io/curoky/codespace-cache:workspace-wsl-min
           cache-to: type=registry,ref=ghcr.io/curoky/codespace-cache:workspace-wsl${{ github.event_name == 'push' && '-min' || '' }},mode=${{ github.event_name == 'push' && 'min' || 'max' }},oci-mediatypes=true,compression=zstd,compression-level=3
           no-cache: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true) }}
-          build-args: BASE_IMAGE=ghcr.io/curoky/codespace:workspace-ubuntu26.04
           tags: ghcr.io/curoky/codespace:workspace-wsl
 
       - name: Export WSL rootfs
