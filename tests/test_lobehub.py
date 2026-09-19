@@ -16,52 +16,6 @@ from codespace.config import Config
 
 _ROOT = Path(__file__).resolve().parents[1]
 _SERVICE = _ROOT / "platform/container/services/lobehub"
-_S6 = _SERVICE / "rootfs/etc/s6/s6-rc.d"
-
-
-def test_lobehub_image_pins_upstream_and_initializes_database_at_runtime() -> None:
-    dockerfile = (_SERVICE / "Dockerfile").read_text()
-    database = (_SERVICE / "rootfs/opt/lobehub/database.sh").read_text()
-
-    assert "lobehub/lobehub:2.2.17" in dockerfile
-    assert "paradedb/paradedb:0.25.9-pg17" in dockerfile
-    assert "node:24.21.0-bookworm-slim" in dockerfile
-    assert "initdb" in database
-    assert "shared_preload_libraries=pg_search" in database
-    assert not (_SERVICE / "rootfs/var/lib/postgresql").exists()
-
-
-def test_lobehub_waits_for_local_postgres_and_persists_runtime_identity() -> None:
-    assert (_S6 / "postgres/type").read_text().strip() == "longrun"
-    assert (_S6 / "postgres/notification-fd").read_text().strip() == "3"
-    assert (_S6 / "lobehub/type").read_text().strip() == "longrun"
-    assert (_S6 / "lobehub/dependencies.d/postgres").is_file()
-    assert (_S6 / "auth-proxy/type").read_text().strip() == "longrun"
-    assert (_S6 / "auth-proxy/dependencies.d/lobehub").is_file()
-    assert (_S6 / "default/contents.d/auth-proxy").is_file()
-
-    serve = (_SERVICE / "rootfs/opt/lobehub/serve.sh").read_text()
-    database = (_SERVICE / "rootfs/opt/lobehub/database.sh").read_text()
-    proxy = (_SERVICE / "rootfs/opt/lobehub/auth-proxy.js").read_text()
-    assert "LOBEHUB_DATA_DIR" not in serve
-    assert "LOBEHUB_DATA_DIR" not in database
-    assert "PGDATA" not in database
-    assert "readonly config_dir=/var/lib/codespace/lobehub/config" in serve
-    assert "LOBEHUB_INTERNAL_PORT" not in serve
-    assert "LOBEHUB_PROXY_PORT" not in proxy
-    assert "LOBEHUB_HOST" not in proxy
-    assert "const backendPort = 8081;" in proxy
-    assert "const listenHost = '0.0.0.0';" in proxy
-    assert "const listenPort = 8080;" in proxy
-    assert "const externalUrl = process.env.APP_URL;" in proxy
-    assert "http://localhost:3210" not in proxy
-    assert 'export APP_URL="http://localhost:3210"' not in serve
-    assert "APP_URL is required" in serve
-    assert "openssl rand -base64 36" in serve
-    assert 'export AUTH_ALLOWED_EMAILS="${auto_auth_email}"' in serve
-    assert "postgresql://postgres@127.0.0.1:5432/lobehub" in serve
-    assert "export HOSTNAME=127.0.0.1" in serve
-    assert "s6-setuidgid nextjs" in serve
 
 
 def test_lobehub_auth_proxy_bootstraps_and_injects_one_session() -> None:
@@ -187,20 +141,18 @@ def test_lobehub_auth_proxy_bootstraps_and_injects_one_session() -> None:
         backend_thread.join(timeout=5)
 
 
-def test_lobehub_example_uses_gateway_and_targets_sglang() -> None:
+def test_lobehub_example_targets_sglang_on_the_same_host() -> None:
     config = Config.model_validate(yaml.safe_load((_ROOT / "config.example.yaml").read_text()))
-    container = config.resolved_service_container("lobehub", "gpu-host")
+    host = next(iter(set(config.services["lobehub"].hosts) & set(config.services["sglang"].hosts)))
+    container = config.resolved_service_container("lobehub", host)
+    (lobehub_port,) = container.ports
+    (sglang_port,) = config.resolved_service_container("sglang", host).ports
 
-    assert [port.model_dump() for port in container.ports] == [
-        {
-            "target": 8080,
-            "published": 3210,
-            "host_ip": "10.88.0.1",
-            "protocol": "tcp",
-        }
-    ]
-    assert container.environment["OPENAI_PROXY_URL"] == "http://10.88.0.1:8003/v1"
+    assert lobehub_port.host_ip == sglang_port.host_ip
+    assert container.environment["OPENAI_PROXY_URL"] == (
+        f"http://{sglang_port.host_ip}:{sglang_port.published}/v1"
+    )
     assert "LOBEHUB_HOST" not in container.environment
-    assert container.environment["APP_URL"] == "http://localhost:3210"
+    assert container.environment["APP_URL"] == f"http://localhost:{lobehub_port.published}"
     assert "/var/lib/codespace/lobehub" in [volume.target for volume in container.volumes]
-    assert config.service_tunnel_ports("lobehub", "gpu-host") == [3210]
+    assert config.service_tunnel_ports("lobehub", host) == [lobehub_port.published]

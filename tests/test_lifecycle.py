@@ -48,7 +48,7 @@ def test_queue_and_dismiss_share_operation_rules(manager: ControlPlane, resource
 
 def test_operations_are_isolated_by_kind_and_host(manager: ControlPlane) -> None:
     data = manager.config.model_dump()
-    data["services"]["support"]["hosts"]["office"] = {}
+    data["services"]["support"]["hosts"].append("office")
     manager.config = Config.model_validate(data)
     resources = [
         Resource("home", "support"),

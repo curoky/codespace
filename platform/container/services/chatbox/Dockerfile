@@ -23,7 +23,7 @@ RUN patch --fuzz=0 -p1 </tmp/defaults.patch \
 # --------------------------------- Runtime ----------------------------------
 FROM ghcr.io/curoky/codespace:service-s6
 
-ENV CHATBOX_API_UPSTREAM=http://10.88.0.1:8003
+ENV CHATBOX_API_UPSTREAM=http://10.89.0.1:8104
 
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends gettext-base nginx \

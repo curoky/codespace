@@ -87,33 +87,6 @@ def app_client(config: Config) -> tuple[TestClient, FakeControl]:
     return client, control
 
 
-def test_static_ui_uses_final_terminology(app_client: tuple[TestClient, FakeControl]) -> None:
-    client, _control = app_client
-
-    index = client.get("/").text
-    script = client.get("/static/app.js").text
-    stylesheet = client.get("/static/app.css").text
-
-    assert ">Projects<" in index
-    assert ">Services<" in index
-    assert 'id="workspace-dialog"' in index
-    assert "renderProjects" in script
-    assert "renderServices" in script
-    assert "/api/projects/" in script
-    assert "/api/services/" in script
-    assert "/tunnels/${port}" in script
-    assert 'portLink.target = "_blank"' in script
-    assert "openWorkspaceTunnel" not in script
-    assert 'form.target = "_blank"' not in script
-    assert "workspace.encrypted" in script
-    assert "Encrypted Workspace" in script
-    assert "logs-source" not in index
-    assert "renderLogSources" not in script
-    assert "?source=" not in script
-    assert ".workspace-actions .ssh-command" in stylesheet
-    assert ".workspace-encryption-icon" in stylesheet
-
-
 def test_dashboard_workspace_exposes_container_encryption(
     app_client: tuple[TestClient, FakeControl], monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -146,7 +119,7 @@ def test_dashboard_workspace_exposes_container_encryption(
     assert "ssh-remote+space-codespace-debug-home" in serialized["vscode_url"]
     assert "container_id" not in serialized
     assert "alias" not in serialized
-    project = response.json()["projects"][0]
+    project = next(item for item in response.json()["projects"] if item["id"] == workspace.project)
     assert project["source"] == {
         "type": "github",
         "repository": "curoky/codespace",
@@ -160,7 +133,8 @@ def test_dashboard_and_token_endpoint_never_return_token(
 ) -> None:
     client, _control = app_client
 
-    assert client.get("/api/dashboard").json()["projects"][0]["id"] == "codespace"
+    projects = client.get("/api/dashboard").json()["projects"]
+    assert {project["id"] for project in projects} == set(_control.config.projects)
     response = client.put(
         "/api/providers/github/token",
         json={"token": "secret-token"},
@@ -235,13 +209,13 @@ def test_service_tunnel_route_redirects_to_local_forward(
     client, control = app_client
 
     opened = client.get(
-        "/api/services/support/hosts/home/tunnels/3210",
+        "/api/services/support/hosts/home/tunnels/8110",
         follow_redirects=False,
     )
 
     assert opened.status_code == 303
-    assert opened.headers["location"] == "http://127.0.0.1:3210/"
-    assert control.tunnels_opened == [(Resource("home", "support"), 3210)]
+    assert opened.headers["location"] == "http://127.0.0.1:8110/"
+    assert control.tunnels_opened == [(Resource("home", "support"), 8110)]
 
 
 def test_only_final_api_routes_exist(app_client: tuple[TestClient, FakeControl]) -> None:

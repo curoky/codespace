@@ -11,7 +11,7 @@ case "${CODESPACE_ENCRYPTED:?CODESPACE_ENCRYPTED must be true or false}" in
     exit 1
     ;;
 esac
-readonly encrypted_path="${CODESPACE_ENCRYPTED_PATH:?CODESPACE_ENCRYPTED_PATH must be set}"
+readonly encrypted_path=/workspace.enc
 
 # Rootful Podman preserves Host IDs. SSH must reach the UDS as the Host login
 # user, so retain the bind source's owner on the control directory.

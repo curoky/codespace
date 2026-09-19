@@ -142,14 +142,14 @@ def test_logs_reads_podman_output(
     assert calls == [running]
 
 
-def test_tunnel_forwards_configured_gateway_port(
+def test_tunnel_forwards_explicitly_configured_gateway_port(
     manager: ControlPlane,
     config: Config,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     data = config.model_dump()
     data["services"]["support"]["container"] = {
-        "ports": [{"target": 3210, "published": 3210, "host_ip": "10.88.0.1"}],
+        "ports": [{"target": 8080, "published": 8110, "host_ip": "10.88.0.1"}]
     }
     manager.config = Config.model_validate(data)
     running = SimpleNamespace(
@@ -159,14 +159,14 @@ def test_tunnel_forwards_configured_gateway_port(
     )
     monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
 
-    assert manager.open_tunnel(Resource("home", "support"), 3210) == 49123
+    assert manager.open_tunnel(Resource("home", "support"), 8110) == 49123
     assert manager.transport.tcp_forwards == [  # type: ignore[attr-defined]
         (
             "home",
             "home",
             {
-                "port": 3210,
-                "local_port": 3210,
+                "port": 8110,
+                "local_port": 8110,
                 "remote_host": "10.88.0.1",
                 "options": [],
                 "connection_id": "deployed-container",
@@ -175,16 +175,20 @@ def test_tunnel_forwards_configured_gateway_port(
     ]
 
 
-def test_tunnel_rejects_unconfigured_or_stopped_service(
+def test_tunnel_rejects_unpublished_service_port(
+    manager: ControlPlane,
+) -> None:
+    with pytest.raises(lifecycle.ResourceNotFound, match="not configured"):
+        manager.open_tunnel(Resource("home", "support"), 8110)
+
+
+def test_tunnel_rejects_stopped_service(
     manager: ControlPlane,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    with pytest.raises(lifecycle.ResourceNotFound, match="not configured"):
-        manager.open_tunnel(Resource("home", "support"), 3210)
-
     data = manager.config.model_dump()
     data["services"]["support"]["container"] = {
-        "ports": [{"target": 3210, "published": 3210, "host_ip": "10.88.0.1"}],
+        "ports": [{"target": 8080, "published": 8110, "host_ip": "10.88.0.1"}]
     }
     manager.config = Config.model_validate(data)
     running = SimpleNamespace(
@@ -195,4 +199,4 @@ def test_tunnel_rejects_unconfigured_or_stopped_service(
     monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
 
     with pytest.raises(lifecycle.ResourceConflict, match="is not running"):
-        manager.open_tunnel(Resource("home", "support"), 3210)
+        manager.open_tunnel(Resource("home", "support"), 8110)

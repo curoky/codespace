@@ -1,6 +1,5 @@
 hosts:
   workstation:
-    bridge_gateway: 10.88.0.1
     forward_environment: [HTTP_PROXY, HTTPS_PROXY, NO_PROXY]
     platform: linux/amd64
     container:
@@ -9,7 +8,6 @@ hosts:
         - /etc/krb5.conf:/etc/krb5.conf:ro
 
   gpu-host:
-    bridge_gateway: 10.88.0.1
     forward_environment: [HOST_IP, HOST_IPV6]
     platform: linux/amd64
     container:
@@ -20,11 +18,9 @@ hosts:
 
 project_defaults:
   image: ghcr.io/curoky/codespace:workspace-debian13
+  encrypted: true
   tunnel_ports: [8007, 8008]
   container:
-    environment:
-      CODESPACE_ENCRYPTED_PATH: /workspace.enc
-      CODESPACE_SECRET_URL: http://10.88.0.1:8006
     secrets:
       - { source: huggingface_token, mode: 0400 }
       - { source: atuin_db_uri, mode: 0400 }
@@ -35,7 +31,7 @@ project_defaults:
     ulimits:
       memlock: { soft: -1, hard: -1 }
     volumes:
-      - ${RESOURCE_DATA}/workspace:/workspace
+      - ${RESOURCE_DATA}/workspace:/workspace.enc
       - ${RESOURCE_DATA}/upload:/upload
       - ${RESOURCE_DATA}/control:/run/codespace-control
       - ${RESOURCE_DATA}/cache/.vscode-server/bin:/home/x/.vscode-server/bin
@@ -53,71 +49,60 @@ projects:
   codespace:
     description: Personal development platform
     source: { type: github, repository: curoky/codespace }
-    hosts:
-      workstation: {}
-      gpu-host: {}
-    encrypted: true
+    hosts: [workstation, gpu-host]
 
   learn-ml:
     source: { type: github, repository: curoky/learn-ml }
-    hosts:
-      gpu-host: {}
-    encrypted: true
+    hosts: [gpu-host]
 
   standalone-binaries:
     source: { type: github, repository: curoky/standalone-binaries }
-    hosts:
-      gpu-host: {}
+    hosts: [gpu-host]
     encrypted: false
+    container:
+      volumes:
+        - ${RESOURCE_DATA}/workspace:/workspace
 
   notes:
     source: { type: gitlab, repository: my-namespace/notes }
-    hosts:
-      workstation: {}
-    encrypted: true
+    hosts: [workstation]
 
   scratch:
     source: { type: empty }
-    hosts:
-      gpu-host: {}
-    encrypted: true
+    hosts: [gpu-host]
     open_path: /workspace
 
   private-repo:
     source: { type: git, url: "git@git.example.com:team/private-repo" }
-    hosts:
-      gpu-host: {}
+    hosts: [gpu-host]
     encrypted: false
     image: registry.example.com/base/dev-image:latest
     container:
+      volumes:
+        - ${RESOURCE_DATA}/workspace:/workspace
       secrets: []
 
 services:
   support:
     image: ghcr.io/curoky/codespace:service-support
-    hosts:
-      workstation: {}
-      gpu-host: {}
+    hosts: [workstation, gpu-host]
     container:
       volumes:
         - /run/podman/podman.sock:/run/podman/podman.sock
 
   secret:
     image: ghcr.io/curoky/codespace:service-secret
-    hosts:
-      workstation: {}
-      gpu-host: {}
+    hosts: [workstation, gpu-host]
     container:
       ports:
-        - { target: 8080, published: 8006, host_ip: 10.88.0.1 }
+        - { target: 8080, published: 8106, host_ip: 10.89.0.1 }
 
   vllm:
     image: ghcr.io/curoky/codespace:service-vllm
-    hosts:
-      gpu-host: {}
+    hosts: [gpu-host]
     container:
       ports:
-        - { target: 8080, published: 8003, host_ip: 10.88.0.1 }
+        - { target: 8080, published: 8103, host_ip: 10.89.0.1 }
       ipc: host
       pids_limit: -1
       devices: [nvidia.com/gpu=all]
@@ -131,11 +116,10 @@ services:
 
   sglang:
     image: ghcr.io/curoky/codespace:service-sglang
-    hosts:
-      gpu-host: {}
+    hosts: [gpu-host]
     container:
       ports:
-        - { target: 8080, published: 8003, host_ip: 10.88.0.1 }
+        - { target: 8080, published: 8104, host_ip: 10.89.0.1 }
       ipc: host
       pids_limit: -1
       devices: [nvidia.com/gpu=all]
@@ -149,26 +133,24 @@ services:
 
   lobehub:
     image: ghcr.io/curoky/codespace:service-lobehub
-    hosts:
-      gpu-host: {}
+    hosts: [gpu-host]
     container:
       ports:
-        - { target: 8080, published: 3210, host_ip: 10.88.0.1 }
+        - { target: 8080, published: 8110, host_ip: 10.89.0.1 }
       environment:
-        APP_URL: http://localhost:3210
-        OPENAI_PROXY_URL: http://10.88.0.1:8003/v1
+        APP_URL: http://localhost:8110
+        OPENAI_PROXY_URL: http://10.89.0.1:8104/v1
       volumes:
         - ${RESOURCE_DATA}:/var/lib/codespace/lobehub
 
   chatbox:
     image: ghcr.io/curoky/codespace:service-chatbox
-    hosts:
-      gpu-host: {}
+    hosts: [gpu-host]
     container:
       ports:
-        - { target: 8080, published: 3212, host_ip: 10.88.0.1 }
+        - { target: 8080, published: 8112, host_ip: 10.89.0.1 }
       environment:
-        CHATBOX_API_UPSTREAM: http://10.88.0.1:8003
+        CHATBOX_API_UPSTREAM: http://10.89.0.1:8104
 
 tokens:
   github: github_pat_REPLACE_WITH_GITHUB_TOKEN

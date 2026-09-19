@@ -38,15 +38,6 @@ class ServiceSpec(ServiceMetadata):
     def labels(self) -> dict[str, str]:
         return {**self.resource.labels, LABEL_IMAGE: self.image}
 
-    def resolve_data_path(self, data_path: str) -> ContainerSpec:
-        return self.container.model_copy(
-            update={
-                "volumes": [
-                    volume.resolve_data_path(data_path) for volume in self.container.volumes
-                ]
-            }
-        )
-
 
 class Service(ServiceMetadata):
     """One actual Service container read from Podman labels."""
