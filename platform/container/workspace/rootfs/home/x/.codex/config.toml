@@ -1,10 +1,28 @@
-model = "gpt-5.6-sol"
+# —— traex-codex-bridge:让官方 codex 复用 traex 模型/额度 ——
+model = "gpt-5.6-sol"            # 直接作 traex 的 config_name;换模型改此值
 model_provider = "traexbridge"
+model_reasoning_effort = "xhigh" # traex 认 low/medium/high/xhigh
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
-model_reasoning_effort = "xhigh" # traex 认 low/medium/high/xhigh
+
+# —— 去遥测/统计(codex 自身) ——
+analytics.enabled = false        # 关闭使用统计
+feedback.enabled = false         # 关闭 /feedback 反馈上报
+check_for_update_on_startup = false  # bridge 场景无需联网检查更新
+
+# —— web 搜索:开启 ——
+web_search = "live"              # 允许模型发起实时 web 搜索
+
+# —— 会话历史:保留落盘,可复盘 ——
+history.persistence = "save-all"
+
+[otel]
+log_user_prompt = false          # 不把 prompt 写入 trace(默认 false,显式兜底;exporter 默认 none 即不外发)
 
 [model_providers.traexbridge]
 name = "traexbridge"
 base_url = "http://10.89.0.1:8081/v1"
 wire_api = "responses"           # 必须 responses
+
+[projects."/workspace"]
+trust_level = "trusted"
