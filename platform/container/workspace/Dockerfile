@@ -111,7 +111,8 @@ RUN bash /tmp/install-editor-extensions.sh /tmp/extensions.txt /opt/editor-exten
 # --------------------------------- Runtime ----------------------------------
 FROM docker.io/$BASE_IMAGE AS workspace
 
-ENV PATH=/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:${PATH}
+ENV CONDA_PLUGINS_AUTO_ACCEPT_TOS=yes \
+  PATH=/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:${PATH}
 
 COPY --link --chown=5230:5230 --from=stage_sb /opt/bm /opt/bm
 COPY --link --chown=5230:5230 --from=stage_nix /nix /nix
