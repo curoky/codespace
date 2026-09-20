@@ -12,6 +12,14 @@ import pytest
 _CONTAINER = Path(__file__).resolve().parents[1] / "platform/container"
 
 
+def _s6_longrun_directories() -> list[Path]:
+    return sorted(
+        path.parent
+        for path in _CONTAINER.glob("**/rootfs/etc/s6/s6-rc.d/*/type")
+        if path.read_text().strip() == "longrun"
+    )
+
+
 def _s6_service_entrypoints() -> list[Path]:
     entrypoints = [
         _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/atuin-server/run",
@@ -71,6 +79,44 @@ def test_s6_services_use_store_paths_for_binman_commands() -> None:
             if line.lstrip().startswith("#"):
                 continue
             assert command.search(line) is None, f"{entrypoint}:{line_number}: {line}"
+
+
+@pytest.mark.parametrize("service", _s6_longrun_directories())
+def test_s6_longrun_entrypoints_are_executable(service: Path) -> None:
+    assert os.access(service / "run", os.X_OK)
+
+
+@pytest.mark.parametrize(
+    ("relative_service", "probe"),
+    [
+        ("workspace/rootfs/etc/s6/s6-rc.d/atuin-server", "127.0.0.1:8002/"),
+        ("workspace/rootfs/etc/s6/s6-rc.d/sshd", "127.0.0.1 22"),
+        ("services/chatbox/rootfs/etc/s6/s6-rc.d/nginx", "127.0.0.1:8080/healthz"),
+        ("services/secret/rootfs/etc/s6/s6-rc.d/rclone-webdav", "127.0.0.1:8080/"),
+        ("services/sglang/rootfs/etc/s6/s6-rc.d/serve", "127.0.0.1:8080/health"),
+        ("services/vllm/rootfs/etc/s6/s6-rc.d/serve", "127.0.0.1:8080/health"),
+    ],
+)
+def test_required_s6_services_publish_readiness(relative_service: str, probe: str) -> None:
+    service = _CONTAINER / relative_service
+    run = (service / "run").read_text()
+    notify_timeout = re.search(r"s6-notifyoncheck\b.* -T (\d+)", run)
+
+    assert (service / "notification-fd").read_text().strip() == "3"
+    assert notify_timeout is not None
+    assert int((service / "timeout-up").read_text().strip()) > int(notify_timeout.group(1))
+    assert probe in run
+
+
+@pytest.mark.parametrize(
+    "service",
+    sorted(path.parent for path in _CONTAINER.glob("**/rootfs/etc/s6/s6-rc.d/*/notification-fd")),
+)
+def test_s6_notifier_runs_before_privilege_drop(service: Path) -> None:
+    run = (service / "run").read_text()
+
+    if "s6-setuidgid" in run:
+        assert run.index("s6-notifyoncheck") < run.index("s6-setuidgid")
 
 
 @pytest.mark.parametrize("entrypoint", _s6_service_entrypoints())

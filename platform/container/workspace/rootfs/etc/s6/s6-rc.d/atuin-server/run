@@ -5,8 +5,6 @@ s6-envdir -Lf -- /run/s6/container_environment
 redirfd -w 1 /var/log/s6.atuin-server.log
 fdmove -c 2 1
 
-s6-setuidgid x
-s6-env HOME=/home/x
 if { test -s /run/secrets/atuin_db_uri }
 backtick -i ATUIN_DB_URI { cat /run/secrets/atuin_db_uri }
 
@@ -16,4 +14,6 @@ export ATUIN_OPEN_REGISTRATION "false"
 
 s6-notifyoncheck -d -n 0 -w 1000 -t 2000 -T 60000
   -c "/opt/bm/bin/curl --noproxy * --fail --silent --output /dev/null --max-time 1 http://127.0.0.1:8002/"
+s6-setuidgid x
+s6-env HOME=/home/x
 exec /opt/bm/store/atuin/bin/atuin server start

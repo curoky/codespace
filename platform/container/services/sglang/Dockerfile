@@ -20,7 +20,7 @@ COPY --from=s6 /opt/bm /opt/bm
 
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
-    bash ca-certificates g++ git libgomp1 \
+    bash ca-certificates curl g++ git libgomp1 \
   && command -v cc \
   && command -v c++ \
   && rm -rf /var/lib/apt/lists/*
