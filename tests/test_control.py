@@ -75,6 +75,7 @@ def test_dashboard_keeps_actual_metadata_when_config_changes(
         "list_services",
         lambda _client, host: [service] if host == "home" else [],
     )
+    monkeypatch.setattr(control_module.ssh, "write_route", lambda _workspace: None)
 
     dashboard = build(control)
 
@@ -91,6 +92,27 @@ def test_dashboard_keeps_actual_metadata_when_config_changes(
     assert support_host["tunnel_ports"] == [8080, 8008]
     assert support_host["container"] == service
     assert services["vllm"]["hosts"][0]["container"] is None
+
+
+def test_inventory_restores_workspace_ssh_routes(
+    config: Config, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    control = ControlPlane(config, transport=FakeTransport())  # type: ignore[arg-type]
+    workspace = config.workspace_spec("codespace", "home", "debug").to_workspace(
+        "workspace-id", status="running"
+    )
+    written = []
+    monkeypatch.setattr(
+        control_module.workspaces,
+        "list_workspaces",
+        lambda _client, host: [workspace] if host == "home" else [],
+    )
+    monkeypatch.setattr(control_module.services, "list_services", lambda *_args: [])
+    monkeypatch.setattr(control_module.ssh, "write_route", written.append)
+
+    control.inventory()
+
+    assert written == [workspace]
 
 
 @pytest.mark.parametrize("error", [KeyError("codespace.image"), RuntimeError("invalid metadata")])

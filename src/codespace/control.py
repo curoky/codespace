@@ -88,9 +88,12 @@ class ControlPlane:
     def _host_inventory(self, host_name: str) -> HostInventory | HostFailure:
         try:
             client = self.transport.client(host_name)
+            actual_workspaces = workspaces.list_workspaces(client, host_name)
+            for workspace in actual_workspaces:
+                ssh.write_route(workspace)
             return HostInventory(
                 host=host_name,
-                workspaces=workspaces.list_workspaces(client, host_name),
+                workspaces=actual_workspaces,
                 services=services.list_services(client, host_name),
             )
         except Exception as exc:
