@@ -116,9 +116,7 @@ def test_example_gpu_service_sets_huggingface_environment_at_startup(
     service: str, home: str
 ) -> None:
     config = load_config(Path("config.example.yaml"))
-    script_path = Path(
-        f"platform/container/services/{service}/rootfs/opt/{service}/serve.sh"
-    )
+    script_path = Path(f"platform/container/services/{service}/rootfs/opt/{service}/serve.sh")
     script = script_path.read_text()
 
     for host in config.services[service].hosts:

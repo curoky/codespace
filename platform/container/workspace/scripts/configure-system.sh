@@ -41,6 +41,8 @@ cp /opt/bm/lib/locale/locale-archive /usr/lib/locale/locale-archive
 
 ln -s /opt/bm/store/zsh/bin/zsh /usr/bin
 ln -s /opt/bm/store/wget/bin/wget /usr/bin
+ln -s /opt/bm/store/curl/bin/curl /usr/bin
+ln -s /opt/bm/store/sudo/bin/sudo /usr/bin
 ln -s /opt/bm/store/less/bin/less /usr/bin
 ln -s /opt/bm/store/xz/bin/xz /usr/bin
 ln -s /opt/bm/store/git/bin/git /usr/bin

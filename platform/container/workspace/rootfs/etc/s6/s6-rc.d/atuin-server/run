@@ -13,7 +13,7 @@ export ATUIN_PORT "8002"
 export ATUIN_OPEN_REGISTRATION "false"
 
 s6-notifyoncheck -d -n 0 -w 1000 -t 2000 -T 60000
-  -c "/opt/bm/bin/curl --noproxy * --fail --silent --output /dev/null --max-time 1 http://127.0.0.1:8002/"
+  -c "curl --noproxy * --fail --silent --output /dev/null --max-time 1 http://127.0.0.1:8002/"
 s6-setuidgid x
 s6-env HOME=/home/x
 exec /opt/bm/store/atuin/bin/atuin server start

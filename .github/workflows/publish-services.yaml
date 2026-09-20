@@ -10,6 +10,12 @@ on:
   schedule:
     - cron: '0 2 * * 0'
   workflow_dispatch:
+    inputs:
+      disable_docker_cache:
+        description: Disable Docker cache
+        default: false
+        required: false
+        type: boolean
 
 jobs:
   base:
@@ -17,6 +23,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+    env:
+      CACHE_MODE: ${{ github.event_name == 'push' && 'min' || 'max' }}
+      CACHE_SUFFIX: ${{ github.event_name == 'push' && '-min' || '' }}
     steps:
       - uses: actions/checkout@v5
       - uses: docker/setup-qemu-action@v3
@@ -35,7 +44,11 @@ jobs:
           push: true
           provenance: false
           platforms: linux/amd64,linux/arm64
-          no-cache: ${{ github.event_name == 'schedule' }}
+          cache-from: |
+            type=registry,ref=ghcr.io/curoky/codespace-cache:service-s6
+            type=registry,ref=ghcr.io/curoky/codespace-cache:service-s6-min
+          cache-to: type=registry,ref=ghcr.io/curoky/codespace-cache:service-s6${{ env.CACHE_SUFFIX }},mode=${{ env.CACHE_MODE }},oci-mediatypes=true,compression=zstd,compression-level=3
+          no-cache: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true) }}
           tags: ghcr.io/curoky/codespace:service-s6
 
   images:
@@ -45,6 +58,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+    env:
+      CACHE_MODE: ${{ github.event_name == 'push' && 'min' || 'max' }}
+      CACHE_SUFFIX: ${{ github.event_name == 'push' && '-min' || '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -77,5 +93,9 @@ jobs:
           push: true
           provenance: false
           platforms: ${{ matrix.platforms }}
-          no-cache: ${{ github.event_name == 'schedule' }}
+          cache-from: |
+            type=registry,ref=ghcr.io/curoky/codespace-cache:service-${{ matrix.service }}
+            type=registry,ref=ghcr.io/curoky/codespace-cache:service-${{ matrix.service }}-min
+          cache-to: type=registry,ref=ghcr.io/curoky/codespace-cache:service-${{ matrix.service }}${{ env.CACHE_SUFFIX }},mode=${{ env.CACHE_MODE }},oci-mediatypes=true,compression=zstd,compression-level=3
+          no-cache: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true) }}
           tags: ghcr.io/curoky/codespace:service-${{ matrix.service }}

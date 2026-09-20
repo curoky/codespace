@@ -54,6 +54,20 @@ def test_workspace_hosts_blackhole_limits_privilege_to_the_append() -> None:
     assert "} | sudo tee -a /etc/hosts >/dev/null" in helper.read_text()
 
 
+def test_workspace_user_services_load_container_environment_before_dropping_privileges() -> None:
+    service_root = _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d"
+    entrypoints = sorted(service_root.glob("*/run")) + sorted(service_root.glob("*/up"))
+
+    for entrypoint in entrypoints:
+        lines = entrypoint.read_text().splitlines()
+        if "s6-setuidgid x" not in lines:
+            continue
+        assert "s6-envdir -Lf -- /run/s6/container_environment" in lines, entrypoint
+        assert lines.index("s6-envdir -Lf -- /run/s6/container_environment") < lines.index(
+            "s6-setuidgid x"
+        ), entrypoint
+
+
 def test_log_server_listener_is_configured_by_each_image() -> None:
     run = (_CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/miniserve-http/run").read_text()
     workspace = (_CONTAINER / "workspace/Dockerfile").read_text()
