@@ -33,6 +33,21 @@ ln -sf /usr/share/zoneinfo/Asia/Singapore /etc/localtime
 chown root:root /opt/bm/store/fuse3/bin/fusermount3
 chmod u+s /opt/bm/store/fuse3/bin/fusermount3
 
+# The store is copied as x, so restore the ownership and privileged mode bits
+# required by helpers that update system account state.
+chown -R root:root /opt/bm/store/shadow
+chown root:shadow /opt/bm/store/shadow/bin/chage
+chmod 4755 \
+  /opt/bm/store/shadow/bin/chfn \
+  /opt/bm/store/shadow/bin/chsh \
+  /opt/bm/store/shadow/bin/gpasswd \
+  /opt/bm/store/shadow/bin/newgidmap \
+  /opt/bm/store/shadow/bin/newgrp \
+  /opt/bm/store/shadow/bin/newuidmap \
+  /opt/bm/store/shadow/bin/passwd \
+  /opt/bm/store/shadow/bin/su
+chmod 2755 /opt/bm/store/shadow/bin/chage
+
 install -d /etc/ssl/certs
 cp /opt/bm/etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt
 

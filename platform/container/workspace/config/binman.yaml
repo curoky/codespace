@@ -6,6 +6,8 @@ packages:
     - lark-cli
     - radare2
     - rizin
+    - busybox
+    - shadow
 
     - zsh
     - zsh-plugins
