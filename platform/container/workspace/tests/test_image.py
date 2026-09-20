@@ -147,7 +147,7 @@ class TestImageContract(unittest.TestCase):
         self.assertLessEqual(expected_services, services)
         self.assertEqual(default_services, expected_services)
         self.assertEqual(sshd_dependencies, {"home-init", "workspace-init"})
-        self.assertEqual(agent_dependencies, {"sshd"})
+        self.assertEqual(agent_dependencies, {"secret-mount", "sshd"})
         # s6-rc-compile injects s6rc-oneshot-runner as an implicit dependency of
         # every oneshot service, so home-init is never dependency-free.
         self.assertEqual(
