@@ -1,11 +1,9 @@
 #!/usr/local/bin/execlineb -P
 
-
 redirfd -w 1 /var/log/s6.ollama.log
 fdmove -c 2 1
 
 s6-setuidgid x
 s6-env HOME=/home/x
-export OLLAMA_HOST 127.0.0.1:8006
-
+s6-env OLLAMA_HOST=127.0.0.1:8006
 exec /nix/var/nix/profiles/default/bin/ollama serve

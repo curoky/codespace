@@ -1,3 +1,5 @@
+#!/usr/local/bin/execlineb -P
+
 redirfd -w 1 /var/log/s6.gh-login.log
 fdmove -c 2 1
 if { test -s /run/secrets/github_action_token }

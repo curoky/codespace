@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-export HF_HOME=/root/.cache/huggingface
+export HF_HOME=/home/x/.cache/huggingface
 export HF_TOKEN_PATH=/run/secrets/huggingface_token
 
 model="${SERVE_MODEL:-Qwen/Qwen3.8-Flash-Next-FP8}"

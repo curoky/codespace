@@ -1,6 +1,5 @@
 #!/usr/local/bin/execlineb -P
 
-
 redirfd -w 1 /var/log/s6.nixcache.log
 fdmove -c 2 1
 

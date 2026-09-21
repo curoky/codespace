@@ -1,3 +1,5 @@
+#!/usr/local/bin/execlineb -P
+
 redirfd -w 1 /var/log/s6.ssh-deploy-key.log
 fdmove -c 2 1
 s6-setuidgid x

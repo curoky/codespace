@@ -6,12 +6,11 @@ fdmove -c 2 1
 if { test -s /run/secrets/atuin_db_uri }
 backtick -i ATUIN_DB_URI { cat /run/secrets/atuin_db_uri }
 
-export ATUIN_HOST "127.0.0.1"
-export ATUIN_PORT "8002"
-export ATUIN_OPEN_REGISTRATION "false"
-
 s6-notifyoncheck -d -n 0 -w 1000 -t 2000 -T 60000
-  -c "curl --noproxy * --fail --silent --output /dev/null --max-time 1 http://127.0.0.1:8002/"
+  -c "/usr/bin/curl --noproxy * --fail --silent --output /dev/null --max-time 2 http://127.0.0.1:8002/"
 s6-setuidgid x
 s6-env HOME=/home/x
+s6-env ATUIN_HOST=127.0.0.1
+s6-env ATUIN_PORT=8002
+s6-env ATUIN_OPEN_REGISTRATION=false
 exec /usr/local/store/atuin/bin/atuin server start

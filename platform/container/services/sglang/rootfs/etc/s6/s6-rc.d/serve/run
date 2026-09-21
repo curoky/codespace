@@ -1,6 +1,5 @@
 #!/usr/local/bin/execlineb -P
 
-
 redirfd -w 1 /var/log/s6.serve.log
 fdmove -c 2 1
 backtick -D "" SERVE_MODEL { cat /run/s6/container_environment/SERVE_MODEL }
@@ -10,4 +9,6 @@ backtick -D "" NVIDIA_DRIVER_CAPABILITIES { cat /run/s6/container_environment/NV
 
 s6-notifyoncheck -d -n 0 -w 1000 -t 5000 -T 900000
   -c "/usr/bin/curl --noproxy * --fail --silent --output /dev/null --max-time 2 http://127.0.0.1:8080/health"
+s6-setuidgid x
+s6-env HOME=/home/x
 exec /opt/sglang/serve.sh

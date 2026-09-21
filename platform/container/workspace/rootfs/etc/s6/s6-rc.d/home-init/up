@@ -1,13 +1,11 @@
+#!/usr/local/bin/execlineb -P
+
 redirfd -w 1 /var/log/s6.home-init.log
 fdmove -c 2 1
 
-foreground
-{
-  chown -R 5230:5230
-    /home/x/.vscode-server
-    /home/x/.trae
-    /home/x/.trae-cn
-    /home/x/.trae-server
-    /home/x/.trae-cn-server
-}
-exit 0
+chown -R 5230:5230
+  /home/x/.vscode-server
+  /home/x/.trae
+  /home/x/.trae-cn
+  /home/x/.trae-server
+  /home/x/.trae-cn-server

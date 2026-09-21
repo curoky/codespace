@@ -1,3 +1,5 @@
+#!/usr/local/bin/execlineb -P
+
 redirfd -w 1 /var/log/s6.hosts-blackhole.log
 fdmove -c 2 1
 /usr/local/codespace/bin/init-hosts-blackhole

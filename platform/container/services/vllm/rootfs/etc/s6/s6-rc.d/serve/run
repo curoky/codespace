@@ -1,6 +1,5 @@
 #!/usr/local/bin/execlineb -P
 
-
 redirfd -w 1 /var/log/s6.serve.log
 fdmove -c 2 1
 backtick -D "" SERVE_MODEL { cat /run/s6/container_environment/SERVE_MODEL }

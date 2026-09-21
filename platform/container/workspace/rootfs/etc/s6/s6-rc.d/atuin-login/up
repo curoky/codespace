@@ -1,3 +1,5 @@
+#!/usr/local/bin/execlineb -P
+
 redirfd -w 1 /var/log/s6.atuin-login.log
 fdmove -c 2 1
 s6-setuidgid x
