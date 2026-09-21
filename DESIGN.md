@@ -143,6 +143,14 @@ Workspace image 是固定单用户 runtime，PID 1 运行 build-time 编译的 s
 graph。`platform/container/workspace/rootfs/` 拥有 system 配置、service definition
 与共享 home source；运行期只初始化数据和 credential，不动态编译 image contract。
 
+Host 上的 rootful Podman 与 Workspace 内的 rootless Podman 是两个独立边界。前者由
+控制面管理 Workspace 生命周期；后者只服务 Workspace 用户 `x`，API socket 位于
+`/run/user/5230/podman/podman.sock`，不能用于管理 Host container。内部 Podman 的 bundle、
+wrapper、配置与 s6 service 由 Workspace image 独占，不进入共享 BM profile。
+`/opt/podman/data` 是唯一持久状态边界：未挂载时状态随 Workspace container 消失；
+挂载 `${RESOURCE_DATA}/podman` 后随 Workspace 数据保留。全新 data 根据 backing
+filesystem 选择 native overlay 或 VFS；已有 graphroot 沿用原 driver，不做迁移。
+
 `platform/container/services/s6/` 提供 Service 共用的 s6 runtime。Debian leaf 可以
 直接继承；异构 base 只复制可搬运资产并编译自己的 graph。每个 Service leaf 只拥有
 自身 runtime 资产，不复制 Workspace SSH、credential 或 Agent 逻辑。Framework

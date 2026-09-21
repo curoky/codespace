@@ -113,7 +113,7 @@ RUN bash /tmp/install-editor-extensions.sh /tmp/extensions.txt /opt/editor-exten
 FROM docker.io/$BASE_IMAGE AS workspace
 
 ENV CONDA_PLUGINS_AUTO_ACCEPT_TOS=yes \
-  PATH=/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:/nix/var/nix/profiles/default/bin:${PATH}
+  PATH=/opt/podman/bin:/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:/nix/var/nix/profiles/default/bin:${PATH}
 
 COPY --link --chown=5230:5230 --from=stage_sb /opt/bm /opt/bm
 COPY --link --chown=5230:5230 --from=stage_nix /nix /nix
@@ -127,6 +127,8 @@ COPY --link --chown=5230:5230 --from=stage_cuda /opt/nvidia/nsight-compute /opt/
 COPY --link --chown=5230:5230 --from=stage_nsys /opt/nvidia/nsight-systems-cli /opt/nvidia/nsight-systems-cli
 RUN ln -s cuda-12.2 /usr/local/cuda && ln -s cuda-12.2 /usr/local/cuda-12
 COPY --link --chown=5230:5230 --from=stage_vscode_ext /opt/editor-extensions /opt/codespace/share/editor-extensions
+RUN /opt/bm/bin/bm download -o /opt podman5-rootless \
+  && mv /opt/podman5-rootless /opt/podman
 
 COPY platform/container/workspace/rootfs/ /
 RUN --mount=type=bind,source=platform/container/workspace/scripts/configure-system.sh,target=/tmp/configure-system.sh \

@@ -66,6 +66,8 @@ class TestImageContract(unittest.TestCase):
                 result = run(executable, *arguments)
                 self.assertTrue(result.stdout or result.stderr)
 
+        self.assertEqual(shutil.which("podman"), "/opt/podman/bin/podman")
+
     def test_runtime_files_have_required_permissions(self) -> None:
         helpers = sorted(BIN.iterdir())
         self.assertTrue(helpers)
@@ -91,6 +93,24 @@ class TestImageContract(unittest.TestCase):
                 metadata = path.stat()
                 self.assertEqual((metadata.st_uid, metadata.st_gid), (0, 0))
                 self.assertEqual(stat.S_IMODE(metadata.st_mode), 0o440)
+
+        privileged_helpers = (
+            Path("/usr/bin/fusermount3"),
+            Path("/usr/bin/newgidmap"),
+            Path("/usr/bin/newuidmap"),
+            Path("/usr/bin/sudo"),
+        )
+        for path in privileged_helpers:
+            with self.subTest(path=path):
+                self.assertFalse(path.is_symlink())
+                self.assertEqual(shutil.which(path.name), str(path))
+                metadata = path.stat()
+                self.assertEqual((metadata.st_uid, metadata.st_gid), (0, 0))
+                self.assertEqual(stat.S_IMODE(metadata.st_mode), 0o4755)
+
+        for path in (Path("/etc/subuid"), Path("/etc/subgid")):
+            with self.subTest(path=path):
+                self.assertIn("x:100000:65536", path.read_text().splitlines())
 
         ssh_directory = HOME / ".ssh"
         authorized_keys = ssh_directory / "authorized_keys"
@@ -118,6 +138,7 @@ class TestImageContract(unittest.TestCase):
             "miniserve-http",
             "nixcache",
             "ollama",
+            "podman",
             "rclone-http",
             "rclone-webdav",
             "secret-mount",
@@ -154,6 +175,42 @@ class TestImageContract(unittest.TestCase):
             set(run(s6_rc_db, "-c", database, "dependencies", "home-init").stdout.splitlines()),
             {"s6rc-oneshot-runner"},
         )
+
+    def test_rootless_podman_contract(self) -> None:
+        podman_service = Path("/etc/s6/s6-rc.d/podman")
+        self.assertEqual((podman_service / "notification-fd").read_text().strip(), "3")
+        self.assertEqual(
+            (podman_service / "timeout-up").read_text().strip(),
+            "65000",
+        )
+        self.assertTrue(Path("/opt/podman/bin/podman-server").is_file())
+        self.assertTrue(Path("/opt/podman/bin/_podman").is_file())
+        self.assertFalse(Path("/opt/bm/store/podman5-rootless").exists())
+        for path in (
+            Path("/opt/podman/bin/podman"),
+            Path("/opt/podman/bin/podman-server"),
+            Path("/opt/podman/conf/containers.conf"),
+            Path("/opt/podman/conf/storage-overlay.conf"),
+            Path("/opt/podman/conf/storage-vfs.conf"),
+        ):
+            with self.subTest(path=path):
+                self.assertEqual((path.stat().st_uid, path.stat().st_gid), (0, 0))
+        for path in (Path("/opt/podman/data"), Path("/opt/podman/conf/networks")):
+            with self.subTest(path=path):
+                self.assertTrue((path / ".gitkeep").is_file())
+                self.assertEqual((path.stat().st_uid, path.stat().st_gid), (5230, 5230))
+                self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o700)
+        podman_run = podman_service.joinpath("run").read_text()
+        self.assertIn("|| chown 5230:5230 /opt/podman/data", podman_run)
+        self.assertIn("chmod 0700 /opt/podman/data", podman_run)
+        self.assertIn(
+            'cgroups = "disabled"',
+            Path("/opt/podman/conf/containers.conf").read_text(),
+        )
+        podman_server = Path("/opt/podman/bin/podman-server").read_text()
+        self.assertIn("graphroot/vfs-images", podman_server)
+        self.assertIn("graphroot/overlay-images", podman_server)
+        self.assertIn("stat -f -c %T", podman_server)
 
     def test_ssh_listener_and_readiness_contract(self) -> None:
         sshd = "/opt/bm/store/openssh_gssapi/bin/sshd"

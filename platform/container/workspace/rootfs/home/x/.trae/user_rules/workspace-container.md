@@ -87,6 +87,21 @@ tail -n 200 /var/log/s6.<service>.log
 `atuin-login` 和 `secret-mount` 是启动期 oneshot，不要重复运行。`/opt/secret` mount 失败时
 检查 `/var/log/s6.secret-mount.log`，确认 secret Service 可达后用 `mount-secret` 重试。
 
+## Rootless Podman
+
+- 直接使用 `podman build/run/...`；需要 Docker-compatible CLI 时使用 `docker`。
+- 数据位于 `/opt/podman/data`，只有 Project 显式挂载 Host 目录时才持久。不要修改或
+  删除其中的 storage 数据，也不要递归修改 ownership。
+- 服务由 s6 管理，不要自行启动；内部 container 共用 Workspace 的资源边界。
+
+服务异常时检查：
+
+```bash
+s6-svstat /run/service/podman
+tail -n 200 /var/log/s6.podman.log
+podman info --format 'rootless={{.Host.Security.Rootless}} driver={{.Store.GraphDriverName}}'
+```
+
 ## Credentials And Network
 
 - 使用 GitHub CLI 前运行 `gh auth status`；不要重新登录、读取或输出 token。

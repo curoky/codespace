@@ -23,30 +23,20 @@ mkdir -p /var/empty
 chmod 600 /etc/ssh/ssh_host_*_key
 chmod 440 /etc/sudoers /etc/sudoers.d/more_secure_path /etc/sudoers.d/nopasswd_user
 
-chown root:root /opt/bm/store/sudo/bin/sudo
-chmod u+s /opt/bm/store/sudo/bin/sudo
+install -o root -g root -m 4755 /opt/bm/store/sudo/bin/sudo /usr/bin/sudo
 
 ln -sf /usr/share/zoneinfo/Asia/Singapore /etc/localtime
 
-# User x has no CAP_SYS_ADMIN; mutate the store target because the profile entry
-# for the required setuid fusermount3 helper is a symlink.
-chown root:root /opt/bm/store/fuse3/bin/fusermount3
-chmod u+s /opt/bm/store/fuse3/bin/fusermount3
+# User x has no CAP_SYS_ADMIN, so fusermount3 must be a root-owned setuid helper.
+install -o root -g root -m 4755 /opt/bm/store/fuse3/bin/fusermount3 /usr/bin/fusermount3
 
-# The store is copied as x, so restore the ownership and privileged mode bits
-# required by helpers that update system account state.
-chown -R root:root /opt/bm/store/shadow
-chown root:shadow /opt/bm/store/shadow/bin/chage
-chmod 4755 \
-  /opt/bm/store/shadow/bin/chfn \
-  /opt/bm/store/shadow/bin/chsh \
-  /opt/bm/store/shadow/bin/gpasswd \
+# Rootless Podman needs root-owned setuid helpers in PATH.
+install -o root -g root -m 4755 \
   /opt/bm/store/shadow/bin/newgidmap \
-  /opt/bm/store/shadow/bin/newgrp \
   /opt/bm/store/shadow/bin/newuidmap \
-  /opt/bm/store/shadow/bin/passwd \
-  /opt/bm/store/shadow/bin/su
-chmod 2755 /opt/bm/store/shadow/bin/chage
+  /usr/bin/
+chown 5230:5230 /opt/podman/data /opt/podman/conf/networks
+chmod 0700 /opt/podman/data /opt/podman/conf/networks
 
 install -d /etc/ssl/certs
 cp /opt/bm/etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt
@@ -57,7 +47,6 @@ cp /opt/bm/lib/locale/locale-archive /usr/lib/locale/locale-archive
 ln -s /opt/bm/store/zsh/bin/zsh /usr/bin
 ln -s /opt/bm/store/wget/bin/wget /usr/bin
 ln -s /opt/bm/store/curl/bin/curl /usr/bin
-ln -s /opt/bm/store/sudo/bin/sudo /usr/bin
 ln -s /opt/bm/store/less/bin/less /usr/bin
 ln -s /opt/bm/store/xz/bin/xz /usr/bin
 ln -s /opt/bm/store/git/bin/git /usr/bin

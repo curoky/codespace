@@ -17,6 +17,8 @@ export PATH="$PATH:/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec
 
 export PATH="$PATH:/nix/var/nix/profiles/default/bin"
 
+export PATH="$PATH:/opt/podman/bin"
+
 export CUDA_HOME=/usr/local/cuda
 export PATH="$PATH:/usr/local/cuda/bin:/opt/nvidia/nsight-systems-cli/2026.3.1/bin"
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/cuda/lib64"

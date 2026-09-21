@@ -7,3 +7,5 @@
 - 目录按领域组织，不增加无明确 ownership 的 `common`、`utils` 或 compatibility
   package。
 - 不修改无关的用户、工作树或远端状态。
+- Workspace image 的构建、运行、内置 rootless Podman 与验证约束见
+  `platform/container/workspace/AGENTS.md`。

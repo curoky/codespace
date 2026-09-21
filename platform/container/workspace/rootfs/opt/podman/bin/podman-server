@@ -1,0 +1,55 @@
+#!/bin/sh
+set -eu
+
+export PATH=/opt/podman/libexec/podman:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+export USER=x
+export LOGNAME=x
+export PODMAN_DATA_DIR=/opt/podman/data
+export PODMAN_RUNTIME_DIR=/run/user/5230/podman
+export HOME="$PODMAN_DATA_DIR/home"
+export XDG_RUNTIME_DIR="$PODMAN_RUNTIME_DIR"
+export TMPDIR="$PODMAN_RUNTIME_DIR/tmp"
+export CONTAINERS_CONF=/opt/podman/conf/containers.conf
+export CONTAINERS_REGISTRIES_CONF=/opt/podman/conf/registries.conf
+export CONTAINERS_POLICY_JSON=/opt/podman/conf/policy.json
+export REGISTRY_AUTH_FILE="$PODMAN_DATA_DIR/auth.json"
+export DBUS_SYSTEM_BUS_ADDRESS="unix:path=$PODMAN_RUNTIME_DIR/no-system-bus"
+unset XDG_CONFIG_HOME XDG_DATA_HOME XDG_CACHE_HOME
+unset CONTAINERS_CONF_OVERRIDE CONTAINERS_HELPER_BINARY_DIR
+unset CONTAINERS_REGISTRIES_CONF_OVERRIDE REGISTRIES_CONFIG_PATH
+unset CONTAINER_HOST CONTAINER_CONNECTION CONTAINER_SSHKEY STORAGE_DRIVER STORAGE_OPTS
+unset DOCKER_CONFIG DOCKER_HOST SSL_CERT_DIR SSL_CERT_FILE
+umask 007
+mkdir -p "$HOME" "$XDG_RUNTIME_DIR" "$TMPDIR"
+
+if [ -d "$PODMAN_DATA_DIR/graphroot/vfs-images" ] && [ -d "$PODMAN_DATA_DIR/graphroot/overlay-images" ]; then
+  echo "Both VFS and overlay storage exist in $PODMAN_DATA_DIR/graphroot" >&2
+  exit 1
+elif [ -d "$PODMAN_DATA_DIR/graphroot/vfs-images" ]; then
+  storage_driver=vfs
+elif [ -d "$PODMAN_DATA_DIR/graphroot/overlay-images" ]; then
+  storage_driver=overlay
+else
+  case $(stat -f -c %T "$PODMAN_DATA_DIR") in
+    ext2/ext3 | xfs | btrfs) storage_driver=overlay ;;
+    *) storage_driver=vfs ;;
+  esac
+fi
+export CONTAINERS_STORAGE_CONF="/opt/podman/conf/storage-$storage_driver.conf"
+printf 'Using %s storage for %s\n' "$storage_driver" "$PODMAN_DATA_DIR"
+
+if [ "${1-}" = "--stop-all" ]; then
+  shift
+  exec /opt/podman/bin/_podman \
+    --tmpdir="$PODMAN_RUNTIME_DIR/libpod" \
+    --network-config-dir=/opt/podman/conf/networks \
+    --default-mounts-file=/opt/podman/conf/mounts.conf \
+    stop --all "$@"
+fi
+
+exec /opt/podman/bin/_podman \
+  --tmpdir="$PODMAN_RUNTIME_DIR/libpod" \
+  --network-config-dir=/opt/podman/conf/networks \
+  --default-mounts-file=/opt/podman/conf/mounts.conf \
+  system service \
+  "unix://$PODMAN_RUNTIME_DIR/podman.sock" "$@"
