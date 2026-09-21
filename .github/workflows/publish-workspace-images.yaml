@@ -22,9 +22,6 @@ jobs:
     permissions:
       contents: read
       packages: write
-    env:
-      CACHE_MODE: ${{ github.event_name == 'push' && 'min' || 'max' }}
-      CACHE_SUFFIX: ${{ github.event_name == 'push' && '-min' || '' }}
     strategy:
       matrix:
         image:
@@ -61,10 +58,8 @@ jobs:
           provenance: false
           platforms: linux/amd64
           network: host
-          cache-from: |
-            type=registry,ref=ghcr.io/curoky/codespace-cache:workspace-${{ matrix.image.tag }}-amd64
-            type=registry,ref=ghcr.io/curoky/codespace-cache:workspace-${{ matrix.image.tag }}-amd64-min
-          cache-to: type=registry,ref=ghcr.io/curoky/codespace-cache:workspace-${{ matrix.image.tag }}-amd64${{ env.CACHE_SUFFIX }},mode=${{ env.CACHE_MODE }},oci-mediatypes=true,compression=zstd,compression-level=3
+          cache-from: type=registry,ref=ghcr.io/curoky/codespace-cache:workspace-${{ matrix.image.tag }}-amd64
+          cache-to: type=registry,ref=ghcr.io/curoky/codespace-cache:workspace-${{ matrix.image.tag }}-amd64,mode=max,oci-mediatypes=true,compression=zstd,compression-level=3
           no-cache: ${{ github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.disable_docker_cache == true) }}
           build-args: BASE_IMAGE=${{ matrix.image.base }}
           tags: ghcr.io/curoky/codespace:workspace-${{ matrix.image.tag }}
