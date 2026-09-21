@@ -7,7 +7,7 @@ if { test -s /run/secrets/atuin_db_uri }
 backtick -i ATUIN_DB_URI { cat /run/secrets/atuin_db_uri }
 
 s6-notifyoncheck -d -n 0 -w 1000 -t 2000 -T 60000
-  -c "/usr/bin/curl --noproxy * --fail --silent --output /dev/null --max-time 2 http://127.0.0.1:8002/"
+  -c "/usr/local/store/curl/bin/curl --noproxy * --fail --silent --output /dev/null --max-time 2 http://127.0.0.1:8002/"
 s6-setuidgid x
 s6-env HOME=/home/x
 s6-env ATUIN_HOST=127.0.0.1
