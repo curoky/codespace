@@ -2,14 +2,14 @@ hosts:
   workstation:
     forward_environment: [HTTP_PROXY, HTTPS_PROXY, NO_PROXY]
     container:
-      devices: [/dev/fuse]
+      devices: [/dev/fuse, /dev/net/tun]
       volumes:
         - /etc/krb5.conf:/etc/krb5.conf:ro
 
   gpu-host:
     forward_environment: [HOST_IP, HOST_IPV6]
     container:
-      devices: [nvidia.com/gpu=all, /dev/fuse]
+      devices: [nvidia.com/gpu=all, /dev/fuse, /dev/net/tun]
       volumes:
         - /etc/krb5.conf:/etc/krb5.conf:ro
         - /opt/tmp:/opt/tmp
@@ -22,6 +22,7 @@ project_defaults:
     platform: linux/amd64
     pull_policy: always
     network_mode: bridge
+    privileged: true
     secrets:
       - { source: codespace_root_password, target: /run/secrets/codespace_root_password, uid: "0", gid: "0", mode: 0400 }
       - { source: codespace_workspace_key, uid: "5230", gid: "5230", mode: 0400 }
@@ -29,13 +30,14 @@ project_defaults:
       - { source: atuin_db_uri, uid: "5230", gid: "5230", mode: 0400 }
       - { source: github_action_token, uid: "5230", gid: "5230", mode: 0400 }
     cap_add: [NET_RAW, SYS_ADMIN]
-    security_opt: [disable, seccomp=unconfined]
+    security_opt: [label=disable, seccomp=unconfined, apparmor=unconfined]
     pids_limit: -1
     ulimits:
       memlock: { soft: -1, hard: -1 }
     volumes:
       - ${RESOURCE_DATA}/workspace:/workspace.enc
       - ${RESOURCE_DATA}/upload:/upload
+      - ${RESOURCE_DATA}/podman:/opt/podman/data
       - ${RESOURCE_DATA}/control:/run/codespace-control
       - ${RESOURCE_DATA}/cache/.vscode-server/cli:/home/x/.vscode-server/cli
       - ${RESOURCE_DATA}/cache/.vscode-server/extensions:/home/x/.vscode-server/extensions

@@ -206,6 +206,7 @@ class ContainerSpec(BaseModel):
     pull_policy: PullPolicy = "missing"
     network_mode: NonBlankString = "bridge"
     restart: RestartPolicy = "no"
+    privileged: bool = False
     cap_add: list[NonBlankString] = Field(default_factory=list)
     security_opt: list[NonBlankString] = Field(default_factory=list)
     ipc: NonBlankString | None = None
@@ -246,6 +247,7 @@ class ContainerSpec(BaseModel):
         options: dict[str, Any] = {
             "network_mode": self.network_mode,
             "restart_policy": {"Name": self.restart},
+            "privileged": self.privileged,
             "cap_add": self.cap_add,
             "security_opt": self.security_opt,
             "ulimits": [

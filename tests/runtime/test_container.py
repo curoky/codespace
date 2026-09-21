@@ -295,6 +295,7 @@ def test_create_container_translates_canonical_options(
             "pull_policy": "always",
             "network_mode": "bridge",
             "restart": "unless-stopped",
+            "privileged": True,
             "ipc": "host",
             "pids_limit": 100,
             "shm_size": "8g",
@@ -330,6 +331,7 @@ def test_create_container_translates_canonical_options(
     options = captured["options"]
     assert isinstance(options, dict)
     assert options["network_mode"] == "bridge"
+    assert options["privileged"] is True
     assert options["platform"] == "linux/amd64"
     assert "networks" not in options
     assert options["ports"] == {"8000/tcp": (host_ip, 3000)}

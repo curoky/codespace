@@ -176,6 +176,7 @@ def test_project_layers_apply_host_defaults_and_merge_volumes_by_source_or_targe
     data["projects"]["codespace"]["container"] = {
         "environment": {"PROJECT": "1"},
         "cap_add": ["NET_RAW"],
+        "privileged": True,
         "volumes": ["${RESOURCE_DATA}/workspace:/workspace.enc"],
     }
     data["projects"]["codespace"]["container"]["pids_limit"] = 128
@@ -191,6 +192,7 @@ def test_project_layers_apply_host_defaults_and_merge_volumes_by_source_or_targe
     }
     assert resolved.devices == ["/dev/fuse"]
     assert resolved.cap_add == ["NET_RAW"]
+    assert resolved.privileged is True
     assert resolved.pids_limit == 128
     volumes = {volume.target: volume for volume in resolved.volumes}
     assert volumes["/data"].source == "/host/project"

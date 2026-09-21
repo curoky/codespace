@@ -57,6 +57,7 @@ class ContainerLayer(FrozenModel):
     pull_policy: PullPolicy | None = None
     network_mode: NonBlankString | None = None
     restart: RestartPolicy | None = None
+    privileged: bool | None = None
     cap_add: list[NonBlankString] | None = None
     security_opt: list[NonBlankString] | None = None
     ipc: NonBlankString | None = None
