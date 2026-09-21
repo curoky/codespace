@@ -7,10 +7,10 @@ RUN apt-get update -y && apt-get install -y curl zstd
 
 COPY platform/container/workspace/config/binman.yaml /tmp/binman.yaml
 RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
-    | bash -s -- --prefix /opt/bm/bin \
-  && /opt/bm/bin/bm sync /tmp/binman.yaml \
-  && ln -s -r /opt/bm/bin/bazelisk /opt/bm/bin/bazel \
-  && rm -rf /opt/bm/store/nettools/bin/hostname
+    | bash -s -- --prefix /usr/local/bin \
+  && /usr/local/bin/bm sync /tmp/binman.yaml \
+  && ln -s -r /usr/local/bin/bazelisk /usr/local/bin/bazel \
+  && rm -rf /usr/local/store/nettools/bin/hostname
 
 # ---------------------------------- Conda -----------------------------------
 FROM docker.io/debian:stable-slim AS stage_conda
@@ -37,7 +37,7 @@ RUN apt-get update -y \
 
 # ---------------------------------- Python ----------------------------------
 FROM docker.io/debian:stable-slim AS stage_python
-COPY --from=stage_sb /opt/bm/bin/uv /usr/local/bin/uv
+COPY --from=stage_sb /usr/local/store/uv/bin/uv /usr/local/bin/uv
 ENV UV_TOOL_DIR=/opt/uv/tools \
   UV_TOOL_BIN_DIR=/opt/uv/bin \
   UV_PYTHON_INSTALL_DIR=/opt/uv/python \
@@ -113,22 +113,20 @@ RUN bash /tmp/install-editor-extensions.sh /tmp/extensions.txt /opt/editor-exten
 FROM docker.io/$BASE_IMAGE AS workspace
 
 ENV CONDA_PLUGINS_AUTO_ACCEPT_TOS=yes \
-  PATH=/opt/podman/bin:/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:/nix/var/nix/profiles/default/bin:${PATH}
+  PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 
-COPY --link --chown=5230:5230 --from=stage_sb /opt/bm /opt/bm
+COPY --link --from=stage_sb /usr/local /usr/local
 COPY --link --chown=5230:5230 --from=stage_nix /nix /nix
 COPY --link --chown=5230:5230 --from=stage_nix /home/x/.nix-defexpr /home/x/.nix-defexpr
 COPY --link --chown=5230:5230 --from=stage_nix /home/x/.nix-channels /home/x/.nix-channels
 COPY --link --chown=5230:5230 --from=stage_rust /opt/rust /opt/rust
 COPY --link --chown=5230:5230 --from=stage_python /opt/uv /opt/uv
 COPY --link --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
-COPY --link --chown=5230:5230 --from=stage_cuda /usr/local/cuda-12.2 /usr/local/cuda-12.2
+COPY --link --from=stage_cuda /usr/local/cuda-12.2 /usr/local/cuda-12.2
 COPY --link --chown=5230:5230 --from=stage_cuda /opt/nvidia/nsight-compute /opt/nvidia/nsight-compute
 COPY --link --chown=5230:5230 --from=stage_nsys /opt/nvidia/nsight-systems-cli /opt/nvidia/nsight-systems-cli
 RUN ln -s cuda-12.2 /usr/local/cuda && ln -s cuda-12.2 /usr/local/cuda-12
-COPY --link --chown=5230:5230 --from=stage_vscode_ext /opt/editor-extensions /opt/codespace/share/editor-extensions
-RUN /opt/bm/bin/bm download -o /opt podman5-rootless \
-  && mv /opt/podman5-rootless /opt/podman
+COPY --link --from=stage_vscode_ext /opt/editor-extensions /usr/local/codespace/share/editor-extensions
 
 COPY platform/container/workspace/rootfs/ /
 RUN --mount=type=bind,source=platform/container/workspace/scripts/configure-system.sh,target=/tmp/configure-system.sh \
@@ -137,26 +135,37 @@ RUN --mount=type=bind,source=platform/container/workspace/scripts/install-s6.sh,
   bash /tmp/install-s6.sh
 
 USER x
-COPY --chown=5230:5230 platform/container/workspace/agent/ /opt/codespace/agent/
-RUN UV_LINK_MODE=copy uv sync --project /opt/codespace/agent --locked --no-dev --python 3.14 \
+COPY --chown=5230:5230 platform/container/workspace/agent/ /usr/local/codespace/agent/
+ENV PATH=/opt/bm/bin:/opt/rust/cargo/bin:/opt/uv/bin:/opt/conda/condabin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
+RUN UV_LINK_MODE=copy uv sync --project /usr/local/codespace/agent --locked --no-dev --python 3.14 \
   && git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-playbook \
   && HOME=/home/x bash /tmp/agent-playbook/install.sh \
   && rm -rf /tmp/agent-playbook
 
 RUN ln -s /nix/var/nix/profiles/default /home/x/.nix-profile
-RUN sudo chown 5230:5230 /opt
+USER root
+RUN chown -R root:root /usr/local/codespace
 
 # ----------------------------------- Test -----------------------------------
 FROM workspace AS test
 
-RUN --mount=type=bind,source=platform/container/workspace/tests,target=/opt/codespace/tests,ro \
-  /opt/uv/bin/python3 -B /opt/codespace/tests/test_image.py \
+ENV PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
+RUN sshd -t \
+  && test "$(passwd -S root | awk '{print $2}')" = L \
+  && test "$(passwd -S x | awk '{print $2}')" = L \
+  && id -nG x | tr ' ' '\n' | grep -Fx sudo \
+  && test "$PATH" = /usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
+USER x
+ENV PATH=/opt/bm/bin:/opt/rust/cargo/bin:/opt/uv/bin:/opt/conda/condabin:/nix/var/nix/profiles/default/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
+RUN --mount=type=bind,source=platform/container/workspace/tests,target=/usr/local/codespace/tests,ro \
+  /opt/uv/bin/python3 -B /usr/local/codespace/tests/test_image.py \
   && touch /tmp/image-tested
 
 # --------------------------------- Release ----------------------------------
 FROM workspace AS release
 
-COPY --from=test /tmp/image-tested /opt/codespace/.image-tested
+COPY --from=test /tmp/image-tested /usr/local/codespace/.image-tested
 
 USER root
+ENV PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 ENTRYPOINT ["/etc/s6/init/bin/init"]

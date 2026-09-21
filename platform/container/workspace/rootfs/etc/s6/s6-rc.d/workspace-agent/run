@@ -1,10 +1,14 @@
-#!/opt/bm/profile/s6/bin/execlineb -P
-
-s6-envdir -Lf -- /run/s6/container_environment
+#!/usr/local/bin/execlineb -P
 
 redirfd -w 1 /var/log/s6.workspace-agent.log
 fdmove -c 2 1
 
+backtick -D "" CODESPACE_SOURCE_TYPE { cat /run/s6/container_environment/CODESPACE_SOURCE_TYPE }
+backtick -D "" CODESPACE_CHECKOUT_PATH { cat /run/s6/container_environment/CODESPACE_CHECKOUT_PATH }
+backtick -D "" CODESPACE_OPEN_PATH { cat /run/s6/container_environment/CODESPACE_OPEN_PATH }
+backtick -D "" CODESPACE_CLONE_URL { cat /run/s6/container_environment/CODESPACE_CLONE_URL }
+backtick -D "" CODESPACE_GIT_ARGS { cat /run/s6/container_environment/CODESPACE_GIT_ARGS }
 s6-setuidgid x
 s6-env HOME=/home/x
-exec /opt/codespace/agent/.venv/bin/python /opt/codespace/agent/agent.py
+s6-env PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
+exec /usr/local/codespace/agent/.venv/bin/python /usr/local/codespace/agent/agent.py

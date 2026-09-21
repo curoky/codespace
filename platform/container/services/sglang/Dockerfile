@@ -16,7 +16,7 @@ FROM ghcr.io/curoky/codespace:service-s6 AS s6
 # --------------------------------- Runtime ----------------------------------
 FROM docker.io/ubuntu:24.04
 
-COPY --from=s6 /opt/bm /opt/bm
+COPY --from=s6 /usr/local /usr/local
 
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends \
@@ -34,7 +34,7 @@ RUN printf '%s\n' '#include <cuda_runtime.h>' '__global__ void kernel() {}' \
   && nvcc -std=c++20 -arch=sm_90a -c /tmp/cuda-smoke.cu -o /tmp/cuda-smoke.o \
   && rm /tmp/cuda-smoke.cu /tmp/cuda-smoke.o
 
-RUN /opt/bm/bin/bm install uv
+RUN /usr/local/bin/bm install uv
 
 # Upstream defaults to CUDA 13; normalize the complete stack back to CUDA 12.9.
 ARG SGLANG_REF=4ccff141dbe992794f9da6c3aa23535b4f72000d
@@ -44,13 +44,13 @@ ARG TORCH_SPEC="torch==2.13.0 torchvision==0.28.0 torchaudio==2.11.0"
 ARG FLASH_ATTN_SPEC="flash-attn-4==4.0.0b19"
 ARG SGLANG_BUILD_RUST_EXTS=none
 ENV UV_LINK_MODE=copy
-RUN /opt/bm/bin/uv venv /opt/sglang/venv --python 3.12 \
+RUN /usr/local/bin/uv venv /opt/sglang/venv --python 3.12 \
   && git clone --filter=blob:none https://github.com/sgl-project/sglang.git /opt/sglang/src \
   && git -C /opt/sglang/src fetch origin "${SGLANG_REF}" \
   && git -C /opt/sglang/src checkout FETCH_HEAD \
   && sed -i 's/flashinfer_python\[cu13\]/flashinfer_python[cu12]/' /opt/sglang/src/python/pyproject.toml \
   && sed -i 's/nvidia-cutlass-dsl\[cu13\]/nvidia-cutlass-dsl/' /opt/sglang/src/python/pyproject.toml \
-  && SERVE_UV="/opt/bm/bin/uv pip install --python /opt/sglang/venv/bin/python" \
+  && SERVE_UV="/usr/local/bin/uv pip install --python /opt/sglang/venv/bin/python" \
   && SGLANG_BUILD_RUST_EXTS="${SGLANG_BUILD_RUST_EXTS}" \
        ${SERVE_UV} --prerelease=allow -e /opt/sglang/src/python \
   && ${SERVE_UV} --no-deps ${FLASH_ATTN_SPEC} \
@@ -63,9 +63,9 @@ RUN /opt/bm/bin/uv venv /opt/sglang/venv --python 3.12 \
        --index-url "https://docs.sglang.ai/whl/${CUDA_TAG}/" \
   && ${SERVE_UV} --force-reinstall --no-deps "sgl-deep-gemm==0.1.5.post3" \
        --index-url "https://docs.sglang.ai/whl/${CUDA_TAG}/" \
-  && CU13_PKGS="$(/opt/bm/bin/uv pip list --python /opt/sglang/venv/bin/python \
+  && CU13_PKGS="$(/usr/local/bin/uv pip list --python /opt/sglang/venv/bin/python \
        --format=freeze | awk -F'==' '/-cu13(==|$)/ {print $1}')" \
-  && for p in ${CU13_PKGS}; do /opt/bm/bin/uv pip uninstall --python /opt/sglang/venv/bin/python "$p"; done \
+  && for p in ${CU13_PKGS}; do /usr/local/bin/uv pip uninstall --python /opt/sglang/venv/bin/python "$p"; done \
   && rm -rf /opt/sglang/venv/lib/python3.12/site-packages/nvidia/cu13 \
   && ${SERVE_UV} --reinstall --index-url "https://download.pytorch.org/whl/${CUDA_TAG}" \
        nvidia-cudnn-cu12 nvidia-cusparselt-cu12 nvidia-nccl-cu12 nvidia-nvshmem-cu12 \
@@ -75,7 +75,7 @@ RUN /opt/bm/bin/uv venv /opt/sglang/venv --python 3.12 \
   && /opt/sglang/venv/bin/python -c "import torchcodec.decoders" \
   && rm -rf /root/.cache/uv
 
-ENV PATH="/opt/sglang/venv/bin:/opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:$PATH"
+ENV PATH="/opt/sglang/venv/bin:/usr/local/bin:$PATH"
 
 COPY --from=s6 /etc/s6/skel/ /etc/s6/skel/
 COPY --from=s6 /etc/s6/s6-rc.d/miniserve-http/ /etc/s6/s6-rc.d/miniserve-http/

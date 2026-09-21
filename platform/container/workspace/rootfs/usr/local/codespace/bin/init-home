@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# Preserve the provider-registered identity across restarts of this container.
+if [[ ! -f /home/x/.ssh/git_deploy_key_ed25519 ]]; then
+  ssh-keygen -q -t ed25519 -N "" -C codespace -f /home/x/.ssh/git_deploy_key_ed25519
+fi
+
+/usr/local/codespace/bin/seed-editor-extensions

@@ -10,11 +10,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
-BIN = Path("/opt/codespace/bin")
+BIN = Path("/usr/local/codespace/bin")
 HOME = Path("/home/x")
-S6_PROFILE = Path("/opt/bm/profile/s6")
-S6_BIN = S6_PROFILE / "bin"
-EXTENSION_TEMPLATE = Path("/opt/codespace/share/editor-extensions")
+S6_BIN = Path("/usr/local/bin")
+EXTENSION_TEMPLATE = Path("/usr/local/codespace/share/editor-extensions")
 SERVERS = (".vscode-server", ".trae-server", ".trae-cn-server")
 EDITOR_HOMES = (*SERVERS, ".trae", ".trae-cn")
 
@@ -35,8 +34,8 @@ def run(
 
 class TestImageContract(unittest.TestCase):
     def test_agent_runtime_imports_and_builds_app(self) -> None:
-        agent_python = Path("/opt/codespace/agent/.venv/bin/python")
-        env = {**os.environ, "PYTHONPATH": "/opt/codespace/agent"}
+        agent_python = Path("/usr/local/codespace/agent/.venv/bin/python")
+        env = {**os.environ, "PYTHONPATH": "/usr/local/codespace/agent"}
         code = (
             "import agent; "
             "workspace = agent.WorkspaceAgent('empty', '/workspace', '/workspace'); "
@@ -55,7 +54,6 @@ class TestImageContract(unittest.TestCase):
             "/opt/uv/bin/python3": ("--version",),
             "git": ("--version",),
             "ssh": ("-V",),
-            "sudo": ("-V",),
             "gocryptfs": ("-version",),
             "nixcache": ("serve", "--host", "127.0.0.1", "--port", "8009", "--help"),
         }
@@ -66,7 +64,7 @@ class TestImageContract(unittest.TestCase):
                 result = run(executable, *arguments)
                 self.assertTrue(result.stdout or result.stderr)
 
-        self.assertEqual(shutil.which("podman"), "/opt/podman/bin/podman")
+        self.assertEqual(shutil.which("podman"), "/usr/local/bin/podman")
 
     def test_runtime_files_have_required_permissions(self) -> None:
         helpers = sorted(BIN.iterdir())
@@ -75,6 +73,12 @@ class TestImageContract(unittest.TestCase):
             with self.subTest(helper=helper):
                 self.assertTrue(helper.is_file())
                 self.assertTrue(os.access(helper, os.X_OK))
+                self.assertEqual((helper.stat().st_uid, helper.stat().st_gid), (0, 0))
+
+        for path in (Path("/usr/local/codespace"), *Path("/usr/local/codespace").rglob("*")):
+            with self.subTest(path=path):
+                metadata = path.lstat()
+                self.assertEqual((metadata.st_uid, metadata.st_gid), (0, 0))
 
         for private_key in sorted(Path("/etc/ssh").glob("ssh_host_*_key")):
             with self.subTest(private_key=private_key):
@@ -83,30 +87,59 @@ class TestImageContract(unittest.TestCase):
                 self.assertEqual(stat.S_IMODE(metadata.st_mode), 0o600)
 
         self.assertGreaterEqual(len(list(Path("/etc/ssh").glob("ssh_host_*_key"))), 2)
-        protected_files = (
-            Path("/etc/sudoers"),
-            Path("/etc/sudoers.d/more_secure_path"),
-            Path("/etc/sudoers.d/nopasswd_user"),
-        )
-        for path in protected_files:
-            with self.subTest(path=path):
-                metadata = path.stat()
-                self.assertEqual((metadata.st_uid, metadata.st_gid), (0, 0))
-                self.assertEqual(stat.S_IMODE(metadata.st_mode), 0o440)
-
         privileged_helpers = (
-            Path("/usr/bin/fusermount3"),
-            Path("/usr/bin/newgidmap"),
-            Path("/usr/bin/newuidmap"),
-            Path("/usr/bin/sudo"),
+            Path("/usr/local/bin/fusermount3"),
+            Path("/usr/local/bin/newgidmap"),
+            Path("/usr/local/bin/newuidmap"),
+            Path("/usr/local/bin/sudo"),
         )
         for path in privileged_helpers:
             with self.subTest(path=path):
-                self.assertFalse(path.is_symlink())
                 self.assertEqual(shutil.which(path.name), str(path))
                 metadata = path.stat()
                 self.assertEqual((metadata.st_uid, metadata.st_gid), (0, 0))
                 self.assertEqual(stat.S_IMODE(metadata.st_mode), 0o4755)
+
+        sudoers = Path("/etc/sudoers").read_text()
+        self.assertIn("Defaults targetpw", sudoers)
+        self.assertIn("%sudo ALL=(ALL:ALL) ALL", sudoers)
+        self.assertNotIn("NOPASSWD", sudoers)
+        sudoers_metadata = Path("/etc/sudoers").stat()
+        self.assertEqual((sudoers_metadata.st_uid, sudoers_metadata.st_gid), (0, 0))
+        self.assertEqual(stat.S_IMODE(sudoers_metadata.st_mode), 0o440)
+        self.assertEqual(
+            Path("/etc/ssl/certs/ca-certificates.crt").resolve(),
+            Path("/usr/local/etc/ssl/certs/ca-bundle.crt"),
+        )
+        self.assertEqual(
+            Path("/usr/lib/locale/locale-archive").resolve(),
+            Path("/usr/local/lib/locale/locale-archive"),
+        )
+        self.assertTrue(Path("/etc/ssl/certs/ca-certificates.crt").is_file())
+        self.assertTrue(Path("/usr/lib/locale/locale-archive").is_file())
+
+        for path in (
+            Path("/usr/local"),
+            Path("/usr/local/store/curl"),
+            Path("/usr/local/store/fuse3"),
+            Path("/usr/local/store/openssh_gssapi"),
+            Path("/usr/local/store/podman5-rootless"),
+            Path("/usr/local/store/shadow"),
+            Path("/usr/local/store/sudo"),
+        ):
+            with self.subTest(path=path):
+                metadata = path.stat()
+                self.assertEqual((metadata.st_uid, metadata.st_gid), (0, 0))
+                self.assertEqual(metadata.st_mode & 0o022, 0)
+
+        user_bm = Path("/opt/bm/bin/bm")
+        for path in (Path("/opt"), *Path("/opt").rglob("*")):
+            with self.subTest(path=path):
+                metadata = path.lstat()
+                self.assertEqual((metadata.st_uid, metadata.st_gid), (5230, 5230))
+        self.assertEqual((user_bm.stat().st_uid, user_bm.stat().st_gid), (5230, 5230))
+        self.assertEqual(stat.S_IMODE(user_bm.stat().st_mode), 0o755)
+        self.assertIn("--prefix /opt/bm", user_bm.read_text())
 
         for path in (Path("/etc/subuid"), Path("/etc/subgid")):
             with self.subTest(path=path):
@@ -183,47 +216,48 @@ class TestImageContract(unittest.TestCase):
             (podman_service / "timeout-up").read_text().strip(),
             "65000",
         )
-        self.assertTrue(Path("/opt/podman/bin/podman-server").is_file())
-        self.assertTrue(Path("/opt/podman/bin/_podman").is_file())
-        self.assertFalse(Path("/opt/bm/store/podman5-rootless").exists())
+        self.assertTrue(Path("/usr/local/bin/podman-server").is_file())
+        self.assertTrue(Path("/usr/local/bin/_podman").is_symlink())
+        self.assertEqual(Path("/usr/local/bin/docker").readlink(), Path("podman"))
+        self.assertFalse(Path("/opt/bm/store").exists())
         for path in (
-            Path("/opt/podman/bin/podman"),
-            Path("/opt/podman/bin/podman-server"),
-            Path("/opt/podman/conf/containers.conf"),
-            Path("/opt/podman/conf/storage-overlay.conf"),
-            Path("/opt/podman/conf/storage-vfs.conf"),
+            Path("/usr/local/bin/podman"),
+            Path("/usr/local/bin/podman-server"),
+            Path("/usr/local/bin/_podman"),
+            Path("/usr/local/bin/podman-server"),
+            Path("/etc/containers/containers.conf"),
+            Path("/etc/containers/storage-overlay.conf"),
+            Path("/etc/containers/storage-vfs.conf"),
         ):
             with self.subTest(path=path):
                 self.assertEqual((path.stat().st_uid, path.stat().st_gid), (0, 0))
-        for path in (Path("/opt/podman/data"), Path("/opt/podman/conf/networks")):
-            with self.subTest(path=path):
-                self.assertTrue((path / ".gitkeep").is_file())
-                self.assertEqual((path.stat().st_uid, path.stat().st_gid), (5230, 5230))
-                self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o700)
+        data = Path("/opt/podman/data")
+        self.assertTrue((data / ".gitkeep").is_file())
+        self.assertEqual((data.stat().st_uid, data.stat().st_gid), (5230, 5230))
+        self.assertEqual(stat.S_IMODE(data.stat().st_mode), 0o700)
         podman_run = podman_service.joinpath("run").read_text()
         self.assertIn("|| chown 5230:5230 /opt/podman/data", podman_run)
         self.assertIn("chmod 0700 /opt/podman/data", podman_run)
         self.assertIn(
             'cgroups = "disabled"',
-            Path("/opt/podman/conf/containers.conf").read_text(),
+            Path("/etc/containers/containers.conf").read_text(),
         )
-        podman_server = Path("/opt/podman/bin/podman-server").read_text()
+        podman_server = Path("/usr/local/bin/podman-server").read_text()
         self.assertIn("graphroot/vfs-images", podman_server)
         self.assertIn("graphroot/overlay-images", podman_server)
         self.assertIn("stat -f -c %T", podman_server)
+        self.assertNotIn("/opt/podman/conf", podman_server)
 
     def test_ssh_listener_and_readiness_contract(self) -> None:
-        sshd = "/opt/bm/store/openssh_gssapi/bin/sshd"
-        run("sudo", sshd, "-t")
-        # sshd -T keeps the original casing for some keywords (e.g.
-        # PubkeyAuthentication) while lowercasing others; normalize before matching.
-        config = [line.lower() for line in run("sudo", sshd, "-T").stdout.splitlines()]
+        sshd = Path("/usr/local/bin/sshd")
+        self.assertTrue(sshd.is_symlink())
+        config = Path("/etc/ssh/sshd_config").read_text().lower().splitlines()
         for setting in (
             "port 22",
-            "listenaddress 0.0.0.0:22",
+            "listenaddress 0.0.0.0",
             "pubkeyauthentication yes",
             "passwordauthentication no",
-            "authorizedkeysfile .ssh/authorized_keys",
+            "authorizedkeysfile\t.ssh/authorized_keys",
             "hostkey /etc/ssh/ssh_host_ed25519_key",
         ):
             self.assertIn(setting, config)
@@ -234,19 +268,20 @@ class TestImageContract(unittest.TestCase):
 
     @staticmethod
     def locate_s6_tool(name: str) -> Path | None:
-        # s6 splits user commands into bin and internal helpers into libexec, so
-        # readiness tools may live in either directory of the merged profile.
-        for directory in (S6_PROFILE / "bin", S6_PROFILE / "libexec"):
-            candidate = directory / name
-            if candidate.is_file() and os.access(candidate, os.X_OK):
-                return candidate
-        return None
+        candidate = S6_BIN / name
+        return candidate if candidate.is_file() and os.access(candidate, os.X_OK) else None
 
     def test_user_and_home_configuration(self) -> None:
         user = pwd.getpwnam("x")
         self.assertEqual((user.pw_uid, user.pw_gid, user.pw_dir), (5230, 5230, "/home/x"))
+        self.assertEqual(user.pw_shell, "/usr/local/bin/zsh")
         self.assertEqual(os.getuid(), 5230)
         self.assertEqual(os.environ.get("CONDA_PLUGINS_AUTO_ACCEPT_TOS"), "yes")
+        self.assertLess(
+            os.environ["PATH"].split(":").index("/opt/bm/bin"),
+            os.environ["PATH"].split(":").index("/usr/local/bin"),
+        )
+        self.assertEqual(shutil.which("bm"), "/opt/bm/bin/bm")
 
         links = {
             ".trae-cn/sandbox.json": "../.trae/sandbox.json",
@@ -290,10 +325,10 @@ class TestImageContract(unittest.TestCase):
         self.assertNotIn("conda activate", zshrc)
         self.assertIn('source "/opt/conda/etc/profile.d/conda.sh"', zshrc)
         self.assertIn(
-            'source "/opt/bm/store/starship/share/starship/init.zsh"',
+            'source "/usr/local/store/starship/share/starship/init.zsh"',
             zshrc,
         )
-        self.assertIn('source "/opt/bm/store/atuin/share/atuin/init.zsh"', zshrc)
+        self.assertIn('source "/usr/local/store/atuin/share/atuin/init.zsh"', zshrc)
 
     def test_editor_extension_template_is_complete(self) -> None:
         payload = EXTENSION_TEMPLATE / "extensions"
@@ -410,24 +445,8 @@ class TestRuntimeHelpers(unittest.TestCase):
     def test_home_init_is_idempotent_and_preserves_editor_state(self) -> None:
         for server in SERVERS[1:]:
             target = HOME / server / "extensions"
-            run("sudo", "install", "-d", "-o", "5230", "-g", "5230", "-m", "0700", target)
+            target.mkdir(parents=True, exist_ok=True)
             (target / "extensions.json").write_text("[]\n")
-
-        # Bind sources prepared by the Host need not arrive owned by x.
-        for editor_home in EDITOR_HOMES:
-            for leaf in ("bin", "extensions"):
-                run(
-                    "sudo",
-                    "install",
-                    "-d",
-                    "-o",
-                    "0",
-                    "-g",
-                    "0",
-                    "-m",
-                    "0755",
-                    HOME / editor_home / leaf,
-                )
 
         run(BIN / "init-home")
 
@@ -462,9 +481,6 @@ class TestRuntimeHelpers(unittest.TestCase):
 
     def test_workspace_init_validates_mode_and_prepares_plaintext_paths(self) -> None:
         helper = BIN / "init-workspace"
-        # A Host login UID can differ from x; initialization must retain it.
-        control = Path("/run/codespace-control")
-        run("sudo", "install", "-d", "-o", "200", "-g", "65534", "-m", "0755", control)
 
         env = os.environ.copy()
         env.pop("CODESPACE_ENCRYPTED", None)
@@ -498,13 +514,10 @@ class TestRuntimeHelpers(unittest.TestCase):
                 self.assertFalse(path.is_symlink())
                 self.assertEqual((path.stat().st_uid, path.stat().st_gid), (5230, 5230))
                 self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o700)
-        self.assertEqual((control.stat().st_uid, control.stat().st_gid), (200, 5230))
-        self.assertEqual(stat.S_IMODE(control.stat().st_mode), 0o730)
         marker = Path("/workspace/keep")
         marker.write_text("persistent\n")
         run(helper, env=env)
         self.assertEqual(marker.read_text(), "persistent\n")
-        self.assertEqual((control.stat().st_uid, control.stat().st_gid), (200, 5230))
 
 
 if __name__ == "__main__":

@@ -1,6 +1,4 @@
-#!/opt/bm/profile/s6/bin/execlineb -P
-
-s6-envdir -Lf -- /run/s6/container_environment
+#!/usr/local/bin/execlineb -P
 
 redirfd -w 1 /var/log/s6.podman.log
 fdmove -c 2 1
@@ -22,4 +20,4 @@ foreground { rm -f /run/user/5230/podman/podman.sock }
 s6-notifyoncheck -d -n 0 -w 100 -t 2000 -T 60000
 -c "test -S /run/user/5230/podman/podman.sock"
 s6-setuidgid x
-exec /opt/podman/bin/podman-server
+exec podman-server

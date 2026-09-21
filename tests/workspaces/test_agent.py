@@ -381,12 +381,16 @@ def test_image_run_command_inherits_agent_identity(
     [
         (
             [],
-            ["/opt/codespace/bin/checkout", "git@example.com:owner/repo.git", "/workspace/repo"],
+            [
+                "/usr/local/codespace/bin/checkout",
+                "git@example.com:owner/repo.git",
+                "/workspace/repo",
+            ],
         ),
         (
             ["--depth=1", "--single-branch"],
             [
-                "/opt/codespace/bin/checkout",
+                "/usr/local/codespace/bin/checkout",
                 "git@example.com:owner/repo.git",
                 "/workspace/repo",
                 "--depth=1",

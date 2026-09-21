@@ -3,4 +3,4 @@ set -eu
 
 unset CONTAINER_CONNECTION CONTAINER_HOST CONTAINER_SSHKEY DOCKER_HOST
 
-exec /opt/podman/bin/_podman --remote --url=unix:///run/user/5230/podman/podman.sock "$@"
+exec /usr/local/bin/_podman --remote --url=unix:///run/user/5230/podman/podman.sock "$@"

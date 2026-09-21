@@ -9,7 +9,7 @@ set shiftwidth=2
 set expandtab
 set backspace=2
 
-let s:plugin_path = '/opt/bm/store/vim-plugins/share/vim-plugin'
+let s:plugin_path = '/usr/local/store/vim-plugins/share/vim-plugin'
 if exists('$VIM_PLUGIN_PATH') && !empty($VIM_PLUGIN_PATH)
   let s:plugin_path = $VIM_PLUGIN_PATH
 endif

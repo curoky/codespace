@@ -23,6 +23,7 @@ project_defaults:
     pull_policy: always
     network_mode: bridge
     secrets:
+      - { source: codespace_root_password, target: /run/secrets/codespace_root_password, uid: "0", gid: "0", mode: 0400 }
       - { source: codespace_workspace_key, uid: "5230", gid: "5230", mode: 0400 }
       - { source: huggingface_token, uid: "5230", gid: "5230", mode: 0400 }
       - { source: atuin_db_uri, uid: "5230", gid: "5230", mode: 0400 }
@@ -155,6 +156,7 @@ tokens:
   gitlab: glpat-REPLACE_WITH_GITLAB_TOKEN
 
 secrets:
+  codespace_root_password: REPLACE_WITH_ROOT_PASSWORD
   codespace_workspace_key: REPLACE_WITH_WORKSPACE_ENCRYPTION_KEY
   huggingface_token: hf_REPLACE_WITH_HUGGINGFACE_TOKEN
   atuin_db_uri: postgres://user:REPLACE_WITH_PASSWORD@db.example.com:5432/postgres

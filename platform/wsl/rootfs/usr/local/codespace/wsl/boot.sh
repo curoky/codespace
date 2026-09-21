@@ -4,14 +4,14 @@
 
 set -eu
 
-profile=/opt/bm/profile/s6
-export PATH="$profile/bin:$profile/libexec:/opt/bm/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 
 sysctl -p /etc/sysctl.d/custom.conf || true
 
 mkdir -p /run/s6/container_environment /run/service
 
 printf 'false' >/run/s6/container_environment/CODESPACE_ENCRYPTED
+printf 'false' >/run/s6/container_environment/CODESPACE_ROOT_PASSWORD_REQUIRED
 
 # s6-svscan's fd notification is the readiness signal for s6-rc-init.
 rm -f /run/s6/.wsl-notify

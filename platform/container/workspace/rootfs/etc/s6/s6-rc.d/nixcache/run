@@ -1,12 +1,11 @@
-#!/opt/bm/profile/s6/bin/execlineb -P
+#!/usr/local/bin/execlineb -P
 
-s6-envdir -Lf -- /run/s6/container_environment
 
 redirfd -w 1 /var/log/s6.nixcache.log
 fdmove -c 2 1
 
 s6-setuidgid x
 s6-env HOME=/home/x
-exec /opt/bm/store/nixcache/bin/nixcache serve
+exec /usr/local/store/nixcache/bin/nixcache serve
   --host 127.0.0.1
   --port 8009

@@ -23,7 +23,6 @@ def _s6_longrun_directories() -> list[Path]:
 def _s6_service_entrypoints() -> list[Path]:
     entrypoints = [
         _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/atuin-server/run",
-        _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/hosts-blackhole/up",
         _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/miniserve-http/run",
         _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/ollama/run",
         _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/supercronic/run",
@@ -43,29 +42,69 @@ def _s6_service_entrypoints() -> list[Path]:
 
 
 def test_workspace_secret_mount_uses_default_network_dns() -> None:
-    helper = _CONTAINER / "workspace/rootfs/opt/codespace/bin/mount-secret"
+    helper = _CONTAINER / "workspace/rootfs/usr/local/codespace/bin/mount-secret"
 
     assert 'local url="http://codespace-service-secret:8080"' in helper.read_text()
 
 
-def test_workspace_hosts_blackhole_limits_privilege_to_the_append() -> None:
-    helper = _CONTAINER / "workspace/rootfs/opt/codespace/bin/init-hosts-blackhole"
+def test_workspace_hosts_blackhole_runs_as_root_without_sudo() -> None:
+    helper = _CONTAINER / "workspace/rootfs/usr/local/codespace/bin/init-hosts-blackhole"
+    service = _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/hosts-blackhole/up"
 
-    assert "} | sudo tee -a /etc/hosts >/dev/null" in helper.read_text()
+    assert "sudo" not in helper.read_text()
+    assert "s6-setuidgid" not in service.read_text()
 
 
-def test_workspace_user_services_load_container_environment_before_dropping_privileges() -> None:
-    service_root = _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d"
-    entrypoints = sorted(service_root.glob("*/run")) + sorted(service_root.glob("*/up"))
+def test_workspace_root_services_use_only_root_owned_path() -> None:
+    dockerfile = (_CONTAINER / "workspace/Dockerfile").read_text()
+    init = (_CONTAINER / "workspace/rootfs/etc/s6/skel/rc.init").read_text()
+
+    root_path = "/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
+    assert f"PATH={root_path}" in dockerfile
+    assert f'export PATH="{root_path}"' in init
+    assert "rm -f /run/s6/container_environment/PATH" in init
+    assert "chgrp" not in init
+    assert "chmod 0640" not in init
+
+
+def test_workspace_image_packages_are_root_owned_and_user_installs_use_opt_bm() -> None:
+    dockerfile = (_CONTAINER / "workspace/Dockerfile").read_text()
+    manifest = (_CONTAINER / "workspace/config/binman.yaml").read_text()
+    user_bm = (_CONTAINER / "workspace/rootfs/opt/bm/bin/bm").read_text()
+
+    assert "prefix: /usr/local" in manifest
+    assert "binman-root" not in dockerfile
+    assert "--from=stage_sb /opt/bm" not in dockerfile
+    assert 'exec /usr/local/bin/bm --prefix /opt/bm "$@"' in user_bm
+    assert (
+        'export PATH="/opt/bm/bin:$PATH"'
+        in (_CONTAINER / "workspace/rootfs/etc/profile.d/app.sh").read_text()
+    )
+    assert "- podman5-rootless" in manifest
+    assert "bm download" not in dockerfile
+
+
+def test_workspace_podman_separates_image_files_from_user_data() -> None:
+    server = (_CONTAINER / "workspace/rootfs/usr/local/bin/podman-server").read_text()
+    configure = (_CONTAINER / "workspace/scripts/configure-system.sh").read_text()
+
+    assert "PODMAN_DATA_DIR=/opt/podman/data" in server
+    assert "CONTAINERS_CONF=/etc/containers/containers.conf" in server
+    assert '--network-config-dir="$PODMAN_DATA_DIR/networks"' in server
+    assert "/opt/podman/conf" not in server
+    assert "chown 5230:5230 \\" in configure
+    assert "  /opt \\" in configure
+    assert "chown -R 5230:5230 /opt" not in configure
+    assert "/usr/local/libexec/codespace" not in configure
+
+
+def test_s6_services_do_not_load_shared_environment_directories() -> None:
+    entrypoints = sorted(_CONTAINER.glob("**/rootfs/etc/s6/s6-rc.d/*/run"))
+    entrypoints += sorted(_CONTAINER.glob("**/rootfs/etc/s6/s6-rc.d/*/up"))
 
     for entrypoint in entrypoints:
-        lines = entrypoint.read_text().splitlines()
-        if "s6-setuidgid x" not in lines:
-            continue
-        assert "s6-envdir -Lf -- /run/s6/container_environment" in lines, entrypoint
-        assert lines.index("s6-envdir -Lf -- /run/s6/container_environment") < lines.index(
-            "s6-setuidgid x"
-        ), entrypoint
+        run = entrypoint.read_text()
+        assert "s6-envdir" not in run, entrypoint
 
 
 def test_log_server_listener_is_configured_by_each_image() -> None:
@@ -73,18 +112,19 @@ def test_log_server_listener_is_configured_by_each_image() -> None:
     workspace = (_CONTAINER / "workspace/Dockerfile").read_text()
     service = (_CONTAINER / "services/s6/Dockerfile").read_text()
 
-    assert "importas -S -D 127.0.0.1 MINISERVE_INTERFACES" in run
+    assert (
+        "backtick -D 127.0.0.1 MINISERVE_INTERFACES "
+        "{ cat /run/s6/container_environment/MINISERVE_INTERFACES }"
+    ) in run
     assert "--interfaces ${MINISERVE_INTERFACES}" in run
-    assert "exec /opt/bm/store/miniserve/bin/miniserve" in run
+    assert "exec /usr/local/store/miniserve/bin/miniserve" in run
     assert "MINISERVE_INTERFACES" not in workspace
     assert "MINISERVE_INTERFACES=0.0.0.0" in service
-    assert "chown -R x:x /opt/bm" in service
+    assert "prefix: /usr/local" in (_CONTAINER / "services/s6/binman.yaml").read_text()
 
 
-def test_s6_services_use_store_paths_for_binman_commands() -> None:
-    command = re.compile(
-        r"(?<![/\w-])(?:atuin|gh|miniserve|nixcache|rclone|sshd|supercronic)(?=\s)"
-    )
+def test_s6_services_use_store_paths_for_image_managed_binman_commands() -> None:
+    command = re.compile(r"(?<![/\w-])(?:atuin|gh|miniserve|nixcache|rclone|supercronic)(?=\s)")
     entrypoints = sorted(_CONTAINER.glob("**/rootfs/etc/s6/s6-rc.d/*/run"))
     entrypoints += sorted(_CONTAINER.glob("**/rootfs/etc/s6/s6-rc.d/*/up"))
 

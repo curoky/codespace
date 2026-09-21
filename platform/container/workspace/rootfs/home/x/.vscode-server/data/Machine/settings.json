@@ -1,5 +1,5 @@
 {
-  "C_Cpp.clang_format_path": "/opt/bm/store/clang-tools-18/bin/clang-format",
+  "C_Cpp.clang_format_path": "/usr/local/store/clang-tools-18/bin/clang-format",
   "C_Cpp.codeAnalysis.maxConcurrentThreads": 32,
   "C_Cpp.codeAnalysis.maxMemory": 50000,
   "C_Cpp.intelliSense.maxCachedProcesses": 120,
@@ -12,9 +12,9 @@
   "[cpp]": {
     "editor.tabSize": 2
   },
-  "clang-format.executable": "/opt/bm/store/clang-tools-18/bin/clang-format",
-  "cmake.cmakePath": "/opt/bm/store/cmake/bin/cmake",
-  "cmake.ctestPath": "/opt/bm/store/cmake/bin/ctest",
+  "clang-format.executable": "/usr/local/store/clang-tools-18/bin/clang-format",
+  "cmake.cmakePath": "/usr/local/store/cmake/bin/cmake",
+  "cmake.ctestPath": "/usr/local/store/cmake/bin/ctest",
   "cmakeFormat.exePath": "/nix/var/nix/profiles/default/bin/cmake-format",
   "files.insertFinalNewline": false,
   "files.trimFinalNewlines": false,
@@ -22,27 +22,27 @@
   "files.watcherExclude": {
     "**/build64_release/**": true
   },
-  "git.path": "/opt/bm/store/git/bin/git",
+  "git.path": "/usr/local/store/git/bin/git",
   "go.alternateTools": {
     // Go SDK
     "go": "/nix/var/nix/profiles/default/bin/go",
     "gofmt": "/nix/var/nix/profiles/default/bin/gofmt",
     // Language Server / Debugger
-    "gopls": "/opt/bm/store/gopls/bin/gopls",
-    "dlv": "/opt/bm/store/delve/bin/dlv",
+    "gopls": "/usr/local/store/gopls/bin/gopls",
+    "dlv": "/usr/local/store/delve/bin/dlv",
     // Code generation / Playground
-    "goplay": "/opt/bm/store/goplay/bin/goplay",
-    "impl": "/opt/bm/store/impl/bin/impl",
-    "gotests": "/opt/bm/store/gotests/bin/gotests",
+    "goplay": "/usr/local/store/goplay/bin/goplay",
+    "impl": "/usr/local/store/impl/bin/impl",
+    "gotests": "/usr/local/store/gotests/bin/gotests",
     // Formatters
-    "goimports": "/opt/bm/store/gotools/bin/goimports",
-    "gofumpt": "/opt/bm/store/gofumpt/bin/gofumpt",
-    // "goformat": "/opt/bm/store/goformat/bin/goformat",
+    "goimports": "/usr/local/store/gotools/bin/goimports",
+    "gofumpt": "/usr/local/store/gofumpt/bin/gofumpt",
+    // "goformat": "/usr/local/store/goformat/bin/goformat",
     // Linters
-    "staticcheck": "/opt/bm/store/go-tools/bin/staticcheck",
-    "golangci-lint": "/opt/bm/store/golangci-lint/bin/golangci-lint",
-    "golangci-lint-v2": "/opt/bm/store/golangci-lint/bin/golangci-lint",
-    "revive": "/opt/bm/store/revive/bin/revive",
+    "staticcheck": "/usr/local/store/go-tools/bin/staticcheck",
+    "golangci-lint": "/usr/local/store/golangci-lint/bin/golangci-lint",
+    "golangci-lint-v2": "/usr/local/store/golangci-lint/bin/golangci-lint",
+    "revive": "/usr/local/store/revive/bin/revive",
     // 仅当 "go.formatTool": "custom" 时配置：
     // "customFormatter": "/absolute/path/to/custom-formatter"
   },
@@ -81,14 +81,14 @@
   "xml.java.home": "/nix/var/nix/profiles/jdk25/lib/openjdk",
   "xml.server.vmargs": "-Xmx5G",
   "xml.server.binary.path": "/nix/var/nix/profiles/default/bin/lemminx",
-  "nix.formatterPath": "/opt/bm/store/nixfmt/bin/nixfmt",
-  "nix.serverPath": "/opt/bm/store/nil/bin/nil",
+  "nix.formatterPath": "/usr/local/store/nixfmt/bin/nixfmt",
+  "nix.serverPath": "/usr/local/store/nil/bin/nil",
   "nix.enableLanguageServer": true,
   "nix.serverSettings": {
     "nil": {
       "formatting": {
         "command": [
-          "/opt/bm/store/nixfmt/bin/nixfmt"
+          "/usr/local/store/nixfmt/bin/nixfmt"
         ]
       }
     }

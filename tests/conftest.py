@@ -27,6 +27,15 @@ def config() -> Config:
                     "security_opt": ["disable", "seccomp=unconfined"],
                     "pids_limit": -1,
                     "ulimits": {"memlock": {"soft": -1, "hard": -1}},
+                    "secrets": [
+                        {
+                            "source": "codespace_root_password",
+                            "target": "/run/secrets/codespace_root_password",
+                            "uid": "0",
+                            "gid": "0",
+                            "mode": 0o400,
+                        }
+                    ],
                     "volumes": [
                         "/etc/krb5.conf:/etc/krb5.conf:ro",
                         "${RESOURCE_DATA}/workspace:/workspace",
@@ -95,5 +104,6 @@ def config() -> Config:
                     },
                 },
             },
+            "secrets": {"codespace_root_password": "test-password"},
         }
     )

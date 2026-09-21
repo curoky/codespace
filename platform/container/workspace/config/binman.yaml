@@ -1,6 +1,23 @@
-prefix: /opt/bm
+prefix: /usr/local
 packages:
   link:
+    - cacert
+    - curl
+    - fuse3
+    - glibcLocales
+    - openssh_gssapi
+    - podman5-rootless
+    - shadow
+    - sudo
+    - s6
+    - s6-rc
+    - s6-linux-init
+    - s6-linux-utils
+    - s6-portable-utils
+    - s6-networking
+    - s6-dns
+    - execline
+
     - shellcheck
     - bats
     - lark-cli
@@ -52,7 +69,6 @@ packages:
     - makeself
     - libarchive
 
-    - curl
     - wget
     - rsync
     - netcat
@@ -63,12 +79,10 @@ packages:
     - miniserve
     - nixcache
     - rclone
-    - openssh_gssapi
 
     - openssl
     - krb5
     - gnupg
-    - cacert
     - gocryptfs
 
     - procps
@@ -80,10 +94,9 @@ packages:
     - libcap
     - lsb-release
     - tzdata
-    - glibcLocales
     - cronie
-    - supercronic
     - parallel
+    - supercronic
 
     - git
     - gh
@@ -124,11 +137,6 @@ packages:
     - nil
     - exiftool
   unlink:
-    # 特权 helpers 由 configure-system.sh 以 root-owned setuid 文件安装到 /usr/bin。
-    - fuse3
-    - shadow
-    - sudo
-
     - clang-tools-18
     - clang-tools-19
     - clang-tools-20
@@ -141,16 +149,6 @@ packages:
     - protobuf_3_9_2
 
 profiles:
-  s6:
-    - s6
-    - s6-rc
-    - s6-linux-init
-    - s6-linux-utils
-    - s6-portable-utils
-    - s6-networking
-    - s6-dns
-    - execline
-
   go:
     - gopls
     - delve

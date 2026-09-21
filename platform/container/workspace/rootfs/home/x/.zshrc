@@ -27,14 +27,14 @@ fi
 export PATH="$PATH:$HOME/.local/bin"
 
 fpath=(
-  /opt/bm/share/zsh/site-functions
-  /opt/bm/store/zsh-plugins/share/oh-my-zsh/custom/plugins/zsh-completions/src
-  /opt/bm/store/zsh-plugins/share/oh-my-zsh/custom/plugins/conda-zsh-completion
+  /usr/local/share/zsh/site-functions
+  /usr/local/store/zsh-plugins/share/oh-my-zsh/custom/plugins/zsh-completions/src
+  /usr/local/store/zsh-plugins/share/oh-my-zsh/custom/plugins/conda-zsh-completion
   $fpath
 )
 typeset -U fpath FPATH
 
-export ZSH=/opt/bm/store/zsh-plugins/share/oh-my-zsh
+export ZSH=/usr/local/store/zsh-plugins/share/oh-my-zsh
 
 # Plugin settings must be defined before the corresponding plugins are loaded.
 ZSH_HIGHLIGHT_HIGHLIGHTERS=(main brackets cursor)
@@ -57,8 +57,8 @@ source "$ZSH/plugins/extract/extract.plugin.zsh"
 source "$ZSH/plugins/git/git.plugin.zsh"
 
 source "/opt/conda/etc/profile.d/conda.sh"
-source "/opt/bm/store/starship/share/starship/init.zsh"
-source "/opt/bm/store/atuin/share/atuin/init.zsh"
+source "/usr/local/store/starship/share/starship/init.zsh"
+source "/usr/local/store/atuin/share/atuin/init.zsh"
 
 # User definitions take precedence over framework aliases and functions.
 source "$XDG_CONFIG_HOME/zsh/aliases.zsh"

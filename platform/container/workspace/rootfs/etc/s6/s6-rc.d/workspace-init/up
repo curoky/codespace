@@ -1,6 +1,12 @@
 redirfd -w 1 /var/log/s6.workspace-init.log
 fdmove -c 2 1
-s6-envdir -Lf -- /run/s6/container_environment
+backtick -D true CODESPACE_ROOT_PASSWORD_REQUIRED { cat /run/s6/container_environment/CODESPACE_ROOT_PASSWORD_REQUIRED }
+foreground { /usr/local/codespace/bin/init-root-password }
+foreground { mkdir -p -- /run/codespace-control }
+foreground { chgrp 5230 -- /run/codespace-control }
+foreground { chmod 0730 -- /run/codespace-control }
+foreground { install -d -o 5230 -g 5230 -m 0700 -- /workspace /workspace.enc /upload }
+backtick -D false CODESPACE_ENCRYPTED { cat /run/s6/container_environment/CODESPACE_ENCRYPTED }
 s6-setuidgid x
 s6-env HOME=/home/x
-/opt/codespace/bin/init-workspace
+/usr/local/codespace/bin/init-workspace

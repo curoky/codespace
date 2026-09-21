@@ -440,7 +440,16 @@ def test_workspace_container_uses_fixed_ssh_listener_and_configured_mounts(
     data = config.model_dump()
     data["projects"]["codespace"]["encrypted"] = encrypted
     data["secrets"]["codespace_workspace_key"] = "test-key"
-    configured_secrets = [{"source": "atuin_db_uri", "mode": 0o400}]
+    configured_secrets = [
+        {"source": "atuin_db_uri", "mode": 0o400},
+        {
+            "source": "codespace_root_password",
+            "target": "/run/secrets/codespace_root_password",
+            "uid": "0",
+            "gid": "0",
+            "mode": 0o400,
+        },
+    ]
     if encrypted:
         configured_secrets.append(
             {
@@ -490,6 +499,13 @@ def test_workspace_container_uses_fixed_ssh_listener_and_configured_mounts(
     assert "ATUIN_SYNC_ADDRESS" not in environment
     assert captured["spec"].secrets[0].source == "atuin_db_uri"  # type: ignore[union-attr]
     assert captured["spec"].secrets[0].mode == 0o400  # type: ignore[union-attr]
+    assert captured["spec"].secrets[1].model_dump() == {  # type: ignore[union-attr]
+        "source": "codespace_root_password",
+        "target": "/run/secrets/codespace_root_password",
+        "uid": "0",
+        "gid": "0",
+        "mode": 0o400,
+    }
     assert "SSHD_PORT" not in environment
     assert "SSHD_BIND" not in environment
     assert captured["spec"].ports[-1].model_dump() == {  # type: ignore[union-attr]

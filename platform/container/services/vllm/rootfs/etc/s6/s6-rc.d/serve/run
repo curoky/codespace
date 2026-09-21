@@ -1,9 +1,13 @@
-#!/opt/bm/profile/s6/bin/execlineb -P
+#!/usr/local/bin/execlineb -P
 
-s6-envdir -Lf -- /run/s6/container_environment
 
 redirfd -w 1 /var/log/s6.serve.log
 fdmove -c 2 1
+backtick -D "" SERVE_MODEL { cat /run/s6/container_environment/SERVE_MODEL }
+backtick -D "" SERVE_EXTRA_ARGS { cat /run/s6/container_environment/SERVE_EXTRA_ARGS }
+backtick -D "" CUDA_VISIBLE_DEVICES { cat /run/s6/container_environment/CUDA_VISIBLE_DEVICES }
+backtick -D "" NVIDIA_VISIBLE_DEVICES { cat /run/s6/container_environment/NVIDIA_VISIBLE_DEVICES }
+backtick -D "" NVIDIA_DRIVER_CAPABILITIES { cat /run/s6/container_environment/NVIDIA_DRIVER_CAPABILITIES }
 
 s6-notifyoncheck -d -n 0 -w 1000 -t 5000 -T 900000
   -c "/usr/bin/curl --noproxy * --fail --silent --output /dev/null --max-time 2 http://127.0.0.1:8080/health"

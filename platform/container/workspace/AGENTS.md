@@ -32,17 +32,23 @@ task check:full
 - 固定用户是 `x`，UID/GID 都是 `5230`；不要让运行期逻辑依赖 Host 用户名。
 - PID 1 是 `/etc/s6/init/bin/init`。service source 位于 `rootfs/etc/s6/s6-rc.d/`，
   image build 期间由 `scripts/install-s6.sh` 编译，运行期不重新编译。
+- `/opt` 由 `x` 管理；Workspace image 自有文件位于 root-owned `/usr/local/codespace`，
+  其他 image-owned executable 和配置放在 `/usr/local`、`/etc`。
 - `/workspace`、`/workspace.enc`、`/upload`、IDE cache 和
   `/run/codespace-control` 是外部状态边界。启动脚本可以修正挂载点权限，但不能递归
   改写未知持久数据。
 - Workspace 内服务默认只监听 loopback；只有 Project `tunnel_ports` 中声明的端口才能
   由控制面转发。容器之间使用 Host Podman network DNS，不使用动态 IP。
-- `config/binman.yaml` 是通用 Workspace 工具清单。只被一个组件使用、且需要独立目录
-  语义的软件不要链接进 `/opt/bm/bin`。
+- `config/binman.yaml` 中的 image package 全部安装到 root-owned `/usr/local`。`x` 的
+  `/opt/bm/bin/bm` 固定使用 `/opt/bm` prefix，供运行期按需安装和覆盖用户工具；image service
+  使用 `/usr/local/store` 的固定路径，不依赖用户可写的 `/opt/bm`。只被一个组件使用、且需要
+  独立目录语义的软件不要链接进这两个 prefix。
 
 Workspace 应由 Codespace control plane 按根目录 `config.example.yaml` 的 Project container
 配置创建，不把手写 `podman run` 命令作为部署接口。至少保留 `CODESPACE_ENCRYPTED`、
-业务数据与 control socket mount；加密模式还必须挂载 `codespace_workspace_key` secret。
+业务数据与 control socket mount，并在 Project container 配置中显式挂载 root-owned、mode
+`0400` 的 `codespace_root_password` secret；加密模式还必须挂载
+`codespace_workspace_key` secret。
 SSH 与 HTTP 入口由控制面分配和转发，不在 image 上声明固定 Host publication。
 
 关键输入与状态目录：
@@ -75,16 +81,16 @@ podman build -t local/app:dev .
 podman run --rm local/app:dev
 ```
 
-`podman5-rootless` 在 Workspace runtime stage 通过 BM 直接下载，随后移动到
-`/opt/podman`。它不属于共享 `config/binman.yaml`，也不会出现在 `/opt/bm/store` 或
-`/opt/bm/bin`。bundle 提供 `_podman`、crun、netavark、pasta 等二进制；此目录的
-`rootfs/opt/podman/` 覆盖用户可见 wrapper 和全部生效配置。包内 `install.sh`、s6 模板
-与 CA 文件即使保留也不会被调用；Podman 使用系统 CA。
+`podman5-rootless` 由共享 `config/binman.yaml` 标准安装到 `/usr/local`，与其他 image package
+一样由 root 拥有。Workspace 的 client/service wrapper 位于 `/usr/local/bin`，配置位于
+`/etc/containers`；仅运行数据、用户 home、auth 和 network state 位于
+`/opt/podman/data`。包内 `install.sh`、s6 模板与 CA 文件不会被调用；Podman 使用系统 CA。
 
 外层 Workspace container 必须保留以下运行条件：
 
 - `/etc/subuid` 与 `/etc/subgid` 为 `x` 分配 subordinate ID。
-- `/usr/bin/newuidmap` 与 `/usr/bin/newgidmap` 是 root-owned、mode `4755` 的普通文件。
+- `/usr/local/bin/newuidmap` 与 `/usr/local/bin/newgidmap` 指向 root-owned、mode `4755` 的
+  BM package executable。
 - 默认 Project container 配置保留 `SYS_ADMIN`、`seccomp=unconfined` 和无限
   `pids_limit`。这些是当前 nested rootless runtime contract，不应在未完成 image build
   和真实 container 验证前删除。
@@ -98,7 +104,7 @@ project_defaults:
       - ${RESOURCE_DATA}/podman:/opt/podman/data
 ```
 
-s6 启动时只把挂载根目录修正为 `5230:5230`、mode `0700`，绝不递归 chown；graphroot
+s6 启动时只把 data 挂载根目录修正为 `5230:5230`、mode `0700`，绝不递归 chown；graphroot
 中的 subordinate UID/GID 必须原样保留。若 Host path 不允许 container root chown，需在
 Host 上提前赋予 UID/GID `5230`。不要在多个同时运行的 Workspace 间共享同一 data
 目录。
@@ -126,6 +132,6 @@ socket 不存在时先检查 s6 状态和日志。storage driver 报错时检查
 filesystem，以及该目录是否已有另一 driver 创建的 graphroot；不要通过删除用户数据
 来自动恢复。
 
-WSL image 会继承 `/opt/podman` 文件，但 WSL 使用自己的 `wsl` s6 bundle，默认不启动
-`podman` service。若要在 WSL 支持它，应作为 WSL platform 能力单独设计和验证，不能只
-把 `podman` 加入 `wsl/contents.d`。
+WSL image 会继承 Podman binary、配置和 `/opt/podman/data`，但 WSL 使用自己的 `wsl` s6
+bundle，默认不启动 `podman` service。若要在 WSL 支持它，应作为 WSL platform 能力单独
+设计和验证，不能只把 `podman` 加入 `wsl/contents.d`。

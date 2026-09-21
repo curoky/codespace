@@ -1,4 +1,0 @@
-Defaults        secure_path="/opt/bm/profile/s6/bin:/opt/bm/bin:/nix/var/nix/profiles/default/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-
-
-# Cmnd_Alias  COMMANDS = /usr/bin/apt, /usr/bin/apt-get

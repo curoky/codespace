@@ -3,7 +3,7 @@
 # manifest; container recreation must not reinstall extensions the user removed.
 set -euo pipefail
 
-readonly template=/opt/codespace/share/editor-extensions
+readonly template=/usr/local/codespace/share/editor-extensions
 
 for server in .vscode-server .trae-server .trae-cn-server; do
   target="/home/x/$server/extensions"

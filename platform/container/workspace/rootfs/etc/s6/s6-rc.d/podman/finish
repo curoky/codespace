@@ -1,6 +1,6 @@
-#!/opt/bm/profile/s6/bin/execlineb -P
+#!/usr/local/bin/execlineb -P
 
 redirfd -a 1 /var/log/s6.podman.log
 fdmove -c 2 1
 s6-setuidgid x
-exec /opt/podman/bin/podman-server --stop-all
+exec podman-server --stop-all

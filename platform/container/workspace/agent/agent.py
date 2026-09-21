@@ -24,7 +24,7 @@ type AgentState = Literal["starting", "awaiting-provider", "ready", "failed"]
 
 SOCKET_PATH = Path("/run/codespace-control/agent.sock")
 DEPLOY_PUBLIC_KEY_PATH = Path("/home/x/.ssh/git_deploy_key_ed25519.pub")
-CHECKOUT = "/opt/codespace/bin/checkout"
+CHECKOUT = "/usr/local/codespace/bin/checkout"
 
 HELPER_HOME = "/home/x"
 HELPER_TIMEOUT = 60.0

@@ -1,7 +1,6 @@
-prefix: /opt/bm
-
-profiles:
-  s6:
+prefix: /usr/local
+packages:
+  link:
     - s6
     - s6-rc
     - s6-linux-init

@@ -4,13 +4,13 @@ RUN apt-get update -y \
   && apt-get install -y --no-install-recommends libgomp1 \
   && rm -rf /var/lib/apt/lists/*
 
-RUN /opt/bm/bin/bm install uv
+RUN /usr/local/bin/bm install uv
 
 # Python 3.12 is the newest version covered by all pinned GPU wheels.
 ARG VLLM_COMMIT=e126687a9a828d513c01a07cd69f025f27d63280
 ARG CUDA_TAG=cu129
-RUN /opt/bm/bin/uv venv /opt/vllm/venv --python 3.12 \
-  && /opt/bm/bin/uv pip install --python /opt/vllm/venv/bin/python \
+RUN /usr/local/bin/uv venv /opt/vllm/venv --python 3.12 \
+  && /usr/local/bin/uv pip install --python /opt/vllm/venv/bin/python \
     --prerelease=allow \
     --index-strategy unsafe-best-match \
     "vllm==0.28.1rc1.dev132+ge126687a9" \

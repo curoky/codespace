@@ -4,6 +4,6 @@ USER root
 
 COPY platform/wsl/rootfs/ /
 
-RUN /opt/bm/profile/s6/bin/s6-rc-compile /etc/s6/db.new /etc/s6/s6-rc.d \
+RUN /usr/local/bin/s6-rc-compile /etc/s6/db.new /etc/s6/s6-rc.d \
   && rm -rf /etc/s6/db \
   && mv /etc/s6/db.new /etc/s6/db

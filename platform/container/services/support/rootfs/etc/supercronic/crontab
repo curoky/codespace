@@ -1,4 +1,4 @@
-PATH=/opt/bm/bin:/opt/bm/profile/s6/bin:/usr/bin:/bin
+PATH=/usr/local/bin:/usr/bin:/bin
 CRON_TZ=Asia/Shanghai
 
 */10 * * * * /opt/support/pull-images.sh

@@ -11,7 +11,7 @@ alwaysApply: true
 
 ## Runtime
 
-- 默认用户是 `x`（UID/GID 5230）。仅 system-level 操作使用 `sudo`。
+- 默认用户是 `x`（UID/GID 5230）。`sudo` 验证运行时 secret 设置的 root 密码，不提供免密提权。
 - repository 和持久数据放 `/workspace`，交换文件放 `/upload`；不要依赖 container layer、
   `/tmp` 或普通 `$HOME` 路径持久化。
 - s6 管理常驻服务，不要重复启动 SSH、Ollama、file server、Atuin 或 Workspace Agent。
@@ -44,14 +44,15 @@ alwaysApply: true
 | Python | uv-managed 3.9-3.14，默认 3.14；优先 `uv run`，用 `uv python find 3.<N>` 定位解释器 |
 | Conda | `/opt/conda/condabin/conda`，默认不激活 environment |
 | Node.js | 默认 24；26 在 `/nix/var/nix/profiles/nodejs-26/bin` |
-| Go | 默认 1.26；tools 在 `/opt/bm/profile/go/bin` |
+| Go | 默认 1.26；tools 在 `/usr/local/profile/go/bin` |
 | Rust | `/opt/rust/cargo/bin`；非登录 shell 设置 `CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup` |
 | Java | JDK 25 默认；JDK 8/25 分别在 `/nix/var/nix/profiles/jdk{8,25}/lib/openjdk` |
-| C/C++ | GCC 15 默认；GCC 12/16 在 `/nix/var/nix/profiles/gcc-{12,16}/bin`；Clang tools 在 `/opt/bm/bin` |
+| C/C++ | GCC 15 默认；GCC 12/16 在 `/nix/var/nix/profiles/gcc-{12,16}/bin`；Clang tools 在 `/usr/local/bin` |
 | CUDA | 12.2.2，`CUDA_HOME=/usr/local/cuda`；已安装 Nsight Systems/Compute |
 
-常用 CLI、build、format 和 lint 工具主要位于 `/opt/bm/bin` 或默认 Nix profile。
-Protobuf 不在默认 PATH，按项目版本使用 `/opt/bm/store/protobuf_<version>/bin`。
+镜像预装的 CLI、build、format 和 lint 工具主要位于 `/usr/local/bin` 或默认 Nix profile；
+`x` 通过 `bm install` 安装的工具位于 `/opt/bm` 并优先于预装版本。Protobuf 不在默认 PATH，
+按项目版本使用 `/usr/local/store/protobuf_<version>/bin`。
 
 依赖安装顺序：
 

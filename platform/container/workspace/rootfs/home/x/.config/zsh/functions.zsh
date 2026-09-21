@@ -3,7 +3,7 @@ function psgrep() {
 }
 
 function killit() {
-  ps aux | grep -v grep | grep "$@" | awk '{print $2}' | xargs sudo kill
+  ps aux | grep -v grep | grep "$@" | awk '{print $2}' | xargs kill
 }
 
 function set-http-proxy() {
