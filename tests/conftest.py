@@ -39,7 +39,6 @@ def config() -> Config:
                     "volumes": [
                         "/etc/krb5.conf:/etc/krb5.conf:ro",
                         "${RESOURCE_DATA}/workspace:/workspace",
-                        "${RESOURCE_DATA}/upload:/upload",
                         "${RESOURCE_DATA}/control:/run/codespace-control",
                         "${RESOURCE_DATA}/cache/.vscode-server/cli:/home/x/.vscode-server/cli",
                         "${RESOURCE_DATA}/cache/.vscode-server/extensions:/home/x/.vscode-server/extensions",

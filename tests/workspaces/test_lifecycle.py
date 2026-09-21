@@ -184,7 +184,6 @@ def test_create_handles_source_bootstrap_and_agent_protocol_failure(
     assert directories == [
         root,
         f"{root}/workspace",
-        f"{root}/upload",
         f"{root}/control",
         *(f"{root}/cache/{relative}" for relative in _CACHE_PATHS),
     ]
@@ -245,7 +244,7 @@ def test_deploy_uses_configured_mounts_alongside_host_volumes(
     }
     assert resolved["/build-cache"].source == f"{root}/cache/build"
     assert resolved["/opt/file"].source == "/host/file"
-    assert len(resolved) == 16
+    assert len(resolved) == 15
     assert manager.transport.socket_forwards == [  # type: ignore[attr-defined]
         ("home", f"{root}/control/agent.sock")
     ]
@@ -525,12 +524,6 @@ def test_workspace_container_uses_fixed_ssh_listener_and_configured_mounts(
             "type": "bind",
             "source": "/home/x/codespace/workspaces/codespace/debug/workspace",
             "target": "/workspace.enc" if encrypted else "/workspace",
-            "read_only": False,
-        },
-        {
-            "type": "bind",
-            "source": "/home/x/codespace/workspaces/codespace/debug/upload",
-            "target": "/upload",
             "read_only": False,
         },
         {

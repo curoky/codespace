@@ -24,7 +24,7 @@ project_defaults:
     network_mode: bridge
     privileged: true
     secrets:
-      - { source: codespace_root_password, target: /run/secrets/codespace_root_password, uid: "0", gid: "0", mode: 0400 }
+      - { source: codespace_root_password, uid: "0", gid: "0", mode: 0400 }
       - { source: codespace_workspace_key, uid: "5230", gid: "5230", mode: 0400 }
       - { source: huggingface_token, uid: "5230", gid: "5230", mode: 0400 }
       - { source: atuin_db_uri, uid: "5230", gid: "5230", mode: 0400 }
@@ -36,7 +36,6 @@ project_defaults:
       memlock: { soft: -1, hard: -1 }
     volumes:
       - ${RESOURCE_DATA}/workspace:/workspace.enc
-      - ${RESOURCE_DATA}/upload:/upload
       - ${RESOURCE_DATA}/podman:/opt/podman/data
       - ${RESOURCE_DATA}/control:/run/codespace-control
       - ${RESOURCE_DATA}/cache/.vscode-server/cli:/home/x/.vscode-server/cli

@@ -18,7 +18,6 @@ exec /nix/var/nix/profiles/default/bin/copyparty
   --s-thead 30
   -v /workspace:workspace:r.
   -v /var/log:logs:r
-  -v /upload:upload:rwmd.:c,daw,wram
   --http-only
   --no-crt
   --no-bauth

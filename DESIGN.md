@@ -70,7 +70,7 @@ flowchart LR
 
 Host 上的持久数据统一位于 `$HOME/codespace/`。普通 remove 保留数据，只有 purge
 才删除对应资源目录。Workspace 的业务数据是否加密由 Project 最终配置决定；加密只
-覆盖业务数据，不隐式覆盖 upload、control socket 或 IDE cache。
+覆盖业务数据，不隐式覆盖 control socket 或 IDE cache。
 
 ## Control Plane
 
