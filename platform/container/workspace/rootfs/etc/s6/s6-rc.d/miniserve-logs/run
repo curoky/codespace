@@ -1,9 +1,10 @@
 #!/usr/local/bin/execlineb -P
 
-backtick -D 127.0.0.1 MINISERVE_INTERFACES { cat /run/s6/container_environment/MINISERVE_INTERFACES }
-
-redirfd -w 1 /var/log/s6.miniserve-http.log
+redirfd -w 1 /var/log/s6.miniserve-logs.log
 fdmove -c 2 1
+
+backtick -D 127.0.0.1 MINISERVE_INTERFACES { cat /run/s6/container_environment/MINISERVE_INTERFACES }
+importas -u MINISERVE_INTERFACES MINISERVE_INTERFACES
 
 s6-setuidgid x
 s6-env HOME=/home/x

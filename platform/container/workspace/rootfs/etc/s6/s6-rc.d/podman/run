@@ -3,19 +3,17 @@
 redirfd -w 1 /var/log/s6.podman.log
 fdmove -c 2 1
 
+foreground { chown 5230:5230 -- /opt/podman/data }
+foreground { chmod 0700 -- /opt/podman/data }
+foreground { install -d -o 5230 -g 5230 -m 0700 -- /opt/podman/network }
+foreground { install -d -o root -g root -m 0755 -- /run/user }
 foreground
 {
-  /bin/sh -c 'test "$(stat -c %u:%g /opt/podman/data)" = 5230:5230 || chown 5230:5230 /opt/podman/data'
-}
-foreground { chmod 0700 /opt/podman/data }
-foreground { install -d -o root -g root -m 0755 /run/user }
-foreground
-{
-  install -d -o 5230 -g 5230 -m 0700
+  install -d -o 5230 -g 5230 -m 0700 --
   /run/user/5230
   /run/user/5230/podman
 }
-foreground { rm -f /run/user/5230/podman/podman.sock }
+foreground { rm -f -- /run/user/5230/podman/podman.sock }
 
 s6-notifyoncheck -d -n 0 -w 100 -t 2000 -T 60000
 -c "test -S /run/user/5230/podman/podman.sock"

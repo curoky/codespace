@@ -1,0 +1,4 @@
+redirfd -w 1 /var/log/s6.root-password.log
+fdmove -c 2 1
+backtick -D true CODESPACE_ROOT_PASSWORD_REQUIRED { cat /run/s6/container_environment/CODESPACE_ROOT_PASSWORD_REQUIRED }
+/usr/local/codespace/bin/init-root-password

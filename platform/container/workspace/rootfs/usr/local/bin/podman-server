@@ -6,50 +6,50 @@ export USER=x
 export LOGNAME=x
 export PODMAN_DATA_DIR=/opt/podman/data
 export PODMAN_RUNTIME_DIR=/run/user/5230/podman
-export HOME="$PODMAN_DATA_DIR/home"
-export XDG_RUNTIME_DIR="$PODMAN_RUNTIME_DIR"
-export TMPDIR="$PODMAN_RUNTIME_DIR/tmp"
+export HOME=/opt/podman/data/home
+export XDG_RUNTIME_DIR=/run/user/5230/podman
+export TMPDIR=/run/user/5230/podman/tmp
 export CONTAINERS_CONF=/etc/containers/containers.conf
 export CONTAINERS_REGISTRIES_CONF=/etc/containers/registries.conf
 export CONTAINERS_POLICY_JSON=/etc/containers/policy.json
-export REGISTRY_AUTH_FILE="$PODMAN_DATA_DIR/auth.json"
-export DBUS_SYSTEM_BUS_ADDRESS="unix:path=$PODMAN_RUNTIME_DIR/no-system-bus"
+export REGISTRY_AUTH_FILE=/opt/podman/data/auth.json
+export DBUS_SYSTEM_BUS_ADDRESS="unix:path=/run/user/5230/podman/no-system-bus"
 unset XDG_CONFIG_HOME XDG_DATA_HOME XDG_CACHE_HOME
 unset CONTAINERS_CONF_OVERRIDE CONTAINERS_HELPER_BINARY_DIR
 unset CONTAINERS_REGISTRIES_CONF_OVERRIDE REGISTRIES_CONFIG_PATH
 unset CONTAINER_HOST CONTAINER_CONNECTION CONTAINER_SSHKEY STORAGE_DRIVER STORAGE_OPTS
 unset DOCKER_CONFIG DOCKER_HOST SSL_CERT_DIR SSL_CERT_FILE
 umask 007
-mkdir -p "$HOME" "$XDG_RUNTIME_DIR" "$TMPDIR" "$PODMAN_DATA_DIR/networks"
+mkdir -p /opt/podman/data/home /run/user/5230/podman /run/user/5230/podman/tmp /opt/podman/network
 
-if [ -d "$PODMAN_DATA_DIR/graphroot/vfs-images" ] && [ -d "$PODMAN_DATA_DIR/graphroot/overlay-images" ]; then
-  echo "Both VFS and overlay storage exist in $PODMAN_DATA_DIR/graphroot" >&2
+if [ -d /opt/podman/data/graphroot/vfs-images ] && [ -d /opt/podman/data/graphroot/overlay-images ]; then
+  echo "Both VFS and overlay storage exist in /opt/podman/data/graphroot" >&2
   exit 1
-elif [ -d "$PODMAN_DATA_DIR/graphroot/vfs-images" ]; then
+elif [ -d /opt/podman/data/graphroot/vfs-images ]; then
   storage_driver=vfs
-elif [ -d "$PODMAN_DATA_DIR/graphroot/overlay-images" ]; then
+elif [ -d /opt/podman/data/graphroot/overlay-images ]; then
   storage_driver=overlay
 else
-  case $(stat -f -c %T "$PODMAN_DATA_DIR") in
+  case $(stat -f -c %T /opt/podman/data) in
     ext2/ext3 | xfs | btrfs) storage_driver=overlay ;;
     *) storage_driver=vfs ;;
   esac
 fi
 export CONTAINERS_STORAGE_CONF="/etc/containers/storage-$storage_driver.conf"
-printf 'Using %s storage for %s\n' "$storage_driver" "$PODMAN_DATA_DIR"
+printf 'Using %s storage for /opt/podman/data\n' "$storage_driver"
 
 if [ "${1-}" = "--stop-all" ]; then
   shift
   exec /usr/local/bin/_podman \
-    --tmpdir="$PODMAN_RUNTIME_DIR/libpod" \
-    --network-config-dir="$PODMAN_DATA_DIR/networks" \
+    --tmpdir=/run/user/5230/podman/libpod \
+    --network-config-dir=/opt/podman/network \
     --default-mounts-file=/etc/containers/mounts.conf \
     stop --all "$@"
 fi
 
 exec /usr/local/bin/_podman \
-  --tmpdir="$PODMAN_RUNTIME_DIR/libpod" \
-  --network-config-dir="$PODMAN_DATA_DIR/networks" \
+  --tmpdir=/run/user/5230/podman/libpod \
+  --network-config-dir=/opt/podman/network \
   --default-mounts-file=/etc/containers/mounts.conf \
   system service \
-  "unix://$PODMAN_RUNTIME_DIR/podman.sock" "$@"
+  "unix:///run/user/5230/podman/podman.sock" "$@"

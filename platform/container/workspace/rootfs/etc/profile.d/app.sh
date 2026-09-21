@@ -13,7 +13,7 @@ export PATH="$PATH:/opt/uv/bin"
 export CONDA_PLUGINS_AUTO_ACCEPT_TOS=yes
 export PATH="$PATH:/opt/conda/condabin"
 
-export PATH="/opt/bm/bin:$PATH"
+export PATH="/home/x/.local/bin:$PATH"
 
 export PATH="$PATH:/nix/var/nix/profiles/default/bin"
 

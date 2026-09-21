@@ -13,7 +13,7 @@ s6-linux-init-maker \
   -B \
   -c /etc/s6/init \
   -D default \
-  -p /usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin \
+  -p /usr/local/bin:/usr/local/sbin:/usr/local/libexec:/usr/bin:/usr/sbin:/bin:/sbin \
   -s /run/s6/container_environment \
   -f /etc/s6/skel \
   /etc/s6/init

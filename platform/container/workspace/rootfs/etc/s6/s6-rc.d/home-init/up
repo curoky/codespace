@@ -1,19 +1,6 @@
 redirfd -w 1 /var/log/s6.home-init.log
 fdmove -c 2 1
-foreground
-{
-  install -d -o 5230 -g 5230 -m 0700
-    /home/x/.vscode-server/bin
-    /home/x/.vscode-server/extensions
-    /home/x/.trae/bin
-    /home/x/.trae/extensions
-    /home/x/.trae-cn/bin
-    /home/x/.trae-cn/extensions
-    /home/x/.trae-server/bin
-    /home/x/.trae-server/extensions
-    /home/x/.trae-cn-server/bin
-    /home/x/.trae-cn-server/extensions
-}
+
 foreground
 {
   chown -R 5230:5230
@@ -23,6 +10,4 @@ foreground
     /home/x/.trae-server
     /home/x/.trae-cn-server
 }
-s6-setuidgid x
-s6-env HOME=/home/x
-/usr/local/codespace/bin/init-home
+exit 0

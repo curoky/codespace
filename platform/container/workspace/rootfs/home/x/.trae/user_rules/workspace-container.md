@@ -12,7 +12,7 @@ alwaysApply: true
 ## Runtime
 
 - 默认用户是 `x`（UID/GID 5230）。`sudo` 验证运行时 secret 设置的 root 密码，不提供免密提权。
-- repository 和持久数据放 `/workspace`，交换文件放 `/upload`；不要依赖 container layer、
+- repository 和持久数据放 `/workspace`；不要依赖 container layer、
   `/tmp` 或普通 `$HOME` 路径持久化。
 - s6 管理常驻服务，不要重复启动 SSH、Ollama、file server、Atuin 或 Workspace Agent。
 - 不修改 `/opt/codespace`、`/etc/s6`、`/run/codespace-control` 或 IDE cache mount，除非任务
@@ -26,7 +26,6 @@ alwaysApply: true
 | --- | --- |
 | `/workspace` | 项目数据；encrypted Workspace 的透明明文视图 |
 | `/workspace.enc` | gocryptfs backing store，不直接操作 |
-| `/upload` | 可读写文件交换目录 |
 | `/opt/secret` | secret Service 提供的 credential view，只读取任务所需文件 |
 | `/run/secrets` | Podman 启动 secret，不输出或复制 |
 | `/run/codespace-control` | Workspace Agent socket，不存用户数据 |
@@ -51,7 +50,7 @@ alwaysApply: true
 | CUDA | 12.2.2，`CUDA_HOME=/usr/local/cuda`；已安装 Nsight Systems/Compute |
 
 镜像预装的 CLI、build、format 和 lint 工具主要位于 `/usr/local/bin` 或默认 Nix profile；
-`x` 通过 `bm install` 安装的工具位于 `/opt/bm` 并优先于预装版本。Protobuf 不在默认 PATH，
+`x` 通过 `bm install` 安装的工具位于 `~/.local`（`~/.local/bin`）并优先于预装版本。Protobuf 不在默认 PATH，
 按项目版本使用 `/usr/local/store/protobuf_<version>/bin`。
 
 依赖安装顺序：
@@ -75,7 +74,7 @@ alwaysApply: true
 | `copyparty-webdav` | `127.0.0.1:8005` |
 | `ollama` | `127.0.0.1:8006` |
 | `rclone-http` | `127.0.0.1:8007` |
-| `miniserve-http` | `127.0.0.1:8008` |
+| `miniserve-logs` | `127.0.0.1:8008` |
 | `nixcache` | `127.0.0.1:8009` |
 | `workspace-agent` | `/run/codespace-control/agent.sock` |
 
@@ -84,9 +83,12 @@ s6-svstat /run/service/<service>
 tail -n 200 /var/log/s6.<service>.log
 ```
 
-`workspace-init`、`home-init`、`hosts-blackhole`、`git-config`、`gh-login`、
-`atuin-login` 和 `secret-mount` 是启动期 oneshot，不要重复运行。`/opt/secret` mount 失败时
-检查 `/var/log/s6.secret-mount.log`，确认 secret Service 可达后用 `mount-secret` 重试。
+`root-password`、`home-init`、`ssh-deploy-key`、`hosts-blackhole`、`git-config`、
+`gh-login`、`atuin-login` 和 `mount-secret` 是启动期 oneshot，不要重复运行。`/opt/secret`
+mount 失败时检查 `/var/log/s6.mount-secret.log`，确认 secret Service 可达后用
+`mount-secret` 重试。`/workspace` 由 longrun `gocryptfs-workspace` 提供（加密模式挂载
+gocryptfs，明文模式空跑常驻），异常时看 `/var/log/s6.gocryptfs-workspace.log`，不要手动
+挂载或重启。
 
 ## Rootless Podman
 

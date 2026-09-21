@@ -1,14 +1,118 @@
 prefix: /usr/local
 packages:
   link:
+    - 7zz
+    - atuin
+    - autoconf
+    - automake
+    - bat
+    - bats
+    - bazelisk
+    - bison
+    - buildifier
+    - bzip2
     - cacert
+    - clang-tools-22
+    - cloc
+    - cmake
+    - cronie
     - curl
+    - diffutils
+    - ethtool
+    - exiftool
+    - eza
+    - fd
+    - file
+    - findutils
+    - flex
     - fuse3
+    - fzf
+    - gawk
+    - gdu
+    - gettext
+    - gh
+    - git
+    - git-absorb
+    - git-extras
+    - git-lfs
     - glibcLocales
+    - gnugrep
+    - gnumake
+    - gnupatch
+    - gnupg
+    - gnused
+    - gnutar
+    - go-task
+    - gocryptfs
+    - graphviz
+    - gzip
+    - iproute2
+    - iputils
+    - jq
+    - krb5
+    - lark-cli
+    - lefthook
+    - less
+    - libarchive
+    - libcap
+    - libtool
+    - lsb-release
+    - lsof
+    - m4
+    - makeself
+    - miniserve
+    - ncdu_1
+    - netcat
+    - nettools
+    - nil
+    - ninja
+    - nixcache
+    - nixfmt
     - openssh_gssapi
+    - openssl
+    - parallel
+    - perl
+    - pkgconf
     - podman5-rootless
+    - postgresql
+    - procps
+    - procs
+    - radare2
+    - rclone
+    - ripgrep
+    - rizin
+    - rsync
+    - ruff
+    - scc
     - shadow
+    - shellcheck
+    - shfmt
+    - snappy
+    - sqlite
+    - starship
+    - strace
     - sudo
+    - supercronic
+    - tmux
+    - tmux-plugins
+    - tree
+    - tzdata
+    - unzip
+    - uv
+    - vim
+    - vim-plugins
+    - wget
+    - xxd
+    - xz
+    - yazi
+    - zellij
+    - zip
+    - zlib
+    - zlib-ng
+    - zsh
+    - zsh-plugins
+    - zstd
+
     - s6
     - s6-rc
     - s6-linux-init
@@ -18,124 +122,6 @@ packages:
     - s6-dns
     - execline
 
-    - shellcheck
-    - bats
-    - lark-cli
-    - radare2
-    - rizin
-    - busybox
-
-    - zsh
-    - zsh-plugins
-    - starship
-    - atuin
-    - tmux
-    - tmux-plugins
-    - zellij
-    - fzf
-    - yazi
-
-    - vim
-    - vim-plugins
-
-    - ripgrep
-    - fd
-    - bat
-    - eza
-    - tree
-    - file
-    - less
-    - xxd
-    - jq
-    - diffutils
-    - findutils
-    - gawk
-    - gnugrep
-    - gnused
-    - gnutar
-    - gettext
-    - graphviz
-
-    - gzip
-    - bzip2
-    - xz
-    - zstd
-    - zlib
-    - zlib-ng
-    - snappy
-    - zip
-    - unzip
-    - 7zz
-    - makeself
-    - libarchive
-
-    - wget
-    - rsync
-    - netcat
-    - nettools
-    - iproute2
-    - iputils
-    - ethtool
-    - miniserve
-    - nixcache
-    - rclone
-
-    - openssl
-    - krb5
-    - gnupg
-    - gocryptfs
-
-    - procps
-    - procs
-    - strace
-    - lsof
-    - gdu
-    - ncdu_1
-    - libcap
-    - lsb-release
-    - tzdata
-    - cronie
-    - parallel
-    - supercronic
-
-    - git
-    - gh
-    - git-absorb
-    - git-extras
-    - git-lfs
-    - lefthook
-
-    - cmake
-    - ninja
-    - gnumake
-    - gnupatch
-    - autoconf
-    - automake
-    - libtool
-    - m4
-    - pkgconf
-    - bison
-    - flex
-    - go-task
-    - clang-tools-22
-
-    - uv
-    - bazelisk
-    - buildifier
-
-    - ruff
-    - shfmt
-    - nixfmt
-    - scc
-    - cloc
-
-    - sqlite
-    - postgresql
-
-    - perl
-
-    - nil
-    - exiftool
   unlink:
     - clang-tools-18
     - clang-tools-19
@@ -147,6 +133,8 @@ packages:
     - protobuf_28
     - protobuf_3_8_0
     - protobuf_3_9_2
+
+    - busybox
 
 profiles:
   go:

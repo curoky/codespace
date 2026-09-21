@@ -6,7 +6,7 @@
 # rc.init is forked by stage 1 and does not reliably inherit the init's baked
 # PATH, so the s6 / execline tools (s6-rc-init, s6-rc, ...) would not be found.
 # Use only root-owned command directories during init.
-export PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
+export PATH="/usr/local/bin:/usr/local/sbin:/usr/local/libexec:/usr/bin:/usr/sbin:/bin:/sbin"
 rm -f /run/s6/container_environment/PATH
 
 # Emit stage-2 progress to the container log.

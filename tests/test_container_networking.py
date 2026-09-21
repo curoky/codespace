@@ -23,7 +23,7 @@ def _s6_longrun_directories() -> list[Path]:
 def _s6_service_entrypoints() -> list[Path]:
     entrypoints = [
         _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/atuin-server/run",
-        _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/miniserve-http/run",
+        _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/miniserve-logs/run",
         _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/ollama/run",
         _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/supercronic/run",
         _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/workspace-agent/run",
@@ -56,28 +56,26 @@ def test_workspace_hosts_blackhole_runs_as_root_without_sudo() -> None:
 
 
 def test_workspace_root_services_use_only_root_owned_path() -> None:
-    dockerfile = (_CONTAINER / "workspace/Dockerfile").read_text()
     init = (_CONTAINER / "workspace/rootfs/etc/s6/skel/rc.init").read_text()
 
-    root_path = "/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
-    assert f"PATH={root_path}" in dockerfile
+    root_path = "/usr/local/bin:/usr/local/sbin:/usr/local/libexec:/usr/bin:/usr/sbin:/bin:/sbin"
     assert f'export PATH="{root_path}"' in init
     assert "rm -f /run/s6/container_environment/PATH" in init
     assert "chgrp" not in init
     assert "chmod 0640" not in init
 
 
-def test_workspace_image_packages_are_root_owned_and_user_installs_use_opt_bm() -> None:
+def test_workspace_image_packages_are_root_owned_and_user_installs_use_local() -> None:
     dockerfile = (_CONTAINER / "workspace/Dockerfile").read_text()
     manifest = (_CONTAINER / "workspace/config/binman.yaml").read_text()
-    user_bm = (_CONTAINER / "workspace/rootfs/opt/bm/bin/bm").read_text()
+    user_bm = (_CONTAINER / "workspace/rootfs/home/x/.local/bin/bm").read_text()
 
     assert "prefix: /usr/local" in manifest
     assert "binman-root" not in dockerfile
     assert "--from=stage_sb /opt/bm" not in dockerfile
-    assert 'exec /usr/local/bin/bm --prefix /opt/bm "$@"' in user_bm
+    assert 'exec /usr/local/bin/bm --prefix /home/x/.local "$@"' in user_bm
     assert (
-        'export PATH="/opt/bm/bin:$PATH"'
+        'export PATH="/home/x/.local/bin:$PATH"'
         in (_CONTAINER / "workspace/rootfs/etc/profile.d/app.sh").read_text()
     )
     assert "- podman5-rootless" in manifest
@@ -90,11 +88,9 @@ def test_workspace_podman_separates_image_files_from_user_data() -> None:
 
     assert "PODMAN_DATA_DIR=/opt/podman/data" in server
     assert "CONTAINERS_CONF=/etc/containers/containers.conf" in server
-    assert '--network-config-dir="$PODMAN_DATA_DIR/networks"' in server
+    assert "--network-config-dir=/opt/podman/network" in server
     assert "/opt/podman/conf" not in server
-    assert "chown 5230:5230 \\" in configure
-    assert "  /opt \\" in configure
-    assert "chown -R 5230:5230 /opt" not in configure
+    assert "chown -R 5230:5230 /home/x /opt" in configure
     assert "/usr/local/libexec/codespace" not in configure
 
 
@@ -108,7 +104,7 @@ def test_s6_services_do_not_load_shared_environment_directories() -> None:
 
 
 def test_log_server_listener_is_configured_by_each_image() -> None:
-    run = (_CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/miniserve-http/run").read_text()
+    run = (_CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/miniserve-logs/run").read_text()
     workspace = (_CONTAINER / "workspace/Dockerfile").read_text()
     service = (_CONTAINER / "services/s6/Dockerfile").read_text()
 

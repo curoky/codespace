@@ -4,7 +4,7 @@
 
 set -eu
 
-export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
+export PATH=/usr/local/bin:/usr/local/sbin:/usr/local/libexec:/usr/bin:/usr/sbin:/bin:/sbin
 
 sysctl -p /etc/sysctl.d/custom.conf || true
 

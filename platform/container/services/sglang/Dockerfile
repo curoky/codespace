@@ -78,14 +78,14 @@ RUN /usr/local/bin/uv venv /opt/sglang/venv --python 3.12 \
 ENV PATH="/opt/sglang/venv/bin:/usr/local/bin:$PATH"
 
 COPY --from=s6 /etc/s6/skel/ /etc/s6/skel/
-COPY --from=s6 /etc/s6/s6-rc.d/miniserve-http/ /etc/s6/s6-rc.d/miniserve-http/
-COPY --from=s6 /etc/s6/s6-rc.d/default/contents.d/miniserve-http /etc/s6/s6-rc.d/default/contents.d/miniserve-http
+COPY --from=s6 /etc/s6/s6-rc.d/miniserve-logs/ /etc/s6/s6-rc.d/miniserve-logs/
+COPY --from=s6 /etc/s6/s6-rc.d/default/contents.d/miniserve-logs /etc/s6/s6-rc.d/default/contents.d/miniserve-logs
 COPY platform/container/services/sglang/rootfs/ /
 COPY --from=s6 /etc/s6/install-s6.sh /tmp/install-s6.sh
 RUN sed -i \
     -e 's/^s6-setuidgid x$/s6-setuidgid root/' \
     -e 's|^s6-env HOME=/home/x$|s6-env HOME=/root|' \
-    /etc/s6/s6-rc.d/miniserve-http/run \
+    /etc/s6/s6-rc.d/miniserve-logs/run \
   && /tmp/install-s6.sh
 
 ENTRYPOINT ["/etc/s6/init/bin/init"]

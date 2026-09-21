@@ -146,7 +146,20 @@ class WorkspaceAgent:
             return run_command(["git", "-C", self.checkout_path, *args])
 
         dirty_lines = git("status", "--porcelain").stdout.splitlines()
-        unpushed_lines = git("log", "--all", "--not", "--remotes", "--oneline").stdout.splitlines()
+        # --branches --tags 只看 refs/heads 与 refs/tags 排除 agent host 写入
+        # refs/agents/**/checkpoints/turn/* 的会话快照 避免把自动 checkpoint 误报为未推送。
+        # 额外把已解析的 HEAD 纳入范围 覆盖 detached HEAD 上未被任何 branch/tag 引用的提交。
+        # HEAD 未出生 例如空仓或 orphan 未提交 时不能作为 rev 传入 否则 git log 会直接报错。
+        revs = ["--branches", "--tags"]
+        if (
+            run_command(
+                ["git", "-C", self.checkout_path, "rev-parse", "--verify", "--quiet", "HEAD"],
+                check=False,
+            ).returncode
+            == 0
+        ):
+            revs.append("HEAD")
+        unpushed_lines = git("log", *revs, "--not", "--remotes", "--oneline").stdout.splitlines()
         return GitState(
             unpushed=bool(unpushed_lines),
             uncommitted=bool(dirty_lines),

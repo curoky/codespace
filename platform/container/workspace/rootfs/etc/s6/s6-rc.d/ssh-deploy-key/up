@@ -1,0 +1,5 @@
+redirfd -w 1 /var/log/s6.ssh-deploy-key.log
+fdmove -c 2 1
+s6-setuidgid x
+s6-env HOME=/home/x
+/usr/local/codespace/bin/init-ssh-deploy-key

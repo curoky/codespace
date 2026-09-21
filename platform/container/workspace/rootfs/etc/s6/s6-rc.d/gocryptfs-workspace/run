@@ -1,0 +1,49 @@
+#!/usr/local/bin/execlineb -P
+
+redirfd -w 1 /var/log/s6.gocryptfs-workspace.log
+fdmove -c 2 1
+
+backtick -n -D false CODESPACE_ENCRYPTED { cat /run/s6/container_environment/CODESPACE_ENCRYPTED }
+importas -u CODESPACE_ENCRYPTED CODESPACE_ENCRYPTED
+
+# 以 root 校验加密模式并纠正外部挂载点属主；install 只改挂载根，绝不递归改写持久数据。
+ifelse -n
+{
+  ifelse { eltest "${CODESPACE_ENCRYPTED}" = true } { true }
+  eltest "${CODESPACE_ENCRYPTED}" = false
+}
+{
+  foreground { echo "CODESPACE_ENCRYPTED must be true or false" }
+  exit 1
+}
+if { install -d -o 5230 -g 5230 -m 0700 -- /workspace /workspace.enc }
+
+# 明文 Project 无需加密挂载；用 s6-pause 保持 longrun 就绪，让依赖 /workspace 的
+# 服务在两种模式下都能安全依赖本 service，而不会触发 s6 重启风暴。
+# 检查恒真会立即向 notification-fd 发就绪，避免依赖方一直等到 timeout-up。
+ifelse { eltest "${CODESPACE_ENCRYPTED}" != true }
+{
+  foreground { echo "Workspace encryption disabled, using plaintext /workspace" }
+  s6-notifyoncheck -d -n 0 -w 100 -t 2000 -T 60000 -c "true"
+  exec s6-pause
+}
+
+# gocryptfs 以 x 挂载：FUSE 守护进程用 x 身份读写密文根，落盘密文属主即 5230:5230。
+if { eltest -r /run/secrets/codespace_workspace_key }
+
+# 首次启动时初始化密文根；init 是一次性命令，放进 if 块内既隔离降权又能跑完后继续。
+# 这里用 s6-applyuidgid 按 uid/gid 降权，让 readiness notifier 在服务正式降权前注册。
+if
+{
+  ifelse { eltest -e /workspace.enc/gocryptfs.conf } { true }
+  s6-applyuidgid -u 5230 -g 5230 -G ""
+  /usr/local/store/gocryptfs/bin/gocryptfs -init
+    -extpass "cat -- /run/secrets/codespace_workspace_key" /workspace.enc
+}
+
+s6-notifyoncheck -d -n 0 -w 1000 -t 2000 -T 60000
+  -c "grep -qe /workspace.fuse[.]gocryptfs /proc/mounts"
+s6-setuidgid x
+exec /usr/local/store/gocryptfs/bin/gocryptfs
+  -fg -extpass "cat -- /run/secrets/codespace_workspace_key" -allow_other
+  /workspace.enc /workspace

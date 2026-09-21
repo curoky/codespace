@@ -1,7 +1,7 @@
 # Workspace Image
 
-此目录独立拥有 Workspace OCI image 的构建、rootfs、s6 service graph 和 image contract
-测试。跨目录架构仍以仓库根 `DESIGN.md` 为准。
+此目录独立拥有 Workspace OCI image 的构建、rootfs 和 s6 service graph。跨目录架构仍以
+仓库根 `DESIGN.md` 为准。
 
 ## Build And Validation
 
@@ -18,9 +18,7 @@ platform/container/workspace/build.sh ubuntu:26.04 --no-cache
 ```
 
 构建脚本要求 base image 带 tag，并生成
-`ghcr.io/curoky/codespace:workspace-<base>-<tag>`。Dockerfile 的 `test` stage 会运行
-`tests/test_image.py`；filesystem、权限、helper 或 s6 graph 变更不能绕过该 stage。提交前
-同时运行仓库级验证：
+`ghcr.io/curoky/codespace:workspace-<base>-<tag>`。提交前同时运行仓库级验证：
 
 ```bash
 task check
@@ -34,14 +32,15 @@ task check:full
   image build 期间由 `scripts/install-s6.sh` 编译，运行期不重新编译。
 - `/opt` 由 `x` 管理；Workspace image 自有文件位于 root-owned `/usr/local/codespace`，
   其他 image-owned executable 和配置放在 `/usr/local`、`/etc`。
-- `/workspace`、`/workspace.enc`、`/upload`、IDE cache 和
+- `/workspace`、`/workspace.enc`、IDE cache 和
   `/run/codespace-control` 是外部状态边界。启动脚本可以修正挂载点权限，但不能递归
   改写未知持久数据。
 - Workspace 内服务默认只监听 loopback；只有 Project `tunnel_ports` 中声明的端口才能
   由控制面转发。容器之间使用 Host Podman network DNS，不使用动态 IP。
 - `config/binman.yaml` 中的 image package 全部安装到 root-owned `/usr/local`。`x` 的
-  `/opt/bm/bin/bm` 固定使用 `/opt/bm` prefix，供运行期按需安装和覆盖用户工具；image service
-  使用 `/usr/local/store` 的固定路径，不依赖用户可写的 `/opt/bm`。只被一个组件使用、且需要
+  `~/.local/bin/bm` 固定使用 `~/.local` prefix，供运行期把用户工具安装到 `~/.local`（binary
+  在 `~/.local/bin`、store 在 `~/.local/store`）并覆盖预装版本；image service 使用
+  `/usr/local/store` 的固定路径，不依赖用户可写的 `~/.local`。只被一个组件使用、且需要
   独立目录语义的软件不要链接进这两个 prefix。
 
 Workspace 应由 Codespace control plane 按根目录 `config.example.yaml` 的 Project container
@@ -58,13 +57,14 @@ SSH 与 HTTP 入口由控制面分配和转发，不在 image 上声明固定 Ho
 | `CODESPACE_ENCRYPTED` | 必填，取值 `true` 或 `false`；决定是否解密挂载 `/workspace` |
 | `/workspace.enc` | encrypted Project 的密文持久目录 |
 | `/workspace` | plaintext Project 的持久目录，或 encrypted Project 的 FUSE 明文视图 |
-| `/upload` | Workspace 与外部交换文件的持久目录 |
 | `/run/codespace-control` | Host 与 Workspace Agent 之间的 Unix socket 目录 |
 | `/opt/podman/data` | 可选持久化的内部 Podman images、containers、volumes 与 auth |
 | `/run/secrets/*` | Podman secret mount；只读取任务需要的 secret |
 
 进入 Workspace 后可用 `s6-svstat /run/service/<service>` 查看服务状态，日志统一位于
-`/var/log/s6.<service>.log`。不要在容器中再次运行 init、workspace oneshot 或已有 longrun。
+`/var/log/s6.<service>.log`。`/workspace` 由 longrun `gocryptfs-workspace` 提供：加密模式挂载
+gocryptfs、明文模式用 `s6-pause` 常驻，两种模式都会向 s6 通知就绪，依赖 `/workspace` 的
+service 统一以它为前置。不要在容器中再次运行 init、s6 oneshot 或已有 longrun。
 
 ## Rootless Podman
 
@@ -83,8 +83,8 @@ podman run --rm local/app:dev
 
 `podman5-rootless` 由共享 `config/binman.yaml` 标准安装到 `/usr/local`，与其他 image package
 一样由 root 拥有。Workspace 的 client/service wrapper 位于 `/usr/local/bin`，配置位于
-`/etc/containers`；仅运行数据、用户 home、auth 和 network state 位于
-`/opt/podman/data`。包内 `install.sh`、s6 模板与 CA 文件不会被调用；Podman 使用系统 CA。
+`/etc/containers`；持久化运行数据、用户 home 与 auth 位于 `/opt/podman/data`，network
+state 位于不持久化的 `/opt/podman/network`。包内 `install.sh`、s6 模板与 CA 文件不会被调用；Podman 使用系统 CA。
 
 外层 Workspace container 必须保留以下运行条件：
 

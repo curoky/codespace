@@ -16,7 +16,7 @@ ENV MINISERVE_INTERFACES=0.0.0.0 \
 COPY platform/container/workspace/rootfs/etc/s6/skel/ /etc/s6/skel/
 COPY platform/container/workspace/scripts/install-s6.sh /etc/s6/install-s6.sh
 COPY platform/container/services/s6/rootfs/ /
-COPY platform/container/workspace/rootfs/etc/s6/s6-rc.d/miniserve-http/ /etc/s6/s6-rc.d/miniserve-http/
+COPY platform/container/workspace/rootfs/etc/s6/s6-rc.d/miniserve-logs/ /etc/s6/s6-rc.d/miniserve-logs/
 COPY platform/container/workspace/rootfs/etc/s6/s6-rc.d/supercronic/ /etc/s6/s6-rc.d/supercronic/
 COPY platform/container/workspace/rootfs/etc/supercronic/crontab /etc/supercronic/crontab
 

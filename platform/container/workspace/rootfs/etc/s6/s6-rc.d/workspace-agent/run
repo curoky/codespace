@@ -8,7 +8,9 @@ backtick -D "" CODESPACE_CHECKOUT_PATH { cat /run/s6/container_environment/CODES
 backtick -D "" CODESPACE_OPEN_PATH { cat /run/s6/container_environment/CODESPACE_OPEN_PATH }
 backtick -D "" CODESPACE_CLONE_URL { cat /run/s6/container_environment/CODESPACE_CLONE_URL }
 backtick -D "" CODESPACE_GIT_ARGS { cat /run/s6/container_environment/CODESPACE_GIT_ARGS }
+foreground { mkdir -p -- /run/codespace-control }
+foreground { chgrp 5230 -- /run/codespace-control }
+foreground { chmod 0730 -- /run/codespace-control }
 s6-setuidgid x
 s6-env HOME=/home/x
-s6-env PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
-exec /usr/local/codespace/agent/.venv/bin/python /usr/local/codespace/agent/agent.py
+exec /opt/codespace-agent/.venv/bin/python /opt/codespace-agent/agent.py
