@@ -102,7 +102,8 @@ RUN ln -s /opt/resource/opt/rust /opt/rust \
   && ln -s cuda-12.2 /usr/local/cuda-12 \
   && ln -s /opt/resource/opt/nvidia /opt/nvidia \
   && ln -s /opt/resource/usr/local/store/radare2 /usr/local/store/radare2 \
-  && ln -s /opt/resource/usr/local/store/rizin /usr/local/store/rizin
+  && ln -s /opt/resource/usr/local/store/rizin /usr/local/store/rizin \
+  && ln -s /opt/resource/usr/local/profile/go /usr/local/profile/go
 
 COPY platform/container/workspace/rootfs/ /
 RUN --mount=type=bind,source=platform/container/workspace/scripts/configure-system.sh,target=/tmp/configure-system.sh \

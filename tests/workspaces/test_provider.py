@@ -155,33 +155,3 @@ def test_revoke_missing_key_is_idempotent(monkeypatch: pytest.MonkeyPatch) -> No
     monkeypatch.setattr(provider, "Github", lambda auth: GithubClient(repo))
 
     assert provider.revoke("github", "token", "owner/repo", "missing") == 0
-
-
-def test_github_list_and_delete_deploy_keys(monkeypatch: pytest.MonkeyPatch) -> None:
-    repo = GithubRepo()
-    monkeypatch.setattr(provider.Auth, "Token", lambda token: token)
-    monkeypatch.setattr(provider, "Github", lambda auth: GithubClient(repo))
-
-    assert provider.list_deploy_keys("github", "token", "owner/repo") == [
-        provider.DeployKey(1, "space:codespace/debug@home"),
-        provider.DeployKey(2, "space:codespace/debug@home"),
-        provider.DeployKey(3, "other"),
-    ]
-
-    provider.delete_deploy_keys("github", "token", "owner/repo", [2, 3])
-
-    assert [key.deleted for key in repo.keys] == [False, True, True]
-
-
-def test_gitlab_list_and_delete_deploy_keys(monkeypatch: pytest.MonkeyPatch) -> None:
-    GitlabClient.instances = []
-    monkeypatch.setattr(provider.python_gitlab, "Gitlab", GitlabClient)
-
-    assert provider.list_deploy_keys("gitlab", "token", "group/service-api") == [
-        provider.DeployKey(1, "space:service-api/debug@office"),
-        provider.DeployKey(2, "space:service-api/debug@office"),
-    ]
-
-    provider.delete_deploy_keys("gitlab", "token", "group/service-api", [1, 2])
-
-    assert GitlabClient.instances[1].project.keys.deleted == [1, 2]

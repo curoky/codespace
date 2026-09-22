@@ -4,6 +4,7 @@ set -uo pipefail
 
 readonly -a PREWARM_IMAGES=(
   ghcr.io/curoky/codespace:workspace-debian13
+  ghcr.io/curoky/codespace:workspace-resource
 )
 
 readonly socket=/run/podman/podman.sock

@@ -3,30 +3,52 @@
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Callable, Iterable
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal
 
+import gitlab as python_gitlab
+import typer
+from github import Auth, Github
 from rich.console import Console
-from rich.table import Column
+from rich.table import Column, Table
 
-from codespace import maintenance
 from codespace import workspaces as inventory
 from codespace.config import CONFIG_PATH, Config, load_config
 from codespace.resources import RESOURCE_ID_RE
 from codespace.runtime.transport import PodmanTransport
-from codespace.workspaces import GitProvider, ProviderSource, provider
+from codespace.workspaces import GitProvider, ProviderSource
+
+_HTTP_TIMEOUT = 30.0
 
 type Repository = tuple[GitProvider, str]
 type Route = tuple[str, str]
 type Usage = Literal["yes", "no", "unknown", "unmanaged"]
 
+app = typer.Typer(add_completion=False, no_args_is_help=True)
+
+
+@dataclass(frozen=True, slots=True)
+class DeployKey:
+    id: int
+    title: str
+
 
 @dataclass(frozen=True, slots=True)
 class KeyCandidate:
     repository: Repository
-    key: provider.DeployKey
+    key: DeployKey
     usage: Usage
+
+
+@app.command("prune")
+def _prune(
+    apply: Annotated[bool, typer.Option("--apply", help="Apply the displayed plan.")] = False,
+) -> None:
+    """Delete provider deploy keys unused by managed Workspaces."""
+    prune(apply=apply)
 
 
 def prune(
@@ -50,26 +72,41 @@ def prune(
                     _usage(key.title, repositories[repository], active, scanned_hosts),
                 )
             )
-    maintenance.render_table(
-        target,
-        [
-            Column("Repository", overflow="fold"),
-            Column("Deploy key", overflow="fold"),
-            Column("In use", no_wrap=True),
-        ],
-        [
-            (f"{item.repository[0]}:{item.repository[1]}", item.key.title, item.usage)
-            for item in rows
-        ],
+    table = Table(
+        Column("Repository", overflow="fold"),
+        Column("Deploy key", overflow="fold"),
+        Column("In use", no_wrap=True),
     )
-    maintenance.print_errors(target, errors, level="Warning")
+    for item in rows:
+        table.add_row(f"{item.repository[0]}:{item.repository[1]}", item.key.title, item.usage)
+    target.print(table)
+    for error in errors:
+        target.print(f"[yellow]Warning:[/yellow] {error}")
     unused = [item for item in rows if item.usage == "no"]
     if not apply:
         target.print(f"Dry run: {len(unused)} unused key(s); pass --apply to delete.")
         return
     deleted, delete_errors = _delete(config.seed_tokens(), unused)
-    maintenance.print_errors(target, delete_errors)
+    for error in delete_errors:
+        target.print(f"[red]Error:[/red] {error}")
     target.print(f"Deleted {deleted} unused key(s).")
+
+
+def _fan_out[K, V](
+    keys: Iterable[K], work: Callable[[K], V]
+) -> tuple[list[tuple[K, V]], list[tuple[K, Exception]]]:
+    """Run all planned targets, retaining each target's success or failure."""
+    results: list[tuple[K, V]] = []
+    failures: list[tuple[K, Exception]] = []
+    with ThreadPoolExecutor() as executor:
+        futures = {executor.submit(work, key): key for key in keys}
+        for future in as_completed(futures):
+            key = futures[future]
+            try:
+                results.append((key, future.result()))
+            except Exception as exc:
+                failures.append((key, exc))
+    return results, failures
 
 
 def _repositories(config: Config) -> dict[Repository, list[Route]]:
@@ -85,14 +122,14 @@ def _repositories(config: Config) -> dict[Repository, list[Route]]:
 def _collect(
     config: Config,
     repositories: dict[Repository, list[Route]],
-) -> tuple[dict[Repository, list[provider.DeployKey]], set[str], set[str], list[str]]:
+) -> tuple[dict[Repository, list[DeployKey]], set[str], set[str], list[str]]:
     active: set[str] = set()
     scanned_hosts: set[str] = set()
     errors: list[str] = []
     transport = PodmanTransport(config.hosts)
     tokens = config.seed_tokens()
     try:
-        inventories, host_failures = maintenance.fan_out(
+        inventories, host_failures = _fan_out(
             config.hosts,
             lambda host: inventory.list_workspaces(transport.client(host), host),
         )
@@ -109,9 +146,9 @@ def _collect(
             for provider_name, repository in repositories
             if tokens.get(provider_name) is None
         )
-        listed, key_failures = maintenance.fan_out(
+        listed, key_failures = _fan_out(
             listable,
-            lambda repository: provider.list_deploy_keys(
+            lambda repository: list_deploy_keys(
                 repository[0],
                 tokens[repository[0]],
                 repository[1],
@@ -146,9 +183,9 @@ def _delete(
     grouped: dict[Repository, list[int]] = defaultdict(list)
     for item in unused:
         grouped[item.repository].append(item.key.id)
-    _results, failures = maintenance.fan_out(
+    _results, failures = _fan_out(
         grouped,
-        lambda repository: provider.delete_deploy_keys(
+        lambda repository: delete_deploy_keys(
             repository[0],
             tokens[repository[0]],
             repository[1],
@@ -160,3 +197,41 @@ def _delete(
     )
     errors = [f"{repository[0]}:{repository[1]}: {exc}" for repository, exc in failures]
     return deleted, errors
+
+
+def list_deploy_keys(provider: GitProvider, token: str, repo: str) -> list[DeployKey]:
+    """List deploy keys attached to one repository."""
+    match provider:
+        case "github":
+            with Github(auth=Auth.Token(token)) as github:
+                repository = github.get_repo(repo)
+                return [
+                    DeployKey(id=int(github_key.id), title=str(github_key.title))
+                    for github_key in repository.get_keys()
+                ]
+        case "gitlab":
+            gitlab = python_gitlab.Gitlab(private_token=token, timeout=_HTTP_TIMEOUT)
+            project = gitlab.projects.get(repo, lazy=True)
+            return [
+                DeployKey(id=int(gitlab_key.id), title=str(gitlab_key.title))
+                for gitlab_key in project.keys.list(get_all=True)
+            ]
+
+
+def delete_deploy_keys(provider: GitProvider, token: str, repo: str, key_ids: list[int]) -> None:
+    """Delete deploy keys by provider ID from one repository."""
+    match provider:
+        case "github":
+            with Github(auth=Auth.Token(token)) as github:
+                repository = github.get_repo(repo)
+                for key_id in key_ids:
+                    repository.get_key(key_id).delete()
+        case "gitlab":
+            gitlab = python_gitlab.Gitlab(private_token=token, timeout=_HTTP_TIMEOUT)
+            project = gitlab.projects.get(repo, lazy=True)
+            for key_id in key_ids:
+                project.keys.delete(key_id)
+
+
+if __name__ == "__main__":
+    app()

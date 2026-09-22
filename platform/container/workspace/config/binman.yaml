@@ -133,15 +133,3 @@ packages:
     - protobuf_3_9_2
 
     - busybox
-
-profiles:
-  go:
-    - gopls
-    - delve
-    - go-tools
-    - gofumpt
-    - golangci-lint
-    - gotests
-    - gotools
-    - impl
-    - revive

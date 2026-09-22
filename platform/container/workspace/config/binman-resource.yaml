@@ -3,3 +3,14 @@ packages:
   link:
     - radare2
     - rizin
+profiles:
+  go:
+    - gopls
+    - delve
+    - go-tools
+    - gofumpt
+    - golangci-lint
+    - gotests
+    - gotools
+    - impl
+    - revive

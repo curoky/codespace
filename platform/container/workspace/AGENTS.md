@@ -34,14 +34,17 @@ rizin）不打进 Workspace image，改为构建独立的 payload-only image：
 platform/container/workspace/build.sh --resource
 ```
 
-该命令按 `resource.Dockerfile` 生成 `ghcr.io/curoky/codespace:workspace-resource`，是
-`FROM scratch` 的纯数据镜像，与 base image 无关，只构建一次。镜像内路径与原始安装
-路径一致（`/opt/rust`、`/usr/local/cuda-12.2`、`/opt/nvidia/*`、`/usr/local/store/{radare2,rizin}`）。
+该命令按 `resource.Dockerfile` 生成 `ghcr.io/curoky/codespace:workspace-resource`，与
+base image 无关，只构建一次。payload 统一 stage 到镜像内的 `/opt/resource/...`（如
+`/opt/resource/opt/rust`、`/opt/resource/usr/local/cuda-12.2`、`/opt/resource/opt/nvidia/*`、
+`/opt/resource/usr/local/store/{radare2,rizin}`），镜像基于带 shell 和 coreutils 的
+debian-slim，本身可作为执行环境。
 
 payload 由 `codespace resources sync --apply` 拷入每台 Host 的 named volume
-`codespace-resource`（image 无 shell，用 workspace helper image 挂载 image + volume 执行
-`cp -a`；写入 `.codespace-resource-ready` 标记，已填充则跳过，`--force` 强制重填。镜像
-更新后需 `--force` 或手动删卷重填）。控制面把该 volume 以只读方式挂到 `/opt/resource`。
+`codespace-resource`（直接运行 resource 镜像自身，挂载 volume 到 `/dst`，执行
+`cp -a /opt/resource/. /dst/`；写入 `.codespace-resource-ready` 标记，已填充则跳过，
+`--force` 强制重填。镜像更新后需 `--force` 或手动删卷重填）。控制面把该 volume 以
+只读方式挂到 `/opt/resource`，因此 volume 根布局与镜像内 `/opt/resource` 子树一致。
 
 Workspace image 只预置指向 `/opt/resource/...` 的 symlink（`/opt/rust`、`/usr/local/cuda`、
 `/opt/nvidia`、`/usr/local/store/{radare2,rizin}`）。**volume 未挂载时这些 symlink 悬空、
