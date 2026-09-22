@@ -28,6 +28,7 @@ _READY_INTERVAL = 0.25
 _PULL_TIMEOUT = 15 * 60.0
 _LOG_TAIL = 2000
 _SECRET_NAME_RE = re.compile(r"^[a-zA-Z0-9._-]+$")
+_VOLUME_NAME_RE = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_.-]+$")
 RESOURCE_DATA_PLACEHOLDER = "${RESOURCE_DATA}"
 
 
@@ -69,6 +70,12 @@ def _secret_name(value: str) -> str:
     return value
 
 
+def _volume_name(value: str) -> str:
+    if not _VOLUME_NAME_RE.fullmatch(value):
+        raise ValueError("must be a valid named volume")
+    return value
+
+
 def _host_ip(value: str) -> str:
     address = ip_address(value)
     if not address.is_loopback:
@@ -78,11 +85,6 @@ def _host_ip(value: str) -> str:
 
 type NonBlankString = Annotated[str, AfterValidator(_not_blank)]
 type AbsolutePath = Annotated[str, AfterValidator(_absolute_path)]
-type VolumeSource = Annotated[
-    str,
-    AfterValidator(_not_blank),
-    AfterValidator(_volume_source),
-]
 type SecretName = Annotated[str, AfterValidator(_secret_name)]
 type SecretId = Annotated[str, Field(pattern=r"^\d+$")]
 type ImagePlatform = Literal["linux/amd64", "linux/arm64"]
@@ -100,12 +102,12 @@ class UlimitSpec(BaseModel):
 
 
 class VolumeSpec(BaseModel):
-    """One normalized Compose bind mount."""
+    """One normalized Compose mount: a Host bind or a named Podman volume."""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    type: Literal["bind"]
-    source: VolumeSource
+    type: Literal["bind", "volume"]
+    source: NonBlankString
     target: AbsolutePath
     read_only: StrictBool = False
 
@@ -119,26 +121,40 @@ class VolumeSpec(BaseModel):
             raise ValueError(f"volume {value!r} must be 'source:target' or 'source:target:ro|rw'")
         if len(parts) == 3 and parts[2] not in ("ro", "rw"):
             raise ValueError(f"volume {value!r} mode must be 'ro' or 'rw', got {parts[2]!r}")
+        source = parts[0]
+        # A leading '/' or the ${RESOURCE_DATA} placeholder marks a Host bind;
+        # anything else is a named Podman volume.
+        is_bind = source.startswith("/") or "$" in source
         return {
-            "type": "bind",
-            "source": parts[0],
+            "type": "bind" if is_bind else "volume",
+            "source": source,
             "target": parts[1],
             "read_only": len(parts) == 3 and parts[2] == "ro",
         }
 
+    @model_validator(mode="after")
+    def _validate_source(self) -> Self:
+        if self.type == "bind":
+            _volume_source(self.source)
+        else:
+            _volume_name(self.source)
+        return self
+
     def mount(self) -> dict[str, object]:
-        """Produce a Podman mount only after its source is an absolute path."""
+        """Produce a Podman mount; bind sources must resolve to absolute paths."""
+        source = self.source if self.type == "volume" else _absolute_path(self.source)
         return {
             "type": self.type,
-            "source": _absolute_path(self.source),
+            "source": source,
             "target": self.target,
             "read_only": self.read_only,
         }
 
     @property
     def uses_resource_data(self) -> bool:
-        return self.source == RESOURCE_DATA_PLACEHOLDER or self.source.startswith(
-            f"{RESOURCE_DATA_PLACEHOLDER}/"
+        return self.type == "bind" and (
+            self.source == RESOURCE_DATA_PLACEHOLDER
+            or self.source.startswith(f"{RESOURCE_DATA_PLACEHOLDER}/")
         )
 
     def resolve_data_path(self, data_path: str) -> Self:

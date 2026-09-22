@@ -7,16 +7,18 @@ from typing import Annotated
 import typer
 import uvicorn
 
-from codespace.maintenance import keys, secrets, workspaces
+from codespace.maintenance import keys, resources, secrets, workspaces
 from codespace.web.app import create_app
 
 app = typer.Typer(add_completion=False, no_args_is_help=True)
 secrets_app = typer.Typer(add_completion=False)
 workspaces_app = typer.Typer(add_completion=False)
 deploy_keys_app = typer.Typer(add_completion=False)
+resources_app = typer.Typer(add_completion=False)
 app.add_typer(secrets_app, name="secrets")
 app.add_typer(workspaces_app, name="workspaces")
 app.add_typer(deploy_keys_app, name="deploy-keys")
+app.add_typer(resources_app, name="resources")
 
 
 @app.command()
@@ -31,6 +33,17 @@ def sync_secrets(
 ) -> None:
     """Synchronize configured secrets to every Host."""
     secrets.sync(apply=apply)
+
+
+@resources_app.command("sync")
+def sync_resources(
+    apply: Annotated[bool, typer.Option("--apply", help="Apply the displayed plan.")] = False,
+    force: Annotated[
+        bool, typer.Option("--force", help="Refill even if the volume is already populated.")
+    ] = False,
+) -> None:
+    """Create and fill the codespace-resource volume on every Host."""
+    resources.sync(apply=apply, force=force)
 
 
 @workspaces_app.command("prune")

@@ -102,6 +102,11 @@ tasks:
     cmds:
       - uv run codespace secrets sync {{.CLI_ARGS}}
 
+  resources:sync:
+    desc: 创建并填充 codespace-resource 数据卷，默认 dry-run
+    cmds:
+      - uv run codespace resources sync {{.CLI_ARGS}}
+
   workspaces:prune:
     desc: 清理残留 Workspace 数据，默认 dry-run
     cmds:

@@ -35,6 +35,7 @@ project_defaults:
     ulimits:
       memlock: { soft: -1, hard: -1 }
     volumes:
+      - codespace-resource:/opt/resource:ro
       - ${RESOURCE_DATA}/workspace:/workspace.enc
       - ${RESOURCE_DATA}/podman:/opt/podman/data
       - ${RESOURCE_DATA}/control:/run/codespace-control

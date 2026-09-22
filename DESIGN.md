@@ -65,8 +65,9 @@ flowchart LR
   `pull_policy`、`network_mode`、`restart`、environment、mount、secret 与 resource
   limit。完成 layer merge 和动态资源解析后，runtime 只做一次到 podman-py kwargs
   的机械映射；配置不使用 Podman 专有字段名。
-- `${RESOURCE_DATA}` 只允许出现在 volume source，并在部署时解析到该资源的 Host
-  data root；任何解析结果都不得逃逸该目录。
+- volume source 为绝对路径或 `${RESOURCE_DATA}` 时是 Host bind，`${RESOURCE_DATA}`
+  在部署时解析到该资源的 Host data root，任何解析结果都不得逃逸该目录；其余
+  source 视为 named Podman volume（如 `codespace-resource`）。
 
 Host 上的持久数据统一位于 `$HOME/codespace/`。普通 remove 保留数据，只有 purge
 才删除对应资源目录。Workspace 的业务数据是否加密由 Project 最终配置决定；加密只
@@ -176,6 +177,8 @@ task serve:bg
 ```bash
 task secrets:sync --
 task secrets:sync -- --apply
+task resources:sync --
+task resources:sync -- --apply
 task workspaces:prune --
 task workspaces:prune -- --apply
 task deploy-keys:prune --
@@ -184,6 +187,9 @@ task deploy-keys:prune -- --apply
 
 维护任务按 Host 或 repository 隔离失败，只执行已成功扫描并进入计划的目标。
 Secret 同步在每次写入前重查远端状态，plan precondition 改变时拒绝覆盖。
+`resources:sync` 把 payload-only image `workspace-resource` 拷入每台 Host 的 named
+volume `codespace-resource`（Workspace 只读挂载到 `/opt/resource`），已填充则跳过、
+`--force` 强制重填。
 
 ## Development
 

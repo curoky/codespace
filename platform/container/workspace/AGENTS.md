@@ -25,6 +25,28 @@ task check
 task check:full
 ```
 
+## Resource Volume
+
+体积大且启动无依赖的组件（rust、CUDA 12.2、Nsight Compute、Nsight Systems、radare2、
+rizin）不打进 Workspace image，改为构建独立的 payload-only image：
+
+```bash
+platform/container/workspace/build.sh --resource
+```
+
+该命令按 `resource.Dockerfile` 生成 `ghcr.io/curoky/codespace:workspace-resource`，是
+`FROM scratch` 的纯数据镜像，与 base image 无关，只构建一次。镜像内路径与原始安装
+路径一致（`/opt/rust`、`/usr/local/cuda-12.2`、`/opt/nvidia/*`、`/usr/local/store/{radare2,rizin}`）。
+
+payload 由 `codespace resources sync --apply` 拷入每台 Host 的 named volume
+`codespace-resource`（image 无 shell，用 workspace helper image 挂载 image + volume 执行
+`cp -a`；写入 `.codespace-resource-ready` 标记，已填充则跳过，`--force` 强制重填。镜像
+更新后需 `--force` 或手动删卷重填）。控制面把该 volume 以只读方式挂到 `/opt/resource`。
+
+Workspace image 只预置指向 `/opt/resource/...` 的 symlink（`/opt/rust`、`/usr/local/cuda`、
+`/opt/nvidia`、`/usr/local/store/{radare2,rizin}`）。**volume 未挂载时这些 symlink 悬空、
+对应工具不可用，但不影响启动与任何 s6 service**（启动流程和主要服务都不依赖它们）。
+
 ## Runtime Contract
 
 - 固定用户是 `x`，UID/GID 都是 `5230`；不要让运行期逻辑依赖 Host 用户名。

@@ -26,16 +26,6 @@ RUN apt-get update -y \
 
 COPY platform/container/workspace/scripts/install-conda-environment.sh /opt/conda/condabin/install-conda-environment
 
-# ----------------------------------- Rust -----------------------------------
-FROM docker.io/debian:stable-slim AS stage_rust
-ENV CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup
-ENV PATH=/opt/rust/cargo/bin:${PATH}
-RUN apt-get update -y \
-  && apt-get install -y --no-install-recommends ca-certificates curl \
-  && curl https://sh.rustup.rs -sSf | sh -s -- -y --profile default --no-modify-path --default-toolchain stable \
-  && rustup component remove rust-docs \
-  && rm -rf /var/lib/apt/lists/*
-
 # ---------------------------------- Python ----------------------------------
 FROM docker.io/debian:stable-slim AS stage_python
 COPY --from=stage_sb /usr/local/store/uv/bin/uv /usr/local/bin/uv
@@ -92,13 +82,6 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
   && nix-collect-garbage -d \
   && nix-store --optimise
 
-# ----------------------------------- CUDA -----------------------------------
-# CUDA 12.2 is the newest toolkit supported by the target Host's 535 driver.
-FROM docker.io/nvidia/cuda:12.2.2-devel-ubuntu22.04 AS stage_cuda
-
-# ----------------------------- Nsight Systems -------------------------------
-FROM nvcr.io/nvidia/devtools/nsight-systems-cli:2026.3.1-ubuntu22.04 AS stage_nsys
-
 # --------------------------------- Runtime ----------------------------------
 FROM docker.io/$BASE_IMAGE AS workspace
 
@@ -107,12 +90,19 @@ COPY --link --chown=5230:5230 --from=stage_nix /nix /nix
 COPY --link --chown=5230:5230 --from=stage_nix /home/x/.nix-defexpr /home/x/.nix-defexpr
 COPY --link --chown=5230:5230 --from=stage_nix /home/x/.nix-channels /home/x/.nix-channels
 COPY --link --chown=5230:5230 --from=stage_python /opt/uv /opt/uv
-COPY --link --chown=5230:5230 --from=stage_rust /opt/rust /opt/rust
 COPY --link --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
-COPY --link --from=stage_cuda /usr/local/cuda-12.2 /usr/local/cuda-12.2
-COPY --link --chown=5230:5230 --from=stage_cuda /opt/nvidia/nsight-compute /opt/nvidia/nsight-compute
-COPY --link --chown=5230:5230 --from=stage_nsys /opt/nvidia/nsight-systems-cli /opt/nvidia/nsight-systems-cli
-RUN ln -s cuda-12.2 /usr/local/cuda && ln -s cuda-12.2 /usr/local/cuda-12
+
+# rust / cuda / nsight / radare2 / rizin live in the codespace-resource volume,
+# mounted read-only at /opt/resource. Only the symlinks ship in the image; when
+# the volume is absent the links dangle and those tools are unavailable, but boot
+# and every s6 service are unaffected.
+RUN ln -s /opt/resource/opt/rust /opt/rust \
+  && ln -s /opt/resource/usr/local/cuda-12.2 /usr/local/cuda-12.2 \
+  && ln -s cuda-12.2 /usr/local/cuda \
+  && ln -s cuda-12.2 /usr/local/cuda-12 \
+  && ln -s /opt/resource/opt/nvidia /opt/nvidia \
+  && ln -s /opt/resource/usr/local/store/radare2 /usr/local/store/radare2 \
+  && ln -s /opt/resource/usr/local/store/rizin /usr/local/store/rizin
 
 COPY platform/container/workspace/rootfs/ /
 RUN --mount=type=bind,source=platform/container/workspace/scripts/configure-system.sh,target=/tmp/configure-system.sh \

@@ -1,0 +1,5 @@
+prefix: /usr/local
+packages:
+  link:
+    - radare2
+    - rizin
