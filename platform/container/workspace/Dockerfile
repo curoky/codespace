@@ -46,8 +46,6 @@ ENV UV_TOOL_DIR=/opt/uv/tools \
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates \
   && uv python install --no-bin 3.9 3.10 3.11 3.12 3.13 3.14 \
-  && mkdir -p /opt/uv/bin \
-  && ln -s "$(uv python find --managed-python 3.14)" /opt/uv/bin/python3 \
   && uv tool install licenseheaders \
   && uv tool install netron \
   && uv tool install tensorboard --python 3.12 --with tensorboard-plugin-profile --with "setuptools==81.0.0" \
