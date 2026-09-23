@@ -14,7 +14,7 @@ RUN apt-get update -y \
   && rustup component remove rust-docs \
   && rm -rf /var/lib/apt/lists/*
 
-# ------------------------- radare2 / rizin (binman) -------------------------
+# ---------------------------- Binman packages -------------------------------
 FROM docker.io/debian:latest AS stage_sb
 RUN apt-get update -y && apt-get install -y curl zstd
 
@@ -37,5 +37,5 @@ COPY --from=stage_rust /opt/rust /opt/resource/opt/rust
 COPY --from=stage_cuda /usr/local/cuda-12.2 /opt/resource/usr/local/cuda-12.2
 COPY --from=stage_cuda /opt/nvidia/nsight-compute /opt/resource/opt/nvidia/nsight-compute
 COPY --from=stage_nsys /opt/nvidia/nsight-systems-cli /opt/resource/opt/nvidia/nsight-systems-cli
-COPY --from=stage_sb /usr/local/store/radare2 /opt/resource/usr/local/store/radare2
-COPY --from=stage_sb /usr/local/store/rizin /opt/resource/usr/local/store/rizin
+COPY --from=stage_sb /usr/local/store /opt/resource/usr/local/store
+COPY --from=stage_sb /usr/local/profile/go /opt/resource/usr/local/profile/go

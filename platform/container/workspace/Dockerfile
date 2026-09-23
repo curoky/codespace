@@ -92,13 +92,6 @@ COPY --link --chown=5230:5230 --from=stage_nix /home/x/.nix-channels /home/x/.ni
 COPY --link --chown=5230:5230 --from=stage_python /opt/uv /opt/uv
 COPY --link --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
 
-RUN ln -s /opt/resource/opt/rust /opt/rust \
-  && ln -s /opt/resource/usr/local/cuda-12.2 /usr/local/cuda-12.2 \
-  && ln -s /opt/resource/opt/nvidia /opt/nvidia \
-  && ln -s /opt/resource/usr/local/store/radare2 /usr/local/store/radare2 \
-  && ln -s /opt/resource/usr/local/store/rizin /usr/local/store/rizin \
-  && ln -s /opt/resource/usr/local/profile/go /usr/local/profile/go
-
 COPY platform/container/workspace/rootfs/ /
 RUN --mount=type=bind,source=platform/container/workspace/scripts/configure-system.sh,target=/tmp/configure-system.sh \
   bash /tmp/configure-system.sh
@@ -111,8 +104,6 @@ RUN UV_LINK_MODE=copy uv sync --project /opt/codespace-agent --locked --no-dev -
   && git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-playbook \
   && HOME=/home/x bash /tmp/agent-playbook/install.sh \
   && rm -rf /tmp/agent-playbook
-
-RUN ln -s /nix/var/nix/profiles/default /home/x/.nix-profile
 
 USER root
 ENV CONDA_PLUGINS_AUTO_ACCEPT_TOS=yes
