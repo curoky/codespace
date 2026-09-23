@@ -310,6 +310,10 @@ def test_create_container_translates_canonical_options(
             "secrets": [{"source": "api_token", "mode": 0o400}],
             "devices": ["nvidia.com/gpu=all"],
             "environment": {"SERVE_HOST": "127.0.0.1"},
+            "volumes": [
+                "codespace-resource:/opt/resource:ro",
+                "/host/cache:/cache",
+            ],
         }
     )
 
@@ -339,6 +343,15 @@ def test_create_container_translates_canonical_options(
     assert options["environment"] == {"SERVE_HOST": "127.0.0.1"}
     assert options["secrets"] == [{"source": "api_token", "uid": 0, "gid": 0, "mode": 0o400}]
     assert options["restart_policy"] == {"Name": "unless-stopped"}
+    assert options["volumes"] == {"codespace-resource": {"bind": "/opt/resource", "mode": "ro"}}
+    assert options["mounts"] == [
+        {
+            "type": "bind",
+            "source": "/host/cache",
+            "target": "/cache",
+            "read_only": False,
+        }
+    ]
 
 
 @pytest.mark.parametrize(

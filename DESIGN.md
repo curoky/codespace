@@ -185,11 +185,13 @@ task deploy-keys:prune --
 task deploy-keys:prune -- --apply
 ```
 
-维护任务按 Host 或 repository 隔离失败，只执行已成功扫描并进入计划的目标。
-Secret 同步在每次写入前重查远端状态，plan precondition 改变时拒绝覆盖。
+维护任务并发处理 Host 或 repository，任一目标失败即终止命令，不基于不完整 inventory
+继续清理。未配置 provider token 的 repository 会显示 warning 并跳过。Secret 同步在
+同一 Host 连接内完成状态检查和可选写入。
 `resources:sync` 把 payload-only image `workspace-resource` 拷入每台 Host 的 named
-volume `codespace-resource`（Workspace 只读挂载到 `/opt/resource`），已填充则跳过、
-`--force` 强制重填。
+volume `codespace-resource`（Workspace 只读挂载到 `/opt/resource`）。volume 内的
+`.codespace-resource-digest` 记录填充时的 OCI image digest；该值与 Host 当前 image
+digest 一致时跳过，`--force` 强制拉取并重填。
 
 ## Development
 

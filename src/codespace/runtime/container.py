@@ -255,6 +255,15 @@ class ContainerSpec(BaseModel):
         random_tcp_ports: Collection[int] = (),
     ) -> dict[str, Any]:
         """Translate the resolved Compose service to podman-py create options."""
+        bind_mounts = [volume.mount() for volume in self.volumes if volume.type == "bind"]
+        named_volumes = {
+            volume.source: {
+                "bind": volume.target,
+                "mode": "ro" if volume.read_only else "rw",
+            }
+            for volume in self.volumes
+            if volume.type == "volume"
+        }
         ports: dict[str, tuple[str, int]] = {
             f"{port.target}/{port.protocol}": (port.host_ip, port.published) for port in self.ports
         }
@@ -273,7 +282,8 @@ class ContainerSpec(BaseModel):
             "environment": self.environment,
             "devices": self.devices,
             "ports": ports,
-            "mounts": [volume.mount() for volume in self.volumes],
+            "mounts": bind_mounts,
+            "volumes": named_volumes,
         }
         if self.platform is not None:
             options["platform"] = self.platform

@@ -92,14 +92,8 @@ COPY --link --chown=5230:5230 --from=stage_nix /home/x/.nix-channels /home/x/.ni
 COPY --link --chown=5230:5230 --from=stage_python /opt/uv /opt/uv
 COPY --link --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
 
-# rust / cuda / nsight / radare2 / rizin live in the codespace-resource volume,
-# mounted read-only at /opt/resource. Only the symlinks ship in the image; when
-# the volume is absent the links dangle and those tools are unavailable, but boot
-# and every s6 service are unaffected.
 RUN ln -s /opt/resource/opt/rust /opt/rust \
   && ln -s /opt/resource/usr/local/cuda-12.2 /usr/local/cuda-12.2 \
-  && ln -s cuda-12.2 /usr/local/cuda \
-  && ln -s cuda-12.2 /usr/local/cuda-12 \
   && ln -s /opt/resource/opt/nvidia /opt/nvidia \
   && ln -s /opt/resource/usr/local/store/radare2 /usr/local/store/radare2 \
   && ln -s /opt/resource/usr/local/store/rizin /usr/local/store/rizin \

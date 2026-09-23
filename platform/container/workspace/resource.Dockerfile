@@ -32,11 +32,6 @@ FROM docker.io/nvidia/cuda:12.2.2-devel-ubuntu22.04 AS stage_cuda
 FROM nvcr.io/nvidia/devtools/nsight-systems-cli:2026.3.1-ubuntu22.04 AS stage_nsys
 
 # --------------------------------- Payload ----------------------------------
-# Payload staged under /opt/resource so it mirrors the volume's mount point: the
-# volume is mounted at /opt/resource in every Workspace, exposing
-# /opt/resource/opt/rust, /opt/resource/usr/local/... etc. The base image carries
-# a shell and coreutils so `codespace resources sync` fills the volume by running
-# this image directly (`cp -a /opt/resource/. <volume>`), with no helper image.
 FROM docker.io/debian:stable-slim AS resource
 COPY --from=stage_rust /opt/rust /opt/resource/opt/rust
 COPY --from=stage_cuda /usr/local/cuda-12.2 /opt/resource/usr/local/cuda-12.2

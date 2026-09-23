@@ -1,7 +1,8 @@
 """Tests for dry-run-first secret synchronization."""
 
+from __future__ import annotations
+
 from io import StringIO
-from types import SimpleNamespace
 
 import pytest
 from rich.console import Console
@@ -11,8 +12,8 @@ from codespace.maintenance import secrets
 
 
 class FakeSecrets:
-    def __init__(self) -> None:
-        self.values: dict[str, bytes] = {}
+    def __init__(self, values: dict[str, bytes] | None = None) -> None:
+        self.values = values or {}
         self.writes: list[tuple[str, str]] = []
 
     def exists(self, name: str) -> bool:
@@ -29,15 +30,15 @@ class FakeSecrets:
         self.values[name] = value
 
 
-class FakeTransport:
-    def __init__(self) -> None:
-        self.hosts = {host: FakeSecrets() for host in ("home", "office")}
+class FakeClient:
+    def __init__(self, secrets_store: FakeSecrets) -> None:
+        self.secrets = secrets_store
         self.closed = False
 
-    def client(self, host: str) -> SimpleNamespace:
-        return SimpleNamespace(secrets=self.hosts[host])
+    def __enter__(self) -> FakeClient:
+        return self
 
-    def close(self) -> None:
+    def __exit__(self, *_args: object) -> None:
         self.closed = True
 
 
@@ -47,86 +48,91 @@ def test_sync_only_writes_with_apply(
     monkeypatch: pytest.MonkeyPatch,
     apply: bool,
 ) -> None:
-    configured = Config.model_validate({**config.model_dump(), "secrets": {"api_token": "value"}})
-    transport = FakeTransport()
+    configured = Config.model_validate(
+        {**config.model_dump(), "secrets": {"api_token": "value", "new": "created"}}
+    )
+    stores = {
+        "home": FakeSecrets({"api_token": b"old"}),
+        "office": FakeSecrets(),
+    }
+    clients: list[FakeClient] = []
+    options: list[dict[str, object]] = []
     stream = StringIO()
+
+    def create_client(**kwargs: object) -> FakeClient:
+        host = str(kwargs["base_url"]).removeprefix("http+ssh://").partition("/")[0]
+        client = FakeClient(stores[host])
+        clients.append(client)
+        options.append(kwargs)
+        return client
+
     monkeypatch.setattr(secrets, "load_config", lambda _path: configured)
-    monkeypatch.setattr(secrets, "PodmanTransport", lambda _hosts: transport)
+    monkeypatch.setattr(secrets, "PodmanClient", create_client)
 
     secrets.sync(apply=apply, console=Console(file=stream, width=120))
 
-    assert transport.closed is True
-    assert all(
-        host.values == ({"api_token": b"value"} if apply else {})
-        for host in transport.hosts.values()
+    assert all(client.closed for client in clients)
+    assert {option["timeout"] for option in options} == {secrets._CLIENT_TIMEOUT}
+    assert stores["home"].values == (
+        {"api_token": b"value", "new": b"created"} if apply else {"api_token": b"old"}
     )
+    assert stores["office"].values == ({"api_token": b"value", "new": b"created"} if apply else {})
     assert ("Applied" if apply else "Dry run") in stream.getvalue()
     if apply:
-        assert "Applied 2 secret(s)." in stream.getvalue()
+        assert "Applied 4 secret(s)." in stream.getvalue()
 
 
-def test_failed_host_is_not_retried_during_apply(
-    config: Config, monkeypatch: pytest.MonkeyPatch
+def test_sync_host_reports_sorted_actions_and_replaces_existing_secret(
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    store = FakeSecrets({"replace": b"old"})
+    client = FakeClient(store)
+    options: dict[str, object] = {}
+
+    def create_client(**kwargs: object) -> FakeClient:
+        options.update(kwargs)
+        return client
+
+    monkeypatch.setattr(secrets, "PodmanClient", create_client)
+
+    assert secrets._sync_host(
+        "home",
+        configured={"replace": "updated", "create": "new"},
+        apply=True,
+    ) == [("create", "create"), ("replace", "replace")]
+    assert options == {
+        "base_url": "http+ssh://home/run/podman/podman.sock",
+        "timeout": secrets._CLIENT_TIMEOUT,
+    }
+    assert store.values == {"replace": b"updated", "create": b"new"}
+    assert store.writes == [
+        ("create", "create"),
+        ("remove", "replace"),
+        ("create", "replace"),
+    ]
+    assert client.closed is True
+
+
+def test_sync_fails_on_host_error(config: Config, monkeypatch: pytest.MonkeyPatch) -> None:
     configured = Config.model_validate({**config.model_dump(), "secrets": {"api_token": "value"}})
-    transport = FakeTransport()
-    calls: list[str] = []
     stream = StringIO()
 
-    def client(host: str) -> SimpleNamespace:
-        calls.append(host)
+    def sync_host(
+        host: str,
+        *,
+        configured: dict[str, str],
+        apply: bool,
+    ) -> list[tuple[str, secrets.Action]]:
+        assert configured == {"api_token": "value"}
+        assert apply is True
         if host == "office":
             raise RuntimeError("scan unavailable")
-        return SimpleNamespace(secrets=transport.hosts[host])
+        return [("api_token", "create")]
 
-    monkeypatch.setattr(transport, "client", client)
     monkeypatch.setattr(secrets, "load_config", lambda _path: configured)
-    monkeypatch.setattr(secrets, "PodmanTransport", lambda _hosts: transport)
+    monkeypatch.setattr(secrets, "_sync_host", sync_host)
 
-    secrets.sync(apply=True, console=Console(file=stream, width=120))
+    with pytest.raises(RuntimeError, match="scan unavailable"):
+        secrets.sync(apply=True, console=Console(file=stream, width=120))
 
-    assert calls.count("office") == 1
-    assert transport.hosts["office"].writes == []
-    assert transport.hosts["home"].values == {"api_token": b"value"}
-    assert "scan unavailable" in stream.getvalue()
-    assert "Applied 1 secret(s)." in stream.getvalue()
-
-
-@pytest.mark.parametrize("action", ["create", "replace"])
-def test_changed_plan_precondition_fails_without_mutation(
-    action: secrets.Action,
-) -> None:
-    transport = FakeTransport()
-    store = transport.hosts["home"]
-    if action == "create":
-        store.values["api_token"] = b"created elsewhere"
-    before = dict(store.values)
-    plan = [secrets.SecretChange("home", "api_token", action, "sensitive-value")]
-
-    applied, errors = secrets._apply(transport, plan)  # type: ignore[arg-type]
-
-    assert applied == 0
-    assert len(errors) == 1
-    assert "state changed since planning" in errors[0]
-    assert store.values == before
-    assert store.writes == []
-    assert "sensitive-value" not in repr(plan)
-
-
-def test_apply_uses_planned_value_and_continues_after_item_failure() -> None:
-    transport = FakeTransport()
-    store = transport.hosts["home"]
-    store.values["replace"] = b"old"
-    plan = [
-        secrets.SecretChange("home", "missing", "replace", "not-applied"),
-        secrets.SecretChange("home", "replace", "replace", "planned"),
-        secrets.SecretChange("home", "new", "create", "new-value"),
-    ]
-
-    applied, errors = secrets._apply(transport, plan)  # type: ignore[arg-type]
-
-    assert applied == 2
-    assert len(errors) == 1
-    assert store.values == {"replace": b"planned", "new": b"new-value"}
-    assert store.writes == [("remove", "replace"), ("create", "replace"), ("create", "new")]
-    assert transport.hosts["office"].writes == []
+    assert stream.getvalue() == ""

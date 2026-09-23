@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from collections.abc import Callable, Iterable
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated, Literal
@@ -12,20 +11,21 @@ from typing import Annotated, Literal
 import gitlab as python_gitlab
 import typer
 from github import Auth, Github
+from podman import PodmanClient
 from rich.console import Console
 from rich.table import Column, Table
 
 from codespace import workspaces as inventory
-from codespace.config import CONFIG_PATH, Config, load_config
+from codespace.config import CONFIG_PATH, load_config
 from codespace.resources import RESOURCE_ID_RE
-from codespace.runtime.transport import PodmanTransport
 from codespace.workspaces import GitProvider, ProviderSource
 
 _HTTP_TIMEOUT = 30.0
+_CLIENT_TIMEOUT = 30 * 60.0
 
 type Repository = tuple[GitProvider, str]
 type Route = tuple[str, str]
-type Usage = Literal["yes", "no", "unknown", "unmanaged"]
+type Usage = Literal["yes", "no", "unmanaged"]
 
 app = typer.Typer(add_completion=False, no_args_is_help=True)
 
@@ -36,16 +36,9 @@ class DeployKey:
     title: str
 
 
-@dataclass(frozen=True, slots=True)
-class KeyCandidate:
-    repository: Repository
-    key: DeployKey
-    usage: Usage
-
-
 @app.command("prune")
 def _prune(
-    apply: Annotated[bool, typer.Option("--apply", help="Apply the displayed plan.")] = False,
+    apply: Annotated[bool, typer.Option("--apply", help="Delete unused deploy keys.")] = False,
 ) -> None:
     """Delete provider deploy keys unused by managed Workspaces."""
     prune(apply=apply)
@@ -57,111 +50,78 @@ def prune(
     config_path: Path = CONFIG_PATH,
     console: Console | None = None,
 ) -> None:
-    """Show unused managed deploy keys, then optionally delete them."""
+    """Inspect and optionally delete unused managed deploy keys."""
     target = console or Console()
     config = load_config(config_path)
-    repositories = _repositories(config)
-    keys, active, scanned_hosts, errors = _collect(config, repositories)
-    rows: list[KeyCandidate] = []
-    for repository, deploy_keys in sorted(keys.items()):
+    repositories: dict[Repository, list[Route]] = defaultdict(list)
+    for project_id, project in config.projects.items():
+        if isinstance(project.source, ProviderSource):
+            repository = (project.source.type, project.source.repository)
+            repositories[repository].extend((host, project_id) for host in project.hosts)
+
+    tokens = config.seed_tokens()
+    listable = sorted(repository for repository in repositories if repository[0] in tokens)
+    warnings = [
+        f"{provider}:{repository}: token is not configured"
+        for provider, repository in sorted(repositories)
+        if provider not in tokens
+    ]
+    hosts = sorted(config.hosts)
+    with ThreadPoolExecutor() as executor:
+        inventories = executor.map(_active_workspace_ids, hosts)
+        active = {workspace_id for host_active in inventories for workspace_id in host_active}
+        listed = executor.map(
+            list_deploy_keys,
+            [repository[0] for repository in listable],
+            [tokens[repository[0]] for repository in listable],
+            [repository[1] for repository in listable],
+        )
+        keys = dict(zip(listable, listed, strict=True))
+
+    rows: list[tuple[Repository, DeployKey, Usage]] = []
+    for repository, deploy_keys in keys.items():
         for key in sorted(deploy_keys, key=lambda item: item.title):
-            rows.append(
-                KeyCandidate(
-                    repository,
-                    key,
-                    _usage(key.title, repositories[repository], active, scanned_hosts),
-                )
-            )
+            rows.append((repository, key, _usage(key.title, repositories[repository], active)))
     table = Table(
         Column("Repository", overflow="fold"),
         Column("Deploy key", overflow="fold"),
         Column("In use", no_wrap=True),
     )
-    for item in rows:
-        table.add_row(f"{item.repository[0]}:{item.repository[1]}", item.key.title, item.usage)
+    for repository, key, usage in rows:
+        table.add_row(f"{repository[0]}:{repository[1]}", key.title, usage)
     target.print(table)
-    for error in errors:
-        target.print(f"[yellow]Warning:[/yellow] {error}")
-    unused = [item for item in rows if item.usage == "no"]
+    for warning in warnings:
+        target.print(f"[yellow]Warning:[/yellow] {warning}")
+    unused = [(repository, key.id) for repository, key, usage in rows if usage == "no"]
     if not apply:
         target.print(f"Dry run: {len(unused)} unused key(s); pass --apply to delete.")
         return
-    deleted, delete_errors = _delete(config.seed_tokens(), unused)
-    for error in delete_errors:
-        target.print(f"[red]Error:[/red] {error}")
-    target.print(f"Deleted {deleted} unused key(s).")
-
-
-def _fan_out[K, V](
-    keys: Iterable[K], work: Callable[[K], V]
-) -> tuple[list[tuple[K, V]], list[tuple[K, Exception]]]:
-    """Run all planned targets, retaining each target's success or failure."""
-    results: list[tuple[K, V]] = []
-    failures: list[tuple[K, Exception]] = []
+    grouped: dict[Repository, list[int]] = defaultdict(list)
+    for repository, key_id in unused:
+        grouped[repository].append(key_id)
+    targets = sorted(grouped)
     with ThreadPoolExecutor() as executor:
-        futures = {executor.submit(work, key): key for key in keys}
-        for future in as_completed(futures):
-            key = futures[future]
-            try:
-                results.append((key, future.result()))
-            except Exception as exc:
-                failures.append((key, exc))
-    return results, failures
-
-
-def _repositories(config: Config) -> dict[Repository, list[Route]]:
-    repositories: dict[Repository, list[Route]] = defaultdict(list)
-    for project_id, project in config.projects.items():
-        if not isinstance(project.source, ProviderSource):
-            continue
-        repository = (project.source.type, project.source.repository)
-        repositories[repository].extend((host, project_id) for host in project.hosts)
-    return repositories
-
-
-def _collect(
-    config: Config,
-    repositories: dict[Repository, list[Route]],
-) -> tuple[dict[Repository, list[DeployKey]], set[str], set[str], list[str]]:
-    active: set[str] = set()
-    scanned_hosts: set[str] = set()
-    errors: list[str] = []
-    transport = PodmanTransport(config.hosts)
-    tokens = config.seed_tokens()
-    try:
-        inventories, host_failures = _fan_out(
-            config.hosts,
-            lambda host: inventory.list_workspaces(transport.client(host), host),
+        list(
+            executor.map(
+                delete_deploy_keys,
+                [repository[0] for repository in targets],
+                [tokens[repository[0]] for repository in targets],
+                [repository[1] for repository in targets],
+                [grouped[repository] for repository in targets],
+            )
         )
-        for host, workspaces in inventories:
-            scanned_hosts.add(host)
-            active.update(workspace.id for workspace in workspaces)
-        errors.extend(f"{host}: {exc}" for host, exc in host_failures)
-
-        listable = [
-            repository for repository in repositories if tokens.get(repository[0]) is not None
-        ]
-        errors.extend(
-            f"{provider_name}:{repository}: token is not configured"
-            for provider_name, repository in repositories
-            if tokens.get(provider_name) is None
-        )
-        listed, key_failures = _fan_out(
-            listable,
-            lambda repository: list_deploy_keys(
-                repository[0],
-                tokens[repository[0]],
-                repository[1],
-            ),
-        )
-        keys = dict(listed)
-        errors.extend(f"{repository[0]}:{repository[1]}: {exc}" for repository, exc in key_failures)
-    finally:
-        transport.close()
-    return keys, active, scanned_hosts, errors
+    target.print(f"Deleted {len(unused)} unused key(s).")
 
 
-def _usage(title: str, routes: list[Route], active: set[str], scanned_hosts: set[str]) -> Usage:
+def _active_workspace_ids(host: str) -> set[str]:
+    with PodmanClient(
+        base_url=f"http+ssh://{host}/run/podman/podman.sock",
+        timeout=_CLIENT_TIMEOUT,
+    ) as client:
+        return {workspace.id for workspace in inventory.list_workspaces(client, host)}
+
+
+def _usage(title: str, routes: list[Route], active: set[str]) -> Usage:
     if title in active:
         return "yes"
     for host, project in routes:
@@ -172,31 +132,8 @@ def _usage(title: str, routes: list[Route], active: set[str], scanned_hosts: set
             and title.endswith(suffix)
             and RESOURCE_ID_RE.fullmatch(title.removeprefix(prefix).removesuffix(suffix))
         ):
-            return "no" if host in scanned_hosts else "unknown"
+            return "no"
     return "unmanaged"
-
-
-def _delete(
-    tokens: dict[GitProvider, str],
-    unused: list[KeyCandidate],
-) -> tuple[int, list[str]]:
-    grouped: dict[Repository, list[int]] = defaultdict(list)
-    for item in unused:
-        grouped[item.repository].append(item.key.id)
-    _results, failures = _fan_out(
-        grouped,
-        lambda repository: delete_deploy_keys(
-            repository[0],
-            tokens[repository[0]],
-            repository[1],
-            grouped[repository],
-        ),
-    )
-    deleted = sum(len(grouped[repository]) for repository in grouped) - sum(
-        len(grouped[repository]) for repository, _exc in failures
-    )
-    errors = [f"{repository[0]}:{repository[1]}: {exc}" for repository, exc in failures]
-    return deleted, errors
 
 
 def list_deploy_keys(provider: GitProvider, token: str, repo: str) -> list[DeployKey]:
