@@ -15,6 +15,7 @@ hosts:
         - /opt/tmp:/opt/tmp
 
 project_defaults:
+  resource_image: ghcr.io/curoky/codespace:workspace-resource
   encrypted: true
   tunnel_ports: [8007, 8008]
   container:

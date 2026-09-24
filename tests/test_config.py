@@ -93,6 +93,7 @@ def test_empty_source_rejects_git_args(config: Config) -> None:
 def test_example_config_loads() -> None:
     config = load_config(Path("config.example.yaml"))
 
+    assert config.project_defaults.resource_image == "ghcr.io/curoky/codespace:workspace-resource"
     for project_id, project in config.projects.items():
         for host in project.hosts:
             config.workspace_spec(project_id, host, "default")

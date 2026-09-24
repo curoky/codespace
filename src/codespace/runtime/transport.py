@@ -24,7 +24,7 @@ from podman import PodmanClient
 _PODMAN_SOCKET = "/run/podman/podman.sock"
 _DEFAULT_RUNTIME_PARENT = Path("/tmp")  # noqa: S108 - short parent; mkdtemp creates mode 0700
 
-_START_TIMEOUT = 10.0
+_START_TIMEOUT = 30.0
 _START_INTERVAL = 0.05
 # Cap every Podman call so a half-dead tunnel fails fast instead of hanging.
 # Image pulls stream, so this bounds inter-chunk gaps, not the whole download.
@@ -315,7 +315,7 @@ class PodmanTransport:
             stderr=subprocess.PIPE,
         )
         try:
-            self._await_control_socket(process, control_path)
+            self._await_control_socket(process, control_path, destination)
         except BaseException:
             self._stop(process)
             control_path.unlink(missing_ok=True)
@@ -326,18 +326,27 @@ class PodmanTransport:
         self,
         process: subprocess.Popen[bytes],
         control_path: Path,
+        destination: str,
     ) -> None:
         deadline = time.monotonic() + _START_TIMEOUT
         while time.monotonic() < deadline:
             if process.poll() is not None:
                 stderr = process.stderr.read() if process.stderr is not None else b""
                 message = stderr.decode("utf-8", "replace").strip()
-                raise TransportError(f"SSH master exited: {message or 'ssh exited'}")
+                raise TransportError(
+                    f"SSH master for {destination!r} exited: {message or 'ssh exited'}"
+                )
             if control_path.exists():
                 return
             time.sleep(_START_INTERVAL)
         self._stop(process)
-        raise TransportError(f"SSH master did not create control socket {control_path}")
+        stderr = process.stderr.read() if process.stderr is not None else b""
+        message = stderr.decode("utf-8", "replace").strip()
+        detail = f": {message}" if message else ""
+        raise TransportError(
+            f"SSH master for {destination!r} did not create control socket "
+            f"within {_START_TIMEOUT:g} seconds{detail}"
+        )
 
     def _control_forward(
         self,

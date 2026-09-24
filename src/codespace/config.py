@@ -116,6 +116,7 @@ class HostConfig(FrozenModel):
 
 
 class ProjectDefaults(FrozenModel):
+    resource_image: NonBlankString
     encrypted: bool = False
     tunnel_ports: TunnelPorts = Field(default_factory=list)
     container: ContainerLayer = Field(default_factory=ContainerLayer)

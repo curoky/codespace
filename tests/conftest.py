@@ -19,6 +19,7 @@ def config() -> Config:
                 "office": {},
             },
             "project_defaults": {
+                "resource_image": "ghcr.io/curoky/codespace:workspace-resource",
                 "container": {
                     "image": "ghcr.io/curoky/codespace:workspace-debian13",
                     "pull_policy": "always",

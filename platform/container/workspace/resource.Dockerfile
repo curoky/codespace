@@ -1,9 +1,5 @@
 # syntax=docker/dockerfile:1.9.0
 
-# Payload-only image for the codespace-resource volume. Its contents are copied
-# into a named Podman volume by `codespace resources sync --apply` and mounted
-# read-only at /opt/resource in every Workspace. Nothing here is needed at boot.
-
 # ----------------------------------- Rust -----------------------------------
 FROM docker.io/debian:stable-slim AS stage_rust
 ENV CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup
@@ -18,10 +14,11 @@ RUN apt-get update -y \
 FROM docker.io/debian:latest AS stage_sb
 RUN apt-get update -y && apt-get install -y curl zstd
 
-COPY platform/container/workspace/config/binman-resource.yaml /tmp/binman.yaml
 RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
-    | bash -s -- --prefix /usr/local/bin \
-  && /usr/local/bin/bm sync /tmp/binman.yaml \
+    | bash -s -- --prefix /usr/local \
+  && /usr/local/bin/bm install --prefix /usr/local radare2 rizin \
+  && /usr/local/bin/bm install --prefix /usr/local --link-to profile/go \
+    gopls delve go-tools gofumpt golangci-lint gotests gotools impl revive \
   && find /usr/local/store -type d -exec chmod 0755 {} +
 
 # ------------------------------------ Go ------------------------------------

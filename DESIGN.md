@@ -188,10 +188,11 @@ task deploy-keys:prune -- --apply
 维护任务并发处理 Host 或 repository，任一目标失败即终止命令，不基于不完整 inventory
 继续清理。未配置 provider token 的 repository 会显示 warning 并跳过。Secret 同步在
 同一 Host 连接内完成状态检查和可选写入。
-`resources:sync` 把 payload-only image `workspace-resource` 拷入每台 Host 的 named
-volume `codespace-resource`（Workspace 只读挂载到 `/opt/resource`）。volume 内的
-`.codespace-resource-digest` 记录填充时的 OCI image digest；该值与 Host 当前 image
-digest 一致时跳过，`--force` 强制拉取并重填。
+`resources:sync` 把 `project_defaults.resource_image` 指定的 payload-only image
+拷入每台 Host 的 named volume `codespace-resource`（Workspace 只读挂载到
+`/opt/resource`）。volume 内的 `.codespace-resource-digest` 记录填充时的 OCI image
+digest；`--apply` 先拉取 image，再比较 Host 最新 image digest，一致时跳过，
+`--force` 强制重填。
 
 ## Development
 

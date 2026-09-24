@@ -7,56 +7,52 @@ alwaysApply: true
 
 # Workspace Container
 
-先读取 repository 的 `AGENTS.md`、manifest、lockfile 和 task 入口；项目约定优先。
+## 开始工作
 
-## Runtime
-
-- 默认用户 `x`（UID/GID 5230），`sudo` 需要 root 密码。
-- 项目代码和持久数据放 `/workspace`，其他路径重建后不保留。
-- 常驻服务已由系统托管，无需手动启动。
-- 交互 shell 是 zsh；非登录执行器缺少环境时用 `zsh -lic '<command>'`。
+- 只把项目修改和需要保留的产物写入 `/workspace`；容器重建后其他路径不保留。
+- 默认以用户 `x` 执行，不假设 `sudo` 可用。
 
 ## Toolchains
 
-| Stack | Version / location |
-| --- | --- |
-| Python | uv-managed 3.9-3.14，默认 3.14；`uv run`，`uv python find 3.<N>` |
-| Conda | `/opt/conda/condabin/conda`，默认不激活 |
-| Node.js | 默认 24；26 在 `/opt/node/nodejs26/bin` |
-| Go | 1.27；SDK 在 `/opt/go/go1.27.1`，tools 在 `/usr/local/profile/go/bin` |
-| Rust | `/opt/rust/cargo/bin`；`CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup` |
-| Java | JDK 27 默认；JDK 8/27 在 `/opt/java/openjdk{8,27}`；`JAVA_HOME=/opt/java/openjdk27` |
-| C/C++ | GCC 15；LLVM/Clang 23 在 `/opt/llvm/llvm23.1.2/bin`，Clang tools 在 `/usr/local/bin` |
-| CUDA | 12.2.2，`CUDA_HOME=/usr/local/cuda`；已装 Nsight Systems/Compute |
+- Python 项目统一使用 `uv` 管理依赖和运行命令。Python 3.9-3.14 安装在
+  `/opt/uv/python`，使用 `uv python find 3.<N>` 选择版本。
+- Conda 安装在 `/opt/conda`，但默认不要使用；仅在项目明确要求 Conda 时启用。
+- C/C++ 默认使用 Nix default profile
+  `/nix/var/nix/profiles/default/bin` 中的 GCC 15；另有 Clang 23，位于
+  `/opt/llvm/llvm23.1.2/bin`。
+- Java 默认使用 `/opt/java/openjdk27` 中的 JDK 27；另有 JDK 8，位于
+  `/opt/java/openjdk8`。切换版本时同时设置 `JAVA_HOME` 和 `PATH`。
+- Node.js 默认使用 `/opt/node/nodejs24` 中的 Node.js 24；另有 Node.js 26，
+  位于 `/opt/node/nodejs26`。切换版本时将对应 `bin` 目录放到 `PATH` 前部。
+- Go 1.27.1 位于 `/opt/go/go1.27.1`，Go 工具位于 `/usr/local/profile/go/bin`。
+- Rust stable 位于 `/opt/rust`，Cargo 可执行文件位于 `/opt/rust/cargo/bin`。
+- CUDA 12.2.2 位于 `/usr/local/cuda-12.2`，默认链接为 `/usr/local/cuda`。
+- 一次性 Python 工具使用 `uv tool` 管理；其他一次性工具使用
+  `nix-env -iA nixpkgs.<package>` 安装。
 
-预装工具主要在 `/usr/local/bin` 或默认 Nix profile。Protobuf 不在默认 PATH，用
-`/usr/local/store/protobuf_<version>/bin`。临时工具用 `uvx` / `nix shell nixpkgs#<pkg>`。
+## Resource Volume
 
-## Services
+- 大型工具位于只读挂载的 `codespace-resource` volume，挂载点为 `/opt/resource`。
+- `/opt/go`、`/opt/rust`、`/opt/llvm`、`/opt/java`、`/opt/node`、`/opt/nvidia`
+  和 `/usr/local/cuda-12.2` 等常用路径是指向该 volume 的链接。
+- 不要修改 `/opt/resource`，也不要用本地目录替换这些链接。
 
-除 SSH 外，服务只监听 loopback；外部访问需在 Project `tunnel_ports` 声明端口。
+## 托管服务
 
-| Service | Endpoint |
-| --- | --- |
-| `sshd` | `0.0.0.0:22` |
-| `atuin-server` | `127.0.0.1:8002` |
-| `rclone-webdav` | `127.0.0.1:8004` |
-| `copyparty-webdav` | `127.0.0.1:8005` |
-| `ollama` | `127.0.0.1:8006` |
-| `rclone-http` | `127.0.0.1:8007` |
-| `miniserve-logs` | `127.0.0.1:8008` |
-| `nixcache` | `127.0.0.1:8009` |
-| `workspace-agent` | `/run/codespace-control/agent.sock` |
-
-状态和日志：`s6-svstat /run/service/<service>`、`tail /var/log/s6.<service>.log`。
+- 该镜像使用 s6 管理服务，不支持 systemd；不要调用 `systemctl`。
+- 用 `s6-svstat /run/service/<service>` 查看状态，用
+  `tail /var/log/s6.<service>.log` 查看日志。
 
 ## Podman
 
-内置 rootless Podman，直接 `podman`；数据在 `/opt/podman/data`，内部 container
-共用 Workspace 资源边界。
+- 容器内已配置 rootless Podman，直接使用 `podman build` 和 `podman run`。
+- Podman 固定连接 `unix:///run/user/5230/podman/podman.sock`，不要改连 Host Podman。
+- Host 通常使用 cgroup v1，因此内部 Podman 固定使用 `cgroups = "disabled"`；
+  不要启用 cgroups，也不要依赖内部 container 的 cgroup 资源限制。
+- Podman 数据保存在 `/opt/podman/data`。
 
-## Credentials
+## GitHub
 
-- GitHub CLI 用前先 `gh auth status`。
-- Kerberos ccache 在 `KRB5CCNAME=/opt/secret/krb5_ccache`。
-- GPU 任务先 `nvidia-smi` 再 `nvcc --version`。
+- `gh` 已通过 token 登录，可直接用于查询 repository、workflow 和 run。
+- 排查 GitHub Actions 时优先使用 `gh run list`、`gh run view` 和
+  `gh run view --log-failed` 获取失败日志。

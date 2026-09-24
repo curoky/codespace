@@ -489,11 +489,18 @@ def test_tcp_forward_timeout_terminates_process(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     process = FakeProcess()
+    process.stderr = io.BytesIO(b"authentication timed out")  # type: ignore[assignment]
     monkeypatch.setattr(transport_module, "_START_TIMEOUT", 0)
     monkeypatch.setattr(transport_module.subprocess, "Popen", lambda *_args, **_kwargs: process)
     transport = PodmanTransport({"home"}, runtime_parent=tmp_path)
     try:
-        with pytest.raises(TransportError, match="did not create control socket"):
+        with pytest.raises(
+            TransportError,
+            match=(
+                "SSH master for 'workspace' did not create control socket "
+                "within 0 seconds: authentication timed out"
+            ),
+        ):
             transport.forward_tcp("home", "workspace", port=8005, options=[], connection_id="c")
         assert process.terminated
     finally:
