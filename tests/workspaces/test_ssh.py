@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shutil
 import stat
 import subprocess
 from pathlib import Path
@@ -54,8 +55,10 @@ def test_macos_contract_resolves_persisted_routes_and_authenticated_tunnels(
         ssh.write_route(workspace)
         options = ["-F", str(config)]
 
+    ssh_binary = shutil.which("ssh")
+    assert ssh_binary is not None
     result = subprocess.run(  # noqa: S603 - parse repository config without connecting
-        ["/usr/bin/ssh", "-G", *options, workspace.ssh_alias],
+        [ssh_binary, "-G", *options, workspace.ssh_alias],
         check=True,
         capture_output=True,
         text=True,

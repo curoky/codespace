@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -85,6 +86,7 @@ def test_install_creates_an_isolated_node_bound_launcher(tmp_path: Path) -> None
     )
 
     assert installed == ("prettier", "3.9.9", ("prettier",))
+    assert stat.S_IMODE((root / "envs" / "prettier").stat().st_mode) == 0o755
     launcher = root / "bin" / "prettier"
     result = subprocess.run(
         [str(launcher), "--version"],

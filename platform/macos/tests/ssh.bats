@@ -39,7 +39,7 @@ teardown() {
 }
 
 @test "client config hardcodes the Workspace image contract" {
-  run /usr/bin/ssh -G -F "$SSH_DIR/config" \
+  run ssh -G -F "$SSH_DIR/config" \
     space-codespace-debug-home
 
   [ "$status" -eq 0 ]
@@ -68,7 +68,7 @@ Host space-codespace-debug-home
 EOF
   sed "s|~/.ssh/codespace/workspaces/\\*|$routes/*|" "$SSH_DIR/config" >"$config"
 
-  run /usr/bin/ssh -G -F "$config" "$alias"
+  run ssh -G -F "$config" "$alias"
 
   [ "$status" -eq 0 ]
   [[ "$output" == *$'port 23456\n'* ]]
@@ -77,7 +77,7 @@ EOF
 }
 
 @test "ordinary Host aliases do not use Workspace routes" {
-  run /usr/bin/ssh -G -F "$SSH_DIR/config" home-dev.example
+  run ssh -G -F "$SSH_DIR/config" home-dev.example
   [ "$status" -eq 0 ]
   [[ "$output" == *$'hostname home-dev.example\n'* ]]
   [[ $'\n'"$output"$'\n' != *$'\nproxycommand '* ]]

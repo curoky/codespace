@@ -157,9 +157,19 @@ COPY --from=stage_sb /usr/local/store /opt/resource/usr/local/store
 COPY --from=stage_sb /usr/local/profile/go /opt/resource/usr/local/profile/go
 COPY --from=stage_java /opt/java /opt/resource/opt/java
 COPY --from=stage_node /opt/node /opt/resource/opt/node
+USER 5230:5230
 RUN /opt/resource/opt/go/go1.27.1/bin/go version \
   && /opt/resource/opt/llvm/llvm23.1.2/bin/clang --version \
   && /opt/resource/opt/java/openjdk8/bin/java -version \
   && /opt/resource/opt/java/openjdk27/bin/java -version \
+  && test -x /opt/resource/opt/java/tools/bin/mvn \
+  && test -x /opt/resource/opt/java/tools/envs/maven/payload/bin/mvn \
+  && test -r /opt/resource/opt/java/tools/envs/lemminx/payload/lemminx.jar \
+  && test -x /opt/resource/opt/java/tools/envs/ghidra/payload/ghidraRun \
   && /opt/resource/opt/node/nodejs24/bin/node --version \
-  && /opt/resource/opt/node/nodejs26/bin/node --version
+  && /opt/resource/opt/node/nodejs26/bin/node --version \
+  && test -x /opt/resource/opt/node/tools/bin/markdownlint-cli2 \
+  && test -x /opt/resource/opt/node/tools/envs/markdownlint-cli2/node_modules/.bin/markdownlint-cli2 \
+  && test -x /opt/resource/opt/node/tools/bin/prettier \
+  && test -x /opt/resource/opt/node/tools/envs/prettier/node_modules/.bin/prettier
+USER root

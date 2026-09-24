@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import stat
 import subprocess
 import sys
 import tarfile
@@ -56,6 +57,7 @@ def create_jar(tmp_path: Path) -> Path:
     jar = tmp_path / "language-server.jar"
     with zipfile.ZipFile(jar, "w") as output:
         output.writestr("META-INF/MANIFEST.MF", "Manifest-Version: 1.0\r\n\r\n")
+    jar.chmod(0o600)
     return jar
 
 
@@ -74,6 +76,7 @@ def test_install_archive_creates_launcher_bound_to_java(tmp_path: Path) -> None:
         executable_dirs=(),
     )
 
+    assert stat.S_IMODE((root / "envs" / "archive-tool").stat().st_mode) == 0o755
     result = subprocess.run(
         [str(root / "bin" / "archive-tool"), "--version"],
         check=True,
@@ -100,6 +103,8 @@ def test_install_jar_creates_java_jar_launcher(tmp_path: Path) -> None:
         executable_dirs=(),
     )
 
+    installed_jar = root / "envs" / "language-server" / "payload" / "language-server.jar"
+    assert stat.S_IMODE(installed_jar.stat().st_mode) == 0o644
     result = subprocess.run(
         [str(root / "bin" / "language-server"), "--stdio"],
         check=True,
@@ -107,7 +112,6 @@ def test_install_jar_creates_java_jar_launcher(tmp_path: Path) -> None:
         text=True,
         env={"PATH": "/usr/bin:/bin"},
     )
-    installed_jar = root / "envs" / "language-server" / "payload" / "language-server.jar"
     assert commands == ("language-server",)
     assert result.stdout == f"java-home:{java_root}\nargs:-jar {installed_jar} --stdio\n"
 

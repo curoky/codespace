@@ -94,7 +94,9 @@ def prepare_payload(source: Path, destination: Path, *, extract: bool) -> Path:
     payload = destination / "payload"
     if not extract:
         payload.mkdir()
-        shutil.copy2(source, payload / source.name)
+        installed = payload / source.name
+        shutil.copy2(source, installed)
+        installed.chmod(0o644)
         return payload
 
     unpacked = destination / "unpacked"
@@ -225,6 +227,7 @@ def install_tool(
         if collisions:
             raise JavaToolError(f"launcher already exists: {', '.join(collisions)}")
 
+        temporary_path.chmod(0o755)
         temporary_path.replace(target)
         for launcher in launchers:
             write_launcher(

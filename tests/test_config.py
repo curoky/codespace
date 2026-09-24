@@ -109,20 +109,24 @@ def test_example_internal_only_service_has_no_host_publication() -> None:
         assert config.resolved_service_container("secret", host).ports == []
 
 
-@pytest.mark.parametrize(
-    ("service", "home"),
-    [("vllm", "/home/x"), ("sglang", "/root")],
-)
-def test_example_gpu_service_sets_huggingface_environment_at_startup(
-    service: str, home: str
-) -> None:
+@pytest.mark.parametrize("service", ["vllm", "sglang"])
+def test_example_gpu_service_sets_huggingface_environment_at_startup(service: str) -> None:
     config = load_config(Path("config.example.yaml"))
     script_path = Path(f"platform/container/services/{service}/rootfs/opt/{service}/serve.sh")
     script = script_path.read_text()
 
     for host in config.services[service].hosts:
-        assert config.resolved_service_container(service, host).environment == {}
-    assert f"export HF_HOME={home}/.cache/huggingface" in script
+        container = config.resolved_service_container(service, host)
+        assert container.environment == {}
+        assert "/home/x/.cache/huggingface" in {volume.target for volume in container.volumes}
+        assert any(
+            secret.source == "huggingface_token"
+            and secret.uid == "5230"
+            and secret.gid == "5230"
+            and secret.mode == 0o400
+            for secret in container.secrets
+        )
+    assert "export HF_HOME=/home/x/.cache/huggingface" in script
     assert "export HF_TOKEN_PATH=/run/secrets/huggingface_token" in script
 
 

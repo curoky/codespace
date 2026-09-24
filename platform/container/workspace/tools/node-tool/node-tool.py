@@ -145,6 +145,7 @@ def install_tool(
                 raise NodeToolError(f"pnpm did not install executable: {name}")
 
         environment.parent.mkdir(exist_ok=True)
+        temporary.chmod(0o755)
         temporary.replace(environment)
         for name in bins:
             write_launcher(
