@@ -50,7 +50,7 @@
   "java.jdt.ls.java.home": "/opt/java/openjdk27",
   "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx16G -Xms4G",
   "java.trace.server": "verbose",
-  "prettier.prettierPath": "/nix/var/nix/profiles/default/lib/node_modules/prettier",
+  "prettier.prettierPath": "/opt/node/tools/envs/prettier/node_modules/prettier",
   "python.defaultInterpreterPath": "/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14",
   "ruff.interpreter": [
     "/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14"
@@ -59,7 +59,7 @@
   "typescript.npm": "/opt/node/nodejs24/bin/npm",
   "xml.java.home": "/opt/java/openjdk27",
   "xml.server.vmargs": "-Xmx5G",
-  "xml.server.binary.path": "/nix/var/nix/profiles/default/bin/lemminx",
+  "xml.server.binary.path": "/opt/java/tools/bin/lemminx",
   "nix.formatterPath": "/usr/local/store/nixfmt/bin/nixfmt",
   "nix.serverPath": "/usr/local/store/nil/bin/nil",
   "nix.enableLanguageServer": true,

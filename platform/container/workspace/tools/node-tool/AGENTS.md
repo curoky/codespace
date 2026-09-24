@@ -43,7 +43,8 @@ launcher 将指定 Node.js 的 `bin` 放到子进程 `PATH` 首位，再执行�
 源码是带 PEP 723 metadata 的单文件应用，唯一 Python 依赖是 Typer，由 uv lock：
 
 ```sh
-uv run --script platform/container/workspace/tools/node-tool/node-tool.py install \
+cd platform/container/workspace/tools/node-tool
+uv run --script node-tool.py install \
   prettier@3.9.9 \
   --node /opt/node/nodejs24 \
   --pnpm /opt/node/tools/bin/pnpm

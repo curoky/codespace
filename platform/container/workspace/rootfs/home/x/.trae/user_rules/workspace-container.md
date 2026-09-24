@@ -27,8 +27,10 @@ alwaysApply: true
 - Go 1.27.1 位于 `/opt/go/go1.27.1`，Go 工具位于 `/usr/local/profile/go/bin`。
 - Rust stable 位于 `/opt/rust`，Cargo 可执行文件位于 `/opt/rust/cargo/bin`。
 - CUDA 12.2.2 位于 `/usr/local/cuda-12.2`，默认链接为 `/usr/local/cuda`。
-- 一次性 Python 工具使用 `uv tool` 管理；其他一次性工具使用
-  `nix-env -iA nixpkgs.<package>` 安装。
+- Python CLI 位于 `/opt/uv/bin`，Maven、LemMinX 和 Ghidra 位于
+  `/opt/java/tools/bin`，pnpm、markdownlint-cli2 和 Prettier 位于
+  `/opt/node/tools/bin`。
+- 其他工具默认使用 `nix-env -iA nixpkgs.<package>` 安装。
 
 ## Resource Volume
 
@@ -49,6 +51,8 @@ alwaysApply: true
 - Podman 固定连接 `unix:///run/user/5230/podman/podman.sock`，不要改连 Host Podman。
 - Host 通常使用 cgroup v1，因此内部 Podman 固定使用 `cgroups = "disabled"`；
   不要启用 cgroups，也不要依赖内部 container 的 cgroup 资源限制。
+- 普通 rootless 构建可能因 Host 临时 cgroup 缺失失败；改用 Buildah
+  `--isolation=chroot`。
 - Podman 数据保存在 `/opt/podman/data`。
 
 ## GitHub
