@@ -26,9 +26,13 @@
 
 - `resource.Dockerfile` 只承载启动无依赖的大型工具；payload 根固定为 `/opt/resource`，
   由 `codespace-resource` volume 只读挂载。
-- Workspace image 只创建指向 payload 的 symlink。当前 payload 包括 Rust、CUDA、NVIDIA
-  tools、radare2、rizin 与 `/usr/local/profile/go`；未挂载 volume 时允许链接悬空，s6
-  service 不得依赖这些工具。
+- Workspace image 只创建指向 payload 的 symlink；未挂载 volume 时允许链接悬空，s6
+  service 不得依赖这些工具。Workspace 以 `/opt/<family>` 映射 payload 中的整个 family；
+  Go、LLVM、OpenJDK 与 Node.js 均保留版本目录，不在 payload 内维护默认版本 symlink。
+  默认版本由各自独立的 `PATH` 声明显式选择，只有 Java 额外导出生态依赖的
+  `JAVA_HOME`。
+- payload 还包括 Rust、CUDA、NVIDIA tools、radare2、rizin 与 Go tools profile；其中
+  Go tools 通过 `/usr/local/profile/go` 暴露，不直接引用 payload 内的 store 路径。
 
 ## Rootless Podman
 

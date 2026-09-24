@@ -13,9 +13,22 @@ export PATH="$PATH:/opt/uv/bin"
 export CONDA_PLUGINS_AUTO_ACCEPT_TOS=yes
 export PATH="$PATH:/opt/conda/condabin"
 
+export PATH="$PATH:/opt/go/go1.27.1/bin"
+# export PATH="$PATH:/usr/local/profile/go/bin"
+
+export PATH="$PATH:/opt/llvm/llvm23.1.2/bin"
+
+export JAVA_HOME=/opt/java/openjdk27
+export PATH="$PATH:$JAVA_HOME/bin"
+
+export PATH="$PATH:/opt/node/nodejs24/bin"
+
 export PATH="/home/x/.local/bin:$PATH"
 
 export PATH="$PATH:/nix/var/nix/profiles/default/bin"
+# nix CLI 由单用户安装装入 XDG profile；channels 经 NIX_PATH 暴露给 <nixpkgs>。
+export PATH="$PATH:/home/x/.local/state/nix/profiles/profile/bin"
+export NIX_PATH="/home/x/.nix-defexpr/channels"
 
 export CUDA_HOME=/usr/local/cuda
 export PATH="$PATH:/usr/local/cuda/bin:/opt/nvidia/nsight-systems-cli/2026.3.1/bin"

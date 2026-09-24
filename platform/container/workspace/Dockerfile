@@ -38,6 +38,10 @@ RUN apt-get update -y \
   && uv python install --no-bin 3.9 3.10 3.11 3.12 3.13 3.14 \
   && uv tool install licenseheaders \
   && uv tool install netron \
+  && uv tool install mitmproxy \
+  && uv tool install copyparty \
+  && uv tool install dool \
+  && uv tool install git-filter-repo \
   && uv tool install tensorboard --python 3.12 --with tensorboard-plugin-profile --with "setuptools==81.0.0" \
   && rm -rf /var/lib/apt/lists/*
 
@@ -62,23 +66,22 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
   && nix-channel --update \
   && nix-env -iA \
     # nixpkgs.ollama-cpu
-    nixpkgs.lemminx nixpkgs_unstable.codex \
-    nixpkgs.ghidra nixpkgs.markdownlint-cli2 nixpkgs.pnpm \
-    nixpkgs.prettier nixpkgs.mitmproxy \
-    nixpkgs.copyparty nixpkgs.dool nixpkgs.git-filter-repo \
+    # nixpkgs.mitmproxy nixpkgs.copyparty nixpkgs.dool nixpkgs.git-filter-repo \
+    nixpkgs.lemminx nixpkgs.ghidra nixpkgs.maven \
+    nixpkgs_unstable.codex \
+    nixpkgs.markdownlint-cli2 nixpkgs.pnpm nixpkgs.prettier \
     -p /nix/var/nix/profiles/default \
-  && nix-env -iA nixpkgs.maven -p /nix/var/nix/profiles/default \
-  && nix-env -iA nixpkgs.jdk8_headless -p /nix/var/nix/profiles/jdk8 \
-  && nix-env -iA nixpkgs.jdk25_headless -p /nix/var/nix/profiles/jdk25 \
-  && nix-env -iA nixpkgs.nodejs_24 -p /nix/var/nix/profiles/default \
+  # && nix-env -iA nixpkgs.jdk8_headless -p /nix/var/nix/profiles/jdk8 \
+  # && nix-env -iA nixpkgs.jdk25_headless -p /nix/var/nix/profiles/jdk25 \
+  # && nix-env -iA nixpkgs.nodejs_24 -p /nix/var/nix/profiles/default \
   # && nix-env -iA nixpkgs.nodejs_24 -p /nix/var/nix/profiles/nodejs-24 \
   # && nix-env -iA nixpkgs.nodejs_26 -p /nix/var/nix/profiles/nodejs-26 \
-  && nix-env -iA nixpkgs.go_1_26 -p /nix/var/nix/profiles/default \
+  # && nix-env -iA nixpkgs.go_1_26 -p /nix/var/nix/profiles/default \
   # && nix-env -iA nixpkgs.go_1_26 -p /nix/var/nix/profiles/go-1_26 \
   # && nix-env -iA nixpkgs_2505.gcc12 -p /nix/var/nix/profiles/gcc-12 \
   && nix-env -iA nixpkgs.gcc15 -p /nix/var/nix/profiles/default \
   # && nix-env -iA nixpkgs.gcc16 -p /nix/var/nix/profiles/gcc-16 \
-  && nix-env -iA nixpkgs.clang_21 -p /nix/var/nix/profiles/clang-21 \
+  # && nix-env -iA nixpkgs.clang_21 -p /nix/var/nix/profiles/clang-21 \
   && nix-collect-garbage -d \
   && nix-store --optimise
 
@@ -89,6 +92,7 @@ COPY --link --from=stage_sb /usr/local /usr/local
 COPY --link --chown=5230:5230 --from=stage_nix /nix /nix
 COPY --link --chown=5230:5230 --from=stage_nix /home/x/.nix-defexpr /home/x/.nix-defexpr
 COPY --link --chown=5230:5230 --from=stage_nix /home/x/.nix-channels /home/x/.nix-channels
+COPY --link --chown=5230:5230 --from=stage_nix /home/x/.local/state/nix /home/x/.local/state/nix
 COPY --link --chown=5230:5230 --from=stage_python /opt/uv /opt/uv
 COPY --link --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
 

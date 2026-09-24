@@ -1,5 +1,5 @@
 {
-  "C_Cpp.clang_format_path": "/usr/local/store/clang-tools-18/bin/clang-format",
+  "C_Cpp.clang_format_path": "/usr/local/bin/clang-format",
   "C_Cpp.codeAnalysis.maxConcurrentThreads": 32,
   "C_Cpp.codeAnalysis.maxMemory": 50000,
   "C_Cpp.intelliSense.maxCachedProcesses": 120,
@@ -12,10 +12,9 @@
   "[cpp]": {
     "editor.tabSize": 2
   },
-  "clang-format.executable": "/usr/local/store/clang-tools-18/bin/clang-format",
+  "clang-format.executable": "/usr/local/bin/clang-format",
   "cmake.cmakePath": "/usr/local/store/cmake/bin/cmake",
   "cmake.ctestPath": "/usr/local/store/cmake/bin/ctest",
-  "cmakeFormat.exePath": "/nix/var/nix/profiles/default/bin/cmake-format",
   "files.insertFinalNewline": false,
   "files.trimFinalNewlines": false,
   "files.trimTrailingWhitespace": false,
@@ -24,61 +23,41 @@
   },
   "git.path": "/usr/local/store/git/bin/git",
   "go.alternateTools": {
-    // Go SDK
-    "go": "/nix/var/nix/profiles/default/bin/go",
-    "gofmt": "/nix/var/nix/profiles/default/bin/gofmt",
-    // Language Server / Debugger
-    "gopls": "/usr/local/store/gopls/bin/gopls",
-    "dlv": "/usr/local/store/delve/bin/dlv",
-    // Code generation / Playground
-    "goplay": "/usr/local/store/goplay/bin/goplay",
-    "impl": "/usr/local/store/impl/bin/impl",
-    "gotests": "/usr/local/store/gotests/bin/gotests",
-    // Formatters
-    "goimports": "/usr/local/store/gotools/bin/goimports",
-    "gofumpt": "/usr/local/store/gofumpt/bin/gofumpt",
-    // "goformat": "/usr/local/store/goformat/bin/goformat",
-    // Linters
-    "staticcheck": "/usr/local/store/go-tools/bin/staticcheck",
-    "golangci-lint": "/usr/local/store/golangci-lint/bin/golangci-lint",
-    "golangci-lint-v2": "/usr/local/store/golangci-lint/bin/golangci-lint",
-    "revive": "/usr/local/store/revive/bin/revive",
-    // 仅当 "go.formatTool": "custom" 时配置：
-    // "customFormatter": "/absolute/path/to/custom-formatter"
+    "go": "/opt/go/go1.27.1/bin/go",
+    "gofmt": "/opt/go/go1.27.1/bin/gofmt",
+    "gopls": "/usr/local/profile/go/bin/gopls",
+    "dlv": "/usr/local/profile/go/bin/dlv",
+    "impl": "/usr/local/profile/go/bin/impl",
+    "gotests": "/usr/local/profile/go/bin/gotests",
+    "goimports": "/usr/local/profile/go/bin/goimports",
+    "gofumpt": "/usr/local/profile/go/bin/gofumpt",
+    "staticcheck": "/usr/local/profile/go/bin/staticcheck",
+    "golangci-lint": "/usr/local/profile/go/bin/golangci-lint",
+    "golangci-lint-v2": "/usr/local/profile/go/bin/golangci-lint",
+    "revive": "/usr/local/profile/go/bin/revive"
   },
   "java.configuration.runtimes": [
     {
       "name": "JavaSE-1.8",
-      "path": "/nix/var/nix/profiles/jdk8/lib/openjdk"
+      "path": "/opt/java/openjdk8"
     },
-    // {
-    //   "default": true,
-    //   "name": "JavaSE-11",
-    //   "path": "/nix/var/nix/profiles/jdk11/lib/openjdk"
-    // }
     {
       "default": true,
-      "name": "JavaSE-25",
-      "path": "/nix/var/nix/profiles/jdk25/lib/openjdk"
+      "name": "JavaSE-27",
+      "path": "/opt/java/openjdk27"
     }
   ],
-  "java.import.gradle.home": "/nix/var/nix/profiles/default",
-  "java.jdt.ls.java.home": "/nix/var/nix/profiles/jdk25/lib/openjdk",
+  "java.jdt.ls.java.home": "/opt/java/openjdk27",
   "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx16G -Xms4G",
   "java.trace.server": "verbose",
-  "markdown-preview-enhanced.pandocPath": "/nix/var/nix/profiles/default/bin/pandoc",
   "prettier.prettierPath": "/nix/var/nix/profiles/default/lib/node_modules/prettier",
   "python.defaultInterpreterPath": "/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14",
-  // "python.formatting.yapfPath": "/nix/var/nix/profiles/default/bin/yapf",
-  "ruby.interpreter.commandPath": "/nix/var/nix/profiles/default/bin/ruby",
-  "ruby.pathToBundler": "/nix/var/nix/profiles/default/bin/bundle",
   "ruff.interpreter": [
     "/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14"
   ],
-  // "ruby.useBundler": true,
-  "shellcheck.executablePath": "/nix/var/nix/profiles/default/bin/shellcheck",
-  "typescript.npm": "/nix/var/nix/profiles/default/bin/npm",
-  "xml.java.home": "/nix/var/nix/profiles/jdk25/lib/openjdk",
+  "shellcheck.executablePath": "/usr/local/bin/shellcheck",
+  "typescript.npm": "/opt/node/nodejs24/bin/npm",
+  "xml.java.home": "/opt/java/openjdk27",
   "xml.server.vmargs": "-Xmx5G",
   "xml.server.binary.path": "/nix/var/nix/profiles/default/bin/lemminx",
   "nix.formatterPath": "/usr/local/store/nixfmt/bin/nixfmt",

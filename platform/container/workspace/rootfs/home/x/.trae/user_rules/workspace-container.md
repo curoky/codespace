@@ -22,11 +22,11 @@ alwaysApply: true
 | --- | --- |
 | Python | uv-managed 3.9-3.14，默认 3.14；`uv run`，`uv python find 3.<N>` |
 | Conda | `/opt/conda/condabin/conda`，默认不激活 |
-| Node.js | 默认 24；26 在 `/nix/var/nix/profiles/nodejs-26/bin` |
-| Go | 默认 1.26；tools 在 `/usr/local/profile/go/bin` |
+| Node.js | 默认 24；26 在 `/opt/node/nodejs26/bin` |
+| Go | 1.27；SDK 在 `/opt/go/go1.27.1`，tools 在 `/usr/local/profile/go/bin` |
 | Rust | `/opt/rust/cargo/bin`；`CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup` |
-| Java | JDK 25 默认；JDK 8/25 在 `/nix/var/nix/profiles/jdk{8,25}/lib/openjdk` |
-| C/C++ | GCC 15 默认；GCC 12/16 在 `/nix/var/nix/profiles/gcc-{12,16}/bin`；Clang 在 `/usr/local/bin` |
+| Java | JDK 27 默认；JDK 8/27 在 `/opt/java/openjdk{8,27}`；`JAVA_HOME=/opt/java/openjdk27` |
+| C/C++ | GCC 15；LLVM/Clang 23 在 `/opt/llvm/llvm23.1.2/bin`，Clang tools 在 `/usr/local/bin` |
 | CUDA | 12.2.2，`CUDA_HOME=/usr/local/cuda`；已装 Nsight Systems/Compute |
 
 预装工具主要在 `/usr/local/bin` 或默认 Nix profile。Protobuf 不在默认 PATH，用
@@ -52,7 +52,7 @@ alwaysApply: true
 
 ## Podman
 
-内置 rootless Podman，直接 `podman` 或 `docker`；数据在 `/opt/podman/data`，内部 container
+内置 rootless Podman，直接 `podman`；数据在 `/opt/podman/data`，内部 container
 共用 Workspace 资源边界。
 
 ## Credentials
