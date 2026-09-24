@@ -33,6 +33,12 @@
   `JAVA_HOME`。
 - payload 还包括 Rust、CUDA、NVIDIA tools、radare2、rizin 与 Go tools profile；其中
   Go tools 通过 `/usr/local/profile/go` 暴露，不直接引用 payload 内的 store 路径。
+- Maven、LemMinX 与 Ghidra 通过通用 `tools/java-tool` 安装到 `/opt/java/tools`，launcher
+  固定绑定 `/opt/java/openjdk27`；Node.js CLI 同理由 `tools/node-tool` 安装到
+  `/opt/node/tools`。
+- JavaScript CLI 使用 `tools/node-tool` 在 resource build 中隔离安装到
+  `/opt/node/tools` 并固定使用 `/opt/node/nodejs24`；pnpm 12 直接安装为 Rust
+  executable。不要再从 Nix 重复安装同名 CLI。
 
 ## Rootless Podman
 

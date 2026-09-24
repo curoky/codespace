@@ -67,9 +67,9 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
   && nix-env -iA \
     # nixpkgs.ollama-cpu
     # nixpkgs.mitmproxy nixpkgs.copyparty nixpkgs.dool nixpkgs.git-filter-repo \
-    nixpkgs.lemminx nixpkgs.ghidra nixpkgs.maven \
+    # nixpkgs.lemminx nixpkgs.ghidra nixpkgs.maven \
     nixpkgs_unstable.codex \
-    nixpkgs.markdownlint-cli2 nixpkgs.pnpm nixpkgs.prettier \
+    # nixpkgs.markdownlint-cli2 nixpkgs.pnpm nixpkgs.prettier \
     -p /nix/var/nix/profiles/default \
   # && nix-env -iA nixpkgs.jdk8_headless -p /nix/var/nix/profiles/jdk8 \
   # && nix-env -iA nixpkgs.jdk25_headless -p /nix/var/nix/profiles/jdk25 \

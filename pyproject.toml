@@ -51,6 +51,7 @@ select = ["E", "F", "B", "Q", "I", "UP", "S", "SIM", "RUF", "PTH", "ANN", "C4", 
 # Tests may use assert, hardcoded dummy secrets, and fixed socket paths.
 "tests/**" = ["S101", "S105", "S106", "S108"]
 "platform/container/workspace/tests/**" = ["S101", "S603", "S607"]
+"platform/container/workspace/tools/*/test_*.py" = ["S101", "S603", "S108"]
 
 [tool.mypy]
 strict = true

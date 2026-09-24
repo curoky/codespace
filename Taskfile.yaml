@@ -1,6 +1,8 @@
 version: '3'
 
 vars:
+  JAVA_TOOL: platform/container/workspace/tools/java-tool
+  NODE_TOOL: platform/container/workspace/tools/node-tool
   WORKSPACE_AGENT: platform/container/workspace/agent
   WORKSPACE_IMAGE: platform/container/workspace
 
@@ -30,7 +32,7 @@ tasks:
   format:
     desc: 格式化 Python 与 Shell
     cmds:
-      - uv run ruff format src tests {{.WORKSPACE_AGENT}}/agent.py
+      - uv run ruff format src tests {{.WORKSPACE_AGENT}}/agent.py {{.JAVA_TOOL}} {{.NODE_TOOL}}
       - >-
         git ls-files -z --cached --others --exclude-standard -- '*.sh' '*.bats' |
         xargs -0 -P 6 -n 1 sh -c 'test ! -f "$1" || shfmt -w -i 2 -ci "$1"' sh
@@ -38,7 +40,7 @@ tasks:
   format:check:
     desc: 检查 Python 与 Shell 格式
     cmds:
-      - uv run ruff format --check src tests {{.WORKSPACE_AGENT}}/agent.py
+      - uv run ruff format --check src tests {{.WORKSPACE_AGENT}}/agent.py {{.JAVA_TOOL}} {{.NODE_TOOL}}
       - >-
         git ls-files -z --cached --others --exclude-standard -- '*.sh' '*.bats' |
         xargs -0 -P 6 -n 1 sh -c 'test ! -f "$1" || shfmt -d -i 2 -ci "$1"' sh
@@ -46,7 +48,7 @@ tasks:
   lint:
     desc: 运行 Ruff 与 ShellCheck
     cmds:
-      - uv run ruff check src tests {{.WORKSPACE_AGENT}}/agent.py
+      - uv run ruff check src tests {{.WORKSPACE_AGENT}}/agent.py {{.JAVA_TOOL}} {{.NODE_TOOL}}
       - >-
         git ls-files -z --cached --others --exclude-standard -- '*.sh' '*.bats' |
         xargs -0 -P 6 -n 1 sh -c 'test ! -f "$1" || shellcheck -x "$1"' sh
@@ -55,6 +57,8 @@ tasks:
     desc: 运行 strict Mypy
     cmds:
       - MYPYPATH={{.WORKSPACE_AGENT}} uv run mypy src/codespace {{.WORKSPACE_AGENT}}/agent.py
+      - uv run mypy {{.JAVA_TOOL}}/java-tool.py
+      - uv run mypy {{.NODE_TOOL}}/node-tool.py
       - >-
         cd {{.WORKSPACE_AGENT}} &&
         uv run --locked python -c "import agent"
@@ -69,6 +73,8 @@ tasks:
     internal: true
     cmds:
       - uv run pytest
+      - uv run pytest {{.JAVA_TOOL}}/test_java_tool.py --no-cov
+      - uv run pytest {{.NODE_TOOL}}/test_node_tool.py --no-cov
 
   test:shell:
     internal: true
@@ -82,6 +88,8 @@ tasks:
     cmds:
       - uv lock --check
       - uv lock --project {{.WORKSPACE_AGENT}} --check
+      - uv lock --script {{.JAVA_TOOL}}/java-tool.py --check
+      - uv lock --script {{.NODE_TOOL}}/node-tool.py --check
 
   check:
     desc: 运行快速本地检查，不含测试

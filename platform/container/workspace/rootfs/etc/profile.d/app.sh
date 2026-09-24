@@ -19,9 +19,9 @@ export PATH="$PATH:/opt/go/go1.27.1/bin"
 export PATH="$PATH:/opt/llvm/llvm23.1.2/bin"
 
 export JAVA_HOME=/opt/java/openjdk27
-export PATH="$PATH:$JAVA_HOME/bin"
+export PATH="$PATH:/opt/java/tools/bin:$JAVA_HOME/bin"
 
-export PATH="$PATH:/opt/node/nodejs24/bin"
+export PATH="$PATH:/opt/node/tools/bin:/opt/node/nodejs24/bin"
 
 export PATH="/home/x/.local/bin:$PATH"
 
