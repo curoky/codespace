@@ -7,7 +7,7 @@ RUN apt-get update -y && apt-get install -y curl zstd
 
 COPY platform/container/workspace/config/binman.yaml /tmp/binman.yaml
 RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
-    | bash -s -- --prefix /usr/local/bin \
+    | bash -s -- --prefix /usr/local \
   && /usr/local/bin/bm sync /tmp/binman.yaml \
   && ln -s -r /usr/local/bin/bazelisk /usr/local/bin/bazel \
   && rm -rf /usr/local/store/nettools/bin/hostname \
