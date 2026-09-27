@@ -3,12 +3,16 @@ ARG BASE_IMAGE=debian:13
 
 # --------------------------- Standalone binaries ----------------------------
 FROM docker.io/debian:latest AS stage_sb
-RUN apt-get update -y && apt-get install -y curl zstd
+RUN apt-get update -y && apt-get install -y curl
 
 COPY platform/container/workspace/config/binman.yaml /tmp/binman.yaml
-RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
+# Some packages expose sbin as a symlink to bin; preserve Debian's real directory after linking.
+RUN rmdir /usr/local/sbin \
+  && curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
     | bash -s -- --prefix /usr/local \
-  && /usr/local/bin/bm sync /tmp/binman.yaml \
+  && /usr/local/bin/bm --prefix /usr/local install --file /tmp/binman.yaml \
+  && rm -f /usr/local/sbin \
+  && install -d /usr/local/sbin \
   && ln -s -r /usr/local/bin/bazelisk /usr/local/bin/bazel \
   && rm -rf /usr/local/store/nettools/bin/hostname \
   && find /usr/local/store -type d -exec chmod 0755 {} +

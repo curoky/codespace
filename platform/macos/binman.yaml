@@ -1,7 +1,6 @@
 prefix: /opt/bm
-arch: darwin-arm64
-packages:
-  link:
+installs:
+  - packages:
     - zsh-plugins
     - smartmontools
     - starship
@@ -51,11 +50,12 @@ packages:
     - cloc
     - exiftool
     - bats
+    link-to: .
 
-  unlink:
+  - packages:
     - perl
-profiles:
-  go:
+
+  - packages:
     - gopls
     - delve
     - go-tools
@@ -65,3 +65,4 @@ profiles:
     - gotests
     - gotools
     - impl
+    link-to: profile/go

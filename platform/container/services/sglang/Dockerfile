@@ -35,7 +35,7 @@ RUN printf '%s\n' '#include <cuda_runtime.h>' '__global__ void kernel() {}' \
   && nvcc -std=c++20 -arch=sm_90a -c /tmp/cuda-smoke.cu -o /tmp/cuda-smoke.o \
   && rm /tmp/cuda-smoke.cu /tmp/cuda-smoke.o
 
-RUN /usr/local/bin/bm install uv
+RUN /usr/local/bin/bm --prefix /usr/local install uv
 
 # Upstream defaults to CUDA 13; normalize the complete stack back to CUDA 12.9.
 ARG SGLANG_REF=4ccff141dbe992794f9da6c3aa23535b4f72000d

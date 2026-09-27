@@ -7,8 +7,8 @@ RUN apt-get update -y \
 
 RUN --mount=type=bind,source=platform/container/services/s6/binman.yaml,target=/tmp/binman.yaml \
     curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
-    | bash -s -- --prefix /usr/local/bin \
-  && /usr/local/bin/bm sync /tmp/binman.yaml \
+    | bash -s -- --prefix /usr/local \
+  && /usr/local/bin/bm --prefix /usr/local install --file /tmp/binman.yaml \
   && find /usr/local/store -type d -exec chmod 0755 {} +
 
 COPY platform/container/services/s6/rootfs/ /

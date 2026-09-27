@@ -74,13 +74,12 @@ install_binman() {
     sudo install -d -o "$current_user" -g "$current_group" /opt/bm
   fi
 
-  mkdir -p /opt/bm/bin
   curl -fsSL \
     https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
     -o "$installer"
-  /bin/bash "$installer" --prefix /opt/bm/bin
+  /bin/bash "$installer" --prefix /opt/bm
 
-  /opt/bm/bin/bm sync --prefix /opt/bm "$script_dir/binman.yaml"
+  /opt/bm/bin/bm --prefix /opt/bm install --file "$script_dir/binman.yaml"
   ln -sfn /opt/bm/bin/bazelisk /opt/bm/bin/bazel
 }
 

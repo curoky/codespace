@@ -1,6 +1,6 @@
 prefix: /usr/local
-packages:
-  link:
+installs:
+  - packages:
     - 7zz
     - atuin
     - autoconf
@@ -120,7 +120,9 @@ packages:
     - s6-dns
     - execline
 
-  unlink:
+    link-to: .
+
+  - packages:
     - clang-tools-18
     - clang-tools-19
     - clang-tools-20

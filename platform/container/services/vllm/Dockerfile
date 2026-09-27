@@ -4,7 +4,7 @@ RUN apt-get update -y \
   && apt-get install -y --no-install-recommends libgomp1 \
   && rm -rf /var/lib/apt/lists/*
 
-RUN /usr/local/bin/bm install uv
+RUN /usr/local/bin/bm --prefix /usr/local install uv
 
 # Python 3.12 is the newest version covered by all pinned GPU wheels.
 ARG VLLM_COMMIT=e126687a9a828d513c01a07cd69f025f27d63280

@@ -1,6 +1,6 @@
 prefix: /usr/local
-packages:
-  link:
+installs:
+  - packages:
     - s6
     - s6-rc
     - s6-linux-init
@@ -10,3 +10,4 @@ packages:
     - supercronic
     - gdu
     - miniserve
+    link-to: .

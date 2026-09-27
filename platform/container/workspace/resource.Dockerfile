@@ -12,12 +12,12 @@ RUN apt-get update -y \
 
 # ---------------------------- Binman packages -------------------------------
 FROM docker.io/debian:latest AS stage_sb
-RUN apt-get update -y && apt-get install -y curl zstd
+RUN apt-get update -y && apt-get install -y curl
 
 RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
     | bash -s -- --prefix /usr/local \
-  && /usr/local/bin/bm install --prefix /usr/local radare2 rizin \
-  && /usr/local/bin/bm install --prefix /usr/local --link-to profile/go \
+  && /usr/local/bin/bm --prefix /usr/local install radare2 rizin \
+  && /usr/local/bin/bm --prefix /usr/local install --link-to profile/go \
     gopls delve go-tools gofumpt golangci-lint gotests gotools impl revive \
   && find /usr/local/store -type d -exec chmod 0755 {} +
 

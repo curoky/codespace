@@ -8,6 +8,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
+import yaml
 
 _CONTAINER = Path(__file__).resolve().parents[1] / "platform/container"
 
@@ -80,6 +81,37 @@ def test_workspace_image_packages_are_root_owned_and_user_installs_use_local() -
     )
     assert "- podman5-rootless" in manifest
     assert "bm download" not in dockerfile
+
+
+@pytest.mark.parametrize(
+    ("manifest_path", "prefix"),
+    [
+        (_CONTAINER / "workspace/config/binman.yaml", "/usr/local"),
+        (_CONTAINER / "services/s6/binman.yaml", "/usr/local"),
+        (_CONTAINER.parent / "macos/binman.yaml", "/opt/bm"),
+    ],
+)
+def test_binman_manifests_use_install_plan_schema(manifest_path: Path, prefix: str) -> None:
+    manifest = yaml.safe_load(manifest_path.read_text())
+
+    assert set(manifest) == {"prefix", "installs"}
+    assert manifest["prefix"] == prefix
+    assert manifest["installs"]
+    for install in manifest["installs"]:
+        assert set(install) <= {"packages", "link-to"}
+        assert install["packages"]
+
+
+def test_container_binman_commands_use_current_cli_and_explicit_prefix() -> None:
+    dockerfiles = sorted(_CONTAINER.glob("**/*Dockerfile"))
+
+    for dockerfile in dockerfiles:
+        contents = dockerfile.read_text()
+        if "/usr/local/bin/bm" not in contents:
+            continue
+        assert "/usr/local/bin/bm sync" not in contents, dockerfile
+        assert "/usr/local/bin/bm install" not in contents, dockerfile
+        assert "/usr/local/bin/bm --prefix /usr/local install" in contents, dockerfile
 
 
 def test_workspace_podman_separates_image_files_from_user_data() -> None:
