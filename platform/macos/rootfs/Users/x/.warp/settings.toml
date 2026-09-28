@@ -103,8 +103,8 @@ theme = "gruvbox_dark"
 
 [appearance.text]
 notebook_font_size = 14.0
-font_size = 16.0
-font_name = "FiraCode Nerd Font Mono"
+font_size = 20.0
+font_name = "UbuntuMono Nerd Font Mono"
 
 [terminal]
 
@@ -126,3 +126,8 @@ default_session_mode = "agent"
 
 [notifications]
 toast_duration_secs = 8
+
+[warpify]
+
+[warpify.ssh]
+ssh_extension_install_mode = "always_install"

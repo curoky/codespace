@@ -22,6 +22,7 @@ export TMUX_CONF_LOCAL="$XDG_CONFIG_HOME/tmux/tmux.conf.local"
 export GOPROXY="https://goproxy.cn,direct"
 export HOMEBREW_NO_ANALYTICS=1
 export HOMEBREW_NO_AUTO_UPDATE=1
+export UV_NATIVE_TLS=true
 
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
