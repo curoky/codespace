@@ -2,6 +2,9 @@
 
 此目录拥有 Workspace OCI image、resource payload、rootfs、embedded Agent 与 s6 graph。
 
+- 容器内 Agent 的环境规则由 `ENVIRONMENT.md` 维护；镜像构建时将其安装到
+  `/usr/local/share/codespace/ENVIRONMENT.md`，Trae user-rule 路径只保留软链接。
+
 ## Build
 
 - 默认 image：`platform/container/workspace/build.sh [base-image]`。
