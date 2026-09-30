@@ -107,11 +107,11 @@
     // "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "accessibility.signalOptions.volume": 10,
-  "bazel.buildifierExecutable": "/opt/bm/store/buildifier/bin/buildifier",
-  "bazel.buildifierFixOnFormat": true,
-  "bazel.enableCodeLens": true,
+  "bazel.buildifier.executable": "/opt/bm/store/buildifier/bin/buildifier",
+  "bazel.buildifier.fixOnFormat": true,
+  "bazel.codeLens.enable": true,
+  "bazel.commandLine.queriesShareServer": true,
   "bazel.executable": "/opt/bm/store/bazelisk/bin/bazelisk",
-  "bazel.queriesShareServer": true,
   "bookmarks.saveBookmarksInProject": true,
   "chat.agentHost.allowSignedOutWhenUsable": true,
   "chat.agentHost.codexAgent.enabled": true,
@@ -140,6 +140,8 @@
   "diffEditor.codeLens": true,
   "diffEditor.ignoreTrimWhitespace": false,
   "diffEditor.maxComputationTime": 0,
+  "diffEditor.renderSideBySide": true,
+  "diffEditor.useInlineViewWhenSpaceIsLimited": false,
   "docker.extension.dockerEngineAvailabilityPrompt": false,
   "docker.extension.enableComposeLanguageServer": false,
   "docker.languageserver.formatter.ignoreMultilineInstructions": true,
@@ -352,6 +354,7 @@
     "**/node_modules": true
   },
   "search.useGlobalIgnoreFiles": true,
+  "security.promptForRemoteFileProtocolHandling": false,
   "security.workspace.trust.enabled": false,
   "shellformat.flag": "-i 2 -s -ci",
   "shellformat.path": "/opt/bm/store/shfmt/bin/shfmt",
@@ -414,6 +417,5 @@
   "xml.symbols.maxItemsComputed": 400000,
   "yaml.disableSchemaDetection": [],
   "yaml.format.enable": true,
-  "yaml.format.singleQuote": true,
-  "security.promptForRemoteFileProtocolHandling": false
+  "yaml.format.singleQuote": true
 }
