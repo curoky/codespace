@@ -35,6 +35,7 @@ installs:
     - git-absorb
     - git-extras
     - git-lfs
+    - glab
     - glibcLocales
     - gnugrep
     - gnumake
