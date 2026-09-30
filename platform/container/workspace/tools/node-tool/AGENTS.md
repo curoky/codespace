@@ -69,8 +69,9 @@ uv run --script node-tool.py install \
 - `markdownlint-cli2@0.23.3`
 - `prettier@3.9.9`
 
-两者均绑定 `/opt/node/nodejs24`。构建阶段使用不含 Node.js 的最小 `PATH` 分别启动 pnpm
-和两个 launcher，验证 runtime 边界。主 Workspace image 不再从 Nix 安装这些同名命令。
+两者均绑定 `/opt/node/nodejs24`。最终 resource stage 以用户 `x` 使用最小 `PATH` 分别启动
+pnpm 和两个实际 CLI 入口；launcher 的 runtime 绑定由单元测试验证。主 Workspace image
+不再从 Nix 安装这些同名命令。
 
 ## Validation
 
