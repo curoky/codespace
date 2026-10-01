@@ -28,7 +28,7 @@ alwaysApply: true
 - Rust stable 位于 `/opt/rust`，Cargo 可执行文件位于 `/opt/rust/cargo/bin`。
 - CUDA 12.2.2 位于 `/usr/local/cuda-12.2`，默认链接为 `/usr/local/cuda`。
 - Python CLI 位于 `/opt/uv/bin`，Maven、LemMinX 和 Ghidra 位于
-  `/opt/java/tools/bin`，pnpm、markdownlint-cli2 和 Prettier 位于
+  `/opt/java/tools/bin`，pnpm、Defuddle、markdownlint-cli2 和 Prettier 位于
   `/opt/node/tools/bin`。
 - 其他工具默认使用 `nix-env -iA nixpkgs.<package>` 安装。
 

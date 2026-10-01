@@ -25,6 +25,7 @@
 │   ├── prettier                # node-tool 生成的 launcher
 │   └── markdownlint-cli2       # node-tool 生成的 launcher
 ├── envs/
+│   ├── defuddle/               # 独立 pnpm project
 │   ├── prettier/               # 独立 pnpm project
 │   └── markdownlint-cli2/      # 独立 pnpm project
 └── store/                      # pnpm shared content-addressable store
@@ -66,11 +67,12 @@ uv run --script node-tool.py install \
 
 随后 node-tool 安装：
 
+- `defuddle@0.19.4`
 - `markdownlint-cli2@0.23.3`
 - `prettier@3.9.9`
 
-两者均绑定 `/opt/node/nodejs24`。最终 resource stage 以用户 `x` 使用最小 `PATH` 分别启动
-pnpm 和两个实际 CLI 入口；launcher 的 runtime 绑定由单元测试验证。主 Workspace image
+三者均绑定 `/opt/node/nodejs24`。最终 resource stage 以用户 `x` 使用最小 `PATH` 分别启动
+pnpm 和三个实际 CLI 入口；launcher 的 runtime 绑定由单元测试验证。主 Workspace image
 不再从 Nix 安装这些同名命令。
 
 ## Validation

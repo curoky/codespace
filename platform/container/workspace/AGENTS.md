@@ -39,9 +39,9 @@
 - Maven、LemMinX 与 Ghidra 通过通用 `tools/java-tool` 安装到 `/opt/java/tools`，launcher
   固定绑定 `/opt/java/openjdk27`；Node.js CLI 同理由 `tools/node-tool` 安装到
   `/opt/node/tools`。
-- JavaScript CLI 使用 `tools/node-tool` 在 resource build 中隔离安装到
-  `/opt/node/tools` 并固定使用 `/opt/node/nodejs24`；pnpm 12 直接安装为 Rust
-  executable。不要再从 Nix 重复安装同名 CLI。
+- JavaScript CLI（Defuddle、markdownlint-cli2、Prettier）使用 `tools/node-tool` 在
+  resource build 中隔离安装到 `/opt/node/tools` 并固定使用 `/opt/node/nodejs24`；pnpm
+  12 直接安装为 Rust executable。不要再从 Nix 重复安装同名 CLI。
 
 ## Rootless Podman
 

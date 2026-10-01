@@ -108,6 +108,9 @@ COPY platform/container/workspace/tools/node-tool/node-tool.py \
   platform/container/workspace/tools/node-tool/node-tool.py.lock \
   /tmp/node-tool/
 RUN uv run --locked --script /tmp/node-tool/node-tool.py \
+    install defuddle@0.19.4 \
+    --node /opt/node/nodejs24 --pnpm /opt/node/tools/bin/pnpm \
+  && uv run --locked --script /tmp/node-tool/node-tool.py \
     install markdownlint-cli2@0.23.3 \
     --node /opt/node/nodejs24 --pnpm /opt/node/tools/bin/pnpm \
   && uv run --locked --script /tmp/node-tool/node-tool.py \
@@ -145,6 +148,9 @@ RUN /opt/resource/opt/go/go1.27.1/bin/go version \
   && /opt/resource/opt/node/nodejs24/bin/node --version \
   && /opt/resource/opt/node/nodejs26/bin/node --version \
   && env PATH=/usr/bin:/bin /opt/resource/opt/node/tools/bin/pnpm --version \
+  && env PATH=/opt/resource/opt/node/nodejs24/bin:/usr/bin:/bin \
+    /opt/resource/opt/node/tools/envs/defuddle/node_modules/.bin/defuddle \
+    --version \
   && env PATH=/opt/resource/opt/node/nodejs24/bin:/usr/bin:/bin \
     /opt/resource/opt/node/tools/envs/markdownlint-cli2/node_modules/.bin/markdownlint-cli2 \
     --version \
