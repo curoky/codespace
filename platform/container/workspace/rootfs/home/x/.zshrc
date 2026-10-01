@@ -57,8 +57,8 @@ source "$ZSH/plugins/extract/extract.plugin.zsh"
 source "$ZSH/plugins/git/git.plugin.zsh"
 
 source "/opt/conda/etc/profile.d/conda.sh"
-source "/usr/local/store/starship/share/starship/init.zsh"
-source "/usr/local/store/atuin/share/atuin/init.zsh"
+source "/usr/local/store/zsh-plugins/share/oh-my-zsh/custom/plugins/starship/starship.plugin.zsh"
+source "/usr/local/store/zsh-plugins/share/oh-my-zsh/custom/plugins/atuin/atuin.plugin.zsh"
 
 # User definitions take precedence over framework aliases and functions.
 source "$XDG_CONFIG_HOME/zsh/aliases.zsh"
