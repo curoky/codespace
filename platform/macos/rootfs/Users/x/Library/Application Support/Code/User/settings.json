@@ -289,7 +289,6 @@
   "markdown-preview-enhanced.liveUpdate": true,
   "markdown-preview-enhanced.previewTheme": "solarized-light.css",
   "markdown.extension.toc.updateOnSave": false,
-  "markdown.preview.fontSize": 18,
   "notebook.cellToolbarLocation": {
     "default": "right",
     "jupyter-notebook": "left"
@@ -417,5 +416,6 @@
   "xml.symbols.maxItemsComputed": 400000,
   "yaml.disableSchemaDetection": [],
   "yaml.format.enable": true,
-  "yaml.format.singleQuote": true
+  "yaml.format.singleQuote": true,
+  "markdown.preview.lineHeight": 1.2
 }
