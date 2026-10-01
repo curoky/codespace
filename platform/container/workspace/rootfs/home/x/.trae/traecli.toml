@@ -5,6 +5,8 @@ model_reasoning_effort = "high"
 service_tier = "priority"              # 后端优先排队（需账号权限）
 seed_super_relay_enabled = true        # 走 SuperRelay 加速中继
 
+commit_attribution = ""
+
 # —— 权限/审查（顶层，且互斥键只保留一套）——
 approval_policy = "never"
 approvals_reviewer = "user"
