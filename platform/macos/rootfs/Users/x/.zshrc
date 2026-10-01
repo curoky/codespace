@@ -62,8 +62,8 @@ source "$ZSH/lib/git.zsh"
 source "$ZSH/plugins/extract/extract.plugin.zsh"
 source "$ZSH/plugins/git/git.plugin.zsh"
 
-source "/opt/bm/store/starship/share/starship/init.zsh"
-source "/opt/bm/store/atuin/share/atuin/init.zsh"
+source "/opt/bm/store/zsh-plugins/share/oh-my-zsh/custom/plugins/starship/starship.plugin.zsh"
+source "/opt/bm/store/zsh-plugins/share/oh-my-zsh/custom/plugins/atuin/atuin.plugin.zsh"
 source "$ZSH/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
 source "$XDG_CONFIG_HOME/zsh/functions.zsh"

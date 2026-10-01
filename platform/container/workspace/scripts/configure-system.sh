@@ -16,6 +16,7 @@ chmod 4755 \
   /usr/local/store/shadow/bin/newgidmap \
   /usr/local/store/shadow/bin/newuidmap \
   /usr/local/store/sudo/bin/sudo
+rm -f /usr/local/bin/su /usr/local/sbin/su
 
 install -d -o 5230 -g 5230 -m 0700 /opt/secret
 chown -R 5230:5230 /home/x /opt

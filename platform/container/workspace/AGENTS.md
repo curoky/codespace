@@ -22,6 +22,8 @@
   `/opt/podman/data` 是外部状态边界；初始化只修正挂载根，不递归改写持久数据。
 - Workspace 由 control plane 创建。`CODESPACE_ENCRYPTED` 必须为 `true` 或 `false`；
   root password 和 encryption key 只通过 `/run/secrets/*` 注入。
+- root password 固定生成 SHA-512 hash，供静态 `sudo` 校验；`su` 必须使用 Debian 的
+  setuid 实现，不得使用 binman 安装的 standalone `shadow` 实现。
 - Workspace service 默认只监听 loopback；Host publication 只由 Project
   `tunnel_ports` 声明。
 - Atuin 客户端固定使用官方 `https://api.atuin.sh`；`atuin-login` 从

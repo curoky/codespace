@@ -417,5 +417,6 @@
   "yaml.disableSchemaDetection": [],
   "yaml.format.enable": true,
   "yaml.format.singleQuote": true,
-  "markdown.preview.lineHeight": 1.2
+  "markdown.preview.lineHeight": 1.2,
+  "remote.autoForwardPorts": false
 }

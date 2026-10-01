@@ -88,6 +88,18 @@ def test_workspace_root_services_use_only_root_owned_path() -> None:
     assert "chmod 0640" not in init
 
 
+def test_workspace_root_password_tools_support_system_authentication() -> None:
+    configure = (_CONTAINER / "workspace/scripts/configure-system.sh").read_text()
+    password_init = (
+        _CONTAINER / "workspace/rootfs/usr/local/codespace/bin/init-root-password"
+    ).read_text()
+    sudoers = (_CONTAINER / "workspace/rootfs/etc/sudoers").read_text()
+
+    assert "rm -f /usr/local/bin/su /usr/local/sbin/su" in configure
+    assert "/usr/sbin/chpasswd --crypt-method SHA512" in password_init
+    assert "x ALL=(ALL:ALL) ALL" in sudoers
+
+
 def test_workspace_image_packages_are_root_owned_and_user_installs_use_local() -> None:
     dockerfile = (_CONTAINER / "workspace/Dockerfile").read_text()
     manifest = (_CONTAINER / "workspace/config/binman.yaml").read_text()

@@ -3,4 +3,4 @@ Defaults targetpw
 Defaults secure_path="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
 
 root ALL=(ALL:ALL) ALL
-%sudo ALL=(ALL:ALL) ALL
+x ALL=(ALL:ALL) ALL
