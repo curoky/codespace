@@ -440,6 +440,7 @@ def test_workspace_container_uses_fixed_ssh_listener_and_configured_mounts(
     data["projects"]["codespace"]["encrypted"] = encrypted
     data["secrets"]["codespace_workspace_key"] = "test-key"
     configured_secrets = [
+        {"source": "atuin_credentials", "mode": 0o400},
         {"source": "atuin_db_uri", "mode": 0o400},
         {
             "source": "codespace_root_password",
@@ -496,9 +497,12 @@ def test_workspace_container_uses_fixed_ssh_listener_and_configured_mounts(
     assert environment["CODESPACE_CLONE_URL"] == "git@github.com:curoky/codespace.git"
     assert environment["CODESPACE_GIT_ARGS"] == '["--depth=1", "--single-branch"]'
     assert "ATUIN_SYNC_ADDRESS" not in environment
-    assert captured["spec"].secrets[0].source == "atuin_db_uri"  # type: ignore[union-attr]
-    assert captured["spec"].secrets[0].mode == 0o400  # type: ignore[union-attr]
-    assert captured["spec"].secrets[1].model_dump() == {  # type: ignore[union-attr]
+    assert [secret.source for secret in captured["spec"].secrets[:2]] == [  # type: ignore[union-attr]
+        "atuin_credentials",
+        "atuin_db_uri",
+    ]
+    assert all(secret.mode == 0o400 for secret in captured["spec"].secrets[:2])  # type: ignore[union-attr]
+    assert captured["spec"].secrets[2].model_dump() == {  # type: ignore[union-attr]
         "source": "codespace_root_password",
         "target": "/run/secrets/codespace_root_password",
         "uid": "0",

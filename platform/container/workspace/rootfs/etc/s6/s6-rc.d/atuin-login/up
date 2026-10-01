@@ -2,7 +2,25 @@
 
 redirfd -w 1 /var/log/s6.atuin-login.log
 fdmove -c 2 1
+
+if { test -s /run/secrets/atuin_credentials }
+backtick -i -n ATUIN_USERNAME { /usr/bin/cut -s -d / -f 1 /run/secrets/atuin_credentials }
+importas -u ATUIN_USERNAME ATUIN_USERNAME
+backtick -i -n ATUIN_PASSWORD { /usr/bin/cut -s -d / -f 2 /run/secrets/atuin_credentials }
+importas -u ATUIN_PASSWORD ATUIN_PASSWORD
+backtick -i -n ATUIN_KEY { /usr/bin/cut -s -d / -f 3- /run/secrets/atuin_credentials }
+importas -u ATUIN_KEY ATUIN_KEY
+if { test -n ${ATUIN_USERNAME} }
+if { test -n ${ATUIN_PASSWORD} }
+if { test -n ${ATUIN_KEY} }
+
 s6-setuidgid x
 s6-env HOME=/home/x
-if { /usr/local/store/atuin/bin/atuin login -u x -p x -k "motor core badge round grit able winner jelly immune exist jacket ranch endless coyote leave that lucky abstract split achieve curtain boy barrel vault" }
+if
+{
+  /usr/local/store/atuin/bin/atuin login
+    --username ${ATUIN_USERNAME}
+    --password ${ATUIN_PASSWORD}
+    --key ${ATUIN_KEY}
+}
 /usr/local/store/atuin/bin/atuin sync

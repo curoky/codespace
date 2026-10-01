@@ -24,6 +24,10 @@
   root password 和 encryption key 只通过 `/run/secrets/*` 注入。
 - Workspace service 默认只监听 loopback；Host publication 只由 Project
   `tunnel_ports` 声明。
+- Atuin 客户端固定使用官方 `https://api.atuin.sh`；`atuin-login` 从
+  `/run/secrets/atuin_credentials` 自动登录，内容格式固定为
+  `username/password/base64-key`，key 使用 `atuin key --base64` 的输出。保留
+  `atuin-server` service 定义供后续启用，但默认 s6 bundle 不启动它。
 
 ## Resource Payload
 

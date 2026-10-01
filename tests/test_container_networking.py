@@ -48,6 +48,28 @@ def test_workspace_secret_mount_uses_default_network_dns() -> None:
     assert 'local url="http://codespace-service-secret:8080"' in helper.read_text()
 
 
+def test_workspace_atuin_uses_official_sync_service_with_secret_login() -> None:
+    workspace = _CONTAINER / "workspace"
+    config = (workspace / "rootfs/home/x/.config/atuin/config.toml").read_text()
+    services = workspace / "rootfs/etc/s6/s6-rc.d"
+    login = (services / "atuin-login/up").read_text()
+
+    assert 'sync_address = "https://api.atuin.sh"' in config
+    assert (services / "atuin-server/run").exists()
+    assert (services / "atuin-login/up").exists()
+    assert (services / "default/contents.d/atuin-login").exists()
+    assert not (services / "default/contents.d/atuin-server").exists()
+    assert (services / "atuin-daemon/dependencies.d/atuin-login").exists()
+    assert not (services / "atuin-login/dependencies.d/atuin-server").exists()
+    assert login.count("/run/secrets/atuin_credentials") == 4
+    assert "/usr/bin/cut -s -d / -f 1" in login
+    assert "/usr/bin/cut -s -d / -f 2" in login
+    assert "/usr/bin/cut -s -d / -f 3-" in login
+    assert "--username ${ATUIN_USERNAME}" in login
+    assert "--password ${ATUIN_PASSWORD}" in login
+    assert "--key ${ATUIN_KEY}" in login
+
+
 def test_workspace_hosts_blackhole_runs_as_root_without_sudo() -> None:
     helper = _CONTAINER / "workspace/rootfs/usr/local/codespace/bin/init-hosts-blackhole"
     service = _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/hosts-blackhole/up"
