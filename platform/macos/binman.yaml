@@ -50,6 +50,10 @@ installs:
     - cloc
     - exiftool
     - bats
+    - ghostscript
+    - poppler
+    - qpdf
+
     link-to: .
 
   - packages:
