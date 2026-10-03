@@ -70,6 +70,18 @@ def test_workspace_atuin_uses_official_sync_service_with_secret_login() -> None:
     assert "--key ${ATUIN_KEY}" in login
 
 
+def test_workspace_gh_login_defaults_to_public_read_token() -> None:
+    workspace = _CONTAINER / "workspace"
+    login = (workspace / "rootfs/etc/s6/s6-rc.d/gh-login/up").read_text()
+    environment = (workspace / "ENVIRONMENT.md").read_text()
+
+    public_token = "/run/secrets/github_token_public_read"
+    actions_token = "/run/secrets/github_token_all_action_rw"
+    assert login.count(public_token) == 2
+    assert actions_token not in login
+    assert f'GH_TOKEN="$(cat {actions_token})"' in environment
+
+
 def test_workspace_hosts_blackhole_runs_as_root_without_sudo() -> None:
     helper = _CONTAINER / "workspace/rootfs/usr/local/codespace/bin/init-hosts-blackhole"
     service = _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/hosts-blackhole/up"

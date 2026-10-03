@@ -57,6 +57,7 @@ alwaysApply: true
 
 ## GitHub
 
-- `gh` 已通过 token 登录，可直接用于查询 repository、workflow 和 run。
-- 排查 GitHub Actions 时优先使用 `gh run list`、`gh run view` 和
-  `gh run view --log-failed` 获取失败日志。
+- `gh` 默认使用 `/run/secrets/github_token_public_read`。
+- 排查 GitHub Actions 时，为每条 `gh run list`、`gh run view` 或
+  `gh run view --log-failed` 命令添加前缀：
+  `GH_TOKEN="$(cat /run/secrets/github_token_all_action_rw)"`。
