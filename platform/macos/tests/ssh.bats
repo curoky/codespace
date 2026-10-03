@@ -8,9 +8,11 @@ setup() {
   MACOS_DIR="$(cd "$BATS_TEST_DIRNAME/.." && pwd -P)"
   REPO_ROOT="$(cd "$MACOS_DIR/../.." && pwd -P)"
   WORKSPACE_DIR="$REPO_ROOT/platform/container/workspace"
+  WORKSPACE_HOME="$WORKSPACE_DIR/rootfs/home/x"
   SSH_DIR="$MACOS_DIR/rootfs/Users/x/.ssh/codespace"
   TEST_ROOT="$(mktemp -d "${BATS_TEST_TMPDIR}/ssh-assets.XXXXXX")"
-  cp "$SSH_DIR/workspace_login_key_ed25519" "$TEST_ROOT/workspace_login_key_ed25519"
+  cp "$WORKSPACE_HOME/.ssh/workspace_login_key_ed25519" \
+    "$TEST_ROOT/workspace_login_key_ed25519"
   chmod 0600 "$TEST_ROOT/workspace_login_key_ed25519"
 }
 
