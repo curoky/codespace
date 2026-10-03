@@ -13,11 +13,10 @@ RUN apt-get update -y \
 FROM docker.io/debian:latest AS stage_sb
 RUN apt-get update -y && apt-get install -y curl
 
+COPY platform/container/workspace/config/binman-resource.yaml /tmp/binman.yaml
 RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
     | bash -s -- --prefix /usr/local \
-  && /usr/local/bin/bm --prefix /usr/local install radare2 rizin \
-  && /usr/local/bin/bm --prefix /usr/local install --link-to profile/go \
-    gopls delve go-tools gofumpt golangci-lint gotests gotools impl revive \
+  && /usr/local/bin/bm --prefix /usr/local install --file /tmp/binman.yaml \
   && find /usr/local/store -type d -exec chmod 0755 {} +
 
 # ------------------------------------ Go ------------------------------------
@@ -133,12 +132,16 @@ COPY --from=stage_cuda /usr/local/cuda-12.2 /opt/resource/usr/local/cuda-12.2
 COPY --from=stage_cuda /opt/nvidia/nsight-compute /opt/resource/opt/nvidia/nsight-compute
 COPY --from=stage_nsys /opt/nvidia/nsight-systems-cli /opt/resource/opt/nvidia/nsight-systems-cli
 COPY --from=stage_sb /usr/local/store /opt/resource/usr/local/store
-COPY --from=stage_sb /usr/local/profile/go /opt/resource/usr/local/profile/go
+COPY --from=stage_sb /usr/local/profile /opt/resource/usr/local/profile
 COPY --from=stage_java /opt/java /opt/resource/opt/java
 COPY --from=stage_node /opt/node /opt/resource/opt/node
 USER 5230:5230
 RUN /opt/resource/opt/go/go1.27.1/bin/go version \
   && /opt/resource/opt/llvm/llvm23.1.2/bin/clang --version \
+  # && /opt/resource/usr/local/profile/clang-tools/bin/clang-format --version \
+  # && /opt/resource/usr/local/profile/nodejs/bin/node --version \
+  # && /opt/resource/usr/local/profile/protobuf/bin/protoc --version \
+  # && /opt/resource/usr/local/profile/python/bin/python3 --version \
   && /opt/resource/opt/java/openjdk8/bin/java -version \
   && /opt/resource/opt/java/openjdk27/bin/java -version \
   && env PATH=/opt/resource/opt/java/openjdk27/bin:/usr/bin:/bin \

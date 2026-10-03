@@ -25,6 +25,8 @@ alwaysApply: true
 - Node.js 默认使用 `/opt/node/nodejs24` 中的 Node.js 24；另有 Node.js 26，
   位于 `/opt/node/nodejs26`。切换版本时将对应 `bin` 目录放到 `PATH` 前部。
 - Go 1.27.1 位于 `/opt/go/go1.27.1`，Go 工具位于 `/usr/local/profile/go/bin`。
+- binman 提供的 Clang tools、Protobuf 多版本集合分别位于
+  `/usr/local/profile/clang-tools`、`/usr/local/profile/protobuf`。
 - Rust stable 位于 `/opt/rust`，Cargo 可执行文件位于 `/opt/rust/cargo/bin`。
 - CUDA 12.2.2 位于 `/usr/local/cuda-12.2`，默认链接为 `/usr/local/cuda`。
 - Python CLI 位于 `/opt/uv/bin`，Maven、LemMinX 和 Ghidra 位于

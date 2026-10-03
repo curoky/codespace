@@ -2,38 +2,67 @@ prefix: /usr/local
 installs:
   - packages:
     - 7zz
+    # - aardvark-dns
+    - age
+    - aria2
     - atuin
     - autoconf
     - automake
+    # - bash
     - bat
     - bats
     - bazelisk
+    # - binman
+    # - binutils
     - bison
     - buildifier
+    # - busybox
     - bzip2
     - cacert
-    - clang-tools-22
+    # - catatonit
     - cloc
     - cmake
+    # - cmake_3_27_9
+    # - cmake_4_1_2
+    # - codex
+    # - conmon
+    # - connect
+    # - copyparty
+    # - coreutils
+    - croc
     - cronie
+    # - crun
     - curl
     - diffutils
+    - dive
+    # - docker-buildx
+    # - docker-compose
+    # - dool
+    # - dprint
     - ethtool
     - exiftool
     - eza
+    # - eza-ls
     - fd
+    # - ffmpeg
     - file
     - findutils
+    # - fira-code
+    - flac
     - flex
+    # - fuse
     - fuse3
     - fzf
     - gawk
+    # - gdb
     - gdu
     - gettext
     - gh
+    - ghostscript
     - git
     - git-absorb
     - git-extras
+    # - git-filter-repo
     - git-lfs
     - glab
     - glibcLocales
@@ -43,11 +72,17 @@ installs:
     - gnupg
     - gnused
     - gnutar
+    # - go
     - go-task
     - gocryptfs
+    # - gost
+    # - gpgme
     - graphviz
     - gzip
+    # - indent
+    # - inetutils
     - iproute2
+    # - iptables
     - iputils
     - jq
     - krb5
@@ -59,47 +94,77 @@ installs:
     - libtool
     - lsb-release
     - lsof
+    # - lua5_5
+    # - lxgw-wenkai
     - m4
     - makeself
+    # - man
+    # - markdownlint-cli2
+    # - mcfly
     - miniserve
+    # - mise
     - ncdu_1
+    # - nerd-fonts-fira-code
+    # - nerd-fonts-ubuntu-mono
     - netcat
+    # - netron
     - nettools
     - nil
     - ninja
     - nixcache
     - nixfmt
+    # - nsight-systems
+    # - numactl
+    # - opencommit
     - openssh_gssapi
     - openssl
+    # - oras
     - parallel
+    - patchelf
     - perl
     - pkgconf
+    # - pnpm
+    # - podman5
     - podman5-rootless
+    # - podman6
+    # - podman6-rootless
+    # - poppler
     - postgresql
+    # - prettier
     - procps
     - procs
+    # - qemu-user
+    - qpdf
     - rclone
+    # - rime-plugins
     - ripgrep
     - rsync
     - ruff
+    # - runc
     - scc
     - shadow
     - shellcheck
     - shfmt
+    # - skalibs
     - snappy
+    - sops
     - sqlite
     - starship
     - strace
     - sudo
     - supercronic
+    - tesseract
     - tmux
     - tmux-plugins
+    - tokei
     - tree
     - tzdata
     - unzip
+    # - util-linux
     - uv
     - vim
     - vim-plugins
+    - watchexec
     - wget
     - xxd
     - xz
@@ -112,6 +177,9 @@ installs:
     - zsh-plugins
     - zstd
 
+    link-to: .
+
+  - packages:
     - s6
     - s6-rc
     - s6-linux-init
@@ -120,19 +188,4 @@ installs:
     - s6-networking
     - s6-dns
     - execline
-
     link-to: .
-
-  - packages:
-    - clang-tools-18
-    - clang-tools-19
-    - clang-tools-20
-    - clang-tools-21
-
-    - protobuf_24
-    - protobuf_25
-    - protobuf_28
-    - protobuf_3_8_0
-    - protobuf_3_9_2
-
-    - busybox

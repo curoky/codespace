@@ -129,10 +129,57 @@ def test_workspace_image_packages_are_root_owned_and_user_installs_use_local() -
     assert "bm download" not in dockerfile
 
 
+def test_workspace_resource_image_installs_binman_manifest() -> None:
+    workspace = _CONTAINER / "workspace"
+    dockerfile = (workspace / "resource.Dockerfile").read_text()
+    manifest = yaml.safe_load((workspace / "config/binman-resource.yaml").read_text())
+
+    assert (
+        "COPY platform/container/workspace/config/binman-resource.yaml /tmp/binman.yaml"
+        in dockerfile
+    )
+    assert "/usr/local/bin/bm --prefix /usr/local install --file /tmp/binman.yaml" in dockerfile
+    assert "COPY --from=stage_sb /usr/local/profile /opt/resource/usr/local/profile" in dockerfile
+
+    profiles = {
+        install["link-to"]: set(install["packages"])
+        for install in manifest["installs"]
+        if install.get("link-to", "").startswith("profile/")
+    }
+    assert profiles["profile/clang-tools"] == {
+        "clang-tools-18",
+        "clang-tools-19",
+        "clang-tools-20",
+        "clang-tools-21",
+        "clang-tools-22",
+    }
+    assert profiles["profile/protobuf"] == {
+        "protobuf3_20",
+        "protobuf3_21",
+        "protobuf_23",
+        "protobuf_24",
+        "protobuf_25",
+        "protobuf_26",
+        "protobuf_27",
+        "protobuf_28",
+        "protobuf_29",
+        "protobuf_3_8_0",
+        "protobuf_3_9_2",
+    }
+    assert set(profiles) == {"profile/clang-tools", "profile/go", "profile/protobuf"}
+
+    rootfs_profiles = workspace / "rootfs/usr/local/profile"
+    for profile in ("clang-tools", "protobuf"):
+        assert (rootfs_profiles / profile).readlink() == Path(
+            f"/opt/resource/usr/local/profile/{profile}"
+        )
+
+
 @pytest.mark.parametrize(
     ("manifest_path", "prefix"),
     [
         (_CONTAINER / "workspace/config/binman.yaml", "/usr/local"),
+        (_CONTAINER / "workspace/config/binman-resource.yaml", "/usr/local"),
         (_CONTAINER / "services/s6/binman.yaml", "/usr/local"),
         (_CONTAINER.parent / "macos/binman.yaml", "/opt/bm"),
     ],
@@ -146,6 +193,22 @@ def test_binman_manifests_use_install_plan_schema(manifest_path: Path, prefix: s
     for install in manifest["installs"]:
         assert set(install) <= {"packages", "link-to"}
         assert install["packages"]
+
+
+def test_workspace_binman_manifests_do_not_overlap() -> None:
+    workspace = yaml.safe_load((_CONTAINER / "workspace/config/binman.yaml").read_text())
+    resource = yaml.safe_load((_CONTAINER / "workspace/config/binman-resource.yaml").read_text())
+
+    workspace_packages = [
+        package for install in workspace["installs"] for package in install["packages"]
+    ]
+    resource_packages = [
+        package for install in resource["installs"] for package in install["packages"]
+    ]
+
+    assert len(workspace_packages) == len(set(workspace_packages))
+    assert len(resource_packages) == len(set(resource_packages))
+    assert set(workspace_packages).isdisjoint(resource_packages)
 
 
 def test_container_binman_commands_use_current_cli_and_explicit_prefix() -> None:

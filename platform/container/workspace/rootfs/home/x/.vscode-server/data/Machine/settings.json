@@ -2,7 +2,7 @@
   "[cpp]": {
     "editor.tabSize": 2
   },
-  "C_Cpp.clang_format_path": "/usr/local/bin/clang-format",
+  "C_Cpp.clang_format_path": "/usr/local/profile/clang-tools/bin/clang-format",
   "C_Cpp.codeAnalysis.maxConcurrentThreads": 32,
   "C_Cpp.codeAnalysis.maxMemory": 50000,
   "C_Cpp.intelliSense.maxCachedProcesses": 120,
@@ -13,7 +13,7 @@
   "C_Cpp.maxConcurrentThreads": 32,
   "C_Cpp.maxMemory": 50000,
   "chat.permissions.default": "autoApprove",
-  "clang-format.executable": "/usr/local/bin/clang-format",
+  "clang-format.executable": "/usr/local/profile/clang-tools/bin/clang-format",
   "cmake.cmakePath": "/usr/local/store/cmake/bin/cmake",
   "cmake.ctestPath": "/usr/local/store/cmake/bin/ctest",
   "files.insertFinalNewline": false,

@@ -40,8 +40,9 @@
   Go、LLVM、OpenJDK 与 Node.js 均保留版本目录，不在 payload 内维护默认版本 symlink。
   默认版本由各自独立的 `PATH` 声明显式选择，只有 Java 额外导出生态依赖的
   `JAVA_HOME`。
-- payload 还包括 Rust、CUDA、NVIDIA tools、radare2、rizin 与 Go tools profile；其中
-  Go tools 通过 `/usr/local/profile/go` 暴露，不直接引用 payload 内的 store 路径。
+- payload 还包括 Rust、CUDA、NVIDIA tools、radare2、rizin，以及 Go tools、Clang
+  tools 与 Protobuf 的 binman profiles；这些 profile 通过
+  `/usr/local/profile/<family>` 暴露，不直接引用 payload 内的 store 路径。
 - Maven、LemMinX 与 Ghidra 通过通用 `tools/java-tool` 安装到 `/opt/java/tools`，launcher
   固定绑定 `/opt/java/openjdk27`；Node.js CLI 同理由 `tools/node-tool` 安装到
   `/opt/node/tools`。

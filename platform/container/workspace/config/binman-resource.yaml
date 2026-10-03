@@ -1,10 +1,12 @@
 prefix: /usr/local
-packages:
-  link:
+installs:
+  - packages:
     - radare2
     - rizin
-profiles:
-  go:
+
+    link-to: .
+
+  - packages:
     - gopls
     - delve
     - go-tools
@@ -14,3 +16,46 @@ profiles:
     - gotools
     - impl
     - revive
+    - gomodifytags
+
+    link-to: profile/go
+
+  - packages:
+    - clang-tools-18
+    - clang-tools-19
+    - clang-tools-20
+    - clang-tools-21
+    - clang-tools-22
+    # - clang-tools-23
+
+    link-to: profile/clang-tools
+
+  # - packages:
+  #   - nodejs-slim24
+  #   - nodejs-slim26
+
+  #   link-to: profile/nodejs
+
+  - packages:
+    - protobuf_23
+    - protobuf_24
+    - protobuf_25
+    - protobuf_26
+    - protobuf_27
+    - protobuf_28
+    - protobuf_29
+    - protobuf3_20
+    - protobuf3_21
+    - protobuf_3_8_0
+    - protobuf_3_9_2
+
+    link-to: profile/protobuf
+
+  # - packages:
+  #   - python311
+  #   - python312
+  #   - python313
+  #   - python314
+  #   - python315
+
+  #   link-to: profile/python
