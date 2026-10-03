@@ -419,5 +419,11 @@
   "yaml.format.singleQuote": true,
   "markdown.preview.lineHeight": 1.2,
   "remote.autoForwardPorts": false,
-  "window.density.layout": "compact"
+  "window.density.layout": "compact",
+  "AI.agent.v2.browserBuiltinEnabled": "off",
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "text": "Write commit messages in English and follow Conventional Commits 1.0.0: https://www.conventionalcommits.org/"
+    }
+  ],
 }
