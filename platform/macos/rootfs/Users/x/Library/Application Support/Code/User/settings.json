@@ -1,4 +1,5 @@
 {
+  "AI.agent.v2.browserBuiltinEnabled": "off",
   "AI.rules.importClaudeMd": true,
   "AI.toolcall.v2.command.allowList": "[\"python\",\"npm\",\"npx\",\"bazel\",\"nix\",\"nix-env\",\"nix-shell\",\"nix-channel\",\"grep\",\"ls\",\"echo\",\"head\",\"touch\",\"rm\",\"sleep\",\"tail\",\"cd\",\"cat\",\"python3\",\"./result-wget/bin/wget\",\"mkdir\",\"cp\",\"chmod\",\"/tmp/ptest/parallel/bin/parallel\",\"uv\"]",
   "AI.toolcall.v2.fileOp.allowPaths": "[\"/workspace/tmp\"]",
@@ -116,6 +117,7 @@
   "chat.agentHost.allowSignedOutWhenUsable": true,
   "chat.agentHost.codexAgent.enabled": true,
   "chat.editor.codex.preferAgentHost": true,
+  "chat.experimental.permissionsSandboxToggle.enabled": false,
   "chat.instructionsFilesLocations": {
     ".github/instructions": true
   },
@@ -228,6 +230,11 @@
     "Archive"
   ],
   "git.repositoryScanMaxDepth": 2,
+  "github.copilot.chat.commitMessageGeneration.instructions": [
+    {
+      "text": "Write commit messages in English and follow Conventional Commits 1.0.0: https://www.conventionalcommits.org/"
+    }
+  ],
   "go.alternateTools": {
     "dlv": "/opt/bm/store/delve/bin/dlv",
     "dlv-dap": "/opt/bm/store/delve/bin/dlv-dap",
@@ -289,6 +296,7 @@
   "markdown-preview-enhanced.liveUpdate": true,
   "markdown-preview-enhanced.previewTheme": "solarized-light.css",
   "markdown.extension.toc.updateOnSave": false,
+  "markdown.preview.lineHeight": 1.2,
   "notebook.cellToolbarLocation": {
     "default": "right",
     "jupyter-notebook": "left"
@@ -316,6 +324,7 @@
   "remote.SSH.reconnectionGraceTime": 360000,
   "remote.SSH.serverInstallPath": {},
   "remote.SSH.unsetLocalEnv": [],
+  "remote.autoForwardPorts": false,
   "remote.autoForwardPortsSource": "output",
   "remote.downloadExtensionsLocally": true,
   "remote.tunnels.access.preventSleep": true,
@@ -381,6 +390,7 @@
   "trae.network.proxy.effectiveMode": "system",
   "typescript.surveys.enabled": false,
   "update.showReleaseNotes": false,
+  "window.density.layout": "compact",
   "window.nativeTabs": true,
   "window.title": "${rootName}",
   "window.titleBarStyle": "native",
@@ -416,14 +426,5 @@
   "xml.symbols.maxItemsComputed": 400000,
   "yaml.disableSchemaDetection": [],
   "yaml.format.enable": true,
-  "yaml.format.singleQuote": true,
-  "markdown.preview.lineHeight": 1.2,
-  "remote.autoForwardPorts": false,
-  "window.density.layout": "compact",
-  "AI.agent.v2.browserBuiltinEnabled": "off",
-  "github.copilot.chat.commitMessageGeneration.instructions": [
-    {
-      "text": "Write commit messages in English and follow Conventional Commits 1.0.0: https://www.conventionalcommits.org/"
-    }
-  ],
+  "yaml.format.singleQuote": true
 }
