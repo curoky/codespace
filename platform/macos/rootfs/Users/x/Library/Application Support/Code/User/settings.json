@@ -418,5 +418,6 @@
   "yaml.format.enable": true,
   "yaml.format.singleQuote": true,
   "markdown.preview.lineHeight": 1.2,
-  "remote.autoForwardPorts": false
+  "remote.autoForwardPorts": false,
+  "window.density.layout": "compact"
 }

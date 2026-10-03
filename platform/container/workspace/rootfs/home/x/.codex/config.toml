@@ -1,7 +1,7 @@
 # —— traex-codex-bridge:让官方 codex 复用 traex 模型/额度 ——
-model = "gpt-5.6-sol"            # 直接作 traex 的 config_name;换模型改此值
-model_provider = "traexbridge"
-model_reasoning_effort = "xhigh" # traex 认 low/medium/high/xhigh
+model = "gpt-6-sol"            # 直接作 traex 的 config_name;换模型改此值
+# model_provider = "traexbridge"
+model_reasoning_effort = "medium" # traex 认 low/medium/high/xhigh
 approval_policy = "never"
 sandbox_mode = "danger-full-access"
 
@@ -26,3 +26,7 @@ wire_api = "responses"           # 必须 responses
 
 [projects."/workspace"]
 trust_level = "trusted"
+
+[projects."/workspace/codespace"]
+trust_level = "trusted"
+
