@@ -1,4 +1,7 @@
 {
+  "[cpp]": {
+    "editor.tabSize": 2
+  },
   "C_Cpp.clang_format_path": "/usr/local/bin/clang-format",
   "C_Cpp.codeAnalysis.maxConcurrentThreads": 32,
   "C_Cpp.codeAnalysis.maxMemory": 50000,
@@ -9,9 +12,7 @@
   "C_Cpp.maxCachedProcesses": 120,
   "C_Cpp.maxConcurrentThreads": 32,
   "C_Cpp.maxMemory": 50000,
-  "[cpp]": {
-    "editor.tabSize": 2
-  },
+  "chat.permissions.default": "autoApprove",
   "clang-format.executable": "/usr/local/bin/clang-format",
   "cmake.cmakePath": "/usr/local/store/cmake/bin/cmake",
   "cmake.ctestPath": "/usr/local/store/cmake/bin/ctest",
@@ -21,20 +22,21 @@
   "files.watcherExclude": {
     "**/build64_release/**": true
   },
+  "git.autofetch": true,
   "git.path": "/usr/local/store/git/bin/git",
   "go.alternateTools": {
+    "dlv": "/usr/local/profile/go/bin/dlv",
     "go": "/opt/go/go1.27.1/bin/go",
     "gofmt": "/opt/go/go1.27.1/bin/gofmt",
-    "gopls": "/usr/local/profile/go/bin/gopls",
-    "dlv": "/usr/local/profile/go/bin/dlv",
-    "impl": "/usr/local/profile/go/bin/impl",
-    "gotests": "/usr/local/profile/go/bin/gotests",
-    "goimports": "/usr/local/profile/go/bin/goimports",
     "gofumpt": "/usr/local/profile/go/bin/gofumpt",
-    "staticcheck": "/usr/local/profile/go/bin/staticcheck",
+    "goimports": "/usr/local/profile/go/bin/goimports",
     "golangci-lint": "/usr/local/profile/go/bin/golangci-lint",
     "golangci-lint-v2": "/usr/local/profile/go/bin/golangci-lint",
-    "revive": "/usr/local/profile/go/bin/revive"
+    "gopls": "/usr/local/profile/go/bin/gopls",
+    "gotests": "/usr/local/profile/go/bin/gotests",
+    "impl": "/usr/local/profile/go/bin/impl",
+    "revive": "/usr/local/profile/go/bin/revive",
+    "staticcheck": "/usr/local/profile/go/bin/staticcheck"
   },
   "java.configuration.runtimes": [
     {
@@ -50,19 +52,9 @@
   "java.jdt.ls.java.home": "/opt/java/openjdk27",
   "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx16G -Xms4G",
   "java.trace.server": "verbose",
-  "prettier.prettierPath": "/opt/node/tools/envs/prettier/node_modules/prettier",
-  "python.defaultInterpreterPath": "/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14",
-  "ruff.interpreter": [
-    "/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14"
-  ],
-  "shellcheck.executablePath": "/usr/local/bin/shellcheck",
-  "typescript.npm": "/opt/node/nodejs24/bin/npm",
-  "xml.java.home": "/opt/java/openjdk27",
-  "xml.server.vmargs": "-Xmx5G",
-  "xml.server.binary.path": "/opt/java/tools/bin/lemminx",
+  "nix.enableLanguageServer": true,
   "nix.formatterPath": "/usr/local/store/nixfmt/bin/nixfmt",
   "nix.serverPath": "/usr/local/store/nil/bin/nil",
-  "nix.enableLanguageServer": true,
   "nix.serverSettings": {
     "nil": {
       "formatting": {
@@ -72,15 +64,24 @@
       }
     }
   },
-  "git.autofetch": true,
+  "prettier.prettierPath": "/opt/node/tools/envs/prettier/node_modules/prettier",
+  "python.defaultInterpreterPath": "/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14",
+  "ruff.interpreter": [
+    "/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14"
+  ],
+  "shellcheck.executablePath": "/usr/local/bin/shellcheck",
   "terminal.integrated.defaultProfile.linux": "zsh",
   "terminal.integrated.profiles.linux": {
     "bash": {
-      "path": "/usr/bin/bash",
-      "icon": "terminal-bash"
+      "icon": "terminal-bash",
+      "path": "/usr/bin/bash"
     },
     "zsh": {
       "path": "/usr/local/bin/zsh"
     }
-  }
+  },
+  "typescript.npm": "/opt/node/nodejs24/bin/npm",
+  "xml.java.home": "/opt/java/openjdk27",
+  "xml.server.binary.path": "/opt/java/tools/bin/lemminx",
+  "xml.server.vmargs": "-Xmx5G"
 }
