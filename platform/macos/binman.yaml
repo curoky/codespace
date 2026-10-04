@@ -53,6 +53,7 @@ installs:
     - ghostscript
     - poppler
     - qpdf
+    - tesseract
 
     link-to: .
 

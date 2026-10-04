@@ -41,12 +41,12 @@ project_defaults:
       - ${RESOURCE_DATA}/workspace:/workspace.enc
       - ${RESOURCE_DATA}/podman:/opt/podman/data
       - ${RESOURCE_DATA}/control:/run/codespace-control
+      - ${RESOURCE_DATA}/cache/.local/share/traex:/home/x/.local/share/traex
       - ${RESOURCE_DATA}/cache/.vscode-server/cli:/home/x/.vscode-server/cli
       - ${RESOURCE_DATA}/cache/.vscode-server/extensions:/home/x/.vscode-server/extensions
+      # - ${RESOURCE_DATA}/cache/.vscode-server/data:/home/x/.vscode-server/data
       - ${RESOURCE_DATA}/cache/.trae/bin:/home/x/.trae/bin
-      - ${RESOURCE_DATA}/cache/.trae/extensions:/home/x/.trae/extensions
       - ${RESOURCE_DATA}/cache/.trae-cn/bin:/home/x/.trae-cn/bin
-      - ${RESOURCE_DATA}/cache/.trae-cn/extensions:/home/x/.trae-cn/extensions
       - ${RESOURCE_DATA}/cache/.trae-server/bin:/home/x/.trae-server/bin
       - ${RESOURCE_DATA}/cache/.trae-server/extensions:/home/x/.trae-server/extensions
       - ${RESOURCE_DATA}/cache/.trae-cn-server/bin:/home/x/.trae-cn-server/bin
