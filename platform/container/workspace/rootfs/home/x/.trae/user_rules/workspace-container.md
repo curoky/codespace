@@ -1,1 +1,1 @@
-/usr/local/share/codespace/ENVIRONMENT.md
+/usr/local/share/codespace/USAGE.md

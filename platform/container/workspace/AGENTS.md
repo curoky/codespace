@@ -1,61 +1,65 @@
 # Workspace Image
 
-此目录拥有 Workspace OCI image、resource payload、rootfs、embedded Agent 与 s6 graph。
+此目录拥有交互式 Workspace OCI image、只读 resource payload、rootfs、内嵌 Agent 和完整 s6
+graph。控制面决定实例配置；image 定义容器内固定 filesystem 与启动契约。
 
-- 容器内 Agent 的环境规则由 `ENVIRONMENT.md` 维护；镜像构建时将其安装到
-  `/usr/local/share/codespace/ENVIRONMENT.md`，Trae user-rule 路径只保留软链接。
+## Context Map
+
+- `Dockerfile`、`rootfs/`、`scripts/` 和 `config/binman.yaml`：主 Workspace image。
+- `resource.Dockerfile` 与 `config/binman-resource.yaml`：独立的大型工具 payload。
+- `agent/AGENTS.md`：容器内 bootstrap/Git HTTP Agent。
+- `tools/java-tool/AGENTS.md`、`tools/node-tool/AGENTS.md`：resource build 专用 installer。
+- `USAGE.md`：随 image 安装、供 Workspace 内 Agent 使用的全局使用文档。工具路径、默认版本
+  或推荐命令变化时同步更新。它不替代本维护文档。
 
 ## Build
 
-- 默认 image：`platform/container/workspace/build.sh [base-image]`。
-- resource image：`platform/container/workspace/build.sh --resource`。
-- 修改 filesystem、权限、s6 graph 或 runtime helper 后，至少构建对应 image。
+```bash
+platform/container/workspace/build.sh [base-image]
+platform/container/workspace/build.sh --resource
+```
+
+主 image 的 filesystem、权限、s6 graph、Agent 或 runtime helper 变化时构建主 image；payload
+内容、symlink target 或 installer 变化时构建 resource image。两侧 contract 同时变化时都构建。
 
 ## Runtime Contract
 
-- 固定用户是 `x`（UID/GID `5230`）；image-owned 文件位于 root-owned `/usr/local` 或
-  `/etc`，`/opt` 由 `x` 管理。
-- PID 1 是 `/etc/s6/init/bin/init`；service graph 只在 image build 时编译。依赖
-  `/workspace` 的 service 必须依赖 `gocryptfs-workspace`，不得在运行期重跑 init 或
-  oneshot。
-- `/workspace`、`/workspace.enc`、IDE cache、`/run/codespace-control` 与
-  `/opt/podman/data` 是外部状态边界；初始化只修正挂载根，不递归改写持久数据。
-- Workspace 由 control plane 创建。`CODESPACE_ENCRYPTED` 必须为 `true` 或 `false`；
-  root password 和 encryption key 只通过 `/run/secrets/*` 注入。
-- root password 固定生成 SHA-512 hash，供静态 `sudo` 校验；`su` 必须使用 Debian 的
-  setuid 实现，不得使用 binman 安装的 standalone `shadow` 实现。
-- Workspace service 默认只监听 loopback；Host publication 只由 Project
-  `tunnel_ports` 声明。
-- Atuin 客户端固定使用官方 `https://api.atuin.sh`；`atuin-login` 从
-  `/run/secrets/atuin_credentials` 自动登录，内容格式固定为
-  `username/password/base64-key`，key 使用 `atuin key --base64` 的输出。保留
-  `atuin-server` service 定义供后续启用，但默认 s6 bundle 不启动它。
+- 固定用户是 `x`（UID/GID `5230`）。image-owned system 文件位于 root-owned `/usr/local`、
+  `/etc` 或只读 resource payload；runtime 软件安装到用户 Nix profile。不要在启动时重建
+  immutable image 内容。
+- PID 1 是 `/etc/s6/init/bin/init`，service graph 只在 image build 时编译。依赖
+  `/workspace` 的 service 必须依赖 `gocryptfs-workspace`；runtime 不重跑 graph compile 或
+  image-build oneshot。
+- `/workspace`、`/workspace.enc`、IDE cache、`/run/codespace-control` 和
+  `/opt/podman/data` 是外部状态边界。初始化只准备挂载根，不能递归 chown、迁移或清除已有
+  持久数据。
+- `CODESPACE_ENCRYPTED` 只能是 `true`/`false`。root password、workspace key 和其他
+  credential 只从 `/run/secrets/*` 读取；缺失必要 secret 必须 fail-fast。
+- root password 使用 SHA-512 hash 配合静态 sudo contract；`su` 保留发行版的 setuid
+  implementation，不用 standalone shadow 替换。
+- Workspace 内 service 默认监听 container loopback。Host publication 与 UI tunnel allowlist
+  只由控制面 Project config 决定。
+- Atuin client 使用官方 sync；login credential 格式和 login service 由当前 s6 script 定义。
+  未加入 default bundle 的 server definition 不应被其他 service 当作依赖。
 
 ## Resource Payload
 
-- `resource.Dockerfile` 只承载启动无依赖的大型工具；payload 根固定为 `/opt/resource`，
-  由 `codespace-resource` volume 只读挂载。
-- Workspace image 只创建指向 payload 的 symlink；未挂载 volume 时允许链接悬空，s6
-  service 不得依赖这些工具。Workspace 以 `/opt/<family>` 映射 payload 中的整个 family；
-  Go、LLVM、OpenJDK 与 Node.js 均保留版本目录，不在 payload 内维护默认版本 symlink。
-  默认版本由各自独立的 `PATH` 声明显式选择，只有 Java 额外导出生态依赖的
-  `JAVA_HOME`。
-- payload 还包括 Rust、CUDA、NVIDIA tools、radare2、rizin，以及 Go tools、Clang
-  tools 与 Protobuf 的 binman profiles；这些 profile 通过
-  `/usr/local/profile/<family>` 暴露，不直接引用 payload 内的 store 路径。
-- Maven、LemMinX 与 Ghidra 通过通用 `tools/java-tool` 安装到 `/opt/java/tools`，launcher
-  固定绑定 `/opt/java/openjdk27`；Node.js CLI 同理由 `tools/node-tool` 安装到
-  `/opt/node/tools`。
-- JavaScript CLI（Defuddle、markdownlint-cli2、Prettier）使用 `tools/node-tool` 在
-  resource build 中隔离安装到 `/opt/node/tools` 并固定使用 `/opt/node/nodejs24`；pnpm
-  12 直接安装为 Rust executable。不要再从 Nix 重复安装同名 CLI。
+- payload 根固定为 `/opt/resource`，通过 `codespace-resource` named volume 只读挂载。主 image
+  只创建稳定 family/profile symlink；未挂载时允许链接悬空，默认 s6 service 不得依赖 payload。
+- `resource.Dockerfile` 是工具、版本、URL、checksum 和安装方式的 source of truth。不要在
+  `AGENTS.md` 维护重复清单，也不要从主 image 的其他 package manager 重复安装同名工具。
+- 多版本 family 保留版本目录；默认选择由 profile/PATH 显式声明。launcher 不能依赖 payload
+  内部 content-addressed store 的易变路径。
+- Java/Node CLI 通过各自通用 installer 隔离安装，并永久绑定 resource image 选定的外部
+  runtime。package-specific metadata 留在 `resource.Dockerfile`。
 
 ## Rootless Podman
 
-- 内置 Podman 只服务用户 `x`，固定连接
-  `unix:///run/user/5230/podman/podman.sock`；不得连接 Host rootful Podman。
-- `/opt/podman/data` 可持久化但不能被多个运行中的 Workspace 共享。保留 subordinate
-  IDs、setuid `newuidmap`/`newgidmap`、`SYS_ADMIN`、unconfined seccomp 与无限 pids。
-- 新 data 按 backing filesystem 选择 overlay 或 VFS；已有 graphroot 沿用原 driver，
-  不自动迁移或删除。内部 container 固定 `cgroups = "disabled"`。
-- WSL 继承相关文件，但其 s6 bundle 不启动 `podman`；WSL 支持必须单独设计和验证。
+- 内置 Podman 只服务用户 `x`，固定使用
+  `unix:///run/user/5230/podman/podman.sock`；它不能连接或管理 Host rootful Podman。
+- `/opt/podman/data` 是唯一持久状态边界，不能由多个运行中的 Workspace 共享。保留 rootless
+  所需 subordinate IDs、setuid helper、capability/security 与 unlimited pids contract。
+- 全新 graphroot 根据 backing filesystem 选择 native overlay 或 VFS；已有 graphroot 沿用
+  原 driver，不自动迁移、重建或删除。内部 container 固定禁用 cgroups。
+- WSL 继承 filesystem，但使用独立 s6 bundle且不启动 Podman；涉及 inherited graph 时按
+  `platform/wsl/AGENTS.md` 追加验证。

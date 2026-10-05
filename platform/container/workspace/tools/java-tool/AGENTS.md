@@ -2,11 +2,12 @@
 
 ## Ownership
 
-`java-tool` 是 resource image 构建期使用的通用 Java distribution installer。它只提供
+`java-tool` 是 resource image 构建期使用的单向 Java distribution installer。它只提供
 `install`，不包含 package catalog、下载器、JDK 管理、依赖解析或安装后的生命周期管理。
 
 package name、version、已校验的本地 artifact、解包方式和 launcher 映射全部由调用方声明。
-具体工具的版本、URL 与 SHA-256 只属于 `resource.Dockerfile`，不得写入 Python 实现。
+具体工具的版本、URL、SHA-256 与选定 JDK 只属于 `resource.Dockerfile`，不得写入 Python
+实现或本文件。
 
 ## Layout
 
@@ -38,7 +39,8 @@ uv run --locked --script java-tool.py install NAME@VERSION /tmp/tool.jar \
 - `--executable-dir PREFIX=DIR` 暴露目录内的 executable，命名为 `PREFIX<filename>`。
 - `--jar COMMAND=PATH` 创建 `java -jar` launcher。
 - archive 必须是仅含一个顶层目录的 ZIP 或 TAR。
-- 安装目标与 launcher 不允许已存在；resource image 应始终从空目录确定性构建。
+- 安装目标与 launcher 不允许已存在；resource image 应始终从空目录确定性构建，不实现
+  overwrite、upgrade、rollback、并发写入或迁移。
 
 ## Validation
 
