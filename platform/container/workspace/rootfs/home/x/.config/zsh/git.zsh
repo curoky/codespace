@@ -5,6 +5,27 @@ function init-git-user() {
   git config --local user.email cccuroky@gmail.com
 }
 
+function init-git-user-from-last-commit() {
+  local author_name author_email
+
+  if git config --local --get user.name >/dev/null ||
+    git config --local --get user.email >/dev/null; then
+    print -u2 "error: current repository already has author information"
+    return 1
+  fi
+
+  author_name="$(git log -1 --format='%an')" || return
+  author_email="$(git log -1 --format='%ae')" || return
+
+  if [[ -z "$author_name" || -z "$author_email" ]]; then
+    print -u2 "error: current repository has no commits"
+    return 1
+  fi
+
+  git config --local user.name "$author_name"
+  git config --local user.email "$author_email"
+}
+
 function git-unshallow() {
   git fetch --tags
   git config remote.origin.fetch '+refs/heads/*:refs/remotes/origin/*'

@@ -152,6 +152,7 @@ def test_workspace_resource_image_installs_binman_manifest() -> None:
         "clang-tools-20",
         "clang-tools-21",
         "clang-tools-22",
+        "clang-tools-23",
     }
     assert profiles["profile/protobuf"] == {
         "protobuf3_20",

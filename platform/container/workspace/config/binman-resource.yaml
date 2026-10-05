@@ -26,7 +26,7 @@ installs:
     - clang-tools-20
     - clang-tools-21
     - clang-tools-22
-    # - clang-tools-23
+    - clang-tools-23
 
     link-to: profile/clang-tools
 
