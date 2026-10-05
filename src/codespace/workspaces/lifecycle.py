@@ -47,6 +47,19 @@ def check_inventory(client: PodmanClient, spec: WorkspaceSpec) -> None:
             )
 
 
+def check_rebuild(actual: Workspace, spec: WorkspaceSpec) -> None:
+    actual_source = actual.source.model_dump(exclude={"args"})
+    desired_source = spec.source.model_dump(exclude={"args"})
+    if actual_source != desired_source:
+        raise ResourceConflict(
+            f"workspace {actual.id!r} source changed; delete and recreate it instead"
+        )
+    if actual.encrypted != spec.encrypted:
+        raise ResourceConflict(
+            f"workspace {actual.id!r} encryption changed; delete and recreate it instead"
+        )
+
+
 def bootstrap(
     spec: WorkspaceSpec,
     created: Container,

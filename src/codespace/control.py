@@ -107,6 +107,15 @@ class ControlPlane:
         spec = self.config.resource_spec(resource)
         if isinstance(spec, WorkspaceSpec) and isinstance(spec.source, ProviderSource):
             self._token(spec.source.type)
+        return self._queue(resource)
+
+    def queue_rebuild(self, resource: Resource) -> Operation:
+        spec = self.config.resource_spec(resource)
+        if not isinstance(spec, WorkspaceSpec):
+            raise ResourceNotFound(f"resource {resource.id!r} is not a workspace")
+        return self._queue(resource)
+
+    def _queue(self, resource: Resource) -> Operation:
         return self.operations.create(
             Operation(
                 id=resource.id,
@@ -187,6 +196,55 @@ class ControlPlane:
                 labels=spec.labels(),
                 random_tcp_ports=spec.tunnel_ports,
             )
+
+    def rebuild(self, resource: Resource) -> None:
+        spec = self.config.resource_spec(resource)
+        if not isinstance(spec, WorkspaceSpec):
+            raise ResourceNotFound(f"resource {resource.id!r} is not a workspace")
+        with self.operations.run(resource.host, resource.id):
+            self._rebuild_workspace(resource, spec)
+
+    def _rebuild_workspace(self, resource: Resource, spec: WorkspaceSpec) -> None:
+        def stage(message: str) -> None:
+            self.operations.update(resource.host, resource.id, status="running", stage=message)
+
+        stage("checking container")
+        client = self.transport.client(resource.host)
+        running = container.find_container(client, resource.container_name, labels=resource.labels)
+        if running is None:
+            raise ResourceNotFound(
+                f"workspace container {resource.container_name!r} "
+                f"not found on host {resource.host!r}"
+            )
+        actual = workspaces.read_workspace(running, resource.host)
+        workspace_runtime.check_rebuild(actual, spec)
+
+        route = self.transport.ssh_route(resource.host)
+        names = self.config.hosts[resource.host].forward_environment
+        forwarded: dict[str, str] = {}
+        if names:
+            stage("reading host environment")
+            forwarded = host.read_environment(route, names)
+
+        stage(f"pulling image {spec.image}")
+        container.pull_image(
+            client,
+            spec.container.image,
+            spec.container.platform,
+            "always",
+        )
+        data = host.remote_data_paths(route)
+        path = data.workspace(spec.project, spec.workspace)
+        stage("preparing data root")
+        host.prepare_directories(route, [path, *spec.container.data_directories(path)])
+
+        stage("replacing container")
+        container.remove_container(running)
+        self.transport.close_tcp(resource.host, actual.ssh_alias)
+        ssh.remove_route(actual)
+        stage("creating container")
+        created = workspace_runtime.create_container(client, spec, path, forwarded)
+        workspace_runtime.bootstrap(spec, created, self.transport, path, None, stage)
 
     def inspect_deletion(self, resource: Resource) -> RepoGitState:
         running = self._container(resource)

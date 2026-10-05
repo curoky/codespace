@@ -91,6 +91,24 @@ def workspace_logs(
     return {"logs": _control(request).logs(Resource(host, workspace, project))}
 
 
+@router.post(
+    "/api/projects/{project}/hosts/{host}/workspaces/{workspace}/rebuild",
+    status_code=202,
+)
+def rebuild_workspace(
+    project: ResourcePath,
+    host: HostPath,
+    workspace: ResourcePath,
+    background_tasks: BackgroundTasks,
+    request: Request,
+) -> Operation:
+    control = _control(request)
+    resource = Resource(host, workspace, project)
+    operation = control.queue_rebuild(resource)
+    background_tasks.add_task(control.rebuild, resource)
+    return operation
+
+
 @router.get("/api/projects/{project}/hosts/{host}/workspaces/{workspace}/tunnels/{port}")
 def open_workspace_tunnel(
     project: ResourcePath,

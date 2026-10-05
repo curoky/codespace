@@ -49,6 +49,7 @@ projectsElement.addEventListener("click", async (event) => {
   if (action === "purge") {
     await deleteWorkspace(project, host, workspace, true);
   }
+  if (action === "rebuild") await rebuildWorkspace(target, project, host, workspace);
   if (action === "logs") openWorkspaceLogsDialog(project, host, workspace);
   if (action === "dismiss-operation") {
     await dismissWorkspaceOperation(target, project, host, workspace);
@@ -370,6 +371,9 @@ function renderWorkspace(workspace, tunnelPorts) {
     }
   }
   actions.append(actionButton("Logs", "logs", target));
+  const rebuildButton = actionButton("Rebuild", "rebuild", target);
+  rebuildButton.title = "Pull the image and rebuild this Workspace container";
+  actions.append(rebuildButton);
   actions.append(actionButton("Delete", "delete", target));
   const purgeButton = actionButton("Purge", "purge", target);
   purgeButton.classList.add("danger");
@@ -442,6 +446,20 @@ async function submitWorkspace(project, host, workspace) {
   } catch (error) {
     notify(error.message);
     return false;
+  }
+}
+
+async function rebuildWorkspace(button, project, host, workspace) {
+  button.disabled = true;
+  try {
+    await api(`${workspacePath(project, host, workspace)}/rebuild`, {
+      method: "POST",
+    });
+    notify(`Queued rebuild for ${project}/${workspace} on ${host}`);
+    await refresh();
+  } catch (error) {
+    button.disabled = false;
+    notify(error.message);
   }
 }
 

@@ -15,7 +15,7 @@ from codespace.resources import Resource, ResourceConflict, ResourceNotFound
 from codespace.runtime import host as host_runtime
 from codespace.runtime.host import HostDataPaths
 from codespace.runtime.transport import SSHRoute
-from codespace.workspaces import RepoGitState, agent, lifecycle, provider, ssh
+from codespace.workspaces import EmptySource, RepoGitState, agent, lifecycle, provider, ssh
 from codespace.workspaces.agent import WorkspaceAgentClient
 
 _PATHS = HostDataPaths("/home/x/codespace")
@@ -248,6 +248,135 @@ def test_deploy_uses_configured_mounts_alongside_host_volumes(
     assert manager.transport.socket_forwards == [  # type: ignore[attr-defined]
         ("home", f"{root}/control/agent.sock")
     ]
+
+
+def test_rebuild_pulls_latest_image_before_replacing_container(
+    manager: ControlPlane,
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    spec = config.workspace_spec("codespace", "home", "debug")
+    running = SimpleNamespace(
+        id="old-container",
+        name=spec.container_name,
+        labels=spec.labels(),
+        attrs={"State": {"Status": "running"}},
+    )
+    events: list[object] = []
+    created = SimpleNamespace(id="new-container")
+
+    def reject_token(provider: object) -> str:
+        raise RuntimeError(f"token must not be read for {provider}")
+
+    monkeypatch.setattr(manager, "_token", reject_token)
+    monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
+    monkeypatch.setattr(
+        host_runtime,
+        "read_environment",
+        lambda *_args: (events.append("environment"), {"HTTP_PROXY": "proxy"})[-1],
+    )
+    monkeypatch.setattr(
+        lifecycle.container,
+        "pull_image",
+        lambda _client, image, platform, policy: events.append(("pull", image, platform, policy)),
+    )
+    monkeypatch.setattr(
+        host_runtime,
+        "prepare_directories",
+        lambda _route, _paths: events.append("paths"),
+    )
+    monkeypatch.setattr(
+        lifecycle.container,
+        "remove_container",
+        lambda actual: events.append(("remove", actual.id)),
+    )
+    monkeypatch.setattr(ssh, "remove_route", lambda _workspace: events.append("remove-route"))
+    monkeypatch.setattr(
+        lifecycle,
+        "create_container",
+        lambda _client, actual_spec, _path, forwarded: (
+            events.append(("create", actual_spec.image, forwarded)),
+            created,
+        )[-1],
+    )
+    monkeypatch.setattr(
+        lifecycle,
+        "bootstrap",
+        lambda actual_spec, actual, *_args: events.append(
+            ("bootstrap", actual_spec.image, actual.id)
+        ),
+    )
+
+    manager.queue_rebuild(Resource("home", "debug", "codespace"))
+    manager.rebuild(Resource("home", "debug", "codespace"))
+
+    assert events == [
+        "environment",
+        ("pull", spec.image, spec.platform, "always"),
+        "paths",
+        ("remove", "old-container"),
+        "remove-route",
+        ("create", spec.image, {"HTTP_PROXY": "proxy"}),
+        ("bootstrap", spec.image, "new-container"),
+    ]
+    assert manager.transport.closed_tcp == [  # type: ignore[attr-defined]
+        ("home", spec.ssh_alias)
+    ]
+    assert manager.operations.list() == []
+
+
+def test_rebuild_pull_failure_keeps_existing_container(
+    manager: ControlPlane,
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    spec = config.workspace_spec("scratch", "home", "debug")
+    running = SimpleNamespace(
+        id="old-container",
+        name=spec.container_name,
+        labels=spec.labels(),
+        attrs={"State": {"Status": "running"}},
+    )
+    removals: list[object] = []
+    monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
+    monkeypatch.setattr(host_runtime, "read_environment", lambda *_args: {})
+    monkeypatch.setattr(
+        lifecycle.container,
+        "pull_image",
+        lambda *_args: (_ for _ in ()).throw(RuntimeError("registry unavailable")),
+    )
+    monkeypatch.setattr(
+        lifecycle.container,
+        "remove_container",
+        lambda actual: removals.append(actual),
+    )
+
+    manager.queue_rebuild(Resource("home", "debug", "scratch"))
+    manager.rebuild(Resource("home", "debug", "scratch"))
+
+    assert removals == []
+    assert manager.transport.closed_tcp == []  # type: ignore[attr-defined]
+    failed = manager.operations.list()[0]
+    assert failed.status == "failed"
+    assert "registry unavailable" in (failed.error or "")
+
+
+@pytest.mark.parametrize(
+    "changed",
+    [
+        {"source": EmptySource(type="empty")},
+        {"encrypted": True},
+    ],
+)
+def test_rebuild_rejects_workspace_data_contract_changes(
+    config: Config,
+    changed: dict[str, object],
+) -> None:
+    spec = config.workspace_spec("codespace", "home", "debug")
+    actual = spec.to_workspace("container-id", status="running")
+
+    with pytest.raises(ResourceConflict, match="delete and recreate"):
+        lifecycle.check_rebuild(actual, spec.model_copy(update=changed))
 
 
 def test_create_failure_is_retained_as_failed_operation(

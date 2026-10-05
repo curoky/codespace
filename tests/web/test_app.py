@@ -21,6 +21,7 @@ class FakeControl:
         self.closed = False
         self.operations = OperationStore()
         self.deployed: list[Resource] = []
+        self.rebuilt: list[Resource] = []
         self.deleted: list[tuple[Resource, bool]] = []
         self.inspected: list[Resource] = []
         self.logs_read: list[Resource] = []
@@ -55,6 +56,12 @@ class FakeControl:
 
     def deploy(self, resource: Resource) -> None:
         self.deployed.append(resource)
+
+    def queue_rebuild(self, resource: Resource) -> Operation:
+        return self.queue(resource)
+
+    def rebuild(self, resource: Resource) -> None:
+        self.rebuilt.append(resource)
 
     def dismiss_failed(self, resource: Resource) -> bool:
         return self.operations.dismiss_failed(resource.host, resource.id)
@@ -167,6 +174,20 @@ def test_workspace_routes_use_project_and_workspace_identity(
     assert logs.json() == {"logs": "log line\n"}
 
 
+def test_workspace_rebuild_uses_workspace_identity(
+    app_client: tuple[TestClient, FakeControl],
+) -> None:
+    client, control = app_client
+
+    rebuilt = client.post(
+        "/api/projects/codespace/hosts/home/workspaces/debug/rebuild",
+    )
+
+    assert rebuilt.status_code == 202
+    assert rebuilt.json()["id"] == "space:codespace/debug@home"
+    assert control.rebuilt == [Resource("home", "debug", "codespace")]
+
+
 def test_tunnel_route_redirects_and_reports_failure(
     app_client: tuple[TestClient, FakeControl],
 ) -> None:
@@ -229,6 +250,7 @@ def test_only_final_api_routes_exist(app_client: tuple[TestClient, FakeControl])
         ("PUT", "/api/providers/{provider}/token"),
         ("POST", "/api/projects/{project}/workspaces"),
         ("GET", "/api/projects/{project}/hosts/{host}/workspaces/{workspace}/logs"),
+        ("POST", "/api/projects/{project}/hosts/{host}/workspaces/{workspace}/rebuild"),
         ("GET", "/api/projects/{project}/hosts/{host}/workspaces/{workspace}/tunnels/{port}"),
         ("GET", "/api/projects/{project}/hosts/{host}/workspaces/{workspace}/deletion-check"),
         ("DELETE", "/api/projects/{project}/hosts/{host}/workspaces/{workspace}"),
