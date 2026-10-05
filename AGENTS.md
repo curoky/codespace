@@ -28,9 +28,6 @@ Host；控制面通过本机 OpenSSH 管理 Host 上的 rootful Podman。
 | macOS 安装器、dotfiles 或 client SSH | `platform/macos/AGENTS.md` | 共享 home 变更同时读 Workspace 文档 |
 | WSL build、boot 或 Windows wiring | `platform/wsl/AGENTS.md` | 继承的 Workspace s6 变更同时读 Workspace 文档 |
 
-`platform/container/workspace/USAGE.md` 是安装进 Workspace、供其中 Agent 使用的全局使用
-文档；维护仓库本身时以各级 `AGENTS.md` 为准。
-
 ## Repository Rules
 
 - 跨模块边界和上下文索引只写入根 `AGENTS.md`；模块维护上下文写入最接近实现的

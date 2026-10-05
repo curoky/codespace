@@ -100,7 +100,6 @@ COPY --link --chown=5230:5230 --from=stage_nix /home/x/.local/state/nix /home/x/
 COPY --link --chown=5230:5230 --from=stage_python /opt/uv /opt/uv
 COPY --link --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
 
-COPY platform/container/workspace/USAGE.md /usr/local/share/codespace/USAGE.md
 COPY platform/container/workspace/rootfs/ /
 RUN --mount=type=bind,source=platform/container/workspace/scripts/configure-system.sh,target=/tmp/configure-system.sh \
   bash /tmp/configure-system.sh

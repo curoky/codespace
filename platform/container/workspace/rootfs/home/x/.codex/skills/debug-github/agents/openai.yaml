@@ -1,0 +1,4 @@
+interface:
+  display_name: "Debug GitHub"
+  short_description: "Debug GitHub access, Actions, and authentication failures."
+  default_prompt: "Use $debug-github to diagnose this GitHub or GitHub Actions issue."

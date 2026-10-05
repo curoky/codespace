@@ -9,8 +9,9 @@ graph。控制面决定实例配置；image 定义容器内固定 filesystem 与
 - `resource.Dockerfile` 与 `config/binman-resource.yaml`：独立的大型工具 payload。
 - `agent/AGENTS.md`：容器内 bootstrap/Git HTTP Agent。
 - `tools/java-tool/AGENTS.md`、`tools/node-tool/AGENTS.md`：resource build 专用 installer。
-- `USAGE.md`：随 image 安装、供 Workspace 内 Agent 使用的全局使用文档。工具路径、默认版本
-  或推荐命令变化时同步更新。它不替代本维护文档。
+- `rootfs/home/x/.codex/skills/`：按任务加载的容器使用 skill；`.trae/skills` 与
+  `.trae-cn/skills` 分别为每个内置 skill 创建链接。工具、GitHub、Podman 或 s6 的使用约定
+  变化时同步更新对应 skill。它们不替代本维护文档。
 
 ## Build
 

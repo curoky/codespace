@@ -1,0 +1,4 @@
+interface:
+  display_name: "Manage Software"
+  short_description: "Find installed tools and install missing system software."
+  default_prompt: "Use $manage-software to find or install the software required for this task."

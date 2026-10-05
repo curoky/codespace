@@ -1,1 +1,0 @@
-../../.trae/user_rules/workspace-container.md

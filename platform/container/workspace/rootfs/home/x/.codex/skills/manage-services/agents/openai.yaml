@@ -1,0 +1,4 @@
+interface:
+  display_name: "Manage Services"
+  short_description: "Inspect and control background services managed by s6."
+  default_prompt: "Use $manage-services to inspect or control this background service."

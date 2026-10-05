@@ -73,13 +73,22 @@ def test_workspace_atuin_uses_official_sync_service_with_secret_login() -> None:
 def test_workspace_gh_login_defaults_to_public_read_token() -> None:
     workspace = _CONTAINER / "workspace"
     login = (workspace / "rootfs/etc/s6/s6-rc.d/gh-login/up").read_text()
-    usage = (workspace / "USAGE.md").read_text()
+    github_skill = (workspace / "rootfs/home/x/.codex/skills/debug-github/SKILL.md").read_text()
 
     public_token = "/run/secrets/github_token_public_read"
     actions_token = "/run/secrets/github_token_all_action_rw"
     assert login.count(public_token) == 2
     assert actions_token not in login
-    assert f'GH_TOKEN="$(cat {actions_token})"' in usage
+    assert f'GH_TOKEN="$(cat {actions_token})"' in github_skill
+
+
+def test_workspace_agents_share_codex_skills() -> None:
+    home = _CONTAINER / "workspace/rootfs/home/x"
+
+    for skill in ("debug-github", "manage-services", "manage-software", "use-podman"):
+        target = f"../../.codex/skills/{skill}"
+        assert (home / ".trae/skills" / skill).readlink() == Path(target)
+        assert (home / ".trae-cn/skills" / skill).readlink() == Path(target)
 
 
 def test_workspace_hosts_blackhole_runs_as_root_without_sudo() -> None:
