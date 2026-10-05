@@ -265,10 +265,6 @@ def test_rebuild_pulls_latest_image_before_replacing_container(
     events: list[object] = []
     created = SimpleNamespace(id="new-container")
 
-    def reject_token(provider: object) -> str:
-        raise RuntimeError(f"token must not be read for {provider}")
-
-    monkeypatch.setattr(manager, "_token", reject_token)
     monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
     monkeypatch.setattr(
         host_runtime,
@@ -302,8 +298,8 @@ def test_rebuild_pulls_latest_image_before_replacing_container(
     monkeypatch.setattr(
         lifecycle,
         "bootstrap",
-        lambda actual_spec, actual, *_args: events.append(
-            ("bootstrap", actual_spec.image, actual.id)
+        lambda actual_spec, actual, _transport, _path, credentials, _stage: events.append(
+            ("bootstrap", actual_spec.image, actual.id, credentials)
         ),
     )
 
@@ -317,12 +313,26 @@ def test_rebuild_pulls_latest_image_before_replacing_container(
         ("remove", "old-container"),
         "remove-route",
         ("create", spec.image, {"HTTP_PROXY": "proxy"}),
-        ("bootstrap", spec.image, "new-container"),
+        ("bootstrap", spec.image, "new-container", (spec.source, "token")),
     ]
     assert manager.transport.closed_tcp == [  # type: ignore[attr-defined]
         ("home", spec.ssh_alias)
     ]
     assert manager.operations.list() == []
+
+
+def test_provider_bootstrap_requires_credentials(config: Config) -> None:
+    spec = config.workspace_spec("codespace", "home", "debug")
+
+    with pytest.raises(RuntimeError, match="provider credentials are required"):
+        lifecycle.bootstrap(
+            spec,
+            SimpleNamespace(),  # type: ignore[arg-type]
+            SimpleNamespace(),  # type: ignore[arg-type]
+            _PATHS.workspace("codespace", "debug"),
+            None,
+            lambda _stage: None,
+        )
 
 
 def test_rebuild_pull_failure_keeps_existing_container(

@@ -113,6 +113,8 @@ class ControlPlane:
         spec = self.config.resource_spec(resource)
         if not isinstance(spec, WorkspaceSpec):
             raise ResourceNotFound(f"resource {resource.id!r} is not a workspace")
+        if isinstance(spec.source, ProviderSource):
+            self._token(spec.source.type)
         return self._queue(resource)
 
     def _queue(self, resource: Resource) -> Operation:
@@ -218,6 +220,11 @@ class ControlPlane:
             )
         actual = workspaces.read_workspace(running, resource.host)
         workspace_runtime.check_rebuild(actual, spec)
+        credentials = (
+            (spec.source, self._token(spec.source.type))
+            if isinstance(spec.source, ProviderSource)
+            else None
+        )
 
         route = self.transport.ssh_route(resource.host)
         names = self.config.hosts[resource.host].forward_environment
@@ -244,7 +251,7 @@ class ControlPlane:
         ssh.remove_route(actual)
         stage("creating container")
         created = workspace_runtime.create_container(client, spec, path, forwarded)
-        workspace_runtime.bootstrap(spec, created, self.transport, path, None, stage)
+        workspace_runtime.bootstrap(spec, created, self.transport, path, credentials, stage)
 
     def inspect_deletion(self, resource: Resource) -> RepoGitState:
         running = self._container(resource)

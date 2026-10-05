@@ -68,6 +68,8 @@ def bootstrap(
     credentials: tuple[ProviderSource, str] | None,
     stage: Callable[[str], None],
 ) -> None:
+    if isinstance(spec.source, ProviderSource) and credentials is None:
+        raise RuntimeError(f"provider credentials are required to bootstrap {spec.id!r}")
     stage("waiting for workspace agent")
     control_source = next(
         volume.source

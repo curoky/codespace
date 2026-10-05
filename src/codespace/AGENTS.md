@@ -71,8 +71,9 @@ inspect 数据还原。
 - provider private key 在容器中生成。控制面只接收 public key，先注册 deploy key，再调用
   `provider-ready` 允许 checkout；token 不进入 Workspace。Agent ready 后才能写 macOS SSH
   route，失败时保留现场和 operation error。
-- Workspace rebuild 强制 pull 最新 image，成功后才替换 container，并复用已部署数据与 deploy
-  key；source 或 encryption 变化必须 delete 后重新 create，不在 rebuild 中迁移。
+- Workspace rebuild 强制 pull 最新 image，成功后才替换 container，并复用已部署数据；provider
+  Workspace 必须替换 ephemeral deploy key 后再放行 checkout。source 或 encryption 变化必须
+  delete 后重新 create，不在 rebuild 中迁移。
 - 删除检查通过 Agent 读取 Git 状态，不启动或修改已停止 Workspace。删除 provider
   Workspace 时先成功撤销 deploy key；普通 remove 保留 data，purge 才删除。
 - Service apply 使用 replace reconciliation：先 pull image 并准备数据，再移除旧 container、
