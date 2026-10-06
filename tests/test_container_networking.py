@@ -252,6 +252,17 @@ def test_workspace_bundles_java_and_node_installers() -> None:
         "COPY platform/container/workspace/tools/java-tool/ /opt/codespace-tools/java-tool/"
         in dockerfile
     )
+    resource_dockerfile = (workspace / "resource.Dockerfile").read_text()
+    assert (
+        "COPY platform/container/workspace/tools/node-tool/ /tmp/node-tool/" in resource_dockerfile
+    )
+    assert "RUN /tmp/node-tool/node-tool \\" in resource_dockerfile
+    assert "uv run --locked --script /tmp/node-tool/node-tool.py" not in resource_dockerfile
+    assert (
+        "COPY platform/container/workspace/tools/java-tool/ /tmp/java-tool/" in resource_dockerfile
+    )
+    assert "RUN /tmp/java-tool/java-tool \\" in resource_dockerfile
+    assert "uv run --locked --script /tmp/java-tool/java-tool.py" not in resource_dockerfile
     assert "/opt/codespace-tools/node-tool/" in dockerfile
     assert "/opt/codespace-tools/java-tool/" in dockerfile
     assert 'script_dir="$(dirname "$(readlink -f "$0")")"' in node_tool

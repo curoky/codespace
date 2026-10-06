@@ -112,6 +112,7 @@ def install_tool(
     node_root: Path,
     pnpm_path: Path,
     root: Path,
+    registry: str | None = None,
 ) -> tuple[str, str, tuple[str, ...]]:
     node = resolve_executable(node_root / "bin" / "node", "Node.js")
     pnpm = resolve_executable(pnpm_path, "pnpm")
@@ -122,19 +123,17 @@ def install_tool(
     with tempfile.TemporaryDirectory(prefix=".node-tool-", dir=root) as temporary_name:
         temporary = Path(temporary_name)
         (temporary / "package.json").write_text('{"private":true}\n', encoding="utf-8")
-        run_pnpm(
-            [
-                str(pnpm),
-                "--dir",
-                str(temporary),
-                "--store-dir",
-                str(root / "store"),
-                "add",
-                "--save-exact",
-                requested,
-            ],
-            node.parent,
-        )
+        command = [
+            str(pnpm),
+            "--dir",
+            str(temporary),
+            "--store-dir",
+            str(root / "store"),
+        ]
+        if registry is not None:
+            command.extend(["--registry", registry])
+        command.extend(["add", "--save-exact", requested])
+        run_pnpm(command, node.parent)
         package, version, bins = installed_package(temporary)
         environment = root / "envs" / quote(package, safe="")
         if environment.exists():
@@ -180,6 +179,10 @@ def install(
         Path,
         typer.Option("--root", help="Root for isolated environments and launchers"),
     ] = DEFAULT_ROOT,
+    registry: Annotated[
+        str | None,
+        typer.Option("--registry", help="npm registry URL passed to pnpm"),
+    ] = None,
 ) -> None:
     """Install one npm CLI package."""
     try:
@@ -188,6 +191,7 @@ def install(
             node_root=node,
             pnpm_path=pnpm,
             root=root,
+            registry=registry,
         )
     except NodeToolError as error:
         typer.echo(f"error: {error}", err=True)

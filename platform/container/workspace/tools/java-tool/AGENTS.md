@@ -46,8 +46,8 @@ uv run --locked --script java-tool.py install NAME@VERSION /tmp/tool.jar \
 - archive 必须是仅含一个顶层目录的 ZIP 或 TAR。
 - 安装目标与 launcher 不允许已存在；resource image 应始终从空目录确定性构建，不实现
   overwrite、upgrade、rollback、并发写入或迁移。
-- workspace 主 image 暴露 `java-tool` 命令，包装为 `uv run --locked --script` 调用同目录脚本；
-  resource build 继续直接执行源码。
+- workspace 主 image 与 resource build 都通过 `java-tool` wrapper 调用同目录源码；wrapper 固定
+  使用 `/usr/local/bin/uv run --locked --script`。
 
 ## Validation
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 import stat
 import subprocess
 import sys
@@ -8,6 +9,7 @@ from pathlib import Path
 from types import ModuleType
 
 import pytest
+from typer.testing import CliRunner
 
 
 def load_node_tool() -> ModuleType:
@@ -50,6 +52,7 @@ import sys
 
 directory = pathlib.Path(sys.argv[sys.argv.index("--dir") + 1])
 requested = sys.argv[-1]
+(directory / "pnpm-args.json").write_text(json.dumps(sys.argv[1:]), encoding="utf-8")
 name, separator, version = requested.rpartition("@")
 if not separator:
     name = requested
@@ -102,6 +105,37 @@ def test_install_creates_an_isolated_node_bound_launcher(tmp_path: Path) -> None
     assert (
         relocated_root / "envs" / "prettier" / "node_modules" / "prettier" / "package.json"
     ).is_file()
+
+
+def test_install_passes_registry_to_pnpm(tmp_path: Path) -> None:
+    root = tmp_path / "tools"
+    result = CliRunner().invoke(
+        node_tool.app,
+        [
+            "install",
+            "prettier@3.9.9",
+            "--node",
+            str(create_fake_node(tmp_path)),
+            "--pnpm",
+            str(create_fake_pnpm(tmp_path)),
+            "--root",
+            str(root),
+            "--registry",
+            "https://registry.example.com",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    command = json.loads(
+        (root / "envs" / "prettier" / "pnpm-args.json").read_text(encoding="utf-8")
+    )
+    assert command[-5:] == [
+        "--registry",
+        "https://registry.example.com",
+        "add",
+        "--save-exact",
+        "prettier@3.9.9",
+    ]
 
 
 def test_install_refuses_to_overwrite_an_existing_command(tmp_path: Path) -> None:

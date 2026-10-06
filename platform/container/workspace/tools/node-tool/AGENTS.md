@@ -13,7 +13,7 @@ Python 实现不复制这些数据。
 ## Install Contract
 
 ```bash
-node-tool install package@version
+node-tool install package@version [--registry https://registry.example.com]
 
 uv run --script \
   platform/container/workspace/tools/node-tool/node-tool.py install \
@@ -24,6 +24,7 @@ uv run --script \
 
 - `install` 创建只含一个 direct dependency 的临时 pnpm project，由 pnpm 负责 registry、
   resolution、lockfile 与 shared store。
+- `--registry` 可选，只为本次 `pnpm add` 指定 npm registry；省略时沿用 pnpm 的现有配置。
 - executable 只从安装结果的 `package.json#bin` 发现；不要维护手写的 package-to-command
   registry。
 - 成功后环境整体移入 `envs/<package>`，每个 launcher 把指定 Node.js `bin` 放到子进程 PATH
@@ -33,8 +34,8 @@ uv run --script \
 - 目标环境或任一公开命令已存在时直接失败。image build 从空 stage 开始，不实现 overwrite、
   uninstall、upgrade、rollback、并发写入或迁移。
 - pnpm 可以是 Dockerfile 独立安装的 native executable；它不属于 node-tool 管理环境。
-- workspace 主 image 暴露 `node-tool` 命令，包装为 `uv run --locked --script` 调用同目录脚本；
-  resource build 继续直接执行源码。
+- workspace 主 image 与 resource build 都通过 `node-tool` wrapper 调用同目录源码；wrapper 固定
+  使用 `/usr/local/bin/uv run --locked --script`。
 
 ## Validation
 

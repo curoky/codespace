@@ -90,17 +90,15 @@ ADD --checksum=sha256:ddac49f903da9d5bac833e5cc79395098b9c33cfd3279be5f31bd00387
   /tmp/ghidra.zip
 
 COPY --from=stage_uv /uv /usr/local/bin/uv
-COPY platform/container/workspace/tools/java-tool/java-tool.py \
-  platform/container/workspace/tools/java-tool/java-tool.py.lock \
-  /tmp/java-tool/
-RUN uv run --locked --script /tmp/java-tool/java-tool.py \
+COPY platform/container/workspace/tools/java-tool/ /tmp/java-tool/
+RUN /tmp/java-tool/java-tool \
     install maven@3.9.16 /tmp/apache-maven.tar.gz --extract \
     --executable mvn=bin/mvn --executable mvnDebug=bin/mvnDebug \
     --executable mvnyjp=bin/mvnyjp --java /opt/java/openjdk27 \
-  && uv run --locked --script /tmp/java-tool/java-tool.py \
+  && /tmp/java-tool/java-tool \
     install lemminx@0.31.2 /tmp/lemminx.jar \
     --jar lemminx=lemminx.jar --java /opt/java/openjdk27 \
-  && uv run --locked --script /tmp/java-tool/java-tool.py \
+  && /tmp/java-tool/java-tool \
     install ghidra@12.1.4 /tmp/ghidra.zip --extract \
     --executable ghidra=ghidraRun --executable-dir ghidra-=support \
     --java /opt/java/openjdk27
@@ -126,16 +124,14 @@ RUN mkdir -p /opt/node/nodejs24 /opt/node/nodejs26/lib /opt/node/tools/bin \
   && patchelf --set-rpath '$ORIGIN/../lib' /opt/node/nodejs26/bin/node
 
 COPY --from=stage_uv /uv /usr/local/bin/uv
-COPY platform/container/workspace/tools/node-tool/node-tool.py \
-  platform/container/workspace/tools/node-tool/node-tool.py.lock \
-  /tmp/node-tool/
-RUN uv run --locked --script /tmp/node-tool/node-tool.py \
+COPY platform/container/workspace/tools/node-tool/ /tmp/node-tool/
+RUN /tmp/node-tool/node-tool \
     install defuddle@0.19.4 \
     --node /opt/node/nodejs24 --pnpm /opt/node/tools/bin/pnpm \
-  && uv run --locked --script /tmp/node-tool/node-tool.py \
+  && /tmp/node-tool/node-tool \
     install markdownlint-cli2@0.23.3 \
     --node /opt/node/nodejs24 --pnpm /opt/node/tools/bin/pnpm \
-  && uv run --locked --script /tmp/node-tool/node-tool.py \
+  && /tmp/node-tool/node-tool \
     install prettier@3.9.9 \
     --node /opt/node/nodejs24 --pnpm /opt/node/tools/bin/pnpm
 
