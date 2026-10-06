@@ -25,8 +25,7 @@ RUN apt-get update -y \
   && curl -fsSL -o /tmp/miniconda.sh \
     "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-$(uname -m).sh" \
   && bash /tmp/miniconda.sh -b -u -p /opt/conda \
-  && /opt/conda/bin/conda clean -afy \
-  && rm -rf /tmp/miniconda.sh /var/lib/apt/lists/*
+  && /opt/conda/bin/conda clean -afy
 
 COPY platform/container/workspace/scripts/install-conda-environment.sh /opt/conda/condabin/install-conda-environment
 
@@ -41,15 +40,13 @@ RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates \
   && uv python install --no-bin 3.14 \
   && uv tool install copyparty \
-    --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
-  && rm -rf /root/.cache/uv /var/lib/apt/lists/*
+    --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14
 
 # ----------------------------------- Nix ------------------------------------
 FROM docker.io/debian:stable-slim AS stage_nix
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates curl xz-utils \
-  && useradd --create-home --uid 5230 --user-group x \
-  && rm -rf /var/lib/apt/lists/*
+  && useradd --create-home --uid 5230 --user-group x
 
 RUN mkdir -m 0755 /nix && chown 5230:5230 /nix
 

@@ -62,8 +62,7 @@ RUN apt-get update -y \
     --python /opt/resource/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
   && uv tool install tensorboard \
     --python /opt/resource/opt/uv/python/cpython-3.12-linux-x86_64-gnu/bin/python3.12 \
-    --with tensorboard-plugin-profile --with "setuptools==81.0.0" \
-  && rm -rf /var/lib/apt/lists/*
+    --with tensorboard-plugin-profile --with "setuptools==81.0.0"
 
 # ----------------------------------- Java -----------------------------------
 FROM docker.io/debian:stable-slim AS stage_java
@@ -154,6 +153,7 @@ COPY --from=stage_llvm /opt/llvm /opt/resource/opt/llvm
 COPY --from=stage_cuda /usr/local/cuda-12.2 /opt/resource/usr/local/cuda-12.2
 COPY --from=stage_cuda /opt/nvidia/nsight-compute /opt/resource/opt/nvidia/nsight-compute
 COPY --from=stage_nsys /opt/nvidia/nsight-systems-cli /opt/resource/opt/nvidia/nsight-systems-cli
+COPY --from=stage_sb /usr/local/bin /opt/resource/usr/local/bin
 COPY --from=stage_sb /usr/local/store /opt/resource/usr/local/store
 COPY --from=stage_sb /usr/local/profile /opt/resource/usr/local/profile
 COPY --from=stage_java /opt/java /opt/resource/opt/java
