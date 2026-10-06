@@ -121,7 +121,7 @@ def test_workspace_root_password_tools_support_system_authentication() -> None:
     assert "x ALL=(ALL:ALL) ALL" in sudoers
 
 
-def test_workspace_gocryptfs_uses_dedicated_identity() -> None:
+def test_workspace_gocryptfs_uses_workspace_identity() -> None:
     workspace = _CONTAINER / "workspace"
     configure = (workspace / "scripts/configure-system.sh").read_text()
     service = (workspace / "rootfs/etc/s6/s6-rc.d/gocryptfs-workspace/run").read_text()
@@ -132,16 +132,18 @@ def test_workspace_gocryptfs_uses_dedicated_identity() -> None:
         if secret["source"] == "codespace_workspace_key"
     )
 
-    assert "--uid 1001 --user-group --shell /usr/sbin/nologin gocryptfs" in configure
+    assert "user-group --shell /usr/sbin/nologin gocryptfs" not in configure
     assert workspace_key == {
         "source": "codespace_workspace_key",
-        "uid": "1001",
-        "gid": "1001",
+        "uid": "5230",
+        "gid": "5230",
         "mode": 0o400,
     }
-    assert "install -d -o 1001 -g 1001 -m 0700 -- /workspace /workspace.enc" in service
-    assert service.count('s6-applyuidgid -u 1001 -g 1001 -G ""') == 3
-    assert "-allow_other -force_owner 5230:5230" in service
+    assert "install -d -o 5230 -g 5230 -m 0700 -- /workspace /workspace.enc" in service
+    assert 's6-applyuidgid -u 5230 -g 5230 -G ""' in service
+    assert "s6-setuidgid x" in service
+    assert "-allow_other" in service
+    assert "-force_owner" not in service
 
 
 def test_workspace_image_packages_are_root_owned_and_user_installs_use_local() -> None:

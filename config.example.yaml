@@ -1,50 +1,65 @@
 hosts:
-  workstation:
-    forward_environment: [HTTP_PROXY, HTTPS_PROXY, NO_PROXY]
+  cpu:
     container:
       devices: [/dev/fuse, /dev/net/tun]
       volumes:
         - /etc/krb5.conf:/etc/krb5.conf:ro
 
-  gpu-host:
-    forward_environment: [HOST_IP, HOST_IPV6]
+  gpu-h100:
+    forward_environment: [MY_HOST_IP, MY_HOST_IPV6]
     container:
       devices: [nvidia.com/gpu=all, /dev/fuse, /dev/net/tun]
       volumes:
         - /etc/krb5.conf:/etc/krb5.conf:ro
         - /opt/tmp:/opt/tmp
+        - /opt/[[mask]]/cores:/opt/[[mask]]/cores
+        - /tmp/metric.sock:/tmp/metric.sock
+        - /usr/local/[[mask]]:/usr/local/[[mask]]:ro
+
+  gpu-a10:
+    forward_environment: [MY_HOST_IP, MY_HOST_IPV6]
+    container:
+      devices: [nvidia.com/gpu=all, /dev/fuse, /dev/net/tun]
+      volumes:
+        - /etc/krb5.conf:/etc/krb5.conf:ro
+        - /opt/tmp:/opt/tmp
+        - /opt/[[mask]]/cores:/opt/[[mask]]/cores
+        - /tmp/metric.sock:/tmp/metric.sock
+        - /usr/local/[[mask]]:/usr/local/[[mask]]:ro
 
 project_defaults:
-  resource_image: ghcr.io/curoky/codespace:workspace-resource
   encrypted: true
   tunnel_ports: [8007, 8008]
+  resource_image: ghcr.io/curoky/codespace:workspace-resource
   container:
     image: ghcr.io/curoky/codespace:workspace-debian13
     platform: linux/amd64
     pull_policy: always
     network_mode: bridge
     privileged: true
+    restart: unless-stopped
+    environment:
+      PATH: /opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     secrets:
-      - { source: codespace_root_password, uid: "0", gid: "0", mode: 0400 }
-      - { source: codespace_workspace_key, uid: "1001", gid: "1001", mode: 0400 }
-      - { source: huggingface_token, uid: "5230", gid: "5230", mode: 0400 }
-      - { source: atuin_credentials, uid: "5230", gid: "5230", mode: 0400 }
-      - { source: atuin_db_uri, uid: "5230", gid: "5230", mode: 0400 }
-      - { source: github_action_token, uid: "5230", gid: "5230", mode: 0400 }
+      - {source: codespace_root_password, uid: '0', gid: '0', mode: 0400}
+      - {source: codespace_workspace_key, uid: '5230', gid: '5230', mode: 0400}
+      - {source: huggingface_token, uid: '5230', gid: '5230', mode: 0400}
+      - {source: atuin_credentials, uid: '5230', gid: '5230', mode: 0400}
+      - {source: github_action_token, uid: '5230', gid: '5230', mode: 0400}
+      - {source: github_token_public_read, uid: '5230', gid: '5230', mode: 0400}
+      - {source: github_token_all_read, uid: '5230', gid: '5230', mode: 0400}
+      - {source: github_token_all_action_rw, uid: '5230', gid: '5230', mode: 0400}
     cap_add: [NET_RAW, SYS_ADMIN]
     security_opt: [label=disable, seccomp=unconfined, apparmor=unconfined]
     pids_limit: -1
     ulimits:
-      memlock: { soft: -1, hard: -1 }
+      memlock: {soft: -1, hard: -1}
     volumes:
       - codespace-resource:/opt/resource:ro
-      - type: bind
-        source: ${RESOURCE_DATA}/workspace
-        target: /workspace.enc
-        idmap: { host_uid: 5230, host_gid: 5230, container_uid: 1001, container_gid: 1001 }
+      - ${RESOURCE_DATA}/workspace:/workspace.enc
       - ${RESOURCE_DATA}/podman:/opt/podman/data
       - ${RESOURCE_DATA}/control:/run/codespace-control
-      - ${RESOURCE_DATA}/cache/.local/share/traex:/home/x/.local/share/traex
+      # - ${RESOURCE_DATA}/cache/.local/share/traex:/home/x/.local/share/traex
       - ${RESOURCE_DATA}/cache/.vscode-server/cli:/home/x/.vscode-server/cli
       - ${RESOURCE_DATA}/cache/.vscode-server/extensions:/home/x/.vscode-server/extensions
       # - ${RESOURCE_DATA}/cache/.vscode-server/data:/home/x/.vscode-server/data
@@ -57,36 +72,24 @@ project_defaults:
 
 projects:
   codespace:
-    description: Personal development platform
-    source:
-      - { type: github, repository: curoky/codespace }
-      - { type: github, repository: curoky/dotfiles }
-    hosts: [workstation, gpu-host]
-
-  learn-ml:
-    source: [{ type: github, repository: curoky/learn-ml }]
-    hosts: [gpu-host]
+    source: [{type: github, repository: curoky/codespace}]
+    hosts: [cpu, gpu-h100]
 
   standalone-binaries:
-    source: [{ type: github, repository: curoky/standalone-binaries }]
-    hosts: [gpu-host]
-    encrypted: false
-    container:
-      volumes:
-        - ${RESOURCE_DATA}/workspace:/workspace
+    source: [{type: github, repository: curoky/standalone-binaries}]
+    hosts: [gpu-h100]
 
-  notes:
-    source: [{ type: gitlab, repository: my-namespace/notes }]
-    hosts: [workstation]
+  automation:
+    source: [{type: github, repository: curoky/automation}]
+    hosts: [cpu]
 
-  scratch:
-    source: []
-    hosts: [gpu-host]
-    open_path: /workspace
+  agent-playbook:
+    source: [{type: github, repository: curoky/agent-playbook}]
+    hosts: [cpu]
 
   private-repo:
     source: [{ type: git, url: "git@git.example.com:team/private-repo" }]
-    hosts: [gpu-host]
+    hosts: [cpu]
     encrypted: false
     container:
       image: registry.example.com/base/dev-image:latest
@@ -95,20 +98,21 @@ projects:
 
 services:
   support:
-    hosts: [workstation, gpu-host]
+    hosts: [cpu, gpu-h100]
     tunnel_ports: [8008]
     container:
       image: ghcr.io/curoky/codespace:service-support
       platform: linux/amd64
       pull_policy: always
       network_mode: bridge
-      restart: unless-stopped
       volumes:
         - /run/podman/podman.sock:/run/podman/podman.sock
 
+      restart: unless-stopped
+
   secret:
-    hosts: [workstation, gpu-host]
-    tunnel_ports: [8008]
+    hosts: [cpu, gpu-h100]
+    tunnel_ports: [8008, 8081]
     container:
       image: ghcr.io/curoky/codespace:service-secret
       platform: linux/amd64
@@ -117,41 +121,41 @@ services:
       restart: unless-stopped
 
   vllm:
-    hosts: [gpu-host]
+    hosts: [gpu-h100]
     tunnel_ports: [8080, 8008]
     container:
       image: ghcr.io/curoky/codespace:service-vllm
       platform: linux/amd64
       pull_policy: always
       network_mode: bridge
-      restart: unless-stopped
       ipc: host
       pids_limit: -1
       devices: [nvidia.com/gpu=all]
       volumes:
         - ${RESOURCE_DATA}:/home/x/.cache/huggingface
       secrets:
-        - { source: huggingface_token, uid: "5230", gid: "5230", mode: 0400 }
+        - {source: huggingface_token, uid: '5230', gid: '5230', mode: 0400}
+      restart: unless-stopped
 
   sglang:
-    hosts: [gpu-host]
+    hosts: [gpu-h100]
     tunnel_ports: [8080, 8008]
     container:
       image: ghcr.io/curoky/codespace:service-sglang
       platform: linux/amd64
       pull_policy: always
       network_mode: bridge
-      restart: unless-stopped
       ipc: host
       pids_limit: -1
       devices: [nvidia.com/gpu=all]
       volumes:
         - ${RESOURCE_DATA}:/home/x/.cache/huggingface
       secrets:
-        - { source: huggingface_token, uid: "5230", gid: "5230", mode: 0400 }
+        - {source: huggingface_token, uid: '5230', gid: '5230', mode: 0400}
+      restart: unless-stopped
 
   chatbox:
-    hosts: [gpu-host]
+    hosts: [gpu-h100]
     tunnel_ports: [8080, 8008]
     container:
       image: ghcr.io/curoky/codespace:service-chatbox
@@ -161,13 +165,17 @@ services:
       restart: unless-stopped
 
 tokens:
-  github: github_pat_REPLACE_WITH_GITHUB_TOKEN
-  gitlab: glpat-REPLACE_WITH_GITLAB_TOKEN
+  github: masked
+  gitlab: masked
 
 secrets:
-  codespace_root_password: REPLACE_WITH_ROOT_PASSWORD
-  codespace_workspace_key: REPLACE_WITH_WORKSPACE_ENCRYPTION_KEY
-  huggingface_token: hf_REPLACE_WITH_HUGGINGFACE_TOKEN
-  atuin_credentials: REPLACE_WITH_USERNAME/REPLACE_WITH_PASSWORD/REPLACE_WITH_BASE64_KEY
-  atuin_db_uri: postgres://user:REPLACE_WITH_PASSWORD@db.example.com:5432/postgres
-  github_action_token: github_pat_REPLACE_WITH_GITHUB_ACTION_TOKEN
+  github_token_public_read: masked
+  github_token_all_read: masked
+  github_token_all_action_rw: masked
+
+  codespace_root_password: masked
+  codespace_workspace_key: masked
+  atuin_credentials: masked
+
+  huggingface_token: masked
+  github_action_token: masked

@@ -150,12 +150,28 @@ function projectSource(project) {
 }
 
 function renderProjects(dashboard) {
-  projectHosts = new Map(dashboard.projects.map((project) => [project.id, project.hosts]));
+  const onlineHosts = new Set(
+    dashboard.hosts.filter((host) => host.status === "online").map((host) => host.id),
+  );
+  projectHosts = new Map(
+    dashboard.projects.map((project) => [
+      project.id,
+      project.hosts.filter((host) => onlineHosts.has(host.name)),
+    ]),
+  );
   const cards = dashboard.projects.map((project) => {
     const workspaces = dashboard.workspaces.filter((item) => item.project === project.id);
     const operations = dashboard.operations.filter(
       (item) => item.kind === "workspace" && item.project === project.id,
     );
+    const occupiedDefaultHosts = new Set([
+      ...workspaces
+        .filter((workspace) => workspace.workspace === DEFAULT_WORKSPACE)
+        .map((workspace) => workspace.host),
+      ...operations
+        .filter((operation) => operation.resource === DEFAULT_WORKSPACE)
+        .map((operation) => operation.host),
+    ]);
     const card = element("article", "project-card");
     const header = element("div", "project-header");
     const name = element("h3", "", project.id);
@@ -168,6 +184,7 @@ function renderProjects(dashboard) {
 
     const headerActions = element("div", "project-header-actions");
     project.hosts.forEach((host) => {
+      if (!onlineHosts.has(host.name) || occupiedDefaultHosts.has(host.name)) return;
       const platformSuffix = host.platform ? ` · ${host.platform}` : "";
       const quickButton = actionButton(`+ ${host.name}${platformSuffix}`, "quick", {
         project: project.id,
@@ -182,6 +199,7 @@ function renderProjects(dashboard) {
     createButton.classList.remove("secondary");
     createButton.classList.add("compact", "primary");
     createButton.title = "Create a named Workspace on a chosen Host";
+    createButton.disabled = projectHosts.get(project.id).length === 0;
     headerActions.append(createButton);
     header.append(title, headerActions);
     card.append(header);
