@@ -28,8 +28,9 @@ platform/container/workspace/build.sh --resource
 
 - 交互用户是 `x`（UID/GID `5230`）。image-owned system 文件位于 root-owned `/usr/local`、
   `/opt/codespace`、`/opt/podman`、`/etc` 或只读 resource payload；普通 runtime 软件安装到
-  用户 Nix profile，Java/Node CLI 分别由专用 installer 写入 `/opt/java/tools`、
-  `/opt/node/tools`。不要在启动时重建 immutable image 内容。
+  用户 Nix profile，`bm` 自身默认安装到 `~/.local`，Java/Node CLI 分别由专用 installer 写入
+  `/opt/java/tools`、`/opt/node/tools`。不要用 wrapper 改写这些默认路径，也不要在启动时重建
+  immutable image 内容。
 - PID 1 是 `/etc/s6/init/bin/init`，service graph 只在 image build 时编译。依赖
   `/workspace` 的 service 必须依赖 `gocryptfs-workspace`；runtime 不重跑 graph compile 或
   image-build oneshot。
@@ -51,9 +52,10 @@ platform/container/workspace/build.sh --resource
 
 - payload 根固定为 `/opt/resource`，通过 `codespace-resource` named volume 只读挂载。主 image
   自带运行所需的 Python 3.14 与 uv tools；resource 提供其余 Python runtime 和可选 uv
-  tools，并通过 `/opt/resource/opt/uv/bin` 直接加入 PATH。binman 的默认 launcher 与 store
-  必须一起保留在 `/opt/resource/usr/local/{bin,store}`，由 resource bin PATH 统一暴露，不在主
-  image 为单个 package 建兼容链接。Java/Node 额外拆成只读 runtime 子目录链接加可写
+  tools，并通过 `/opt/resource/opt/uv/bin` 直接加入 PATH。binman 安装的 package launcher 与
+  store 必须一起保留在 `/opt/resource/usr/local/{bin,store}`，由 resource bin PATH 统一暴露；
+  payload 不携带 `bm` manager，也不在主 image 为单个 package 建兼容链接。Java/Node 额外拆成
+  只读 runtime 子目录链接加可写
   `/opt/java/tools`、`/opt/node/tools`。未挂载时允许 resource 链接悬空，默认 s6 service
   不得依赖 resource-only 内容。
 - `resource.Dockerfile` 是工具、版本、URL、checksum 和安装方式的 source of truth。不要在

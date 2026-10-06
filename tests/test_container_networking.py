@@ -149,12 +149,11 @@ def test_workspace_gocryptfs_uses_workspace_identity() -> None:
 def test_workspace_image_packages_are_root_owned_and_user_installs_use_local() -> None:
     dockerfile = (_CONTAINER / "workspace/Dockerfile").read_text()
     manifest = (_CONTAINER / "workspace/config/binman.yaml").read_text()
-    user_bm = (_CONTAINER / "workspace/rootfs/home/x/.local/bin/bm").read_text()
 
     assert "prefix: /usr/local" in manifest
     assert "binman-root" not in dockerfile
     assert "--from=stage_sb /opt/bm" not in dockerfile
-    assert 'exec /usr/local/bin/bm --prefix /home/x/.local "$@"' in user_bm
+    assert not (_CONTAINER / "workspace/rootfs/home/x/.local/bin/bm").exists()
     assert (
         'export PATH="/home/x/.local/bin:$PATH"'
         in (_CONTAINER / "workspace/rootfs/etc/profile.d/app.sh").read_text()
@@ -279,7 +278,9 @@ def test_workspace_resource_image_installs_binman_manifest() -> None:
         in dockerfile
     )
     assert "/usr/local/bin/bm --prefix /usr/local install --file /tmp/binman.yaml" in dockerfile
+    assert "rm -f /usr/local/bin/bm" in dockerfile
     assert "COPY --from=stage_sb /usr/local/bin /opt/resource/usr/local/bin" in dockerfile
+    assert "test ! -e /opt/resource/usr/local/bin/bm" in dockerfile
     assert "COPY --from=stage_sb /usr/local/profile /opt/resource/usr/local/profile" in dockerfile
     assert "/opt/resource/usr/local/bin/radare2 -v" in dockerfile
     assert "/opt/resource/usr/local/bin/rizin -v" in dockerfile

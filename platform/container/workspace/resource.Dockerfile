@@ -17,6 +17,7 @@ COPY platform/container/workspace/config/binman-resource.yaml /tmp/binman.yaml
 RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
     | bash -s -- --prefix /usr/local \
   && /usr/local/bin/bm --prefix /usr/local install --file /tmp/binman.yaml \
+  && rm -f /usr/local/bin/bm \
   && find /usr/local/store -type d -exec chmod 0755 {} +
 
 # ------------------------------------ Go ------------------------------------
@@ -165,6 +166,7 @@ FROM payload AS test
 USER 5230:5230
 RUN /opt/resource/opt/go/go1.27.1/bin/go version \
   && /opt/resource/opt/llvm/llvm23.1.2/bin/clang --version \
+  && test ! -e /opt/resource/usr/local/bin/bm \
   && /opt/resource/usr/local/bin/radare2 -v \
   && /opt/resource/usr/local/bin/rizin -v \
   # && /opt/resource/usr/local/profile/clang-tools/bin/clang-format --version \
