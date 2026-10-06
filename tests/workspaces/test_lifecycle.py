@@ -617,6 +617,38 @@ def test_delete_revokes_key_from_every_provider_repository(
     ]
 
 
+def test_delete_resolves_all_provider_tokens_before_revoking_keys(
+    manager: ControlPlane,
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    data = config.model_dump()
+    data["projects"]["codespace"]["source"].append(
+        {"type": "gitlab", "repository": "group/service-api"}
+    )
+    spec = Config.model_validate(data).workspace_spec("codespace", "home", "debug")
+    running = SimpleNamespace(
+        id="container-id",
+        name=spec.container_name,
+        labels=spec.labels(),
+        attrs={"State": {"Status": "running"}, "Image": "sha256:current"},
+    )
+    mutations: list[str] = []
+    manager._tokens.pop("gitlab")
+    monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
+    monkeypatch.setattr(provider, "revoke", lambda *_args: mutations.append("revoke"))
+    monkeypatch.setattr(
+        lifecycle.container,
+        "remove_container",
+        lambda _container: mutations.append("container"),
+    )
+
+    with pytest.raises(ResourceConflict, match="gitlab token is not set"):
+        manager.remove(Resource("home", "debug", "codespace"))
+
+    assert mutations == []
+
+
 def test_stopped_workspace_requires_explicit_delete_without_inspection(
     manager: ControlPlane, config: Config, monkeypatch: pytest.MonkeyPatch
 ) -> None:

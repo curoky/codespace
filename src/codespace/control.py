@@ -329,12 +329,11 @@ class ControlPlane:
                 f"not found on host {resource.host!r}"
             )
         actual = workspaces.read_workspace(running, resource.host)
-        for source in actual.source:
-            if not isinstance(source, ProviderSource):
-                continue
+        credentials = self._provider_credentials(actual.source)
+        for source, token in credentials:
             provider.revoke(
                 source.type,
-                self._token(source.type),
+                token,
                 source.repository,
                 actual.id,
             )

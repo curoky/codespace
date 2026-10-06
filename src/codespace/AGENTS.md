@@ -79,7 +79,8 @@ inspect 数据还原。
   Workspace 必须替换 ephemeral deploy key 后再放行 checkout。source 或 encryption 变化必须
   delete 后重新 create，不在 rebuild 中迁移。
 - 删除检查通过 Agent 读取 Git 状态，不启动或修改已停止 Workspace。删除 provider
-  Workspace 时先成功撤销 deploy key；普通 remove 保留 data，purge 才删除。
+  Workspace 时先解析所有已部署 source 的 provider credential，再开始撤销 deploy key；普通
+  remove 保留 data，purge 才删除。
 - Service apply 使用 replace reconciliation：先 pull image 并准备数据，再移除旧 container、
   创建新 container。失败保留当前现场，不恢复旧 container。Service remove 允许资源尚未部署，
   Workspace remove 要求目标 container 存在。
