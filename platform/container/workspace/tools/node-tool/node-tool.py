@@ -20,7 +20,7 @@ from urllib.parse import quote
 import typer
 
 DEFAULT_NODE = Path("/opt/node/nodejs24")
-DEFAULT_PNPM = Path("/opt/node/tools/bin/pnpm")
+DEFAULT_PNPM = Path("/opt/resource/opt/node/tools/bin/pnpm")
 DEFAULT_ROOT = Path("/opt/node/tools")
 
 app = typer.Typer(add_completion=False, no_args_is_help=True)
@@ -31,13 +31,14 @@ class NodeToolError(RuntimeError):
 
 
 def resolve_executable(path: Path, name: str) -> Path:
+    path = path.absolute()
     try:
         executable = path.resolve(strict=True)
     except FileNotFoundError as error:
         raise NodeToolError(f"{name} executable not found: {path}") from error
     if not executable.is_file() or not os.access(executable, os.X_OK):
         raise NodeToolError(f"{name} executable is not executable: {path}")
-    return executable
+    return path
 
 
 def run_pnpm(command: list[str], node_bin: Path) -> None:
@@ -87,13 +88,15 @@ def installed_package(environment: Path) -> tuple[str, str, tuple[str, ...]]:
 
 
 def write_launcher(path: Path, node_bin: Path, executable: Path) -> None:
+    relative_executable = executable.relative_to(path.parent.parent)
     path.write_text(
         "\n".join(
             [
                 "#!/bin/sh",
+                'tool_root="$(dirname "$(dirname "$(readlink -f "$0")")")"',
                 f'PATH={shlex.quote(str(node_bin))}:"${{PATH:-/usr/bin:/bin}}"',
                 "export PATH",
-                f'exec {shlex.quote(str(executable))} "$@"',
+                f'exec "${{tool_root}}"/{shlex.quote(relative_executable.as_posix())} "$@"',
                 "",
             ]
         ),

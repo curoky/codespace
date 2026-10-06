@@ -163,6 +163,82 @@ def test_workspace_image_packages_are_root_owned_and_user_installs_use_local() -
     assert "bm download" not in dockerfile
 
 
+def test_workspace_java_and_node_split_read_only_runtimes_from_writable_tools() -> None:
+    workspace = _CONTAINER / "workspace"
+    resource_dockerfile = (workspace / "resource.Dockerfile").read_text()
+    profile = (_CONTAINER / "workspace/rootfs/etc/profile.d/app.sh").read_text()
+    settings = yaml.safe_load(
+        (workspace / "rootfs/home/x/.vscode-server/data/Machine/settings.json").read_text()
+    )
+    software_skill = (
+        workspace / "rootfs/home/x/.codex/skills/manage-software/SKILL.md"
+    ).read_text()
+    rootfs_opt = workspace / "rootfs/opt"
+    expected_links = {
+        **{
+            f"java/{runtime}": Path(f"/opt/resource/opt/java/{runtime}")
+            for runtime in {"openjdk8", "openjdk27"}
+        },
+        **{
+            f"node/{runtime}": Path(f"/opt/resource/opt/node/{runtime}")
+            for runtime in {"nodejs24", "nodejs26"}
+        },
+    }
+    actual_links = {
+        str(path.relative_to(rootfs_opt)): path.readlink()
+        for family in (rootfs_opt / "java", rootfs_opt / "node")
+        for path in family.rglob("*")
+        if path.is_symlink()
+    }
+
+    assert 'export PATH="$PATH:/opt/java/tools/bin"' in profile
+    assert 'export PATH="$PATH:/opt/resource/opt/java/tools/bin"' in profile
+    assert 'export PATH="$PATH:/opt/node/tools/bin"' in profile
+    assert 'export PATH="$PATH:/opt/resource/opt/node/tools/bin"' in profile
+    assert "--java /opt/java/openjdk27" in resource_dockerfile
+    assert "--node /opt/node/nodejs24" in resource_dockerfile
+    assert "COPY --from=stage_java /opt/java /opt/resource/opt/java" in resource_dockerfile
+    assert "COPY --from=stage_node /opt/node /opt/resource/opt/node" in resource_dockerfile
+    assert "FROM payload AS test" in resource_dockerfile
+    assert "FROM test AS resource" in resource_dockerfile
+    assert settings["prettier.prettierPath"].startswith("/opt/resource/opt/node/tools/")
+    assert settings["xml.server.binary.path"] == "/opt/resource/opt/java/tools/bin/lemminx"
+    assert "/opt/resource/opt/java/tools/bin" in software_skill
+    assert "/opt/resource/opt/node/tools/bin" in software_skill
+    assert actual_links == expected_links
+
+
+def test_workspace_bundles_java_and_node_installers() -> None:
+    workspace = _CONTAINER / "workspace"
+    dockerfile = (workspace / "Dockerfile").read_text()
+    profile = (workspace / "rootfs/etc/profile.d/app.sh").read_text()
+    node_tool = (workspace / "tools/node-tool/node-tool").read_text()
+    java_tool = (workspace / "tools/java-tool/java-tool").read_text()
+
+    assert (
+        "COPY platform/container/workspace/tools/node-tool/ /opt/codespace-tools/node-tool/"
+        in dockerfile
+    )
+    assert (
+        "COPY platform/container/workspace/tools/java-tool/ /opt/codespace-tools/java-tool/"
+        in dockerfile
+    )
+    assert "/opt/codespace-tools/node-tool/" in dockerfile
+    assert "/opt/codespace-tools/java-tool/" in dockerfile
+    assert 'script_dir="$(dirname "$(readlink -f "$0")")"' in node_tool
+    assert (
+        'exec /usr/local/bin/uv run --locked --script "$script_dir/node-tool.py" "$@"' in node_tool
+    )
+    assert 'script_dir="$(dirname "$(readlink -f "$0")")"' in java_tool
+    assert (
+        'exec /usr/local/bin/uv run --locked --script "$script_dir/java-tool.py" "$@"' in java_tool
+    )
+    assert 'export PATH="$PATH:/opt/codespace-tools/java-tool"' in profile
+    assert 'export PATH="$PATH:/opt/codespace-tools/node-tool"' in profile
+    assert os.access(workspace / "tools/java-tool/java-tool", os.X_OK)
+    assert os.access(workspace / "tools/node-tool/node-tool", os.X_OK)
+
+
 def test_workspace_resource_image_installs_binman_manifest() -> None:
     workspace = _CONTAINER / "workspace"
     dockerfile = (workspace / "resource.Dockerfile").read_text()

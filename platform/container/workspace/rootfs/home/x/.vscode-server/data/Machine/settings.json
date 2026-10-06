@@ -64,7 +64,7 @@
       }
     }
   },
-  "prettier.prettierPath": "/opt/node/tools/envs/prettier/node_modules/prettier",
+  "prettier.prettierPath": "/opt/resource/opt/node/tools/envs/prettier/node_modules/prettier",
   "python-envs.terminal.autoActivationType": "shellStartup",
   "python-envs.terminal.showActivateButton": true,
   "python.defaultInterpreterPath": "/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14",
@@ -84,6 +84,6 @@
   },
   "typescript.npm": "/opt/node/nodejs24/bin/npm",
   "xml.java.home": "/opt/java/openjdk27",
-  "xml.server.binary.path": "/opt/java/tools/bin/lemminx",
+  "xml.server.binary.path": "/opt/resource/opt/java/tools/bin/lemminx",
   "xml.server.vmargs": "-Xmx5G"
 }

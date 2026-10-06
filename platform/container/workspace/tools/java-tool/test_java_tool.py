@@ -63,7 +63,8 @@ def create_jar(tmp_path: Path) -> Path:
 
 def test_install_archive_creates_launcher_bound_to_java(tmp_path: Path) -> None:
     root = tmp_path / "tools"
-    java_root = create_fake_java(tmp_path)
+    java_root = tmp_path / "stable-java"
+    java_root.symlink_to(create_fake_java(tmp_path), target_is_directory=True)
 
     commands = java_tool.install_tool(
         "archive-tool@1.2.3",
@@ -77,8 +78,10 @@ def test_install_archive_creates_launcher_bound_to_java(tmp_path: Path) -> None:
     )
 
     assert stat.S_IMODE((root / "envs" / "archive-tool").stat().st_mode) == 0o755
+    relocated_root = tmp_path / "relocated-tools"
+    root.replace(relocated_root)
     result = subprocess.run(
-        [str(root / "bin" / "archive-tool"), "--version"],
+        [str(relocated_root / "bin" / "archive-tool"), "--version"],
         check=True,
         capture_output=True,
         text=True,

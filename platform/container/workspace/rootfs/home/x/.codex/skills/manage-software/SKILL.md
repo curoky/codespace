@@ -13,10 +13,11 @@ description: >-
 - 以项目 manifest、lockfile 和 toolchain 配置声明的依赖或 runtime 版本为准，不要把项目依赖
   安装成全局软件。
 - 先运行 `command -v <command>`。预装 command 主要位于 `/usr/local/bin`、
-  `/usr/local/profile/*/bin`、`/opt/uv/bin`、`/opt/java/tools/bin` 和
-  `/opt/node/tools/bin`。
-- 把 `/opt/resource` 及 `/opt/{go,rust,llvm,java,node,nvidia}`、
-  `/usr/local/cuda-12.2` 等系统提供的 link 当作只读内容，不要修改或替换。
+  `/usr/local/profile/*/bin`、`/opt/uv/bin`、`/opt/resource/opt/java/tools/bin` 和
+  `/opt/resource/opt/node/tools/bin`。
+- 把 `/opt/resource`、`/opt/{go,rust,llvm,nvidia}`、Java/Node runtime link 和
+  `/usr/local/cuda-12.2` 当作只读内容，不要修改或替换。`java-tool`、`node-tool` 运行期增量
+  安装分别写入 `/opt/java/tools`、`/opt/node/tools`。
 
 ## Select A Toolchain
 

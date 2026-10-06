@@ -8,7 +8,8 @@ graph。控制面决定实例配置；image 定义容器内固定 filesystem 与
 - `Dockerfile`、`rootfs/`、`scripts/` 和 `config/binman.yaml`：主 Workspace image。
 - `resource.Dockerfile` 与 `config/binman-resource.yaml`：独立的大型工具 payload。
 - `agent/AGENTS.md`：容器内 bootstrap/Git HTTP Agent。
-- `tools/java-tool/AGENTS.md`、`tools/node-tool/AGENTS.md`：resource build 专用 installer。
+- `tools/java-tool/AGENTS.md`、`tools/node-tool/AGENTS.md`：resource build 与 Workspace 运行期
+  共用的 installer。
 - `rootfs/home/x/.codex/skills/`：按任务加载的容器使用 skill；`.trae/skills` 与
   `.trae-cn/skills` 分别为每个内置 skill 创建链接。工具、GitHub、Podman 或 s6 的使用约定
   变化时同步更新对应 skill。它们不替代本维护文档。
@@ -25,9 +26,9 @@ platform/container/workspace/build.sh --resource
 
 ## Runtime Contract
 
-- 交互用户是 `x`（UID/GID `5230`）。image-owned system 文件位于 root-owned
-  `/usr/local`、`/etc` 或只读 resource payload；runtime 软件安装到用户 Nix profile。
-  不要在启动时重建 immutable image 内容。
+- 交互用户是 `x`（UID/GID `5230`）。image-owned system 文件位于 root-owned `/usr/local`、`/etc` 或只读 resource
+  payload；普通 runtime 软件安装到用户 Nix profile，Java/Node CLI 分别由专用 installer
+  写入 `/opt/java/tools`、`/opt/node/tools`。不要在启动时重建 immutable image 内容。
 - PID 1 是 `/etc/s6/init/bin/init`，service graph 只在 image build 时编译。依赖
   `/workspace` 的 service 必须依赖 `gocryptfs-workspace`；runtime 不重跑 graph compile 或
   image-build oneshot。
@@ -48,13 +49,17 @@ platform/container/workspace/build.sh --resource
 ## Resource Payload
 
 - payload 根固定为 `/opt/resource`，通过 `codespace-resource` named volume 只读挂载。主 image
-  只创建稳定 family/profile symlink；未挂载时允许链接悬空，默认 s6 service 不得依赖 payload。
+  只创建稳定 family/profile symlink；Java/Node 额外拆成只读 runtime 子目录链接加可写
+  `/opt/java/tools`、`/opt/node/tools`；预装 CLI 直接从 resource tools bin 加入 PATH。未挂载时
+  允许链接悬空，默认 s6 service 不得依赖 payload。
 - `resource.Dockerfile` 是工具、版本、URL、checksum 和安装方式的 source of truth。不要在
   `AGENTS.md` 维护重复清单，也不要从主 image 的其他 package manager 重复安装同名工具。
 - 多版本 family 保留版本目录；默认选择由 profile/PATH 显式声明。launcher 不能依赖 payload
   内部 content-addressed store 的易变路径。
 - Java/Node CLI 通过各自通用 installer 隔离安装，并永久绑定 resource image 选定的外部
-  runtime。package-specific metadata 留在 `resource.Dockerfile`。
+  runtime。launcher 相对自身定位同一 tools root 下的 env，因此整个 Java/Node family 可从
+  build stage 搬到 resource payload；运行期增量安装只写入 `/opt/java/tools`、
+  `/opt/node/tools`。package-specific metadata 留在 `resource.Dockerfile`。
 
 ## Rootless Podman
 

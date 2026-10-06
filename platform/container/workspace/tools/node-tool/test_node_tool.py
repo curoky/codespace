@@ -75,7 +75,8 @@ executable.chmod(0o755)
 
 def test_install_creates_an_isolated_node_bound_launcher(tmp_path: Path) -> None:
     root = tmp_path / "tools"
-    node_root = create_fake_node(tmp_path)
+    node_root = tmp_path / "stable-node"
+    node_root.symlink_to(create_fake_node(tmp_path), target_is_directory=True)
     pnpm = create_fake_pnpm(tmp_path)
 
     installed = node_tool.install_tool(
@@ -87,7 +88,9 @@ def test_install_creates_an_isolated_node_bound_launcher(tmp_path: Path) -> None
 
     assert installed == ("prettier", "3.9.9", ("prettier",))
     assert stat.S_IMODE((root / "envs" / "prettier").stat().st_mode) == 0o755
-    launcher = root / "bin" / "prettier"
+    relocated_root = tmp_path / "relocated-tools"
+    root.replace(relocated_root)
+    launcher = relocated_root / "bin" / "prettier"
     result = subprocess.run(
         [str(launcher), "--version"],
         check=True,
@@ -96,7 +99,9 @@ def test_install_creates_an_isolated_node_bound_launcher(tmp_path: Path) -> None
         env={"PATH": "/usr/bin:/bin"},
     )
     assert result.stdout == "bound-node:--from-tool --version\n"
-    assert (root / "envs" / "prettier" / "node_modules" / "prettier" / "package.json").is_file()
+    assert (
+        relocated_root / "envs" / "prettier" / "node_modules" / "prettier" / "package.json"
+    ).is_file()
 
 
 def test_install_refuses_to_overwrite_an_existing_command(tmp_path: Path) -> None:

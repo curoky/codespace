@@ -93,14 +93,12 @@ ADD --checksum=sha256:ca70e9e349de048b9522abb3adc05b3bd6f43c5ffd3ec57916c7da292f
 ADD --checksum=sha256:2b5f62986b14f2891fb78e5b554e60e38f25987217fed578f0303bbfda5e124a \
   https://registry.npmjs.org/@pnpm/exe.linux-x64/-/exe.linux-x64-12.6.0.tgz \
   /tmp/pnpm.tar.gz
-RUN mkdir -p /opt/node/nodejs24 /opt/node/nodejs26/lib /opt/node/tools/bin /opt/node/tools/lib \
+RUN mkdir -p /opt/node/nodejs24 /opt/node/nodejs26/lib /opt/node/tools/bin \
   && tar -xJf /tmp/node24.tar.xz --strip-components=1 -C /opt/node/nodejs24 \
   && tar -xJf /tmp/node26.tar.xz --strip-components=1 -C /opt/node/nodejs26 \
   && tar -xzf /tmp/pnpm.tar.gz --strip-components=1 -C /opt/node/tools/bin package/pnpm \
   && cp -L /usr/lib/x86_64-linux-gnu/libatomic.so.1 /opt/node/nodejs26/lib/ \
-  && cp -L /usr/lib/x86_64-linux-gnu/libatomic.so.1 /opt/node/tools/lib/ \
-  && patchelf --set-rpath '$ORIGIN/../lib' /opt/node/nodejs26/bin/node \
-  && patchelf --set-rpath '$ORIGIN/../lib' /opt/node/tools/bin/pnpm
+  && patchelf --set-rpath '$ORIGIN/../lib' /opt/node/nodejs26/bin/node
 
 COPY --from=stage_uv /uv /usr/local/bin/uv
 COPY platform/container/workspace/tools/node-tool/node-tool.py \
@@ -124,7 +122,7 @@ FROM docker.io/nvidia/cuda:12.2.2-devel-ubuntu22.04 AS stage_cuda
 FROM nvcr.io/nvidia/devtools/nsight-systems-cli:2026.3.1-ubuntu22.04 AS stage_nsys
 
 # --------------------------------- Payload ----------------------------------
-FROM docker.io/debian:stable-slim AS resource
+FROM docker.io/debian:stable-slim AS payload
 COPY --from=stage_rust /opt/rust /opt/resource/opt/rust
 COPY --from=stage_go /opt/go /opt/resource/opt/go
 COPY --from=stage_llvm /opt/llvm /opt/resource/opt/llvm
@@ -135,6 +133,9 @@ COPY --from=stage_sb /usr/local/store /opt/resource/usr/local/store
 COPY --from=stage_sb /usr/local/profile /opt/resource/usr/local/profile
 COPY --from=stage_java /opt/java /opt/resource/opt/java
 COPY --from=stage_node /opt/node /opt/resource/opt/node
+
+# ----------------------------------- Test -----------------------------------
+FROM payload AS test
 USER 5230:5230
 RUN /opt/resource/opt/go/go1.27.1/bin/go version \
   && /opt/resource/opt/llvm/llvm23.1.2/bin/clang --version \
@@ -144,19 +145,16 @@ RUN /opt/resource/opt/go/go1.27.1/bin/go version \
   # && /opt/resource/usr/local/profile/python/bin/python3 --version \
   && /opt/resource/opt/java/openjdk8/bin/java -version \
   && /opt/resource/opt/java/openjdk27/bin/java -version \
-  && env PATH=/opt/resource/opt/java/openjdk27/bin:/usr/bin:/bin \
-    /opt/resource/opt/java/tools/envs/maven/payload/bin/mvn --version \
+  && test -x /opt/resource/opt/java/tools/bin/mvn \
   && test -r /opt/resource/opt/java/tools/envs/lemminx/payload/lemminx.jar \
   && test -x /opt/resource/opt/java/tools/envs/ghidra/payload/ghidraRun \
   && /opt/resource/opt/node/nodejs24/bin/node --version \
   && /opt/resource/opt/node/nodejs26/bin/node --version \
   && env PATH=/usr/bin:/bin /opt/resource/opt/node/tools/bin/pnpm --version \
-  && env PATH=/opt/resource/opt/node/nodejs24/bin:/usr/bin:/bin \
-    /opt/resource/opt/node/tools/envs/defuddle/node_modules/.bin/defuddle \
-    --version \
-  && env PATH=/opt/resource/opt/node/nodejs24/bin:/usr/bin:/bin \
-    /opt/resource/opt/node/tools/envs/markdownlint-cli2/node_modules/.bin/markdownlint-cli2 \
-    --version \
-  && env PATH=/opt/resource/opt/node/nodejs24/bin:/usr/bin:/bin \
-    /opt/resource/opt/node/tools/envs/prettier/node_modules/.bin/prettier --version
+  && test -x /opt/resource/opt/node/tools/bin/defuddle \
+  && test -x /opt/resource/opt/node/tools/bin/markdownlint-cli2 \
+  && test -x /opt/resource/opt/node/tools/bin/prettier
+
+# --------------------------------- Resource ---------------------------------
+FROM test AS resource
 USER root

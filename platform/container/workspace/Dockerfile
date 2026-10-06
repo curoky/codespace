@@ -101,6 +101,8 @@ COPY --link --chown=5230:5230 --from=stage_python /opt/uv /opt/uv
 COPY --link --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
 
 COPY platform/container/workspace/rootfs/ /
+COPY platform/container/workspace/tools/node-tool/ /opt/codespace-tools/node-tool/
+COPY platform/container/workspace/tools/java-tool/ /opt/codespace-tools/java-tool/
 RUN --mount=type=bind,source=platform/container/workspace/scripts/configure-system.sh,target=/tmp/configure-system.sh \
   bash /tmp/configure-system.sh
 RUN --mount=type=bind,source=platform/container/workspace/scripts/install-s6.sh,target=/tmp/install-s6.sh \

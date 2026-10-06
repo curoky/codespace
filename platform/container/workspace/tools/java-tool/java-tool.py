@@ -165,13 +165,15 @@ def write_launcher(
     launcher: Launcher,
 ) -> None:
     target = payload.joinpath(*launcher.relative_path.parts)
-    command = shlex.quote(str(target))
+    relative_target = target.relative_to(path.parent.parent)
+    command = f'"${{tool_root}}"/{shlex.quote(relative_target.as_posix())}'
     if launcher.kind == "jar":
         command = f"{shlex.quote(str(java_root / 'bin' / 'java'))} -jar {command}"
     path.write_text(
         "\n".join(
             (
                 "#!/bin/sh",
+                'tool_root="$(dirname "$(dirname "$(readlink -f "$0")")")"',
                 f"JAVA_HOME={shlex.quote(str(java_root))}",
                 f'PATH={shlex.quote(str(java_root / "bin"))}:"${{PATH:-/usr/bin:/bin}}"',
                 "export JAVA_HOME PATH",
@@ -197,7 +199,7 @@ def install_tool(
 ) -> tuple[str, ...]:
     package, _ = parse_package(requested)
     source = source.resolve(strict=True)
-    java_root = java_root.resolve(strict=True)
+    java_root = java_root.absolute()
     root = root.resolve()
     if not source.is_file():
         raise JavaToolError(f"source is not a file: {source}")
