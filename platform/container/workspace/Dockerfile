@@ -39,15 +39,10 @@ ENV UV_TOOL_DIR=/opt/uv/tools \
   UV_PYTHON_BIN_DIR=/opt/uv/bin
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates \
-  && uv python install --no-bin 3.9 3.10 3.11 3.12 3.13 3.14 \
-  && uv tool install licenseheaders \
-  && uv tool install netron \
-  && uv tool install mitmproxy \
+  && uv python install --no-bin 3.14 \
   && uv tool install copyparty \
-  && uv tool install dool \
-  && uv tool install git-filter-repo \
-  && uv tool install tensorboard --python 3.12 --with tensorboard-plugin-profile --with "setuptools==81.0.0" \
-  && rm -rf /var/lib/apt/lists/*
+    --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
+  && rm -rf /root/.cache/uv /var/lib/apt/lists/*
 
 # ----------------------------------- Nix ------------------------------------
 FROM docker.io/debian:stable-slim AS stage_nix
@@ -110,7 +105,8 @@ RUN --mount=type=bind,source=platform/container/workspace/scripts/install-s6.sh,
 
 USER x
 COPY --chown=5230:5230 platform/container/workspace/agent/ /opt/codespace-agent/
-RUN UV_LINK_MODE=copy uv sync --project /opt/codespace-agent --locked --no-dev --python 3.14 \
+RUN UV_LINK_MODE=copy uv sync --project /opt/codespace-agent --locked --no-dev \
+    --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
   && git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-playbook \
   && HOME=/home/x bash /tmp/agent-playbook/install.sh \
   && rm -rf /tmp/agent-playbook

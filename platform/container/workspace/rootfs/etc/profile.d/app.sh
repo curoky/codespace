@@ -11,6 +11,7 @@ export UV_TOOL_BIN_DIR=/opt/uv/bin
 export UV_PYTHON_INSTALL_DIR=/opt/uv/python
 export UV_PYTHON_BIN_DIR=/opt/uv/bin
 export PATH="$PATH:/opt/uv/bin"
+export PATH="$PATH:/opt/resource/opt/uv/bin"
 
 export CONDA_PLUGINS_AUTO_ACCEPT_TOS=yes
 export PATH="$PATH:/opt/conda/condabin"

@@ -40,6 +40,31 @@ RUN mkdir -p /opt/llvm/llvm23.1.2 \
 # ------------------------------------ uv ------------------------------------
 FROM ghcr.io/astral-sh/uv:0.12.5 AS stage_uv
 
+# ---------------------------------- Python ----------------------------------
+FROM docker.io/debian:stable-slim AS stage_python
+COPY --from=stage_uv /uv /usr/local/bin/uv
+ENV UV_TOOL_DIR=/opt/resource/opt/uv/tools \
+  UV_TOOL_BIN_DIR=/opt/resource/opt/uv/bin \
+  UV_PYTHON_INSTALL_DIR=/opt/resource/opt/uv/python \
+  UV_PYTHON_BIN_DIR=/opt/resource/opt/uv/bin
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends ca-certificates \
+  && uv python install --no-bin 3.9 3.10 3.11 3.12 3.13 3.14 \
+  && uv tool install licenseheaders \
+    --python /opt/resource/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
+  && uv tool install netron \
+    --python /opt/resource/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
+  && uv tool install mitmproxy \
+    --python /opt/resource/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
+  && uv tool install dool \
+    --python /opt/resource/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
+  && uv tool install git-filter-repo \
+    --python /opt/resource/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
+  && uv tool install tensorboard \
+    --python /opt/resource/opt/uv/python/cpython-3.12-linux-x86_64-gnu/bin/python3.12 \
+    --with tensorboard-plugin-profile --with "setuptools==81.0.0" \
+  && rm -rf /var/lib/apt/lists/*
+
 # ----------------------------------- Java -----------------------------------
 FROM docker.io/debian:stable-slim AS stage_java
 RUN apt-get update -y \
@@ -133,6 +158,7 @@ COPY --from=stage_sb /usr/local/store /opt/resource/usr/local/store
 COPY --from=stage_sb /usr/local/profile /opt/resource/usr/local/profile
 COPY --from=stage_java /opt/java /opt/resource/opt/java
 COPY --from=stage_node /opt/node /opt/resource/opt/node
+COPY --from=stage_python /opt/resource/opt/uv /opt/resource/opt/uv
 
 # ----------------------------------- Test -----------------------------------
 FROM payload AS test
@@ -153,7 +179,19 @@ RUN /opt/resource/opt/go/go1.27.1/bin/go version \
   && env PATH=/usr/bin:/bin /opt/resource/opt/node/tools/bin/pnpm --version \
   && test -x /opt/resource/opt/node/tools/bin/defuddle \
   && test -x /opt/resource/opt/node/tools/bin/markdownlint-cli2 \
-  && test -x /opt/resource/opt/node/tools/bin/prettier
+  && test -x /opt/resource/opt/node/tools/bin/prettier \
+  && /opt/resource/opt/uv/python/cpython-3.9-linux-x86_64-gnu/bin/python3.9 --version \
+  && /opt/resource/opt/uv/python/cpython-3.10-linux-x86_64-gnu/bin/python3.10 --version \
+  && /opt/resource/opt/uv/python/cpython-3.11-linux-x86_64-gnu/bin/python3.11 --version \
+  && /opt/resource/opt/uv/python/cpython-3.12-linux-x86_64-gnu/bin/python3.12 --version \
+  && /opt/resource/opt/uv/python/cpython-3.13-linux-x86_64-gnu/bin/python3.13 --version \
+  && /opt/resource/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 --version \
+  && test -x /opt/resource/opt/uv/bin/licenseheaders \
+  && test -x /opt/resource/opt/uv/bin/netron \
+  && test -x /opt/resource/opt/uv/bin/mitmproxy \
+  && test -x /opt/resource/opt/uv/bin/dool \
+  && test -x /opt/resource/opt/uv/bin/git-filter-repo \
+  && test -x /opt/resource/opt/uv/bin/tensorboard
 
 # --------------------------------- Resource ---------------------------------
 FROM test AS resource

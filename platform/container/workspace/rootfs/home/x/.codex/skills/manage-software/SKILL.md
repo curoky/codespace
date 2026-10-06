@@ -13,8 +13,8 @@ description: >-
 - 以项目 manifest、lockfile 和 toolchain 配置声明的依赖或 runtime 版本为准，不要把项目依赖
   安装成全局软件。
 - 先运行 `command -v <command>`。预装 command 主要位于 `/usr/local/bin`、
-  `/usr/local/profile/*/bin`、`/opt/uv/bin`、`/opt/resource/opt/java/tools/bin` 和
-  `/opt/resource/opt/node/tools/bin`。
+  `/usr/local/profile/*/bin`、`/opt/uv/bin`、`/opt/resource/opt/uv/bin`、
+  `/opt/resource/opt/java/tools/bin` 和 `/opt/resource/opt/node/tools/bin`。
 - 把 `/opt/resource`、`/opt/{go,rust,llvm,nvidia}`、Java/Node runtime link 和
   `/usr/local/cuda-12.2` 当作只读内容，不要修改或替换。`java-tool`、`node-tool` 运行期增量
   安装分别写入 `/opt/java/tools`、`/opt/node/tools`。
@@ -23,7 +23,7 @@ description: >-
 
 | Stack | Default | Alternatives And Selection |
 | --- | --- | --- |
-| Python | `uv`；Python 3.9-3.14 位于 `/opt/uv/python` | 用 `uv python find 3.<N>` 选择解释器；仅在项目明确要求时使用 `/opt/conda` |
+| Python | `uv`；Python 3.14 随 Workspace 提供，3.9-3.13 由 resource 提供 | 主版本使用 `/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14`，其他版本使用 `/opt/resource/opt/uv/python/cpython-3.<N>-linux-x86_64-gnu/bin/python3.<N>`；仅在项目明确要求时使用 `/opt/conda` |
 | C/C++ | Nix default profile 中的 GCC 15 | Clang 23 位于 `/opt/llvm/llvm23.1.2/bin` |
 | Java | JDK 27，`JAVA_HOME=/opt/java/openjdk27` | JDK 8 位于 `/opt/java/openjdk8`；切换时同时更新 `JAVA_HOME` 和 `PATH` |
 | Node.js | Node.js 24，位于 `/opt/node/nodejs24` | Node.js 26 位于 `/opt/node/nodejs26`；把选定版本的 `bin` 放到 `PATH` 前部 |

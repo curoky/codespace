@@ -208,6 +208,36 @@ def test_workspace_java_and_node_split_read_only_runtimes_from_writable_tools() 
     assert actual_links == expected_links
 
 
+def test_workspace_keeps_required_python_and_exposes_resource_python_tools() -> None:
+    workspace = _CONTAINER / "workspace"
+    dockerfile = (workspace / "Dockerfile").read_text()
+    resource_dockerfile = (workspace / "resource.Dockerfile").read_text()
+    profile = (workspace / "rootfs/etc/profile.d/app.sh").read_text()
+    assert "uv python install --no-bin 3.14" in dockerfile
+    assert "--python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14" in dockerfile
+    assert "uv tool install copyparty" in dockerfile
+    assert "uv tool install copyparty" not in resource_dockerfile
+
+    assert "uv python install --no-bin 3.9 3.10 3.11 3.12 3.13 3.14" in resource_dockerfile
+    resource_tools = {
+        "licenseheaders": "3.14",
+        "netron": "3.14",
+        "mitmproxy": "3.14",
+        "dool": "3.14",
+        "git-filter-repo": "3.14",
+        "tensorboard": "3.12",
+    }
+    for tool, python in resource_tools.items():
+        assert f"uv tool install {tool}" in resource_dockerfile
+        assert (
+            f"--python /opt/resource/opt/uv/python/cpython-{python}-linux-x86_64-gnu/"
+            f"bin/python{python}" in resource_dockerfile
+        )
+        assert f"uv tool install {tool}" not in dockerfile
+    assert 'export PATH="$PATH:/opt/resource/opt/uv/bin"' in profile
+    assert not (workspace / "rootfs/opt/uv").exists()
+
+
 def test_workspace_bundles_java_and_node_installers() -> None:
     workspace = _CONTAINER / "workspace"
     dockerfile = (workspace / "Dockerfile").read_text()

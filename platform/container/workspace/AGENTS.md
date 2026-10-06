@@ -50,9 +50,11 @@ platform/container/workspace/build.sh --resource
 ## Resource Payload
 
 - payload 根固定为 `/opt/resource`，通过 `codespace-resource` named volume 只读挂载。主 image
-  只创建稳定 family/profile symlink；Java/Node 额外拆成只读 runtime 子目录链接加可写
-  `/opt/java/tools`、`/opt/node/tools`；预装 CLI 直接从 resource tools bin 加入 PATH。未挂载时
-  允许链接悬空，默认 s6 service 不得依赖 payload。
+  自带运行所需的 Python 3.14 与 uv tools；resource 提供其余 Python runtime 和可选 uv
+  tools，并通过 `/opt/resource/opt/uv/bin` 直接加入 PATH。Java/Node 额外拆成只读 runtime
+  子目录链接加可写
+  `/opt/java/tools`、`/opt/node/tools`。未挂载时允许 resource 链接悬空，默认 s6 service
+  不得依赖 resource-only 内容。
 - `resource.Dockerfile` 是工具、版本、URL、checksum 和安装方式的 source of truth。不要在
   `AGENTS.md` 维护重复清单，也不要从主 image 的其他 package manager 重复安装同名工具。
 - 多版本 family 保留版本目录；默认选择由 profile/PATH 显式声明。launcher 不能依赖 payload
