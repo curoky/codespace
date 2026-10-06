@@ -279,7 +279,16 @@ def test_workspace_resource_image_installs_binman_manifest() -> None:
         in dockerfile
     )
     assert "/usr/local/bin/bm --prefix /usr/local install --file /tmp/binman.yaml" in dockerfile
+    assert "COPY --from=stage_sb /usr/local/bin /opt/resource/usr/local/bin" in dockerfile
     assert "COPY --from=stage_sb /usr/local/profile /opt/resource/usr/local/profile" in dockerfile
+    assert "/opt/resource/usr/local/bin/radare2 -v" in dockerfile
+    assert "/opt/resource/usr/local/bin/rizin -v" in dockerfile
+    assert (
+        'export PATH="$PATH:/opt/resource/usr/local/bin"'
+        in (workspace / "rootfs/etc/profile.d/app.sh").read_text()
+    )
+    assert not (workspace / "rootfs/usr/local/store/radare2").exists()
+    assert not (workspace / "rootfs/usr/local/store/rizin").exists()
 
     profiles = {
         install["link-to"]: set(install["packages"])
@@ -310,7 +319,7 @@ def test_workspace_resource_image_installs_binman_manifest() -> None:
     assert set(profiles) == {"profile/clang-tools", "profile/go", "profile/protobuf"}
 
     rootfs_profiles = workspace / "rootfs/usr/local/profile"
-    for profile in ("clang-tools", "protobuf"):
+    for profile in ("clang-tools", "go", "protobuf"):
         assert (rootfs_profiles / profile).readlink() == Path(
             f"/opt/resource/usr/local/profile/{profile}"
         )

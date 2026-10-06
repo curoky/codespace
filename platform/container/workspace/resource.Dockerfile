@@ -165,6 +165,8 @@ FROM payload AS test
 USER 5230:5230
 RUN /opt/resource/opt/go/go1.27.1/bin/go version \
   && /opt/resource/opt/llvm/llvm23.1.2/bin/clang --version \
+  && /opt/resource/usr/local/bin/radare2 -v \
+  && /opt/resource/usr/local/bin/rizin -v \
   # && /opt/resource/usr/local/profile/clang-tools/bin/clang-format --version \
   # && /opt/resource/usr/local/profile/nodejs/bin/node --version \
   # && /opt/resource/usr/local/profile/protobuf/bin/protoc --version \
