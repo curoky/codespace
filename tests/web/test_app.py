@@ -12,7 +12,7 @@ from codespace.control import HostInventory, WorkspaceImageCheck
 from codespace.operations import Operation, OperationStore
 from codespace.resources import Resource, ResourceConflict, ResourceNotFound
 from codespace.web.app import create_app, router
-from codespace.workspaces import EmptySource, RepoGitState, Workspace
+from codespace.workspaces import RepoGitState, Workspace
 
 
 class FakeControl:
@@ -112,7 +112,7 @@ def test_dashboard_workspace_exposes_container_encryption(
         project="codespace",
         workspace="debug",
         host="home",
-        source=EmptySource(type="empty"),
+        source=[],
         image="workspace:latest",
         platform="native",
         open_path="/workspace",
@@ -137,7 +137,7 @@ def test_dashboard_workspace_exposes_container_encryption(
     serialized = response.json()["workspaces"][0]
 
     assert serialized["encrypted"] is True
-    assert serialized["source"] == {"type": "empty"}
+    assert serialized["source"] == []
     assert serialized["ssh_command"] == "ssh space-codespace-debug-home"
     assert "ssh-remote+space-codespace-debug-home" in serialized["trae_url"]
     assert "/workspace?" in serialized["trae_url"]
@@ -156,11 +156,14 @@ def test_dashboard_workspace_exposes_container_encryption(
         "outdated": True,
     }
     project = next(item for item in response.json()["projects"] if item["id"] == workspace.project)
-    assert project["source"] == {
-        "type": "github",
-        "repository": "curoky/codespace",
-        "args": [],
-    }
+    assert project["source"] == [
+        {
+            "type": "github",
+            "repository": "curoky/codespace",
+            "args": [],
+            "checkout_path": None,
+        }
+    ]
     assert not {"repository", "git_url", "checkout_path"} & project.keys()
 
 

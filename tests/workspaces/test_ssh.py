@@ -22,7 +22,7 @@ def _workspace(name: str = "debug") -> Workspace:
         project="codespace",
         workspace=name,
         host="home",
-        source=ProviderSource(type="github", repository="curoky/codespace"),
+        source=[ProviderSource(type="github", repository="curoky/codespace")],
         image="workspace:latest",
         platform="native",
         open_path="/workspace/codespace",

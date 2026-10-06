@@ -7,19 +7,18 @@ environment and keeps the logic flat. The whole implementation lives here.
 
 from __future__ import annotations
 
-import json
 import os
 import socket
 import subprocess
 import threading
 from pathlib import Path
-from typing import Literal, cast
+from typing import Literal
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, TypeAdapter
 
-type SourceType = Literal["github", "gitlab", "git", "empty"]
+type SourceType = Literal["github", "gitlab", "git"]
 type AgentState = Literal["starting", "awaiting-provider", "ready", "failed"]
 
 SOCKET_PATH = Path("/run/codespace-control/agent.sock")
@@ -41,6 +40,18 @@ class GitState(BaseModel):
     unpushed: bool
     uncommitted: bool
     detail: list[str]
+
+
+class RepositorySource(BaseModel):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    type: SourceType
+    clone_url: str
+    checkout_path: str
+    args: list[str]
+
+
+_SOURCES = TypeAdapter(list[RepositorySource])
 
 
 def run_command(
@@ -71,19 +82,13 @@ class WorkspaceAgent:
 
     def __init__(
         self,
-        source_type: SourceType,
-        checkout_path: str,
+        sources: list[RepositorySource],
         open_path: str,
-        clone_url: str | None = None,
-        git_args: list[str] | None = None,
         *,
         deploy_public_key_path: Path = DEPLOY_PUBLIC_KEY_PATH,
     ) -> None:
-        self.source_type = source_type
-        self.checkout_path = checkout_path
+        self.sources = sources
         self.open_path = open_path
-        self.clone_url = clone_url
-        self.git_args = git_args or []
         self._deploy_public_key_path = deploy_public_key_path
         self._provider_authorized = threading.Event()
         self._state: AgentState = "starting"
@@ -100,19 +105,22 @@ class WorkspaceAgent:
         # Runs in-process: on success state flips to ready, on any error to
         # failed with the message; /status reads that state, no on-disk marker.
         try:
-            if self.source_type in ("github", "gitlab") and not self._probe_provider():
+            needs_authorization = False
+            for source in self.sources:
+                if source.type in ("github", "gitlab") and not self._probe_provider(source):
+                    needs_authorization = True
+            if needs_authorization:
                 self._set_state("awaiting-provider")
                 self._provider_authorized.wait()
                 self._set_state("starting")
-            if self.source_type != "empty":
-                checkout_command = [
-                    CHECKOUT,
-                    cast("str", self.clone_url),
-                    self.checkout_path,
-                    *self.git_args,
-                ]
+            for source in self.sources:
                 run_command(
-                    checkout_command,
+                    [
+                        CHECKOUT,
+                        source.clone_url,
+                        source.checkout_path,
+                        *source.args,
+                    ],
                     timeout=CHECKOUT_TIMEOUT,
                 )
             run_command(["mkdir", "-p", "--", self.open_path])
@@ -131,47 +139,39 @@ class WorkspaceAgent:
     def status(self) -> AgentStatus:
         public_key = (
             self._deploy_public_key_path.read_text(encoding="utf-8").strip()
-            if self.source_type in ("github", "gitlab")
+            if any(source.type in ("github", "gitlab") for source in self.sources)
             else None
         )
         return AgentStatus(state=self._state, public_key=public_key, error=self._error)
 
     def git_state(self) -> GitState:
-        if self.source_type == "empty":
+        if not self.sources:
             raise HTTPException(409, "empty workspace has no Git state")
         if self._state != "ready":
             raise HTTPException(409, f"agent state is {self._state!r}")
 
-        def git(*args: str) -> subprocess.CompletedProcess[str]:
-            return run_command(["git", "-C", self.checkout_path, *args])
-
-        dirty_lines = git("status", "--porcelain").stdout.splitlines()
-        # --branches --tags 只看 refs/heads 与 refs/tags 排除 agent host 写入
-        # refs/agents/**/checkpoints/turn/* 的会话快照 避免把自动 checkpoint 误报为未推送。
-        # 额外把已解析的 HEAD 纳入范围 覆盖 detached HEAD 上未被任何 branch/tag 引用的提交。
-        # HEAD 未出生 例如空仓或 orphan 未提交 时不能作为 rev 传入 否则 git log 会直接报错。
-        revs = ["--branches", "--tags"]
-        if (
-            run_command(
-                ["git", "-C", self.checkout_path, "rev-parse", "--verify", "--quiet", "HEAD"],
-                check=False,
-            ).returncode
-            == 0
-        ):
-            revs.append("HEAD")
-        unpushed_lines = git("log", *revs, "--not", "--remotes", "--oneline").stdout.splitlines()
+        unpushed = False
+        uncommitted = False
+        detail: list[str] = []
+        for source in self.sources:
+            dirty_lines, unpushed_lines = self._repository_state(source.checkout_path)
+            uncommitted = uncommitted or bool(dirty_lines)
+            unpushed = unpushed or bool(unpushed_lines)
+            detail.extend(
+                f"{source.checkout_path}: {line}" for line in [*dirty_lines, *unpushed_lines]
+            )
         return GitState(
-            unpushed=bool(unpushed_lines),
-            uncommitted=bool(dirty_lines),
-            detail=[*dirty_lines, *unpushed_lines][:20],
+            unpushed=unpushed,
+            uncommitted=uncommitted,
+            detail=detail[:20],
         )
 
     def _set_state(self, state: AgentState, error: str | None = None) -> None:
         self._state = state
         self._error = error
 
-    def _probe_provider(self) -> bool:
-        command = ["git", "ls-remote", cast("str", self.clone_url)]
+    def _probe_provider(self, source: RepositorySource) -> bool:
+        command = ["git", "ls-remote", source.clone_url]
         result = run_command(command, check=False)
         if result.returncode == 0:
             return True
@@ -179,6 +179,25 @@ class WorkspaceAgent:
         if "permission denied (publickey)" in detail.lower():
             return False
         raise RuntimeError(f"git failed ({result.returncode}): {detail}")
+
+    @staticmethod
+    def _repository_state(checkout_path: str) -> tuple[list[str], list[str]]:
+        def git(*args: str) -> subprocess.CompletedProcess[str]:
+            return run_command(["git", "-C", checkout_path, *args])
+
+        dirty_lines = git("status", "--porcelain").stdout.splitlines()
+        # Exclude agent checkpoint refs while retaining detached HEAD commits.
+        revs = ["--branches", "--tags"]
+        if (
+            run_command(
+                ["git", "-C", checkout_path, "rev-parse", "--verify", "--quiet", "HEAD"],
+                check=False,
+            ).returncode
+            == 0
+        ):
+            revs.append("HEAD")
+        unpushed_lines = git("log", *revs, "--not", "--remotes", "--oneline").stdout.splitlines()
+        return dirty_lines, unpushed_lines
 
 
 def create_app(agent: WorkspaceAgent) -> FastAPI:
@@ -217,16 +236,9 @@ def build_server(
 
 
 def main() -> None:
-    source_type = cast("SourceType", os.environ["CODESPACE_SOURCE_TYPE"])
     agent = WorkspaceAgent(
-        source_type=source_type,
-        checkout_path=os.environ["CODESPACE_CHECKOUT_PATH"],
+        sources=_SOURCES.validate_json(os.environ["CODESPACE_SOURCES"]),
         open_path=os.environ["CODESPACE_OPEN_PATH"],
-        clone_url=None if source_type == "empty" else os.environ["CODESPACE_CLONE_URL"],
-        git_args=cast(
-            "list[str]",
-            [] if source_type == "empty" else json.loads(os.environ["CODESPACE_GIT_ARGS"]),
-        ),
     )
     agent.start_bootstrap()
     server, server_socket = build_server(agent)

@@ -61,13 +61,13 @@ def test_service_tunnel_ports_are_explicit_container_ports(config: Config) -> No
 
 
 def test_git_source_args_default_empty_and_accept_clone_options(config: Config) -> None:
-    assert config.workspace_spec("codespace", "home", "default").source.args == []
+    assert config.workspace_spec("codespace", "home", "default").source[0].args == []
     data = config.model_dump()
-    data["projects"]["codespace"]["source"]["args"] = ["--depth=1", "--single-branch"]
+    data["projects"]["codespace"]["source"][0]["args"] = ["--depth=1", "--single-branch"]
 
     parsed = Config.model_validate(data)
 
-    assert parsed.workspace_spec("codespace", "home", "default").source.args == [
+    assert parsed.workspace_spec("codespace", "home", "default").source[0].args == [
         "--depth=1",
         "--single-branch",
     ]
@@ -76,17 +76,17 @@ def test_git_source_args_default_empty_and_accept_clone_options(config: Config) 
 @pytest.mark.parametrize("args", [[""], [" "], [1], "--depth=1"])
 def test_git_source_args_reject_invalid_values(config: Config, args: object) -> None:
     data = config.model_dump()
-    data["projects"]["codespace"]["source"]["args"] = args
+    data["projects"]["codespace"]["source"][0]["args"] = args
 
     with pytest.raises(ValidationError):
         Config.model_validate(data)
 
 
-def test_empty_source_rejects_git_args(config: Config) -> None:
+def test_source_rejects_non_list_value(config: Config) -> None:
     data = config.model_dump()
-    data["projects"]["scratch"]["source"]["args"] = ["--depth=1"]
+    data["projects"]["scratch"]["source"] = {"type": "github", "repository": "owner/repo"}
 
-    with pytest.raises(ValidationError, match="Extra inputs"):
+    with pytest.raises(ValidationError, match="list"):
         Config.model_validate(data)
 
 
@@ -143,20 +143,66 @@ def test_source_union_and_default_paths(config: Config) -> None:
     direct = config.workspace_spec("personal", "home", "default")
     empty = config.workspace_spec("scratch", "home", "default")
 
-    assert managed.source.model_dump() == {
-        "type": "github",
-        "repository": "curoky/codespace",
-        "args": [],
-    }
-    assert managed.source.clone_url == "git@github.com:curoky/codespace.git"
-    assert managed.checkout_path == "/workspace/codespace"
-    assert direct.source.model_dump() == {
-        "type": "git",
-        "url": "git@github.com:curoky/codespace.git",
-        "args": [],
-    }
-    assert empty.source.type == "empty"
-    assert empty.checkout_path == "/workspace"
+    assert [source.model_dump() for source in managed.source] == [
+        {
+            "type": "github",
+            "repository": "curoky/codespace",
+            "args": [],
+            "checkout_path": None,
+        }
+    ]
+    assert managed.source[0].clone_url == "git@github.com:curoky/codespace.git"
+    assert managed.source[0].resolved_checkout_path() == "/workspace/codespace"
+    assert [source.model_dump() for source in direct.source] == [
+        {
+            "type": "git",
+            "url": "git@github.com:curoky/codespace.git",
+            "args": [],
+            "checkout_path": None,
+        }
+    ]
+    assert empty.source == []
+    assert empty.open_path == "/workspace"
+
+
+def test_multiple_sources_use_first_checkout_as_default_open_path(config: Config) -> None:
+    data = config.model_dump()
+    data["projects"]["codespace"]["source"].append(
+        {
+            "type": "gitlab",
+            "repository": "group/service-api",
+            "checkout_path": "/workspace/api",
+        }
+    )
+
+    spec = Config.model_validate(data).workspace_spec("codespace", "home", "default")
+
+    assert [source.resolved_checkout_path() for source in spec.source] == [
+        "/workspace/codespace",
+        "/workspace/api",
+    ]
+    assert spec.open_path == "/workspace/codespace"
+
+
+@pytest.mark.parametrize(
+    "second",
+    [
+        {"type": "github", "repository": "curoky/codespace"},
+        {
+            "type": "gitlab",
+            "repository": "group/service-api",
+            "checkout_path": "/workspace/codespace/subdirectory",
+        },
+    ],
+)
+def test_multiple_sources_reject_duplicate_or_overlapping_checkouts(
+    config: Config, second: dict[str, object]
+) -> None:
+    data = config.model_dump()
+    data["projects"]["codespace"]["source"].append(second)
+
+    with pytest.raises(ValidationError, match=r"duplicate source|overlapping checkout path"):
+        Config.model_validate(data)
 
 
 @pytest.mark.parametrize("unknown", [{"unexpected": {}}, {"extra": "value"}])
@@ -364,7 +410,7 @@ def test_project_rejects_workspace_path_traversal(config: Config, path: str) -> 
 
 def test_project_rejects_escaping_derived_checkout_path(config: Config) -> None:
     data = config.model_dump()
-    data["projects"]["codespace"]["source"] = {"type": "github", "repository": "owner/.."}
+    data["projects"]["codespace"]["source"] = [{"type": "github", "repository": "owner/.."}]
 
     with pytest.raises(ValidationError, match="must not contain"):
         Config.model_validate(data)

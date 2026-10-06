@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Literal
@@ -15,7 +16,7 @@ from codespace.resources import Resource, ResourceConflict, ResourceNotFound
 from codespace.runtime import host as host_runtime
 from codespace.runtime.host import HostDataPaths
 from codespace.runtime.transport import SSHRoute
-from codespace.workspaces import EmptySource, RepoGitState, agent, lifecycle, provider, ssh
+from codespace.workspaces import ProviderSource, RepoGitState, agent, lifecycle, provider, ssh
 from codespace.workspaces.agent import WorkspaceAgentClient
 
 _PATHS = HostDataPaths("/home/x/codespace")
@@ -200,7 +201,11 @@ def test_create_handles_source_bootstrap_and_agent_protocol_failure(
         "pull",
         "paths",
         "create",
-        *(["register", "ready"] if spec.source.type in {"github", "gitlab"} else []),
+        *(
+            ["register", "ready"]
+            if any(isinstance(source, ProviderSource) for source in spec.source)
+            else []
+        ),
         "route",
     ]
     assert manager.operations.list() == []
@@ -319,7 +324,7 @@ def test_rebuild_pulls_latest_image_before_replacing_container(
         ("remove", "old-container"),
         "remove-route",
         ("create", spec.image, {"HTTP_PROXY": "proxy"}),
-        ("bootstrap", spec.image, "new-container", (spec.source, "token")),
+        ("bootstrap", spec.image, "new-container", [(spec.source[0], "token")]),
     ]
     assert manager.transport.closed_tcp == [  # type: ignore[attr-defined]
         ("home", spec.ssh_alias)
@@ -336,9 +341,54 @@ def test_provider_bootstrap_requires_credentials(config: Config) -> None:
             SimpleNamespace(),  # type: ignore[arg-type]
             SimpleNamespace(),  # type: ignore[arg-type]
             _PATHS.workspace("codespace", "debug"),
-            None,
+            [],
             lambda _stage: None,
         )
+
+
+def test_provider_bootstrap_registers_key_for_every_repository(
+    manager: ControlPlane,
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    data = config.model_dump()
+    data["projects"]["codespace"]["source"].append(
+        {"type": "gitlab", "repository": "group/service-api"}
+    )
+    spec = Config.model_validate(data).workspace_spec("codespace", "home", "debug")
+    registrations: list[tuple[object, ...]] = []
+    stages: list[str] = []
+    monkeypatch.setattr(provider, "register", lambda *args: registrations.append(args))
+
+    lifecycle.bootstrap(
+        spec,
+        SimpleNamespace(id="container-id", attrs={"Image": "sha256:current"}),  # type: ignore[arg-type]
+        manager.transport,  # type: ignore[arg-type]
+        _PATHS.workspace("codespace", "debug"),
+        [
+            (spec.source[0], "github-token"),  # type: ignore[list-item]
+            (spec.source[1], "gitlab-token"),  # type: ignore[list-item]
+        ],
+        stages.append,
+    )
+
+    assert registrations == [
+        (
+            "github",
+            "github-token",
+            "curoky/codespace",
+            "space:codespace/debug@home",
+            "PUBLIC",
+        ),
+        (
+            "gitlab",
+            "gitlab-token",
+            "group/service-api",
+            "space:codespace/debug@home",
+            "PUBLIC",
+        ),
+    ]
+    assert "registering deploy keys" in stages
 
 
 def test_rebuild_pull_failure_keeps_existing_container(
@@ -380,7 +430,7 @@ def test_rebuild_pull_failure_keeps_existing_container(
 @pytest.mark.parametrize(
     "changed",
     [
-        {"source": EmptySource(type="empty")},
+        {"source": []},
         {"encrypted": True},
     ],
 )
@@ -538,6 +588,35 @@ def test_purge_revokes_key_before_data_and_container(
     ]
 
 
+def test_delete_revokes_key_from_every_provider_repository(
+    manager: ControlPlane,
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    data = config.model_dump()
+    data["projects"]["codespace"]["source"].append(
+        {"type": "gitlab", "repository": "group/service-api"}
+    )
+    spec = Config.model_validate(data).workspace_spec("codespace", "home", "debug")
+    running = SimpleNamespace(
+        id="container-id",
+        name=spec.container_name,
+        labels=spec.labels(),
+        attrs={"State": {"Status": "running"}, "Image": "sha256:current"},
+    )
+    revoked: list[tuple[str, ...]] = []
+    monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
+    monkeypatch.setattr(provider, "revoke", lambda *args: revoked.append(args))
+    monkeypatch.setattr(lifecycle.container, "remove_container", lambda _container: None)
+
+    manager.remove(Resource("home", "debug", "codespace"))
+
+    assert revoked == [
+        ("github", "token", "curoky/codespace", "space:codespace/debug@home"),
+        ("gitlab", "token", "group/service-api", "space:codespace/debug@home"),
+    ]
+
+
 def test_stopped_workspace_requires_explicit_delete_without_inspection(
     manager: ControlPlane, config: Config, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -585,6 +664,13 @@ def test_workspace_container_uses_fixed_ssh_listener_and_configured_mounts(
 ) -> None:
     data = config.model_dump()
     data["projects"]["codespace"]["encrypted"] = encrypted
+    data["projects"]["codespace"]["source"].append(
+        {
+            "type": "git",
+            "url": "git@example.com:owner/other.git",
+            "checkout_path": "/workspace/other",
+        }
+    )
     data["secrets"]["codespace_workspace_key"] = "test-key"
     configured_secrets = [
         {"source": "atuin_credentials", "mode": 0o400},
@@ -616,7 +702,7 @@ def test_workspace_container_uses_fixed_ssh_listener_and_configured_mounts(
             }
         ],
     }
-    data["projects"]["codespace"]["source"]["args"] = ["--depth=1", "--single-branch"]
+    data["projects"]["codespace"]["source"][0]["args"] = ["--depth=1", "--single-branch"]
     spec = Config.model_validate(data).workspace_spec("codespace", "home", "debug")
     original_container = spec.container.model_dump()
     captured: dict[str, object] = {}
@@ -636,13 +722,23 @@ def test_workspace_container_uses_fixed_ssh_listener_and_configured_mounts(
     assert captured["name"] == "space-codespace-debug"
     environment = captured["spec"].environment  # type: ignore[union-attr]
     assert isinstance(environment, dict)
-    assert environment["CODESPACE_SOURCE_TYPE"] == "github"
-    assert environment["CODESPACE_CHECKOUT_PATH"] == "/workspace/codespace"
     assert environment["CODESPACE_OPEN_PATH"] == "/workspace/codespace"
     assert environment["CODESPACE_ENCRYPTED"] == str(encrypted).lower()
     assert "CODESPACE_ENCRYPTED_PATH" not in environment
-    assert environment["CODESPACE_CLONE_URL"] == "git@github.com:curoky/codespace.git"
-    assert environment["CODESPACE_GIT_ARGS"] == '["--depth=1", "--single-branch"]'
+    assert json.loads(environment["CODESPACE_SOURCES"]) == [
+        {
+            "type": "github",
+            "clone_url": "git@github.com:curoky/codespace.git",
+            "checkout_path": "/workspace/codespace",
+            "args": ["--depth=1", "--single-branch"],
+        },
+        {
+            "type": "git",
+            "clone_url": "git@example.com:owner/other.git",
+            "checkout_path": "/workspace/other",
+            "args": [],
+        },
+    ]
     assert "ATUIN_SYNC_ADDRESS" not in environment
     assert [secret.source for secret in captured["spec"].secrets[:2]] == [  # type: ignore[union-attr]
         "atuin_credentials",
@@ -733,7 +829,14 @@ def test_encrypted_workspace_uses_configured_compose_secret(
 
     runtime_spec = captured["spec"]
     assert runtime_spec.environment["CODESPACE_ENCRYPTED"] == "true"  # type: ignore[union-attr]
-    assert runtime_spec.environment["CODESPACE_GIT_ARGS"] == "[]"  # type: ignore[union-attr]
+    assert json.loads(runtime_spec.environment["CODESPACE_SOURCES"]) == [  # type: ignore[union-attr]
+        {
+            "type": "github",
+            "clone_url": "git@github.com:curoky/codespace.git",
+            "checkout_path": "/workspace/codespace",
+            "args": [],
+        }
+    ]
     assert captured["labels"]["codespace.encrypted"] == "true"  # type: ignore[index]
     assert spec.container.secrets == runtime_spec.secrets  # type: ignore[union-attr]
     assert runtime_spec.secrets[0].model_dump() == {  # type: ignore[union-attr]
@@ -761,7 +864,7 @@ def test_delete_uses_deployed_source_after_config_changes(
         },
     )
     data = config.model_dump()
-    data["projects"]["codespace"]["source"] = {"type": "empty"}
+    data["projects"]["codespace"]["source"] = []
     manager.config = Config.model_validate(data)
     revoked: list[tuple[str, ...]] = []
     monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)

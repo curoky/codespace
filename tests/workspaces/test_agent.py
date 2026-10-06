@@ -355,6 +355,22 @@ def image_agent(monkeypatch: pytest.MonkeyPatch) -> ModuleType:
     return module
 
 
+def _repository(
+    image_agent: ModuleType,
+    *,
+    source_type: str = "git",
+    checkout_path: str = "/workspace/repo",
+    clone_url: str = "git@example.com:owner/repo.git",
+    args: list[str] | None = None,
+) -> object:
+    return image_agent.RepositorySource(
+        type=source_type,
+        clone_url=clone_url,
+        checkout_path=checkout_path,
+        args=args or [],
+    )
+
+
 def test_image_run_command_inherits_agent_identity(
     image_agent: ModuleType,
     monkeypatch: pytest.MonkeyPatch,
@@ -407,11 +423,8 @@ def test_image_bootstrap_passes_git_args(
 ) -> None:
     commands: list[list[str]] = []
     worker = image_agent.WorkspaceAgent(
-        "git",
+        [_repository(image_agent, args=git_args)],
         "/workspace/repo",
-        "/workspace/repo",
-        clone_url="git@example.com:owner/repo.git",
-        git_args=git_args,
     )
     monkeypatch.setattr(
         image_agent,
@@ -428,6 +441,51 @@ def test_image_bootstrap_passes_git_args(
     assert worker.status().state == "ready"
 
 
+def test_image_bootstrap_checks_out_all_sources(
+    image_agent: ModuleType,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    commands: list[list[str]] = []
+    worker = image_agent.WorkspaceAgent(
+        [
+            _repository(image_agent),
+            _repository(
+                image_agent,
+                checkout_path="/workspace/other",
+                clone_url="git@example.com:owner/other.git",
+                args=["--depth=1"],
+            ),
+        ],
+        "/workspace/repo",
+    )
+    monkeypatch.setattr(
+        image_agent,
+        "run_command",
+        lambda command, **_kwargs: (
+            commands.append(command),
+            subprocess.CompletedProcess(command, 0, stdout="", stderr=""),
+        )[-1],
+    )
+
+    worker.run_bootstrap()
+
+    assert commands == [
+        [
+            image_agent.CHECKOUT,
+            "git@example.com:owner/repo.git",
+            "/workspace/repo",
+        ],
+        [
+            image_agent.CHECKOUT,
+            "git@example.com:owner/other.git",
+            "/workspace/other",
+            "--depth=1",
+        ],
+        ["mkdir", "-p", "--", "/workspace/repo"],
+    ]
+    assert worker.status().state == "ready"
+
+
 @pytest.mark.parametrize("source", ["empty", "git"])
 @pytest.mark.parametrize("fail", [False, True])
 def test_image_bootstrap_responses_satisfy_client_contract(
@@ -440,10 +498,8 @@ def test_image_bootstrap_responses_satisfy_client_contract(
     key = tmp_path / "key.pub"
     key.write_text("ssh-ed25519 PUBLIC\n")
     worker = image_agent.WorkspaceAgent(
-        source,
+        [] if source == "empty" else [_repository(image_agent)],
         "/workspace/repo",
-        "/workspace/repo",
-        clone_url=None if source == "empty" else "git@example.com:owner/repo.git",
         deploy_public_key_path=key,
     )
     with TestClient(image_agent.create_app(worker)) as server:
@@ -485,10 +541,8 @@ def test_image_provider_bootstrap_waits_for_publickey_authorization(
     key = tmp_path / "key.pub"
     key.write_text("ssh-ed25519 PUBLIC\n")
     worker = image_agent.WorkspaceAgent(
-        source,
+        [_repository(image_agent, source_type=source)],
         "/workspace/repo",
-        "/workspace/repo",
-        clone_url="git@example.com:owner/repo.git",
         deploy_public_key_path=key,
     )
     commands: list[list[str]] = []
@@ -549,10 +603,8 @@ def test_image_provider_probe_reports_network_failure(
     key = tmp_path / "key.pub"
     key.write_text("ssh-ed25519 PUBLIC\n")
     worker = image_agent.WorkspaceAgent(
-        "github",
+        [_repository(image_agent, source_type="github")],
         "/workspace/repo",
-        "/workspace/repo",
-        clone_url="git@example.com:owner/repo.git",
         deploy_public_key_path=key,
     )
     monkeypatch.setattr(
@@ -591,10 +643,8 @@ def test_image_provider_restart_rechecks_remote_without_local_state(
         )[-1],
     )
     worker = image_agent.WorkspaceAgent(
-        source,
+        [_repository(image_agent, source_type=source)],
         "/workspace/repo",
-        "/workspace/repo",
-        clone_url="git@example.com:owner/repo.git",
         deploy_public_key_path=key,
     )
 
@@ -615,7 +665,8 @@ def test_image_git_and_error_responses_satisfy_client_contract(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     worker = image_agent.WorkspaceAgent(
-        "git", "/workspace/repo", "/workspace/repo", clone_url="git@example.com:owner/repo.git"
+        [_repository(image_agent)],
+        "/workspace/repo",
     )
     monkeypatch.setattr(
         image_agent,
@@ -638,6 +689,38 @@ def test_image_git_and_error_responses_satisfy_client_contract(
             "uncommitted": False,
             "detail": [],
         }
+
+
+def test_image_git_state_aggregates_all_repositories(
+    image_agent: ModuleType,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    worker = image_agent.WorkspaceAgent(
+        [
+            _repository(image_agent),
+            _repository(
+                image_agent,
+                checkout_path="/workspace/other",
+                clone_url="git@example.com:owner/other.git",
+            ),
+        ],
+        "/workspace/repo",
+    )
+    worker._set_state("ready")
+    states = {
+        "/workspace/repo": ([" M tracked"], []),
+        "/workspace/other": ([], ["abc unpublished"]),
+    }
+    monkeypatch.setattr(worker, "_repository_state", states.__getitem__)
+
+    assert worker.git_state().model_dump() == {
+        "unpushed": True,
+        "uncommitted": True,
+        "detail": [
+            "/workspace/repo:  M tracked",
+            "/workspace/other: abc unpublished",
+        ],
+    }
 
 
 @pytest.mark.parametrize(
@@ -685,7 +768,15 @@ def test_image_git_state_reads_actual_repository_state(
     if state == "dirty":
         (checkout / "untracked.txt").write_text("local work\n")
 
-    worker = image_agent.WorkspaceAgent("git", str(checkout), str(checkout))
+    worker = image_agent.WorkspaceAgent(
+        [
+            _repository(
+                image_agent,
+                checkout_path=str(checkout),
+            )
+        ],
+        str(checkout),
+    )
     worker._set_state("ready")
     monkeypatch.setattr(image_agent, "run_command", run)
     with TestClient(image_agent.create_app(worker), raise_server_exceptions=False) as server:

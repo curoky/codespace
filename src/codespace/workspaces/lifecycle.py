@@ -16,7 +16,6 @@ from codespace.runtime.transport import PodmanTransport
 from codespace.workspaces import (
     CONTROL_MOUNT,
     WORKSPACE_SSH_PORT,
-    EmptySource,
     ProviderSource,
     RepoGitState,
     Workspace,
@@ -49,8 +48,8 @@ def check_inventory(client: PodmanClient, spec: WorkspaceSpec) -> None:
 
 
 def check_rebuild(actual: Workspace, spec: WorkspaceSpec) -> None:
-    actual_source = actual.source.model_dump(exclude={"args"})
-    desired_source = spec.source.model_dump(exclude={"args"})
+    actual_source = [source.model_dump(exclude={"args"}) for source in actual.source]
+    desired_source = [source.model_dump(exclude={"args"}) for source in spec.source]
     if actual_source != desired_source:
         raise ResourceConflict(
             f"workspace {actual.id!r} source changed; delete and recreate it instead"
@@ -66,10 +65,11 @@ def bootstrap(
     created: Container,
     transport: PodmanTransport,
     data_path: str,
-    credentials: tuple[ProviderSource, str] | None,
+    credentials: list[tuple[ProviderSource, str]],
     stage: Callable[[str], None],
 ) -> None:
-    if isinstance(spec.source, ProviderSource) and credentials is None:
+    provider_sources = [source for source in spec.source if isinstance(source, ProviderSource)]
+    if len(credentials) != len(provider_sources):
         raise RuntimeError(f"provider credentials are required to bootstrap {spec.id!r}")
     stage("waiting for workspace agent")
     control_source = next(
@@ -80,14 +80,14 @@ def bootstrap(
     agent_client = agent.WorkspaceAgentClient(
         transport.forward_socket(spec.host, f"{control_source}/agent.sock")
     )
-    if credentials is not None:
-        source, token = credentials
+    if credentials:
         status = agent_client.wait_for("awaiting-provider", timeout=_AGENT_START_TIMEOUT)
-        stage("registering deploy key")
-        provider.register(source.type, token, source.repository, spec.id, status.public_key)
-        stage("authorizing repository checkout")
+        stage("registering deploy keys")
+        for source, token in credentials:
+            provider.register(source.type, token, source.repository, spec.id, status.public_key)
+        stage("authorizing repository checkouts")
         agent_client.authorize_provider()
-    stage("preparing open path" if spec.source.type == "empty" else "checking out source")
+    stage("checking out sources" if spec.source else "preparing open path")
     agent_client.wait_for("ready", timeout=_AGENT_READY_TIMEOUT)
     stage("writing ssh config")
     ssh.write_route(
@@ -103,7 +103,7 @@ def inspect_deletion(
     actual: Workspace, transport: PodmanTransport, running: Container
 ) -> RepoGitState:
     """Read repository state without starting or changing the Workspace."""
-    if actual.source.type == "empty":
+    if not actual.source:
         return RepoGitState(unpushed=False, uncommitted=False, detail=[])
     if actual.status != "running":
         raise ResourceConflict(
@@ -129,14 +129,20 @@ def create_container(
     environment = {
         **forwarded_environment,
         **spec.container.environment,
-        "CODESPACE_SOURCE_TYPE": spec.source.type,
-        "CODESPACE_CHECKOUT_PATH": spec.checkout_path,
+        "CODESPACE_SOURCES": json.dumps(
+            [
+                {
+                    "type": source.type,
+                    "clone_url": source.clone_url,
+                    "checkout_path": source.resolved_checkout_path(),
+                    "args": source.args,
+                }
+                for source in spec.source
+            ]
+        ),
         "CODESPACE_OPEN_PATH": spec.open_path,
         "CODESPACE_ENCRYPTED": str(spec.encrypted).lower(),
     }
-    if not isinstance(spec.source, EmptySource):
-        environment["CODESPACE_CLONE_URL"] = spec.source.clone_url
-        environment["CODESPACE_GIT_ARGS"] = json.dumps(spec.source.args)
 
     runtime_spec = ContainerSpec.model_validate(
         {

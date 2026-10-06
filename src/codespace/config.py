@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Annotated, cast
 
 import yaml
@@ -30,7 +30,6 @@ from codespace.services import ServiceSpec
 from codespace.workspaces import (
     WORKSPACE_KEY_SECRET,
     WORKSPACE_MOUNT,
-    EmptySource,
     GitProvider,
     Source,
     TokenString,
@@ -124,22 +123,38 @@ class ProjectDefaults(FrozenModel):
 
 class ProjectConfig(FrozenModel):
     description: NonBlankString | None = None
-    source: Source
+    source: list[Source]
     hosts: list[HostId]
-    checkout_path: WorkspacePath | None = None
     open_path: WorkspacePath | None = None
     encrypted: bool | None = None
     tunnel_ports: TunnelPorts | None = None
     container: ContainerLayer | None = None
 
-    def resolved_checkout_path(self) -> str:
-        if self.checkout_path is not None:
-            return self.checkout_path
-        name = None if isinstance(self.source, EmptySource) else self.source.checkout_name
-        return workspace_path(WORKSPACE_MOUNT if name is None else f"{WORKSPACE_MOUNT}/{name}")
+    @model_validator(mode="after")
+    def _validate_sources(self) -> ProjectConfig:
+        clone_urls: set[str] = set()
+        checkout_paths: list[PurePosixPath] = []
+        for source in self.source:
+            if source.clone_url in clone_urls:
+                raise ValueError(f"duplicate source {source.clone_url!r}")
+            clone_urls.add(source.clone_url)
+            checkout_path = PurePosixPath(source.resolved_checkout_path())
+            if any(
+                checkout_path == existing
+                or checkout_path.is_relative_to(existing)
+                or existing.is_relative_to(checkout_path)
+                for existing in checkout_paths
+            ):
+                raise ValueError(f"overlapping checkout path {str(checkout_path)!r}")
+            checkout_paths.append(checkout_path)
+        return self
 
     def resolved_open_path(self) -> str:
-        return self.open_path or self.resolved_checkout_path()
+        if self.open_path is not None:
+            return self.open_path
+        if self.source:
+            return self.source[0].resolved_checkout_path()
+        return workspace_path(WORKSPACE_MOUNT)
 
 
 class ServiceConfig(FrozenModel):
@@ -168,7 +183,6 @@ class Config(FrozenModel):
         if self.project_defaults.container.image is None:
             raise ValueError("project_defaults.container.image is required")
         for project_id, project in self.projects.items():
-            project.resolved_checkout_path()
             for host in project.hosts:
                 if host not in self.hosts:
                     raise ValueError(f"project {project_id!r} references unknown host {host!r}")
@@ -245,7 +259,6 @@ class Config(FrozenModel):
             platform=container.platform,
             image=container.image,
             container=container,
-            checkout_path=configured.resolved_checkout_path(),
             open_path=configured.resolved_open_path(),
             encrypted=self.project_encrypted(project),
         )

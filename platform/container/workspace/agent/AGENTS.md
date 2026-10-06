@@ -10,8 +10,8 @@ Podman 或 Host。
   在 public deploy key 就绪后停在 `awaiting-provider`。
 - `POST /provider-ready` 只解除 provider checkout gate。private key 始终留在 Workspace，
   response 只包含 public key。
-- `GET /git-state` 只在非-empty、ready Workspace 上可用，报告 uncommitted 与未被 remote
-  包含的 commit；agent checkpoint refs 不应造成 false positive。
+- `GET /git-state` 只在有 repository 的 ready Workspace 上可用，汇总所有 checkout 的
+  uncommitted 与未被 remote 包含的 commit；agent checkpoint refs 不应造成 false positive。
 - server 只绑定 `/run/codespace-control/agent.sock`，不开放 TCP。启动前清理旧 socket，退出时
   再清理。
 - bootstrap 在后台线程执行，所有失败转换为 bounded `failed` detail，供控制面轮询；不要让
@@ -19,10 +19,10 @@ Podman 或 Host。
 
 ## Inputs And Checkout
 
-- `CODESPACE_SOURCE_TYPE`、`CODESPACE_CHECKOUT_PATH`、`CODESPACE_OPEN_PATH` 以及非-empty source
-  的 clone URL/Git args 由控制面注入。Agent 不读取项目配置文件。
-- empty source 只创建 open path；generic Git source 直接 checkout；GitHub/GitLab source 先生成
-  deploy key、等待授权，再 clone。
+- `CODESPACE_SOURCES` 包含 repository type、clone URL、checkout path 与 Git args；
+  `CODESPACE_OPEN_PATH` 由控制面单独注入。Agent 不读取项目配置文件。
+- 空 source 列表只创建 open path；generic Git source 直接 checkout；存在 GitHub/GitLab
+  source 时先生成一把 deploy key、等待所有 repository 完成授权，再依次 clone。
 - command 以 argv 执行，不通过 shell 拼接。错误摘要可以包含命令结果，但不得读取或输出
   secret/token。
 - protocol model 或 endpoint 变化必须同步 `src/codespace/workspaces/agent.py` client 和双方

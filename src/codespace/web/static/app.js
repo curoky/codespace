@@ -143,10 +143,10 @@ function renderHosts(hosts) {
 }
 
 function projectSource(project) {
-  const source = project.source;
-  if (source.type === "empty") return project.open_path;
-  if (source.type === "git") return source.url;
-  return `${source.type}:${source.repository}`;
+  if (!project.source.length) return project.open_path;
+  return project.source
+    .map((source) => (source.type === "git" ? source.url : `${source.type}:${source.repository}`))
+    .join(", ");
 }
 
 function renderProjects(dashboard) {

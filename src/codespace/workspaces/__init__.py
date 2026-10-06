@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 from pathlib import PurePosixPath
 from typing import Annotated, Literal, cast
@@ -31,8 +32,6 @@ WORKSPACE_KEY_SECRET = "codespace_workspace_key"  # noqa: S105 - secret identifi
 LABEL_PROJECT = "codespace.project"
 LABEL_WORKSPACE = "codespace.workspace"
 LABEL_SOURCE = "codespace.source"
-LABEL_REPOSITORY = "codespace.repository"
-LABEL_GIT_URL = "codespace.git-url"
 LABEL_PLATFORM = "codespace.platform"
 LABEL_OPEN_PATH = "codespace.open-path"
 LABEL_ENCRYPTED = "codespace.encrypted"
@@ -76,6 +75,7 @@ class ProviderSource(BaseModel):
     type: GitProvider
     repository: RepositoryPath
     args: list[NonBlankString] = Field(default_factory=list)
+    checkout_path: WorkspacePath | None = None
 
     @property
     def clone_url(self) -> str:
@@ -85,6 +85,9 @@ class ProviderSource(BaseModel):
     def checkout_name(self) -> str:
         return self.repository.rsplit("/", 1)[-1].removesuffix(".git")
 
+    def resolved_checkout_path(self) -> str:
+        return self.checkout_path or workspace_path(f"{WORKSPACE_MOUNT}/{self.checkout_name}")
+
 
 class GitSource(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -92,6 +95,7 @@ class GitSource(BaseModel):
     type: Literal["git"]
     url: GitUrl
     args: list[NonBlankString] = Field(default_factory=list)
+    checkout_path: WorkspacePath | None = None
 
     @property
     def clone_url(self) -> str:
@@ -101,15 +105,12 @@ class GitSource(BaseModel):
     def checkout_name(self) -> str:
         return re.split(r"[/:]", self.url.rstrip("/").removesuffix(".git"))[-1]
 
-
-class EmptySource(BaseModel):
-    model_config = ConfigDict(extra="forbid", frozen=True)
-
-    type: Literal["empty"]
+    def resolved_checkout_path(self) -> str:
+        return self.checkout_path or workspace_path(f"{WORKSPACE_MOUNT}/{self.checkout_name}")
 
 
-type Source = Annotated[ProviderSource | GitSource | EmptySource, Field(discriminator="type")]
-_SOURCE: TypeAdapter[Source] = TypeAdapter(Source)
+type Source = Annotated[ProviderSource | GitSource, Field(discriminator="type")]
+_SOURCES: TypeAdapter[list[Source]] = TypeAdapter(list[Source])
 
 
 class WorkspaceMetadata(BaseModel):
@@ -120,7 +121,7 @@ class WorkspaceMetadata(BaseModel):
     project: ResourceId
     workspace: ResourceId
     host: HostId
-    source: Source
+    source: list[Source]
     image: str
     open_path: WorkspacePath
     encrypted: bool
@@ -151,26 +152,23 @@ class WorkspaceSpec(WorkspaceMetadata):
 
     platform: ImagePlatform | None
     container: ContainerSpec
-    checkout_path: WorkspacePath
 
     def labels(self) -> dict[str, str]:
-        labels = {
+        return {
             **self.resource.labels,
-            LABEL_SOURCE: self.source.type,
+            LABEL_SOURCE: json.dumps(
+                [item.model_dump() for item in self.source],
+                separators=(",", ":"),
+            ),
             LABEL_IMAGE: self.image,
             LABEL_PLATFORM: self.platform or "native",
             LABEL_OPEN_PATH: self.open_path,
             LABEL_ENCRYPTED: str(self.encrypted).lower(),
         }
-        if isinstance(self.source, ProviderSource):
-            labels[LABEL_REPOSITORY] = self.source.repository
-        if isinstance(self.source, GitSource):
-            labels[LABEL_GIT_URL] = self.source.url
-        return labels
 
     def to_workspace(self, container_id: str, image_id: str, *, status: str) -> Workspace:
         return Workspace(
-            **self.model_dump(exclude={"platform", "container", "checkout_path"}),
+            **self.model_dump(exclude={"platform", "container"}),
             platform=self.platform or "native",
             container_id=container_id,
             image_id=image_id,
@@ -211,15 +209,11 @@ def list_workspaces(client: PodmanClient, host: str) -> list[Workspace]:
 
 def read_workspace(container: Container, host: str) -> Workspace:
     labels = container.labels
-    source = {"type": labels[LABEL_SOURCE]}
-    for field, label in (("repository", LABEL_REPOSITORY), ("url", LABEL_GIT_URL)):
-        if label in labels:
-            source[field] = labels[label]
     actual = Workspace(
         project=labels[LABEL_PROJECT],
         workspace=labels[LABEL_WORKSPACE],
         host=host,
-        source=_SOURCE.validate_python(source),
+        source=_SOURCES.validate_json(labels[LABEL_SOURCE]),
         image=labels[LABEL_IMAGE],
         platform=cast("PlatformSelection", labels[LABEL_PLATFORM]),
         open_path=labels[LABEL_OPEN_PATH],

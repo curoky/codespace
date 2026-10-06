@@ -17,8 +17,9 @@ def _container(encrypted: str) -> SimpleNamespace:
             "codespace.kind": "workspace",
             "codespace.project": "codespace",
             "codespace.workspace": "debug",
-            "codespace.source": "github",
-            "codespace.repository": "curoky/codespace",
+            "codespace.source": (
+                '[{"type":"github","repository":"curoky/codespace","checkout_path":null}]'
+            ),
             "codespace.image": "workspace:latest",
             "codespace.platform": "native",
             "codespace.open-path": "/workspace/codespace",
@@ -90,19 +91,19 @@ def test_created_labels_round_trip_inventory(config: Config, project: str) -> No
 
 
 @pytest.mark.parametrize(
-    "labels",
+    "source",
     [
-        {"codespace.source": "github"},
-        {"codespace.source": "git"},
-        {"codespace.source": "unknown"},
-        {"codespace.source": "empty", "codespace.repository": "owner/repo"},
-        {"codespace.source": "github", "codespace.repository": "invalid"},
+        "github",
+        '[{"type":"git"}]',
+        '[{"type":"unknown"}]',
+        '[{"type":"empty"}]',
+        '[{"type":"github","repository":"invalid"}]',
+        "{}",
     ],
 )
-def test_inventory_rejects_incomplete_or_mismatched_sources(labels: dict[str, str]) -> None:
+def test_inventory_rejects_incomplete_or_mismatched_sources(source: str) -> None:
     container = _container("false")
-    del container.labels["codespace.repository"]
-    container.labels.update(labels)
+    container.labels["codespace.source"] = source
 
     with pytest.raises(ValidationError):
         inventory.read_workspace(container, "home")  # type: ignore[arg-type]

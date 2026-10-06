@@ -55,8 +55,10 @@ def prune(
     config = load_config(config_path)
     repositories: dict[Repository, list[Route]] = defaultdict(list)
     for project_id, project in config.projects.items():
-        if isinstance(project.source, ProviderSource):
-            repository = (project.source.type, project.source.repository)
+        for source in project.source:
+            if not isinstance(source, ProviderSource):
+                continue
+            repository = (source.type, source.repository)
             repositories[repository].extend((host, project_id) for host in project.hosts)
 
     tokens = config.seed_tokens()

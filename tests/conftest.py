@@ -57,29 +57,35 @@ def config() -> Config:
             "projects": {
                 "codespace": {
                     "description": "Personal development platform",
-                    "source": {
-                        "type": "github",
-                        "repository": "curoky/codespace",
-                    },
+                    "source": [
+                        {
+                            "type": "github",
+                            "repository": "curoky/codespace",
+                        }
+                    ],
                     "hosts": ["home"],
                 },
                 "service-api": {
-                    "source": {
-                        "type": "gitlab",
-                        "repository": "group/service-api",
-                    },
+                    "source": [
+                        {
+                            "type": "gitlab",
+                            "repository": "group/service-api",
+                        }
+                    ],
                     "hosts": ["office"],
                     "container": {"image": "registry.example.com/workspace-api:latest"},
                 },
                 "scratch": {
-                    "source": {"type": "empty"},
+                    "source": [],
                     "hosts": ["home"],
                 },
                 "personal": {
-                    "source": {
-                        "type": "git",
-                        "url": "git@github.com:curoky/codespace.git",
-                    },
+                    "source": [
+                        {
+                            "type": "git",
+                            "url": "git@github.com:curoky/codespace.git",
+                        }
+                    ],
                     "hosts": ["home"],
                 },
             },

@@ -55,15 +55,17 @@ project_defaults:
 projects:
   codespace:
     description: Personal development platform
-    source: { type: github, repository: curoky/codespace }
+    source:
+      - { type: github, repository: curoky/codespace }
+      - { type: github, repository: curoky/dotfiles }
     hosts: [workstation, gpu-host]
 
   learn-ml:
-    source: { type: github, repository: curoky/learn-ml }
+    source: [{ type: github, repository: curoky/learn-ml }]
     hosts: [gpu-host]
 
   standalone-binaries:
-    source: { type: github, repository: curoky/standalone-binaries }
+    source: [{ type: github, repository: curoky/standalone-binaries }]
     hosts: [gpu-host]
     encrypted: false
     container:
@@ -71,16 +73,16 @@ projects:
         - ${RESOURCE_DATA}/workspace:/workspace
 
   notes:
-    source: { type: gitlab, repository: my-namespace/notes }
+    source: [{ type: gitlab, repository: my-namespace/notes }]
     hosts: [workstation]
 
   scratch:
-    source: { type: empty }
+    source: []
     hosts: [gpu-host]
     open_path: /workspace
 
   private-repo:
-    source: { type: git, url: "git@git.example.com:team/private-repo" }
+    source: [{ type: git, url: "git@git.example.com:team/private-repo" }]
     hosts: [gpu-host]
     encrypted: false
     container:

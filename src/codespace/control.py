@@ -89,6 +89,15 @@ class ControlPlane:
         with self._token_lock:
             return {"github": "github" in self._tokens, "gitlab": "gitlab" in self._tokens}
 
+    def _provider_credentials(
+        self, sources: list[workspaces.Source]
+    ) -> list[tuple[ProviderSource, str]]:
+        return [
+            (source, self._token(source.type))
+            for source in sources
+            if isinstance(source, ProviderSource)
+        ]
+
     @staticmethod
     def _workspace_image_checks(
         client: PodmanClient,
@@ -155,16 +164,15 @@ class ControlPlane:
 
     def queue(self, resource: Resource) -> Operation:
         spec = self.config.resource_spec(resource)
-        if isinstance(spec, WorkspaceSpec) and isinstance(spec.source, ProviderSource):
-            self._token(spec.source.type)
+        if isinstance(spec, WorkspaceSpec):
+            self._provider_credentials(spec.source)
         return self._queue(resource)
 
     def queue_rebuild(self, resource: Resource) -> Operation:
         spec = self.config.resource_spec(resource)
         if not isinstance(spec, WorkspaceSpec):
             raise ResourceNotFound(f"resource {resource.id!r} is not a workspace")
-        if isinstance(spec.source, ProviderSource):
-            self._token(spec.source.type)
+        self._provider_credentials(spec.source)
         return self._queue(resource)
 
     def _queue(self, resource: Resource) -> Operation:
@@ -195,9 +203,7 @@ class ControlPlane:
 
         stage("checking inventory")
         credentials = (
-            (spec.source, self._token(spec.source.type))
-            if isinstance(spec, WorkspaceSpec) and isinstance(spec.source, ProviderSource)
-            else None
+            self._provider_credentials(spec.source) if isinstance(spec, WorkspaceSpec) else []
         )
         client = self.transport.client(resource.host)
         route = self.transport.ssh_route(resource.host)
@@ -270,11 +276,7 @@ class ControlPlane:
             )
         actual = workspaces.read_workspace(running, resource.host)
         workspace_runtime.check_rebuild(actual, spec)
-        credentials = (
-            (spec.source, self._token(spec.source.type))
-            if isinstance(spec.source, ProviderSource)
-            else None
-        )
+        credentials = self._provider_credentials(spec.source)
 
         route = self.transport.ssh_route(resource.host)
         names = self.config.hosts[resource.host].forward_environment
@@ -327,11 +329,13 @@ class ControlPlane:
                 f"not found on host {resource.host!r}"
             )
         actual = workspaces.read_workspace(running, resource.host)
-        if isinstance(actual.source, ProviderSource):
+        for source in actual.source:
+            if not isinstance(source, ProviderSource):
+                continue
             provider.revoke(
-                actual.source.type,
-                self._token(actual.source.type),
-                actual.source.repository,
+                source.type,
+                self._token(source.type),
+                source.repository,
                 actual.id,
             )
         if purge:
