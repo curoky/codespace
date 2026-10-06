@@ -36,6 +36,7 @@ Host；控制面通过本机 OpenSSH 管理 Host 上的 rootful Podman。
   source of truth。行为改变时同步更新受影响的 `AGENTS.md`，不要在文档中复制易失效的
   版本、端口或完整清单。
 - 注释只解释代码无法表达的约束或外部兼容性原因，不复述实现。
+- Shell 脚本统一使用 `#!/usr/bin/env bash`，不新增 `sh` 方言脚本。
 - 目录按领域组织，不增加无明确 ownership 的 `common`、`utils` 或 compatibility
   package；不保留旧路径、fallback 或迁移层。
 - 不修改无关的用户、工作树或远端状态；真实 token、secret 与机器配置不得提交。

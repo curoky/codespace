@@ -92,7 +92,8 @@ def write_launcher(path: Path, node_bin: Path, executable: Path) -> None:
     path.write_text(
         "\n".join(
             [
-                "#!/bin/sh",
+                "#!/usr/bin/env bash",
+                "set -euo pipefail",
                 'tool_root="$(dirname "$(dirname "$(readlink -f "$0")")")"',
                 f'PATH={shlex.quote(str(node_bin))}:"${{PATH:-/usr/bin:/bin}}"',
                 "export PATH",

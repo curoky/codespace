@@ -1,4 +1,6 @@
-# shellcheck shell=sh
+#!/usr/bin/env bash
+
+# shellcheck shell=bash
 
 export CARGO_HOME=/opt/rust/cargo
 export RUSTUP_HOME=/opt/rust/rustup

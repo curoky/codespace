@@ -1,5 +1,6 @@
-#!/bin/sh
-set -eu
+#!/usr/bin/env bash
+
+set -euo pipefail
 
 unset CONTAINER_CONNECTION CONTAINER_HOST CONTAINER_SSHKEY DOCKER_HOST
 

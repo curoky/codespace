@@ -172,7 +172,8 @@ def write_launcher(
     path.write_text(
         "\n".join(
             (
-                "#!/bin/sh",
+                "#!/usr/bin/env bash",
+                "set -euo pipefail",
                 'tool_root="$(dirname "$(dirname "$(readlink -f "$0")")")"',
                 f"JAVA_HOME={shlex.quote(str(java_root))}",
                 f'PATH={shlex.quote(str(java_root / "bin"))}:"${{PATH:-/usr/bin:/bin}}"',

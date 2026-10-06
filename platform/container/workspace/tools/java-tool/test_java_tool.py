@@ -36,7 +36,7 @@ def create_fake_java(tmp_path: Path) -> Path:
     java_root = tmp_path / "java"
     make_executable(
         java_root / "bin" / "java",
-        '#!/bin/sh\nprintf \'java-home:%s\\nargs:%s\\n\' "$JAVA_HOME" "$*"\n',
+        '#!/usr/bin/env bash\nprintf \'java-home:%s\\nargs:%s\\n\' "$JAVA_HOME" "$*"\n',
     )
     return java_root
 
@@ -45,7 +45,7 @@ def create_tar_distribution(tmp_path: Path) -> Path:
     distribution = tmp_path / "archive-tool-1.2.3"
     make_executable(
         distribution / "bin" / "archive-tool",
-        '#!/bin/sh\nprintf \'java-home:%s\\nargs:%s\\n\' "$JAVA_HOME" "$*"\n',
+        '#!/usr/bin/env bash\nprintf \'java-home:%s\\nargs:%s\\n\' "$JAVA_HOME" "$*"\n',
     )
     archive = tmp_path / "archive-tool.tar.gz"
     with tarfile.open(archive, "w:gz") as output:
@@ -123,7 +123,7 @@ def test_install_exposes_executable_directory(tmp_path: Path) -> None:
     distribution = tmp_path / "suite-7.8.9"
     make_executable(
         distribution / "support" / "analyze",
-        "#!/bin/sh\nprintf 'analyze:%s\\n' \"$*\"\n",
+        "#!/usr/bin/env bash\nprintf 'analyze:%s\\n' \"$*\"\n",
     )
     (distribution / "support" / "notes.txt").write_text("not executable", encoding="utf-8")
     archive = tmp_path / "suite.zip"
@@ -175,7 +175,7 @@ def test_install_rejects_archive_path_traversal(tmp_path: Path) -> None:
 
 def test_install_does_not_overwrite_launcher(tmp_path: Path) -> None:
     root = tmp_path / "tools"
-    make_executable(root / "bin" / "language-server", "#!/bin/sh\nexit 0\n")
+    make_executable(root / "bin" / "language-server", "#!/usr/bin/env bash\nexit 0\n")
 
     with pytest.raises(java_tool.JavaToolError, match="launcher already exists"):
         java_tool.install_tool(

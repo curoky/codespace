@@ -1,4 +1,6 @@
-#!/bin/sh -e
+#!/usr/bin/env bash
+
+set -euo pipefail
 
 # Run before halt/reboot/poweroff, before the supervision tree is torn down.
 # Bring every service down (matches the upstream s6-rc template line).

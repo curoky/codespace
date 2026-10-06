@@ -1,4 +1,6 @@
-#!/bin/sh -e
+#!/usr/bin/env bash
+
+set -euo pipefail
 
 # Initialize s6-rc after the supervision tree is ready, then bring up the
 # requested bundle.
@@ -29,7 +31,7 @@ s6-rc -v2 -up change "$rl"
 # 3. Container behaviour: run CMD if one was given, otherwise let the services
 #    keep running under the supervision tree.
 echo "rc.init: services up, CMD=$*"
-if test -z "$*"; then return 0; fi
+if [[ -z "$*" ]]; then exit 0; fi
 "$@"
 echo $? >/run/s6-linux-init-container-results/exitcode
 halt

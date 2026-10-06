@@ -434,7 +434,7 @@ def test_inference_entrypoint_uses_fixed_bridge_listener(tmp_path: Path, service
     venv = tmp_path / "venv"
     binary = venv / "bin" / ("vllm" if service == "vllm" else "python")
     binary.parent.mkdir(parents=True)
-    binary.write_text("#!/bin/sh\nprintf '%s\\n' \"$@\"\n")
+    binary.write_text("#!/usr/bin/env bash\nprintf '%s\\n' \"$@\"\n")
     binary.chmod(0o755)
     source = (_CONTAINER / f"services/{service}/rootfs/opt/{service}/serve.sh").read_text()
     script = tmp_path / f"{service}-serve.sh"

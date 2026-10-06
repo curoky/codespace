@@ -1,8 +1,8 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 # WSL reserves PID 1 for /init, so this starts the inherited s6 graph directly.
 
-set -eu
+set -euo pipefail
 
 export PATH=/usr/local/bin:/usr/local/sbin:/usr/local/libexec:/usr/bin:/usr/sbin:/bin:/sbin
 

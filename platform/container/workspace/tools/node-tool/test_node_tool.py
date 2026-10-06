@@ -34,7 +34,7 @@ def create_fake_node(tmp_path: Path) -> Path:
     node_root = tmp_path / "node"
     make_executable(
         node_root / "bin" / "node",
-        "#!/bin/sh\nprintf 'bound-node:%s\\n' \"$*\"\n",
+        "#!/usr/bin/env bash\nprintf 'bound-node:%s\\n' \"$*\"\n",
     )
     return node_root
 
@@ -66,7 +66,7 @@ package.mkdir(parents=True)
 )
 executable = directory / "node_modules" / ".bin" / name
 executable.parent.mkdir(parents=True)
-executable.write_text('#!/bin/sh\nexec node --from-tool "$@"\n', encoding="utf-8")
+executable.write_text('#!/usr/bin/env bash\nexec node --from-tool "$@"\n', encoding="utf-8")
 executable.chmod(0o755)
 """,
     )
@@ -108,7 +108,7 @@ def test_install_refuses_to_overwrite_an_existing_command(tmp_path: Path) -> Non
     root = tmp_path / "tools"
     node_root = create_fake_node(tmp_path)
     pnpm = create_fake_pnpm(tmp_path)
-    make_executable(root / "bin" / "prettier", "#!/bin/sh\nexit 0\n")
+    make_executable(root / "bin" / "prettier", "#!/usr/bin/env bash\nexit 0\n")
 
     with pytest.raises(node_tool.NodeToolError, match="cannot expose executable"):
         node_tool.install_tool(
