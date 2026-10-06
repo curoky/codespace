@@ -13,7 +13,9 @@ Python 实现不复制这些数据。
 ## Install Contract
 
 ```bash
-node-tool install package@version [--registry https://registry.example.com]
+node-tool install package@version \
+  [--registry https://registry.example.com] \
+  [--allow-build package-with-lifecycle-script]
 
 uv run --script \
   platform/container/workspace/tools/node-tool/node-tool.py install \
@@ -25,6 +27,8 @@ uv run --script \
 - `install` 创建只含一个 direct dependency 的临时 pnpm project，由 pnpm 负责 registry、
   resolution、lockfile 与 shared store。
 - `--registry` 可选，只为本次 `pnpm add` 指定 npm registry；省略时沿用 pnpm 的现有配置。
+- `--allow-build` 可重复，只允许列出的 package 运行 lifecycle scripts；默认不授权，pnpm
+  仍负责检测并拒绝未授权的 build scripts。白名单属于调用方的 package metadata。
 - executable 只从安装结果的 `package.json#bin` 发现；不要维护手写的 package-to-command
   registry。
 - 成功后环境整体移入 `envs/<package>`，每个 launcher 把指定 Node.js `bin` 放到子进程 PATH

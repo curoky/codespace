@@ -107,7 +107,7 @@ def test_install_creates_an_isolated_node_bound_launcher(tmp_path: Path) -> None
     ).is_file()
 
 
-def test_install_passes_registry_to_pnpm(tmp_path: Path) -> None:
+def test_install_passes_registry_and_build_allowlist_to_pnpm(tmp_path: Path) -> None:
     root = tmp_path / "tools"
     result = CliRunner().invoke(
         node_tool.app,
@@ -122,6 +122,10 @@ def test_install_passes_registry_to_pnpm(tmp_path: Path) -> None:
             str(root),
             "--registry",
             "https://registry.example.com",
+            "--allow-build",
+            "@example/cli",
+            "--allow-build",
+            "protobufjs",
         ],
     )
 
@@ -129,11 +133,15 @@ def test_install_passes_registry_to_pnpm(tmp_path: Path) -> None:
     command = json.loads(
         (root / "envs" / "prettier" / "pnpm-args.json").read_text(encoding="utf-8")
     )
-    assert command[-5:] == [
+    assert command[-9:] == [
         "--registry",
         "https://registry.example.com",
         "add",
         "--save-exact",
+        "--allow-build",
+        "@example/cli",
+        "--allow-build",
+        "protobufjs",
         "prettier@3.9.9",
     ]
 

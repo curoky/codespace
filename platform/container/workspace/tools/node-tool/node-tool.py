@@ -113,6 +113,7 @@ def install_tool(
     pnpm_path: Path,
     root: Path,
     registry: str | None = None,
+    allow_build: tuple[str, ...] = (),
 ) -> tuple[str, str, tuple[str, ...]]:
     node = resolve_executable(node_root / "bin" / "node", "Node.js")
     pnpm = resolve_executable(pnpm_path, "pnpm")
@@ -132,7 +133,10 @@ def install_tool(
         ]
         if registry is not None:
             command.extend(["--registry", registry])
-        command.extend(["add", "--save-exact", requested])
+        command.extend(["add", "--save-exact"])
+        for package in allow_build:
+            command.extend(["--allow-build", package])
+        command.append(requested)
         run_pnpm(command, node.parent)
         package, version, bins = installed_package(temporary)
         environment = root / "envs" / quote(package, safe="")
@@ -183,6 +187,13 @@ def install(
         str | None,
         typer.Option("--registry", help="npm registry URL passed to pnpm"),
     ] = None,
+    allow_build: Annotated[
+        list[str] | None,
+        typer.Option(
+            "--allow-build",
+            help="Package allowed to run lifecycle scripts; repeat for multiple packages",
+        ),
+    ] = None,
 ) -> None:
     """Install one npm CLI package."""
     try:
@@ -192,6 +203,7 @@ def install(
             pnpm_path=pnpm,
             root=root,
             registry=registry,
+            allow_build=tuple(allow_build or ()),
         )
     except NodeToolError as error:
         typer.echo(f"error: {error}", err=True)
