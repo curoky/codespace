@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 from threading import Lock
 from typing import Literal
 
+from loguru import logger
 from podman import PodmanClient
 from podman.domain.containers import Container
 
@@ -331,12 +332,23 @@ class ControlPlane:
         actual = workspaces.read_workspace(running, resource.host)
         credentials = self._provider_credentials(actual.source)
         for source, token in credentials:
-            provider.revoke(
-                source.type,
-                token,
-                source.repository,
-                actual.id,
-            )
+            try:
+                provider.revoke(
+                    source.type,
+                    token,
+                    source.repository,
+                    actual.id,
+                )
+            except Exception as exc:
+                logger.warning(
+                    "failed to revoke deploy key for {} from {}:{}; "
+                    "continuing Workspace removal because deleting the container "
+                    "destroys its private key: {}",
+                    actual.id,
+                    source.type,
+                    source.repository,
+                    describe_error(exc),
+                )
         if purge:
             data = host.remote_data_paths(self.transport.ssh_route(resource.host))
             running.stop(timeout=10, ignore=True)

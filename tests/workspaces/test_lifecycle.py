@@ -541,7 +541,7 @@ def test_delete_inspection_never_defaults_an_invalid_agent_response_to_clean(
 
 
 @pytest.mark.parametrize("revoke_fails", [False, True])
-def test_purge_revokes_key_before_data_and_container(
+def test_purge_attempts_key_revocation_before_data_and_container(
     manager: ControlPlane,
     config: Config,
     monkeypatch: pytest.MonkeyPatch,
@@ -574,12 +574,6 @@ def test_purge_revokes_key_before_data_and_container(
         lambda *_args: events.append("container"),
     )
     monkeypatch.setattr(ssh, "remove_route", lambda _workspace: events.append("route"))
-    if revoke_fails:
-        with pytest.raises(RuntimeError, match="provider unavailable"):
-            manager.remove(Resource("home", "debug", "codespace"), purge=True)
-        assert events == ["revoke"]
-        assert manager.transport.closed_tcp == []  # type: ignore[attr-defined]
-        return
     manager.remove(Resource("home", "debug", "codespace"), purge=True)
 
     assert events == ["revoke", "stop", "data", "container", "route"]
@@ -614,6 +608,46 @@ def test_delete_revokes_key_from_every_provider_repository(
     assert revoked == [
         ("github", "token", "curoky/codespace", "space:codespace/debug@home"),
         ("gitlab", "token", "group/service-api", "space:codespace/debug@home"),
+    ]
+
+
+def test_delete_continues_after_provider_revoke_failure(
+    manager: ControlPlane,
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    data = config.model_dump()
+    data["projects"]["codespace"]["source"].append(
+        {"type": "gitlab", "repository": "group/service-api"}
+    )
+    spec = Config.model_validate(data).workspace_spec("codespace", "home", "debug")
+    running = SimpleNamespace(
+        id="container-id",
+        name=spec.container_name,
+        labels=spec.labels(),
+        attrs={"State": {"Status": "running"}, "Image": "sha256:current"},
+    )
+    events: list[str] = []
+    monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
+
+    def revoke(_provider: str, _token: str, repository: str, _title: str) -> None:
+        events.append(f"revoke:{repository}")
+        if repository == "curoky/codespace":
+            raise RuntimeError("provider unavailable")
+
+    monkeypatch.setattr(provider, "revoke", revoke)
+    monkeypatch.setattr(
+        lifecycle.container,
+        "remove_container",
+        lambda _container: events.append("container"),
+    )
+
+    manager.remove(Resource("home", "debug", "codespace"))
+
+    assert events == [
+        "revoke:curoky/codespace",
+        "revoke:group/service-api",
+        "container",
     ]
 
 
