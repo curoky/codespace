@@ -14,6 +14,7 @@ const workspaceDialog = document.querySelector("#workspace-dialog");
 const tokensDialog = document.querySelector("#tokens-dialog");
 const deleteDialog = document.querySelector("#delete-dialog");
 const logsDialog = document.querySelector("#logs-dialog");
+const imageDialog = document.querySelector("#image-dialog");
 const toastElement = document.querySelector("#toast");
 const deleteStatusElement = document.querySelector("#delete-status");
 const deleteDetailElement = document.querySelector("#delete-detail");
@@ -21,7 +22,7 @@ const deleteConfirmButton = document.querySelector("#delete-confirm");
 const logsStatusElement = document.querySelector("#logs-status");
 const logsOutputElement = document.querySelector("#logs-output");
 
-document.querySelector("#refresh-button").addEventListener("click", refresh);
+document.querySelector("#refresh-button").addEventListener("click", () => refresh());
 document.querySelector("#tokens-button").addEventListener("click", () => tokensDialog.showModal());
 document.querySelector("#workspace-form").addEventListener("submit", createWorkspace);
 document.querySelector("#tokens-form").addEventListener("submit", saveTokens);
@@ -55,6 +56,7 @@ projectsElement.addEventListener("click", async (event) => {
     await dismissWorkspaceOperation(target, project, host, workspace);
   }
   if (action === "copy-ssh") await copySshCommand(target, command);
+  if (action === "image-details") openImageDetails(target.dataset);
 });
 
 servicesElement.addEventListener("click", async (event) => {
@@ -333,6 +335,9 @@ function renderWorkspace(workspace, tunnelPorts) {
   if (workspace.platform !== "native") {
     info.append(element("span", "badge badge-platform", workspace.platform));
   }
+  if (workspace.image_update.outdated) {
+    info.append(imageUpdateIndicator(workspace));
+  }
   const image = element("span", "workspace-image", workspace.image);
   image.title = workspace.image;
   info.append(image);
@@ -380,6 +385,32 @@ function renderWorkspace(workspace, tunnelPorts) {
   actions.append(purgeButton);
   row.append(actions);
   return row;
+}
+
+function imageUpdateIndicator(workspace) {
+  const update = workspace.image_update;
+  const button = actionButton("", "image-details", {
+    title: `${workspace.host}/${workspace.project}/${workspace.workspace}`,
+    image: update.image,
+    currentImageId: update.current_image_id,
+    latestImageId: update.latest_image_id,
+    checkedAt: update.checked_at,
+  });
+  button.classList.add("image-update-indicator");
+  button.setAttribute("aria-label", "Workspace image update available");
+  button.title = "Workspace image update available";
+  return button;
+}
+
+function openImageDetails(details) {
+  document.querySelector("#image-title").textContent = details.title;
+  document.querySelector("#image-name").textContent = details.image;
+  document.querySelector("#image-current-id").textContent = details.currentImageId;
+  document.querySelector("#image-latest-id").textContent = details.latestImageId;
+  document.querySelector("#image-checked-at").textContent = new Date(
+    details.checkedAt,
+  ).toLocaleString();
+  imageDialog.showModal();
 }
 
 function encryptedWorkspaceIcon() {

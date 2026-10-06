@@ -161,6 +161,41 @@
       </div>
     </dialog>
 
+    <dialog id="image-dialog">
+      <div class="dialog-body">
+        <div class="dialog-heading">
+          <div>
+            <p class="eyebrow">Workspace image update</p>
+            <h2 id="image-title">Image update available</h2>
+          </div>
+          <button type="button" class="icon secondary" aria-label="Close" data-close="image-dialog">
+            ×
+          </button>
+        </div>
+        <dl class="image-details">
+          <div>
+            <dt>Image</dt>
+            <dd id="image-name"></dd>
+          </div>
+          <div>
+            <dt>Current image ID</dt>
+            <dd id="image-current-id"></dd>
+          </div>
+          <div>
+            <dt>Latest image ID</dt>
+            <dd id="image-latest-id"></dd>
+          </div>
+          <div>
+            <dt>Checked</dt>
+            <dd id="image-checked-at"></dd>
+          </div>
+        </dl>
+        <div class="dialog-actions">
+          <button type="button" class="secondary" data-close="image-dialog">Close</button>
+        </div>
+      </div>
+    </dialog>
+
     <div id="toast" role="status" aria-live="polite"></div>
   </body>
 </html>

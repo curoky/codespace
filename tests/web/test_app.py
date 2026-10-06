@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 import pytest
 from fastapi.testclient import TestClient
 
 from codespace.config import Config
-from codespace.control import HostInventory
+from codespace.control import HostInventory, WorkspaceImageCheck
 from codespace.operations import Operation, OperationStore
 from codespace.resources import Resource, ResourceConflict, ResourceNotFound
 from codespace.web.app import create_app, router
@@ -94,6 +96,15 @@ def app_client(config: Config) -> tuple[TestClient, FakeControl]:
     return client, control
 
 
+def test_app_lifespan_closes_control(config: Config) -> None:
+    control = FakeControl(config)
+
+    with TestClient(create_app(config, control=control)):  # type: ignore[arg-type]
+        assert control.closed is False
+
+    assert control.closed is True
+
+
 def test_dashboard_workspace_exposes_container_encryption(
     app_client: tuple[TestClient, FakeControl], monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -107,11 +118,20 @@ def test_dashboard_workspace_exposes_container_encryption(
         open_path="/workspace",
         encrypted=True,
         container_id="container-id",
+        image_id="sha256:current",
         status="running",
     )
 
     client, control = app_client
-    control.inventories["home"] = HostInventory("home", [workspace], [])
+    image_check = WorkspaceImageCheck(
+        host="home",
+        image="workspace:latest",
+        platform="native",
+        latest_image_id="sha256:latest",
+        checked_at=datetime(2026, 10, 6, 8, 30, tzinfo=UTC),
+        error=None,
+    )
+    control.inventories["home"] = HostInventory("home", [workspace], [], image_checks=[image_check])
     response = client.get("/api/dashboard")
     assert response.status_code == 200
     serialized = response.json()["workspaces"][0]
@@ -125,7 +145,16 @@ def test_dashboard_workspace_exposes_container_encryption(
     assert serialized["vscode_url"].startswith("vscode://")
     assert "ssh-remote+space-codespace-debug-home" in serialized["vscode_url"]
     assert "container_id" not in serialized
+    assert "image_id" not in serialized
     assert "alias" not in serialized
+    assert serialized["image_update"] == {
+        "image": "workspace:latest",
+        "current_image_id": "sha256:current",
+        "latest_image_id": "sha256:latest",
+        "checked_at": "2026-10-06T08:30:00+00:00",
+        "error": None,
+        "outdated": True,
+    }
     project = next(item for item in response.json()["projects"] if item["id"] == workspace.project)
     assert project["source"] == {
         "type": "github",

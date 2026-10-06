@@ -28,6 +28,7 @@ def _workspace(name: str = "debug") -> Workspace:
         open_path="/workspace/codespace",
         encrypted=False,
         container_id=f"container-{name}",
+        image_id="sha256:current",
         status="running",
     )
 

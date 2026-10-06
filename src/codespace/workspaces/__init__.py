@@ -17,6 +17,7 @@ from codespace.runtime.container import (
     ContainerSpec,
     ImagePlatform,
     NonBlankString,
+    container_image_id,
     container_status,
 )
 
@@ -167,11 +168,12 @@ class WorkspaceSpec(WorkspaceMetadata):
             labels[LABEL_GIT_URL] = self.source.url
         return labels
 
-    def to_workspace(self, container_id: str, *, status: str) -> Workspace:
+    def to_workspace(self, container_id: str, image_id: str, *, status: str) -> Workspace:
         return Workspace(
             **self.model_dump(exclude={"platform", "container", "checkout_path"}),
             platform=self.platform or "native",
             container_id=container_id,
+            image_id=image_id,
             status=status,
         )
 
@@ -191,6 +193,7 @@ class Workspace(WorkspaceMetadata):
 
     platform: PlatformSelection
     container_id: str
+    image_id: str
     status: str
 
 
@@ -221,7 +224,8 @@ def read_workspace(container: Container, host: str) -> Workspace:
         platform=cast("PlatformSelection", labels[LABEL_PLATFORM]),
         open_path=labels[LABEL_OPEN_PATH],
         encrypted={"true": True, "false": False}[labels[LABEL_ENCRYPTED]],
-        container_id=container.id,
+        container_id=cast("str", container.id),
+        image_id=container_image_id(container),
         status=container_status(container),
     )
     if container.name != actual.container_name:

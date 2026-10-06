@@ -439,6 +439,21 @@ def container_status(container: Container) -> str:
     return cast("str", state if isinstance(state, str) else state["Status"])
 
 
+def container_image_id(container: Container) -> str:
+    # Libpod list returns ImageID; inspect returns the same value as Image.
+    value = container.attrs.get("ImageID", container.attrs.get("Image"))
+    if not isinstance(value, str) or not value:
+        raise RuntimeError(f"container {container.id!r} has no image ID")
+    return value
+
+
+def local_image_id(client: PodmanClient, image: str) -> str:
+    value = client.images.get(image).id
+    if not isinstance(value, str) or not value:
+        raise RuntimeError(f"image {image!r} has no local image ID")
+    return value
+
+
 def container_logs(container: Container) -> str:
     result = container.logs(
         stdout=True,

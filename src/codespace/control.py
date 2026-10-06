@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from threading import Lock
 from typing import Literal
 
+from podman import PodmanClient
 from podman.domain.containers import Container
 
 from codespace import services, workspaces
@@ -33,6 +35,7 @@ class HostInventory:
     host: str
     workspaces: list[Workspace]
     services: list[Service]
+    image_checks: list[WorkspaceImageCheck] = field(default_factory=list)
 
 
 @dataclass(frozen=True, slots=True)
@@ -40,6 +43,20 @@ class HostFailure:
     host: str
     status: Literal["offline", "error"]
     error: str
+
+
+@dataclass(frozen=True, slots=True)
+class WorkspaceImageCheck:
+    host: str
+    image: str
+    platform: workspaces.PlatformSelection
+    latest_image_id: str | None
+    checked_at: datetime
+    error: str | None
+
+    @property
+    def key(self) -> tuple[str, str, workspaces.PlatformSelection]:
+        return self.host, self.image, self.platform
 
 
 class ControlPlane:
@@ -72,6 +89,38 @@ class ControlPlane:
         with self._token_lock:
             return {"github": "github" in self._tokens, "gitlab": "gitlab" in self._tokens}
 
+    @staticmethod
+    def _workspace_image_checks(
+        client: PodmanClient,
+        host_name: str,
+        actual: list[Workspace],
+    ) -> list[WorkspaceImageCheck]:
+        targets: set[tuple[str, workspaces.PlatformSelection]] = {
+            (workspace.image, workspace.platform)
+            for workspace in actual
+            if workspace.status == "running"
+        }
+        checks: list[WorkspaceImageCheck] = []
+        for image, platform in sorted(targets):
+            try:
+                latest_image_id = container.local_image_id(client, image)
+                error = None
+            except Exception as exc:
+                latest_image_id = None
+                error = describe_error(exc)
+            checked_at = datetime.now(UTC)
+            checks.append(
+                WorkspaceImageCheck(
+                    host=host_name,
+                    image=image,
+                    platform=platform,
+                    latest_image_id=latest_image_id,
+                    checked_at=checked_at,
+                    error=error,
+                )
+            )
+        return checks
+
     def close(self) -> None:
         self.transport.close()
 
@@ -95,6 +144,7 @@ class ControlPlane:
                 host=host_name,
                 workspaces=actual_workspaces,
                 services=services.list_services(client, host_name),
+                image_checks=self._workspace_image_checks(client, host_name, actual_workspaces),
             )
         except Exception as exc:
             return HostFailure(

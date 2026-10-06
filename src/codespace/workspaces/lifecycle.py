@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
+from typing import cast
 
 from podman import PodmanClient
 from podman.domain.containers import Container
@@ -89,7 +90,13 @@ def bootstrap(
     stage("preparing open path" if spec.source.type == "empty" else "checking out source")
     agent_client.wait_for("ready", timeout=_AGENT_READY_TIMEOUT)
     stage("writing ssh config")
-    ssh.write_route(spec.to_workspace(created.id, status="running"))
+    ssh.write_route(
+        spec.to_workspace(
+            cast("str", created.id),
+            container.container_image_id(created),
+            status="running",
+        )
+    )
 
 
 def inspect_deletion(

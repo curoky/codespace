@@ -46,7 +46,7 @@ def test_dashboard_keeps_actual_metadata_when_config_changes(
     config: Config, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     workspace = config.workspace_spec("codespace", "home", "debug").to_workspace(
-        "workspace-id", status="running"
+        "workspace-id", "sha256:current", status="running"
     )
     service = Service(
         service="support",
@@ -99,7 +99,7 @@ def test_inventory_restores_workspace_ssh_routes(
 ) -> None:
     control = ControlPlane(config, transport=FakeTransport())  # type: ignore[arg-type]
     workspace = config.workspace_spec("codespace", "home", "debug").to_workspace(
-        "workspace-id", status="running"
+        "workspace-id", "sha256:current", status="running"
     )
     written = []
     monkeypatch.setattr(
@@ -139,3 +139,74 @@ def test_inventory_errors_are_not_classified_as_offline(
     hosts = {host["id"]: host for host in dashboard["hosts"]}
     assert hosts["office"]["status"] == "error"
     assert hosts["office"]["workspace_count"] is None
+
+
+def test_inventory_reads_only_running_workspace_images(
+    config: Config, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    control = ControlPlane(config, transport=FakeTransport())  # type: ignore[arg-type]
+    running = config.workspace_spec("codespace", "home", "debug").to_workspace(
+        "running-id", "sha256:current", status="running"
+    )
+    duplicate = config.workspace_spec("codespace", "home", "other").to_workspace(
+        "duplicate-id", "sha256:current", status="running"
+    )
+    stopped = config.workspace_spec("service-api", "office", "debug").to_workspace(
+        "stopped-id", "sha256:stopped", status="exited"
+    )
+    reads: list[str] = []
+    monkeypatch.setattr(
+        control_module.workspaces,
+        "list_workspaces",
+        lambda _client, host: [running, duplicate] if host == "home" else [stopped],
+    )
+    monkeypatch.setattr(
+        control_module.container,
+        "local_image_id",
+        lambda _client, image: (reads.append(image), "sha256:latest")[-1],
+    )
+    monkeypatch.setattr(
+        control_module.container,
+        "pull_image",
+        lambda *_args: pytest.fail("image check must not pull images"),
+    )
+    monkeypatch.setattr(control_module.services, "list_services", lambda *_args: [])
+    monkeypatch.setattr(control_module.ssh, "write_route", lambda _workspace: None)
+
+    inventories = control.inventory()
+
+    assert reads == ["ghcr.io/curoky/codespace:workspace-debian13"]
+    home = inventories["home"]
+    assert isinstance(home, HostInventory)
+    check = home.image_checks[0]
+    assert check.latest_image_id == "sha256:latest"
+    assert check.error is None
+
+
+def test_inventory_records_local_image_lookup_failure(
+    config: Config, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    control = ControlPlane(config, transport=FakeTransport())  # type: ignore[arg-type]
+    running = config.workspace_spec("codespace", "home", "debug").to_workspace(
+        "running-id", "sha256:current", status="running"
+    )
+    monkeypatch.setattr(
+        control_module.workspaces,
+        "list_workspaces",
+        lambda _client, host: [running] if host == "home" else [],
+    )
+    monkeypatch.setattr(
+        control_module.container,
+        "local_image_id",
+        lambda *_args: (_ for _ in ()).throw(RuntimeError("image not found")),
+    )
+    monkeypatch.setattr(control_module.services, "list_services", lambda *_args: [])
+    monkeypatch.setattr(control_module.ssh, "write_route", lambda _workspace: None)
+
+    inventories = control.inventory()
+
+    home = inventories["home"]
+    assert isinstance(home, HostInventory)
+    check = home.image_checks[0]
+    assert check.latest_image_id is None
+    assert check.error == "RuntimeError: image not found"

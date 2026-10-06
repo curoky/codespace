@@ -599,6 +599,33 @@ button.host-action {
   stroke-width: 2;
 }
 
+button.image-update-indicator {
+  flex: 0 0 auto;
+  width: 22px;
+  min-width: 22px;
+  min-height: 22px;
+  border-color: transparent;
+  padding: 3px;
+  color: var(--pending);
+  background: var(--pending-soft);
+  box-shadow: none;
+}
+
+button.image-update-indicator::before {
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  content: "";
+  mask: url("/static/lucide-circle-arrow-up.svg") center / contain no-repeat;
+}
+
+@media (hover: hover) {
+  button.image-update-indicator:not(:disabled):hover {
+    color: var(--surface);
+    background: var(--pending);
+  }
+}
+
 .workspace-subtitle {
   color: var(--text-muted);
   font-size: 0.8rem;
@@ -854,6 +881,32 @@ select:focus {
   font-size: 0.78rem;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.image-details {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.image-details > div {
+  display: grid;
+  gap: 3px;
+}
+
+.image-details dt {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.image-details dd {
+  margin: 0;
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  overflow-wrap: anywhere;
 }
 
 /* Logs -------------------------------------------------------------------- */

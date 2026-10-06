@@ -24,7 +24,7 @@ def _container(encrypted: str) -> SimpleNamespace:
             "codespace.open-path": "/workspace/codespace",
             "codespace.encrypted": encrypted,
         },
-        attrs={"State": "running"},
+        attrs={"State": "running", "ImageID": "sha256:current"},
     )
 
 
@@ -38,6 +38,7 @@ def test_read_workspace_uses_only_labels(encrypted: str, expected: bool) -> None
     assert workspace.encrypted is expected
     assert workspace.open_path == "/workspace/codespace"
     assert workspace.status == "running"
+    assert workspace.image_id == "sha256:current"
 
 
 @pytest.mark.parametrize("label", ["codespace.open-path", "codespace.encrypted"])
@@ -79,11 +80,11 @@ def test_created_labels_round_trip_inventory(config: Config, project: str) -> No
         id="container-id",
         name=spec.container_name,
         labels=spec.labels(),
-        attrs={"State": "running"},
+        attrs={"State": "running", "Image": "sha256:current"},
     )
 
     assert inventory.read_workspace(container, host) == spec.to_workspace(  # type: ignore[arg-type]
-        "container-id", status="running"
+        "container-id", "sha256:current", status="running"
     )
     assert inventory.read_workspace(container, host).source == config.projects[project].source  # type: ignore[arg-type]
 

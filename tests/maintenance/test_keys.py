@@ -60,7 +60,7 @@ def test_prune_deletes_only_planned_unused_keys(
     data["tokens"] = {"github": "test-token"}
     configured = Config.model_validate(data)
     active = configured.workspace_spec("codespace", "home", "live").to_workspace(
-        "container-id", status="running"
+        "container-id", "sha256:current", status="running"
     )
     listed = [
         DeployKey(1, active.id),

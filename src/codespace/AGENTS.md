@@ -57,6 +57,9 @@ inspect 数据还原。
   `describe_error` 返回稳定摘要。
 - dashboard 保留 per-Host failure。SSH 建连失败是 `offline`，连接后的 inventory 失败是
   `error`，单个 Host 失败不阻塞其他 Host。
+- Dashboard inventory 同步读取运行中 Workspace 对应的 Host 本地 image ID，与容器 image
+  ID 比较；镜像拉取由 support Service 负责，Web 不访问 registry、不维护定时任务或缓存，
+  其他 Service 不参与比较。
 - static UI 没有独立构建步骤。API payload 或交互变化必须同步 route、dashboard projection、
   client 与 `tests/web/`。
 - 应用退出时必须关闭 `ControlPlane`，统一释放 ControlMaster、socket forward 与 TCP tunnel。

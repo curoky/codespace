@@ -25,6 +25,21 @@ def test_container_status_does_not_invent_missing_state(state: dict[str, str]) -
         container.container_status(Container(attrs={"State": state}))
 
 
+@pytest.mark.parametrize("attrs", [{"ImageID": "sha256:list"}, {"Image": "sha256:inspect"}])
+def test_container_image_id_accepts_libpod_list_and_inspect(attrs: dict[str, str]) -> None:
+    actual = Container(attrs={"Id": "container-id", **attrs})
+
+    assert container.container_image_id(actual) in {"sha256:list", "sha256:inspect"}
+
+
+def test_local_image_id_reads_host_image() -> None:
+    client = SimpleNamespace(
+        images=SimpleNamespace(get=lambda image: SimpleNamespace(id=f"sha256:{image}"))
+    )
+
+    assert container.local_image_id(client, "workspace:latest") == "sha256:workspace:latest"  # type: ignore[arg-type]
+
+
 def test_find_container_checks_ownership_in_one_inspect() -> None:
     actual = Container(attrs={"Config": {"Labels": {"codespace.kind": "service"}}})
     calls: list[str] = []

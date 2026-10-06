@@ -96,7 +96,7 @@ def test_container_name_collision_fails_before_creation(
     manager: ControlPlane, config: Config, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     spec = config.workspace_spec("scratch", "home", "a-b")
-    existing = spec.to_workspace("existing", status="running").model_copy(
+    existing = spec.to_workspace("existing", "sha256:current", status="running").model_copy(
         update={"project": "scratch-a", "workspace": "b"}
     )
     monkeypatch.setattr(lifecycle, "list_workspaces", lambda *_args: [existing])
@@ -169,7 +169,10 @@ def test_create_handles_source_bootstrap_and_agent_protocol_failure(
     monkeypatch.setattr(
         lifecycle,
         "create_container",
-        lambda *_args: (events.append("create"), SimpleNamespace(id="container-id"))[-1],
+        lambda *_args: (
+            events.append("create"),
+            SimpleNamespace(id="container-id", attrs={"Image": "sha256:current"}),
+        )[-1],
     )
     monkeypatch.setattr(provider, "register", lambda *_args: events.append("register"))
     monkeypatch.setattr(ssh, "write_route", lambda _workspace: events.append("route"))
@@ -228,7 +231,10 @@ def test_deploy_uses_configured_mounts_alongside_host_volumes(
     monkeypatch.setattr(
         lifecycle.container,
         "create_container",
-        lambda *_args, **kwargs: (captured.update(kwargs), SimpleNamespace(id="container-id"))[-1],
+        lambda *_args, **kwargs: (
+            captured.update(kwargs),
+            SimpleNamespace(id="container-id", attrs={"Image": "sha256:current"}),
+        )[-1],
     )
 
     manager.queue(Resource("home", "debug", "scratch"))
@@ -260,10 +266,10 @@ def test_rebuild_pulls_latest_image_before_replacing_container(
         id="old-container",
         name=spec.container_name,
         labels=spec.labels(),
-        attrs={"State": {"Status": "running"}},
+        attrs={"State": {"Status": "running"}, "Image": "sha256:current"},
     )
     events: list[object] = []
-    created = SimpleNamespace(id="new-container")
+    created = SimpleNamespace(id="new-container", attrs={"Image": "sha256:latest"})
 
     monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
     monkeypatch.setattr(
@@ -345,7 +351,7 @@ def test_rebuild_pull_failure_keeps_existing_container(
         id="old-container",
         name=spec.container_name,
         labels=spec.labels(),
-        attrs={"State": {"Status": "running"}},
+        attrs={"State": {"Status": "running"}, "Image": "sha256:current"},
     )
     removals: list[object] = []
     monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
@@ -383,7 +389,7 @@ def test_rebuild_rejects_workspace_data_contract_changes(
     changed: dict[str, object],
 ) -> None:
     spec = config.workspace_spec("codespace", "home", "debug")
-    actual = spec.to_workspace("container-id", status="running")
+    actual = spec.to_workspace("container-id", "sha256:current", status="running")
 
     with pytest.raises(ResourceConflict, match="delete and recreate"):
         lifecycle.check_rebuild(actual, spec.model_copy(update=changed))
@@ -417,6 +423,7 @@ def test_deletion_check_returns_git_state_without_mutation(
         labels=config.workspace_spec("codespace", "home", "debug").labels(),
         attrs={
             "State": {"Status": "running"},
+            "Image": "sha256:current",
             "Mounts": [
                 {"Source": "/deployed/control", "Destination": "/run/codespace-control"},
             ],
@@ -452,6 +459,7 @@ def test_delete_inspection_never_defaults_an_invalid_agent_response_to_clean(
         labels=config.workspace_spec(project, "home", "debug").labels(),
         attrs={
             "State": {"Status": "running"},
+            "Image": "sha256:current",
             "Mounts": [
                 {"Source": "/deployed/control", "Destination": "/run/codespace-control"},
             ],
@@ -494,7 +502,7 @@ def test_purge_revokes_key_before_data_and_container(
         id="container-id",
         name="space-codespace-debug",
         labels=config.workspace_spec("codespace", "home", "debug").labels(),
-        attrs={"State": {"Status": "running"}},
+        attrs={"State": {"Status": "running"}, "Image": "sha256:current"},
         stop=lambda **_kwargs: events.append("stop"),
     )
     monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
@@ -538,7 +546,7 @@ def test_stopped_workspace_requires_explicit_delete_without_inspection(
         id="container-id",
         name="space-personal-debug",
         labels=config.workspace_spec("personal", "home", "debug").labels(),
-        attrs={"State": {"Status": "exited"}},
+        attrs={"State": {"Status": "exited"}, "Image": "sha256:current"},
     )
     monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
     monkeypatch.setattr(
@@ -746,6 +754,7 @@ def test_delete_uses_deployed_source_after_config_changes(
         labels=config.workspace_spec("codespace", "home", "debug").labels(),
         attrs={
             "State": {"Status": "running"},
+            "Image": "sha256:current",
             "Mounts": [
                 {"Source": "/deployed/control", "Destination": "/run/codespace-control"},
             ],
@@ -773,7 +782,7 @@ def tunnel_container(
         id="deployed-container",
         name="space-codespace-debug",
         labels=config.workspace_spec("codespace", "home", "debug").labels(),
-        attrs={"State": {"Status": "running"}},
+        attrs={"State": {"Status": "running"}, "Image": "sha256:current"},
     )
     monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
     data = config.model_dump()

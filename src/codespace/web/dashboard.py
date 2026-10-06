@@ -2,8 +2,34 @@
 
 from __future__ import annotations
 
-from codespace.control import ControlPlane, HostFailure, HostInventory
-from codespace.workspaces import editor_url
+from codespace.control import ControlPlane, HostFailure, HostInventory, WorkspaceImageCheck
+from codespace.workspaces import Workspace, editor_url
+
+
+def _workspace_view(
+    workspace: Workspace,
+    image_check: WorkspaceImageCheck | None,
+) -> dict[str, object]:
+    latest_image_id = image_check.latest_image_id if image_check is not None else None
+    return {
+        **workspace.model_dump(exclude={"container_id", "image_id"}),
+        "ssh_command": f"ssh {workspace.ssh_alias}",
+        "trae_url": editor_url(workspace.ssh_alias, workspace.open_path),
+        "trae_cn_url": editor_url(workspace.ssh_alias, workspace.open_path, scheme="trae-cn"),
+        "vscode_url": editor_url(workspace.ssh_alias, workspace.open_path, scheme="vscode"),
+        "image_update": {
+            "image": workspace.image,
+            "current_image_id": workspace.image_id,
+            "latest_image_id": latest_image_id,
+            "checked_at": (image_check.checked_at.isoformat() if image_check is not None else None),
+            "error": image_check.error if image_check is not None else None,
+            "outdated": (
+                workspace.status == "running"
+                and latest_image_id is not None
+                and workspace.image_id != latest_image_id
+            ),
+        },
+    }
 
 
 def build(control: ControlPlane) -> dict[str, object]:
@@ -15,6 +41,9 @@ def build(control: ControlPlane) -> dict[str, object]:
         (service.host, service.service): service
         for inventory in inventories
         for service in inventory.services
+    }
+    image_checks = {
+        check.key: check for inventory in inventories for check in inventory.image_checks
     }
     return {
         "hosts": [
@@ -54,15 +83,10 @@ def build(control: ControlPlane) -> dict[str, object]:
             for project_id, project in config.projects.items()
         ],
         "workspaces": [
-            {
-                **workspace.model_dump(exclude={"container_id"}),
-                "ssh_command": f"ssh {workspace.ssh_alias}",
-                "trae_url": editor_url(workspace.ssh_alias, workspace.open_path),
-                "trae_cn_url": editor_url(
-                    workspace.ssh_alias, workspace.open_path, scheme="trae-cn"
-                ),
-                "vscode_url": editor_url(workspace.ssh_alias, workspace.open_path, scheme="vscode"),
-            }
+            _workspace_view(
+                workspace,
+                image_checks.get((workspace.host, workspace.image, workspace.platform)),
+            )
             for workspace in sorted(
                 workspaces,
                 key=lambda item: (item.project, item.workspace),
