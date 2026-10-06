@@ -30,6 +30,10 @@ fpath=(
   /usr/local/share/zsh/site-functions
   /usr/local/store/zsh-plugins/share/oh-my-zsh/custom/plugins/zsh-completions/src
   /usr/local/store/zsh-plugins/share/oh-my-zsh/custom/plugins/conda-zsh-completion
+  /home/x/.nix-profile/share/zsh/site-functions
+  /usr/local/profile/go/share/zsh/site-functions
+  /usr/local/store/radare2/share/zsh/site-functions
+  /opt/rust/rustup/toolchains/stable-x86_64-unknown-linux-gnu/share/zsh/site-functions
   $fpath
 )
 typeset -U fpath FPATH
