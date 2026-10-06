@@ -6,7 +6,8 @@ device、publication 和 tunnel 属于控制面配置；leaf Dockerfile 只定�
 ## Shared Runtime
 
 - `s6/` 是 Debian Service leaf 的 shared runtime，提供固定用户 `x`、s6 init、日志与 cron
-  基础。修改后必须重新构建所有直接或间接 consumer。
+  基础。standalone-binaries 不发布 aarch64-linux 的完整 s6 stack，因此 `service-s6` 及当前
+  consumer 只发布 linux/amd64。修改 shared runtime 后必须重新构建所有直接或间接 consumer。
 - Debian leaf 可以继承 `service-s6`。异构 base 只从 s6 stage 复制可搬运的 `/usr/local`、
   skel 和 service definition，并在自己的 filesystem 上运行 `install-s6.sh` 编译 graph。
 - leaf 只复制自身 `rootfs/` 和 service definition，不引入 Workspace SSH、deploy key、Agent、

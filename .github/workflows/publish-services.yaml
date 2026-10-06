@@ -43,7 +43,8 @@ jobs:
           file: platform/container/services/s6/Dockerfile
           push: true
           provenance: false
-          platforms: linux/amd64,linux/arm64
+          # standalone-binaries intentionally does not publish the s6 stack for arm64.
+          platforms: linux/amd64
           cache-from: |
             type=registry,ref=ghcr.io/curoky/codespace-cache:service-s6
             type=registry,ref=ghcr.io/curoky/codespace-cache:service-s6-min
@@ -66,9 +67,9 @@ jobs:
       matrix:
         include:
           - service: secret
-            platforms: linux/amd64,linux/arm64
+            platforms: linux/amd64
           - service: support
-            platforms: linux/amd64,linux/arm64
+            platforms: linux/amd64
           - service: vllm
             platforms: linux/amd64
           - service: sglang
