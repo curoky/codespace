@@ -84,12 +84,12 @@ tasks:
         xargs -0 -P 6 -n 1 bats
 
   lock:check:
-    desc: 校验两个 uv lock
+    desc: 校验所有 uv lock
     cmds:
       - uv lock --check
       - uv lock --project {{.WORKSPACE_AGENT}} --check
-      - uv lock --script {{.JAVA_TOOL}}/java-tool.py --check
-      - uv lock --script {{.NODE_TOOL}}/node-tool.py --check
+      - uv lock --project {{.JAVA_TOOL}} --check
+      - uv lock --project {{.NODE_TOOL}} --check
 
   check:
     desc: 运行快速本地检查，不含测试

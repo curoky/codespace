@@ -29,13 +29,15 @@ SDKMAN! 或 project toolchain 配置影响。
 java-tool install NAME@VERSION /tmp/release.tar.gz --extract \
   --executable command=bin/command
 
-uv run --locked --script java-tool.py install NAME@VERSION /tmp/release.tar.gz \
+platform/container/workspace/tools/java-tool/java-tool \
+  install NAME@VERSION /tmp/release.tar.gz \
   --extract \
   --executable command=bin/command \
   --executable-dir prefix-=support \
   --java /opt/java/openjdk27
 
-uv run --locked --script java-tool.py install NAME@VERSION /tmp/tool.jar \
+platform/container/workspace/tools/java-tool/java-tool \
+  install NAME@VERSION /tmp/tool.jar \
   --jar command=tool.jar \
   --java /opt/java/openjdk27
 ```
@@ -46,13 +48,15 @@ uv run --locked --script java-tool.py install NAME@VERSION /tmp/tool.jar \
 - archive 必须是仅含一个顶层目录的 ZIP 或 TAR。
 - 安装目标与 launcher 不允许已存在；resource image 应始终从空目录确定性构建，不实现
   overwrite、upgrade、rollback、并发写入或迁移。
-- workspace 主 image 与 resource build 都通过 `java-tool` wrapper 调用同目录源码；wrapper 固定
-  使用 `/usr/local/bin/uv run --locked --script`。
+- `java-tool` 是独立的 uv project，依赖由同目录 `pyproject.toml` 与 `uv.lock` 声明。workspace
+  主 image 与 resource build 都通过 wrapper 调用；wrapper 忽略调用方的 `VIRTUAL_ENV`，先用
+  `/usr/local/bin/uv sync --project ... --locked --no-dev` 在自身目录同步 `.venv`，再用其中的
+  Python 执行源码。
 
 ## Validation
 
 ```sh
-uv lock --script platform/container/workspace/tools/java-tool/java-tool.py --check
+uv lock --project platform/container/workspace/tools/java-tool --check
 uv run ruff check platform/container/workspace/tools/java-tool
 uv run ruff format --check platform/container/workspace/tools/java-tool
 uv run mypy platform/container/workspace/tools/java-tool/java-tool.py

@@ -3,4 +3,6 @@
 set -euo pipefail
 
 script_dir="$(dirname "$(readlink -f "$0")")"
-exec /usr/local/bin/uv run --locked --script "$script_dir/node-tool.py" "$@"
+env -u VIRTUAL_ENV UV_PROJECT_ENVIRONMENT="$script_dir/.venv" \
+  /usr/local/bin/uv sync --project "$script_dir" --locked --no-dev --quiet
+exec "$script_dir/.venv/bin/python" "$script_dir/node-tool.py" "$@"

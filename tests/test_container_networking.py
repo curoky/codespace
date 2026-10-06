@@ -5,6 +5,7 @@
 import os
 import re
 import subprocess
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -265,14 +266,17 @@ def test_workspace_bundles_java_and_node_installers() -> None:
     assert "uv run --locked --script /tmp/java-tool/java-tool.py" not in resource_dockerfile
     assert "/opt/codespace-tools/node-tool/" in dockerfile
     assert "/opt/codespace-tools/java-tool/" in dockerfile
-    assert 'script_dir="$(dirname "$(readlink -f "$0")")"' in node_tool
-    assert (
-        'exec /usr/local/bin/uv run --locked --script "$script_dir/node-tool.py" "$@"' in node_tool
-    )
-    assert 'script_dir="$(dirname "$(readlink -f "$0")")"' in java_tool
-    assert (
-        'exec /usr/local/bin/uv run --locked --script "$script_dir/java-tool.py" "$@"' in java_tool
-    )
+    for name, wrapper in (("node-tool", node_tool), ("java-tool", java_tool)):
+        tool = workspace / "tools" / name
+        project = tomllib.loads((tool / "pyproject.toml").read_text())
+        assert project["project"]["dependencies"] == ["typer==0.27.2"]
+        assert project["tool"]["uv"]["package"] is False
+        assert (tool / "uv.lock").is_file()
+        assert not (tool / f"{name}.py.lock").exists()
+        assert 'script_dir="$(dirname "$(readlink -f "$0")")"' in wrapper
+        assert 'env -u VIRTUAL_ENV UV_PROJECT_ENVIRONMENT="$script_dir/.venv"' in wrapper
+        assert '/usr/local/bin/uv sync --project "$script_dir" --locked --no-dev --quiet' in wrapper
+        assert f'exec "$script_dir/.venv/bin/python" "$script_dir/{name}.py" "$@"' in wrapper
     assert 'export PATH="$PATH:/opt/codespace-tools/java-tool"' in profile
     assert 'export PATH="$PATH:/opt/codespace-tools/node-tool"' in profile
     assert os.access(workspace / "tools/java-tool/java-tool", os.X_OK)

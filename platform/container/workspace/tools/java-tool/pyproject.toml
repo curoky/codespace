@@ -1,0 +1,11 @@
+[project]
+name = "codespace-java-tool"
+version = "0.1.0"
+description = "Install Java CLI distributions for Codespace"
+requires-python = ">=3.13"
+dependencies = [
+    "typer==0.27.2",
+]
+
+[tool.uv]
+package = false

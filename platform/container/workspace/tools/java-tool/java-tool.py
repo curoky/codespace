@@ -1,11 +1,3 @@
-#!/usr/bin/env -S uv run --script
-# /// script
-# requires-python = ">=3.13"
-# dependencies = [
-#   "typer==0.27.2",
-# ]
-# ///
-
 from __future__ import annotations
 
 import os
