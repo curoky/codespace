@@ -31,6 +31,7 @@ export PATH="$PATH:/opt/node/nodejs24/bin"
 
 export PATH="$PATH:/opt/codespace-tools/java-tool"
 export PATH="$PATH:/opt/codespace-tools/node-tool"
+export PATH="$PATH:/opt/podman/bin"
 
 export PATH="/home/x/.local/bin:$PATH"
 

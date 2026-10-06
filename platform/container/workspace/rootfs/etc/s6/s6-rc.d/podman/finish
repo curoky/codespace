@@ -3,4 +3,4 @@
 redirfd -a 1 /var/log/s6.podman.log
 fdmove -c 2 1
 s6-setuidgid x
-exec podman-server --stop-all
+exec /opt/podman/bin/podman-server --stop-all

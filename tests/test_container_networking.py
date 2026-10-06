@@ -43,7 +43,7 @@ def _s6_service_entrypoints() -> list[Path]:
 
 
 def test_workspace_secret_mount_uses_default_network_dns() -> None:
-    helper = _CONTAINER / "workspace/rootfs/usr/local/codespace/bin/mount-secret"
+    helper = _CONTAINER / "workspace/rootfs/opt/codespace/bin/mount-secret"
 
     assert 'local url="http://codespace-service-secret:8080"' in helper.read_text()
 
@@ -92,7 +92,7 @@ def test_workspace_agents_share_codex_skills() -> None:
 
 
 def test_workspace_hosts_blackhole_runs_as_root_without_sudo() -> None:
-    helper = _CONTAINER / "workspace/rootfs/usr/local/codespace/bin/init-hosts-blackhole"
+    helper = _CONTAINER / "workspace/rootfs/opt/codespace/bin/init-hosts-blackhole"
     service = _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/hosts-blackhole/up"
 
     assert "sudo" not in helper.read_text()
@@ -112,7 +112,7 @@ def test_workspace_root_services_use_only_root_owned_path() -> None:
 def test_workspace_root_password_tools_support_system_authentication() -> None:
     configure = (_CONTAINER / "workspace/scripts/configure-system.sh").read_text()
     password_init = (
-        _CONTAINER / "workspace/rootfs/usr/local/codespace/bin/init-root-password"
+        _CONTAINER / "workspace/rootfs/opt/codespace/bin/init-root-password"
     ).read_text()
     sudoers = (_CONTAINER / "workspace/rootfs/etc/sudoers").read_text()
 
@@ -335,13 +335,22 @@ def test_container_binman_commands_use_current_cli_and_explicit_prefix() -> None
 
 
 def test_workspace_podman_separates_image_files_from_user_data() -> None:
-    server = (_CONTAINER / "workspace/rootfs/usr/local/bin/podman-server").read_text()
-    configure = (_CONTAINER / "workspace/scripts/configure-system.sh").read_text()
+    workspace = _CONTAINER / "workspace"
+    server = (workspace / "rootfs/opt/podman/bin/podman-server").read_text()
+    configure = (workspace / "scripts/configure-system.sh").read_text()
+    profile = (workspace / "rootfs/etc/profile.d/app.sh").read_text()
+    run = (workspace / "rootfs/etc/s6/s6-rc.d/podman/run").read_text()
+    finish = (workspace / "rootfs/etc/s6/s6-rc.d/podman/finish").read_text()
 
     assert "PODMAN_DATA_DIR=/opt/podman/data" in server
     assert "CONTAINERS_CONF=/etc/containers/containers.conf" in server
     assert "--network-config-dir=/opt/podman/network" in server
     assert "/opt/podman/conf" not in server
+    assert 'export PATH="$PATH:/opt/podman/bin"' in profile
+    assert "exec /opt/podman/bin/podman-server" in run
+    assert "exec /opt/podman/bin/podman-server --stop-all" in finish
+    assert not (workspace / "rootfs/usr/local/bin/podman").exists()
+    assert not (workspace / "rootfs/usr/local/bin/podman-server").exists()
     assert "chown -R 5230:5230 /home/x /opt" in configure
     assert "/usr/local/libexec/codespace" not in configure
 

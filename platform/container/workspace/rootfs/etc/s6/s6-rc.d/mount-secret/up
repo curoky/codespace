@@ -4,4 +4,4 @@ redirfd -w 1 /var/log/s6.mount-secret.log
 fdmove -c 2 1
 s6-setuidgid x
 s6-env HOME=/home/x
-/usr/local/codespace/bin/mount-secret
+/opt/codespace/bin/mount-secret

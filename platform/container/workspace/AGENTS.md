@@ -26,9 +26,10 @@ platform/container/workspace/build.sh --resource
 
 ## Runtime Contract
 
-- 交互用户是 `x`（UID/GID `5230`）。image-owned system 文件位于 root-owned `/usr/local`、`/etc` 或只读 resource
-  payload；普通 runtime 软件安装到用户 Nix profile，Java/Node CLI 分别由专用 installer
-  写入 `/opt/java/tools`、`/opt/node/tools`。不要在启动时重建 immutable image 内容。
+- 交互用户是 `x`（UID/GID `5230`）。image-owned system 文件位于 root-owned `/usr/local`、
+  `/opt/codespace`、`/opt/podman`、`/etc` 或只读 resource payload；普通 runtime 软件安装到
+  用户 Nix profile，Java/Node CLI 分别由专用 installer 写入 `/opt/java/tools`、
+  `/opt/node/tools`。不要在启动时重建 immutable image 内容。
 - PID 1 是 `/etc/s6/init/bin/init`，service graph 只在 image build 时编译。依赖
   `/workspace` 的 service 必须依赖 `gocryptfs-workspace`；runtime 不重跑 graph compile 或
   image-build oneshot。
@@ -60,6 +61,8 @@ platform/container/workspace/build.sh --resource
   runtime。launcher 相对自身定位同一 tools root 下的 env，因此整个 Java/Node family 可从
   build stage 搬到 resource payload；运行期增量安装只写入 `/opt/java/tools`、
   `/opt/node/tools`。package-specific metadata 留在 `resource.Dockerfile`。
+- Workspace helper 固定位于 `/opt/codespace`，Podman wrapper 固定位于 `/opt/podman/bin`；不保留
+  对应的 `/usr/local` 兼容路径。
 
 ## Rootless Podman
 

@@ -18,4 +18,4 @@ foreground { rm -f -- /run/user/5230/podman/podman.sock }
 s6-notifyoncheck -d -n 0 -w 100 -t 2000 -T 60000
 -c "test -S /run/user/5230/podman/podman.sock"
 s6-setuidgid x
-exec podman-server
+exec /opt/podman/bin/podman-server

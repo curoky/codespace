@@ -2,4 +2,4 @@
 
 redirfd -w 1 /var/log/s6.root-password.log
 fdmove -c 2 1
-/usr/local/codespace/bin/init-root-password
+/opt/codespace/bin/init-root-password
