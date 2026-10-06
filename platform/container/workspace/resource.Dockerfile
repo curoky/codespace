@@ -9,16 +9,23 @@ RUN apt-get update -y \
   && curl https://sh.rustup.rs -sSf | sh -s -- -y --profile default --no-modify-path --default-toolchain stable \
   && rustup component remove rust-docs
 
-# ---------------------------- Binman packages -------------------------------
-FROM docker.io/debian:latest AS stage_sb
+# ---------------------------------- Binman ----------------------------------
+FROM docker.io/debian:latest AS stage_bm
 RUN apt-get update -y && apt-get install -y curl
 
-COPY platform/container/workspace/config/binman-resource.yaml /tmp/binman.yaml
 RUN curl -fsSL https://raw.githubusercontent.com/curoky/standalone-binaries/refs/heads/master/cmd/binman/install.sh \
-    | bash -s -- --prefix /usr/local \
-  && /usr/local/bin/bm --prefix /usr/local install --file /tmp/binman.yaml \
+    | bash -s -- --prefix /usr/local
+
+# ---------------------------- Binman packages -------------------------------
+FROM stage_bm AS stage_sb
+COPY platform/container/workspace/config/binman-resource.yaml /tmp/binman.yaml
+RUN /usr/local/bin/bm --prefix /usr/local install --file /tmp/binman.yaml \
   && rm -f /usr/local/bin/bm \
   && find /usr/local/store -type d -exec chmod 0755 {} +
+
+# ------------------------------ Build tools ---------------------------------
+FROM stage_bm AS stage_build_tools
+RUN /usr/local/bin/bm --prefix /usr/local install --no-link uv pnpm
 
 # ------------------------------------ Go ------------------------------------
 FROM docker.io/debian:stable-slim AS stage_go
@@ -38,12 +45,9 @@ ADD --checksum=sha256:b5ed9675149cc837c282e9b6962c276c9fa62863d5b2f91537b6084855
 RUN mkdir -p /opt/llvm/llvm23.1.2 \
   && tar -xJf /tmp/llvm.tar.xz --strip-components=1 -C /opt/llvm/llvm23.1.2
 
-# ------------------------------------ uv ------------------------------------
-FROM ghcr.io/astral-sh/uv:0.12.5 AS stage_uv
-
 # ---------------------------------- Python ----------------------------------
 FROM docker.io/debian:stable-slim AS stage_python
-COPY --from=stage_uv /uv /usr/local/bin/uv
+COPY --from=stage_build_tools /usr/local/store/uv/bin/uv /usr/local/bin/uv
 ENV UV_TOOL_DIR=/opt/resource/opt/uv/tools \
   UV_TOOL_BIN_DIR=/opt/resource/opt/uv/bin \
   UV_PYTHON_INSTALL_DIR=/opt/resource/opt/uv/python \
@@ -89,7 +93,7 @@ ADD --checksum=sha256:ddac49f903da9d5bac833e5cc79395098b9c33cfd3279be5f31bd00387
   https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_12.1.4_build/ghidra_12.1.4_PUBLIC_20260921.zip \
   /tmp/ghidra.zip
 
-COPY --from=stage_uv /uv /usr/local/bin/uv
+COPY --from=stage_build_tools /usr/local/store/uv/bin/uv /usr/local/bin/uv
 COPY platform/container/workspace/tools/java-tool/ /tmp/java-tool/
 RUN /tmp/java-tool/java-tool \
     install maven@3.9.16 /tmp/apache-maven.tar.gz --extract \
@@ -113,27 +117,24 @@ ADD --checksum=sha256:fd8e59d5a511510f6a298afb548f18c7d2b1be404d8b4a27d94fbe49f5
 ADD --checksum=sha256:ca70e9e349de048b9522abb3adc05b3bd6f43c5ffd3ec57916c7da292f59f022 \
   https://nodejs.org/dist/v26.10.0/node-v26.10.0-linux-x64.tar.xz \
   /tmp/node26.tar.xz
-ADD --checksum=sha256:2b5f62986b14f2891fb78e5b554e60e38f25987217fed578f0303bbfda5e124a \
-  https://registry.npmjs.org/@pnpm/exe.linux-x64/-/exe.linux-x64-12.6.0.tgz \
-  /tmp/pnpm.tar.gz
 RUN mkdir -p /opt/node/nodejs24 /opt/node/nodejs26/lib /opt/node/tools/bin \
   && tar -xJf /tmp/node24.tar.xz --strip-components=1 -C /opt/node/nodejs24 \
   && tar -xJf /tmp/node26.tar.xz --strip-components=1 -C /opt/node/nodejs26 \
-  && tar -xzf /tmp/pnpm.tar.gz --strip-components=1 -C /opt/node/tools/bin package/pnpm \
   && cp -L /usr/lib/x86_64-linux-gnu/libatomic.so.1 /opt/node/nodejs26/lib/ \
   && patchelf --set-rpath '$ORIGIN/../lib' /opt/node/nodejs26/bin/node
 
-COPY --from=stage_uv /uv /usr/local/bin/uv
+COPY --from=stage_build_tools /usr/local/store/uv/bin/uv /usr/local/bin/uv
+COPY --from=stage_build_tools /usr/local/store/pnpm/bin/pnpm /usr/local/bin/pnpm
 COPY platform/container/workspace/tools/node-tool/ /tmp/node-tool/
 RUN /tmp/node-tool/node-tool \
     install defuddle@0.19.4 \
-    --node /opt/node/nodejs24 --pnpm /opt/node/tools/bin/pnpm \
+    --node /opt/node/nodejs24 --pnpm /usr/local/bin/pnpm \
   && /tmp/node-tool/node-tool \
     install markdownlint-cli2@0.23.3 \
-    --node /opt/node/nodejs24 --pnpm /opt/node/tools/bin/pnpm \
+    --node /opt/node/nodejs24 --pnpm /usr/local/bin/pnpm \
   && /tmp/node-tool/node-tool \
     install prettier@3.9.9 \
-    --node /opt/node/nodejs24 --pnpm /opt/node/tools/bin/pnpm
+    --node /opt/node/nodejs24 --pnpm /usr/local/bin/pnpm
 
 # ----------------------------------- CUDA -----------------------------------
 # CUDA 12.2 is the newest toolkit supported by the target Host's 535 driver.
@@ -176,7 +177,12 @@ RUN /opt/resource/opt/go/go1.27.1/bin/go version \
   && test -x /opt/resource/opt/java/tools/envs/ghidra/payload/ghidraRun \
   && /opt/resource/opt/node/nodejs24/bin/node --version \
   && /opt/resource/opt/node/nodejs26/bin/node --version \
-  && env PATH=/usr/bin:/bin /opt/resource/opt/node/tools/bin/pnpm --version \
+  && test ! -e /opt/resource/usr/local/bin/uv \
+  && test ! -e /opt/resource/usr/local/bin/pnpm \
+  && test ! -e /opt/resource/opt/uv/bin/uv \
+  && test ! -e /opt/resource/opt/node/tools/bin/pnpm \
+  && test ! -e /opt/resource/usr/local/store/uv \
+  && test ! -e /opt/resource/usr/local/store/pnpm \
   && test -x /opt/resource/opt/node/tools/bin/defuddle \
   && test -x /opt/resource/opt/node/tools/bin/markdownlint-cli2 \
   && test -x /opt/resource/opt/node/tools/bin/prettier \

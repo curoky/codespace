@@ -12,7 +12,7 @@ from urllib.parse import quote
 import typer
 
 DEFAULT_NODE = Path("/opt/node/nodejs24")
-DEFAULT_PNPM = Path("/opt/resource/opt/node/tools/bin/pnpm")
+DEFAULT_PNPM = Path("/usr/local/bin/pnpm")
 DEFAULT_ROOT = Path("/opt/node/tools")
 
 app = typer.Typer(add_completion=False, no_args_is_help=True)

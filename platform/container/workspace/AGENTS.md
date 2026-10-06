@@ -54,8 +54,8 @@ platform/container/workspace/build.sh --resource
   自带运行所需的 Python 3.14 与 uv tools；resource 提供其余 Python runtime 和可选 uv
   tools，并通过 `/opt/resource/opt/uv/bin` 直接加入 PATH。binman 安装的 package launcher 与
   store 必须一起保留在 `/opt/resource/usr/local/{bin,store}`，由 resource bin PATH 统一暴露；
-  payload 不携带 `bm` manager，也不在主 image 为单个 package 建兼容链接。Java/Node 额外拆成
-  只读 runtime 子目录链接加可写
+  resource build 使用 bm 提供的 uv 与 pnpm，但 payload 不携带这两个构建工具或 `bm` manager，
+  也不在主 image 为单个 package 建兼容链接。Java/Node 额外拆成只读 runtime 子目录链接加可写
   `/opt/java/tools`、`/opt/node/tools`。未挂载时允许 resource 链接悬空，默认 s6 service
   不得依赖 resource-only 内容。
 - `resource.Dockerfile` 是工具、版本、URL、checksum 和安装方式的 source of truth。不要在

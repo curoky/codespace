@@ -197,6 +197,7 @@ def test_workspace_java_and_node_split_read_only_runtimes_from_writable_tools() 
     assert 'export PATH="$PATH:/opt/resource/opt/node/tools/bin"' in profile
     assert "--java /opt/java/openjdk27" in resource_dockerfile
     assert "--node /opt/node/nodejs24" in resource_dockerfile
+    assert "--pnpm /usr/local/bin/pnpm" in resource_dockerfile
     assert "COPY --from=stage_java /opt/java /opt/resource/opt/java" in resource_dockerfile
     assert "COPY --from=stage_node /opt/node /opt/resource/opt/node" in resource_dockerfile
     assert "FROM payload AS test" in resource_dockerfile
@@ -219,6 +220,11 @@ def test_workspace_keeps_required_python_and_exposes_resource_python_tools() -> 
     assert "uv tool install copyparty" not in resource_dockerfile
 
     assert "uv python install --no-bin 3.9 3.10 3.11 3.12 3.13 3.14" in resource_dockerfile
+    assert "FROM ghcr.io/astral-sh/uv:" not in resource_dockerfile
+    assert (
+        "COPY --from=stage_build_tools /usr/local/store/uv/bin/uv /usr/local/bin/uv"
+        in resource_dockerfile
+    )
     resource_tools = {
         "licenseheaders": "3.14",
         "netron": "3.14",
@@ -293,9 +299,17 @@ def test_workspace_resource_image_installs_binman_manifest() -> None:
         in dockerfile
     )
     assert "/usr/local/bin/bm --prefix /usr/local install --file /tmp/binman.yaml" in dockerfile
+    assert "/usr/local/bin/bm --prefix /usr/local install --no-link uv pnpm" in dockerfile
+    assert "registry.npmjs.org/@pnpm" not in dockerfile
     assert "rm -f /usr/local/bin/bm" in dockerfile
     assert "COPY --from=stage_sb /usr/local/bin /opt/resource/usr/local/bin" in dockerfile
     assert "test ! -e /opt/resource/usr/local/bin/bm" in dockerfile
+    assert "test ! -e /opt/resource/usr/local/bin/uv" in dockerfile
+    assert "test ! -e /opt/resource/usr/local/bin/pnpm" in dockerfile
+    assert "test ! -e /opt/resource/opt/uv/bin/uv" in dockerfile
+    assert "test ! -e /opt/resource/usr/local/store/uv" in dockerfile
+    assert "test ! -e /opt/resource/usr/local/store/pnpm" in dockerfile
+    assert "test ! -e /opt/resource/opt/node/tools/bin/pnpm" in dockerfile
     assert "COPY --from=stage_sb /usr/local/profile /opt/resource/usr/local/profile" in dockerfile
     assert "/opt/resource/usr/local/bin/radare2 -v" in dockerfile
     assert "/opt/resource/usr/local/bin/rizin -v" in dockerfile

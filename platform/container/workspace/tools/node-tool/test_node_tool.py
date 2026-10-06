@@ -26,6 +26,10 @@ def load_node_tool() -> ModuleType:
 node_tool = load_node_tool()
 
 
+def test_defaults_to_workspace_binman_pnpm() -> None:
+    assert node_tool.DEFAULT_PNPM == Path("/usr/local/bin/pnpm")
+
+
 def make_executable(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")

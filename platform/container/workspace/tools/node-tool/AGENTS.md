@@ -20,7 +20,7 @@ node-tool install package@version \
 platform/container/workspace/tools/node-tool/node-tool install \
   package@version \
   --node /opt/node/nodejs24 \
-  --pnpm /opt/resource/opt/node/tools/bin/pnpm
+  --pnpm /usr/local/bin/pnpm
 ```
 
 - `install` 创建只含一个 direct dependency 的临时 pnpm project，由 pnpm 负责 registry、
@@ -36,7 +36,8 @@ platform/container/workspace/tools/node-tool/node-tool install \
   子进程。
 - 目标环境或任一公开命令已存在时直接失败。image build 从空 stage 开始，不实现 overwrite、
   uninstall、upgrade、rollback、并发写入或迁移。
-- pnpm 可以是 Dockerfile 独立安装的 native executable；它不属于 node-tool 管理环境。
+- pnpm 是 bm 安装到 `/usr/local` 的 native executable；resource build 只把它作为构建依赖，
+  不把 pnpm 本体复制进 resource payload。它不属于 node-tool 管理环境。
 - `node-tool` 是独立的 uv project，依赖由同目录 `pyproject.toml` 与 `uv.lock` 声明。workspace
   主 image 与 resource build 都通过 wrapper 调用；wrapper 忽略调用方的 `VIRTUAL_ENV`，先用
   `/usr/local/bin/uv sync --project ... --locked --no-dev` 在自身目录同步 `.venv`，再用其中的
