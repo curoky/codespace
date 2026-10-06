@@ -11,6 +11,11 @@ source、LaunchAgent、默认应用和控制面 SSH wiring。`install.sh` 必须
   命令。
 - `binman.yaml` 声明 `/opt/bm` 中的 standalone tools；`install.sh` 只负责 bootstrap binman、
   按 manifest 安装和建立必要 alias。
+- `scripts/build-bm-bundle.sh` 在 Darwin/arm64 上将 `binman.yaml` 组装成可迁移的 `bm/`
+  archive；`publish-macos.yaml` 将其作为单层 OCI artifact 发布到 GHCR，并在独立 hosted
+  macOS job 中验证完整装机。
+- `install-v2.sh` 复用现有 installer，但从 GHCR 下载、校验并替换 `/opt/bm`；默认读取
+  `macos-bm-darwin-arm64` tag，CI 通过 `CODESPACE_BM_REFERENCE` 固定到本次发布的 digest。
 - `rootfs/Users/x/` 只保存 macOS-specific source。跨 macOS/Workspace 共用的 dotfile 和 SSH
   material 由 installer 链接 `platform/container/workspace/rootfs/home/x/`。
 - `scripts/` 拥有 macOS imperative setup；`tests/` 用隔离 HOME 验证 link/copy、权限与 SSH

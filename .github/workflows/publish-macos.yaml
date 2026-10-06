@@ -1,0 +1,70 @@
+name: Publish macOS host bundle
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '.github/workflows/publish-macos.yaml'
+      - 'platform/macos/**'
+      - 'platform/container/workspace/rootfs/home/x/**'
+  schedule:
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+
+jobs:
+  publish-bm:
+    runs-on: macos-15
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      digest: ${{ steps.publish.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: oras-project/setup-oras@v2
+        with:
+          version: 1.3.1
+
+      - name: Build bm bundle
+        run: platform/macos/scripts/build-bm-bundle.sh "$RUNNER_TEMP/codespace-bm-darwin-arm64.tar.gz"
+
+      - name: Log in to GHCR
+        run: printf '%s' '${{ github.token }}' | oras login ghcr.io --username '${{ github.actor }}' --password-stdin
+
+      - name: Publish bm bundle
+        id: publish
+        shell: bash
+        run: |
+          set -euo pipefail
+          repository="$(printf '%s' "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')"
+          immutable="ghcr.io/${repository}:macos-bm-darwin-arm64-${GITHUB_SHA}"
+          oras push \
+            --artifact-type application/vnd.curoky.codespace.macos-bm.v1 \
+            "$immutable" \
+            "$RUNNER_TEMP/codespace-bm-darwin-arm64.tar.gz:application/vnd.curoky.codespace.macos-bm.layer.v1+tar+gzip"
+          digest="$(oras manifest fetch --format go-template --template '{{ .digest }}' "$immutable")"
+          oras tag "$immutable" macos-bm-darwin-arm64
+          printf 'digest=%s\n' "$digest" >>"$GITHUB_OUTPUT"
+
+  install:
+    needs: publish-bm
+    runs-on: macos-15
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install macOS host
+        env:
+          CODESPACE_BM_REFERENCE: ${{ needs.publish-bm.outputs.digest }}
+          GHCR_TOKEN: ${{ github.token }}
+        run: platform/macos/install-v2.sh
+
+      - name: Verify bm installation
+        run: |
+          test -x /opt/bm/bin/bm
+          test -x /opt/bm/bin/bazel
+          /opt/bm/bin/bm --help >/dev/null
