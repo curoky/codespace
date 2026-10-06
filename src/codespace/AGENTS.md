@@ -95,6 +95,8 @@ inspect 数据还原。
   container 字段时同步 `ContainerLayer`、merge、validation、mapping、example config 和测试。
 - volume source 为绝对路径或 `${RESOURCE_DATA}` 时是 Host bind，其他 source 是 named
   volume；placeholder 结果不得逃逸当前 resource data root。
+- idmap 只适用于 Host bind；通过 podman-py 的 extended volume mode 传递给 rootful
+  Podman。Workspace 密文 bind 把 Host `5230:5230` 映射为容器 `1001:1001`。
 - 所有 publication 必须绑定 Host loopback。secret 必须预先存在；缺失时 fail-fast，不降级为
   environment 或明文文件。
 - 同一 Host 的 container 通过默认 Podman network DNS 访问

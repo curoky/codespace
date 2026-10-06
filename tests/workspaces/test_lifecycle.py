@@ -687,8 +687,8 @@ def test_workspace_container_uses_fixed_ssh_listener_and_configured_mounts(
         configured_secrets.append(
             {
                 "source": "codespace_workspace_key",
-                "uid": "5230",
-                "gid": "5230",
+                "uid": "1001",
+                "gid": "1001",
                 "mode": 0o400,
             }
         )
@@ -805,8 +805,8 @@ def test_encrypted_workspace_uses_configured_compose_secret(
         "secrets": [
             {
                 "source": "codespace_workspace_key",
-                "uid": "5230",
-                "gid": "5230",
+                "uid": "1001",
+                "gid": "1001",
                 "mode": 0o400,
             }
         ],
@@ -842,8 +842,8 @@ def test_encrypted_workspace_uses_configured_compose_secret(
     assert runtime_spec.secrets[0].model_dump() == {  # type: ignore[union-attr]
         "source": "codespace_workspace_key",
         "target": None,
-        "uid": "5230",
-        "gid": "5230",
+        "uid": "1001",
+        "gid": "1001",
         "mode": 0o400,
     }
 

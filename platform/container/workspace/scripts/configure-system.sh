@@ -5,6 +5,7 @@ userdel ubuntu -r || echo "ignore userdel failed"
 
 usermod --lock root
 useradd --no-create-home --uid 5230 --user-group --shell /usr/local/bin/zsh x
+useradd --no-create-home --uid 1001 --user-group --shell /usr/sbin/nologin gocryptfs
 passwd -d x
 usermod -aG sudo x
 

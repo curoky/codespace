@@ -25,12 +25,17 @@ platform/container/workspace/build.sh --resource
 
 ## Runtime Contract
 
-- 固定用户是 `x`（UID/GID `5230`）。image-owned system 文件位于 root-owned `/usr/local`、
-  `/etc` 或只读 resource payload；runtime 软件安装到用户 Nix profile。不要在启动时重建
-  immutable image 内容。
+- 交互用户是 `x`（UID/GID `5230`），gocryptfs service 用户是 `gocryptfs`（UID/GID
+  `1001`）。image-owned system 文件位于 root-owned `/usr/local`、`/etc` 或只读 resource
+  payload；runtime 软件安装到用户 Nix profile。不要在启动时重建 immutable image
+  内容。
 - PID 1 是 `/etc/s6/init/bin/init`，service graph 只在 image build 时编译。依赖
   `/workspace` 的 service 必须依赖 `gocryptfs-workspace`；runtime 不重跑 graph compile 或
   image-build oneshot。
+- 加密 Workspace 的 `/workspace.enc` 必须使用 idmapped bind，把 Host `5230:5230`
+  映射为容器内 `1001:1001`；因此 gocryptfs 能以独立用户读写，Host 上的 `x` 仍能
+  管理落盘密文。FUSE 通过 `allow_other` 与 `force_owner=5230:5230` 向容器内
+  `x` 提供明文读写视图。
 - `/workspace`、`/workspace.enc`、IDE cache、`/run/codespace-control` 和
   `/opt/podman/data` 是外部状态边界。初始化只准备挂载根，不能递归 chown、迁移或清除已有
   持久数据。

@@ -352,7 +352,7 @@ def test_encrypted_workspace_uses_configured_ciphertext_target(config: Config) -
     data["projects"]["codespace"]["container"] = {
         "volumes": ["${RESOURCE_DATA}/workspace:/workspace.enc"],
         "secrets": [
-            {"source": "codespace_workspace_key", "uid": "5230", "gid": "5230", "mode": 0o400}
+            {"source": "codespace_workspace_key", "uid": "1001", "gid": "1001", "mode": 0o400}
         ],
     }
     data["secrets"]["codespace_workspace_key"] = "test-key"
@@ -363,6 +363,23 @@ def test_encrypted_workspace_uses_configured_ciphertext_target(config: Config) -
     assert {volume.source: volume.target for volume in resolved.volumes}[
         "/home/x/codespace/workspaces/codespace/default/workspace"
     ] == "/workspace.enc"
+
+
+def test_example_uses_idmapped_encrypted_workspace_mount() -> None:
+    config = load_config(Path("config.example.yaml"))
+    volume = next(
+        volume
+        for volume in config.project_defaults.container.volumes
+        if volume.target == "/workspace.enc"
+    )
+
+    assert volume.idmap is not None
+    assert volume.idmap.model_dump() == {
+        "host_uid": 5230,
+        "host_gid": 5230,
+        "container_uid": 1001,
+        "container_gid": 1001,
+    }
 
 
 def test_service_resolves_data_without_mutating_config(config: Config) -> None:

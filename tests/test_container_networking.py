@@ -121,6 +121,29 @@ def test_workspace_root_password_tools_support_system_authentication() -> None:
     assert "x ALL=(ALL:ALL) ALL" in sudoers
 
 
+def test_workspace_gocryptfs_uses_dedicated_identity() -> None:
+    workspace = _CONTAINER / "workspace"
+    configure = (workspace / "scripts/configure-system.sh").read_text()
+    service = (workspace / "rootfs/etc/s6/s6-rc.d/gocryptfs-workspace/run").read_text()
+    config = yaml.safe_load(Path("config.example.yaml").read_text())
+    workspace_key = next(
+        secret
+        for secret in config["project_defaults"]["container"]["secrets"]
+        if secret["source"] == "codespace_workspace_key"
+    )
+
+    assert "--uid 1001 --user-group --shell /usr/sbin/nologin gocryptfs" in configure
+    assert workspace_key == {
+        "source": "codespace_workspace_key",
+        "uid": "1001",
+        "gid": "1001",
+        "mode": 0o400,
+    }
+    assert "install -d -o 1001 -g 1001 -m 0700 -- /workspace /workspace.enc" in service
+    assert service.count('s6-applyuidgid -u 1001 -g 1001 -G ""') == 3
+    assert "-allow_other -force_owner 5230:5230" in service
+
+
 def test_workspace_image_packages_are_root_owned_and_user_installs_use_local() -> None:
     dockerfile = (_CONTAINER / "workspace/Dockerfile").read_text()
     manifest = (_CONTAINER / "workspace/config/binman.yaml").read_text()

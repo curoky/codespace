@@ -101,6 +101,23 @@ class UlimitSpec(BaseModel):
     hard: StrictInt
 
 
+class MountIdmap(BaseModel):
+    """One fixed Host-to-container identity mapping for a bind mount."""
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
+
+    host_uid: StrictInt = Field(ge=0)
+    host_gid: StrictInt = Field(ge=0)
+    container_uid: StrictInt = Field(ge=0)
+    container_gid: StrictInt = Field(ge=0)
+
+    def podman_option(self) -> str:
+        return (
+            f"idmap=uids={self.host_uid}-{self.container_uid}-1;"
+            f"gids={self.host_gid}-{self.container_gid}-1"
+        )
+
+
 class VolumeSpec(BaseModel):
     """One normalized Compose mount: a Host bind or a named Podman volume."""
 
@@ -110,6 +127,7 @@ class VolumeSpec(BaseModel):
     source: NonBlankString
     target: AbsolutePath
     read_only: StrictBool = False
+    idmap: MountIdmap | None = None
 
     @model_validator(mode="before")
     @classmethod
@@ -138,17 +156,22 @@ class VolumeSpec(BaseModel):
             _volume_source(self.source)
         else:
             _volume_name(self.source)
+            if self.idmap is not None:
+                raise ValueError("idmap is only supported for bind mounts")
         return self
 
     def mount(self) -> dict[str, object]:
         """Produce a Podman mount; bind sources must resolve to absolute paths."""
         source = self.source if self.type == "volume" else _absolute_path(self.source)
-        return {
+        mount: dict[str, object] = {
             "type": self.type,
             "source": source,
             "target": self.target,
             "read_only": self.read_only,
         }
+        if self.idmap is not None:
+            mount["idmap"] = self.idmap.model_dump()
+        return mount
 
     @property
     def uses_resource_data(self) -> bool:
@@ -255,7 +278,11 @@ class ContainerSpec(BaseModel):
         random_tcp_ports: Collection[int] = (),
     ) -> dict[str, Any]:
         """Translate the resolved Compose service to podman-py create options."""
-        bind_mounts = [volume.mount() for volume in self.volumes if volume.type == "bind"]
+        bind_mounts = [
+            volume.mount()
+            for volume in self.volumes
+            if volume.type == "bind" and volume.idmap is None
+        ]
         named_volumes = {
             volume.source: {
                 "bind": volume.target,
@@ -263,6 +290,15 @@ class ContainerSpec(BaseModel):
             }
             for volume in self.volumes
             if volume.type == "volume"
+        }
+        idmapped_bind_volumes = {
+            _absolute_path(volume.source): {
+                "bind": volume.target,
+                "mode": "ro" if volume.read_only else "rw",
+                "extended_mode": [volume.idmap.podman_option()],
+            }
+            for volume in self.volumes
+            if volume.type == "bind" and volume.idmap is not None
         }
         ports: dict[str, tuple[str, int]] = {
             f"{port.target}/{port.protocol}": (port.host_ip, port.published) for port in self.ports
@@ -283,7 +319,7 @@ class ContainerSpec(BaseModel):
             "devices": self.devices,
             "ports": ports,
             "mounts": bind_mounts,
-            "volumes": named_volumes,
+            "volumes": {**named_volumes, **idmapped_bind_volumes},
         }
         if self.platform is not None:
             options["platform"] = self.platform

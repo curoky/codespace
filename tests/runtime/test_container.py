@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 from podman.domain.containers import Container
+from podman.domain.containers_create import CreateMixin
 from podman.errors import NotFound
 from pydantic import ValidationError
 
@@ -252,6 +253,64 @@ def test_volume_translates_to_podman_mount() -> None:
         "target": "/data",
         "read_only": True,
     }
+
+
+def test_idmapped_bind_translates_to_podman_extended_volume_mode() -> None:
+    spec = ContainerSpec.model_validate(
+        {
+            "image": "image",
+            "volumes": [
+                {
+                    "type": "bind",
+                    "source": "/host/workspace",
+                    "target": "/workspace.enc",
+                    "idmap": {
+                        "host_uid": 5230,
+                        "host_gid": 5230,
+                        "container_uid": 1001,
+                        "container_gid": 1001,
+                    },
+                }
+            ],
+        }
+    )
+
+    options = spec.to_podman_options(SimpleNamespace())  # type: ignore[arg-type]
+
+    assert options["mounts"] == []
+    assert options["volumes"] == {
+        "/host/workspace": {
+            "bind": "/workspace.enc",
+            "mode": "rw",
+            "extended_mode": ["idmap=uids=5230-1001-1;gids=5230-1001-1"],
+        }
+    }
+    payload = CreateMixin._render_payload({"volumes": options["volumes"]})
+    assert payload["mounts"] == [
+        {
+            "destination": "/workspace.enc",
+            "options": ["idmap=uids=5230-1001-1;gids=5230-1001-1", "rw"],
+            "source": "/host/workspace",
+            "type": "bind",
+        }
+    ]
+
+
+def test_named_volume_rejects_idmap() -> None:
+    with pytest.raises(ValidationError, match="only supported for bind mounts"):
+        VolumeSpec.model_validate(
+            {
+                "type": "volume",
+                "source": "data",
+                "target": "/data",
+                "idmap": {
+                    "host_uid": 5230,
+                    "host_gid": 5230,
+                    "container_uid": 1001,
+                    "container_gid": 1001,
+                },
+            }
+        )
 
 
 def test_volume_rejects_parent_traversal_in_target() -> None:

@@ -26,7 +26,7 @@ project_defaults:
     privileged: true
     secrets:
       - { source: codespace_root_password, uid: "0", gid: "0", mode: 0400 }
-      - { source: codespace_workspace_key, uid: "5230", gid: "5230", mode: 0400 }
+      - { source: codespace_workspace_key, uid: "1001", gid: "1001", mode: 0400 }
       - { source: huggingface_token, uid: "5230", gid: "5230", mode: 0400 }
       - { source: atuin_credentials, uid: "5230", gid: "5230", mode: 0400 }
       - { source: atuin_db_uri, uid: "5230", gid: "5230", mode: 0400 }
@@ -38,7 +38,10 @@ project_defaults:
       memlock: { soft: -1, hard: -1 }
     volumes:
       - codespace-resource:/opt/resource:ro
-      - ${RESOURCE_DATA}/workspace:/workspace.enc
+      - type: bind
+        source: ${RESOURCE_DATA}/workspace
+        target: /workspace.enc
+        idmap: { host_uid: 5230, host_gid: 5230, container_uid: 1001, container_gid: 1001 }
       - ${RESOURCE_DATA}/podman:/opt/podman/data
       - ${RESOURCE_DATA}/control:/run/codespace-control
       - ${RESOURCE_DATA}/cache/.local/share/traex:/home/x/.local/share/traex
