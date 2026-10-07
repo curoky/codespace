@@ -45,7 +45,7 @@ installs:
     - eza
     # - eza-ls
     - fd
-    # - ffmpeg
+    - ffmpeg
     - file
     - findutils
     # - fira-code
@@ -129,7 +129,7 @@ installs:
     - podman5-rootless
     # - podman6
     # - podman6-rootless
-    # - poppler
+    - poppler
     - postgresql
     # - prettier
     - procps
