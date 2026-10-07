@@ -4,6 +4,52 @@
 本文件供 agents 维护实现；模型特有参数的原因、协议限制和坑写在代码旁，不再建每模型
 说明文件。版本、端口和 snapshot 的实际值以代码与锁文件为准。
 
+## Model Storage Footprint
+
+下表是当前模型、Serving、依赖栈与存储信息的统一维护入口。全部环境使用 Python 3.12.14；
+框架、Torch 和 Transformers 版本来自各目录 `uv.lock` 的 Linux 解析结果。大小统一使用
+二进制 GiB（`1 GiB = 1,073,741,824 bytes = 1024³ bytes`）。
+
+| 模型 / checkpoint | Serving 接口 | SDK / 版本 | Transformers 版本 | vLLM 版本 | Torch 版本 | 参数大小（GiB） | 权重交付 | `.venv` 逻辑大小（GiB） | SGLang 依据 |
+| --- | --- | --- | --- | --- | --- | ---: | --- | --- | --- |
+| [`firered-llm`](https://huggingface.co/allendou/FireRedASR2-LLM-vllm) | transcription（[作者配方][firered]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 31.147 | ❌ | 7.870 | 未找到原生依据 |
+| [`firered-punc`](https://huggingface.co/FireRedTeam/FireRedPunc) | 本模型 HTTP | [FireRedASR2S][firered] 0.0.1 @ `4e7d9aa` / CPU | 5.1.0 | — | 2.10.0+cpu | 0.762 | ✅ | 0.838 | 未找到原生依据 |
+| [`firered-vad`](https://huggingface.co/FireRedTeam/FireRedVAD) | 本模型 HTTP | [FireRedASR2S][firered] 0.0.1 @ `4e7d9aa` / CPU | 5.1.0 | — | 2.10.0+cpu | 0.002 | ✅ | 0.838 | 未找到原生依据 |
+| [`moss-audio`](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-8B-Instruct) | audio chat（[作者文档][moss-audio]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 16.862 | ❌ | 7.870 | 作者 fork |
+| [`moss-td`](https://huggingface.co/OpenMOSS-Team/MOSS-Transcribe-Diarize) | transcription（[作者文档][moss-td]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 1.692 | ✅ | 7.870 | Omni 原生；主仓库未找到依据 |
+| [`nemotron-diarization`](https://huggingface.co/nvidia/Nemotron-3-Diarization) | 本模型 HTTP | NeMo 3.0.0 | 4.57.6 | — | 2.11.0 | 0.185 | ✅ | 5.284 | 未找到原生依据 |
+| [`paraformer`](https://huggingface.co/funasr/paraformer-zh) | 本模型 HTTP | [FunASR][funasr] 1.4.16 | 4.57.6 | — | 2.11.0 | 0.820 | ✅ | 4.971 | 未找到原生依据 |
+| [`pyannote-community-1`](https://huggingface.co/pyannote/speaker-diarization-community-1) | 本模型 HTTP | [pyannote.audio][pyannote] 4.0.7 | — | — | 2.11.0 | 0.031 | ✅ | 4.817 | 未找到原生依据 |
+| [`qwen3-aligner`](https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B) | pooling + 本模型 HTTP（[Qwen SDK][qwen]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 1.709 | ✅ | 7.870 | 未找到等价原生接口 |
+| [`qwen3-asr-1.7b`](https://huggingface.co/Qwen/Qwen3-ASR-1.7B) | transcription（[Qwen SDK][qwen]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 4.376 | ❌ | 7.870 | 主仓库 / Omni 原生 |
+| [`sensevoice`](https://huggingface.co/FunAudioLLM/SenseVoiceSmall) | 本模型 HTTP | [FunASR][sensevoice] 1.4.16 | 4.57.6 | — | 2.11.0 | 0.872 | ✅ | 4.971 | 未找到原生依据 |
+| [`vibevoice`](https://huggingface.co/microsoft/VibeVoice-ASR-HF) | audio chat（[作者文档][vibevoice]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 15.517 | ❌ | 7.870 | 未找到原生依据 |
+| [`whisper-large-v3`](https://huggingface.co/openai/whisper-large-v3) | transcription（[模型来源][whisper]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 2.875 | ❌ | 7.870 | 主仓库原生 ASR |
+
+参数大小按各 `download_model.sh` 固定 revision 的仓库 metadata 统计，只计算 checkpoint /
+weight 文件，不包含 config、tokenizer、词典、CMVN 或 download cache；`.nemo`、`.pth.tar`
+等不可拆分 checkpoint 按整个文件计算。`.venv` 是对每个目录独立执行
+`du --apparent-size --block-size=1 --summarize` 得到的逻辑大小；共享 hardlink 会在每行
+完整计数，不能将各行相加作为 image 物理占用。`✅` 表示 image 内置，`❌` 表示 runtime
+下载。
+
+参数文件总计 76.850 GiB，其中 image 内置 6.074 GiB，runtime 下载 70.776 GiB。计入
+allowlist 中的必要配置与 tokenizer 后，实际内置下载约 6.101 GiB，实际 runtime 下载约
+70.811 GiB。13 个 `.venv` 的逻辑大小合计 76.812 GiB；同一 layer 内仅做 uv cache hardlink
+去重后的整体实际分配为 13.227 GiB，不能稳定归属到单个模型。修改 revision、allowlist、
+Python 或 lock 时重新构建镜像并同步更新本表。
+
+环境安装完成后还会按文件内容对全部模型与 server 环境做第二遍去重；它只忽略 mtime，
+mode、owner 与 xattr 不同的文件不会合并。现有完整环境镜像的 dry-run 检出约 0.494 GiB
+额外重复内容；最终 image 物理分配以完整重建后的测量为准。
+
+Serving 与 SGLang 结论是 2026-10-07 的上游核对记录，依据 [vLLM 0.31.0][vllm-models]、
+[SGLang 0.5.21][sg-models] 和 [SGLang-Omni 0.1.7][omni]，不代替当前 Host 的真实推理验证。
+升级时重新核对实际 model class、endpoint 和 response schema；SGLang 主仓库、Omni 与作者
+fork 是不同 runtime，OpenAI-compatible HTTP 不等于模型原生支持。Qwen 普通 / `-hf`、
+VibeVoice 原版 / HF、FireRed 原始 / 转换权重不能互换；FunASR 的 `paraformer-zh` 简称在不同
+hub 映射不同，始终以下载脚本的完整 repo 为准。
+
 ## Context And Ownership
 
 | 修改内容 | Source of truth / 先读 |
@@ -29,7 +75,9 @@ s6 文件的工具。配置文件使用 YAML，uv 工具文件除外。参数、
 ## Model Contract
 
 - `install-model-environments.sh` 在 image build 的同一个 layer 中遍历全部模型并使用
-  `UV_LINK_MODE=hardlink` 创建独立 `.venv`；任一 lock 失配或安装失败必须使 build 失败。
+  `UV_LINK_MODE=hardlink` 创建独立 `.venv`；server 安装完成后再对所有环境做 content-based
+  hardlink，补齐 uv cache artifact 之外的相同文件。任一 lock 失配、安装或去重失败必须使
+  build 失败。
 - `run` 与 `download_model.sh` 使用 `uv run --frozen --no-sync`，只运行 image 内预装环境，
   不在启动或下载权重时解析、安装或更新依赖。
 - 权重固定在本目录 `weights/`。下载脚本只调用 HF CLI；`run` 只加载本地权重，不代替下载。
@@ -55,51 +103,22 @@ s6 文件的工具。配置文件使用 YAML，uv 工具文件除外。参数、
   条件，GitHub Actions 对应 repository secret 是 `HUGGINGFACE_TOKEN`。token 不写入脚本、
   命令行、build argument 或 image layer。
 
-## Model Storage Footprint
-
-下表合并模型权重与 Python 环境的存储预算，大小统一使用十进制 GB
-（`1 GB = 1,000,000,000 bytes`）。参数大小按各 `download_model.sh` 固定 revision 的仓库文件
-metadata 统计，只计算 checkpoint / weight 文件；不包含 config、tokenizer、词典、CMVN 或
-download cache。`.nemo`、`.pth.tar` 等不可拆分 checkpoint 按整个文件计算。`.venv` 逻辑大小
-来自预装环境镜像，对每个目录独立执行 `du --apparent-size --block-size=1 --summarize`；共享的
-hardlink 会在每个环境中完整计数，因此各行不能相加为 image 的实际物理占用。
-
-| 模型 | 参数文件 | 参数大小（GB） | `.venv` 逻辑大小（GB） | 权重打包到 image |
-| --- | --- | ---: | ---: | --- |
-| `firered-llm` | `model-*.safetensors` | 33.444 | 8.451 | 否，runtime 下载 |
-| `firered-punc` | LERT `pytorch_model.bin` + `model.pth.tar` | 0.818 | 0.900 | 是 |
-| `firered-vad` | `VAD/model.pth.tar` | 0.002 | 0.900 | 是 |
-| `moss-audio` | `model-*.safetensors` | 18.105 | 8.451 | 否，runtime 下载 |
-| `moss-td` | `model-*.safetensors` | 1.817 | 8.451 | 否，runtime 下载 |
-| `nemotron-diarization` | `Nemotron-3-Diarization.nemo` | 0.199 | 5.674 | 是 |
-| `paraformer` | `model.pt` | 0.881 | 5.338 | 是 |
-| `pyannote-community-1` | embedding / segmentation `.bin` + PLDA `.npz` | 0.033 | 5.172 | 是 |
-| `qwen3-aligner` | `model.safetensors` | 1.836 | 8.451 | 是 |
-| `qwen3-asr-1.7b` | `model-*.safetensors` | 4.699 | 8.451 | 否，runtime 下载 |
-| `sensevoice` | `model.pt` | 0.936 | 5.338 | 是 |
-| `vibevoice` | `model-*.safetensors` | 16.661 | 8.451 | 否，runtime 下载 |
-| `whisper-large-v3` | `model.safetensors` | 3.087 | 8.451 | 否，runtime 下载 |
-
-参数文件总计 82.517 GB，其中 image 内置 4.705 GB，runtime 下载 77.813 GB。计入
-allowlist 中的必要配置与 tokenizer 后，实际内置下载约 4.718 GB，实际 runtime 下载约
-77.866 GB。13 个 `.venv` 的逻辑大小合计 82.477 GB；同一 layer 内 hardlink 去重后的整体
-实际分配为 14.203 GB，不能稳定归属到单个模型。修改 revision、allowlist、Python 或 lock
-时重新构建镜像并同步更新本表。
-
 ## Image And S6
 
 镜像继承 `service-s6`，在构建时安装系统工具、Python、server、全部模型环境与选定小模型
-权重，并编译静态 graph。全部模型环境必须在同一 `RUN`、同一 filesystem 中创建，依靠 uv
-hardlink 去重；Python、环境与内置权重安装使用 Dockerfile 的 `USER x`，cache 在对应
-`RUN` 结束前删除；s6 graph 切回 root 编译。其余大模型权重仍在运行时准备。uv 的 Python、
-HF 的 cache / token 使用 x 默认目录，不转发工具或代理环境变量。
+权重，并编译静态 graph。全部环境必须在同一 `RUN`、同一 filesystem 中创建，先依靠 uv
+cache hardlink 去重，再用 util-linux `hardlink` 比较内容并合并剩余副本；后一步保留 mode、
+owner 和 xattr，只忽略 mtime，并优先复用 link count 最高的 inode。Python、环境与内置权重
+安装使用 Dockerfile 的 `USER x`，cache 在对应 `RUN` 结束前删除；s6 graph 切回 root 编译。
+其余大模型权重仍在运行时准备。uv 的 Python、HF 的 cache / token 使用 x 默认目录，不转发
+工具或代理环境变量。
 
 | 资产 | 维护约定 |
 | --- | --- |
 | `rootfs/etc/s6/s6-rc.d/asr-<model>-download/` | 仅 runtime 下载模型拥有；oneshot 以 x 调本模型下载脚本 |
 | `rootfs/etc/s6/s6-rc.d/asr-<model>/` | longrun；runtime 下载模型依赖 download，内置模型直接启动 |
 | `rootfs/etc/s6/s6-rc.d/asr-server/` | 以 x 调 `server/run`；server 环境已在构建时安装，使用 `--no-sync` |
-| `install-model-environments.sh` | build-only；顺序安装全部锁定模型环境并强制 hardlink，失败立即终止 |
+| `install-model-environments.sh` | build-only；顺序安装全部锁定模型环境并强制 uv cache hardlink，失败立即终止 |
 | `install-bundled-model-weights.sh` | build-only；固定内置模型集合并清除 local-dir metadata |
 | `rootfs/usr/local/bin/asr-model-service` | root-owned 受限启停入口，由 sudoers 仅授权 x 调用 |
 | `/var/log/s6.asr-*.log` | `redirfd -w` + `fdmove`，沿用 Workspace 日志范式 |
@@ -114,34 +133,7 @@ s6 supervision 本身以 root 运行，业务服务和下载都以固定用户 x
 仅请求状态切换并等待 finish 结束，不自行轮询 PID。CPU 模型环境使用配套 CPU Torch /
 torchaudio wheel，避免拉入无用的 CUDA 依赖。
 
-## Serving Compatibility
-
-以下为 2026-10-07 的上游核对记录，依据 [vLLM 0.31.0][vllm-models]、
-[SGLang 0.5.21][sg-models]、[SGLang-Omni 0.1.7][omni]。它说明部署接口依据，不代替
-当前 Host 的真实推理验证；升级时重新核对实际 model class、endpoint 和 response schema。
-SGLang 主仓库、Omni 与作者 fork 是不同 runtime。OpenAI-compatible HTTP 不等于模型原生支持。
-
-| 当前模型 / 下载来源 | 官方部署依据 | 本项目 Serving | SGLang 依据 |
-| --- | --- | --- | --- |
-| [Qwen3-ASR-1.7B](https://huggingface.co/Qwen/Qwen3-ASR-1.7B) | [Qwen SDK][qwen] 支持并推荐 vLLM 加速 | 原生 vLLM transcription，普通权重 | 主仓库 / Omni 原生 |
-| [FireRedASR2-LLM 转换版](https://huggingface.co/allendou/FireRedASR2-LLM-vllm) | [作者][firered] 引用该社区转换版及 vLLM 配方 | 原生 vLLM transcription | 未找到原生依据 |
-| [SenseVoiceSmall](https://huggingface.co/FunAudioLLM/SenseVoiceSmall) | [官方][sensevoice] FunASR AutoModel / FastAPI | FunASR SDK；无所需 vLLM 原生接口 | 未找到原生依据 |
-| [Paraformer-zh](https://huggingface.co/funasr/paraformer-zh) | [FunASR][funasr] AutoModel / ONNX / C++ | FunASR SDK；无所需 vLLM 原生接口 | 未找到原生依据 |
-| [Whisper large-v3](https://huggingface.co/openai/whisper-large-v3) | [OpenAI SDK / CLI][whisper]；框架适配由框架维护者提供 | 原生 vLLM transcription | 主仓库原生 ASR |
-| [MOSS-Transcribe-Diarize](https://huggingface.co/OpenMOSS-Team/MOSS-Transcribe-Diarize) | [作者][moss-td] 推荐 Omni，另有 vLLM / Transformers | 原生 vLLM transcription，解析结构化输出 | Omni 原生；主仓库未找到依据 |
-| [VibeVoice-ASR-HF](https://huggingface.co/microsoft/VibeVoice-ASR-HF) | [作者][vibevoice] 文件推理与旧 vLLM plugin | stable vLLM 原生 HF architecture，audio chat | 未找到原生依据 |
-| [MOSS-Audio-8B-Instruct](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-8B-Instruct) | [作者][moss-audio] Transformers 与自己的 SGLang fork | 原生 vLLM audio chat | 作者 fork；主仓库未找到依据 |
-| [Qwen3-ForcedAligner-0.6B](https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B) | [Qwen SDK][qwen] 完整对齐 API | vLLM pooling / token_classify + 本目录解码 API | 未找到等价原生接口 |
-| [pyannote community-1](https://huggingface.co/pyannote/speaker-diarization-community-1) | [pyannote.audio][pyannote] Pipeline.from_pretrained | 官方 SDK；无原生 vLLM API | 未找到原生依据 |
-| [Nemotron-3-Diarization](https://huggingface.co/nvidia/Nemotron-3-Diarization) | 官方 NeMo offline diarize，另有 Transformers / NeMo-Speech.cpp | NeMo SDK；无原生 vLLM API | 未找到原生依据 |
-| [FireRedVAD](https://huggingface.co/FireRedTeam/FireRedVAD) | [FireRedVad][firered] SDK | 官方 SDK / CPU；无原生 vLLM API | 未找到原生依据 |
-| [FireRedPunc](https://huggingface.co/FireRedTeam/FireRedPunc) | [FireRedPunc][firered] SDK | 官方 SDK / CPU；无原生 vLLM API | 未找到原生依据 |
-
-上游 revision、权重格式、SDK 版本与启动参数必须一起核对。Qwen 普通 / `-hf`、VibeVoice
-原版 / HF、FireRed 原始 / 转换权重不能互换。FunASR 的 `paraformer-zh` 简称在不同 hub
-映射不同，始终以本目录下载脚本的完整 repo 为准。
-
-### Alternatives Outside Scope
+## Alternatives Outside Scope
 
 保留选型来源用于维护，不创建目录、依赖或配置入口；五套流程不开放任意模型组合。
 
@@ -200,7 +192,7 @@ podman build \
 | 修改 | 额外验证 |
 | --- | --- |
 | `run` / `client.py` / s6 | 固定端口匹配；以 x 启动；health 与真实短音频；停止后确认进程退出 |
-| download / uv | image 包含固定小模型与全部环境；其余权重不在 image；run/download 不同步环境；环境跨目录 hardlink |
+| download / uv | image 包含固定小模型与全部环境；其余权重不在 image；run/download 不同步环境；验证 uv cache 与 content pass 的跨环境 hardlink |
 | 权重 / SDK / vLLM | 锁文件与 import 版本、实际协议响应、截断与时间边界 |
 | 融合 / speaker / 时间 | 行为测试与对应真实音频，不以模拟响应宣称质量提升 |
 | CUDA / GPU 调度 | 容器内库加载、真实 kernel、所需模型和多 GPU 通信；不停止外部任务 |

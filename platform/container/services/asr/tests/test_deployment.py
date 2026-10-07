@@ -11,6 +11,7 @@ from server.config import Config
 BUNDLED_MODELS = {
     "firered-punc",
     "firered-vad",
+    "moss-td",
     "nemotron-diarization",
     "paraformer",
     "pyannote-community-1",
@@ -61,8 +62,16 @@ def test_image_installs_model_environments_in_one_layer() -> None:
 
     dockerfile = (root / "Dockerfile").read_text()
     install = "/usr/local/bin/install-asr-model-environments"
+    deduplicate = "hardlink --ignore-time --respect-xattrs --maximize"
     assert dockerfile.count(install) == 2
+    assert dockerfile.count(deduplicate) == 1
+    assert "/opt/asr/models/*/.venv /opt/asr/server/.venv" in dockerfile
     assert "rm -rf /home/x/.cache/uv" in dockerfile
+    assert (
+        dockerfile.index(install, dockerfile.index("RUN export HOME"))
+        < dockerfile.index(deduplicate)
+        < dockerfile.index("rm -rf /home/x/.cache/uv")
+    )
 
 
 def test_image_bundles_only_selected_model_weights() -> None:

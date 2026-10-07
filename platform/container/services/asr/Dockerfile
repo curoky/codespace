@@ -36,6 +36,8 @@ RUN export HOME=/home/x \
   && uv python install 3.14.7 3.12.14 \
   && /usr/local/bin/install-asr-model-environments \
   && uv sync --locked --no-dev --project /opt/asr/server \
+  && hardlink --ignore-time --respect-xattrs --maximize \
+    /opt/asr/models/*/.venv /opt/asr/server/.venv \
   && rm -rf /home/x/.cache/uv
 
 RUN --mount=type=secret,id=huggingface_token,uid=5230,gid=5230,mode=0400 \

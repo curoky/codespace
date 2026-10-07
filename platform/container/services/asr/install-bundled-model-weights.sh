@@ -12,6 +12,7 @@ readonly bundled_models=(
   pyannote-community-1
   firered-punc
   firered-vad
+  moss-td
   nemotron-diarization
   paraformer
   qwen3-aligner
