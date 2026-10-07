@@ -12,19 +12,19 @@
 
 | 模型 / checkpoint | Serving 接口 | SDK / 版本 | Transformers 版本 | vLLM 版本 | Torch 版本 | 参数大小（GiB） | 权重交付 | `.venv` 逻辑大小（GiB） | SGLang 依据 |
 | --- | --- | --- | --- | --- | --- | ---: | --- | --- | --- |
-| [`firered-llm`](https://huggingface.co/allendou/FireRedASR2-LLM-vllm) | transcription（[作者配方][firered]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 31.147 | ❌ | 7.870 | 未找到原生依据 |
-| [`firered-punc`](https://huggingface.co/FireRedTeam/FireRedPunc) | 本模型 HTTP | [FireRedASR2S][firered] 0.0.1 @ `4e7d9aa` / CPU | 5.1.0 | — | 2.10.0+cpu | 0.762 | ✅ | 0.838 | 未找到原生依据 |
-| [`firered-vad`](https://huggingface.co/FireRedTeam/FireRedVAD) | 本模型 HTTP | [FireRedASR2S][firered] 0.0.1 @ `4e7d9aa` / CPU | 5.1.0 | — | 2.10.0+cpu | 0.002 | ✅ | 0.838 | 未找到原生依据 |
-| [`moss-audio`](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-8B-Instruct) | audio chat（[作者文档][moss-audio]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 16.862 | ❌ | 7.870 | 作者 fork |
-| [`moss-td`](https://huggingface.co/OpenMOSS-Team/MOSS-Transcribe-Diarize) | transcription（[作者文档][moss-td]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 1.692 | ✅ | 7.870 | Omni 原生；主仓库未找到依据 |
-| [`nemotron-diarization`](https://huggingface.co/nvidia/Nemotron-3-Diarization) | 本模型 HTTP | NeMo 3.0.0 | 4.57.6 | — | 2.11.0 | 0.185 | ✅ | 5.284 | 未找到原生依据 |
-| [`paraformer`](https://huggingface.co/funasr/paraformer-zh) | 本模型 HTTP | [FunASR][funasr] 1.4.16 | 4.57.6 | — | 2.11.0 | 0.820 | ✅ | 4.971 | 未找到原生依据 |
-| [`pyannote-community-1`](https://huggingface.co/pyannote/speaker-diarization-community-1) | 本模型 HTTP | [pyannote.audio][pyannote] 4.0.7 | — | — | 2.11.0 | 0.031 | ✅ | 4.817 | 未找到原生依据 |
-| [`qwen3-aligner`](https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B) | pooling + 本模型 HTTP（[Qwen SDK][qwen]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 1.709 | ✅ | 7.870 | 未找到等价原生接口 |
-| [`qwen3-asr-1.7b`](https://huggingface.co/Qwen/Qwen3-ASR-1.7B) | transcription（[Qwen SDK][qwen]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 4.376 | ❌ | 7.870 | 主仓库 / Omni 原生 |
-| [`sensevoice`](https://huggingface.co/FunAudioLLM/SenseVoiceSmall) | 本模型 HTTP | [FunASR][sensevoice] 1.4.16 | 4.57.6 | — | 2.11.0 | 0.872 | ✅ | 4.971 | 未找到原生依据 |
-| [`vibevoice`](https://huggingface.co/microsoft/VibeVoice-ASR-HF) | audio chat（[作者文档][vibevoice]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 15.517 | ❌ | 7.870 | 未找到原生依据 |
-| [`whisper-large-v3`](https://huggingface.co/openai/whisper-large-v3) | transcription（[模型来源][whisper]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 2.875 | ❌ | 7.870 | 主仓库原生 ASR |
+| [`firered-llm`](https://huggingface.co/allendou/FireRedASR2-LLM-vllm) | transcription（[作者配方][firered]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 31.147 | ❌ | 7.695 | 未找到原生依据 |
+| [`firered-punc`](https://huggingface.co/FireRedTeam/FireRedPunc) | 本模型 HTTP | [FireRedASR2S][firered] 0.0.1 @ `4e7d9aa` / CPU | 5.1.0 | — | 2.10.0+cpu | 0.762 | ✅ | 0.832 | 未找到原生依据 |
+| [`firered-vad`](https://huggingface.co/FireRedTeam/FireRedVAD) | 本模型 HTTP | [FireRedASR2S][firered] 0.0.1 @ `4e7d9aa` / CPU | 5.1.0 | — | 2.10.0+cpu | 0.002 | ✅ | 0.832 | 未找到原生依据 |
+| [`moss-audio`](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-8B-Instruct) | audio chat（[作者文档][moss-audio]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 16.862 | ❌ | 7.695 | 作者 fork |
+| [`moss-td`](https://huggingface.co/OpenMOSS-Team/MOSS-Transcribe-Diarize) | transcription（[作者文档][moss-td]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 1.692 | ✅ | 7.695 | Omni 原生；主仓库未找到依据 |
+| [`nemotron-diarization`](https://huggingface.co/nvidia/Nemotron-3-Diarization) | 本模型 HTTP | NeMo 3.1.0+ca3f93a51 | 4.57.6 | — | 2.13.0 | 0.185 | ✅ | 5.288 | 未找到原生依据 |
+| [`paraformer`](https://huggingface.co/funasr/paraformer-zh) | 本模型 HTTP | [FunASR][funasr] 1.4.16 | 4.57.6 | — | 2.13.0 | 0.820 | ✅ | 4.973 | 未找到原生依据 |
+| [`pyannote-community-1`](https://huggingface.co/pyannote/speaker-diarization-community-1) | 本模型 HTTP | [pyannote.audio][pyannote] 4.0.7 | — | — | 2.13.0 | 0.031 | ✅ | 4.819 | 未找到原生依据 |
+| [`qwen3-aligner`](https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B) | pooling + 本模型 HTTP（[Qwen SDK][qwen]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 1.709 | ✅ | 7.695 | 未找到等价原生接口 |
+| [`qwen3-asr-1.7b`](https://huggingface.co/Qwen/Qwen3-ASR-1.7B) | transcription（[Qwen SDK][qwen]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 4.376 | ❌ | 7.695 | 主仓库 / Omni 原生 |
+| [`sensevoice`](https://huggingface.co/FunAudioLLM/SenseVoiceSmall) | 本模型 HTTP | [FunASR][sensevoice] 1.4.16 | 4.57.6 | — | 2.13.0 | 0.872 | ✅ | 4.973 | 未找到原生依据 |
+| [`vibevoice`](https://huggingface.co/microsoft/VibeVoice-ASR-HF) | audio chat（[作者文档][vibevoice]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 15.517 | ❌ | 7.695 | 未找到原生依据 |
+| [`whisper-large-v3`](https://huggingface.co/openai/whisper-large-v3) | transcription（[模型来源][whisper]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 2.875 | ❌ | 7.695 | 主仓库原生 ASR |
 
 参数大小按各 `download_model.sh` 固定 revision 的仓库 metadata 统计，只计算 checkpoint /
 weight 文件，不包含 config、tokenizer、词典、CMVN 或 download cache；`.nemo`、`.pth.tar`
@@ -35,13 +35,13 @@ weight 文件，不包含 config、tokenizer、词典、CMVN 或 download cache�
 
 参数文件总计 76.850 GiB，其中 image 内置 6.074 GiB，runtime 下载 70.776 GiB。计入
 allowlist 中的必要配置与 tokenizer 后，实际内置下载约 6.101 GiB，实际 runtime 下载约
-70.811 GiB。13 个 `.venv` 的逻辑大小合计 76.812 GiB；同一 layer 内仅做 uv cache hardlink
-去重后的整体实际分配为 13.227 GiB，不能稳定归属到单个模型。修改 revision、allowlist、
-Python 或 lock 时重新构建镜像并同步更新本表。
+70.811 GiB。13 个 `.venv` 的逻辑大小合计 75.581 GiB；同一 layer 内完成 uv cache 与内容
+hardlink 去重后的整体实际分配为 9.783 GiB，不能稳定归属到单个模型。修改 revision、
+allowlist、Python 或 lock 时重新构建镜像并同步更新本表。
 
 环境安装完成后还会按文件内容对全部模型与 server 环境做第二遍去重；它只忽略 mtime，
-mode、owner 与 xattr 不同的文件不会合并。现有完整环境镜像的 dry-run 检出约 0.494 GiB
-额外重复内容；最终 image 物理分配以完整重建后的测量为准。
+mode、owner 与 xattr 不同的文件不会合并。本次干净环境构建中额外合并 63,597 个文件，
+节省 19.4 MiB；计入 server `.venv` 后实际分配为 9.790 GiB。
 
 Serving 与 SGLang 结论是 2026-10-07 的上游核对记录，依据 [vLLM 0.31.0][vllm-models]、
 [SGLang 0.5.21][sg-models] 和 [SGLang-Omni 0.1.7][omni]，不代替当前 Host 的真实推理验证。
@@ -197,9 +197,10 @@ podman build \
 | 融合 / speaker / 时间 | 行为测试与对应真实音频，不以模拟响应宣称质量提升 |
 | CUDA / GPU 调度 | 容器内库加载、真实 kernel、所需模型和多 GPU 通信；不停止外部任务 |
 
-已验证 CPU wheel 下的 FireRedVAD 中文音频与 FireRedPunc 标点推理，s6 下载与服务
+已验证 CPU wheel 下的 FireRedVAD 中文音频与 FireRedPunc 标点推理、Nemotron 在 H100 上的
+真实多人音频 diarization，s6 下载与服务
 链路、异常退出清理和停止超时，以及原子 HTTP 请求的五方案模拟响应、共享证据与
-临时音频清理。GPU 模型尚未完成真实推理。
+临时音频清理。其余 GPU 模型尚未全部完成真实推理。
 已知根检查有无关 Ruff SIM300：`workspace/tools/node-tool/test_node_tool.py:30`；本任务
 不修改该文件或用户暂存的 `workspace/config/binman.yaml`。
 

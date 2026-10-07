@@ -7,6 +7,7 @@ from protocol import InferenceRequest, InferenceResult, Span
 
 
 def app() -> FastAPI:
+    import soundfile as sf
     from nemo.collections.asr.models import SortformerEncLabelModel
 
     weights = Path(__file__).resolve().parent / "weights"
@@ -44,8 +45,13 @@ def app() -> FastAPI:
         if not audio_path.is_relative_to(Path("/data/asr").resolve()) or not audio_path.is_file():
             raise HTTPException(422, "audio must be a file inside /data/asr")
         with lock:
-            # Each diarize call owns one file and initializes its own streaming cache.
-            result = model.diarize(audio=[request.audio], batch_size=1)[0]
+            # NeMo's file-path loader segfaults in Lhotse 2.0.0a6. The server already
+            # normalizes every request to mono 16 kHz PCM, so bypass that loader.
+            audio, rate = sf.read(audio_path, dtype="float32")
+            if rate != 16000 or audio.ndim != 1:
+                raise ValueError("diarizer expects mono 16 kHz PCM")
+            # Each diarize call owns one array and initializes its own streaming cache.
+            result = model.diarize(audio=[audio], sample_rate=rate, batch_size=1, num_workers=0)[0]
             spans = []
             for segment in result:
                 start, end, speaker = segment.split()
