@@ -1,6 +1,0 @@
-redirfd -w 1 /var/log/s6.asr-nemotron-diarization-download.log
-fdmove -c 2 1
-
-s6-setuidgid x
-s6-env HOME=/home/x
-/opt/asr/models/nemotron-diarization/download_model.sh

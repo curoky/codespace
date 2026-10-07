@@ -10,6 +10,7 @@
 | --- | --- |
 | 模型启动、参数、环境 | `models/<model>/run`；SDK 参数在同目录 `service.py` |
 | 权重来源与格式 | `models/<model>/download_model.sh` 的 repo、revision、include |
+| image 内置权重集合 | `install-bundled-model-weights.sh`；对应模型不保留 s6 download service |
 | Python / 依赖版本 | 每目录 `.python-version`、`pyproject.toml`、`uv.lock` |
 | 模型地址与请求协议 | `models/<model>/client.py` 的 `URL`、`infer(http, request)` |
 | 能力与资源预算 | `models/catalog.py`；不在这里放启动 flags 或端口 |
@@ -34,8 +35,9 @@ s6 文件的工具。配置文件使用 YAML，uv 工具文件除外。参数、
 - 权重固定在本目录 `weights/`。下载脚本只调用 HF CLI；`run` 只加载本地权重，不代替下载。
   下载脚本用显式 include 只取 serving 所需的权重格式、配置、processor 与自定义模型代码，
   不下载同一 checkpoint 的其他框架或精度副本。HF 根据 local-dir metadata 复用文件。
-  改变 revision 时先停止模型并清理旧 weights，避免旧文件混入；本地 `.venv` 与权重不进入
-  build context，image 中的 `.venv` 只由锁文件构建。
+  内置模型在 build 中下载且不保留 runtime download service；其余模型仍在首次启动时下载。
+  改变 revision 时先停止 runtime 下载模型并清理旧 weights，避免旧文件混入；本地 `.venv`
+  与权重不进入 build context，image 中的环境与内置权重只由锁文件和固定 snapshot 构建。
 - 监听地址和端口在 `run` 显式固定，client 的 `URL` 同步维护。调度器从 client 读取地址
   做 readiness，不生成端口，也不把地址注入模型。改变端口时同步 DESIGN 的服务表。
 - SDK 服务只接收 `/data/asr` 内真实文件；原生 vLLM client 发送音频内容。数据目录是镜像
@@ -48,23 +50,26 @@ s6 文件的工具。配置文件使用 YAML，uv 工具文件除外。参数、
 - 模型间不共用 `.venv`。SDK 的 Torch / torchaudio 必须成套；不要为了统一版本而与 vLLM
   混装。修改 TP、精度、显存利用率或上下文预算后同步 catalog 的资源 / 时长限制。
   显存利用率是独占设备上的预算，不是模型精确需求。
-- HF token 使用 x 默认的 `/home/x/.cache/huggingface/token`，只读挂载且 x 可读。
-  pyannote 需预先接受模型访问条件；不把 token 写进脚本或命令行。
+- Runtime HF token 使用 x 默认的 `/home/x/.cache/huggingface/token`，只读挂载且 x 可读。
+  Image build 通过 `huggingface_token` secret mount 提供 token；pyannote 需预先接受模型访问
+  条件，GitHub Actions 对应 repository secret 是 `HUGGINGFACE_TOKEN`。token 不写入脚本、
+  命令行、build argument 或 image layer。
 
 ## Image And S6
 
-镜像继承 `service-s6`，在构建时安装系统工具、Python、server 与全部模型环境并编译静态
-graph。全部模型环境必须在同一 `RUN`、同一 filesystem 中创建，依靠 uv hardlink 去重；
-Python 与环境安装使用 Dockerfile 的 `USER x`，uv cache 在该 `RUN` 结束前删除；s6 graph
-切回 root 编译。模型权重仍在运行时准备。uv 的 Python、HF 的 cache / token 使用 x 默认
-目录，不转发工具或代理环境变量。
+镜像继承 `service-s6`，在构建时安装系统工具、Python、server、全部模型环境与选定小模型
+权重，并编译静态 graph。全部模型环境必须在同一 `RUN`、同一 filesystem 中创建，依靠 uv
+hardlink 去重；Python、环境与内置权重安装使用 Dockerfile 的 `USER x`，cache 在对应
+`RUN` 结束前删除；s6 graph 切回 root 编译。其余大模型权重仍在运行时准备。uv 的 Python、
+HF 的 cache / token 使用 x 默认目录，不转发工具或代理环境变量。
 
 | 资产 | 维护约定 |
 | --- | --- |
-| `rootfs/etc/s6/s6-rc.d/asr-<model>-download/` | oneshot，以 x 调本模型 `download_model.sh` |
-| `rootfs/etc/s6/s6-rc.d/asr-<model>/` | longrun，依赖对应 download，以 x 调本模型 `run` |
+| `rootfs/etc/s6/s6-rc.d/asr-<model>-download/` | 仅 runtime 下载模型拥有；oneshot 以 x 调本模型下载脚本 |
+| `rootfs/etc/s6/s6-rc.d/asr-<model>/` | longrun；runtime 下载模型依赖 download，内置模型直接启动 |
 | `rootfs/etc/s6/s6-rc.d/asr-server/` | 以 x 调 `server/run`；server 环境已在构建时安装，使用 `--no-sync` |
 | `install-model-environments.sh` | build-only；顺序安装全部锁定模型环境并强制 hardlink，失败立即终止 |
+| `install-bundled-model-weights.sh` | build-only；固定内置模型集合并清除 local-dir metadata |
 | `rootfs/usr/local/bin/asr-model-service` | root-owned 受限启停入口，由 sudoers 仅授权 x 调用 |
 | `/var/log/s6.asr-*.log` | `redirfd -w` + `fdmove`，沿用 Workspace 日志范式 |
 | `/data/asr` | 请求临时音频，Host mount 必须允许 x 写入；正常结束与异常返回均清理 |
@@ -155,6 +160,7 @@ mode 配 R535。`nvidia-smi` 的 CUDA Version 是驱动原生能力，不是兼�
 
 ```bash
 podman build \
+  --secret id=huggingface_token,src=/run/secrets/huggingface_token \
   --file platform/container/services/asr/Dockerfile \
   --tag localhost/codespace-asr:test \
   .
@@ -163,14 +169,14 @@ podman build \
 | 修改 | 额外验证 |
 | --- | --- |
 | `run` / `client.py` / s6 | 固定端口匹配；以 x 启动；health 与真实短音频；停止后确认进程退出 |
-| download / uv | image 无权重但包含全部模型环境；run/download 不同步环境；构建层保留跨环境 hardlink |
+| download / uv | image 包含固定小模型与全部环境；其余权重不在 image；run/download 不同步环境；环境跨目录 hardlink |
 | 权重 / SDK / vLLM | 锁文件与 import 版本、实际协议响应、截断与时间边界 |
 | 融合 / speaker / 时间 | 行为测试与对应真实音频，不以模拟响应宣称质量提升 |
 | CUDA / GPU 调度 | 容器内库加载、真实 kernel、所需模型和多 GPU 通信；不停止外部任务 |
 
 已验证 CPU wheel 下的 FireRedVAD 中文音频与 FireRedPunc 标点推理，s6 下载与服务
 链路、异常退出清理和停止超时，以及原子 HTTP 请求的五方案模拟响应、共享证据与
-临时音频清理。GPU 模型尚未完成真实推理，pyannote 授权下载尚未验证。
+临时音频清理。GPU 模型尚未完成真实推理。
 已知根检查有无关 Ruff SIM300：`workspace/tools/node-tool/test_node_tool.py:30`；本任务
 不修改该文件或用户暂存的 `workspace/config/binman.yaml`。
 

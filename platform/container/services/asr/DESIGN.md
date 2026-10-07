@@ -20,7 +20,7 @@ flowchart LR
         API[HTTP server<br/>0.0.0.0:8080]
         Pipeline[本次请求的五方案编排<br/>共享内存响应]
         Ops[ops<br/>GPU 分配与启停请求]
-        S6[s6<br/>下载任务与服务监督]
+        S6[s6<br/>大模型下载任务与服务监督]
         Client[每模型 client.py]
         Model[每模型服务<br/>127.0.0.1:8000–8012]
         Data[临时音频<br/>/data/asr]
@@ -29,7 +29,7 @@ flowchart LR
         Client -->|原生 HTTP 协议| Model
         Pipeline --> Ops
         Ops -->|受限 Shell 入口| S6
-        S6 -->|download_model.sh / run| Model
+        S6 -->|按需下载 / run| Model
         Pipeline --> Data
     end
     CLI <-->|HTTP| API
@@ -64,11 +64,11 @@ asr/
 │   ├── vllm.py               # vLLM 响应完成状态解析
 │   └── <model>/
 │       ├── pyproject.toml / uv.lock / .python-version
-│       ├── download_model.sh # 固定 repo / revision，运行时下载
+│       ├── download_model.sh # 固定 repo / revision，构建或运行时下载
 │       ├── run               # 监听地址、端口及模型启动参数
 │       ├── client.py         # 固定服务地址、请求与结果解析
 │       ├── service.py        # 仅 SDK / 特殊 pooling 接口需要
-│       └── .venv/ / weights/ # 镜像构建生成环境；运行时下载权重
+│       └── .venv/ / weights/ # 镜像构建生成环境；权重按模型选择构建或运行时下载
 ├── ops/                      # GPU inventory、调度与进程操作
 ├── rootfs/
 │   ├── etc/s6/s6-rc.d/        # 全部静态 s6 定义
@@ -105,7 +105,7 @@ asr/
 flowchart TD
     subgraph Build[镜像构建]
         B1[service-s6 基础镜像] --> B2[系统工具 / Python / CUDA 兼容库]
-        B2 --> B3[复制代码与 rootfs<br/>安装 server / 模型环境，编译 s6 graph]
+        B2 --> B3[复制代码与 rootfs<br/>安装环境和小模型权重，编译 s6 graph]
     end
     subgraph Boot[容器启动]
         B3 --> I[s6 init / root supervision]
@@ -115,9 +115,10 @@ flowchart TD
     end
     subgraph Demand[首次请求某个模型]
         H --> A[GPU 模型等待 / 分配设备<br/>CPU 模型直接启动]
-        A --> D[s6 download oneshot<br/>以 x 执行 download_model.sh]
-        D --> U[预装环境执行 hf download<br/>固定 snapshot]
-        U --> M[s6 longrun<br/>以 x 执行模型 run]
+        A --> D{权重是否内置}
+        D -->|否| U[s6 download oneshot<br/>下载固定 snapshot]
+        D -->|是| M[s6 longrun<br/>以 x 执行模型 run]
+        U --> M
         M --> V[预装环境加载本地 weights<br/>等待 health]
         V --> Q[执行模型请求]
     end
@@ -125,10 +126,11 @@ flowchart TD
 
 | 时机 | 实际行为 |
 | --- | --- |
-| 构建镜像 | 在同一 layer 安装 server 与全部模型环境并以 hardlink 去重；不下载模型权重 |
-| 首次启动模型 | `download → service`；两个脚本使用预装环境，不解析或安装依赖 |
-| 同一容器再次启停 | 已完成的 download job 不重跑；`run` 检查环境并加载本地权重 |
-| 容器重建 | download job 重新执行，HF 根据持久化 snapshot metadata 复用权重 |
+| 构建镜像 | 安装 server、全部模型环境，以及选定小模型权重；gated 权重使用 build secret |
+| 首次启动内置模型 | 直接启动 service，不访问 HF |
+| 首次启动其余模型 | `download → service`；两个脚本使用预装环境，不解析或安装依赖 |
+| 同一容器再次启停 | 已完成的 runtime download job 不重跑；`run` 加载本地权重 |
+| 容器重建 | 内置权重复用 image layer；其余模型由 runtime download job 重新确认 |
 | 显存不足 | FIFO 等待；必要时停止本容器无在途请求的模型，确认退出后释放资源 |
 | 模型退出 | s6 管理停止超时；finish 清理残留子进程后才重启，ops 等待完整退出 |
 

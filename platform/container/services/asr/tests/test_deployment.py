@@ -8,6 +8,16 @@ from models.catalog import MODELS
 from ops.scheduler import Scheduler
 from server.config import Config
 
+BUNDLED_MODELS = {
+    "firered-punc",
+    "firered-vad",
+    "nemotron-diarization",
+    "paraformer",
+    "pyannote-community-1",
+    "qwen3-aligner",
+    "sensevoice",
+}
+
 
 def test_each_model_has_static_download_serve_chain() -> None:
     root = Path(__file__).resolve().parents[1]
@@ -21,9 +31,14 @@ def test_each_model_has_static_download_serve_chain() -> None:
             ast.parse(source.read_text(), filename=str(source))
         download = graph / f"asr-{spec.id}-download"
         serve = graph / f"asr-{spec.id}"
-        assert (serve / f"dependencies.d/asr-{spec.id}-download").is_file()
         assert "s6-setuidgid x" in (serve / "run").read_text()
-        assert "download_model.sh" in (download / "up").read_text()
+        dependency = serve / f"dependencies.d/asr-{spec.id}-download"
+        if spec.id in BUNDLED_MODELS:
+            assert not download.exists()
+            assert not dependency.exists()
+        else:
+            assert dependency.is_file()
+            assert "download_model.sh" in (download / "up").read_text()
         download_script = (directory / "download_model.sh").read_text()
         assert "hf download" in download_script
         assert "--include" in download_script
@@ -50,10 +65,21 @@ def test_image_installs_model_environments_in_one_layer() -> None:
     assert "rm -rf /home/x/.cache/uv" in dockerfile
 
 
-def test_image_does_not_download_weights() -> None:
-    dockerfile = (Path(__file__).resolve().parents[1] / "Dockerfile").read_text()
-    assert "AS prepared" not in dockerfile
-    assert "download_model" not in dockerfile
+def test_image_bundles_only_selected_model_weights() -> None:
+    root = Path(__file__).resolve().parents[1]
+    installer = root / "install-bundled-model-weights.sh"
+    subprocess.run(["bash", "-n", str(installer)], check=True)
+    installer_text = installer.read_text()
+
+    for spec in MODELS:
+        marker = f"  {spec.id}\n"
+        assert (marker in installer_text) == (spec.id in BUNDLED_MODELS)
+
+    dockerfile = (root / "Dockerfile").read_text()
+    install = "/usr/local/bin/install-asr-bundled-model-weights"
+    assert dockerfile.count(install) == 2
+    assert "type=secret,id=huggingface_token" in dockerfile
+    assert "HF_TOKEN_PATH=/run/secrets/huggingface_token" in dockerfile
 
 
 def test_whisper_download_uses_only_vllm_safetensors() -> None:
@@ -63,6 +89,13 @@ def test_whisper_download_uses_only_vllm_safetensors() -> None:
     assert "--include 'model.safetensors'" in script
     for unused in ("*.safetensors", "model.fp32", "pytorch_model", "flax_model"):
         assert unused not in script
+
+
+def test_funasr_downloads_pass_all_allowlist_patterns_to_legacy_hf_cli() -> None:
+    root = Path(__file__).resolve().parents[1] / "models"
+    for model in ("paraformer", "sensevoice"):
+        script = (root / model / "download_model.sh").read_text()
+        assert script.count("--include") == 1
 
 
 def test_model_clients_match_fixed_listeners(tmp_path: Path) -> None:

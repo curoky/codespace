@@ -22,7 +22,7 @@
 .coverage.*
 htmlcov
 
-# ASR weights are downloaded by s6 jobs at runtime.
+# Host ASR weights are never image inputs; selected snapshots are downloaded during the build.
 platform/container/services/asr/models/*/weights
 
 # Node dependencies are never needed in image build contexts.
