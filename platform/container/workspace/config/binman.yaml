@@ -15,6 +15,7 @@ installs:
     # - binman
     # - binutils
     - bison
+    - buildah
     - buildifier
     # - busybox
     - bzip2
