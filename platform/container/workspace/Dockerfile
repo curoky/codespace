@@ -42,6 +42,16 @@ RUN apt-get update -y \
   && uv tool install copyparty \
     --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14
 
+# ---------------------------------- Node.js ---------------------------------
+FROM docker.io/debian:stable-slim AS stage_node
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends xz-utils
+ADD --checksum=sha256:fd8e59d5a511510f6a298afb548f18c7d2b1be404d8b4a27d94fbe49f56cb2d6 \
+  https://nodejs.org/dist/v24.21.0/node-v24.21.0-linux-x64.tar.xz \
+  /tmp/node24.tar.xz
+RUN mkdir -p /opt/node/nodejs24 \
+  && tar -xJf /tmp/node24.tar.xz --strip-components=1 -C /opt/node/nodejs24
+
 # ----------------------------------- Nix ------------------------------------
 FROM docker.io/debian:stable-slim AS stage_nix
 RUN apt-get update -y \
@@ -91,6 +101,7 @@ COPY --link --chown=5230:5230 --from=stage_nix /home/x/.nix-channels /home/x/.ni
 COPY --link --chown=5230:5230 --from=stage_nix /home/x/.local/state/nix /home/x/.local/state/nix
 COPY --link --chown=5230:5230 --from=stage_python /opt/uv /opt/uv
 COPY --link --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
+COPY --link --chown=5230:5230 --from=stage_node /opt/node /opt/node
 
 COPY platform/container/workspace/rootfs/ /
 COPY platform/container/workspace/tools/node-tool/ /opt/codespace-tools/node-tool/
