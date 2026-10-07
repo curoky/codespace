@@ -55,6 +55,34 @@ s6 文件的工具。配置文件使用 YAML，uv 工具文件除外。参数、
   条件，GitHub Actions 对应 repository secret 是 `HUGGINGFACE_TOKEN`。token 不写入脚本、
   命令行、build argument 或 image layer。
 
+## Model Weight Footprint
+
+下表按各 `download_model.sh` 固定 revision 的仓库文件 metadata 统计。参数大小只计算
+checkpoint / weight 文件；不包含 config、tokenizer、词典、CMVN、download cache 或 Python
+环境。`.nemo`、`.pth.tar` 等不可拆分 checkpoint 按整个文件计算。修改 revision 或 allowlist
+时同步更新本表。
+
+| 模型 | 参数文件 | 参数大小（bytes / IEC） | 打包到 image |
+| --- | --- | ---: | --- |
+| `firered-llm` | `model-*.safetensors` | 33,444,049,584 / 31.147 GiB | 否，runtime 下载 |
+| `firered-punc` | LERT `pytorch_model.bin` + `model.pth.tar` | 818,407,088 / 780.5 MiB | 是 |
+| `firered-vad` | `VAD/model.pth.tar` | 2,368,049 / 2.26 MiB | 是 |
+| `moss-audio` | `model-*.safetensors` | 18,105,035,376 / 16.862 GiB | 否，runtime 下载 |
+| `moss-td` | `model-*.safetensors` | 1,817,113,576 / 1.692 GiB | 否，runtime 下载 |
+| `nemotron-diarization` | `Nemotron-3-Diarization.nemo` | 198,676,480 / 189.5 MiB | 是 |
+| `paraformer` | `model.pt` | 880,502,012 / 839.7 MiB | 是 |
+| `pyannote-community-1` | embedding / segmentation `.bin` + PLDA `.npz` | 32,820,977 / 31.3 MiB | 是 |
+| `qwen3-aligner` | `model.safetensors` | 1,835,544,544 / 1.709 GiB | 是 |
+| `qwen3-asr-1.7b` | `model-*.safetensors` | 4,698,521,512 / 4.376 GiB | 否，runtime 下载 |
+| `sensevoice` | `model.pt` | 936,291,369 / 892.9 MiB | 是 |
+| `vibevoice` | `model-*.safetensors` | 16,660,770,768 / 15.517 GiB | 否，runtime 下载 |
+| `whisper-large-v3` | `model.safetensors` | 3,087,130,976 / 2.875 GiB | 否，runtime 下载 |
+
+参数文件总计 82,517,232,311 bytes / 76.850 GiB，其中 image 内置
+4,704,610,519 bytes / 4.382 GiB，runtime 下载 77,812,621,792 bytes / 72.469 GiB。
+计入 allowlist 中的必要配置与 tokenizer 后，实际内置下载约 4.394 GiB，实际 runtime
+下载约 72.518 GiB。
+
 ## Image And S6
 
 镜像继承 `service-s6`，在构建时安装系统工具、Python、server、全部模型环境与选定小模型
