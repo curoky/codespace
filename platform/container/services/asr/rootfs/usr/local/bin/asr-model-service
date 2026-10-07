@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+export PATH="/usr/local/bin:/usr/local/sbin:/usr/local/libexec:/usr/bin:/usr/sbin:/bin:/sbin"
+
+if [[ $# != 2 || ! $2 =~ ^[a-z0-9][a-z0-9.-]*$ || ! -f /etc/s6/s6-rc.d/asr-$2/type ]]; then
+  echo "Usage: asr-model-service start|stop MODEL" >&2
+  exit 2
+fi
+
+service="asr-$2"
+
+case "$1" in
+  start)
+    exec /usr/local/bin/s6-rc -b -u change "$service"
+    ;;
+  stop)
+    service_dir="/run/service/$service"
+    pid="$(/usr/local/bin/s6-svstat -o pid "$service_dir")"
+
+    /usr/local/bin/s6-svc -d "$service_dir"
+
+    if [[ $pid -gt 0 ]]; then
+      kill -TERM -- "-$pid" 2>/dev/null || true
+    fi
+
+    /usr/local/bin/s6-rc -b -d change "$service"
+
+    if [[ $pid -gt 0 ]]; then
+      for ((attempt = 0; attempt < 100; attempt++)); do
+        if ! kill -0 -- "-$pid" 2>/dev/null; then
+          exit 0
+        fi
+        sleep 0.1
+      done
+
+      kill -KILL -- "-$pid" 2>/dev/null || true
+      echo "$service: process group did not exit; do not reuse its GPUs" >&2
+      exit 1
+    fi
+    ;;
+  *)
+    echo "Unknown action: $1" >&2
+    exit 2
+    ;;
+esac

@@ -22,6 +22,9 @@
 .coverage.*
 htmlcov
 
+# ASR weights are downloaded by s6 jobs at runtime.
+platform/container/services/asr/models/*/weights
+
 # Node dependencies are never needed in image build contexts.
 **/node_modules
 

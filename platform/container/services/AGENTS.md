@@ -28,6 +28,13 @@ device、publication 和 tunnel 属于控制面配置；leaf Dockerfile 只定�
 - `secret/` 与 `support/`：保持 payload 最小，cron/service 行为写入各自 rootfs，不在 shared
   base 增加 leaf-specific policy。
 
+## ASR
+
+- [Chinese Recording Transcription](asr/DESIGN.md)：普通话为主、不含粤语的完整对话录音方案，
+  包含模型下载与 serving 兼容性、转录流程和输出契约。单容器内按模型独立 uv 部署，
+  s6 监督服务，HTTP server 编排并按可用 GPU 调度；CLI 提交、查询和下载各方案文档。
+  官方支持时优先 vLLM。实现与验证边界见 [ASR context](asr/AGENTS.md)。
+
 ## Validation
 
 使用 repository root 作为 context 构建每个受影响 leaf，例如：

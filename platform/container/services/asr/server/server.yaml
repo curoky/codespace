@@ -1,0 +1,11 @@
+suite: all
+resources:
+  gpu_pool: visible
+  exclusive_gpu: true
+parallel:
+  active_files: 2
+  cpu_requests: 2
+chunking:
+  target_seconds: 24
+  max_seconds: 30
+  padding_ms: 300

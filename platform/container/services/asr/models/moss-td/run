@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+model_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+export TOKENIZERS_PARALLELISM=false
+export OMP_NUM_THREADS=4
+
+export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat
+
+# 32768 为长音频及结构化输出留预算；180 秒是本项目窗口限制。
+# 关闭二次切片以保留原音偏移；自定义 processor 与固定 snapshot 一起维护。
+exec uv run \
+  --project "$model_dir" \
+  --locked \
+  --no-dev \
+  vllm serve \
+  "$model_dir/weights" \
+  --served-model-name moss-td \
+  --host 127.0.0.1 \
+  --port 8004 \
+  --dtype bfloat16 \
+  --tensor-parallel-size 1 \
+  --max-model-len 32768 \
+  --gpu-memory-utilization 0.85 \
+  --seed 0 \
+  --generation-config vllm \
+  --speech-to-text-config '{"max_audio_clip_s":180,"min_energy_split_window_size":null}' \
+  --trust-remote-code \
+  "$@"

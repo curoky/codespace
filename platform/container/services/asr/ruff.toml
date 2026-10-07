@@ -1,0 +1,7 @@
+extend = "../../../../pyproject.toml"
+
+[lint]
+allowed-confusables = ["，", "：", "；", "–"]
+
+[lint.per-file-ignores]
+"tests/**" = ["S101", "S603", "S607", "S108"]

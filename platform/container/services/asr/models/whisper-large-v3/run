@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+model_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+export TOKENIZERS_PARALLELISM=false
+export OMP_NUM_THREADS=4
+
+export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat
+
+# 448 是 Whisper decoder 的上下文限制，不能套其他模型的 8192。
+# 使用标准 30 秒窗口；上层只对争议区间调用，静音和弱语音结果不能单独裁决主稿。
+exec uv run \
+  --project "$model_dir" \
+  --locked \
+  --no-dev \
+  vllm serve \
+  "$model_dir/weights" \
+  --served-model-name whisper-large-v3 \
+  --host 127.0.0.1 \
+  --port 8012 \
+  --dtype bfloat16 \
+  --tensor-parallel-size 1 \
+  --max-model-len 448 \
+  --gpu-memory-utilization 0.85 \
+  --seed 0 \
+  --generation-config vllm \
+  --speech-to-text-config '{"max_audio_clip_s":30,"min_energy_split_window_size":null}' \
+  "$@"

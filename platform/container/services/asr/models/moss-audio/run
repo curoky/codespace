@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+model_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+export TOKENIZERS_PARALLELISM=false
+export OMP_NUM_THREADS=4
+
+export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat
+
+# 8B Instruct 只复听争议短窗，8192 为音频及逐字转写留预算，不做量化。
+# trust-remote-code 用于固定 snapshot 的自定义音频组件。
+exec uv run \
+  --project "$model_dir" \
+  --locked \
+  --no-dev \
+  vllm serve \
+  "$model_dir/weights" \
+  --served-model-name moss-audio \
+  --host 127.0.0.1 \
+  --port 8003 \
+  --dtype bfloat16 \
+  --tensor-parallel-size 1 \
+  --max-model-len 8192 \
+  --gpu-memory-utilization 0.85 \
+  --seed 0 \
+  --generation-config vllm \
+  --trust-remote-code \
+  "$@"

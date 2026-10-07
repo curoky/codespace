@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+model_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
+PYTHONPATH="$(cd -- "$model_dir/../.." && pwd)"
+export PYTHONPATH
+export HF_HUB_OFFLINE=1
+export TRANSFORMERS_OFFLINE=1
+export TOKENIZERS_PARALLELISM=false
+export OMP_NUM_THREADS=4
+
+exec uv run \
+  --project "$model_dir" \
+  --locked \
+  --no-dev \
+  uvicorn service:app \
+  --factory \
+  --app-dir "$model_dir" \
+  --host 127.0.0.1 \
+  --port 8002 \
+  --workers 1 \
+  "$@"

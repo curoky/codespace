@@ -1,0 +1,1 @@
+x ALL=(root) NOPASSWD: /usr/local/bin/asr-model-service start *, /usr/local/bin/asr-model-service stop *

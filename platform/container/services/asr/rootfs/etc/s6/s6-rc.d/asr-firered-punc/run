@@ -1,0 +1,8 @@
+#!/usr/local/bin/execlineb -P
+
+redirfd -w 1 /var/log/s6.asr-firered-punc.log
+fdmove -c 2 1
+
+s6-setuidgid x
+s6-env HOME=/home/x
+/opt/asr/models/firered-punc/run

@@ -5,6 +5,7 @@ vars:
   NODE_TOOL: platform/container/workspace/tools/node-tool
   WORKSPACE_AGENT: platform/container/workspace/agent
   WORKSPACE_IMAGE: platform/container/workspace
+  ASR_SERVICE: platform/container/services/asr
 
 tasks:
   default:
@@ -32,7 +33,11 @@ tasks:
   format:
     desc: 格式化 Python 与 Shell
     cmds:
-      - uv run ruff format src tests {{.WORKSPACE_AGENT}}/agent.py {{.JAVA_TOOL}} {{.NODE_TOOL}}
+      - uv run ruff format src tests {{.WORKSPACE_AGENT}}/agent.py {{.JAVA_TOOL}} {{.NODE_TOOL}} {{.ASR_SERVICE}}
+      - >-
+        find {{.ASR_SERVICE}}/models -maxdepth 2 -type f -name run -print0 |
+        xargs -0 shfmt -w -i 2 -ci
+        {{.ASR_SERVICE}}/server/run {{.ASR_SERVICE}}/rootfs/usr/local/bin/asr-model-service
       - >-
         git ls-files -z --cached --others --exclude-standard -- '*.sh' '*.bats' |
         xargs -0 -P 6 -n 1 sh -c 'test ! -f "$1" || shfmt -w -i 2 -ci "$1"' sh
@@ -40,7 +45,11 @@ tasks:
   format:check:
     desc: 检查 Python 与 Shell 格式
     cmds:
-      - uv run ruff format --check src tests {{.WORKSPACE_AGENT}}/agent.py {{.JAVA_TOOL}} {{.NODE_TOOL}}
+      - uv run ruff format --check src tests {{.WORKSPACE_AGENT}}/agent.py {{.JAVA_TOOL}} {{.NODE_TOOL}} {{.ASR_SERVICE}}
+      - >-
+        find {{.ASR_SERVICE}}/models -maxdepth 2 -type f -name run -print0 |
+        xargs -0 shfmt -d -i 2 -ci
+        {{.ASR_SERVICE}}/server/run {{.ASR_SERVICE}}/rootfs/usr/local/bin/asr-model-service
       - >-
         git ls-files -z --cached --others --exclude-standard -- '*.sh' '*.bats' |
         xargs -0 -P 6 -n 1 sh -c 'test ! -f "$1" || shfmt -d -i 2 -ci "$1"' sh
@@ -48,10 +57,14 @@ tasks:
   lint:
     desc: 运行 Ruff 与 ShellCheck
     cmds:
-      - uv run ruff check src tests {{.WORKSPACE_AGENT}}/agent.py {{.JAVA_TOOL}} {{.NODE_TOOL}}
+      - uv run ruff check src tests {{.WORKSPACE_AGENT}}/agent.py {{.JAVA_TOOL}} {{.NODE_TOOL}} {{.ASR_SERVICE}}
       - >-
         git ls-files -z --cached --others --exclude-standard -- '*.sh' '*.bats' |
         xargs -0 -P 6 -n 1 sh -c 'test ! -f "$1" || shellcheck -x "$1"' sh
+      - >-
+        find {{.ASR_SERVICE}}/models -maxdepth 2 -type f -name run -print0 |
+        xargs -0 shellcheck
+        {{.ASR_SERVICE}}/server/run {{.ASR_SERVICE}}/rootfs/usr/local/bin/asr-model-service
 
   typecheck:
     desc: 运行 strict Mypy
@@ -59,6 +72,10 @@ tasks:
       - MYPYPATH={{.WORKSPACE_AGENT}} uv run mypy src/codespace {{.WORKSPACE_AGENT}}/agent.py
       - uv run mypy {{.JAVA_TOOL}}/java-tool.py
       - uv run mypy {{.NODE_TOOL}}/node-tool.py
+      - >-
+        MYPYPATH={{.ASR_SERVICE}} uv run --project {{.ASR_SERVICE}}/server mypy --strict
+        {{.ASR_SERVICE}}/server {{.ASR_SERVICE}}/ops {{.ASR_SERVICE}}/protocol.py
+        {{.ASR_SERVICE}}/client/asr.py {{.ASR_SERVICE}}/models/catalog.py {{.ASR_SERVICE}}/models/vllm.py
       - >-
         cd {{.WORKSPACE_AGENT}} &&
         uv run --locked python -c "import agent"
@@ -75,6 +92,7 @@ tasks:
       - uv run pytest
       - uv run pytest {{.JAVA_TOOL}}/test_java_tool.py --no-cov
       - uv run pytest {{.NODE_TOOL}}/test_node_tool.py --no-cov
+      - uv run --project {{.ASR_SERVICE}}/server pytest -c {{.ASR_SERVICE}}/server/pyproject.toml {{.ASR_SERVICE}}/tests
 
   test:shell:
     internal: true
@@ -90,6 +108,11 @@ tasks:
       - uv lock --project {{.WORKSPACE_AGENT}} --check
       - uv lock --project {{.JAVA_TOOL}} --check
       - uv lock --project {{.NODE_TOOL}} --check
+      - uv lock --project {{.ASR_SERVICE}}/server --check
+      - >-
+        for model in {{.ASR_SERVICE}}/models/*/pyproject.toml; do
+          uv lock --project "$(dirname "$model")" --check || exit;
+        done
 
   check:
     desc: 运行快速本地检查，不含测试

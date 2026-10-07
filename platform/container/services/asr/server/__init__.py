@@ -1,0 +1,1 @@
+"""Full-file transcription orchestration."""
