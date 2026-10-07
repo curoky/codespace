@@ -1,9 +1,8 @@
-import difflib
 import re
 import unicodedata
 from collections import defaultdict
 
-from pydantic import Field, JsonValue
+from pydantic import Field
 
 from protocol import Record, Span, Token
 
@@ -28,10 +27,8 @@ class Transcript(Record):
     segments: list[Segment] = Field(default_factory=list)
     activity: list[Span] = Field(default_factory=list)
     speakers: list[Span] = Field(default_factory=list)
-    skipped: list[Span] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
-    evidence: dict[str, JsonValue] = Field(default_factory=dict)
-    provenance: dict[str, JsonValue] = Field(default_factory=dict)
+    evidence: str = "evidence.json"
 
 
 def plain(text: str) -> str:
@@ -48,20 +45,6 @@ def normalized(text: str) -> str:
 
 def punctuation_content(text: str) -> str:
     return "".join(ch for ch in text if not unicodedata.category(ch).startswith("P"))
-
-
-def differences(primary: str, candidates: dict[str, str]) -> dict[str, JsonValue]:
-    result: dict[str, JsonValue] = {}
-    for model, text in candidates.items():
-        opcodes = difflib.SequenceMatcher(
-            None, normalized(primary), normalized(text), autojunk=False
-        )
-        edits: list[JsonValue] = [
-            list(operation) for operation in opcodes.get_opcodes() if operation[0] != "equal"
-        ]
-        if edits:
-            result[model] = edits
-    return result
 
 
 def rename_speakers(spans: list[Span]) -> list[Span]:

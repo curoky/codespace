@@ -1,62 +1,31 @@
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["httpx==0.28.1", "typer==0.27.2", "pydantic==2.13.5"]
+# dependencies = ["httpx==0.28.1", "typer==0.27.2"]
 # ///
 import asyncio
-import hashlib
 import json
+import shutil
 import tempfile
-import uuid
 import zipfile
 from pathlib import Path
 from typing import Annotated
 
 import httpx
 import typer
-from pydantic import BaseModel, ConfigDict, Field
 
 
-class Status(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    id: str
-    state: str
-    stage: str
-    recipes: dict[str, str]
-    error: str | None = None
-
-
-class State(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    identity: str
-    key: str
-    job: str | None = None
-    artifacts: dict[str, str] = Field(default_factory=dict)
-
-
-def checksum(path: Path) -> str:
-    with path.open("rb") as handle:
-        return hashlib.file_digest(handle, "sha256").hexdigest()
-
-
-def save(path: Path, state: State) -> None:
-    temporary = path.with_suffix(".tmp")
-    temporary.write_text(state.model_dump_json(indent=2))
-    temporary.replace(path)
-
-
-def extract(archive: Path, destination: Path) -> None:
+def extract(archive: Path, destination: Path) -> bool:
     with zipfile.ZipFile(archive) as bundle:
-        for info in bundle.infolist():
-            name = info.filename
+        for name in bundle.namelist():
             if Path(name).name != name or not name.endswith((".md", ".json")):
                 raise ValueError("server returned an invalid artifact path")
-        for info in bundle.infolist():
-            target = destination / info.filename
-            temporary = target.with_suffix(target.suffix + ".tmp")
-            with bundle.open(info) as source, temporary.open("wb") as output:
-                while chunk := source.read(1024 * 1024):
-                    output.write(chunk)
-            temporary.replace(target)
+        completed = all(
+            json.loads(bundle.read(name))["status"] == "completed"
+            for name in bundle.namelist()
+            if name.endswith(".json") and name != "evidence.json"
+        )
+        bundle.extractall(destination)
+    return completed
 
 
 async def process(
@@ -64,93 +33,35 @@ async def process(
     source: Path,
     destination: Path,
     *,
-    deployment: str,
     options: str,
     overwrite: bool,
 ) -> bool:
-    destination.mkdir(parents=True, exist_ok=True)
-    identity = hashlib.sha256(
-        json.dumps(
-            {
-                "sha256": await asyncio.to_thread(checksum, source),
-                "options": options,
-                "server": str(client.base_url),
-                "deployment": deployment,
-            },
-            sort_keys=True,
-        ).encode()
-    ).hexdigest()
-    state_path = destination / ".asr-state.json"
-    previous = State.model_validate_json(state_path.read_text()) if state_path.is_file() else None
-    if previous and previous.identity == identity and not overwrite:
-        state = previous
-    else:
-        nonce = uuid.uuid4().hex if overwrite else ""
-        state = State(
-            identity=identity, key=hashlib.sha256((identity + nonce).encode()).hexdigest()
-        )
-        save(state_path, state)
-    if not state.job:
+    if destination.exists() and not overwrite:
+        raise FileExistsError(f"{destination} 已存在；使用 --overwrite 重新转录并覆盖")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    typer.echo(f"{source}: 转录中")
+    with tempfile.TemporaryDirectory(prefix=".asr-", dir=destination.parent) as temporary:
+        archive = Path(temporary) / "result.zip"
         with source.open("rb") as audio:
-            response = await client.post(
-                "/jobs",
+            async with client.stream(
+                "POST",
+                "/transcribe",
                 data={"options": options},
                 files={"file": (source.name, audio)},
-                headers={"Idempotency-Key": state.key},
-                timeout=3600,
-            )
-        response.raise_for_status()
-        state.job = Status.model_validate_json(response.content).id
-        save(state_path, state)
-    last_stage = ""
-    failures = 0
-    while True:
-        try:
-            response = await client.get(f"/jobs/{state.job}")
-            response.raise_for_status()
-            status = Status.model_validate_json(response.content)
-            failures = 0
-        except httpx.TransportError:
-            failures += 1
-            if failures >= 5:
-                raise
-            await asyncio.sleep(min(2**failures, 15))
-            continue
-        if status.stage != last_stage:
-            typer.echo(f"{source}: {status.stage}")
-            last_stage = status.stage
-        if status.state in ("completed", "partial_failed", "failed"):
-            break
-        await asyncio.sleep(2)
-    valid = bool(state.artifacts)
-    for name, digest in state.artifacts.items():
-        if (
-            not (destination / name).is_file()
-            or await asyncio.to_thread(checksum, destination / name) != digest
-        ):
-            valid = False
-            break
-    if not valid:
-        with tempfile.TemporaryDirectory(
-            prefix=".asr-download-", dir=destination.parent
-        ) as temporary:
-            archive = Path(temporary) / "result.zip"
-            async with client.stream(
-                "GET", f"/jobs/{state.job}/download", timeout=3600
+                timeout=httpx.Timeout(None, connect=30),
             ) as response:
                 response.raise_for_status()
                 with archive.open("wb") as output:
                     async for chunk in response.aiter_bytes(1024 * 1024):
                         await asyncio.to_thread(output.write, chunk)
-            await asyncio.to_thread(extract, archive, destination)
-        state.artifacts = {
-            path.name: await asyncio.to_thread(checksum, path)
-            for path in destination.iterdir()
-            if path.is_file() and not path.name.startswith(".") and path.suffix in (".md", ".json")
-        }
-        save(state_path, state)
-    typer.echo(f"{source}: {status.state} → {destination}")
-    return status.state == "completed"
+        result = Path(temporary) / "result"
+        result.mkdir()
+        completed = await asyncio.to_thread(extract, archive, result)
+        if destination.exists():
+            shutil.rmtree(destination)
+        result.rename(destination)
+    typer.echo(f"{source}: {'完成' if completed else '部分方案失败，请查看索引'} → {destination}")
+    return completed
 
 
 async def run(
@@ -170,24 +81,16 @@ async def run(
     if not files:
         raise ValueError("没有找到录音文件")
     limit = asyncio.Semaphore(parallel)
-    async with httpx.AsyncClient(base_url=server.rstrip("/"), timeout=30) as client:
-        health = await client.get("/health")
-        health.raise_for_status()
-        deployment = str(health.json()["deployment"])
+    async with httpx.AsyncClient(base_url=server.rstrip("/")) as client:
 
         async def one(path: Path) -> bool:
             async with limit:
                 relative = Path(path.name) if source.is_file() else path.relative_to(source)
                 try:
                     return await process(
-                        client,
-                        path,
-                        out / relative,
-                        deployment=deployment,
-                        options=options,
-                        overwrite=overwrite,
+                        client, path, out / relative, options=options, overwrite=overwrite
                     )
-                except (httpx.HTTPError, OSError, ValueError) as exc:
+                except (httpx.HTTPError, OSError, ValueError, zipfile.BadZipFile) as exc:
                     typer.echo(f"{path}: {exc}", err=True)
                     return False
 

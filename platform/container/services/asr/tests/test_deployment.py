@@ -35,11 +35,10 @@ def test_image_does_not_download_weights() -> None:
 
 
 def test_model_clients_match_fixed_listeners(tmp_path: Path) -> None:
-    root = Path(__file__).resolve().parents[1]
     uv = tmp_path / "uv"
     uv.write_text('#!/usr/bin/env bash\nprintf "%s\\n" "$@"\n')
     uv.chmod(0o755)
-    scheduler = Scheduler(Config(models_dir=root / "models"))
+    scheduler = Scheduler(Config())
     try:
         ports = set()
         for instance in scheduler.instances.values():

@@ -16,29 +16,8 @@ case "$1" in
     exec /usr/local/bin/s6-rc -b -u change "$service"
     ;;
   stop)
-    service_dir="/run/service/$service"
-    pid="$(/usr/local/bin/s6-svstat -o pid "$service_dir")"
-
-    /usr/local/bin/s6-svc -d "$service_dir"
-
-    if [[ $pid -gt 0 ]]; then
-      kill -TERM -- "-$pid" 2>/dev/null || true
-    fi
-
     /usr/local/bin/s6-rc -b -d change "$service"
-
-    if [[ $pid -gt 0 ]]; then
-      for ((attempt = 0; attempt < 100; attempt++)); do
-        if ! kill -0 -- "-$pid" 2>/dev/null; then
-          exit 0
-        fi
-        sleep 0.1
-      done
-
-      kill -KILL -- "-$pid" 2>/dev/null || true
-      echo "$service: process group did not exit; do not reuse its GPUs" >&2
-      exit 1
-    fi
+    exec /usr/local/bin/s6-svc -wD -T 20000 -d "/run/service/$service"
     ;;
   *)
     echo "Unknown action: $1" >&2

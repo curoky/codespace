@@ -1,6 +1,6 @@
 # ASR Server
 
-`api.py` 仅处理文件上传、状态与产物；`jobs.py` 管理文件队列和重启恢复；
+`api.py` 接收完整文件并直接返回 zip；`transcribe.py` 在一次请求中处理音频与各声道；
 `recipes.py` 是五套固定流程，`transcript.py` 处理保守选择、时间与 speaker 映射。
 运维代码属于相邻 `ops/`。本层只通过各模型目录的 client 调 HTTP，不导入模型 SDK。
 
@@ -11,9 +11,12 @@
 
 Server 必须单进程，不能增加 uvicorn workers。`server.yaml` 由 Pydantic 严格校验。
 image 的数据目录固定为 `/data/asr`，Host 路径通过 volume 映射；不要只改 server 的
-data_dir 而让 SDK 服务无法读取切片。监听参数在 `server/run`，CLI 默认地址同步维护。
-每个 job 的计算缓存受模型脚本、锁文件、有效输入内容和参数约束；音频文件名不作为
-内容标识。失败的请求不缓存，取消请求必须释放模型锁。部署改变后不恢复旧 job。
+路径而让 SDK 服务无法读取切片。监听参数在 `server/run`，CLI 默认地址同步维护。
+`POST /transcribe` 持续等待并返回一次完整响应；CLI 控制并发。无队列、轮询、恢复、
+幂等键或部署指纹。临时目录随请求清理，强制终止后不恢复计算。请求内切片不可变，
+以模型、切片路径和有效参数做内存复用；失败调用不缓存，取消请求必须释放模型锁。
+原始响应与参数只在 `evidence.json` 保存一次，五份结果引用该文件。不要复制模型脚本
+或整个部署清单到每份结果。模型选择与容器内路径固定，只保留实际有效的 YAML 配置。
 
 同一文件固定五套输出。模型失败保留其他可完成方案；缺少旁路校验时明确标记，
 不覆盖成功的联合稿。`separate_channels` 逐声道执行并合并为五套产物，不额外增加
@@ -24,10 +27,11 @@ data_dir 而让 SDK 服务无法读取切片。监听参数在 `server/run`，CL
 
 ## Pipeline Invariants
 
-- 同文件先 prepare、四路 first_pass，再依次执行五套方案。`prepare` 先跑全文件 pyannote，
+- 同文件先 prepare、四路 first_pass、整批 review，再生成五套方案。`prepare` 先跑全文件 pyannote，
   再取 VAD 与 speaker 活动并集。短窗按同一原音与 padding 提供给各路候选，不能互喂答案。
 - 只有分歧、空识别或异常重复触发扩窗复听。先听 Qwen / FireRed / Whisper，仍未解决才
-  调 MOSS-Audio。同模型重复采样与同家族不增加独立票数；两份融合稿不能读取对方定稿。
+  调 MOSS-Audio。每个模型处理整批争议窗口后集中对齐，避免逐窗口切换大模型。
+  同模型重复采样与同家族不增加独立票数；两份融合稿不能读取对方定稿。
 - 文字替换要求主模型复听也改口且独立家族支持。数值、热词、英文专名启发式和多人
   活动窗口受保护；这不是完整实体识别。保留 raw、候选、复核依据和未解决标记。
 - 联合模型按长窗输出自身正文、时间和局部 speaker。用 pyannote 单人活动映射到全文

@@ -1,8 +1,8 @@
 # Chinese Recording Transcription
 
 把完整的普通话对话录音转成**带时间戳、说话人和待核对标记的原话记录**。
-每个文件固定产出 **5 份 Markdown + 5 份 JSON + 1 份索引**，分别保留不同识别与
-说话人方案的结果。中文为主，保留夹杂英文、语气词、重复和插话。
+每个文件固定产出 **5 份 Markdown + 5 份 JSON + 索引 + 共享证据**，一次 HTTP 请求
+处理完成后返回一个 zip。中文为主，保留夹杂英文、语气词、重复和插话。
 
 | 输入 | 处理 | 输出 | 部署 |
 | --- | --- | --- | --- |
@@ -15,34 +15,35 @@
 
 ```mermaid
 flowchart LR
-    CLI[Python CLI<br/>并行上传、轮询、下载]
+    CLI[Python CLI<br/>控制文件并发、接收结果]
     subgraph Container[单个 Linux 容器]
         API[HTTP server<br/>0.0.0.0:8080]
-        Jobs[文件队列 / 五方案编排 / 结果缓存]
+        Pipeline[本次请求的五方案编排<br/>共享内存响应]
         Ops[ops<br/>GPU 分配与启停请求]
         S6[s6<br/>下载任务与服务监督]
         Client[每模型 client.py]
         Model[每模型服务<br/>127.0.0.1:8000–8012]
-        Data[文件存储<br/>/data/asr]
-        API --> Jobs
-        Jobs --> Client
+        Data[临时音频<br/>/data/asr]
+        API --> Pipeline
+        Pipeline --> Client
         Client -->|原生 HTTP 协议| Model
-        Jobs --> Ops
+        Pipeline --> Ops
         Ops -->|受限 Shell 入口| S6
         S6 -->|download_model.sh / run| Model
-        Jobs --> Data
+        Pipeline --> Data
     end
     CLI <-->|HTTP| API
 ```
 
 | 层次 | 拥有的职责 | 交互方式 |
 | --- | --- | --- |
-| 上层 `server/` | 文件任务、音频切片、五方案、文字选择、时间与身份、产物 | 调用模型 client，不导入模型 SDK |
+| 上层 `server/` | 一次请求内的音频处理、五方案、文字选择、时间与身份、产物 | 调用模型 client，不导入模型 SDK |
 | 底层 `models/<model>/` | 本模型权重、Python 环境、参数、服务与 HTTP 协议 | 官方支持时原生 vLLM；其余用官方 SDK |
 | 运维 `ops/` + `rootfs/` | GPU 池、按需启停、进程监督、用户与日志 | ops 请求 s6 操作，s6 执行静态脚本 |
 
 每模型一个实例、一个固定端口、一个独立 uv 环境。GPU 数量影响等待和并行度；
 多个方案共享实例，不要求全部模型同时驻留，也不绑定物理卡号。
+文件并发由 CLI 控制。服务端没有文件队列、任务 ID、状态查询、重启恢复或跨请求缓存。
 
 ## Project Layout
 
@@ -55,7 +56,7 @@ asr/
 ├── client/asr.py              # 独立 Python CLI
 ├── server/
 │   ├── run / server.yaml      # HTTP 入口 / 编排配置
-│   ├── api.py / jobs.py       # 上传、文件队列与恢复
+│   ├── api.py / transcribe.py # HTTP 请求 / 完整文件处理
 │   ├── audio.py / recipes.py  # 音频处理与五方案
 │   └── inference.py / transcript.py / artifacts.py
 ├── models/
@@ -109,11 +110,11 @@ flowchart TD
     subgraph Boot[容器启动]
         B3 --> I[s6 init / root supervision]
         I --> S[以 x 执行 server/run]
-        S --> R[停止本容器遗留模型实例<br/>恢复未完成文件任务]
-        R --> H[HTTP ready<br/>接收上传与查询]
+        S --> R[停止本容器遗留模型实例<br/>初始化资源记录]
+        R --> H[HTTP ready<br/>接收转录请求]
     end
     subgraph Demand[首次请求某个模型]
-        H --> A[ops 等待 / 分配 GPU<br/>CPU 模型不占 GPU]
+        H --> A[GPU 模型等待 / 分配设备<br/>CPU 模型直接启动]
         A --> D[s6 download oneshot<br/>以 x 执行 download_model.sh]
         D --> U[uv run 同步本目录 .venv<br/>hf download 固定 snapshot]
         U --> M[s6 longrun<br/>以 x 执行模型 run]
@@ -129,30 +130,31 @@ flowchart TD
 | 同一容器再次启停 | 已完成的 download job 不重跑；`run` 检查环境并加载本地权重 |
 | 容器重建 | download job 重新执行，HF 根据持久化 snapshot metadata 复用权重 |
 | 显存不足 | FIFO 等待；必要时停止本容器无在途请求的模型，确认退出后释放资源 |
+| 模型退出 | s6 管理停止超时；finish 清理残留子进程后才重启，ops 等待完整退出 |
 
 s6 负责进程与依赖，ops 负责资源分配。模型固定使用 `/data/asr` 读取音频，GPU 服务
 仅接收动态 `CUDA_VISIBLE_DEVICES`；端口、路径、精度等参数均在模型目录内维护。
 
 ## Request Pipeline
 
-一个文件按下图执行；五套方案依次运行，共享已完成的计算。CLI 可以并发提交文件，
-server 限制活跃文件数，每个模型串行处理请求。
+一个文件按下图执行；五套方案共享本次请求内的计算。CLI 用 `--parallel` 限制文件
+并发，每个模型一次处理一个调用。HTTP 连接保持到完整结果返回，不需要轮询。
 
 ```mermaid
 flowchart TD
-    C[CLI 上传完整文件] --> U[POST /jobs<br/>保存原音、参数与部署指纹，返回 job ID]
-    U --> Q[文件队列]
-    Q --> F[FFmpeg 解码<br/>mono 16 kHz PCM，保留原始时间轴]
+    C[CLI 上传完整文件] --> U[POST /transcribe<br/>原音写入本次请求临时目录]
+    U --> F[FFmpeg 解码<br/>mono 16 kHz PCM，保留原始时间轴]
     F --> P[pyannote 全文件 speaker<br/>FireRedVAD 活动与 speaker 活动取并集]
     P --> W[统一切短窗]
     W --> A[四路第一轮识别<br/>Qwen / FireRed / SenseVoice / Paraformer]
-    A --> R1[01 Qwen 主稿融合]
+    A --> R[收集争议窗口<br/>按模型分批复听、对齐]
+    R --> R1[01 Qwen 主稿融合]
     R1 --> R2[02 FireRed 主稿融合<br/>复用四路候选与复听响应]
     R2 --> R3[03 MOSS-TD 联合转录<br/>带重叠的长窗口]
     R3 --> R4[04 VibeVoice 联合转录<br/>带重叠的长窗口]
     R4 --> R5[05 复用 01 的文字与时间<br/>Nemotron 重新标注 speaker]
-    R5 --> O[生成五套 Markdown / JSON、索引与 zip]
-    O --> D[CLI 轮询状态并下载产物]
+    R5 --> O[打包五套结果、索引与共享证据<br/>清理临时音频]
+    O --> D[HTTP 返回 zip<br/>CLI 解压到本地结果目录]
 ```
 
 `--separate-channels` 对独立录制的声道分别执行流程，再合并成相同五套产物；
@@ -172,7 +174,7 @@ speaker 加声道前缀。`--vad-off` 使用全文活动范围。默认不降噪
 flowchart LR
     A[四路候选] --> D{分歧 / 空识别 / 异常重复?}
     D -->|无| P[保留本方案主稿]
-    D -->|有| R[扩展原音上下文<br/>Qwen + FireRed + Whisper 复听]
+    D -->|有| R[收集并扩展争议窗口<br/>Qwen / FireRed / Whisper 分批复听]
     R --> U{仍未解决?}
     U -->|是| M[MOSS-Audio 再听原音]
     U -->|否| J[保守裁定]
@@ -180,6 +182,9 @@ flowchart LR
     J --> P
     P --> T[标点校验 → 字词对齐 → speaker 归属]
 ```
+
+每个复核模型先处理整批窗口，再集中对齐到原窗口范围。前几路复核仍不一致的窗口
+才交给 MOSS-Audio；两份融合稿共享复核响应，各自以自己的主稿裁定。
 
 | 质量约束 | 行为 |
 | --- | --- |
@@ -196,41 +201,41 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    R[音频 / 文本 / 有效参数] --> C{任务内响应缓存命中?}
+    R[音频 / 文本 / 有效参数] --> C{请求内响应已存在?}
     C -->|是| O[返回结果]
-    C -->|否| A[等待本模型请求锁与资源]
+    C -->|否| L[等待本模型请求锁]
+    L --> G{需要 GPU?}
+    G -->|是| A[等待或回收空闲 GPU 模型]
+    G -->|否| S
     A --> S[必要时经 s6 启动<br/>请求 client.URL 的 health]
     S --> I[client.infer<br/>发送音频或容器内文件路径]
-    I --> V[校验协议 / 完成状态<br/>保存成功响应与证据]
+    I --> V[校验协议 / 完成状态<br/>响应只存请求内存]
     V --> O
 ```
 
-缓存同时受内容、有效参数、模型脚本与锁文件指纹约束。同一任务跨方案共享响应，
-任务间只共享驻留实例。依赖模型失败时记录受影响方案；成功方案继续保留。
+同一请求按模型、切片路径与有效参数复用响应。请求间只共享驻留模型，不复用识别
+结果。CPU 服务不进入 GPU 队列。模型原始响应统一导出到一份 `evidence.json`。
 
-## Output And Recovery
+## Output And Usage
 
 ```text
-/data/asr/jobs/<job-id>/
-├── input/original            # 原始文件
-├── resolved.json             # 参数、模型来源与部署指纹
-├── status.json               # 整体及每方案状态
-├── work/                     # 解码、切片与响应缓存
-├── artifacts/
-│   ├── 01-qwen-fusion.md / .json
-│   ├── 02-firered-fusion.md / .json
-│   ├── 03-moss-td.md / .json
-│   ├── 04-vibevoice.md / .json
-│   ├── 05-qwen-nemotron.md / .json
-│   └── index.md              # 状态和链接，不做模型排名
-└── transcripts.zip
+texts/<录音相对路径与文件名>/
+├── 01-qwen-fusion.md / .json
+├── 02-firered-fusion.md / .json
+├── 03-moss-td.md / .json
+├── 04-vibevoice.md / .json
+├── 05-qwen-nemotron.md / .json
+├── index.md                  # 各方案完成情况与链接，不做排名
+└── evidence.json             # 一份共享原始响应、复核依据和请求参数
 ```
 
-Markdown 展示原话、时间、speaker 与待核对标记；JSON 另存候选、原始响应、复核依据和
-失败说明。状态区分完成、部分失败、全部失败；失败方案也有明确的失败产物。
+Markdown 展示原话、时间、speaker 与待核对标记；JSON 保留候选、裁定和失败说明，
+通过 `evidence` 字段引用共享证据。复制单份 JSON 时一并携带 `evidence.json`。
 
-CLI 保存 job ID，断开不取消任务，再次执行恢复轮询。server 重启恢复未完成任务；
-部署指纹变化后要求重新提交。已完成产物独立于工作缓存。
+普通话识别的质量检查保留：某个方案的模型失败时，该稿记录失败，其余可完成稿仍
+一起返回；解码、公共 speaker 等前置环节失败则本次 HTTP 请求失败。CLI 仅在完整接收
+并解压后发布结果目录，不保存任务状态。请求中断后重新执行；已有结果用 `--overwrite`
+重新转录并覆盖。`/data/asr` 只需提供临时音频空间，不需要持久任务卷。
 
 ```bash
 uv run platform/container/services/asr/client/asr.py ./recordings \

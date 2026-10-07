@@ -39,6 +39,9 @@ tasks:
         xargs -0 shfmt -w -i 2 -ci
         {{.ASR_SERVICE}}/server/run {{.ASR_SERVICE}}/rootfs/usr/local/bin/asr-model-service
       - >-
+        find {{.ASR_SERVICE}}/rootfs -type f -name finish -print0 |
+        xargs -0 shfmt -w -i 2 -ci
+      - >-
         git ls-files -z --cached --others --exclude-standard -- '*.sh' '*.bats' |
         xargs -0 -P 6 -n 1 sh -c 'test ! -f "$1" || shfmt -w -i 2 -ci "$1"' sh
 
@@ -50,6 +53,9 @@ tasks:
         find {{.ASR_SERVICE}}/models -maxdepth 2 -type f -name run -print0 |
         xargs -0 shfmt -d -i 2 -ci
         {{.ASR_SERVICE}}/server/run {{.ASR_SERVICE}}/rootfs/usr/local/bin/asr-model-service
+      - >-
+        find {{.ASR_SERVICE}}/rootfs -type f -name finish -print0 |
+        xargs -0 shfmt -d -i 2 -ci
       - >-
         git ls-files -z --cached --others --exclude-standard -- '*.sh' '*.bats' |
         xargs -0 -P 6 -n 1 sh -c 'test ! -f "$1" || shfmt -d -i 2 -ci "$1"' sh
@@ -65,6 +71,9 @@ tasks:
         find {{.ASR_SERVICE}}/models -maxdepth 2 -type f -name run -print0 |
         xargs -0 shellcheck
         {{.ASR_SERVICE}}/server/run {{.ASR_SERVICE}}/rootfs/usr/local/bin/asr-model-service
+      - >-
+        find {{.ASR_SERVICE}}/rootfs -type f -name finish -print0 |
+        xargs -0 shellcheck
 
   typecheck:
     desc: 运行 strict Mypy

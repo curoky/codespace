@@ -13,13 +13,17 @@
 | Python / 依赖版本 | 每目录 `.python-version`、`pyproject.toml`、`uv.lock` |
 | 模型地址与请求协议 | `models/<model>/client.py` 的 `URL`、`infer(http, request)` |
 | 能力与资源预算 | `models/catalog.py`；不在这里放启动 flags 或端口 |
-| 核心流程、缓存、产物 | [server/AGENTS.md](server/AGENTS.md) |
+| 原子请求、转录流程、产物 | [server/AGENTS.md](server/AGENTS.md) |
 | GPU、s6 启停和进程退出 | [ops/AGENTS.md](ops/AGENTS.md) |
 | image / 用户 / 日志 / 服务依赖 | `Dockerfile`、`rootfs/`；遵循上层 Service runtime 约定 |
 
 只维护五方案用到的模型，不增加通用 worker、参数 launcher、环境准备 job 或动态生成
 s6 文件的工具。配置文件使用 YAML，uv 工具文件除外。参数、export 一行一个，逻辑段落
 留空行。参数解释贴近实现，仅写约束或理由，不复述命令。
+
+个人使用，一份录音对应一次 HTTP 请求，处理完直接返回 zip。CLI 控制文件并发；
+不引入持久任务队列、任务状态、轮询、幂等键、恢复、部署指纹或跨请求缓存。模型驻留
+与 GPU 分配保留必要的进程内状态。复杂度主要用于文字、时间戳和 speaker 的质量约束。
 
 ## Model Contract
 
@@ -56,13 +60,16 @@ s6 文件的工具。配置文件使用 YAML，uv 工具文件除外。参数、
 | `rootfs/etc/s6/s6-rc.d/asr-server/` | 以 x 调 `server/run`；server 环境已在构建时安装，使用 `--no-sync` |
 | `rootfs/usr/local/bin/asr-model-service` | root-owned 受限启停入口，由 sudoers 仅授权 x 调用 |
 | `/var/log/s6.asr-*.log` | `redirfd -w` + `fdmove`，沿用 Workspace 日志范式 |
-| `/data/asr` | 持久任务数据，Host mount 必须允许 x 写入 |
+| `/data/asr` | 请求临时音频，Host mount 必须允许 x 写入；正常结束与异常返回均清理 |
 | 模型 `weights/`、x 的 uv cache | 可持久化；不要用空 volume 覆盖整个 `/opt/asr` |
 
 s6 supervision 本身以 root 运行，业务服务和下载都以固定用户 x 运行。`backtick -x`
 仅在 GPU 服务读取本模型 `/run/asr/<model>/CUDA_VISIBLE_DEVICES`；server 读取容器
 可见 GPU 池。可选变量缺失时保持 unset，不用空默认值隐藏全部 GPU，不使用 `s6-envdir`。
 无环境准备任务，服务重启直接复用已完成的 download oneshot。
+各模型的 `timeout-kill`、`flag-timeout-killpg` 与 `finish` 由 s6 执行退出清理；启停入口
+仅请求状态切换并等待 finish 结束，不自行轮询 PID。CPU 模型环境使用配套 CPU Torch /
+torchaudio wheel，避免拉入无用的 CUDA 依赖。
 
 ## Serving Compatibility
 
@@ -154,8 +161,9 @@ podman build \
 | 融合 / speaker / 时间 | 行为测试与对应真实音频，不以模拟响应宣称质量提升 |
 | CUDA / GPU 调度 | 容器内库加载、真实 kernel、所需模型和多 GPU 通信；不停止外部任务 |
 
-已验证 FireRedVAD 真实中文输入、s6 下载与服务链路、两个脚本自动创建环境、五方案
-模拟响应及部分失败行为。其余模型尚未完成真实 GPU 推理，pyannote 授权下载尚未验证。
+已验证 CPU wheel 下的 FireRedVAD 中文音频与 FireRedPunc 标点推理，s6 下载与服务
+链路、异常退出清理和停止超时，以及原子 HTTP 请求的五方案模拟响应、共享证据与
+临时音频清理。GPU 模型尚未完成真实推理，pyannote 授权下载尚未验证。
 已知根检查有无关 Ruff SIM300：`workspace/tools/node-tool/test_node_tool.py:30`；本任务
 不修改该文件或用户暂存的 `workspace/config/binman.yaml`。
 

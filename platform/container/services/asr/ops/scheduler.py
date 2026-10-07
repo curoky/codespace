@@ -15,7 +15,6 @@ from models.catalog import MODELS, ModelSpec
 from ops.processes import GPU, service, visible_gpus
 from protocol import InferenceRequest, InferenceResult
 from server.config import Config
-from server.storage import atomic_text, digest, file_hash
 
 
 @dataclass
@@ -23,11 +22,10 @@ class Instance:
     spec: ModelSpec
     directory: Path
     url: str
-    fingerprint: str
     client: Callable[[httpx.AsyncClient, InferenceRequest], Awaitable[InferenceResult]]
     devices: list[str] = field(default_factory=list)
     running: bool = False
-    active: int = 0
+    active: bool = False
     last_used: float = 0
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
@@ -37,34 +35,21 @@ class Scheduler:
         self,
         config: Config,
         *,
+        runtime_dir: Path = Path("/run/asr"),
         control: Callable[[str, str], Awaitable[None]] = service,
         inventory: Callable[[str | list[str]], Awaitable[list[GPU]]] = visible_gpus,
     ) -> None:
         self.config = config
+        self.runtime_dir = runtime_dir
         self.control = control
         self.inventory = inventory
         self.instances: dict[str, Instance] = {}
         self.condition = asyncio.Condition()
         self.waiters: deque[str] = deque()
         self.http = httpx.AsyncClient(timeout=10, trust_env=False)
-        self.cpu = asyncio.Semaphore(config.parallel.cpu_requests)
+        self.cpu = asyncio.Semaphore(config.cpu_requests)
         for spec in MODELS:
-            directory = config.models_dir / spec.id
-            files = [
-                directory / name
-                for name in ("uv.lock", "run", "service.py", "client.py", "download_model.sh")
-            ]
-            files += [config.models_dir / "vllm.py", config.models_dir.parent / "protocol.py"]
-            fingerprint = digest(
-                {
-                    "spec": spec.model_dump(mode="json"),
-                    "code": {
-                        str(path.relative_to(config.models_dir.parent)): file_hash(path)
-                        for path in files
-                        if path.is_file()
-                    },
-                }
-            )
+            directory = Path(__file__).resolve().parents[1] / "models" / spec.id
             module_spec = importlib.util.spec_from_file_location(
                 "asr_client_" + spec.id.replace("-", "_").replace(".", "_"),
                 directory / "client.py",
@@ -78,10 +63,10 @@ class Scheduler:
                 Callable[[httpx.AsyncClient, InferenceRequest], Awaitable[InferenceResult]],
                 module.infer,
             )
-            self.instances[spec.id] = Instance(spec, directory, module.URL, fingerprint, client)
+            self.instances[spec.id] = Instance(spec, directory, module.URL, client)
 
     async def initialize(self) -> None:
-        self.config.runtime_dir.mkdir(parents=True, exist_ok=True)
+        self.runtime_dir.mkdir(parents=True, exist_ok=True)
         for model in self.instances:
             await self.control("stop", model)
 
@@ -99,10 +84,9 @@ class Scheduler:
     async def _start(self, instance: Instance) -> None:
         spec = instance.spec
         if spec.resources.gpus:
-            atomic_text(
-                self.config.runtime_dir / spec.id / "CUDA_VISIBLE_DEVICES",
-                ",".join(instance.devices),
-            )
+            directory = self.runtime_dir / spec.id
+            directory.mkdir(parents=True, exist_ok=True)
+            (directory / "CUDA_VISIBLE_DEVICES").write_text(",".join(instance.devices))
         instance.running = True
         await self.control("start", spec.id)
         deadline = time.monotonic() + spec.resources.startup_seconds
@@ -119,8 +103,12 @@ class Scheduler:
     async def acquire(self, model: str) -> Instance:
         instance = self.instances[model]
         await instance.lock.acquire()
-        owns_lock = True
         try:
+            if not instance.spec.resources.gpus:
+                if not instance.running:
+                    await self._start(instance)
+                instance.active = True
+                return instance
             async with self.condition:
                 self.waiters.append(model)
                 deadline = time.monotonic() + self.config.resources.wait_seconds
@@ -128,7 +116,7 @@ class Scheduler:
                     while True:
                         if self.waiters[0] == model:
                             if instance.running:
-                                instance.active += 1
+                                instance.active = True
                                 break
                             devices = await self.inventory(self.config.resources.gpu_pool)
                             required = instance.spec.resources.gpus
@@ -144,7 +132,7 @@ class Scheduler:
                             ]
                             if len(available) >= required:
                                 instance.devices = [d.id for d in available[:required]]
-                                instance.active += 1
+                                instance.active = True
                                 break
                             idle = [
                                 i
@@ -163,21 +151,15 @@ class Scheduler:
                     self.waiters.remove(model)
                     self.condition.notify_all()
             if not instance.running:
-                try:
-                    await self._start(instance)
-                except BaseException:
-                    owns_lock = False
-                    await self.release(instance, failed=True)
-                    raise
+                await self._start(instance)
             return instance
         except BaseException:
-            if owns_lock:
-                instance.lock.release()
+            await self.release(instance, failed=True)
             raise
 
     async def release(self, instance: Instance, *, failed: bool = False) -> None:
         async with self.condition:
-            instance.active = 0
+            instance.active = False
             instance.last_used = time.monotonic()
             try:
                 if failed and instance.running:

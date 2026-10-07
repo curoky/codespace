@@ -16,7 +16,6 @@ from server.transcript import (
     Transcript,
     align_text,
     choose,
-    differences,
     mapped_identity,
     normalized,
     owners,
@@ -78,7 +77,7 @@ class Pipeline:
 
     async def prepare(self) -> None:
         diarized = await self.inference.call(
-            self.config.diarizer,
+            "pyannote-community-1",
             InferenceRequest(
                 audio=str(self.audio),
                 num_speakers=self.options.num_speakers,
@@ -88,22 +87,17 @@ class Pipeline:
         if self.options.vad_mode == "off":
             self.activity = [Span(start_ms=0, end_ms=self.duration)]
         else:
-            detections = await asyncio.gather(
-                *[
-                    self.inference.call(model, InferenceRequest(audio=str(self.audio)))
-                    for model in self.config.vad
-                ]
+            detection = await self.inference.call(
+                "firered-vad", InferenceRequest(audio=str(self.audio))
             )
-            self.activity = union(
-                self.speakers + [span for result in detections for span in result.spans]
-            )
+            self.activity = union(self.speakers + detection.spans)
         self.chunks = windows(self.activity, self.duration, self.config.chunking)
 
     async def align(self, text: str, window: Window) -> list[Token]:
         if not normalized(text):
             return []
         result = await self.inference.call(
-            self.config.aligner,
+            "qwen3-aligner",
             InferenceRequest(
                 audio=str(await self.clip(window)),
                 text=text,
@@ -125,55 +119,67 @@ class Pipeline:
                     logging.exception("first pass %s failed", model)
                     self.errors[f"first_pass:{model}:{key}"] = str(exc)
 
-    async def review(self, window: Window, candidates: dict[str, str]) -> dict[str, str]:
-        key = window.model_dump_json()
-        if key in self.reviewed:
-            return self.reviewed[key]
-        has_dispute = len({normalized(text) for text in candidates.values()}) > 1
-        suspicious = any(
-            not text.strip() or re.search(r"(.{2,8})\1{3,}", text) for text in candidates.values()
-        )
-        if not has_dispute and not suspicious:
-            return {}
-        extra = max(
-            0, (self.config.chunking.max_seconds * 1000 - (window.end_ms - window.start_ms)) // 2
-        )
-        expanded = Window(
-            start_ms=max(0, window.start_ms - extra),
-            end_ms=min(self.duration, window.end_ms + extra),
-            core_start_ms=window.core_start_ms,
-            core_end_ms=window.core_end_ms,
-        )
-        reviews: dict[str, str] = {}
-        for model in ("qwen3-asr-1.7b", "firered-llm", "whisper-large-v3", "moss-audio"):
-            if model == "moss-audio" and len({normalized(t) for t in reviews.values()}) == 1:
-                break
-            try:
-                result = await self.recognize(model, expanded)
-                tokens = await self.align(plain(result.text), expanded)
-            except Exception as exc:
-                logging.exception("review %s failed", model)
-                self.errors[f"review:{model}:{key}"] = str(exc)
-                continue
-            if any(t.start_ms is None for t in tokens):
-                continue
-            reviews[model] = "".join(
-                t.text
-                for t in tokens
-                if t.start_ms is not None
-                and t.end_ms is not None
-                and window.start_ms <= (t.start_ms + t.end_ms) / 2 < window.end_ms
+    async def review(self) -> None:
+        pending: dict[str, tuple[Window, Window]] = {}
+        for window in self.chunks:
+            key = window.model_dump_json()
+            candidates = self.candidates[key]
+            has_dispute = len({normalized(text) for text in candidates.values()}) > 1
+            suspicious = any(
+                not text.strip() or re.search(r"(.{2,8})\1{3,}", text)
+                for text in candidates.values()
             )
-        self.reviewed[key] = reviews
-        return reviews
+            if not has_dispute and not suspicious:
+                continue
+            extra = max(
+                0,
+                (self.config.chunking.max_seconds * 1000 - (window.end_ms - window.start_ms)) // 2,
+            )
+            expanded = Window(
+                start_ms=max(0, window.start_ms - extra),
+                end_ms=min(self.duration, window.end_ms + extra),
+                core_start_ms=window.core_start_ms,
+                core_end_ms=window.core_end_ms,
+            )
+            pending[key] = (window, expanded)
+            self.reviewed[key] = {}
+
+        # 先让同一模型听完整批争议窗口，再对齐；避免每个窗口重新装卸大模型。
+        for model in ("qwen3-asr-1.7b", "firered-llm", "whisper-large-v3", "moss-audio"):
+            texts: dict[str, str] = {}
+            for key, (_, expanded) in pending.items():
+                reviews = self.reviewed[key]
+                if model == "moss-audio" and len({normalized(t) for t in reviews.values()}) == 1:
+                    continue
+                try:
+                    result = await self.recognize(model, expanded)
+                    texts[key] = plain(result.text)
+                except Exception as exc:
+                    logging.exception("review %s failed", model)
+                    self.errors[f"review:{model}:{key}"] = str(exc)
+            for key, text in texts.items():
+                window, expanded = pending[key]
+                try:
+                    tokens = await self.align(text, expanded)
+                except Exception as exc:
+                    logging.exception("review alignment %s failed", model)
+                    self.errors[f"review:{model}:{key}"] = str(exc)
+                    continue
+                if any(t.start_ms is None for t in tokens):
+                    continue
+                self.reviewed[key][model] = "".join(
+                    t.text
+                    for t in tokens
+                    if t.start_ms is not None
+                    and t.end_ms is not None
+                    and window.start_ms <= (t.start_ms + t.end_ms) / 2 < window.end_ms
+                )
 
     async def finalize_segment(
         self, segment: Segment, window: Window, speakers: list[Span], *, punctuate: bool = True
     ) -> list[Segment]:
         if punctuate and self.config.punctuation and normalized(segment.text):
-            result = await self.inference.call(
-                self.config.punctuation, InferenceRequest(text=segment.text)
-            )
+            result = await self.inference.call("firered-punc", InferenceRequest(text=segment.text))
             if punctuation_content(result.text) == punctuation_content(segment.text):
                 segment.text = result.text
             else:
@@ -204,14 +210,18 @@ class Pipeline:
             if primary not in candidates:
                 raise ValueError(f"{primary}: primary transcript is unavailable")
             original = candidates[primary]
-            reviews = await self.review(window, candidates)
+            reviews = self.reviewed.get(window.model_dump_json(), {})
             protected = bool(
                 re.search(r"[0-9零一二三四五六七八九十百千万亿两]|[A-Z][a-z]", original)
             )
             protected |= any(word in original for word in self.options.hotwords)
             protected |= len(owners(window.core_start_ms, window.core_end_ms, self.speakers)) > 1
             text, decision = choose(original, primary, reviews, families, protected=protected)
-            flags = ["disagreement"] if differences(original, candidates) else []
+            flags = (
+                ["disagreement"]
+                if any(normalized(original) != normalized(t) for t in candidates.values())
+                else []
+            )
             if len(candidates) < 4:
                 flags.append("crosscheck_incomplete")
             if reviews and decision in ("primary", "unresolved"):
@@ -287,7 +297,7 @@ class Pipeline:
                     core_end_ms=min(span.end_ms, window.core_end_ms),
                 )
                 aligner_limit = self.inference.scheduler.instances[
-                    self.config.aligner
+                    "qwen3-aligner"
                 ].spec.max_audio_seconds
                 if span.end_ms - span.start_ms > aligner_limit * 1000:
                     raise ValueError(f"{model}: joint segment exceeds alignment window budget")

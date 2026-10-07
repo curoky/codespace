@@ -1,7 +1,9 @@
+import io
+import json
 import zipfile
-from pathlib import Path
 
-from server.storage import atomic_text
+from pydantic import JsonValue
+
 from server.transcript import Transcript
 
 
@@ -34,29 +36,21 @@ def markdown(result: Transcript) -> str:
     return "\n".join(lines)
 
 
-def save(directory: Path, result: Transcript) -> None:
-    atomic_text(directory / f"{result.recipe}.json", result.model_dump_json(indent=2))
-    atomic_text(directory / f"{result.recipe}.md", markdown(result))
-
-
-def index(directory: Path, statuses: dict[str, str]) -> None:
+def bundle(results: list[Transcript], evidence: dict[str, JsonValue]) -> bytes:
     lines = [
         "# 转录结果",
         "",
         "各方案独立输出，不按准确性排名；不同方案的 speaker 标签不能直接互认。",
         "",
     ]
-    for recipe, status in statuses.items():
-        lines.append(f"- [{recipe}]({recipe}.md) · {status} · [JSON]({recipe}.json)")
-    atomic_text(directory / "index.md", "\n".join(lines) + "\n")
-
-
-def bundle(directory: Path) -> Path:
-    target = directory.parent / "transcripts.zip"
-    temporary = target.with_suffix(".tmp")
-    with zipfile.ZipFile(temporary, "w", compression=zipfile.ZIP_DEFLATED) as output:
-        for path in sorted(directory.iterdir()):
-            if path.is_file():
-                output.write(path, path.name)
-    temporary.replace(target)
-    return target
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as output:
+        for result in results:
+            recipe = result.recipe
+            lines.append(f"- [{recipe}]({recipe}.md) · {result.status} · [JSON]({recipe}.json)")
+            output.writestr(f"{recipe}.json", result.model_dump_json(indent=2))
+            output.writestr(f"{recipe}.md", markdown(result))
+        lines.extend(["", "[共享识别证据与参数](evidence.json)", ""])
+        output.writestr("index.md", "\n".join(lines))
+        output.writestr("evidence.json", json.dumps(evidence, ensure_ascii=False, indent=2))
+    return buffer.getvalue()
