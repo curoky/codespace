@@ -27,7 +27,7 @@ node_tool = load_node_tool()
 
 
 def test_defaults_to_workspace_binman_pnpm() -> None:
-    assert node_tool.DEFAULT_PNPM == Path("/usr/local/bin/pnpm")
+    assert Path("/usr/local/bin/pnpm") == node_tool.DEFAULT_PNPM
 
 
 def make_executable(path: Path, content: str) -> None:

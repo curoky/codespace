@@ -163,8 +163,9 @@ def test_workspace_image_packages_are_root_owned_and_user_installs_use_local() -
     assert "bm download" not in dockerfile
 
 
-def test_workspace_java_and_node_split_read_only_runtimes_from_writable_tools() -> None:
+def test_workspace_separates_read_only_runtimes_from_writable_tools() -> None:
     workspace = _CONTAINER / "workspace"
+    workspace_dockerfile = (workspace / "Dockerfile").read_text()
     resource_dockerfile = (workspace / "resource.Dockerfile").read_text()
     profile = (_CONTAINER / "workspace/rootfs/etc/profile.d/app.sh").read_text()
     settings = yaml.safe_load(
@@ -179,10 +180,7 @@ def test_workspace_java_and_node_split_read_only_runtimes_from_writable_tools() 
             f"java/{runtime}": Path(f"/opt/resource/opt/java/{runtime}")
             for runtime in {"openjdk8", "openjdk27"}
         },
-        **{
-            f"node/{runtime}": Path(f"/opt/resource/opt/node/{runtime}")
-            for runtime in {"nodejs24", "nodejs26"}
-        },
+        "node/nodejs26": Path("/opt/resource/opt/node/nodejs26"),
     }
     actual_links = {
         str(path.relative_to(rootfs_opt)): path.readlink()
@@ -195,6 +193,10 @@ def test_workspace_java_and_node_split_read_only_runtimes_from_writable_tools() 
     assert 'export PATH="$PATH:/opt/resource/opt/java/tools/bin"' in profile
     assert 'export PATH="$PATH:/opt/node/tools/bin"' in profile
     assert 'export PATH="$PATH:/opt/resource/opt/node/tools/bin"' in profile
+    assert (
+        "COPY --link --chown=5230:5230 --from=stage_node /opt/node /opt/node"
+        in workspace_dockerfile
+    )
     assert "--java /opt/java/openjdk27" in resource_dockerfile
     assert "--node /opt/node/nodejs24" in resource_dockerfile
     assert "--pnpm /usr/local/bin/pnpm" in resource_dockerfile
