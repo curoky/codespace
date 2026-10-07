@@ -29,6 +29,25 @@ def test_each_model_has_static_download_serve_chain() -> None:
         assert "--include" in download_script
         assert "--exclude" not in download_script
         assert not (directory / "download_model.py").exists()
+        for script in (download_script, (directory / "run").read_text()):
+            assert "--frozen" in script
+            assert "--no-sync" in script
+            assert "--locked" not in script
+
+
+def test_image_installs_model_environments_in_one_layer() -> None:
+    root = Path(__file__).resolve().parents[1]
+    installer = root / "install-model-environments.sh"
+    subprocess.run(["bash", "-n", str(installer)], check=True)
+
+    installer_text = installer.read_text()
+    assert "UV_LINK_MODE=hardlink" in installer_text
+    assert 'uv sync --locked --no-dev --project "$model_dir"' in installer_text
+
+    dockerfile = (root / "Dockerfile").read_text()
+    install = "/usr/local/bin/install-asr-model-environments"
+    assert dockerfile.count(install) == 2
+    assert "rm -rf /home/x/.cache/uv" in dockerfile
 
 
 def test_image_does_not_download_weights() -> None:

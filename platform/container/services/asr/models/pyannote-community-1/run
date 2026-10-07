@@ -16,8 +16,8 @@ export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat
 
 exec uv run \
   --project "$model_dir" \
-  --locked \
-  --no-dev \
+  --frozen \
+  --no-sync \
   uvicorn service:app \
   --factory \
   --app-dir "$model_dir" \

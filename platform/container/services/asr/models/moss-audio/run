@@ -15,8 +15,8 @@ export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat
 # trust-remote-code 用于固定 snapshot 的自定义音频组件。
 exec uv run \
   --project "$model_dir" \
-  --locked \
-  --no-dev \
+  --frozen \
+  --no-sync \
   vllm serve \
   "$model_dir/weights" \
   --served-model-name moss-audio \

@@ -6,8 +6,8 @@ model_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 exec uv run \
   --project "$model_dir" \
-  --locked \
-  --no-dev \
+  --frozen \
+  --no-sync \
   hf download \
   OpenMOSS-Team/MOSS-Transcribe-Diarize \
   --revision 704aa4a9c304e8520be88901e0d1960158ef5b15 \

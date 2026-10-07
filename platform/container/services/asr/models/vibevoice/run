@@ -15,8 +15,8 @@ export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat
 # BF16 保留精度；32768 为长音频和带时间、speaker 的结构化输出留预算。
 exec uv run \
   --project "$model_dir" \
-  --locked \
-  --no-dev \
+  --frozen \
+  --no-sync \
   vllm serve \
   "$model_dir/weights" \
   --served-model-name vibevoice \

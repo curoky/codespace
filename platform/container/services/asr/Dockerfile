@@ -19,6 +19,7 @@ COPY platform/container/services/asr/server/ /opt/asr/server/
 COPY platform/container/services/asr/ops/ /opt/asr/ops/
 COPY platform/container/services/asr/client/ /opt/asr/client/
 COPY platform/container/services/asr/protocol.py platform/container/services/asr/AGENTS.md platform/container/services/asr/DESIGN.md /opt/asr/
+COPY --chmod=0755 platform/container/services/asr/install-model-environments.sh /usr/local/bin/install-asr-model-environments
 COPY platform/container/services/asr/rootfs/ /
 RUN chmod 0440 /etc/sudoers.d/asr \
   && visudo -cf /etc/sudoers.d/asr \
@@ -26,14 +27,17 @@ RUN chmod 0440 /etc/sudoers.d/asr \
 
 RUN rm -f /etc/s6/s6-rc.d/default/contents.d/miniserve-logs \
     /etc/s6/s6-rc.d/default/contents.d/supercronic \
-  && mkdir -p /data/asr /run/asr /opt/asr/server/.venv \
-  && chown x:x /data/asr /run/asr /opt/asr/server /opt/asr/server/.venv \
-  && for model_dir in /opt/asr/models/*/; do \
-    mkdir -p "$model_dir/.venv" "$model_dir/weights"; \
-    chown x:x "$model_dir" "$model_dir/.venv" "$model_dir/weights"; \
-  done \
-  && s6-setuidgid x s6-env HOME=/home/x uv python install 3.14.7 3.12.14 \
-  && s6-setuidgid x s6-env HOME=/home/x uv sync --locked --no-dev --project /opt/asr/server \
-  && /etc/s6/install-s6.sh
+  && mkdir -p /data/asr /run/asr \
+  && chown x:x /data/asr /run/asr /opt/asr/server /opt/asr/models/*/
+
+USER x
+RUN export HOME=/home/x \
+  && uv python install 3.14.7 3.12.14 \
+  && /usr/local/bin/install-asr-model-environments \
+  && uv sync --locked --no-dev --project /opt/asr/server \
+  && rm -rf /home/x/.cache/uv
+
+USER root
+RUN /etc/s6/install-s6.sh
 
 EXPOSE 8080

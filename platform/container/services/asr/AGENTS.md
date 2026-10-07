@@ -27,13 +27,15 @@ s6 文件的工具。配置文件使用 YAML，uv 工具文件除外。参数、
 
 ## Model Contract
 
-- `run` 与 `download_model.sh` 可在 image 内独立执行，使用 `uv run --locked --no-dev`
-  创建或同步本目录 `.venv`；lock 与 project 不一致即失败，不自动更新依赖。
+- `install-model-environments.sh` 在 image build 的同一个 layer 中遍历全部模型并使用
+  `UV_LINK_MODE=hardlink` 创建独立 `.venv`；任一 lock 失配或安装失败必须使 build 失败。
+- `run` 与 `download_model.sh` 使用 `uv run --frozen --no-sync`，只运行 image 内预装环境，
+  不在启动或下载权重时解析、安装或更新依赖。
 - 权重固定在本目录 `weights/`。下载脚本只调用 HF CLI；`run` 只加载本地权重，不代替下载。
   下载脚本用显式 include 只取 serving 所需的权重格式、配置、processor 与自定义模型代码，
   不下载同一 checkpoint 的其他框架或精度副本。HF 根据 local-dir metadata 复用文件。
-  改变 revision 时先停止模型并清理旧 weights，避免旧文件混入；不得把本地 `.venv` 或
-  权重打包进 image。
+  改变 revision 时先停止模型并清理旧 weights，避免旧文件混入；本地 `.venv` 与权重不进入
+  build context，image 中的 `.venv` 只由锁文件构建。
 - 监听地址和端口在 `run` 显式固定，client 的 `URL` 同步维护。调度器从 client 读取地址
   做 readiness，不生成端口，也不把地址注入模型。改变端口时同步 DESIGN 的服务表。
 - SDK 服务只接收 `/data/asr` 内真实文件；原生 vLLM client 发送音频内容。数据目录是镜像
@@ -51,8 +53,10 @@ s6 文件的工具。配置文件使用 YAML，uv 工具文件除外。参数、
 
 ## Image And S6
 
-镜像继承 `service-s6`，只在构建时安装系统工具、Python 与 server 环境，编译静态 graph。
-模型环境与权重都在运行时准备。uv 的 Python 和 cache、HF 的 cache / token 使用 x 默认
+镜像继承 `service-s6`，在构建时安装系统工具、Python、server 与全部模型环境并编译静态
+graph。全部模型环境必须在同一 `RUN`、同一 filesystem 中创建，依靠 uv hardlink 去重；
+Python 与环境安装使用 Dockerfile 的 `USER x`，uv cache 在该 `RUN` 结束前删除；s6 graph
+切回 root 编译。模型权重仍在运行时准备。uv 的 Python、HF 的 cache / token 使用 x 默认
 目录，不转发工具或代理环境变量。
 
 | 资产 | 维护约定 |
@@ -60,6 +64,7 @@ s6 文件的工具。配置文件使用 YAML，uv 工具文件除外。参数、
 | `rootfs/etc/s6/s6-rc.d/asr-<model>-download/` | oneshot，以 x 调本模型 `download_model.sh` |
 | `rootfs/etc/s6/s6-rc.d/asr-<model>/` | longrun，依赖对应 download，以 x 调本模型 `run` |
 | `rootfs/etc/s6/s6-rc.d/asr-server/` | 以 x 调 `server/run`；server 环境已在构建时安装，使用 `--no-sync` |
+| `install-model-environments.sh` | build-only；顺序安装全部锁定模型环境并强制 hardlink，失败立即终止 |
 | `rootfs/usr/local/bin/asr-model-service` | root-owned 受限启停入口，由 sudoers 仅授权 x 调用 |
 | `/var/log/s6.asr-*.log` | `redirfd -w` + `fdmove`，沿用 Workspace 日志范式 |
 | `/data/asr` | 请求临时音频，Host mount 必须允许 x 写入；正常结束与异常返回均清理 |
@@ -158,7 +163,7 @@ podman build \
 | 修改 | 额外验证 |
 | --- | --- |
 | `run` / `client.py` / s6 | 固定端口匹配；以 x 启动；health 与真实短音频；停止后确认进程退出 |
-| download / uv | image 无权重和模型环境；首次下载自动建环境；删除环境后 run 可重建 |
+| download / uv | image 无权重但包含全部模型环境；run/download 不同步环境；构建层保留跨环境 hardlink |
 | 权重 / SDK / vLLM | 锁文件与 import 版本、实际协议响应、截断与时间边界 |
 | 融合 / speaker / 时间 | 行为测试与对应真实音频，不以模拟响应宣称质量提升 |
 | CUDA / GPU 调度 | 容器内库加载、真实 kernel、所需模型和多 GPU 通信；不停止外部任务 |

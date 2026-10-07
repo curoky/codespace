@@ -15,8 +15,8 @@ export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat
 # 关闭二次切片以保留原音偏移；自定义 processor 与固定 snapshot 一起维护。
 exec uv run \
   --project "$model_dir" \
-  --locked \
-  --no-dev \
+  --frozen \
+  --no-sync \
   vllm serve \
   "$model_dir/weights" \
   --served-model-name moss-td \

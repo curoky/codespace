@@ -6,8 +6,8 @@ model_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 exec uv run \
   --project "$model_dir" \
-  --locked \
-  --no-dev \
+  --frozen \
+  --no-sync \
   hf download \
   FireRedTeam/FireRedPunc \
   --revision e448fd967f44182a1c323cc30f5d89f2400c28da \

@@ -15,8 +15,8 @@ export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat
 # 上层统一切片；关闭 vLLM 二次能量切分，确保四路校验收到相同音频。
 exec uv run \
   --project "$model_dir" \
-  --locked \
-  --no-dev \
+  --frozen \
+  --no-sync \
   vllm serve \
   "$model_dir/weights" \
   --served-model-name qwen3-asr-1.7b \

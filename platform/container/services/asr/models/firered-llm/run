@@ -15,8 +15,8 @@ export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat
 # 8192 为短音频和中文输出留上下文；统一 30 秒窗口，并关闭 vLLM 再切片。
 exec uv run \
   --project "$model_dir" \
-  --locked \
-  --no-dev \
+  --frozen \
+  --no-sync \
   vllm serve \
   "$model_dir/weights" \
   --served-model-name firered-llm \

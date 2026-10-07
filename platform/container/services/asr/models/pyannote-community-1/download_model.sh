@@ -8,8 +8,8 @@ model_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 # 需要完整 pipeline、segmentation 与 embedding 资产，不能只下载单个权重。
 exec uv run \
   --project "$model_dir" \
-  --locked \
-  --no-dev \
+  --frozen \
+  --no-sync \
   hf download \
   pyannote/speaker-diarization-community-1 \
   --revision 3533c8cf8e369892e6b79ff1bf80f7b0286a54ee \

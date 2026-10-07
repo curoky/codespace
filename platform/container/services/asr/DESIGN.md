@@ -68,7 +68,7 @@ asr/
 │       ├── run               # 监听地址、端口及模型启动参数
 │       ├── client.py         # 固定服务地址、请求与结果解析
 │       ├── service.py        # 仅 SDK / 特殊 pooling 接口需要
-│       └── .venv/ / weights/ # 运行时生成，不进入仓库或镜像
+│       └── .venv/ / weights/ # 镜像构建生成环境；运行时下载权重
 ├── ops/                      # GPU inventory、调度与进程操作
 ├── rootfs/
 │   ├── etc/s6/s6-rc.d/        # 全部静态 s6 定义
@@ -105,7 +105,7 @@ asr/
 flowchart TD
     subgraph Build[镜像构建]
         B1[service-s6 基础镜像] --> B2[系统工具 / Python / CUDA 兼容库]
-        B2 --> B3[复制代码与 rootfs<br/>安装 server 环境，编译 s6 graph]
+        B2 --> B3[复制代码与 rootfs<br/>安装 server / 模型环境，编译 s6 graph]
     end
     subgraph Boot[容器启动]
         B3 --> I[s6 init / root supervision]
@@ -116,17 +116,17 @@ flowchart TD
     subgraph Demand[首次请求某个模型]
         H --> A[GPU 模型等待 / 分配设备<br/>CPU 模型直接启动]
         A --> D[s6 download oneshot<br/>以 x 执行 download_model.sh]
-        D --> U[uv run 同步本目录 .venv<br/>hf download 固定 snapshot]
+        D --> U[预装环境执行 hf download<br/>固定 snapshot]
         U --> M[s6 longrun<br/>以 x 执行模型 run]
-        M --> V[uv run 同步环境<br/>加载本地 weights，等待 health]
+        M --> V[预装环境加载本地 weights<br/>等待 health]
         V --> Q[执行模型请求]
     end
 ```
 
 | 时机 | 实际行为 |
 | --- | --- |
-| 构建镜像 | 准备 server；不安装模型环境，不下载模型权重 |
-| 首次启动模型 | `download → service`；两个脚本各自通过 `uv run --locked --no-dev` 准备环境 |
+| 构建镜像 | 在同一 layer 安装 server 与全部模型环境并以 hardlink 去重；不下载模型权重 |
+| 首次启动模型 | `download → service`；两个脚本使用预装环境，不解析或安装依赖 |
 | 同一容器再次启停 | 已完成的 download job 不重跑；`run` 检查环境并加载本地权重 |
 | 容器重建 | download job 重新执行，HF 根据持久化 snapshot metadata 复用权重 |
 | 显存不足 | FIFO 等待；必要时停止本容器无在途请求的模型，确认退出后释放资源 |

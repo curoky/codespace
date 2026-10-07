@@ -66,6 +66,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - service: asr
+            platforms: linux/amd64
           - service: secret
             platforms: linux/amd64
           - service: support
