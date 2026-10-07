@@ -13,10 +13,11 @@ exec uv run \
   Qwen/Qwen3-ForcedAligner-0.6B \
   --revision c7cbfc2048c462b0d63a45797104fc9db3ad62b7 \
   --local-dir "$model_dir/weights" \
-  --exclude '*.md' \
-  --exclude '*.gif' \
-  --exclude '*.png' \
-  --exclude '*.mp4' \
-  --exclude '*.h5' \
-  --exclude 'example/*' \
-  --exclude 'examples/*'
+  --include 'chat_template.json' \
+  --include 'config.json' \
+  --include 'generation_config.json' \
+  --include 'merges.txt' \
+  --include 'model.safetensors' \
+  --include 'preprocessor_config.json' \
+  --include 'tokenizer_config.json' \
+  --include 'vocab.json'

@@ -30,8 +30,10 @@ s6 文件的工具。配置文件使用 YAML，uv 工具文件除外。参数、
 - `run` 与 `download_model.sh` 可在 image 内独立执行，使用 `uv run --locked --no-dev`
   创建或同步本目录 `.venv`；lock 与 project 不一致即失败，不自动更新依赖。
 - 权重固定在本目录 `weights/`。下载脚本只调用 HF CLI；`run` 只加载本地权重，不代替下载。
-  HF 根据 local-dir metadata 复用文件。改变 revision 时先停止模型并清理旧 weights，
-  避免旧文件混入；不得把本地 `.venv` 或权重打包进 image。
+  下载脚本用显式 include 只取 serving 所需的权重格式、配置、processor 与自定义模型代码，
+  不下载同一 checkpoint 的其他框架或精度副本。HF 根据 local-dir metadata 复用文件。
+  改变 revision 时先停止模型并清理旧 weights，避免旧文件混入；不得把本地 `.venv` 或
+  权重打包进 image。
 - 监听地址和端口在 `run` 显式固定，client 的 `URL` 同步维护。调度器从 client 读取地址
   做 readiness，不生成端口，也不把地址注入模型。改变端口时同步 DESIGN 的服务表。
 - SDK 服务只接收 `/data/asr` 内真实文件；原生 vLLM client 发送音频内容。数据目录是镜像

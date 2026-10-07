@@ -24,7 +24,10 @@ def test_each_model_has_static_download_serve_chain() -> None:
         assert (serve / f"dependencies.d/asr-{spec.id}-download").is_file()
         assert "s6-setuidgid x" in (serve / "run").read_text()
         assert "download_model.sh" in (download / "up").read_text()
-        assert "hf download" in (directory / "download_model.sh").read_text()
+        download_script = (directory / "download_model.sh").read_text()
+        assert "hf download" in download_script
+        assert "--include" in download_script
+        assert "--exclude" not in download_script
         assert not (directory / "download_model.py").exists()
 
 
@@ -32,6 +35,15 @@ def test_image_does_not_download_weights() -> None:
     dockerfile = (Path(__file__).resolve().parents[1] / "Dockerfile").read_text()
     assert "AS prepared" not in dockerfile
     assert "download_model" not in dockerfile
+
+
+def test_whisper_download_uses_only_vllm_safetensors() -> None:
+    script = (
+        Path(__file__).resolve().parents[1] / "models/whisper-large-v3/download_model.sh"
+    ).read_text()
+    assert "--include 'model.safetensors'" in script
+    for unused in ("*.safetensors", "model.fp32", "pytorch_model", "flax_model"):
+        assert unused not in script
 
 
 def test_model_clients_match_fixed_listeners(tmp_path: Path) -> None:

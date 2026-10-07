@@ -12,10 +12,14 @@ exec uv run \
   FireRedTeam/FireRedPunc \
   --revision e448fd967f44182a1c323cc30f5d89f2400c28da \
   --local-dir "$model_dir/weights" \
-  --exclude '*.md' \
-  --exclude '*.gif' \
-  --exclude '*.png' \
-  --exclude '*.mp4' \
-  --exclude '*.h5' \
-  --exclude 'example/*' \
-  --exclude 'examples/*'
+  --include 'chinese-bert-wwm-ext_vocab.txt' \
+  --include 'chinese-lert-base/added_tokens.json' \
+  --include 'chinese-lert-base/config.json' \
+  --include 'chinese-lert-base/pytorch_model.bin' \
+  --include 'chinese-lert-base/special_tokens_map.json' \
+  --include 'chinese-lert-base/tokenizer.json' \
+  --include 'chinese-lert-base/tokenizer_config.json' \
+  --include 'chinese-lert-base/vocab.txt' \
+  --include 'config.yaml' \
+  --include 'model.pth.tar' \
+  --include 'out_dict'

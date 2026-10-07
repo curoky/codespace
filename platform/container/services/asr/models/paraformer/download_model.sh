@@ -13,4 +13,9 @@ exec uv run \
   funasr/paraformer-zh \
   --revision d7811ee3ac581fbcfdeb37c98c6ba674028433dc \
   --local-dir "$model_dir/weights" \
-  --exclude '*.md' '*.gif' '*.png' '*.mp4' '*.h5' 'example/*' 'examples/*'
+  --include 'am.mvn' \
+  --include 'config.yaml' \
+  --include 'configuration.json' \
+  --include 'model.pt' \
+  --include 'seg_dict' \
+  --include 'tokens.json'

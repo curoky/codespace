@@ -13,10 +13,14 @@ exec uv run \
   allendou/FireRedASR2-LLM-vllm \
   --revision 24078c33d69cafe365e343af5b1894548879707d \
   --local-dir "$model_dir/weights" \
-  --exclude '*.md' \
-  --exclude '*.gif' \
-  --exclude '*.png' \
-  --exclude '*.mp4' \
-  --exclude '*.h5' \
-  --exclude 'example/*' \
-  --exclude 'examples/*'
+  --include 'cmvn.ark' \
+  --include 'config.json' \
+  --include 'dict.txt' \
+  --include 'generation_config.json' \
+  --include 'merges.txt' \
+  --include 'model-*.safetensors' \
+  --include 'preprocessor_config.json' \
+  --include 'tokenizer.json' \
+  --include 'tokenizer_config.json' \
+  --include 'train_bpe1000.model' \
+  --include 'vocab.json'

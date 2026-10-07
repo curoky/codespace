@@ -14,10 +14,7 @@ exec uv run \
   pyannote/speaker-diarization-community-1 \
   --revision 3533c8cf8e369892e6b79ff1bf80f7b0286a54ee \
   --local-dir "$model_dir/weights" \
-  --exclude '*.md' \
-  --exclude '*.gif' \
-  --exclude '*.png' \
-  --exclude '*.mp4' \
-  --exclude '*.h5' \
-  --exclude 'example/*' \
-  --exclude 'examples/*'
+  --include 'config.yaml' \
+  --include 'embedding/pytorch_model.bin' \
+  --include 'plda/*.npz' \
+  --include 'segmentation/pytorch_model.bin'

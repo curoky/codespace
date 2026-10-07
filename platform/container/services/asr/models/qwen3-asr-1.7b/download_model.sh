@@ -13,10 +13,12 @@ exec uv run \
   Qwen/Qwen3-ASR-1.7B \
   --revision 7278e1e70fe206f11671096ffdd38061171dd6e5 \
   --local-dir "$model_dir/weights" \
-  --exclude '*.md' \
-  --exclude '*.gif' \
-  --exclude '*.png' \
-  --exclude '*.mp4' \
-  --exclude '*.h5' \
-  --exclude 'example/*' \
-  --exclude 'examples/*'
+  --include 'chat_template.json' \
+  --include 'config.json' \
+  --include 'generation_config.json' \
+  --include 'merges.txt' \
+  --include 'model-*.safetensors' \
+  --include 'model.safetensors.index.json' \
+  --include 'preprocessor_config.json' \
+  --include 'tokenizer_config.json' \
+  --include 'vocab.json'
