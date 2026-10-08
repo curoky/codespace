@@ -3,4 +3,5 @@ fdmove -c 2 1
 
 s6-setuidgid x
 s6-env HOME=/home/x
+s6-env HF_TOKEN_PATH=/run/secrets/huggingface_token
 /opt/asr/models/firered-llm/download_model.sh

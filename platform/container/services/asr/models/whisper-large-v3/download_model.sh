@@ -3,14 +3,21 @@
 set -euo pipefail
 
 model_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+revision=06f233fe06e710322aca913c1bc4249a0d71fce1
 
-exec uv run \
+mkdir -p "$(readlink -m -- "$model_dir/weights")"
+
+if [[ -f $model_dir/weights/.revision ]] && [[ $(<"$model_dir/weights/.revision") == "$revision" ]]; then
+  exit 0
+fi
+
+uv run \
   --project "$model_dir" \
   --frozen \
   --no-sync \
   hf download \
   openai/whisper-large-v3 \
-  --revision 06f233fe06e710322aca913c1bc4249a0d71fce1 \
+  --revision "$revision" \
   --local-dir "$model_dir/weights" \
   --include 'added_tokens.json' \
   --include 'config.json' \
@@ -23,3 +30,5 @@ exec uv run \
   --include 'tokenizer.json' \
   --include 'tokenizer_config.json' \
   --include 'vocab.json'
+
+printf '%s\n' "$revision" >"$model_dir/weights/.revision"

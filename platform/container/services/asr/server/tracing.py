@@ -18,8 +18,6 @@ class TraceEvent(Record):
     gpu_ids: list[str] = Field(default_factory=list)
     gpu_indices: list[str] = Field(default_factory=list)
     model_queue_ms: int | None = Field(default=None, ge=0)
-    gpu_queue_ms: int | None = Field(default=None, ge=0)
-    startup_ms: int | None = Field(default=None, ge=0)
     cpu_queue_ms: int | None = Field(default=None, ge=0)
     inference_ms: int | None = Field(default=None, ge=0)
     input_summary: dict[str, JsonValue] = Field(default_factory=dict)
@@ -60,8 +58,6 @@ class Trace:
         gpu_ids: list[str] | None = None,
         gpu_indices: list[str] | None = None,
         model_queue_seconds: float | None = None,
-        gpu_queue_seconds: float | None = None,
-        startup_seconds: float | None = None,
         cpu_queue_seconds: float | None = None,
         inference_seconds: float | None = None,
         input_summary: dict[str, JsonValue] | None = None,
@@ -70,8 +66,6 @@ class Trace:
     ) -> None:
         optional_times = {
             "model_queue_ms": model_queue_seconds,
-            "gpu_queue_ms": gpu_queue_seconds,
-            "startup_ms": startup_seconds,
             "cpu_queue_ms": cpu_queue_seconds,
             "inference_ms": inference_seconds,
         }

@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Literal
 
 import yaml
 from pydantic import Field, model_validator
@@ -8,8 +7,8 @@ from protocol import Record
 
 
 class ResourceConfig(Record):
-    gpu_pool: Literal["visible"] | list[str] = "visible"
-    wait_seconds: int = Field(default=3600, ge=1)
+    gpu_memory_gib: int = Field(ge=1)
+    placement: dict[str, list[int]]
 
 
 class ChunkConfig(Record):
@@ -25,7 +24,7 @@ class ChunkConfig(Record):
 
 
 class Config(Record):
-    resources: ResourceConfig = Field(default_factory=ResourceConfig)
+    resources: ResourceConfig
     cpu_requests: int = Field(default=2, ge=1)
     chunking: ChunkConfig = Field(default_factory=ChunkConfig)
     punctuation: bool = True

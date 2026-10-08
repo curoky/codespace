@@ -1,5 +1,17 @@
 resources:
-  gpu_pool: visible
+  gpu_memory_gib: 80
+  placement:
+    firered-llm: [0, 1]
+    moss-audio: [0]
+    moss-td: [2]
+    nemotron-diarization: [1]
+    paraformer: [4]
+    pyannote-community-1: [1]
+    qwen3-aligner: [4]
+    qwen3-asr-1.7b: [2]
+    sensevoice: [3]
+    vibevoice: [3]
+    whisper-large-v3: [3]
 cpu_requests: 2
 chunking:
   target_seconds: 24

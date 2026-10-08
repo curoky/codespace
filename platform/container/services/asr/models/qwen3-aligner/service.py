@@ -19,6 +19,7 @@ def app() -> FastAPI:
     timestamp_ms = config["timestamp_segment_time"]
     # 通用 pooling HTTP 缺少解码所需的 prompt_token_ids，故在本目录直接用 LLM.encode。
     # eager 避免 pooling CUDA Graph 的额外约束；8192 为文本与音频留上下文预算。
+    # 0.10 约占 8 GiB；pooling 不需要生成式 KV cache，增大比例只会挤占同卡常驻模型。
     model = LLM(
         model=str(weights),
         runner="pooling",  # timestamp token 分类，不是文本 generate
@@ -26,7 +27,7 @@ def app() -> FastAPI:
         enforce_eager=True,
         max_model_len=8192,
         tensor_parallel_size=1,
-        gpu_memory_utilization=0.85,
+        gpu_memory_utilization=0.10,
         hf_overrides={"architectures": ["Qwen3ASRForcedAlignerForTokenClassification"]},
     )
 

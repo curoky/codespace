@@ -28,7 +28,6 @@ class Transcript(Record):
     activity: list[Span] = Field(default_factory=list)
     speakers: list[Span] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
-    evidence: str = "evidence.json"
 
 
 def plain(text: str) -> str:

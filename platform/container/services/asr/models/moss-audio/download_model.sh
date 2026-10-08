@@ -3,14 +3,21 @@
 set -euo pipefail
 
 model_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+revision=d4dc5a6d8cd79b43dcd82884c75e303b1ecd016d
 
-exec uv run \
+mkdir -p "$(readlink -m -- "$model_dir/weights")"
+
+if [[ -f $model_dir/weights/.revision ]] && [[ $(<"$model_dir/weights/.revision") == "$revision" ]]; then
+  exit 0
+fi
+
+uv run \
   --project "$model_dir" \
   --frozen \
   --no-sync \
   hf download \
   OpenMOSS-Team/MOSS-Audio-8B-Instruct \
-  --revision d4dc5a6d8cd79b43dcd82884c75e303b1ecd016d \
+  --revision "$revision" \
   --local-dir "$model_dir/weights" \
   --include 'added_tokens.json' \
   --include 'chat_template.jinja' \
@@ -26,3 +33,5 @@ exec uv run \
   --include 'special_tokens_map.json' \
   --include 'tokenizer_config.json' \
   --include 'vocab.json'
+
+printf '%s\n' "$revision" >"$model_dir/weights/.revision"

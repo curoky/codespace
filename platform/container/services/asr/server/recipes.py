@@ -113,7 +113,10 @@ class Pipeline:
         )
 
     async def first_pass(self) -> None:
-        for model in ("qwen3-asr-1.7b", "firered-llm", "sensevoice", "paraformer"):
+        for window in self.chunks:
+            await self.clip(window)
+
+        async def recognize_all(model: str) -> None:
             for window in self.chunks:
                 key = window.model_dump_json()
                 candidates = self.candidates.setdefault(key, {})
@@ -123,6 +126,18 @@ class Pipeline:
                 except Exception as exc:
                     logging.exception("first pass %s failed", model)
                     self.errors[f"first_pass:{model}:{key}"] = str(exc)
+
+        await asyncio.gather(
+            *(
+                recognize_all(model)
+                for model in (
+                    "qwen3-asr-1.7b",
+                    "firered-llm",
+                    "sensevoice",
+                    "paraformer",
+                )
+            )
+        )
 
     async def review(self) -> None:
         pending: dict[str, tuple[Window, Window]] = {}
@@ -149,8 +164,10 @@ class Pipeline:
             pending[key] = (window, expanded)
             self.reviewed[key] = {}
 
-        # 先让同一模型听完整批争议窗口，再对齐；避免每个窗口重新装卸大模型。
-        for model in ("qwen3-asr-1.7b", "firered-llm", "whisper-large-v3", "moss-audio"):
+        for _, expanded in pending.values():
+            await self.clip(expanded)
+
+        async def review_all(model: str) -> None:
             texts: dict[str, str] = {}
             for key, (_, expanded) in pending.items():
                 reviews = self.reviewed[key]
@@ -179,6 +196,19 @@ class Pipeline:
                     and t.end_ms is not None
                     and window.start_ms <= (t.start_ms + t.end_ms) / 2 < window.end_ms
                 )
+
+        # 同一模型保持逐窗串行；三个独立复听模型并行跑完整批次，之后才按需调用 MOSS。
+        await asyncio.gather(
+            *(
+                review_all(model)
+                for model in (
+                    "qwen3-asr-1.7b",
+                    "firered-llm",
+                    "whisper-large-v3",
+                )
+            )
+        )
+        await review_all("moss-audio")
 
     async def finalize_segment(
         self,

@@ -41,7 +41,6 @@ COPY platform/container/services/asr/ops/ /opt/asr/ops/
 COPY platform/container/services/asr/client/ /opt/asr/client/
 COPY platform/container/services/asr/protocol.py platform/container/services/asr/AGENTS.md platform/container/services/asr/DESIGN.md /opt/asr/
 COPY --chmod=0755 platform/container/services/asr/install-model-environments.sh /usr/local/bin/install-asr-model-environments
-COPY --chmod=0755 platform/container/services/asr/install-bundled-model-weights.sh /usr/local/bin/install-asr-bundled-model-weights
 COPY platform/container/services/asr/rootfs/ /
 RUN chmod 0440 /etc/sudoers.d/asr \
   && visudo -cf /etc/sudoers.d/asr \
@@ -49,8 +48,12 @@ RUN chmod 0440 /etc/sudoers.d/asr \
 
 RUN rm -f /etc/s6/s6-rc.d/default/contents.d/miniserve-logs \
     /etc/s6/s6-rc.d/default/contents.d/supercronic \
-  && mkdir -p /data/asr /run/asr \
-  && chown x:x /data/asr /run/asr /opt/asr/server /opt/asr/models/*/
+  && mkdir -p /data/asr /model-data /run/asr \
+  && for script in /opt/asr/models/*/download_model.sh; do \
+    model_dir="${script%/*}"; \
+    ln -s "/model-data/${model_dir##*/}" "$model_dir/weights"; \
+  done \
+  && chown x:x /data/asr /model-data /run/asr /opt/asr/server /opt/asr/models/*/
 
 USER x
 RUN export HOME=/home/x \
@@ -60,11 +63,6 @@ RUN export HOME=/home/x \
   && hardlink --ignore-time --respect-xattrs --maximize \
     /opt/asr/models/*/.venv /opt/asr/server/.venv \
   && rm -rf /home/x/.cache/uv
-
-RUN --mount=type=secret,id=huggingface_token,uid=5230,gid=5230,mode=0400 \
-  export HOME=/home/x \
-    HF_TOKEN_PATH=/run/secrets/huggingface_token \
-  && /usr/local/bin/install-asr-bundled-model-weights
 
 USER root
 RUN /etc/s6/install-s6.sh

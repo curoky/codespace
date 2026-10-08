@@ -3,14 +3,21 @@
 set -euo pipefail
 
 model_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+revision=e448fd967f44182a1c323cc30f5d89f2400c28da
 
-exec uv run \
+mkdir -p "$(readlink -m -- "$model_dir/weights")"
+
+if [[ -f $model_dir/weights/.revision ]] && [[ $(<"$model_dir/weights/.revision") == "$revision" ]]; then
+  exit 0
+fi
+
+uv run \
   --project "$model_dir" \
   --frozen \
   --no-sync \
   hf download \
   FireRedTeam/FireRedPunc \
-  --revision e448fd967f44182a1c323cc30f5d89f2400c28da \
+  --revision "$revision" \
   --local-dir "$model_dir/weights" \
   --include 'chinese-bert-wwm-ext_vocab.txt' \
   --include 'chinese-lert-base/added_tokens.json' \
@@ -23,3 +30,5 @@ exec uv run \
   --include 'config.yaml' \
   --include 'model.pth.tar' \
   --include 'out_dict'
+
+printf '%s\n' "$revision" >"$model_dir/weights/.revision"

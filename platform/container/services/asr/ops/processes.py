@@ -33,7 +33,7 @@ class GPU(Record):
     free_mib: int = Field(ge=0)
 
 
-async def visible_gpus(pool: str | list[str]) -> list[GPU]:
+async def visible_gpus() -> list[GPU]:
     try:
         result = await command(
             "nvidia-smi",
@@ -43,13 +43,16 @@ async def visible_gpus(pool: str | list[str]) -> list[GPU]:
     except FileNotFoundError:
         return []
     devices = []
-    requested = os.environ.get("CUDA_VISIBLE_DEVICES") if pool == "visible" else None
-    allowed = requested.split(",") if requested is not None else pool
+    requested = os.environ.get("CUDA_VISIBLE_DEVICES")
+    allowed = requested.split(",") if requested is not None else None
     for row in result.strip().splitlines():
         uuid, index, total, free = [field.strip() for field in row.split(",")]
-        if allowed != "visible" and uuid not in allowed and index not in allowed:
+        if allowed is not None and uuid not in allowed and index not in allowed:
             continue
         devices.append(GPU(id=uuid, index=index, total_mib=int(total), free_mib=int(free)))
+    if allowed is not None:
+        order = {device: position for position, device in enumerate(allowed)}
+        devices.sort(key=lambda device: order.get(device.id, order.get(device.index, len(order))))
     return devices
 
 

@@ -4,23 +4,18 @@ import os
 import subprocess
 from pathlib import Path
 
+import yaml
+
 from models.catalog import MODELS
 from ops.scheduler import Scheduler
-from server.config import Config
-
-BUNDLED_MODELS = {
-    "firered-punc",
-    "firered-vad",
-    "moss-td",
-    "nemotron-diarization",
-    "paraformer",
-    "pyannote-community-1",
-    "qwen3-aligner",
-    "sensevoice",
-}
+from server.config import Config, read_config
 
 
-def test_each_model_has_static_download_serve_chain() -> None:
+def config() -> Config:
+    return read_config(Path(__file__).resolve().parents[1] / "server/server.yaml")
+
+
+def test_each_model_has_revisioned_download_and_static_service(tmp_path: Path) -> None:
     root = Path(__file__).resolve().parents[1]
     graph = root / "rootfs/etc/s6/s6-rc.d"
     for spec in MODELS:
@@ -34,21 +29,38 @@ def test_each_model_has_static_download_serve_chain() -> None:
         serve = graph / f"asr-{spec.id}"
         assert "s6-setuidgid x" in (serve / "run").read_text()
         dependency = serve / f"dependencies.d/asr-{spec.id}-download"
-        if spec.id in BUNDLED_MODELS:
-            assert not download.exists()
-            assert not dependency.exists()
-        else:
-            assert dependency.is_file()
-            assert "download_model.sh" in (download / "up").read_text()
+        assert dependency.is_file()
+        download_up = (download / "up").read_text()
+        assert "download_model.sh" in download_up
+        assert "HF_TOKEN_PATH=/run/secrets/huggingface_token" in download_up
         download_script = (directory / "download_model.sh").read_text()
         assert "hf download" in download_script
         assert "--include" in download_script
         assert "--exclude" not in download_script
+        assert "revision=" in download_script
+        assert "weights/.revision" in download_script
+        assert 'mkdir -p "$(readlink -m -- "$model_dir/weights")"' in download_script
         assert not (directory / "download_model.py").exists()
         for script in (download_script, (directory / "run").read_text()):
             assert "--frozen" in script
             assert "--no-sync" in script
             assert "--locked" not in script
+
+        revision = next(
+            line.removeprefix("revision=")
+            for line in download_script.splitlines()
+            if line.startswith("revision=")
+        )
+        local_model = tmp_path / spec.id
+        (local_model / "weights").mkdir(parents=True)
+        (local_model / "weights/.revision").write_text(revision)
+        local_script = local_model / "download_model.sh"
+        local_script.write_text(download_script)
+        subprocess.run(
+            ["bash", str(local_script)],
+            check=True,
+            env={"PATH": "/usr/bin:/bin"},
+        )
 
 
 def test_image_installs_model_environments_in_one_layer() -> None:
@@ -88,21 +100,13 @@ def test_image_installs_model_environments_in_one_layer() -> None:
     )
 
 
-def test_image_bundles_only_selected_model_weights() -> None:
+def test_image_contains_no_model_weights() -> None:
     root = Path(__file__).resolve().parents[1]
-    installer = root / "install-bundled-model-weights.sh"
-    subprocess.run(["bash", "-n", str(installer)], check=True)
-    installer_text = installer.read_text()
-
-    for spec in MODELS:
-        marker = f"  {spec.id}\n"
-        assert (marker in installer_text) == (spec.id in BUNDLED_MODELS)
-
     dockerfile = (root / "Dockerfile").read_text()
-    install = "/usr/local/bin/install-asr-bundled-model-weights"
-    assert dockerfile.count(install) == 2
-    assert "type=secret,id=huggingface_token" in dockerfile
-    assert "HF_TOKEN_PATH=/run/secrets/huggingface_token" in dockerfile
+    assert "install-bundled-model-weights" not in dockerfile
+    assert "type=secret" not in dockerfile
+    assert "mkdir -p /data/asr /model-data /run/asr" in dockerfile
+    assert 'ln -s "/model-data/${model_dir##*/}" "$model_dir/weights"' in dockerfile
 
 
 def test_whisper_download_uses_only_vllm_safetensors() -> None:
@@ -147,16 +151,63 @@ def test_vllm_models_use_global_cuda_toolchain() -> None:
         assert "cuda-toolkit[nvcc]" not in project
 
 
+def test_static_placement_uses_five_80_gib_gpus_for_parallel_stages() -> None:
+    root = Path(__file__).resolve().parents[1]
+    resources = config().resources
+    specs = {spec.id: spec for spec in MODELS if spec.gpus}
+    assert set(resources.placement) == set(specs)
+    loads = [0.0] * 5
+    for model, placement in resources.placement.items():
+        spec = specs[model]
+        assert len(placement) == spec.gpus
+        assert len(set(placement)) == len(placement)
+        for index in placement:
+            loads[index] += spec.memory_gib
+    assert resources.gpu_memory_gib == 80
+    assert loads == [64, 50, 60, 60, 12]
+    assert all(load < resources.gpu_memory_gib for load in loads)
+
+    first_pass = {
+        "firered-llm": {0, 1},
+        "qwen3-asr-1.7b": {2},
+        "sensevoice": {3},
+        "paraformer": {4},
+    }
+    assert len(set().union(*first_pass.values())) == sum(map(len, first_pass.values())) == 5
+
+    utilization = {
+        "firered-llm": "0.40",
+        "moss-audio": "0.40",
+        "moss-td": "0.60",
+        "qwen3-asr-1.7b": "0.15",
+        "vibevoice": "0.60",
+        "whisper-large-v3": "0.10",
+    }
+    for model, value in utilization.items():
+        run = (root / "models" / model / "run").read_text()
+        assert f"--gpu-memory-utilization {value}" in run
+
+    aligner = (root / "models/qwen3-aligner/service.py").read_text()
+    assert "gpu_memory_utilization=0.10" in aligner
+
+
+def test_normal_deployment_allocates_shared_memory() -> None:
+    example = Path(__file__).resolve().parents[5] / "config.example.yaml"
+    config = yaml.safe_load(example.read_text())
+    assert config["services"]["asr"]["container"]["shm_size"] == "8g"
+
+
 def test_model_clients_match_fixed_listeners(tmp_path: Path) -> None:
     uv = tmp_path / "uv"
     uv.write_text('#!/usr/bin/env bash\nprintf "%s\\n" "$@"\n')
     uv.chmod(0o755)
-    scheduler = Scheduler(Config())
+    scheduler = Scheduler(config())
     try:
         ports = set()
         for instance in scheduler.instances.values():
+            directory = Path(__file__).resolve().parents[1] / "models" / instance.spec.id
             result = subprocess.run(
-                [str(instance.directory / "run")],
+                [str(directory / "run")],
                 env={
                     **os.environ,
                     "PATH": str(tmp_path) + os.pathsep + os.environ["PATH"],
@@ -177,10 +228,7 @@ def test_model_clients_match_fixed_listeners(tmp_path: Path) -> None:
                 assert args[args.index("--max-model-len") + 1] == "65536"
                 template = args[args.index("--chat-template") + 1]
                 assert template.endswith("/vibevoice/chat_template.jinja")
-                assert (
-                    "{{ audio_duration }}"
-                    in (instance.directory / "chat_template.jinja").read_text()
-                )
+                assert "{{ audio_duration }}" in (directory / "chat_template.jinja").read_text()
             assert port not in ports
             ports.add(port)
         assert ports == set(range(8000, 8013))

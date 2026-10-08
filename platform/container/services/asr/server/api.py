@@ -7,11 +7,10 @@ from typing import Annotated, Literal
 
 import typer
 import uvicorn
-from fastapi import FastAPI, Form, HTTPException, Response, UploadFile
-from pydantic import ValidationError
+from fastapi import FastAPI, Form, HTTPException, UploadFile
+from pydantic import JsonValue, ValidationError
 
 from ops.scheduler import Scheduler
-from server.artifacts import bundle
 from server.config import Config, read_config
 from server.recipes import Options
 from server.tracing import Trace
@@ -42,7 +41,9 @@ def create_app(
         return {"status": "ready"}
 
     @app.post("/transcribe")
-    async def submit(file: UploadFile, options: Annotated[str, Form()] = "{}") -> Response:
+    async def submit(
+        file: UploadFile, options: Annotated[str, Form()] = "{}"
+    ) -> dict[str, JsonValue]:
         trace = Trace()
         try:
             parameters = Options.model_validate_json(options)
@@ -84,22 +85,16 @@ def create_app(
                     if all(result.status == "completed" for result in results)
                     else "partial"
                 )
-                archive = await asyncio.to_thread(
-                    bundle,
-                    results,
-                    {
+                return {
+                    "results": [result.model_dump(mode="json") for result in results],
+                    "evidence": {
                         "filename": file.filename or "recording",
                         "options": parameters.model_dump(mode="json"),
                         "config": config.model_dump(mode="json"),
                         "channels": evidence,
                     },
-                    trace.document(status),
-                )
-                return Response(
-                    archive,
-                    media_type="application/zip",
-                    headers={"Content-Disposition": 'attachment; filename="transcripts.zip"'},
-                )
+                    "trace": trace.document(status).model_dump(mode="json", exclude_none=True),
+                }
         finally:
             await file.close()
 

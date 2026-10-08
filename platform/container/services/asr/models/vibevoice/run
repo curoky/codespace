@@ -27,7 +27,7 @@ exec uv run \
   --tensor-parallel-size 1 \
   --chat-template "$model_dir/chat_template.jinja" \
   --max-model-len 65536 \
-  --gpu-memory-utilization 0.85 \
+  --gpu-memory-utilization 0.60 \
   --seed 0 \
   --generation-config vllm \
   "$@"

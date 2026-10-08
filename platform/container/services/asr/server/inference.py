@@ -75,12 +75,20 @@ class Inference:
         inference_seconds = 0.0
         output: dict[str, JsonValue] = {}
         error: str | None = None
+        cache_hit = False
         failed = True
         try:
             acquired = await self.scheduler.acquire(model, metrics)
             gpu_ids = list(acquired.devices)
             gpu_indices = list(acquired.gpu_indices)
-            if acquired.spec.resources.gpus:
+            # 并发调用可能在等待同一模型锁期间被前一个调用填入缓存。
+            if key in self.responses:
+                result = self.responses[key].model_copy(deep=True)
+                output = self.output_summary(result)
+                cache_hit = True
+                failed = False
+                return result
+            if acquired.spec.gpus:
                 inference_started = time.monotonic()
                 result = await acquired.client(self.scheduler.http, effective)
                 inference_seconds = time.monotonic() - inference_started
@@ -106,7 +114,7 @@ class Inference:
             raise
         finally:
             if acquired is not None:
-                await self.scheduler.release(acquired, failed=failed)
+                await self.scheduler.release(acquired)
             self.trace.add(
                 kind="model",
                 name=step,
@@ -114,12 +122,10 @@ class Inference:
                 model=model,
                 started=started,
                 status="failed" if failed else "completed",
-                cache_hit=False,
+                cache_hit=cache_hit,
                 gpu_ids=gpu_ids,
                 gpu_indices=gpu_indices,
                 model_queue_seconds=metrics.model_queue_seconds,
-                gpu_queue_seconds=metrics.gpu_queue_seconds,
-                startup_seconds=metrics.startup_seconds,
                 cpu_queue_seconds=cpu_queue_seconds,
                 inference_seconds=inference_seconds,
                 input_summary=self.input_summary(effective),

@@ -26,7 +26,7 @@ exec uv run \
   --dtype bfloat16 \
   --tensor-parallel-size 1 \
   --max-model-len 448 \
-  --gpu-memory-utilization 0.85 \
+  --gpu-memory-utilization 0.10 \
   --seed 0 \
   --generation-config vllm \
   "$@"

@@ -1,0 +1,4 @@
+interface:
+  display_name: "ASR 本地测试"
+  short_description: "构建 ASR 镜像并使用外部权重完成本地测试"
+  default_prompt: "使用 $test-asr 构建 ASR 镜像、准备模型权重并执行本地转写冒烟测试。"

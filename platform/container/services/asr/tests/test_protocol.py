@@ -9,7 +9,7 @@ import pytest
 from models.vllm import complete
 from ops.scheduler import Scheduler
 from protocol import InferenceRequest
-from server.config import Config
+from server.config import read_config
 
 
 @pytest.mark.parametrize("finish,done", [("length", True), ("stop", False)])
@@ -52,7 +52,9 @@ def test_vibevoice_uses_upstream_transcription_request(tmp_path: Path) -> None:
         return httpx.Response(200, text=content, request=request)
 
     async def run() -> None:
-        scheduler = Scheduler(Config())
+        scheduler = Scheduler(
+            read_config(Path(__file__).resolve().parents[1] / "server/server.yaml")
+        )
         try:
             async with httpx.AsyncClient(transport=httpx.MockTransport(respond)) as client:
                 result = await scheduler.instances["vibevoice"].client(

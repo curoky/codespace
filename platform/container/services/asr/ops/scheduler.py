@@ -3,7 +3,6 @@ import contextlib
 import importlib.util
 import sys
 import time
-from collections import deque
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -20,22 +19,17 @@ from server.config import Config
 @dataclass
 class Instance:
     spec: ModelSpec
-    directory: Path
     url: str
     client: Callable[[httpx.AsyncClient, InferenceRequest], Awaitable[InferenceResult]]
     devices: list[str] = field(default_factory=list)
     gpu_indices: list[str] = field(default_factory=list)
     running: bool = False
-    active: bool = False
-    last_used: float = 0
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
 
 @dataclass
 class AcquireMetrics:
     model_queue_seconds: float = 0
-    gpu_queue_seconds: float = 0
-    startup_seconds: float = 0
 
 
 class Scheduler:
@@ -45,15 +39,13 @@ class Scheduler:
         *,
         runtime_dir: Path = Path("/run/asr"),
         control: Callable[[str, str], Awaitable[None]] = service,
-        inventory: Callable[[str | list[str]], Awaitable[list[GPU]]] = visible_gpus,
+        inventory: Callable[[], Awaitable[list[GPU]]] = visible_gpus,
     ) -> None:
         self.config = config
         self.runtime_dir = runtime_dir
         self.control = control
         self.inventory = inventory
         self.instances: dict[str, Instance] = {}
-        self.condition = asyncio.Condition()
-        self.waiters: deque[str] = deque()
         self.http = httpx.AsyncClient(timeout=10, trust_env=False)
         self.cpu = asyncio.Semaphore(config.cpu_requests)
         for spec in MODELS:
@@ -71,34 +63,64 @@ class Scheduler:
                 Callable[[httpx.AsyncClient, InferenceRequest], Awaitable[InferenceResult]],
                 module.infer,
             )
-            self.instances[spec.id] = Instance(spec, directory, module.URL, client)
+            self.instances[spec.id] = Instance(spec, module.URL, client)
 
     async def initialize(self) -> None:
         self.runtime_dir.mkdir(parents=True, exist_ok=True)
         for model in self.instances:
             await self.control("stop", model)
 
-    async def close(self) -> None:
+        devices = await self.inventory()
+        loads = [0.0] * len(devices)
         for instance in self.instances.values():
-            if instance.running:
-                await self.control("stop", instance.spec.id)
+            if not instance.spec.gpus:
+                continue
+            placement = self.config.resources.placement[instance.spec.id]
+            try:
+                assigned = [devices[index] for index in placement]
+            except IndexError as exc:
+                raise RuntimeError(
+                    f"{instance.spec.id}: placement requires {max(placement) + 1} visible GPUs"
+                ) from exc
+            instance.devices = [device.id for device in assigned]
+            instance.gpu_indices = [device.index for device in assigned]
+            for index in placement:
+                loads[index] += instance.spec.memory_gib
+
+        for index, load in enumerate(loads):
+            if not load:
+                continue
+            device = devices[index]
+            if device.free_mib < load * 1024 or device.total_mib - device.free_mib > 512:
+                raise RuntimeError(
+                    f"GPU {device.index}: static placement needs {load:g} GiB on an idle device"
+                )
+
+        try:
+            for instance in self.instances.values():
+                await self._start(instance)
+        except BaseException:
+            for instance in self.instances.values():
+                if instance.running:
+                    with contextlib.suppress(Exception):
+                        await self._stop(instance)
+            raise
+
+    async def close(self) -> None:
         await self.http.aclose()
 
     async def _stop(self, instance: Instance) -> None:
         await self.control("stop", instance.spec.id)
         instance.running = False
-        instance.devices.clear()
-        instance.gpu_indices.clear()
 
     async def _start(self, instance: Instance) -> None:
-        spec = instance.spec
-        if spec.resources.gpus:
-            directory = self.runtime_dir / spec.id
+        if instance.spec.gpus:
+            directory = self.runtime_dir / instance.spec.id
             directory.mkdir(parents=True, exist_ok=True)
             (directory / "CUDA_VISIBLE_DEVICES").write_text(",".join(instance.devices))
         instance.running = True
-        await self.control("start", spec.id)
-        deadline = time.monotonic() + spec.resources.startup_seconds
+        await self.control("start", instance.spec.id)
+        deadline = time.monotonic() + instance.spec.startup_seconds
         while time.monotonic() < deadline:
             try:
                 response = await self.http.get(f"{instance.url}/health")
@@ -107,7 +129,7 @@ class Scheduler:
             except httpx.TransportError:
                 pass
             await asyncio.sleep(1)
-        raise TimeoutError(f"{spec.id}: readiness timeout")
+        raise TimeoutError(f"{instance.spec.id}: readiness timeout")
 
     async def acquire(self, model: str, metrics: AcquireMetrics | None = None) -> Instance:
         metrics = metrics or AcquireMetrics()
@@ -115,79 +137,9 @@ class Scheduler:
         started = time.monotonic()
         await instance.lock.acquire()
         metrics.model_queue_seconds = time.monotonic() - started
-        try:
-            if not instance.spec.resources.gpus:
-                if not instance.running:
-                    started = time.monotonic()
-                    try:
-                        await self._start(instance)
-                    finally:
-                        metrics.startup_seconds = time.monotonic() - started
-                instance.active = True
-                return instance
-            started = time.monotonic()
-            async with self.condition:
-                self.waiters.append(model)
-                deadline = time.monotonic() + self.config.resources.wait_seconds
-                try:
-                    while True:
-                        if self.waiters[0] == model:
-                            if instance.running:
-                                instance.active = True
-                                break
-                            devices = await self.inventory(self.config.resources.gpu_pool)
-                            required = instance.spec.resources.gpus
-                            if required > len(devices):
-                                raise RuntimeError(f"{model}: requires {required} visible GPUs")
-                            reserved = {d for i in self.instances.values() for d in i.devices}
-                            available = [
-                                d
-                                for d in devices
-                                if d.id not in reserved
-                                and d.free_mib >= instance.spec.resources.memory_gib * 1024
-                                and d.total_mib - d.free_mib <= 512
-                            ]
-                            if len(available) >= required:
-                                instance.devices = [d.id for d in available[:required]]
-                                instance.gpu_indices = [d.index for d in available[:required]]
-                                instance.active = True
-                                break
-                            idle = [
-                                i
-                                for i in self.instances.values()
-                                if i.running and not i.active and i.devices
-                            ]
-                            if idle:
-                                await self._stop(min(idle, key=lambda i: i.last_used))
-                                continue
-                        remaining = deadline - time.monotonic()
-                        if remaining <= 0:
-                            raise TimeoutError(f"{model}: resource wait timeout")
-                        with contextlib.suppress(TimeoutError):
-                            await asyncio.wait_for(self.condition.wait(), min(remaining, 1))
-                finally:
-                    metrics.gpu_queue_seconds = time.monotonic() - started
-                    self.waiters.remove(model)
-                    self.condition.notify_all()
-            if not instance.running:
-                started = time.monotonic()
-                try:
-                    await self._start(instance)
-                finally:
-                    metrics.startup_seconds = time.monotonic() - started
-            return instance
-        except BaseException:
-            await self.release(instance, failed=True)
-            raise
+        return instance
 
-    async def release(self, instance: Instance, *, failed: bool = False) -> None:
-        async with self.condition:
-            instance.active = False
-            instance.last_used = time.monotonic()
-            try:
-                if failed and instance.running:
-                    await self._stop(instance)
-            finally:
-                if instance.lock.locked():
-                    instance.lock.release()
-                self.condition.notify_all()
+    @staticmethod
+    async def release(instance: Instance) -> None:
+        if instance.lock.locked():
+            instance.lock.release()
