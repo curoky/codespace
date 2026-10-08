@@ -19,7 +19,14 @@ for model_dir in "${model_dirs[@]}"; do
   fi
 
   echo "installing ${model_dir%/}"
-  if ! uv sync --locked --no-dev --project "$model_dir"; then
+  if ! uv sync \
+    --locked \
+    --no-dev \
+    --no-install-package cuda-toolkit \
+    --no-install-package nvidia-cuda-crt \
+    --no-install-package nvidia-cuda-nvcc \
+    --no-install-package nvidia-nvvm \
+    --project "$model_dir"; then
     echo "failed to install ${model_dir%/}" >&2
     exit 1
   fi

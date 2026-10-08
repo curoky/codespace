@@ -11,7 +11,8 @@ export TRANSFORMERS_OFFLINE=1
 export TOKENIZERS_PARALLELISM=false
 export OMP_NUM_THREADS=4
 
-export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat
+export CUDA_HOME=/usr/local/cuda-13.0
+export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64
 
 exec uv run \
   --project "$model_dir" \

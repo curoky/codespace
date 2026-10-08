@@ -58,9 +58,23 @@ def test_image_installs_model_environments_in_one_layer() -> None:
 
     installer_text = installer.read_text()
     assert "UV_LINK_MODE=hardlink" in installer_text
-    assert 'uv sync --locked --no-dev --project "$model_dir"' in installer_text
+    assert "uv sync" in installer_text
+    assert '--project "$model_dir"' in installer_text
+    for package in (
+        "cuda-toolkit",
+        "nvidia-cuda-crt",
+        "nvidia-cuda-nvcc",
+        "nvidia-nvvm",
+    ):
+        assert f"--no-install-package {package}" in installer_text
 
     dockerfile = (root / "Dockerfile").read_text()
+    assert (
+        "nvidia/cuda:13.0.3-devel-ubuntu24.04@sha256:"
+        "b7ae301dea2c162444795462ce17a05f6a516e5a75944b57af5b88540a1a2266" in dockerfile
+    )
+    assert "COPY --from=cuda-toolkit /opt/cuda-13.0/ /usr/local/cuda-13.0/" in dockerfile
+    assert "PATH=/usr/local/cuda-13.0/bin:${PATH}" in dockerfile
     install = "/usr/local/bin/install-asr-model-environments"
     deduplicate = "hardlink --ignore-time --respect-xattrs --maximize"
     assert dockerfile.count(install) == 2
@@ -105,6 +119,32 @@ def test_funasr_downloads_pass_all_allowlist_patterns_to_legacy_hf_cli() -> None
     for model in ("paraformer", "sensevoice"):
         script = (root / model / "download_model.sh").read_text()
         assert script.count("--include") == 1
+
+
+def test_vllm_transcription_config_is_model_owned() -> None:
+    root = Path(__file__).resolve().parents[1] / "models"
+    for model in ("firered-llm", "moss-td", "qwen3-asr-1.7b", "whisper-large-v3"):
+        assert "--speech-to-text-config" not in (root / model / "run").read_text()
+
+
+def test_vllm_models_use_global_cuda_toolchain() -> None:
+    root = Path(__file__).resolve().parents[1] / "models"
+    for model in (
+        "firered-llm",
+        "moss-audio",
+        "moss-td",
+        "qwen3-aligner",
+        "qwen3-asr-1.7b",
+        "vibevoice",
+        "whisper-large-v3",
+    ):
+        run = (root / model / "run").read_text()
+        project = (root / model / "pyproject.toml").read_text()
+        assert "export CUDA_HOME=/usr/local/cuda-13.0" in run
+        assert (
+            "export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64" in run
+        )
+        assert "cuda-toolkit[nvcc]" not in project
 
 
 def test_model_clients_match_fixed_listeners(tmp_path: Path) -> None:

@@ -7,24 +7,25 @@
 ## Model Storage Footprint
 
 下表是当前模型、Serving、依赖栈与存储信息的统一维护入口。全部环境使用 Python 3.12.14；
-框架、Torch 和 Transformers 版本来自各目录 `uv.lock` 的 Linux 解析结果。大小统一使用
-二进制 GiB（`1 GiB = 1,073,741,824 bytes = 1024³ bytes`）。
+框架、Torch 和 Transformers 版本来自各目录 `uv.lock` 的 Linux 解析结果。CUDA 是 toolkit
+release；CPU-only 环境记为 `—`。大小统一使用二进制 GiB（`1 GiB = 1,073,741,824 bytes =
+1024³ bytes`）。
 
-| 模型 / checkpoint | Serving 接口 | SDK / 版本 | Transformers 版本 | vLLM 版本 | Torch 版本 | 参数大小（GiB） | 权重交付 | `.venv` 逻辑大小（GiB） | SGLang 依据 |
-| --- | --- | --- | --- | --- | --- | ---: | --- | --- | --- |
-| [`firered-llm`](https://huggingface.co/allendou/FireRedASR2-LLM-vllm) | transcription（[作者配方][firered]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 31.147 | ❌ | 7.695 | 未找到原生依据 |
-| [`firered-punc`](https://huggingface.co/FireRedTeam/FireRedPunc) | 本模型 HTTP | [FireRedASR2S][firered] 0.0.1 @ `4e7d9aa` / CPU | 5.1.0 | — | 2.10.0+cpu | 0.762 | ✅ | 0.832 | 未找到原生依据 |
-| [`firered-vad`](https://huggingface.co/FireRedTeam/FireRedVAD) | 本模型 HTTP | [FireRedASR2S][firered] 0.0.1 @ `4e7d9aa` / CPU | 5.1.0 | — | 2.10.0+cpu | 0.002 | ✅ | 0.832 | 未找到原生依据 |
-| [`moss-audio`](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-8B-Instruct) | audio chat（[作者文档][moss-audio]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 16.862 | ❌ | 7.695 | 作者 fork |
-| [`moss-td`](https://huggingface.co/OpenMOSS-Team/MOSS-Transcribe-Diarize) | transcription（[作者文档][moss-td]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 1.692 | ✅ | 7.695 | Omni 原生；主仓库未找到依据 |
-| [`nemotron-diarization`](https://huggingface.co/nvidia/Nemotron-3-Diarization) | 本模型 HTTP | NeMo 3.1.0+ca3f93a51 | 4.57.6 | — | 2.13.0 | 0.185 | ✅ | 5.288 | 未找到原生依据 |
-| [`paraformer`](https://huggingface.co/funasr/paraformer-zh) | 本模型 HTTP | [FunASR][funasr] 1.4.16 | 4.57.6 | — | 2.13.0 | 0.820 | ✅ | 4.973 | 未找到原生依据 |
-| [`pyannote-community-1`](https://huggingface.co/pyannote/speaker-diarization-community-1) | 本模型 HTTP | [pyannote.audio][pyannote] 4.0.7 | — | — | 2.13.0 | 0.031 | ✅ | 4.819 | 未找到原生依据 |
-| [`qwen3-aligner`](https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B) | pooling + 本模型 HTTP（[Qwen SDK][qwen]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 1.709 | ✅ | 7.695 | 未找到等价原生接口 |
-| [`qwen3-asr-1.7b`](https://huggingface.co/Qwen/Qwen3-ASR-1.7B) | transcription（[Qwen SDK][qwen]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 4.376 | ❌ | 7.695 | 主仓库 / Omni 原生 |
-| [`sensevoice`](https://huggingface.co/FunAudioLLM/SenseVoiceSmall) | 本模型 HTTP | [FunASR][sensevoice] 1.4.16 | 4.57.6 | — | 2.13.0 | 0.872 | ✅ | 4.973 | 未找到原生依据 |
-| [`vibevoice`](https://huggingface.co/microsoft/VibeVoice-ASR-HF) | audio chat（[作者文档][vibevoice]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 15.517 | ❌ | 7.695 | 未找到原生依据 |
-| [`whisper-large-v3`](https://huggingface.co/openai/whisper-large-v3) | transcription（[模型来源][whisper]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 2.875 | ❌ | 7.695 | 主仓库原生 ASR |
+| 模型 / checkpoint | Serving 接口 | SDK / 版本 | Transformers 版本 | vLLM 版本 | Torch 版本 | CUDA 版本 | 参数大小（GiB） | 权重交付 | `.venv` 逻辑大小（GiB） | SGLang 依据 |
+| --- | --- | --- | --- | --- | --- | --- | ---: | --- | --- | --- |
+| [`firered-llm`](https://huggingface.co/allendou/FireRedASR2-LLM-vllm) | transcription（[作者配方][firered]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | 31.147 | ❌ | 7.392 | 未找到原生依据 |
+| [`firered-punc`](https://huggingface.co/FireRedTeam/FireRedPunc) | 本模型 HTTP | [FireRedASR2S][firered] 0.0.1 @ `4e7d9aa` / CPU | 5.1.0 | — | 2.10.0+cpu | — | 0.762 | ✅ | 0.832 | 未找到原生依据 |
+| [`firered-vad`](https://huggingface.co/FireRedTeam/FireRedVAD) | 本模型 HTTP | [FireRedASR2S][firered] 0.0.1 @ `4e7d9aa` / CPU | 5.1.0 | — | 2.10.0+cpu | — | 0.002 | ✅ | 0.832 | 未找到原生依据 |
+| [`moss-audio`](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-8B-Instruct) | audio chat（[作者文档][moss-audio]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | 16.862 | ❌ | 7.392 | 作者 fork |
+| [`moss-td`](https://huggingface.co/OpenMOSS-Team/MOSS-Transcribe-Diarize) | transcription（[作者文档][moss-td]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | 1.692 | ✅ | 7.396 | Omni 原生；主仓库未找到依据 |
+| [`nemotron-diarization`](https://huggingface.co/nvidia/Nemotron-3-Diarization) | 本模型 HTTP | NeMo 3.1.0+ca3f93a51 | 4.57.6 | — | 2.13.0 | 13.0.3 | 0.185 | ✅ | 5.288 | 未找到原生依据 |
+| [`paraformer`](https://huggingface.co/funasr/paraformer-zh) | 本模型 HTTP | [FunASR][funasr] 1.4.16 | 4.57.6 | — | 2.13.0 | 13.0.3 | 0.820 | ✅ | 4.973 | 未找到原生依据 |
+| [`pyannote-community-1`](https://huggingface.co/pyannote/speaker-diarization-community-1) | 本模型 HTTP | [pyannote.audio][pyannote] 4.0.7 | — | — | 2.13.0 | 13.0.3 | 0.031 | ✅ | 4.819 | 未找到原生依据 |
+| [`qwen3-aligner`](https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B) | pooling + 本模型 HTTP（[Qwen SDK][qwen]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | 1.709 | ✅ | 7.396 | 未找到等价原生接口 |
+| [`qwen3-asr-1.7b`](https://huggingface.co/Qwen/Qwen3-ASR-1.7B) | transcription（[Qwen SDK][qwen]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | 4.376 | ❌ | 7.392 | 主仓库 / Omni 原生 |
+| [`sensevoice`](https://huggingface.co/FunAudioLLM/SenseVoiceSmall) | 本模型 HTTP | [FunASR][sensevoice] 1.4.16 | 4.57.6 | — | 2.13.0 | 13.0.3 | 0.872 | ✅ | 4.973 | 未找到原生依据 |
+| [`vibevoice`](https://huggingface.co/microsoft/VibeVoice-ASR-HF) | audio chat（[作者文档][vibevoice]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | 15.517 | ❌ | 7.392 | 未找到原生依据 |
+| [`whisper-large-v3`](https://huggingface.co/openai/whisper-large-v3) | transcription（[模型来源][whisper]） | — | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | 2.875 | ❌ | 7.392 | 主仓库原生 ASR |
 
 参数大小按各 `download_model.sh` 固定 revision 的仓库 metadata 统计，只计算 checkpoint /
 weight 文件，不包含 config、tokenizer、词典、CMVN 或 download cache；`.nemo`、`.pth.tar`
@@ -35,13 +36,13 @@ weight 文件，不包含 config、tokenizer、词典、CMVN 或 download cache�
 
 参数文件总计 76.850 GiB，其中 image 内置 6.074 GiB，runtime 下载 70.776 GiB。计入
 allowlist 中的必要配置与 tokenizer 后，实际内置下载约 6.101 GiB，实际 runtime 下载约
-70.811 GiB。13 个 `.venv` 的逻辑大小合计 75.581 GiB；同一 layer 内完成 uv cache 与内容
-hardlink 去重后的整体实际分配为 9.783 GiB，不能稳定归属到单个模型。修改 revision、
-allowlist、Python 或 lock 时重新构建镜像并同步更新本表。
+70.811 GiB。13 个 `.venv` 的逻辑大小合计 73.488 GiB；同一 layer 内完成 uv cache 与内容
+hardlink 去重后的整体实际分配为 9.520 GiB，不能稳定归属到单个模型。全局 CUDA compiler
+toolkit 在既有 compat libraries 之外增加约 0.352 GiB。修改 revision、allowlist、Python、lock
+或 toolkit payload 时重新构建镜像并同步更新本表。
 
 环境安装完成后还会按文件内容对全部模型与 server 环境做第二遍去重；它只忽略 mtime，
-mode、owner 与 xattr 不同的文件不会合并。本次干净环境构建中额外合并 63,597 个文件，
-节省 19.4 MiB；计入 server `.venv` 后实际分配为 9.790 GiB。
+mode、owner 与 xattr 不同的文件不会合并。上面的整体实际分配已计入 server `.venv`。
 
 Serving 与 SGLang 结论是 2026-10-07 的上游核对记录，依据 [vLLM 0.31.0][vllm-models]、
 [SGLang 0.5.21][sg-models] 和 [SGLang-Omni 0.1.7][omni]，不代替当前 Host 的真实推理验证。
@@ -76,8 +77,9 @@ s6 文件的工具。配置文件使用 YAML，uv 工具文件除外。参数、
 
 - `install-model-environments.sh` 在 image build 的同一个 layer 中遍历全部模型并使用
   `UV_LINK_MODE=hardlink` 创建独立 `.venv`；server 安装完成后再对所有环境做 content-based
-  hardlink，补齐 uv cache artifact 之外的相同文件。任一 lock 失配、安装或去重失败必须使
-  build 失败。
+  hardlink，补齐 uv cache artifact 之外的相同文件。CUDA toolkit meta package、compiler、
+  CRT 与 NVVM 由 image 全局提供，安装时跳过 vLLM kernel package 间接声明的对应 wheel。
+  任一 lock 失配、安装或去重失败必须使 build 失败。
 - `run` 与 `download_model.sh` 使用 `uv run --frozen --no-sync`，只运行 image 内预装环境，
   不在启动或下载权重时解析、安装或更新依赖。
 - 权重固定在本目录 `weights/`。下载脚本只调用 HF CLI；`run` 只加载本地权重，不代替下载。
@@ -88,13 +90,22 @@ s6 文件的工具。配置文件使用 YAML，uv 工具文件除外。参数、
   与权重不进入 build context，image 中的环境与内置权重只由锁文件和固定 snapshot 构建。
 - 监听地址和端口在 `run` 显式固定，client 的 `URL` 同步维护。调度器从 client 读取地址
   做 readiness，不生成端口，也不把地址注入模型。改变端口时同步 DESIGN 的服务表。
+- vLLM transcription 的 `SpeechToTextConfig` 由各 model class 从 processor 构造，`run`
+  不传 server 级覆盖参数。普通 ASR 由上层保持不超过 30 秒，catalog 记录相同模型预算；
+  联合模型根据 catalog 的上限切窗。升级 vLLM 时核对模型实现与 CLI parser，不能只依据
+  旧启动参数。
 - SDK 服务只接收 `/data/asr` 内真实文件；原生 vLLM client 发送音频内容。数据目录是镜像
   内固定契约，改变 Host 存储位置用 bind mount；不要只改 server 的路径而破坏 SDK 访问。
 - 模型不读取应用配置环境变量。GPU 服务的唯一动态输入是 `CUDA_VISIBLE_DEVICES`：由
   ops 分配、s6 传入。不要 hardcode 物理卡号；SDK 的 `cuda:0` 表示本进程可见的第一张卡。
   CPU 服务无需这项输入。
-- `run` 固定 offline、线程预算等必要环境；GPU 的 `LD_LIBRARY_PATH` 固定为 image 内
-  CUDA compat 目录。不要拼接 Host 的库路径、代理或 uv / HF 环境变量。
+- `run` 固定 offline、线程预算等必要环境；vLLM 的 `CUDA_HOME` 指向 image 全局
+  `/usr/local/cuda-13.0`，其 `bin` 由 image 加入 `PATH`，供 FlashInfer runtime JIT 使用。
+  toolkit 从固定 digest 的 NVIDIA CUDA devel image 取 compiler、headers、NVVM、CUDA runtime
+  linker inputs 与 driver stub，不从模型 venv 选择 compiler；FlashInfer 的 NVRTC 与 GPU runtime
+  libraries 仍由 venv 的锁定依赖提供。vLLM 的 `LD_LIBRARY_PATH` 固定为 image 内 CUDA compat
+  和 toolkit `lib64` 目录，不含仅供链接的 driver stub。不要拼接 Host 的库路径、代理或 uv /
+  HF 环境变量。
 - 模型间不共用 `.venv`。SDK 的 Torch / torchaudio 必须成套；不要为了统一版本而与 vLLM
   混装。修改 TP、精度、显存利用率或上下文预算后同步 catalog 的资源 / 时长限制。
   显存利用率是独占设备上的预算，不是模型精确需求。
@@ -158,7 +169,8 @@ mode 配 R535。`nvidia-smi` 的 CUDA Version 是驱动原生能力，不是兼�
 
 - Dockerfile 固定 `cuda-compat-13-0` 包及 SHA256，解压到 `/usr/local/cuda-13.0/compat`。
   仅包含用户态库，不修改宿主内核模块或 ldconfig。
-- GPU `run` 在加载 Python 前固定 `LD_LIBRARY_PATH`，使 engine 子进程也继承。
+- GPU `run` 在加载 Python 前固定 `LD_LIBRARY_PATH`；vLLM 模型同时固定全局
+  `CUDA_HOME`，使 engine 子进程继承 driver compatibility 库与 JIT compiler toolchain。
   其他系统库使用 loader 默认路径；不替换宿主 NVML。
 - 这里继承 s6 image，官方 vLLM image entrypoint 的兼容开关不适用。不要仅设置
   `VLLM_ENABLE_CUDA_COMPATIBILITY` 就认为已接入兼容库。

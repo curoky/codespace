@@ -1,5 +1,26 @@
+FROM docker.io/nvidia/cuda:13.0.3-devel-ubuntu24.04@sha256:b7ae301dea2c162444795462ce17a05f6a516e5a75944b57af5b88540a1a2266 AS cuda-toolkit
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
+
+RUN mkdir -p /opt/cuda-13.0/targets/x86_64-linux/lib/stubs \
+  && cp -a /usr/local/cuda-13.0/bin /usr/local/cuda-13.0/nvvm /opt/cuda-13.0/ \
+  && cp -a /usr/local/cuda-13.0/targets/x86_64-linux/include \
+    /opt/cuda-13.0/targets/x86_64-linux/ \
+  && cp -a \
+    /usr/local/cuda-13.0/targets/x86_64-linux/lib/libcudadevrt.a \
+    /usr/local/cuda-13.0/targets/x86_64-linux/lib/libcudart.so* \
+    /usr/local/cuda-13.0/targets/x86_64-linux/lib/libcudart_static.a \
+    /opt/cuda-13.0/targets/x86_64-linux/lib/ \
+  && cp -a /usr/local/cuda-13.0/targets/x86_64-linux/lib/stubs/libcuda.so \
+    /opt/cuda-13.0/targets/x86_64-linux/lib/stubs/ \
+  && ln -s targets/x86_64-linux/include /opt/cuda-13.0/include \
+  && ln -s targets/x86_64-linux/lib /opt/cuda-13.0/lib64
+
 FROM ghcr.io/curoky/codespace:service-s6 AS runtime
 SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
+
+COPY --from=cuda-toolkit /opt/cuda-13.0/ /usr/local/cuda-13.0/
+ENV CUDA_HOME=/usr/local/cuda-13.0 \
+  PATH=/usr/local/cuda-13.0/bin:${PATH}
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends ffmpeg libsndfile1 libgomp1 git sudo build-essential \

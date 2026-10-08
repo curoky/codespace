@@ -9,10 +9,11 @@ export TRANSFORMERS_OFFLINE=1
 export TOKENIZERS_PARALLELISM=false
 export OMP_NUM_THREADS=4
 
-export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat
+export CUDA_HOME=/usr/local/cuda-13.0
+export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64
 
 # FP32 / TP=2 沿用作者对转换权重的部署配方；改精度或 TP 前须验证并同步 catalog.py。
-# 8192 为短音频和中文输出留上下文；统一 30 秒窗口，并关闭 vLLM 再切片。
+# vLLM 从 processor 固定 30 秒输入；上层使用相同窗口边界，不传不支持的 server 级 ASR 配置。
 exec uv run \
   --project "$model_dir" \
   --frozen \
@@ -28,5 +29,4 @@ exec uv run \
   --gpu-memory-utilization 0.85 \
   --seed 0 \
   --generation-config vllm \
-  --speech-to-text-config '{"max_audio_clip_s":30,"min_energy_split_window_size":null}' \
   "$@"

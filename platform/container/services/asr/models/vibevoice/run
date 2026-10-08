@@ -9,7 +9,8 @@ export TRANSFORMERS_OFFLINE=1
 export TOKENIZERS_PARALLELISM=false
 export OMP_NUM_THREADS=4
 
-export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat
+export CUDA_HOME=/usr/local/cuda-13.0
+export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64
 
 # HF checkpoint 使用原生 audio chat，不能替换成旧 plugin 或 transcription 入口。
 # BF16 保留精度；32768 为长音频和带时间、speaker 的结构化输出留预算。

@@ -9,10 +9,11 @@ export TRANSFORMERS_OFFLINE=1
 export TOKENIZERS_PARALLELISM=false
 export OMP_NUM_THREADS=4
 
-export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat
+export CUDA_HOME=/usr/local/cuda-13.0
+export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64
 
 # 448 是 Whisper decoder 的上下文限制，不能套其他模型的 8192。
-# 使用标准 30 秒窗口；上层只对争议区间调用，静音和弱语音结果不能单独裁决主稿。
+# vLLM 从 processor 固定 30 秒输入；本模型只复听争议区间，不单独裁决主稿。
 exec uv run \
   --project "$model_dir" \
   --frozen \
@@ -28,5 +29,4 @@ exec uv run \
   --gpu-memory-utilization 0.85 \
   --seed 0 \
   --generation-config vllm \
-  --speech-to-text-config '{"max_audio_clip_s":30,"min_energy_split_window_size":null}' \
   "$@"
