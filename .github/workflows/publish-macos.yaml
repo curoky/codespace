@@ -36,6 +36,7 @@ jobs:
       - name: Publish bm bundle
         id: publish
         shell: bash
+        working-directory: ${{ runner.temp }}
         run: |
           set -euo pipefail
           repository="$(printf '%s' "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')"
@@ -43,7 +44,7 @@ jobs:
           oras push \
             --artifact-type application/vnd.curoky.codespace.macos-bm.v1 \
             "$immutable" \
-            "$RUNNER_TEMP/codespace-bm-darwin-arm64.tar.gz:application/vnd.curoky.codespace.macos-bm.layer.v1+tar+gzip"
+            "codespace-bm-darwin-arm64.tar.gz:application/vnd.curoky.codespace.macos-bm.layer.v1+tar+gzip"
           digest="$(oras manifest fetch --format go-template --template '{{ .digest }}' "$immutable")"
           oras tag "$immutable" macos-bm-darwin-arm64
           printf 'digest=%s\n' "$digest" >>"$GITHUB_OUTPUT"
