@@ -86,7 +86,7 @@ def test_workspace_gh_login_defaults_to_public_read_token() -> None:
 def test_workspace_agents_share_codex_skills() -> None:
     home = _CONTAINER / "workspace/rootfs/home/x"
 
-    for skill in ("debug-github", "manage-services", "manage-software", "use-podman"):
+    for skill in ("debug-github", "manage-services", "manage-software"):
         target = f"../../.codex/skills/{skill}"
         assert (home / ".trae/skills" / skill).readlink() == Path(target)
         assert (home / ".trae-cn/skills" / skill).readlink() == Path(target)
@@ -418,6 +418,8 @@ def test_workspace_podman_separates_image_files_from_user_data() -> None:
     assert "--network-config-dir=/opt/podman/network" in server
     assert "/opt/podman/conf" not in server
     assert 'export PATH="$PATH:/opt/podman/bin"' in profile
+    assert "export BUILDAH_ISOLATION=chroot" in profile
+    assert "export BUILDAH_ISOLATION=chroot" in server
     assert "exec /opt/podman/bin/podman-server" in run
     assert "exec /opt/podman/bin/podman-server --stop-all" in finish
     assert not (workspace / "rootfs/usr/local/bin/podman").exists()

@@ -1,4 +1,0 @@
-interface:
-  display_name: "Use Podman"
-  short_description: "Build and run local containers with rootless Podman."
-  default_prompt: "Use $use-podman to build or run this local container."

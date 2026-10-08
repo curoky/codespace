@@ -45,6 +45,9 @@ export PATH="$PATH:/opt/codespace-tools/java-tool"
 export PATH="$PATH:/opt/codespace-tools/node-tool"
 export PATH="$PATH:/opt/podman/bin"
 
+# buildah
+export BUILDAH_ISOLATION=chroot
+
 # user
 export PATH="/home/x/.local/bin:$PATH"
 

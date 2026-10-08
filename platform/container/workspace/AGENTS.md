@@ -11,7 +11,7 @@ graph。控制面决定实例配置；image 定义容器内固定 filesystem 与
 - `tools/java-tool/AGENTS.md`、`tools/node-tool/AGENTS.md`：resource build 与 Workspace 运行期
   共用的 installer。
 - `rootfs/home/x/.codex/skills/`：按任务加载的容器使用 skill；`.trae/skills` 与
-  `.trae-cn/skills` 分别为每个内置 skill 创建链接。工具、GitHub、Podman 或 s6 的使用约定
+  `.trae-cn/skills` 分别为每个内置 skill 创建链接。工具、GitHub 或 s6 的使用约定
   变化时同步更新对应 skill。它们不替代本维护文档。
 
 ## Build
@@ -78,6 +78,8 @@ platform/container/workspace/build.sh --resource
 - `/opt/podman/data` 是唯一持久状态边界，不能由多个运行中的 Workspace 共享。保留 rootless
   所需 subordinate IDs、setuid helper、capability/security 与 unlimited pids contract。
 - 全新 graphroot 根据 backing filesystem 选择 native overlay 或 VFS；已有 graphroot 沿用
-  原 driver，不自动迁移、重建或删除。内部 container 固定禁用 cgroups。
+  原 driver，不自动迁移、重建或删除。内部 container 固定禁用 cgroups。Workspace shell 与
+  Podman service 都固定设置 `BUILDAH_ISOLATION=chroot`；直接运行 `podman build` 或
+  `buildah bud`，不要探测 cgroups 或手动覆盖 isolation。
 - WSL 继承 filesystem，但使用独立 s6 bundle且不启动 Podman；涉及 inherited graph 时按
   `platform/wsl/AGENTS.md` 追加验证。
