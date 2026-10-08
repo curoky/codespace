@@ -34,12 +34,42 @@ class Result(ResponseRecord):
     segments: list[Segment] = Field(default_factory=list)
 
 
+class TraceEvent(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    kind: Literal["phase", "model"]
+    name: str
+    channel: str | None = None
+    status: Literal["completed", "failed"]
+    started_ms: int = Field(ge=0)
+    duration_ms: int = Field(ge=0)
+    model: str | None = None
+    cache_hit: bool | None = None
+    gpu_ids: list[str] = Field(default_factory=list)
+    gpu_indices: list[str] = Field(default_factory=list)
+    model_queue_ms: int | None = Field(default=None, ge=0)
+    cpu_queue_ms: int | None = Field(default=None, ge=0)
+    inference_ms: int | None = Field(default=None, ge=0)
+    input_summary: dict[str, JsonValue] = Field(default_factory=dict)
+    output_summary: dict[str, JsonValue] = Field(default_factory=dict)
+    error: str | None = None
+
+
+class TraceDocument(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: Literal[1]
+    status: Literal["completed", "partial"]
+    duration_ms: int = Field(ge=0)
+    events: list[TraceEvent]
+
+
 class TranscriptionResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     results: list[Result]
     evidence: dict[str, JsonValue]
-    trace: dict[str, JsonValue]
+    trace: TraceDocument
 
 
 def timestamp(ms: int) -> str:
@@ -72,6 +102,23 @@ def markdown(result: Result) -> str:
     return "\n".join(lines)
 
 
+def trace_report(trace: TraceDocument) -> str:
+    """把严格校验后的 trace 嵌入可离线打开的 client-side viewer。"""
+    template = Path(__file__).with_name("trace.html").read_text()
+    data = trace.model_dump_json(exclude_none=True)
+    safe = (
+        data.replace("&", "\\u0026")
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+        .replace("\u2028", "\\u2028")
+        .replace("\u2029", "\\u2029")
+    )
+    marker = "__ASR_TRACE_DATA__"
+    if template.count(marker) != 1:
+        raise ValueError("trace viewer template must contain exactly one data marker")
+    return template.replace(marker, safe)
+
+
 def write_response(payload: JsonValue, destination: Path) -> bool:
     """严格校验服务响应，在临时目录内生成一套可原子发布的本地产物。"""
     response = TranscriptionResponse.model_validate(payload)
@@ -100,7 +147,8 @@ def write_response(payload: JsonValue, destination: Path) -> bool:
     lines.extend(
         [
             "",
-            "[执行追踪与工程指标](trace.json) · [共享识别证据与参数](evidence.json)",
+            "[执行追踪可视化](trace.html) · [原始 Trace JSON](trace.json) · "
+            "[共享识别证据与参数](evidence.json)",
             "",
         ]
     )
@@ -109,8 +157,11 @@ def write_response(payload: JsonValue, destination: Path) -> bool:
         json.dumps(response.evidence, ensure_ascii=False, indent=2)
     )
     (destination / "trace.json").write_text(
-        json.dumps(response.trace, ensure_ascii=False, indent=2)
+        json.dumps(
+            response.trace.model_dump(mode="json", exclude_none=True), ensure_ascii=False, indent=2
+        )
     )
+    (destination / "trace.html").write_text(trace_report(response.trace))
     return completed
 
 

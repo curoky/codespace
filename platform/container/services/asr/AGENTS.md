@@ -77,8 +77,10 @@ VibeVoice 原版 / HF、FireRed 原始 / 转换权重不能互换；FunASR 的 `
 ## Pipeline Invariants
 
 - `api.py` 只收完整文件并返回五份结果、共享 evidence 与 trace；server 不生成 ZIP、
-  Markdown、索引或客户端文件名。`client/asr.py` 严格校验 JSON，在临时目录生成全部文件
-  后原子发布，并给五份方案 JSON 添加 `evidence.json` 引用。
+  Markdown、索引、可视化或客户端文件名。`client/asr.py` 严格校验 JSON，在临时目录生成
+  全部文件后原子发布，并给五份方案 JSON 添加 `evidence.json` 引用。`client/trace.html`
+  是无外部依赖的离线模板，流程聚合、方案对比、时间线、火焰图和 Chrome Trace export
+  全部在浏览器执行；`trace.json` 仍是唯一原始 trace 产物。
 - Server 必须单进程，不增加 uvicorn workers。上传与 options 是不可信 HTTP 输入，由
   Pydantic 校验；模型完成状态、结构、截断和时间边界也在 server 校验。
 - 顺序固定为 prepare、四路 first pass、整批 review、五套 recipe。prepare 先跑全文件

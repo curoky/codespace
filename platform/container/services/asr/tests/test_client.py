@@ -37,7 +37,12 @@ def payload(*, recipes: tuple[str, ...] = RECIPES, status: str = "completed") ->
             for recipe in recipes
         ],
         "evidence": {"filename": "recording.wav"},
-        "trace": {"schema_version": 1, "status": status},
+        "trace": {
+            "schema_version": 1,
+            "status": "completed" if status == "completed" else "partial",
+            "duration_ms": 1200,
+            "events": [],
+        },
     }
 
 
@@ -60,7 +65,9 @@ def test_each_invocation_transcribes_without_saved_client_state(tmp_path: Path) 
                 assert "01-qwen-fusion" in (output / "index.md").read_text()
                 assert "测试。" in (output / "01-qwen-fusion.md").read_text()
                 assert '"evidence": "evidence.json"' in (output / "01-qwen-fusion.json").read_text()
-                assert len(list(output.iterdir())) == 13
+                assert "trace.html" in (output / "index.md").read_text()
+                assert 'id="trace-data"' in (output / "trace.html").read_text()
+                assert len(list(output.iterdir())) == 14
                 assert not (output / ".asr-state.json").exists()
 
     asyncio.run(invoke())
@@ -73,6 +80,28 @@ def test_recipe_names_cannot_escape_output_directory(tmp_path: Path) -> None:
     with pytest.raises(ValueError, match="invalid or duplicate recipe"):
         write_response(payload(recipes=("../outside",)), destination)
     assert not (tmp_path / "outside.json").exists()
+
+
+def test_trace_report_escapes_embedded_html(tmp_path: Path) -> None:
+    destination = tmp_path / "output"
+    destination.mkdir()
+    response = payload()
+    response["trace"]["events"] = [
+        {
+            "kind": "phase",
+            "name": "upload",
+            "status": "failed",
+            "started_ms": 0,
+            "duration_ms": 1,
+            "error": "</script><script>alert(1)</script>",
+        }
+    ]
+
+    write_response(response, destination)
+
+    report = (destination / "trace.html").read_text()
+    assert "</script><script>alert(1)</script>" not in report
+    assert r"\u003c/script\u003e\u003cscript\u003ealert(1)\u003c/script\u003e" in report
 
 
 def test_cli_controls_file_concurrency(tmp_path: Path) -> None:

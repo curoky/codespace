@@ -1,0 +1,713 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ASR Trace</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b0f17;
+      --panel: #131a26;
+      --panel-2: #192231;
+      --line: #2a3850;
+      --text: #e7edf6;
+      --muted: #91a0b7;
+      --phase: #58a6ff;
+      --queue: #d29922;
+      --cpu: #bc8cff;
+      --inference: #2fbd85;
+      --overhead: #637083;
+      --cache: #3fb950;
+      --failed: #f85149;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    header, main { width: min(1600px, 100%); margin: auto; padding: 20px; }
+    header { display: flex; align-items: end; justify-content: space-between; gap: 16px; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 4px; font-size: 24px; }
+    h2 { margin-bottom: 12px; font-size: 18px; }
+    .muted { color: var(--muted); }
+    button, select, input {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 7px 10px;
+    }
+    button { cursor: pointer; }
+    button:hover { border-color: var(--phase); }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .card, section {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel);
+    }
+    .card { padding: 12px; }
+    .card strong { display: block; margin-top: 3px; font-size: 20px; }
+    section { margin-bottom: 18px; padding: 16px; }
+    .flow-row, .recipe-row {
+      display: flex;
+      align-items: stretch;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 6px;
+    }
+    .flow-node {
+      min-width: 145px;
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--phase);
+      border-radius: 8px;
+      background: var(--panel-2);
+      padding: 10px;
+    }
+    .flow-node.failed { border-top-color: var(--failed); }
+    .flow-node h3 { margin-bottom: 6px; font-size: 14px; }
+    .flow-node span { display: block; color: var(--muted); font-size: 12px; }
+    .arrow { align-self: center; color: var(--muted); font-size: 20px; }
+    .recipe-row { margin-top: 10px; padding-left: 35%; }
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .toolbar label { color: var(--muted); }
+    .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-left: auto; color: var(--muted); }
+    .legend i { display: inline-block; width: 10px; height: 10px; margin-right: 4px; border-radius: 2px; }
+    .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: #0d131d; }
+    canvas { display: block; }
+    #event-details {
+      min-height: 72px;
+      max-height: 260px;
+      overflow: auto;
+      margin: 10px 0 0;
+      border-radius: 8px;
+      background: #0d131d;
+      color: #c9d5e7;
+      padding: 10px;
+      white-space: pre-wrap;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border-bottom: 1px solid var(--line); padding: 8px; text-align: right; white-space: nowrap; }
+    th:first-child, td:first-child { text-align: left; }
+    th { color: var(--muted); font-weight: 600; }
+    .table-scroll { overflow-x: auto; }
+    .note { margin-bottom: 0; color: var(--muted); font-size: 12px; }
+    .distribution { display: grid; gap: 8px; margin-bottom: 10px; }
+    .distribution-row {
+      display: grid;
+      grid-template-columns: minmax(150px, 230px) minmax(300px, 1fr) minmax(190px, auto);
+      align-items: center;
+      gap: 10px;
+    }
+    .distribution-bar { display: flex; height: 24px; overflow: hidden; border-radius: 5px; background: #0d131d; }
+    .distribution-segment { min-width: 2px; overflow: hidden; padding: 3px 5px; color: #071019; font-size: 11px; white-space: nowrap; }
+    .distribution-values { color: var(--muted); font-size: 12px; text-align: right; }
+    @media (max-width: 700px) {
+      header { align-items: start; flex-direction: column; }
+      .recipe-row { padding-left: 0; }
+      .legend { width: 100%; margin-left: 0; }
+      .distribution-row { grid-template-columns: 1fr; }
+      .distribution-values { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>ASR 执行追踪</h1>
+      <div id="subtitle" class="muted"></div>
+    </div>
+    <button id="export">Export Chrome Trace</button>
+  </header>
+  <main>
+    <div id="summary" class="cards"></div>
+
+    <section>
+      <h2>Pipeline Overview</h2>
+      <div id="flow"></div>
+      <p class="note">流程图表示数据依赖；真实先后和并发以 Timeline 为准。</p>
+    </section>
+
+    <section>
+      <h2>Recipe Pipeline Timing</h2>
+      <div class="toolbar">
+        <label>View <select id="recipe-view"></select></label>
+      </div>
+      <div id="recipe-distribution" class="distribution"></div>
+      <div id="recipe-scroll" class="scroll"><canvas id="recipe-timeline"></canvas></div>
+      <pre id="recipe-details">点击 Pipeline 事件查看完整摘要。</pre>
+      <p class="note">共享阶段只计算一次；exclusive 是方案自身 wall time，end-to-end 是从请求起点到该方案完成。五方案视图使用同一时间轴。</p>
+    </section>
+
+    <section>
+      <h2>Timeline</h2>
+      <div class="toolbar">
+        <label>Channel <select id="channel-filter"></select></label>
+        <label>Model <select id="model-filter"></select></label>
+        <label>Zoom <input id="zoom" type="range" min="1" max="16" value="1"></label>
+        <div class="legend">
+          <span><i style="background:var(--queue)"></i>model queue</span>
+          <span><i style="background:var(--cpu)"></i>CPU queue</span>
+          <span><i style="background:var(--inference)"></i>inference</span>
+          <span><i style="background:var(--overhead)"></i>overhead</span>
+          <span><i style="background:var(--cache)"></i>cache hit</span>
+        </div>
+      </div>
+      <div id="timeline-scroll" class="scroll"><canvas id="timeline"></canvas></div>
+      <pre id="event-details">点击 Timeline 事件查看完整摘要。</pre>
+    </section>
+
+    <section>
+      <h2>Accumulated Time Flame Graph</h2>
+      <div class="scroll"><canvas id="flame"></canvas></div>
+      <p class="note">宽度是累计事件耗时，不是请求 wall time，也不代表 GPU utilization。</p>
+    </section>
+
+    <section>
+      <h2>Model Metrics</h2>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Model</th><th>Calls</th><th>Cache</th><th>Failures</th><th>Total</th><th>Queue</th><th>CPU queue</th><th>Inference</th><th>p95 inference</th></tr></thead>
+          <tbody id="metrics"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script id="trace-data" type="application/json">__ASR_TRACE_DATA__</script>
+  <script>
+    "use strict";
+
+    const trace = JSON.parse(document.getElementById("trace-data").textContent);
+    const events = trace.events;
+    const modelEvents = events.filter((event) => event.kind === "model");
+    const phaseEvents = events.filter((event) => event.kind === "phase");
+    const recipes = [
+      "01-qwen-fusion",
+      "02-firered-fusion",
+      "03-moss-td",
+      "04-vibevoice",
+      "05-qwen-nemotron",
+    ];
+    const stageColors = ["#4c78a8", "#f58518", "#54a24b", "#e45756", "#72b7b2", "#b279a2"];
+    const colors = {
+      phase: "#58a6ff",
+      queue: "#d29922",
+      cpu: "#bc8cff",
+      inference: "#2fbd85",
+      overhead: "#637083",
+      cache: "#3fb950",
+      failed: "#f85149",
+    };
+    let timelineHits = [];
+    let recipeHits = [];
+
+    const escapeHtml = (value) => String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+
+    function duration(milliseconds) {
+      if (milliseconds < 1000) return `${milliseconds} ms`;
+      if (milliseconds < 60000) return `${(milliseconds / 1000).toFixed(2)} s`;
+      const minutes = Math.floor(milliseconds / 60000);
+      return `${minutes}m ${((milliseconds % 60000) / 1000).toFixed(1)}s`;
+    }
+
+    function phaseName(event) {
+      if (event.name.startsWith("recipe.")) return event.name.split(".").slice(0, 2).join(".");
+      return event.name.split(".")[0];
+    }
+
+    function recipeName(event) {
+      return event.name.startsWith("recipe.") ? event.name.split(".")[1] : null;
+    }
+
+    function recipeStage(event) {
+      return event.name.split(".").slice(2).join(".") || "recipe wall";
+    }
+
+    function stages(event) {
+      const queue = event.model_queue_ms || 0;
+      const cpu = event.cpu_queue_ms || 0;
+      const inference = event.inference_ms || 0;
+      const overhead = Math.max(0, event.duration_ms - queue - cpu - inference);
+      return [
+        ["queue", queue],
+        ["cpu", cpu],
+        ["inference", inference],
+        ["overhead", overhead],
+      ];
+    }
+
+    function percentile(values, percentileValue) {
+      if (!values.length) return 0;
+      const ordered = [...values].sort((left, right) => left - right);
+      return ordered[Math.ceil(ordered.length * percentileValue) - 1];
+    }
+
+    function peakConcurrency(items) {
+      const points = items
+        .filter((event) => !event.cache_hit && event.duration_ms > 0)
+        .flatMap((event) => [
+          [event.started_ms, 1],
+          [event.started_ms + event.duration_ms, -1],
+        ])
+        .sort((left, right) => left[0] - right[0] || left[1] - right[1]);
+      let active = 0;
+      let peak = 0;
+      for (const [, delta] of points) {
+        active += delta;
+        peak = Math.max(peak, active);
+      }
+      return peak;
+    }
+
+    function renderSummary() {
+      const upload = phaseEvents.find((event) => event.name === "upload");
+      const decode = phaseEvents.find((event) => event.name === "decode" && event.channel === "mono");
+      const audioDuration = decode?.output_summary?.duration_ms || 0;
+      const failures = events.filter((event) => event.status === "failed").length;
+      const cacheHits = modelEvents.filter((event) => event.cache_hit).length;
+      const inference = modelEvents.reduce((total, event) => total + (event.inference_ms || 0), 0);
+      const queue = modelEvents.reduce(
+        (total, event) => total + (event.model_queue_ms || 0) + (event.cpu_queue_ms || 0),
+        0,
+      );
+      const cards = [
+        ["Status", trace.status],
+        ["Wall time", duration(trace.duration_ms)],
+        ["Audio", audioDuration ? duration(audioDuration) : "—"],
+        ["Wall RTF", audioDuration ? (trace.duration_ms / audioDuration).toFixed(3) : "—"],
+        ["Model events", modelEvents.length.toLocaleString()],
+        ["Cache hits", cacheHits.toLocaleString()],
+        ["Peak calls", peakConcurrency(modelEvents)],
+        ["Inference total", duration(inference)],
+        ["Queue total", duration(queue)],
+        ["Failures", failures],
+      ];
+      document.getElementById("subtitle").textContent =
+        `${upload?.input_summary?.filename || "recording"} · schema v${trace.schema_version}`;
+      document.getElementById("summary").innerHTML = cards.map(([label, value]) =>
+        `<div class="card"><span class="muted">${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`,
+      ).join("");
+    }
+
+    function renderFlow() {
+      const names = ["upload", "decode", "prepare", "first_pass", "review"];
+      const recipes = [
+        "recipe.01-qwen-fusion",
+        "recipe.02-firered-fusion",
+        "recipe.03-moss-td",
+        "recipe.04-vibevoice",
+        "recipe.05-qwen-nemotron",
+      ];
+      const node = (name) => {
+        const matching = phaseEvents.filter((event) => event.name === name);
+        const elapsed = matching.reduce((total, event) => total + event.duration_ms, 0);
+        const calls = modelEvents.filter((event) => phaseName(event) === name).length;
+        const failed = matching.some((event) => event.status === "failed");
+        return `<div class="flow-node ${failed ? "failed" : ""}"><h3>${escapeHtml(name.replace("recipe.", ""))}</h3><span>${duration(elapsed)}</span><span>${calls} model events</span></div>`;
+      };
+      document.getElementById("flow").innerHTML =
+        `<div class="flow-row">${names.map((name, index) => `${index ? '<div class="arrow">→</div>' : ""}${node(name)}`).join("")}</div>` +
+        `<div class="recipe-row"><div class="arrow">↳</div>${recipes.map(node).join("")}</div>`;
+    }
+
+    function populateFilters() {
+      const channel = document.getElementById("channel-filter");
+      const model = document.getElementById("model-filter");
+      const recipe = document.getElementById("recipe-view");
+      const addOptions = (target, values, allLabel) => {
+        const all = document.createElement("option");
+        all.value = "";
+        all.textContent = allLabel;
+        target.append(all);
+        for (const value of values) {
+          const option = document.createElement("option");
+          option.value = value;
+          option.textContent = value;
+          target.append(option);
+        }
+      };
+      addOptions(channel, [...new Set(events.map((event) => event.channel).filter(Boolean))].sort(), "All");
+      addOptions(model, [...new Set(modelEvents.map((event) => event.model))].sort(), "All");
+      addOptions(recipe, recipes, "Five recipes");
+      channel.addEventListener("change", renderCharts);
+      model.addEventListener("change", renderCharts);
+      recipe.addEventListener("change", renderRecipePipeline);
+      document.getElementById("zoom").addEventListener("input", drawTimeline);
+    }
+
+    function renderRecipeDistribution() {
+      const selected = document.getElementById("recipe-view").value;
+      const shown = selected ? [selected] : recipes;
+      document.getElementById("recipe-distribution").innerHTML = shown.map((recipe, recipeIndex) => {
+        const phase = phaseEvents.filter((event) => event.name === `recipe.${recipe}`);
+        const calls = modelEvents.filter((event) => recipeName(event) === recipe);
+        const exclusive = phase.reduce((total, event) => total + event.duration_ms, 0);
+        const endToEnd = phase.reduce(
+          (latest, event) => Math.max(latest, event.started_ms + event.duration_ms),
+          0,
+        );
+        const grouped = new Map();
+        for (const event of calls) {
+          const stage = recipeStage(event);
+          grouped.set(stage, (grouped.get(stage) || 0) + event.duration_ms);
+        }
+        const accumulated = [...grouped.values()].reduce((total, value) => total + value, 0);
+        const segments = [...grouped].map(([stage, milliseconds], stageIndex) => {
+          const width = accumulated ? milliseconds * 100 / accumulated : 0;
+          const color = stageColors[(recipeIndex + stageIndex) % stageColors.length];
+          return `<span class="distribution-segment" title="${escapeHtml(stage)}: ${duration(milliseconds)}" style="width:${width}%;background:${color}">${escapeHtml(stage)}</span>`;
+        }).join("");
+        return `<div class="distribution-row"><strong>${escapeHtml(recipe)}</strong><div class="distribution-bar">${segments}</div><div class="distribution-values">exclusive ${duration(exclusive)} · end-to-end ${duration(endToEnd)}</div></div>`;
+      }).join("");
+    }
+
+    function drawRecipeTimeline() {
+      const selected = document.getElementById("recipe-view").value;
+      const shown = selected ? [selected] : recipes;
+      const sharedNames = new Set(["upload", "decode", "prepare", "first_pass", "review"]);
+      const shared = phaseEvents.filter((event) => sharedNames.has(event.name));
+      const recipeEvents = events.filter((event) => shown.includes(recipeName(event)));
+      const rows = selected
+        ? ["Shared pipeline", `${selected} · wall`, ...new Set(
+          recipeEvents.filter((event) => event.kind === "model").map((event) => recipeStage(event)),
+        )]
+        : ["Shared pipeline", ...shown];
+      const labelWidth = 190;
+      const rowHeight = 30;
+      const scroll = document.getElementById("recipe-scroll");
+      const width = Math.max(900, scroll.clientWidth - 2);
+      const height = 30 + rows.length * rowHeight;
+      const canvas = document.getElementById("recipe-timeline");
+      const context = setupCanvas(canvas, width, height);
+      const plotWidth = width - labelWidth - 12;
+      const scale = plotWidth / Math.max(trace.duration_ms, 1);
+      recipeHits = [];
+      context.fillStyle = "#0d131d";
+      context.fillRect(0, 0, width, height);
+      context.fillStyle = "#91a0b7";
+      context.strokeStyle = "#243147";
+      for (let index = 0; index <= 5; index += 1) {
+        const time = trace.duration_ms * index / 5;
+        const x = labelWidth + time * scale;
+        context.beginPath();
+        context.moveTo(x, 22);
+        context.lineTo(x, height);
+        context.stroke();
+        context.fillText(duration(Math.round(time)), x + 3, 15);
+      }
+      rows.forEach((row, index) => {
+        const y = 30 + index * rowHeight;
+        context.fillStyle = "#c9d5e7";
+        context.fillText(row, 8, y + 19);
+        context.strokeStyle = "#1d293a";
+        context.beginPath();
+        context.moveTo(0, y + rowHeight);
+        context.lineTo(width, y + rowHeight);
+        context.stroke();
+      });
+      const draw = (event, row, color, heightValue = 18, offset = 6) => {
+        const x = labelWidth + event.started_ms * scale;
+        const y = 30 + row * rowHeight + offset;
+        const eventWidth = Math.max(2, event.duration_ms * scale);
+        context.globalAlpha = event.kind === "phase" ? 0.65 : 1;
+        context.fillStyle = event.status === "failed" ? colors.failed : color;
+        context.fillRect(x, y, eventWidth, heightValue);
+        context.globalAlpha = 1;
+        recipeHits.push({ x, y, width: eventWidth, height: heightValue, event });
+      };
+      shared.forEach((event, index) => draw(event, 0, stageColors[index % stageColors.length]));
+      if (selected) {
+        recipeEvents.filter((event) => event.kind === "phase").forEach((event) => draw(event, 1, colors.phase));
+        recipeEvents.filter((event) => event.kind === "model").forEach((event, index) => {
+          draw(event, rows.indexOf(recipeStage(event)), stageColors[index % stageColors.length]);
+        });
+      } else {
+        for (const recipe of shown) {
+          const row = rows.indexOf(recipe);
+          recipeEvents
+            .filter((event) => event.kind === "phase" && recipeName(event) === recipe)
+            .forEach((event) => draw(event, row, colors.phase, 22, 4));
+          recipeEvents
+            .filter((event) => event.kind === "model" && recipeName(event) === recipe)
+            .forEach((event, index) => draw(event, row, stageColors[index % stageColors.length], 10, 10));
+        }
+      }
+    }
+
+    function renderRecipePipeline() {
+      renderRecipeDistribution();
+      drawRecipeTimeline();
+    }
+
+    function filteredModelEvents() {
+      const channel = document.getElementById("channel-filter").value;
+      const model = document.getElementById("model-filter").value;
+      return modelEvents.filter((event) =>
+        (!channel || event.channel === channel) && (!model || event.model === model),
+      );
+    }
+
+    function setupCanvas(canvas, width, height) {
+      const ratio = window.devicePixelRatio || 1;
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      const context = canvas.getContext("2d");
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      context.font = "12px ui-sans-serif, system-ui, sans-serif";
+      return context;
+    }
+
+    function drawTimeline() {
+      const selected = filteredModelEvents();
+      const channel = document.getElementById("channel-filter").value;
+      const phases = phaseEvents.filter((event) => !channel || !event.channel || event.channel === channel);
+      const rows = ["Phases", ...new Set(selected.map((event) => `${event.channel || "global"} · ${event.model}`))];
+      const labelWidth = 190;
+      const rowHeight = 28;
+      const zoom = Number(document.getElementById("zoom").value);
+      const scroll = document.getElementById("timeline-scroll");
+      const width = Math.max(900, scroll.clientWidth - 2) * zoom;
+      const height = 30 + rows.length * rowHeight;
+      const canvas = document.getElementById("timeline");
+      const context = setupCanvas(canvas, width, height);
+      const plotWidth = width - labelWidth - 12;
+      const scale = plotWidth / Math.max(trace.duration_ms, 1);
+      timelineHits = [];
+
+      context.fillStyle = "#0d131d";
+      context.fillRect(0, 0, width, height);
+      context.strokeStyle = "#243147";
+      context.fillStyle = "#91a0b7";
+      for (let index = 0; index <= 5; index += 1) {
+        const time = trace.duration_ms * index / 5;
+        const x = labelWidth + time * scale;
+        context.beginPath();
+        context.moveTo(x, 22);
+        context.lineTo(x, height);
+        context.stroke();
+        context.fillText(duration(Math.round(time)), x + 3, 15);
+      }
+      rows.forEach((row, index) => {
+        const y = 30 + index * rowHeight;
+        context.fillStyle = "#c9d5e7";
+        context.fillText(row, 8, y + 18);
+        context.strokeStyle = "#1d293a";
+        context.beginPath();
+        context.moveTo(0, y + rowHeight);
+        context.lineTo(width, y + rowHeight);
+        context.stroke();
+      });
+
+      const bar = (event, row, color, breakdown) => {
+        const x = labelWidth + event.started_ms * scale;
+        const y = 30 + row * rowHeight + 5;
+        const eventWidth = Math.max(2, event.duration_ms * scale);
+        context.fillStyle = event.status === "failed" ? colors.failed : color;
+        context.fillRect(x, y, eventWidth, 18);
+        if (breakdown && !event.cache_hit) {
+          let cursor = x;
+          for (const [stage, milliseconds] of stages(event)) {
+            if (!milliseconds) continue;
+            const stageWidth = Math.max(1, milliseconds * scale);
+            context.fillStyle = colors[stage];
+            context.fillRect(cursor, y, Math.min(stageWidth, x + eventWidth - cursor), 18);
+            cursor += stageWidth;
+          }
+        }
+        if (event.cache_hit) {
+          context.fillStyle = colors.cache;
+          context.fillRect(x, y, Math.max(3, eventWidth), 18);
+        }
+        if (eventWidth > 42) {
+          context.save();
+          context.beginPath();
+          context.rect(x, y, eventWidth, 18);
+          context.clip();
+          context.fillStyle = "#071019";
+          context.fillText(event.kind === "phase" ? event.name : event.name.split(".").at(-1), x + 3, y + 13);
+          context.restore();
+        }
+        timelineHits.push({ x, y, width: eventWidth, height: 18, event });
+      };
+      phases.forEach((event) => bar(event, 0, colors.phase, false));
+      selected.forEach((event) => {
+        const row = rows.indexOf(`${event.channel || "global"} · ${event.model}`);
+        bar(event, row, colors.overhead, true);
+      });
+    }
+
+    function drawFlame() {
+      const selected = filteredModelEvents();
+      const grouped = new Map();
+      for (const event of selected) {
+        const phase = phaseName(event);
+        if (!grouped.has(phase)) grouped.set(phase, new Map());
+        const models = grouped.get(phase);
+        if (!models.has(event.model)) {
+          models.set(event.model, { total: 0, stages: { queue: 0, cpu: 0, inference: 0, overhead: 0 } });
+        }
+        const metric = models.get(event.model);
+        metric.total += event.duration_ms;
+        for (const [stage, milliseconds] of stages(event)) metric.stages[stage] += milliseconds;
+      }
+      const total = selected.reduce((sum, event) => sum + event.duration_ms, 0);
+      const scroll = document.getElementById("flame").parentElement;
+      const width = Math.max(900, scroll.clientWidth - 2);
+      const height = 112;
+      const canvas = document.getElementById("flame");
+      const context = setupCanvas(canvas, width, height);
+      context.fillStyle = "#0d131d";
+      context.fillRect(0, 0, width, height);
+      if (!total) return;
+      let phaseX = 0;
+      for (const [phase, models] of grouped) {
+        const phaseTotal = [...models.values()].reduce((sum, metric) => sum + metric.total, 0);
+        const phaseWidth = width * phaseTotal / total;
+        context.fillStyle = colors.phase;
+        context.fillRect(phaseX, 4, phaseWidth, 30);
+        context.fillStyle = "#071019";
+        context.fillText(phase, phaseX + 4, 23);
+        let modelX = phaseX;
+        for (const [model, metric] of models) {
+          const modelWidth = width * metric.total / total;
+          context.fillStyle = "#4c78a8";
+          context.fillRect(modelX, 38, modelWidth, 30);
+          if (modelWidth > 42) {
+            context.fillStyle = "#eef5ff";
+            context.fillText(model, modelX + 4, 57);
+          }
+          let stageX = modelX;
+          for (const [stage, milliseconds] of Object.entries(metric.stages)) {
+            const stageWidth = width * milliseconds / total;
+            context.fillStyle = colors[stage];
+            context.fillRect(stageX, 72, stageWidth, 30);
+            if (stageWidth > 45) {
+              context.fillStyle = "#071019";
+              context.fillText(stage, stageX + 3, 91);
+            }
+            stageX += stageWidth;
+          }
+          modelX += modelWidth;
+        }
+        phaseX += phaseWidth;
+      }
+    }
+
+    function renderMetrics() {
+      const grouped = new Map();
+      for (const event of modelEvents) {
+        if (!grouped.has(event.model)) grouped.set(event.model, []);
+        grouped.get(event.model).push(event);
+      }
+      document.getElementById("metrics").innerHTML = [...grouped]
+        .map(([model, items]) => {
+          const sum = (field) => items.reduce((total, event) => total + (event[field] || 0), 0);
+          const inference = items.map((event) => event.inference_ms || 0).filter(Boolean);
+          return `<tr><td>${escapeHtml(model)}</td><td>${items.length}</td><td>${items.filter((event) => event.cache_hit).length}</td><td>${items.filter((event) => event.status === "failed").length}</td><td>${duration(sum("duration_ms"))}</td><td>${duration(sum("model_queue_ms"))}</td><td>${duration(sum("cpu_queue_ms"))}</td><td>${duration(sum("inference_ms"))}</td><td>${duration(percentile(inference, 0.95))}</td></tr>`;
+        })
+        .join("");
+    }
+
+    function renderCharts() {
+      drawTimeline();
+      drawFlame();
+      drawRecipeTimeline();
+    }
+
+    function chromeTrace() {
+      const output = [];
+      for (const event of events) {
+        const thread = event.kind === "phase"
+          ? `${event.channel || "global"} / phases`
+          : `${event.channel || "global"} / ${event.model}`;
+        output.push({
+          name: event.name,
+          cat: event.kind,
+          ph: "X",
+          ts: event.started_ms * 1000,
+          dur: event.duration_ms * 1000,
+          pid: "ASR",
+          tid: thread,
+          args: {
+            status: event.status,
+            cache_hit: event.cache_hit,
+            gpu_indices: event.gpu_indices,
+            gpu_ids: event.gpu_ids,
+            input: event.input_summary,
+            output: event.output_summary,
+            error: event.error,
+          },
+        });
+        if (event.kind !== "model" || event.cache_hit) continue;
+        let cursor = event.started_ms;
+        for (const [stage, milliseconds] of stages(event)) {
+          if (!milliseconds) continue;
+          output.push({
+            name: stage,
+            cat: "model-stage",
+            ph: "X",
+            ts: cursor * 1000,
+            dur: milliseconds * 1000,
+            pid: "ASR",
+            tid: `${thread} / breakdown`,
+            args: { model: event.model, step: event.name },
+          });
+          cursor += milliseconds;
+        }
+      }
+      const blob = new Blob([JSON.stringify({ traceEvents: output })], { type: "application/json" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "trace.chrome.json";
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    document.getElementById("timeline").addEventListener("click", (click) => {
+      const canvas = click.currentTarget;
+      const bounds = canvas.getBoundingClientRect();
+      const x = click.clientX - bounds.left;
+      const y = click.clientY - bounds.top;
+      const hit = [...timelineHits].reverse().find((item) =>
+        x >= item.x && x <= item.x + item.width && y >= item.y && y <= item.y + item.height,
+      );
+      if (hit) document.getElementById("event-details").textContent = JSON.stringify(hit.event, null, 2);
+    });
+    document.getElementById("recipe-timeline").addEventListener("click", (click) => {
+      const canvas = click.currentTarget;
+      const bounds = canvas.getBoundingClientRect();
+      const x = click.clientX - bounds.left;
+      const y = click.clientY - bounds.top;
+      const hit = [...recipeHits].reverse().find((item) =>
+        x >= item.x && x <= item.x + item.width && y >= item.y && y <= item.y + item.height,
+      );
+      if (hit) document.getElementById("recipe-details").textContent = JSON.stringify(hit.event, null, 2);
+    });
+    document.getElementById("export").addEventListener("click", chromeTrace);
+    window.addEventListener("resize", renderCharts);
+
+    renderSummary();
+    renderFlow();
+    populateFilters();
+    renderMetrics();
+    renderRecipePipeline();
+    renderCharts();
+  </script>
+</body>
+</html>

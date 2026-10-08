@@ -129,7 +129,7 @@ flowchart TD
 | Podman secret `huggingface_token` | `/run/secrets/huggingface_token` | ro，x 可读 | 仅 marker 缺失或 revision 改变时读取，不写入 image 或 model-data |
 | Podman private shared memory | `/dev/shm` | rw，8 GiB | FireRed tensor parallel / NCCL 的进程间通信；不持久化 |
 | 容器内部 tmpfs / writable layer | `/run/asr` | rw | 启动期 GPU UUID 环境文件；容器替换即消失 |
-| CLI 所在机器的 `--out` | 不挂入容器 | client-owned | 最终 13 个文件；server 不拥有用户结果目录 |
+| CLI 所在机器的 `--out` | 不挂入容器 | client-owned | 最终 14 个文件；server 不拥有用户结果目录 |
 
 `/opt/asr` 只包含代码与预装环境，不能被 volume 遮蔽。没有 `/model-data` mount 时权重会
 落入容器 writable layer 并随容器替换丢失，因此不属于受支持的持久部署形态。
@@ -212,13 +212,17 @@ texts/<录音相对路径与文件名>/
 ├── 05-qwen-nemotron.md / .json
 ├── index.md
 ├── evidence.json
-└── trace.json
+├── trace.json
+└── trace.html
 ```
 
 `evidence.json` 只保存一份模型原始响应、候选、复听依据与参数；每份方案 JSON 用引用指向
 它。`trace.json` 记录 phase、模型、固定 GPU identity、模型锁 / CPU 排队和推理耗时，不
-复制正文。某个方案失败时其余方案仍可返回；decode 或公共 speaker 准备失败时整个 HTTP
-请求失败。
+复制正文，是工程追踪的原始数据。`trace.html` 由 CLI 在本地生成并嵌入同一份 trace，浏览器
+离线渲染流程图、单方案与五方案对齐的 pipeline、调用时间线、累计耗时火焰图和模型指标，
+也可导出 Chrome Trace Event JSON；server 不生成展示层。共享阶段只统计一次，方案视图分别
+显示自身 wall time 与从请求起点到完成的端到端时间。某个方案失败时其余方案仍可返回；
+decode 或公共 speaker 准备失败时整个 HTTP 请求失败。
 
 ```bash
 uv run platform/container/services/asr/client/asr.py ./recordings \
