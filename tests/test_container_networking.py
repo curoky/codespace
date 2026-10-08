@@ -181,10 +181,12 @@ def test_workspace_separates_read_only_runtimes_from_writable_tools() -> None:
             for runtime in {"openjdk8", "openjdk27"}
         },
         "node/nodejs26": Path("/opt/resource/opt/node/nodejs26"),
+        "nvidia/nsight-compute": Path("/opt/resource/opt/nvidia/nsight-compute"),
+        "nvidia/nsight-systems-cli": Path("/opt/resource/opt/nvidia/nsight-systems-cli"),
     }
     actual_links = {
         str(path.relative_to(rootfs_opt)): path.readlink()
-        for family in (rootfs_opt / "java", rootfs_opt / "node")
+        for family in (rootfs_opt / "java", rootfs_opt / "node", rootfs_opt / "nvidia")
         for path in family.rglob("*")
         if path.is_symlink()
     }
@@ -426,6 +428,24 @@ def test_workspace_podman_separates_image_files_from_user_data() -> None:
     assert not (workspace / "rootfs/usr/local/bin/podman-server").exists()
     assert "chown -R 5230:5230 /home/x /opt" in configure
     assert "/usr/local/libexec/codespace" not in configure
+
+
+def test_workspace_podman_generates_nvidia_cdi_from_runtime_driver() -> None:
+    workspace = _CONTAINER / "workspace"
+    dockerfile = (workspace / "Dockerfile").read_text()
+    generator = (workspace / "rootfs/opt/podman/bin/generate-nvidia-cdi").read_text()
+    run = (workspace / "rootfs/etc/s6/s6-rc.d/podman/run").read_text()
+
+    assert "nvidia-container-toolkit-base_1.20.1-1_amd64.deb" in dockerfile
+    assert "--strip-components=3" in dockerfile
+    assert "./usr/bin/nvidia-ctk" in dockerfile
+    assert "./usr/bin/nvidia-cdi-hook" in dockerfile
+    assert "/opt/nvidia-container-toolkit/" in dockerfile
+    assert "/opt/nvidia/nvidia-container-toolkit/" in dockerfile
+    assert "[[ ! -c /dev/nvidiactl ]]" in generator
+    assert "/opt/nvidia/nvidia-container-toolkit/nvidia-ctk" in generator
+    assert "cdi generate --output=/var/run/cdi/nvidia.yaml" in generator
+    assert "foreground { /opt/podman/bin/generate-nvidia-cdi }" in run
 
 
 def test_s6_services_do_not_load_shared_environment_directories() -> None:

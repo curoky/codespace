@@ -14,6 +14,7 @@ foreground
   /run/user/5230/podman
 }
 foreground { rm -f -- /run/user/5230/podman/podman.sock }
+foreground { /opt/podman/bin/generate-nvidia-cdi }
 
 s6-notifyoncheck -d -n 0 -w 100 -t 2000 -T 60000
 -c "test -S /run/user/5230/podman/podman.sock"

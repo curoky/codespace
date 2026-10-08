@@ -52,6 +52,19 @@ ADD --checksum=sha256:fd8e59d5a511510f6a298afb548f18c7d2b1be404d8b4a27d94fbe49f5
 RUN mkdir -p /opt/node/nodejs24 \
   && tar -xJf /tmp/node24.tar.xz --strip-components=1 -C /opt/node/nodejs24
 
+# ------------------------- NVIDIA Container Toolkit ------------------------
+FROM docker.io/debian:stable-slim AS stage_nvidia_container_toolkit
+ADD --checksum=sha256:14dc22489851d4f1a6d1bbfdfb51524c8f110091738570cddaddc09778a63ad9 \
+  https://github.com/NVIDIA/nvidia-container-toolkit/releases/download/v1.20.1/nvidia-container-toolkit_1.20.1_deb_amd64.tar.gz \
+  /tmp/nvidia-container-toolkit.tar.gz
+RUN tar -xzf /tmp/nvidia-container-toolkit.tar.gz -C /tmp \
+  && install -d /opt/nvidia-container-toolkit \
+  && dpkg-deb --fsys-tarfile \
+    /tmp/release-v1.20.1-stable/packages/ubuntu18.04/amd64/nvidia-container-toolkit-base_1.20.1-1_amd64.deb \
+    | tar -x -C /opt/nvidia-container-toolkit --strip-components=3 \
+      ./usr/bin/nvidia-ctk \
+      ./usr/bin/nvidia-cdi-hook
+
 # ----------------------------------- Nix ------------------------------------
 FROM docker.io/debian:stable-slim AS stage_nix
 RUN apt-get update -y \
@@ -102,6 +115,7 @@ COPY --link --chown=5230:5230 --from=stage_nix /home/x/.local/state/nix /home/x/
 COPY --link --chown=5230:5230 --from=stage_python /opt/uv /opt/uv
 COPY --link --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
 COPY --link --chown=5230:5230 --from=stage_node /opt/node /opt/node
+COPY --link --from=stage_nvidia_container_toolkit /opt/nvidia-container-toolkit/ /opt/nvidia/nvidia-container-toolkit/
 
 COPY platform/container/workspace/rootfs/ /
 COPY platform/container/workspace/tools/node-tool/ /opt/codespace-tools/node-tool/

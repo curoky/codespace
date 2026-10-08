@@ -81,5 +81,9 @@ platform/container/workspace/build.sh --resource
   原 driver，不自动迁移、重建或删除。内部 container 固定禁用 cgroups。Workspace shell 与
   Podman service 都固定设置 `BUILDAH_ISOLATION=chroot`；直接运行 `podman build` 或
   `buildah bud`，不要探测 cgroups 或手动覆盖 isolation。
+- GPU Host 由控制面使用 Host CDI 将设备与 driver 注入 Workspace；Podman 启动前再根据这些
+  runtime inputs 生成 `/var/run/cdi/nvidia.yaml`，供内部 container 使用
+  `nvidia.com/gpu=N|all`。Workspace image 只在 `/opt/nvidia/nvidia-container-toolkit` 携带
+  CDI 工具，不携带或固定 Host driver；没有 `/dev/nvidiactl` 时不生成 spec。
 - WSL 继承 filesystem，但使用独立 s6 bundle且不启动 Podman；涉及 inherited graph 时按
   `platform/wsl/AGENTS.md` 追加验证。
