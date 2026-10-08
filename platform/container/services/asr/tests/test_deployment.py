@@ -2,6 +2,7 @@ import ast
 import asyncio
 import os
 import subprocess
+import tomllib
 from pathlib import Path
 
 import yaml
@@ -198,6 +199,46 @@ def test_normal_deployment_allocates_shared_memory() -> None:
 
 
 def test_model_clients_match_fixed_listeners(tmp_path: Path) -> None:
+    design = (Path(__file__).resolve().parents[1] / "DESIGN.md").read_text()
+    header = next(
+        [cell.strip() for cell in line.split("|")[1:-1]]
+        for line in design.splitlines()
+        if line.startswith("| 模型 / checkpoint |")
+    )
+    assert header == [
+        "模型 / checkpoint",
+        "端口",
+        "阶段 / 职责",
+        "Serving 接口",
+        "SDK / runtime",
+        "Python",
+        "Transformers",
+        "vLLM",
+        "Torch",
+        "CUDA",
+        "部署",
+        "显存预算 / 卡 GiB",
+        "Checkpoint GiB",
+        "`.venv` 逻辑 GiB",
+    ]
+    model_rows = {
+        line.split("`")[1]: dict(
+            zip(header, [cell.strip() for cell in line.split("|")[1:-1]], strict=True)
+        )
+        for line in design.splitlines()
+        if line.startswith("| [`")
+    }
+    assert set(model_rows) == {spec.id for spec in MODELS}
+
+    sdk_packages = {
+        "firered-punc": "fireredasr2s",
+        "firered-vad": "fireredasr2s",
+        "nemotron-diarization": "nemo-toolkit",
+        "paraformer": "funasr",
+        "pyannote-community-1": "pyannote-audio",
+        "sensevoice": "funasr",
+    }
+
     uv = tmp_path / "uv"
     uv.write_text('#!/usr/bin/env bash\nprintf "%s\\n" "$@"\n')
     uv.chmod(0o755)
@@ -224,6 +265,33 @@ def test_model_clients_match_fixed_listeners(tmp_path: Path) -> None:
             port = int(args[args.index("--port") + 1])
             assert host == "127.0.0.1"
             assert instance.url == f"http://{host}:{port}"
+            row = model_rows[instance.spec.id]
+            assert row["端口"] == str(port)
+            if instance.spec.gpus:
+                placement = config().resources.placement[instance.spec.id]
+                assert row["部署"].startswith("GPU " + "+".join(map(str, placement)))
+                assert row["显存预算 / 卡 GiB"] == f"{instance.spec.memory_gib:g}"
+            else:
+                assert row["部署"] == "CPU"
+                assert row["显存预算 / 卡 GiB"] == "—"
+
+            packages = {
+                package["name"]: package["version"]
+                for package in tomllib.loads((directory / "uv.lock").read_text())["package"]
+            }
+            assert row["Python"] == (directory / ".python-version").read_text().strip()
+            for column, package in (
+                ("Transformers", "transformers"),
+                ("vLLM", "vllm"),
+                ("Torch", "torch"),
+            ):
+                assert row[column] == packages.get(package, "—")
+            sdk = sdk_packages.get(instance.spec.id)
+            if sdk is None:
+                assert row["SDK / runtime"] == "—"
+            else:
+                assert packages[sdk] in row["SDK / runtime"]
+            assert row["CUDA"] == ("13.0.3" if instance.spec.gpus else "—")
             if instance.spec.id == "vibevoice":
                 assert args[args.index("--max-model-len") + 1] == "65536"
                 template = args[args.index("--chat-template") + 1]
@@ -234,3 +302,25 @@ def test_model_clients_match_fixed_listeners(tmp_path: Path) -> None:
         assert ports == set(range(8000, 8013))
     finally:
         asyncio.run(scheduler.close())
+
+
+def test_design_gpu_table_matches_static_placement() -> None:
+    design = (Path(__file__).resolve().parents[1] / "DESIGN.md").read_text()
+    lines = design.splitlines()
+    header_index = next(
+        index for index, line in enumerate(lines) if line.startswith("| 逻辑 GPU | ")
+    )
+    gpu_rows: dict[int, list[str]] = {}
+    for line in lines[header_index + 2 :]:
+        if not line.startswith("|"):
+            break
+        cells = [cell.strip() for cell in line.split("|")[1:-1]]
+        gpu_rows[int(cells[0])] = cells[1:]
+
+    resources = config().resources
+    assert set(gpu_rows) == set(range(5))
+    for index, (models, total, _) in gpu_rows.items():
+        expected = [spec for spec in MODELS if spec.gpus and index in resources.placement[spec.id]]
+        assert total == f"{sum(spec.memory_gib for spec in expected):g} GiB"
+        for spec in expected:
+            assert f"`{spec.id}` {spec.memory_gib:g} GiB" in models

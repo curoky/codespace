@@ -3,7 +3,7 @@ import base64
 import wave
 from pathlib import Path
 
-import httpx
+import httpx2
 from pydantic import Field, JsonValue, TypeAdapter
 
 from models.vllm import complete
@@ -17,7 +17,7 @@ def duration(path: Path) -> float:
         return audio.getnframes() / audio.getframerate()
 
 
-async def infer(http: httpx.AsyncClient, request: InferenceRequest) -> InferenceResult:
+async def infer(http: httpx2.AsyncClient, request: InferenceRequest) -> InferenceResult:
     if request.audio is None:
         raise ValueError("audio required")
     path = Path(request.audio)
@@ -29,9 +29,9 @@ async def infer(http: httpx.AsyncClient, request: InferenceRequest) -> Inference
     if request.hotwords:
         content.append({"type": "text", "text": "、".join(request.hotwords)})
     # vLLM 不会替换 HF 模板中的时长占位符；由固定服务端模板接收实际时长。
-    async with http.stream(
-        "POST",
+    async with http.sse(
         URL + "/v1/chat/completions",
+        method="POST",
         json={
             "model": "vibevoice",
             "messages": [{"role": "user", "content": content}],
@@ -42,8 +42,8 @@ async def infer(http: httpx.AsyncClient, request: InferenceRequest) -> Inference
             "stream": True,
         },
         timeout=1800,
-    ) as response:
-        result = await complete(response)
+    ) as source:
+        result = await complete(source)
     result.spans = parse(result.text)
     return result
 

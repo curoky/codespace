@@ -1,7 +1,7 @@
 import asyncio
 from pathlib import Path
 
-import httpx
+import httpx2
 
 from models.vllm import complete
 from protocol import InferenceRequest, InferenceResult
@@ -9,7 +9,7 @@ from protocol import InferenceRequest, InferenceResult
 URL = "http://127.0.0.1:8012"
 
 
-async def infer(http: httpx.AsyncClient, request: InferenceRequest) -> InferenceResult:
+async def infer(http: httpx2.AsyncClient, request: InferenceRequest) -> InferenceResult:
     if request.audio is None:
         raise ValueError("audio required")
     audio = await asyncio.to_thread(Path(request.audio).read_bytes)
@@ -23,12 +23,12 @@ async def infer(http: httpx.AsyncClient, request: InferenceRequest) -> Inference
     }
     # 固定中文 transcription，避免触发翻译。
     data["language"] = "zh"
-    async with http.stream(
-        "POST",
+    async with http.sse(
         URL + "/v1/audio/transcriptions",
+        method="POST",
         data=data,
         files={"file": ("audio.wav", audio, "audio/wav")},
         timeout=1800,
-    ) as response:
-        result = await complete(response)
+    ) as source:
+        result = await complete(source)
     return result

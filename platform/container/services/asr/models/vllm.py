@@ -1,4 +1,4 @@
-import httpx
+import httpx2
 from pydantic import ConfigDict, Field, JsonValue
 
 from protocol import InferenceResult, Record
@@ -20,18 +20,17 @@ class Event(Record):
     choices: list[Choice] = Field(default_factory=list)
 
 
-async def complete(response: httpx.Response) -> InferenceResult:
-    response.raise_for_status()
+async def complete(source: httpx2.EventSource) -> InferenceResult:
+    """聚合 vLLM 的标准 SSE 流，只接受显式完成且未被截断的生成。"""
+    source.response.raise_for_status()
     text_parts = []
     finishes = []
     ended = False
-    async for line in response.aiter_lines():
-        if not line.startswith("data: "):
-            continue
-        if line[6:] == "[DONE]":
+    async for message in source:
+        if message.data == "[DONE]":
             ended = True
             break
-        event = Event.model_validate_json(line[6:])
+        event = Event.model_validate_json(message.data)
         for choice in event.choices:
             if choice.delta.content:
                 text_parts.append(choice.delta.content)

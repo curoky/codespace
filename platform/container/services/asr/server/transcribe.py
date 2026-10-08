@@ -22,6 +22,7 @@ async def transcribe(
     options: Options,
     trace: Trace,
 ) -> tuple[list[Transcript], dict[str, JsonValue]]:
+    """把一个上传文件及其独立声道处理成固定五份转录与共享证据。"""
     started = trace.begin()
     try:
         async with scheduler.cpu:
@@ -110,6 +111,8 @@ async def transcribe(
 
 
 async def run_recipes(pipeline: Pipeline) -> list[Transcript]:
+    """按固定阶段执行五套方案；单方案失败不丢弃其他方案的结果。"""
+
     async def phase(
         name: str,
         operation: Awaitable[None],

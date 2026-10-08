@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import cast
 
-import httpx
+import httpx2
 
 from models.catalog import MODELS, ModelSpec
 from ops.processes import GPU, service, visible_gpus
@@ -20,7 +20,7 @@ from server.config import Config
 class Instance:
     spec: ModelSpec
     url: str
-    client: Callable[[httpx.AsyncClient, InferenceRequest], Awaitable[InferenceResult]]
+    client: Callable[[httpx2.AsyncClient, InferenceRequest], Awaitable[InferenceResult]]
     devices: list[str] = field(default_factory=list)
     gpu_indices: list[str] = field(default_factory=list)
     running: bool = False
@@ -46,7 +46,7 @@ class Scheduler:
         self.control = control
         self.inventory = inventory
         self.instances: dict[str, Instance] = {}
-        self.http = httpx.AsyncClient(timeout=10, trust_env=False)
+        self.http = httpx2.AsyncClient(timeout=10, trust_env=False)
         self.cpu = asyncio.Semaphore(config.cpu_requests)
         for spec in MODELS:
             directory = Path(__file__).resolve().parents[1] / "models" / spec.id
@@ -60,12 +60,13 @@ class Scheduler:
             sys.modules[module_spec.name] = module
             module_spec.loader.exec_module(module)
             client = cast(
-                Callable[[httpx.AsyncClient, InferenceRequest], Awaitable[InferenceResult]],
+                Callable[[httpx2.AsyncClient, InferenceRequest], Awaitable[InferenceResult]],
                 module.infer,
             )
             self.instances[spec.id] = Instance(spec, module.URL, client)
 
     async def initialize(self) -> None:
+        """把逻辑 placement 固定到可见 GPU，并在 HTTP ready 前启动全部模型。"""
         self.runtime_dir.mkdir(parents=True, exist_ok=True)
         for model in self.instances:
             await self.control("stop", model)
@@ -126,7 +127,7 @@ class Scheduler:
                 response = await self.http.get(f"{instance.url}/health")
                 if response.is_success:
                     return
-            except httpx.TransportError:
+            except httpx2.TransportError:
                 pass
             await asyncio.sleep(1)
         raise TimeoutError(f"{instance.spec.id}: readiness timeout")

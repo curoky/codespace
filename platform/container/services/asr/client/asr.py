@@ -1,42 +1,45 @@
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["httpx==0.28.1", "typer==0.27.2"]
+# dependencies = ["httpx==0.28.1", "pydantic==2.13.5", "typer==0.27.2"]
 # ///
 import asyncio
 import json
 import shutil
 import tempfile
 from pathlib import Path
-from typing import Annotated, cast
+from typing import Annotated, Literal, cast
 
 import httpx
 import typer
-
-type JsonValue = None | bool | int | float | str | list[JsonValue] | dict[str, JsonValue]
-
-
-def object_value(value: JsonValue, name: str) -> dict[str, JsonValue]:
-    if not isinstance(value, dict):
-        raise ValueError(f"server returned invalid {name}")
-    return value
+from pydantic import BaseModel, ConfigDict, Field, JsonValue
 
 
-def list_value(value: JsonValue, name: str) -> list[JsonValue]:
-    if not isinstance(value, list):
-        raise ValueError(f"server returned invalid {name}")
-    return value
+class ResponseRecord(BaseModel):
+    model_config = ConfigDict(extra="allow")
 
 
-def string_value(value: JsonValue, name: str) -> str:
-    if not isinstance(value, str):
-        raise ValueError(f"server returned invalid {name}")
-    return value
+class Segment(ResponseRecord):
+    start_ms: int = Field(ge=0)
+    end_ms: int = Field(ge=0)
+    text: str
+    speakers: list[str] = Field(default_factory=list)
+    flags: list[str] = Field(default_factory=list)
 
 
-def int_value(value: JsonValue, name: str) -> int:
-    if type(value) is not int:
-        raise ValueError(f"server returned invalid {name}")
-    return value
+class Result(ResponseRecord):
+    recipe: str
+    status: Literal["completed", "failed"]
+    error: str | None = None
+    warnings: list[str] = Field(default_factory=list)
+    segments: list[Segment] = Field(default_factory=list)
+
+
+class TranscriptionResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    results: list[Result]
+    evidence: dict[str, JsonValue]
+    trace: dict[str, JsonValue]
 
 
 def timestamp(ms: int) -> str:
@@ -46,52 +49,32 @@ def timestamp(ms: int) -> str:
     return f"{hours:02}:{minutes:02}:{seconds:02}.{milliseconds:03}"
 
 
-def markdown(result: dict[str, JsonValue]) -> str:
-    recipe = string_value(result.get("recipe"), "result.recipe")
-    status = string_value(result.get("status"), "result.status")
-    lines = [f"# {recipe}", "", f"状态：{status}", ""]
-    error = result.get("error")
-    if error is not None:
-        lines.extend([f"> 未完成：{string_value(error, 'result.error')}", ""])
-    for value in list_value(result.get("warnings"), "result.warnings"):
-        lines.extend([f"> {string_value(value, 'result.warning')}", ""])
-    segments = list_value(result.get("segments"), "result.segments")
-    for value in segments:
-        segment = object_value(value, "result.segment")
-        speakers = [
-            string_value(speaker, "segment.speaker")
-            for speaker in list_value(segment.get("speakers"), "segment.speakers")
-        ]
-        flags = [
-            string_value(flag, "segment.flag")
-            for flag in list_value(segment.get("flags"), "segment.flags")
-        ]
-        speaker = "/".join(speakers) or "说话人未知"
-        suffix = " · 待核对：" + ", ".join(flags) if flags else ""
-        start_ms = int_value(segment.get("start_ms"), "segment.start_ms")
-        end_ms = int_value(segment.get("end_ms"), "segment.end_ms")
-        text = string_value(segment.get("text"), "segment.text")
+def markdown(result: Result) -> str:
+    lines = [f"# {result.recipe}", "", f"状态：{result.status}", ""]
+    if result.error is not None:
+        lines.extend([f"> 未完成：{result.error}", ""])
+    for warning in result.warnings:
+        lines.extend([f"> {warning}", ""])
+    for segment in result.segments:
+        speaker = "/".join(segment.speakers) or "说话人未知"
+        suffix = " · 待核对：" + ", ".join(segment.flags) if segment.flags else ""
         lines.extend(
             [
-                f"**[{timestamp(start_ms)}–{timestamp(end_ms)}] {speaker}{suffix}**",
+                f"**[{timestamp(segment.start_ms)}–{timestamp(segment.end_ms)}] "
+                f"{speaker}{suffix}**",
                 "",
-                text,
+                segment.text,
                 "",
             ]
         )
-    if not segments and status == "completed":
+    if not result.segments and result.status == "completed":
         lines.extend(["未检测到可转写语音。", ""])
     return "\n".join(lines)
 
 
 def write_response(payload: JsonValue, destination: Path) -> bool:
-    response = object_value(payload, "response")
-    results = [
-        object_value(result, "response.result")
-        for result in list_value(response.get("results"), "response.results")
-    ]
-    evidence = object_value(response.get("evidence"), "response.evidence")
-    trace = object_value(response.get("trace"), "response.trace")
+    """严格校验服务响应，在临时目录内生成一套可原子发布的本地产物。"""
+    response = TranscriptionResponse.model_validate(payload)
     recipes: set[str] = set()
     lines = [
         "# 转录结果",
@@ -100,15 +83,16 @@ def write_response(payload: JsonValue, destination: Path) -> bool:
         "",
     ]
     completed = True
-    for result in results:
-        recipe = string_value(result.get("recipe"), "result.recipe")
-        status = string_value(result.get("status"), "result.status")
+    for result in response.results:
+        recipe = result.recipe
+        status = result.status
         if not recipe or Path(recipe).name != recipe or recipe in recipes:
             raise ValueError("server returned an invalid or duplicate recipe")
         recipes.add(recipe)
         completed &= status == "completed"
         lines.append(f"- [{recipe}]({recipe}.md) · {status} · [JSON]({recipe}.json)")
-        document = {**result, "evidence": "evidence.json"}
+        document = result.model_dump(mode="json")
+        document["evidence"] = "evidence.json"
         (destination / f"{recipe}.json").write_text(
             json.dumps(document, ensure_ascii=False, indent=2)
         )
@@ -121,8 +105,12 @@ def write_response(payload: JsonValue, destination: Path) -> bool:
         ]
     )
     (destination / "index.md").write_text("\n".join(lines))
-    (destination / "evidence.json").write_text(json.dumps(evidence, ensure_ascii=False, indent=2))
-    (destination / "trace.json").write_text(json.dumps(trace, ensure_ascii=False, indent=2))
+    (destination / "evidence.json").write_text(
+        json.dumps(response.evidence, ensure_ascii=False, indent=2)
+    )
+    (destination / "trace.json").write_text(
+        json.dumps(response.trace, ensure_ascii=False, indent=2)
+    )
     return completed
 
 
@@ -134,6 +122,7 @@ async def process(
     options: str,
     overwrite: bool,
 ) -> bool:
+    """完成一次长连接转写，全部文件就绪后再替换目标目录。"""
     if destination.exists() and not overwrite:
         raise FileExistsError(f"{destination} 已存在；使用 --overwrite 重新转录并覆盖")
     destination.parent.mkdir(parents=True, exist_ok=True)

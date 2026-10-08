@@ -6,7 +6,7 @@ import wave
 from pathlib import Path
 from unittest.mock import patch
 
-import httpx
+import httpx2
 from fastapi.testclient import TestClient
 
 from ops.processes import GPU
@@ -51,14 +51,14 @@ def runtime(tmp_path: Path, *, broken: str | None = None) -> Scheduler:
         config, runtime_dir=tmp_path / "run", control=control, inventory=inventory
     )
 
-    def respond(request: httpx.Request) -> httpx.Response:
+    def respond(request: httpx2.Request) -> httpx2.Response:
         instance = next(
-            i for i in scheduler.instances.values() if httpx.URL(i.url).port == request.url.port
+            i for i in scheduler.instances.values() if httpx2.URL(i.url).port == request.url.port
         )
         if request.url.path == "/health":
-            return httpx.Response(200, json={"status": "ready"})
+            return httpx2.Response(200, json={"status": "ready"})
         if instance.spec.id == broken:
-            return httpx.Response(500, json={"error": "model failed"})
+            return httpx2.Response(500, json={"error": "model failed"})
         if not request.url.path.startswith("/v1/"):
             payload = json.loads(request.content)
             if request.url.path == "/align":
@@ -87,21 +87,21 @@ def runtime(tmp_path: Path, *, broken: str | None = None) -> Scheduler:
                 result = InferenceResult(text=payload["text"].rstrip("。") + "。")
             else:
                 result = InferenceResult(text="你好世界。")
-            return httpx.Response(200, json=result.model_dump(mode="json"))
+            return httpx2.Response(200, json=result.model_dump(mode="json"))
         text = "你好世界。" if instance.spec.id != "whisper-large-v3" else "您好世界。"
         if instance.spec.id == "moss-td":
             text = "[0.1][S01]你好世界。[1.9]"
         if instance.spec.id == "vibevoice":
             text = '[{"Start":0.1,"End":1.9,"Speaker":0,"Content":"你好世界。"}]'
         event = {"choices": [{"delta": {"content": text}, "finish_reason": "stop"}]}
-        return httpx.Response(
+        return httpx2.Response(
             200,
             text="data: " + json.dumps(event) + "\n\ndata: [DONE]\n\n",
             headers={"content-type": "text/event-stream"},
         )
 
     asyncio.run(scheduler.http.aclose())
-    scheduler.http = httpx.AsyncClient(transport=httpx.MockTransport(respond))
+    scheduler.http = httpx2.AsyncClient(transport=httpx2.MockTransport(respond))
     return scheduler
 
 
@@ -282,7 +282,7 @@ def test_concurrent_identical_calls_share_result_after_model_lock(tmp_path: Path
     inference = Inference(scheduler, tmp_path)
     calls = 0
 
-    async def infer(client: httpx.AsyncClient, request: InferenceRequest) -> InferenceResult:
+    async def infer(client: httpx2.AsyncClient, request: InferenceRequest) -> InferenceResult:
         nonlocal calls
         calls += 1
         await asyncio.sleep(0.01)

@@ -2,7 +2,7 @@ import asyncio
 import re
 from pathlib import Path
 
-import httpx
+import httpx2
 
 from models.vllm import complete
 from protocol import InferenceRequest, InferenceResult, Span
@@ -10,7 +10,7 @@ from protocol import InferenceRequest, InferenceResult, Span
 URL = "http://127.0.0.1:8004"
 
 
-async def infer(http: httpx.AsyncClient, request: InferenceRequest) -> InferenceResult:
+async def infer(http: httpx2.AsyncClient, request: InferenceRequest) -> InferenceResult:
     if request.audio is None:
         raise ValueError("audio required")
     audio = await asyncio.to_thread(Path(request.audio).read_bytes)
@@ -22,14 +22,14 @@ async def infer(http: httpx.AsyncClient, request: InferenceRequest) -> Inference
         "stream": "true",
         "max_completion_tokens": "8192",
     }
-    async with http.stream(
-        "POST",
+    async with http.sse(
         URL + "/v1/audio/transcriptions",
+        method="POST",
         data=data,
         files={"file": ("audio.wav", audio, "audio/wav")},
         timeout=1800,
-    ) as response:
-        result = await complete(response)
+    ) as source:
+        result = await complete(source)
     result.spans = parse(result.text)
     return result
 

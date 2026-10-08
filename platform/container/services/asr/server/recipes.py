@@ -4,7 +4,7 @@ import re
 from pathlib import Path
 from typing import Literal
 
-import httpx
+import httpx2
 from pydantic import Field, JsonValue
 
 from protocol import InferenceRequest, InferenceResult, Record, Span, Token
@@ -77,6 +77,7 @@ class Pipeline:
         return result
 
     async def prepare(self) -> None:
+        """先建立全文件 speaker 与活动区间，后续方案共同复用同一组短窗。"""
         diarized = await self.inference.call(
             "pyannote-community-1",
             InferenceRequest(
@@ -113,6 +114,7 @@ class Pipeline:
         )
 
     async def first_pass(self) -> None:
+        """四个独立模型并行跑完整批次，同一模型内部保持逐窗串行。"""
         for window in self.chunks:
             await self.clip(window)
 
@@ -140,6 +142,7 @@ class Pipeline:
         )
 
     async def review(self) -> None:
+        """只扩展有争议的窗口；三路复听完成后才按需调用 MOSS-Audio。"""
         pending: dict[str, tuple[Window, Window]] = {}
         for window in self.chunks:
             key = window.model_dump_json()
@@ -248,6 +251,7 @@ class Pipeline:
         return utterances(segment, speakers)
 
     async def fusion(self, recipe: str, primary: str) -> Transcript:
+        """以指定主模型生成融合稿，证据不足时保留原文并显式标记。"""
         result = Transcript(recipe=recipe, activity=self.activity, speakers=self.speakers)
         families = {name: i.spec.family for name, i in self.inference.scheduler.instances.items()}
         for window in self.chunks:
@@ -286,6 +290,7 @@ class Pipeline:
         return result
 
     async def joint(self, recipe: str, model: str) -> Transcript:
+        """保留联合模型的正文与局部 speaker，仅用共享证据标记争议。"""
         result = Transcript(recipe=recipe, activity=self.activity, speakers=self.speakers)
         maximum = self.inference.scheduler.instances[model].spec.max_audio_seconds
         config = ChunkConfig(target_seconds=maximum - 4, max_seconds=maximum, padding_ms=1000)
@@ -302,7 +307,7 @@ class Pipeline:
                 if active_ends and last_end < max(active_ends) - 2000:
                     raise ValueError(f"{model}: active tail is not covered")
                 return await assemble(raw, window)
-            except (ValueError, httpx.HTTPError) as exc:
+            except (ValueError, httpx2.HTTPError) as exc:
                 if depth >= 2 or window.core_end_ms - window.core_start_ms < 30000:
                     raise
                 result.warnings.append(f"joint_window_retry:{window.start_ms}:{exc}")

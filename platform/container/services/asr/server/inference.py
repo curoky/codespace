@@ -44,6 +44,7 @@ class Inference:
     async def call(
         self, model: str, request: InferenceRequest, *, step: str = "model"
     ) -> InferenceResult:
+        """串行化同一模型调用，并在等待锁前后复查本请求内缓存。"""
         started = self.trace.begin()
         instance = self.scheduler.instances[model]
         effective = request.model_copy(deep=True)
