@@ -117,7 +117,7 @@ def test_one_request_returns_five_documents_and_shared_evidence(tmp_path: Path) 
         response = client.post("/transcribe", files={"file": ("会议.wav", wav())})
         assert response.status_code == 200
         with zipfile.ZipFile(io.BytesIO(response.content)) as bundle:
-            assert len(bundle.namelist()) == 12
+            assert len(bundle.namelist()) == 13
             for recipe in RECIPE_IDS:
                 result = json.loads(bundle.read(f"{recipe}.json"))
                 assert result["status"] == "completed"
@@ -128,6 +128,40 @@ def test_one_request_returns_five_documents_and_shared_evidence(tmp_path: Path) 
             records = evidence["channels"]["mono"]["raw_responses"]
             keys = [(r["model"], json.dumps(r["request"], sort_keys=True)) for r in records]
             assert len(keys) == len(set(keys))
+            trace = json.loads(bundle.read("trace.json"))
+            assert trace["schema_version"] == 1
+            assert trace["status"] == "completed"
+            assert trace["duration_ms"] >= 0
+            assert {event["name"] for event in trace["events"] if event["kind"] == "phase"} >= {
+                "upload",
+                "decode",
+                "prepare",
+                "first_pass",
+                "review",
+                *("recipe." + recipe for recipe in RECIPE_IDS),
+            }
+            model_events = [
+                event
+                for event in trace["events"]
+                if event["kind"] == "model" and not event["cache_hit"]
+            ]
+            assert {event["model"] for event in model_events} == {
+                "firered-llm",
+                "firered-punc",
+                "firered-vad",
+                "moss-td",
+                "nemotron-diarization",
+                "paraformer",
+                "pyannote-community-1",
+                "qwen3-aligner",
+                "qwen3-asr-1.7b",
+                "sensevoice",
+                "vibevoice",
+            }
+            assert all(event["duration_ms"] >= event["inference_ms"] for event in model_events)
+            assert all("gpu_queue_ms" in event for event in model_events)
+            assert all(event["input_summary"] for event in model_events)
+            assert all(event["output_summary"] for event in model_events)
         assert list(work.iterdir()) == []
         assert not scheduler.instances["whisper-large-v3"].running
         assert not scheduler.instances["moss-audio"].running
@@ -145,7 +179,15 @@ def test_failed_asr_keeps_joint_documents_and_returns_partial_failure(tmp_path: 
         assert response.status_code == 200
         with zipfile.ZipFile(io.BytesIO(response.content)) as bundle:
             statuses = [json.loads(bundle.read(f"{r}.json"))["status"] for r in RECIPE_IDS]
+            trace = json.loads(bundle.read("trace.json"))
         assert statuses == ["completed", "failed", "completed", "completed", "completed"]
+        assert trace["status"] == "partial"
+        assert any(
+            event["kind"] == "model"
+            and event["model"] == "firered-llm"
+            and event["status"] == "failed"
+            for event in trace["events"]
+        )
 
 
 def test_waiting_for_multiple_gpus_is_cancellable_and_reclaims_idle_model(tmp_path: Path) -> None:

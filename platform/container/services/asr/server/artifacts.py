@@ -4,6 +4,7 @@ import zipfile
 
 from pydantic import JsonValue
 
+from server.tracing import TraceDocument
 from server.transcript import Transcript
 
 
@@ -36,7 +37,9 @@ def markdown(result: Transcript) -> str:
     return "\n".join(lines)
 
 
-def bundle(results: list[Transcript], evidence: dict[str, JsonValue]) -> bytes:
+def bundle(
+    results: list[Transcript], evidence: dict[str, JsonValue], trace: TraceDocument
+) -> bytes:
     lines = [
         "# 转录结果",
         "",
@@ -50,7 +53,14 @@ def bundle(results: list[Transcript], evidence: dict[str, JsonValue]) -> bytes:
             lines.append(f"- [{recipe}]({recipe}.md) · {result.status} · [JSON]({recipe}.json)")
             output.writestr(f"{recipe}.json", result.model_dump_json(indent=2))
             output.writestr(f"{recipe}.md", markdown(result))
-        lines.extend(["", "[共享识别证据与参数](evidence.json)", ""])
+        lines.extend(
+            [
+                "",
+                "[执行追踪与工程指标](trace.json) · [共享识别证据与参数](evidence.json)",
+                "",
+            ]
+        )
         output.writestr("index.md", "\n".join(lines))
         output.writestr("evidence.json", json.dumps(evidence, ensure_ascii=False, indent=2))
+        output.writestr("trace.json", trace.model_dump_json(indent=2, exclude_none=True))
     return buffer.getvalue()

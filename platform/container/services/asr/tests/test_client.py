@@ -19,6 +19,7 @@ def test_each_invocation_transcribes_without_saved_client_state(tmp_path: Path) 
         bundle.writestr("index.md", "transcript")
         bundle.writestr("01.json", '{"status":"completed"}')
         bundle.writestr("evidence.json", "{}")
+        bundle.writestr("trace.json", '{"schema_version":1}')
     calls = []
 
     def respond(request: httpx.Request) -> httpx.Response:

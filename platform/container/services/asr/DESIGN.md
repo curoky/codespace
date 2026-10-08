@@ -1,8 +1,8 @@
 # Chinese Recording Transcription
 
 把完整的普通话对话录音转成**带时间戳、说话人和待核对标记的原话记录**。
-每个文件固定产出 **5 份 Markdown + 5 份 JSON + 索引 + 共享证据**，一次 HTTP 请求
-处理完成后返回一个 zip。中文为主，保留夹杂英文、语气词、重复和插话。
+每个文件固定产出 **5 份 Markdown + 5 份 JSON + 索引 + 共享证据 + 执行追踪**，一次 HTTP
+请求处理完成后返回一个 zip。中文为主，保留夹杂英文、语气词、重复和插话。
 
 | 输入 | 处理 | 输出 | 部署 |
 | --- | --- | --- | --- |
@@ -228,7 +228,8 @@ texts/<录音相对路径与文件名>/
 ├── 04-vibevoice.md / .json
 ├── 05-qwen-nemotron.md / .json
 ├── index.md                  # 各方案完成情况与链接，不做排名
-└── evidence.json             # 一份共享原始响应、复核依据和请求参数
+├── evidence.json             # 一份共享原始响应、复核依据和请求参数
+└── trace.json                # phase / 模型调用、GPU、排队与耗时工程指标
 ```
 
 Markdown 展示原话、时间、speaker 与待核对标记；JSON 保留候选、裁定和失败说明，
@@ -238,6 +239,10 @@ Markdown 展示原话、时间、speaker 与待核对标记；JSON 保留候选�
 一起返回；解码、公共 speaker 等前置环节失败则本次 HTTP 请求失败。CLI 仅在完整接收
 并解压后发布结果目录，不保存任务状态。请求中断后重新执行；已有结果用 `--overwrite`
 重新转录并覆盖。`/data/asr` 只需提供临时音频空间，不需要持久任务卷。
+
+`trace.json` 使用相对请求起点的毫秒时间，记录 upload / decode / prepare / first pass /
+review / 五方案 phase，以及每次实际模型调用或 request cache 命中。模型事件只保存输入
+大小与输出数量摘要，不重复 `evidence.json` 中的正文和原始响应。
 
 ```bash
 uv run platform/container/services/asr/client/asr.py ./recordings \

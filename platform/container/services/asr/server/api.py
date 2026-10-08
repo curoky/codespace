@@ -3,7 +3,7 @@ import tempfile
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 
 import typer
 import uvicorn
@@ -14,6 +14,7 @@ from ops.scheduler import Scheduler
 from server.artifacts import bundle
 from server.config import Config, read_config
 from server.recipes import Options
+from server.tracing import Trace
 from server.transcribe import transcribe
 
 
@@ -42,6 +43,7 @@ def create_app(
 
     @app.post("/transcribe")
     async def submit(file: UploadFile, options: Annotated[str, Form()] = "{}") -> Response:
+        trace = Trace()
         try:
             parameters = Options.model_validate_json(options)
         except ValidationError as exc:
@@ -50,12 +52,38 @@ def create_app(
             with tempfile.TemporaryDirectory(prefix="request-", dir=work_dir) as temporary:
                 work = Path(temporary)
                 source = work / "original"
-                with source.open("wb") as target:
-                    while chunk := await file.read(1024 * 1024):
-                        await asyncio.to_thread(target.write, chunk)
+                started = trace.begin()
+                try:
+                    with source.open("wb") as target:
+                        while chunk := await file.read(1024 * 1024):
+                            await asyncio.to_thread(target.write, chunk)
+                except Exception as exc:
+                    trace.add(
+                        kind="phase",
+                        name="upload",
+                        started=started,
+                        status="failed",
+                        error=f"{type(exc).__name__}: {exc}",
+                    )
+                    raise
                 if not source.stat().st_size:
                     raise HTTPException(422, "empty file")
-                results, evidence = await transcribe(source, work, config, runtime, parameters)
+                trace.add(
+                    kind="phase",
+                    name="upload",
+                    started=started,
+                    status="completed",
+                    input_summary={"filename": file.filename or "recording"},
+                    output_summary={"bytes": source.stat().st_size},
+                )
+                results, evidence = await transcribe(
+                    source, work, config, runtime, parameters, trace
+                )
+                status: Literal["completed", "partial"] = (
+                    "completed"
+                    if all(result.status == "completed" for result in results)
+                    else "partial"
+                )
                 archive = await asyncio.to_thread(
                     bundle,
                     results,
@@ -65,6 +93,7 @@ def create_app(
                         "config": config.model_dump(mode="json"),
                         "channels": evidence,
                     },
+                    trace.document(status),
                 )
                 return Response(
                     archive,

@@ -12,8 +12,8 @@ export OMP_NUM_THREADS=4
 export CUDA_HOME=/usr/local/cuda-13.0
 export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64
 
-# HF checkpoint 使用原生 audio chat，不能替换成旧 plugin 或 transcription 入口。
-# BF16 保留精度；32768 为长音频和带时间、speaker 的结构化输出留预算。
+# HF checkpoint 使用原生 audio chat；固定模板补上 vLLM 不会替换的音频时长占位符。
+# BF16 保留精度；65536 同时容纳音频 prompt 和上游 32768 token 生成预算。
 exec uv run \
   --project "$model_dir" \
   --frozen \
@@ -25,7 +25,8 @@ exec uv run \
   --port 8011 \
   --dtype bfloat16 \
   --tensor-parallel-size 1 \
-  --max-model-len 32768 \
+  --chat-template "$model_dir/chat_template.jinja" \
+  --max-model-len 65536 \
   --gpu-memory-utilization 0.85 \
   --seed 0 \
   --generation-config vllm \

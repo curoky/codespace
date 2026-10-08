@@ -94,6 +94,11 @@ s6 文件的工具。配置文件使用 YAML，uv 工具文件除外。参数、
   不传 server 级覆盖参数。普通 ASR 由上层保持不超过 30 秒，catalog 记录相同模型预算；
   联合模型根据 catalog 的上限切窗。升级 vLLM 时核对模型实现与 CLI parser，不能只依据
   旧启动参数。
+- VibeVoice 必须沿用上游 transcription request。vLLM 不会替换 HF checkpoint 模板中的
+  `<|AUDIO_DURATION|>`，因此 `run` 固定使用本目录模板，client 通过
+  `chat_template_kwargs` 传入实际 WAV 时长；audio data URL 和固定输出字段缺一不可，否则
+  模型会越过真实音频尾部重复生成。生成预算与总上下文预算按上游长音频配置成对维护；
+  总上下文必须同时容纳音频 prompt 和完整结构化输出。
 - SDK 服务只接收 `/data/asr` 内真实文件；原生 vLLM client 发送音频内容。数据目录是镜像
   内固定契约，改变 Host 存储位置用 bind mount；不要只改 server 的路径而破坏 SDK 访问。
 - 模型不读取应用配置环境变量。GPU 服务的唯一动态输入是 `CUDA_VISIBLE_DEVICES`：由

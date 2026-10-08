@@ -24,10 +24,18 @@ class Instance:
     url: str
     client: Callable[[httpx.AsyncClient, InferenceRequest], Awaitable[InferenceResult]]
     devices: list[str] = field(default_factory=list)
+    gpu_indices: list[str] = field(default_factory=list)
     running: bool = False
     active: bool = False
     last_used: float = 0
     lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+
+
+@dataclass
+class AcquireMetrics:
+    model_queue_seconds: float = 0
+    gpu_queue_seconds: float = 0
+    startup_seconds: float = 0
 
 
 class Scheduler:
@@ -80,6 +88,7 @@ class Scheduler:
         await self.control("stop", instance.spec.id)
         instance.running = False
         instance.devices.clear()
+        instance.gpu_indices.clear()
 
     async def _start(self, instance: Instance) -> None:
         spec = instance.spec
@@ -100,15 +109,23 @@ class Scheduler:
             await asyncio.sleep(1)
         raise TimeoutError(f"{spec.id}: readiness timeout")
 
-    async def acquire(self, model: str) -> Instance:
+    async def acquire(self, model: str, metrics: AcquireMetrics | None = None) -> Instance:
+        metrics = metrics or AcquireMetrics()
         instance = self.instances[model]
+        started = time.monotonic()
         await instance.lock.acquire()
+        metrics.model_queue_seconds = time.monotonic() - started
         try:
             if not instance.spec.resources.gpus:
                 if not instance.running:
-                    await self._start(instance)
+                    started = time.monotonic()
+                    try:
+                        await self._start(instance)
+                    finally:
+                        metrics.startup_seconds = time.monotonic() - started
                 instance.active = True
                 return instance
+            started = time.monotonic()
             async with self.condition:
                 self.waiters.append(model)
                 deadline = time.monotonic() + self.config.resources.wait_seconds
@@ -132,6 +149,7 @@ class Scheduler:
                             ]
                             if len(available) >= required:
                                 instance.devices = [d.id for d in available[:required]]
+                                instance.gpu_indices = [d.index for d in available[:required]]
                                 instance.active = True
                                 break
                             idle = [
@@ -148,10 +166,15 @@ class Scheduler:
                         with contextlib.suppress(TimeoutError):
                             await asyncio.wait_for(self.condition.wait(), min(remaining, 1))
                 finally:
+                    metrics.gpu_queue_seconds = time.monotonic() - started
                     self.waiters.remove(model)
                     self.condition.notify_all()
             if not instance.running:
-                await self._start(instance)
+                started = time.monotonic()
+                try:
+                    await self._start(instance)
+                finally:
+                    metrics.startup_seconds = time.monotonic() - started
             return instance
         except BaseException:
             await self.release(instance, failed=True)

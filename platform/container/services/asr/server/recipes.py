@@ -61,7 +61,7 @@ class Pipeline:
             await asyncio.to_thread(cut, self.audio, path, window.start_ms, window.end_ms)
         return path
 
-    async def recognize(self, model: str, window: Window) -> InferenceResult:
+    async def recognize(self, model: str, window: Window, *, step: str) -> InferenceResult:
         path = await self.clip(window)
         result = await self.inference.call(
             model,
@@ -69,6 +69,7 @@ class Pipeline:
                 audio=str(path),
                 hotwords=self.options.hotwords,
             ),
+            step=step,
         )
         for span in result.spans:
             if span.end_ms > window.end_ms - window.start_ms + 100:
@@ -82,18 +83,21 @@ class Pipeline:
                 audio=str(self.audio),
                 num_speakers=self.options.num_speakers,
             ),
+            step="prepare.diarization",
         )
         self.speakers = rename_speakers(diarized.spans)
         if self.options.vad_mode == "off":
             self.activity = [Span(start_ms=0, end_ms=self.duration)]
         else:
             detection = await self.inference.call(
-                "firered-vad", InferenceRequest(audio=str(self.audio))
+                "firered-vad",
+                InferenceRequest(audio=str(self.audio)),
+                step="prepare.vad",
             )
             self.activity = union(self.speakers + detection.spans)
         self.chunks = windows(self.activity, self.duration, self.config.chunking)
 
-    async def align(self, text: str, window: Window) -> list[Token]:
+    async def align(self, text: str, window: Window, *, step: str) -> list[Token]:
         if not normalized(text):
             return []
         result = await self.inference.call(
@@ -102,6 +106,7 @@ class Pipeline:
                 audio=str(await self.clip(window)),
                 text=text,
             ),
+            step=step,
         )
         return align_text(
             text, result.tokens, offset=window.start_ms, limit=window.end_ms - window.start_ms
@@ -113,7 +118,7 @@ class Pipeline:
                 key = window.model_dump_json()
                 candidates = self.candidates.setdefault(key, {})
                 try:
-                    result = await self.recognize(model, window)
+                    result = await self.recognize(model, window, step="first_pass")
                     candidates[model] = plain(result.text)
                 except Exception as exc:
                     logging.exception("first pass %s failed", model)
@@ -152,7 +157,7 @@ class Pipeline:
                 if model == "moss-audio" and len({normalized(t) for t in reviews.values()}) == 1:
                     continue
                 try:
-                    result = await self.recognize(model, expanded)
+                    result = await self.recognize(model, expanded, step="review")
                     texts[key] = plain(result.text)
                 except Exception as exc:
                     logging.exception("review %s failed", model)
@@ -160,7 +165,7 @@ class Pipeline:
             for key, text in texts.items():
                 window, expanded = pending[key]
                 try:
-                    tokens = await self.align(text, expanded)
+                    tokens = await self.align(text, expanded, step="review.align")
                 except Exception as exc:
                     logging.exception("review alignment %s failed", model)
                     self.errors[f"review:{model}:{key}"] = str(exc)
@@ -176,15 +181,25 @@ class Pipeline:
                 )
 
     async def finalize_segment(
-        self, segment: Segment, window: Window, speakers: list[Span], *, punctuate: bool = True
+        self,
+        segment: Segment,
+        window: Window,
+        speakers: list[Span],
+        *,
+        step: str,
+        punctuate: bool = True,
     ) -> list[Segment]:
         if punctuate and self.config.punctuation and normalized(segment.text):
-            result = await self.inference.call("firered-punc", InferenceRequest(text=segment.text))
+            result = await self.inference.call(
+                "firered-punc",
+                InferenceRequest(text=segment.text),
+                step=step + ".punctuate",
+            )
             if punctuation_content(result.text) == punctuation_content(segment.text):
                 segment.text = result.text
             else:
                 segment.flags.append("punctuation_changed_content_rejected")
-        segment.tokens = await self.align(segment.text, window)
+        segment.tokens = await self.align(segment.text, window, step=step + ".align")
         if any(t.start_ms is None for t in segment.tokens):
             segment.flags.append("alignment_failed")
             if not punctuate and (
@@ -235,7 +250,9 @@ class Pipeline:
                 decision=decision,
                 flags=flags,
             )
-            result.segments.extend(await self.finalize_segment(segment, window, self.speakers))
+            result.segments.extend(
+                await self.finalize_segment(segment, window, self.speakers, step="recipe." + recipe)
+            )
         return result
 
     async def joint(self, recipe: str, model: str) -> Transcript:
@@ -245,7 +262,7 @@ class Pipeline:
 
         async def transcribe(window: Window, depth: int = 0) -> list[Segment]:
             try:
-                raw = await self.recognize(model, window)
+                raw = await self.recognize(model, window, step="recipe." + recipe + ".joint")
                 active_ends = [
                     min(s.end_ms, window.core_end_ms)
                     for s in self.activity
@@ -317,7 +334,13 @@ class Pipeline:
                         segment.flags.append("crosscheck_disagreement_in_interval")
                         break
                 parts.extend(
-                    await self.finalize_segment(segment, aligned_window, speakers, punctuate=False)
+                    await self.finalize_segment(
+                        segment,
+                        aligned_window,
+                        speakers,
+                        step="recipe." + recipe,
+                        punctuate=False,
+                    )
                 )
             return parts
 
@@ -344,7 +367,9 @@ class Pipeline:
             else ("unverified_max_8" if count is None else "max_8")
         )
         diarized = await self.inference.call(
-            "nemotron-diarization", InferenceRequest(audio=str(self.audio))
+            "nemotron-diarization",
+            InferenceRequest(audio=str(self.audio)),
+            step="recipe.05-qwen-nemotron.diarization",
         )
         result.speakers = rename_speakers(diarized.spans)
         result.segments = [

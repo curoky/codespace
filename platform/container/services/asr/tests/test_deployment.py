@@ -173,6 +173,14 @@ def test_model_clients_match_fixed_listeners(tmp_path: Path) -> None:
             port = int(args[args.index("--port") + 1])
             assert host == "127.0.0.1"
             assert instance.url == f"http://{host}:{port}"
+            if instance.spec.id == "vibevoice":
+                assert args[args.index("--max-model-len") + 1] == "65536"
+                template = args[args.index("--chat-template") + 1]
+                assert template.endswith("/vibevoice/chat_template.jinja")
+                assert (
+                    "{{ audio_duration }}"
+                    in (instance.directory / "chat_template.jinja").read_text()
+                )
             assert port not in ports
             ports.add(port)
         assert ports == set(range(8000, 8013))

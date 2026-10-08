@@ -22,7 +22,7 @@ def extract(archive: Path, destination: Path) -> bool:
         completed = all(
             json.loads(bundle.read(name))["status"] == "completed"
             for name in bundle.namelist()
-            if name.endswith(".json") and name != "evidence.json"
+            if name.endswith(".json") and name not in {"evidence.json", "trace.json"}
         )
         bundle.extractall(destination)
     return completed
