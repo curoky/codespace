@@ -134,7 +134,31 @@ owner 和 xattr，只忽略 mtime，并优先复用 link count 最高的 inode�
 | `rootfs/usr/local/bin/asr-model-service` | root-owned 受限启停入口，由 sudoers 仅授权 x 调用 |
 | `/var/log/s6.asr-*.log` | `redirfd -w` + `fdmove`，沿用 Workspace 日志范式 |
 | `/data/asr` | 请求临时音频，Host mount 必须允许 x 写入；正常结束与异常返回均清理 |
-| 模型 `weights/`、x 的 uv cache | 可持久化；不要用空 volume 覆盖整个 `/opt/asr` |
+
+### Runtime Mounts
+
+容器替换后复用 runtime 下载的模型参数时，控制面必须为以下目录分别提供可写 bind mount：
+
+```yaml
+volumes:
+  - ${RESOURCE_DATA}/models/firered-llm:/opt/asr/models/firered-llm/weights
+  - ${RESOURCE_DATA}/models/moss-audio:/opt/asr/models/moss-audio/weights
+  - ${RESOURCE_DATA}/models/qwen3-asr-1.7b:/opt/asr/models/qwen3-asr-1.7b/weights
+  - ${RESOURCE_DATA}/models/vibevoice:/opt/asr/models/vibevoice/weights
+  - ${RESOURCE_DATA}/models/whisper-large-v3:/opt/asr/models/whisper-large-v3/weights
+```
+
+这些 Host 目录可以初始为空，首次启动的 download oneshot 会写入固定 snapshot；目录及已有
+文件必须允许容器用户 x（UID/GID `5230:5230`）读写。仅持久化上面五个 runtime 模型；
+`install-bundled-model-weights.sh` 中的模型参数属于 image，不额外挂载。增删 runtime download
+service 时同步维护此清单。
+
+不要挂载 `/opt/asr`、`/opt/asr/models` 或整个 `/opt/asr/models/<model>`，否则空 volume 会
+遮蔽 image 内的代码、`.venv`、启动脚本和内置参数。HF local-dir metadata 位于对应
+`weights/.cache/`，随上述 mount 一起持久化；无需持久化 x 的 uv cache。Runtime HF token
+仍只读挂载到 `/home/x/.cache/huggingface/token`，不得和模型参数放在同一 Host 目录。
+`/data/asr` 只用于请求期间的临时音频，可单独提供可写 mount，但不作为转写结果或任务状态
+的持久化存储。
 
 s6 supervision 本身以 root 运行，业务服务和下载都以固定用户 x 运行。`backtick -x`
 仅在 GPU 服务读取本模型 `/run/asr/<model>/CUDA_VISIBLE_DEVICES`；server 读取容器
