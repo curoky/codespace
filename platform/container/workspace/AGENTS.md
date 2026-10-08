@@ -35,6 +35,8 @@ platform/container/workspace/build.sh --resource
 - PID 1 是 `/etc/s6/init/bin/init`，service graph 只在 image build 时编译。依赖
   `/workspace` 的 service 必须依赖 `gocryptfs-workspace`；runtime 不重跑 graph compile 或
   image-build oneshot。
+- `custom-job` 是随 default bundle 启动的 image-build oneshot，以 `x` 用户执行编码后的安装
+  payload；编码只用于避免命令明文进入仓库，不作为 secret 或信任边界。
 - 加密 Workspace 的 `/workspace.enc` 由 Host bind 提供，Host 与容器内都保持
   `5230:5230`；gocryptfs 以 `x` 运行，并通过 `allow_other` 提供明文读写视图。
 - `/workspace`、`/workspace.enc`、IDE cache、`/run/codespace-control` 和
