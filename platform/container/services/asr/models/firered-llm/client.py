@@ -13,9 +13,10 @@ async def infer(http: httpx.AsyncClient, request: InferenceRequest) -> Inference
     if request.audio is None:
         raise ValueError("audio required")
     audio = await asyncio.to_thread(Path(request.audio).read_bytes)
-    # 不强塞模型不支持的 language / hotwords；2048 限制重复生成，截断视为失败。
+    # 2048 限制重复生成，截断视为失败；FireRed 默认语言是英文，中文流程必须显式指定 zh。
     data = {
         "model": "firered-llm",
+        "language": "zh",
         "temperature": "0",
         "seed": "0",
         "stream": "true",

@@ -4,6 +4,7 @@ version = "0.1.0"
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "huggingface-hub==1.33.0",
+  "kaldi-native-fbank==1.22.3",
   "vllm[audio]==0.31.0"
 ]
 

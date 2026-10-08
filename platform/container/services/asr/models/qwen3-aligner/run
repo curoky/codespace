@@ -10,6 +10,7 @@ export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 export TOKENIZERS_PARALLELISM=false
 export OMP_NUM_THREADS=4
+export VLLM_ENABLE_V1_MULTIPROCESSING=0
 
 export CUDA_HOME=/usr/local/cuda-13.0
 export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64
