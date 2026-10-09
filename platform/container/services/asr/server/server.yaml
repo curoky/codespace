@@ -1,17 +1,21 @@
 resources:
   gpu_memory_gib: 80
-  placement:
-    firered-llm: [0, 1]
-    moss-audio: [0]
-    moss-td: [2]
-    nemotron-diarization: [1]
-    paraformer: [4]
-    pyannote-community-1: [1]
-    qwen3-aligner: [4]
-    qwen3-asr-1.7b: [2]
-    sensevoice: [3]
-    vibevoice: [3]
-    whisper-large-v3: [3]
+  instances:
+    - {id: firered-llm, model: firered-llm, port: 8000, placement: [0, 1]}
+    - {id: firered-punc, model: firered-punc, port: 8001}
+    - {id: firered-vad, model: firered-vad, port: 8002}
+    - {id: moss-audio, model: moss-audio, port: 8003, placement: [0]}
+    - {id: moss-td, model: moss-td, port: 8004, placement: [2]}
+    - {id: nemotron-diarization, model: nemotron-diarization, port: 8005, placement: [1]}
+    - {id: paraformer, model: paraformer, port: 8006, placement: [4]}
+    - {id: pyannote-community-1, model: pyannote-community-1, port: 8007, placement: [1]}
+    - {id: qwen3-aligner-review, model: qwen3-aligner, port: 8008, placement: [4]}
+    - {id: qwen3-asr-1.7b, model: qwen3-asr-1.7b, port: 8009, placement: [2]}
+    - {id: sensevoice, model: sensevoice, port: 8010, placement: [3]}
+    - {id: vibevoice-a, model: vibevoice, port: 8011, placement: [3]}
+    - {id: whisper-large-v3, model: whisper-large-v3, port: 8012, placement: [3]}
+    - {id: qwen3-aligner-recipe, model: qwen3-aligner, port: 8013, placement: [0]}
+    - {id: vibevoice-b, model: vibevoice, port: 8014, placement: [4]}
 cpu_requests: 2
 chunking:
   target_seconds: 24

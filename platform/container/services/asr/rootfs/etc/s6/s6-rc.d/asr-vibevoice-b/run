@@ -1,0 +1,11 @@
+#!/usr/local/bin/execlineb -P
+
+redirfd -w 1 /var/log/s6.asr-vibevoice-b.log
+fdmove -c 2 1
+
+backtick -x CUDA_VISIBLE_DEVICES { cat /run/asr/vibevoice-b/CUDA_VISIBLE_DEVICES }
+backtick -x ASR_PORT { cat /run/asr/vibevoice-b/PORT }
+
+s6-setuidgid x
+s6-env HOME=/home/x
+/opt/asr/models/vibevoice/run

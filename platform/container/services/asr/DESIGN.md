@@ -9,7 +9,7 @@ flowchart LR
     Input[录音文件或目录] --> CLI[macOS / Host CLI]
     CLI -->|POST /transcribe| API[ASR container :8080]
     API --> Pipeline[五方案 pipeline]
-    Pipeline --> Models[13 个常驻模型服务<br/>loopback :8000–8012]
+    Pipeline --> Models[13 个逻辑模型 / 15 个常驻实例<br/>loopback :8000–8014]
     Models --> Pipeline
     Pipeline -->|结构化 JSON| CLI
     CLI --> Output[本地原子产物目录]
@@ -21,7 +21,7 @@ flowchart LR
 
 ## Service Startup
 
-容器只有在全部 13 个模型通过 health check 后才对外 ready。模型部署是启动期的一次性
+容器只有在全部 15 个模型实例通过 health check 后才对外 ready。模型部署是启动期的一次性
 动作，请求期间不下载权重、不启停模型，也不重新排布 GPU。
 
 ```mermaid
@@ -37,7 +37,7 @@ flowchart TD
     Download -->|否| HF[download oneshot<br/>从 Hugging Face 补齐权重]
     Download -->|是| Run[model longrun]
     HF --> Run
-    Run --> Health[等待 127.0.0.1:8000–8012 health]
+    Run --> Health[等待 127.0.0.1:8000–8014 health]
     Health -->|任一失败或超时| Cleanup[停止已启动模型并失败]
     Health -->|全部成功| Ready[开放 GET /health 与 POST /transcribe]
 ```
@@ -45,7 +45,7 @@ flowchart TD
 | 阶段 | Owner | 写入状态 | 失败语义 |
 | --- | --- | --- | --- |
 | 容器资源注入 | 控制面 / Podman | devices、mount、secret、shared memory | 缺少设备、目录或 secret 时容器不能完成启动 |
-| GPU 映射 | `server/ops` | `/run/asr/<model>/CUDA_VISIBLE_DEVICES` | 卡数、空闲显存或 placement 不满足即整体失败 |
+| GPU 映射 | `server/ops` | `/run/asr/<instance>/CUDA_VISIBLE_DEVICES` 与 `PORT` | 卡数、空闲显存或 placement 不满足即整体失败 |
 | 权重准备 | s6 download oneshot | `/model-data/<model>` 与 `.revision` | 固定 snapshot 未就绪则对应模型不启动 |
 | 模型驻留 | s6 model longrun | GPU / CPU memory 与 loopback listener | 任一模型 health 超时即回收已启动模型 |
 | API ready | FastAPI lifespan | 无持久状态 | 只有全部模型 ready 后才接受请求 |
@@ -57,7 +57,7 @@ client，避免和 graph teardown 竞态。
 ## Request Execution Flow
 
 一个文件对应一个长连接 HTTP 请求。CLI 的 `--parallel` 控制文件级并发；容器内不同模型
-可以并行，同一模型由进程内锁限制为一个在途调用。相同模型、切片与有效参数只在当前请求
+可以并行；逻辑模型由实例池选择空闲副本，每个实例最多一个在途调用。相同模型、切片与有效参数只在当前请求
 内复用，跨请求没有任务队列、结果缓存或恢复状态。
 
 ```mermaid
@@ -86,7 +86,7 @@ flowchart TD
     Evidence -->|Qwen 主稿和全部交叉证据| QwenFusion
     Evidence -->|FireRed 主稿和全部交叉证据| FireRedFusion
     Evidence -->|只复用活动、身份映射和争议标记| MossJoint
-    Evidence -->|只复用活动、身份映射和争议标记| VibeJoint
+    Evidence -->|只复用活动、身份映射和争议标记<br/>长窗动态分发到 A / B 副本| VibeJoint
     Out01 -->|唯一跨方案依赖| Nemotron
     Out01 --> Response["results + shared evidence + trace"]
     Out02 --> Response
@@ -96,9 +96,9 @@ flowchart TD
     Response --> Publish[CLI 生成文件并原子发布]
 ```
 
-图中的 01–04 都从同一个共享证据包出发，执行顺序不表示相互读取结果；唯一跨方案依赖是
+图中的 01–04 都从同一个共享证据包出发并同时执行；唯一跨方案依赖是
 05 复制已完成的 01。03 / 04 的正文由各自联合模型重新生成，共享 first pass 只用于质量
-标记和 identity 映射，不参与替换其正文。
+标记和 identity 映射，不参与替换其正文。05 在 01 完成后立即启动，不等待 02–04。
 
 | 共享阶段 | 并发 / 复用 | 主要约束 |
 | --- | --- | --- |
@@ -116,8 +116,8 @@ flowchart TD
 | 04 VibeVoice | VibeVoice 长窗联合输出 | 与 03 相同，但不读取 03 或融合稿 | 保留自身正文、时间和 local speaker；失败最多缩窗两层 | local speaker 映射到全局身份；Aligner 只裁剪重叠边界 |
 | 05 Qwen + Nemotron | 完整复制 01 正文与字词时间 | 仅依赖已完成的 01；不重新 ASR | Nemotron 对全文件独立 diarization，仅重新切分 speaker | Nemotron speaker；正文和字词时间保持 01 不变 |
 
-模型调用使用请求内二次缓存检查：先查缓存，再等待本模型锁，拿锁后重新检查，避免并发
-相同调用重复推理。vLLM 流必须收到标准 SSE 的 `[DONE]`，且所有 completion 都以 `stop`
+模型调用先查请求内缓存，再以逻辑模型、切片与有效参数做 single-flight，最后从实例池取得副本；
+因此副本数增加不会让相同调用重复推理。vLLM 流必须收到标准 SSE 的 `[DONE]`，且所有 completion 都以 `stop`
 结束；截断响应不能进入融合。
 
 ## Persistent Data And Mounts
@@ -152,10 +152,10 @@ flowchart TD
 | [`nemotron-diarization`](https://huggingface.co/nvidia/Nemotron-3-Diarization) | 8005 | 05；独立 speaker 重标 | 本模型 HTTP | NeMo 3.1.0+ca3f93a51 | 3.12.14 | 4.57.6 | — | 2.13.0 | 13.0.3 | GPU 1 | 12 | 0.185 | 5.288 |
 | [`paraformer`](https://huggingface.co/funasr/paraformer-zh) | 8006 | first pass；中文旁路校验 | 本模型 HTTP | [FunASR][funasr] 1.4.16 | 3.12.14 | 4.57.6 | — | 2.13.0 | 13.0.3 | GPU 4 | 4 | 0.820 | 4.973 |
 | [`pyannote-community-1`](https://huggingface.co/pyannote/speaker-diarization-community-1) | 8007 | prepare；全文件身份与跨窗映射 | 本模型 HTTP | [pyannote.audio][pyannote] 4.0.7 | 3.12.14 | — | — | 2.13.0 | 13.0.3 | GPU 1 | 6 | 0.031 | 4.819 |
-| [`qwen3-aligner`](https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B) | 8008 | review / finalize；字词时间 | pooling + 本模型 HTTP（[Qwen SDK][qwen]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 4 | 8 | 1.709 | 7.396 |
+| [`qwen3-aligner`](https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B) | 8008 / 8013 | review / finalize；字词时间 | pooling + 本模型 HTTP（[Qwen SDK][qwen]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 4 review / GPU 0 recipe | 8 | 1.709 | 7.396 |
 | [`qwen3-asr-1.7b`](https://huggingface.co/Qwen/Qwen3-ASR-1.7B) | 8009 | first pass / review；第一主稿 | transcription（[Qwen SDK][qwen]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 2 | 12 | 4.376 | 7.392 |
 | [`sensevoice`](https://huggingface.co/FunAudioLLM/SenseVoiceSmall) | 8010 | first pass；中文旁路校验 | 本模型 HTTP | [FunASR][sensevoice] 1.4.16 | 3.12.14 | 4.57.6 | — | 2.13.0 | 13.0.3 | GPU 3 | 4 | 0.872 | 4.973 |
-| [`vibevoice`](https://huggingface.co/microsoft/VibeVoice-ASR-HF) | 8011 | 04；联合正文、时间、speaker | audio chat（[作者文档][vibevoice]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 3 | 48 | 15.517 | 7.392 |
+| [`vibevoice`](https://huggingface.co/microsoft/VibeVoice-ASR-HF) | 8011 / 8014 | 04；联合正文、时间、speaker | audio chat（[作者文档][vibevoice]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 3 / GPU 4 副本 | 48 | 15.517 | 7.392 |
 | [`whisper-large-v3`](https://huggingface.co/openai/whisper-large-v3) | 8012 | review；独立复听 | transcription（[模型来源][whisper]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 3 | 8 | 2.875 | 7.392 |
 
 Checkpoint 只统计固定 revision 的 weight 文件；不可拆分的 `.nemo`、`.pth.tar` 按整个文件
@@ -166,16 +166,16 @@ Checkpoint 只统计固定 revision 的 weight 文件；不可拆分的 `.nemo`�
 ## GPU Placement
 
 5 张 80 GiB GPU 是当前 pipeline 保持 first pass 四条 lane 不共卡的下限：FireRed TP 占两张，
-Qwen、SenseVoice、Paraformer 各占一张。其他阶段的常驻模型复用这些设备，但执行顺序保证
-高预算组合不会同时推理。
+Qwen、SenseVoice、Paraformer 各占一张。两个 Aligner 实例把 review 与 recipe 对齐隔离，两个
+VibeVoice 实例动态分担 04 的长窗；预算覆盖 01–04 并行时的全部常驻显存。
 
 | 逻辑 GPU | 常驻模型（显存预算 / 卡） | 合计预算 | 不同时推理的关键边界 |
 | ---: | --- | ---: | --- |
-| 0 | `firered-llm` 32 GiB（TP rank）、`moss-audio` 32 GiB | 64 GiB | MOSS-Audio 等三路 review 全部结束后才运行 |
+| 0 | `firered-llm` 32 GiB（TP rank）、`moss-audio` 32 GiB、`qwen3-aligner-recipe` 8 GiB | 72 GiB | recipe Aligner 只在 review 全部结束后运行 |
 | 1 | `firered-llm` 32 GiB（TP rank）、`pyannote-community-1` 6 GiB、`nemotron-diarization` 12 GiB | 50 GiB | Pyannote 在 prepare；Nemotron 只在 05；FireRed 在 first pass / review |
 | 2 | `qwen3-asr-1.7b` 12 GiB、`moss-td` 48 GiB | 60 GiB | Qwen 在 first pass / review；MOSS-TD 在 03 |
-| 3 | `sensevoice` 4 GiB、`whisper-large-v3` 8 GiB、`vibevoice` 48 GiB | 60 GiB | 分别位于 first pass、review、04 |
-| 4 | `paraformer` 4 GiB、`qwen3-aligner` 8 GiB | 12 GiB | Paraformer first pass 完成后才开始 review / finalize 对齐 |
+| 3 | `sensevoice` 4 GiB、`whisper-large-v3` 8 GiB、`vibevoice-a` 48 GiB | 60 GiB | 前两者在 recipe 前完成；A 副本执行 04 长窗 |
+| 4 | `paraformer` 4 GiB、`qwen3-aligner-review` 8 GiB、`vibevoice-b` 48 GiB | 60 GiB | Paraformer / review 完成后，Aligner 空闲且 B 副本执行 04 长窗 |
 
 placement 只选择容器可见 GPU；生产配置可暴露更多卡，但逻辑 0–4 之外的设备保持空闲。
 显存比例是进程静态上限而非精确占用，实际部署仍必须检查 CUDA context、TP / NCCL 与运行

@@ -22,7 +22,7 @@ exec uv run \
   "$model_dir/weights" \
   --served-model-name qwen3-asr-1.7b \
   --host 127.0.0.1 \
-  --port 8009 \
+  --port "${ASR_PORT:?}" \
   --dtype bfloat16 \
   --tensor-parallel-size 1 \
   --max-model-len 8192 \

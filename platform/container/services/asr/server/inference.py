@@ -1,3 +1,4 @@
+import asyncio
 import time
 from pathlib import Path
 
@@ -17,6 +18,7 @@ class Inference:
         self.trace = trace or Trace()
         self.channel = channel
         self.responses: dict[tuple[str, str], InferenceResult] = {}
+        self.response_locks: dict[tuple[str, str], asyncio.Lock] = {}
         self.records: list[JsonValue] = []
 
     @staticmethod
@@ -42,15 +44,20 @@ class Inference:
         }
 
     async def call(
-        self, model: str, request: InferenceRequest, *, step: str = "model"
+        self,
+        model: str,
+        request: InferenceRequest,
+        *,
+        step: str = "model",
+        instance_id: str | None = None,
     ) -> InferenceResult:
-        """串行化同一模型调用，并在等待锁前后复查本请求内缓存。"""
+        """在本请求内合并相同调用，再从逻辑模型的实例池取得副本。"""
         started = self.trace.begin()
-        instance = self.scheduler.instances[model]
         effective = request.model_copy(deep=True)
-        if not instance.spec.hotwords:
+        spec = self.scheduler.spec(model)
+        if not spec.hotwords:
             effective.hotwords = []
-        if not instance.spec.num_speakers:
+        if not spec.num_speakers:
             effective.num_speakers = None
         # 切片在本次请求内不可变；只复用相同模型、切片和参数，不做跨请求缓存。
         key = (model, effective.model_dump_json())
@@ -79,37 +86,42 @@ class Inference:
         cache_hit = False
         failed = True
         try:
-            acquired = await self.scheduler.acquire(model, metrics)
-            gpu_ids = list(acquired.devices)
-            gpu_indices = list(acquired.gpu_indices)
-            # 并发调用可能在等待同一模型锁期间被前一个调用填入缓存。
-            if key in self.responses:
-                result = self.responses[key].model_copy(deep=True)
+            async with self.response_locks.setdefault(key, asyncio.Lock()):
+                # 相同请求在这里 single-flight，不会因副本数增加而重复推理。
+                if key in self.responses:
+                    result = self.responses[key].model_copy(deep=True)
+                    output = self.output_summary(result)
+                    cache_hit = True
+                    failed = False
+                    return result
+                acquired = await self.scheduler.acquire(model, metrics, instance_id=instance_id)
+                gpu_ids = list(acquired.devices)
+                gpu_indices = list(acquired.gpu_indices)
+                if acquired.spec.gpus:
+                    inference_started = time.monotonic()
+                    result = await acquired.client(self.scheduler.http, acquired.url, effective)
+                    inference_seconds = time.monotonic() - inference_started
+                else:
+                    cpu_started = time.monotonic()
+                    async with self.scheduler.cpu:
+                        cpu_queue_seconds = time.monotonic() - cpu_started
+                        inference_started = time.monotonic()
+                        result = await acquired.client(self.scheduler.http, acquired.url, effective)
+                        inference_seconds = time.monotonic() - inference_started
+                self.responses[key] = result.model_copy(deep=True)
                 output = self.output_summary(result)
-                cache_hit = True
+                parameters = effective.model_dump(mode="json")
+                if effective.audio:
+                    parameters["audio"] = Path(effective.audio).name
+                self.records.append(
+                    {
+                        "model": model,
+                        "request": parameters,
+                        "result": result.model_dump(mode="json"),
+                    }
+                )
                 failed = False
                 return result
-            if acquired.spec.gpus:
-                inference_started = time.monotonic()
-                result = await acquired.client(self.scheduler.http, effective)
-                inference_seconds = time.monotonic() - inference_started
-            else:
-                cpu_started = time.monotonic()
-                async with self.scheduler.cpu:
-                    cpu_queue_seconds = time.monotonic() - cpu_started
-                    inference_started = time.monotonic()
-                    result = await acquired.client(self.scheduler.http, effective)
-                    inference_seconds = time.monotonic() - inference_started
-            self.responses[key] = result.model_copy(deep=True)
-            output = self.output_summary(result)
-            parameters = effective.model_dump(mode="json")
-            if effective.audio:
-                parameters["audio"] = Path(effective.audio).name
-            self.records.append(
-                {"model": model, "request": parameters, "result": result.model_dump(mode="json")}
-            )
-            failed = False
-            return result
         except BaseException as exc:
             error = f"{type(exc).__name__}: {exc}"
             raise

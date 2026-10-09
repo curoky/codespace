@@ -5,6 +5,7 @@ import subprocess
 import tomllib
 from pathlib import Path
 
+import httpx2
 import yaml
 
 from models.catalog import MODELS
@@ -19,6 +20,7 @@ def config() -> Config:
 def test_each_model_has_revisioned_download_and_static_service(tmp_path: Path) -> None:
     root = Path(__file__).resolve().parents[1]
     graph = root / "rootfs/etc/s6/s6-rc.d"
+    instances = config().resources.instances
     for spec in MODELS:
         directory = root / "models" / spec.id
         for script in ("run", "download_model.sh"):
@@ -27,10 +29,15 @@ def test_each_model_has_revisioned_download_and_static_service(tmp_path: Path) -
         for source in directory.glob("*.py"):
             ast.parse(source.read_text(), filename=str(source))
         download = graph / f"asr-{spec.id}-download"
-        serve = graph / f"asr-{spec.id}"
-        assert "s6-setuidgid x" in (serve / "run").read_text()
-        dependency = serve / f"dependencies.d/asr-{spec.id}-download"
-        assert dependency.is_file()
+        model_instances = [instance for instance in instances if instance.model == spec.id]
+        assert model_instances
+        for instance in model_instances:
+            serve = graph / f"asr-{instance.id}"
+            run = (serve / "run").read_text()
+            assert "s6-setuidgid x" in run
+            assert f"/run/asr/{instance.id}/PORT" in run
+            dependency = serve / f"dependencies.d/asr-{spec.id}-download"
+            assert dependency.is_file()
         download_up = (download / "up").read_text()
         assert "download_model.sh" in download_up
         assert "HF_TOKEN_PATH=/run/secrets/huggingface_token" in download_up
@@ -156,16 +163,16 @@ def test_static_placement_uses_five_80_gib_gpus_for_parallel_stages() -> None:
     root = Path(__file__).resolve().parents[1]
     resources = config().resources
     specs = {spec.id: spec for spec in MODELS if spec.gpus}
-    assert set(resources.placement) == set(specs)
+    assert {instance.model for instance in resources.instances if instance.placement} == set(specs)
     loads = [0.0] * 5
-    for model, placement in resources.placement.items():
-        spec = specs[model]
-        assert len(placement) == spec.gpus
-        assert len(set(placement)) == len(placement)
-        for index in placement:
+    for instance in resources.instances:
+        spec = {spec.id: spec for spec in MODELS}[instance.model]
+        assert len(instance.placement) == spec.gpus
+        assert len(set(instance.placement)) == len(instance.placement)
+        for index in instance.placement:
             loads[index] += spec.memory_gib
     assert resources.gpu_memory_gib == 80
-    assert loads == [64, 50, 60, 60, 12]
+    assert loads == [72, 50, 60, 60, 60]
     assert all(load < resources.gpu_memory_gib for load in loads)
 
     first_pass = {
@@ -246,14 +253,14 @@ def test_model_clients_match_fixed_listeners(tmp_path: Path) -> None:
     try:
         ports = set()
         for instance in scheduler.instances.values():
-            directory = Path(__file__).resolve().parents[1] / "models" / instance.spec.id
+            directory = Path(__file__).resolve().parents[1] / "models" / instance.model
             result = subprocess.run(
                 [str(directory / "run")],
                 env={
                     **os.environ,
                     "PATH": str(tmp_path) + os.pathsep + os.environ["PATH"],
                     "ASR_HOST": "127.0.0.2",
-                    "ASR_PORT": "65535",
+                    "ASR_PORT": str(httpx2.URL(instance.url).port),
                 },
                 cwd=tmp_path,
                 check=True,
@@ -265,11 +272,11 @@ def test_model_clients_match_fixed_listeners(tmp_path: Path) -> None:
             port = int(args[args.index("--port") + 1])
             assert host == "127.0.0.1"
             assert instance.url == f"http://{host}:{port}"
-            row = model_rows[instance.spec.id]
-            assert row["端口"] == str(port)
+            row = model_rows[instance.model]
+            assert str(port) in row["端口"]
             if instance.spec.gpus:
-                placement = config().resources.placement[instance.spec.id]
-                assert row["部署"].startswith("GPU " + "+".join(map(str, placement)))
+                placement = instance.placement
+                assert "GPU " + "+".join(map(str, placement)) in row["部署"]
                 assert row["显存预算 / 卡 GiB"] == f"{instance.spec.memory_gib:g}"
             else:
                 assert row["部署"] == "CPU"
@@ -286,20 +293,20 @@ def test_model_clients_match_fixed_listeners(tmp_path: Path) -> None:
                 ("Torch", "torch"),
             ):
                 assert row[column] == packages.get(package, "—")
-            sdk = sdk_packages.get(instance.spec.id)
+            sdk = sdk_packages.get(instance.model)
             if sdk is None:
                 assert row["SDK / runtime"] == "—"
             else:
                 assert packages[sdk] in row["SDK / runtime"]
             assert row["CUDA"] == ("13.0.3" if instance.spec.gpus else "—")
-            if instance.spec.id == "vibevoice":
+            if instance.model == "vibevoice":
                 assert args[args.index("--max-model-len") + 1] == "65536"
                 template = args[args.index("--chat-template") + 1]
                 assert template.endswith("/vibevoice/chat_template.jinja")
                 assert "{{ audio_duration }}" in (directory / "chat_template.jinja").read_text()
             assert port not in ports
             ports.add(port)
-        assert ports == set(range(8000, 8013))
+        assert ports == set(range(8000, 8015))
     finally:
         asyncio.run(scheduler.close())
 
@@ -320,7 +327,11 @@ def test_design_gpu_table_matches_static_placement() -> None:
     resources = config().resources
     assert set(gpu_rows) == set(range(5))
     for index, (models, total, _) in gpu_rows.items():
-        expected = [spec for spec in MODELS if spec.gpus and index in resources.placement[spec.id]]
-        assert total == f"{sum(spec.memory_gib for spec in expected):g} GiB"
-        for spec in expected:
-            assert f"`{spec.id}` {spec.memory_gib:g} GiB" in models
+        expected = [
+            (instance, next(spec for spec in MODELS if spec.id == instance.model))
+            for instance in resources.instances
+            if index in instance.placement
+        ]
+        assert total == f"{sum(spec.memory_gib for _, spec in expected):g} GiB"
+        for instance, spec in expected:
+            assert f"`{instance.id}` {spec.memory_gib:g} GiB" in models

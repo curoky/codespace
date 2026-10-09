@@ -4,6 +4,7 @@ redirfd -w 1 /var/log/s6.asr-qwen3-asr-1.7b.log
 fdmove -c 2 1
 
 backtick -x CUDA_VISIBLE_DEVICES { cat /run/asr/qwen3-asr-1.7b/CUDA_VISIBLE_DEVICES }
+backtick -x ASR_PORT { cat /run/asr/qwen3-asr-1.7b/PORT }
 
 s6-setuidgid x
 s6-env HOME=/home/x

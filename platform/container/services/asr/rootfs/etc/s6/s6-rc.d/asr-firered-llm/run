@@ -4,6 +4,7 @@ redirfd -w 1 /var/log/s6.asr-firered-llm.log
 fdmove -c 2 1
 
 backtick -x CUDA_VISIBLE_DEVICES { cat /run/asr/firered-llm/CUDA_VISIBLE_DEVICES }
+backtick -x ASR_PORT { cat /run/asr/firered-llm/PORT }
 
 s6-setuidgid x
 s6-env HOME=/home/x

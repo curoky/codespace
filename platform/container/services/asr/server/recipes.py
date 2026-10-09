@@ -54,11 +54,13 @@ class Pipeline:
         self.activity: list[Span] = []
         self.speakers: list[Span] = []
         self.chunks: list[Window] = []
+        self.clip_locks: dict[Path, asyncio.Lock] = {}
 
     async def clip(self, window: Window) -> Path:
         path = self.inference.work / f"clip-{window.start_ms}-{window.end_ms}.wav"
-        if not path.is_file():
-            await asyncio.to_thread(cut, self.audio, path, window.start_ms, window.end_ms)
+        async with self.clip_locks.setdefault(path, asyncio.Lock()):
+            if not path.is_file():
+                await asyncio.to_thread(cut, self.audio, path, window.start_ms, window.end_ms)
         return path
 
     async def recognize(self, model: str, window: Window, *, step: str) -> InferenceResult:
@@ -98,7 +100,7 @@ class Pipeline:
             self.activity = union(self.speakers + detection.spans)
         self.chunks = windows(self.activity, self.duration, self.config.chunking)
 
-    async def align(self, text: str, window: Window, *, step: str) -> list[Token]:
+    async def align(self, text: str, window: Window, *, step: str, instance_id: str) -> list[Token]:
         if not normalized(text):
             return []
         result = await self.inference.call(
@@ -108,6 +110,7 @@ class Pipeline:
                 text=text,
             ),
             step=step,
+            instance_id=instance_id,
         )
         return align_text(
             text, result.tokens, offset=window.start_ms, limit=window.end_ms - window.start_ms
@@ -185,7 +188,12 @@ class Pipeline:
             for key, text in texts.items():
                 window, expanded = pending[key]
                 try:
-                    tokens = await self.align(text, expanded, step="review.align")
+                    tokens = await self.align(
+                        text,
+                        expanded,
+                        step="review.align",
+                        instance_id="qwen3-aligner-review",
+                    )
                 except Exception as exc:
                     logging.exception("review alignment %s failed", model)
                     self.errors[f"review:{model}:{key}"] = str(exc)
@@ -232,7 +240,12 @@ class Pipeline:
                 segment.text = result.text
             else:
                 segment.flags.append("punctuation_changed_content_rejected")
-        segment.tokens = await self.align(segment.text, window, step=step + ".align")
+        segment.tokens = await self.align(
+            segment.text,
+            window,
+            step=step + ".align",
+            instance_id="qwen3-aligner-recipe",
+        )
         if any(t.start_ms is None for t in segment.tokens):
             segment.flags.append("alignment_failed")
             if not punctuate and (
@@ -253,7 +266,10 @@ class Pipeline:
     async def fusion(self, recipe: str, primary: str) -> Transcript:
         """以指定主模型生成融合稿，证据不足时保留原文并显式标记。"""
         result = Transcript(recipe=recipe, activity=self.activity, speakers=self.speakers)
-        families = {name: i.spec.family for name, i in self.inference.scheduler.instances.items()}
+        families = {
+            model: instances[0].spec.family
+            for model, instances in self.inference.scheduler.pools.items()
+        }
         for window in self.chunks:
             candidates = self.candidates[window.model_dump_json()]
             if primary not in candidates:
@@ -292,7 +308,7 @@ class Pipeline:
     async def joint(self, recipe: str, model: str) -> Transcript:
         """保留联合模型的正文与局部 speaker，仅用共享证据标记争议。"""
         result = Transcript(recipe=recipe, activity=self.activity, speakers=self.speakers)
-        maximum = self.inference.scheduler.instances[model].spec.max_audio_seconds
+        maximum = self.inference.scheduler.spec(model).max_audio_seconds
         config = ChunkConfig(target_seconds=maximum - 4, max_seconds=maximum, padding_ms=1000)
 
         async def transcribe(window: Window, depth: int = 0) -> list[Segment]:
@@ -348,9 +364,7 @@ class Pipeline:
                     core_start_ms=max(span.start_ms, window.core_start_ms),
                     core_end_ms=min(span.end_ms, window.core_end_ms),
                 )
-                aligner_limit = self.inference.scheduler.instances[
-                    "qwen3-aligner"
-                ].spec.max_audio_seconds
+                aligner_limit = self.inference.scheduler.spec("qwen3-aligner").max_audio_seconds
                 if span.end_ms - span.start_ms > aligner_limit * 1000:
                     raise ValueError(f"{model}: joint segment exceeds alignment window budget")
                 speaker = mapping.get(span.speaker or "")
@@ -379,8 +393,22 @@ class Pipeline:
                 )
             return parts
 
-        for window in windows([Span(start_ms=0, end_ms=self.duration)], self.duration, config):
-            result.segments.extend(await transcribe(window))
+        limit = asyncio.Semaphore(len(self.inference.scheduler.pools[model]))
+
+        async def limited(window: Window) -> list[Segment]:
+            async with limit:
+                return await transcribe(window)
+
+        batches = await asyncio.gather(
+            *(
+                limited(window)
+                for window in windows(
+                    [Span(start_ms=0, end_ms=self.duration)], self.duration, config
+                )
+            )
+        )
+        result.segments = [segment for batch in batches for segment in batch]
+        result.segments.sort(key=lambda segment: (segment.start_ms, segment.end_ms))
         if self.errors:
             result.warnings.append("crosscheck_incomplete")
         return result

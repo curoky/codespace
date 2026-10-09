@@ -22,7 +22,7 @@ exec uv run \
   "$model_dir/weights" \
   --served-model-name firered-llm \
   --host 127.0.0.1 \
-  --port 8000 \
+  --port "${ASR_PORT:?}" \
   --dtype float32 \
   --tensor-parallel-size 2 \
   --max-model-len 8192 \

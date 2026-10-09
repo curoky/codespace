@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
 
-# run 已退出；清掉 engine 子进程后 s6 才能启动下一实例。
-# 单引号内的 $1 由子 Bash 展开。
 # shellcheck disable=SC2016
 exec s6-setuidgid x bash -c 'kill -KILL -- "-$1" 2>/dev/null || true' -- "$4"

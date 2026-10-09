@@ -104,8 +104,11 @@ def test_vibevoice_uses_upstream_transcription_request(tmp_path: Path) -> None:
         )
         try:
             async with httpx2.AsyncClient(transport=httpx2.MockTransport(respond)) as client:
-                result = await scheduler.instances["vibevoice"].client(
-                    client, InferenceRequest(audio=str(audio), hotwords=["测试词"])
+                instance = scheduler.instances["vibevoice-a"]
+                result = await instance.client(
+                    client,
+                    instance.url,
+                    InferenceRequest(audio=str(audio), hotwords=["测试词"]),
                 )
             assert result.text.endswith('"Content":"[Silence]"}]')
             assert len(result.spans) == 1

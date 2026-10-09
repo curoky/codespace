@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+# shellcheck disable=SC2016
+exec s6-setuidgid x bash -c 'kill -KILL -- "-$1" 2>/dev/null || true' -- "$4"

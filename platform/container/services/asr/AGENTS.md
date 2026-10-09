@@ -12,8 +12,8 @@ image 视图统一放在 [DESIGN.md](DESIGN.md)；本文件只保留实现维护
 | 模型启动参数与监听端口 | `models/<model>/run`；SDK 参数在同目录 `service.py` |
 | 权重来源、格式与体积 | `models/<model>/download_model.sh` 的 repo、revision、include；体积变化同步 `DESIGN.md` |
 | Python 与依赖版本 | 每目录 `.python-version`、`pyproject.toml`、`uv.lock` |
-| 模型请求协议 | `models/<model>/client.py` 的 `URL` 与 `infer(http, request)` |
-| 能力、时长与显存预算 | `models/catalog.py`；placement 在 `server/server.yaml` |
+| 模型请求协议 | `models/<model>/client.py` 的 `infer(http, url, request)` |
+| 能力、时长与显存预算 | `models/catalog.py`；instance / port / placement 在 `server/server.yaml` |
 | HTTP 边界与请求编排 | `server/api.py`、`transcribe.py`、`recipes.py`、`transcript.py` |
 | 文件并发与本地产物 | `client/asr.py` |
 | GPU 映射、s6 状态切换与进程退出 | `ops/`、`rootfs/etc/s6/s6-rc.d/` |
@@ -47,8 +47,8 @@ VibeVoice 原版 / HF、FireRed 原始 / 转换权重不能互换；FunASR 的 `
 - 每个 `weights` 是 image 内固定 symlink，目标为 `/model-data/<model>`。下载脚本先创建
   symlink 实际目标，再用固定 repo、revision 和显式 include 调 HF CLI；不下载其他框架或
   精度副本。成功后写 `.revision`，marker 匹配时不访问 Hugging Face。
-- 监听地址与端口在 `run` 固定，client 的 `URL` 必须同步。scheduler 只从 client 读取
-  readiness 地址，不生成参数。端口变化还要更新 `DESIGN.md` 的模型表。
+- 监听端口与实例 placement 由 `server/server.yaml` 固定；scheduler 向 s6 写入 `PORT` 与
+  `CUDA_VISIBLE_DEVICES`，并把实例 URL 传给 client。端口变化还要更新 `DESIGN.md` 的模型表。
 - vLLM transcription 的 `SpeechToTextConfig` 由 model class 从 processor 构造，`run` 不传
   server 级覆盖。普通 ASR 上层限制为 30 秒，联合模型按 catalog 上限切窗。
 - VibeVoice 必须沿用上游 transcription request。vLLM 不替换 checkpoint template 中的
@@ -83,7 +83,7 @@ VibeVoice 原版 / HF、FireRed 原始 / 转换权重不能互换；FunASR 的 `
   全部在浏览器执行；`trace.json` 仍是唯一原始 trace 产物。
 - Server 必须单进程，不增加 uvicorn workers。上传与 options 是不可信 HTTP 输入，由
   Pydantic 校验；模型完成状态、结构、截断和时间边界也在 server 校验。
-- 顺序固定为 prepare、四路 first pass、整批 review、五套 recipe。prepare 先跑全文件
+- 顺序固定为 prepare、四路 first pass、整批 review，随后 01–04 并行；05 只等待 01。prepare 先跑全文件
   pyannote，再取 speaker 与 VAD 活动并集；短窗与 padding 在所有候选间保持相同。
 - first pass 的四个模型并行处理各自完整批次，同模型逐窗串行。候选不能互喂答案。只对
   分歧、空识别或异常重复扩窗复听；Qwen / FireRed / Whisper 三批并行，全部结束后才决定
@@ -95,21 +95,22 @@ VibeVoice 原版 / HF、FireRed 原始 / 转换权重不能互换；FunASR 的 `
   时失败，不做平均插值。
 - 第五稿复用第一稿正文和时间，仅用 Nemotron 重标 speaker。已知超过 8 人时失败，未知
   人数标 `unverified_max_8`，pyannote 观察超限标 `suspected_out_of_scope`。
-- 同一请求按模型、切片路径与有效参数缓存，拿模型锁前后各查一次；失败调用不缓存，取消
-  必须释放锁。请求间只共享常驻进程，不共享识别结果。
+- 同一请求按逻辑模型、切片路径与有效参数缓存并 single-flight；失败调用不缓存，取消
+  必须释放实例。请求间只共享常驻进程，不共享识别结果。
+- Aligner review 固定走 `qwen3-aligner-review`，recipe finalize 固定走
+  `qwen3-aligner-recipe`。VibeVoice 长窗并发投递到 A / B 副本，必须按原窗口顺序合并。
 - 原始响应与参数只在 evidence 出现一次。trace 记录关键 phase、实际模型调用、cache hit、
   GPU UUID / index、模型锁、CPU 排队和推理时间，不复制正文或完整部署清单。
 
 ## Static Placement And Process Control
 
-`server/server.yaml` 按逻辑可见 GPU 序号声明全部 GPU 模型。当前每卡预算和并发隔离见
+`server/server.yaml` 按实例声明逻辑模型、端口与可见 GPU 序号。当前每卡预算和并发隔离见
 `DESIGN.md`；deployment test 必须离线校验模型集合、TP 卡数、单卡总量、并发阶段不共卡与
 vLLM 显存比例。placement 不能写 Host 物理卡号。
 
 `scheduler.py` 在 lifespan startup 时把逻辑序号映射为 GPU UUID，要求已使用显存不超过
-512 MiB，再依次启动全部服务并等待 health。GPU 模型只接收
-`/run/asr/<model>/CUDA_VISIBLE_DEVICES`；CPU 模型不写环境文件。请求期只保留每模型一个
-锁与 CPU semaphore，不启停、回收、迁移或降级模型。
+512 MiB，再依次启动全部实例并等待 health。请求期每实例最多一个在途调用，
+逻辑模型池选择当前空闲副本；不启停、回收、迁移或降级模型。
 
 `ops/processes.py` 负责有超时的子进程与 GPU inventory，并以 x 经 sudo 调 root-owned
 `/usr/local/bin/asr-model-service`。sudoers 只授权该固定入口；shared s6 live state 仍由
@@ -130,7 +131,7 @@ cache 后才结束 layer；s6 graph 切回 root 编译。
 | s6 / filesystem 资产 | 维护约束 |
 | --- | --- |
 | `asr-<model>-download/` | oneshot；marker 命中立即完成，否则下载固定 snapshot |
-| `asr-<model>/` | longrun；显式依赖本模型 download oneshot，以 x 运行 |
+| `asr-<instance>/` | longrun；显式依赖逻辑模型 download oneshot，以 x 运行 |
 | `asr-server/` | 以 x 运行 `server/run`；只有它进入 default bundle |
 | `/usr/local/bin/asr-model-service` | root-owned 固定 start / stop 入口 |
 | `/var/log/s6.asr-*.log` | 使用 `redirfd -w` 与 `fdmove`，沿用 shared runtime |
@@ -204,9 +205,12 @@ podman build \
 已验证 CPU FireRedVAD / FireRedPunc、H100 Nemotron、s6 服务链路、异常退出清理、停止超时，
 以及原子 HTTP 五方案模拟响应、共享 evidence 与临时音频清理。
 
-2026-10-09 在 8×H100 80 GiB / R535 Host 上只使用前 5 卡完成真实 30 秒音频：13 个模型
-全部调用，五份结果完成，trace 13.521 秒且无失败；first pass 四路在 962–963 ms 启动，
-review 的 Qwen / FireRed / Whisper 在 2157 ms 启动，MOSS-Audio 在 3276 ms 启动。请求后
-五卡占用为 60,754 / 32,506 / 52,304 / 50,288 / 6,958 MiB，其余三卡为 0；无 OOM、
-shared-memory 错误或重启。这证明当前 placement 与并发时序在该 Host 可运行，不代表其他
-GPU 容量、driver 或 revision。真实 GPU 验证必须遵循 repository 的 `test-asr` skill。
+2026-10-09 在 8×H100 80 GiB / R535 Host 上只使用前 5 卡完成 20:34 真实普通话音频：
+15 个实例全部 ready，五份结果完成，客户端 139.32 秒，trace 138.263 秒；1626 次真实
+模型调用、24 次 cache hit、0 failure。01–04 在 113.136–113.137 秒同时启动，05 在 01 结束的
+129.123 秒启动，没有等待 02–04；VibeVoice A / B 各处理 4 个长窗，04 用时 25.007 秒。
+请求前五卡占用为 64,654 / 29,920 / 51,648 / 49,154 / 45,518 MiB，请求后为
+66,524 / 33,150 / 52,572 / 51,298 / 48,118 MiB，其余三卡为 0。无 OOM、shared-memory 错误或
+模型重启；容器 exit 0 后八卡全部回到 0 MiB。这证明当前 placement 与并发时序在该 Host
+可运行，不代表其他 GPU 容量、driver 或 revision。真实 GPU 验证必须遵循 repository 的
+`test-asr` skill。

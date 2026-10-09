@@ -6,9 +6,26 @@ from pydantic import Field, model_validator
 from protocol import Record
 
 
+class ModelInstanceConfig(Record):
+    id: str = Field(pattern=r"^[a-z0-9][a-z0-9.-]*$")
+    model: str
+    port: int = Field(ge=1, le=65535)
+    placement: list[int] = Field(default_factory=list)
+
+
 class ResourceConfig(Record):
     gpu_memory_gib: int = Field(ge=1)
-    placement: dict[str, list[int]]
+    instances: list[ModelInstanceConfig]
+
+    @model_validator(mode="after")
+    def unique_instances(self) -> "ResourceConfig":
+        ids = [instance.id for instance in self.instances]
+        ports = [instance.port for instance in self.instances]
+        if len(ids) != len(set(ids)):
+            raise ValueError("instance ids must be unique")
+        if len(ports) != len(set(ports)):
+            raise ValueError("instance ports must be unique")
+        return self
 
 
 class ChunkConfig(Record):

@@ -9,15 +9,13 @@ from pydantic import Field, JsonValue, TypeAdapter
 from models.vllm import complete
 from protocol import InferenceRequest, InferenceResult, Record, Span
 
-URL = "http://127.0.0.1:8011"
-
 
 def duration(path: Path) -> float:
     with wave.open(str(path), "rb") as audio:
         return audio.getnframes() / audio.getframerate()
 
 
-async def infer(http: httpx2.AsyncClient, request: InferenceRequest) -> InferenceResult:
+async def infer(http: httpx2.AsyncClient, url: str, request: InferenceRequest) -> InferenceResult:
     if request.audio is None:
         raise ValueError("audio required")
     path = Path(request.audio)
@@ -30,7 +28,7 @@ async def infer(http: httpx2.AsyncClient, request: InferenceRequest) -> Inferenc
         content.append({"type": "text", "text": "、".join(request.hotwords)})
     # vLLM 不会替换 HF 模板中的时长占位符；由固定服务端模板接收实际时长。
     async with http.sse(
-        URL + "/v1/chat/completions",
+        url + "/v1/chat/completions",
         method="POST",
         json={
             "model": "vibevoice",

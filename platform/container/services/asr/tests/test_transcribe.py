@@ -17,6 +17,9 @@ from server.audio import Window, wav_duration
 from server.config import read_config
 from server.inference import Inference
 from server.recipes import RECIPE_IDS, Options, Pipeline
+from server.tracing import Trace
+from server.transcribe import run_recipes
+from server.transcript import Segment, Transcript
 
 
 async def control(action: str, model: str) -> None:
@@ -57,7 +60,7 @@ def runtime(tmp_path: Path, *, broken: str | None = None) -> Scheduler:
         )
         if request.url.path == "/health":
             return httpx2.Response(200, json={"status": "ready"})
-        if instance.spec.id == broken:
+        if instance.model == broken:
             return httpx2.Response(500, json={"error": "model failed"})
         if not request.url.path.startswith("/v1/"):
             payload = json.loads(request.content)
@@ -88,10 +91,10 @@ def runtime(tmp_path: Path, *, broken: str | None = None) -> Scheduler:
             else:
                 result = InferenceResult(text="你好世界。")
             return httpx2.Response(200, json=result.model_dump(mode="json"))
-        text = "你好世界。" if instance.spec.id != "whisper-large-v3" else "您好世界。"
-        if instance.spec.id == "moss-td":
+        text = "你好世界。" if instance.model != "whisper-large-v3" else "您好世界。"
+        if instance.model == "moss-td":
             text = "[0.1][S01]你好世界。[1.9]"
-        if instance.spec.id == "vibevoice":
+        if instance.model == "vibevoice":
             text = '[{"Start":0.1,"End":1.9,"Speaker":0,"Content":"你好世界。"}]'
         event = {"choices": [{"delta": {"content": text}, "finish_reason": "stop"}]}
         return httpx2.Response(
@@ -203,8 +206,10 @@ def test_static_placement_starts_all_models_on_configured_devices(tmp_path: Path
         assert scheduler.instances["firered-llm"].devices == ["GPU-0", "GPU-1"]
         assert scheduler.instances["moss-audio"].devices == ["GPU-0"]
         assert scheduler.instances["moss-td"].devices == ["GPU-2"]
-        assert scheduler.instances["vibevoice"].devices == ["GPU-3"]
-        assert scheduler.instances["qwen3-aligner"].devices == ["GPU-4"]
+        assert scheduler.instances["vibevoice-a"].devices == ["GPU-3"]
+        assert scheduler.instances["vibevoice-b"].devices == ["GPU-4"]
+        assert scheduler.instances["qwen3-aligner-review"].devices == ["GPU-4"]
+        assert scheduler.instances["qwen3-aligner-recipe"].devices == ["GPU-0"]
         assert all(instance.running for instance in scheduler.instances.values())
         await scheduler.close()
         assert all(instance.running for instance in scheduler.instances.values())
@@ -259,18 +264,22 @@ def test_failed_request_cleans_temporary_audio(tmp_path: Path) -> None:
         assert list(work.iterdir()) == []
 
 
-def test_different_models_can_run_concurrently(tmp_path: Path) -> None:
+def test_instance_pool_runs_two_replicas_and_queues_the_third_call(tmp_path: Path) -> None:
     scheduler = runtime(tmp_path)
 
     async def run() -> None:
-        first = await scheduler.acquire("qwen3-asr-1.7b")
-        waiting = asyncio.create_task(scheduler.acquire("qwen3-asr-1.7b"))
+        first = await scheduler.acquire("vibevoice")
+        second = await scheduler.acquire("vibevoice")
+        assert {first.id, second.id} == {"vibevoice-a", "vibevoice-b"}
+        waiting = asyncio.create_task(scheduler.acquire("vibevoice"))
         await asyncio.sleep(0)
         other = await asyncio.wait_for(scheduler.acquire("firered-llm"), 0.2)
         assert not waiting.done()
         await scheduler.release(other)
         await scheduler.release(first)
-        second = await waiting
+        third = await waiting
+        assert third is first
+        await scheduler.release(third)
         await scheduler.release(second)
         await scheduler.close()
 
@@ -282,7 +291,9 @@ def test_concurrent_identical_calls_share_result_after_model_lock(tmp_path: Path
     inference = Inference(scheduler, tmp_path)
     calls = 0
 
-    async def infer(client: httpx2.AsyncClient, request: InferenceRequest) -> InferenceResult:
+    async def infer(
+        client: httpx2.AsyncClient, url: str, request: InferenceRequest
+    ) -> InferenceResult:
         nonlocal calls
         calls += 1
         await asyncio.sleep(0.01)
@@ -302,6 +313,120 @@ def test_concurrent_identical_calls_share_result_after_model_lock(tmp_path: Path
     asyncio.run(run())
     assert calls == 1
     assert [event.cache_hit for event in inference.trace.events] == [False, True]
+
+
+def test_recipe_dag_starts_01_to_04_together_and_05_after_only_01(tmp_path: Path) -> None:
+    scheduler = runtime(tmp_path)
+    pipeline = Pipeline(
+        scheduler.config,
+        Inference(scheduler, tmp_path, Trace()),
+        tmp_path / "audio.wav",
+        1000,
+        Options(),
+    )
+    started: set[str] = set()
+    completed: set[str] = set()
+    first_four_started = asyncio.Event()
+    release_qwen = asyncio.Event()
+    release_others = asyncio.Event()
+    nemotron_started = asyncio.Event()
+
+    async def prepare() -> None:
+        return None
+
+    async def recipe(name: str) -> Transcript:
+        started.add(name)
+        if len(started) == 4:
+            first_four_started.set()
+        await (release_qwen if name == RECIPE_IDS[0] else release_others).wait()
+        completed.add(name)
+        return Transcript(recipe=name)
+
+    async def fusion(name: str, model: str) -> Transcript:
+        return await recipe(name)
+
+    async def joint(name: str, model: str) -> Transcript:
+        return await recipe(name)
+
+    async def nemotron(source: Transcript) -> Transcript:
+        assert source.recipe == RECIPE_IDS[0]
+        assert completed == {RECIPE_IDS[0]}
+        nemotron_started.set()
+        return Transcript(recipe=RECIPE_IDS[4])
+
+    pipeline.prepare = prepare  # type: ignore[method-assign]
+    pipeline.first_pass = prepare  # type: ignore[method-assign]
+    pipeline.review = prepare  # type: ignore[method-assign]
+    pipeline.fusion = fusion  # type: ignore[method-assign]
+    pipeline.joint = joint  # type: ignore[method-assign]
+    pipeline.nemotron = nemotron  # type: ignore[method-assign]
+
+    async def run() -> None:
+        task = asyncio.create_task(run_recipes(pipeline))
+        await asyncio.wait_for(first_four_started.wait(), 0.2)
+        assert started == set(RECIPE_IDS[:4])
+        release_qwen.set()
+        await asyncio.wait_for(nemotron_started.wait(), 0.2)
+        assert completed == {RECIPE_IDS[0]}
+        release_others.set()
+        results = await task
+        assert [result.recipe for result in results] == list(RECIPE_IDS)
+        await scheduler.close()
+
+    asyncio.run(run())
+
+
+def test_joint_windows_run_concurrently_and_merge_in_time_order(tmp_path: Path) -> None:
+    scheduler = runtime(tmp_path)
+    audio = tmp_path / "audio.wav"
+    audio.write_bytes(wav(400))
+    pipeline = Pipeline(scheduler.config, Inference(scheduler, tmp_path), audio, 400000, Options())
+    pipeline.activity = [Span(start_ms=0, end_ms=400000)]
+    active = 0
+    maximum = 0
+
+    async def recognize(model: str, window: Window, *, step: str) -> InferenceResult:
+        nonlocal active, maximum
+        active += 1
+        maximum = max(maximum, active)
+        await asyncio.sleep((400000 - window.start_ms) / 10_000_000)
+        active -= 1
+        return InferenceResult(
+            spans=[
+                Span(
+                    start_ms=0,
+                    end_ms=window.end_ms - window.start_ms,
+                    text=str(window.core_start_ms),
+                    speaker="0",
+                )
+            ]
+        )
+
+    async def finalize(
+        segment: Segment,
+        window: Window,
+        speakers: list[Span],
+        *,
+        step: str,
+        punctuate: bool = True,
+    ) -> list[Segment]:
+        segment.start_ms = window.core_start_ms
+        segment.end_ms = window.core_end_ms
+        return [segment]
+
+    pipeline.recognize = recognize  # type: ignore[method-assign]
+    pipeline.finalize_segment = finalize  # type: ignore[method-assign]
+
+    async def run() -> Transcript:
+        result = await pipeline.joint(RECIPE_IDS[3], "vibevoice")
+        await scheduler.close()
+        return result
+
+    result = asyncio.run(run())
+    assert maximum == 2
+    assert [segment.start_ms for segment in result.segments] == sorted(
+        segment.start_ms for segment in result.segments
+    )
 
 
 def test_review_processes_windows_by_model(tmp_path: Path) -> None:
@@ -397,7 +522,8 @@ def test_review_runs_primary_models_before_moss_audio(tmp_path: Path) -> None:
         completed.add(model)
         return InferenceResult(text=model)
 
-    async def align(text: str, window: Window, *, step: str) -> list[Token]:
+    async def align(text: str, window: Window, *, step: str, instance_id: str) -> list[Token]:
+        assert instance_id == "qwen3-aligner-review"
         return [Token(text=text, start_ms=0, end_ms=1000)]
 
     pipeline.recognize = recognize  # type: ignore[method-assign]

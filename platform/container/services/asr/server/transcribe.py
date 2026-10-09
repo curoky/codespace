@@ -1,3 +1,4 @@
+import asyncio
 import json
 import logging
 from collections.abc import Awaitable, Callable
@@ -191,12 +192,17 @@ async def run_recipes(pipeline: Pipeline) -> list[Transcript]:
         )
         return result
 
-    qwen = await execute(RECIPE_IDS[0], pipeline.fusion(RECIPE_IDS[0], "qwen3-asr-1.7b"))
-    firered = await execute(RECIPE_IDS[1], pipeline.fusion(RECIPE_IDS[1], "firered-llm"))
-    moss = await execute(RECIPE_IDS[2], pipeline.joint(RECIPE_IDS[2], "moss-td"))
-    vibevoice = await execute(RECIPE_IDS[3], pipeline.joint(RECIPE_IDS[3], "vibevoice"))
+    tasks = [
+        asyncio.create_task(
+            execute(RECIPE_IDS[0], pipeline.fusion(RECIPE_IDS[0], "qwen3-asr-1.7b"))
+        ),
+        asyncio.create_task(execute(RECIPE_IDS[1], pipeline.fusion(RECIPE_IDS[1], "firered-llm"))),
+        asyncio.create_task(execute(RECIPE_IDS[2], pipeline.joint(RECIPE_IDS[2], "moss-td"))),
+        asyncio.create_task(execute(RECIPE_IDS[3], pipeline.joint(RECIPE_IDS[3], "vibevoice"))),
+    ]
+    qwen = await tasks[0]
     if qwen.status == "completed":
-        nemotron = await execute(RECIPE_IDS[4], pipeline.nemotron(qwen))
+        nemotron_task = asyncio.create_task(execute(RECIPE_IDS[4], pipeline.nemotron(qwen)))
     else:
         started = pipeline.inference.trace.begin()
         nemotron = Transcript(recipe=RECIPE_IDS[4], status="failed", error="01 did not complete")
@@ -209,4 +215,8 @@ async def run_recipes(pipeline: Pipeline) -> list[Transcript]:
             output_summary={"segments": 0, "warnings": 0},
             error=nemotron.error,
         )
+        nemotron_task = asyncio.create_task(asyncio.sleep(0, result=nemotron))
+    firered, moss, vibevoice, nemotron = await asyncio.gather(
+        tasks[1], tasks[2], tasks[3], nemotron_task
+    )
     return [qwen, firered, moss, vibevoice, nemotron]

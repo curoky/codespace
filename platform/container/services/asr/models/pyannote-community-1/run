@@ -22,6 +22,6 @@ exec uv run \
   --factory \
   --app-dir "$model_dir" \
   --host 127.0.0.1 \
-  --port 8007 \
+  --port "${ASR_PORT:?}" \
   --workers 1 \
   "$@"

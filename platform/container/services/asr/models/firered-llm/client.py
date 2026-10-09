@@ -6,10 +6,8 @@ import httpx2
 from models.vllm import complete
 from protocol import InferenceRequest, InferenceResult
 
-URL = "http://127.0.0.1:8000"
 
-
-async def infer(http: httpx2.AsyncClient, request: InferenceRequest) -> InferenceResult:
+async def infer(http: httpx2.AsyncClient, url: str, request: InferenceRequest) -> InferenceResult:
     if request.audio is None:
         raise ValueError("audio required")
     audio = await asyncio.to_thread(Path(request.audio).read_bytes)
@@ -23,7 +21,7 @@ async def infer(http: httpx2.AsyncClient, request: InferenceRequest) -> Inferenc
         "max_completion_tokens": "2048",
     }
     async with http.sse(
-        URL + "/v1/audio/transcriptions",
+        url + "/v1/audio/transcriptions",
         method="POST",
         data=data,
         files={"file": ("audio.wav", audio, "audio/wav")},

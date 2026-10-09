@@ -13,14 +13,17 @@ import httpx2
 from models.catalog import MODELS, ModelSpec
 from ops.processes import GPU, service, visible_gpus
 from protocol import InferenceRequest, InferenceResult
-from server.config import Config
+from server.config import Config, ModelInstanceConfig
 
 
 @dataclass
 class Instance:
+    id: str
+    model: str
     spec: ModelSpec
     url: str
-    client: Callable[[httpx2.AsyncClient, InferenceRequest], Awaitable[InferenceResult]]
+    placement: list[int]
+    client: Callable[[httpx2.AsyncClient, str, InferenceRequest], Awaitable[InferenceResult]]
     devices: list[str] = field(default_factory=list)
     gpu_indices: list[str] = field(default_factory=list)
     running: bool = False
@@ -46,8 +49,15 @@ class Scheduler:
         self.control = control
         self.inventory = inventory
         self.instances: dict[str, Instance] = {}
+        self.pools: dict[str, list[Instance]] = {}
+        self.conditions: dict[str, asyncio.Condition] = {}
         self.http = httpx2.AsyncClient(timeout=10, trust_env=False)
         self.cpu = asyncio.Semaphore(config.cpu_requests)
+        specs = {spec.id: spec for spec in MODELS}
+        clients: dict[
+            str,
+            Callable[[httpx2.AsyncClient, str, InferenceRequest], Awaitable[InferenceResult]],
+        ] = {}
         for spec in MODELS:
             directory = Path(__file__).resolve().parents[1] / "models" / spec.id
             module_spec = importlib.util.spec_from_file_location(
@@ -60,28 +70,64 @@ class Scheduler:
             sys.modules[module_spec.name] = module
             module_spec.loader.exec_module(module)
             client = cast(
-                Callable[[httpx2.AsyncClient, InferenceRequest], Awaitable[InferenceResult]],
+                Callable[[httpx2.AsyncClient, str, InferenceRequest], Awaitable[InferenceResult]],
                 module.infer,
             )
-            self.instances[spec.id] = Instance(spec, module.URL, client)
+            clients[spec.id] = client
+        for configured in config.resources.instances:
+            try:
+                spec = specs[configured.model]
+            except KeyError as exc:
+                raise ValueError(f"{configured.id}: unknown model {configured.model}") from exc
+            if len(configured.placement) != spec.gpus:
+                raise ValueError(
+                    f"{configured.id}: expected {spec.gpus} GPUs, got {len(configured.placement)}"
+                )
+            if len(set(configured.placement)) != len(configured.placement):
+                raise ValueError(f"{configured.id}: GPU placement must be unique")
+            instance = self._instance(configured, spec, clients[spec.id])
+            self.instances[instance.id] = instance
+            self.pools.setdefault(instance.model, []).append(instance)
+        missing = set(specs) - set(self.pools)
+        if missing:
+            raise ValueError(f"models without instances: {', '.join(sorted(missing))}")
+        self.conditions = {model: asyncio.Condition() for model in self.pools}
+
+    @staticmethod
+    def _instance(
+        configured: ModelInstanceConfig,
+        spec: ModelSpec,
+        client: Callable[[httpx2.AsyncClient, str, InferenceRequest], Awaitable[InferenceResult]],
+    ) -> Instance:
+        return Instance(
+            configured.id,
+            configured.model,
+            spec,
+            f"http://127.0.0.1:{configured.port}",
+            list(configured.placement),
+            client,
+        )
+
+    def spec(self, model: str) -> ModelSpec:
+        return self.pools[model][0].spec
 
     async def initialize(self) -> None:
         """把逻辑 placement 固定到可见 GPU，并在 HTTP ready 前启动全部模型。"""
         self.runtime_dir.mkdir(parents=True, exist_ok=True)
-        for model in self.instances:
-            await self.control("stop", model)
+        for instance_id in self.instances:
+            await self.control("stop", instance_id)
 
         devices = await self.inventory()
         loads = [0.0] * len(devices)
         for instance in self.instances.values():
             if not instance.spec.gpus:
                 continue
-            placement = self.config.resources.placement[instance.spec.id]
+            placement = instance.placement
             try:
                 assigned = [devices[index] for index in placement]
             except IndexError as exc:
                 raise RuntimeError(
-                    f"{instance.spec.id}: placement requires {max(placement) + 1} visible GPUs"
+                    f"{instance.id}: placement requires {max(placement) + 1} visible GPUs"
                 ) from exc
             instance.devices = [device.id for device in assigned]
             instance.gpu_indices = [device.index for device in assigned]
@@ -111,16 +157,20 @@ class Scheduler:
         await self.http.aclose()
 
     async def _stop(self, instance: Instance) -> None:
-        await self.control("stop", instance.spec.id)
+        await self.control("stop", instance.id)
         instance.running = False
 
     async def _start(self, instance: Instance) -> None:
         if instance.spec.gpus:
-            directory = self.runtime_dir / instance.spec.id
+            directory = self.runtime_dir / instance.id
             directory.mkdir(parents=True, exist_ok=True)
             (directory / "CUDA_VISIBLE_DEVICES").write_text(",".join(instance.devices))
+        else:
+            directory = self.runtime_dir / instance.id
+            directory.mkdir(parents=True, exist_ok=True)
+        (directory / "PORT").write_text(str(httpx2.URL(instance.url).port))
         instance.running = True
-        await self.control("start", instance.spec.id)
+        await self.control("start", instance.id)
         deadline = time.monotonic() + instance.spec.startup_seconds
         while time.monotonic() < deadline:
             try:
@@ -130,17 +180,37 @@ class Scheduler:
             except httpx2.TransportError:
                 pass
             await asyncio.sleep(1)
-        raise TimeoutError(f"{instance.spec.id}: readiness timeout")
+        raise TimeoutError(f"{instance.id}: readiness timeout")
 
-    async def acquire(self, model: str, metrics: AcquireMetrics | None = None) -> Instance:
+    async def acquire(
+        self,
+        model: str,
+        metrics: AcquireMetrics | None = None,
+        *,
+        instance_id: str | None = None,
+    ) -> Instance:
         metrics = metrics or AcquireMetrics()
-        instance = self.instances[model]
         started = time.monotonic()
-        await instance.lock.acquire()
+        pool = self.pools[model]
+        if instance_id is not None:
+            pool = [instance for instance in pool if instance.id == instance_id]
+            if not pool:
+                raise ValueError(f"{instance_id}: not an instance of {model}")
+        condition = self.conditions[model]
+        async with condition:
+            while True:
+                instance = next(
+                    (candidate for candidate in pool if not candidate.lock.locked()), None
+                )
+                if instance is not None:
+                    await instance.lock.acquire()
+                    break
+                await condition.wait()
         metrics.model_queue_seconds = time.monotonic() - started
         return instance
 
-    @staticmethod
-    async def release(instance: Instance) -> None:
+    async def release(self, instance: Instance) -> None:
         if instance.lock.locked():
             instance.lock.release()
+            async with self.conditions[instance.model]:
+                self.conditions[instance.model].notify_all()

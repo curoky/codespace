@@ -22,7 +22,7 @@ exec uv run \
   "$model_dir/weights" \
   --served-model-name vibevoice \
   --host 127.0.0.1 \
-  --port 8011 \
+  --port "${ASR_PORT:?}" \
   --dtype bfloat16 \
   --tensor-parallel-size 1 \
   --chat-template "$model_dir/chat_template.jinja" \
