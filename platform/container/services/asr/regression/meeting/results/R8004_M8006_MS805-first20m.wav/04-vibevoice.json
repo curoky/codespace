@@ -1,0 +1,10 @@
+{
+  "recipe": "04-vibevoice",
+  "status": "failed",
+  "error": "channel=None: joint boundary alignment failed; cannot deduplicate safely; ",
+  "warnings": [],
+  "segments": [],
+  "activity": [],
+  "speakers": [],
+  "evidence": "evidence.json"
+}

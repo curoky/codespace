@@ -1,0 +1,10 @@
+{
+  "recipe": "01-qwen-fusion",
+  "status": "failed",
+  "error": "channel=None: qwen3-asr-1.7b: primary transcript is unavailable; ",
+  "warnings": [],
+  "segments": [],
+  "activity": [],
+  "speakers": [],
+  "evidence": "evidence.json"
+}

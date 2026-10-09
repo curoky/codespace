@@ -16,6 +16,7 @@ image 视图统一放在 [DESIGN.md](DESIGN.md)；本文件只保留实现维护
 | 能力、时长与显存预算 | `models/catalog.py`；instance / port / placement 在 `server/server.yaml` |
 | HTTP 边界与请求编排 | `server/api.py`、`transcribe.py`、`recipes.py`、`transcript.py` |
 | 文件并发与本地产物 | `client/asr.py` |
+| 长音频回归语料、标准答案、实测结果与质量指标 | `regression/AGENTS.md`、`regression/manifest.yaml` |
 | GPU 映射、s6 状态切换与进程退出 | `ops/`、`rootfs/etc/s6/s6-rc.d/` |
 | image、用户、目录与环境安装 | `Dockerfile`、`install-model-environments.sh`、`rootfs/` |
 | 正常部署输入 | repository root 的 `config.example.yaml` |
@@ -202,6 +203,7 @@ podman build \
 | download / uv / Dockerfile | image 无权重且包含全部环境；run / download 不 sync；检查两轮 hardlink 去重与最新 image size |
 | 权重 / SDK / vLLM | 锁文件与 import 版本、实际协议响应、截断、时间边界与模型 table |
 | 融合 / speaker / 时间 | 行为测试与对应真实音频，不能以模拟响应宣称质量提升 |
+| regression corpus / baseline | `prepare.py --check`、`evaluate.py`、fixture tests；音频 cache 不提交，raw results 提交 |
 | CUDA / placement | 五卡同时驻留、真实余量、kernel、TP / NCCL 与跨模型并发；其余可见卡空闲，不停止外部任务 |
 
 已验证 CPU FireRedVAD / FireRedPunc、H100 Nemotron、s6 服务链路、异常退出清理、停止超时，

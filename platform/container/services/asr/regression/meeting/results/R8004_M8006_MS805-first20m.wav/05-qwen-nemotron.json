@@ -1,0 +1,10 @@
+{
+  "recipe": "05-qwen-nemotron",
+  "status": "failed",
+  "error": "channel=None: 01 did not complete; ",
+  "warnings": [],
+  "segments": [],
+  "activity": [],
+  "speakers": [],
+  "evidence": "evidence.json"
+}

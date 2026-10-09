@@ -1,0 +1,264 @@
+schema_version: 1
+
+sources:
+  magicdata-ramc-dev:
+    kind: tar
+    url: https://huggingface.co/datasets/EaseZh/magicdata_ramc/resolve/79d508c3c3de40a0db55135f78113a7dfe6066d2/dev.tar.gz?download=true
+    size_bytes: 847935006
+    sha256: 4234d0c76a2d8420b20b461c0dd2291ee1465fa28b9f518aa5d7c9466b1dd4eb
+  alimeeting-r8002-m8002:
+    kind: file
+    url: https://huggingface.co/datasets/ggfox00000/dia-alimeeting-test/resolve/cef2837c4a1a0762074522c1bbbbb90eb4d1acf5/audio/far/R8002_M8002_MS802.wav?download=true
+    size_bytes: 529029200
+    sha256: c6f2bb3d87aef622ec3c9b2239d72d0869459f22e5afc713905ced598f1ebb65
+  alimeeting-r8004-m8006:
+    kind: file
+    url: https://huggingface.co/datasets/ggfox00000/dia-alimeeting-test/resolve/cef2837c4a1a0762074522c1bbbbb90eb4d1acf5/audio/far/R8004_M8006_MS805.wav?download=true
+    size_bytes: 503095120
+    sha256: 8c747b5a085bcac7c0e10deb6d881189b5d6e2e2f713e149b382cc363d5da59e
+  alimeeting-r8008-m8014:
+    kind: file
+    url: https://huggingface.co/datasets/ggfox00000/dia-alimeeting-test/resolve/cef2837c4a1a0762074522c1bbbbb90eb4d1acf5/audio/far/R8008_M8014_MS807.wav?download=true
+    size_bytes: 495895552
+    sha256: ee05cff80668316979976a1ce2b3c69922ed7a14959e51df2b7594a4e97b0323
+  librivox-calltoarms-02:
+    kind: file
+    url: https://archive.org/download/call_to_arms_jl_librivox/calltoarms_02_lu.mp3
+    size_bytes: 19751214
+    sha256: 5d310a774110a2566e84ac2c83f6d00d61f23c7dcf428bf90fdc553be57b25fa
+  librivox-calltoarms-09:
+    kind: file
+    url: https://archive.org/download/call_to_arms_jl_librivox/calltoarms_09_lu.mp3
+    size_bytes: 19605806
+    sha256: e797289ab9aa1872382e3322c2ba16a3030c4f918ac659ebe0089cf93e4176e1
+  librivox-calltoarms-16:
+    kind: file
+    url: https://archive.org/download/call_to_arms_jl_librivox/calltoarms_16_lu.mp3
+    size_bytes: 21457198
+    sha256: 9234f9c1fa6dc6096e740e98c9a845d0f604601e5c494d7196bce94d87d295a5
+
+fixtures:
+  - id: conversation-weather
+    category: conversation
+    title: 天气、地域气候与日常生活
+    summary: 一男一女讨论南北方天气差异、气候变暖、穿衣和生活体验。
+    source: magicdata-ramc-dev
+    source_member: dev/wav/CTS-CN-F2F-2019-11-15-1428.wav
+    audio:
+      path: conversation/audio/CTS-CN-F2F-2019-11-15-1428.wav
+      sha256: 7066ce7dc6a3a17967a99e4f1140a70d7302348a873005e7d85d2128272a9e53
+      size_bytes: 57852044
+      duration_ms: 1807875
+      codec: pcm_s16le
+      sample_rate_hz: 16000
+      channels: 1
+    speakers:
+      count: 2
+      genders: [female, male]
+    reference:
+      path: conversation/CTS-CN-F2F-2019-11-15-1428.txt
+      format: magicdata_tsv
+      quality: gold
+      sha256: 1ec67ba27d1ec9e4576e89ebc2fe4d27fac1e816104d50141ed72d859b64ee9f
+
+  - id: conversation-education
+    category: conversation
+    title: 学业、专业选择与校园生活
+    summary: 一男一女交流学校经历、专业方向、课程安排和就业规划。
+    source: magicdata-ramc-dev
+    source_member: dev/wav/CTS-CN-F2F-2019-11-15-1447.wav
+    audio:
+      path: conversation/audio/CTS-CN-F2F-2019-11-15-1447.wav
+      sha256: 92b3c01b5834dca966e6441fd3eab847c5bea137d9dc94cd3c565fa599ae1822
+      size_bytes: 62027244
+      duration_ms: 1938350
+      codec: pcm_s16le
+      sample_rate_hz: 16000
+      channels: 1
+    speakers:
+      count: 2
+      genders: [female, male]
+    reference:
+      path: conversation/CTS-CN-F2F-2019-11-15-1447.txt
+      format: magicdata_tsv
+      quality: gold
+      sha256: 0955cb4e335ab5f9fa43c17adb8198da21fe26be2738c287f6b1d84f347758ff
+
+  - id: conversation-film
+    category: conversation
+    title: 动画电影与观影体验
+    summary: 一男一女围绕《哪吒之魔童降世》的剧情、票房和角色展开自然对话。
+    source: magicdata-ramc-dev
+    source_member: dev/wav/CTS-CN-F2F-2019-11-15-1452.wav
+    audio:
+      path: conversation/audio/CTS-CN-F2F-2019-11-15-1452.wav
+      sha256: b3d7938e03fc95adfbdb7fd1b17615e889c69da922e840d4a97320dd2be853f0
+      size_bytes: 59468844
+      duration_ms: 1858400
+      codec: pcm_s16le
+      sample_rate_hz: 16000
+      channels: 1
+    speakers:
+      count: 2
+      genders: [female, male]
+    reference:
+      path: conversation/CTS-CN-F2F-2019-11-15-1452.txt
+      format: magicdata_tsv
+      quality: gold
+      sha256: 7e5ea88b0be03619bc1a7b4700353c2bc8b8f603f5e839213537fae6a286c689
+
+  - id: meeting-annual-event
+    category: meeting
+    title: 公司年会策划
+    summary: 四人讨论年会日期、团建差异、节目、抽奖和员工参与安排。
+    source: alimeeting-r8002-m8002
+    transform:
+      kind: first_channel_pcm
+      duration_seconds: 1200
+    audio:
+      path: meeting/audio/R8002_M8002_MS802-first20m.wav
+      sha256: ed319eac9eab7f49d90de288702ee8c1dfa78ab565f629abe866df60def76a41
+      size_bytes: 38400044
+      duration_ms: 1200000
+      codec: pcm_s16le
+      sample_rate_hz: 16000
+      channels: 1
+    speakers:
+      count: 4
+      genders: [unspecified]
+    reference:
+      path: meeting/R8002_M8002.TextGrid
+      format: textgrid
+      quality: gold
+      end_ms: 1200000
+      sha256: 827829ba312c511bd13b7428155faec0bdaf78dd833afffeff0933aab1d77ee3
+
+  - id: meeting-game-launch
+    category: meeting
+    title: 游戏产品竞争力
+    summary: 四人讨论手游目标用户、使用时长、奖励机制和市场卖点。
+    source: alimeeting-r8004-m8006
+    transform:
+      kind: first_channel_pcm
+      duration_seconds: 1200
+    audio:
+      path: meeting/audio/R8004_M8006_MS805-first20m.wav
+      sha256: 8c2cc392ddda2867842eb355e74e28dfa00d855b06e67de7c78426d872f5cc94
+      size_bytes: 38400044
+      duration_ms: 1200000
+      codec: pcm_s16le
+      sample_rate_hz: 16000
+      channels: 1
+    speakers:
+      count: 4
+      genders: [unspecified]
+    reference:
+      path: meeting/R8004_M8006.TextGrid
+      format: textgrid
+      quality: gold
+      end_ms: 1200000
+      sha256: 0fc2d372ef3fec17a7c053b7290560d60ba7b30fdc68a96d0ebe32e8710c4c62
+
+  - id: meeting-bike-sharing
+    category: meeting
+    title: 共享单车治理
+    summary: 三人讨论共享单车乱停放、交通安全、车辆损坏和城市治理措施。
+    source: alimeeting-r8008-m8014
+    transform:
+      kind: first_channel_pcm
+      duration_seconds: 1200
+    audio:
+      path: meeting/audio/R8008_M8014_MS807-first20m.wav
+      sha256: 5425bbab208c620fdd617e5f171e9e9927d46702c2bf52a817306d85290e811f
+      size_bytes: 38400044
+      duration_ms: 1200000
+      codec: pcm_s16le
+      sample_rate_hz: 16000
+      channels: 1
+    speakers:
+      count: 3
+      genders: [unspecified]
+    reference:
+      path: meeting/R8008_M8014.TextGrid
+      format: textgrid
+      quality: gold
+      end_ms: 1200000
+      sha256: caf8fae43da74bd027b13d77d875cbbcb94093fd7c04cc5c3617531ad899f713
+
+  - id: narration-madmans-diary
+    category: narration
+    title: 《狂人日记》
+    summary: 单人朗读鲁迅小说《狂人日记》，包含连续文学叙事和大量书面语。
+    source: librivox-calltoarms-02
+    audio:
+      path: narration/audio/calltoarms-02-madmans-diary.mp3
+      sha256: 5d310a774110a2566e84ac2c83f6d00d61f23c7dcf428bf90fdc553be57b25fa
+      size_bytes: 19751214
+      duration_ms: 1234245
+      codec: mp3
+      sample_rate_hz: 44100
+      channels: 1
+    speakers:
+      count: 1
+      genders: [unspecified]
+    reference:
+      path: narration/calltoarms-02-madmans-diary.txt
+      format: source_text
+      quality: source
+      start_marker: 某君昆仲
+      end_marker: 一九一八年四月
+      audio_start_ms: 8430
+      audio_end_ms: 1220759
+      sha256: 852dcb47607f28e8df7c08376e49916d5d62fc4f834eebb3939162ed08a9e6d2
+
+  - id: narration-hometown
+    category: narration
+    title: 《故乡》
+    summary: 单人朗读鲁迅小说《故乡》，包含人物对话、方言词和长篇叙事。
+    source: librivox-calltoarms-09
+    audio:
+      path: narration/audio/calltoarms-09-hometown.mp3
+      sha256: e797289ab9aa1872382e3322c2ba16a3030c4f918ac659ebe0089cf93e4176e1
+      size_bytes: 19605806
+      duration_ms: 1225213
+      codec: mp3
+      sample_rate_hz: 44100
+      channels: 1
+    speakers:
+      count: 1
+      genders: [unspecified]
+    reference:
+      path: narration/calltoarms-09-hometown.txt
+      format: source_text
+      quality: source
+      start_marker: 我冒了严寒
+      end_marker: 一九二一年一月
+      audio_start_ms: 7580
+      audio_end_ms: 1212610
+      sha256: b43eb2f81376472fdc8cef4ac0e0d6c220fc6fb3156ad1a971a91e0add78d9d4
+
+  - id: narration-village-opera
+    category: narration
+    title: 《社戏》
+    summary: 单人朗读鲁迅小说《社戏》，包含场景描写、儿童群体对话和乡土词汇。
+    source: librivox-calltoarms-16
+    audio:
+      path: narration/audio/calltoarms-16-village-opera.mp3
+      sha256: 9234f9c1fa6dc6096e740e98c9a845d0f604601e5c494d7196bce94d87d295a5
+      size_bytes: 21457198
+      duration_ms: 1340920
+      codec: mp3
+      sample_rate_hz: 44100
+      channels: 1
+    speakers:
+      count: 1
+      genders: [unspecified]
+    reference:
+      path: narration/calltoarms-16-village-opera.txt
+      format: source_text
+      quality: source
+      start_marker: 我在倒数上去的二十年中
+      end_marker: 一九二二年十月
+      audio_start_ms: 8070
+      audio_end_ms: 1325830
+      sha256: 41da7d083ac0bd512a1a9af22c40553d160bcba02b1a693ab03866978c93d6de

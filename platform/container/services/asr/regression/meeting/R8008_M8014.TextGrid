@@ -1,0 +1,1878 @@
+File type = "ooTextFile"
+Object class = "TextGrid"
+
+xmin = 0
+xmax = 1935.808
+tiers? <exists>
+size = 3
+item []:
+	item [1]:
+		class = "IntervalTier"
+		name = "N_SPK8051"
+		xmin = 0
+		xmax = 1935.808
+		intervals: size = 223
+		intervals [1]:
+			xmin = 0.55
+			xmax = 13.59
+			text = "好，今天我们来首先开一下我们这个共享单车的会议，最近我们市里面的共享单车多了起来，出现了很多共享单车的情况及问题。"
+		intervals [2]:
+			xmin = 13.59
+			xmax = 26.67
+			text = "然后呢，我希望我们今天都趁着星期三下午这个机会，然后是在大家都有空的时候，然后我们能一起把这个问题能讨论一下。"
+		intervals [3]:
+			xmin = 26.67
+			xmax = 31.59
+			text = "然后是希望各位能各抒己见，好。"
+		intervals [4]:
+			xmin = 32.7
+			xmax = 33.2
+			text = "开始吧。"
+		intervals [5]:
+			xmin = 47.44
+			xmax = 51.89
+			text = "乱停乱停放指的是停在哪哪些地方？"
+		intervals [6]:
+			xmin = 57.98
+			xmax = 61.88
+			text = "机动车道上，然后是你能看到。"
+		intervals [7]:
+			xmin = 62.92
+			xmax = 66.34
+			text = "我有没有最近违反交通的一些例子发生。"
+		intervals [8]:
+			xmin = 76.35
+			xmax = 76.7
+			text = "嗯。"
+		intervals [9]:
+			xmin = 80.6
+			xmax = 81.01
+			text = "嗯。"
+		intervals [10]:
+			xmin = 82.4
+			xmax = 82.74
+			text = "嗯。"
+		intervals [11]:
+			xmin = 87.59
+			xmax = 89.3
+			text = "就直直接闯了对吧？"
+		intervals [12]:
+			xmin = 93.6
+			xmax = 100.46
+			text = "那这种拍照之类的话，然后是呃你你有没有见过有出现那种安全事故的？"
+		intervals [13]:
+			xmin = 102.65
+			xmax = 103.02
+			text = "对。"
+		intervals [14]:
+			xmin = 109.55
+			xmax = 110.02
+			text = "好。"
+		intervals [15]:
+			xmin = 119.54
+			xmax = 119.87
+			text = "嗯。"
+		intervals [16]:
+			xmin = 122.44
+			xmax = 122.73
+			text = "嗯。"
+		intervals [17]:
+			xmin = 124.96
+			xmax = 126.08
+			text = "嗯，撞飞了。"
+		intervals [18]:
+			xmin = 130.28
+			xmax = 130.62
+			text = "嗯。"
+		intervals [19]:
+			xmin = 134.86
+			xmax = 147.99
+			text = "嗯影响了，都影响到家庭了，然后是之前的话我们也没有接触过这样的这样的一些例子，然后是幸好你们今天也给说了一下，然后是还有一些什么别的问题吗？"
+		intervals [20]:
+			xmin = 152.55
+			xmax = 153.72
+			text = "嗯，对的。"
+		intervals [21]:
+			xmin = 165.12
+			xmax = 176.16
+			text = "那个嗯不是多么爱惜的话，我想问一下，不是多么爱惜，你们见过的有多多多么的不爱惜啊，指的是因为我平时的话不怎么骑共享单车的。"
+		intervals [22]:
+			xmin = 180.24
+			xmax = 180.62
+			text = "嗯。"
+		intervals [23]:
+			xmin = 184.51
+			xmax = 186.5
+			text = "是不是恶意的涂抹掉对吧。"
+		intervals [24]:
+			xmin = 191.17
+			xmax = 193.58
+			text = "小广告现在贴这种的多吗？"
+		intervals [25]:
+			xmin = 203.84
+			xmax = 207.89
+			text = "你们你们有没有引导相应的部门进行相对应的宣传呢？"
+		intervals [26]:
+			xmin = 211.23
+			xmax = 214.3
+			text = "我记得前段时间我安排的人好像让他们去了，对吧。"
+		intervals [27]:
+			xmin = 220.91
+			xmax = 221.31
+			text = "嗯。"
+		intervals [28]:
+			xmin = 225.09
+			xmax = 227.84
+			text = "不可能一下子攻克，对这个我也是可以理解的。"
+		intervals [29]:
+			xmin = 229.17
+			xmax = 230.15
+			text = "然后是还有吗？"
+		intervals [30]:
+			xmin = 231.68
+			xmax = 232.2
+			text = "这些。"
+		intervals [31]:
+			xmin = 233.98
+			xmax = 234.42
+			text = "嗯。"
+		intervals [32]:
+			xmin = 239.83
+			xmax = 240.12
+			text = "嗯。"
+		intervals [33]:
+			xmin = 248.84
+			xmax = 249.29
+			text = "对。"
+		intervals [34]:
+			xmin = 252.35
+			xmax = 253.6
+			text = "是坏的对。"
+		intervals [35]:
+			xmin = 256.32
+			xmax = 269.42
+			text = "对钱也要付，哎但是嗯这样的话我们其实可以跟厂家大家协调一下，说开开锁之后大概多少的话，我们可以采取这种就不用付款也更好的便民利民嘛。"
+		intervals [36]:
+			xmin = 270.25
+			xmax = 273.71
+			text = "然后是还有什还有没有什么别的问题呢？"
+		intervals [37]:
+			xmin = 275.99
+			xmax = 282.42
+			text = "就比方说这种我就跟我前天看到的使用不当这种，你们有没有见过？"
+		intervals [38]:
+			xmin = 285.9
+			xmax = 297.33
+			text = "呃就是说他没好好的骑啦或这种的话是故意破坏啦这种，有没有这种情况，在学校周边，在滨江区那里。"
+		intervals [39]:
+			xmin = 303.76
+			xmax = 304.1
+			text = "嗯。"
+		intervals [40]:
+			xmin = 314.65
+			xmax = 315.95
+			text = "也出现这种现象啊。"
+		intervals [41]:
+			xmin = 320.79
+			xmax = 326.08
+			text = "就坏掉啦，坏掉的话，其实这里面的坏掉的车子还还算多吗？"
+		intervals [42]:
+			xmin = 328.71
+			xmax = 329.64
+			text = "你们见到的。"
+		intervals [43]:
+			xmin = 339.02
+			xmax = 341.44
+			text = "断掉了，断掉了断掉了。"
+		intervals [44]:
+			xmin = 346.4
+			xmax = 359.51
+			text = "哦哦，链条掉掉那确实是现在的话好多人都不会上，都不会上链条了是的是的吧，然后是这这样的话我们也应该引起重视，毕竟这种共享单车。"
+		intervals [45]:
+			xmin = 359.51
+			xmax = 361.63
+			text = "是要服务于大众的嘛。"
+		intervals [46]:
+			xmin = 362.95
+			xmax = 368.62
+			text = "呃是还有没有什么别的现状呢，就是说现在就是这种共享单车造成影响。"
+		intervals [47]:
+			xmin = 391.01
+			xmax = 404.75
+			text = "啊，这种的话公共区域的话我认为的话，这种就是说有一种公共区域的话还是有必要的，你不能说是没有规矩不成方圆嘛，你如果能真能随便停放的话，也太那个什么了。"
+		intervals [48]:
+			xmin = 404.75
+			xmax = 411.4
+			text = "也太对对这种我们市的环境规划啦，各种类型的话也会造成很大的影响。"
+		intervals [49]:
+			xmin = 417.61
+			xmax = 428.94
+			text = "对警察啦他们指指导的时候都会造成都会造成一系列的影响，然后是之前我还听说到有一个病毒车，你们知道是什么什么东西吗。"
+		intervals [50]:
+			xmin = 436.09
+			xmax = 445.06
+			text = "噢，就是说他们一个就是说以假乱真那些二维码对吧，哦，那这样这样的话就是说一般扫了之后的话都是会发生什么情况呢？"
+		intervals [51]:
+			xmin = 452.7
+			xmax = 453.24
+			text = "影响。"
+		intervals [52]:
+			xmin = 458.79
+			xmax = 459.35
+			text = "啊也会。"
+		intervals [53]:
+			xmin = 464.93
+			xmax = 467.12
+			text = "对直接转移转移走了，对吧。"
+		intervals [54]:
+			xmin = 468.57
+			xmax = 472.67
+			text = "哦，转转移了现在骗子的手段也很很发达呀看来。"
+		intervals [55]:
+			xmin = 473.74
+			xmax = 486.09
+			text = "然后是我总哦还有没有什么别的现状吗？是就比如之类的，因为我感觉上面提的我们你们提的这些现状还是太少了，跟群众反馈的来说。"
+		intervals [56]:
+			xmin = 491.52
+			xmax = 494.03
+			text = "把单车据为己有，还有这种人在吗。"
+		intervals [57]:
+			xmin = 510.0
+			xmax = 513.96
+			text = "他怎么他一般怎么他一般都怎么弄呢？直接把二维码。"
+		intervals [58]:
+			xmin = 514.96
+			xmax = 516.13
+			text = "弄掉吗？还是怎么弄？"
+		intervals [59]:
+			xmin = 519.98
+			xmax = 521.03
+			text = "把锁拆掉吗？"
+		intervals [60]:
+			xmin = 524.75
+			xmax = 526.04
+			text = "另外再加一道锁。"
+		intervals [61]:
+			xmin = 529.76
+			xmax = 530.61
+			text = "就砸掉它。"
+		intervals [62]:
+			xmin = 531.88
+			xmax = 532.53
+			text = "还是啥。"
+		intervals [63]:
+			xmin = 534.6
+			xmax = 534.97
+			text = "嗯。"
+		intervals [64]:
+			xmin = 536.42
+			xmax = 536.7
+			text = "嗯。"
+		intervals [65]:
+			xmin = 539.44
+			xmax = 539.71
+			text = "嗯。"
+		intervals [66]:
+			xmin = 540.76
+			xmax = 541.29
+			text = "啊。"
+		intervals [67]:
+			xmin = 544.33
+			xmax = 552.99
+			text = "啊那这样的话哎这种人的道德可是真够低劣的，而且不知道你们近来日常生活中见到这种见到的多吗？"
+		intervals [68]:
+			xmin = 557.84
+			xmax = 558.85
+			text = "不是太多哈。"
+		intervals [69]:
+			xmin = 560.56
+			xmax = 563.46
+			text = "嗯也会听到别人说是吧？嗯。"
+		intervals [70]:
+			xmin = 564.85
+			xmax = 576.07
+			text = "我就感觉我就感觉这种以前是就感觉是不可思议的，事不可思议的事情，然后是最后就在我们的日常生活中，既然就真真切切的发生，并出现了。"
+		intervals [71]:
+			xmin = 576.07
+			xmax = 583.88
+			text = "而且他们这种公用车的话，把把变成公共用车的话，确实会造成我们这种资源的一个浪费。"
+		intervals [72]:
+			xmin = 596.41
+			xmax = 596.77
+			text = "嗯。"
+		intervals [73]:
+			xmin = 599.06
+			xmax = 610.5
+			text = "对我们还是要解决的，这些我们先把这些现状，现在面临的现状先说出来，之后的解决的话，我们到时候群策群力一起分析，一起解决好吧。"
+		intervals [74]:
+			xmin = 612.2
+			xmax = 615.46
+			text = "然后是还有没有什么别的现状呢？"
+		intervals [75]:
+			xmin = 621.78
+			xmax = 622.0
+			text = "嗯。"
+		intervals [76]:
+			xmin = 627.34
+			xmax = 634.06
+			text = "你呢？你呢？你这边的还有没有什么什么什么现状，因为是最近的问题，实在是太多了。"
+		intervals [77]:
+			xmin = 639.11
+			xmax = 639.76
+			text = "没素质。"
+		intervals [78]:
+			xmin = 642.8
+			xmax = 643.31
+			text = "恶意。"
+		intervals [79]:
+			xmin = 647.29
+			xmax = 648.41
+			text = "开着自行车。"
+		intervals [80]:
+			xmin = 650.89
+			xmax = 663.64
+			text = "就想就想给你破坏掉是吧？那这样这种人确实是比比那些占为己有的还可恶，对对，他这样破坏公共资公共财产嘛，这种这种是更可恶的。"
+		intervals [81]:
+			xmin = 663.64
+			xmax = 672.46
+			text = "而且这种人的话之前我听着别的市里面像广东他们那种地方的话还是有很多的，没想到我们市里现在也有。"
+		intervals [82]:
+			xmin = 672.46
+			xmax = 680.05
+			text = "然后不过不知道这种人是在高校那边多一点，还是在那种生活区多一点，你们知道吗？了解吗？"
+		intervals [83]:
+			xmin = 697.15
+			xmax = 699.89
+			text = "请然后一起抓抓一下他们对吧？"
+		intervals [84]:
+			xmin = 713.49
+			xmax = 719.29
+			text = "是的，也会说说说句不好听的，也会影响到我们当地的治治安。"
+		intervals [85]:
+			xmin = 720.51
+			xmax = 732.79
+			text = "然然后是呃下面这些现状倒是都可以了，然后是，现在我们分析一下产生这些现状的原因吧，然后是到底是怎么样弄成我们现在。"
+		intervals [86]:
+			xmin = 732.79
+			xmax = 736.3
+			text = "我们市里的共享单车出现了这么多的这么多的问题。"
+		intervals [87]:
+			xmin = 740.36
+			xmax = 740.62
+			text = "嗯。"
+		intervals [88]:
+			xmin = 745.46
+			xmax = 745.86
+			text = "嗯。"
+		intervals [89]:
+			xmin = 753.63
+			xmax = 755.51
+			text = "对APP定位是不够的。"
+		intervals [90]:
+			xmin = 759.72
+			xmax = 760.71
+			text = "标牌的那种。"
+		intervals [91]:
+			xmin = 771.52
+			xmax = 779.12
+			text = "你这样有有做标牌的话，对我们市里的财政来说，包括各个方面来说都是一项很巨大的成本，这个你有没有考虑到？"
+		intervals [92]:
+			xmin = 783.58
+			xmax = 783.9
+			text = "嗯。"
+		intervals [93]:
+			xmin = 788.18
+			xmax = 788.64
+			text = "嗯。"
+		intervals [94]:
+			xmin = 800.67
+			xmax = 802.35
+			text = "自动把车子骑走对吗？"
+		intervals [95]:
+			xmin = 804.77
+			xmax = 805.82
+			text = "大数据时代。"
+		intervals [96]:
+			xmin = 809.82
+			xmax = 810.32
+			text = "可以这样。"
+		intervals [97]:
+			xmin = 813.61
+			xmax = 817.99
+			text = "无法归还啊啊，这其实这样也是一个办法，就是。"
+		intervals [98]:
+			xmin = 820.59
+			xmax = 820.87
+			text = "嗯。"
+		intervals [99]:
+			xmin = 835.48
+			xmax = 835.98
+			text = "共享。"
+		intervals [100]:
+			xmin = 838.99
+			xmax = 846.12
+			text = "修理人员来来过来维修，但如果是离的太远的话，中间的人力成本费的话，他们厂家能不能担得起啊？"
+		intervals [101]:
+			xmin = 847.82
+			xmax = 858.47
+			text = "对啊你对啊，因为是太远的话，比方说我们在滨江或者是他们在西溪湿地这种的话，他们来来回一趟的话也厂家也是很麻烦的。"
+		intervals [102]:
+			xmin = 858.47
+			xmax = 866.64
+			text = "这样的话其实也无形之中增加了厂家的成本，然后是不知道他们会不会愿意这样做呢？"
+		intervals [103]:
+			xmin = 867.97
+			xmax = 873.88
+			text = "然后虽然说这个点子是个很好的点子，但我们可以先按照这样继续说下去。"
+		intervals [104]:
+			xmin = 889.18
+			xmax = 901.65
+			text = "对呃给他们列入信用黑名单进行监管对吧，然后信用黑名单的话，这个的建立的话说实话，呃我是这么感觉的我们市里现在对这个信用的黑名单。"
+		intervals [105]:
+			xmin = 901.65
+			xmax = 912.93
+			text = "然后是建立的还是整个体系建立的还是不太不太完善，还是不太完善，然后是不太完善呢然后是需要你们。"
+		intervals [106]:
+			xmin = 912.93
+			xmax = 922.41
+			text = "我们下面几个部门要共同协调，这积极建设起来这个体系，集齐这个这个名单，然后这个名单不是一朝一夕就能建成的。"
+		intervals [107]:
+			xmin = 922.41
+			xmax = 932.85
+			text = "然后你们上次建建立名单的时候还没，上上次提出这个问题的时候都没弄好，然后是你们这这个问题，你们需要得考虑一下，你们说一下自己的意见。"
+		intervals [108]:
+			xmin = 938.57
+			xmax = 938.88
+			text = "嗯。"
+		intervals [109]:
+			xmin = 946.13
+			xmax = 947.04
+			text = "对，嗯。"
+		intervals [110]:
+			xmin = 953.8
+			xmax = 954.72
+			text = "嗯嗯。"
+		intervals [111]:
+			xmin = 960.21
+			xmax = 974.46
+			text = "多加注意哈，是的，你们你们确实是这种要多加注意起来，而且是我们的平时的党员干部也要积极的，也要积极的下深入到群众中去嘛也要，然后是还有有还有没有什么？"
+		intervals [112]:
+			xmin = 990.44
+			xmax = 993.73
+			text = "就就是说这专门设立一个部门对吧？"
+		intervals [113]:
+			xmin = 995.94
+			xmax = 998.74
+			text = "那这样的话，你手底下还有没有多余多出来的人呢？"
+		intervals [114]:
+			xmin = 1001.11
+			xmax = 1008.37
+			text = "对，你手底下看看现在还有没有多出来的人，比方说那个小张或那个小刘可不可以让他们去？"
+		intervals [115]:
+			xmin = 1009.51
+			xmax = 1012.5
+			text = "也可以是吧，他们手里还有活吗现在？"
+		intervals [116]:
+			xmin = 1015.9
+			xmax = 1016.42
+			text = "同时。"
+		intervals [117]:
+			xmin = 1017.96
+			xmax = 1023.52
+			text = "就专门儿进行这件事对吧，嗯，行，这样也可以，你呢你呢你那边还有没有还？"
+		intervals [118]:
+			xmin = 1029.85
+			xmax = 1030.29
+			text = "嗯。"
+		intervals [119]:
+			xmin = 1032.27
+			xmax = 1033.36
+			text = "都没什么事儿对吧？"
+		intervals [120]:
+			xmin = 1041.69
+			xmax = 1050.93
+			text = "对实地探测一下嘛，然后单独成立出来这样一个小组之后的话，然后是也方便了也真正的方便我们市里的共享单车的管理对吧？"
+		intervals [121]:
+			xmin = 1052.68
+			xmax = 1055.74
+			text = "然后是还有什么有什么别的呢，别的原因呢？"
+		intervals [122]:
+			xmin = 1064.13
+			xmax = 1065.2
+			text = "奖惩机制。"
+		intervals [123]:
+			xmin = 1073.26
+			xmax = 1079.56
+			text = "啊，这种奖惩对吧，这样的话这宣传是一个宣传是一个很大的问题。"
+		intervals [124]:
+			xmin = 1081.28
+			xmax = 1093.23
+			text = "宣传真的是一个很大的问题，你们有没有想好有什么样的是，就这种关于共享单车的宣传或处理的，就这种宣传管理的方案，有没有能不能拿出来一个。"
+		intervals [125]:
+			xmin = 1104.84
+			xmax = 1105.15
+			text = "嗯。"
+		intervals [126]:
+			xmin = 1109.52
+			xmax = 1124.08
+			text = "传播速度快一些，然后是我建议的话我们要不要一起，既然你们说学校卫生，我们要不要建立几个学校作为先行示范点，然后是看看这几个学校处理的怎么样然后是我们。"
+		intervals [127]:
+			xmin = 1125.04
+			xmax = 1127.07
+			text = "以以小带大你们认为怎么样？"
+		intervals [128]:
+			xmin = 1128.68
+			xmax = 1140.92
+			text = "可可以的是吧？然后要不既然是我们本来就属于滨江区就以滨江区高教园那几个高校，作作为，然后是你们你们商量一下认为哪几个高校比较适合选取一两个。"
+		intervals [129]:
+			xmin = 1149.85
+			xmax = 1163.76
+			text = "做几做几场演讲对吧？啊然后是我们这边的人然后也要下去对吧？然后呢下去下下去这，然后是我们到时候先呃是找好几个学校，找好几个学校做好专门的试点工作。"
+		intervals [130]:
+			xmin = 1163.76
+			xmax = 1174.49
+			text = "专门做好做好那边那个试点工作，然后是具体学校的定，的具体要定哪个学校或者是要怎么样的方案你们两个到时候的话。"
+		intervals [131]:
+			xmin = 1174.49
+			xmax = 1181.2
+			text = "就是说找一下其他各部门的部长还有其他各个学校的校长，然后是再联系一下行不行？"
+		intervals [132]:
+			xmin = 1184.3
+			xmax = 1195.44
+			text = "嗯对都都安排一下不要忘了哈这个，然后是我的建议还是说比方是杭州职业技术学院，它它们这种它这个学校就就可以的你们可以考虑一下。"
+		intervals [133]:
+			xmin = 1196.83
+			xmax = 1198.63
+			text = "嗯还还有没有什么别的呢？"
+		intervals [134]:
+			xmin = 1201.29
+			xmax = 1210.21
+			text = "就是说关于这种车位，就是出现的这种管理，我们既然已经有专项小组了，然后是解决的话定位。"
+		intervals [135]:
+			xmin = 1217.47
+			xmax = 1217.77
+			text = "嗯。"
+		intervals [136]:
+			xmin = 1221.35
+			xmax = 1221.71
+			text = "我操。"
+		intervals [137]:
+			xmin = 1228.02
+			xmax = 1238.53
+			text = "看一下这这些有没有用对吧，然后是做试点的话你们你们认为的话，我操，做试点的话你们认为到底是以哪些地方为试点比较好？"
+		intervals [138]:
+			xmin = 1242.85
+			xmax = 1243.66
+			text = "对就设。"
+		intervals [139]:
+			xmin = 1245.64
+			xmax = 1249.21
+			text = "市中心市中心具体哪个位置有没有？"
+		intervals [140]:
+			xmin = 1253.84
+			xmax = 1254.21
+			text = "对。"
+		intervals [141]:
+			xmin = 1259.29
+			xmax = 1261.21
+			text = "大大学城里哈。"
+		intervals [142]:
+			xmin = 1266.41
+			xmax = 1267.12
+			text = "嗯。"
+		intervals [143]:
+			xmin = 1270.27
+			xmax = 1276.96
+			text = "才能看得出问题来哈，啊这样这样确实是提议很不错，然后是那个。"
+		intervals [144]:
+			xmin = 1278.41
+			xmax = 1282.67
+			text = "还有没有什么别的呢，这种解决方案还有这种原因，然后是大。"
+		intervals [145]:
+			xmin = 1284.71
+			xmax = 1286.09
+			text = "大家再讨论，所以。"
+		intervals [146]:
+			xmin = 1287.84
+			xmax = 1289.48
+			text = "病毒啊对。"
+		intervals [147]:
+			xmin = 1290.72
+			xmax = 1291.13
+			text = "嗯。"
+		intervals [148]:
+			xmin = 1297.43
+			xmax = 1298.63
+			text = "相应的法律法规。"
+		intervals [149]:
+			xmin = 1306.69
+			xmax = 1308.24
+			text = "都会都会泄露对吧。"
+		intervals [150]:
+			xmin = 1311.86
+			xmax = 1321.78
+			text = "嗯，这样对这样的话，就牵扯到一个设定相对应的法律法规了，然后是你们有没有什么意见或建议，该设该怎样设置。"
+		intervals [151]:
+			xmin = 1322.99
+			xmax = 1329.2
+			text = "然后是就说要该怎怎么样罚呀，然后说有没有什么罚的那种力度，你们说一下。"
+		intervals [152]:
+			xmin = 1336.06
+			xmax = 1349.2
+			text = "联系警方那边是吧？那这样的话联系警方那边的话关还是你们两个牵一下头牵一下头的话跟警察局他们那边联系一下问一问，最好把近期的话把这个事情给定一下来好吧？"
+		intervals [153]:
+			xmin = 1349.2
+			xmax = 1357.05
+			text = "定下来之后的话，然后是嗯这样的话才能更好的解决问题嘛。然后是还有没有什么别的嘞？"
+		intervals [154]:
+			xmin = 1358.79
+			xmax = 1371.43
+			text = "关于就是说我们这些带来的一些一大堆的问题乱停乱放这种的话我们找专人管理，使使用不当呢，使用不得当，嗯。"
+		intervals [155]:
+			xmin = 1373.55
+			xmax = 1374.08
+			text = "嗯，对。"
+		intervals [156]:
+			xmin = 1382.63
+			xmax = 1382.99
+			text = "嗯。"
+		intervals [157]:
+			xmin = 1385.22
+			xmax = 1385.72
+			text = "做一些。"
+		intervals [158]:
+			xmin = 1387.04
+			xmax = 1388.2
+			text = "做一些奖惩哈。"
+		intervals [159]:
+			xmin = 1390.62
+			xmax = 1394.3
+			text = "那奖奖励的话，我们建议以什么为主呢？"
+		intervals [160]:
+			xmin = 1397.64
+			xmax = 1398.01
+			text = "嗯。"
+		intervals [161]:
+			xmin = 1403.24
+			xmax = 1413.53
+			text = "好，这种兑换奖品的话是由哪个我们具体的话是是由是由是由是由哪个部门到时候来进行进行担当。"
+		intervals [162]:
+			xmin = 1416.74
+			xmax = 1427.35
+			text = "后勤部后勤部哈，到时候你们后联系联系后勤的那个小宋，然后是让他让他进行进行更正更正一下，核实一下好不好？"
+		intervals [163]:
+			xmin = 1428.7
+			xmax = 1436.63
+			text = "嗯，然后是别的这种就是说当成私人车用，这这种问题的话，为什么会发生这种情况？"
+		intervals [164]:
+			xmin = 1449.05
+			xmax = 1450.28
+			text = "对，就是。"
+		intervals [165]:
+			xmin = 1451.58
+			xmax = 1452.11
+			text = "思想。"
+		intervals [166]:
+			xmin = 1458.18
+			xmax = 1466.1
+			text = "对他进行思想教育，然后是不是可不可以就我想的话，可不可以就跟科目二那种，科目二那种性质似的。"
+		intervals [167]:
+			xmin = 1466.1
+			xmax = 1468.77
+			text = "就对就科目一就说他如果说。"
+		intervals [168]:
+			xmin = 1470.03
+			xmax = 1480.32
+			text = "触犯违反交通法规之后的话，违反交通法规之后的话，然后是接着就发现了这种事情的话，重新让他学科目二或重新让他学科目一。"
+		intervals [169]:
+			xmin = 1480.32
+			xmax = 1484.48
+			text = "给他带到一种固定的车管所里那种地方。"
+		intervals [170]:
+			xmin = 1486.22
+			xmax = 1486.73
+			text = "对就。"
+		intervals [171]:
+			xmin = 1488.14
+			xmax = 1491.28
+			text = "对对他进行教育，重头重头开始进行对他进行。"
+		intervals [172]:
+			xmin = 1496.15
+			xmax = 1497.6
+			text = "对才才能过。"
+		intervals [173]:
+			xmin = 1498.77
+			xmax = 1499.05
+			text = "对。"
+		intervals [174]:
+			xmin = 1501.56
+			xmax = 1508.09
+			text = "对是的如果他不学的话，他根本根本就过不去对吗？对吧？然后这样。"
+		intervals [175]:
+			xmin = 1509.36
+			xmax = 1516.91
+			text = "对然后是要不然的话，这样的话才能更好的提高我们这个城区里面的人的素质嘛，你说大家说对不对。"
+		intervals [176]:
+			xmin = 1518.73
+			xmax = 1531.09
+			text = "然后是那个的话这个提高其这关键是说实话，我我我认为我们市里的话，滨江区的素质还是比较高的，因为有学生嘛，因为有学生，对有学生。"
+		intervals [177]:
+			xmin = 1531.09
+			xmax = 1542.61
+			text = "对，然后是相反是一些偏远的环城区的，那那种地方的人的素质可能会相对的低一点，可能会相对的低一点，然后是我不知道你们有没有统计过这种。"
+		intervals [178]:
+			xmin = 1543.58
+			xmax = 1549.8
+			text = "被偷盗的时候的话，然后是是不是哪个区多一点，你们有没有注意。"
+		intervals [179]:
+			xmin = 1555.89
+			xmax = 1560.24
+			text = "对都已经有人调查是吧，调调查的结果有没有反馈出来。"
+		intervals [180]:
+			xmin = 1564.25
+			xmax = 1565.81
+			text = "嗯，你有一个想法你先说。"
+		intervals [181]:
+			xmin = 1568.13
+			xmax = 1568.5
+			text = "嗯。"
+		intervals [182]:
+			xmin = 1570.32
+			xmax = 1571.3
+			text = "公示一下哈。"
+		intervals [183]:
+			xmin = 1581.85
+			xmax = 1582.2
+			text = "嗯。"
+		intervals [184]:
+			xmin = 1589.2
+			xmax = 1593.74
+			text = "有数对吧，不会不会那种很茫然啥都不知道，对吧。"
+		intervals [185]:
+			xmin = 1600.49
+			xmax = 1600.87
+			text = "对。"
+		intervals [186]:
+			xmin = 1603.58
+			xmax = 1604.24
+			text = "太多了。"
+		intervals [187]:
+			xmin = 1606.67
+			xmax = 1618.38
+			text = "其实我感觉不光要网上，还要进行现实的结合，然后然后是不光线上还要线下，因为现在还是有很多老人嘛，他们可能也有这种需求。"
+		intervals [188]:
+			xmin = 1618.38
+			xmax = 1627.66
+			text = "也有这种需求也要用但是他们不能经常上网，不能经常上网，然后是这就这就你们认为照他这种线下的宣传该怎么宣传呢？"
+		intervals [189]:
+			xmin = 1637.62
+			xmax = 1637.96
+			text = "嗯。"
+		intervals [190]:
+			xmin = 1642.64
+			xmax = 1643.05
+			text = "嗯。"
+		intervals [191]:
+			xmin = 1648.45
+			xmax = 1652.59
+			text = "也没明白的认识对吧，哦。"
+		intervals [192]:
+			xmin = 1654.72
+			xmax = 1655.48
+			text = "村委会。"
+		intervals [193]:
+			xmin = 1669.2
+			xmax = 1681.19
+			text = "演讲演讲对吧，然后是关键是下面的我呃你们在平时走访的过程中的话，觉得跟下面村子里村委的人的关系怎么样，就是说他们好交流嘛相对的。"
+		intervals [194]:
+			xmin = 1682.64
+			xmax = 1689.05
+			text = "因为是我们在平时下去的话，其实说实话，这种工作的开展的话，也有也有依赖于他们的。"
+		intervals [195]:
+			xmin = 1691.69
+			xmax = 1698.55
+			text = "一都是一阶跟着一阶对吧？你们平时的话就是说这种感觉的话，他们是怎么样的还好相处吗？"
+		intervals [196]:
+			xmin = 1707.89
+			xmax = 1708.13
+			text = "都。"
+		intervals [197]:
+			xmin = 1709.55
+			xmax = 1721.46
+			text = "都是都是及时发布过去啊，那这样的话就好，然后是还有没有什么就是说我们要需要待解决的问题呢，然后是出现的这种比方说就是这种。"
+		intervals [198]:
+			xmin = 1721.46
+			xmax = 1732.78
+			text = "对对于这种公公车私用或者说蓄意毁坏的这种蓄意毁坏，它既然都已经蓄意毁坏了，我们是不是要给它加一些一定量的刑法呢？"
+		intervals [199]:
+			xmin = 1744.4
+			xmax = 1744.87
+			text = "投票。"
+		intervals [200]:
+			xmin = 1753.35
+			xmax = 1758.18
+			text = "单方面对，然后是对你这样说的很很好。"
+		intervals [201]:
+			xmin = 1763.02
+			xmax = 1772.59
+			text = "添入刑罚对，然后是的话它确实是也要考虑一个量刑的问题，然后是我们确实是往上不能光我们几个，然后是。"
+		intervals [202]:
+			xmin = 1772.59
+			xmax = 1786.2
+			text = "平时的话还要下次再会议的话，你们给一些别人在开会的时候要精准的传达。我们今天会议的我们今天会议的这个这个精神，然后是不要不要忘记，然后是还有的话就是说。"
+		intervals [203]:
+			xmin = 1787.18
+			xmax = 1799.46
+			text = "现在这个共享单车啊，这个管理啊真的是很头疼，很很大的一方面很很大的一方面问题，而且它给我们市的财政也没贡献多少贡献多少财政。"
+		intervals [204]:
+			xmin = 1799.46
+			xmax = 1808.61
+			text = "反而更多的是种居民生活问题，嗯，然后是你们觉得话，这个共享单车给我们的生活带来有没有什么便利啊？"
+		intervals [205]:
+			xmin = 1815.52
+			xmax = 1815.94
+			text = "嗯。"
+		intervals [206]:
+			xmin = 1819.59
+			xmax = 1819.99
+			text = "嗯。"
+		intervals [207]:
+			xmin = 1824.87
+			xmax = 1825.26
+			text = "嗯。"
+		intervals [208]:
+			xmin = 1828.2
+			xmax = 1832.4
+			text = "然后是我们的我们市里现在共享单车，有没有电电动车。"
+		intervals [209]:
+			xmin = 1834.47
+			xmax = 1835.42
+			text = "有的是吧。"
+		intervals [210]:
+			xmin = 1843.13
+			xmax = 1846.38
+			text = "价格高一点大大嗯。"
+		intervals [211]:
+			xmin = 1848.52
+			xmax = 1852.55
+			text = "要骑的哈，那这种电单车的话大概要高多少你们知道吗？"
+		intervals [212]:
+			xmin = 1856.59
+			xmax = 1859.43
+			text = "五成有五成吗？有百分之五十吗？"
+		intervals [213]:
+			xmin = 1861.76
+			xmax = 1865.95
+			text = "应该有的是吧啊，那就那就确实是贵的贵贵好多了。"
+		intervals [214]:
+			xmin = 1865.95
+			xmax = 1876.46
+			text = "然后是啊，还有共享电单车的话，因为是关于共享电单车嘛，之前我们也讨论过，然后是我们现在共享电单车，大多都是投放在哪个区域啊？"
+		intervals [215]:
+			xmin = 1878.27
+			xmax = 1880.05
+			text = "在哪个区域的多你们知道吗？"
+		intervals [216]:
+			xmin = 1885.44
+			xmax = 1890.82
+			text = "不，我说的是具体的大区你们知道吗？大区对是在上城还是下城？"
+		intervals [217]:
+			xmin = 1892.0
+			xmax = 1895.1
+			text = "西湖区西啊西湖区那边多一点。"
+		intervals [218]:
+			xmin = 1897.95
+			xmax = 1898.24
+			text = "哦。"
+		intervals [219]:
+			xmin = 1899.7
+			xmax = 1904.3
+			text = "啊然后是这些电动车上都有没有佩戴头盔啊？"
+		intervals [220]:
+			xmin = 1906.71
+			xmax = 1911.72
+			text = "这个是肯定有的是吧，你们要及时对扣扣钱还扣钱吗？"
+		intervals [221]:
+			xmin = 1914.04
+			xmax = 1919.99
+			text = "要扣钱的，我我们这边的话，就是说下面具体警察局执行的标准是大概扣多少？"
+		intervals [222]:
+			xmin = 1922.59
+			xmax = 1923.83
+			text = "二十二十一个人。"
+		intervals [223]:
+			xmin = 1924.87
+			xmax = 1935.08
+			text = "好好的好的，那我就明白了，然后是这次讨论也辛苦你们了好，那我们下次先结束，我们下次再再开，好，这样。"
+	item [2]:
+		class = "IntervalTier"
+		name = "N_SPK8052"
+		xmin = 0
+		xmax = 1935.808
+		intervals: size = 120
+		intervals [1]:
+			xmin = 71.35
+			xmax = 82.14
+			text = "就最近就在那个我们就是滨江的学校那门口嘛？不是会有交警嘛？然后有交警就有学生骑着那个共享自行车，然后在那边骑过去，但是。"
+		intervals [2]:
+			xmin = 82.53
+			xmax = 93.29
+			text = "他没有就是按照交通秩序就直接把那个直接闯红灯，对，直接被那个交警抓住，然后这边让他们拍照之类的。"
+		intervals [3]:
+			xmin = 101.45
+			xmax = 109.31
+			text = "安全事故，安全事故目前我遇到好像都是就是拍照，也没有到那个那么严重的地步。"
+		intervals [4]:
+			xmin = 148.95
+			xmax = 161.81
+			text = "就共享单车，它不是一下子会投放很多吗？但是就算投放了很多，但是也会出现那个车损坏的损坏丢失的，然后想要找那个维修的地点也很难。"
+		intervals [5]:
+			xmin = 162.38
+			xmax = 164.96
+			text = "然后使用者也不是那么爱惜那个车辆。"
+		intervals [6]:
+			xmin = 186.77
+			xmax = 187.12
+			text = "嗯。"
+		intervals [7]:
+			xmin = 215.01
+			xmax = 215.41
+			text = "嗯。"
+		intervals [8]:
+			xmin = 231.73
+			xmax = 243.43
+			text = "就有些那些车不是坏了吗，坏了之后但是放在的那些位置是属于公共单公共自行车很少的地方，很少的地方，就是人们就是不会就是假如。"
+		intervals [9]:
+			xmin = 243.98
+			xmax = 256.77
+			text = "那边有很多选择人也刚开始也不会观察一下自行车到底是好是坏，有有的人可能就是扫了之后才发现那个自行车是坏的，然后就也没办法，然后就钱也要付，就那种。"
+		intervals [10]:
+			xmin = 348.18
+			xmax = 348.63
+			text = "对嗯。"
+		intervals [11]:
+			xmin = 353.17
+			xmax = 354.13
+			text = "对对对对。"
+		intervals [12]:
+			xmin = 362.36
+			xmax = 362.78
+			text = "嗯。"
+		intervals [13]:
+			xmin = 368.85
+			xmax = 381.72
+			text = "就有些时候假如就是扫了一下那个码，但是显示没有租车成功，但是他还是会扣你的钱，然后GPS定位有时候也不准，就假如你是停在就按规定停的那些位置就是。"
+		intervals [14]:
+			xmin = 382.37
+			xmax = 390.01
+			text = "停的，但是他会以为你他会把你认为你不是在那个规定的那种区域里停的，还会给你扣额额外的钱。"
+		intervals [15]:
+			xmin = 429.7
+			xmax = 435.86
+			text = "就是那个在车辆二维码上贴着带有病毒的二维码吗？然后在传播那种吗？"
+		intervals [16]:
+			xmin = 439.21
+			xmax = 440.18
+			text = "对对对对对。"
+		intervals [17]:
+			xmin = 458.88
+			xmax = 467.98
+			text = "对再严重点，说不定就是把你的财产嗯那个手机上不是有会绑定什么的吗？就有可能对直接把你的钱给转到别的地方去。"
+		intervals [18]:
+			xmin = 472.73
+			xmax = 473.04
+			text = "对。"
+		intervals [19]:
+			xmin = 487.19
+			xmax = 491.1
+			text = "那就还有就是把那个单车据为己有嘛。"
+		intervals [20]:
+			xmin = 492.78
+			xmax = 493.18
+			text = "对呀。"
+		intervals [21]:
+			xmin = 494.13
+			xmax = 502.41
+			text = "对呀，就是你在小区里面你也能看见，就是他把自己他把那个车就当做是自己的就给我就也不给别人就是。"
+		intervals [22]:
+			xmin = 502.72
+			xmax = 509.83
+			text = "就把它弄成自己的，然后就是也不锁车，也不把那个，就把共享单车当成免费单车在那边用。"
+		intervals [23]:
+			xmin = 516.25
+			xmax = 520.53
+			text = "有可能把那个锁的那种，不是他专门有那个锁的吗？然后有可能把。"
+		intervals [24]:
+			xmin = 521.66
+			xmax = 521.95
+			text = "对。"
+		intervals [25]:
+			xmin = 562.37
+			xmax = 562.81
+			text = "嗯。"
+		intervals [26]:
+			xmin = 610.71
+			xmax = 611.58
+			text = "嗯好。"
+		intervals [27]:
+			xmin = 628.91
+			xmax = 630.83
+			text = "我这边就是。"
+		intervals [28]:
+			xmin = 634.8
+			xmax = 643.31
+			text = "就也有那种很没有素质的吧也可能这样说，就是就对那种共享单车你就他就是恶意破坏。"
+		intervals [29]:
+			xmin = 643.31
+			xmax = 653.74
+			text = "恶意就是他恶意就是看你开着自行车这边给你放着，然后就觉得不怎么那个，就是想给你破坏掉，我也不知道这种，对就这种也。"
+		intervals [30]:
+			xmin = 657.19
+			xmax = 658.07
+			text = "对，更那个。"
+		intervals [31]:
+			xmin = 661.69
+			xmax = 661.98
+			text = "对。"
+		intervals [32]:
+			xmin = 663.57
+			xmax = 663.82
+			text = "对。"
+		intervals [33]:
+			xmin = 672.54
+			xmax = 672.97
+			text = "对。"
+		intervals [34]:
+			xmin = 699.35
+			xmax = 700.25
+			text = "抓一下，抓一下。"
+		intervals [35]:
+			xmin = 713.96
+			xmax = 714.37
+			text = "对。"
+		intervals [36]:
+			xmin = 720.47
+			xmax = 720.77
+			text = "嗯。"
+		intervals [37]:
+			xmin = 806.1
+			xmax = 806.85
+			text = "大数据。"
+		intervals [38]:
+			xmin = 814.6
+			xmax = 814.94
+			text = "嗯。"
+		intervals [39]:
+			xmin = 818.93
+			xmax = 825.01
+			text = "然后我这边的话我就想说就是那些坏了的车，坏了的车的话就是。"
+		intervals [40]:
+			xmin = 826.02
+			xmax = 831.56
+			text = "哦坏了车肯定要有修的嘛，然后修的话它就是可以利用那种互联网技术就是。"
+		intervals [41]:
+			xmin = 832.37
+			xmax = 842.14
+			text = "共享单车企业就可以将那种需要维护的单车远程锁定一下嘛，就可以派那个专业的维修人员去那边修一下，对去那边维修。"
+		intervals [42]:
+			xmin = 847.34
+			xmax = 849.82
+			text = "好像也也不是特别那啥特别。"
+		intervals [43]:
+			xmin = 868.05
+			xmax = 868.57
+			text = "啊。"
+		intervals [44]:
+			xmin = 874.22
+			xmax = 874.49
+			text = "嗯。"
+		intervals [45]:
+			xmin = 875.46
+			xmax = 879.58
+			text = "然后也应该加强那个用户信用评分的那种建设。"
+		intervals [46]:
+			xmin = 880.61
+			xmax = 888.39
+			text = "将违规严重用户列入那种信誉信用黑名单，就是对他们进行那些监管。"
+		intervals [47]:
+			xmin = 891.2
+			xmax = 891.52
+			text = "对。"
+		intervals [48]:
+			xmin = 892.47
+			xmax = 892.79
+			text = "对。"
+		intervals [49]:
+			xmin = 931.94
+			xmax = 932.35
+			text = "嗯。"
+		intervals [50]:
+			xmin = 975.12
+			xmax = 987.75
+			text = "就那个针对运营公司管理的那种去管理那种单车的东西嘛，就是设立那种专门就是专门去管理的那种小组，就是专门来解决那个，就是那个。"
+		intervals [51]:
+			xmin = 988.09
+			xmax = 995.79
+			text = "自行车那种坏的那种问题，或者那种就专门设立专门，对设立专门的部门去搞。"
+		intervals [52]:
+			xmin = 1000.12
+			xmax = 1001.21
+			text = "手底下。"
+		intervals [53]:
+			xmin = 1008.47
+			xmax = 1011.07
+			text = "那可以可以，他们啊，可以的可以的。"
+		intervals [54]:
+			xmin = 1012.8
+			xmax = 1017.79
+			text = "可以让他们跟其他同学同事交接一下，就把那些就专门就。"
+		intervals [55]:
+			xmin = 1019.58
+			xmax = 1020.12
+			text = "对对对。"
+		intervals [56]:
+			xmin = 1051.11
+			xmax = 1052.63
+			text = "嗯，是的。"
+		intervals [57]:
+			xmin = 1056.01
+			xmax = 1064.05
+			text = "就是针对那种使用那种共享单车不对的人，也可以那个就是建立那种奖惩机制嘛。"
+		intervals [58]:
+			xmin = 1064.05
+			xmax = 1075.39
+			text = "就是对，就是查实到有破坏的可以处罚，如果举报他人破坏的也可以给予适当的奖励嘛，就这种，对奖惩。"
+		intervals [59]:
+			xmin = 1080.0
+			xmax = 1080.35
+			text = "对。"
+		intervals [60]:
+			xmin = 1127.32
+			xmax = 1130.07
+			text = "我觉得这可以啊，不错的不错的不错的。"
+		intervals [61]:
+			xmin = 1133.2
+			xmax = 1133.53
+			text = "嗯。"
+		intervals [62]:
+			xmin = 1155.06
+			xmax = 1155.73
+			text = "对对对。"
+		intervals [63]:
+			xmin = 1181.23
+			xmax = 1184.82
+			text = "好行我这边联系一下都。"
+		intervals [64]:
+			xmin = 1187.17
+			xmax = 1187.57
+			text = "好。"
+		intervals [65]:
+			xmin = 1195.83
+			xmax = 1196.54
+			text = "嗯好。"
+		intervals [66]:
+			xmin = 1199.95
+			xmax = 1200.49
+			text = "嗯。"
+		intervals [67]:
+			xmin = 1212.48
+			xmax = 1213.21
+			text = "就。"
+		intervals [68]:
+			xmin = 1230.01
+			xmax = 1230.39
+			text = "嗯。"
+		intervals [69]:
+			xmin = 1239.71
+			xmax = 1240.96
+			text = "试点。"
+		intervals [70]:
+			xmin = 1246.15
+			xmax = 1247.05
+			text = "市中心。"
+		intervals [71]:
+			xmin = 1259.31
+			xmax = 1261.05
+			text = "高教园区。高教园区。"
+		intervals [72]:
+			xmin = 1271.61
+			xmax = 1271.99
+			text = "嗯。"
+		intervals [73]:
+			xmin = 1284.06
+			xmax = 1297.43
+			text = "就对对于那种病毒嘛，就不之前不是那个对呀，就是二维码那种病毒嘛，对吧，就是我们可以就是联系一下，就是要制定那种相应的那种法律法规吧。"
+		intervals [74]:
+			xmin = 1298.07
+			xmax = 1306.78
+			text = "对呀，像这种就是严重的会伤害到就是就财产那种，就把自己的那些信息基本信息什么都会那个。"
+		intervals [75]:
+			xmin = 1307.75
+			xmax = 1313.79
+			text = "对都会泄露掉，然后也应该严厉打击这种违法犯罪行为，就保护自己的权益嘛就。"
+		intervals [76]:
+			xmin = 1317.36
+			xmax = 1317.73
+			text = "对。"
+		intervals [77]:
+			xmin = 1337.53
+			xmax = 1338.17
+			text = "嗯，对。"
+		intervals [78]:
+			xmin = 1348.98
+			xmax = 1349.47
+			text = "嗯，好。"
+		intervals [79]:
+			xmin = 1354.91
+			xmax = 1355.29
+			text = "对。"
+		intervals [80]:
+			xmin = 1366.85
+			xmax = 1367.19
+			text = "嗯。"
+		intervals [81]:
+			xmin = 1385.1
+			xmax = 1386.31
+			text = "对呀，就奖惩嘛。"
+		intervals [82]:
+			xmin = 1387.91
+			xmax = 1392.05
+			text = "对啊，举报的就举报他人的也可以，就是有适当奖励的那种。"
+		intervals [83]:
+			xmin = 1403.38
+			xmax = 1403.76
+			text = "对。"
+		intervals [84]:
+			xmin = 1415.62
+			xmax = 1418.83
+			text = "后勤吧，后勤后勤后勤负责。"
+		intervals [85]:
+			xmin = 1427.38
+			xmax = 1428.38
+			text = "好，好。"
+		intervals [86]:
+			xmin = 1437.57
+			xmax = 1438.88
+			text = "私人的。"
+		intervals [87]:
+			xmin = 1452.17
+			xmax = 1452.73
+			text = "思想。"
+		intervals [88]:
+			xmin = 1464.63
+			xmax = 1464.91
+			text = "啊。"
+		intervals [89]:
+			xmin = 1465.91
+			xmax = 1466.82
+			text = "啊科目二那种。"
+		intervals [90]:
+			xmin = 1479.08
+			xmax = 1479.36
+			text = "哦。"
+		intervals [91]:
+			xmin = 1485.06
+			xmax = 1491.19
+			text = "我觉得这可以，对他进行那种教育可以的呀，从头那种可以的。"
+		intervals [92]:
+			xmin = 1496.95
+			xmax = 1503.54
+			text = "对，得刷他不刷那些内容，他就可能就也不会达到那个，也不过不了对。"
+		intervals [93]:
+			xmin = 1505.7
+			xmax = 1505.97
+			text = "对。"
+		intervals [94]:
+			xmin = 1516.93
+			xmax = 1518.03
+			text = "对对对对。"
+		intervals [95]:
+			xmin = 1530.15
+			xmax = 1531.1
+			text = "高教园区。"
+		intervals [96]:
+			xmin = 1557.8
+			xmax = 1558.43
+			text = "对对对。"
+		intervals [97]:
+			xmin = 1571.25
+			xmax = 1571.88
+			text = "公示。"
+		intervals [98]:
+			xmin = 1590.7
+			xmax = 1590.93
+			text = "对。"
+		intervals [99]:
+			xmin = 1610.48
+			xmax = 1611.12
+			text = "现实。"
+		intervals [100]:
+			xmin = 1614.52
+			xmax = 1614.84
+			text = "嗯。"
+		intervals [101]:
+			xmin = 1627.82
+			xmax = 1637.7
+			text = "线下的就是假如老人的话，不是在假如像那种有些敬老院那种可以也有专门的人去那个讲，他们可能就。"
+		intervals [102]:
+			xmin = 1637.7
+			xmax = 1651.74
+			text = "也不他们嗯也不会去玩手机，干嘛干嘛干嘛的，就是你不去线下给他讲清楚讲明白的话，他们可能对这种事情也没有特别清楚的那种明白那个对也没有。"
+		intervals [103]:
+			xmin = 1693.26
+			xmax = 1693.54
+			text = "对。"
+		intervals [104]:
+			xmin = 1711.26
+			xmax = 1711.56
+			text = "嗯。"
+		intervals [105]:
+			xmin = 1733.57
+			xmax = 1733.99
+			text = "对。"
+		intervals [106]:
+			xmin = 1752.13
+			xmax = 1753.38
+			text = "单方面的那种来。"
+		intervals [107]:
+			xmin = 1763.23
+			xmax = 1763.56
+			text = "对。"
+		intervals [108]:
+			xmin = 1801.82
+			xmax = 1802.26
+			text = "对。"
+		intervals [109]:
+			xmin = 1808.91
+			xmax = 1821.1
+			text = "就共共享单车，它的目的其实也并不是为了，就是盈利啊是干嘛的，而是为了服务大家嘛，服务大众，为大家就是倡导那种绿色出行嘛，然后也没有说。"
+		intervals [110]:
+			xmin = 1821.61
+			xmax = 1828.04
+			text = "也没有说就是我就是去为了赚钱，我就去为了赚你们的钱，就仅仅就通过这种赚钱来这个。"
+		intervals [111]:
+			xmin = 1833.94
+			xmax = 1834.44
+			text = "有的。"
+		intervals [112]:
+			xmin = 1858.36
+			xmax = 1858.67
+			text = "五。"
+		intervals [113]:
+			xmin = 1862.83
+			xmax = 1863.76
+			text = "对对对对对。"
+		intervals [114]:
+			xmin = 1866.14
+			xmax = 1866.56
+			text = "对对。"
+		intervals [115]:
+			xmin = 1887.67
+			xmax = 1888.54
+			text = "大区。"
+		intervals [116]:
+			xmin = 1891.06
+			xmax = 1891.85
+			text = "西湖区。"
+		intervals [117]:
+			xmin = 1895.63
+			xmax = 1897.47
+			text = "西湖游客。"
+		intervals [118]:
+			xmin = 1907.1
+			xmax = 1910.1
+			text = "对，被抓到就扣钱啊。"
+		intervals [119]:
+			xmin = 1911.13
+			xmax = 1915.44
+			text = "对啊就是被交警抓到，如果你没戴头盔要扣钱的要扣钱的。"
+		intervals [120]:
+			xmin = 1919.94
+			xmax = 1922.97
+			text = "二十二十一个人吧，好像是二十二十。"
+	item [3]:
+		class = "IntervalTier"
+		name = "N_SPK8053"
+		xmin = 0
+		xmax = 1935.808
+		intervals: size = 120
+		intervals [1]:
+			xmin = 33.7
+			xmax = 48.05
+			text = "嗯，我这边的话我也发现了一些问题，就是这些嗯有些嗯素质不是那么高的人群啊，他们就会把这个单车就会乱停放，然后有些东西呢大家就是。"
+		intervals [2]:
+			xmin = 49.59
+			xmax = 49.99
+			text = "对。"
+		intervals [3]:
+			xmin = 52.06
+			xmax = 57.85
+			text = "嗯，停在比如说就是嗯嗯公就是机动车道啊这些。"
+		intervals [4]:
+			xmin = 58.98
+			xmax = 59.49
+			text = "对。"
+		intervals [5]:
+			xmin = 66.83
+			xmax = 69.79
+			text = "嗯，就是说最近的话。"
+		intervals [6]:
+			xmin = 109.37
+			xmax = 123.03
+			text = "嗯，但是我这边的话也看到过，就是他骑车的话就是左边右边都没有看，然后旁边也有嗯机动车停在边上然后有停车位的那种，他就直接冲了出去，然后后面。"
+		intervals [7]:
+			xmin = 123.03
+			xmax = 134.55
+			text = "来车了就直接给他撞飞了，然后这样子的话，嗯他就是也受了很严重的伤，然后这边的话他也影响到他的家庭现在。"
+		intervals [8]:
+			xmin = 136.79
+			xmax = 137.14
+			text = "对。"
+		intervals [9]:
+			xmin = 176.12
+			xmax = 185.44
+			text = "嗯，这边的话我也发现了一些呃单车上的二维码就会被一些嗯人啊，就是把它用喷漆喷掉然后。"
+		intervals [10]:
+			xmin = 186.54
+			xmax = 191.19
+			text = "对的对的，然后车辆上有的时候还会贴一些小广小广告啊啥的。"
+		intervals [11]:
+			xmin = 192.07
+			xmax = 192.56
+			text = "是。"
+		intervals [12]:
+			xmin = 194.07
+			xmax = 204.75
+			text = "嗯呃经过前一阵子的话，也有经过大家的宣传的话，呃这方面减少了，但是还会有一些素质不那么高的人做这些事情。"
+		intervals [13]:
+			xmin = 209.4
+			xmax = 212.16
+			text = "嗯这边的话我们一直都在尽力。"
+		intervals [14]:
+			xmin = 214.93
+			xmax = 224.85
+			text = "嗯这边的话我们呃都在努力的宣传，然后现在的话这些难点就是目前来说不可能一下子攻克。"
+		intervals [15]:
+			xmin = 228.07
+			xmax = 228.46
+			text = "嗯。"
+		intervals [16]:
+			xmin = 277.36
+			xmax = 277.89
+			text = "嗯。"
+		intervals [17]:
+			xmin = 283.73
+			xmax = 285.32
+			text = "使用不当指的是。"
+		intervals [18]:
+			xmin = 296.18
+			xmax = 308.88
+			text = "噢这边的话就是嗯，在学校周边的话会很多同学都骑自行车到学校门口嘛，然后这边的话他们呃有可能是停放好的，但是后面的人会把它给。"
+		intervals [19]:
+			xmin = 308.88
+			xmax = 313.9
+			text = "呃不小心碰倒啦，然后一溜车全倒了，然后也没人扶这种现象。"
+		intervals [20]:
+			xmin = 315.24
+			xmax = 321.85
+			text = "对，然后这种的话有可能经过这些触碰啊，这些车有可能就坏掉了是。"
+		intervals [21]:
+			xmin = 327.06
+			xmax = 327.87
+			text = "嗯。"
+		intervals [22]:
+			xmin = 331.24
+			xmax = 338.37
+			text = "这种的话车子都是它的，嗯比如说链条啊，就是不小心嗯就。"
+		intervals [23]:
+			xmin = 339.08
+			xmax = 346.84
+			text = "撞了一下，然后断断一般来说车的质量还是在的就有可能是偏了，就是它的链条掉掉了这样子。"
+		intervals [24]:
+			xmin = 353.1
+			xmax = 354.62
+			text = "是的是的，是这样的。"
+		intervals [25]:
+			xmin = 412.1
+			xmax = 418.32
+			text = "嗯是的，这样子的话也会影影响一些交通嗯秩序啊这些。"
+		intervals [26]:
+			xmin = 420.58
+			xmax = 421.05
+			text = "嗯。"
+		intervals [27]:
+			xmin = 429.51
+			xmax = 430.26
+			text = "呃。"
+		intervals [28]:
+			xmin = 445.32
+			xmax = 458.57
+			text = "可能说会对用手机扫的话，可能说是会对手机上面一些性能啊造成一些影响，有可能什么黑客进入手机啦这种窃取嗯个人信息这些。"
+		intervals [29]:
+			xmin = 520.67
+			xmax = 530.58
+			text = "把锁拆掉也有可能是他另外再加一道锁就对，然后他把自己的那道锁在嗯解开了之后呢，然后。"
+		intervals [30]:
+			xmin = 531.54
+			xmax = 540.46
+			text = "不是他把自己的锁，就是他用的时候，他先把自己的锁解开，然后再扫嗯我们本来单车上面的码，然后再用它。"
+		intervals [31]:
+			xmin = 540.46
+			xmax = 543.93
+			text = "但是这样子只有他自己能用，然后别人是用不了的。"
+		intervals [32]:
+			xmin = 553.5
+			xmax = 560.51
+			text = "嗯，目前来说的话，我们可能见到的不是太多，然后就是也会听到别人说嘛。"
+		intervals [33]:
+			xmin = 562.15
+			xmax = 564.75
+			text = "对对对，这种东西我们还是都有了解的。"
+		intervals [34]:
+			xmin = 584.84
+			xmax = 586.11
+			text = "嗯，对的对的。"
+		intervals [35]:
+			xmin = 587.29
+			xmax = 598.84
+			text = "然后他们这样子的话，我们虽然虽然这边不能说教导他怎么提高自己的道德，但是这方面的话我们还是要解决的。"
+		intervals [36]:
+			xmin = 610.19
+			xmax = 611.39
+			text = "嗯，好的好的。"
+		intervals [37]:
+			xmin = 615.69
+			xmax = 627.17
+			text = "嗯，这边的话我呃也没有呃看到过或者听到过其他现状了，然后就就这几个问题，我们嗯看一下有没有什么解决的方案吧。"
+		intervals [38]:
+			xmin = 681.08
+			xmax = 689.66
+			text = "呃先不管这些人在哪边多一点，反正这种人的话，就在人流量比较多的地方的话，这种人嗯有可能。"
+		intervals [39]:
+			xmin = 689.66
+			xmax = 697.97
+			text = "不光是在单车这方面造成破坏，也有可能在其他方面造成破坏，我们可以联合其他部门或者嗯。"
+		intervals [40]:
+			xmin = 699.48
+			xmax = 713.38
+			text = "对对对，这种东西我们应该嗯查查一下他们到底是哪个地方的，然后严惩一下他们，不然的话我们这边治安这方面应该也不会太好。"
+		intervals [41]:
+			xmin = 736.91
+			xmax = 749.62
+			text = "嗯，那我这边讲一下那个乱停放问题吧，就是说我们这边停放的话可以多设几个停放的站点，然后我们现在都是有一些嗯。"
+		intervals [42]:
+			xmin = 749.62
+			xmax = 762.75
+			text = "APP定位导航的嘛，但是我觉得这些并不够，然后我们应该专门就是设一个停停放点，就是有那种标牌的那种在路面上，对这样子的话大家。"
+		intervals [43]:
+			xmin = 762.75
+			xmax = 771.28
+			text = "呃不光是嗯嗯APP上面定位，然后嗯肉眼然后也能找到这些嗯停放点。"
+		intervals [44]:
+			xmin = 779.38
+			xmax = 784.51
+			text = "嗯，这方面的话我目前只想到了这个办法，或者。"
+		intervals [45]:
+			xmin = 785.48
+			xmax = 789.09
+			text = "就是或者是在那个。"
+		intervals [46]:
+			xmin = 790.95
+			xmax = 800.66
+			text = "停放点设置一个小机器，然后嗯实时更新一下二维码，然后嗯嗯用户再扫完二维码之后呢就可以。"
+		intervals [47]:
+			xmin = 801.97
+			xmax = 804.69
+			text = "是的是的是的，这样子的话就是。"
+		intervals [48]:
+			xmin = 805.83
+			xmax = 814.78
+			text = "对，停放点的话都是规定好的，然后这些车没没办法停放的话就无法归还，对。"
+		intervals [49]:
+			xmin = 818.4
+			xmax = 818.77
+			text = "嗯。"
+		intervals [50]:
+			xmin = 931.65
+			xmax = 932.13
+			text = "嗯。"
+		intervals [51]:
+			xmin = 933.21
+			xmax = 943.88
+			text = "呃这边的话我们也会加强督促大家底下的人去，呃实时的去路面上探看一下这些。"
+		intervals [52]:
+			xmin = 943.88
+			xmax = 954.24
+			text = "单车他到底有没有解决掉一些问题，这种问题还是不是普遍存在，或者说是对比上次有没有呃转好好转这样子。"
+		intervals [53]:
+			xmin = 954.24
+			xmax = 961.58
+			text = "然后的话我们也会嗯对这个方面就多多加注意，是的是的。"
+		intervals [54]:
+			xmin = 972.18
+			xmax = 972.64
+			text = "嗯。"
+		intervals [55]:
+			xmin = 1023.15
+			xmax = 1027.99
+			text = "嗯，我这边也有几个同事，比如说我们那边的嗯。"
+		intervals [56]:
+			xmin = 1028.83
+			xmax = 1042.03
+			text = "嗯，张秘书啊这些他们目前的话就对对对，你可以我我我可以跟他们再说一下这个事情，然后让他们呃去探实地探测一下。"
+		intervals [57]:
+			xmin = 1051.43
+			xmax = 1052.14
+			text = "嗯，是的。"
+		intervals [58]:
+			xmin = 1093.34
+			xmax = 1104.96
+			text = "嗯这边的话我们应该先从那种呃校园这方面嗯如果说在学校多消，多宣传的话，学生的话一般也有可能会把这些事情告诉家长。"
+		intervals [59]:
+			xmin = 1104.96
+			xmax = 1109.38
+			text = "然后这样子的话传播呃速度话就会快一些。"
+		intervals [60]:
+			xmin = 1110.39
+			xmax = 1111.12
+			text = "是的是的。"
+		intervals [61]:
+			xmin = 1127.38
+			xmax = 1129.14
+			text = "嗯我觉得是行的。"
+		intervals [62]:
+			xmin = 1140.97
+			xmax = 1150.11
+			text = "嗯我觉得话就是，呃本科这方面还有专科这方面都多选几个学校去，做几个场演讲这种。"
+		intervals [63]:
+			xmin = 1151.17
+			xmax = 1151.78
+			text = "对对对。"
+		intervals [64]:
+			xmin = 1154.97
+			xmax = 1155.65
+			text = "对是的。"
+		intervals [65]:
+			xmin = 1181.65
+			xmax = 1184.54
+			text = "好这边这边我们会都会安排下去。"
+		intervals [66]:
+			xmin = 1186.78
+			xmax = 1187.26
+			text = "好。"
+		intervals [67]:
+			xmin = 1195.69
+			xmax = 1196.46
+			text = "嗯好的。"
+		intervals [68]:
+			xmin = 1212.56
+			xmax = 1224.78
+			text = "定位这方面的话我们也是先设置一些，呃就是先拿一些地区来做一下那个试点。"
+		intervals [69]:
+			xmin = 1224.78
+			xmax = 1230.2
+			text = "然后再看一下这些到底有没有用然后对是的。"
+		intervals [70]:
+			xmin = 1242.01
+			xmax = 1246.93
+			text = "对我们我觉得话应该是市中心那边然后呃对。"
+		intervals [71]:
+			xmin = 1251.43
+			xmax = 1260.22
+			text = "就比如就我们杭州市这边来讲的话就是，呃滨江或者下沙那边大学城大学比较多。"
+		intervals [72]:
+			xmin = 1260.22
+			xmax = 1270.1
+			text = "对，然后这边呃人流量都是比较多的，所以说嗯在这边开放的话就是很能看得出问题来。"
+		intervals [73]:
+			xmin = 1271.41
+			xmax = 1271.71
+			text = "对。"
+		intervals [74]:
+			xmin = 1330.47
+			xmax = 1336.01
+			text = "这边的话我们应该还是应该先嗯联系警方那边。"
+		intervals [75]:
+			xmin = 1337.07
+			xmax = 1337.89
+			text = "是的是的。"
+		intervals [76]:
+			xmin = 1349.75
+			xmax = 1350.17
+			text = "对。"
+		intervals [77]:
+			xmin = 1366.63
+			xmax = 1367.45
+			text = "嗯，是的。"
+		intervals [78]:
+			xmin = 1369.63
+			xmax = 1373.39
+			text = "使用不当就是它会破坏这些单车这些吗？"
+		intervals [79]:
+			xmin = 1375.46
+			xmax = 1385.07
+			text = "然后如果说嗯有发现，呃他使用不当的话，如果有其他人举报的话，这边我们也会对他做一些惩罚。"
+		intervals [80]:
+			xmin = 1386.38
+			xmax = 1386.77
+			text = "对。"
+		intervals [81]:
+			xmin = 1388.28
+			xmax = 1388.61
+			text = "对。"
+		intervals [82]:
+			xmin = 1395.25
+			xmax = 1403.28
+			text = "嗯，就比如说他的信用分啊，可以加加一些，然后信用分到达了一定的数目的话，然后可以兑换一些奖品啊啥的。"
+		intervals [83]:
+			xmin = 1413.95
+			xmax = 1417.83
+			text = "嗯我们这边的话，我觉得后勤部的对后勤这边。"
+		intervals [84]:
+			xmin = 1427.6
+			xmax = 1428.38
+			text = "嗯，好的。"
+		intervals [85]:
+			xmin = 1437.05
+			xmax = 1437.72
+			text = "嗯。"
+		intervals [86]:
+			xmin = 1439.01
+			xmax = 1447.83
+			text = "就是可能他这边的话嗯素质可能没有那么高，但是这方面的话也还是我们不能说是。"
+		intervals [87]:
+			xmin = 1448.83
+			xmax = 1458.67
+			text = "嗯就是改变他的嗯思想对，然后这边的话如果抓到的话，我们可以嗯对它来做一些思想教育这些。"
+		intervals [88]:
+			xmin = 1459.73
+			xmax = 1460.04
+			text = "对。"
+		intervals [89]:
+			xmin = 1485.59
+			xmax = 1486.53
+			text = "嗯这。"
+		intervals [90]:
+			xmin = 1490.55
+			xmax = 1498.52
+			text = "对，像科目一这种的话，就是他要自己真正的去学习才能作答，然后才能把嗯。"
+		intervals [91]:
+			xmin = 1506.91
+			xmax = 1509.21
+			text = "对这这个想法确实非常好。"
+		intervals [92]:
+			xmin = 1516.92
+			xmax = 1518.33
+			text = "对对对，是这样的。"
+		intervals [93]:
+			xmin = 1529.15
+			xmax = 1530.38
+			text = "嗯学生比较。"
+		intervals [94]:
+			xmin = 1550.85
+			xmax = 1555.33
+			text = "嗯这边的话我们都已经有人嗯下去调查了。"
+		intervals [95]:
+			xmin = 1557.72
+			xmax = 1558.18
+			text = "是啊。"
+		intervals [96]:
+			xmin = 1562.31
+			xmax = 1576.7
+			text = "这边的话我有一个想法，就是把这些调查的每个区调查的结果的话都呃公示一下，对就比如说在公众号啊这种这些地方就是来说一下嗯。"
+		intervals [97]:
+			xmin = 1576.7
+			xmax = 1590.66
+			text = "嗯当地的这些单车被损坏的情况或者什么样的情况，嗯都在公众号上面说一下，然后这样的话就是公民自己心里也会有有一些数，对对对。"
+		intervals [98]:
+			xmin = 1593.64
+			xmax = 1606.59
+			text = "是是是，他他自己如果像那种素质比较好的话，他会他会跟家人说，哎呀，这些嗯我们这边的车子被损坏的也太多了吧这样子，嗯会有这种感叹出来。"
+		intervals [99]:
+			xmin = 1651.88
+			xmax = 1664.66
+			text = "嗯这边的话也可以去那种村委会，呃先呃和村委会那边的人呃沟通了解一下，然后再嗯比如说把嗯他们。"
+		intervals [100]:
+			xmin = 1664.66
+			xmax = 1670.45
+			text = "村民啊聚集在一起，然后的话嗯做一个演讲对。"
+		intervals [101]:
+			xmin = 1689.56
+			xmax = 1691.39
+			text = "对，都是一阶跟着一阶的。"
+		intervals [102]:
+			xmin = 1692.98
+			xmax = 1693.35
+			text = "嗯。"
+		intervals [103]:
+			xmin = 1699.32
+			xmax = 1711.52
+			text = "都挺好相处的，然后这边的话和他，嗯做商量一些事情的话，他们也都会及时的嗯向下发布过去，发布出去对是。"
+		intervals [104]:
+			xmin = 1733.55
+			xmax = 1743.62
+			text = "嗯这方面的话我觉得还是嗯可以，就比如说像那种发一些嗯投票或者说是。"
+		intervals [105]:
+			xmin = 1745.17
+			xmax = 1754.22
+			text = "对，就是说征集公民的意见然后再向上汇报，这样子的话就不是凭我们呃这一个部门对对。"
+		intervals [106]:
+			xmin = 1756.03
+			xmax = 1757.07
+			text = "然后向上。"
+		intervals [107]:
+			xmin = 1758.26
+			xmax = 1762.82
+			text = "对向上报的话这样子有可能就会添入刑罚这些。"
+		intervals [108]:
+			xmin = 1832.71
+			xmax = 1846.12
+			text = "嗯，目前是有的，但是呃，电动车这方面的话，它有可能价格方面会比，呃单车自己骑的这方面会价格高一点，然后所以说共享单车的话。"
+		intervals [109]:
+			xmin = 1846.12
+			xmax = 1849.61
+			text = "还是大多数人要骑的是的。"
+		intervals [110]:
+			xmin = 1854.07
+			xmax = 1856.23
+			text = "嗯，这边的话大概。"
+		intervals [111]:
+			xmin = 1860.67
+			xmax = 1863.19
+			text = "嗯，应该有的，是的是的。"
+		intervals [112]:
+			xmin = 1866.14
+			xmax = 1866.68
+			text = "嗯。"
+		intervals [113]:
+			xmin = 1880.9
+			xmax = 1886.29
+			text = "就比如说，呃小区门口或者是学校门口这些也比较多一点。"
+		intervals [114]:
+			xmin = 1887.45
+			xmax = 1889.82
+			text = "大区嗯就是。"
+		intervals [115]:
+			xmin = 1892.77
+			xmax = 1893.55
+			text = "是的是的。"
+		intervals [116]:
+			xmin = 1894.11
+			xmax = 1900.61
+			text = "因为那边嗯游客比较多，然后客流量比较大嘛，然后那边比较多。"
+		intervals [117]:
+			xmin = 1904.51
+			xmax = 1908.34
+			text = "呃，有的有的这个是肯定有的，对对因为。"
+		intervals [118]:
+			xmin = 1915.21
+			xmax = 1915.59
+			text = "对。"
+		intervals [119]:
+			xmin = 1921.72
+			xmax = 1925.83
+			text = "二十对是二十，然后的话也会记录在案的。"
+		intervals [120]:
+			xmin = 1935.4
+			xmax = 1935.8
+			text = "好。"

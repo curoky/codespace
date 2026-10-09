@@ -1,0 +1,10 @@
+{
+  "recipe": "02-firered-fusion",
+  "status": "failed",
+  "error": "channel=None: firered-llm: primary transcript is unavailable; ",
+  "warnings": [],
+  "segments": [],
+  "activity": [],
+  "speakers": [],
+  "evidence": "evidence.json"
+}
