@@ -236,8 +236,9 @@ class ControlPlane:
         )
         stage("preparing data root")
         directories = [path]
-        if isinstance(spec, WorkspaceSpec):
-            directories.extend(spec.container.data_directories(path))
+        for directory in spec.container.data_directories(path):
+            if directory not in directories:
+                directories.append(directory)
         host.prepare_directories(route, directories)
         if isinstance(spec, WorkspaceSpec):
             stage("creating container")

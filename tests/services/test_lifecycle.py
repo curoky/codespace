@@ -40,8 +40,12 @@ def test_apply_replaces_container_and_resolves_data_placeholder(
 ) -> None:
     data = manager.config.model_dump()
     data["services"]["vllm"]["tunnel_ports"] = [8008]
+    data["services"]["vllm"]["container"]["volumes"] = [
+        "${RESOURCE_DATA}/models:/model-data",
+        "${RESOURCE_DATA}/requests:/data/asr",
+    ]
     manager.config = Config.model_validate(data)
-    events: list[str] = []
+    events: list[object] = []
     running = SimpleNamespace()
     captured: dict[str, object] = {}
     manager.queue(Resource("office", "vllm"))
@@ -54,7 +58,7 @@ def test_apply_replaces_container_and_resolves_data_placeholder(
     monkeypatch.setattr(
         lifecycle.host,
         "prepare_directories",
-        lambda _route, paths: events.append(paths[0]),
+        lambda _route, paths: events.append(paths),
     )
     monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
     monkeypatch.setattr(
@@ -70,13 +74,21 @@ def test_apply_replaces_container_and_resolves_data_placeholder(
 
     manager.deploy(Resource("office", "vllm"))
 
-    assert events == ["pull", "/home/x/codespace/services/vllm", "remove"]
+    assert events == [
+        "pull",
+        [
+            "/home/x/codespace/services/vllm",
+            "/home/x/codespace/services/vllm/models",
+            "/home/x/codespace/services/vllm/requests",
+        ],
+        "remove",
+    ]
     assert captured["name"] == "codespace-service-vllm"
     runtime_spec = captured["spec"]
     assert runtime_spec.volumes[0].mount() == {  # type: ignore[union-attr]
         "type": "bind",
-        "source": "/home/x/codespace/services/vllm",
-        "target": "/home/x/.cache/huggingface",
+        "source": "/home/x/codespace/services/vllm/models",
+        "target": "/model-data",
         "read_only": False,
     }
     assert runtime_spec.restart == "unless-stopped"  # type: ignore[union-attr]
