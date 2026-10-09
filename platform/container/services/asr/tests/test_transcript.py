@@ -4,7 +4,15 @@ from importlib import import_module
 from protocol import Span, Token
 from server.audio import union, windows
 from server.config import ChunkConfig
-from server.transcript import align_text, choose, mapped_identity, normalized, owners
+from server.transcript import (
+    Segment,
+    align_text,
+    choose,
+    mapped_identity,
+    normalized,
+    owners,
+    utterances,
+)
 
 parse_joint = import_module("models.moss-td.client").parse
 
@@ -58,7 +66,29 @@ def test_overlap_keeps_candidates_without_duplicating_text() -> None:
         Span(start_ms=500, end_ms=1500, speaker="S02"),
     ]
     assert owners(600, 900, speakers) == ["S01", "S02"]
+    assert owners(600, 600, speakers) == ["S01", "S02"]
+    assert owners(1000, 1000, speakers) == ["S02"]
     assert owners(None, None, speakers) == []
+
+
+def test_zero_duration_token_uses_point_speaker_and_stays_in_utterance() -> None:
+    segment = Segment(
+        start_ms=600,
+        end_ms=800,
+        text="我不",
+        tokens=[
+            Token(text="我", start_ms=600, end_ms=600),
+            Token(text="不", start_ms=600, end_ms=800),
+        ],
+    )
+
+    result = utterances(segment, [Span(start_ms=0, end_ms=1000, speaker="S01")])
+
+    assert len(result) == 1
+    assert result[0].text == "我不"
+    assert result[0].speakers == ["S01"]
+    assert result[0].tokens[0].speakers == ["S01"]
+    assert "speaker_unknown" not in result[0].flags
 
 
 def test_local_speaker_names_are_mapped_by_evidence() -> None:

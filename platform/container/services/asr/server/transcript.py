@@ -64,6 +64,14 @@ def overlap(a: int, b: int, span: Span) -> int:
 def owners(start: int | None, end: int | None, speakers: list[Span]) -> list[str]:
     if start is None or end is None:
         return []
+    if start == end:
+        return sorted(
+            {
+                span.speaker
+                for span in speakers
+                if span.speaker and span.start_ms <= start < span.end_ms
+            }
+        )
     scores: dict[str, int] = defaultdict(int)
     for span in speakers:
         if span.speaker:

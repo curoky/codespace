@@ -93,6 +93,8 @@ VibeVoice 原版 / HF、FireRed 原始 / 转换权重不能互换；FunASR 的 `
 - 联合模型保留自身正文、时间与局部 speaker；pyannote 只把无歧义的单人活动映射到全文件
   身份。结构、时间范围与活动尾部要校验，失败最多缩窗两层；无法按字词时间安全裁剪边界
   时失败，不做平均插值。
+- forced alignment 的零时长 token 保留原始时间点，按落入的半开 speaker span 归属身份；
+  不得为规避 `speaker_unknown` 人工扩展 token 时长或伪造边界。
 - 第五稿复用第一稿正文和时间，仅用 Nemotron 重标 speaker。已知超过 8 人时失败，未知
   人数标 `unverified_max_8`，pyannote 观察超限标 `suspected_out_of_scope`。
 - 同一请求按逻辑模型、切片路径与有效参数缓存并 single-flight；失败调用不缓存，取消
