@@ -11,7 +11,7 @@ from typing import cast
 import httpx2
 
 from models.catalog import MODELS, ModelSpec
-from ops.processes import GPU, service, visible_gpus
+from ops.processes import GPU, GPUUtilization, gpu_utilization, service, visible_gpus
 from protocol import InferenceRequest, InferenceResult
 from server.config import Config, ModelInstanceConfig
 
@@ -43,11 +43,13 @@ class Scheduler:
         runtime_dir: Path = Path("/run/asr"),
         control: Callable[[str, str], Awaitable[None]] = service,
         inventory: Callable[[], Awaitable[list[GPU]]] = visible_gpus,
+        utilization: Callable[[list[str]], Awaitable[list[GPUUtilization]]] = gpu_utilization,
     ) -> None:
         self.config = config
         self.runtime_dir = runtime_dir
         self.control = control
         self.inventory = inventory
+        self.utilization = utilization
         self.instances: dict[str, Instance] = {}
         self.pools: dict[str, list[Instance]] = {}
         self.conditions: dict[str, asyncio.Condition] = {}
@@ -92,6 +94,15 @@ class Scheduler:
         if missing:
             raise ValueError(f"models without instances: {', '.join(sorted(missing))}")
         self.conditions = {model: asyncio.Condition() for model in self.pools}
+
+    @property
+    def gpu_ids(self) -> list[str]:
+        devices = {
+            device_id: int(index)
+            for instance in self.instances.values()
+            for device_id, index in zip(instance.devices, instance.gpu_indices, strict=True)
+        }
+        return [device_id for device_id, _ in sorted(devices.items(), key=lambda item: item[1])]
 
     @staticmethod
     def _instance(

@@ -81,7 +81,9 @@ VibeVoice 原版 / HF、FireRed 原始 / 转换权重不能互换；FunASR 的 `
   Markdown、索引、可视化或客户端文件名。`client/asr.py` 严格校验 JSON，在临时目录生成
   全部文件后原子发布，并给五份方案 JSON 添加 `evidence.json` 引用。`client/trace.html`
   是无外部依赖的离线模板，流程聚合、方案对比、时间线、火焰图和 Chrome Trace export
-  全部在浏览器执行；`trace.json` 仍是唯一原始 trace 产物。
+  GPU 利用率曲线、流程聚合、方案对比、时间线、火焰图和 Chrome Trace export 全部在浏览器
+  执行；`trace.json` 仍是唯一原始 trace 产物。Server 只按秒采集自身 placement 使用的 GPU
+  compute / HBM I/O busy、显存与功耗原始值，不生成聚合结论或展示层。
 - Server 必须单进程，不增加 uvicorn workers。上传与 options 是不可信 HTTP 输入，由
   Pydantic 校验；模型完成状态、结构、截断和时间边界也在 server 校验。
 - 顺序固定为 prepare、四路 first pass、整批 review，随后 01–04 并行；05 只等待 01。prepare 先跑全文件
@@ -108,7 +110,9 @@ VibeVoice 原版 / HF、FireRed 原始 / 转换权重不能互换；FunASR 的 `
 - Aligner review 固定走 `qwen3-aligner-review`，recipe finalize 固定走
   `qwen3-aligner-recipe`。VibeVoice 长窗并发投递到 A / B 副本，必须按原窗口顺序合并。
 - 原始响应与参数只在 evidence 出现一次。trace 记录关键 phase、实际模型调用、cache hit、
-  GPU UUID / index、模型锁、CPU 排队和推理时间，不复制正文或完整部署清单。
+  GPU UUID / index、模型锁、CPU 排队、推理时间，以及请求全程每秒 GPU 利用率采样；不复制
+  正文或完整部署清单。`utilization.memory` 表示 HBM 读写活跃时间，不得解释为显存占用率或
+  PCIe copy throughput。
 
 ## Static Placement And Process Control
 
@@ -229,3 +233,12 @@ podman build \
 02 / 03 / 04 分别为 2.2222% / 2.9136% / 2.2716%。最终 trace 为 140.894 秒、1660 个事件、
 1650 个模型事件和 0 failure，只使用 GPU index 0–4；01–04 在 112.935–112.937 秒启动，
 05 在 01 完成的 123.764 秒启动。全量去标点输入后，真实文本中已无上游引号诱发的组合句读。
+
+2026-10-10 用 schema v2 在同一 Host 复跑 meeting `R8004_M8006_MS805-first20m.wav`：
+trace 为 1070.531 秒、863 个事件和 995 组请求全程 GPU 采样，sampling error 为空。GPU 0 / 1
+平均 compute busy 为 96.2% / 81.9%，GPU 2 / 3 / 4 仅 5.4% / 3.6% / 1.8%；CPU queue
+为 0，model queue 仅 0.318 秒，upload + decode 为 0.293 秒。89 次模型失败中 FireRed-LLM
+有 67 次生成到 length 上限，失败调用累计 855.961 秒；MOSS-Audio、Qwen3-ASR 与 Whisper
+另有 27 次 length failure，全部失败调用累计约 1023 秒。该样本的瓶颈是异常长生成把 GPU 0 / 1
+打满，同时其他卡受 DAG 与静态 placement 限制长期空闲，不是 CPU 并发或输入 copy；降低耗时应
+先修复生成长度与失败窗口，再评估跨卡并发，不能仅提高 `cpu_requests`。

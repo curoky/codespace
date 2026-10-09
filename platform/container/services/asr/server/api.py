@@ -50,51 +50,53 @@ def create_app(
         except ValidationError as exc:
             raise HTTPException(422, str(exc)) from exc
         try:
-            with tempfile.TemporaryDirectory(prefix="request-", dir=work_dir) as temporary:
-                work = Path(temporary)
-                source = work / "original"
-                started = trace.begin()
-                try:
-                    with source.open("wb") as target:
-                        while chunk := await file.read(1024 * 1024):
-                            await asyncio.to_thread(target.write, chunk)
-                except Exception as exc:
+            async with trace.capture_gpu_utilization(runtime.gpu_ids, runtime.utilization):
+                with tempfile.TemporaryDirectory(prefix="request-", dir=work_dir) as temporary:
+                    work = Path(temporary)
+                    source = work / "original"
+                    started = trace.begin()
+                    try:
+                        with source.open("wb") as target:
+                            while chunk := await file.read(1024 * 1024):
+                                await asyncio.to_thread(target.write, chunk)
+                    except Exception as exc:
+                        trace.add(
+                            kind="phase",
+                            name="upload",
+                            started=started,
+                            status="failed",
+                            error=f"{type(exc).__name__}: {exc}",
+                        )
+                        raise
+                    if not source.stat().st_size:
+                        raise HTTPException(422, "empty file")
                     trace.add(
                         kind="phase",
                         name="upload",
                         started=started,
-                        status="failed",
-                        error=f"{type(exc).__name__}: {exc}",
+                        status="completed",
+                        input_summary={"filename": file.filename or "recording"},
+                        output_summary={"bytes": source.stat().st_size},
                     )
-                    raise
-                if not source.stat().st_size:
-                    raise HTTPException(422, "empty file")
-                trace.add(
-                    kind="phase",
-                    name="upload",
-                    started=started,
-                    status="completed",
-                    input_summary={"filename": file.filename or "recording"},
-                    output_summary={"bytes": source.stat().st_size},
-                )
-                results, evidence = await transcribe(
-                    source, work, config, runtime, parameters, trace
-                )
-                status: Literal["completed", "partial"] = (
-                    "completed"
-                    if all(result.status == "completed" for result in results)
-                    else "partial"
-                )
-                return {
-                    "results": [result.model_dump(mode="json") for result in results],
-                    "evidence": {
-                        "filename": file.filename or "recording",
-                        "options": parameters.model_dump(mode="json"),
-                        "config": config.model_dump(mode="json"),
-                        "channels": evidence,
-                    },
-                    "trace": trace.document(status).model_dump(mode="json", exclude_none=True),
-                }
+                    results, evidence = await transcribe(
+                        source, work, config, runtime, parameters, trace
+                    )
+                    status: Literal["completed", "partial"] = (
+                        "completed"
+                        if all(result.status == "completed" for result in results)
+                        else "partial"
+                    )
+                    response: dict[str, JsonValue] = {
+                        "results": [result.model_dump(mode="json") for result in results],
+                        "evidence": {
+                            "filename": file.filename or "recording",
+                            "options": parameters.model_dump(mode="json"),
+                            "config": config.model_dump(mode="json"),
+                            "channels": evidence,
+                        },
+                    }
+            response["trace"] = trace.document(status).model_dump(mode="json", exclude_none=True)
+            return response
         finally:
             await file.close()
 

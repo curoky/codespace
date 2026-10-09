@@ -217,12 +217,15 @@ texts/<录音相对路径与文件名>/
 ```
 
 `evidence.json` 只保存一份模型原始响应、候选、复听依据与参数；每份方案 JSON 用引用指向
-它。`trace.json` 记录 phase、模型、固定 GPU identity、模型锁 / CPU 排队和推理耗时，不
-复制正文，是工程追踪的原始数据。`trace.html` 由 CLI 在本地生成并嵌入同一份 trace，浏览器
-离线渲染流程图、单方案与五方案对齐的 pipeline、调用时间线、累计耗时火焰图和模型指标，
-也可导出 Chrome Trace Event JSON；server 不生成展示层。共享阶段只统计一次，方案视图分别
-显示自身 wall time 与从请求起点到完成的端到端时间。某个方案失败时其余方案仍可返回；
-decode 或公共 speaker 准备失败时整个 HTTP 请求失败。
+它。`trace.json` 记录 phase、模型、固定 GPU identity、模型锁 / CPU 排队、推理耗时，以及
+请求全程每秒一次的 GPU compute / HBM I/O busy、显存和功耗原始采样，不复制正文，是工程
+追踪的原始数据。采样只覆盖 placement 使用的 GPU；HBM I/O busy 不是显存占用率，也不是
+PCIe copy throughput。`trace.html` 由 CLI 在本地生成并嵌入同一份 trace，浏览器离线渲染
+GPU 曲线与汇总、流程图、单方案与五方案对齐的 pipeline、调用时间线、累计耗时火焰图和
+模型指标，也可导出含 GPU counter 的 Chrome Trace Event JSON；server 不生成聚合结论或
+展示层。共享阶段只统计一次，方案视图分别显示自身 wall time 与从请求起点到完成的端到端
+时间。某个方案失败时其余方案仍可返回；decode 或公共 speaker 准备失败时整个 HTTP 请求
+失败。
 
 ```bash
 uv run platform/container/services/asr/client/asr.py ./recordings \

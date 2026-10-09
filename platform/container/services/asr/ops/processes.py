@@ -33,6 +33,15 @@ class GPU(Record):
     free_mib: int = Field(ge=0)
 
 
+class GPUUtilization(Record):
+    id: str
+    index: str
+    gpu_percent: int = Field(ge=0, le=100)
+    memory_percent: int = Field(ge=0, le=100)
+    memory_used_mib: int = Field(ge=0)
+    power_watts: float | None = Field(default=None, ge=0)
+
+
 async def visible_gpus() -> list[GPU]:
     try:
         result = await command(
@@ -53,6 +62,37 @@ async def visible_gpus() -> list[GPU]:
     if allowed is not None:
         order = {device: position for position, device in enumerate(allowed)}
         devices.sort(key=lambda device: order.get(device.id, order.get(device.index, len(order))))
+    return devices
+
+
+async def gpu_utilization(device_ids: list[str]) -> list[GPUUtilization]:
+    if not device_ids:
+        return []
+    result = await command(
+        "nvidia-smi",
+        "--query-gpu=uuid,index,utilization.gpu,utilization.memory,memory.used,power.draw",
+        "--format=csv,noheader,nounits",
+    )
+    requested = set(device_ids)
+    devices = []
+    for row in result.strip().splitlines():
+        device_id, index, gpu, memory, memory_used, power = [
+            field.strip() for field in row.split(",")
+        ]
+        if device_id not in requested:
+            continue
+        devices.append(
+            GPUUtilization(
+                id=device_id,
+                index=index,
+                gpu_percent=int(gpu),
+                memory_percent=int(memory),
+                memory_used_mib=int(memory_used),
+                power_watts=None if power == "[N/A]" else float(power),
+            )
+        )
+    order = {device_id: position for position, device_id in enumerate(device_ids)}
+    devices.sort(key=lambda device: order[device.id])
     return devices
 
 

@@ -1,8 +1,12 @@
+import asyncio
 import time
+from collections.abc import AsyncIterator, Awaitable, Callable
+from contextlib import asynccontextmanager
 from typing import Literal
 
 from pydantic import Field, JsonValue
 
+from ops.processes import GPUUtilization
 from protocol import Record
 
 
@@ -25,17 +29,27 @@ class TraceEvent(Record):
     error: str | None = None
 
 
+class GPUUtilizationSample(Record):
+    timestamp_ms: int = Field(ge=0)
+    devices: list[GPUUtilization]
+
+
 class TraceDocument(Record):
-    schema_version: Literal[1] = 1
+    schema_version: Literal[2] = 2
     status: Literal["completed", "partial"]
     duration_ms: int = Field(ge=0)
     events: list[TraceEvent]
+    gpu_sample_interval_ms: Literal[1000] = 1000
+    gpu_samples: list[GPUUtilizationSample]
+    gpu_sampling_error: str | None = None
 
 
 class Trace:
     def __init__(self) -> None:
         self.started = time.monotonic()
         self.events: list[TraceEvent] = []
+        self.gpu_samples: list[GPUUtilizationSample] = []
+        self.gpu_sampling_error: str | None = None
 
     @staticmethod
     def begin() -> float:
@@ -92,9 +106,48 @@ class Trace:
             )
         )
 
+    @asynccontextmanager
+    async def capture_gpu_utilization(
+        self,
+        device_ids: list[str],
+        sample: Callable[[list[str]], Awaitable[list[GPUUtilization]]],
+    ) -> AsyncIterator[None]:
+        if not device_ids:
+            yield
+            return
+        stopped = asyncio.Event()
+
+        async def collect() -> None:
+            while True:
+                try:
+                    devices = await sample(device_ids)
+                    if devices:
+                        self.gpu_samples.append(
+                            GPUUtilizationSample(
+                                timestamp_ms=self.milliseconds(time.monotonic() - self.started),
+                                devices=devices,
+                            )
+                        )
+                except Exception as exc:
+                    self.gpu_sampling_error = f"{type(exc).__name__}: {exc}"
+                try:
+                    await asyncio.wait_for(stopped.wait(), 1)
+                    return
+                except TimeoutError:
+                    pass
+
+        task = asyncio.create_task(collect())
+        try:
+            yield
+        finally:
+            stopped.set()
+            await task
+
     def document(self, status: Literal["completed", "partial"]) -> TraceDocument:
         return TraceDocument(
             status=status,
             duration_ms=self.milliseconds(time.monotonic() - self.started),
             events=sorted(self.events, key=lambda event: event.started_ms),
+            gpu_samples=self.gpu_samples,
+            gpu_sampling_error=self.gpu_sampling_error,
         )

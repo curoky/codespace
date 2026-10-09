@@ -55,13 +55,34 @@ class TraceEvent(BaseModel):
     error: str | None = None
 
 
+class GPUDeviceSample(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    index: str
+    gpu_percent: int = Field(ge=0, le=100)
+    memory_percent: int = Field(ge=0, le=100)
+    memory_used_mib: int = Field(ge=0)
+    power_watts: float | None = Field(default=None, ge=0)
+
+
+class GPUUtilizationSample(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    timestamp_ms: int = Field(ge=0)
+    devices: list[GPUDeviceSample]
+
+
 class TraceDocument(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    schema_version: Literal[1]
+    schema_version: Literal[2]
     status: Literal["completed", "partial"]
     duration_ms: int = Field(ge=0)
     events: list[TraceEvent]
+    gpu_sample_interval_ms: Literal[1000]
+    gpu_samples: list[GPUUtilizationSample]
+    gpu_sampling_error: str | None = None
 
 
 class TranscriptionResponse(BaseModel):

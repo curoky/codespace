@@ -20,6 +20,8 @@
       --overhead: #637083;
       --cache: #3fb950;
       --failed: #f85149;
+      --gpu: #3fb950;
+      --hbm: #bc8cff;
     }
     * { box-sizing: border-box; }
     body {
@@ -110,6 +112,7 @@
     .distribution-bar { display: flex; height: 24px; overflow: hidden; border-radius: 5px; background: #0d131d; }
     .distribution-segment { min-width: 2px; overflow: hidden; padding: 3px 5px; color: #071019; font-size: 11px; white-space: nowrap; }
     .distribution-values { color: var(--muted); font-size: 12px; text-align: right; }
+    #gpu-error { margin-top: 8px; color: var(--failed); }
     @media (max-width: 700px) {
       header { align-items: start; flex-direction: column; }
       .recipe-row { padding-left: 0; }
@@ -145,6 +148,25 @@
       <div id="recipe-scroll" class="scroll"><canvas id="recipe-timeline"></canvas></div>
       <pre id="recipe-details">点击 Pipeline 事件查看完整摘要。</pre>
       <p class="note">共享阶段只计算一次；exclusive 是方案自身 wall time，end-to-end 是从请求起点到该方案完成。五方案视图使用同一时间轴。</p>
+    </section>
+
+    <section>
+      <h2>GPU Utilization</h2>
+      <div class="toolbar">
+        <div class="legend">
+          <span><i style="background:var(--gpu)"></i>GPU busy</span>
+          <span><i style="background:var(--hbm)"></i>HBM I/O busy</span>
+        </div>
+      </div>
+      <div id="gpu-scroll" class="scroll"><canvas id="gpu-utilization"></canvas></div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>GPU</th><th>Samples</th><th>Avg busy</th><th>p95 busy</th><th>Peak busy</th><th>Busy ≥ 80%</th><th>Avg HBM I/O</th><th>Peak VRAM</th><th>Avg power</th></tr></thead>
+          <tbody id="gpu-metrics"></tbody>
+        </table>
+      </div>
+      <p id="gpu-error" class="note"></p>
+      <p class="note">每秒采样服务 placement 使用的 GPU。GPU busy 是采样周期内执行 kernel 的时间比例；HBM I/O busy 是显存读写活跃时间，不是显存占用率，也不是 PCIe copy throughput。</p>
     </section>
 
     <section>
@@ -188,6 +210,7 @@
 
     const trace = JSON.parse(document.getElementById("trace-data").textContent);
     const events = trace.events;
+    const gpuSamples = trace.gpu_samples;
     const modelEvents = events.filter((event) => event.kind === "model");
     const phaseEvents = events.filter((event) => event.kind === "phase");
     const recipes = [
@@ -206,6 +229,8 @@
       overhead: "#637083",
       cache: "#3fb950",
       failed: "#f85149",
+      gpu: "#3fb950",
+      hbm: "#bc8cff",
     };
     let timelineHits = [];
     let recipeHits = [];
@@ -284,6 +309,12 @@
         (total, event) => total + (event.model_queue_ms || 0) + (event.cpu_queue_ms || 0),
         0,
       );
+      const gpuValues = gpuSamples.flatMap((sample) =>
+        sample.devices.map((device) => device.gpu_percent),
+      );
+      const gpuAverage = gpuValues.length
+        ? gpuValues.reduce((total, value) => total + value, 0) / gpuValues.length
+        : null;
       const cards = [
         ["Status", trace.status],
         ["Wall time", duration(trace.duration_ms)],
@@ -294,6 +325,8 @@
         ["Peak calls", peakConcurrency(modelEvents)],
         ["Inference total", duration(inference)],
         ["Queue total", duration(queue)],
+        ["GPU avg", gpuAverage === null ? "—" : `${gpuAverage.toFixed(1)}%`],
+        ["GPU peak", gpuValues.length ? `${Math.max(...gpuValues)}%` : "—"],
         ["Failures", failures],
       ];
       document.getElementById("subtitle").textContent =
@@ -471,6 +504,107 @@
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
       context.font = "12px ui-sans-serif, system-ui, sans-serif";
       return context;
+    }
+
+    function renderGPUUtilization() {
+      const grouped = new Map();
+      for (const sample of gpuSamples) {
+        for (const device of sample.devices) {
+          if (!grouped.has(device.id)) grouped.set(device.id, { index: device.index, values: [] });
+          grouped.get(device.id).values.push({ timestamp_ms: sample.timestamp_ms, ...device });
+        }
+      }
+      const devices = [...grouped.values()].sort((left, right) =>
+        Number(left.index) - Number(right.index),
+      );
+      const metrics = document.getElementById("gpu-metrics");
+      if (!devices.length) {
+        metrics.innerHTML = '<tr><td colspan="9">No GPU samples</td></tr>';
+      } else {
+        metrics.innerHTML = devices.map((device) => {
+          const gpu = device.values.map((value) => value.gpu_percent);
+          const memory = device.values.map((value) => value.memory_percent);
+          const power = device.values.map((value) => value.power_watts).filter((value) => value !== null);
+          const average = (values) => values.reduce((total, value) => total + value, 0) / values.length;
+          const busy = gpu.filter((value) => value >= 80).length * 100 / gpu.length;
+          const peakMemory = Math.max(...device.values.map((value) => value.memory_used_mib));
+          return `<tr><td>GPU ${escapeHtml(device.index)}</td><td>${gpu.length}</td><td>${average(gpu).toFixed(1)}%</td><td>${percentile(gpu, 0.95)}%</td><td>${Math.max(...gpu)}%</td><td>${busy.toFixed(1)}%</td><td>${average(memory).toFixed(1)}%</td><td>${(peakMemory / 1024).toFixed(1)} GiB</td><td>${power.length ? `${average(power).toFixed(1)} W` : "—"}</td></tr>`;
+        }).join("");
+      }
+
+      const scroll = document.getElementById("gpu-scroll");
+      const width = Math.max(900, scroll.clientWidth - 2);
+      const rowHeight = 88;
+      const height = 30 + Math.max(devices.length, 1) * rowHeight;
+      const canvas = document.getElementById("gpu-utilization");
+      const context = setupCanvas(canvas, width, height);
+      const labelWidth = 110;
+      const plotWidth = width - labelWidth - 12;
+      const scale = plotWidth / Math.max(trace.duration_ms, 1);
+      context.fillStyle = "#0d131d";
+      context.fillRect(0, 0, width, height);
+      context.strokeStyle = "#243147";
+      context.fillStyle = "#91a0b7";
+      for (let index = 0; index <= 5; index += 1) {
+        const time = trace.duration_ms * index / 5;
+        const x = labelWidth + time * scale;
+        context.beginPath();
+        context.moveTo(x, 22);
+        context.lineTo(x, height);
+        context.stroke();
+        context.fillText(duration(Math.round(time)), x + 3, 15);
+      }
+      if (!devices.length) {
+        context.fillText("No GPU utilization samples were captured.", 12, 58);
+      }
+      devices.forEach((device, row) => {
+        const top = 30 + row * rowHeight;
+        const plotTop = top + 8;
+        const plotHeight = 62;
+        context.fillStyle = "#c9d5e7";
+        context.fillText(`GPU ${device.index}`, 8, top + 22);
+        context.fillStyle = "#91a0b7";
+        context.fillText("100%", 70, plotTop + 4);
+        context.fillText("0%", 78, plotTop + plotHeight + 4);
+        for (const percent of [0, 50, 100]) {
+          const y = plotTop + plotHeight * (1 - percent / 100);
+          context.strokeStyle = percent === 50 ? "#1d293a" : "#243147";
+          context.beginPath();
+          context.moveTo(labelWidth, y);
+          context.lineTo(width, y);
+          context.stroke();
+        }
+        const line = (field, color) => {
+          context.strokeStyle = color;
+          context.lineWidth = 2;
+          context.beginPath();
+          device.values.forEach((value, index) => {
+            const x = labelWidth + value.timestamp_ms * scale;
+            const y = plotTop + plotHeight * (1 - value[field] / 100);
+            if (index) context.lineTo(x, y);
+            else context.moveTo(x, y);
+          });
+          context.stroke();
+          if (device.values.length === 1) {
+            const value = device.values[0];
+            context.fillStyle = color;
+            context.beginPath();
+            context.arc(
+              labelWidth + value.timestamp_ms * scale,
+              plotTop + plotHeight * (1 - value[field] / 100),
+              2,
+              0,
+              Math.PI * 2,
+            );
+            context.fill();
+          }
+        };
+        line("memory_percent", colors.hbm);
+        line("gpu_percent", colors.gpu);
+      });
+      document.getElementById("gpu-error").textContent = trace.gpu_sampling_error
+        ? `GPU sampling error: ${trace.gpu_sampling_error}`
+        : "";
     }
 
     function drawTimeline() {
@@ -671,6 +805,24 @@
           cursor += milliseconds;
         }
       }
+      for (const sample of gpuSamples) {
+        for (const device of sample.devices) {
+          output.push({
+            name: `GPU ${device.index}`,
+            cat: "gpu-utilization",
+            ph: "C",
+            ts: sample.timestamp_ms * 1000,
+            pid: "ASR GPU",
+            tid: `GPU ${device.index}`,
+            args: {
+              gpu_busy_percent: device.gpu_percent,
+              hbm_io_busy_percent: device.memory_percent,
+              memory_used_mib: device.memory_used_mib,
+              power_watts: device.power_watts,
+            },
+          });
+        }
+      }
       const blob = new Blob([JSON.stringify({ traceEvents: output })], { type: "application/json" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
@@ -700,12 +852,16 @@
       if (hit) document.getElementById("recipe-details").textContent = JSON.stringify(hit.event, null, 2);
     });
     document.getElementById("export").addEventListener("click", chromeTrace);
-    window.addEventListener("resize", renderCharts);
+    window.addEventListener("resize", () => {
+      renderCharts();
+      renderGPUUtilization();
+    });
 
     renderSummary();
     renderFlow();
     populateFilters();
     renderMetrics();
+    renderGPUUtilization();
     renderRecipePipeline();
     renderCharts();
   </script>

@@ -38,10 +38,26 @@ def payload(*, recipes: tuple[str, ...] = RECIPES, status: str = "completed") ->
         ],
         "evidence": {"filename": "recording.wav"},
         "trace": {
-            "schema_version": 1,
+            "schema_version": 2,
             "status": "completed" if status == "completed" else "partial",
             "duration_ms": 1200,
             "events": [],
+            "gpu_sample_interval_ms": 1000,
+            "gpu_samples": [
+                {
+                    "timestamp_ms": 25,
+                    "devices": [
+                        {
+                            "id": "GPU-0",
+                            "index": "0",
+                            "gpu_percent": 75,
+                            "memory_percent": 40,
+                            "memory_used_mib": 12345,
+                            "power_watts": 300.5,
+                        }
+                    ],
+                }
+            ],
         },
     }
 
@@ -67,6 +83,7 @@ def test_each_invocation_transcribes_without_saved_client_state(tmp_path: Path) 
                 assert '"evidence": "evidence.json"' in (output / "01-qwen-fusion.json").read_text()
                 assert "trace.html" in (output / "index.md").read_text()
                 assert 'id="trace-data"' in (output / "trace.html").read_text()
+                assert "GPU Utilization" in (output / "trace.html").read_text()
                 assert len(list(output.iterdir())) == 14
                 assert not (output / ".asr-state.json").exists()
 

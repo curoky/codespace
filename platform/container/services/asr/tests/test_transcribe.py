@@ -9,7 +9,7 @@ from unittest.mock import patch
 import httpx2
 from fastapi.testclient import TestClient
 
-from ops.processes import GPU
+from ops.processes import GPU, GPUUtilization
 from ops.scheduler import Scheduler
 from protocol import InferenceRequest, InferenceResult, Span, Token
 from server.api import create_app
@@ -28,6 +28,20 @@ async def control(action: str, model: str) -> None:
 
 async def inventory() -> list[GPU]:
     return [GPU(id=f"GPU-{i}", index=str(i), total_mib=80000, free_mib=80000) for i in range(5)]
+
+
+async def utilization(device_ids: list[str]) -> list[GPUUtilization]:
+    return [
+        GPUUtilization(
+            id=device_id,
+            index=device_id.removeprefix("GPU-"),
+            gpu_percent=50,
+            memory_percent=25,
+            memory_used_mib=40000,
+            power_watts=300,
+        )
+        for device_id in device_ids
+    ]
 
 
 def wav(seconds: int = 2) -> bytes:
@@ -51,7 +65,11 @@ async def decode(source: Path, work: Path, *, channel: int | None = None) -> tup
 def runtime(tmp_path: Path, *, broken: str | None = None) -> Scheduler:
     config = read_config(Path(__file__).resolve().parents[1] / "server/server.yaml")
     scheduler = Scheduler(
-        config, runtime_dir=tmp_path / "run", control=control, inventory=inventory
+        config,
+        runtime_dir=tmp_path / "run",
+        control=control,
+        inventory=inventory,
+        utilization=utilization,
     )
 
     def respond(request: httpx2.Request) -> httpx2.Response:
@@ -130,9 +148,18 @@ def test_one_request_returns_five_results_and_shared_evidence(tmp_path: Path) ->
         keys = [(r["model"], json.dumps(r["request"], sort_keys=True)) for r in records]
         assert len(keys) == len(set(keys))
         trace = payload["trace"]
-        assert trace["schema_version"] == 1
+        assert trace["schema_version"] == 2
         assert trace["status"] == "completed"
         assert trace["duration_ms"] >= 0
+        assert trace["gpu_sample_interval_ms"] == 1000
+        assert trace["gpu_samples"]
+        assert [device["index"] for device in trace["gpu_samples"][0]["devices"]] == [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+        ]
         assert {event["name"] for event in trace["events"] if event["kind"] == "phase"} >= {
             "upload",
             "decode",
