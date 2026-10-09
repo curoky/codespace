@@ -202,14 +202,17 @@ fixtures:
       count: 1
       genders: [unspecified]
     reference:
-      path: narration/calltoarms-02-madmans-diary.txt
+      path: narration/calltoarms-02-madmans-diary-verbatim.txt
       format: source_text
-      quality: source
+      quality: audio_verbatim
+      source_path: narration/calltoarms-02-madmans-diary.txt
+      source_sha256: 852dcb47607f28e8df7c08376e49916d5d62fc4f834eebb3939162ed08a9e6d2
+      policy: 保留底本正字法，只校正录音中可确认的四处增字与一处省字。
       start_marker: 某君昆仲
       end_marker: 一九一八年四月
       audio_start_ms: 8430
       audio_end_ms: 1220759
-      sha256: 852dcb47607f28e8df7c08376e49916d5d62fc4f834eebb3939162ed08a9e6d2
+      sha256: b17e975bb89a55e84ce818b3a10c362572cd531b6fdb93817da90c7254fc6c47
 
   - id: narration-hometown
     category: narration

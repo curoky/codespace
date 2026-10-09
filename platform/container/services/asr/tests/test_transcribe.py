@@ -87,6 +87,7 @@ def runtime(tmp_path: Path, *, broken: str | None = None) -> Scheduler:
                     ]
                 )
             elif request.url.path == "/punctuate":
+                assert not any(mark in payload["text"] for mark in "，。\uff01\uff1f；：、,.!?;…")
                 result = InferenceResult(text=payload["text"].rstrip("。") + "。")
             else:
                 result = InferenceResult(text="你好世界。")

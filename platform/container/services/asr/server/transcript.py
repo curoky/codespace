@@ -1,6 +1,8 @@
+import difflib
 import re
 import unicodedata
 from collections import defaultdict
+from dataclasses import dataclass
 
 from pydantic import Field
 
@@ -44,6 +46,20 @@ def normalized(text: str) -> str:
 
 def punctuation_content(text: str) -> str:
     return "".join(ch for ch in text if not unicodedata.category(ch).startswith("P"))
+
+
+def punctuation_input(text: str) -> str:
+    raw = plain(text)
+    result = []
+    for index, character in enumerate(raw):
+        if not unicodedata.category(character).startswith("P"):
+            result.append(character)
+            continue
+        previous = raw[index - 1] if index else ""
+        following = raw[index + 1] if index + 1 < len(raw) else ""
+        if character in "，,.：:" and previous.isdigit() and following.isdigit():
+            result.append(character)
+    return "".join(result)
 
 
 def rename_speakers(spans: list[Span]) -> list[Span]:
@@ -166,17 +182,157 @@ def utterances(segment: Segment, speakers: list[Span]) -> list[Segment]:
     return result or [segment]
 
 
+@dataclass(frozen=True)
+class _Content:
+    raw: str
+    characters: tuple[str, ...]
+    starts: tuple[int, ...]
+    ends: tuple[int, ...]
+
+    def slice(self, start: int, end: int) -> str:
+        if start == end:
+            return ""
+        return self.raw[self.starts[start] : self.ends[end - 1]]
+
+    def range(self, start: int, end: int) -> tuple[int, int]:
+        if start == end:
+            boundary = self.starts[start] if start < len(self.starts) else len(self.raw)
+            return boundary, boundary
+        return self.starts[start], self.ends[end - 1]
+
+
+@dataclass(frozen=True)
+class _Edit:
+    start: int
+    end: int
+    replacement: tuple[str, ...]
+    raw_replacement: str
+    replacement_protected: bool
+
+    @property
+    def signature(self) -> tuple[int, int, tuple[str, ...]]:
+        return self.start, self.end, self.replacement
+
+
+def _content(text: str) -> _Content:
+    raw = plain(text)
+    characters = []
+    starts = []
+    ends = []
+    for index, character in enumerate(raw):
+        if character.isspace() or unicodedata.category(character).startswith("P"):
+            continue
+        characters.append(character.lower())
+        starts.append(index)
+        ends.append(index + 1)
+    return _Content(raw, tuple(characters), tuple(starts), tuple(ends))
+
+
+def _protected_positions(content: _Content, hotwords: tuple[str, ...]) -> set[int]:
+    positions = {
+        index
+        for index, character in enumerate(content.characters)
+        if character in "0123456789零一二三四五六七八九十百千万亿两"
+    }
+    for match in re.finditer(r"[A-Z][a-z]+", content.raw):
+        positions.update(
+            index
+            for index, (start, end) in enumerate(zip(content.starts, content.ends, strict=True))
+            if start < match.end() and end > match.start()
+        )
+    haystack = "".join(content.characters)
+    for hotword in hotwords:
+        needle = normalized(hotword)
+        start = 0
+        while needle and (found := haystack.find(needle, start)) >= 0:
+            positions.update(range(found, found + len(needle)))
+            start = found + 1
+    return positions
+
+
+def _touches_protected(start: int, end: int, positions: set[int]) -> bool:
+    if start == end:
+        return start in positions or start - 1 in positions
+    return any(index in positions for index in range(start, end))
+
+
+def _edits(primary: _Content, revision: str, hotwords: tuple[str, ...] = ()) -> list[_Edit]:
+    revised = _content(revision)
+    revised_protected = _protected_positions(revised, hotwords)
+    return [
+        _Edit(
+            start=start,
+            end=end,
+            replacement=revised.characters[replacement_start:replacement_end],
+            raw_replacement=revised.slice(replacement_start, replacement_end),
+            replacement_protected=_touches_protected(
+                replacement_start, replacement_end, revised_protected
+            ),
+        )
+        for tag, start, end, replacement_start, replacement_end in difflib.SequenceMatcher(
+            None, primary.characters, revised.characters, autojunk=False
+        ).get_opcodes()
+        if tag != "equal"
+    ]
+
+
 def choose(
-    primary: str, model: str, reviews: dict[str, str], families: dict[str, str], *, protected: bool
+    primary: str,
+    model: str,
+    candidates: dict[str, str],
+    reviews: dict[str, str],
+    families: dict[str, str],
+    *,
+    hotwords: tuple[str, ...],
+    protected: bool,
 ) -> tuple[str, str]:
     revised = reviews.get(model, "")
     if protected or not revised or normalized(revised) == normalized(primary):
         return primary, "primary"
-    support = [
+    content = _content(primary)
+    protected_positions = _protected_positions(content, hotwords)
+    full_support = [
         source
         for source, text in reviews.items()
         if families[source] != families[model] and normalized(text) == normalized(revised)
     ]
-    if not support:
+    if full_support and not protected_positions:
+        return revised, f"review_supported_by:{','.join(sorted(full_support))}"
+    if model != "qwen3-asr-1.7b":
         return primary, "unresolved"
-    return revised, f"expanded_primary_supported_by:{','.join(sorted(support))}"
+
+    proposed = _edits(content, revised, hotwords)
+    independent = {
+        source: {edit.signature for edit in _edits(content, text)}
+        for source, text in (candidates | reviews).items()
+        if families[source] != families[model]
+    }
+    accepted = [
+        edit
+        for edit in proposed
+        if edit.start >= 4
+        and len(content.characters) - edit.end >= 4
+        and not _touches_protected(edit.start, edit.end, protected_positions)
+        and not edit.replacement_protected
+        and len(
+            {families[source] for source, edits in independent.items() if edit.signature in edits}
+        )
+        >= 2
+    ]
+    if not accepted:
+        return primary, "unresolved"
+
+    result = content.raw
+    supporters: set[str] = set()
+    for edit in reversed(accepted):
+        start, end = content.range(edit.start, edit.end)
+        result = result[:start] + edit.raw_replacement + result[end:]
+        supporters.update(
+            source for source, edits in independent.items() if edit.signature in edits
+        )
+    decision = (
+        "local_consensus_supported_by"
+        if len(accepted) == len(proposed)
+        else "local_consensus_partially_supported_by"
+    )
+    return result, f"{decision}:{','.join(sorted(supporters))}"

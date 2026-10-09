@@ -9,8 +9,9 @@
 
 指标单元格依次为 **CER / SA-CER / DER**，均为越低越好；`—` 表示该指标不适用，
 `failed` 表示服务明确返回失败，错误原因保留在对应 recipe JSON 和 `index.md`。conversation
-与 meeting 使用人工 gold transcript/timing；narration 是公版原文对朗读结果的 source-text
-CER，可能同时反映版本、增删句和朗读差异，不能与 gold CER 直接横向比较。
+与 meeting 使用人工 gold transcript/timing。《狂人日记》使用人工核对的 `audio_verbatim` 参考：
+保留底本正字法，只校正录音中可确认的四处增字与一处省字。其余 narration 仍是公版原文的
+source-text CER，可能同时反映版本、增删句和朗读差异；两者都不能与 gold CER 直接横向比较。
 
 | Fixture | 来源 / License | 类型 | 内容 summary | 时长 | 大小 | 01 Qwen fusion | 02 FireRed fusion | 03 MOSS-TD | 04 VibeVoice | 05 Qwen + Nemotron |
 | --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -20,11 +21,12 @@ CER，可能同时反映版本、增删句和朗读差异，不能与 gold CER �
 | `meeting-annual-event` | [AliMeeting test@cef2837](https://huggingface.co/datasets/ggfox00000/dia-alimeeting-test/tree/cef2837c4a1a0762074522c1bbbbb90eb4d1acf5) / CC BY-SA 4.0 | 四人远场会议；channel 0；gold | 年会日期、节目、抽奖和员工参与安排 | 20:00.000 | 36.62 MiB | 26.72% / 40.43% / 21.28% | failed | 17.60% / 72.99% / 21.28% | failed | 27.05% / 34.33% / 16.22% |
 | `meeting-game-launch` | [AliMeeting test@cef2837](https://huggingface.co/datasets/ggfox00000/dia-alimeeting-test/tree/cef2837c4a1a0762074522c1bbbbb90eb4d1acf5) / CC BY-SA 4.0 | 四人远场会议；channel 0；gold | 手游目标用户、使用时长、奖励机制和卖点 | 20:00.000 | 36.62 MiB | failed | failed | failed | failed | failed |
 | `meeting-bike-sharing` | [AliMeeting test@cef2837](https://huggingface.co/datasets/ggfox00000/dia-alimeeting-test/tree/cef2837c4a1a0762074522c1bbbbb90eb4d1acf5) / CC BY-SA 4.0 | 三人远场会议；channel 0；gold | 共享单车停放、安全、损坏和城市治理 | 20:00.000 | 36.62 MiB | 15.08% / 19.21% / 10.89% | failed | failed | failed | 15.22% / 17.69% / 14.66% |
-| `narration-madmans-diary` | [LibriVox《呐喊》](https://archive.org/details/call_to_arms_jl_librivox) / Public Domain | 单人文学朗读；source text | 鲁迅《狂人日记》 | 20:34.245 | 18.84 MiB | 3.01% / — / — | 2.59% / — / — | 3.28% / — / — | 2.71% / — / — | 3.01% / — / — |
-| `narration-hometown` | [LibriVox《呐喊》](https://archive.org/details/call_to_arms_jl_librivox) / Public Domain | 单人文学朗读；source text | 鲁迅《故乡》 | 20:25.213 | 18.70 MiB | 2.40% / — / — | 2.02% / — / — | failed | failed | 2.40% / — / — |
-| `narration-village-opera` | [LibriVox《呐喊》](https://archive.org/details/call_to_arms_jl_librivox) / Public Domain | 单人文学朗读；source text | 鲁迅《社戏》 | 22:20.920 | 20.46 MiB | 3.26% / — / — | 3.24% / — / — | 3.51% / — / — | 3.22% / — / — | 3.26% / — / — |
+| `narration-madmans-diary` | [LibriVox《呐喊》](https://archive.org/details/call_to_arms_jl_librivox) / Public Domain | 单人文学朗读；audio-verbatim | 鲁迅《狂人日记》 | 20:34.245 | 18.84 MiB | 2.64% / — / — | 2.22% / — / — | 2.91% / — / — | 2.35% / — / — | 2.64% / — / — |
+| `narration-hometown` | [LibriVox《呐喊》](https://archive.org/details/call_to_arms_jl_librivox) / Public Domain | 单人文学朗读；source text | 鲁迅《故乡》 | 20:25.213 | 18.70 MiB | 2.22% / — / — | 1.84% / — / — | failed | failed | 2.22% / — / — |
+| `narration-village-opera` | [LibriVox《呐喊》](https://archive.org/details/call_to_arms_jl_librivox) / Public Domain | 单人文学朗读；source text | 鲁迅《社戏》 | 22:20.920 | 20.46 MiB | 3.14% / — / — | 3.12% / — / — | 3.39% / — / — | 3.10% / — / — | 3.14% / — / — |
 
-`metrics.json` 保存上述逐 fixture 指标、character accuracy、编辑计数和按题材聚合值。当前
+`metrics.json` 保存上述逐 fixture 指标、reference quality、character accuracy、编辑计数和按题材
+聚合值。评估前删除圈号脚注 marker，避免 NFKC 把其折叠为虚假的数字正文。当前
 baseline 使用 image `localhost/codespace-asr:speaker-point-fix`，其 ASR server code 与
 commit `45652ed` 一致。baseline 中 32/45 个 recipe completed；失败也是回归结果，不得删除、
 用其他 recipe 补值或把缺失指标记为 0。
@@ -33,7 +35,7 @@ commit `45652ed` 一致。baseline 中 32/45 个 recipe completed；失败也是
 
 | 路径 | Ownership |
 | --- | --- |
-| `manifest.yaml` | 固定 source revision、HTTPS URL、source/output SHA256、音频属性、speaker metadata 和 reference 规则 |
+| `manifest.yaml` | 固定 source revision、HTTPS URL、source/output SHA256、音频属性、speaker metadata 和 reference 规则；audio-verbatim 同时固定底本与参考 checksum |
 | `<category>/audio/` | 可删除、可重建的本地 cache；被 `.gitignore` 忽略 |
 | `<category>/results/<audio-name>/` | 五套 recipe 的 committed raw baseline 和可审计 trace |
 | `<category>/*.txt` / `*.TextGrid` | 已提交的标准答案；修改后同步 manifest SHA256 |

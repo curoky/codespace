@@ -25,6 +25,7 @@ EXPECTED_RECIPES = (
     "05-qwen-nemotron",
 )
 ANNOTATION = re.compile(r"\[(?:LAUGHTER|NOISE|VOCALIZED-NOISE|\*|\+)\]", re.IGNORECASE)
+FOOTNOTE_MARKERS = str.maketrans("", "", "⑴⑵⑶⑷⑸⑹⑺⑻⑼⑽")
 
 
 @dataclass(frozen=True)
@@ -44,7 +45,8 @@ def sha256(path: Path) -> str:
 
 
 def normalize(text: str) -> str:
-    text = ANNOTATION.sub("", unicodedata.normalize("NFKC", text).casefold())
+    text = ANNOTATION.sub("", text.translate(FOOTNOTE_MARKERS))
+    text = unicodedata.normalize("NFKC", text).casefold()
     return "".join(character for character in text if unicodedata.category(character)[0] in "LN")
 
 
@@ -338,6 +340,7 @@ def evaluate_fixture(fixture: dict[str, object]) -> list[dict[str, object]]:
                     "fixture": fixture["id"],
                     "category": fixture["category"],
                     "recipe": recipe,
+                    "reference_quality": reference_config["quality"],
                     "status": "failed",
                     "error": document.get("error"),
                     "reference_characters": len(reference_text),
@@ -362,6 +365,7 @@ def evaluate_fixture(fixture: dict[str, object]) -> list[dict[str, object]]:
                 "fixture": fixture["id"],
                 "category": fixture["category"],
                 "recipe": recipe,
+                "reference_quality": reference_config["quality"],
                 "status": "completed",
                 "error": None,
                 "speaker_attributed_cer": (

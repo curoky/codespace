@@ -11,6 +11,7 @@ from server.transcript import (
     mapped_identity,
     normalized,
     owners,
+    punctuation_input,
     utterances,
 )
 
@@ -22,13 +23,133 @@ def test_normalization_keeps_negation_numbers_units_and_repetition() -> None:
     assert normalized("是15万") != normalized("不是50万")
 
 
-def test_consensus_requires_changed_primary_and_an_independent_family() -> None:
+def test_consensus_uses_full_review_support_for_every_primary() -> None:
     families = {"a": "qwen", "copy": "qwen", "b": "firered"}
     assert (
-        choose("旧句", "a", {"a": "新句", "copy": "新句"}, families, protected=False)[0] == "旧句"
+        choose(
+            "旧句",
+            "a",
+            {},
+            {"a": "新句", "copy": "新句"},
+            families,
+            hotwords=(),
+            protected=False,
+        )[0]
+        == "旧句"
     )
-    assert choose("旧句", "a", {"a": "新句", "b": "新句"}, families, protected=False)[0] == "新句"
-    assert choose("15万", "a", {"a": "50万", "b": "50万"}, families, protected=True)[0] == "15万"
+    assert (
+        choose(
+            "旧句",
+            "a",
+            {},
+            {"a": "新句", "b": "新句"},
+            families,
+            hotwords=(),
+            protected=False,
+        )[0]
+        == "新句"
+    )
+    assert (
+        choose(
+            "15万",
+            "a",
+            {},
+            {"a": "50万", "b": "50万"},
+            families,
+            hotwords=(),
+            protected=True,
+        )[0]
+        == "15万"
+    )
+
+
+def test_qwen_consensus_accepts_supported_local_edits_with_stable_context() -> None:
+    families = {
+        "qwen3-asr-1.7b": "qwen",
+        "firered-llm": "firered",
+        "whisper-large-v3": "whisper",
+    }
+    text, decision = choose(
+        "甲乙丙丁这里是错字后面还有四字",
+        "qwen3-asr-1.7b",
+        {
+            "firered-llm": "甲乙丙丁这里是正字后面另有四字",
+            "whisper-large-v3": "甲乙丙丁这里是正字后面仍有四字",
+        },
+        {"qwen3-asr-1.7b": "甲乙丙丁这里是正字后面还有四字"},
+        families,
+        hotwords=(),
+        protected=False,
+    )
+    assert text == "甲乙丙丁这里是正字后面还有四字"
+    assert decision == "local_consensus_supported_by:firered-llm,whisper-large-v3"
+
+
+def test_local_consensus_rejects_boundary_edits_and_keeps_firered_conservative() -> None:
+    families = {
+        "qwen3-asr-1.7b": "qwen",
+        "firered-llm": "firered",
+        "whisper-large-v3": "whisper",
+    }
+    boundary = {
+        "qwen3-asr-1.7b": "正乙丙丁戊己庚辛壬癸",
+        "firered-llm": "正乙丙丁戊己庚辛另外",
+    }
+    assert choose(
+        "错乙丙丁戊己庚辛壬癸",
+        "qwen3-asr-1.7b",
+        boundary,
+        boundary,
+        families,
+        hotwords=(),
+        protected=False,
+    ) == ("错乙丙丁戊己庚辛壬癸", "unresolved")
+    assert choose(
+        "甲乙丙丁这里是错字后面还有四字",
+        "firered-llm",
+        {},
+        {
+            "firered-llm": "甲乙丙丁这里是正字后面还有四字",
+            "qwen3-asr-1.7b": "甲乙丙丁这里是正字后面另有四字",
+        },
+        families,
+        hotwords=(),
+        protected=False,
+    ) == ("甲乙丙丁这里是错字后面还有四字", "unresolved")
+
+
+def test_local_consensus_protects_only_the_sensitive_edit_spans() -> None:
+    families = {
+        "qwen3-asr-1.7b": "qwen",
+        "firered-llm": "firered",
+        "whisper-large-v3": "whisper",
+    }
+    primary = "甲乙丙丁十五万量子引擎这里是错字后面还有四字"
+    revised = "甲乙丙丁五十万量子引晴这里是正字后面还有四字"
+    supporters = {
+        "firered-llm": "甲乙丙丁五十万量子引晴这里是正字后面另有四字",
+        "whisper-large-v3": "甲乙丙丁五十万量子引晴这里是正字后面仍有四字",
+    }
+    text, decision = choose(
+        primary,
+        "qwen3-asr-1.7b",
+        supporters,
+        {"qwen3-asr-1.7b": revised},
+        families,
+        hotwords=("量子引擎",),
+        protected=False,
+    )
+    assert text == "甲乙丙丁十五万量子引擎这里是正字后面还有四字"
+    assert decision == "local_consensus_partially_supported_by:firered-llm,whisper-large-v3"
+
+
+def test_punctuation_input_has_one_sentence_punctuation_owner() -> None:
+    assert (
+        punctuation_input(
+            "大病，，是归故乡\uff1f\uff1f3.14、12,000《狂人日记》。她说：“你好\uff01”"
+        )
+        == "大病是归故乡3.1412,000狂人日记她说你好"
+    )
 
 
 def test_vad_union_covers_speaker_activity_and_bounded_windows() -> None:

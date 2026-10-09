@@ -68,6 +68,10 @@ def test_regression_manifest_has_three_complete_fixtures_per_category() -> None:
         reference_path = REGRESSION_ROOT / reference["path"]
         assert reference_path.is_file()
         assert file_sha256(reference_path) == reference["sha256"]
+        if reference["quality"] == "audio_verbatim":
+            source_path = REGRESSION_ROOT / reference["source_path"]
+            assert source_path.is_file()
+            assert file_sha256(source_path) == reference["source_sha256"]
 
     for source in manifest["sources"].values():
         assert source["url"].startswith("https://")
@@ -88,6 +92,7 @@ def test_reference_parsers_cover_declared_speakers_and_text() -> None:
 
 
 def test_metrics_distinguish_text_and_speaker_errors() -> None:
+    assert evaluate.normalize("正文⑴脚注⑽") == "正文脚注"
     counts = evaluate.edit_counts("今天天气很好", "今天天气好")
     assert counts["deletions"] == 1
     assert counts["cer"] == 1 / 6

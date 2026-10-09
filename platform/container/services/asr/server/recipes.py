@@ -21,6 +21,7 @@ from server.transcript import (
     owners,
     plain,
     punctuation_content,
+    punctuation_input,
     rename_speakers,
     utterances,
 )
@@ -231,12 +232,13 @@ class Pipeline:
         punctuate: bool = True,
     ) -> list[Segment]:
         if punctuate and self.config.punctuation and normalized(segment.text):
+            source = punctuation_input(segment.text)
             result = await self.inference.call(
                 "firered-punc",
-                InferenceRequest(text=segment.text),
+                InferenceRequest(text=source),
                 step=step + ".punctuate",
             )
-            if punctuation_content(result.text) == punctuation_content(segment.text):
+            if punctuation_content(result.text) == punctuation_content(source):
                 segment.text = result.text
             else:
                 segment.flags.append("punctuation_changed_content_rejected")
@@ -276,12 +278,16 @@ class Pipeline:
                 raise ValueError(f"{primary}: primary transcript is unavailable")
             original = candidates[primary]
             reviews = self.reviewed.get(window.model_dump_json(), {})
-            protected = bool(
-                re.search(r"[0-9零一二三四五六七八九十百千万亿两]|[A-Z][a-z]", original)
+            protected = len(owners(window.core_start_ms, window.core_end_ms, self.speakers)) > 1
+            text, decision = choose(
+                original,
+                primary,
+                candidates,
+                reviews,
+                families,
+                hotwords=tuple(self.options.hotwords),
+                protected=protected,
             )
-            protected |= any(word in original for word in self.options.hotwords)
-            protected |= len(owners(window.core_start_ms, window.core_end_ms, self.speakers)) > 1
-            text, decision = choose(original, primary, reviews, families, protected=protected)
             flags = (
                 ["disagreement"]
                 if any(normalized(original) != normalized(t) for t in candidates.values())
@@ -289,7 +295,10 @@ class Pipeline:
             )
             if len(candidates) < 4:
                 flags.append("crosscheck_incomplete")
-            if reviews and decision in ("primary", "unresolved"):
+            if reviews and (
+                decision in ("primary", "unresolved")
+                or decision.startswith("local_consensus_partially_supported_by:")
+            ):
                 flags.append("needs_review")
             segment = Segment(
                 start_ms=window.core_start_ms,
