@@ -6,9 +6,14 @@ from pathlib import Path
 import httpx2
 import pytest
 
-from models.vllm import complete
+from models.vllm import (
+    EventSourceContext,
+    GenerationOptions,
+    complete,
+    complete_with_generation_retry,
+)
 from ops.scheduler import Scheduler
-from protocol import InferenceRequest
+from protocol import InferenceRequest, InferenceResult
 from server.config import read_config
 
 
@@ -34,7 +39,7 @@ def test_partial_generation_is_never_accepted(finish: str, done: bool) -> None:
         ):
             await complete(source)
 
-    with pytest.raises(ValueError, match="incomplete generation"):
+    with pytest.raises(ValueError, match="generation"):
         asyncio.run(run())
 
 
@@ -63,6 +68,84 @@ def test_vllm_stream_uses_standard_sse_framing() -> None:
             return (await complete(source)).text
 
     assert asyncio.run(run()) == "完整"
+
+
+def test_vllm_retries_repetitive_generation_with_penalty() -> None:
+    attempts: list[GenerationOptions] = []
+
+    async def run() -> InferenceResult:
+        def respond(request: httpx2.Request) -> httpx2.Response:
+            penalty = float(request.url.params.get("repetition_penalty", "1"))
+            text = "完整" if penalty == 1.3 else "对" * 64
+            finish = "stop" if penalty == 1.3 else None
+            event = {"choices": [{"delta": {"content": text}, "finish_reason": finish}]}
+            payload = "data: " + json.dumps(event) + "\n\ndata: [DONE]\n\n"
+            return httpx2.Response(
+                200,
+                text=payload,
+                headers={"content-type": "text/event-stream"},
+                request=request,
+            )
+
+        async with httpx2.AsyncClient(transport=httpx2.MockTransport(respond)) as client:
+
+            def source(options: GenerationOptions) -> EventSourceContext:
+                attempts.append(options)
+                return client.sse("http://model", params=options)
+
+            return await complete_with_generation_retry(source)
+
+    result = asyncio.run(run())
+    assert result.text == "完整"
+    assert result.warnings == ["repetitive_generation_retry:1.3"]
+    assert isinstance(result.raw, dict)
+    assert result.raw["repetition_penalty"] == 1.3
+    assert attempts == [
+        {},
+        {"repetition_penalty": 1.1},
+        {"repetition_penalty": 1.2},
+        {"repetition_penalty": 1.3},
+    ]
+
+
+def test_vllm_retries_generation_limit_with_sampling() -> None:
+    attempts: list[GenerationOptions] = []
+
+    async def run() -> InferenceResult:
+        def respond(request: httpx2.Request) -> httpx2.Response:
+            sampled = request.url.params.get("temperature") == "0.5"
+            event = {
+                "choices": [
+                    {
+                        "delta": {"content": "完整" if sampled else "异常长输出"},
+                        "finish_reason": "stop" if sampled else "length",
+                    }
+                ]
+            }
+            payload = "data: " + json.dumps(event) + "\n\ndata: [DONE]\n\n"
+            return httpx2.Response(
+                200,
+                text=payload,
+                headers={"content-type": "text/event-stream"},
+                request=request,
+            )
+
+        async with httpx2.AsyncClient(transport=httpx2.MockTransport(respond)) as client:
+
+            def source(options: GenerationOptions) -> EventSourceContext:
+                attempts.append(options)
+                return client.sse("http://model", params=options)
+
+            return await complete_with_generation_retry(source)
+
+    result = asyncio.run(run())
+    assert result.text == "完整"
+    assert result.warnings == ["generation_length_retry:sampling"]
+    assert isinstance(result.raw, dict)
+    assert result.raw["temperature"] == 0.5
+    assert result.raw["top_p"] == 0.9
+    assert result.raw["seed"] == 2
+    assert attempts == [{}, {"temperature": 0.5, "top_p": 0.9, "seed": 2}]
 
 
 def test_vibevoice_uses_upstream_transcription_request(tmp_path: Path) -> None:

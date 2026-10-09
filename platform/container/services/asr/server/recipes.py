@@ -333,6 +333,20 @@ class Pipeline:
                     raise ValueError(f"{model}: active tail is not covered")
                 return await assemble(raw, window)
             except (ValueError, httpx2.HTTPError) as exc:
+                padded = (
+                    window.start_ms != window.core_start_ms or window.end_ms != window.core_end_ms
+                )
+                if padded and (depth >= 2 or window.core_end_ms - window.core_start_ms < 30000):
+                    result.warnings.append(f"joint_window_retry:{window.start_ms}:{exc}")
+                    return await transcribe(
+                        Window(
+                            start_ms=window.core_start_ms,
+                            end_ms=window.core_end_ms,
+                            core_start_ms=window.core_start_ms,
+                            core_end_ms=window.core_end_ms,
+                        ),
+                        depth + 1,
+                    )
                 if depth >= 2 or window.core_end_ms - window.core_start_ms < 30000:
                     raise
                 result.warnings.append(f"joint_window_retry:{window.start_ms}:{exc}")

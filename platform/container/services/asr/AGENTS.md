@@ -56,7 +56,11 @@ VibeVoice 原版 / HF、FireRed 原始 / 转换权重不能互换；FunASR 的 `
   `<|AUDIO_DURATION|>`，因此固定 chat template，并由 client 传真实 WAV 时长；audio data
   URL、输出字段、生成预算与总上下文预算必须成套维护。
 - FireRed 中文请求必须显式传 `language=zh`；Whisper 固定中文 transcription。所有 vLLM
-  流都必须收到 `[DONE]` 且 finish reason 全为 `stop`，长度截断一律失败。
+  流都必须收到 `[DONE]` 且 finish reason 全为 `stop`，长度截断一律失败。正常调用保持模型
+  原始 greedy 参数；只有流式输出确认进入至少 64 字符、周期 1–8、重复至少 8 次的短周期
+  循环后，才依次用 repetition penalty 1.1 / 1.2 / 1.3 重试。明确到达 length 上限时改用
+  固定 `temperature=0.5`、`top_p=0.9`、`seed=2` 重试；成功响应必须在 evidence 记录实际参数
+  与 retry warning，重试后仍不完整则失败。
 - SDK 服务只接受 `/data/asr` 内真实文件；vLLM client 发送音频内容。SDK 中的 `cuda:0`
   表示当前进程可见的第一张卡，不是 Host 物理卡 0。
 - 修改 tensor parallel、精度、显存比例、上下文或模型时长后，同步 `models/catalog.py`、
@@ -100,7 +104,8 @@ VibeVoice 原版 / HF、FireRed 原始 / 转换权重不能互换；FunASR 的 `
   替换；同家族和重复采样不增加独立票数，两份融合稿不能读取对方定稿。
 - 联合模型保留自身正文、时间与局部 speaker；pyannote 只把无歧义的单人活动映射到全文件
   身份。结构、时间范围与活动尾部要校验，失败最多缩窗两层；无法按字词时间安全裁剪边界
-  时失败，不做平均插值。
+  时先用无 padding 的 exact core 最后重跑，不做猜测裁剪、平均插值或伪造时间；exact core
+  仍失败才使方案失败。
 - forced alignment 的零时长 token 保留原始时间点，按落入的半开 speaker span 归属身份；
   不得为规避 `speaker_unknown` 人工扩展 token 时长或伪造边界。
 - 第五稿复用第一稿正文和时间，仅用 Nemotron 重标 speaker。已知超过 8 人时失败，未知
@@ -242,3 +247,14 @@ trace 为 1070.531 秒、863 个事件和 995 组请求全程 GPU 采样，sampl
 另有 27 次 length failure，全部失败调用累计约 1023 秒。该样本的瓶颈是异常长生成把 GPU 0 / 1
 打满，同时其他卡受 DAG 与静态 placement 限制长期空闲，不是 CPU 并发或输入 copy；降低耗时应
 先修复生成长度与失败窗口，再评估跨卡并发，不能仅提高 `cpu_requests`。
+
+同日应用异常生成重试和 joint exact-core 边界回退后，以同一 meeting 音频完成五卡复验：
+五份方案全部 completed，trace 为 276.738 秒、2318 个事件、2308 个模型事件、2255 次非缓存
+调用、53 次 cache hit 和 255 组 GPU 采样。保存到 evidence 的 358 个 completion finish reason
+全部为 `stop`；短周期循环在 repetition penalty 1.1 / 1.2 / 1.3 下分别恢复 66 / 21 / 1 次，
+另有 1 次 length 由固定采样恢复。trace 中保留 3 个被严格检测提前取消的 VibeVoice 内部失败
+尝试，上层缩窗后 04 仍 completed，不应误报为零失败事件。CPU queue 仍为 0；model queue
+为 16.383 秒，其中 Qwen Aligner 占 15.313 秒，来自 exact-core 安全对齐。GPU 0–4 平均
+compute busy 为 53.5% / 37.8% / 33.9% / 30.9% / 22.7%，峰值均为 100%。相对修复前
+1070.531 秒，端到端耗时下降 74.2%；剩余耗时主要在 review 与 joint 质量恢复 / 对齐，不是
+CPU 或输入 copy。

@@ -5,7 +5,7 @@ from pathlib import Path
 import httpx2
 from pydantic import JsonValue
 
-from models.vllm import complete
+from models.vllm import EventSourceContext, GenerationOptions, complete_with_generation_retry
 from protocol import InferenceRequest, InferenceResult
 
 
@@ -23,18 +23,22 @@ async def infer(http: httpx2.AsyncClient, url: str, request: InferenceRequest) -
             "text": "请逐字转写这段录音中的话，保留重复、语气词和英文，只输出原话，不做总结。",
         }
     )
-    async with http.sse(
-        url + "/v1/chat/completions",
-        method="POST",
-        json={
+
+    def source(options: GenerationOptions) -> EventSourceContext:
+        payload: dict[str, JsonValue] = {
             "model": "moss-audio",
             "messages": [{"role": "user", "content": content}],
             "temperature": 0,
             "seed": 0,
-            "max_tokens": 2048,
+            "max_tokens": 512,
             "stream": True,
-        },
-        timeout=1800,
-    ) as source:
-        result = await complete(source)
-    return result
+        }
+        payload.update(options)
+        return http.sse(
+            url + "/v1/chat/completions",
+            method="POST",
+            json=payload,
+            timeout=1800,
+        )
+
+    return await complete_with_generation_retry(source)

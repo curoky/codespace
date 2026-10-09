@@ -457,6 +457,48 @@ def test_joint_windows_run_concurrently_and_merge_in_time_order(tmp_path: Path) 
     )
 
 
+def test_joint_alignment_failure_retries_without_boundary_padding(tmp_path: Path) -> None:
+    scheduler = runtime(tmp_path)
+    audio = tmp_path / "audio.wav"
+    audio.write_bytes(b"")
+    pipeline = Pipeline(scheduler.config, Inference(scheduler, tmp_path), audio, 400000, Options())
+    pipeline.activity = [Span(start_ms=0, end_ms=400000)]
+    seen: list[Window] = []
+
+    async def recognize(model: str, window: Window, *, step: str) -> InferenceResult:
+        seen.append(window)
+        return InferenceResult(
+            spans=[
+                Span(
+                    start_ms=0,
+                    end_ms=window.end_ms - window.start_ms,
+                    text="完整原文",
+                    speaker="0",
+                )
+            ]
+        )
+
+    async def align(text: str, window: Window, *, step: str, instance_id: str) -> list[Token]:
+        return [Token(text=text, start_ms=None, end_ms=None)]
+
+    pipeline.recognize = recognize  # type: ignore[method-assign]
+    pipeline.align = align  # type: ignore[method-assign]
+
+    async def run() -> Transcript:
+        result = await pipeline.joint(RECIPE_IDS[3], "vibevoice")
+        await scheduler.close()
+        return result
+
+    result = asyncio.run(run())
+    assert result.status == "completed"
+    assert result.segments
+    assert all("alignment_failed" in segment.flags for segment in result.segments)
+    assert any(
+        window.start_ms == window.core_start_ms and window.end_ms == window.core_end_ms
+        for window in seen
+    )
+
+
 def test_review_processes_windows_by_model(tmp_path: Path) -> None:
     scheduler = runtime(tmp_path)
     audio = tmp_path / "audio.wav"

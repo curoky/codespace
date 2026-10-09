@@ -112,13 +112,16 @@ flowchart TD
 | --- | --- | --- | --- | --- |
 | 01 Qwen fusion | Qwen first-pass 短窗主稿 | 四路 candidates、全部 review、Pyannote speaker | 交叉证据裁定；FireRedPunc；Qwen Aligner | Pyannote speaker；重新对齐的字词时间 |
 | 02 FireRed fusion | FireRed first-pass 短窗主稿 | 与 01 相同，但不读取 01 定稿 | 独立裁定；FireRedPunc；Qwen Aligner | Pyannote speaker；重新对齐的字词时间 |
-| 03 MOSS-TD | MOSS-TD 长窗联合输出 | activity 尾部检查、Pyannote identity 映射、first-pass 争议标记 | 保留自身正文、时间和 local speaker；失败最多缩窗两层 | local speaker 映射到全局身份；Aligner 只裁剪重叠边界 |
-| 04 VibeVoice | VibeVoice 长窗联合输出 | 与 03 相同，但不读取 03 或融合稿 | 保留自身正文、时间和 local speaker；失败最多缩窗两层 | local speaker 映射到全局身份；Aligner 只裁剪重叠边界 |
+| 03 MOSS-TD | MOSS-TD 长窗联合输出 | activity 尾部检查、Pyannote identity 映射、first-pass 争议标记 | 保留自身正文、时间和 local speaker；失败最多缩窗两层 | local speaker 映射到全局身份；Aligner 裁剪重叠边界，无法安全裁剪时用无 padding exact core 重跑 |
+| 04 VibeVoice | VibeVoice 长窗联合输出 | 与 03 相同，但不读取 03 或融合稿 | 保留自身正文、时间和 local speaker；失败最多缩窗两层 | local speaker 映射到全局身份；Aligner 裁剪重叠边界，无法安全裁剪时用无 padding exact core 重跑 |
 | 05 Qwen + Nemotron | 完整复制 01 正文与字词时间 | 仅依赖已完成的 01；不重新 ASR | Nemotron 对全文件独立 diarization，仅重新切分 speaker | Nemotron speaker；正文和字词时间保持 01 不变 |
 
 模型调用先查请求内缓存，再以逻辑模型、切片与有效参数做 single-flight，最后从实例池取得副本；
-因此副本数增加不会让相同调用重复推理。vLLM 流必须收到标准 SSE 的 `[DONE]`，且所有 completion 都以 `stop`
-结束；截断响应不能进入融合。
+因此副本数增加不会让相同调用重复推理。vLLM 流必须收到标准 SSE 的 `[DONE]`，且所有
+completion 都以 `stop` 结束；截断响应不能进入融合。正常生成保持原始 greedy 参数，只有
+检测到至少 64 字符的严格短周期循环才按 1.1 / 1.2 / 1.3 逐级启用 repetition penalty；
+明确 length 后使用固定轻采样重试。所有成功重试的实际参数与原因进入 evidence，仍未完整
+结束的响应按失败处理。
 
 ## Persistent Data And Mounts
 

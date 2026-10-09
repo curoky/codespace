@@ -3,7 +3,7 @@ from pathlib import Path
 
 import httpx2
 
-from models.vllm import complete
+from models.vllm import EventSourceContext, GenerationOptions, complete_with_generation_retry
 from protocol import InferenceRequest, InferenceResult
 
 
@@ -21,12 +21,16 @@ async def infer(http: httpx2.AsyncClient, url: str, request: InferenceRequest) -
     }
     # 固定中文 transcription，避免触发翻译。
     data["language"] = "zh"
-    async with http.sse(
-        url + "/v1/audio/transcriptions",
-        method="POST",
-        data=data,
-        files={"file": ("audio.wav", audio, "audio/wav")},
-        timeout=1800,
-    ) as source:
-        result = await complete(source)
-    return result
+
+    def source(options: GenerationOptions) -> EventSourceContext:
+        request = dict(data)
+        request.update({key: str(value) for key, value in options.items()})
+        return http.sse(
+            url + "/v1/audio/transcriptions",
+            method="POST",
+            data=request,
+            files={"file": ("audio.wav", audio, "audio/wav")},
+            timeout=1800,
+        )
+
+    return await complete_with_generation_retry(source)
