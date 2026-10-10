@@ -30,14 +30,14 @@ flowchart TD
     S6 --> Server[asr-server longrun<br/>以 x 启动 FastAPI lifespan]
     Server --> Reset[停止本容器遗留模型状态]
     Reset --> Inventory[nvidia-smi 读取可见 GPU<br/>逻辑序号映射为 UUID]
-    Inventory --> Guard{6 张卡可见且空闲显存满足预算?}
+    Inventory --> Guard{8 张卡可见且空闲显存满足预算?}
     Guard -->|否| Fail[启动失败，容器不 ready]
-    Guard -->|是| Start[按模型顺序请求 s6 start]
-    Start --> Download{本模型 .revision<br/>匹配固定 snapshot?}
+    Guard -->|是| Start[一次 s6 transaction<br/>并行启动全部模型]
+    Start --> Download{各模型 .revision<br/>匹配固定 snapshot?}
     Download -->|否| HF[download oneshot<br/>从 Hugging Face 补齐权重]
     Download -->|是| Run[model longrun]
     HF --> Run
-    Run --> Health[等待 127.0.0.1:8000–8014 health]
+    Run --> Health[并发等待 127.0.0.1:8000–8014 health]
     Health -->|任一失败或超时| Cleanup[停止已启动模型并失败]
     Health -->|全部成功| Ready[开放 GET /health 与 POST /transcribe]
 ```
@@ -129,6 +129,7 @@ evidence，仍未完整结束的响应按失败处理。
 | --- | --- | --- | --- |
 | `${RESOURCE_DATA}/models` | `/model-data` | 正常部署 rw；预下载测试可 ro | 13 个固定 snapshot、HF metadata 与 `.revision`；跨 image / container 保留 |
 | `${RESOURCE_DATA}/requests` | `/data/asr` | rw，UID/GID `5230:5230` 可写 | 上传原音、解码 WAV 和切片；语义上是临时空间，正常与可处理异常请求都清理 |
+| `${RESOURCE_DATA}/cache` | `/home/x/.cache` | rw，UID/GID `5230:5230` 可写 | vLLM、TorchInductor、CUDA、Triton、FlashInfer 与 Torch extensions 的可再生编译 cache；跨 image / container 保留，不含转写正文 |
 | Podman secret `huggingface_token` | `/run/secrets/huggingface_token` | ro，x 可读 | 仅 marker 缺失或 revision 改变时读取，不写入 image 或 model-data |
 | Podman private shared memory | `/dev/shm` | rw，8 GiB | FireRed tensor parallel / NCCL 的进程间通信；不持久化 |
 | 容器内部 tmpfs / writable layer | `/run/asr` | rw | 启动期 GPU UUID 环境文件；容器替换即消失 |
@@ -136,6 +137,8 @@ evidence，仍未完整结束的响应按失败处理。
 
 `/opt/asr` 只包含代码与预装环境，不能被 volume 遮蔽。没有 `/model-data` mount 时权重会
 落入容器 writable layer 并随容器替换丢失，因此不属于受支持的持久部署形态。
+`/home/x/.cache` 只复用与当前代码、模型和 GPU 兼容的 cache key；首次启动仍会生成缺失产物，
+无需也不能在没有 GPU 和运行时权重的 image build 中预热。
 
 ## Model Inventory And Deployment
 
@@ -150,16 +153,16 @@ evidence，仍未完整结束的响应按失败处理。
 | [`firered-llm`](https://huggingface.co/allendou/FireRedASR2-LLM-vllm) | 8000 | first pass / review；第二主稿 | transcription（[作者配方][firered]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 0+1，TP=2 | 32 | 31.147 | 7.392 |
 | [`firered-punc`](https://huggingface.co/FireRedTeam/FireRedPunc) | 8001 | 01 / 02；标点校验 | 本模型 HTTP | [FireRedASR2S][firered] 0.0.1 @ `4e7d9aa` | 3.12.14 | 5.1.0 | — | 2.10.0+cpu | — | CPU | — | 0.762 | 0.832 |
 | [`firered-vad`](https://huggingface.co/FireRedTeam/FireRedVAD) | 8002 | prepare；语音活动范围 | 本模型 HTTP | [FireRedASR2S][firered] 0.0.1 @ `4e7d9aa` | 3.12.14 | 5.1.0 | — | 2.10.0+cpu | — | CPU | — | 0.002 | 0.832 |
-| [`moss-audio`](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-8B-Instruct) | 8003 | review；残余争议复听 | audio chat（[作者文档][moss-audio]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 5 | 32 | 16.862 | 7.392 |
-| [`moss-td`](https://huggingface.co/OpenMOSS-Team/MOSS-Transcribe-Diarize) | 8004 | 03；联合正文、时间、speaker | transcription（[作者文档][moss-td]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 2 | 48 | 1.692 | 7.396 |
+| [`moss-audio`](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-8B-Instruct) | 8003 | review；残余争议复听 | audio chat（[作者文档][moss-audio]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 2 | 32 | 16.862 | 7.392 |
+| [`moss-td`](https://huggingface.co/OpenMOSS-Team/MOSS-Transcribe-Diarize) | 8004 | 03；联合正文、时间、speaker | transcription（[作者文档][moss-td]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 3 | 48 | 1.692 | 7.396 |
 | [`nemotron-diarization`](https://huggingface.co/nvidia/Nemotron-3-Diarization) | 8005 | 05；独立 speaker 重标 | 本模型 HTTP | NeMo 3.1.0+ca3f93a51 | 3.12.14 | 4.57.6 | — | 2.13.0 | 13.0.3 | GPU 1 | 12 | 0.185 | 5.288 |
-| [`paraformer`](https://huggingface.co/funasr/paraformer-zh) | 8006 | first pass；中文旁路校验 | 本模型 HTTP | [FunASR][funasr] 1.4.16 | 3.12.14 | 4.57.6 | — | 2.13.0 | 13.0.3 | GPU 4 | 4 | 0.820 | 4.973 |
+| [`paraformer`](https://huggingface.co/funasr/paraformer-zh) | 8006 | first pass；中文旁路校验 | 本模型 HTTP | [FunASR][funasr] 1.4.16 | 3.12.14 | 4.57.6 | — | 2.13.0 | 13.0.3 | GPU 6 | 4 | 0.820 | 4.973 |
 | [`pyannote-community-1`](https://huggingface.co/pyannote/speaker-diarization-community-1) | 8007 | prepare；全文件身份与跨窗映射 | 本模型 HTTP | [pyannote.audio][pyannote] 4.0.7 | 3.12.14 | — | — | 2.13.0 | 13.0.3 | GPU 1 | 6 | 0.031 | 4.819 |
-| [`qwen3-aligner`](https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B) | 8008 / 8013 | review / finalize；字词时间 | pooling + 本模型 HTTP（[Qwen SDK][qwen]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 4 review / GPU 0 recipe | 8 | 1.709 | 7.396 |
-| [`qwen3-asr-1.7b`](https://huggingface.co/Qwen/Qwen3-ASR-1.7B) | 8009 | first pass / review；第一主稿 | transcription（[Qwen SDK][qwen]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 2 | 12 | 4.376 | 7.392 |
-| [`sensevoice`](https://huggingface.co/FunAudioLLM/SenseVoiceSmall) | 8010 | first pass；中文旁路校验 | 本模型 HTTP | [FunASR][sensevoice] 1.4.16 | 3.12.14 | 4.57.6 | — | 2.13.0 | 13.0.3 | GPU 3 | 4 | 0.872 | 4.973 |
-| [`vibevoice`](https://huggingface.co/microsoft/VibeVoice-ASR-HF) | 8011 / 8014 | 04；联合正文、时间、speaker | audio chat（[作者文档][vibevoice]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 3 / GPU 4 副本 | 48 | 15.517 | 7.392 |
-| [`whisper-large-v3`](https://huggingface.co/openai/whisper-large-v3) | 8012 | review；独立复听 | transcription（[模型来源][whisper]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 3 | 8 | 2.875 | 7.392 |
+| [`qwen3-aligner`](https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B) | 8008 / 8013 | review / finalize；字词时间 | pooling + 本模型 HTTP（[Qwen SDK][qwen]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 1 review / GPU 0 recipe | 8 | 1.709 | 7.396 |
+| [`qwen3-asr-1.7b`](https://huggingface.co/Qwen/Qwen3-ASR-1.7B) | 8009 | first pass / review；第一主稿 | transcription（[Qwen SDK][qwen]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 4 | 12 | 4.376 | 7.392 |
+| [`sensevoice`](https://huggingface.co/FunAudioLLM/SenseVoiceSmall) | 8010 | first pass；中文旁路校验 | 本模型 HTTP | [FunASR][sensevoice] 1.4.16 | 3.12.14 | 4.57.6 | — | 2.13.0 | 13.0.3 | GPU 5 | 4 | 0.872 | 4.973 |
+| [`vibevoice`](https://huggingface.co/microsoft/VibeVoice-ASR-HF) | 8011 / 8014 | 04；联合正文、时间、speaker | audio chat（[作者文档][vibevoice]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 5 / GPU 6 副本 | 48 | 15.517 | 7.392 |
+| [`whisper-large-v3`](https://huggingface.co/openai/whisper-large-v3) | 8012 | review；独立复听 | transcription（[模型来源][whisper]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 7 | 8 | 2.875 | 7.392 |
 
 Checkpoint 只统计固定 revision 的 weight 文件；不可拆分的 `.nemo`、`.pth.tar` 按整个文件
 计入，不含 tokenizer、config、词典、CMVN 和下载 cache。13 个 checkpoint 合计 76.850 GiB，
@@ -168,20 +171,22 @@ Checkpoint 只统计固定 revision 的 weight 文件；不可拆分的 `.nemo`�
 
 ## GPU Placement
 
-当前 placement 使用 6 张 80 GiB GPU：FireRed TP 占两张，Qwen、SenseVoice、Paraformer
-各占一张，MOSS-Audio 独占一张。独立的 MOSS lane 避免用显存压缩和跨阶段时序换并发；两个
-Aligner 实例隔离 review 与 recipe 对齐，两个 VibeVoice 实例动态分担 04 的长窗。
+当前 placement 使用 8 张 80 GiB GPU。大模型 server 在启动时使用互不重叠的 GPU，避免并行
+显存 profiling 与首次 JIT 相互干扰；两个轻量 Aligner 分别与 FireRed 的两个 TP rank 共卡，
+避免彼此并发 profiling。两个 VibeVoice 实例动态分担 04 的长窗。
 
 | 逻辑 GPU | 常驻模型（显存预算 / 卡） | 合计预算 | 不同时推理的关键边界 |
 | ---: | --- | ---: | --- |
 | 0 | `firered-llm` 32 GiB（TP rank）、`qwen3-aligner-recipe` 8 GiB | 40 GiB | recipe Aligner 只在 review 全部结束后运行 |
-| 1 | `firered-llm` 32 GiB（TP rank）、`pyannote-community-1` 6 GiB、`nemotron-diarization` 12 GiB | 50 GiB | Pyannote 在 prepare；Nemotron 只在 05；FireRed 在 first pass / review |
-| 2 | `qwen3-asr-1.7b` 12 GiB、`moss-td` 48 GiB | 60 GiB | Qwen 在 first pass / review；MOSS-TD 在 03 |
-| 3 | `sensevoice` 4 GiB、`whisper-large-v3` 8 GiB、`vibevoice-a` 48 GiB | 60 GiB | 前两者在 recipe 前完成；A 副本执行 04 长窗 |
-| 4 | `paraformer` 4 GiB、`qwen3-aligner-review` 8 GiB、`vibevoice-b` 48 GiB | 60 GiB | Paraformer / review 完成后，B 副本执行 04 长窗 |
-| 5 | `moss-audio` 32 GiB | 32 GiB | 独立 review lane，不依赖其他模型的推理时序 |
+| 1 | `firered-llm` 32 GiB（TP rank）、`qwen3-aligner-review` 8 GiB、`pyannote-community-1` 6 GiB、`nemotron-diarization` 12 GiB | 58 GiB | Aligner / Pyannote / Nemotron 不与 FireRed 同时推理 |
+| 2 | `moss-audio` 32 GiB | 32 GiB | 独立 review lane |
+| 3 | `moss-td` 48 GiB | 48 GiB | 独立 03 lane |
+| 4 | `qwen3-asr-1.7b` 12 GiB | 12 GiB | 独立 first pass / review lane |
+| 5 | `sensevoice` 4 GiB、`vibevoice-a` 48 GiB | 52 GiB | SenseVoice 在 first pass；A 副本执行 04 长窗 |
+| 6 | `paraformer` 4 GiB、`vibevoice-b` 48 GiB | 52 GiB | Paraformer 在 first pass；B 副本执行 04 长窗 |
+| 7 | `whisper-large-v3` 8 GiB | 8 GiB | 独立 review lane |
 
-placement 只选择容器可见 GPU；生产配置可暴露更多卡，但逻辑 0–5 之外的设备保持空闲。
+placement 只选择容器可见 GPU，部署必须暴露逻辑 0–7 全部八张卡。
 显存比例是进程静态上限而非精确占用，实际部署仍必须检查 CUDA context、TP / NCCL 与运行
 波动。
 

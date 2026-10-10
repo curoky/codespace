@@ -20,6 +20,11 @@ def config() -> Config:
 def test_each_model_has_revisioned_download_and_static_service(tmp_path: Path) -> None:
     root = Path(__file__).resolve().parents[1]
     graph = root / "rootfs/etc/s6/s6-rc.d"
+    model_service = root / "rootfs/usr/local/bin/asr-model-service"
+    subprocess.run(["bash", "-n", str(model_service)], check=True)
+    model_service_text = model_service.read_text()
+    assert 'change "${services[@]}"' in model_service_text
+    assert 'for service in "${services[@]}"' in model_service_text
     instances = config().resources.instances
     for spec in MODELS:
         directory = root / "models" / spec.id
@@ -113,8 +118,40 @@ def test_image_contains_no_model_weights() -> None:
     dockerfile = (root / "Dockerfile").read_text()
     assert "install-bundled-model-weights" not in dockerfile
     assert "type=secret" not in dockerfile
-    assert "mkdir -p /data/asr /model-data /run/asr" in dockerfile
+    assert "mkdir -p /data/asr /model-data /run/asr /home/x/.cache" in dockerfile
     assert 'ln -s "/model-data/${model_dir##*/}" "$model_dir/weights"' in dockerfile
+
+
+def test_runtime_compilation_cache_is_persistent() -> None:
+    root = Path(__file__).resolve().parents[1]
+    dockerfile = (root / "Dockerfile").read_text()
+    for setting in (
+        "XDG_CACHE_HOME=/home/x/.cache",
+        "VLLM_CACHE_ROOT=/home/x/.cache/vllm",
+        "FLASHINFER_WORKSPACE_BASE=/home/x",
+        "CUDA_CACHE_PATH=/home/x/.cache/nv/ComputeCache",
+        "TORCH_EXTENSIONS_DIR=/home/x/.cache/torch_extensions",
+    ):
+        assert setting in dockerfile
+    assert "TRITON_CACHE_DIR" not in dockerfile
+    assert "chown x:x /data/asr /model-data /run/asr /home/x/.cache" in dockerfile
+    for model in (
+        "firered-llm",
+        "moss-audio",
+        "moss-td",
+        "qwen3-aligner",
+        "qwen3-asr-1.7b",
+        "vibevoice",
+        "whisper-large-v3",
+    ):
+        assert (
+            "export CUDA_CACHE_PATH=/home/x/.cache/nv/ComputeCache"
+            in (root / "models" / model / "run").read_text()
+        )
+
+    example = Path(__file__).resolve().parents[5] / "config.example.yaml"
+    deployment = yaml.safe_load(example.read_text())["services"]["asr"]["container"]
+    assert "${RESOURCE_DATA}/cache:/home/x/.cache" in deployment["volumes"]
 
 
 def test_whisper_download_uses_only_vllm_safetensors() -> None:
@@ -159,12 +196,12 @@ def test_vllm_models_use_global_cuda_toolchain() -> None:
         assert "cuda-toolkit[nvcc]" not in project
 
 
-def test_static_placement_uses_six_80_gib_gpus_for_parallel_stages() -> None:
+def test_static_placement_uses_eight_80_gib_gpus_for_parallel_stages() -> None:
     root = Path(__file__).resolve().parents[1]
     resources = config().resources
     specs = {spec.id: spec for spec in MODELS if spec.gpus}
     assert {instance.model for instance in resources.instances if instance.placement} == set(specs)
-    loads = [0.0] * 6
+    loads = [0.0] * 8
     for instance in resources.instances:
         spec = {spec.id: spec for spec in MODELS}[instance.model]
         assert len(instance.placement) == spec.gpus
@@ -172,14 +209,14 @@ def test_static_placement_uses_six_80_gib_gpus_for_parallel_stages() -> None:
         for index in instance.placement:
             loads[index] += spec.memory_gib
     assert resources.gpu_memory_gib == 80
-    assert loads == [40, 50, 60, 60, 60, 32]
+    assert loads == [40, 58, 32, 48, 12, 52, 52, 8]
     assert all(load < resources.gpu_memory_gib for load in loads)
 
     first_pass = {
         "firered-llm": {0, 1},
-        "qwen3-asr-1.7b": {2},
-        "sensevoice": {3},
-        "paraformer": {4},
+        "qwen3-asr-1.7b": {4},
+        "sensevoice": {5},
+        "paraformer": {6},
     }
     assert len(set().union(*first_pass.values())) == sum(map(len, first_pass.values())) == 5
 

@@ -134,6 +134,7 @@ services:
       volumes:
         - ${RESOURCE_DATA}/models:/model-data
         - ${RESOURCE_DATA}/requests:/data/asr
+        - ${RESOURCE_DATA}/cache:/home/x/.cache
       secrets:
         - {source: huggingface_token, uid: '5230', gid: '5230', mode: 0400}
       restart: unless-stopped

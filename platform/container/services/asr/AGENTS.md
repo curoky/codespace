@@ -129,7 +129,8 @@ VibeVoice 原版 / HF、FireRed 原始 / 转换权重不能互换；FunASR 的 `
 vLLM 显存比例。placement 不能写 Host 物理卡号。
 
 `scheduler.py` 在 lifespan startup 时把逻辑序号映射为 GPU UUID，要求已使用显存不超过
-512 MiB，再依次启动全部实例并等待 health。请求期每实例最多一个在途调用，
+512 MiB，写完全部实例环境后通过一次 s6 transaction 并行启动，并发等待全部 health。
+请求期每实例最多一个在途调用，
 逻辑模型池选择当前空闲副本；不启停、回收、迁移或降级模型。
 
 `ops/processes.py` 负责有超时的子进程与 GPU inventory，并以 x 经 sudo 调 root-owned
@@ -157,6 +158,7 @@ cache 后才结束 layer；s6 graph 切回 root 编译。
 | `/var/log/s6.asr-*.log` | 使用 `redirfd -w` 与 `fdmove`，沿用 shared runtime |
 | `/model-data` | 正常部署 rw；x 必须可写；禁止挂载 `/opt/asr` 或模型目录遮蔽代码与 venv |
 | `/data/asr` | x 可写的请求临时区，不保存转录结果或任务状态 |
+| `/home/x/.cache` | x 可写的持久 runtime cache；只保存 vLLM / TorchInductor / CUDA / Triton / FlashInfer / Torch extensions 可再生编译产物 |
 
 HF token 只在 download oneshot 需要联网时从 `/run/secrets/huggingface_token` 读取；必须
 以 UID/GID `5230:5230` 可读，不能进入命令行、脚本、image layer 或 model-data。marker
@@ -221,7 +223,7 @@ podman build \
 | 权重 / SDK / vLLM | 锁文件与 import 版本、实际协议响应、截断、时间边界与模型 table |
 | 融合 / speaker / 时间 | 行为测试与对应真实音频，不能以模拟响应宣称质量提升 |
 | regression corpus / baseline | `prepare.py --check`、`evaluate.py`、fixture tests；音频 cache 不提交，raw results 提交 |
-| CUDA / placement | 六卡同时驻留、真实余量、kernel、TP / NCCL 与跨模型并发；其余可见卡空闲，不停止外部任务 |
+| CUDA / placement | 八卡同时驻留、真实余量、kernel、TP / NCCL 与跨模型并发；不停止外部任务 |
 
 已验证 CPU FireRedVAD / FireRedPunc、H100 Nemotron、s6 服务链路、异常退出清理、停止超时，
 以及原子 HTTP 五方案模拟响应、共享 evidence 与临时音频清理。
@@ -270,5 +272,14 @@ CPU 或输入 copy。
 973.667 秒降到 555.780 秒，下降 42.92%，单例下降 35.51%–47.28%。R8004 baseline 与独立
 复验分别为 171.518 秒和 175.817 秒，五稿均 completed。joint 异常窗口先去除 padding，再按
 exact core 二分，只有小于 8 秒仍失败才使方案失败；不截断正文、不猜测边界。该轮替换容器的
-冷启动约 22 分钟，日志显示 vLLM / FlashInfer 重复 JIT；持久化其运行 cache 是独立的启动优化，
-不属于上述请求耗时收益。
+冷启动约 22 分钟，日志显示 vLLM / FlashInfer 重复 JIT；后续启动使用持久
+`/home/x/.cache` 复用可再生编译产物，不缓存请求正文或转写结果。该启动优化不属于上述请求
+耗时收益。
+
+同日将 15 个实例改为一次 s6 transaction 启动并并发等待 health，同时持久化 vLLM、
+FlashInfer、Torch extension 与 CUDA driver cache。最终 image `38079cd1f348` 使用 8×H100
+和已预热 cache 在 611 秒达到 15/15 ready，相对约 1320 秒串行基线下降 53.7%；全部模型
+death tally 为空，容器 restart 为 0，停止后八卡进程全部退出。实测 vLLM AOT compilation
+已降到亚秒至约 8 秒，剩余长尾是各大模型的 profile、CUDA Graph capture 与 warmup，不是
+Python / s6 调度、CPU queue 或权重 copy。空 cache 与热 cache 的对照曾从 631 秒降至 545 秒，
+约下降 13.6%；启动耗时有明显 warmup 竞争波动，因此这些数字是本 Host 的观测值而非 SLA。

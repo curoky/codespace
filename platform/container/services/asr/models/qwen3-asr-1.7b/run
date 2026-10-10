@@ -10,6 +10,7 @@ export TOKENIZERS_PARALLELISM=false
 export OMP_NUM_THREADS=4
 
 export CUDA_HOME=/usr/local/cuda-13.0
+export CUDA_CACHE_PATH=/home/x/.cache/nv/ComputeCache
 export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64
 
 # BF16 保留原精度；8192 包含音频编码与输出预算，不是音频秒数。

@@ -35,6 +35,12 @@ RUN curl --fail --location --retry 3 \
   && dpkg-deb --extract /tmp/cuda-compat.deb / \
   && rm /tmp/cuda-compat.deb
 
+ENV XDG_CACHE_HOME=/home/x/.cache \
+  VLLM_CACHE_ROOT=/home/x/.cache/vllm \
+  FLASHINFER_WORKSPACE_BASE=/home/x \
+  CUDA_CACHE_PATH=/home/x/.cache/nv/ComputeCache \
+  TORCH_EXTENSIONS_DIR=/home/x/.cache/torch_extensions
+
 COPY platform/container/services/asr/models/ /opt/asr/models/
 COPY platform/container/services/asr/server/ /opt/asr/server/
 COPY platform/container/services/asr/ops/ /opt/asr/ops/
@@ -48,12 +54,12 @@ RUN chmod 0440 /etc/sudoers.d/asr \
 
 RUN rm -f /etc/s6/s6-rc.d/default/contents.d/miniserve-logs \
     /etc/s6/s6-rc.d/default/contents.d/supercronic \
-  && mkdir -p /data/asr /model-data /run/asr \
+  && mkdir -p /data/asr /model-data /run/asr /home/x/.cache \
   && for script in /opt/asr/models/*/download_model.sh; do \
     model_dir="${script%/*}"; \
     ln -s "/model-data/${model_dir##*/}" "$model_dir/weights"; \
   done \
-  && chown x:x /data/asr /model-data /run/asr /opt/asr/server /opt/asr/models/*/
+  && chown x:x /data/asr /model-data /run/asr /home/x/.cache /opt/asr/server /opt/asr/models/*/
 
 USER x
 RUN export HOME=/home/x \

@@ -10,6 +10,7 @@ export TOKENIZERS_PARALLELISM=false
 export OMP_NUM_THREADS=4
 
 export CUDA_HOME=/usr/local/cuda-13.0
+export CUDA_CACHE_PATH=/home/x/.cache/nv/ComputeCache
 export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64
 
 # 8B Instruct 只复听争议短窗，8192 为音频及逐字转写留预算，不做量化。

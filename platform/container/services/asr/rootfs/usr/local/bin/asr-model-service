@@ -4,23 +4,34 @@ set -euo pipefail
 
 export PATH="/usr/local/bin:/usr/local/sbin:/usr/local/libexec:/usr/bin:/usr/sbin:/bin:/sbin"
 
-if [[ $# != 2 || ! $2 =~ ^[a-z0-9][a-z0-9.-]*$ || ! -f /etc/s6/s6-rc.d/asr-$2/type ]]; then
-  echo "Usage: asr-model-service start|stop MODEL" >&2
+if (($# < 2)); then
+  echo "Usage: asr-model-service start|stop MODEL..." >&2
   exit 2
 fi
 
-service="asr-$2"
+action="$1"
+shift
+services=()
+for model in "$@"; do
+  if [[ ! $model =~ ^[a-z0-9][a-z0-9.-]*$ || ! -f /etc/s6/s6-rc.d/asr-$model/type ]]; then
+    echo "Unknown model: $model" >&2
+    exit 2
+  fi
+  services+=("asr-$model")
+done
 
-case "$1" in
+case "$action" in
   start)
-    exec /usr/local/bin/s6-rc -b -u change "$service"
+    exec /usr/local/bin/s6-rc -b -u change "${services[@]}"
     ;;
   stop)
-    /usr/local/bin/s6-rc -b -d change "$service"
-    exec /usr/local/bin/s6-svc -wD -T 20000 -d "/run/service/$service"
+    /usr/local/bin/s6-rc -b -d change "${services[@]}"
+    for service in "${services[@]}"; do
+      /usr/local/bin/s6-svc -wD -T 20000 -d "/run/service/$service"
+    done
     ;;
   *)
-    echo "Unknown action: $1" >&2
+    echo "Unknown action: $action" >&2
     exit 2
     ;;
 esac

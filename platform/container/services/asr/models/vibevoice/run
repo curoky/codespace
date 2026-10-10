@@ -10,6 +10,7 @@ export TOKENIZERS_PARALLELISM=false
 export OMP_NUM_THREADS=4
 
 export CUDA_HOME=/usr/local/cuda-13.0
+export CUDA_CACHE_PATH=/home/x/.cache/nv/ComputeCache
 export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64
 
 # HF checkpoint 使用原生 audio chat；固定模板补上 vLLM 不会替换的音频时长占位符。

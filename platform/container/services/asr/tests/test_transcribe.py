@@ -22,12 +22,12 @@ from server.transcribe import run_recipes
 from server.transcript import Segment, Transcript
 
 
-async def control(action: str, model: str) -> None:
+async def control(action: str, models: list[str]) -> None:
     return None
 
 
 async def inventory() -> list[GPU]:
-    return [GPU(id=f"GPU-{i}", index=str(i), total_mib=80000, free_mib=80000) for i in range(6)]
+    return [GPU(id=f"GPU-{i}", index=str(i), total_mib=80000, free_mib=80000) for i in range(8)]
 
 
 async def utilization(device_ids: list[str]) -> list[GPUUtilization]:
@@ -160,6 +160,8 @@ def test_one_request_returns_five_results_and_shared_evidence(tmp_path: Path) ->
             "3",
             "4",
             "5",
+            "6",
+            "7",
         ]
         assert {event["name"] for event in trace["events"] if event["kind"] == "phase"} >= {
             "upload",
@@ -223,21 +225,34 @@ def test_failed_asr_keeps_joint_documents_and_returns_partial_failure(tmp_path: 
 
 def test_static_placement_starts_all_models_on_configured_devices(tmp_path: Path) -> None:
     scheduler = runtime(tmp_path)
-    actions: list[tuple[str, str]] = []
+    actions: list[tuple[str, list[str]]] = []
+    in_flight = 0
+    peak_in_flight = 0
 
-    async def control(action: str, model: str) -> None:
-        actions.append((action, model))
+    async def control(action: str, models: list[str]) -> None:
+        actions.append((action, models))
+
+    async def respond(request: httpx2.Request) -> httpx2.Response:
+        nonlocal in_flight, peak_in_flight
+        assert request.url.path == "/health"
+        in_flight += 1
+        peak_in_flight = max(peak_in_flight, in_flight)
+        await asyncio.sleep(0.01)
+        in_flight -= 1
+        return httpx2.Response(200, json={"status": "ready"})
 
     scheduler.control = control
 
     async def run() -> None:
+        await scheduler.http.aclose()
+        scheduler.http = httpx2.AsyncClient(transport=httpx2.MockTransport(respond))
         await scheduler.initialize()
         assert scheduler.instances["firered-llm"].devices == ["GPU-0", "GPU-1"]
-        assert scheduler.instances["moss-audio"].devices == ["GPU-5"]
-        assert scheduler.instances["moss-td"].devices == ["GPU-2"]
-        assert scheduler.instances["vibevoice-a"].devices == ["GPU-3"]
-        assert scheduler.instances["vibevoice-b"].devices == ["GPU-4"]
-        assert scheduler.instances["qwen3-aligner-review"].devices == ["GPU-4"]
+        assert scheduler.instances["moss-audio"].devices == ["GPU-2"]
+        assert scheduler.instances["moss-td"].devices == ["GPU-3"]
+        assert scheduler.instances["vibevoice-a"].devices == ["GPU-5"]
+        assert scheduler.instances["vibevoice-b"].devices == ["GPU-6"]
+        assert scheduler.instances["qwen3-aligner-review"].devices == ["GPU-1"]
         assert scheduler.instances["qwen3-aligner-recipe"].devices == ["GPU-0"]
         assert all(instance.running for instance in scheduler.instances.values())
         await scheduler.close()
@@ -245,9 +260,8 @@ def test_static_placement_starts_all_models_on_configured_devices(tmp_path: Path
 
     asyncio.run(run())
     models = list(scheduler.instances)
-    assert actions == (
-        [("stop", model) for model in models] + [("start", model) for model in models]
-    )
+    assert actions == [("stop", models), ("start", models)]
+    assert peak_in_flight == len(models)
 
 
 def test_separate_channels_still_produces_five_documents(tmp_path: Path) -> None:

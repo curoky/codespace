@@ -41,7 +41,7 @@ class Scheduler:
         config: Config,
         *,
         runtime_dir: Path = Path("/run/asr"),
-        control: Callable[[str, str], Awaitable[None]] = service,
+        control: Callable[[str, list[str]], Awaitable[None]] = service,
         inventory: Callable[[], Awaitable[list[GPU]]] = visible_gpus,
         utilization: Callable[[list[str]], Awaitable[list[GPUUtilization]]] = gpu_utilization,
     ) -> None:
@@ -125,8 +125,8 @@ class Scheduler:
     async def initialize(self) -> None:
         """把逻辑 placement 固定到可见 GPU，并在 HTTP ready 前启动全部模型。"""
         self.runtime_dir.mkdir(parents=True, exist_ok=True)
-        for instance_id in self.instances:
-            await self.control("stop", instance_id)
+        instance_ids = list(self.instances)
+        await self.control("stop", instance_ids)
 
         devices = await self.inventory()
         loads = [0.0] * len(devices)
@@ -156,32 +156,30 @@ class Scheduler:
 
         try:
             for instance in self.instances.values():
-                await self._start(instance)
+                self._write_runtime(instance)
+                instance.running = True
+            await self.control("start", instance_ids)
+            await asyncio.gather(
+                *(self._wait_ready(instance) for instance in self.instances.values())
+            )
         except BaseException:
+            with contextlib.suppress(Exception):
+                await self.control("stop", instance_ids)
             for instance in self.instances.values():
-                if instance.running:
-                    with contextlib.suppress(Exception):
-                        await self._stop(instance)
+                instance.running = False
             raise
 
     async def close(self) -> None:
         await self.http.aclose()
 
-    async def _stop(self, instance: Instance) -> None:
-        await self.control("stop", instance.id)
-        instance.running = False
-
-    async def _start(self, instance: Instance) -> None:
+    def _write_runtime(self, instance: Instance) -> None:
+        directory = self.runtime_dir / instance.id
+        directory.mkdir(parents=True, exist_ok=True)
         if instance.spec.gpus:
-            directory = self.runtime_dir / instance.id
-            directory.mkdir(parents=True, exist_ok=True)
             (directory / "CUDA_VISIBLE_DEVICES").write_text(",".join(instance.devices))
-        else:
-            directory = self.runtime_dir / instance.id
-            directory.mkdir(parents=True, exist_ok=True)
         (directory / "PORT").write_text(str(httpx2.URL(instance.url).port))
-        instance.running = True
-        await self.control("start", instance.id)
+
+    async def _wait_ready(self, instance: Instance) -> None:
         deadline = time.monotonic() + instance.spec.startup_seconds
         while time.monotonic() < deadline:
             try:

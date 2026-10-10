@@ -96,5 +96,12 @@ async def gpu_utilization(device_ids: list[str]) -> list[GPUUtilization]:
     return devices
 
 
-async def service(action: str, model: str) -> None:
-    await command("sudo", "-n", "/usr/local/bin/asr-model-service", action, model, timeout=7200)
+async def service(action: str, models: list[str]) -> None:
+    await command(
+        "sudo",
+        "-n",
+        "/usr/local/bin/asr-model-service",
+        action,
+        *models,
+        timeout=7200,
+    )
