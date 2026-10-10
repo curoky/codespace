@@ -1,10 +1,9829 @@
 {
   "recipe": "03-moss-td",
-  "status": "failed",
-  "error": "channel=None: joint boundary alignment failed; cannot deduplicate safely; ",
-  "warnings": [],
-  "segments": [],
-  "activity": [],
-  "speakers": [],
+  "status": "completed",
+  "error": null,
+  "warnings": [
+    "joint_window_retry:527000:joint boundary alignment failed; cannot deduplicate safely",
+    "joint_window_retry:615000:joint boundary alignment failed; cannot deduplicate safely",
+    "joint_window_retry:659000:joint boundary alignment failed; cannot deduplicate safely",
+    "joint_window_retry:681000:joint boundary alignment failed; cannot deduplicate safely"
+  ],
+  "segments": [
+    {
+      "start_ms": 120,
+      "end_ms": 3540,
+      "text": "鲁迅小说集呐喊故乡",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 3980,
+      "end_ms": 6480,
+      "text": "此次LibriVox录音由公众所有",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 7410,
+      "end_ms": 10540,
+      "text": "我冒了严寒回到相隔二千余里",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 10570,
+      "end_ms": 12610,
+      "text": "别了二十余年的故乡去",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 13520,
+      "end_ms": 15380,
+      "text": "时候既然是深冬",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 15510,
+      "end_ms": 16890,
+      "text": "渐近故乡时",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 16920,
+      "end_ms": 18510,
+      "text": "天气又阴晦了",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 18640,
+      "end_ms": 21410,
+      "text": "冷风吹进船舱中呜呜地响",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 21920,
+      "end_ms": 23680,
+      "text": "从篷系向外一望",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 23850,
+      "end_ms": 25380,
+      "text": "苍黄的天底下",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 25610,
+      "end_ms": 28050,
+      "text": "远近横着几个萧索的荒村",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 28180,
+      "end_ms": 29680,
+      "text": "没有一些活气",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 30650,
+      "end_ms": 33020,
+      "text": "我的心禁不住悲凉起来了",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 35060,
+      "end_ms": 39710,
+      "text": "啊这不是我二十年来时时记得的故乡",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 41210,
+      "end_ms": 43940,
+      "text": "我所记得的故乡全部如此",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 44240,
+      "end_ms": 46170,
+      "text": "我的故乡好得多了",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 46580,
+      "end_ms": 48380,
+      "text": "但要我记起它的美丽",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 48480,
+      "end_ms": 50050,
+      "text": "说出它的家出来",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 50180,
+      "end_ms": 51380,
+      "text": "却又没有影像",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 51410,
+      "end_ms": 52610,
+      "text": "没有言辞了",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 53050,
+      "end_ms": 54580,
+      "text": "仿佛也就如此",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 55680,
+      "end_ms": 57480,
+      "text": "于是我自己解释说",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 57680,
+      "end_ms": 59250,
+      "text": "故乡本也如此",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 59620,
+      "end_ms": 60950,
+      "text": "虽然没有进步",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 61080,
+      "end_ms": 63380,
+      "text": "也未必有如我所感的悲凉",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 63720,
+      "end_ms": 66350,
+      "text": "这只是我自己心情的改变罢了",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 66680,
+      "end_ms": 68250,
+      "text": "因为我这次回乡",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 68380,
+      "end_ms": 69980,
+      "text": "本没有什么好心绪",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 71580,
+      "end_ms": 74310,
+      "text": "我这次是专为了别它而来的",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 74950,
+      "end_ms": 77250,
+      "text": "我们多年聚族而居的老屋",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 77380,
+      "end_ms": 79380,
+      "text": "已经共同卖给别姓了",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 79680,
+      "end_ms": 81910,
+      "text": "交屋的期限只在本年",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 82310,
+      "end_ms": 84880,
+      "text": "所以必须赶在正月初一以前",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 84980,
+      "end_ms": 86680,
+      "text": "永别了熟识的老屋",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 86880,
+      "end_ms": 88880,
+      "text": "而且远离了熟识的故乡",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 89080,
+      "end_ms": 91510,
+      "text": "搬家到我在牟时的异地去",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 93580,
+      "end_ms": 96410,
+      "text": "第二日清早晨我到了我家的门口了",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 96880,
+      "end_ms": 99950,
+      "text": "瓦楞上许多枯草的断茎当风抖着",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 100180,
+      "end_ms": 103280,
+      "text": "正在说明这老屋难免易主的原因",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 103880,
+      "end_ms": 106450,
+      "text": "几房的本家大约已经搬走了",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 106580,
+      "end_ms": 107750,
+      "text": "所以很寂静",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 108380,
+      "end_ms": 109950,
+      "text": "我到了自家的房外",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 110050,
+      "end_ms": 112250,
+      "text": "我的母亲早已迎着出来了",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 112450,
+      "end_ms": 115180,
+      "text": "接着便飞出了八岁的侄儿红儿",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 116910,
+      "end_ms": 118610,
+      "text": "我的母亲很高兴",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 118910,
+      "end_ms": 121410,
+      "text": "但也藏着许多凄凉的神情",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 121810,
+      "end_ms": 123680,
+      "text": "叫我坐下歇息",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 123880,
+      "end_ms": 124680,
+      "text": "喝茶",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 125050,
+      "end_ms": 126710,
+      "text": "且不谈搬家的事",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 127650,
+      "end_ms": 129110,
+      "text": "红儿没有见过我",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 129280,
+      "end_ms": 131440,
+      "text": "远远的对面站着只是看",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 133150,
+      "end_ms": 135510,
+      "text": "但我们终于谈到搬家的事",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 136150,
+      "end_ms": 138710,
+      "text": "我说外间的寓所已经租定了",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 138850,
+      "end_ms": 140280,
+      "text": "又买了几件家具",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 140680,
+      "end_ms": 143410,
+      "text": "此外须将家里所有的木器卖去",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 143550,
+      "end_ms": 144610,
+      "text": "再去增添",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 145650,
+      "end_ms": 146980,
+      "text": "母亲也说好",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 147180,
+      "end_ms": 149310,
+      "text": "而且行李也略已齐齐",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 149480,
+      "end_ms": 152410,
+      "text": "木器不便搬运的也小半卖去了",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 152710,
+      "end_ms": 154180,
+      "text": "只是收不起钱来",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 156710,
+      "end_ms": 158050,
+      "text": "你休息一两天",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 158080,
+      "end_ms": 160180,
+      "text": "去拜望亲戚本家一回",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 160350,
+      "end_ms": 161950,
+      "text": "我们便可以走了",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 162380,
+      "end_ms": 163280,
+      "text": "母亲说",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 164450,
+      "end_ms": 165180,
+      "text": "是的",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 167210,
+      "end_ms": 168310,
+      "text": "还有闰土",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 168610,
+      "end_ms": 171210,
+      "text": "他每到我家来时总问起你",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 171380,
+      "end_ms": 172910,
+      "text": "很想见你一回面",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 173490,
+      "end_ms": 176050,
+      "text": "我已经将你到家的大约日期通知他",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [
+        {
+          "text": "我",
+          "start_ms": 173490,
+          "end_ms": 173570,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "已",
+          "start_ms": 173570,
+          "end_ms": 173650,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "经",
+          "start_ms": 173650,
+          "end_ms": 173890,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "将",
+          "start_ms": 173890,
+          "end_ms": 174050,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "你",
+          "start_ms": 174050,
+          "end_ms": 174210,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "到",
+          "start_ms": 174210,
+          "end_ms": 174370,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "家",
+          "start_ms": 174370,
+          "end_ms": 174530,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "的",
+          "start_ms": 174530,
+          "end_ms": 174610,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "大",
+          "start_ms": 174610,
+          "end_ms": 174850,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "约",
+          "start_ms": 174850,
+          "end_ms": 175010,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "日",
+          "start_ms": 175010,
+          "end_ms": 175170,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "期",
+          "start_ms": 175170,
+          "end_ms": 175330,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "通",
+          "start_ms": 175330,
+          "end_ms": 175650,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "知",
+          "start_ms": 175650,
+          "end_ms": 175730,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "他",
+          "start_ms": 175730,
+          "end_ms": 176050,
+          "speakers": [
+            "S01"
+          ]
+        }
+      ],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 176350,
+      "end_ms": 177870,
+      "text": "他也许就要来了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [
+        {
+          "text": "他",
+          "start_ms": 176350,
+          "end_ms": 176670,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "也",
+          "start_ms": 176670,
+          "end_ms": 176910,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "许",
+          "start_ms": 176910,
+          "end_ms": 177070,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "就",
+          "start_ms": 177070,
+          "end_ms": 177230,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "要",
+          "start_ms": 177230,
+          "end_ms": 177310,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "来",
+          "start_ms": 177310,
+          "end_ms": 177550,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "了。",
+          "start_ms": 177550,
+          "end_ms": 177870,
+          "speakers": [
+            "S01"
+          ]
+        }
+      ],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 178920,
+      "end_ms": 191120,
+      "text": "这时候，我的脑里忽然闪出一幅神异的图画来，深蓝的天空中挂着一轮金黄的圆月，下面是海边的沙地，都种着一望无际的碧绿的西瓜。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 191320,
+      "end_ms": 202740,
+      "text": "其间有一个十一二岁的少年，项戴银圈，手捏一柄钢叉，向一匹茶尽力的刺去，那茶却将身一扭，反从他的胯下逃走了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 203920,
+      "end_ms": 211040,
+      "text": "这少年便是闰土，我认识他时也不过十多岁，离现在将有三十年了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 211460,
+      "end_ms": 216540,
+      "text": "那时我的父亲还在世，家境也好，我正是一个少爷。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 217150,
+      "end_ms": 224930,
+      "text": "那一年，我家是一件大祭祀的值年，这祭祀说是三十多年才能轮到一回，所以很郑重。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 225240,
+      "end_ms": 233820,
+      "text": "正月里供祖像，供品很多，祭器很讲究，拜的人也很多，祭器也很要防偷取。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 234610,
+      "end_ms": 251130,
+      "text": "我家只有一个忙月，我们这里给人做工的分三种，整年给一定人家做工的叫长工，按日给人做工的叫短工，自己也种地，只在过年过节以及收租时候来给一定人家做工的称忙月。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 251620,
+      "end_ms": 257620,
+      "text": "忙不过来，他便对父亲说，可以叫他的儿子闰土来管祭器的。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 259280,
+      "end_ms": 272040,
+      "text": "我的父亲允许了，我也很高兴，因为我早听到闰土这名字，而且知道他和我仿佛年纪，闰月生的，五行缺土，所以他的父亲叫他闰土。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 272650,
+      "end_ms": 275110,
+      "text": "他是能装匠捉小鸟雀的。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 276370,
+      "end_ms": 281530,
+      "text": "我于是日日盼望新年，新年到，闰土也就到了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 282120,
+      "end_ms": 288610,
+      "text": "好容易到了年末，有一日，母亲告诉我闰土来了，我便飞跑的去看。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 289190,
+      "end_ms": 305170,
+      "text": "他正在厨房里，紫色的圆脸，头戴一顶小毡帽，颈上套一个明晃晃的银项圈，这可见他的父亲十分爱他，怕他死去，所以在神佛面前许下愿心，用圈子将他套住了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 306740,
+      "end_ms": 315780,
+      "text": "他见人很怕羞，只是不怕我，没有旁人的时候便和我说话，于是不到半日，我们便熟识了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 317160,
+      "end_ms": 325220,
+      "text": "我们那时候不知道谈些什么，只记得闰土很高兴，说是上城之后见了许多没有见过的东西。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 326340,
+      "end_ms": 332110,
+      "text": "第二日，我便要他捕鸟，他说，这不能，需大雪下了才好。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 332320,
+      "end_ms": 350340,
+      "text": "我们沙地上，下了雪，我扫出一块空地来，用短棒支起一个大竹匾，撒下皮谷，看鸟雀来吃时，我远远的将附在棒上的绳子只一拉，那鸟雀就罩在竹匾下了，什么都有，稻鸡，角鸡，伯姑，蓝贝。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 351400,
+      "end_ms": 352040,
+      "text": "我于是",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [
+        {
+          "text": "我",
+          "start_ms": 351400,
+          "end_ms": 351400,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "于",
+          "start_ms": 351400,
+          "end_ms": 351560,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "是",
+          "start_ms": 351560,
+          "end_ms": 352040,
+          "speakers": [
+            "S01"
+          ]
+        }
+      ],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 352050,
+      "end_ms": 353330,
+      "text": "又很盼望下雪。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [
+        {
+          "text": "又",
+          "start_ms": 352050,
+          "end_ms": 352130,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "很",
+          "start_ms": 352130,
+          "end_ms": 352370,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "盼",
+          "start_ms": 352370,
+          "end_ms": 352530,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "望",
+          "start_ms": 352530,
+          "end_ms": 352690,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "下",
+          "start_ms": 352690,
+          "end_ms": 352930,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "雪。",
+          "start_ms": 352930,
+          "end_ms": 353330,
+          "speakers": [
+            "S01"
+          ]
+        }
+      ],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 354080,
+      "end_ms": 368240,
+      "text": "闰土又对我说，现在太冷，你夏天到我们这里来，我们日里到海边捡贝壳去，红的绿的都有，鬼见怕也有，观音手也有，晚上我和爹管西瓜去，你也去。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 369880,
+      "end_ms": 370730,
+      "text": "管贼吗？",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 371310,
+      "end_ms": 379610,
+      "text": "不是，走路的人口渴了摘一个瓜吃，我们这里是不算偷的，要管的是獾猪，刺猬，茶。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 380020,
+      "end_ms": 387140,
+      "text": "月亮底下，你听，啦啦的响了，茶在咬瓜了，你便捏了胡叉，轻轻地走去。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 387640,
+      "end_ms": 397320,
+      "text": "我那时并不知道这所谓茶的是怎么一件东西，便是现在也没有知道，只是无端的觉得状如小狗而很凶猛。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 398520,
+      "end_ms": 399820,
+      "text": "它不咬人吗？",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 400680,
+      "end_ms": 404680,
+      "text": "有胡叉呢，走到了，看见茶了，你便刺。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 404980,
+      "end_ms": 409180,
+      "text": "这畜生很凌厉，倒向你奔来，反从胯下窜了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 409520,
+      "end_ms": 411880,
+      "text": "它的皮毛是油一般的滑。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 413040,
+      "end_ms": 424420,
+      "text": "我素不知道天下有这许多新鲜事，海边有如许五色的贝壳，西瓜有这样危险的经历，我先前单知道它在水果店里出卖罢了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 425920,
+      "end_ms": 432780,
+      "text": "我们沙地里，潮汛要来的时候，就有许多跳鱼儿只是跳，都有青蛙似的两个脚。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 434440,
+      "end_ms": 441120,
+      "text": "啊，闰土的心里有无穷无尽的稀奇的事，都是我往常的朋友所不知道的。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 441420,
+      "end_ms": 449640,
+      "text": "他们不知道一些事，闰土在海边时，他们都和我一样，只看见院子里高墙上的四角的天空。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 451920,
+      "end_ms": 455620,
+      "text": "可惜正月过去了，闰土须回家里去。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 455920,
+      "end_ms": 462840,
+      "text": "我急得大哭，他也躲到厨房里，哭着不肯出门，但终于被他父亲带走了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 463080,
+      "end_ms": 472380,
+      "text": "他后来还托他的父亲带给我一包贝壳和几只很好看的鸟毛，我也曾送他一两次东西，但从此没有再见面。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 473320,
+      "end_ms": 482980,
+      "text": "现在我的母亲提起了他，我这儿时的记忆，忽而全都闪电似的苏生过来，似乎看到了我的美丽的故乡了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 483520,
+      "end_ms": 487320,
+      "text": "我应声说，这好极，他怎样？",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 488880,
+      "end_ms": 494180,
+      "text": "他，他景况也很不如意，母亲说着，便向房外看。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 494680,
+      "end_ms": 501120,
+      "text": "这些人又来了，说是买木器，顺手也就随便拿走的，我得去看看。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 503020,
+      "end_ms": 514440,
+      "text": "母亲站起身出去了，门外有几个女人的身影，我便召红儿走进面前，和她闲话，问她可会写字，可愿意出门。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 516020,
+      "end_ms": 517820,
+      "text": "我们坐火车去吗？",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 519120,
+      "end_ms": 520520,
+      "text": "我们坐火车去。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 521020,
+      "end_ms": 521720,
+      "text": "船呢？",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 522620,
+      "end_ms": 523720,
+      "text": "先坐船。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 525800,
+      "end_ms": 527960,
+      "text": "哈，这模样了，胡子",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [
+        {
+          "text": "哈，",
+          "start_ms": 525800,
+          "end_ms": 526200,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "这",
+          "start_ms": 526200,
+          "end_ms": 526680,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "模",
+          "start_ms": 526600,
+          "end_ms": 526920,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "样",
+          "start_ms": 526920,
+          "end_ms": 527160,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "了，",
+          "start_ms": 527160,
+          "end_ms": 527480,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "胡",
+          "start_ms": 527560,
+          "end_ms": 527800,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "子",
+          "start_ms": 527800,
+          "end_ms": 527960,
+          "speakers": [
+            "S01"
+          ]
+        }
+      ],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 527950,
+      "end_ms": 528910,
+      "text": "这么长了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [
+        {
+          "text": "这",
+          "start_ms": 527950,
+          "end_ms": 528110,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "么",
+          "start_ms": 528110,
+          "end_ms": 528270,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "长",
+          "start_ms": 528270,
+          "end_ms": 528590,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "了。",
+          "start_ms": 528590,
+          "end_ms": 528910,
+          "speakers": [
+            "S01"
+          ]
+        }
+      ],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 529310,
+      "end_ms": 532050,
+      "text": "一种尖利的怪声突然大叫起来。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 532830,
+      "end_ms": 548230,
+      "text": "我吃了一喝，赶忙抬起头，却见一个凸颧骨，薄嘴唇，五十岁上下的女人站在我面前，两手搭在皮肩，没有系裙，张着两脚，正像一个画图仪器里细角伶仃的圆规。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 549310,
+      "end_ms": 550350,
+      "text": "我愕然了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 551830,
+      "end_ms": 554710,
+      "text": "不认识了吗？我还抱过你嘞。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 555910,
+      "end_ms": 563430,
+      "text": "我愈加愕然了，幸而我的母亲也就进来，从旁说，她多年出门，统忘却了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 564330,
+      "end_ms": 570550,
+      "text": "你该记得吧，便向着我说，这是斜对门的杨二嫂，开豆腐店的。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 571570,
+      "end_ms": 591110,
+      "text": "哦，我记得了，我孩子时候，在斜对门的豆腐店里，却乎终日坐着一个杨二嫂，人都叫伊豆腐西施，但是擦着白粉，颧骨没有这么高，嘴唇也没有这么薄，而且终日坐着，我也从没有见过这圆规式的姿势。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 591550,
+      "end_ms": 603230,
+      "text": "那时人说，因为伊这豆腐店的买卖非常好，但这大约因为年龄的关系，我却并未蒙着一好感化，所以竟完全忘却了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 604350,
+      "end_ms": 615950,
+      "text": "然而圆规很不平，显出鄙夷的神色，仿佛嗤笑法国人不知道拿破仑，美国人不知道华盛顿似的，冷笑说，忘了，这真是贵人",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [
+        {
+          "text": "然",
+          "start_ms": 604350,
+          "end_ms": 604430,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "而",
+          "start_ms": 604430,
+          "end_ms": 604590,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "圆",
+          "start_ms": 604590,
+          "end_ms": 604830,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "规",
+          "start_ms": 604830,
+          "end_ms": 604990,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "很",
+          "start_ms": 604990,
+          "end_ms": 605150,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "不",
+          "start_ms": 605150,
+          "end_ms": 605310,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "平，",
+          "start_ms": 605310,
+          "end_ms": 605710,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "显",
+          "start_ms": 606030,
+          "end_ms": 606190,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "出",
+          "start_ms": 606190,
+          "end_ms": 606350,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "鄙",
+          "start_ms": 606350,
+          "end_ms": 606510,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "夷",
+          "start_ms": 606510,
+          "end_ms": 606670,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "的",
+          "start_ms": 606670,
+          "end_ms": 606830,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "神",
+          "start_ms": 606830,
+          "end_ms": 607070,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "色，",
+          "start_ms": 607070,
+          "end_ms": 607310,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "仿",
+          "start_ms": 607630,
+          "end_ms": 607790,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "佛",
+          "start_ms": 607790,
+          "end_ms": 608110,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "嗤",
+          "start_ms": 608110,
+          "end_ms": 608350,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "笑",
+          "start_ms": 608350,
+          "end_ms": 608510,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "法",
+          "start_ms": 608510,
+          "end_ms": 608750,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "国",
+          "start_ms": 608750,
+          "end_ms": 608910,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "人",
+          "start_ms": 608910,
+          "end_ms": 608990,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "不",
+          "start_ms": 608990,
+          "end_ms": 609230,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "知",
+          "start_ms": 609230,
+          "end_ms": 609310,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "道",
+          "start_ms": 609310,
+          "end_ms": 609550,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "拿",
+          "start_ms": 609550,
+          "end_ms": 609630,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "破",
+          "start_ms": 609630,
+          "end_ms": 609870,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "仑，",
+          "start_ms": 609870,
+          "end_ms": 610190,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "美",
+          "start_ms": 610350,
+          "end_ms": 610590,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "国",
+          "start_ms": 610590,
+          "end_ms": 610670,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "人",
+          "start_ms": 610670,
+          "end_ms": 610830,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "不",
+          "start_ms": 610830,
+          "end_ms": 610990,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "知",
+          "start_ms": 610990,
+          "end_ms": 611150,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "道",
+          "start_ms": 611150,
+          "end_ms": 611230,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "华",
+          "start_ms": 611230,
+          "end_ms": 611390,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "盛",
+          "start_ms": 611390,
+          "end_ms": 611630,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "顿",
+          "start_ms": 611630,
+          "end_ms": 611790,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "似",
+          "start_ms": 611790,
+          "end_ms": 612030,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "的，",
+          "start_ms": 612030,
+          "end_ms": 612190,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "冷",
+          "start_ms": 612430,
+          "end_ms": 612590,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "笑",
+          "start_ms": 612590,
+          "end_ms": 612830,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "说，",
+          "start_ms": 612830,
+          "end_ms": 613230,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "忘",
+          "start_ms": 613870,
+          "end_ms": 614190,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "了，",
+          "start_ms": 614190,
+          "end_ms": 614510,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "这",
+          "start_ms": 614830,
+          "end_ms": 614990,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "真",
+          "start_ms": 614990,
+          "end_ms": 615230,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "是",
+          "start_ms": 615230,
+          "end_ms": 615470,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "贵",
+          "start_ms": 615470,
+          "end_ms": 615710,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "人",
+          "start_ms": 615710,
+          "end_ms": 615950,
+          "speakers": [
+            "S01"
+          ]
+        }
+      ],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 616110,
+      "end_ms": 616510,
+      "text": "高。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [
+        {
+          "text": "高。",
+          "start_ms": 616110,
+          "end_ms": 616510,
+          "speakers": [
+            "S01"
+          ]
+        }
+      ],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 617730,
+      "end_ms": 621610,
+      "text": "哪有这事，我我惶恐着站起来说。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 621980,
+      "end_ms": 631720,
+      "text": "那么我对你说，迅哥儿，你阔了，搬动又笨重，你还要什么这些破烂木器，让我拿去吧，我们小户人家用得着。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 633220,
+      "end_ms": 637010,
+      "text": "我并没有阔嘞，我我去卖了这些再去。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 637680,
+      "end_ms": 648860,
+      "text": "哎呀呀，你放了道台了，还说不阔，你现在有三房姨太太，出门便是八抬的大轿，还说不阔，哈，什么都瞒不过我。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 650210,
+      "end_ms": 654580,
+      "text": "我知道无话可说了，便闭了口，默默地站着。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 655400,
+      "end_ms": 660040,
+      "text": "哎呀哎呀，真是愈有钱便愈是一毫不肯放松，愈是",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [
+        {
+          "text": "哎",
+          "start_ms": 655400,
+          "end_ms": 655800,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "呀",
+          "start_ms": 655800,
+          "end_ms": 656280,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "哎",
+          "start_ms": 656280,
+          "end_ms": 656280,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "呀，",
+          "start_ms": 656360,
+          "end_ms": 656600,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "真",
+          "start_ms": 656600,
+          "end_ms": 656840,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "是",
+          "start_ms": 656840,
+          "end_ms": 657000,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "愈",
+          "start_ms": 657000,
+          "end_ms": 657320,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "有",
+          "start_ms": 657320,
+          "end_ms": 657480,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "钱",
+          "start_ms": 657480,
+          "end_ms": 657720,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "便",
+          "start_ms": 657720,
+          "end_ms": 657960,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "愈",
+          "start_ms": 657960,
+          "end_ms": 658120,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "是",
+          "start_ms": 658120,
+          "end_ms": 658280,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "一",
+          "start_ms": 658280,
+          "end_ms": 658440,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "毫",
+          "start_ms": 658440,
+          "end_ms": 658680,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "不",
+          "start_ms": 658680,
+          "end_ms": 658760,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "肯",
+          "start_ms": 658760,
+          "end_ms": 658920,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "放",
+          "start_ms": 658920,
+          "end_ms": 659160,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "松，",
+          "start_ms": 659160,
+          "end_ms": 659480,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "愈",
+          "start_ms": 659800,
+          "end_ms": 659880,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "是",
+          "start_ms": 659880,
+          "end_ms": 660040,
+          "speakers": [
+            "S01"
+          ]
+        }
+      ],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 660030,
+      "end_ms": 662190,
+      "text": "一毫不肯放松，便愈有钱。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [
+        {
+          "text": "一",
+          "start_ms": 660030,
+          "end_ms": 660190,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "毫",
+          "start_ms": 660190,
+          "end_ms": 660430,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "不",
+          "start_ms": 660430,
+          "end_ms": 660510,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "肯",
+          "start_ms": 660510,
+          "end_ms": 660670,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "放",
+          "start_ms": 660670,
+          "end_ms": 660910,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "松，",
+          "start_ms": 660910,
+          "end_ms": 661150,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "便",
+          "start_ms": 661150,
+          "end_ms": 661310,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "愈",
+          "start_ms": 661310,
+          "end_ms": 661470,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "有",
+          "start_ms": 661470,
+          "end_ms": 661630,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "钱。",
+          "start_ms": 661630,
+          "end_ms": 662190,
+          "speakers": [
+            "S01"
+          ]
+        }
+      ],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 662750,
+      "end_ms": 672110,
+      "text": "圆规一面愤愤的回转身，一面续续的说，慢慢向外走，顺便将我母亲的一副手套塞在裤腰里，出去了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 672960,
+      "end_ms": 681940,
+      "text": "此后又有近处的本家和亲戚来访问我，我一面应酬，偷空便收拾些行李，这样的过了三四天。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 683450,
+      "end_ms": 691540,
+      "text": "一日是天气很冷的午后，我吃过午饭，坐着喝茶，觉得外面有人进来了，便回头去看。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 692050,
+      "end_ms": 696720,
+      "text": "我看时不由得非常出惊，慌忙站起身，迎着走去。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 698580,
+      "end_ms": 703990,
+      "text": "进来的便是闰土，虽然我一见便知道是闰土，但又不是我。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 704080,
+      "end_ms": 705680,
+      "text": "我这记忆上的闰土了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [
+        {
+          "text": "我",
+          "start_ms": 704080,
+          "end_ms": 704080,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "这",
+          "start_ms": 704080,
+          "end_ms": 704240,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "记",
+          "start_ms": 704240,
+          "end_ms": 704480,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "忆",
+          "start_ms": 704480,
+          "end_ms": 704640,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "上",
+          "start_ms": 704640,
+          "end_ms": 704720,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "的",
+          "start_ms": 704720,
+          "end_ms": 704880,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "闰",
+          "start_ms": 704880,
+          "end_ms": 705120,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "土",
+          "start_ms": 705120,
+          "end_ms": 705360,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "了。",
+          "start_ms": 705360,
+          "end_ms": 705680,
+          "speakers": [
+            "S01"
+          ]
+        }
+      ],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 706280,
+      "end_ms": 718040,
+      "text": "他身材增加了一倍，先前的紫色的圆脸已经变作灰黄，而且加上了很深的皱纹，眼睛也像他父亲一样，周围都肿得通红。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 718430,
+      "end_ms": 723940,
+      "text": "这我知道，在海边种地的人，终日吹着海风，大抵是这样的。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 724910,
+      "end_ms": 733980,
+      "text": "他头上是一顶破毡帽，身上只一件极薄的棉衣，浑身瑟缩着，手里提着一个纸包和一支长烟管。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 734660,
+      "end_ms": 742180,
+      "text": "那手也不是我所记得的红活圆实的手，却又粗又笨，而且开裂，像是松树皮了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 743960,
+      "end_ms": 751410,
+      "text": "我这时很兴奋，但不知道怎么说才好，只是说，啊闰土哥，你来了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 752340,
+      "end_ms": 765620,
+      "text": "我接着便有许多话，想要连珠一般涌出，搅鸡，跳鱼儿，贝壳，茶，但又总觉得被什么挡着似的，但在脑里面回旋，吐不出口外去。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 767580,
+      "end_ms": 774280,
+      "text": "他站住了，脸上现出欢喜和凄凉的神情，动着嘴唇，却没有做声。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 774830,
+      "end_ms": 780040,
+      "text": "他的态度终于恭敬起来了，分明的叫道，老爷。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 782350,
+      "end_ms": 790610,
+      "text": "我似乎打了一个寒噤，我就知道，我们之间已经隔了一层可悲的厚障壁了，我也说不出话。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 791940,
+      "end_ms": 804680,
+      "text": "他回过头去说，水生，给老爷磕头，便拖出躲在背后的孩子来，这正是一个念年前的闰土，只是黄瘦些，颈子上没有银圈罢了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 805730,
+      "end_ms": 810020,
+      "text": "这是第五个孩子，没有见过世面，躲躲闪闪。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 810850,
+      "end_ms": 815140,
+      "text": "母亲和红儿下楼来了，他们大约也听到了声音。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 816860,
+      "end_ms": 822850,
+      "text": "老太太，信是早收到了，我实在喜欢的不得了，知道老爷回来。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 823340,
+      "end_ms": 824320,
+      "text": "闰土说。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 825170,
+      "end_ms": 831560,
+      "text": "啊，你怎的这样客气起来，你们先前不是割地称呼吗，还是照旧，训哥儿。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 831880,
+      "end_ms": 833280,
+      "text": "母亲高兴的说。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 833960,
+      "end_ms": 839560,
+      "text": "哎呀，老太太真是，这成什么规矩，那时是孩子，不懂事。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 839820,
+      "end_ms": 846690,
+      "text": "闰土说着，又叫水生上来打拱，那孩子却害羞，紧紧的只贴在他背后。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 847650,
+      "end_ms": 854720,
+      "text": "他就是水生，第五个，都是生人，怕生也难怪的，还是红儿和他去走走。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 855110,
+      "end_ms": 856020,
+      "text": "母亲说。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 857680,
+      "end_ms": 863540,
+      "text": "红儿听得这话，便来招水生，水生却松松爽爽同她一路出去了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 864390,
+      "end_ms": 879910,
+      "text": "母亲叫闰土坐，他迟疑了一回，终于就了坐，将长烟管靠在桌旁，递过纸包来说，冬天没有什么东西了，这点干青豆倒是自家晒在那里的，请老爷。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [
+        {
+          "text": "母",
+          "start_ms": 864390,
+          "end_ms": 864550,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "亲",
+          "start_ms": 864550,
+          "end_ms": 864790,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "叫",
+          "start_ms": 864790,
+          "end_ms": 864950,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "闰",
+          "start_ms": 864950,
+          "end_ms": 865190,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "土",
+          "start_ms": 865190,
+          "end_ms": 865350,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "坐，",
+          "start_ms": 865350,
+          "end_ms": 865910,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "他",
+          "start_ms": 866390,
+          "end_ms": 866550,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "迟",
+          "start_ms": 866550,
+          "end_ms": 866870,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "疑",
+          "start_ms": 866870,
+          "end_ms": 866950,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "了",
+          "start_ms": 866950,
+          "end_ms": 867030,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "一",
+          "start_ms": 867030,
+          "end_ms": 867190,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "回，",
+          "start_ms": 867190,
+          "end_ms": 867590,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "终",
+          "start_ms": 867830,
+          "end_ms": 867990,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "于",
+          "start_ms": 867990,
+          "end_ms": 868150,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "就",
+          "start_ms": 868150,
+          "end_ms": 868390,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "了",
+          "start_ms": 868390,
+          "end_ms": 868470,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "坐，",
+          "start_ms": 868470,
+          "end_ms": 868950,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "将",
+          "start_ms": 869270,
+          "end_ms": 869510,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "长",
+          "start_ms": 869510,
+          "end_ms": 869750,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "烟",
+          "start_ms": 869750,
+          "end_ms": 869910,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "管",
+          "start_ms": 869910,
+          "end_ms": 870230,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "靠",
+          "start_ms": 870310,
+          "end_ms": 870550,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "在",
+          "start_ms": 870550,
+          "end_ms": 870630,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "桌",
+          "start_ms": 870630,
+          "end_ms": 870870,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "旁，",
+          "start_ms": 870870,
+          "end_ms": 871190,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "递",
+          "start_ms": 871510,
+          "end_ms": 871670,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "过",
+          "start_ms": 871670,
+          "end_ms": 871750,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "纸",
+          "start_ms": 871750,
+          "end_ms": 871990,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "包",
+          "start_ms": 871990,
+          "end_ms": 872230,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "来",
+          "start_ms": 872230,
+          "end_ms": 872550,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "说，",
+          "start_ms": 872550,
+          "end_ms": 873110,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "冬",
+          "start_ms": 873910,
+          "end_ms": 874150,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "天",
+          "start_ms": 874150,
+          "end_ms": 874470,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "没",
+          "start_ms": 874470,
+          "end_ms": 874630,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "有",
+          "start_ms": 874630,
+          "end_ms": 874710,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "什",
+          "start_ms": 874710,
+          "end_ms": 874950,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "么",
+          "start_ms": 874950,
+          "end_ms": 875030,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "东",
+          "start_ms": 875030,
+          "end_ms": 875270,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "西",
+          "start_ms": 875270,
+          "end_ms": 875430,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "了，",
+          "start_ms": 875430,
+          "end_ms": 875750,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "这",
+          "start_ms": 876070,
+          "end_ms": 876230,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "点",
+          "start_ms": 876230,
+          "end_ms": 876470,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "干",
+          "start_ms": 876550,
+          "end_ms": 876710,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "青",
+          "start_ms": 876710,
+          "end_ms": 876950,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "豆",
+          "start_ms": 876950,
+          "end_ms": 877270,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "倒",
+          "start_ms": 877270,
+          "end_ms": 877430,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "是",
+          "start_ms": 877430,
+          "end_ms": 877510,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "自",
+          "start_ms": 877510,
+          "end_ms": 877750,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "家",
+          "start_ms": 877750,
+          "end_ms": 877910,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "晒",
+          "start_ms": 877910,
+          "end_ms": 878230,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "在",
+          "start_ms": 878230,
+          "end_ms": 878310,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "那",
+          "start_ms": 878310,
+          "end_ms": 878550,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "里",
+          "start_ms": 878550,
+          "end_ms": 878630,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "的，",
+          "start_ms": 878630,
+          "end_ms": 878870,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "请",
+          "start_ms": 879030,
+          "end_ms": 879350,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "老",
+          "start_ms": 879350,
+          "end_ms": 879510,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "爷。",
+          "start_ms": 879510,
+          "end_ms": 879910,
+          "speakers": [
+            "S01"
+          ]
+        }
+      ],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 880590,
+      "end_ms": 883470,
+      "text": "我问问他的境况，他只是摇头。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [
+        {
+          "text": "我",
+          "start_ms": 880590,
+          "end_ms": 880670,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "问",
+          "start_ms": 880830,
+          "end_ms": 880990,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "问",
+          "start_ms": 880990,
+          "end_ms": 881070,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "他",
+          "start_ms": 881070,
+          "end_ms": 881230,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "的",
+          "start_ms": 881230,
+          "end_ms": 881310,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "境",
+          "start_ms": 881310,
+          "end_ms": 881550,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "况，",
+          "start_ms": 881550,
+          "end_ms": 882030,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "他",
+          "start_ms": 882350,
+          "end_ms": 882510,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "只",
+          "start_ms": 882510,
+          "end_ms": 882670,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "是",
+          "start_ms": 882670,
+          "end_ms": 882910,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "摇",
+          "start_ms": 882910,
+          "end_ms": 883070,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "头。",
+          "start_ms": 883070,
+          "end_ms": 883470,
+          "speakers": [
+            "S01"
+          ]
+        }
+      ],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 884250,
+      "end_ms": 896560,
+      "text": "非常难，第六个孩子也会帮忙了，却总是吃不够，又不太平，什么地方都要钱，没有规定，收成又坏。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 897250,
+      "end_ms": 904120,
+      "text": "种出东西来，挑去卖，总要捐几回钱，折了本，不去卖，又只能烂掉。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 905260,
+      "end_ms": 912660,
+      "text": "他只是摇头，脸上虽然刻着许多皱纹，却全然不动，仿佛石像一般。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 913120,
+      "end_ms": 920820,
+      "text": "他大约只是觉得苦，却又形容不出，沉默了片时，便拿起烟管来默默地吸烟了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 922040,
+      "end_ms": 931740,
+      "text": "母亲问他，知道他的家里事务忙，明天便得回去，又没有吃过午饭，便叫他自己到厨下炒饭吃去。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 933240,
+      "end_ms": 937410,
+      "text": "他出去了，母亲和我都叹息他的境况。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 938020,
+      "end_ms": 946680,
+      "text": "多子，饥荒，瞌睡，兵，匪，官，绅，都苦得他像一个木偶人了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 947810,
+      "end_ms": 954310,
+      "text": "母亲对我说，凡是不必搬走的东西，尽可以送他，可以听他自己去谴责。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 955450,
+      "end_ms": 964420,
+      "text": "下午，他拣好了几件东西，两条长桌，四个椅子，一副香炉和烛台，一杆台秤。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 965230,
+      "end_ms": 972710,
+      "text": "他又要所有的草灰，我们这里煮饭是烧稻草的，那灰可以做沙地的肥料。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 973130,
+      "end_ms": 976480,
+      "text": "待我们启程的时候，他用船来载去。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 978750,
+      "end_ms": 986820,
+      "text": "夜间，我们又谈些闲天，都是无关紧要的话，第二天早晨，他就领了水生回去了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 988840,
+      "end_ms": 998880,
+      "text": "又过了九日，是我们启程的日期，闰土早晨便到了，水生没有同来，却只带着一个五岁的女儿管船只。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 999300,
+      "end_ms": 1002880,
+      "text": "我们终日很忙碌，再没有谈天的工夫。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1003280,
+      "end_ms": 1009680,
+      "text": "来客也不少，有送行的，有拿东西的，有送行兼拿东西的。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1010910,
+      "end_ms": 1018980,
+      "text": "待到傍晚，我们上船的时候，这老屋里的所有破旧大小粗细东西，已经一扫而空了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1020950,
+      "end_ms": 1029460,
+      "text": "我们的船向前走，两岸的青山在黄昏中，都装成了深黛颜色，连着退向船后梢去。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1030480,
+      "end_ms": 1038720,
+      "text": "红儿和我靠着船窗，同看外面模糊的风景，她忽然问道，大伯，我们什么时候回来？",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1040080,
+      "end_ms": 1043810,
+      "text": "回来，你怎么还没有走，就想回来了？",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1044980,
+      "end_ms": 1048160,
+      "text": "可是，水生约我到他家玩去嘞。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1048730,
+      "end_ms": 1051740,
+      "text": "他睁着大的黑眼睛，痴痴地想。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1053080,
+      "end_ms": 1056120,
+      "text": "我和母亲也都有些惘然，于是",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [
+        {
+          "text": "我",
+          "start_ms": 1053080,
+          "end_ms": 1053160,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "和",
+          "start_ms": 1053160,
+          "end_ms": 1053320,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "母",
+          "start_ms": 1053320,
+          "end_ms": 1053560,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "亲",
+          "start_ms": 1053560,
+          "end_ms": 1053960,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "也",
+          "start_ms": 1053960,
+          "end_ms": 1054040,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "都",
+          "start_ms": 1054040,
+          "end_ms": 1054280,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "有",
+          "start_ms": 1054280,
+          "end_ms": 1054360,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "些",
+          "start_ms": 1054360,
+          "end_ms": 1054520,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "惘",
+          "start_ms": 1054520,
+          "end_ms": 1054840,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "然，",
+          "start_ms": 1054840,
+          "end_ms": 1055160,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "于",
+          "start_ms": 1055720,
+          "end_ms": 1055800,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "是",
+          "start_ms": 1055800,
+          "end_ms": 1056120,
+          "speakers": [
+            "S01"
+          ]
+        }
+      ],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1056110,
+      "end_ms": 1057470,
+      "text": "又提起闰土来。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [
+        {
+          "text": "又",
+          "start_ms": 1056110,
+          "end_ms": 1056270,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "提",
+          "start_ms": 1056270,
+          "end_ms": 1056510,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "起",
+          "start_ms": 1056510,
+          "end_ms": 1056670,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "闰",
+          "start_ms": 1056670,
+          "end_ms": 1056830,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "土",
+          "start_ms": 1056830,
+          "end_ms": 1057070,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "来。",
+          "start_ms": 1057070,
+          "end_ms": 1057470,
+          "speakers": [
+            "S01"
+          ]
+        }
+      ],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1058060,
+      "end_ms": 1065110,
+      "text": "母亲说，那豆腐稀湿的杨二嫂，自从我家收拾行李以来，本是每日必到的。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1065480,
+      "end_ms": 1076020,
+      "text": "前天依在灰堆里掏出十多个碗碟来，议论之后，便定说是闰土埋着的，它可以在运灰的时候一齐搬回家里去。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1076890,
+      "end_ms": 1093940,
+      "text": "杨二嫂发现了这件事，自己很以为功，便拿了那狗气沙，这是我们这里养鸡的器具，木盘上面有着闸栏，内层石料，鸡可以伸进颈子去啄，狗却不能，只能看着气死，飞也似的跑了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1094240,
+      "end_ms": 1097920,
+      "text": "亏依装着这么高低的小脚，竟跑得这样快。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1100120,
+      "end_ms": 1114810,
+      "text": "老屋离我愈远了，故乡的山水也都渐渐远离了我，但我却并不感到怎样的留恋，我只觉得我四面有看不见的高墙，将我隔成孤身，使我非常气闷。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1115020,
+      "end_ms": 1124110,
+      "text": "那西瓜地上的银项圈的小英雄的影像，我本来十分清楚，现在却忽得模糊了，又使我非常的悲哀。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1126650,
+      "end_ms": 1129080,
+      "text": "母亲和红儿都睡着了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1130020,
+      "end_ms": 1135110,
+      "text": "我躺着，听船底潺潺的水声，知道我在走我的路。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1135530,
+      "end_ms": 1144220,
+      "text": "我想，我竟与闰土隔绝到这地步了，但我们的后辈还是一气，红儿不是正在想念水声吗？",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1144740,
+      "end_ms": 1148480,
+      "text": "我希望他们不再像我，又大家隔膜起来。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1149420,
+      "end_ms": 1162630,
+      "text": "然而我又不愿意他们因为要一气，都如我的辛苦辗转而生活，也不愿意他们都如闰土的辛苦麻木而生活，也不愿意都如别人的辛苦自睢而生活。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1162970,
+      "end_ms": 1168020,
+      "text": "他们应该有新的生活，为我们所未经生活过的。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1168760,
+      "end_ms": 1171580,
+      "text": "我想到希望，忽然害怕起来了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1171930,
+      "end_ms": 1179880,
+      "text": "闰土要香炉和烛台的时候，我还暗地里笑他，以为他总是崇拜偶像，什么时候都不忘却。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1180360,
+      "end_ms": 1184680,
+      "text": "现在我所谓希望，不也是我自己手制的偶像吗？",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1185040,
+      "end_ms": 1189160,
+      "text": "只是他的愿望切近，我的愿望茫远罢了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1190280,
+      "end_ms": 1198820,
+      "text": "我在朦胧中，眼前展开一片海边碧绿的沙地来，上面深蓝的天空中挂着一轮金黄的圆月。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1199040,
+      "end_ms": 1210040,
+      "text": "我想，希望本是无所谓有，无所谓无的，这正如地上的路，其实地上本没有路，走的人多了，也便成了路。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1210720,
+      "end_ms": 1212740,
+      "text": "一九二一年一月。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1214020,
+      "end_ms": 1215480,
+      "text": "故乡结束。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1215710,
+      "end_ms": 1217780,
+      "text": "此次录音由李晶提供。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    }
+  ],
+  "activity": [
+    {
+      "start_ms": 31,
+      "end_ms": 2430,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 2731,
+      "end_ms": 3650,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 3960,
+      "end_ms": 6600,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 7400,
+      "end_ms": 12700,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 13510,
+      "end_ms": 21460,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 21890,
+      "end_ms": 23760,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 23808,
+      "end_ms": 25500,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 25580,
+      "end_ms": 29770,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 30630,
+      "end_ms": 33110,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 35090,
+      "end_ms": 39780,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 41200,
+      "end_ms": 44020,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 44270,
+      "end_ms": 46260,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 46580,
+      "end_ms": 52720,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 53060,
+      "end_ms": 54640,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 55650,
+      "end_ms": 57600,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 57660,
+      "end_ms": 59380,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 59560,
+      "end_ms": 63500,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 63680,
+      "end_ms": 66440,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 66660,
+      "end_ms": 70100,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 71560,
+      "end_ms": 74440,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 74930,
+      "end_ms": 79480,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 79630,
+      "end_ms": 82050,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 82250,
+      "end_ms": 86780,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 86840,
+      "end_ms": 88990,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 89080,
+      "end_ms": 91640,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 93570,
+      "end_ms": 96500,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 96860,
+      "end_ms": 100070,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 100140,
+      "end_ms": 103400,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 103850,
+      "end_ms": 107860,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 108370,
+      "end_ms": 112340,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 112430,
+      "end_ms": 115320,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 116890,
+      "end_ms": 118710,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 118910,
+      "end_ms": 121510,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 121760,
+      "end_ms": 123760,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 123840,
+      "end_ms": 124760,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 125024,
+      "end_ms": 126820,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 127620,
+      "end_ms": 129230,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 129260,
+      "end_ms": 131570,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 133140,
+      "end_ms": 135630,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 136140,
+      "end_ms": 140390,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 140640,
+      "end_ms": 144730,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 145620,
+      "end_ms": 147110,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 147170,
+      "end_ms": 149450,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 149459,
+      "end_ms": 152530,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 152680,
+      "end_ms": 154320,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 156680,
+      "end_ms": 162050,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 162390,
+      "end_ms": 163410,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 164430,
+      "end_ms": 165300,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 167180,
+      "end_ms": 168460,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 168600,
+      "end_ms": 173040,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 173420,
+      "end_ms": 176350,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 176360,
+      "end_ms": 178050,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 178910,
+      "end_ms": 183120,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 183260,
+      "end_ms": 188510,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 188550,
+      "end_ms": 191230,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 191310,
+      "end_ms": 198840,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 198880,
+      "end_ms": 202850,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 203920,
+      "end_ms": 205750,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 206250,
+      "end_ms": 208760,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 208890,
+      "end_ms": 211130,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 211500,
+      "end_ms": 213720,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 213730,
+      "end_ms": 214970,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 215050,
+      "end_ms": 216640,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 217180,
+      "end_ms": 225020,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 225240,
+      "end_ms": 228170,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 228190,
+      "end_ms": 229870,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 230040,
+      "end_ms": 231650,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 231660,
+      "end_ms": 233910,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 234640,
+      "end_ms": 236540,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 236900,
+      "end_ms": 239410,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 239530,
+      "end_ms": 242460,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 242570,
+      "end_ms": 251270,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 251640,
+      "end_ms": 252770,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 252810,
+      "end_ms": 257710,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 259320,
+      "end_ms": 260900,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 260969,
+      "end_ms": 262220,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 262320,
+      "end_ms": 269730,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 269840,
+      "end_ms": 272120,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 272670,
+      "end_ms": 275230,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 276400,
+      "end_ms": 278750,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 278910,
+      "end_ms": 281600,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 282160,
+      "end_ms": 286990,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 287090,
+      "end_ms": 288680,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 289230,
+      "end_ms": 290710,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 290800,
+      "end_ms": 292080,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 292160,
+      "end_ms": 293670,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 293720,
+      "end_ms": 296340,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 296550,
+      "end_ms": 300220,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 300400,
+      "end_ms": 303090,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 303120,
+      "end_ms": 305270,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 306750,
+      "end_ms": 308400,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 308405,
+      "end_ms": 309720,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 309890,
+      "end_ms": 312550,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 312770,
+      "end_ms": 315850,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 317210,
+      "end_ms": 321360,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 321510,
+      "end_ms": 325300,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 326380,
+      "end_ms": 328540,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 328700,
+      "end_ms": 329550,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 329680,
+      "end_ms": 332200,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 332370,
+      "end_ms": 339260,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 339360,
+      "end_ms": 343820,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 343850,
+      "end_ms": 345980,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 346019,
+      "end_ms": 346980,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 347090,
+      "end_ms": 350430,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 351310,
+      "end_ms": 353540,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 354170,
+      "end_ms": 358750,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 358930,
+      "end_ms": 362580,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 362700,
+      "end_ms": 364010,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 364058,
+      "end_ms": 365330,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 365520,
+      "end_ms": 368380,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 369920,
+      "end_ms": 370830,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 371390,
+      "end_ms": 376300,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 376500,
+      "end_ms": 378040,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 378065,
+      "end_ms": 378830,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 378960,
+      "end_ms": 379700,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 380120,
+      "end_ms": 384150,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 384340,
+      "end_ms": 387270,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 387720,
+      "end_ms": 391650,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 391830,
+      "end_ms": 393720,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 393880,
+      "end_ms": 397400,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 398610,
+      "end_ms": 399920,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 400780,
+      "end_ms": 404730,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 405060,
+      "end_ms": 409280,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 409590,
+      "end_ms": 411990,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 413150,
+      "end_ms": 416380,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 416510,
+      "end_ms": 424510,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 426010,
+      "end_ms": 432860,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 434560,
+      "end_ms": 441260,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 441500,
+      "end_ms": 443330,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 443370,
+      "end_ms": 449720,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 452000,
+      "end_ms": 455720,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 455980,
+      "end_ms": 460440,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 460660,
+      "end_ms": 462930,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 463150,
+      "end_ms": 468220,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 468390,
+      "end_ms": 470460,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 470540,
+      "end_ms": 472450,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 473380,
+      "end_ms": 477560,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 477590,
+      "end_ms": 483050,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 483610,
+      "end_ms": 484690,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 484715,
+      "end_ms": 487410,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 488930,
+      "end_ms": 491850,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 491970,
+      "end_ms": 494300,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 494740,
+      "end_ms": 496360,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 496426,
+      "end_ms": 499750,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 500020,
+      "end_ms": 501190,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 503100,
+      "end_ms": 505390,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 505780,
+      "end_ms": 507860,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 508090,
+      "end_ms": 511350,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 511530,
+      "end_ms": 513220,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 513260,
+      "end_ms": 514530,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 516090,
+      "end_ms": 517870,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 519190,
+      "end_ms": 520570,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 521050,
+      "end_ms": 521800,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 522670,
+      "end_ms": 523800,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 525760,
+      "end_ms": 529120,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 529310,
+      "end_ms": 532190,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 532800,
+      "end_ms": 534130,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 534200,
+      "end_ms": 535660,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 535700,
+      "end_ms": 540900,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 540920,
+      "end_ms": 543780,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 543840,
+      "end_ms": 544960,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 545030,
+      "end_ms": 548370,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 549340,
+      "end_ms": 550470,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 551820,
+      "end_ms": 552930,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 553420,
+      "end_ms": 554800,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 555910,
+      "end_ms": 557360,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 557490,
+      "end_ms": 560610,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 560890,
+      "end_ms": 563550,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 564370,
+      "end_ms": 566870,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 567440,
+      "end_ms": 569320,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 569410,
+      "end_ms": 570630,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 571570,
+      "end_ms": 573060,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 573310,
+      "end_ms": 578560,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 578690,
+      "end_ms": 581120,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 581290,
+      "end_ms": 582780,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 582950,
+      "end_ms": 586470,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 586690,
+      "end_ms": 588180,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 588220,
+      "end_ms": 591230,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 591570,
+      "end_ms": 592770,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 592780,
+      "end_ms": 595880,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 596350,
+      "end_ms": 598900,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 598910,
+      "end_ms": 603350,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 604290,
+      "end_ms": 613430,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 613820,
+      "end_ms": 616730,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 617720,
+      "end_ms": 621710,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 621980,
+      "end_ms": 629700,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 629823,
+      "end_ms": 631820,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 633250,
+      "end_ms": 637170,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 637700,
+      "end_ms": 641130,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 641370,
+      "end_ms": 646640,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 646780,
+      "end_ms": 648970,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 650250,
+      "end_ms": 654720,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 655360,
+      "end_ms": 662450,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 662730,
+      "end_ms": 667940,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 668030,
+      "end_ms": 672300,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 672960,
+      "end_ms": 676530,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 676650,
+      "end_ms": 677920,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 677930,
+      "end_ms": 679980,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 680080,
+      "end_ms": 682100,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 683490,
+      "end_ms": 688360,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 688390,
+      "end_ms": 690280,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 690320,
+      "end_ms": 691670,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 692130,
+      "end_ms": 696890,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 698620,
+      "end_ms": 700450,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 700470,
+      "end_ms": 705820,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 706290,
+      "end_ms": 708320,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 708430,
+      "end_ms": 711870,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 711960,
+      "end_ms": 714080,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 714360,
+      "end_ms": 718180,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 718450,
+      "end_ms": 724070,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 724910,
+      "end_ms": 727050,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 727090,
+      "end_ms": 729460,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 729530,
+      "end_ms": 730960,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 731039,
+      "end_ms": 734060,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 734670,
+      "end_ms": 742330,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 743980,
+      "end_ms": 748180,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 748590,
+      "end_ms": 750110,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 750540,
+      "end_ms": 751510,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 752370,
+      "end_ms": 759490,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 759790,
+      "end_ms": 762380,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 762450,
+      "end_ms": 765720,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 767580,
+      "end_ms": 768780,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 768930,
+      "end_ms": 771930,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 772090,
+      "end_ms": 774400,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 774820,
+      "end_ms": 778530,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 779180,
+      "end_ms": 780160,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 782380,
+      "end_ms": 784470,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 784480,
+      "end_ms": 789150,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 789290,
+      "end_ms": 790700,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 791940,
+      "end_ms": 793480,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 793790,
+      "end_ms": 795990,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 796350,
+      "end_ms": 798850,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 798920,
+      "end_ms": 804760,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 805720,
+      "end_ms": 810150,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 810850,
+      "end_ms": 813080,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 813136,
+      "end_ms": 815260,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 816870,
+      "end_ms": 817960,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 818050,
+      "end_ms": 822930,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 823360,
+      "end_ms": 824440,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 825190,
+      "end_ms": 831630,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 831890,
+      "end_ms": 833390,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 833980,
+      "end_ms": 839650,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 839820,
+      "end_ms": 842900,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 842970,
+      "end_ms": 846770,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 847660,
+      "end_ms": 848920,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 849000,
+      "end_ms": 849920,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 850250,
+      "end_ms": 852810,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 852826,
+      "end_ms": 854760,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 855140,
+      "end_ms": 856140,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 857660,
+      "end_ms": 860330,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 860430,
+      "end_ms": 863590,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 864340,
+      "end_ms": 866060,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 866390,
+      "end_ms": 869110,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 869280,
+      "end_ms": 873340,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 873910,
+      "end_ms": 875930,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 876000,
+      "end_ms": 880160,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 880550,
+      "end_ms": 882230,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 882307,
+      "end_ms": 883690,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 884310,
+      "end_ms": 885600,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 885870,
+      "end_ms": 889800,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 890050,
+      "end_ms": 891170,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 891510,
+      "end_ms": 893340,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 893350,
+      "end_ms": 894690,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 895070,
+      "end_ms": 896650,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 897310,
+      "end_ms": 901660,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 901930,
+      "end_ms": 904250,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 905330,
+      "end_ms": 907020,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 907265,
+      "end_ms": 912710,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 913180,
+      "end_ms": 916680,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 916850,
+      "end_ms": 920880,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 922120,
+      "end_ms": 923350,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 923390,
+      "end_ms": 927130,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 927280,
+      "end_ms": 928800,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 928970,
+      "end_ms": 931800,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 933340,
+      "end_ms": 934490,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 934737,
+      "end_ms": 937490,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 938100,
+      "end_ms": 938960,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 939080,
+      "end_ms": 941000,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 941130,
+      "end_ms": 941790,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 941800,
+      "end_ms": 942500,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 942685,
+      "end_ms": 943350,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 943360,
+      "end_ms": 944160,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 944290,
+      "end_ms": 946730,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 947890,
+      "end_ms": 952270,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 952338,
+      "end_ms": 954390,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 955530,
+      "end_ms": 958150,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 958490,
+      "end_ms": 960990,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 961140,
+      "end_ms": 963060,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 963230,
+      "end_ms": 964480,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 965330,
+      "end_ms": 967140,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 967680,
+      "end_ms": 970320,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 970380,
+      "end_ms": 972730,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 973220,
+      "end_ms": 976500,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 978830,
+      "end_ms": 981420,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 981560,
+      "end_ms": 983350,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 983660,
+      "end_ms": 986850,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 988900,
+      "end_ms": 992080,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 992340,
+      "end_ms": 994210,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 994460,
+      "end_ms": 998920,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 999390,
+      "end_ms": 1002940,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1003390,
+      "end_ms": 1004860,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1005050,
+      "end_ms": 1007520,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1007660,
+      "end_ms": 1009730,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1011000,
+      "end_ms": 1013300,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1013340,
+      "end_ms": 1019030,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1021030,
+      "end_ms": 1029490,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1030560,
+      "end_ms": 1034610,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1034700,
+      "end_ms": 1035930,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1036080,
+      "end_ms": 1036860,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1037160,
+      "end_ms": 1038750,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1040200,
+      "end_ms": 1041090,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1041330,
+      "end_ms": 1043830,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1045050,
+      "end_ms": 1051720,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1053010,
+      "end_ms": 1055450,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1055650,
+      "end_ms": 1057590,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1058140,
+      "end_ms": 1061300,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1061367,
+      "end_ms": 1065200,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1065550,
+      "end_ms": 1067560,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1067628,
+      "end_ms": 1069440,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1069690,
+      "end_ms": 1072780,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1072790,
+      "end_ms": 1076150,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1076970,
+      "end_ms": 1079010,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1079040,
+      "end_ms": 1082490,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1082740,
+      "end_ms": 1084840,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1084880,
+      "end_ms": 1087970,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1088070,
+      "end_ms": 1092580,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1092740,
+      "end_ms": 1094050,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1094340,
+      "end_ms": 1098030,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1100230,
+      "end_ms": 1102120,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1102430,
+      "end_ms": 1105290,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1105690,
+      "end_ms": 1108500,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1108640,
+      "end_ms": 1114880,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1115120,
+      "end_ms": 1120140,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1120190,
+      "end_ms": 1124200,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1126750,
+      "end_ms": 1129200,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1130140,
+      "end_ms": 1135220,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1135650,
+      "end_ms": 1139170,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1139420,
+      "end_ms": 1141500,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1141650,
+      "end_ms": 1144330,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1144850,
+      "end_ms": 1148560,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1149550,
+      "end_ms": 1154970,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1155280,
+      "end_ms": 1159150,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1159210,
+      "end_ms": 1162690,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1163060,
+      "end_ms": 1168120,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1168870,
+      "end_ms": 1171640,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1172030,
+      "end_ms": 1176060,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1176090,
+      "end_ms": 1179960,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1180470,
+      "end_ms": 1184710,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1185140,
+      "end_ms": 1189270,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1190420,
+      "end_ms": 1195090,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1195210,
+      "end_ms": 1198880,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1199170,
+      "end_ms": 1203340,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1203610,
+      "end_ms": 1205300,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1205560,
+      "end_ms": 1210080,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1210830,
+      "end_ms": 1212800,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1214180,
+      "end_ms": 1215530,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1215773,
+      "end_ms": 1217820,
+      "text": "",
+      "speaker": null
+    }
+  ],
+  "speakers": [
+    {
+      "start_ms": 31,
+      "end_ms": 1448,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1583,
+      "end_ms": 2309,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 2731,
+      "end_ms": 3440,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 4030,
+      "end_ms": 6376,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 7439,
+      "end_ms": 8587,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 8738,
+      "end_ms": 12451,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 13565,
+      "end_ms": 15269,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 15505,
+      "end_ms": 18458,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 18509,
+      "end_ms": 21310,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 21918,
+      "end_ms": 23555,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 23808,
+      "end_ms": 25276,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 25597,
+      "end_ms": 29528,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 30642,
+      "end_ms": 32920,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 35114,
+      "end_ms": 39569,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 41257,
+      "end_ms": 43805,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 44294,
+      "end_ms": 46015,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 46623,
+      "end_ms": 49964,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 50150,
+      "end_ms": 52478,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 53069,
+      "end_ms": 54470,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 55702,
+      "end_ms": 57372,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 57693,
+      "end_ms": 59110,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 59583,
+      "end_ms": 60848,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 61068,
+      "end_ms": 63211,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 63717,
+      "end_ms": 66215,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 66670,
+      "end_ms": 69877,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 71615,
+      "end_ms": 74197,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 74973,
+      "end_ms": 77116,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 77420,
+      "end_ms": 79208,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 79681,
+      "end_ms": 81790,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 82313,
+      "end_ms": 84727,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 84980,
+      "end_ms": 86532,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 86853,
+      "end_ms": 88743,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 89097,
+      "end_ms": 91392,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 93620,
+      "end_ms": 96235,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 96893,
+      "end_ms": 99830,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 100184,
+      "end_ms": 103120,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 103913,
+      "end_ms": 106327,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 106512,
+      "end_ms": 107592,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 108402,
+      "end_ms": 109820,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 110039,
+      "end_ms": 112081,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 112452,
+      "end_ms": 115068,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 116941,
+      "end_ms": 118493,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 118966,
+      "end_ms": 121261,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 121801,
+      "end_ms": 123556,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 123843,
+      "end_ms": 124535,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 125024,
+      "end_ms": 126593,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 127657,
+      "end_ms": 129040,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 129260,
+      "end_ms": 131352,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 133192,
+      "end_ms": 135352,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 136195,
+      "end_ms": 138541,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 138845,
+      "end_ms": 140144,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 140684,
+      "end_ms": 143333,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 143519,
+      "end_ms": 144481,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 145679,
+      "end_ms": 146860,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 147198,
+      "end_ms": 149240,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 149459,
+      "end_ms": 152311,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 152682,
+      "end_ms": 154083,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 156715,
+      "end_ms": 161828,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 162419,
+      "end_ms": 163178,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 164478,
+      "end_ms": 165085,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 167212,
+      "end_ms": 168258,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 168646,
+      "end_ms": 171093,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 171397,
+      "end_ms": 172780,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 173455,
+      "end_ms": 176122,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 176442,
+      "end_ms": 177792,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 178973,
+      "end_ms": 179615,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 179783,
+      "end_ms": 182872,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 183310,
+      "end_ms": 186449,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 186533,
+      "end_ms": 188272,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 188558,
+      "end_ms": 190972,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 191360,
+      "end_ms": 193604,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 193790,
+      "end_ms": 196355,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 196574,
+      "end_ms": 198599,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 198903,
+      "end_ms": 202615,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 203965,
+      "end_ms": 205552,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 206277,
+      "end_ms": 208505,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 208960,
+      "end_ms": 210867,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 211559,
+      "end_ms": 213500,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 213770,
+      "end_ms": 214748,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 215069,
+      "end_ms": 216368,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 217246,
+      "end_ms": 217837,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 218056,
+      "end_ms": 220132,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 220250,
+      "end_ms": 221077,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 221212,
+      "end_ms": 224755,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 225295,
+      "end_ms": 226747,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 226932,
+      "end_ms": 227911,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 228232,
+      "end_ms": 229615,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 230088,
+      "end_ms": 231387,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 231708,
+      "end_ms": 233665,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 234695,
+      "end_ms": 236264,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 236939,
+      "end_ms": 239183,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 239588,
+      "end_ms": 242187,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 242643,
+      "end_ms": 244803,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 244870,
+      "end_ms": 245883,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 246170,
+      "end_ms": 250979,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 251671,
+      "end_ms": 252532,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 252818,
+      "end_ms": 254101,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 254236,
+      "end_ms": 257510,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 259366,
+      "end_ms": 260817,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 260969,
+      "end_ms": 261982,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 262370,
+      "end_ms": 266993,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 267230,
+      "end_ms": 268192,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 268360,
+      "end_ms": 269508,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 269879,
+      "end_ms": 271921,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 272714,
+      "end_ms": 275009,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 276477,
+      "end_ms": 278502,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 278958,
+      "end_ms": 281354,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 282198,
+      "end_ms": 283649,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 283801,
+      "end_ms": 284459,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 284628,
+      "end_ms": 286771,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 287125,
+      "end_ms": 288425,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 289285,
+      "end_ms": 290450,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 290821,
+      "end_ms": 291817,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 292222,
+      "end_ms": 293453,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 293740,
+      "end_ms": 296086,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 296592,
+      "end_ms": 298921,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 299090,
+      "end_ms": 300018,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 300457,
+      "end_ms": 302870,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 303140,
+      "end_ms": 305047,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 306802,
+      "end_ms": 308253,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 308405,
+      "end_ms": 309502,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 309907,
+      "end_ms": 312303,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 312792,
+      "end_ms": 314193,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 314362,
+      "end_ms": 315593,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 317264,
+      "end_ms": 319357,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 319559,
+      "end_ms": 321179,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 321550,
+      "end_ms": 322900,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 323086,
+      "end_ms": 325077,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 326410,
+      "end_ms": 328300,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 328722,
+      "end_ms": 329313,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 329718,
+      "end_ms": 330393,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 330511,
+      "end_ms": 331979,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 332401,
+      "end_ms": 334375,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 334578,
+      "end_ms": 336080,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 336113,
+      "end_ms": 338037,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 338138,
+      "end_ms": 339033,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 339404,
+      "end_ms": 340653,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 340754,
+      "end_ms": 343589,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 343893,
+      "end_ms": 345749,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 346019,
+      "end_ms": 346778,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 347116,
+      "end_ms": 349327,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 349529,
+      "end_ms": 350204,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 351352,
+      "end_ms": 353292,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 354203,
+      "end_ms": 356836,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 356937,
+      "end_ms": 358523,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 358962,
+      "end_ms": 362371,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 362708,
+      "end_ms": 363772,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 364058,
+      "end_ms": 365138,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 365543,
+      "end_ms": 368193,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 369965,
+      "end_ms": 370606,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 371433,
+      "end_ms": 376057,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 376529,
+      "end_ms": 377812,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 378065,
+      "end_ms": 378622,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 378993,
+      "end_ms": 379448,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 380157,
+      "end_ms": 383954,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 384376,
+      "end_ms": 387059,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 387768,
+      "end_ms": 391396,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 391868,
+      "end_ms": 393472,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 393910,
+      "end_ms": 397252,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 398652,
+      "end_ms": 399698,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 400812,
+      "end_ms": 404542,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 405098,
+      "end_ms": 409030,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 409655,
+      "end_ms": 411747,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 413198,
+      "end_ms": 416152,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 416573,
+      "end_ms": 418784,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 419020,
+      "end_ms": 420961,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 421096,
+      "end_ms": 424268,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 426040,
+      "end_ms": 432655,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 434579,
+      "end_ms": 441025,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 441532,
+      "end_ms": 443118,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 443405,
+      "end_ms": 444974,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 445160,
+      "end_ms": 449480,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 452045,
+      "end_ms": 453698,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 453817,
+      "end_ms": 455453,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 456010,
+      "end_ms": 457124,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 457310,
+      "end_ms": 458609,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 458879,
+      "end_ms": 460195,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 460702,
+      "end_ms": 462659,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 463199,
+      "end_ms": 467958,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 468413,
+      "end_ms": 470236,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 470573,
+      "end_ms": 472210,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 473425,
+      "end_ms": 477357,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 477593,
+      "end_ms": 480125,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 480243,
+      "end_ms": 482825,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 483635,
+      "end_ms": 484664,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 484715,
+      "end_ms": 487162,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 488984,
+      "end_ms": 491600,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 492022,
+      "end_ms": 494047,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 494789,
+      "end_ms": 496156,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 496426,
+      "end_ms": 499548,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 500020,
+      "end_ms": 500982,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 503125,
+      "end_ms": 505167,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 505842,
+      "end_ms": 507614,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 508120,
+      "end_ms": 511090,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 511563,
+      "end_ms": 512980,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 513284,
+      "end_ms": 514280,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 516102,
+      "end_ms": 517655,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 519224,
+      "end_ms": 520372,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 521080,
+      "end_ms": 521587,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 522700,
+      "end_ms": 523578,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 525805,
+      "end_ms": 528893,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 529349,
+      "end_ms": 531965,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 532842,
+      "end_ms": 533939,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 534226,
+      "end_ms": 535424,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 535728,
+      "end_ms": 537162,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 537432,
+      "end_ms": 540638,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 540976,
+      "end_ms": 542410,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 542613,
+      "end_ms": 543524,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 543862,
+      "end_ms": 544756,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 545043,
+      "end_ms": 548131,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 549380,
+      "end_ms": 550240,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 551860,
+      "end_ms": 552704,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 553447,
+      "end_ms": 554560,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 555961,
+      "end_ms": 557108,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 557513,
+      "end_ms": 559336,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 559555,
+      "end_ms": 560348,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 560939,
+      "end_ms": 562036,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 562255,
+      "end_ms": 563285,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 564415,
+      "end_ms": 565428,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 565630,
+      "end_ms": 566626,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 567470,
+      "end_ms": 569107,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 569410,
+      "end_ms": 570406,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 571621,
+      "end_ms": 572819,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 573342,
+      "end_ms": 574439,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 574523,
+      "end_ms": 578320,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 578742,
+      "end_ms": 579687,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 579907,
+      "end_ms": 580852,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 581341,
+      "end_ms": 582573,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 582995,
+      "end_ms": 584463,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 584632,
+      "end_ms": 586184,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 586741,
+      "end_ms": 587939,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 588260,
+      "end_ms": 590960,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 591601,
+      "end_ms": 592563,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 592799,
+      "end_ms": 595634,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 596393,
+      "end_ms": 598672,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 598958,
+      "end_ms": 600899,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 601220,
+      "end_ms": 603093,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 604308,
+      "end_ms": 605827,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 605911,
+      "end_ms": 607430,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 607531,
+      "end_ms": 613201,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 613842,
+      "end_ms": 616508,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 617757,
+      "end_ms": 621503,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 622010,
+      "end_ms": 625030,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 625199,
+      "end_ms": 629485,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 629823,
+      "end_ms": 631628,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 633316,
+      "end_ms": 636927,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 637788,
+      "end_ms": 640893,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 641382,
+      "end_ms": 646428,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 647322,
+      "end_ms": 648773,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 650292,
+      "end_ms": 654528,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 655405,
+      "end_ms": 662223,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 662780,
+      "end_ms": 666408,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 666560,
+      "end_ms": 667690,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 668062,
+      "end_ms": 672027,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 673006,
+      "end_ms": 676263,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 676685,
+      "end_ms": 677663,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 677967,
+      "end_ms": 679705,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 680110,
+      "end_ms": 681848,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 683536,
+      "end_ms": 685763,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 685966,
+      "end_ms": 686995,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 687198,
+      "end_ms": 688092,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 688413,
+      "end_ms": 690033,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 690337,
+      "end_ms": 691433,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 692176,
+      "end_ms": 696665,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 698673,
+      "end_ms": 700242,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 700478,
+      "end_ms": 702858,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 703145,
+      "end_ms": 705558,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 706351,
+      "end_ms": 708055,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 708494,
+      "end_ms": 710182,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 710350,
+      "end_ms": 711599,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 711987,
+      "end_ms": 713810,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 714400,
+      "end_ms": 716257,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 716324,
+      "end_ms": 717961,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 718467,
+      "end_ms": 722450,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 722618,
+      "end_ms": 723833,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 724964,
+      "end_ms": 726803,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 727141,
+      "end_ms": 729233,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 729537,
+      "end_ms": 730702,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 731039,
+      "end_ms": 733874,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 734701,
+      "end_ms": 742126,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 744016,
+      "end_ms": 747931,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 748640,
+      "end_ms": 749838,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 750580,
+      "end_ms": 751255,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 752420,
+      "end_ms": 754242,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 754394,
+      "end_ms": 756132,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 756301,
+      "end_ms": 757769,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 757921,
+      "end_ms": 759254,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 759845,
+      "end_ms": 762140,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 762477,
+      "end_ms": 764030,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 764131,
+      "end_ms": 765481,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 767658,
+      "end_ms": 768569,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 768957,
+      "end_ms": 771708,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 772130,
+      "end_ms": 774155,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 774863,
+      "end_ms": 777091,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 777226,
+      "end_ms": 778289,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 779200,
+      "end_ms": 779926,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 782440,
+      "end_ms": 784229,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 784499,
+      "end_ms": 788887,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 789325,
+      "end_ms": 790456,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 792008,
+      "end_ms": 793240,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 793831,
+      "end_ms": 795755,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 796379,
+      "end_ms": 798623,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 798961,
+      "end_ms": 802505,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 802640,
+      "end_ms": 804513,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 805762,
+      "end_ms": 809947,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 810858,
+      "end_ms": 812900,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 813136,
+      "end_ms": 815026,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 816899,
+      "end_ms": 817760,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 818063,
+      "end_ms": 822704,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 823396,
+      "end_ms": 824206,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 825252,
+      "end_ms": 831378,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 831918,
+      "end_ms": 833183,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 834010,
+      "end_ms": 839410,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 839832,
+      "end_ms": 842701,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 842971,
+      "end_ms": 844591,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 844726,
+      "end_ms": 846548,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 847696,
+      "end_ms": 848692,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 849029,
+      "end_ms": 849687,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 850295,
+      "end_ms": 852623,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 852826,
+      "end_ms": 854564,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 855155,
+      "end_ms": 855914,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 857703,
+      "end_ms": 860167,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 860437,
+      "end_ms": 863390,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 864385,
+      "end_ms": 865803,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 866444,
+      "end_ms": 867558,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 867828,
+      "end_ms": 868857,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 869330,
+      "end_ms": 871237,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 871523,
+      "end_ms": 873059,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 873953,
+      "end_ms": 875675,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 876029,
+      "end_ms": 879910,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 880585,
+      "end_ms": 882003,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 882307,
+      "end_ms": 883437,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 884332,
+      "end_ms": 885361,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 885901,
+      "end_ms": 889546,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 890069,
+      "end_ms": 890930,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 891554,
+      "end_ms": 893090,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 893393,
+      "end_ms": 894423,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 895115,
+      "end_ms": 896363,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 897376,
+      "end_ms": 899283,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 899401,
+      "end_ms": 901375,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 901966,
+      "end_ms": 903991,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 905425,
+      "end_ms": 906978,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 907265,
+      "end_ms": 910792,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 910977,
+      "end_ms": 912462,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 913222,
+      "end_ms": 916445,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 916883,
+      "end_ms": 918098,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 918301,
+      "end_ms": 920630,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 922148,
+      "end_ms": 923093,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 923431,
+      "end_ms": 925287,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 925540,
+      "end_ms": 926890,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 927329,
+      "end_ms": 928544,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 929000,
+      "end_ms": 931565,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 933387,
+      "end_ms": 934265,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 934737,
+      "end_ms": 937252,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 938129,
+      "end_ms": 938770,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 939091,
+      "end_ms": 939850,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 940002,
+      "end_ms": 940795,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 941150,
+      "end_ms": 941605,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 941808,
+      "end_ms": 942297,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 942685,
+      "end_ms": 943208,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 943360,
+      "end_ms": 943985,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 944305,
+      "end_ms": 946499,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 947933,
+      "end_ms": 952051,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 952338,
+      "end_ms": 954160,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 955578,
+      "end_ms": 957974,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 958514,
+      "end_ms": 959628,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 959797,
+      "end_ms": 960809,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 961180,
+      "end_ms": 962834,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 963273,
+      "end_ms": 964235,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 965382,
+      "end_ms": 966884,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 967728,
+      "end_ms": 970057,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 970394,
+      "end_ms": 972487,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 973246,
+      "end_ms": 976317,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 978882,
+      "end_ms": 981194,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 981582,
+      "end_ms": 983101,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 983675,
+      "end_ms": 986628,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 988940,
+      "end_ms": 991859,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 992365,
+      "end_ms": 993952,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 994508,
+      "end_ms": 995892,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 996128,
+      "end_ms": 998643,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 999436,
+      "end_ms": 1000921,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1001123,
+      "end_ms": 1002676,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1003435,
+      "end_ms": 1004650,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1005072,
+      "end_ms": 1006152,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1006237,
+      "end_ms": 1007283,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1007688,
+      "end_ms": 1009493,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1011029,
+      "end_ms": 1013138,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1013341,
+      "end_ms": 1018808,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1021070,
+      "end_ms": 1029254,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1030621,
+      "end_ms": 1034418,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1034722,
+      "end_ms": 1035700,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1036105,
+      "end_ms": 1036628,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1037185,
+      "end_ms": 1038535,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1040223,
+      "end_ms": 1040864,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1041353,
+      "end_ms": 1043598,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1045083,
+      "end_ms": 1051597,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1053048,
+      "end_ms": 1055326,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1055663,
+      "end_ms": 1057402,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1058178,
+      "end_ms": 1061114,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1061367,
+      "end_ms": 1064995,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1065569,
+      "end_ms": 1067358,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1067628,
+      "end_ms": 1069180,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1069720,
+      "end_ms": 1070632,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1070716,
+      "end_ms": 1072555,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1072808,
+      "end_ms": 1074361,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1074530,
+      "end_ms": 1075930,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1077027,
+      "end_ms": 1078765,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1079069,
+      "end_ms": 1080217,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1080520,
+      "end_ms": 1082225,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1082782,
+      "end_ms": 1084604,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1084891,
+      "end_ms": 1086511,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1086730,
+      "end_ms": 1087726,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1088097,
+      "end_ms": 1092400,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1092772,
+      "end_ms": 1093835,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1094408,
+      "end_ms": 1097834,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1100281,
+      "end_ms": 1101918,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1102458,
+      "end_ms": 1105040,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1105732,
+      "end_ms": 1108212,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1108668,
+      "end_ms": 1111486,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1111705,
+      "end_ms": 1114625,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1115165,
+      "end_ms": 1118118,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1118388,
+      "end_ms": 1119923,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1120227,
+      "end_ms": 1123973,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1126775,
+      "end_ms": 1128968,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1130183,
+      "end_ms": 1133288,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1133373,
+      "end_ms": 1134976,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1135685,
+      "end_ms": 1136191,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1136444,
+      "end_ms": 1138908,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1139465,
+      "end_ms": 1141270,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1141743,
+      "end_ms": 1144072,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1144882,
+      "end_ms": 1148324,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1149590,
+      "end_ms": 1154703,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1155310,
+      "end_ms": 1158972,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1159225,
+      "end_ms": 1162432,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1163107,
+      "end_ms": 1167899,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1168912,
+      "end_ms": 1171358,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1172067,
+      "end_ms": 1174362,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1174497,
+      "end_ms": 1175847,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1176117,
+      "end_ms": 1179728,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1180505,
+      "end_ms": 1184453,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1185179,
+      "end_ms": 1187086,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1187238,
+      "end_ms": 1189043,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1190461,
+      "end_ms": 1191592,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1191743,
+      "end_ms": 1194815,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1195270,
+      "end_ms": 1198561,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1199202,
+      "end_ms": 1203117,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1203640,
+      "end_ms": 1205125,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1205598,
+      "end_ms": 1207505,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1207690,
+      "end_ms": 1209884,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1210880,
+      "end_ms": 1212567,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1214187,
+      "end_ms": 1215436,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1215773,
+      "end_ms": 1217680,
+      "text": "",
+      "speaker": "S01"
+    }
+  ],
   "evidence": "evidence.json"
 }

@@ -148,6 +148,48 @@ def test_vllm_retries_generation_limit_with_sampling() -> None:
     assert attempts == [{}, {"temperature": 0.5, "top_p": 0.9, "seed": 2}]
 
 
+def test_vllm_retries_persistent_repetition_with_sampling() -> None:
+    attempts: list[GenerationOptions] = []
+
+    async def run() -> InferenceResult:
+        def respond(request: httpx2.Request) -> httpx2.Response:
+            sampled = request.url.params.get("temperature") == "0.5"
+            event = {
+                "choices": [
+                    {
+                        "delta": {"content": "完整" if sampled else "对" * 64},
+                        "finish_reason": "stop" if sampled else None,
+                    }
+                ]
+            }
+            payload = "data: " + json.dumps(event) + "\n\ndata: [DONE]\n\n"
+            return httpx2.Response(
+                200,
+                text=payload,
+                headers={"content-type": "text/event-stream"},
+                request=request,
+            )
+
+        async with httpx2.AsyncClient(transport=httpx2.MockTransport(respond)) as client:
+
+            def source(options: GenerationOptions) -> EventSourceContext:
+                attempts.append(options)
+                return client.sse("http://model", params=options)
+
+            return await complete_with_generation_retry(source)
+
+    result = asyncio.run(run())
+    assert result.text == "完整"
+    assert result.warnings == ["repetitive_generation_retry:sampling"]
+    assert attempts == [
+        {},
+        {"repetition_penalty": 1.1},
+        {"repetition_penalty": 1.2},
+        {"repetition_penalty": 1.3},
+        {"temperature": 0.5, "top_p": 0.9, "seed": 2},
+    ]
+
+
 def test_vibevoice_uses_upstream_transcription_request(tmp_path: Path) -> None:
     audio = tmp_path / "audio.wav"
     with wave.open(str(audio), "wb") as output:

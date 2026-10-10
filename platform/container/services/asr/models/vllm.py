@@ -93,7 +93,9 @@ async def complete_with_generation_retry(
     except RepetitiveGenerationError:
         pass
     except GenerationLimitError:
-        return await complete_with_sampling_retry(source_factory)
+        return await complete_with_sampling_retry(
+            source_factory, "generation_length_retry:sampling"
+        )
 
     for penalty in (1.1, 1.2, 1.3):
         try:
@@ -103,16 +105,21 @@ async def complete_with_generation_retry(
             return with_retry_metadata(result, options, f"repetitive_generation_retry:{penalty}")
         except RepetitiveGenerationError:
             if penalty == 1.3:
-                raise
+                return await complete_with_sampling_retry(
+                    source_factory, "repetitive_generation_retry:sampling"
+                )
         except GenerationLimitError:
-            return await complete_with_sampling_retry(source_factory)
+            return await complete_with_sampling_retry(
+                source_factory, "generation_length_retry:sampling"
+            )
     raise AssertionError("unreachable")
 
 
 async def complete_with_sampling_retry(
     source_factory: Callable[[GenerationOptions], EventSourceContext],
+    warning: str,
 ) -> InferenceResult:
     options: GenerationOptions = {"temperature": 0.5, "top_p": 0.9, "seed": 2}
     async with source_factory(options) as source:
         result = await complete(source)
-    return with_retry_metadata(result, options, "generation_length_retry:sampling")
+    return with_retry_metadata(result, options, warning)

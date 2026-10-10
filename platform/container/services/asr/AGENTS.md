@@ -58,9 +58,10 @@ VibeVoice 原版 / HF、FireRed 原始 / 转换权重不能互换；FunASR 的 `
 - FireRed 中文请求必须显式传 `language=zh`；Whisper 固定中文 transcription。所有 vLLM
   流都必须收到 `[DONE]` 且 finish reason 全为 `stop`，长度截断一律失败。正常调用保持模型
   原始 greedy 参数；只有流式输出确认进入至少 64 字符、周期 1–8、重复至少 8 次的短周期
-  循环后，才依次用 repetition penalty 1.1 / 1.2 / 1.3 重试。明确到达 length 上限时改用
-  固定 `temperature=0.5`、`top_p=0.9`、`seed=2` 重试；成功响应必须在 evidence 记录实际参数
-  与 retry warning，重试后仍不完整则失败。
+  循环后，才依次用 repetition penalty 1.1 / 1.2 / 1.3 重试；三档仍循环时再使用固定
+  `temperature=0.5`、`top_p=0.9`、`seed=2` 轻采样。明确到达 length 上限时直接使用同一组
+  轻采样参数重试；成功响应必须在 evidence 记录实际参数与 retry warning，重试后仍不完整
+  则失败。
 - SDK 服务只接受 `/data/asr` 内真实文件；vLLM client 发送音频内容。SDK 中的 `cuda:0`
   表示当前进程可见的第一张卡，不是 Host 物理卡 0。
 - 修改 tensor parallel、精度、显存比例、上下文或模型时长后，同步 `models/catalog.py`、
@@ -103,9 +104,10 @@ VibeVoice 原版 / HF、FireRed 原始 / 转换权重不能互换；FunASR 的 `
   在首轮候选或复听中精确支持。数值、热词和英文专名只保护各自 span，多人窗口仍整窗禁止
   替换；同家族和重复采样不增加独立票数，两份融合稿不能读取对方定稿。
 - 联合模型保留自身正文、时间与局部 speaker；pyannote 只把无歧义的单人活动映射到全文件
-  身份。结构、时间范围与活动尾部要校验，失败最多缩窗两层；无法按字词时间安全裁剪边界
+  身份。结构、时间范围与活动尾部要校验，失败最多缩窗三层；无法按字词时间安全裁剪边界
   时先用无 padding 的 exact core 最后重跑，不做猜测裁剪、平均插值或伪造时间；exact core
-  仍失败才使方案失败。
+  仍失败才使方案失败。完全位于 core 内的 segment 直接保留联合模型时间与 mapped speaker，
+  只有跨 core 边界、确实需要裁剪正文时才调用 Aligner。
 - forced alignment 的零时长 token 保留原始时间点，按落入的半开 speaker span 归属身份；
   不得为规避 `speaker_unknown` 人工扩展 token 时长或伪造边界。
 - 第五稿复用第一稿正文和时间，仅用 Nemotron 重标 speaker。已知超过 8 人时失败，未知

@@ -492,11 +492,99 @@ def test_joint_alignment_failure_retries_without_boundary_padding(tmp_path: Path
     result = asyncio.run(run())
     assert result.status == "completed"
     assert result.segments
-    assert all("alignment_failed" in segment.flags for segment in result.segments)
+    assert all(not segment.tokens for segment in result.segments)
     assert any(
         window.start_ms == window.core_start_ms and window.end_ms == window.core_end_ms
         for window in seen
     )
+
+
+def test_joint_only_aligns_segments_crossing_core_boundary(tmp_path: Path) -> None:
+    scheduler = runtime(tmp_path)
+    audio = tmp_path / "audio.wav"
+    audio.write_bytes(b"")
+    pipeline = Pipeline(scheduler.config, Inference(scheduler, tmp_path), audio, 400000, Options())
+    pipeline.activity = [Span(start_ms=0, end_ms=400000)]
+    pipeline.speakers = [Span(start_ms=0, end_ms=400000, speaker="S01")]
+    aligned: list[Window] = []
+
+    async def recognize(model: str, window: Window, *, step: str) -> InferenceResult:
+        duration = window.end_ms - window.start_ms
+        return InferenceResult(
+            spans=[
+                Span(start_ms=2000, end_ms=3000, text="内部原文", speaker="0"),
+                Span(
+                    start_ms=duration - 1500,
+                    end_ms=duration,
+                    text="边界原文",
+                    speaker="0",
+                ),
+            ]
+        )
+
+    async def finalize(
+        segment: Segment,
+        window: Window,
+        speakers: list[Span],
+        *,
+        step: str,
+        punctuate: bool = True,
+    ) -> list[Segment]:
+        aligned.append(window)
+        segment.end_ms = window.core_end_ms
+        return [segment]
+
+    pipeline.recognize = recognize  # type: ignore[method-assign]
+    pipeline.finalize_segment = finalize  # type: ignore[method-assign]
+
+    async def run() -> Transcript:
+        result = await pipeline.joint(RECIPE_IDS[3], "vibevoice")
+        await scheduler.close()
+        return result
+
+    result = asyncio.run(run())
+    assert any(segment.text == "内部原文" for segment in result.segments)
+    assert all(segment.speakers == ["S01"] for segment in result.segments)
+    assert aligned
+    assert all(window.core_end_ms < window.end_ms for window in aligned)
+    assert all(window.core_start_ms < window.end_ms for window in aligned)
+
+
+def test_joint_retries_a_third_smaller_window_on_persistent_failure(tmp_path: Path) -> None:
+    scheduler = runtime(tmp_path)
+    audio = tmp_path / "audio.wav"
+    audio.write_bytes(b"")
+    pipeline = Pipeline(scheduler.config, Inference(scheduler, tmp_path), audio, 178000, Options())
+    pipeline.activity = [Span(start_ms=0, end_ms=178000)]
+    seen: list[Window] = []
+
+    async def recognize(model: str, window: Window, *, step: str) -> InferenceResult:
+        seen.append(window)
+        if window.core_end_ms - window.core_start_ms > 30000:
+            raise ValueError("persistent generation failure")
+        return InferenceResult(
+            spans=[
+                Span(
+                    start_ms=window.core_start_ms - window.start_ms,
+                    end_ms=window.core_end_ms - window.start_ms,
+                    text="缩窗恢复",
+                    speaker="0",
+                )
+            ]
+        )
+
+    pipeline.recognize = recognize  # type: ignore[method-assign]
+
+    async def run() -> Transcript:
+        result = await pipeline.joint(RECIPE_IDS[3], "vibevoice")
+        await scheduler.close()
+        return result
+
+    result = asyncio.run(run())
+    assert result.status == "completed"
+    assert result.segments
+    assert any(window.core_end_ms - window.core_start_ms <= 30000 for window in seen)
+    assert all(segment.text == "缩窗恢复" for segment in result.segments)
 
 
 def test_review_processes_windows_by_model(tmp_path: Path) -> None:

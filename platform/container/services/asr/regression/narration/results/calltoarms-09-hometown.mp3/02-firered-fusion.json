@@ -895,7 +895,7 @@
         "firered-llm": "时候既然是深冬渐近故乡时天气又阴晦了冷风吹进船舱中呜呜的响从棚隙向外一望苍黄的天底下远近横着几个萧索的荒村没有一些活气",
         "moss-audio": "时候既然是深冬，渐近故乡时，天气又阴晦了，冷风吹进船舱中，呜呜的响。从篷隙向外一望，苍黄的天底下，远近横着几个萧索的荒村，没有一些活气。"
       },
-      "decision": "primary"
+      "decision": "unresolved"
     },
     {
       "start_ms": 30810,
@@ -1592,8 +1592,8 @@
         }
       ],
       "candidates": {
-        "paraformer": "我所记得的故乡全部如此我的故乡好得多了但要我记起他的美丽说出他的家出来却又没有影像没有言辞了仿佛也就如此",
         "sensevoice": "我所记得的故乡全部如此我的故乡好的多了但要我记起他的美丽说出他的家畜来却又没有影像没有言辞了仿佛也就如此",
+        "paraformer": "我所记得的故乡全部如此我的故乡好得多了但要我记起他的美丽说出他的家出来却又没有影像没有言辞了仿佛也就如此",
         "qwen3-asr-1.7b": "我所记得的故乡，全部如此。我的故乡好得多了，但要我记起它的美丽，说出它的家出来，却又没有影像，没有言辞了，仿佛也就如此。",
         "firered-llm": "我所记得的故乡全部如此我的故乡好得多了但要我记起她的美丽说出她的佳处来却又没有影像没有言辞了仿佛也就如此"
       },
@@ -3997,7 +3997,7 @@
         "whisper-large-v3": "红儿没有见过我,远远的对面站着只是看。",
         "firered-llm": "红儿没有见过我远远的对面站着只是看"
       },
-      "decision": "expanded_primary_supported_by:qwen3-asr-1.7b,whisper-large-v3"
+      "decision": "review_supported_by:qwen3-asr-1.7b,whisper-large-v3"
     },
     {
       "start_ms": 133160,
@@ -4694,7 +4694,7 @@
         "firered-llm": "母亲也说好而且行李也略已齐齐木器不便搬运的也小半卖去了只是收不起钱来",
         "moss-audio": "母亲也说好，而且行李也略已齐齐，木器不便搬运的也小半卖去了，只是收不起钱来。"
       },
-      "decision": "expanded_primary_supported_by:moss-audio,qwen3-asr-1.7b"
+      "decision": "review_supported_by:moss-audio,qwen3-asr-1.7b"
     },
     {
       "start_ms": 156780,
@@ -4911,8 +4911,8 @@
         }
       ],
       "candidates": {
-        "paraformer": "你休息一两天去拜望清洗本家一回我们便可以走了母亲说",
         "sensevoice": "你休息一两天去拜望亲戚本家一回我们便可以走了母亲说",
+        "paraformer": "你休息一两天去拜望清洗本家一回我们便可以走了母亲说",
         "qwen3-asr-1.7b": "你休息一两天，去拜望亲戚本家一回，我们便可以走了。母亲说。",
         "firered-llm": "你休息一两天去拜望亲戚本家一回我们便可以走了母亲说"
       },
@@ -4952,8 +4952,8 @@
         }
       ],
       "candidates": {
-        "paraformer": "是的",
         "sensevoice": "是的",
+        "paraformer": "是的",
         "qwen3-asr-1.7b": "是的。",
         "firered-llm": "是的"
       },
@@ -5324,8 +5324,8 @@
         }
       ],
       "candidates": {
-        "paraformer": "还有闰土他每到我家来时总问起你很想见你一回面我已经将你到家的大约日期通知他他也许就要来了",
         "sensevoice": "还有闰土他每到我家来时总问起你很想见你一回面我已经将你到家的大约日期通知他他也许就要来了",
+        "paraformer": "还有闰土他每到我家来时总问起你很想见你一回面我已经将你到家的大约日期通知他他也许就要来了",
         "qwen3-asr-1.7b": "还有闰土，他每到我家来时，总问起你，很想见你一回面。我已经将你到家的大约日期通知他，他也许就要来了。",
         "firered-llm": "还有闰土他每到我家来时总问起你很想见你一回面我已经将你到家的大约日期通知他他也许就要来了"
       },
@@ -6163,8 +6163,8 @@
         }
       ],
       "candidates": {
-        "paraformer": "这时候我的脑里忽然闪出一幅神秘的图画来深蓝的天空中挂着一轮金黄的圆月下面是海边的沙地都种着一望无际的碧绿的西瓜其间有一个十一二岁的少年项带银圈手捏一柄钢叉像一匹茶尽力的刺去那茶却将身一扭反从他的胯下逃走了",
         "sensevoice": "这时候我的脑里忽然闪出一副神异的图画来深蓝的天空中挂着一轮金黄的圆月下面是海边的沙地都种着一望无际的碧绿的西瓜其间有一个十一二岁的少年向带银圈手捏一柄钢叉向一匹茶尽力的刺去那茶却将身一扭反从他的胯下逃走了",
+        "paraformer": "这时候我的脑里忽然闪出一幅神秘的图画来深蓝的天空中挂着一轮金黄的圆月下面是海边的沙地都种着一望无际的碧绿的西瓜其间有一个十一二岁的少年项带银圈手捏一柄钢叉像一匹茶尽力的刺去那茶却将身一扭反从他的胯下逃走了",
         "qwen3-asr-1.7b": "这时候，我的脑里忽然闪出一幅神异的图画来：深蓝的天空中挂着一轮金黄的圆月，下面是海边的沙地，都种着一望无际的碧绿的西瓜。其间有一个十一二岁的少年，项带银圈，手捏一柄钢叉，向一匹猹尽力的刺去，那猹却将身一扭，反从他的胯下逃走了。",
         "firered-llm": "这时候我的脑里忽然闪出一幅神异的图画来深蓝的天空中挂着一轮金黄的圆月下面是海边的沙地都种着一望无际的碧绿的西瓜其间有一个十一二岁的少年项戴银圈手捏一柄钢叉向一匹猹尽力的刺去那猹却将身一扭反从他的胯下逃走了"
       },
@@ -6174,7 +6174,7 @@
         "firered-llm": "这时候我的脑里忽然闪出一幅神异的图画来深蓝的天空中挂着一轮金黄的圆月下面是海边的沙地都种着一望无际的碧绿的西瓜其间有一个十一二岁的少年项带银圈手捏一柄钢叉向一匹猹尽力的刺去那猹却将身一扭反从他的胯下逃走了",
         "moss-audio": "这时候，我的脑里忽然闪出一幅神异的图画来，深蓝的天空中挂着一轮金黄的圆月，下面是海边的沙地，都种着一望无际的碧绿的西瓜。其间有一个十一二岁的少年，项带银圈，手捏一柄钢叉，向一匹猹尽力的刺去。那猹却将身一扭，反从他的胯下逃走了。"
       },
-      "decision": "primary"
+      "decision": "unresolved"
     },
     {
       "start_ms": 202610,
@@ -6187,8 +6187,8 @@
       "channel": null,
       "tokens": [],
       "candidates": {
-        "paraformer": "走了",
         "sensevoice": "走了",
+        "paraformer": "走了",
         "qwen3-asr-1.7b": "走了。",
         "firered-llm": "看这大西瓜"
       },
@@ -6197,7 +6197,7 @@
         "whisper-large-v3": "了。",
         "firered-llm": "了"
       },
-      "decision": "expanded_primary_supported_by:qwen3-asr-1.7b,whisper-large-v3"
+      "decision": "review_supported_by:qwen3-asr-1.7b,whisper-large-v3"
     },
     {
       "start_ms": 203940,
@@ -6945,7 +6945,7 @@
         "firered-llm": "这少年便是闰土我认识他时也不过十多岁离现在将有三十年了那时我的父亲还在世家境也好我正是一个少爷那一年我家是一件大祭祀的执年这祭祀说是三十多年才能轮到一回所以很郑重正月里供祖像供品很多",
         "moss-audio": "这少年便是闰土。我认识他时也不过十多岁，离现在将有三十年了。那时我的父亲还在世，家景也好，我正是一个少爷。那一年，我家是一件大祭祀的执年，这祭祀说是三十多年才能轮到一回，所以很郑重。正月里供祖像，供品很多，"
       },
-      "decision": "primary"
+      "decision": "unresolved"
     },
     {
       "start_ms": 227560,
@@ -7132,7 +7132,7 @@
         "firered-llm": "很多祭器很讲究拜的人也很多祭器也很要防偷去",
         "moss-audio": "很多，祭器很讲究，拜的人也很多，祭器也很要防偷去。"
       },
-      "decision": "expanded_primary_supported_by:moss-audio,qwen3-asr-1.7b"
+      "decision": "review_supported_by:moss-audio,qwen3-asr-1.7b"
     },
     {
       "start_ms": 234820,
@@ -9359,7 +9359,7 @@
         "qwen3-asr-1.7b": "去，所以在神佛面前许下愿心，用圈子将他套住了。",
         "firered-llm": "去所以在神佛面前许下愿心用圈子将他套住了"
       },
-      "decision": "expanded_primary_supported_by:qwen3-asr-1.7b"
+      "decision": "review_supported_by:qwen3-asr-1.7b"
     },
     {
       "start_ms": 306770,
@@ -9665,7 +9665,7 @@
         "whisper-large-v3": "他见人很怕羞,只是不怕我,没有旁人的时候便和我说话,于是不到半日,我们便熟识了。",
         "firered-llm": "他见人很怕羞只是不怕我没有旁人的时候便和我说话于是不到半日我们便熟识了"
       },
-      "decision": "expanded_primary_supported_by:qwen3-asr-1.7b,whisper-large-v3"
+      "decision": "review_supported_by:qwen3-asr-1.7b,whisper-large-v3"
     },
     {
       "start_ms": 317230,
@@ -10786,7 +10786,7 @@
         "qwen3-asr-1.7b": "背。",
         "firered-llm": "背"
       },
-      "decision": "expanded_primary_supported_by:qwen3-asr-1.7b"
+      "decision": "review_supported_by:qwen3-asr-1.7b"
     },
     {
       "start_ms": 351410,
@@ -12116,7 +12116,7 @@
         "firered-llm": "管贼吗不是走路的人口渴了摘一个瓜吃我们这里是不算偷的要管的是獾猪刺猬猹月亮底下你听啦啦的响了猹在咬瓜了你便捏了胡叉轻轻地走去我那时并不知道这所谓猹的是怎么一件东西便是现在也没有知道",
         "moss-audio": "管贼吗？不是，走路的人口渴了摘一个瓜吃，我们这里是不算偷的，要管的是獾猪、刺猬、猹。月亮底下，你听，拉拉的响了，猹在咬瓜了。你便捏了胡叉，轻轻的走去。我那时并不知道这所谓猹的是怎么一件东西，便是现在也没有知道，"
       },
-      "decision": "primary"
+      "decision": "unresolved"
     },
     {
       "start_ms": 393880,
@@ -12263,7 +12263,7 @@
         "firered-llm": "道只是无端的觉得状如小狗而很凶猛",
         "moss-audio": "道，只是无端的觉得壮如小狗，而很凶猛。"
       },
-      "decision": "expanded_primary_supported_by:qwen3-asr-1.7b"
+      "decision": "review_supported_by:qwen3-asr-1.7b"
     },
     {
       "start_ms": 398630,
@@ -13939,7 +13939,7 @@
         "firered-llm": "啊闰土的心里有无穷无尽的希奇的事都是我往常的朋友所不知道的他们不知道一些事闰土在海边时他们都和我一样只看见院子里高墙上的四角的天空",
         "moss-audio": "唉闰土的心里有无穷无尽的稀奇的事都是我往常的朋友所不知道的他们不知道一些事闰土在海边时他们都和我一样只看见院子里高墙上的四角的天空。"
       },
-      "decision": "primary"
+      "decision": "unresolved"
     },
     {
       "start_ms": 452020,
@@ -14645,7 +14645,7 @@
         "qwen3-asr-1.7b": "可惜正月过去了，闰土须回家里去。我急得大哭，他也躲到厨房里，哭着不肯出门。但终于被他父亲带走了。他后来还托他的父亲带给我一包贝壳和几只很好看的鸟毛。我也曾送他一两次东西，但从此没有再见面。",
         "firered-llm": "可惜正月过去了闰土须回家里去我急得大哭他也躲到厨房里哭着不肯出门但终于被他父亲带走了他后来还托他的父亲带给我一包贝壳和几只很好看的鸟毛我也曾送他一两次东西但从此没有再见面"
       },
-      "decision": "primary"
+      "decision": "unresolved"
     },
     {
       "start_ms": 473400,
@@ -18183,7 +18183,7 @@
         "firered-llm": "哦我记得了我孩子时候在斜对门的豆腐店里却乎终日坐着一个杨二嫂人都叫一豆腐西施但是擦着白粉颧骨没有这么高嘴唇也没有这么薄而且终日坐着我也从没有见过这圆规式的姿势那时人说因为一这豆腐店的买卖非常好",
         "moss-audio": "哦，我记得了，我孩子时候，在斜对门的豆腐店里，却乎终日坐着一个杨二嫂，人都叫伊豆腐西施，但是擦着白粉，颧骨没有这么高，嘴唇也没有这么薄，而且终日坐着，我也从没有见过这圆规式的姿势。那时人说，因为伊这豆腐店的买卖非常好，"
       },
-      "decision": "primary"
+      "decision": "unresolved"
     },
     {
       "start_ms": 595290,
@@ -18870,7 +18870,7 @@
         "firered-llm": "然而圆规很不平显出鄙夷的神色仿佛嗤笑法国人不知道拿破仑美国人不知道华盛顿似的冷笑说忘了这真是贵人眼高",
         "moss-audio": "然而圆规很不平，显出鄙夷的神色，仿佛嗤笑法国人不知道拿破仑，美国人不知道华盛顿似的，冷笑说，忘了，这真是贵人眼高。"
       },
-      "decision": "expanded_primary_supported_by:moss-audio,qwen3-asr-1.7b"
+      "decision": "review_supported_by:moss-audio,qwen3-asr-1.7b"
     },
     {
       "start_ms": 617820,
@@ -20059,7 +20059,7 @@
         "firered-llm": "我知道无话可说了便闭了口默默的站着",
         "moss-audio": "我知道无话可说了，便闭了口，默默的站着。"
       },
-      "decision": "expanded_primary_supported_by:moss-audio"
+      "decision": "review_supported_by:moss-audio"
     },
     {
       "start_ms": 655380,
@@ -20647,7 +20647,7 @@
         "firered-llm": "啊呀啊呀真是愈有钱便愈是一毫不肯放松愈是一毫不肯放松便愈有钱圆规一面愤愤地回转身一面絮絮地说慢慢向外走顺便将我母亲的一副手套塞在裤腰里出去了",
         "moss-audio": "阿呀阿呀，真是愈有钱便愈是一毫不肯放松，愈是一毫不肯放松便愈有钱。元规一面愤愤地回转身，一面絮絮地说，慢慢向外走，顺便将我母亲的一副手套塞在裤腰里出去了。"
       },
-      "decision": "primary"
+      "decision": "unresolved"
     },
     {
       "start_ms": 672980,
@@ -22869,7 +22869,7 @@
         "firered-llm": "那手也不是我所记得的红活原石的手却又粗又笨而且开裂像是松树皮了",
         "moss-audio": "那手也不是我所记得的红活圆实的手，却又粗又笨，而且开裂，像是松树皮了。"
       },
-      "decision": "expanded_primary_supported_by:whisper-large-v3"
+      "decision": "review_supported_by:whisper-large-v3"
     },
     {
       "start_ms": 744160,
@@ -23872,7 +23872,7 @@
         "firered-llm": "他站住了脸上现出欢喜和凄凉的神情动着嘴唇却没有作声他的态度终于恭敬起来了分明的叫道",
         "moss-audio": "他站住了，脸上现出欢喜和凄凉的神情，动着嘴唇却没有做声。他的态度终于恭敬起来了，分明的叫道，"
       },
-      "decision": "expanded_primary_supported_by:qwen3-asr-1.7b"
+      "decision": "review_supported_by:qwen3-asr-1.7b"
     },
     {
       "start_ms": 779200,
@@ -24975,7 +24975,7 @@
         "whisper-large-v3": "母亲和红儿下楼来了,他们大约也听到了声音。",
         "firered-llm": "母亲和红儿下楼来了他们大约也听到了声音"
       },
-      "decision": "expanded_primary_supported_by:qwen3-asr-1.7b,whisper-large-v3"
+      "decision": "review_supported_by:qwen3-asr-1.7b,whisper-large-v3"
     },
     {
       "start_ms": 816890,
@@ -26391,7 +26391,7 @@
         "firered-llm": "红儿听得这话便来招水生水生却松松爽爽同他一路出去了",
         "moss-audio": "宏儿听得这话，便来招水生，水生却松松爽爽同他一路出去了。"
       },
-      "decision": "primary"
+      "decision": "unresolved"
     },
     {
       "start_ms": 864360,
@@ -26971,7 +26971,7 @@
         "firered-llm": "母亲叫润土坐他迟疑了一回终于就了坐将长烟管靠在桌旁递过纸包来说冬天没有什么东西了这点干青豆倒是自家晒在那里的请老爷我问问他的景况他只是摇头",
         "moss-audio": "母亲叫闰土坐，他迟疑了一回，终于就了座，将长烟管靠在桌旁，递过纸包来说，冬天没有什么东西了，这点干青豆倒是自家晒在那里的，请老爷，我问问他的景况，他只是摇头，"
       },
-      "decision": "primary"
+      "decision": "unresolved"
     },
     {
       "start_ms": 884330,
@@ -27999,7 +27999,7 @@
         "firered-llm": "他只是摇头脸上虽然刻着许多皱纹却全然不动仿佛石像一般他大约只是觉得苦却又形容不出沉默了片时便拿起烟管来默默的吸烟了",
         "moss-audio": "他只是摇头脸上虽然刻着许多皱纹却全然不动仿佛石像一般他大约只是觉得苦却又形容不出沉默了片时便拿起烟管来默默地吸烟了"
       },
-      "decision": "primary"
+      "decision": "unresolved"
     },
     {
       "start_ms": 922140,
@@ -29558,7 +29558,7 @@
         "firered-llm": "他又要所有的草灰我们这里煮饭是烧稻草的那灰可以做沙地的肥料待我们启程的时候他用船来载去",
         "moss-audio": "他又要所有的草灰。我们这里煮饭是烧稻草的，那灰可以做沙地的肥料。待我们启程的时候，他用船来载去。"
       },
-      "decision": "expanded_primary_supported_by:moss-audio,qwen3-asr-1.7b"
+      "decision": "review_supported_by:moss-audio,qwen3-asr-1.7b"
     },
     {
       "start_ms": 978930,
@@ -30478,7 +30478,7 @@
         "firered-llm": "又过了九日是我们启程的日期闰土早晨便到了水生没有同来却只带着一个五岁的女儿管船只我们终日很忙碌再没有谈天的功夫来客也不少有送行的有拿东西的有送行兼拿东西的",
         "moss-audio": "又过了九日，是我们启程的日期。闰土早晨便到了，水生没有同来，却只带着一个五岁的女儿管船只。我们终日很忙碌，再没有谈天的功夫。来客也不少，有送行的，有拿东西的，有送行兼拿东西的。"
       },
-      "decision": "primary"
+      "decision": "unresolved"
     },
     {
       "start_ms": 1011020,
@@ -31046,7 +31046,7 @@
         "firered-llm": "我们的船向前走两岸的青山在黄昏中都装成了声带颜色连着退向船后烧去",
         "moss-audio": "我们的船向前走，两岸的青山在黄昏中都装成了深黛颜色，连着退向船后稍去。"
       },
-      "decision": "primary"
+      "decision": "unresolved"
     },
     {
       "start_ms": 1030580,
@@ -31329,7 +31329,7 @@
         "firered-llm": "红儿和我靠着船窗同看外面模糊的风景他忽然问道大伯我们什么时候回来",
         "moss-audio": "红儿和我靠着船窗同看外面模糊的风景，她忽然问道：大伯，我们什么时候回来？"
       },
-      "decision": "expanded_primary_supported_by:qwen3-asr-1.7b"
+      "decision": "review_supported_by:qwen3-asr-1.7b"
     },
     {
       "start_ms": 1040140,
@@ -33341,7 +33341,7 @@
         "firered-llm": "老屋离我愈远了故乡的山水也都渐渐远离了我但我却并不感到怎样的留恋我只觉得我四面有看不见的高墙将我隔成孤身使我非常气闷那西瓜地上的银项圈的小英雄的影像我本来十分清楚现在却忽的模糊了又使我非常的悲哀",
         "moss-audio": "老屋离我愈远了，故乡的山水也都渐渐远离了我，但我却并不感到怎样的留恋，我只觉得我四面有看不见的高墙，将我隔成孤身，使我非常气闷。那西瓜地上的银项圈的小英雄的影像，我本来十分清楚，现在却忽地模糊了，又使我非常的悲哀。"
       },
-      "decision": "primary"
+      "decision": "unresolved"
     },
     {
       "start_ms": 1105130,
@@ -33374,7 +33374,7 @@
         "firered-llm": "老屋离我愈远了故乡的山水也都渐渐远离了我但我却并不感到怎样的留恋我只觉得我四面有看不见的高墙将我隔成孤身使我非常气闷那西瓜地上的银项圈的小英雄的影像我本来十分清楚现在却忽的模糊了又使我非常的悲哀",
         "moss-audio": "老屋离我愈远了，故乡的山水也都渐渐远离了我，但我却并不感到怎样的留恋，我只觉得我四面有看不见的高墙，将我隔成孤身，使我非常气闷。那西瓜地上的银项圈的小英雄的影像，我本来十分清楚，现在却忽地模糊了，又使我非常的悲哀。"
       },
-      "decision": "primary"
+      "decision": "unresolved"
     },
     {
       "start_ms": 1105690,
@@ -34018,7 +34018,7 @@
         "firered-llm": "老屋离我愈远了故乡的山水也都渐渐远离了我但我却并不感到怎样的留恋我只觉得我四面有看不见的高墙将我隔成孤身使我非常气闷那西瓜地上的银项圈的小英雄的影像我本来十分清楚现在却忽的模糊了又使我非常的悲哀",
         "moss-audio": "老屋离我愈远了，故乡的山水也都渐渐远离了我，但我却并不感到怎样的留恋，我只觉得我四面有看不见的高墙，将我隔成孤身，使我非常气闷。那西瓜地上的银项圈的小英雄的影像，我本来十分清楚，现在却忽地模糊了，又使我非常的悲哀。"
       },
-      "decision": "primary"
+      "decision": "unresolved"
     },
     {
       "start_ms": 1123930,
@@ -34040,7 +34040,7 @@
         "qwen3-asr-1.7b": "哀。",
         "firered-llm": "哀"
       },
-      "decision": "expanded_primary_supported_by:qwen3-asr-1.7b"
+      "decision": "review_supported_by:qwen3-asr-1.7b"
     },
     {
       "start_ms": 1126770,
@@ -34720,7 +34720,7 @@
         "firered-llm": "我躺着听船底潺潺的水声知道我在走我的路我想我竟与闰土隔绝到这地步了但我们的后辈还是一气红儿不是正在想念水生吗我希望他们不再像我又大家隔膜起来",
         "moss-audio": "我躺着听船底潺潺的水声，知道我在走我的路。我想我竟已润土隔绝到这地步了，但我们的后辈还是一气，红儿不是正在想念水声吗？我希望他们不再像我，又大家隔膜起来。"
       },
-      "decision": "primary"
+      "decision": "unresolved"
     },
     {
       "start_ms": 1149570,
@@ -36887,7 +36887,7 @@
         "whisper-large-v3": "故乡结束此次录音由李晶提供",
         "firered-llm": "故乡结束此次录音由李晶提供"
       },
-      "decision": "expanded_primary_supported_by:qwen3-asr-1.7b,whisper-large-v3"
+      "decision": "review_supported_by:qwen3-asr-1.7b,whisper-large-v3"
     }
   ],
   "activity": [

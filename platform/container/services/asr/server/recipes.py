@@ -336,7 +336,7 @@ class Pipeline:
                 padded = (
                     window.start_ms != window.core_start_ms or window.end_ms != window.core_end_ms
                 )
-                if padded and (depth >= 2 or window.core_end_ms - window.core_start_ms < 30000):
+                if padded and (depth >= 3 or window.core_end_ms - window.core_start_ms < 30000):
                     result.warnings.append(f"joint_window_retry:{window.start_ms}:{exc}")
                     return await transcribe(
                         Window(
@@ -347,7 +347,7 @@ class Pipeline:
                         ),
                         depth + 1,
                     )
-                if depth >= 2 or window.core_end_ms - window.core_start_ms < 30000:
+                if depth >= 3 or window.core_end_ms - window.core_start_ms < 30000:
                     raise
                 result.warnings.append(f"joint_window_retry:{window.start_ms}:{exc}")
                 middle = (window.core_start_ms + window.core_end_ms) // 2
@@ -381,22 +381,14 @@ class Pipeline:
             for span in local:
                 if span.end_ms <= window.core_start_ms or span.start_ms >= window.core_end_ms:
                     continue
-                aligned_window = Window(
-                    start_ms=span.start_ms,
-                    end_ms=span.end_ms,
-                    core_start_ms=max(span.start_ms, window.core_start_ms),
-                    core_end_ms=min(span.end_ms, window.core_end_ms),
-                )
-                aligner_limit = self.inference.scheduler.spec("qwen3-aligner").max_audio_seconds
-                if span.end_ms - span.start_ms > aligner_limit * 1000:
-                    raise ValueError(f"{model}: joint segment exceeds alignment window budget")
                 speaker = mapping.get(span.speaker or "")
                 speakers = [Span(start_ms=span.start_ms, end_ms=span.end_ms, speaker=speaker)]
                 segment = Segment(
                     start_ms=span.start_ms,
                     end_ms=span.end_ms,
                     text=span.text,
-                    flags=[] if speaker else ["joint_identity_unresolved"],
+                    speakers=[speaker] if speaker else [],
+                    flags=[] if speaker else ["joint_identity_unresolved", "speaker_unknown"],
                 )
                 for chunk in self.chunks:
                     if chunk.core_end_ms <= span.start_ms or chunk.core_start_ms >= span.end_ms:
@@ -405,10 +397,21 @@ class Pipeline:
                     if len({normalized(t) for t in candidates.values()}) > 1:
                         segment.flags.append("crosscheck_disagreement_in_interval")
                         break
+                if span.start_ms >= window.core_start_ms and span.end_ms <= window.core_end_ms:
+                    parts.append(segment)
+                    continue
+                aligner_limit = self.inference.scheduler.spec("qwen3-aligner").max_audio_seconds
+                if span.end_ms - span.start_ms > aligner_limit * 1000:
+                    raise ValueError(f"{model}: joint segment exceeds alignment window budget")
                 parts.extend(
                     await self.finalize_segment(
                         segment,
-                        aligned_window,
+                        Window(
+                            start_ms=span.start_ms,
+                            end_ms=span.end_ms,
+                            core_start_ms=max(span.start_ms, window.core_start_ms),
+                            core_end_ms=min(span.end_ms, window.core_end_ms),
+                        ),
                         speakers,
                         step="recipe." + recipe,
                         punctuate=False,
