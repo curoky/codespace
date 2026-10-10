@@ -159,12 +159,12 @@ def test_vllm_models_use_global_cuda_toolchain() -> None:
         assert "cuda-toolkit[nvcc]" not in project
 
 
-def test_static_placement_uses_five_80_gib_gpus_for_parallel_stages() -> None:
+def test_static_placement_uses_six_80_gib_gpus_for_parallel_stages() -> None:
     root = Path(__file__).resolve().parents[1]
     resources = config().resources
     specs = {spec.id: spec for spec in MODELS if spec.gpus}
     assert {instance.model for instance in resources.instances if instance.placement} == set(specs)
-    loads = [0.0] * 5
+    loads = [0.0] * 6
     for instance in resources.instances:
         spec = {spec.id: spec for spec in MODELS}[instance.model]
         assert len(instance.placement) == spec.gpus
@@ -172,7 +172,7 @@ def test_static_placement_uses_five_80_gib_gpus_for_parallel_stages() -> None:
         for index in instance.placement:
             loads[index] += spec.memory_gib
     assert resources.gpu_memory_gib == 80
-    assert loads == [72, 50, 60, 60, 60]
+    assert loads == [40, 50, 60, 60, 60, 32]
     assert all(load < resources.gpu_memory_gib for load in loads)
 
     first_pass = {
@@ -325,7 +325,8 @@ def test_design_gpu_table_matches_static_placement() -> None:
         gpu_rows[int(cells[0])] = cells[1:]
 
     resources = config().resources
-    assert set(gpu_rows) == set(range(5))
+    gpu_count = max(index for instance in resources.instances for index in instance.placement) + 1
+    assert set(gpu_rows) == set(range(gpu_count))
     for index, (models, total, _) in gpu_rows.items():
         expected = [
             (instance, next(spec for spec in MODELS if spec.id == instance.model))

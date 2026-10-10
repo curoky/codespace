@@ -6,11 +6,11 @@
 
 > joint_window_retry:351000:joint boundary alignment failed; cannot deduplicate safely
 
-**[00:00:00.330–00:00:03.810] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:00.330–00:00:03.820] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 鲁迅小说集呐喊社戏
 
-**[00:00:03.980–00:00:06.610] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:03.980–00:00:06.620] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 此次LibriVox录音由公众所有
 
@@ -18,11 +18,11 @@
 
 我在倒数上去的二十年中只看过两回中国戏
 
-**[00:00:12.330–00:00:14.260] S01**
+**[00:00:12.330–00:00:14.280] S01**
 
 前十年是绝不看
 
-**[00:00:14.350–00:00:16.780] S01**
+**[00:00:14.350–00:00:16.810] S01**
 
 因为没有看戏的意思和机会
 
@@ -30,7 +30,7 @@
 
 那两回全在后十年
 
-**[00:00:19.030–00:00:21.480] S01**
+**[00:00:19.030–00:00:21.510] S01**
 
 然而都没有看出什么来就走了
 
@@ -38,59 +38,59 @@
 
 第一回是民国元年我初到北京的时候
 
-**[00:00:25.560–00:00:27.360] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:25.560–00:00:27.380] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 当时一个朋友对我说
 
-**[00:00:27.460–00:00:28.890] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:27.470–00:00:28.910] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 北京戏最好
 
-**[00:00:28.980–00:00:30.560] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:28.980–00:00:30.580] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 你不去见见世面吗
 
-**[00:00:30.920–00:00:33.110] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:30.920–00:00:33.130] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 我想看戏是有味的
 
-**[00:00:33.200–00:00:34.760] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:33.210–00:00:34.780] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 何况在北京呢
 
-**[00:00:34.970–00:00:37.560] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:34.970–00:00:37.580] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 于是都兴致勃勃地跑到什么园
 
-**[00:00:37.650–00:00:39.310] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:37.660–00:00:39.320] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 戏文已经开场了
 
-**[00:00:39.520–00:00:41.810] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:39.530–00:00:41.840] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 在外面也早听到咚咚的响
 
-**[00:00:42.180–00:00:43.280] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:42.180–00:00:43.310] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 我们挨进门
 
-**[00:00:43.370–00:00:46.210] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:43.390–00:00:46.220] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 几个红的绿的在我的眼前一闪烁
 
-**[00:00:46.300–00:00:48.850] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:46.300–00:00:48.860] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 便又看见戏台下满是许多头
 
-**[00:00:49.030–00:00:50.660] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:49.030–00:00:50.680] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 再定神四面看
 
-**[00:00:50.750–00:00:52.960] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:50.760–00:00:52.980] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 却见中间也还有几个空座
 
-**[00:00:53.150–00:00:56.240] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:53.150–00:00:56.260] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 挤过去要坐时又有人对我发议论
 
@@ -98,97 +98,197 @@
 
 我因为耳朵已经惶惶地响着了
 
-**[00:00:59.290–00:01:00.060] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:59.290–00:01:01.540] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-用了心
+用了心才听到他是说
 
-**[00:01:00.150–00:01:01.510] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-才听到他是说
-
-**[00:01:01.700–00:01:03.060] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:01.710–00:01:03.110] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 有人不行
 
-**[00:01:04.130–00:01:05.480] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:04.120–00:01:05.510] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 我们退到后面
 
-**[00:01:05.570–00:01:08.710] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:05.590–00:01:08.730] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 一个辫子很光的却来领我们到了侧面
 
-**[00:01:08.800–00:01:10.160] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:08.810–00:01:10.180] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 指出一个地位来
 
-**[00:01:10.580–00:01:13.560] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:10.580–00:01:13.580] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 这所谓地位着原来是一条长凳
 
-**[00:01:13.810–00:01:17.610] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:13.810–00:01:17.640] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 然而他那坐板比我的上腿要狭到四分之三
 
-**[00:01:17.790–00:01:21.310] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:17.810–00:01:21.340] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 他的脚比我的下腿要长过三分之二
 
-**[00:01:21.680–00:01:23.960] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:21.680–00:01:23.980] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 我先是没有爬上去的勇气
 
-**[00:01:24.050–00:01:26.810] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:24.060–00:01:26.830] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 接着便联想到私刑拷打的刑具
 
-**[00:01:26.890–00:01:28.010] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:26.910–00:01:29.110] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-不由得毛骨悚
+不由得毛骨悚然地走出了
 
-**[00:01:28.030–00:01:29.070] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:30.080–00:01:31.210] S01**
 
-然地走出了。
+走了许多路
 
-**[00:01:30.120–00:01:38.450] S01**
+**[00:01:31.290–00:01:33.280] S01**
 
-走了许多路，忽听得我的朋友的声音道：究竟怎的？我回过脸去，原来他也被我带出来了。
+忽听得我的朋友的声音道
 
-**[00:01:39.330–00:01:49.420] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:33.450–00:01:34.710] S01**
 
-他很诧异地说：怎么总是走不答应？我说：朋友，对不起，我耳朵只在咚咚惶惶地响，并没有听到你的话。
+究竟怎的
 
-**[00:01:50.380–00:01:59.610] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:35.150–00:01:36.340] S01**
 
-后来我每一想到，便很以为奇怪，似乎这戏太不好，否则便是我近来在戏台下不适宜生存了。
+我回过脸去
 
-**[00:02:01.030–00:02:16.380] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:36.420–00:01:38.510] S01**
 
-第二回忘记了哪一年，总之是募集湖北水灾捐，而谭教天还没有死。捐法是两元钱买一张戏票，可以到第一舞台去看戏，扮演的多是名角，其一就是小教天。
+原来他也被我带出来了
 
-**[00:02:16.880–00:02:26.180] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:39.310–00:01:40.540] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我买了一张票，本是对于劝募人聊以色泽的，然而似乎又有好事家趁机对我说了些教天不可不看的大法要了。
+他很诧异地说
 
-**[00:02:26.710–00:02:31.280] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:40.620–00:01:42.310] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我于是忘了前几年的咚咚惶惶之灾，进到第一舞台去了。
+怎么总是走不答应
 
-**[00:02:31.880–00:02:37.050] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:42.850–00:01:43.710] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-但大约一半也因为重价购来的保票，总得使用了才舒服。
+我说
 
-**[00:02:37.750–00:02:47.380] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:44.150–00:01:45.580] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我打听的教天出台是迟的，而第一舞台却是新式构造，用不着真座位，便放了心，延档到九点钟才去。
+朋友对不起
 
-**[00:02:47.560–00:02:55.280] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:45.660–00:01:47.940] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-谁料照例人都满了，连立足也难，我只得挤在远处的人丛中看一个老旦在台上唱。
+我耳朵只在咚咚惶惶地响
 
-**[00:02:55.650–00:02:55.970] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:48.020–00:01:49.480] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-那老
+并没有听到你的话
+
+**[00:01:50.350–00:01:52.040] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+后来我每一想到
+
+**[00:01:52.120–00:01:53.580] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+便很以为奇怪
+
+**[00:01:53.660–00:01:55.540] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+似乎这戏太不好
+
+**[00:01:55.910–00:01:59.640] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+否则便是我近来在戏台下不适宜生存了
+
+**[00:02:01.010–00:02:03.110] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+第二回忘记了哪一年
+
+**[00:02:03.190–00:02:05.680] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+总之是募集湖北水灾捐
+
+**[00:02:05.760–00:02:07.480] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+而谭教天还没有死
+
+**[00:02:07.780–00:02:10.340] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+捐法是两元钱买一张戏票
+
+**[00:02:10.420–00:02:12.680] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+可以到第一舞台去看戏
+
+**[00:02:12.940–00:02:14.680] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+扮演的多是名角
+
+**[00:02:14.760–00:02:16.440] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+其一就是小教天
+
+**[00:02:16.880–00:02:18.110] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+我买了一张票
+
+**[00:02:18.190–00:02:20.780] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+本是对于劝募人聊以色泽的
+
+**[00:02:20.940–00:02:26.210] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+然而似乎又有好事家趁机对我说了些教天不可不看的大法要了
+
+**[00:02:26.680–00:02:29.640] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+我于是忘了前几年的咚咚惶惶之灾
+
+**[00:02:29.720–00:02:31.310] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+进到第一舞台去了
+
+**[00:02:31.850–00:02:35.110] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+但大约一半也因为重价购来的保票
+
+**[00:02:35.190–00:02:37.110] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+总得使用了才舒服
+
+**[00:02:37.750–00:02:40.340] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+我打听得教天出台是迟的
+
+**[00:02:40.420–00:02:42.880] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+而第一舞台却是新式构造
+
+**[00:02:42.960–00:02:44.240] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+用不着真座位
+
+**[00:02:44.320–00:02:45.340] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+便放了心
+
+**[00:02:45.420–00:02:47.410] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+延档到九点钟才去
+
+**[00:02:47.580–00:02:49.710] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+谁料照例人都满了
+
+**[00:02:49.790–00:02:51.040] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+连立足也难
+
+**[00:02:51.120–00:02:55.310] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+我只得挤在远处的人丛中看一个老旦在台上唱
 
 **[00:02:56.040–00:03:04.760] S01 · 待核对：crosscheck_disagreement_in_interval**
 
@@ -266,97 +366,89 @@
 
 至于我看好戏的时候，却实在已经
 
-**[00:05:51.870–00:05:57.070] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:05:52.070–00:05:57.220] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 是远哉遥遥的了，其实恐怕我还不过十一二岁。
 
-**[00:05:58.140–00:06:06.460] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:05:58.130–00:06:06.510] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 我们鲁镇的习惯，本来是凡有出嫁的女儿，倘自己还未当家，夏间便大抵回到母家去消夏。
 
-**[00:06:06.880–00:06:18.480] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:06.860–00:06:18.510] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 那时我的祖母虽然还康健，但母亲也已分担了些家务，所以下期便不能多日的归省了，只得在扫墓完毕之后，抽空去住几天。
 
-**[00:06:19.140–00:06:36.010] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:19.130–00:06:23.040] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-这时我便每年跟了我的母亲住在外祖母的家里，那地方叫平桥村，是一个离海边不远，极偏僻的临河的小村庄，住户不满三十家，都种田，打渔，只有一家很小的杂货店。
+这时我便每年跟了我的母亲住在外祖母的家里。
 
-**[00:06:36.520–00:06:44.860] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:23.490–00:06:36.010] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+那地方叫平桥村，是一个离海边不远，极偏僻的临河的小村庄，住户不满三十家，都种田，打渔，只有一家很小的杂货店。
+
+**[00:06:36.510–00:06:44.880] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 但在我是乐土，因为我在这里不但得到优待，又可以免念赤赤丝干，悠悠南山了。
 
-**[00:06:45.690–00:06:54.720] S01**
+**[00:06:45.690–00:06:54.740] S01**
 
 和我一同玩的是许多小朋友，因为有了远客，他们也都从父母那里得了减少工作的许可，伴我来游戏。
 
-**[00:06:55.590–00:07:06.310] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:55.580–00:06:59.510] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-在小村里，一家的客几乎也都是公共的，我们年纪都相仿，但论起行辈来，却至少是叔子，有几个还是太公。
+在小村里，一家的客几乎也都是公共的。
 
-**[00:07:07.020–00:07:19.980] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:59.820–00:07:06.310] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-因为他们和村都同姓，是本家，然而我们是朋友，即使偶尔吵闹起来，打了太公，一村的老老少少也绝没有一个会想出犯上这两个字来，而他
+我们年纪都相仿，但论起行辈来，却至少是叔子，有几个还是太公。
 
-**[00:07:19.960–00:07:22.120] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:06.920–00:07:22.310] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-们也百分之九十九不识字。
+因为他们和村都同姓，是本家，然而我们是朋友，即使偶尔吵闹起来，打了太公，一村的老老少少也绝没有一个会想出犯上这两个字来，而他们也百分之九十九不识字。
 
-**[00:07:22.640–00:07:30.040] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:22.680–00:07:30.110] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 我们每天的事情大概是掘蚯蚓，掘来穿在铜丝做的小钩上，浮在河沿上去钓虾。
 
-**[00:07:30.620–00:07:39.340] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:30.680–00:07:39.410] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 虾是水世界里的呆子，绝不但用了自己的两个钱捧着钩尖送到嘴里去的，所以不半天便可以钓到一大碗。
 
-**[00:07:39.680–00:07:41.980] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:39.740–00:07:42.040] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 这虾照例是归我吃的。
 
-**[00:07:42.440–00:07:50.920] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:42.510–00:07:55.780] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-其次便是一同去放牛，但或者是因为高等动物了的缘故吧，黄牛水牛都欺生，敢于欺侮我。
+其次便是一同去放牛，但或者是因为高等动物了的缘故吧，黄牛水牛都欺生，敢于欺侮我，因此我也总不敢走近身，只好远远的跟着，站着。
 
-**[00:07:51.160–00:07:55.720] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:56.220–00:08:02.680] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-因此我也总不敢走近身，只好远远的跟着，站着。
+这时候小朋友便不再原谅我会读赤赤丝干，却全都嘲笑起来了。
 
-**[00:07:56.180–00:08:02.620] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-这时候小朋友便不再原谅我会读，赤赤丝干，却全都嘲笑起来了。
-
-**[00:08:03.610–00:08:08.510] S01**
+**[00:08:03.650–00:08:08.580] S01**
 
 至于我在那里所第一盼望的，却在到赵庄去看戏。
 
-**[00:08:08.990–00:08:19.150] S01**
+**[00:08:09.040–00:08:19.210] S01**
 
 赵庄是离平桥村五里的较大的村庄，平桥村太小，自己演不起戏，每年总付给赵庄多少钱，算作合作的。
 
-**[00:08:20.080–00:08:27.740] S01**
+**[00:08:20.130–00:08:27.810] S01**
 
 当时我并不想到他们为什么年年要演戏，现在想，那或者是春赛，是社戏了。
 
-**[00:08:28.640–00:08:33.180] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:28.680–00:08:33.210] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 就在我十一二岁时候的这一年，这日期也看看等到了。
 
-**[00:08:33.480–00:08:37.120] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:33.540–00:08:37.140] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 不料这一年真可惜，在早上就叫不到船。
 
-**[00:08:37.460–00:08:42.760] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:37.510–00:08:47.980] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-平桥村只有一只早出晚归的航船是大船，绝没有留用的道理。
-
-**[00:08:42.930–00:08:45.530] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-其余的都是小船，不合用。
-
-**[00:08:45.970–00:08:48.050] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-央人到邻村去问，也没
+平桥村只有一只早出晚归的航船是大船，绝没有留用的道理，其余的都是小船，不合用，央人到邻村去问，也没
 
 **[00:08:48.110–00:08:50.270] S01 · 待核对：crosscheck_disagreement_in_interval**
 

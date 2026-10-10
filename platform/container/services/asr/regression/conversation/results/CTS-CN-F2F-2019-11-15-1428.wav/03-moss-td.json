@@ -4856,8 +4856,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 880520,
-      "end_ms": 882840,
+      "start_ms": 880320,
+      "end_ms": 882940,
       "text": "北方的茶叶都是由我们南方运过去的。",
       "speakers": [
         "S01"
@@ -4866,136 +4866,23 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "北",
-          "start_ms": 880520,
-          "end_ms": 880680,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "方",
-          "start_ms": 880680,
-          "end_ms": 880760,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 880760,
-          "end_ms": 880840,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "茶",
-          "start_ms": 880840,
-          "end_ms": 881080,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "叶",
-          "start_ms": 881080,
-          "end_ms": 881240,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "都",
-          "start_ms": 881240,
-          "end_ms": 881320,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 881320,
-          "end_ms": 881480,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "由",
-          "start_ms": 881480,
-          "end_ms": 881720,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 881720,
-          "end_ms": 881800,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "们",
-          "start_ms": 881800,
-          "end_ms": 881880,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "南",
-          "start_ms": 881880,
-          "end_ms": 882040,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "方",
-          "start_ms": 882040,
-          "end_ms": 882280,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "运",
-          "start_ms": 882280,
-          "end_ms": 882360,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "过",
-          "start_ms": 882360,
-          "end_ms": 882520,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "去",
-          "start_ms": 882520,
-          "end_ms": 882680,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的。",
-          "start_ms": 882680,
-          "end_ms": 882840,
-          "speakers": [
-            "S01"
-          ]
-        }
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 882910,
+      "end_ms": 883350,
+      "text": "对。",
+      "speakers": [
+        "S02"
       ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
@@ -5018,7 +4905,7 @@
     },
     {
       "start_ms": 887520,
-      "end_ms": 889620,
+      "end_ms": 889640,
       "text": "运输工程就非常的麻烦。",
       "speakers": [
         "S01"
@@ -5033,9 +4920,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 889620,
-      "end_ms": 892140,
-      "text": "从南方到运送的北方。",
+      "start_ms": 889640,
+      "end_ms": 890720,
+      "text": "从南方。",
       "speakers": [
         "S01"
       ],
@@ -5049,7 +4936,23 @@
       "decision": "primary"
     },
     {
-      "start_ms": 892520,
+      "start_ms": 890720,
+      "end_ms": 892160,
+      "text": "到运送的北方。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 892560,
       "end_ms": 893140,
       "text": "是的。",
       "speakers": [
@@ -5065,7 +4968,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 893140,
+      "start_ms": 893180,
       "end_ms": 897780,
       "text": "现在说信息发达就不发达，一件东西很快就到达了。",
       "speakers": [
@@ -5081,8 +4984,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 897720,
-      "end_ms": 898440,
+      "start_ms": 897750,
+      "end_ms": 898420,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -5097,8 +5000,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 898640,
-      "end_ms": 901520,
+      "start_ms": 898660,
+      "end_ms": 901510,
       "text": "而且我觉得北方他们有这种水质的。",
       "speakers": [
         "S01"
@@ -5113,7 +5016,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 901520,
+      "start_ms": 901510,
       "end_ms": 907260,
       "text": "就是种在水里的茶叶，我觉得也是不错的，是个不错的选择，也是一个很大的开发项目。",
       "speakers": [
@@ -5129,7 +5032,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 907260,
+      "start_ms": 907310,
       "end_ms": 907980,
       "text": "对呀。",
       "speakers": [
@@ -5145,7 +5048,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 908500,
+      "start_ms": 908520,
       "end_ms": 910040,
       "text": "也是一种创新。",
       "speakers": [
@@ -5177,8 +5080,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 917600,
-      "end_ms": 918240,
+      "start_ms": 917620,
+      "end_ms": 918220,
       "text": "是的。",
       "speakers": [
         "S01"
@@ -5193,7 +5096,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 918600,
+      "start_ms": 918610,
       "end_ms": 927320,
       "text": "因为地理差异，让北方的水果就特别的适适合，就是冬天吃，然后我们南方的水果都是夏季或者秋季。",
       "speakers": [
@@ -5210,8 +5113,8 @@
     },
     {
       "start_ms": 927320,
-      "end_ms": 936260,
-      "text": "这种两者相互结合起来，有空运行运和水运，让两者的就是说一些物质交换就非常的方便，也让我们吃到了更多。",
+      "end_ms": 936250,
+      "text": "这种两者相互结合起来，有空运航运和水运，让两者的就是说一些物质交换就非常的方便，也让我们吃到了更多。",
       "speakers": [
         "S01"
       ],
@@ -5225,7 +5128,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 936620,
+      "start_ms": 936630,
       "end_ms": 939440,
       "text": "以前不敢尝，没有见识过的东西。",
       "speakers": [
@@ -5241,8 +5144,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 939360,
-      "end_ms": 940100,
+      "start_ms": 939380,
+      "end_ms": 940080,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -5258,7 +5161,7 @@
     },
     {
       "start_ms": 940960,
-      "end_ms": 943000,
+      "end_ms": 943010,
       "text": "我们现在物质发达了。",
       "speakers": [
         "S02"
@@ -5273,7 +5176,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 943840,
+      "start_ms": 943850,
       "end_ms": 944940,
       "text": "古代。",
       "speakers": [
@@ -5289,7 +5192,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 945440,
+      "start_ms": 945460,
       "end_ms": 947840,
       "text": "嗯，物质很匮乏。",
       "speakers": [
@@ -5305,9 +5208,25 @@
       "decision": "primary"
     },
     {
-      "start_ms": 948160,
+      "start_ms": 948180,
+      "end_ms": 949080,
+      "text": "但是。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 949080,
       "end_ms": 951620,
-      "text": "但是，结合古代和现代的技术。",
+      "text": "结合古代和现代的技术。",
       "speakers": [
         "S02"
       ],
@@ -5337,8 +5256,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 955620,
-      "end_ms": 958020,
+      "start_ms": 955630,
+      "end_ms": 958010,
       "text": "让人让，就是说他们的技术。",
       "speakers": [
         "S01"
@@ -5369,8 +5288,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 963420,
-      "end_ms": 964120,
+      "start_ms": 963440,
+      "end_ms": 964100,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -5402,7 +5321,7 @@
     },
     {
       "start_ms": 966520,
-      "end_ms": 967800,
+      "end_ms": 967780,
       "text": "说一些。",
       "speakers": [
         "S01"
@@ -5417,9 +5336,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 968480,
-      "end_ms": 969880,
-      "text": "地娃就是说。",
+      "start_ms": 968380,
+      "end_ms": 969860,
+      "text": "帝王就是说。",
       "speakers": [
         "S01"
       ],
@@ -5433,27 +5352,11 @@
       "decision": "primary"
     },
     {
-      "start_ms": 970280,
-      "end_ms": 974660,
-      "text": "吃一些东西啊，都是那种冰块，都要自己收藏一个冰库，因为在。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 974120,
+      "start_ms": 970210,
       "end_ms": 974640,
-      "text": "对。",
+      "text": "吃一些东西啊，都是那种冰块都要自己收藏一个冰库，因为在。",
       "speakers": [
-        "S02"
+        "S01"
       ],
       "flags": [
         "crosscheck_disagreement_in_interval"
@@ -5465,8 +5368,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 974660,
-      "end_ms": 982020,
+      "start_ms": 974640,
+      "end_ms": 982010,
       "text": "在我们这边就非常常见，但是如果说在北方那边，冬天就根本就不需要冰库，因为他们自己有自己的。",
       "speakers": [
         "S01"
@@ -5481,8 +5384,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 982020,
-      "end_ms": 982760,
+      "start_ms": 982010,
+      "end_ms": 982720,
       "text": "这种。",
       "speakers": [
         "S01"
@@ -5497,8 +5400,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 982760,
-      "end_ms": 985080,
+      "start_ms": 982720,
+      "end_ms": 985050,
       "text": "酷暑的海，就是海沿海的地方。",
       "speakers": [
         "S01"
@@ -5513,8 +5416,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 985080,
-      "end_ms": 988880,
+      "start_ms": 985050,
+      "end_ms": 988860,
       "text": "他们夏天要是旅游了，就会去南方去旅游。",
       "speakers": [
         "S01"
@@ -5529,8 +5432,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 988880,
-      "end_ms": 992020,
+      "start_ms": 988860,
+      "end_ms": 992010,
       "text": "说说一些避暑山庄，避暑干嘛的。",
       "speakers": [
         "S01"
@@ -5545,7 +5448,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 992140,
+      "start_ms": 992080,
       "end_ms": 992820,
       "text": "对。",
       "speakers": [
@@ -5561,7 +5464,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 993140,
+      "start_ms": 993060,
       "end_ms": 997760,
       "text": "现在科技发达，每个地方都有自己避暑的地方，我觉得挺好的。",
       "speakers": [
@@ -5577,7 +5480,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 997780,
+      "start_ms": 997710,
       "end_ms": 998480,
       "text": "挺好的。",
       "speakers": [
@@ -5593,8 +5496,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 999240,
-      "end_ms": 1000460,
+      "start_ms": 999160,
+      "end_ms": 1000440,
       "text": "但是。",
       "speakers": [
         "S02"
@@ -5607,7 +5510,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1000460,
+      "start_ms": 1000440,
       "end_ms": 1001420,
       "text": "我们。",
       "speakers": [
@@ -5621,9 +5524,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1002740,
+      "start_ms": 1002710,
       "end_ms": 1005980,
-      "text": "但是避暑，也有避暑的条件。",
+      "text": "但是避暑也有避暑的条件。",
       "speakers": [
         "S02"
       ],
@@ -5637,7 +5540,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1007020,
+      "start_ms": 1006960,
       "end_ms": 1007620,
       "text": "是的。",
       "speakers": [
@@ -5653,7 +5556,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1008020,
+      "start_ms": 1007960,
       "end_ms": 1010320,
       "text": "所以说南方是个避暑的地方。",
       "speakers": [
@@ -5669,8 +5572,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1010820,
-      "end_ms": 1011380,
+      "start_ms": 1010720,
+      "end_ms": 1011340,
       "text": "是。",
       "speakers": [
         "S02"
@@ -5685,8 +5588,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1011720,
-      "end_ms": 1016220,
+      "start_ms": 1011660,
+      "end_ms": 1016200,
       "text": "因为我们这里的山水就非常的好，空气，温度适宜。",
       "speakers": [
         "S01"
@@ -5701,7 +5604,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1016200,
+      "start_ms": 1016120,
       "end_ms": 1018540,
       "text": "对，温度适宜，空气也好。",
       "speakers": [
@@ -5717,8 +5620,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1020300,
-      "end_ms": 1022320,
+      "start_ms": 1020220,
+      "end_ms": 1022300,
       "text": "北方呢，就适合属于那种。",
       "speakers": [
         "S01"
@@ -5733,8 +5636,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1022720,
-      "end_ms": 1025860,
+      "start_ms": 1022620,
+      "end_ms": 1025840,
       "text": "适合去吃游玩的地方。",
       "speakers": [
         "S01"
@@ -5749,8 +5652,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1025880,
-      "end_ms": 1026420,
+      "start_ms": 1025800,
+      "end_ms": 1026400,
       "text": "对。",
       "speakers": [
         "S02"
@@ -5765,9 +5668,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1026600,
-      "end_ms": 1028040,
-      "text": "因为各自的好吃。",
+      "start_ms": 1026520,
+      "end_ms": 1028020,
+      "text": "因为特色的好吃。",
       "speakers": [
         "S01"
       ],
@@ -5781,23 +5684,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1026680,
-      "end_ms": 1027240,
-      "text": "因为。",
-      "speakers": [
-        "S02"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 1028440,
+      "start_ms": 1028360,
       "end_ms": 1029020,
       "text": "对。",
       "speakers": [
@@ -5813,9 +5700,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1030300,
-      "end_ms": 1033040,
-      "text": "也许可能去北上玩一趟，就。",
+      "start_ms": 1030220,
+      "end_ms": 1033010,
+      "text": "也许可能去北滩玩一趟，就。",
       "speakers": [
         "S01"
       ],
@@ -5829,9 +5716,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1033040,
-      "end_ms": 1039680,
-      "text": "因为有很多就说演员啊，什么明星啊，都是在那边去拍戏，也属于不同的词语，也不一定。",
+      "start_ms": 1033010,
+      "end_ms": 1039660,
+      "text": "因为有很多就说演员啊，什么明星啊，都是在那边去拍戏，也许与不同的奇遇也不一定。",
       "speakers": [
         "S01"
       ],
@@ -5845,8 +5732,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1039720,
-      "end_ms": 1040420,
+      "start_ms": 1039640,
+      "end_ms": 1040400,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -5861,8 +5748,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1041680,
-      "end_ms": 1042140,
+      "start_ms": 1041580,
+      "end_ms": 1042120,
       "text": "是。",
       "speakers": [
         "S01"
@@ -5877,8 +5764,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1042400,
-      "end_ms": 1043540,
+      "start_ms": 1042300,
+      "end_ms": 1043520,
       "text": "一些就说。",
       "speakers": [
         "S01"
@@ -5893,8 +5780,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1043540,
-      "end_ms": 1048620,
+      "start_ms": 1043520,
+      "end_ms": 1048610,
       "text": "就是因为世界的交流，就是互联网的沟通，就说南方人有去北方。",
       "speakers": [
         "S01"
@@ -5909,9 +5796,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1048860,
-      "end_ms": 1053060,
-      "text": "就见识过北方人，也去见南方见识过，有选择不同的地区。",
+      "start_ms": 1048780,
+      "end_ms": 1053040,
+      "text": "就见识过，北方人也是见南方见识过，有选择不同的地区。",
       "speakers": [
         "S01"
       ],
@@ -5925,9 +5812,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1053400,
-      "end_ms": 1055960,
-      "text": "从南方进到北方，或者是说从",
+      "start_ms": 1053140,
+      "end_ms": 1055980,
+      "text": "从南方进到北方，或者是说从。",
       "speakers": [
         "S01"
       ],
@@ -5935,104 +5822,7 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "从",
-          "start_ms": 1053400,
-          "end_ms": 1053640,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "南",
-          "start_ms": 1053720,
-          "end_ms": 1053880,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "方",
-          "start_ms": 1053880,
-          "end_ms": 1054120,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "进",
-          "start_ms": 1054280,
-          "end_ms": 1054360,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "到",
-          "start_ms": 1054360,
-          "end_ms": 1054520,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "北",
-          "start_ms": 1054600,
-          "end_ms": 1054680,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "方，",
-          "start_ms": 1054760,
-          "end_ms": 1055000,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "或",
-          "start_ms": 1055000,
-          "end_ms": 1055080,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "者",
-          "start_ms": 1055080,
-          "end_ms": 1055240,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 1055240,
-          "end_ms": 1055400,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "说",
-          "start_ms": 1055400,
-          "end_ms": 1055640,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "从",
-          "start_ms": 1055800,
-          "end_ms": 1055960,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"

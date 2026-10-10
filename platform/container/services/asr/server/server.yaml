@@ -4,7 +4,7 @@ resources:
     - {id: firered-llm, model: firered-llm, port: 8000, placement: [0, 1]}
     - {id: firered-punc, model: firered-punc, port: 8001}
     - {id: firered-vad, model: firered-vad, port: 8002}
-    - {id: moss-audio, model: moss-audio, port: 8003, placement: [0]}
+    - {id: moss-audio, model: moss-audio, port: 8003, placement: [5]}
     - {id: moss-td, model: moss-td, port: 8004, placement: [2]}
     - {id: nemotron-diarization, model: nemotron-diarization, port: 8005, placement: [1]}
     - {id: paraformer, model: paraformer, port: 8006, placement: [4]}

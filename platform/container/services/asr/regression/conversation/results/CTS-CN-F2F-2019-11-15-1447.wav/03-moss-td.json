@@ -3757,7 +3757,9 @@
       "speakers": [
         "S01"
       ],
-      "flags": [],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
       "channel": null,
       "tokens": [],
       "candidates": {},
@@ -8539,7 +8541,9 @@
       "speakers": [
         "S01"
       ],
-      "flags": [],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
       "channel": null,
       "tokens": [],
       "candidates": {},

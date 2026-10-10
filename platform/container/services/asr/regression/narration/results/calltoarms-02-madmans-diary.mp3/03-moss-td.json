@@ -3,8 +3,7 @@
   "status": "completed",
   "error": null,
   "warnings": [
-    "joint_window_retry:527000:joint boundary alignment failed; cannot deduplicate safely",
-    "joint_window_retry:615000:joint boundary alignment failed; cannot deduplicate safely"
+    "joint_window_retry:527000:joint boundary alignment failed; cannot deduplicate safely"
   ],
   "segments": [
     {
@@ -1887,136 +1886,15 @@
       "decision": "primary"
     },
     {
-      "start_ms": 527950,
-      "end_ms": 531870,
-      "text": "在意中，合伙吃我的人便是我的哥哥。",
+      "start_ms": 528070,
+      "end_ms": 531890,
+      "text": "在义中，合伙吃我的人，便是我的哥哥。",
       "speakers": [
         "S01"
       ],
       "flags": [],
       "channel": null,
-      "tokens": [
-        {
-          "text": "在",
-          "start_ms": 527950,
-          "end_ms": 528110,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "意",
-          "start_ms": 528110,
-          "end_ms": 528270,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "中，",
-          "start_ms": 528270,
-          "end_ms": 528670,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "合",
-          "start_ms": 528990,
-          "end_ms": 529230,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "伙",
-          "start_ms": 529230,
-          "end_ms": 529470,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "吃",
-          "start_ms": 529470,
-          "end_ms": 529710,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 529950,
-          "end_ms": 529950,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 529950,
-          "end_ms": 530030,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "人",
-          "start_ms": 530030,
-          "end_ms": 530270,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "便",
-          "start_ms": 530510,
-          "end_ms": 530750,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 530750,
-          "end_ms": 530990,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 530990,
-          "end_ms": 531070,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 531070,
-          "end_ms": 531150,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "哥",
-          "start_ms": 531150,
-          "end_ms": 531470,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "哥。",
-          "start_ms": 531470,
-          "end_ms": 531870,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
@@ -2051,7 +1929,7 @@
     },
     {
       "start_ms": 545330,
-      "end_ms": 554690,
+      "end_ms": 554670,
       "text": "五，这几天是退一步想，假使那老头子不是刽子手扮的，真是医生，也仍然是吃人的人。",
       "speakers": [
         "S01"
@@ -2066,9 +1944,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 554840,
-      "end_ms": 563180,
-      "text": "他们的祖师李时珍做的本草什么上，明明写着人肉可以煎吃，他还能说自己不吃人吗？",
+      "start_ms": 554850,
+      "end_ms": 563190,
+      "text": "他们的祖师李时珍做的本草什么伤，明明写着人肉可以兼吃，他还能说自己不吃人吗？",
       "speakers": [
         "S01"
       ],
@@ -2083,8 +1961,8 @@
     },
     {
       "start_ms": 564610,
-      "end_ms": 572170,
-      "text": "至于我家大哥，也毫不冤枉他，他对我讲书的时候，亲口说过可以易子而食。",
+      "end_ms": 567330,
+      "text": "至于我家大哥，也毫不冤枉他。",
       "speakers": [
         "S01"
       ],
@@ -2098,8 +1976,24 @@
       "decision": "primary"
     },
     {
-      "start_ms": 572550,
-      "end_ms": 578870,
+      "start_ms": 567870,
+      "end_ms": 572170,
+      "text": "他对我讲书的时候，亲口说过可以易子而食。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 572570,
+      "end_ms": 578890,
       "text": "又一回偶然议论起一个不好的人，他便说不但该杀，还当食肉请皮。",
       "speakers": [
         "S01"
@@ -2114,7 +2008,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 580130,
+      "start_ms": 580150,
       "end_ms": 583370,
       "text": "我那时年纪还小，心跳了好半天。",
       "speakers": [
@@ -2130,8 +2024,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 583780,
-      "end_ms": 589220,
+      "start_ms": 583810,
+      "end_ms": 589230,
       "text": "前天狼子村佃户来说吃心肝的事，他也毫不奇怪，不住的点头。",
       "speakers": [
         "S01"
@@ -2147,7 +2041,7 @@
     },
     {
       "start_ms": 589910,
-      "end_ms": 592710,
+      "end_ms": 592730,
       "text": "可见心思是同从前一样狠。",
       "speakers": [
         "S01"
@@ -2162,8 +2056,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 593440,
-      "end_ms": 598420,
+      "start_ms": 593470,
+      "end_ms": 598430,
       "text": "既然可以易子而食，便什么都易得，什么人都吃的。",
       "speakers": [
         "S01"
@@ -2178,9 +2072,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 599360,
-      "end_ms": 610980,
-      "text": "我从前单听他讲道理也糊涂过去，现在晓得他讲道理的时候不但唇边还抹着人油，而且心里满装着吃人的意思。",
+      "start_ms": 599410,
+      "end_ms": 602830,
+      "text": "我从前单听他讲道理，也糊涂过去。",
       "speakers": [
         "S01"
       ],
@@ -2192,9 +2086,23 @@
       "decision": "primary"
     },
     {
-      "start_ms": 614330,
-      "end_ms": 616010,
-      "text": "六，黑漆",
+      "start_ms": 603290,
+      "end_ms": 611010,
+      "text": "现在晓得他讲道理的时候，不但唇边还抹着人油，而且心里满装着吃人的意思。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 614290,
+      "end_ms": 621030,
+      "text": "六，黑漆漆的，不知是日是夜，赵家的狗又叫起来了。",
       "speakers": [
         "S01"
       ],
@@ -2202,192 +2110,14 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "六，",
-          "start_ms": 614330,
-          "end_ms": 614650,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "黑",
-          "start_ms": 615530,
-          "end_ms": 615770,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "漆",
-          "start_ms": 615770,
-          "end_ms": 616010,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
-      "start_ms": 615970,
-      "end_ms": 620930,
-      "text": "漆的，不知是日是夜，赵家的狗又叫起来了。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "漆",
-          "start_ms": 615970,
-          "end_ms": 616290,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的，",
-          "start_ms": 616290,
-          "end_ms": 616610,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "不",
-          "start_ms": 616770,
-          "end_ms": 616930,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "知",
-          "start_ms": 616930,
-          "end_ms": 617090,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 617090,
-          "end_ms": 617410,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "日",
-          "start_ms": 617410,
-          "end_ms": 617810,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 617810,
-          "end_ms": 618050,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "夜，",
-          "start_ms": 618050,
-          "end_ms": 618530,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "赵",
-          "start_ms": 618850,
-          "end_ms": 619170,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "家",
-          "start_ms": 619170,
-          "end_ms": 619330,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 619330,
-          "end_ms": 619410,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "狗",
-          "start_ms": 619410,
-          "end_ms": 619730,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "又",
-          "start_ms": 619810,
-          "end_ms": 620050,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "叫",
-          "start_ms": 620050,
-          "end_ms": 620290,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "起",
-          "start_ms": 620290,
-          "end_ms": 620530,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "来",
-          "start_ms": 620530,
-          "end_ms": 620690,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "了。",
-          "start_ms": 620690,
-          "end_ms": 620930,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 621580,
-      "end_ms": 626040,
+      "start_ms": 621610,
+      "end_ms": 626130,
       "text": "狮子似的凶性，兔子的怯弱，狐狸的狡猾。",
       "speakers": [
         "S01"
@@ -2402,8 +2132,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 628640,
-      "end_ms": 635910,
+      "start_ms": 628690,
+      "end_ms": 635930,
       "text": "七，我晓得他们的方法，直接杀了是不肯的，而且也不敢，怕有祸祟。",
       "speakers": [
         "S01"
@@ -2418,8 +2148,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 636350,
-      "end_ms": 640310,
+      "start_ms": 636390,
+      "end_ms": 640330,
       "text": "所以他们大家联络，布满了罗网，逼我自强。",
       "speakers": [
         "S01"
@@ -2434,9 +2164,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 640810,
-      "end_ms": 647410,
-      "text": "是看前几天街上男女的样子，和这几天我大哥的作为，便足可悟出八九分了。",
+      "start_ms": 640830,
+      "end_ms": 647430,
+      "text": "试看前几天街上男女的样子，和这几天我大哥的作为，便足可悟出八九分了。",
       "speakers": [
         "S01"
       ],
@@ -2450,8 +2180,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 648110,
-      "end_ms": 652810,
+      "start_ms": 648130,
+      "end_ms": 652830,
       "text": "最好是解下腰带，挂在梁上，自己紧紧勒死。",
       "speakers": [
         "S01"
@@ -2466,9 +2196,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 653190,
-      "end_ms": 660070,
-      "text": "他们没有杀人的罪名，又尝了心愿，自然都欢天喜地的发出一种呜呜咽咽的笑",
+      "start_ms": 653130,
+      "end_ms": 660530,
+      "text": "他们没有杀人的罪名，又尝了心愿，自然都欢天喜地的发出一种呜呜咽咽的笑声。",
       "speakers": [
         "S01"
       ],
@@ -2476,272 +2206,15 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "他",
-          "start_ms": 653190,
-          "end_ms": 653430,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "们",
-          "start_ms": 653430,
-          "end_ms": 653670,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "没",
-          "start_ms": 653910,
-          "end_ms": 654070,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "有",
-          "start_ms": 654070,
-          "end_ms": 654150,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "杀",
-          "start_ms": 654150,
-          "end_ms": 654390,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "人",
-          "start_ms": 654390,
-          "end_ms": 654550,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 654550,
-          "end_ms": 654630,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "罪",
-          "start_ms": 654630,
-          "end_ms": 654870,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "名，",
-          "start_ms": 654870,
-          "end_ms": 655190,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "又",
-          "start_ms": 655350,
-          "end_ms": 655430,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "尝",
-          "start_ms": 655430,
-          "end_ms": 655750,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "了",
-          "start_ms": 655750,
-          "end_ms": 655830,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "心",
-          "start_ms": 655830,
-          "end_ms": 656150,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "愿，",
-          "start_ms": 656150,
-          "end_ms": 656390,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "自",
-          "start_ms": 656630,
-          "end_ms": 656790,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "然",
-          "start_ms": 656790,
-          "end_ms": 656950,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "都",
-          "start_ms": 656950,
-          "end_ms": 657110,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "欢",
-          "start_ms": 657110,
-          "end_ms": 657350,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "天",
-          "start_ms": 657430,
-          "end_ms": 657590,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "喜",
-          "start_ms": 657590,
-          "end_ms": 657830,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "地",
-          "start_ms": 657830,
-          "end_ms": 658070,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 658070,
-          "end_ms": 658150,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "发",
-          "start_ms": 658150,
-          "end_ms": 658390,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "出",
-          "start_ms": 658390,
-          "end_ms": 658550,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "一",
-          "start_ms": 658550,
-          "end_ms": 658710,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "种",
-          "start_ms": 658710,
-          "end_ms": 658870,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "呜",
-          "start_ms": 658870,
-          "end_ms": 659270,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "呜",
-          "start_ms": 659270,
-          "end_ms": 659350,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "咽",
-          "start_ms": 659350,
-          "end_ms": 659590,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "咽",
-          "start_ms": 659590,
-          "end_ms": 659670,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 659670,
-          "end_ms": 659830,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "笑",
-          "start_ms": 659830,
-          "end_ms": 660070,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
-      "start_ms": 660110,
-      "end_ms": 666110,
-      "text": "声，否则金鹤忧愁死了，虽则略瘦，也还可以手啃几下。",
+      "start_ms": 660990,
+      "end_ms": 666190,
+      "text": "否则金鹤忧愁死了，虽则略瘦，也还可以手啃几下。",
       "speakers": [
         "S01"
       ],
@@ -2749,184 +2222,15 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "声，",
-          "start_ms": 660110,
-          "end_ms": 660350,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "否",
-          "start_ms": 660990,
-          "end_ms": 661230,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "则",
-          "start_ms": 661230,
-          "end_ms": 661630,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "金",
-          "start_ms": 661790,
-          "end_ms": 662030,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "鹤",
-          "start_ms": 662030,
-          "end_ms": 662270,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "忧",
-          "start_ms": 662270,
-          "end_ms": 662430,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "愁",
-          "start_ms": 662430,
-          "end_ms": 662670,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "死",
-          "start_ms": 662670,
-          "end_ms": 662990,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "了，",
-          "start_ms": 662990,
-          "end_ms": 663230,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "虽",
-          "start_ms": 663390,
-          "end_ms": 663630,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "则",
-          "start_ms": 663630,
-          "end_ms": 663790,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "略",
-          "start_ms": 663790,
-          "end_ms": 664030,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "瘦，",
-          "start_ms": 664030,
-          "end_ms": 664350,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "也",
-          "start_ms": 664590,
-          "end_ms": 664670,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "还",
-          "start_ms": 664670,
-          "end_ms": 664830,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "可",
-          "start_ms": 664830,
-          "end_ms": 664990,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "以",
-          "start_ms": 664990,
-          "end_ms": 665070,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "手",
-          "start_ms": 665070,
-          "end_ms": 665310,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "啃",
-          "start_ms": 665310,
-          "end_ms": 665550,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "几",
-          "start_ms": 665550,
-          "end_ms": 665790,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "下。",
-          "start_ms": 665790,
-          "end_ms": 666110,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
-      "start_ms": 667580,
-      "end_ms": 669850,
-      "text": "它们是只会吃死肉的。",
+      "start_ms": 667570,
+      "end_ms": 669930,
+      "text": "他们是只会吃死肉的。",
       "speakers": [
         "S01"
       ],
@@ -2941,8 +2245,8 @@
     },
     {
       "start_ms": 670590,
-      "end_ms": 684580,
-      "text": "记得什么书上说，有一种东西叫海伊娜的，眼光和样子都很难看，时常吃死肉，连极大的骨头都细细嚼烂，咽下肚子去，想起来也叫人害怕。",
+      "end_ms": 684630,
+      "text": "记得什么书上说，有一种东西叫海伊纳的，眼光和样子都很难看，时常吃死肉，连极大的骨头都细细嚼烂，咽下肚子去，想起来也叫人害怕。",
       "speakers": [
         "S01"
       ],
@@ -2956,9 +2260,25 @@
       "decision": "primary"
     },
     {
-      "start_ms": 685280,
-      "end_ms": 695010,
-      "text": "海伊娜是狼的亲眷，狼是狗的本家，前天赵家的狗看我几眼，可见他也同谋，早已接洽。",
+      "start_ms": 685290,
+      "end_ms": 689430,
+      "text": "海伊纳是狼的亲眷，狼是狗的本家。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 689610,
+      "end_ms": 695030,
+      "text": "前天赵家的狗看我几眼，可见他也同谋，早已接洽。",
       "speakers": [
         "S01"
       ],
@@ -2973,7 +2293,7 @@
     },
     {
       "start_ms": 695330,
-      "end_ms": 698780,
+      "end_ms": 698830,
       "text": "老头子眼看着地，岂能瞒得我过。",
       "speakers": [
         "S01"
@@ -2986,120 +2306,15 @@
       "decision": "primary"
     },
     {
-      "start_ms": 700110,
-      "end_ms": 703710,
-      "text": "最可怜的是我的大哥，他也是人，",
+      "start_ms": 700130,
+      "end_ms": 703930,
+      "text": "最可怜的是我的大哥，他也是人。",
       "speakers": [
         "S01"
       ],
       "flags": [],
       "channel": null,
-      "tokens": [
-        {
-          "text": "最",
-          "start_ms": 700110,
-          "end_ms": 700430,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "可",
-          "start_ms": 700430,
-          "end_ms": 700590,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "怜",
-          "start_ms": 700590,
-          "end_ms": 700830,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 700830,
-          "end_ms": 701070,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 701070,
-          "end_ms": 701470,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 701470,
-          "end_ms": 701470,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 701470,
-          "end_ms": 701550,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "大",
-          "start_ms": 701550,
-          "end_ms": 701790,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "哥，",
-          "start_ms": 701790,
-          "end_ms": 702190,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "他",
-          "start_ms": 702510,
-          "end_ms": 702910,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "也",
-          "start_ms": 702910,
-          "end_ms": 703230,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 703230,
-          "end_ms": 703470,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "人，",
-          "start_ms": 703470,
-          "end_ms": 703710,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
@@ -3482,7 +2697,9 @@
       "speakers": [
         "S01"
       ],
-      "flags": [],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
       "channel": null,
       "tokens": [],
       "candidates": {},

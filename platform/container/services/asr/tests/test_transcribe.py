@@ -27,7 +27,7 @@ async def control(action: str, model: str) -> None:
 
 
 async def inventory() -> list[GPU]:
-    return [GPU(id=f"GPU-{i}", index=str(i), total_mib=80000, free_mib=80000) for i in range(5)]
+    return [GPU(id=f"GPU-{i}", index=str(i), total_mib=80000, free_mib=80000) for i in range(6)]
 
 
 async def utilization(device_ids: list[str]) -> list[GPUUtilization]:
@@ -159,6 +159,7 @@ def test_one_request_returns_five_results_and_shared_evidence(tmp_path: Path) ->
             "2",
             "3",
             "4",
+            "5",
         ]
         assert {event["name"] for event in trace["events"] if event["kind"] == "phase"} >= {
             "upload",
@@ -232,7 +233,7 @@ def test_static_placement_starts_all_models_on_configured_devices(tmp_path: Path
     async def run() -> None:
         await scheduler.initialize()
         assert scheduler.instances["firered-llm"].devices == ["GPU-0", "GPU-1"]
-        assert scheduler.instances["moss-audio"].devices == ["GPU-0"]
+        assert scheduler.instances["moss-audio"].devices == ["GPU-5"]
         assert scheduler.instances["moss-td"].devices == ["GPU-2"]
         assert scheduler.instances["vibevoice-a"].devices == ["GPU-3"]
         assert scheduler.instances["vibevoice-b"].devices == ["GPU-4"]
@@ -550,7 +551,7 @@ def test_joint_only_aligns_segments_crossing_core_boundary(tmp_path: Path) -> No
     assert all(window.core_start_ms < window.end_ms for window in aligned)
 
 
-def test_joint_retries_a_third_smaller_window_on_persistent_failure(tmp_path: Path) -> None:
+def test_joint_retries_failed_windows_to_eight_second_exact_cores(tmp_path: Path) -> None:
     scheduler = runtime(tmp_path)
     audio = tmp_path / "audio.wav"
     audio.write_bytes(b"")
@@ -560,7 +561,7 @@ def test_joint_retries_a_third_smaller_window_on_persistent_failure(tmp_path: Pa
 
     async def recognize(model: str, window: Window, *, step: str) -> InferenceResult:
         seen.append(window)
-        if window.core_end_ms - window.core_start_ms > 30000:
+        if window.core_end_ms - window.core_start_ms > 8000:
             raise ValueError("persistent generation failure")
         return InferenceResult(
             spans=[
@@ -583,7 +584,7 @@ def test_joint_retries_a_third_smaller_window_on_persistent_failure(tmp_path: Pa
     result = asyncio.run(run())
     assert result.status == "completed"
     assert result.segments
-    assert any(window.core_end_ms - window.core_start_ms <= 30000 for window in seen)
+    assert any(window.core_end_ms - window.core_start_ms <= 8000 for window in seen)
     assert all(segment.text == "缩窗恢复" for segment in result.segments)
 
 
@@ -656,7 +657,7 @@ def test_first_pass_runs_models_concurrently_but_windows_serially(tmp_path: Path
     }
 
 
-def test_review_runs_primary_models_before_moss_audio(tmp_path: Path) -> None:
+def test_review_speculates_moss_concurrently_but_only_keeps_needed_result(tmp_path: Path) -> None:
     scheduler = runtime(tmp_path)
     audio = tmp_path / "audio.wav"
     audio.write_bytes(wav(30))
@@ -670,15 +671,12 @@ def test_review_runs_primary_models_before_moss_audio(tmp_path: Path) -> None:
 
     async def recognize(model: str, window: Window, *, step: str) -> InferenceResult:
         nonlocal maximum
-        if model == "moss-audio":
-            assert not active
-            assert completed == {"qwen3-asr-1.7b", "firered-llm", "whisper-large-v3"}
         active.add(model)
         maximum = max(maximum, len(active))
         await asyncio.sleep(0.01)
         active.remove(model)
         completed.add(model)
-        return InferenceResult(text=model)
+        return InferenceResult(text="主复听一致" if model != "moss-audio" else "MOSS 不一致")
 
     async def align(text: str, window: Window, *, step: str, instance_id: str) -> list[Token]:
         assert instance_id == "qwen3-aligner-review"
@@ -692,10 +690,15 @@ def test_review_runs_primary_models_before_moss_audio(tmp_path: Path) -> None:
         await scheduler.close()
 
     asyncio.run(run())
-    assert maximum == 3
+    assert maximum == 4
     assert completed == {
         "qwen3-asr-1.7b",
         "firered-llm",
         "whisper-large-v3",
         "moss-audio",
+    }
+    assert pipeline.reviewed[window.model_dump_json()] == {
+        "qwen3-asr-1.7b": "主复听一致",
+        "firered-llm": "主复听一致",
+        "whisper-large-v3": "主复听一致",
     }

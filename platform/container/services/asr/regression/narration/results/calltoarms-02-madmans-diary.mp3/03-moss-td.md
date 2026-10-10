@@ -4,8 +4,6 @@
 
 > joint_window_retry:527000:joint boundary alignment failed; cannot deduplicate safely
 
-> joint_window_retry:615000:joint boundary alignment failed; cannot deduplicate safely
-
 **[00:00:00.120–00:00:02.340] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 鲁迅小说集呐喊
@@ -290,9 +288,9 @@
 
 大哥点点头，原来也有你，这一件大发现，虽是意外，也
 
-**[00:08:47.950–00:08:51.870] S01**
+**[00:08:48.070–00:08:51.890] S01**
 
-在意中，合伙吃我的人便是我的哥哥。
+在义中，合伙吃我的人，便是我的哥哥。
 
 **[00:08:53.730–00:08:57.830] S01**
 
@@ -302,97 +300,105 @@
 
 我自己被人吃了，可仍然是吃人的人的兄弟。
 
-**[00:09:05.330–00:09:14.690] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:09:05.330–00:09:14.670] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 五，这几天是退一步想，假使那老头子不是刽子手扮的，真是医生，也仍然是吃人的人。
 
-**[00:09:14.840–00:09:23.180] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:09:14.850–00:09:23.190] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-他们的祖师李时珍做的本草什么上，明明写着人肉可以煎吃，他还能说自己不吃人吗？
+他们的祖师李时珍做的本草什么伤，明明写着人肉可以兼吃，他还能说自己不吃人吗？
 
-**[00:09:24.610–00:09:32.170] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:09:24.610–00:09:27.330] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-至于我家大哥，也毫不冤枉他，他对我讲书的时候，亲口说过可以易子而食。
+至于我家大哥，也毫不冤枉他。
 
-**[00:09:32.550–00:09:38.870] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:09:27.870–00:09:32.170] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+他对我讲书的时候，亲口说过可以易子而食。
+
+**[00:09:32.570–00:09:38.890] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 又一回偶然议论起一个不好的人，他便说不但该杀，还当食肉请皮。
 
-**[00:09:40.130–00:09:43.370] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:09:40.150–00:09:43.370] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 我那时年纪还小，心跳了好半天。
 
-**[00:09:43.780–00:09:49.220] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:09:43.810–00:09:49.230] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 前天狼子村佃户来说吃心肝的事，他也毫不奇怪，不住的点头。
 
-**[00:09:49.910–00:09:52.710] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:09:49.910–00:09:52.730] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 可见心思是同从前一样狠。
 
-**[00:09:53.440–00:09:58.420] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:09:53.470–00:09:58.430] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 既然可以易子而食，便什么都易得，什么人都吃的。
 
-**[00:09:59.360–00:10:10.980] S01**
+**[00:09:59.410–00:10:02.830] S01**
 
-我从前单听他讲道理也糊涂过去，现在晓得他讲道理的时候不但唇边还抹着人油，而且心里满装着吃人的意思。
+我从前单听他讲道理，也糊涂过去。
 
-**[00:10:14.330–00:10:16.010] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:03.290–00:10:11.010] S01**
 
-六，黑漆
+现在晓得他讲道理的时候，不但唇边还抹着人油，而且心里满装着吃人的意思。
 
-**[00:10:15.970–00:10:20.930] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:14.290–00:10:21.030] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-漆的，不知是日是夜，赵家的狗又叫起来了。
+六，黑漆漆的，不知是日是夜，赵家的狗又叫起来了。
 
-**[00:10:21.580–00:10:26.040] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:21.610–00:10:26.130] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 狮子似的凶性，兔子的怯弱，狐狸的狡猾。
 
-**[00:10:28.640–00:10:35.910] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:28.690–00:10:35.930] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 七，我晓得他们的方法，直接杀了是不肯的，而且也不敢，怕有祸祟。
 
-**[00:10:36.350–00:10:40.310] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:36.390–00:10:40.330] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 所以他们大家联络，布满了罗网，逼我自强。
 
-**[00:10:40.810–00:10:47.410] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:40.830–00:10:47.430] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-是看前几天街上男女的样子，和这几天我大哥的作为，便足可悟出八九分了。
+试看前几天街上男女的样子，和这几天我大哥的作为，便足可悟出八九分了。
 
-**[00:10:48.110–00:10:52.810] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:48.130–00:10:52.830] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 最好是解下腰带，挂在梁上，自己紧紧勒死。
 
-**[00:10:53.190–00:11:00.070] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:53.130–00:11:00.530] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-他们没有杀人的罪名，又尝了心愿，自然都欢天喜地的发出一种呜呜咽咽的笑
+他们没有杀人的罪名，又尝了心愿，自然都欢天喜地的发出一种呜呜咽咽的笑声。
 
-**[00:11:00.110–00:11:06.110] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:00.990–00:11:06.190] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-声，否则金鹤忧愁死了，虽则略瘦，也还可以手啃几下。
+否则金鹤忧愁死了，虽则略瘦，也还可以手啃几下。
 
-**[00:11:07.580–00:11:09.850] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:07.570–00:11:09.930] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-它们是只会吃死肉的。
+他们是只会吃死肉的。
 
-**[00:11:10.590–00:11:24.580] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:10.590–00:11:24.630] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-记得什么书上说，有一种东西叫海伊娜的，眼光和样子都很难看，时常吃死肉，连极大的骨头都细细嚼烂，咽下肚子去，想起来也叫人害怕。
+记得什么书上说，有一种东西叫海伊纳的，眼光和样子都很难看，时常吃死肉，连极大的骨头都细细嚼烂，咽下肚子去，想起来也叫人害怕。
 
-**[00:11:25.280–00:11:35.010] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:25.290–00:11:29.430] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-海伊娜是狼的亲眷，狼是狗的本家，前天赵家的狗看我几眼，可见他也同谋，早已接洽。
+海伊纳是狼的亲眷，狼是狗的本家。
 
-**[00:11:35.330–00:11:38.780] S01**
+**[00:11:29.610–00:11:35.030] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+前天赵家的狗看我几眼，可见他也同谋，早已接洽。
+
+**[00:11:35.330–00:11:38.830] S01**
 
 老头子眼看着地，岂能瞒得我过。
 
-**[00:11:40.110–00:11:43.710] S01**
+**[00:11:40.130–00:11:43.930] S01**
 
-最可怜的是我的大哥，他也是人，
+最可怜的是我的大哥，他也是人。
 
 **[00:11:43.950–00:11:53.070] S01**
 
@@ -418,7 +424,7 @@
 
 对吗？
 
-**[00:12:39.810–00:12:45.280] S01**
+**[00:12:39.810–00:12:45.280] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 这等事，问他什么，你真会说笑话，今天天气很好。
 

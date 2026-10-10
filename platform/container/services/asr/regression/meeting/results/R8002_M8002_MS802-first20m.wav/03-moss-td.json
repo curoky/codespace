@@ -2662,8 +2662,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 352050,
-      "end_ms": 353010,
+      "start_ms": 352060,
+      "end_ms": 353020,
       "text": "嗯，是吧。",
       "speakers": [],
       "flags": [
@@ -2695,7 +2695,7 @@
     },
     {
       "start_ms": 357010,
-      "end_ms": 358810,
+      "end_ms": 358820,
       "text": "嗯，是是是。",
       "speakers": [],
       "flags": [
@@ -2726,8 +2726,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 358740,
-      "end_ms": 361940,
+      "start_ms": 358750,
+      "end_ms": 361950,
       "text": "十八号这个也行，是个周末，再往后不行。",
       "speakers": [
         "S04"
@@ -2743,7 +2743,7 @@
     },
     {
       "start_ms": 360120,
-      "end_ms": 360540,
+      "end_ms": 360520,
       "text": "啊。",
       "speakers": [
         "S03"
@@ -2759,12 +2759,12 @@
     },
     {
       "start_ms": 360380,
-      "end_ms": 372620,
-      "text": "我们每次年会都是开在一月份，就是也可以考虑在一月份，因为因为你是对一整年的做一个表彰，啊对一整年谁的，啊对谁的公司业绩最好，然后。",
-      "speakers": [],
+      "end_ms": 372720,
+      "text": "我们每，年会都是开在一月份，就是也可以考虑在一月份，因为因为你是对一整年的做一个表彰，啊对一整年，谁的，啊对谁的工作业绩最好，然后。",
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -2774,9 +2774,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 364270,
-      "end_ms": 365310,
-      "text": "哎，对年后哈。",
+      "start_ms": 364280,
+      "end_ms": 365320,
+      "text": "呃，得年后哈。",
       "speakers": [
         "S04"
       ],
@@ -2806,8 +2806,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 368060,
-      "end_ms": 368620,
+      "start_ms": 368070,
+      "end_ms": 368590,
       "text": "总结。",
       "speakers": [
         "S03"
@@ -2823,7 +2823,7 @@
     },
     {
       "start_ms": 369140,
-      "end_ms": 371020,
+      "end_ms": 370980,
       "text": "啊，那十二月还没完呢啊。",
       "speakers": [
         "S04"
@@ -2838,7 +2838,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 370890,
+      "start_ms": 370910,
       "end_ms": 372810,
       "text": "啊，对，那样也好。",
       "speakers": [
@@ -2854,13 +2854,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 372760,
-      "end_ms": 380520,
-      "text": "对，有的时候公司是要发奖金的，咱们是不是要对那个业全年业绩最好的同事做个表彰，因为最好年终奖，对年终。",
-      "speakers": [],
+      "start_ms": 372720,
+      "end_ms": 380480,
+      "text": "对，有的时候公司是要发奖金的，咱们是不是要对那个业全年业绩最好的同事做个表彰，因为那个年都完，对年。",
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -2870,7 +2870,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 376720,
+      "start_ms": 376740,
       "end_ms": 377140,
       "text": "啊。",
       "speakers": [
@@ -2887,8 +2887,8 @@
     },
     {
       "start_ms": 377720,
-      "end_ms": 378410,
-      "text": "啊，对对。",
+      "end_ms": 378440,
+      "text": "啊，对对对。",
       "speakers": [
         "S03"
       ],
@@ -2903,8 +2903,8 @@
     },
     {
       "start_ms": 378140,
-      "end_ms": 381040,
-      "text": "啊，有可能就差那半个多月，能差好多呢。",
+      "end_ms": 381340,
+      "text": "啊，有可能就差那半个多月，能差好多呢是吧。",
       "speakers": [
         "S04"
       ],
@@ -2918,9 +2918,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 381040,
-      "end_ms": 385140,
-      "text": "对，他最后的量，最后订单可能都在嗯今年底。",
+      "start_ms": 381050,
+      "end_ms": 386350,
+      "text": "对，他最后的量，最后订单可能都在嗯，今年底，啊。",
       "speakers": [
         "S03"
       ],
@@ -2934,27 +2934,11 @@
       "decision": "primary"
     },
     {
-      "start_ms": 384690,
+      "start_ms": 384720,
       "end_ms": 398940,
       "text": "而且就是有很多公司都是在一月份开始，为啥？因为怕有的员工就是在春节前我签开始请假我就走，然后呢，这会儿一般是在春节前或者过完春节马上回来的工作日来开，就是让员工调整工作状态。",
-      "speakers": [],
-      "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 385490,
-      "end_ms": 385980,
-      "text": "啊。",
       "speakers": [
-        "S04"
+        "S02"
       ],
       "flags": [
         "crosscheck_disagreement_in_interval"
@@ -2966,8 +2950,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 386020,
-      "end_ms": 386410,
+      "start_ms": 392320,
+      "end_ms": 392780,
       "text": "啊。",
       "speakers": [
         "S03"
@@ -2982,24 +2966,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 391910,
-      "end_ms": 392740,
-      "text": "嗯，啊。",
-      "speakers": [
-        "S03"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 396560,
-      "end_ms": 396940,
+      "start_ms": 396550,
+      "end_ms": 396920,
       "text": "嗯。",
       "speakers": [],
       "flags": [
@@ -3015,12 +2983,12 @@
     },
     {
       "start_ms": 398940,
-      "end_ms": 402450,
+      "end_ms": 402460,
       "text": "你先开个年会放松一下，然后就去放春节放假了。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -3031,7 +2999,7 @@
     },
     {
       "start_ms": 402560,
-      "end_ms": 402930,
+      "end_ms": 402920,
       "text": "嗯。",
       "speakers": [
         "S03"
@@ -3046,8 +3014,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 403460,
-      "end_ms": 404050,
+      "start_ms": 403470,
+      "end_ms": 404040,
       "text": "哦，那。",
       "speakers": [],
       "flags": [
@@ -3063,7 +3031,7 @@
     },
     {
       "start_ms": 403750,
-      "end_ms": 419580,
+      "end_ms": 419510,
       "text": "对，这这个十八号跟您说的年后，这个您说是年后也行，因为把之前这一年所有的工作都总结一下，还有就是奖励，那个年前你要年前举行的话，一些奖励没法到位。",
       "speakers": [
         "S03"
@@ -3079,7 +3047,7 @@
     },
     {
       "start_ms": 408000,
-      "end_ms": 408320,
+      "end_ms": 408340,
       "text": "嗯。",
       "speakers": [],
       "flags": [
@@ -3095,7 +3063,7 @@
     },
     {
       "start_ms": 409630,
-      "end_ms": 410070,
+      "end_ms": 410120,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -3110,13 +3078,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 411250,
+      "start_ms": 411240,
       "end_ms": 412140,
       "text": "这个是。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -3126,9 +3094,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 419580,
-      "end_ms": 431180,
-      "text": "比如说这个全勤奖啊，这个，啊对，绩效都没有体现的，对对对，嗯，那还是咱们还是定在那个年后，嗯。",
+      "start_ms": 419510,
+      "end_ms": 431170,
+      "text": "比如说这个全勤奖啊，这个，啊对，绩效都没有体现出来，对对对，嗯，那还是咱们还是定在那个年后，嗯。",
       "speakers": [
         "S03"
       ],
@@ -3143,7 +3111,7 @@
     },
     {
       "start_ms": 420460,
-      "end_ms": 421110,
+      "end_ms": 421120,
       "text": "嗯。",
       "speakers": [],
       "flags": [
@@ -3158,9 +3126,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 421110,
-      "end_ms": 424020,
-      "text": "对，都绩绩效啊，多的还没有对。",
+      "start_ms": 421120,
+      "end_ms": 423980,
+      "text": "对，那个绩绩效很多的还没有这。",
       "speakers": [
         "S04"
       ],
@@ -3174,13 +3142,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 421540,
-      "end_ms": 424540,
-      "text": "对，还得结成呀，什么的是吧，对。",
-      "speakers": [],
+      "start_ms": 421520,
+      "end_ms": 423880,
+      "text": "对，还得结成呀，是吧，是吧。",
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -3190,13 +3158,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 424210,
-      "end_ms": 426470,
-      "text": "而且数字不准确呀，工作。",
-      "speakers": [],
+      "start_ms": 424220,
+      "end_ms": 425980,
+      "text": "而且数字不准确呀。",
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -3206,8 +3174,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 425820,
-      "end_ms": 426270,
+      "start_ms": 425810,
+      "end_ms": 426280,
       "text": "对。",
       "speakers": [
         "S04"
@@ -3222,8 +3190,24 @@
       "decision": "primary"
     },
     {
+      "start_ms": 426010,
+      "end_ms": 426520,
+      "text": "嗯。",
+      "speakers": [],
+      "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
       "start_ms": 430480,
-      "end_ms": 430880,
+      "end_ms": 430920,
       "text": "对。",
       "speakers": [
         "S04"
@@ -3239,8 +3223,8 @@
     },
     {
       "start_ms": 430880,
-      "end_ms": 432910,
-      "text": "年后就大让大家有个期待，是吧？",
+      "end_ms": 432920,
+      "text": "年后就大让大家有个期待，是吧。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -3255,8 +3239,8 @@
     },
     {
       "start_ms": 432870,
-      "end_ms": 439080,
-      "text": "奖品还有这个奖励什么的都都可以，充分的发发到每一个员工手上。",
+      "end_ms": 439090,
+      "text": "奖品，还有这个奖励什么的，都都可以充分的发发到每一个员工手上。",
       "speakers": [
         "S03"
       ],
@@ -3271,7 +3255,7 @@
     },
     {
       "start_ms": 433780,
-      "end_ms": 434150,
+      "end_ms": 434220,
       "text": "嗯。",
       "speakers": [],
       "flags": [
@@ -3286,9 +3270,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 439860,
-      "end_ms": 440020,
-      "text": "嗯，",
+      "start_ms": 439540,
+      "end_ms": 442840,
+      "text": "嗯，那要年后的话，咱们什么时候开始筹划比较合适啊？",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -3296,207 +3280,15 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "嗯，",
-          "start_ms": 439860,
-          "end_ms": 440020,
-          "speakers": []
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 440060,
-      "end_ms": 442780,
-      "text": "那要年后的话，咱们什么时候开始筹划比较合适啊？",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "那",
-          "start_ms": 440060,
-          "end_ms": 440220,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "要",
-          "start_ms": 440220,
-          "end_ms": 440380,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "年",
-          "start_ms": 440380,
-          "end_ms": 440460,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "后",
-          "start_ms": 440460,
-          "end_ms": 440700,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 440700,
-          "end_ms": 440780,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "话，",
-          "start_ms": 440780,
-          "end_ms": 440860,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "咱",
-          "start_ms": 440860,
-          "end_ms": 441100,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "们",
-          "start_ms": 441100,
-          "end_ms": 441100,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "什",
-          "start_ms": 441100,
-          "end_ms": 441260,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "么",
-          "start_ms": 441260,
-          "end_ms": 441340,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "时",
-          "start_ms": 441340,
-          "end_ms": 441420,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "候",
-          "start_ms": 441420,
-          "end_ms": 441500,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "开",
-          "start_ms": 441500,
-          "end_ms": 441660,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "始",
-          "start_ms": 441660,
-          "end_ms": 441660,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "筹",
-          "start_ms": 441660,
-          "end_ms": 441900,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "划",
-          "start_ms": 441900,
-          "end_ms": 442140,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "比",
-          "start_ms": 442140,
-          "end_ms": 442140,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "较",
-          "start_ms": 442140,
-          "end_ms": 442300,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "合",
-          "start_ms": 442300,
-          "end_ms": 442460,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "适",
-          "start_ms": 442460,
-          "end_ms": 442700,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "啊？",
-          "start_ms": 442700,
-          "end_ms": 442780,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
       "start_ms": 443850,
-      "end_ms": 447490,
-      "text": "这个一般有有一月份儿吧，刚才那个。",
+      "end_ms": 447510,
+      "text": "这个一般有有一月份吧，刚才那个。",
       "speakers": [
         "S03"
       ],
@@ -3513,22 +3305,6 @@
       "start_ms": 444120,
       "end_ms": 444920,
       "text": "几月份儿呢？",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 447250,
-      "end_ms": 458450,
-      "text": "嗯，一般你看你要是主要负责这个事儿的同事，一般就是一两个人儿，一两个人儿他们做提案，因为其实最好时间的是啥，就是你把提案给到领导去审批的这个过程是最慢的。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -3542,8 +3318,24 @@
       "decision": "primary"
     },
     {
+      "start_ms": 447240,
+      "end_ms": 458480,
+      "text": "嗯，一般你看你要是主要负责这个事儿的同事，一般就是一两个人，一两个人他们做提案，因为其实最好时间的是啥？就是你把提案给到领导去审批的这步过程是最慢的。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
       "start_ms": 452150,
-      "end_ms": 452510,
+      "end_ms": 452520,
       "text": "嗯。",
       "speakers": [
         "S03"
@@ -3558,9 +3350,25 @@
       "decision": "primary"
     },
     {
-      "start_ms": 458450,
-      "end_ms": 476150,
-      "text": "你要去涉及到实施以后，领导批了说啊，你这个没问题，几等奖奖都是什么东西，你去采购这个时间很快，就是前期准备的时间长，这个准备时间你随时有时间，就比方十二月份，十一月份一般都是总务的同事来干这个事儿嘛，然后让他开始已经着手去准备今年年会的。",
+      "start_ms": 458480,
+      "end_ms": 476220,
+      "text": "你要去涉及到实施以后，领导批了说啊，你这个没问题，几等几等奖都是什么东西，你去采购这个时间很快，就是前期准备的时间长，这个准备时间你随时有时间，就比方十二月份，十一月份一般都是总部的同事来干这个事儿嘛，然后让他开始已经着手去准备今年年会的。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 458550,
+      "end_ms": 459040,
+      "text": "嗯。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -3574,29 +3382,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 458550,
-      "end_ms": 458950,
-      "text": "嗯。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
       "start_ms": 464480,
-      "end_ms": 464880,
+      "end_ms": 464920,
       "text": "嗯。",
-      "speakers": [
-        "S01"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -3622,13 +3414,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 476150,
-      "end_ms": 483670,
-      "text": "嗯事宜，去设立哪些奖项，然后设置什么的规则，让他先去提案，这个估计流程得一个月。",
-      "speakers": [],
+      "start_ms": 476220,
+      "end_ms": 483720,
+      "text": "嗯，事宜，去设立哪些奖项，然后设置什么的规则，让他先去提案，这个估计流程得一个月。",
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -3639,7 +3431,7 @@
     },
     {
       "start_ms": 480910,
-      "end_ms": 481310,
+      "end_ms": 481320,
       "text": "嗯。",
       "speakers": [
         "S03"
@@ -3655,24 +3447,8 @@
     },
     {
       "start_ms": 484260,
-      "end_ms": 484820,
+      "end_ms": 484840,
       "text": "嗯。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 484590,
-      "end_ms": 488710,
-      "text": "对，这个反正他每年他都会做这个，对。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -3686,9 +3462,25 @@
       "decision": "primary"
     },
     {
+      "start_ms": 484610,
+      "end_ms": 488620,
+      "text": "对，这个反正他每年他都会做这个，对。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
       "start_ms": 485840,
       "end_ms": 497510,
-      "text": "那得看咱们公司规模规模怎么样了，就比如咱们公司规模不是五十人嘛，就是说这个工作量要小一些，要是比较大的那个公司，他他那个。",
+      "text": "那得看咱们公司规模规模怎么样了，就比如咱们公司规模不是五十人嘛，就说这个工作量要小一些，要是比较大的那个公司，他他那个。",
       "speakers": [
         "S03"
       ],
@@ -3702,40 +3494,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 491650,
-      "end_ms": 492110,
-      "text": "嗯。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 496630,
-      "end_ms": 497110,
-      "text": "嗯。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 497120,
-      "end_ms": 497550,
+      "start_ms": 491640,
+      "end_ms": 492140,
       "text": "嗯。",
       "speakers": [],
       "flags": [
@@ -3750,8 +3510,24 @@
       "decision": "primary"
     },
     {
-      "start_ms": 498450,
-      "end_ms": 500890,
+      "start_ms": 496640,
+      "end_ms": 497140,
+      "text": "嗯。",
+      "speakers": [],
+      "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 498470,
+      "end_ms": 500910,
       "text": "他工作量就大了，准备时间也长。",
       "speakers": [
         "S03"
@@ -3767,12 +3543,12 @@
     },
     {
       "start_ms": 499680,
-      "end_ms": 500110,
-      "text": "周长。",
-      "speakers": [
-        "S01"
-      ],
+      "end_ms": 500120,
+      "text": "都长。",
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -3782,13 +3558,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 500720,
-      "end_ms": 511010,
+      "start_ms": 500740,
+      "end_ms": 511020,
       "text": "不过这个麻雀虽小五脏俱全，准备的哪个程序都少不了，这个，反正总部他们每年都做这个，提前就让他。",
-      "speakers": [],
+      "speakers": [
+        "S04"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -3799,24 +3575,8 @@
     },
     {
       "start_ms": 501020,
-      "end_ms": 501610,
-      "text": "周长。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 502410,
-      "end_ms": 502770,
-      "text": "对。",
+      "end_ms": 501620,
+      "text": "都长。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -3830,11 +3590,11 @@
       "decision": "primary"
     },
     {
-      "start_ms": 503510,
-      "end_ms": 503890,
+      "start_ms": 502420,
+      "end_ms": 502820,
       "text": "对。",
       "speakers": [
-        "S03"
+        "S02"
       ],
       "flags": [
         "crosscheck_disagreement_in_interval"
@@ -3846,13 +3606,29 @@
       "decision": "primary"
     },
     {
-      "start_ms": 505690,
-      "end_ms": 507650,
-      "text": "对，这领导都是一样事儿多。",
-      "speakers": [],
+      "start_ms": 503720,
+      "end_ms": 504120,
+      "text": "对。",
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 505680,
+      "end_ms": 507640,
+      "text": "对，像领导都是一样事儿多。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -3863,7 +3639,7 @@
     },
     {
       "start_ms": 505820,
-      "end_ms": 506110,
+      "end_ms": 506120,
       "text": "对。",
       "speakers": [
         "S03"
@@ -3879,7 +3655,7 @@
     },
     {
       "start_ms": 507740,
-      "end_ms": 508140,
+      "end_ms": 508150,
       "text": "嗯。",
       "speakers": [
         "S03"
@@ -3894,8 +3670,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 510220,
-      "end_ms": 511850,
+      "start_ms": 510240,
+      "end_ms": 511870,
       "text": "领导怎么说都是对的。",
       "speakers": [
         "S03"
@@ -3910,43 +3686,11 @@
       "decision": "primary"
     },
     {
-      "start_ms": 511830,
-      "end_ms": 518670,
-      "text": "对他让他们提得提日程嘛，提方案，然后得有一个那个日程表儿，等于进度表儿。",
-      "speakers": [],
-      "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 513520,
-      "end_ms": 516130,
-      "text": "他随时，领导随时都会有提。",
-      "speakers": [],
-      "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 517780,
-      "end_ms": 518210,
-      "text": "嗯。",
+      "start_ms": 511840,
+      "end_ms": 518680,
+      "text": "对，他让他们提得提日程嘛，提方案，然后得有一个那个日程表，等于进度表。",
       "speakers": [
-        "S01"
+        "S04"
       ],
       "flags": [
         "crosscheck_disagreement_in_interval"
@@ -3958,9 +3702,41 @@
       "decision": "primary"
     },
     {
-      "start_ms": 518580,
-      "end_ms": 519110,
-      "text": "啊对。",
+      "start_ms": 513540,
+      "end_ms": 516140,
+      "text": "他随时，领领导随时都会有提。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 517810,
+      "end_ms": 518220,
+      "text": "嗯。",
+      "speakers": [],
+      "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 518590,
+      "end_ms": 519120,
+      "text": "啊，对。",
       "speakers": [
         "S03"
       ],
@@ -3975,24 +3751,8 @@
     },
     {
       "start_ms": 519360,
-      "end_ms": 523010,
-      "text": "那就提前一个月怎么样，因为就审批过程是比较慢嘛。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 521140,
-      "end_ms": 521510,
-      "text": "对。",
+      "end_ms": 523020,
+      "text": "那就提前一个月怎么样？因为就审批过程它比较慢嘛。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -4006,8 +3766,24 @@
       "decision": "primary"
     },
     {
-      "start_ms": 521720,
-      "end_ms": 522210,
+      "start_ms": 521140,
+      "end_ms": 523740,
+      "text": "对，至少还得提前一个月。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 521740,
+      "end_ms": 522240,
       "text": "差不多。",
       "speakers": [
         "S03"
@@ -4022,13 +3798,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 522220,
-      "end_ms": 523750,
-      "text": "至少也得提前一个月。",
-      "speakers": [],
+      "start_ms": 523820,
+      "end_ms": 528000,
+      "text": "比如说你定在十十一月十五号，你十。",
+      "speakers": [
+        "S03"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -4038,150 +3814,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 523890,
-      "end_ms": 527970,
-      "text": "比如说你定在十十一月十五号，你十",
-      "speakers": [
-        "S03"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "比",
-          "start_ms": 523890,
-          "end_ms": 523970,
-          "speakers": [
-            "S03"
-          ]
-        },
-        {
-          "text": "如",
-          "start_ms": 523970,
-          "end_ms": 524130,
-          "speakers": [
-            "S03"
-          ]
-        },
-        {
-          "text": "说",
-          "start_ms": 524130,
-          "end_ms": 524290,
-          "speakers": [
-            "S03"
-          ]
-        },
-        {
-          "text": "你",
-          "start_ms": 524290,
-          "end_ms": 524450,
-          "speakers": [
-            "S03"
-          ]
-        },
-        {
-          "text": "定",
-          "start_ms": 524450,
-          "end_ms": 524610,
-          "speakers": [
-            "S03"
-          ]
-        },
-        {
-          "text": "在",
-          "start_ms": 524610,
-          "end_ms": 525010,
-          "speakers": [
-            "S03"
-          ]
-        },
-        {
-          "text": "十",
-          "start_ms": 525010,
-          "end_ms": 525970,
-          "speakers": [
-            "S03"
-          ]
-        },
-        {
-          "text": "十",
-          "start_ms": 525970,
-          "end_ms": 526370,
-          "speakers": [
-            "S03"
-          ]
-        },
-        {
-          "text": "一",
-          "start_ms": 526370,
-          "end_ms": 526530,
-          "speakers": [
-            "S03"
-          ]
-        },
-        {
-          "text": "月",
-          "start_ms": 526530,
-          "end_ms": 526850,
-          "speakers": [
-            "S03"
-          ]
-        },
-        {
-          "text": "十",
-          "start_ms": 526850,
-          "end_ms": 527010,
-          "speakers": [
-            "S03"
-          ]
-        },
-        {
-          "text": "五",
-          "start_ms": 527010,
-          "end_ms": 527170,
-          "speakers": [
-            "S03"
-          ]
-        },
-        {
-          "text": "号，",
-          "start_ms": 527170,
-          "end_ms": 527410,
-          "speakers": [
-            "S03"
-          ]
-        },
-        {
-          "text": "你",
-          "start_ms": 527730,
-          "end_ms": 527810,
-          "speakers": [
-            "S03"
-          ]
-        },
-        {
-          "text": "十",
-          "start_ms": 527810,
-          "end_ms": 527970,
-          "speakers": [
-            "S03"
-          ]
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 527380,
-      "end_ms": 527710,
+      "start_ms": 527400,
+      "end_ms": 527780,
       "text": "嗯。",
-      "speakers": [
-        "S01"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,

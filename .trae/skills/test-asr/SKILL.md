@@ -35,8 +35,8 @@ podman build \
 
 ## Runtime Preflight
 
-本服务按逻辑序号使用 5 张 80 GiB GPU；Host 可以暴露更多卡，但 placement 只会使用前五张。
-先确认至少五张卡空闲，再验证 rootless Podman 的 CDI 和 bind mount 视图：
+本服务按逻辑序号使用 6 张 80 GiB GPU；Host 可以暴露更多卡，但 placement 只会使用前六张。
+先确认至少六张卡空闲，再验证 rootless Podman 的 CDI 和 bind mount 视图：
 
 ```bash
 nvidia-smi --query-gpu=index,name,memory.total,memory.used --format=csv
@@ -95,7 +95,7 @@ podman run --rm \
 
 ## 启动服务
 
-完整 server 需要 placement 声明的 5 张空闲 80 GiB GPU。启动前完成上述 preflight，再运行：
+完整 server 需要 placement 声明的 6 张空闲 80 GiB GPU。启动前完成上述 preflight，再运行：
 
 ```bash
 mkdir -p /workspace/asr-data
@@ -107,6 +107,10 @@ podman run --rm --name asr-test \
   --mount type=bind,source=/workspace/asr-data,target=/data/asr \
   localhost/codespace-asr:test
 ```
+
+rootless Podman 会把容器 UID 映射成 Host subuid。Host bind 目录必须预先允许容器进程创建请求
+子目录；本地测试可对新建的专用输出目录执行 `chmod 0777 /workspace/asr-data`，不要递归修改已有
+回归资产、模型目录或仓库，也不需要用 `sudo chown`。生产部署继续使用控制面创建的持久卷。
 
 `--shm-size 8g` 是 FireRed TP / NCCL 的必要条件；默认约 64 MiB 的 `/dev/shm` 不足。正常
 部署也必须使用 `config.example.yaml` 中 ASR Service 的相同配置。
@@ -131,7 +135,7 @@ uv run platform/container/services/asr/client/asr.py <audio-file> \
 ```
 
 验证五份 Markdown、五份结果 JSON、`index.md`、`evidence.json` 和 `trace.json`。同时核对
-五卡驻留余量、其余可见 GPU 未被占用、TP/NCCL、first pass 与 review 的跨模型时间区间
+六卡驻留余量、其余可见 GPU 未被占用、TP/NCCL、first pass 与 review 的跨模型时间区间
 确有重叠，以及日志中无截断或模型重启；模拟测试和 image build 不能替代这些真实 GPU
 检查。
 

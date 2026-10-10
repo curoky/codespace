@@ -146,7 +146,7 @@ class Pipeline:
         )
 
     async def review(self) -> None:
-        """只扩展有争议的窗口；三路复听完成后才按需调用 MOSS-Audio。"""
+        """只扩展有争议的窗口；四路并行复听后按需保留 MOSS-Audio。"""
         pending: dict[str, tuple[Window, Window]] = {}
         for window in self.chunks:
             key = window.model_dump_json()
@@ -174,53 +174,67 @@ class Pipeline:
         for _, expanded in pending.values():
             await self.clip(expanded)
 
-        async def review_all(model: str) -> None:
+        async def recognize_all(model: str) -> tuple[dict[str, str], dict[str, Exception]]:
             texts: dict[str, str] = {}
+            errors: dict[str, Exception] = {}
             for key, (_, expanded) in pending.items():
-                reviews = self.reviewed[key]
-                if model == "moss-audio" and len({normalized(t) for t in reviews.values()}) == 1:
-                    continue
                 try:
                     result = await self.recognize(model, expanded, step="review")
                     texts[key] = plain(result.text)
                 except Exception as exc:
-                    logging.exception("review %s failed", model)
-                    self.errors[f"review:{model}:{key}"] = str(exc)
-            for key, text in texts.items():
-                window, expanded = pending[key]
-                try:
-                    tokens = await self.align(
-                        text,
-                        expanded,
-                        step="review.align",
-                        instance_id="qwen3-aligner-review",
-                    )
-                except Exception as exc:
-                    logging.exception("review alignment %s failed", model)
-                    self.errors[f"review:{model}:{key}"] = str(exc)
-                    continue
-                if any(t.start_ms is None for t in tokens):
-                    continue
-                self.reviewed[key][model] = "".join(
-                    t.text
-                    for t in tokens
-                    if t.start_ms is not None
-                    and t.end_ms is not None
-                    and window.start_ms <= (t.start_ms + t.end_ms) / 2 < window.end_ms
-                )
+                    errors[key] = exc
+                    if model != "moss-audio":
+                        logging.exception("review %s failed", model)
+                        self.errors[f"review:{model}:{key}"] = str(exc)
+            return texts, errors
 
-        # 同一模型保持逐窗串行；三个独立复听模型并行跑完整批次，之后才按需调用 MOSS。
-        await asyncio.gather(
-            *(
-                review_all(model)
-                for model in (
-                    "qwen3-asr-1.7b",
-                    "firered-llm",
-                    "whisper-large-v3",
+        async def align_review(model: str, key: str, text: str) -> None:
+            window, expanded = pending[key]
+            try:
+                tokens = await self.align(
+                    text,
+                    expanded,
+                    step="review.align",
+                    instance_id="qwen3-aligner-review",
                 )
+            except Exception as exc:
+                logging.exception("review alignment %s failed", model)
+                self.errors[f"review:{model}:{key}"] = str(exc)
+                return
+            if any(t.start_ms is None for t in tokens):
+                return
+            self.reviewed[key][model] = "".join(
+                t.text
+                for t in tokens
+                if t.start_ms is not None
+                and t.end_ms is not None
+                and window.start_ms <= (t.start_ms + t.end_ms) / 2 < window.end_ms
             )
+
+        async def review_all(model: str) -> None:
+            texts, _ = await recognize_all(model)
+            for key, text in texts.items():
+                await align_review(model, key, text)
+
+        # 四个模型分居独立 GPU lane；MOSS 先并行生成，主复听仍有争议时才对齐并采用。
+        _, _, _, moss = await asyncio.gather(
+            review_all("qwen3-asr-1.7b"),
+            review_all("firered-llm"),
+            review_all("whisper-large-v3"),
+            recognize_all("moss-audio"),
         )
-        await review_all("moss-audio")
+        moss_texts, moss_errors = moss
+
+        for key in pending:
+            reviews = self.reviewed[key]
+            if len({normalized(text) for text in reviews.values()}) == 1:
+                continue
+            if error := moss_errors.get(key):
+                logging.error("review moss-audio failed: %s", error)
+                self.errors[f"review:moss-audio:{key}"] = str(error)
+                continue
+            if key in moss_texts:
+                await align_review("moss-audio", key, moss_texts[key])
 
     async def finalize_segment(
         self,
@@ -320,7 +334,7 @@ class Pipeline:
         maximum = self.inference.scheduler.spec(model).max_audio_seconds
         config = ChunkConfig(target_seconds=maximum - 4, max_seconds=maximum, padding_ms=1000)
 
-        async def transcribe(window: Window, depth: int = 0) -> list[Segment]:
+        async def transcribe(window: Window) -> list[Segment]:
             try:
                 raw = await self.recognize(model, window, step="recipe." + recipe + ".joint")
                 active_ends = [
@@ -336,7 +350,7 @@ class Pipeline:
                 padded = (
                     window.start_ms != window.core_start_ms or window.end_ms != window.core_end_ms
                 )
-                if padded and (depth >= 3 or window.core_end_ms - window.core_start_ms < 30000):
+                if padded:
                     result.warnings.append(f"joint_window_retry:{window.start_ms}:{exc}")
                     return await transcribe(
                         Window(
@@ -344,10 +358,9 @@ class Pipeline:
                             end_ms=window.core_end_ms,
                             core_start_ms=window.core_start_ms,
                             core_end_ms=window.core_end_ms,
-                        ),
-                        depth + 1,
+                        )
                     )
-                if depth >= 3 or window.core_end_ms - window.core_start_ms < 30000:
+                if window.core_end_ms - window.core_start_ms < 8000:
                     raise
                 result.warnings.append(f"joint_window_retry:{window.start_ms}:{exc}")
                 middle = (window.core_start_ms + window.core_end_ms) // 2
@@ -360,8 +373,7 @@ class Pipeline:
                                 end_ms=min(window.end_ms, end + 1000),
                                 core_start_ms=start,
                                 core_end_ms=end,
-                            ),
-                            depth + 1,
+                            )
                         )
                     )
                 return parts

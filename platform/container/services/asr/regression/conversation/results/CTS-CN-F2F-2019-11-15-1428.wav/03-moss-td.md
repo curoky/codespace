@@ -1084,47 +1084,55 @@
 
 我们南方各种各样的茶叶。
 
-**[00:14:40.520–00:14:42.840] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:14:40.320–00:14:42.940] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 北方的茶叶都是由我们南方运过去的。
+
+**[00:14:42.910–00:14:43.350] S02 · 待核对：crosscheck_disagreement_in_interval**
+
+对。
 
 **[00:14:42.940–00:14:47.520] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 以前他们古代皇帝就是说不乏缺茶叶，但是就说。
 
-**[00:14:47.520–00:14:49.620] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:14:47.520–00:14:49.640] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 运输工程就非常的麻烦。
 
-**[00:14:49.620–00:14:52.140] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:14:49.640–00:14:50.720] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-从南方到运送的北方。
+从南方。
 
-**[00:14:52.520–00:14:53.140] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:14:50.720–00:14:52.160] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+到运送的北方。
+
+**[00:14:52.560–00:14:53.140] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 是的。
 
-**[00:14:53.140–00:14:57.780] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:14:53.180–00:14:57.780] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 现在说信息发达就不发达，一件东西很快就到达了。
 
-**[00:14:57.720–00:14:58.440] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:14:57.750–00:14:58.420] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 是的。
 
-**[00:14:58.640–00:15:01.520] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:14:58.660–00:15:01.510] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 而且我觉得北方他们有这种水质的。
 
-**[00:15:01.520–00:15:07.260] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:01.510–00:15:07.260] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 就是种在水里的茶叶，我觉得也是不错的，是个不错的选择，也是一个很大的开发项目。
 
-**[00:15:07.260–00:15:07.980] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:07.310–00:15:07.980] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 对呀。
 
-**[00:15:08.500–00:15:10.040] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:08.520–00:15:10.040] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 也是一种创新。
 
@@ -1132,47 +1140,51 @@
 
 我们南北有，嗯，有温度差异，也有地理差异。
 
-**[00:15:17.600–00:15:18.240] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:17.620–00:15:18.220] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 是的。
 
-**[00:15:18.600–00:15:27.320] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:18.610–00:15:27.320] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 因为地理差异，让北方的水果就特别的适适合，就是冬天吃，然后我们南方的水果都是夏季或者秋季。
 
-**[00:15:27.320–00:15:36.260] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:27.320–00:15:36.250] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-这种两者相互结合起来，有空运行运和水运，让两者的就是说一些物质交换就非常的方便，也让我们吃到了更多。
+这种两者相互结合起来，有空运航运和水运，让两者的就是说一些物质交换就非常的方便，也让我们吃到了更多。
 
-**[00:15:36.620–00:15:39.440] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:36.630–00:15:39.440] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 以前不敢尝，没有见识过的东西。
 
-**[00:15:39.360–00:15:40.100] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:39.380–00:15:40.080] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 是的。
 
-**[00:15:40.960–00:15:43.000] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:40.960–00:15:43.010] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 我们现在物质发达了。
 
-**[00:15:43.840–00:15:44.940] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:43.850–00:15:44.940] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 古代。
 
-**[00:15:45.440–00:15:47.840] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:45.460–00:15:47.840] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 嗯，物质很匮乏。
 
-**[00:15:48.160–00:15:51.620] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:48.180–00:15:49.080] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-但是，结合古代和现代的技术。
+但是。
+
+**[00:15:49.080–00:15:51.620] S02 · 待核对：crosscheck_disagreement_in_interval**
+
+结合古代和现代的技术。
 
 **[00:15:51.620–00:15:53.600] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 有很大的提高。
 
-**[00:15:55.620–00:15:58.020] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:55.630–00:15:58.010] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 让人让，就是说他们的技术。
 
@@ -1180,7 +1192,7 @@
 
 就对我们的影响也很大，在前人的基础上就创造了更多有意义的东西。
 
-**[00:16:03.420–00:16:04.120] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:03.440–00:16:04.100] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 是的。
 
@@ -1188,141 +1200,133 @@
 
 说古代。
 
-**[00:16:06.520–00:16:07.800] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:06.520–00:16:07.780] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 说一些。
 
-**[00:16:08.480–00:16:09.880] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:08.380–00:16:09.860] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-地娃就是说。
+帝王就是说。
 
-**[00:16:10.280–00:16:14.660] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:10.210–00:16:14.640] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-吃一些东西啊，都是那种冰块，都要自己收藏一个冰库，因为在。
+吃一些东西啊，都是那种冰块都要自己收藏一个冰库，因为在。
 
-**[00:16:14.120–00:16:14.640] S02 · 待核对：crosscheck_disagreement_in_interval**
-
-对。
-
-**[00:16:14.660–00:16:22.020] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:14.640–00:16:22.010] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 在我们这边就非常常见，但是如果说在北方那边，冬天就根本就不需要冰库，因为他们自己有自己的。
 
-**[00:16:22.020–00:16:22.760] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:22.010–00:16:22.720] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 这种。
 
-**[00:16:22.760–00:16:25.080] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:22.720–00:16:25.050] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 酷暑的海，就是海沿海的地方。
 
-**[00:16:25.080–00:16:28.880] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:25.050–00:16:28.860] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 他们夏天要是旅游了，就会去南方去旅游。
 
-**[00:16:28.880–00:16:32.020] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:28.860–00:16:32.010] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 说说一些避暑山庄，避暑干嘛的。
 
-**[00:16:32.140–00:16:32.820] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:32.080–00:16:32.820] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 对。
 
-**[00:16:33.140–00:16:37.760] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:33.060–00:16:37.760] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 现在科技发达，每个地方都有自己避暑的地方，我觉得挺好的。
 
-**[00:16:37.780–00:16:38.480] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:37.710–00:16:38.480] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 挺好的。
 
-**[00:16:39.240–00:16:40.460] S02**
+**[00:16:39.160–00:16:40.440] S02**
 
 但是。
 
-**[00:16:40.460–00:16:41.420] S02**
+**[00:16:40.440–00:16:41.420] S02**
 
 我们。
 
-**[00:16:42.740–00:16:45.980] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:42.710–00:16:45.980] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-但是避暑，也有避暑的条件。
+但是避暑也有避暑的条件。
 
-**[00:16:47.020–00:16:47.620] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:46.960–00:16:47.620] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 是的。
 
-**[00:16:48.020–00:16:50.320] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:47.960–00:16:50.320] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 所以说南方是个避暑的地方。
 
-**[00:16:50.820–00:16:51.380] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:50.720–00:16:51.340] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 是。
 
-**[00:16:51.720–00:16:56.220] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:51.660–00:16:56.200] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 因为我们这里的山水就非常的好，空气，温度适宜。
 
-**[00:16:56.200–00:16:58.540] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:56.120–00:16:58.540] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 对，温度适宜，空气也好。
 
-**[00:17:00.300–00:17:02.320] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:00.220–00:17:02.300] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 北方呢，就适合属于那种。
 
-**[00:17:02.720–00:17:05.860] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:02.620–00:17:05.840] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 适合去吃游玩的地方。
 
-**[00:17:05.880–00:17:06.420] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:05.800–00:17:06.400] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 对。
 
-**[00:17:06.600–00:17:08.040] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:06.520–00:17:08.020] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-因为各自的好吃。
+因为特色的好吃。
 
-**[00:17:06.680–00:17:07.240] S02 · 待核对：crosscheck_disagreement_in_interval**
-
-因为。
-
-**[00:17:08.440–00:17:09.020] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:08.360–00:17:09.020] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 对。
 
-**[00:17:10.300–00:17:13.040] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:10.220–00:17:13.010] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-也许可能去北上玩一趟，就。
+也许可能去北滩玩一趟，就。
 
-**[00:17:13.040–00:17:19.680] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:13.010–00:17:19.660] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-因为有很多就说演员啊，什么明星啊，都是在那边去拍戏，也属于不同的词语，也不一定。
+因为有很多就说演员啊，什么明星啊，都是在那边去拍戏，也许与不同的奇遇也不一定。
 
-**[00:17:19.720–00:17:20.420] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:19.640–00:17:20.400] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 是的。
 
-**[00:17:21.680–00:17:22.140] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:21.580–00:17:22.120] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 是。
 
-**[00:17:22.400–00:17:23.540] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:22.300–00:17:23.520] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 一些就说。
 
-**[00:17:23.540–00:17:28.620] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:23.520–00:17:28.610] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 就是因为世界的交流，就是互联网的沟通，就说南方人有去北方。
 
-**[00:17:28.860–00:17:33.060] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:28.780–00:17:33.040] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就见识过北方人，也去见南方见识过，有选择不同的地区。
+就见识过，北方人也是见南方见识过，有选择不同的地区。
 
-**[00:17:33.400–00:17:35.960] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:33.140–00:17:35.980] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-从南方进到北方，或者是说从
+从南方进到北方，或者是说从。
 
 **[00:17:35.960–00:17:37.400] S01 · 待核对：crosscheck_disagreement_in_interval**
 

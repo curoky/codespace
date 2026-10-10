@@ -30,7 +30,7 @@ flowchart TD
     S6 --> Server[asr-server longrun<br/>以 x 启动 FastAPI lifespan]
     Server --> Reset[停止本容器遗留模型状态]
     Reset --> Inventory[nvidia-smi 读取可见 GPU<br/>逻辑序号映射为 UUID]
-    Inventory --> Guard{5 张卡可见且空闲显存满足预算?}
+    Inventory --> Guard{6 张卡可见且空闲显存满足预算?}
     Guard -->|否| Fail[启动失败，容器不 ready]
     Guard -->|是| Start[按模型顺序请求 s6 start]
     Start --> Download{本模型 .revision<br/>匹配固定 snapshot?}
@@ -66,7 +66,7 @@ flowchart TD
     Decode --> Prepare["prepare<br/>Pyannote speaker + FireRedVAD 活动并集<br/>生成共享短窗"]
     Prepare --> First["共享 first pass<br/>Qwen + FireRed + SenseVoice + Paraformer<br/>四路批次并行"]
     First --> Dispute["筛选分歧、空结果、异常重复窗口"]
-    Dispute --> Review["共享 review<br/>Qwen + FireRed + Whisper 扩窗并行复听<br/>仍有争议才调用 MOSS-Audio"]
+    Dispute --> Review["共享 review<br/>Qwen + FireRed + Whisper + MOSS 扩窗并行复听<br/>主复听仍有争议才采用 MOSS"]
     Review --> Evidence["共享证据包<br/>activity + Pyannote speaker + 短窗<br/>四路 candidates + review responses"]
 
     subgraph FusionRecipes["01 / 02 · 双主稿融合"]
@@ -105,15 +105,15 @@ flowchart TD
 | upload / decode | 每请求一次；CPU semaphore | 原音写入请求临时目录，解码保留原始时间轴 |
 | prepare | pyannote 后 FireRedVAD | speaker 活动与 VAD 取并集；`--vad-off` 使用全文 |
 | first pass | 4 个模型批次并行；各模型逐窗串行 | 候选互不喂答案，使用相同短窗 |
-| review | Qwen / FireRed / Whisper 三批并行，随后按需 MOSS-Audio | 扩窗响应重新对齐到原窗口；同家族不增加独立票数 |
+| review | Qwen / FireRed / Whisper / MOSS-Audio 四批在独立 GPU lane 并行 | MOSS speculative 结果仅在三路主复听仍不一致时对齐并采用；同家族不增加独立票数 |
 | response / publish | server 返回一次 JSON；CLI 在临时目录生成全部文件 | 只有完整接收并写完后才替换目标目录 |
 
 | 方案 | 独立正文来源 | 复用内容 | 本方案独有处理 | 最终 speaker / 时间 |
 | --- | --- | --- | --- | --- |
 | 01 Qwen fusion | Qwen first-pass 短窗主稿 | 四路 candidates、全部 review、Pyannote speaker | 交叉证据裁定；FireRedPunc；Qwen Aligner | Pyannote speaker；重新对齐的字词时间 |
 | 02 FireRed fusion | FireRed first-pass 短窗主稿 | 与 01 相同，但不读取 01 定稿 | 独立裁定；FireRedPunc；Qwen Aligner | Pyannote speaker；重新对齐的字词时间 |
-| 03 MOSS-TD | MOSS-TD 长窗联合输出 | activity 尾部检查、Pyannote identity 映射、first-pass 争议标记 | 保留自身正文、时间和 local speaker；失败最多缩窗三层 | local speaker 映射到全局身份；仅跨 core 的 segment 用 Aligner 裁剪，无法安全裁剪时用无 padding exact core 重跑 |
-| 04 VibeVoice | VibeVoice 长窗联合输出 | 与 03 相同，但不读取 03 或融合稿 | 保留自身正文、时间和 local speaker；失败最多缩窗三层 | local speaker 映射到全局身份；仅跨 core 的 segment 用 Aligner 裁剪，无法安全裁剪时用无 padding exact core 重跑 |
+| 03 MOSS-TD | MOSS-TD 长窗联合输出 | activity 尾部检查、Pyannote identity 映射、first-pass 争议标记 | 保留自身正文、时间和 local speaker；失败先去除 padding，再按 exact core 安全二分到 8 秒边界 | local speaker 映射到全局身份；仅跨 core 的 segment 用 Aligner 裁剪，不猜测边界 |
+| 04 VibeVoice | VibeVoice 长窗联合输出 | 与 03 相同，但不读取 03 或融合稿 | 保留自身正文、时间和 local speaker；失败先去除 padding，再按 exact core 安全二分到 8 秒边界 | local speaker 映射到全局身份；仅跨 core 的 segment 用 Aligner 裁剪，不猜测边界 |
 | 05 Qwen + Nemotron | 完整复制 01 正文与字词时间 | 仅依赖已完成的 01；不重新 ASR | Nemotron 对全文件独立 diarization，仅重新切分 speaker | Nemotron speaker；正文和字词时间保持 01 不变 |
 
 模型调用先查请求内缓存，再以逻辑模型、切片与有效参数做 single-flight，最后从实例池取得副本；
@@ -150,7 +150,7 @@ evidence，仍未完整结束的响应按失败处理。
 | [`firered-llm`](https://huggingface.co/allendou/FireRedASR2-LLM-vllm) | 8000 | first pass / review；第二主稿 | transcription（[作者配方][firered]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 0+1，TP=2 | 32 | 31.147 | 7.392 |
 | [`firered-punc`](https://huggingface.co/FireRedTeam/FireRedPunc) | 8001 | 01 / 02；标点校验 | 本模型 HTTP | [FireRedASR2S][firered] 0.0.1 @ `4e7d9aa` | 3.12.14 | 5.1.0 | — | 2.10.0+cpu | — | CPU | — | 0.762 | 0.832 |
 | [`firered-vad`](https://huggingface.co/FireRedTeam/FireRedVAD) | 8002 | prepare；语音活动范围 | 本模型 HTTP | [FireRedASR2S][firered] 0.0.1 @ `4e7d9aa` | 3.12.14 | 5.1.0 | — | 2.10.0+cpu | — | CPU | — | 0.002 | 0.832 |
-| [`moss-audio`](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-8B-Instruct) | 8003 | review；残余争议复听 | audio chat（[作者文档][moss-audio]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 0 | 32 | 16.862 | 7.392 |
+| [`moss-audio`](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-8B-Instruct) | 8003 | review；残余争议复听 | audio chat（[作者文档][moss-audio]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 5 | 32 | 16.862 | 7.392 |
 | [`moss-td`](https://huggingface.co/OpenMOSS-Team/MOSS-Transcribe-Diarize) | 8004 | 03；联合正文、时间、speaker | transcription（[作者文档][moss-td]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 2 | 48 | 1.692 | 7.396 |
 | [`nemotron-diarization`](https://huggingface.co/nvidia/Nemotron-3-Diarization) | 8005 | 05；独立 speaker 重标 | 本模型 HTTP | NeMo 3.1.0+ca3f93a51 | 3.12.14 | 4.57.6 | — | 2.13.0 | 13.0.3 | GPU 1 | 12 | 0.185 | 5.288 |
 | [`paraformer`](https://huggingface.co/funasr/paraformer-zh) | 8006 | first pass；中文旁路校验 | 本模型 HTTP | [FunASR][funasr] 1.4.16 | 3.12.14 | 4.57.6 | — | 2.13.0 | 13.0.3 | GPU 4 | 4 | 0.820 | 4.973 |
@@ -168,19 +168,20 @@ Checkpoint 只统计固定 revision 的 weight 文件；不可拆分的 `.nemo`�
 
 ## GPU Placement
 
-5 张 80 GiB GPU 是当前 pipeline 保持 first pass 四条 lane 不共卡的下限：FireRed TP 占两张，
-Qwen、SenseVoice、Paraformer 各占一张。两个 Aligner 实例把 review 与 recipe 对齐隔离，两个
-VibeVoice 实例动态分担 04 的长窗；预算覆盖 01–04 并行时的全部常驻显存。
+当前 placement 使用 6 张 80 GiB GPU：FireRed TP 占两张，Qwen、SenseVoice、Paraformer
+各占一张，MOSS-Audio 独占一张。独立的 MOSS lane 避免用显存压缩和跨阶段时序换并发；两个
+Aligner 实例隔离 review 与 recipe 对齐，两个 VibeVoice 实例动态分担 04 的长窗。
 
 | 逻辑 GPU | 常驻模型（显存预算 / 卡） | 合计预算 | 不同时推理的关键边界 |
 | ---: | --- | ---: | --- |
-| 0 | `firered-llm` 32 GiB（TP rank）、`moss-audio` 32 GiB、`qwen3-aligner-recipe` 8 GiB | 72 GiB | recipe Aligner 只在 review 全部结束后运行 |
+| 0 | `firered-llm` 32 GiB（TP rank）、`qwen3-aligner-recipe` 8 GiB | 40 GiB | recipe Aligner 只在 review 全部结束后运行 |
 | 1 | `firered-llm` 32 GiB（TP rank）、`pyannote-community-1` 6 GiB、`nemotron-diarization` 12 GiB | 50 GiB | Pyannote 在 prepare；Nemotron 只在 05；FireRed 在 first pass / review |
 | 2 | `qwen3-asr-1.7b` 12 GiB、`moss-td` 48 GiB | 60 GiB | Qwen 在 first pass / review；MOSS-TD 在 03 |
 | 3 | `sensevoice` 4 GiB、`whisper-large-v3` 8 GiB、`vibevoice-a` 48 GiB | 60 GiB | 前两者在 recipe 前完成；A 副本执行 04 长窗 |
-| 4 | `paraformer` 4 GiB、`qwen3-aligner-review` 8 GiB、`vibevoice-b` 48 GiB | 60 GiB | Paraformer / review 完成后，Aligner 空闲且 B 副本执行 04 长窗 |
+| 4 | `paraformer` 4 GiB、`qwen3-aligner-review` 8 GiB、`vibevoice-b` 48 GiB | 60 GiB | Paraformer / review 完成后，B 副本执行 04 长窗 |
+| 5 | `moss-audio` 32 GiB | 32 GiB | 独立 review lane，不依赖其他模型的推理时序 |
 
-placement 只选择容器可见 GPU；生产配置可暴露更多卡，但逻辑 0–4 之外的设备保持空闲。
+placement 只选择容器可见 GPU；生产配置可暴露更多卡，但逻辑 0–5 之外的设备保持空闲。
 显存比例是进程静态上限而非精确占用，实际部署仍必须检查 CUDA context、TP / NCCL 与运行
 波动。
 

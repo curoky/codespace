@@ -4,12 +4,6 @@
 
 > joint_window_retry:527000:joint boundary alignment failed; cannot deduplicate safely
 
-> joint_window_retry:615000:joint boundary alignment failed; cannot deduplicate safely
-
-> joint_window_retry:659000:joint boundary alignment failed; cannot deduplicate safely
-
-> joint_window_retry:681000:joint boundary alignment failed; cannot deduplicate safely
-
 **[00:00:00.120–00:00:03.540] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 鲁迅小说集呐喊故乡
@@ -470,15 +464,11 @@
 
 哈，这模样了，胡子
 
-**[00:08:47.950–00:08:48.910] S01**
+**[00:08:48.070–00:08:52.110] S01**
 
-这么长了。
+这么长了，一种尖利的怪声突然大叫起来。
 
-**[00:08:49.310–00:08:52.050] S01**
-
-一种尖利的怪声突然大叫起来。
-
-**[00:08:52.830–00:09:08.230] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:52.790–00:09:08.240] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 我吃了一喝，赶忙抬起头，却见一个凸颧骨，薄嘴唇，五十岁上下的女人站在我面前，两手搭在皮肩，没有系裙，张着两脚，正像一个画图仪器里细角伶仃的圆规。
 
@@ -486,15 +476,15 @@
 
 我愕然了。
 
-**[00:09:11.830–00:09:14.710] S01**
+**[00:09:11.820–00:09:14.710] S01**
 
 不认识了吗？我还抱过你嘞。
 
-**[00:09:15.910–00:09:23.430] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:09:15.910–00:09:23.440] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 我愈加愕然了，幸而我的母亲也就进来，从旁说，她多年出门，统忘却了。
 
-**[00:09:24.330–00:09:30.550] S01**
+**[00:09:24.330–00:09:30.540] S01**
 
 你该记得吧，便向着我说，这是斜对门的杨二嫂，开豆腐店的。
 
@@ -502,65 +492,57 @@
 
 哦，我记得了，我孩子时候，在斜对门的豆腐店里，却乎终日坐着一个杨二嫂，人都叫伊豆腐西施，但是擦着白粉，颧骨没有这么高，嘴唇也没有这么薄，而且终日坐着，我也从没有见过这圆规式的姿势。
 
-**[00:09:51.550–00:10:03.230] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:09:51.550–00:10:03.220] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 那时人说，因为伊这豆腐店的买卖非常好，但这大约因为年龄的关系，我却并未蒙着一好感化，所以竟完全忘却了。
 
-**[00:10:04.350–00:10:15.950] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:04.260–00:10:16.650] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-然而圆规很不平，显出鄙夷的神色，仿佛嗤笑法国人不知道拿破仑，美国人不知道华盛顿似的，冷笑说，忘了，这真是贵人
+然而圆规很不平，显出鄙夷的神色，仿佛嗤笑法国人不知道拿破仑，美国人不知道华盛顿似的，冷笑说，忘了，这真是贵人眼高。
 
-**[00:10:16.110–00:10:16.510] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:17.720–00:10:21.640] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-高。
+哪有这事，我，我惶恐着站起来说。
 
-**[00:10:17.730–00:10:21.610] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-哪有这事，我我惶恐着站起来说。
-
-**[00:10:21.980–00:10:31.720] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:21.980–00:10:31.760] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 那么我对你说，迅哥儿，你阔了，搬动又笨重，你还要什么这些破烂木器，让我拿去吧，我们小户人家用得着。
 
-**[00:10:33.220–00:10:37.010] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:33.210–00:10:37.020] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 我并没有阔嘞，我我去卖了这些再去。
 
-**[00:10:37.680–00:10:48.860] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:37.710–00:10:48.890] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 哎呀呀，你放了道台了，还说不阔，你现在有三房姨太太，出门便是八抬的大轿，还说不阔，哈，什么都瞒不过我。
 
-**[00:10:50.210–00:10:54.580] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:50.210–00:10:54.640] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 我知道无话可说了，便闭了口，默默地站着。
 
-**[00:10:55.400–00:11:00.040] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:55.320–00:11:02.310] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-哎呀哎呀，真是愈有钱便愈是一毫不肯放松，愈是
+哎呀哎呀，真是愈有钱便愈是一毫不肯放松，愈是一毫不肯放松便愈有钱。
 
-**[00:11:00.030–00:11:02.190] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-一毫不肯放松，便愈有钱。
-
-**[00:11:02.750–00:11:12.110] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:02.720–00:11:12.160] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 圆规一面愤愤的回转身，一面续续的说，慢慢向外走，顺便将我母亲的一副手套塞在裤腰里，出去了。
 
-**[00:11:12.960–00:11:21.940] S01**
+**[00:11:12.950–00:11:21.980] S01**
 
 此后又有近处的本家和亲戚来访问我，我一面应酬，偷空便收拾些行李，这样的过了三四天。
 
-**[00:11:23.450–00:11:31.540] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:23.460–00:11:31.610] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 一日是天气很冷的午后，我吃过午饭，坐着喝茶，觉得外面有人进来了，便回头去看。
 
-**[00:11:32.050–00:11:36.720] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:32.090–00:11:36.810] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 我看时不由得非常出惊，慌忙站起身，迎着走去。
 
-**[00:11:38.580–00:11:43.990] S01**
+**[00:11:38.630–00:11:43.980] S01**
 
-进来的便是闰土，虽然我一见便知道是闰土，但又不是我。
+进来的便是闰土，虽然我一见便知道是闰土，但又不是我
 
 **[00:11:44.080–00:11:45.680] S01**
 

@@ -836,7 +836,7 @@
 
 **[00:03:38.688–00:03:41.568] S02 · 待核对：disagreement, alignment_failed**
 
-对啊就通过这种方式可能也就延长我们客户的一个使用时间
+对就通过这种方式可能也就延长我们客户的一个使用时间
 
 **[00:03:38.848–00:03:39.088] S02 · 待核对：disagreement, needs_review, alignment_failed**
 
@@ -848,15 +848,19 @@
 
 **[00:03:38.988–00:04:02.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
-话
-
-**[00:03:38.988–00:04:02.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
-
-天
+你
 
 **[00:03:38.988–00:04:02.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 家
+
+**[00:03:38.988–00:04:02.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
+
+买
+
+**[00:03:38.988–00:04:02.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
+
+得
 
 **[00:03:41.568–00:03:44.448] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
@@ -864,7 +868,7 @@
 
 **[00:03:44.448–00:03:47.248] S03 · 待核对：disagreement, alignment_failed**
 
-多老玩家你也可以给他老玩家回归福利
+多老玩家，你也可以给他老玩家回归福利
 
 **[00:03:47.648–00:03:47.808] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
@@ -872,31 +876,31 @@
 
 **[00:03:47.808–00:03:48.128] S02/S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
-是，
+是啊，
 
-**[00:03:48.448–00:03:49.568] S03/S04 · 待核对：disagreement, alignment_failed, overlap**
+**[00:03:49.648–00:03:49.888] S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
-老玩家回归以后的
+哎
 
 **[00:03:49.968–00:03:53.408] S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
-你可以给送东西嘛是吧，
+可以给送东西嘛是吧，
 
 **[00:03:51.808–00:03:54.288] S01/S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
+唉
+
+**[00:03:51.808–00:03:53.408] S01/S03/S04 · 待核对：disagreement, alignment_failed, overlap**
+
 然
 
-**[00:03:53.248–00:03:54.848] S01/S04 · 待核对：disagreement, alignment_failed, overlap**
+**[00:03:53.408–00:03:54.848] S01/S04 · 待核对：disagreement, alignment_failed, overlap**
 
-哎突
-
-**[00:03:55.008–00:03:55.168] S01/S04 · 待核对：disagreement, alignment_failed, overlap**
-
-有一
+突
 
 **[00:03:55.008–00:03:55.408] S01/S04 · 待核对：disagreement, alignment_failed, overlap**
 
-有一个非
+有一天有一个非
 
 **[00:03:55.408–00:03:55.568] S01/S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
@@ -914,9 +918,17 @@
 
 的老玩
 
-**[00:03:59.488–00:04:02.048] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
+**[00:03:59.648–00:03:59.728] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
-会员就必须回来买这个皮肤。
+又得
+
+**[00:03:59.808–00:04:00.208] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
+
+又
+
+**[00:04:02.048–00:04:03.088] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
+
+买又得买又要充钱了嗯。
 
 **[00:04:02.688–00:04:02.688] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 

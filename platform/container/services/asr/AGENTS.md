@@ -94,8 +94,9 @@ VibeVoice 原版 / HF、FireRed 原始 / 转换权重不能互换；FunASR 的 `
 - 顺序固定为 prepare、四路 first pass、整批 review，随后 01–04 并行；05 只等待 01。prepare 先跑全文件
   pyannote，再取 speaker 与 VAD 活动并集；短窗与 padding 在所有候选间保持相同。
 - first pass 的四个模型并行处理各自完整批次，同模型逐窗串行。候选不能互喂答案。只对
-  分歧、空识别或异常重复扩窗复听；Qwen / FireRed / Whisper 三批并行，全部结束后才决定
-  是否调用 MOSS-Audio。
+  分歧、空识别或异常重复扩窗复听；Qwen / FireRed / Whisper / MOSS-Audio 四批分居独立
+  GPU lane 并行生成并各自批处理。MOSS-Audio 是延迟隐藏的 speculative review，只有三路
+  主复听对齐后仍不一致时才进入证据；所有复听都只保留原窗口中心点内正文。
 - FireRedPunc 是最终句读的唯一 owner。送入标点模型前删除全部 Unicode punctuation，只保留
   数字内部的小数点、千分位逗号和时间冒号；输出改变非标点内容时拒绝。不在正文与标点层
   叠加句读，也不用重复标点正则修补模型输出。
@@ -104,9 +105,9 @@ VibeVoice 原版 / HF、FireRed 原始 / 转换权重不能互换；FunASR 的 `
   在首轮候选或复听中精确支持。数值、热词和英文专名只保护各自 span，多人窗口仍整窗禁止
   替换；同家族和重复采样不增加独立票数，两份融合稿不能读取对方定稿。
 - 联合模型保留自身正文、时间与局部 speaker；pyannote 只把无歧义的单人活动映射到全文件
-  身份。结构、时间范围与活动尾部要校验，失败最多缩窗三层；无法按字词时间安全裁剪边界
-  时先用无 padding 的 exact core 最后重跑，不做猜测裁剪、平均插值或伪造时间；exact core
-  仍失败才使方案失败。完全位于 core 内的 segment 直接保留联合模型时间与 mapped speaker，
+  身份。结构、时间范围与活动尾部要校验；失败窗口先去除 padding，再按 exact core 安全二分，
+  直到小于 8 秒的 exact core 仍失败才使方案失败。不做猜测裁剪、平均插值或伪造时间。
+  完全位于 core 内的 segment 直接保留联合模型时间与 mapped speaker，
   只有跨 core 边界、确实需要裁剪正文时才调用 Aligner。
 - forced alignment 的零时长 token 保留原始时间点，按落入的半开 speaker span 归属身份；
   不得为规避 `speaker_unknown` 人工扩展 token 时长或伪造边界。
@@ -220,7 +221,7 @@ podman build \
 | 权重 / SDK / vLLM | 锁文件与 import 版本、实际协议响应、截断、时间边界与模型 table |
 | 融合 / speaker / 时间 | 行为测试与对应真实音频，不能以模拟响应宣称质量提升 |
 | regression corpus / baseline | `prepare.py --check`、`evaluate.py`、fixture tests；音频 cache 不提交，raw results 提交 |
-| CUDA / placement | 五卡同时驻留、真实余量、kernel、TP / NCCL 与跨模型并发；其余可见卡空闲，不停止外部任务 |
+| CUDA / placement | 六卡同时驻留、真实余量、kernel、TP / NCCL 与跨模型并发；其余可见卡空闲，不停止外部任务 |
 
 已验证 CPU FireRedVAD / FireRedPunc、H100 Nemotron、s6 服务链路、异常退出清理、停止超时，
 以及原子 HTTP 五方案模拟响应、共享 evidence 与临时音频清理。
@@ -260,3 +261,14 @@ trace 为 1070.531 秒、863 个事件和 995 组请求全程 GPU 采样，sampl
 compute busy 为 53.5% / 37.8% / 33.9% / 30.9% / 22.7%，峰值均为 100%。相对修复前
 1070.531 秒，端到端耗时下降 74.2%；剩余耗时主要在 review 与 joint 质量恢复 / 对齐，不是
 CPU 或输入 copy。
+
+同日将 MOSS-Audio 放到独立 GPU 5，并把 Qwen / FireRed / Whisper / MOSS-Audio 四路 review
+改为独立 lane 并行后，以 image `localhost/codespace-asr:review-parallelism`（ID
+`6ed73e621356`）在 6×H100 上完成 9-case 全量回归。45/45 个 recipe completed，9 份 trace
+均为 completed 且模型 / phase failure 为 0；相对上一版 committed trace，9 例端到端累计从
+1881.674 秒降到 1388.708 秒，下降 26.20%，单例下降 19.48%–31.77%；review 累计从
+973.667 秒降到 555.780 秒，下降 42.92%，单例下降 35.51%–47.28%。R8004 baseline 与独立
+复验分别为 171.518 秒和 175.817 秒，五稿均 completed。joint 异常窗口先去除 padding，再按
+exact core 二分，只有小于 8 秒仍失败才使方案失败；不截断正文、不猜测边界。该轮替换容器的
+冷启动约 22 分钟，日志显示 vLLM / FlashInfer 重复 JIT；持久化其运行 cache 是独立的启动优化，
+不属于上述请求耗时收益。

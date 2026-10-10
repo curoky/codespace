@@ -3,10 +3,7 @@
   "status": "completed",
   "error": null,
   "warnings": [
-    "joint_window_retry:351000:joint boundary alignment failed; cannot deduplicate safely",
-    "joint_window_retry:439000:joint boundary alignment failed; cannot deduplicate safely",
-    "joint_window_retry:483000:joint boundary alignment failed; cannot deduplicate safely",
-    "joint_window_retry:505000:joint boundary alignment failed; cannot deduplicate safely",
+    "joint_window_retry:703000:joint boundary alignment failed; cannot deduplicate safely",
     "joint_window_retry:1055000:joint boundary alignment failed; cannot deduplicate safely"
   ],
   "segments": [
@@ -42,8 +39,8 @@
     },
     {
       "start_ms": 7490,
-      "end_ms": 10340,
-      "text": "是那个动漫电影，名叫哪吒吗？",
+      "end_ms": 10350,
+      "text": "是那个动漫电影，名字叫哪吒吗？",
       "speakers": [
         "S01"
       ],
@@ -57,7 +54,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 10340,
+      "start_ms": 10350,
       "end_ms": 13560,
       "text": "嗯，哪吒之魔童降世啊。那个好火的。",
       "speakers": [
@@ -90,7 +87,7 @@
     },
     {
       "start_ms": 18640,
-      "end_ms": 22710,
+      "end_ms": 22720,
       "text": "嗯，而且破的速度好快，短短几天就破几亿。",
       "speakers": [
         "S02"
@@ -105,9 +102,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 22710,
-      "end_ms": 24640,
-      "text": "嗯，那你，嗯，那你",
+      "start_ms": 22720,
+      "end_ms": 24650,
+      "text": "嗯，那你，那你",
       "speakers": [
         "S01"
       ],
@@ -121,8 +118,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 24640,
-      "end_ms": 26140,
+      "start_ms": 24650,
+      "end_ms": 26150,
       "text": "你看，你是看过吧？",
       "speakers": [
         "S02"
@@ -138,7 +135,7 @@
     },
     {
       "start_ms": 27410,
-      "end_ms": 28730,
+      "end_ms": 28720,
       "text": "它讲了些啥嘞？",
       "speakers": [
         "S02"
@@ -169,8 +166,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 32930,
-      "end_ms": 33970,
+      "start_ms": 32940,
+      "end_ms": 33980,
       "text": "你没看过吗？",
       "speakers": [
         "S02"
@@ -201,7 +198,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 37320,
+      "start_ms": 37310,
       "end_ms": 41140,
       "text": "就是那个啊，你不是说你看过吗？说的啥嘛？",
       "speakers": [
@@ -217,8 +214,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 42130,
-      "end_ms": 54580,
+      "start_ms": 42150,
+      "end_ms": 54300,
       "text": "好像是讲述哪哪吒，生来为魔，却却要那个逆行，逆向而行，做自己的故事，我感觉应该颠覆了，颠覆了以前那个",
       "speakers": [
         "S01"
@@ -233,8 +230,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 54580,
-      "end_ms": 58860,
+      "start_ms": 54530,
+      "end_ms": 58850,
       "text": "哪吒和哪吒，颠覆了以前哪吒的故事。",
       "speakers": [
         "S01"
@@ -250,7 +247,7 @@
     },
     {
       "start_ms": 58950,
-      "end_ms": 61820,
+      "end_ms": 61830,
       "text": "嗯，跟以前看的很很不一样。",
       "speakers": [
         "S02"
@@ -265,7 +262,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 61820,
+      "start_ms": 61830,
       "end_ms": 64160,
       "text": "嗯，对啊，它的",
       "speakers": [
@@ -283,7 +280,7 @@
     {
       "start_ms": 66780,
       "end_ms": 76210,
-      "text": "它，我觉得，它以前不是和敖丙，就是那个敖丙，那个龙王之太子嘛。反目成仇嘛，以前以前就是还帮了敖丙的那个龙筋嘛。",
+      "text": "它，我觉得它以前不是和敖丙，就是那个敖丙，那个龙王之太子嘛。反目成仇嘛，以前以前就是还帮了敖丙的那个龙精嘛。",
       "speakers": [
         "S01"
       ],
@@ -313,7 +310,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 80660,
+      "start_ms": 80650,
       "end_ms": 82120,
       "text": "嗯，还是唯一的好朋友。",
       "speakers": [
@@ -330,8 +327,8 @@
     },
     {
       "start_ms": 82120,
-      "end_ms": 93240,
-      "text": "对，因为那，因为我觉得，好像是敖丙和和那个哪吒，好像是那个两个两个领珠吧。",
+      "end_ms": 93250,
+      "text": "对，因为那，因为我觉得好像是敖丙和和那个哪吒，好像是那个两个两个领珠吧。",
       "speakers": [
         "S01"
       ],
@@ -361,7 +358,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 100200,
+      "start_ms": 100210,
       "end_ms": 106020,
       "text": "哪吒是，哪吒是那个比较，哪吒是罪恶的，然后敖敖丙是善良的。",
       "speakers": [
@@ -378,7 +375,7 @@
     },
     {
       "start_ms": 106020,
-      "end_ms": 117880,
+      "end_ms": 117870,
       "text": "本来应该哪吒是善良的吧。但是被换了。那里面敖丙都，敖丙还突破了，也突破了以前的一个那个，以前的敖丙都颜值都不怎么高的。",
       "speakers": [
         "S02"
@@ -393,8 +390,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 118210,
-      "end_ms": 124410,
+      "start_ms": 118220,
+      "end_ms": 124600,
       "text": "在抖音啊、微博里面都说，敖丙你要是长这个样子，以前我早就把哪吒看完了，好多人都这样说。",
       "speakers": [
         "S02"
@@ -409,7 +406,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 124660,
+      "start_ms": 124600,
       "end_ms": 125710,
       "text": "哇，是吗？",
       "speakers": [
@@ -442,7 +439,7 @@
     },
     {
       "start_ms": 134700,
-      "end_ms": 135230,
+      "end_ms": 135220,
       "text": "对啊。",
       "speakers": [
         "S01"
@@ -457,8 +454,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 135230,
-      "end_ms": 136010,
+      "start_ms": 135220,
+      "end_ms": 136000,
       "text": "敖丙。",
       "speakers": [
         "S02"
@@ -473,8 +470,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 136180,
-      "end_ms": 137300,
+      "start_ms": 136150,
+      "end_ms": 137310,
       "text": "敖丙。",
       "speakers": [
         "S01"
@@ -489,8 +486,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 137790,
-      "end_ms": 140210,
+      "start_ms": 137770,
+      "end_ms": 140200,
       "text": "是什哪位老师配的音，是吧？",
       "speakers": [
         "S02"
@@ -505,8 +502,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 140210,
-      "end_ms": 142360,
+      "start_ms": 140200,
+      "end_ms": 142350,
       "text": "敖丙是汉默配的音。",
       "speakers": [
         "S01"
@@ -521,8 +518,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 143710,
-      "end_ms": 150250,
+      "start_ms": 143660,
+      "end_ms": 150240,
       "text": "好像以前也看过一些他的作品，然后还有那个谁啊，那个那个哪吒他的师傅。",
       "speakers": [
         "S02"
@@ -537,7 +534,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 150250,
+      "start_ms": 150240,
       "end_ms": 151550,
       "text": "那那个太乙真人嘛。",
       "speakers": [
@@ -554,7 +551,7 @@
     },
     {
       "start_ms": 151550,
-      "end_ms": 152410,
+      "end_ms": 152430,
       "text": "对啊，那个太乙真人，我觉",
       "speakers": [
         "S02"
@@ -569,7 +566,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 152910,
+      "start_ms": 152930,
       "end_ms": 165380,
       "text": "对啊，我感觉他肥胖，感觉他憨态可掬的样子，还有他走路起来那种那种稳重淡骚的那种感觉，真的是真是，是感，感觉很好笑。",
       "speakers": [
@@ -851,7 +848,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 194610,
+      "start_ms": 194620,
       "end_ms": 196030,
       "text": "应该不是吧？",
       "speakers": [
@@ -883,7 +880,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 205550,
+      "start_ms": 205580,
       "end_ms": 208220,
       "text": "是个外国人，那不应该吧？",
       "speakers": [
@@ -899,7 +896,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 208430,
+      "start_ms": 208440,
       "end_ms": 210470,
       "text": "依稀记得，好像是个外国人。",
       "speakers": [
@@ -962,7 +959,7 @@
     },
     {
       "start_ms": 217930,
-      "end_ms": 220730,
+      "end_ms": 220740,
       "text": "[Human Sounds]",
       "speakers": [],
       "flags": [
@@ -976,8 +973,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 220730,
-      "end_ms": 225880,
+      "start_ms": 220740,
+      "end_ms": 225860,
       "text": "哎，那个名字有点是俄国人的那种感觉，好长好长，我都忘了。",
       "speakers": [
         "S02"
@@ -992,8 +989,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 225880,
-      "end_ms": 228480,
+      "start_ms": 225860,
+      "end_ms": 228490,
       "text": "[Environmental Sounds]",
       "speakers": [],
       "flags": [
@@ -1008,7 +1005,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 228480,
+      "start_ms": 228490,
       "end_ms": 231720,
       "text": "那这个这个电影，它具体到底是怎样的？",
       "speakers": [
@@ -1024,7 +1021,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 231930,
+      "start_ms": 231950,
       "end_ms": 242230,
       "text": "我觉得，它应该是这样子的，走那个，首先那个片，那个电影的开头，它是，它是天地灵气",
       "speakers": [
@@ -1040,8 +1037,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 242440,
-      "end_ms": 251860,
+      "start_ms": 242450,
+      "end_ms": 251880,
       "text": "它孕育出1颗能量，能量巨大的混元珠嘛，然后那个原始天尊将混元珠提炼成了灵珠和魔丸。",
       "speakers": [
         "S01"
@@ -1056,8 +1053,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 252060,
-      "end_ms": 264210,
+      "start_ms": 252070,
+      "end_ms": 264220,
       "text": "然后那个灵珠投胎为人，助周，助周伐伐纣时，可堪大用嘛，就是干，就是他投胎是为了帮",
       "speakers": [
         "S01"
@@ -1072,7 +1069,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 264210,
+      "start_ms": 264220,
       "end_ms": 268280,
       "text": "帮周打倒，打倒周，打倒纣王。",
       "speakers": [
@@ -1088,9 +1085,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 269720,
+      "start_ms": 269730,
       "end_ms": 283510,
-      "text": "然后那个魔魔丸，魔丸呢，它会诞生，它会，就是诞生魔魔丸，就是长大以后呃，为祸人间嘛，然后原始天尊他就，他就起到了那个天劫咒语",
+      "text": "然后那个魔魔丸，魔丸呢，它会诞生，它会，就是诞生魔魔丸，就是长大以后呃，为祸人间嘛，然后原始天尊他就，他就启动了那个天劫咒语",
       "speakers": [
         "S01"
       ],
@@ -1105,7 +1102,7 @@
     },
     {
       "start_ms": 283510,
-      "end_ms": 297620,
+      "end_ms": 297630,
       "text": "3年后，天雷会降临，然后摧毁，摧毁魔丸嘛。然后那个太乙真人，太乙真人，他就受命将灵珠托生于那个陈塘关的李靖家的儿子，那个哪吒身上嘛。",
       "speakers": [
         "S01"
@@ -1120,8 +1117,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 298010,
-      "end_ms": 302710,
+      "start_ms": 298020,
+      "end_ms": 302740,
       "text": "然后，阴差阳错嘛，灵珠和魔丸竟然被调包了。",
       "speakers": [
         "S01"
@@ -1136,8 +1133,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 304690,
-      "end_ms": 318420,
+      "start_ms": 304730,
+      "end_ms": 318430,
       "text": "对，本应是，就是那个哪吒，他应该，他应该是那个善良一点的那个敖丙，是一个最恶一点的。然后他就调包了，他就，他就把那个哪吒，是一个最恶一点的，然后那个那个敖丙是善良的。",
       "speakers": [
         "S01"
@@ -1152,8 +1149,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 318420,
-      "end_ms": 320330,
+      "start_ms": 318430,
+      "end_ms": 320340,
       "text": "啊，所以哪吒就是魔童。",
       "speakers": [
         "S02"
@@ -1168,8 +1165,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 320330,
-      "end_ms": 325050,
+      "start_ms": 320340,
+      "end_ms": 325070,
       "text": "对，然后那个，然后哪吒就成了那个混世大魔王嘛。",
       "speakers": [
         "S01"
@@ -1185,7 +1182,7 @@
     },
     {
       "start_ms": 325910,
-      "end_ms": 327320,
+      "end_ms": 327330,
       "text": "那他做了些啥呀？",
       "speakers": [
         "S02"
@@ -1200,7 +1197,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 327320,
+      "start_ms": 327330,
       "end_ms": 337910,
       "text": "他做了些什么，他就他就做了一些那个，就是就是逆天，逆天，逆天行事的那些事情嘛。",
       "speakers": [
@@ -1216,9 +1213,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 338840,
+      "start_ms": 338850,
       "end_ms": 344180,
-      "text": "然后就是毁坏村庄之类的吧。到处放火，我还记得那个电影情节里。",
+      "text": "然后就是毁坏村庄之类的吧。到处放火，我还记得那个电影情节里",
       "speakers": [
         "S02"
       ],
@@ -1233,7 +1230,7 @@
     },
     {
       "start_ms": 345710,
-      "end_ms": 348380,
+      "end_ms": 348390,
       "text": "到处捣乱，捉弄人家。",
       "speakers": [
         "S02"
@@ -1280,7 +1277,7 @@
     {
       "start_ms": 352200,
       "end_ms": 357720,
-      "text": "那哪吒这个电影应该获得了很多那个吧，很，我觉得很多人都觉得它很好啊。",
+      "text": "那哪吒这个电影，应该获得了很多那个吧，很，我觉得很多人都觉得它很好啊。",
       "speakers": [
         "S02"
       ],
@@ -1338,7 +1335,7 @@
           ]
         },
         {
-          "text": "影",
+          "text": "影，",
           "start_ms": 353080,
           "end_ms": 353160,
           "speakers": [
@@ -1544,8 +1541,8 @@
     },
     {
       "start_ms": 357750,
-      "end_ms": 366830,
-      "text": "对啊，然后它在，它在那个零一九年那个9月6日嘛，它获得了那个12届中国国际漫画",
+      "end_ms": 366840,
+      "text": "对啊，然后它在，它在那个，019年那个9月6日嘛，它获得了那个12届中国国际漫画，",
       "speakers": [
         "S01"
       ],
@@ -1561,7 +1558,7 @@
     {
       "start_ms": 367410,
       "end_ms": 377510,
-      "text": "国际漫漫画，第第16届那个中国动漫金龙颁奖大会于广州进行嘛。然后那个，就是不是那个哪吒那个电影嘛。",
+      "text": "国际漫漫画，第第16届那个中国动漫金龙颁奖大会，于广州进行嘛。然后那个，就是不是那个哪吒那个电影嘛。",
       "speakers": [
         "S01"
       ],
@@ -1575,8 +1572,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 377790,
-      "end_ms": 389700,
+      "start_ms": 377770,
+      "end_ms": 389690,
       "text": "它获得了那个最佳动画片长片那个金奖，还有那个最佳动画动画导演奖，还有一个最佳动画编剧奖。还有一个最佳动画配音奖，它获得了好多。",
       "speakers": [
         "S01"
@@ -1591,8 +1588,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 389700,
-      "end_ms": 390860,
+      "start_ms": 389690,
+      "end_ms": 390850,
       "text": "全被拿了。",
       "speakers": [
         "S02"
@@ -1607,9 +1604,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 390860,
-      "end_ms": 396300,
-      "text": "对啊，我感觉它它这个，它这个电影那个含金量也也挺高的。",
+      "start_ms": 390850,
+      "end_ms": 396310,
+      "text": "对啊，我感觉它它这个，它这个电影那个含金量，也也挺高的。",
       "speakers": [
         "S01"
       ],
@@ -1623,9 +1620,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 396300,
-      "end_ms": 398240,
-      "text": "看那个票房就知道它获得了不少。",
+      "start_ms": 396310,
+      "end_ms": 398250,
+      "text": "看那个票房就知道，能获得的票房。",
       "speakers": [
         "S02"
       ],
@@ -1639,9 +1636,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 398440,
-      "end_ms": 409500,
-      "text": "然后，最最主要的是，它在19，同年的一九年的10月8日，然后它代表中国内地去参选那个那个",
+      "start_ms": 398410,
+      "end_ms": 409510,
+      "text": "然后，最最主要的是，它在，19，同年的一九年的10月8日，然后它代表中国内地去参选那个，那个，",
       "speakers": [
         "S01"
       ],
@@ -1655,9 +1652,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 409720,
+      "start_ms": 409710,
       "end_ms": 418330,
-      "text": "二，嗯，20年的那个92，90，92届奥斯卡最佳国际影片。奥斯卡，你应该知道是什么吧？",
+      "text": "二，嗯，20年的那个，92，90，92届奥斯卡最佳国际影片。奥斯卡，你应该知道是什么吧？",
       "speakers": [
         "S01"
       ],
@@ -1672,7 +1669,7 @@
     },
     {
       "start_ms": 418330,
-      "end_ms": 418930,
+      "end_ms": 418920,
       "text": "知道，知道。",
       "speakers": [
         "S02"
@@ -1687,9 +1684,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 418930,
+      "start_ms": 418920,
       "end_ms": 427730,
-      "text": "就是奥奥斯卡金像，还有那个，啊，那个奥斯卡影帝的那那个什么。还有最佳国际影片啊。",
+      "text": "就是奥奥斯卡金奖，还有那个，啊，那个奥斯卡影帝的那那个，是吗？还有最佳国际影片啊。",
       "speakers": [
         "S01"
       ],
@@ -1703,8 +1700,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 429260,
-      "end_ms": 436910,
+      "start_ms": 429240,
+      "end_ms": 436920,
       "text": "然后，你你觉得，你觉得你在那个哪吒里面，你你最喜欢哪个哪个人物呢？他的性格又是什么呢？",
       "speakers": [
         "S01"
@@ -1719,9 +1716,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 437400,
-      "end_ms": 439960,
-      "text": "当然就喜欢那个太乙真人了，特别搞笑，我觉得太乙",
+      "start_ms": 437030,
+      "end_ms": 440220,
+      "text": "当然就喜欢那个太乙真人了，特别搞笑，我觉得太乙真人。",
       "speakers": [
         "S02"
       ],
@@ -1729,217 +1726,15 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "当",
-          "start_ms": 437400,
-          "end_ms": 437560,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "然",
-          "start_ms": 437560,
-          "end_ms": 437640,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "就",
-          "start_ms": 437640,
-          "end_ms": 437720,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "喜",
-          "start_ms": 437720,
-          "end_ms": 437880,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "欢",
-          "start_ms": 437880,
-          "end_ms": 437960,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "那",
-          "start_ms": 437960,
-          "end_ms": 438120,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "个",
-          "start_ms": 438120,
-          "end_ms": 438120,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "太",
-          "start_ms": 438120,
-          "end_ms": 438360,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "乙",
-          "start_ms": 438280,
-          "end_ms": 438360,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "真",
-          "start_ms": 438360,
-          "end_ms": 438440,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "人",
-          "start_ms": 438440,
-          "end_ms": 438680,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "了，",
-          "start_ms": 438680,
-          "end_ms": 438760,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "特",
-          "start_ms": 438840,
-          "end_ms": 439080,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "别",
-          "start_ms": 439080,
-          "end_ms": 439240,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "搞",
-          "start_ms": 439240,
-          "end_ms": 439320,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "笑，",
-          "start_ms": 439320,
-          "end_ms": 439560,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 439480,
-          "end_ms": 439560,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "觉",
-          "start_ms": 439560,
-          "end_ms": 439720,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "得",
-          "start_ms": 439720,
-          "end_ms": 439720,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "太",
-          "start_ms": 439800,
-          "end_ms": 439960,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "乙",
-          "start_ms": 439880,
-          "end_ms": 439960,
-          "speakers": [
-            "S02"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
-      "start_ms": 439960,
-      "end_ms": 440040,
-      "text": "热了。",
-      "speakers": [
-        "S02"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "热",
-          "start_ms": 439960,
-          "end_ms": 440040,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "了。",
-          "start_ms": 440040,
-          "end_ms": 440040,
-          "speakers": [
-            "S02"
-          ]
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 440210,
-      "end_ms": 449150,
-      "text": "你觉得他要是，他要是，感觉他要是，他在现实中，你觉得，嗯，你有什么东西向他学习的？",
+      "start_ms": 440220,
+      "end_ms": 449190,
+      "text": "你觉得他要是，他要是，感觉他要是，他在现实中，你觉得你你有什么东西向他学习的？",
       "speakers": [
         "S01"
       ],
@@ -1954,8 +1749,8 @@
     },
     {
       "start_ms": 449910,
-      "end_ms": 461440,
-      "text": "他一把，他就是，我觉得他最大的亮点就是有一颗善良的心嘛。他他能够，反正就一直为了，为了，虽然，虽然那个，",
+      "end_ms": 458580,
+      "text": "太乙吧，他就是，我觉得他最大的亮点就是有一颗善良的心嘛。他他能够，反正就一直为了，为了，",
       "speakers": [
         "S02"
       ],
@@ -1969,9 +1764,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 461440,
-      "end_ms": 473050,
-      "text": "领主，领主搞混，有他的错在里面，但是他一直为了那个哪吒，一直，然后还把哪吒收为徒弟啊，一直带着哪吒修炼啊，什么的，为了，为了让哪吒能够活下去。",
+      "start_ms": 459130,
+      "end_ms": 473090,
+      "text": "虽然，虽然那个灵珠，灵珠搞混以后，他的错在里面，但是他一直为了那个哪吒，一直，然后还把哪吒收为徒弟啊，一直带着哪吒修炼啊，什么的，为了，为了让哪吒能够活下去。",
       "speakers": [
         "S02"
       ],
@@ -1985,9 +1780,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 473840,
-      "end_ms": 478160,
-      "text": "就他在现实中，能教会你什么，一些什么样的性格，什么样的东西吗？",
+      "start_ms": 473870,
+      "end_ms": 478230,
+      "text": "他在现实中，能教会你什么一些什么样的性格，什么样的东西呢？",
       "speakers": [
         "S01"
       ],
@@ -2001,972 +1796,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 480020,
-      "end_ms": 484020,
-      "text": "就是，学会他的身，身心洒脱吧。然后，",
-      "speakers": [
-        "S02"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "就",
-          "start_ms": 480020,
-          "end_ms": 480100,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "是，",
-          "start_ms": 480100,
-          "end_ms": 480500,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "学",
-          "start_ms": 481060,
-          "end_ms": 481220,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "会",
-          "start_ms": 481220,
-          "end_ms": 481300,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "他",
-          "start_ms": 481300,
-          "end_ms": 481460,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 481460,
-          "end_ms": 481540,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "身，",
-          "start_ms": 481620,
-          "end_ms": 481860,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "身",
-          "start_ms": 481860,
-          "end_ms": 482260,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "心",
-          "start_ms": 482260,
-          "end_ms": 482420,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "洒",
-          "start_ms": 482420,
-          "end_ms": 482740,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "脱",
-          "start_ms": 482740,
-          "end_ms": 482820,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "吧。",
-          "start_ms": 482820,
-          "end_ms": 483060,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "然",
-          "start_ms": 483460,
-          "end_ms": 483620,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "后，",
-          "start_ms": 483940,
-          "end_ms": 484020,
-          "speakers": [
-            "S02"
-          ]
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 483960,
-      "end_ms": 496120,
-      "text": "后他很幽默啊，又不贪恋那种钱色啊。啊，然后我觉得的话，我觉得我要是能够从他这里面学习，我能学习学习一些比较正能量的，比如像那种",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "后",
-          "start_ms": 483960,
-          "end_ms": 484040,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "他",
-          "start_ms": 484040,
-          "end_ms": 484200,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "很",
-          "start_ms": 484200,
-          "end_ms": 484360,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "幽",
-          "start_ms": 484440,
-          "end_ms": 484600,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "默",
-          "start_ms": 484600,
-          "end_ms": 484760,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "啊，",
-          "start_ms": 484760,
-          "end_ms": 485160,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "又",
-          "start_ms": 485400,
-          "end_ms": 485480,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "不",
-          "start_ms": 485480,
-          "end_ms": 485560,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "贪",
-          "start_ms": 485560,
-          "end_ms": 485880,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "恋",
-          "start_ms": 485880,
-          "end_ms": 486040,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "那",
-          "start_ms": 486040,
-          "end_ms": 486200,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "种",
-          "start_ms": 486200,
-          "end_ms": 486280,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "钱",
-          "start_ms": 486360,
-          "end_ms": 486680,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "色",
-          "start_ms": 486680,
-          "end_ms": 486840,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "啊。",
-          "start_ms": 486840,
-          "end_ms": 487080,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "啊，",
-          "start_ms": 487880,
-          "end_ms": 488120,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "然",
-          "start_ms": 488120,
-          "end_ms": 488200,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "后",
-          "start_ms": 488200,
-          "end_ms": 488440,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 488440,
-          "end_ms": 488600,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "觉",
-          "start_ms": 488600,
-          "end_ms": 488760,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "得",
-          "start_ms": 488760,
-          "end_ms": 488920,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 488840,
-          "end_ms": 488920,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "话，",
-          "start_ms": 488920,
-          "end_ms": 489240,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 489560,
-          "end_ms": 489560,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "觉",
-          "start_ms": 489560,
-          "end_ms": 489720,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "得",
-          "start_ms": 489720,
-          "end_ms": 490040,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 490120,
-          "end_ms": 490200,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "要",
-          "start_ms": 490200,
-          "end_ms": 490280,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 490280,
-          "end_ms": 490520,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "能",
-          "start_ms": 490520,
-          "end_ms": 490600,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "够",
-          "start_ms": 490600,
-          "end_ms": 490680,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "从",
-          "start_ms": 490760,
-          "end_ms": 490920,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "他",
-          "start_ms": 490760,
-          "end_ms": 490920,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "这",
-          "start_ms": 491000,
-          "end_ms": 491080,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "里",
-          "start_ms": 491240,
-          "end_ms": 491320,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "面",
-          "start_ms": 491320,
-          "end_ms": 491480,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "学",
-          "start_ms": 491480,
-          "end_ms": 491640,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "习，",
-          "start_ms": 491640,
-          "end_ms": 491800,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 491800,
-          "end_ms": 491880,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "能",
-          "start_ms": 491960,
-          "end_ms": 491960,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "学",
-          "start_ms": 491960,
-          "end_ms": 492200,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "习",
-          "start_ms": 492200,
-          "end_ms": 492600,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "学",
-          "start_ms": 493160,
-          "end_ms": 493400,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "习",
-          "start_ms": 493400,
-          "end_ms": 493560,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "一",
-          "start_ms": 493560,
-          "end_ms": 493640,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "些",
-          "start_ms": 493640,
-          "end_ms": 494040,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "比",
-          "start_ms": 494360,
-          "end_ms": 494520,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "较",
-          "start_ms": 494520,
-          "end_ms": 494680,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "正",
-          "start_ms": 494840,
-          "end_ms": 495000,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "能",
-          "start_ms": 495000,
-          "end_ms": 495160,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "量",
-          "start_ms": 495160,
-          "end_ms": 495320,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的，",
-          "start_ms": 495320,
-          "end_ms": 495400,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "比",
-          "start_ms": 495560,
-          "end_ms": 495640,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "如",
-          "start_ms": 495640,
-          "end_ms": 495720,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "像",
-          "start_ms": 495720,
-          "end_ms": 495880,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "那",
-          "start_ms": 495960,
-          "end_ms": 495960,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "种",
-          "start_ms": 496040,
-          "end_ms": 496120,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 497210,
-      "end_ms": 506010,
-      "text": "那种乐观的、乐观的生活态度，还有那种生活、生活激情、生活激情的那种态度，还有那种知足常乐的那",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "那",
-          "start_ms": 497210,
-          "end_ms": 497290,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "种",
-          "start_ms": 497450,
-          "end_ms": 497610,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "乐",
-          "start_ms": 497770,
-          "end_ms": 497930,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "观",
-          "start_ms": 497930,
-          "end_ms": 498170,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的、",
-          "start_ms": 498170,
-          "end_ms": 498250,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "乐",
-          "start_ms": 498970,
-          "end_ms": 499050,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "观",
-          "start_ms": 499050,
-          "end_ms": 499210,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 499210,
-          "end_ms": 499210,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "生",
-          "start_ms": 499210,
-          "end_ms": 499370,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "活",
-          "start_ms": 499370,
-          "end_ms": 499530,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "态",
-          "start_ms": 499530,
-          "end_ms": 499690,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "度，",
-          "start_ms": 499690,
-          "end_ms": 499850,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "还",
-          "start_ms": 499930,
-          "end_ms": 500170,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "有",
-          "start_ms": 500090,
-          "end_ms": 500170,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "那",
-          "start_ms": 500170,
-          "end_ms": 500250,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "种",
-          "start_ms": 500250,
-          "end_ms": 500490,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "生",
-          "start_ms": 500890,
-          "end_ms": 501210,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "活、",
-          "start_ms": 501210,
-          "end_ms": 501370,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "生",
-          "start_ms": 501610,
-          "end_ms": 501850,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "活",
-          "start_ms": 502010,
-          "end_ms": 502250,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "激",
-          "start_ms": 502330,
-          "end_ms": 502490,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "情、",
-          "start_ms": 502490,
-          "end_ms": 502730,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "生",
-          "start_ms": 502890,
-          "end_ms": 503130,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "活",
-          "start_ms": 503130,
-          "end_ms": 503530,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "激",
-          "start_ms": 503530,
-          "end_ms": 503690,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "情",
-          "start_ms": 503690,
-          "end_ms": 503930,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 503930,
-          "end_ms": 503930,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "那",
-          "start_ms": 504010,
-          "end_ms": 504010,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "种",
-          "start_ms": 504010,
-          "end_ms": 504170,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "态",
-          "start_ms": 504250,
-          "end_ms": 504410,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "度，",
-          "start_ms": 504410,
-          "end_ms": 504490,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "还",
-          "start_ms": 504490,
-          "end_ms": 504730,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "有",
-          "start_ms": 504730,
-          "end_ms": 504730,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "那",
-          "start_ms": 504730,
-          "end_ms": 504810,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "种",
-          "start_ms": 504890,
-          "end_ms": 504970,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "知",
-          "start_ms": 505130,
-          "end_ms": 505370,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "足",
-          "start_ms": 505370,
-          "end_ms": 505450,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "常",
-          "start_ms": 505450,
-          "end_ms": 505770,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "乐",
-          "start_ms": 505770,
-          "end_ms": 505770,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 505770,
-          "end_ms": 505930,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "那",
-          "start_ms": 505930,
-          "end_ms": 506010,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 506000,
-      "end_ms": 506620,
-      "text": "态度。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 508260,
-      "end_ms": 515510,
-      "text": "而且，而且，她也真人，她这个戏，这个角色啊，她是有凭有据的。",
+      "start_ms": 479620,
+      "end_ms": 487210,
+      "text": "就是，学会他的身，身心洒脱吧。然后他很幽默啊，又不贪恋那种权色啊。",
       "speakers": [
         "S02"
       ],
@@ -2980,9 +1812,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 515510,
-      "end_ms": 522660,
-      "text": "对啊，然后，泰森他刚开头走的那一段舞蹈，是感觉",
+      "start_ms": 487210,
+      "end_ms": 496330,
+      "text": "对啊，然后我觉得的话，我觉得我要是能从太乙真人里面学习，我能学习，学习一些比较正能量的，比如像那种，",
       "speakers": [
         "S01"
       ],
@@ -2996,8 +1828,56 @@
       "decision": "primary"
     },
     {
-      "start_ms": 524650,
-      "end_ms": 525830,
+      "start_ms": 496820,
+      "end_ms": 506670,
+      "text": "那种乐观的，乐观的生活态度，还有那种生活，生活激情，生活激情的那种态度，还有那种知足常乐的那种态度。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 508240,
+      "end_ms": 515500,
+      "text": "而且，而且太乙真人他这个，这个角色啊，他是，有凭有据的。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 515500,
+      "end_ms": 522710,
+      "text": "对啊，然后太乙真人他刚开头走的那一段武打，是感觉，",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 524680,
+      "end_ms": 525840,
       "text": "那个T台。",
       "speakers": [
         "S02"
@@ -3012,8 +1892,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 525830,
-      "end_ms": 528000,
+      "start_ms": 526080,
+      "end_ms": 528080,
       "text": "对啊，感觉他",
       "speakers": [
         "S01"
@@ -3022,7 +1902,48 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [],
+      "tokens": [
+        {
+          "text": "对",
+          "start_ms": 526080,
+          "end_ms": 526160,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "啊，",
+          "start_ms": 526160,
+          "end_ms": 526320,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "感",
+          "start_ms": 527520,
+          "end_ms": 527680,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "觉",
+          "start_ms": 527680,
+          "end_ms": 527760,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "他",
+          "start_ms": 527840,
+          "end_ms": 528080,
+          "speakers": [
+            "S01"
+          ]
+        }
+      ],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
@@ -3134,7 +2055,7 @@
     },
     {
       "start_ms": 531720,
-      "end_ms": 540140,
+      "end_ms": 540160,
       "text": "真的，感觉像，感觉像是，噢，说，说起这个，说起这个，你你有没有想到那个泰囧的那个周继是什么？",
       "speakers": [
         "S01"
@@ -3149,7 +2070,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 540140,
+      "start_ms": 540160,
       "end_ms": 540970,
       "text": "猪啊。",
       "speakers": [
@@ -3166,7 +2087,7 @@
     },
     {
       "start_ms": 540970,
-      "end_ms": 546680,
+      "end_ms": 546710,
       "text": "对啊，他那周杰，他那猪，还有，还有，感觉那个猪，那个猪，好好搞笑。",
       "speakers": [
         "S01"
@@ -3181,8 +2102,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 546680,
-      "end_ms": 548520,
+      "start_ms": 546710,
+      "end_ms": 548530,
       "text": "那个猪也符合他的身份嘛。",
       "speakers": [
         "S02"
@@ -3197,8 +2118,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 548520,
-      "end_ms": 553610,
+      "start_ms": 548530,
+      "end_ms": 553620,
       "text": "对啊。啊，还有，不过我感觉他也有一点不好的。",
       "speakers": [
         "S01"
@@ -3213,8 +2134,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 554820,
-      "end_ms": 556920,
+      "start_ms": 554790,
+      "end_ms": 556940,
       "text": "就是他比较懒懒散散。",
       "speakers": [
         "S01"
@@ -3229,8 +2150,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 556920,
-      "end_ms": 562110,
+      "start_ms": 556940,
+      "end_ms": 562130,
       "text": "嗯，对。他就得过且过之类的那种。",
       "speakers": [
         "S02"
@@ -3245,8 +2166,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 563610,
-      "end_ms": 572170,
+      "start_ms": 563620,
+      "end_ms": 572190,
       "text": "而且他经受不住诱惑，就是那个他喝酒的那一段。就是因为他喝酒，所以才导致了那个领主被偷啊。",
       "speakers": [
         "S02"
@@ -3261,9 +2182,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 572810,
-      "end_ms": 573780,
-      "text": "还有。",
+      "start_ms": 572830,
+      "end_ms": 573810,
+      "text": "还有，",
       "speakers": [
         "S01"
       ],
@@ -3276,7 +2197,7 @@
     },
     {
       "start_ms": 575210,
-      "end_ms": 589430,
+      "end_ms": 589440,
       "text": "我感觉是，我感觉在在哪吒里面，那个申公豹也也表现，也演的也挺挺好的。因为申公豹在以前也是作为一个反面反面角色嘛。",
       "speakers": [
         "S01"
@@ -3291,8 +2212,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 589530,
-      "end_ms": 592350,
+      "start_ms": 589550,
+      "end_ms": 592360,
       "text": "申公豹一直都是一个反面反面角色。",
       "speakers": [
         "S02"
@@ -3307,8 +2228,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 592350,
-      "end_ms": 597900,
+      "start_ms": 592360,
+      "end_ms": 597910,
       "text": "嗯，不过我感觉他申公豹很好笑，他最好笑的一点是口吃。",
       "speakers": [
         "S01"
@@ -3324,8 +2245,8 @@
     },
     {
       "start_ms": 599580,
-      "end_ms": 614140,
-      "text": "申公豹，申公豹后面还有个故事嘞。申公豹那个变神的特效啊。之前，本来导演是找了一个特效的公司。但是，做了两三个月都没有做出来那个想要的效果。",
+      "end_ms": 614150,
+      "text": "申公豹，申公豹后面还有个故事嘞。申公豹那个变身的特效啊，之前本来导演是找了一个特效的公司，但是做了两三个月都没有做出来那个想要的效果。",
       "speakers": [
         "S02"
       ],
@@ -3339,9 +2260,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 614140,
-      "end_ms": 624400,
-      "text": "然后，那个工作人员就辞职了。因为他觉得做不出来。然后，他跳槽了嘛。但是，很巧的是，导演找的又是那个公司，又是那个人。",
+      "start_ms": 614150,
+      "end_ms": 624410,
+      "text": "然后那个工作人员就辞职了。因为他觉得做不出来。然后他跳槽了嘛。但是很巧的是，导演找的又是那个公司，又是那个人。",
       "speakers": [
         "S02"
       ],
@@ -3355,9 +2276,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 624820,
-      "end_ms": 627050,
-      "text": "最后，他最终也还是做出来了。",
+      "start_ms": 624840,
+      "end_ms": 627090,
+      "text": "最后才是终于还是做出来了。",
       "speakers": [
         "S01"
       ],
@@ -3371,8 +2292,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 628720,
-      "end_ms": 632780,
+      "start_ms": 628730,
+      "end_ms": 632800,
       "text": "除了那个哪吒，以前还看过好多关于成龙的电影。",
       "speakers": [
         "S02"
@@ -3387,9 +2308,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 632780,
-      "end_ms": 643930,
-      "text": "对啊，成龙是那国际巨星，也是我一直那个崇拜的偶像嘛。我说，然后，我崇拜的偶像里面，成龙就是，感觉他在电影里面，就是很",
+      "start_ms": 632800,
+      "end_ms": 643970,
+      "text": "对啊，成龙是那国际巨星，也是我一直那个崇拜的偶像嘛。我说，啊，我崇拜的偶像里面，成龙就是，感觉他在电影里面就是很",
       "speakers": [
         "S01"
       ],
@@ -3403,9 +2324,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 644270,
-      "end_ms": 652590,
-      "text": "很很认真，而且又，他他，我感觉他最好的一点就是什么嘛。他就是说，拍电影的时候，从来都不用替身的。",
+      "start_ms": 644280,
+      "end_ms": 652610,
+      "text": "很很认真，而且又，他他，我感觉他最好的一点就是什么嘛，他就是说拍电影的时候从来都不用替身的。",
       "speakers": [
         "S01"
       ],
@@ -3419,8 +2340,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 652590,
-      "end_ms": 654820,
+      "start_ms": 652610,
+      "end_ms": 654840,
       "text": "因为他的武打片都是自己上阵的。",
       "speakers": [
         "S02"
@@ -3435,9 +2356,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 656070,
-      "end_ms": 658640,
-      "text": "不像现在，有的明星动不动就",
+      "start_ms": 656080,
+      "end_ms": 658650,
+      "text": "不像现在有的明星，动不动就",
       "speakers": [
         "S02"
       ],
@@ -3451,8 +2372,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 658640,
-      "end_ms": 659220,
+      "start_ms": 658650,
+      "end_ms": 659250,
       "text": "替身。",
       "speakers": [
         "S01"
@@ -3467,9 +2388,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 660210,
-      "end_ms": 663820,
-      "text": "啊，痛啊，碰到一点点哪里就不干啊。",
+      "start_ms": 660230,
+      "end_ms": 663840,
+      "text": "啊，痛啊，碰到一点点哪里就就不干啊。",
       "speakers": [
         "S02"
       ],
@@ -3483,8 +2404,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 663820,
-      "end_ms": 671540,
+      "start_ms": 663840,
+      "end_ms": 671570,
       "text": "噢，像你这里，我我又想到了以前成龙，成龙他不是做了，做了3个，是3个很危险的动作嘛。",
       "speakers": [
         "S01"
@@ -3499,8 +2420,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 671540,
-      "end_ms": 672490,
+      "start_ms": 671570,
+      "end_ms": 672500,
       "text": "哪3个？",
       "speakers": [
         "S02"
@@ -3515,9 +2436,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 672490,
-      "end_ms": 685760,
-      "text": "就是，第1个，第1个，好像是在在一个国外的地方，他就拍摄电影嘛。从一个28楼的那个那个楼下那里，他直接，他直接，没没有任何安全措施，直接",
+      "start_ms": 672500,
+      "end_ms": 685780,
+      "text": "就是第1个，第1个好像是在在一个国外的地方，他就拍摄电影嘛。从一个28楼的那个那个楼下那里，他直接，他直接没没有任何安全措施，直接",
       "speakers": [
         "S01"
       ],
@@ -3531,8 +2452,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 685760,
-      "end_ms": 697550,
+      "start_ms": 685780,
+      "end_ms": 697580,
       "text": "直接从从塔顶跑下，塔顶跑向塔顶，跑向塔，就是让，就是那个塔顶一直跑下去嘛。",
       "speakers": [
         "S01"
@@ -3548,8 +2469,8 @@
     },
     {
       "start_ms": 698160,
-      "end_ms": 702280,
-      "text": "然后就是，嗯，我觉着，他都是一直都在那里滑。",
+      "end_ms": 702310,
+      "text": "然后就是，嗯，我觉得他都是一直都在那里滑。",
       "speakers": [
         "S01"
       ],
@@ -3563,8 +2484,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 702880,
-      "end_ms": 703840,
+      "start_ms": 703360,
+      "end_ms": 703760,
       "text": "真不帮。",
       "speakers": [
         "S02"
@@ -3573,15 +2494,40 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [],
+      "tokens": [
+        {
+          "text": "真",
+          "start_ms": 703360,
+          "end_ms": 703440,
+          "speakers": [
+            "S02"
+          ]
+        },
+        {
+          "text": "不",
+          "start_ms": 703520,
+          "end_ms": 703600,
+          "speakers": [
+            "S02"
+          ]
+        },
+        {
+          "text": "帮。",
+          "start_ms": 703680,
+          "end_ms": 703760,
+          "speakers": [
+            "S02"
+          ]
+        }
+      ],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
-      "start_ms": 704660,
-      "end_ms": 705180,
-      "text": "啊？",
+      "start_ms": 704000,
+      "end_ms": 705250,
+      "text": "啊。",
       "speakers": [
         "S01"
       ],
@@ -3595,9 +2541,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 705180,
-      "end_ms": 706010,
-      "text": "怎么帮？",
+      "start_ms": 705250,
+      "end_ms": 705990,
+      "text": "这么棒！",
       "speakers": [
         "S02"
       ],
@@ -3611,9 +2557,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 706010,
-      "end_ms": 719180,
-      "text": "对啊，还有一个，还有一个，他从一个，他从一个商品，就是那个那个商场那里，从从一个这么高的，从一个很高的地方，然后直接拿",
+      "start_ms": 706110,
+      "end_ms": 719040,
+      "text": "对啊，还有一个，还有一个，他从一个，他从一个商品，就是那个那个商场那里，从从一个这么高的，从一个很高的地方，然后直接",
       "speakers": [
         "S01"
       ],
@@ -3627,9 +2573,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 719510,
-      "end_ms": 722410,
-      "text": "爬个柱子，爬个柱子滑下来，是吧？我好像看到过那个。",
+      "start_ms": 720160,
+      "end_ms": 722440,
+      "text": "爬个柱子滑下来，是吧？我好像看到过那个。",
       "speakers": [
         "S02"
       ],
@@ -3643,9 +2589,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 722410,
+      "start_ms": 722440,
       "end_ms": 732930,
-      "text": "不，他不是爬个柱子，他是直接，就是不是有那些，嗯，是那些灯泡，灯泡吗？亮起一闪一闪的那些吗？然后不是有个绳子一样",
+      "text": "不，他不是爬个柱子，他是直接，就是不是有那些，呃，是那些灯泡灯泡吗？亮起一闪一闪的那些吗？然后不是有个绳子一样",
       "speakers": [
         "S01"
       ],
@@ -3659,9 +2605,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 732930,
-      "end_ms": 743750,
-      "text": "连接起来的嘛，他直接，嗯，抓住那个，直接滑下来，滑到，滑到下面。还有一个是，还有个是嘛，还有个是",
+      "start_ms": 733080,
+      "end_ms": 743770,
+      "text": "连接绳子的嘛，他直接，呃，抓住那个，直接滑下来，滑到，滑到下面。还有一个是还有个是嘛，还有个是",
       "speakers": [
         "S01"
       ],
@@ -3675,7 +2621,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 745640,
+      "start_ms": 745680,
       "end_ms": 747110,
       "text": "是在",
       "speakers": [
@@ -3689,9 +2635,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 748570,
-      "end_ms": 760410,
-      "text": "这个我也不清楚了，反正我记得，嗯，最后一次好像是在那个很严重的地方，就是他自己的头盖骨这里。嗯，因为跳了，他那一次他头的骨那里碎裂了嘛，然后",
+      "start_ms": 748650,
+      "end_ms": 760230,
+      "text": "这个我也不清楚了，反正我记得，呃，最后一次好像是在那个很严重的地方，就是他自己的头盖骨这里。嗯，因为跳了，他那一次他头的骨那里碎裂了嘛，然后",
       "speakers": [
         "S01"
       ],
@@ -3705,9 +2651,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 760410,
+      "start_ms": 760510,
       "end_ms": 772480,
-      "text": "他还是请那个外地医生，那个本地的医生正好有一个头颅，头颅医生路过嘛，然后就看到了，然后把，怎么就做，就治好了自己的伤。",
+      "text": "他是还是请那个外地医生，那个本地的医生，正好有一个头颅，头颅医生路过嘛，然后就看到了，然后把成了，就做，就救好了自己的伤。",
       "speakers": [
         "S01"
       ],
@@ -3721,9 +2667,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 772940,
-      "end_ms": 775670,
-      "text": "他受伤这么严重，他应该都是伤满身上。",
+      "start_ms": 773010,
+      "end_ms": 775690,
+      "text": "他受伤这么严重，他应该都是伤疤身上。",
       "speakers": [
         "S02"
       ],
@@ -3737,9 +2683,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 775910,
-      "end_ms": 782250,
-      "text": "对啊，然后没没发现啊，现在往年都一般都不打，不打片，都是接接一些代言嘛。",
+      "start_ms": 776000,
+      "end_ms": 782230,
+      "text": "对啊，然后没没发现，他现在往年都一般都不打，不打片，都是接接一些代言嘛。",
       "speakers": [
         "S01"
       ],
@@ -3753,9 +2699,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 782440,
-      "end_ms": 790810,
-      "text": "那也是，他好像都是那种喜剧吧，喜剧式的。动作风格，你知道哪些啊？",
+      "start_ms": 782510,
+      "end_ms": 790700,
+      "text": "那也是哦。他好像都是那种喜剧吧，喜剧式的。动作风格，你知道哪些啊？",
       "speakers": [
         "S02"
       ],
@@ -3769,8 +2715,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 791340,
-      "end_ms": 794910,
+      "start_ms": 791410,
+      "end_ms": 794850,
       "text": "喜剧式的动作风格的，我想一下。",
       "speakers": [
         "S01"
@@ -3785,8 +2731,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 795930,
-      "end_ms": 799570,
+      "start_ms": 795950,
+      "end_ms": 799590,
       "text": "那个那个，警察故事。",
       "speakers": [
         "S01"
@@ -3801,8 +2747,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 799570,
-      "end_ms": 801620,
+      "start_ms": 799590,
+      "end_ms": 801660,
       "text": "哦，警察故事那个系列都是，好像",
       "speakers": [
         "S02"
@@ -3817,7 +2763,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 801620,
+      "start_ms": 801660,
       "end_ms": 803130,
       "text": "对，还有那个",
       "speakers": [
@@ -3833,9 +2779,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 804340,
-      "end_ms": 805960,
-      "text": "还有那个，什么东西啊？",
+      "start_ms": 804390,
+      "end_ms": 805950,
+      "text": "还有那个什么呀？",
       "speakers": [
         "S01"
       ],
@@ -3849,7 +2795,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 807560,
+      "start_ms": 807610,
       "end_ms": 813150,
       "text": "还有，还有一个警察故事3和超级警察。",
       "speakers": [
@@ -3865,9 +2811,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 814580,
-      "end_ms": 815700,
-      "text": "都是警察。",
+      "start_ms": 814610,
+      "end_ms": 817490,
+      "text": "都是警察。好像都是演警察。",
       "speakers": [
         "S02"
       ],
@@ -3881,40 +2827,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 815700,
-      "end_ms": 816150,
-      "text": "对啊。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 816150,
-      "end_ms": 817470,
-      "text": "他好像都是演警察。",
-      "speakers": [
-        "S02"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 818280,
-      "end_ms": 830220,
+      "start_ms": 818310,
+      "end_ms": 830230,
       "text": "还有还有，他一个，他一个，最好，最，就是最好的一次，好像是在在12年，被美国的那个纽约时报",
       "speakers": [
         "S01"
@@ -3929,9 +2843,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 830220,
+      "start_ms": 830230,
       "end_ms": 841510,
-      "text": "被评为那个史上20位最大的动作影星之一。嗯，动作影星第1位，你晓得吧？他是在20个里面的第1位。Number one.",
+      "text": "被评为那个史上20位最大的动作影星之一。嗯，动作影星第1位，你知道吧？他是在20个里面的第1位。Number one.",
       "speakers": [
         "S01"
       ],
@@ -3945,9 +2859,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 842030,
-      "end_ms": 852910,
-      "text": "还有一个，同年，他又是被那个吉尼斯世界纪录大选，被评为表演特技最多的演员。然后又又在16年，又获得了",
+      "start_ms": 842080,
+      "end_ms": 849760,
+      "text": "还有一个，同年，他又是被那个吉尼斯世界纪录大选，被评为表演特技最多的演员。",
       "speakers": [
         "S01"
       ],
@@ -3961,9 +2875,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 852910,
+      "start_ms": 849850,
       "end_ms": 860810,
-      "text": "89届奥斯卡终终身成就奖，就也就是终终身奥斯卡，奥斯卡影帝的这个意思。",
+      "text": "然后又又在16年，又获得了89届奥斯卡终身成就奖，就也就是终身终身奥斯卡，奥斯卡影帝的那个意思。",
       "speakers": [
         "S01"
       ],
@@ -3977,8 +2891,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 862590,
-      "end_ms": 868700,
+      "start_ms": 862660,
+      "end_ms": 868710,
       "text": "他他那个风格也，风格就挺挺好的，然后拍的太多了，那个电影。",
       "speakers": [
         "S02"
@@ -3993,8 +2907,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 870260,
-      "end_ms": 871630,
+      "start_ms": 870310,
+      "end_ms": 871640,
       "text": "他还有一些啥嘞？",
       "speakers": [
         "S02"
@@ -4009,9 +2923,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 871950,
-      "end_ms": 880030,
-      "text": "还有还有，不说我们我们刚刚提到提到的那些42000万，不是老之后",
+      "start_ms": 871640,
+      "end_ms": 880000,
+      "text": "还有还有，不说我们我们刚刚提到提到的那些4大天王，不是老之后",
       "speakers": [
         "S01"
       ],
@@ -4019,216 +2933,7 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "还",
-          "start_ms": 871950,
-          "end_ms": 872190,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "有",
-          "start_ms": 872190,
-          "end_ms": 872190,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "还",
-          "start_ms": 873310,
-          "end_ms": 873390,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "有，",
-          "start_ms": 873390,
-          "end_ms": 873390,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "不",
-          "start_ms": 873550,
-          "end_ms": 873550,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "说",
-          "start_ms": 873870,
-          "end_ms": 874110,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 874030,
-          "end_ms": 874110,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "们",
-          "start_ms": 874110,
-          "end_ms": 874270,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 875150,
-          "end_ms": 875230,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "们",
-          "start_ms": 875230,
-          "end_ms": 875390,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "刚",
-          "start_ms": 875950,
-          "end_ms": 876190,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "刚",
-          "start_ms": 876190,
-          "end_ms": 876350,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "提",
-          "start_ms": 876590,
-          "end_ms": 876750,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "到",
-          "start_ms": 876750,
-          "end_ms": 876910,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "提",
-          "start_ms": 877230,
-          "end_ms": 877470,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "到",
-          "start_ms": 877470,
-          "end_ms": 877630,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 877630,
-          "end_ms": 877790,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "那",
-          "start_ms": 877790,
-          "end_ms": 877870,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "些",
-          "start_ms": 877870,
-          "end_ms": 878190,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "42000",
-          "start_ms": 878670,
-          "end_ms": 879310,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "万，",
-          "start_ms": 878990,
-          "end_ms": 879230,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "不",
-          "start_ms": 879310,
-          "end_ms": 879310,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 879310,
-          "end_ms": 879550,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "老",
-          "start_ms": 879550,
-          "end_ms": 879790,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "之",
-          "start_ms": 879790,
-          "end_ms": 879870,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "后",
-          "start_ms": 879870,
-          "end_ms": 880030,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
@@ -4571,7 +3276,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 907910,
+      "start_ms": 907930,
       "end_ms": 911390,
       "text": "啊，还有，还有那个全球10大慈善之星。",
       "speakers": [
@@ -4587,8 +3292,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 912310,
-      "end_ms": 916950,
+      "start_ms": 912320,
+      "end_ms": 916930,
       "text": "成龙吧，我最喜欢他的就是那个警察故事那个系列，你看过没有？",
       "speakers": [
         "S02"
@@ -4603,7 +3308,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 916950,
+      "start_ms": 916930,
       "end_ms": 917510,
       "text": "嗯。",
       "speakers": [
@@ -4635,7 +3340,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 923890,
+      "start_ms": 923910,
       "end_ms": 928310,
       "text": "那个警察故事系列话，它好像有，好像有",
       "speakers": [
@@ -4652,7 +3357,7 @@
     },
     {
       "start_ms": 928310,
-      "end_ms": 929180,
+      "end_ms": 929170,
       "text": "5、6部吧？",
       "speakers": [
         "S02"
@@ -4668,7 +3373,7 @@
     },
     {
       "start_ms": 930110,
-      "end_ms": 931990,
+      "end_ms": 931980,
       "text": "对，好像是有5、6部。",
       "speakers": [
         "S01"
@@ -4684,7 +3389,7 @@
     },
     {
       "start_ms": 932550,
-      "end_ms": 933790,
+      "end_ms": 933780,
       "text": "嗯，哪一些？",
       "speakers": [
         "S02"
@@ -4699,7 +3404,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 933790,
+      "start_ms": 933780,
       "end_ms": 948810,
       "text": "嗯，他的第1部警察故事是在85年，他他应该，他是自，自己自导自演嘛。他，他那个故，他那个警察故事那个内容，大概是那个那个成龙",
       "speakers": [
@@ -4715,7 +3420,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 949930,
+      "start_ms": 949920,
       "end_ms": 951110,
       "text": "成龙",
       "speakers": [
@@ -4729,8 +3434,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 955260,
-      "end_ms": 966970,
+      "start_ms": 955250,
+      "end_ms": 966960,
       "text": "大概是这样子，那个陈家驹举报了他那个大毒枭那个朱涛嘛。然后，却因为那个关键证人那个沙莲娜的失踪，无法，就是无法抓到他。",
       "speakers": [
         "S01"
@@ -4745,8 +3450,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 967600,
-      "end_ms": 980760,
+      "start_ms": 967610,
+      "end_ms": 980750,
       "text": "然后，陈家驹又被降职处分了，然后，事，事后，那个大毒枭那个朱涛那个朱，那个朱涛，就开始报复陈家驹，因为他没，他把他抓进去嘛，然后，庆幸的是，他，他那个",
       "speakers": [
         "S01"
@@ -4778,7 +3483,7 @@
     },
     {
       "start_ms": 988610,
-      "end_ms": 990270,
+      "end_ms": 990260,
       "text": "那个时候，香港很乱吧？",
       "speakers": [
         "S02"
@@ -4793,7 +3498,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 990270,
+      "start_ms": 990260,
       "end_ms": 991330,
       "text": "对啊，然后",
       "speakers": [
@@ -4809,7 +3514,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 992580,
+      "start_ms": 992570,
       "end_ms": 998930,
       "text": "他就怎么样，他就直接杀死1名警察，然后陷害陈家驹嘛。他，陈家驹，然后",
       "speakers": [
@@ -4825,8 +3530,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1000550,
-      "end_ms": 1009840,
+      "start_ms": 1000560,
+      "end_ms": 1009830,
       "text": "然后，那个成龙，他就拼命寻找，拼命寻找证据，然后，最后在那个商场那里，就商场那里，就是刚刚我跟你说的，他那里，他那里",
       "speakers": [
         "S01"
@@ -4841,8 +3546,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1011120,
-      "end_ms": 1014970,
+      "start_ms": 1011110,
+      "end_ms": 1014960,
       "text": "然后，他抓着彩灯，跳下，跳下那一幕。",
       "speakers": [
         "S01"
@@ -4857,9 +3562,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1015070,
+      "start_ms": 1015080,
       "end_ms": 1016950,
-      "text": "那一幕很虐，印象很深刻。",
+      "text": "那一幕，很令人印象深刻。",
       "speakers": [
         "S02"
       ],
@@ -4889,9 +3594,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1023760,
+      "start_ms": 1023750,
       "end_ms": 1027610,
-      "text": "对，那个那个好像还入选了，我知道，好像还入选了什么",
+      "text": "对，那个那个，好像还入选了，我知道，好像还入选了什么",
       "speakers": [
         "S02"
       ],
@@ -4906,7 +3611,7 @@
     },
     {
       "start_ms": 1029110,
-      "end_ms": 1031440,
+      "end_ms": 1031430,
       "text": "什么电影的10大精彩时刻。",
       "speakers": [
         "S02"
@@ -4921,9 +3626,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1032130,
+      "start_ms": 1032110,
       "end_ms": 1035310,
-      "text": "对啊，好像陈文好像就占了3个。",
+      "text": "对啊，好像成了，好像就占了3个。",
       "speakers": [
         "S01"
       ],
@@ -4939,7 +3644,7 @@
     {
       "start_ms": 1037210,
       "end_ms": 1047100,
-      "text": "还有那个，还有第2部，那是那个警察故事续集嘛。他那个陈，嗯，陈家驹刚刚上文天那个陈家驹嘛。",
+      "text": "还有那个，还有第2部，那是那个警察故事续集嘛。他那个，成，嗯，陈家驹刚刚上完天，那个陈家驹嘛。",
       "speakers": [
         "S01"
       ],
@@ -5282,322 +3987,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1055960,
-      "end_ms": 1065080,
-      "text": "闹出的，哈。然后，他就直接，他直接辞职了，然后，他他在和他女朋友去度蜜月嘛，然后，然后，一家，",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "闹",
-          "start_ms": 1055960,
-          "end_ms": 1056120,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "出",
-          "start_ms": 1056120,
-          "end_ms": 1056280,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的，",
-          "start_ms": 1056280,
-          "end_ms": 1056360,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "哈。",
-          "start_ms": 1056360,
-          "end_ms": 1056600,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "然",
-          "start_ms": 1056680,
-          "end_ms": 1056760,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "后，",
-          "start_ms": 1056760,
-          "end_ms": 1057240,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "他",
-          "start_ms": 1057080,
-          "end_ms": 1057240,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "就",
-          "start_ms": 1057240,
-          "end_ms": 1057320,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "直",
-          "start_ms": 1057320,
-          "end_ms": 1057480,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "接，",
-          "start_ms": 1057480,
-          "end_ms": 1057720,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "他",
-          "start_ms": 1057960,
-          "end_ms": 1058040,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "直",
-          "start_ms": 1058040,
-          "end_ms": 1058200,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "接",
-          "start_ms": 1058200,
-          "end_ms": 1058200,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "辞",
-          "start_ms": 1058200,
-          "end_ms": 1058440,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "职",
-          "start_ms": 1058440,
-          "end_ms": 1058600,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "了，",
-          "start_ms": 1058600,
-          "end_ms": 1058760,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "然",
-          "start_ms": 1059320,
-          "end_ms": 1059400,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "后，",
-          "start_ms": 1059400,
-          "end_ms": 1059480,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "他",
-          "start_ms": 1059480,
-          "end_ms": 1059720,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "他",
-          "start_ms": 1059960,
-          "end_ms": 1060120,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "在",
-          "start_ms": 1060200,
-          "end_ms": 1060280,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "和",
-          "start_ms": 1060280,
-          "end_ms": 1060440,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "他",
-          "start_ms": 1060440,
-          "end_ms": 1060680,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "女",
-          "start_ms": 1060680,
-          "end_ms": 1060840,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "朋",
-          "start_ms": 1060840,
-          "end_ms": 1060920,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "友",
-          "start_ms": 1060920,
-          "end_ms": 1061000,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "去",
-          "start_ms": 1061000,
-          "end_ms": 1061240,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "度",
-          "start_ms": 1061240,
-          "end_ms": 1061560,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "蜜",
-          "start_ms": 1061560,
-          "end_ms": 1061800,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "月",
-          "start_ms": 1061800,
-          "end_ms": 1061880,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "嘛，",
-          "start_ms": 1061880,
-          "end_ms": 1062200,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "然",
-          "start_ms": 1062920,
-          "end_ms": 1063000,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "后，",
-          "start_ms": 1063000,
-          "end_ms": 1063160,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "然",
-          "start_ms": 1064360,
-          "end_ms": 1064440,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "后，",
-          "start_ms": 1064440,
-          "end_ms": 1064600,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "一",
-          "start_ms": 1064600,
-          "end_ms": 1064760,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "家，",
-          "start_ms": 1064760,
-          "end_ms": 1065080,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 1065240,
-      "end_ms": 1070950,
-      "text": "一家电话公司，就是刚刚去的那电话公司，他找到那个炸药桶，喝，",
+      "start_ms": 1056000,
+      "end_ms": 1070930,
+      "text": "朱涛，然后他就直接，他直接辞职了，然后他他在和他女朋友去度蜜月嘛，然后然后，一家一家电话公司，就是刚刚取得那电话公司，他找到那个炸弹桶盒。",
       "speakers": [
         "S01"
       ],
@@ -5611,9 +4003,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1072410,
-      "end_ms": 1082230,
-      "text": "那个陈家驹，他就他就刚好看到了，然后，赶到现场，然后，他又放，放弃了和他女朋友度蜜月，度蜜月的那个，",
+      "start_ms": 1072480,
+      "end_ms": 1082250,
+      "text": "那个陈建旭，他就他就刚刚好看到了，然后赶到了现场，然后他又放，放弃了和他女朋友度蜜月，度蜜月的那个",
       "speakers": [
         "S01"
       ],
@@ -5627,8 +4019,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1082230,
-      "end_ms": 1082770,
+      "start_ms": 1082250,
+      "end_ms": 1082810,
       "text": "机会。",
       "speakers": [
         "S02"
@@ -5643,9 +4035,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1082770,
-      "end_ms": 1086180,
-      "text": "机会，然后，会去处理这些事，处理这些事情嘛。",
+      "start_ms": 1082810,
+      "end_ms": 1086210,
+      "text": "机会，然后去处理这些事，处理这些事情嘛。",
       "speakers": [
         "S01"
       ],
@@ -5659,9 +4051,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1087440,
+      "start_ms": 1087460,
       "end_ms": 1096410,
-      "text": "然后，他以为，他以为这件事情，他以为这件事情很简单，就是一些恐，单日的恐怖分子，想想，",
+      "text": "然后他以为，他以为这件事情，他以为这件事情很简单，就是一些恐，单日的恐怖分子，想想",
       "speakers": [
         "S01"
       ],
@@ -5676,7 +4068,7 @@
     },
     {
       "start_ms": 1096410,
-      "end_ms": 1097340,
+      "end_ms": 1097360,
       "text": "报复他。",
       "speakers": [
         "S02"
@@ -5691,9 +4083,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1097420,
-      "end_ms": 1106450,
-      "text": "不是报复他，是，是想报复这个公司，没报复他，然后，他就觉，然后，他的调查到后面，他不，他觉得不简单了嘛。",
+      "start_ms": 1097440,
+      "end_ms": 1106460,
+      "text": "不是报复他，是是想报复这个公司，没报复他，然后他就觉得，然后他的调查到后面，他不，他觉得不简单了嘛。",
       "speakers": [
         "S01"
       ],
@@ -5707,9 +4099,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1107030,
+      "start_ms": 1107050,
       "end_ms": 1115610,
-      "text": "然后，他在，就是那个放炸弹的，放炸弹的那个人，他就炸毁了那警察局的大门，把他女朋友都拐走了。",
+      "text": "然后他在，就是那个放炸弹的，放炸弹的那个人，他就炸毁了那警察局的大门，把他女朋友给拐走了。",
       "speakers": [
         "S01"
       ],
@@ -5724,8 +4116,8 @@
     },
     {
       "start_ms": 1116710,
-      "end_ms": 1118200,
-      "text": "然后，他就要去救他女朋友。",
+      "end_ms": 1118230,
+      "text": "然后他就要去救他女朋友。",
       "speakers": [
         "S02"
       ],
@@ -5739,9 +4131,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1118200,
-      "end_ms": 1130970,
-      "text": "对啊，很一般救，全都要赎金的嘛。带了大量的赎金，然后，去那里的时候，去那里的时候，结果那里发现，发现那布，布满了很多炸弹，你觉得，觉得能走吗？",
+      "start_ms": 1118230,
+      "end_ms": 1130980,
+      "text": "对啊，很一般救，全都要赎金的嘛。带了大量的赎金，然后去那里的时候，去那里的时候，结果那里发现，发现那布布满了好多炸弹，你觉得觉得能走吗？",
       "speakers": [
         "S01"
       ],
@@ -5755,9 +4147,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1130970,
-      "end_ms": 1132040,
-      "text": "肯定不能啊。",
+      "start_ms": 1130980,
+      "end_ms": 1134570,
+      "text": "肯定不能啊。但他应该还是能走。",
       "speakers": [
         "S02"
       ],
@@ -5771,8 +4163,40 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1132040,
-      "end_ms": 1132810,
+      "start_ms": 1135150,
+      "end_ms": 1142650,
+      "text": "感觉，因为因为，因为陈，因为陈成龙的话，成龙的话",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1143060,
+      "end_ms": 1144690,
+      "text": "他不是普通人，他的那个",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1144690,
+      "end_ms": 1145230,
       "text": "对啊。",
       "speakers": [
         "S01"
@@ -5787,170 +4211,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1133090,
-      "end_ms": 1134530,
-      "text": "但他应该还是能走。",
-      "speakers": [
-        "S02"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 1135110,
-      "end_ms": 1142610,
-      "text": "感觉，因为，因为，因为，因为，成成龙的话，成龙的话，",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 1143500,
-      "end_ms": 1144060,
-      "text": "他不是普",
-      "speakers": [
-        "S02"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "他",
-          "start_ms": 1143500,
-          "end_ms": 1143660,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "不",
-          "start_ms": 1143660,
-          "end_ms": 1143660,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 1143660,
-          "end_ms": 1143820,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "普",
-          "start_ms": 1143820,
-          "end_ms": 1144060,
-          "speakers": [
-            "S02"
-          ]
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 1143880,
-      "end_ms": 1144600,
-      "text": "普通人，他的那",
-      "speakers": [
-        "S02"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "普",
-          "start_ms": 1143880,
-          "end_ms": 1144120,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "通",
-          "start_ms": 1144120,
-          "end_ms": 1144200,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "人，",
-          "start_ms": 1144200,
-          "end_ms": 1144200,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "他",
-          "start_ms": 1144280,
-          "end_ms": 1144360,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 1144360,
-          "end_ms": 1144440,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "那",
-          "start_ms": 1144520,
-          "end_ms": 1144600,
-          "speakers": [
-            "S02"
-          ]
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 1144680,
-      "end_ms": 1145210,
-      "text": "对啊。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 1145210,
-      "end_ms": 1147100,
+      "start_ms": 1145230,
+      "end_ms": 1147110,
       "text": "功夫，我们一般人不能走。",
       "speakers": [
         "S02"
@@ -5965,9 +4227,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1147760,
-      "end_ms": 1154950,
-      "text": "毕竟是主角嘛。然后，你能跟我，我，你能跟我说一下那个警察故事3，那个超级隐藏的。",
+      "start_ms": 1147800,
+      "end_ms": 1154980,
+      "text": "毕竟是主角嘛。然后，你能跟我，我还，你能跟我说一下那个警察故事3，那个超级警察吗？",
       "speakers": [
         "S01"
       ],
@@ -5981,8 +4243,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1154950,
-      "end_ms": 1155950,
+      "start_ms": 1154980,
+      "end_ms": 1156000,
       "text": "没看那个吗？",
       "speakers": [
         "S02"
@@ -5997,8 +4259,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1155950,
-      "end_ms": 1156500,
+      "start_ms": 1156000,
+      "end_ms": 1156550,
       "text": "对啊。",
       "speakers": [
         "S01"
@@ -6014,8 +4276,8 @@
     },
     {
       "start_ms": 1157060,
-      "end_ms": 1165760,
-      "text": "看的那个。他就是那个。他这个，这个杨紫琼啊，是这个新出1到2的，杨紫琼是那个007邦女郎啊。",
+      "end_ms": 1171510,
+      "text": "看了那个，他就是那个他这个，这个杨紫琼啊，是这个新出1到2，杨紫琼是那个007邦女郎啊。那个好有，好有名的，她由花瓶吧，转型成为了一个打手。",
       "speakers": [
         "S02"
       ],
@@ -6029,24 +4291,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1166540,
-      "end_ms": 1171450,
-      "text": "那个，好有，好有名的，她有花瓶吧，转型成为了1个打手。",
-      "speakers": [
-        "S02"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 1171450,
-      "end_ms": 1173140,
+      "start_ms": 1171510,
+      "end_ms": 1173210,
       "text": "嗯，成打手了。",
       "speakers": [
         "S01"
@@ -6061,8 +4307,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1173140,
-      "end_ms": 1183200,
+      "start_ms": 1173210,
+      "end_ms": 1183270,
       "text": "嗯，她是出现的，出首次出现，也是这个警察片首次出现能打的这个女生。她也是大陆和香港联合的吧。",
       "speakers": [
         "S02"
@@ -6077,8 +4323,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1183810,
-      "end_ms": 1184620,
+      "start_ms": 1183880,
+      "end_ms": 1184680,
       "text": "可以啊。",
       "speakers": [
         "S01"
@@ -6093,9 +4339,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1184620,
-      "end_ms": 1190850,
-      "text": "就是想进军我们大陆市场嘛。然后，那个里面的反派也特别的出色。",
+      "start_ms": 1184680,
+      "end_ms": 1190900,
+      "text": "就是想精准我们大陆市场嘛。然后，那个里面的反派也特别的出色。",
       "speakers": [
         "S02"
       ],
@@ -6109,9 +4355,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1190850,
-      "end_ms": 1195310,
-      "text": "嗯，他他那些反派是想，是想搞破坏还是怎么样？",
+      "start_ms": 1190900,
+      "end_ms": 1195380,
+      "text": "嗯，他们他那些反派是想，是想搞破坏，还是怎么样？",
       "speakers": [
         "S01"
       ],
@@ -6125,9 +4371,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1195310,
-      "end_ms": 1206530,
-      "text": "对啊，就是想搞破坏而已，然后打戏特别精彩，主要是然后，那个大战啊，也是那种大场面的制作，真的，小时候看的让人很激动啊。",
+      "start_ms": 1195380,
+      "end_ms": 1206590,
+      "text": "对啊，就是想搞破坏而已，然后打戏特别精彩，主要是然后，那个大战啊，也是那个大场面的制作，真的，小时候看的让人很激动啊。",
       "speakers": [
         "S02"
       ],
@@ -6141,9 +4387,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1207410,
-      "end_ms": 1211530,
-      "text": "你说这部功夫电影啊，你们男性应该还还喜欢，应该要吴京吧？",
+      "start_ms": 1207440,
+      "end_ms": 1211570,
+      "text": "你说这个功夫电影啊，你们男生应该还还喜欢，应该是吴京吧？",
       "speakers": [
         "S02"
       ],
@@ -6157,9 +4403,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1211730,
-      "end_ms": 1221110,
-      "text": "对啊，吴京他是，我是吴京，本来我开始不知道他这个人嘛。然后，他，然后他拍的那个战狼1和那个战狼2，尤其是战狼2。",
+      "start_ms": 1211810,
+      "end_ms": 1221150,
+      "text": "对啊，吴京他是，我是吴京，本来我开始不知道他这个人嘛。然后，只要他拍的那个战狼1和那个战狼2，尤其是战狼2。",
       "speakers": [
         "S01"
       ],
@@ -6173,9 +4419,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1221110,
-      "end_ms": 1224480,
-      "text": "战狼2好火。勾起了那种什么爱国情怀。",
+      "start_ms": 1221150,
+      "end_ms": 1224530,
+      "text": "战狼好火。勾起了那种什么爱国情怀。",
       "speakers": [
         "S02"
       ],
@@ -6189,9 +4435,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1225650,
-      "end_ms": 1231970,
-      "text": "然后，然后我看到他们，他这个打戏打，打的很精彩，我又不，我不得不想去上网去查一",
+      "start_ms": 1225420,
+      "end_ms": 1232000,
+      "text": "然后，然后我看到他们，他这个打戏打，打的很精彩，我又不，又不得不想去上网去查一下。",
       "speakers": [
         "S01"
       ],
@@ -6199,280 +4445,7 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "然",
-          "start_ms": 1225650,
-          "end_ms": 1225730,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "后，",
-          "start_ms": 1225730,
-          "end_ms": 1226050,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "然",
-          "start_ms": 1226210,
-          "end_ms": 1226290,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "后",
-          "start_ms": 1226290,
-          "end_ms": 1226450,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 1226450,
-          "end_ms": 1226530,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "看",
-          "start_ms": 1226530,
-          "end_ms": 1226690,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "到",
-          "start_ms": 1226690,
-          "end_ms": 1226770,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "他",
-          "start_ms": 1226770,
-          "end_ms": 1226930,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "们，",
-          "start_ms": 1226930,
-          "end_ms": 1227010,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "他",
-          "start_ms": 1227250,
-          "end_ms": 1227490,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "这",
-          "start_ms": 1227490,
-          "end_ms": 1227650,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "个",
-          "start_ms": 1227650,
-          "end_ms": 1227730,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "打",
-          "start_ms": 1227730,
-          "end_ms": 1227970,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "戏",
-          "start_ms": 1227970,
-          "end_ms": 1228210,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "打，",
-          "start_ms": 1228210,
-          "end_ms": 1228290,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "打",
-          "start_ms": 1228450,
-          "end_ms": 1228610,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 1228610,
-          "end_ms": 1228690,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "很",
-          "start_ms": 1228690,
-          "end_ms": 1228850,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "精",
-          "start_ms": 1228850,
-          "end_ms": 1228930,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "彩，",
-          "start_ms": 1228930,
-          "end_ms": 1229010,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 1229010,
-          "end_ms": 1229090,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "又",
-          "start_ms": 1229090,
-          "end_ms": 1229250,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "不，",
-          "start_ms": 1229330,
-          "end_ms": 1229490,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 1229810,
-          "end_ms": 1229810,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "不",
-          "start_ms": 1229890,
-          "end_ms": 1229970,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "得",
-          "start_ms": 1229970,
-          "end_ms": 1230290,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "不",
-          "start_ms": 1230370,
-          "end_ms": 1230450,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "想",
-          "start_ms": 1230450,
-          "end_ms": 1230850,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "去",
-          "start_ms": 1230930,
-          "end_ms": 1231250,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "上",
-          "start_ms": 1231250,
-          "end_ms": 1231490,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "网",
-          "start_ms": 1231490,
-          "end_ms": 1231570,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "去",
-          "start_ms": 1231570,
-          "end_ms": 1231730,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "查",
-          "start_ms": 1231730,
-          "end_ms": 1231890,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "一",
-          "start_ms": 1231890,
-          "end_ms": 1231970,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
@@ -6648,8 +4621,40 @@
     },
     {
       "start_ms": 1235310,
+      "end_ms": 1239970,
+      "text": "嗯，他，我就听说他，他拍那个打戏特技，都去那个部队实习了3-4个月。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1240060,
+      "end_ms": 1240580,
+      "text": "对啊。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1240580,
       "end_ms": 1241250,
-      "text": "嗯，他，我听说他，他拍那个打戏特技，都去那个部队实习了3-4个月。学习。",
+      "text": "学习。",
       "speakers": [
         "S02"
       ],
@@ -6664,8 +4669,8 @@
     },
     {
       "start_ms": 1241250,
-      "end_ms": 1255450,
-      "text": "然后，然后就从网上调调查了，很调查一些，结果大概了解了他是什么样的人嘛，他是。在74年，74年4月3号，出生在北京嘛。",
+      "end_ms": 1255440,
+      "text": "然后，然后就从网上调调查了，很调查一些，结果大概了解了他是什么样的人嘛，他是，在74年，74年4月3号，出生在北京嘛。",
       "speakers": [
         "S01"
       ],
@@ -6679,7 +4684,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1255810,
+      "start_ms": 1255800,
       "end_ms": 1258810,
       "text": "然后，他毕业的大学是那个北京体育大学。",
       "speakers": [
@@ -6696,7 +4701,7 @@
     },
     {
       "start_ms": 1258810,
-      "end_ms": 1259830,
+      "end_ms": 1259820,
       "text": "北京体育大学。",
       "speakers": [
         "S02"
@@ -6711,7 +4716,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1259830,
+      "start_ms": 1259820,
       "end_ms": 1264480,
       "text": "然后，体育大学你应该晓得，就是那种，然后身身体素质很好的那种嘛。",
       "speakers": [
@@ -6727,9 +4732,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1266470,
+      "start_ms": 1266450,
       "end_ms": 1273890,
-      "text": "然后，他又在89年进入了那个北京市的武术队，就是，简单来说，就是打那种，就是。",
+      "text": "然后，他又在89年，进入了那个北京市的武术队，就是，简单来说，是打那种，就是，",
       "speakers": [
         "S01"
       ],
@@ -6744,7 +4749,7 @@
     },
     {
       "start_ms": 1273890,
-      "end_ms": 1274770,
+      "end_ms": 1274780,
       "text": "北北。",
       "speakers": [
         "S02"
@@ -6759,9 +4764,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1274770,
-      "end_ms": 1282250,
-      "text": "练功夫的。还有，他又在94年又获得了全国武术比赛，金银枪术和队内冠军。",
+      "start_ms": 1274780,
+      "end_ms": 1282230,
+      "text": "练功夫的。还有，他又在94年，又获得了全国武术比赛，金银枪术和队内冠军。",
       "speakers": [
         "S01"
       ],
@@ -6777,7 +4782,7 @@
     {
       "start_ms": 1282400,
       "end_ms": 1290170,
-      "text": "他又在95年，95年，又就个人又出演了个人的首部电影，功夫小子闯情关那个。",
+      "text": "他又在95年，95年，又就个人，又出演了个人的首部电影，功夫小子闯情关，那个。",
       "speakers": [
         "S01"
       ],
@@ -6807,7 +4812,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1292910,
+      "start_ms": 1292930,
       "end_ms": 1301060,
       "text": "然后，他又在99年，他又出出演了一部武侠剧，武侠剧应该应该很火，就是以前那个小李飞刀。",
       "speakers": [
@@ -6840,8 +4845,8 @@
     },
     {
       "start_ms": 1305950,
-      "end_ms": 1307510,
-      "text": "然后，他在。",
+      "end_ms": 1307530,
+      "text": "然后，他在，",
       "speakers": [
         "S01"
       ],
@@ -6853,9 +4858,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1308680,
+      "start_ms": 1308710,
       "end_ms": 1318810,
-      "text": "然后，他又在，他在军旅剧，就是军旅剧，又又出演了。在2012年吧，又出出演了部，我是特种兵。",
+      "text": "然后，他又在，他在军旅剧，就是军旅剧，又又出演了，在2012年吧，又出出演了部，我是特种兵，",
       "speakers": [
         "S01"
       ],
@@ -6871,7 +4876,7 @@
     {
       "start_ms": 1318810,
       "end_ms": 1325110,
-      "text": "是利刃出鞘那个首部，出演那个军人，你有没有感觉他那里面很很帅？",
+      "text": "是利刃出鞘，那个首部出演那个军人，你有没有感觉他那里面很很帅？",
       "speakers": [
         "S01"
       ],
@@ -6886,7 +4891,7 @@
     },
     {
       "start_ms": 1325110,
-      "end_ms": 1327520,
+      "end_ms": 1327540,
       "text": "当然帅，军人多帅，中国军人多帅。",
       "speakers": [
         "S02"
@@ -6901,9 +4906,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1328310,
-      "end_ms": 1329230,
-      "text": "他又在。",
+      "start_ms": 1328320,
+      "end_ms": 1329240,
+      "text": "他又在，",
       "speakers": [
         "S01"
       ],
@@ -6917,8 +4922,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1329230,
-      "end_ms": 1330330,
+      "start_ms": 1329240,
+      "end_ms": 1330340,
       "text": "英雄形象。",
       "speakers": [
         "S02"
@@ -6933,7 +4938,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1330330,
+      "start_ms": 1330340,
       "end_ms": 1337560,
       "text": "他又在15年，又主演，又犯，又主演了一部犯罪悬疑片，你知道它叫什么名字吗？",
       "speakers": [
@@ -6949,8 +4954,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1337660,
-      "end_ms": 1339050,
+      "start_ms": 1337680,
+      "end_ms": 1339070,
       "text": "17年。",
       "speakers": [
         "S02"
@@ -6965,7 +4970,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1339380,
+      "start_ms": 1339410,
       "end_ms": 1340360,
       "text": "15年。",
       "speakers": [
@@ -6981,8 +4986,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1340540,
-      "end_ms": 1347940,
+      "start_ms": 1340550,
+      "end_ms": 1347960,
       "text": "15年。哦，那个那个杀破狼吧，好像跟那个战狼差不多吧，是一个系列的感觉，好像。",
       "speakers": [
         "S02"
@@ -6997,9 +5002,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1349410,
-      "end_ms": 1357990,
-      "text": "不是一个系列的，它是听的名字像，因为2个都有个狼字嘛。那个那个战狼的话，是那个战狼的话，是。",
+      "start_ms": 1349380,
+      "end_ms": 1358030,
+      "text": "不是一个系列的，它是听的名字像，因为2个都有个狼字嘛。那个那个战狼的话，是那个战狼的话，是，",
       "speakers": [
         "S01"
       ],
@@ -7014,7 +5019,7 @@
     },
     {
       "start_ms": 1358310,
-      "end_ms": 1366830,
+      "end_ms": 1366850,
       "text": "它是打搞爱国激情的，那个杀破狼是那个犯罪悬疑的。2，2个，所以说，嗯，不能放在一边。",
       "speakers": [
         "S01"
@@ -7030,7 +5035,7 @@
     },
     {
       "start_ms": 1367000,
-      "end_ms": 1369600,
+      "end_ms": 1369610,
       "text": "战狼好像是他自编自导自演的，哎。",
       "speakers": [
         "S02"
@@ -7045,8 +5050,24 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1371410,
-      "end_ms": 1374010,
+      "start_ms": 1369610,
+      "end_ms": 1370140,
+      "text": "对啊。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1371430,
+      "end_ms": 1374030,
       "text": "还获得了最佳的导演提名。",
       "speakers": [
         "S02"
@@ -7061,8 +5082,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1374380,
-      "end_ms": 1376910,
+      "start_ms": 1374420,
+      "end_ms": 1376930,
       "text": "你觉得战狼1和战狼2，你觉得哪个好一点？",
       "speakers": [
         "S01"
@@ -7077,9 +5098,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1376910,
-      "end_ms": 1381630,
-      "text": "战狼2吧，战狼2可能更有。更有激情，跟。",
+      "start_ms": 1376930,
+      "end_ms": 1381650,
+      "text": "战狼2吧，战狼2可能更有，更有激情，跟，",
       "speakers": [
         "S02"
       ],
@@ -7093,9 +5114,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1382800,
-      "end_ms": 1385710,
-      "text": "更加让人。情绪澎湃一点。",
+      "start_ms": 1382810,
+      "end_ms": 1385740,
+      "text": "更加让人，情绪澎湃一点。",
       "speakers": [
         "S02"
       ],
@@ -7109,9 +5130,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1385710,
-      "end_ms": 1395880,
-      "text": "嗯，然后我感觉，战狼1的话，战狼1的话，战狼1和战狼2，我感觉2个都差不多，只不过我感觉从战狼2，战狼2。",
+      "start_ms": 1385740,
+      "end_ms": 1395910,
+      "text": "嗯，然后我感觉，战狼1的话，战狼1的话，战狼1和战狼2，我感觉2个都差不多，只不过我感觉，从战狼2，战狼2，",
       "speakers": [
         "S01"
       ],
@@ -7125,9 +5146,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1396220,
-      "end_ms": 1404250,
-      "text": "因为战狼1它体现的故事，是是雇佣军，然后雇雇佣军来来侵犯中国的那个嘛。",
+      "start_ms": 1396260,
+      "end_ms": 1404270,
+      "text": "因为战狼1，它体现的故事，是是雇佣军，然后雇雇佣军来来侵犯中国的那个嘛。",
       "speakers": [
         "S01"
       ],
@@ -7141,8 +5162,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1404700,
-      "end_ms": 1406110,
+      "start_ms": 1404740,
+      "end_ms": 1406150,
       "text": "嗯，战狼2呢？",
       "speakers": [
         "S02"
@@ -7157,9 +5178,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1406430,
-      "end_ms": 1408030,
-      "text": "那战狼2，它是去非洲，然",
+      "start_ms": 1406470,
+      "end_ms": 1407990,
+      "text": "那战狼2，它是去非洲，",
       "speakers": [
         "S01"
       ],
@@ -7170,80 +5191,72 @@
       "tokens": [
         {
           "text": "那",
-          "start_ms": 1406430,
-          "end_ms": 1406590,
+          "start_ms": 1406470,
+          "end_ms": 1406550,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "战",
-          "start_ms": 1406590,
-          "end_ms": 1406750,
+          "start_ms": 1406550,
+          "end_ms": 1406710,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "狼",
-          "start_ms": 1406750,
-          "end_ms": 1406990,
+          "start_ms": 1406790,
+          "end_ms": 1407030,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "2，",
-          "start_ms": 1406990,
-          "end_ms": 1407070,
+          "start_ms": 1407030,
+          "end_ms": 1407030,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "它",
-          "start_ms": 1407070,
-          "end_ms": 1407150,
+          "start_ms": 1407030,
+          "end_ms": 1407190,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "是",
-          "start_ms": 1407150,
-          "end_ms": 1407390,
+          "start_ms": 1407190,
+          "end_ms": 1407350,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "去",
-          "start_ms": 1407390,
-          "end_ms": 1407550,
+          "start_ms": 1407350,
+          "end_ms": 1407510,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "非",
-          "start_ms": 1407550,
-          "end_ms": 1407790,
+          "start_ms": 1407510,
+          "end_ms": 1407750,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "洲，",
-          "start_ms": 1407790,
-          "end_ms": 1407950,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "然",
-          "start_ms": 1407950,
-          "end_ms": 1408030,
+          "start_ms": 1407750,
+          "end_ms": 1407990,
           "speakers": [
             "S01"
           ]
@@ -7344,8 +5357,8 @@
     },
     {
       "start_ms": 1411010,
-      "end_ms": 1413770,
-      "text": "大概呢，大概那个战狼2讲了些啥呢？",
+      "end_ms": 1413760,
+      "text": "大概呢，大概那个战狼要讲了些什么呢？",
       "speakers": [
         "S02"
       ],
@@ -7359,9 +5372,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1414080,
-      "end_ms": 1425920,
-      "text": "他是讲，就是那战，从战狼1开始，他不是战狼1，战狼1，他不是被被处罚了吗？然后他又在，他又在",
+      "start_ms": 1414060,
+      "end_ms": 1425930,
+      "text": "他是讲，就是那战，从战狼1开始，他不是战狼1，战狼1，他不是被被处罚了吗？他又在，他又在",
       "speakers": [
         "S01"
       ],
@@ -7392,7 +5405,7 @@
     },
     {
       "start_ms": 1427860,
-      "end_ms": 1435830,
+      "end_ms": 1435850,
       "text": "对啊，他又在非洲那里，非洲那里，因为那一次不是那个非洲恐，非洲恐慌嘛，那个电视剧里面的",
       "speakers": [
         "S01"
@@ -7407,8 +5420,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1435830,
-      "end_ms": 1436570,
+      "start_ms": 1435850,
+      "end_ms": 1436560,
       "text": "恐怖分子。",
       "speakers": [
         "S02"
@@ -7423,7 +5436,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1436570,
+      "start_ms": 1436560,
       "end_ms": 1442730,
       "text": "对，他就想撤侨行动，撤侨行动，他就想去救，去救，去救一个",
       "speakers": [
@@ -7439,9 +5452,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1444180,
-      "end_ms": 1447580,
-      "text": "嗯，对，他救博士，想找他的女朋友。",
+      "start_ms": 1444170,
+      "end_ms": 1447600,
+      "text": "嗯，对，他就不是想找他的女朋友。",
       "speakers": [
         "S02"
       ],
@@ -7455,9 +5468,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1447580,
-      "end_ms": 1459150,
-      "text": "对，然后他一开始是想他的女朋友，然后去那里之后，然后又想去，又又去找那个博士了。然后他，他被卷入一场非洲国家的叛乱嘛。",
+      "start_ms": 1447600,
+      "end_ms": 1459160,
+      "text": "对，然后他一开始是想他的女朋友，然后去那里之后，然后又想去，又又去找那个博士了。然后，他他被卷入一场非洲国家的叛乱嘛。",
       "speakers": [
         "S01"
       ],
@@ -7473,7 +5486,7 @@
     {
       "start_ms": 1460410,
       "end_ms": 1474170,
-      "text": "然后他他自己，他自己因为想去救那个博士，他自己可以安全撤离的，去撤离回中国嘛，他但是，他没有忘记那个军人的死，然后又重回战场，想要去救援的那个故事。",
+      "text": "然后，他他自己，他自己因为想去救那个博士，他自己可以安全撤离的，去撤离回中国嘛，他但是，他没有忘记那个军人的死，然后又重回战场，想要去救援的那个故事。",
       "speakers": [
         "S01"
       ],
@@ -7504,8 +5517,8 @@
     },
     {
       "start_ms": 1476480,
-      "end_ms": 1479550,
-      "text": "嗯，最后，最后是成功，最后是成功了。",
+      "end_ms": 1479570,
+      "text": "嗯，最后最后是成功，最后是成功了。",
       "speakers": [
         "S01"
       ],
@@ -7519,9 +5532,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1481610,
+      "start_ms": 1481620,
       "end_ms": 1491810,
-      "text": "战狼2真的看的热血沸腾啊，极其，极其，极其爱国型。正好那1段时间，好像也是中国跟美国那个贸易战吧。",
+      "text": "战狼真的看的热血沸腾啊，极其极其极其爱国型。正好那1段时间，好像也是中国的美国那个贸易战吧。",
       "speakers": [
         "S02"
       ],
@@ -7553,7 +5566,7 @@
     {
       "start_ms": 1496580,
       "end_ms": 1503510,
-      "text": "再再说，再这次撤侨行动，这这战狼里面的撤侨行动，是，是真实的。",
+      "text": "再再说，再就是撤侨行动，这这战狼里面的撤侨行动，是是真实的。",
       "speakers": [
         "S01"
       ],
@@ -7568,7 +5581,7 @@
     },
     {
       "start_ms": 1503770,
-      "end_ms": 1506660,
+      "end_ms": 1506670,
       "text": "真的。根据真实事例改编的。",
       "speakers": [
         "S02"
@@ -7583,7 +5596,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1506660,
+      "start_ms": 1506670,
       "end_ms": 1511410,
       "text": "不是真实事例改编，它是，呃，撤侨行动是真实的，其其他的都不是真实的。",
       "speakers": [
@@ -7600,7 +5613,7 @@
     },
     {
       "start_ms": 1514710,
-      "end_ms": 1515810,
+      "end_ms": 1515820,
       "text": "原来是这样。",
       "speakers": [
         "S02"
@@ -7615,8 +5628,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1517650,
-      "end_ms": 1520600,
+      "start_ms": 1517660,
+      "end_ms": 1520570,
       "text": "然后，然后你",
       "speakers": [
         "S01"
@@ -7631,7 +5644,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1523880,
+      "start_ms": 1523890,
       "end_ms": 1525380,
       "text": "那你看过战狼1吗？",
       "speakers": [
@@ -7648,7 +5661,7 @@
     },
     {
       "start_ms": 1525450,
-      "end_ms": 1526510,
+      "end_ms": 1526520,
       "text": "我没有啊。",
       "speakers": [
         "S01"
@@ -7663,7 +5676,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1526510,
+      "start_ms": 1526520,
       "end_ms": 1527650,
       "text": "你没看过战狼1吗？",
       "speakers": [
@@ -7680,7 +5693,7 @@
     },
     {
       "start_ms": 1527650,
-      "end_ms": 1531210,
+      "end_ms": 1531230,
       "text": "嗯，那你能给我透露一些那个剧情？",
       "speakers": [
         "S01"
@@ -7696,8 +5709,8 @@
     },
     {
       "start_ms": 1532430,
-      "end_ms": 1540150,
-      "text": "战狼，战狼1就是讲的那个，那个在那种外边境的，在那种外边境的那个地方",
+      "end_ms": 1540140,
+      "text": "战狼，战狼1就是讲的那个啊，那个在那种外边境的，在那种外边境的那个地方",
       "speakers": [
         "S02"
       ],
@@ -7712,7 +5725,7 @@
     },
     {
       "start_ms": 1541440,
-      "end_ms": 1548410,
+      "end_ms": 1548400,
       "text": "有，有一支特种兵战队。然后，吴京就是里面的一个特种兵嘛。",
       "speakers": [
         "S02"
@@ -7728,8 +5741,8 @@
     },
     {
       "start_ms": 1549710,
-      "end_ms": 1560330,
-      "text": "他就，他就是，他就是为了，为了就，吴京在里面饰演的能叫冷锋嘛。他就是在执行任务的时候",
+      "end_ms": 1560340,
+      "text": "他就，他就是，他就是为了，为了就，吴京在里面饰演的名叫冷锋嘛。他就是在执行任务的时候",
       "speakers": [
         "S02"
       ],
@@ -7743,8 +5756,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1560330,
-      "end_ms": 1561870,
+      "start_ms": 1560340,
+      "end_ms": 1561860,
       "text": "执行什么样的任务呢？",
       "speakers": [
         "S01"
@@ -7759,7 +5772,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1562360,
+      "start_ms": 1562350,
       "end_ms": 1571540,
       "text": "执行一个，就是对抗恐怖分子的任务嘛。他违抗了军令，打死了一个恐怖分子。被开除了。",
       "speakers": [
@@ -7850,7 +5863,7 @@
     {
       "start_ms": 1583880,
       "end_ms": 1585080,
-      "text": "是一支特种兵部队吧？",
+      "text": "是1个特种兵部队吧？",
       "speakers": [
         "S01"
       ],
@@ -7868,7 +5881,7 @@
           ]
         },
         {
-          "text": "一",
+          "text": "1",
           "start_ms": 1584120,
           "end_ms": 1584120,
           "speakers": [
@@ -7876,7 +5889,7 @@
           ]
         },
         {
-          "text": "支",
+          "text": "个",
           "start_ms": 1584120,
           "end_ms": 1584200,
           "speakers": [
@@ -7937,7 +5950,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1586670,
+      "start_ms": 1586660,
       "end_ms": 1589000,
       "text": "然后，他就",
       "speakers": [
@@ -7951,8 +5964,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1590310,
-      "end_ms": 1598220,
+      "start_ms": 1590280,
+      "end_ms": 1598210,
       "text": "在那里，跟战狼的1个那个副队长副队长，那个副队长是个女女生，就擦出了爱情的火花。",
       "speakers": [
         "S02"
@@ -7967,9 +5980,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1599510,
+      "start_ms": 1599490,
       "end_ms": 1611010,
-      "text": "然后，但是那个毒枭嘛之前那个毒枭他的朋友，为了帮他复仇嘛就跨越了边境，入侵中国，想找到冷锋的麻烦嘛。",
+      "text": "然后，但是那个毒枭嘛之前那个毒枭他的朋友，为了帮他复仇嘛就跨越了边境，入侵中国，想找冷锋的麻烦嘛。",
       "speakers": [
         "S02"
       ],
@@ -7983,8 +5996,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1612060,
-      "end_ms": 1624150,
+      "start_ms": 1612040,
+      "end_ms": 1624130,
       "text": "然后，冷锋就为了保护国家，也为了也为了自己的那个任务他就去反抗那个，反抗那个毒枭嘛。",
       "speakers": [
         "S02"
@@ -7999,8 +6012,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1624600,
-      "end_ms": 1627140,
+      "start_ms": 1624560,
+      "end_ms": 1627110,
       "text": "就为了，为了，为了，赢得这个胜利。",
       "speakers": [
         "S02"
@@ -8016,8 +6029,8 @@
     },
     {
       "start_ms": 1628980,
-      "end_ms": 1634170,
-      "text": "这部影片啊，他获得了那个18届上海国际电影节的奖项。",
+      "end_ms": 1634160,
+      "text": "这片片啊，他获得了那个18届上海国际电影节的奖项。",
       "speakers": [
         "S02"
       ],
@@ -8031,8 +6044,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1634170,
-      "end_ms": 1635170,
+      "start_ms": 1634160,
+      "end_ms": 1635160,
       "text": "嗯，还有。",
       "speakers": [
         "S01"
@@ -8047,8 +6060,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1635170,
-      "end_ms": 1642880,
+      "start_ms": 1635160,
+      "end_ms": 1642850,
       "text": "还有那个金鸡奖，还得到了，还得到了成龙的那个东土片的1个奖。",
       "speakers": [
         "S02"
@@ -8064,7 +6077,7 @@
     },
     {
       "start_ms": 1643120,
-      "end_ms": 1645160,
+      "end_ms": 1645140,
       "text": "可以啊，那含金量很高啊！",
       "speakers": [
         "S01"
@@ -8079,8 +6092,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1645160,
-      "end_ms": 1647660,
+      "start_ms": 1645140,
+      "end_ms": 1647650,
       "text": "对啊，因为他就是这个东土片很厉害啊。",
       "speakers": [
         "S02"
@@ -8095,8 +6108,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1647660,
-      "end_ms": 1655290,
+      "start_ms": 1647650,
+      "end_ms": 1655270,
       "text": "那你，那你能从从战狼这部电影，也从吴京这个人身上，你能学到一些什么，什么样的心得吗？",
       "speakers": [
         "S01"
@@ -8111,9 +6124,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1655550,
-      "end_ms": 1662710,
-      "text": "所以，我觉得最典型的，可能就是爱国吧。身为一个中国军人，为了国家付出了很多，然后",
+      "start_ms": 1655540,
+      "end_ms": 1662690,
+      "text": "所以，我觉得最典型的，可能就是爱国吧。身为1个中国军人，为了国家付出了很多，然后",
       "speakers": [
         "S02"
       ],
@@ -8127,8 +6140,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1663720,
-      "end_ms": 1666410,
+      "start_ms": 1663700,
+      "end_ms": 1666400,
       "text": "真的，爱国这个东西很重要。",
       "speakers": [
         "S02"
@@ -8143,8 +6156,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1666410,
-      "end_ms": 1669310,
+      "start_ms": 1666400,
+      "end_ms": 1669290,
       "text": "嗯，还有一些生活上的态度呢？",
       "speakers": [
         "S01"
@@ -8159,8 +6172,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1669770,
-      "end_ms": 1679140,
+      "start_ms": 1669790,
+      "end_ms": 1679120,
       "text": "生活上，就是要不屈不挠，成为中国军人嘛，他就是中国军人，就是不屈不挠啊。为了任务啊，牺牲自己啊，那种伟大的情怀吧。",
       "speakers": [
         "S02"
@@ -8175,9 +6188,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1679140,
-      "end_ms": 1685480,
-      "text": "对啊，嗯，我战狼在那部电影，感觉一直坚守的军人1个原则，叫什么原则吗？",
+      "start_ms": 1679120,
+      "end_ms": 1687380,
+      "text": "对啊，嗯，我战狼在那部电影，感觉一直坚守的军人1个原则，叫什么原则吗？就是，就是",
       "speakers": [
         "S01"
       ],
@@ -8191,9 +6204,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1686490,
-      "end_ms": 1696630,
-      "text": "就是就是，就是军人，军人的军人的的军人的天职，就是服从命令。",
+      "start_ms": 1688440,
+      "end_ms": 1696610,
+      "text": "就是，就是，军人军人的军人的的军人的天职，就是服从命令。",
       "speakers": [
         "S01"
       ],
@@ -8207,8 +6220,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1698380,
-      "end_ms": 1699330,
+      "start_ms": 1698360,
+      "end_ms": 1699300,
       "text": "然后，",
       "speakers": [
         "S02"
@@ -8221,8 +6234,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1700340,
-      "end_ms": 1708830,
+      "start_ms": 1700310,
+      "end_ms": 1708810,
       "text": "然后，战狼嘛，战狼它也凸显了我们中国的那种实力嘛。让我们看到了中国的那种发展。",
       "speakers": [
         "S02"
@@ -8237,8 +6250,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1713310,
-      "end_ms": 1721710,
+      "start_ms": 1713260,
+      "end_ms": 1721700,
       "text": "战狼吧，其实它从某种程度来说吧，它的看点是比较鲜明的。目标也很明确。",
       "speakers": [
         "S02"
@@ -8253,8 +6266,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1722080,
-      "end_ms": 1723760,
+      "start_ms": 1722060,
+      "end_ms": 1723770,
       "text": "那你对它的评价是什么呢？",
       "speakers": [
         "S01"
@@ -8269,9 +6282,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1724310,
-      "end_ms": 1727610,
-      "text": "就是它这个民族主义吧。",
+      "start_ms": 1724280,
+      "end_ms": 1727580,
+      "text": "就是，它这个民族主义吧。",
       "speakers": [
         "S02"
       ],
@@ -8285,8 +6298,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1728810,
-      "end_ms": 1741580,
+      "start_ms": 1728710,
+      "end_ms": 1741550,
       "text": "主义这张牌，虽然虽然不好用，但是真的，只要用的时机对吧，它那个效果真的是惊人的。它的这个战狼，就正好补上了这个空，把那种普通观众的强国情绪吧。",
       "speakers": [
         "S02"
@@ -8301,9 +6314,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1742910,
-      "end_ms": 1750890,
-      "text": "让，让我们有了1个情绪，可以发，发出来，那样1个出口。成为了一匹黑马，让这个战狼",
+      "start_ms": 1742870,
+      "end_ms": 1750850,
+      "text": "让，让我们有了1个情绪，可以发发出来，那样1个出口。成为了一匹黑马，让这个战狼",
       "speakers": [
         "S02"
       ],
@@ -8317,9 +6330,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1752220,
-      "end_ms": 1759980,
-      "text": "而且，它的耗资，耗资巨大呀，中外联合打造的。有一流的那种创作队伍和3D",
+      "start_ms": 1752250,
+      "end_ms": 1759930,
+      "text": "而且，它的耗资耗资巨大呀，中外联合打造的，有一流的那种创作队伍和3D",
       "speakers": [
         "S02"
       ],
@@ -8330,240 +6343,240 @@
       "tokens": [
         {
           "text": "而",
-          "start_ms": 1752220,
-          "end_ms": 1752300,
+          "start_ms": 1752250,
+          "end_ms": 1752330,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "且，",
-          "start_ms": 1752300,
-          "end_ms": 1752540,
+          "start_ms": 1752330,
+          "end_ms": 1752570,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "它",
-          "start_ms": 1753100,
-          "end_ms": 1753180,
+          "start_ms": 1753050,
+          "end_ms": 1753210,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "的",
-          "start_ms": 1753180,
-          "end_ms": 1753260,
+          "start_ms": 1753210,
+          "end_ms": 1753290,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "耗",
-          "start_ms": 1753260,
-          "end_ms": 1753500,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "资，",
-          "start_ms": 1753500,
-          "end_ms": 1753820,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "耗",
-          "start_ms": 1753980,
-          "end_ms": 1754140,
+          "start_ms": 1753290,
+          "end_ms": 1753530,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "资",
-          "start_ms": 1754140,
-          "end_ms": 1754380,
+          "start_ms": 1753530,
+          "end_ms": 1753770,
+          "speakers": [
+            "S02"
+          ]
+        },
+        {
+          "text": "耗",
+          "start_ms": 1753930,
+          "end_ms": 1754170,
+          "speakers": [
+            "S02"
+          ]
+        },
+        {
+          "text": "资",
+          "start_ms": 1754170,
+          "end_ms": 1754330,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "巨",
-          "start_ms": 1754380,
-          "end_ms": 1754540,
+          "start_ms": 1754330,
+          "end_ms": 1754570,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "大",
-          "start_ms": 1754540,
-          "end_ms": 1754700,
+          "start_ms": 1754570,
+          "end_ms": 1754730,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "呀，",
-          "start_ms": 1754700,
-          "end_ms": 1754860,
+          "start_ms": 1754730,
+          "end_ms": 1754890,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "中",
-          "start_ms": 1755420,
-          "end_ms": 1755660,
+          "start_ms": 1755450,
+          "end_ms": 1755690,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "外",
-          "start_ms": 1755660,
-          "end_ms": 1755820,
+          "start_ms": 1755690,
+          "end_ms": 1755850,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "联",
-          "start_ms": 1755820,
-          "end_ms": 1756140,
+          "start_ms": 1755850,
+          "end_ms": 1756090,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "合",
-          "start_ms": 1756140,
-          "end_ms": 1756300,
+          "start_ms": 1756170,
+          "end_ms": 1756330,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "打",
-          "start_ms": 1756300,
-          "end_ms": 1756540,
+          "start_ms": 1756330,
+          "end_ms": 1756490,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "造",
-          "start_ms": 1756540,
-          "end_ms": 1756700,
+          "start_ms": 1756490,
+          "end_ms": 1756650,
           "speakers": [
             "S02"
           ]
         },
         {
-          "text": "的。",
-          "start_ms": 1756700,
-          "end_ms": 1756700,
+          "text": "的，",
+          "start_ms": 1756650,
+          "end_ms": 1756730,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "有",
-          "start_ms": 1757260,
-          "end_ms": 1757420,
+          "start_ms": 1757290,
+          "end_ms": 1757370,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "一",
-          "start_ms": 1757500,
-          "end_ms": 1757820,
+          "start_ms": 1757530,
+          "end_ms": 1757770,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "流",
-          "start_ms": 1757820,
-          "end_ms": 1757980,
+          "start_ms": 1757770,
+          "end_ms": 1757930,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "的",
-          "start_ms": 1757980,
-          "end_ms": 1757980,
+          "start_ms": 1757930,
+          "end_ms": 1758010,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "那",
-          "start_ms": 1758300,
-          "end_ms": 1758380,
+          "start_ms": 1758330,
+          "end_ms": 1758410,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "种",
-          "start_ms": 1758380,
-          "end_ms": 1758540,
+          "start_ms": 1758410,
+          "end_ms": 1758570,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "创",
-          "start_ms": 1758620,
-          "end_ms": 1758780,
+          "start_ms": 1758570,
+          "end_ms": 1758810,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "作",
-          "start_ms": 1758860,
-          "end_ms": 1758940,
+          "start_ms": 1758810,
+          "end_ms": 1758970,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "队",
-          "start_ms": 1758940,
-          "end_ms": 1759100,
+          "start_ms": 1758970,
+          "end_ms": 1759050,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "伍",
-          "start_ms": 1759100,
-          "end_ms": 1759180,
+          "start_ms": 1759130,
+          "end_ms": 1759210,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "和",
-          "start_ms": 1759180,
-          "end_ms": 1759500,
+          "start_ms": 1759210,
+          "end_ms": 1759530,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "3D",
-          "start_ms": 1759580,
-          "end_ms": 1759980,
+          "start_ms": 1759530,
+          "end_ms": 1759930,
           "speakers": [
             "S02"
           ]
@@ -8607,7 +6620,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1761110,
+      "start_ms": 1761210,
       "end_ms": 1764510,
       "text": "那它这这部电影是是是美强学笨吗？",
       "speakers": [
@@ -8623,9 +6636,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1765700,
-      "end_ms": 1775440,
-      "text": "它，而且它还原，还还原了很真实的战场。历史7年。打造了这种，打造了这样一个中国的传奇故事吧。",
+      "start_ms": 1765000,
+      "end_ms": 1775430,
+      "text": "它这，它而且它还原，还还原了很真实的战场。历史7年，打造了这种，打造了这样一个中国的传奇故事吧。",
       "speakers": [
         "S02"
       ],
@@ -8639,8 +6652,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1776210,
-      "end_ms": 1780220,
+      "start_ms": 1776240,
+      "end_ms": 1780230,
       "text": "然后，那它那它有什么，有有什么负面评价没有？",
       "speakers": [
         "S01"
@@ -8655,8 +6668,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1780810,
-      "end_ms": 1787980,
+      "start_ms": 1780830,
+      "end_ms": 1787970,
       "text": "负面可能唯一的负面就是，有人说它走的是爱国主旋律的那种老路子。",
       "speakers": [
         "S02"
@@ -8687,8 +6700,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1795610,
-      "end_ms": 1802340,
+      "start_ms": 1795630,
+      "end_ms": 1802330,
       "text": "那那你觉得它是它这个负面评价，你觉得它那个它那个它那个观点是不是正确的呢？",
       "speakers": [
         "S01"
@@ -8703,9 +6716,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1802560,
-      "end_ms": 1812340,
-      "text": "我觉得也有一点点对吧？但是我觉得从大的方向来说吧，还是非常好的，挑不出那种硬伤的。",
+      "start_ms": 1802610,
+      "end_ms": 1812330,
+      "text": "我觉得也有一点点，对吧？但是我觉得从大的方向来说吧，还是非常好的，挑不出那种影响的。",
       "speakers": [
         "S02"
       ],
@@ -8719,7 +6732,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1812650,
+      "start_ms": 1812710,
       "end_ms": 1822210,
       "text": "因，而且它的高潮比较多，大家的观感都比较好，片子是很好，我觉得从某一方面来说，这个片子还是挺好的。",
       "speakers": [
@@ -8735,9 +6748,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1822440,
-      "end_ms": 1834860,
-      "text": "某一方面来说，非常挺好的，我也感觉，感觉我我对它的感觉是因为它那个爱国之心嘛，因为，嗯，普通民众如果要是没当兵的话，他对那种爱国之心也就是",
+      "start_ms": 1822480,
+      "end_ms": 1834880,
+      "text": "某一方面来说，片子挺好的，我也感觉，感觉我我对它的感觉是因为它那个爱国之心嘛，因为，嗯，普通民众如果要是没当兵的话，他对那种爱国之心也就是",
       "speakers": [
         "S01"
       ],
@@ -8751,8 +6764,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1834860,
-      "end_ms": 1844750,
+      "start_ms": 1834880,
+      "end_ms": 1844730,
       "text": "嗯，不怎么强烈，只有那些军人对它的爱国之心才会强烈感嘛。然后它就利用这部电影，因为这部电影它就它的强烈感",
       "speakers": [
         "S01"
@@ -8767,9 +6780,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1844920,
+      "start_ms": 1844960,
       "end_ms": 1851510,
-      "text": "就是把观众民众们看完这部电影的那个爱国之情，又又提高了一个层次。",
+      "text": "就是把观众民众人民看完这部电影的那个爱国之情，又又提高了一个层次。",
       "speakers": [
         "S01"
       ],
@@ -8783,8 +6796,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1851510,
-      "end_ms": 1856530,
+      "start_ms": 1851630,
+      "end_ms": 1856550,
       "text": "没错，歌颂了我们中国的这种集体主义和强国感吧。",
       "speakers": [
         "S02"
@@ -8799,15 +6812,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1857720,
+      "start_ms": 1857780,
       "end_ms": 1858400,
       "text": "对。",
       "speakers": [
         "S02"
       ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
+      "flags": [],
       "channel": null,
       "tokens": [],
       "candidates": {},

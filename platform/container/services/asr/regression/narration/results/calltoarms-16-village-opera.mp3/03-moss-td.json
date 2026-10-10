@@ -9,7 +9,7 @@
   "segments": [
     {
       "start_ms": 330,
-      "end_ms": 3810,
+      "end_ms": 3820,
       "text": "鲁迅小说集呐喊社戏",
       "speakers": [
         "S01"
@@ -25,7 +25,7 @@
     },
     {
       "start_ms": 3980,
-      "end_ms": 6610,
+      "end_ms": 6620,
       "text": "此次LibriVox录音由公众所有",
       "speakers": [
         "S01"
@@ -55,7 +55,7 @@
     },
     {
       "start_ms": 12330,
-      "end_ms": 14260,
+      "end_ms": 14280,
       "text": "前十年是绝不看",
       "speakers": [
         "S01"
@@ -69,7 +69,7 @@
     },
     {
       "start_ms": 14350,
-      "end_ms": 16780,
+      "end_ms": 16810,
       "text": "因为没有看戏的意思和机会",
       "speakers": [
         "S01"
@@ -97,7 +97,7 @@
     },
     {
       "start_ms": 19030,
-      "end_ms": 21480,
+      "end_ms": 21510,
       "text": "然而都没有看出什么来就走了",
       "speakers": [
         "S01"
@@ -127,7 +127,7 @@
     },
     {
       "start_ms": 25560,
-      "end_ms": 27360,
+      "end_ms": 27380,
       "text": "当时一个朋友对我说",
       "speakers": [
         "S01"
@@ -142,8 +142,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 27460,
-      "end_ms": 28890,
+      "start_ms": 27470,
+      "end_ms": 28910,
       "text": "北京戏最好",
       "speakers": [
         "S01"
@@ -159,7 +159,7 @@
     },
     {
       "start_ms": 28980,
-      "end_ms": 30560,
+      "end_ms": 30580,
       "text": "你不去见见世面吗",
       "speakers": [
         "S01"
@@ -175,7 +175,7 @@
     },
     {
       "start_ms": 30920,
-      "end_ms": 33110,
+      "end_ms": 33130,
       "text": "我想看戏是有味的",
       "speakers": [
         "S01"
@@ -190,8 +190,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 33200,
-      "end_ms": 34760,
+      "start_ms": 33210,
+      "end_ms": 34780,
       "text": "何况在北京呢",
       "speakers": [
         "S01"
@@ -207,7 +207,7 @@
     },
     {
       "start_ms": 34970,
-      "end_ms": 37560,
+      "end_ms": 37580,
       "text": "于是都兴致勃勃地跑到什么园",
       "speakers": [
         "S01"
@@ -222,8 +222,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 37650,
-      "end_ms": 39310,
+      "start_ms": 37660,
+      "end_ms": 39320,
       "text": "戏文已经开场了",
       "speakers": [
         "S01"
@@ -238,8 +238,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 39520,
-      "end_ms": 41810,
+      "start_ms": 39530,
+      "end_ms": 41840,
       "text": "在外面也早听到咚咚的响",
       "speakers": [
         "S01"
@@ -255,7 +255,7 @@
     },
     {
       "start_ms": 42180,
-      "end_ms": 43280,
+      "end_ms": 43310,
       "text": "我们挨进门",
       "speakers": [
         "S01"
@@ -270,8 +270,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 43370,
-      "end_ms": 46210,
+      "start_ms": 43390,
+      "end_ms": 46220,
       "text": "几个红的绿的在我的眼前一闪烁",
       "speakers": [
         "S01"
@@ -287,7 +287,7 @@
     },
     {
       "start_ms": 46300,
-      "end_ms": 48850,
+      "end_ms": 48860,
       "text": "便又看见戏台下满是许多头",
       "speakers": [
         "S01"
@@ -303,7 +303,7 @@
     },
     {
       "start_ms": 49030,
-      "end_ms": 50660,
+      "end_ms": 50680,
       "text": "再定神四面看",
       "speakers": [
         "S01"
@@ -318,8 +318,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 50750,
-      "end_ms": 52960,
+      "start_ms": 50760,
+      "end_ms": 52980,
       "text": "却见中间也还有几个空座",
       "speakers": [
         "S01"
@@ -335,7 +335,7 @@
     },
     {
       "start_ms": 53150,
-      "end_ms": 56240,
+      "end_ms": 56260,
       "text": "挤过去要坐时又有人对我发议论",
       "speakers": [
         "S01"
@@ -367,8 +367,8 @@
     },
     {
       "start_ms": 59290,
-      "end_ms": 60060,
-      "text": "用了心",
+      "end_ms": 61540,
+      "text": "用了心才听到他是说",
       "speakers": [
         "S01"
       ],
@@ -382,24 +382,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 60150,
-      "end_ms": 61510,
-      "text": "才听到他是说",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 61700,
-      "end_ms": 63060,
+      "start_ms": 61710,
+      "end_ms": 63110,
       "text": "有人不行",
       "speakers": [
         "S01"
@@ -414,8 +398,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 64130,
-      "end_ms": 65480,
+      "start_ms": 64120,
+      "end_ms": 65510,
       "text": "我们退到后面",
       "speakers": [
         "S01"
@@ -430,8 +414,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 65570,
-      "end_ms": 68710,
+      "start_ms": 65590,
+      "end_ms": 68730,
       "text": "一个辫子很光的却来领我们到了侧面",
       "speakers": [
         "S01"
@@ -446,8 +430,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 68800,
-      "end_ms": 70160,
+      "start_ms": 68810,
+      "end_ms": 70180,
       "text": "指出一个地位来",
       "speakers": [
         "S01"
@@ -463,7 +447,7 @@
     },
     {
       "start_ms": 70580,
-      "end_ms": 73560,
+      "end_ms": 73580,
       "text": "这所谓地位着原来是一条长凳",
       "speakers": [
         "S01"
@@ -479,7 +463,7 @@
     },
     {
       "start_ms": 73810,
-      "end_ms": 77610,
+      "end_ms": 77640,
       "text": "然而他那坐板比我的上腿要狭到四分之三",
       "speakers": [
         "S01"
@@ -494,8 +478,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 77790,
-      "end_ms": 81310,
+      "start_ms": 77810,
+      "end_ms": 81340,
       "text": "他的脚比我的下腿要长过三分之二",
       "speakers": [
         "S01"
@@ -511,7 +495,7 @@
     },
     {
       "start_ms": 81680,
-      "end_ms": 83960,
+      "end_ms": 83980,
       "text": "我先是没有爬上去的勇气",
       "speakers": [
         "S01"
@@ -526,8 +510,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 84050,
-      "end_ms": 86810,
+      "start_ms": 84060,
+      "end_ms": 86830,
       "text": "接着便联想到私刑拷打的刑具",
       "speakers": [
         "S01"
@@ -542,9 +526,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 86890,
-      "end_ms": 88010,
-      "text": "不由得毛骨悚",
+      "start_ms": 86910,
+      "end_ms": 89110,
+      "text": "不由得毛骨悚然地走出了",
       "speakers": [
         "S01"
       ],
@@ -552,121 +536,15 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "不",
-          "start_ms": 86890,
-          "end_ms": 86970,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "由",
-          "start_ms": 86970,
-          "end_ms": 87210,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "得",
-          "start_ms": 87210,
-          "end_ms": 87370,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "毛",
-          "start_ms": 87370,
-          "end_ms": 87610,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "骨",
-          "start_ms": 87610,
-          "end_ms": 87850,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "悚",
-          "start_ms": 87850,
-          "end_ms": 88010,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
-      "start_ms": 88030,
-      "end_ms": 89070,
-      "text": "然地走出了。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "然",
-          "start_ms": 88030,
-          "end_ms": 88110,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "地",
-          "start_ms": 88110,
-          "end_ms": 88270,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "走",
-          "start_ms": 88270,
-          "end_ms": 88430,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "出",
-          "start_ms": 88430,
-          "end_ms": 88750,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "了。",
-          "start_ms": 88750,
-          "end_ms": 89070,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 90120,
-      "end_ms": 98450,
-      "text": "走了许多路，忽听得我的朋友的声音道：究竟怎的？我回过脸去，原来他也被我带出来了。",
+      "start_ms": 90080,
+      "end_ms": 91210,
+      "text": "走了许多路",
       "speakers": [
         "S01"
       ],
@@ -678,9 +556,65 @@
       "decision": "primary"
     },
     {
-      "start_ms": 99330,
-      "end_ms": 109420,
-      "text": "他很诧异地说：怎么总是走不答应？我说：朋友，对不起，我耳朵只在咚咚惶惶地响，并没有听到你的话。",
+      "start_ms": 91290,
+      "end_ms": 93280,
+      "text": "忽听得我的朋友的声音道",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 93450,
+      "end_ms": 94710,
+      "text": "究竟怎的",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 95150,
+      "end_ms": 96340,
+      "text": "我回过脸去",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 96420,
+      "end_ms": 98510,
+      "text": "原来他也被我带出来了",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 99310,
+      "end_ms": 100540,
+      "text": "他很诧异地说",
       "speakers": [
         "S01"
       ],
@@ -694,9 +628,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 110380,
-      "end_ms": 119610,
-      "text": "后来我每一想到，便很以为奇怪，似乎这戏太不好，否则便是我近来在戏台下不适宜生存了。",
+      "start_ms": 100620,
+      "end_ms": 102310,
+      "text": "怎么总是走不答应",
       "speakers": [
         "S01"
       ],
@@ -710,9 +644,233 @@
       "decision": "primary"
     },
     {
-      "start_ms": 121030,
-      "end_ms": 136380,
-      "text": "第二回忘记了哪一年，总之是募集湖北水灾捐，而谭教天还没有死。捐法是两元钱买一张戏票，可以到第一舞台去看戏，扮演的多是名角，其一就是小教天。",
+      "start_ms": 102850,
+      "end_ms": 103710,
+      "text": "我说",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 104150,
+      "end_ms": 105580,
+      "text": "朋友对不起",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 105660,
+      "end_ms": 107940,
+      "text": "我耳朵只在咚咚惶惶地响",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 108020,
+      "end_ms": 109480,
+      "text": "并没有听到你的话",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 110350,
+      "end_ms": 112040,
+      "text": "后来我每一想到",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 112120,
+      "end_ms": 113580,
+      "text": "便很以为奇怪",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 113660,
+      "end_ms": 115540,
+      "text": "似乎这戏太不好",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 115910,
+      "end_ms": 119640,
+      "text": "否则便是我近来在戏台下不适宜生存了",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 121010,
+      "end_ms": 123110,
+      "text": "第二回忘记了哪一年",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 123190,
+      "end_ms": 125680,
+      "text": "总之是募集湖北水灾捐",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 125760,
+      "end_ms": 127480,
+      "text": "而谭教天还没有死",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 127780,
+      "end_ms": 130340,
+      "text": "捐法是两元钱买一张戏票",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 130420,
+      "end_ms": 132680,
+      "text": "可以到第一舞台去看戏",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 132940,
+      "end_ms": 134680,
+      "text": "扮演的多是名角",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 134760,
+      "end_ms": 136440,
+      "text": "其一就是小教天",
       "speakers": [
         "S01"
       ],
@@ -727,8 +885,8 @@
     },
     {
       "start_ms": 136880,
-      "end_ms": 146180,
-      "text": "我买了一张票，本是对于劝募人聊以色泽的，然而似乎又有好事家趁机对我说了些教天不可不看的大法要了。",
+      "end_ms": 138110,
+      "text": "我买了一张票",
       "speakers": [
         "S01"
       ],
@@ -742,9 +900,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 146710,
-      "end_ms": 151280,
-      "text": "我于是忘了前几年的咚咚惶惶之灾，进到第一舞台去了。",
+      "start_ms": 138190,
+      "end_ms": 140780,
+      "text": "本是对于劝募人聊以色泽的",
       "speakers": [
         "S01"
       ],
@@ -758,9 +916,73 @@
       "decision": "primary"
     },
     {
-      "start_ms": 151880,
-      "end_ms": 157050,
-      "text": "但大约一半也因为重价购来的保票，总得使用了才舒服。",
+      "start_ms": 140940,
+      "end_ms": 146210,
+      "text": "然而似乎又有好事家趁机对我说了些教天不可不看的大法要了",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 146680,
+      "end_ms": 149640,
+      "text": "我于是忘了前几年的咚咚惶惶之灾",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 149720,
+      "end_ms": 151310,
+      "text": "进到第一舞台去了",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 151850,
+      "end_ms": 155110,
+      "text": "但大约一半也因为重价购来的保票",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 155190,
+      "end_ms": 157110,
+      "text": "总得使用了才舒服",
       "speakers": [
         "S01"
       ],
@@ -775,8 +997,8 @@
     },
     {
       "start_ms": 157750,
-      "end_ms": 167380,
-      "text": "我打听的教天出台是迟的，而第一舞台却是新式构造，用不着真座位，便放了心，延档到九点钟才去。",
+      "end_ms": 160340,
+      "text": "我打听得教天出台是迟的",
       "speakers": [
         "S01"
       ],
@@ -790,9 +1012,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 167560,
-      "end_ms": 175280,
-      "text": "谁料照例人都满了，连立足也难，我只得挤在远处的人丛中看一个老旦在台上唱。",
+      "start_ms": 160420,
+      "end_ms": 162880,
+      "text": "而第一舞台却是新式构造",
       "speakers": [
         "S01"
       ],
@@ -806,9 +1028,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 175650,
-      "end_ms": 175970,
-      "text": "那老",
+      "start_ms": 162960,
+      "end_ms": 164240,
+      "text": "用不着真座位",
       "speakers": [
         "S01"
       ],
@@ -816,24 +1038,87 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "那",
-          "start_ms": 175650,
-          "end_ms": 175810,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "老",
-          "start_ms": 175810,
-          "end_ms": 175970,
-          "speakers": [
-            "S01"
-          ]
-        }
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 164320,
+      "end_ms": 165340,
+      "text": "便放了心",
+      "speakers": [
+        "S01"
       ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 165420,
+      "end_ms": 167410,
+      "text": "延档到九点钟才去",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 167580,
+      "end_ms": 169710,
+      "text": "谁料照例人都满了",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 169790,
+      "end_ms": 171040,
+      "text": "连立足也难",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 171120,
+      "end_ms": 175310,
+      "text": "我只得挤在远处的人丛中看一个老旦在台上唱",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
@@ -1551,8 +1836,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 351870,
-      "end_ms": 357070,
+      "start_ms": 352070,
+      "end_ms": 357220,
       "text": "是远哉遥遥的了，其实恐怕我还不过十一二岁。",
       "speakers": [
         "S01"
@@ -1561,167 +1846,14 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "是",
-          "start_ms": 351870,
-          "end_ms": 352350,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "远",
-          "start_ms": 352590,
-          "end_ms": 352830,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "哉",
-          "start_ms": 352830,
-          "end_ms": 353150,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "遥",
-          "start_ms": 353150,
-          "end_ms": 353390,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "遥",
-          "start_ms": 353390,
-          "end_ms": 353630,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 353630,
-          "end_ms": 353790,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "了，",
-          "start_ms": 353790,
-          "end_ms": 354110,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "其",
-          "start_ms": 354430,
-          "end_ms": 354670,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "实",
-          "start_ms": 354670,
-          "end_ms": 355070,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "恐",
-          "start_ms": 355070,
-          "end_ms": 355230,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "怕",
-          "start_ms": 355230,
-          "end_ms": 355470,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 355630,
-          "end_ms": 355630,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "还",
-          "start_ms": 355630,
-          "end_ms": 355790,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "不",
-          "start_ms": 355790,
-          "end_ms": 355950,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "过",
-          "start_ms": 355950,
-          "end_ms": 356190,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "十",
-          "start_ms": 356190,
-          "end_ms": 356350,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "一",
-          "start_ms": 356350,
-          "end_ms": 356510,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "二",
-          "start_ms": 356510,
-          "end_ms": 356670,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "岁。",
-          "start_ms": 356670,
-          "end_ms": 357070,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
-      "start_ms": 358140,
-      "end_ms": 366460,
+      "start_ms": 358130,
+      "end_ms": 366510,
       "text": "我们鲁镇的习惯，本来是凡有出嫁的女儿，倘自己还未当家，夏间便大抵回到母家去消夏。",
       "speakers": [
         "S01"
@@ -1736,8 +1868,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 366880,
-      "end_ms": 378480,
+      "start_ms": 366860,
+      "end_ms": 378510,
       "text": "那时我的祖母虽然还康健，但母亲也已分担了些家务，所以下期便不能多日的归省了，只得在扫墓完毕之后，抽空去住几天。",
       "speakers": [
         "S01"
@@ -1752,9 +1884,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 379140,
-      "end_ms": 396010,
-      "text": "这时我便每年跟了我的母亲住在外祖母的家里，那地方叫平桥村，是一个离海边不远，极偏僻的临河的小村庄，住户不满三十家，都种田，打渔，只有一家很小的杂货店。",
+      "start_ms": 379130,
+      "end_ms": 383040,
+      "text": "这时我便每年跟了我的母亲住在外祖母的家里。",
       "speakers": [
         "S01"
       ],
@@ -1768,8 +1900,24 @@
       "decision": "primary"
     },
     {
-      "start_ms": 396520,
-      "end_ms": 404860,
+      "start_ms": 383490,
+      "end_ms": 396010,
+      "text": "那地方叫平桥村，是一个离海边不远，极偏僻的临河的小村庄，住户不满三十家，都种田，打渔，只有一家很小的杂货店。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 396510,
+      "end_ms": 404880,
       "text": "但在我是乐土，因为我在这里不但得到优待，又可以免念赤赤丝干，悠悠南山了。",
       "speakers": [
         "S01"
@@ -1785,7 +1933,7 @@
     },
     {
       "start_ms": 405690,
-      "end_ms": 414720,
+      "end_ms": 414740,
       "text": "和我一同玩的是许多小朋友，因为有了远客，他们也都从父母那里得了减少工作的许可，伴我来游戏。",
       "speakers": [
         "S01"
@@ -1798,9 +1946,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 415590,
-      "end_ms": 426310,
-      "text": "在小村里，一家的客几乎也都是公共的，我们年纪都相仿，但论起行辈来，却至少是叔子，有几个还是太公。",
+      "start_ms": 415580,
+      "end_ms": 419510,
+      "text": "在小村里，一家的客几乎也都是公共的。",
       "speakers": [
         "S01"
       ],
@@ -1814,9 +1962,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 427020,
-      "end_ms": 439980,
-      "text": "因为他们和村都同姓，是本家，然而我们是朋友，即使偶尔吵闹起来，打了太公，一村的老老少少也绝没有一个会想出犯上这两个字来，而他",
+      "start_ms": 419820,
+      "end_ms": 426310,
+      "text": "我们年纪都相仿，但论起行辈来，却至少是叔子，有几个还是太公。",
       "speakers": [
         "S01"
       ],
@@ -1824,464 +1972,15 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "因",
-          "start_ms": 427020,
-          "end_ms": 427260,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "为",
-          "start_ms": 427260,
-          "end_ms": 427420,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "他",
-          "start_ms": 427420,
-          "end_ms": 427580,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "们",
-          "start_ms": 427580,
-          "end_ms": 427660,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "和",
-          "start_ms": 427660,
-          "end_ms": 427900,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "村",
-          "start_ms": 427900,
-          "end_ms": 428220,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "都",
-          "start_ms": 428220,
-          "end_ms": 428380,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "同",
-          "start_ms": 428380,
-          "end_ms": 428620,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "姓，",
-          "start_ms": 428620,
-          "end_ms": 428940,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 429180,
-          "end_ms": 429260,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "本",
-          "start_ms": 429260,
-          "end_ms": 429580,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "家，",
-          "start_ms": 429580,
-          "end_ms": 429980,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "然",
-          "start_ms": 430220,
-          "end_ms": 430380,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "而",
-          "start_ms": 430380,
-          "end_ms": 430620,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 430620,
-          "end_ms": 430780,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "们",
-          "start_ms": 430780,
-          "end_ms": 430940,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 430940,
-          "end_ms": 431100,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "朋",
-          "start_ms": 431100,
-          "end_ms": 431420,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "友，",
-          "start_ms": 431420,
-          "end_ms": 431580,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "即",
-          "start_ms": 431900,
-          "end_ms": 432060,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "使",
-          "start_ms": 432060,
-          "end_ms": 432220,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "偶",
-          "start_ms": 432220,
-          "end_ms": 432460,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "尔",
-          "start_ms": 432460,
-          "end_ms": 432540,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "吵",
-          "start_ms": 432540,
-          "end_ms": 432860,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "闹",
-          "start_ms": 432860,
-          "end_ms": 433020,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "起",
-          "start_ms": 433020,
-          "end_ms": 433180,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "来，",
-          "start_ms": 433180,
-          "end_ms": 433420,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "打",
-          "start_ms": 433660,
-          "end_ms": 433820,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "了",
-          "start_ms": 433820,
-          "end_ms": 433980,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "太",
-          "start_ms": 433980,
-          "end_ms": 434140,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "公，",
-          "start_ms": 434140,
-          "end_ms": 434460,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "一",
-          "start_ms": 434700,
-          "end_ms": 434860,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "村",
-          "start_ms": 434860,
-          "end_ms": 435020,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 435020,
-          "end_ms": 435100,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "老",
-          "start_ms": 435100,
-          "end_ms": 435340,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "老",
-          "start_ms": 435340,
-          "end_ms": 435500,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "少",
-          "start_ms": 435500,
-          "end_ms": 435740,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "少",
-          "start_ms": 435740,
-          "end_ms": 436060,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "也",
-          "start_ms": 436220,
-          "end_ms": 436300,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "绝",
-          "start_ms": 436300,
-          "end_ms": 436540,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "没",
-          "start_ms": 436540,
-          "end_ms": 436700,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "有",
-          "start_ms": 436700,
-          "end_ms": 436780,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "一",
-          "start_ms": 436780,
-          "end_ms": 436940,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "个",
-          "start_ms": 436940,
-          "end_ms": 437180,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "会",
-          "start_ms": 437180,
-          "end_ms": 437340,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "想",
-          "start_ms": 437340,
-          "end_ms": 437580,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "出",
-          "start_ms": 437580,
-          "end_ms": 437740,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "犯",
-          "start_ms": 437740,
-          "end_ms": 437980,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "上",
-          "start_ms": 437980,
-          "end_ms": 438380,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "这",
-          "start_ms": 438380,
-          "end_ms": 438460,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "两",
-          "start_ms": 438460,
-          "end_ms": 438620,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "个",
-          "start_ms": 438620,
-          "end_ms": 438700,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "字",
-          "start_ms": 438700,
-          "end_ms": 438940,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "来，",
-          "start_ms": 438940,
-          "end_ms": 439180,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "而",
-          "start_ms": 439580,
-          "end_ms": 439660,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "他",
-          "start_ms": 439660,
-          "end_ms": 439980,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
-      "start_ms": 439960,
-      "end_ms": 442120,
-      "text": "们也百分之九十九不识字。",
+      "start_ms": 426920,
+      "end_ms": 442310,
+      "text": "因为他们和村都同姓，是本家，然而我们是朋友，即使偶尔吵闹起来，打了太公，一村的老老少少也绝没有一个会想出犯上这两个字来，而他们也百分之九十九不识字。",
       "speakers": [
         "S01"
       ],
@@ -2289,103 +1988,14 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "们",
-          "start_ms": 439960,
-          "end_ms": 440280,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "也",
-          "start_ms": 440280,
-          "end_ms": 440360,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "百",
-          "start_ms": 440360,
-          "end_ms": 440520,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "分",
-          "start_ms": 440520,
-          "end_ms": 440760,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "之",
-          "start_ms": 440760,
-          "end_ms": 440920,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "九",
-          "start_ms": 440920,
-          "end_ms": 441080,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "十",
-          "start_ms": 441080,
-          "end_ms": 441240,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "九",
-          "start_ms": 441240,
-          "end_ms": 441480,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "不",
-          "start_ms": 441480,
-          "end_ms": 441640,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "识",
-          "start_ms": 441640,
-          "end_ms": 441880,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "字。",
-          "start_ms": 441880,
-          "end_ms": 442120,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
-      "start_ms": 442640,
-      "end_ms": 450040,
+      "start_ms": 442680,
+      "end_ms": 450110,
       "text": "我们每天的事情大概是掘蚯蚓，掘来穿在铜丝做的小钩上，浮在河沿上去钓虾。",
       "speakers": [
         "S01"
@@ -2400,8 +2010,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 450620,
-      "end_ms": 459340,
+      "start_ms": 450680,
+      "end_ms": 459410,
       "text": "虾是水世界里的呆子，绝不但用了自己的两个钱捧着钩尖送到嘴里去的，所以不半天便可以钓到一大碗。",
       "speakers": [
         "S01"
@@ -2416,8 +2026,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 459680,
-      "end_ms": 461980,
+      "start_ms": 459740,
+      "end_ms": 462040,
       "text": "这虾照例是归我吃的。",
       "speakers": [
         "S01"
@@ -2432,9 +2042,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 462440,
-      "end_ms": 470920,
-      "text": "其次便是一同去放牛，但或者是因为高等动物了的缘故吧，黄牛水牛都欺生，敢于欺侮我。",
+      "start_ms": 462510,
+      "end_ms": 475780,
+      "text": "其次便是一同去放牛，但或者是因为高等动物了的缘故吧，黄牛水牛都欺生，敢于欺侮我，因此我也总不敢走近身，只好远远的跟着，站着。",
       "speakers": [
         "S01"
       ],
@@ -2448,9 +2058,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 471160,
-      "end_ms": 475720,
-      "text": "因此我也总不敢走近身，只好远远的跟着，站着。",
+      "start_ms": 476220,
+      "end_ms": 482680,
+      "text": "这时候小朋友便不再原谅我会读赤赤丝干，却全都嘲笑起来了。",
       "speakers": [
         "S01"
       ],
@@ -2464,24 +2074,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 476180,
-      "end_ms": 482620,
-      "text": "这时候小朋友便不再原谅我会读，赤赤丝干，却全都嘲笑起来了。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 483610,
-      "end_ms": 488510,
+      "start_ms": 483650,
+      "end_ms": 488580,
       "text": "至于我在那里所第一盼望的，却在到赵庄去看戏。",
       "speakers": [
         "S01"
@@ -2494,8 +2088,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 488990,
-      "end_ms": 499150,
+      "start_ms": 489040,
+      "end_ms": 499210,
       "text": "赵庄是离平桥村五里的较大的村庄，平桥村太小，自己演不起戏，每年总付给赵庄多少钱，算作合作的。",
       "speakers": [
         "S01"
@@ -2508,8 +2102,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 500080,
-      "end_ms": 507740,
+      "start_ms": 500130,
+      "end_ms": 507810,
       "text": "当时我并不想到他们为什么年年要演戏，现在想，那或者是春赛，是社戏了。",
       "speakers": [
         "S01"
@@ -2522,8 +2116,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 508640,
-      "end_ms": 513180,
+      "start_ms": 508680,
+      "end_ms": 513210,
       "text": "就在我十一二岁时候的这一年，这日期也看看等到了。",
       "speakers": [
         "S01"
@@ -2538,8 +2132,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 513480,
-      "end_ms": 517120,
+      "start_ms": 513540,
+      "end_ms": 517140,
       "text": "不料这一年真可惜，在早上就叫不到船。",
       "speakers": [
         "S01"
@@ -2554,9 +2148,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 517460,
-      "end_ms": 522760,
-      "text": "平桥村只有一只早出晚归的航船是大船，绝没有留用的道理。",
+      "start_ms": 517510,
+      "end_ms": 527980,
+      "text": "平桥村只有一只早出晚归的航船是大船，绝没有留用的道理，其余的都是小船，不合用，央人到邻村去问，也没",
       "speakers": [
         "S01"
       ],
@@ -2565,111 +2159,6 @@
       ],
       "channel": null,
       "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 522930,
-      "end_ms": 525530,
-      "text": "其余的都是小船，不合用。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 525970,
-      "end_ms": 528050,
-      "text": "央人到邻村去问，也没",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "央",
-          "start_ms": 525970,
-          "end_ms": 526130,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "人",
-          "start_ms": 526130,
-          "end_ms": 526290,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "到",
-          "start_ms": 526290,
-          "end_ms": 526450,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "邻",
-          "start_ms": 526450,
-          "end_ms": 526610,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "村",
-          "start_ms": 526610,
-          "end_ms": 526850,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "去",
-          "start_ms": 526850,
-          "end_ms": 527010,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "问，",
-          "start_ms": 527010,
-          "end_ms": 527330,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "也",
-          "start_ms": 527570,
-          "end_ms": 527810,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "没",
-          "start_ms": 527810,
-          "end_ms": 528050,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
       "candidates": {},
       "reviews": {},
       "decision": "primary"

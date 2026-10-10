@@ -532,7 +532,7 @@
 
 嗯，就是下个月比较合适吗？
 
-**[00:05:52.050–00:05:53.010] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+**[00:05:52.060–00:05:53.020] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
 
 嗯，是吧。
 
@@ -540,7 +540,7 @@
 
 反正十二月，你十二月要不就是上半月。
 
-**[00:05:57.010–00:05:58.810] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+**[00:05:57.010–00:05:58.820] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
 
 嗯，是是是。
 
@@ -548,179 +548,171 @@
 
 对，您说那十八号不错。
 
-**[00:05:58.740–00:06:01.940] S04 · 待核对：crosscheck_disagreement_in_interval**
+**[00:05:58.750–00:06:01.950] S04 · 待核对：crosscheck_disagreement_in_interval**
 
 十八号这个也行，是个周末，再往后不行。
 
-**[00:06:00.120–00:06:00.540] S03 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:00.120–00:06:00.520] S03 · 待核对：crosscheck_disagreement_in_interval**
 
 啊。
 
-**[00:06:00.380–00:06:12.620] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+**[00:06:00.380–00:06:12.720] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-我们每次年会都是开在一月份，就是也可以考虑在一月份，因为因为你是对一整年的做一个表彰，啊对一整年谁的，啊对谁的公司业绩最好，然后。
+我们每，年会都是开在一月份，就是也可以考虑在一月份，因为因为你是对一整年的做一个表彰，啊对一整年，谁的，啊对谁的工作业绩最好，然后。
 
-**[00:06:04.270–00:06:05.310] S04 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:04.280–00:06:05.320] S04 · 待核对：crosscheck_disagreement_in_interval**
 
-哎，对年后哈。
+呃，得年后哈。
 
 **[00:06:05.010–00:06:05.930] S03 · 待核对：crosscheck_disagreement_in_interval**
 
 春节前吗？
 
-**[00:06:08.060–00:06:08.620] S03 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:08.070–00:06:08.590] S03 · 待核对：crosscheck_disagreement_in_interval**
 
 总结。
 
-**[00:06:09.140–00:06:11.020] S04 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:09.140–00:06:10.980] S04 · 待核对：crosscheck_disagreement_in_interval**
 
 啊，那十二月还没完呢啊。
 
-**[00:06:10.890–00:06:12.810] S03 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:10.910–00:06:12.810] S03 · 待核对：crosscheck_disagreement_in_interval**
 
 啊，对，那样也好。
 
-**[00:06:12.760–00:06:20.520] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+**[00:06:12.720–00:06:20.480] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-对，有的时候公司是要发奖金的，咱们是不是要对那个业全年业绩最好的同事做个表彰，因为最好年终奖，对年终。
+对，有的时候公司是要发奖金的，咱们是不是要对那个业全年业绩最好的同事做个表彰，因为那个年都完，对年。
 
-**[00:06:16.720–00:06:17.140] S04 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:16.740–00:06:17.140] S04 · 待核对：crosscheck_disagreement_in_interval**
 
 啊。
 
-**[00:06:17.720–00:06:18.410] S03 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:17.720–00:06:18.440] S03 · 待核对：crosscheck_disagreement_in_interval**
 
-啊，对对。
+啊，对对对。
 
-**[00:06:18.140–00:06:21.040] S04 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:18.140–00:06:21.340] S04 · 待核对：crosscheck_disagreement_in_interval**
 
-啊，有可能就差那半个多月，能差好多呢。
+啊，有可能就差那半个多月，能差好多呢是吧。
 
-**[00:06:21.040–00:06:25.140] S03 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:21.050–00:06:26.350] S03 · 待核对：crosscheck_disagreement_in_interval**
 
-对，他最后的量，最后订单可能都在嗯今年底。
+对，他最后的量，最后订单可能都在嗯，今年底，啊。
 
-**[00:06:24.690–00:06:38.940] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+**[00:06:24.720–00:06:38.940] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 而且就是有很多公司都是在一月份开始，为啥？因为怕有的员工就是在春节前我签开始请假我就走，然后呢，这会儿一般是在春节前或者过完春节马上回来的工作日来开，就是让员工调整工作状态。
 
-**[00:06:25.490–00:06:25.980] S04 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:32.320–00:06:32.780] S03 · 待核对：crosscheck_disagreement_in_interval**
 
 啊。
 
-**[00:06:26.020–00:06:26.410] S03 · 待核对：crosscheck_disagreement_in_interval**
-
-啊。
-
-**[00:06:31.910–00:06:32.740] S03 · 待核对：crosscheck_disagreement_in_interval**
-
-嗯，啊。
-
-**[00:06:36.560–00:06:36.940] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+**[00:06:36.550–00:06:36.920] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
 
 嗯。
 
-**[00:06:38.940–00:06:42.450] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+**[00:06:38.940–00:06:42.460] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 你先开个年会放松一下，然后就去放春节放假了。
 
-**[00:06:42.560–00:06:42.930] S03 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:42.560–00:06:42.920] S03 · 待核对：crosscheck_disagreement_in_interval**
 
 嗯。
 
-**[00:06:43.460–00:06:44.050] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+**[00:06:43.470–00:06:44.040] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
 
 哦，那。
 
-**[00:06:43.750–00:06:59.580] S03 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:43.750–00:06:59.510] S03 · 待核对：crosscheck_disagreement_in_interval**
 
 对，这这个十八号跟您说的年后，这个您说是年后也行，因为把之前这一年所有的工作都总结一下，还有就是奖励，那个年前你要年前举行的话，一些奖励没法到位。
 
-**[00:06:48.000–00:06:48.320] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+**[00:06:48.000–00:06:48.340] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
 
 嗯。
 
-**[00:06:49.630–00:06:50.070] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+**[00:06:49.630–00:06:50.120] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
 
 对。
 
-**[00:06:51.250–00:06:52.140] S04 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:51.240–00:06:52.140] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
 
 这个是。
 
-**[00:06:59.580–00:07:11.180] S03 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:59.510–00:07:11.170] S03 · 待核对：crosscheck_disagreement_in_interval**
 
-比如说这个全勤奖啊，这个，啊对，绩效都没有体现的，对对对，嗯，那还是咱们还是定在那个年后，嗯。
+比如说这个全勤奖啊，这个，啊对，绩效都没有体现出来，对对对，嗯，那还是咱们还是定在那个年后，嗯。
 
-**[00:07:00.460–00:07:01.110] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
-
-嗯。
-
-**[00:07:01.110–00:07:04.020] S04 · 待核对：crosscheck_disagreement_in_interval**
-
-对，都绩绩效啊，多的还没有对。
-
-**[00:07:01.540–00:07:04.540] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
-
-对，还得结成呀，什么的是吧，对。
-
-**[00:07:04.210–00:07:06.470] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
-
-而且数字不准确呀，工作。
-
-**[00:07:05.820–00:07:06.270] S04 · 待核对：crosscheck_disagreement_in_interval**
-
-对。
-
-**[00:07:10.480–00:07:10.880] S04 · 待核对：crosscheck_disagreement_in_interval**
-
-对。
-
-**[00:07:10.880–00:07:12.910] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
-
-年后就大让大家有个期待，是吧？
-
-**[00:07:12.870–00:07:19.080] S03 · 待核对：crosscheck_disagreement_in_interval**
-
-奖品还有这个奖励什么的都都可以，充分的发发到每一个员工手上。
-
-**[00:07:13.780–00:07:14.150] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+**[00:07:00.460–00:07:01.120] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
 
 嗯。
 
-**[00:07:19.860–00:07:20.020] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+**[00:07:01.120–00:07:03.980] S04 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯，
+对，那个绩绩效很多的还没有这。
 
-**[00:07:20.060–00:07:22.780] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:01.520–00:07:03.880] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-那要年后的话，咱们什么时候开始筹划比较合适啊？
+对，还得结成呀，是吧，是吧。
 
-**[00:07:23.850–00:07:27.490] S03 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:04.220–00:07:05.980] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-这个一般有有一月份儿吧，刚才那个。
+而且数字不准确呀。
 
-**[00:07:24.120–00:07:24.920] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:05.810–00:07:06.280] S04 · 待核对：crosscheck_disagreement_in_interval**
+
+对。
+
+**[00:07:06.010–00:07:06.520] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+
+嗯。
+
+**[00:07:10.480–00:07:10.920] S04 · 待核对：crosscheck_disagreement_in_interval**
+
+对。
+
+**[00:07:10.880–00:07:12.920] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+
+年后就大让大家有个期待，是吧。
+
+**[00:07:12.870–00:07:19.090] S03 · 待核对：crosscheck_disagreement_in_interval**
+
+奖品，还有这个奖励什么的，都都可以充分的发发到每一个员工手上。
+
+**[00:07:13.780–00:07:14.220] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+
+嗯。
+
+**[00:07:19.540–00:07:22.840] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+
+嗯，那要年后的话，咱们什么时候开始筹划比较合适啊？
+
+**[00:07:23.850–00:07:27.510] S03 · 待核对：crosscheck_disagreement_in_interval**
+
+这个一般有有一月份吧，刚才那个。
+
+**[00:07:24.120–00:07:24.920] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
 
 几月份儿呢？
 
-**[00:07:27.250–00:07:38.450] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+**[00:07:27.240–00:07:38.480] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯，一般你看你要是主要负责这个事儿的同事，一般就是一两个人儿，一两个人儿他们做提案，因为其实最好时间的是啥，就是你把提案给到领导去审批的这个过程是最慢的。
+嗯，一般你看你要是主要负责这个事儿的同事，一般就是一两个人，一两个人他们做提案，因为其实最好时间的是啥？就是你把提案给到领导去审批的这步过程是最慢的。
 
-**[00:07:32.150–00:07:32.510] S03 · 待核对：crosscheck_disagreement_in_interval**
-
-嗯。
-
-**[00:07:38.450–00:07:56.150] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
-
-你要去涉及到实施以后，领导批了说啊，你这个没问题，几等奖奖都是什么东西，你去采购这个时间很快，就是前期准备的时间长，这个准备时间你随时有时间，就比方十二月份，十一月份一般都是总务的同事来干这个事儿嘛，然后让他开始已经着手去准备今年年会的。
-
-**[00:07:38.550–00:07:38.950] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:32.150–00:07:32.520] S03 · 待核对：crosscheck_disagreement_in_interval**
 
 嗯。
 
-**[00:07:44.480–00:07:44.880] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:38.480–00:07:56.220] S02 · 待核对：crosscheck_disagreement_in_interval**
+
+你要去涉及到实施以后，领导批了说啊，你这个没问题，几等几等奖都是什么东西，你去采购这个时间很快，就是前期准备的时间长，这个准备时间你随时有时间，就比方十二月份，十一月份一般都是总部的同事来干这个事儿嘛，然后让他开始已经着手去准备今年年会的。
+
+**[00:07:38.550–00:07:39.040] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+
+嗯。
+
+**[00:07:44.480–00:07:44.920] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
 
 嗯。
 
@@ -728,115 +720,107 @@
 
 嗯。
 
-**[00:07:56.150–00:08:03.670] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+**[00:07:56.220–00:08:03.720] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯事宜，去设立哪些奖项，然后设置什么的规则，让他先去提案，这个估计流程得一个月。
+嗯，事宜，去设立哪些奖项，然后设置什么的规则，让他先去提案，这个估计流程得一个月。
 
-**[00:08:00.910–00:08:01.310] S03 · 待核对：crosscheck_disagreement_in_interval**
-
-嗯。
-
-**[00:08:04.260–00:08:04.820] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:00.910–00:08:01.320] S03 · 待核对：crosscheck_disagreement_in_interval**
 
 嗯。
 
-**[00:08:04.590–00:08:08.710] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+**[00:08:04.260–00:08:04.840] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+
+嗯。
+
+**[00:08:04.610–00:08:08.620] S04 · 待核对：crosscheck_disagreement_in_interval**
 
 对，这个反正他每年他都会做这个，对。
 
 **[00:08:05.840–00:08:17.510] S03 · 待核对：crosscheck_disagreement_in_interval**
 
-那得看咱们公司规模规模怎么样了，就比如咱们公司规模不是五十人嘛，就是说这个工作量要小一些，要是比较大的那个公司，他他那个。
+那得看咱们公司规模规模怎么样了，就比如咱们公司规模不是五十人嘛，就说这个工作量要小一些，要是比较大的那个公司，他他那个。
 
-**[00:08:11.650–00:08:12.110] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-嗯。
-
-**[00:08:16.630–00:08:17.110] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:11.640–00:08:12.140] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
 
 嗯。
 
-**[00:08:17.120–00:08:17.550] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+**[00:08:16.640–00:08:17.140] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
 
 嗯。
 
-**[00:08:18.450–00:08:20.890] S03 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:18.470–00:08:20.910] S03 · 待核对：crosscheck_disagreement_in_interval**
 
 他工作量就大了，准备时间也长。
 
-**[00:08:19.680–00:08:20.110] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:19.680–00:08:20.120] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
 
-周长。
+都长。
 
-**[00:08:20.720–00:08:31.010] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+**[00:08:20.740–00:08:31.020] S04 · 待核对：crosscheck_disagreement_in_interval**
 
 不过这个麻雀虽小五脏俱全，准备的哪个程序都少不了，这个，反正总部他们每年都做这个，提前就让他。
 
-**[00:08:21.020–00:08:21.610] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:21.020–00:08:21.620] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
 
-周长。
+都长。
 
-**[00:08:22.410–00:08:22.770] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
-
-对。
-
-**[00:08:23.510–00:08:23.890] S03 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:22.420–00:08:22.820] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 对。
 
-**[00:08:25.690–00:08:27.650] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
-
-对，这领导都是一样事儿多。
-
-**[00:08:25.820–00:08:26.110] S03 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:23.720–00:08:24.120] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 对。
 
-**[00:08:27.740–00:08:28.140] S03 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:25.680–00:08:27.640] S02 · 待核对：crosscheck_disagreement_in_interval**
+
+对，像领导都是一样事儿多。
+
+**[00:08:25.820–00:08:26.120] S03 · 待核对：crosscheck_disagreement_in_interval**
+
+对。
+
+**[00:08:27.740–00:08:28.150] S03 · 待核对：crosscheck_disagreement_in_interval**
 
 嗯。
 
-**[00:08:30.220–00:08:31.850] S03 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:30.240–00:08:31.870] S03 · 待核对：crosscheck_disagreement_in_interval**
 
 领导怎么说都是对的。
 
-**[00:08:31.830–00:08:38.670] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+**[00:08:31.840–00:08:38.680] S04 · 待核对：crosscheck_disagreement_in_interval**
 
-对他让他们提得提日程嘛，提方案，然后得有一个那个日程表儿，等于进度表儿。
+对，他让他们提得提日程嘛，提方案，然后得有一个那个日程表，等于进度表。
 
-**[00:08:33.520–00:08:36.130] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+**[00:08:33.540–00:08:36.140] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-他随时，领导随时都会有提。
+他随时，领领导随时都会有提。
 
-**[00:08:37.780–00:08:38.210] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:37.810–00:08:38.220] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
 
 嗯。
 
-**[00:08:38.580–00:08:39.110] S03 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:38.590–00:08:39.120] S03 · 待核对：crosscheck_disagreement_in_interval**
 
-啊对。
+啊，对。
 
-**[00:08:39.360–00:08:43.010] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:39.360–00:08:43.020] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
 
-那就提前一个月怎么样，因为就审批过程是比较慢嘛。
+那就提前一个月怎么样？因为就审批过程它比较慢嘛。
 
-**[00:08:41.140–00:08:41.510] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+**[00:08:41.140–00:08:43.740] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-对。
+对，至少还得提前一个月。
 
-**[00:08:41.720–00:08:42.210] S03 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:41.740–00:08:42.240] S03 · 待核对：crosscheck_disagreement_in_interval**
 
 差不多。
 
-**[00:08:42.220–00:08:43.750] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+**[00:08:43.820–00:08:48.000] S03 · 待核对：crosscheck_disagreement_in_interval**
 
-至少也得提前一个月。
+比如说你定在十十一月十五号，你十。
 
-**[00:08:43.890–00:08:47.970] S03 · 待核对：crosscheck_disagreement_in_interval**
-
-比如说你定在十十一月十五号，你十
-
-**[00:08:47.380–00:08:47.710] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:47.400–00:08:47.780] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
 
 嗯。
 

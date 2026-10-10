@@ -4,15 +4,6 @@
   "error": null,
   "warnings": [
     "joint_window_retry:351000:joint boundary alignment failed; cannot deduplicate safely",
-    "joint_window_retry:351000:joint boundary alignment failed; cannot deduplicate safely",
-    "joint_window_retry:351000:joint boundary alignment failed; cannot deduplicate safely",
-    "joint_window_retry:351000:joint boundary alignment failed; cannot deduplicate safely",
-    "joint_window_retry:373000:joint boundary alignment failed; cannot deduplicate safely",
-    "joint_window_retry:439000:joint boundary alignment failed; cannot deduplicate safely",
-    "joint_window_retry:439000:joint boundary alignment failed; cannot deduplicate safely",
-    "joint_window_retry:439000:joint boundary alignment failed; cannot deduplicate safely",
-    "joint_window_retry:703000:joint boundary alignment failed; cannot deduplicate safely",
-    "joint_window_retry:703000:joint boundary alignment failed; cannot deduplicate safely",
     "joint_window_retry:703000:joint boundary alignment failed; cannot deduplicate safely"
   ],
   "segments": [
@@ -1675,9 +1666,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 352000,
-      "end_ms": 353000,
-      "text": "不会上脸头呢。",
+      "start_ms": 352010,
+      "end_ms": 361610,
+      "text": "不会上脸头呢，是的，知道吧，然后是这这样的话，我们也应该引起重视，毕竟这种共享单车是要服务于大众的嘛。",
       "speakers": [
         "S01"
       ],
@@ -1691,8 +1682,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 353120,
-      "end_ms": 354420,
+      "start_ms": 353150,
+      "end_ms": 354410,
       "text": "是的是的，是这样。",
       "speakers": [],
       "flags": [
@@ -1707,24 +1698,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 353520,
-      "end_ms": 361620,
-      "text": "是的，知道吧，然后是这这样的话，我们也应该引起重视，毕竟这种共享单车是要服务于大众的嘛。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 363180,
-      "end_ms": 368680,
+      "start_ms": 363150,
+      "end_ms": 368650,
       "text": "是还有没有什么别的现状呢？就是说现在就是这种共享单车造成影响。",
       "speakers": [
         "S01"
@@ -1739,25 +1714,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 368920,
-      "end_ms": 374000,
-      "text": "就有些时候假如就是扫一下那个码，但是显示没有租车成功，但是它还。",
-      "speakers": [
-        "S03"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 374010,
+      "start_ms": 368880,
       "end_ms": 374850,
-      "text": "还是会扣你的钱。",
+      "text": "就有些时候假如就是扫一下那个码，但是显示没有停车成功，但是他还是会扣你钱。",
       "speakers": [
         "S03"
       ],
@@ -1771,9 +1730,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 375650,
-      "end_ms": 381830,
-      "text": "然后GPS定位有时候也不准，就假如你是停在，就按规定停的那些位置就是。",
+      "start_ms": 375640,
+      "end_ms": 390030,
+      "text": "然后GPS定位有时候也不准，就假如你是停在就按规定停的那些位置，就是停的，但是他会以为你，他会把你认为你不是在那个规定的那个区域里停的，还会给你扣好多万的钱。",
       "speakers": [
         "S03"
       ],
@@ -1788,10 +1747,10 @@
     },
     {
       "start_ms": 382350,
-      "end_ms": 390030,
-      "text": "停的，但是他会以为你，他会把你认为你不是在那个规定的那个区域里停的，还会给你扣呃额外的钱。",
+      "end_ms": 382810,
+      "text": "停。",
       "speakers": [
-        "S03"
+        "S01"
       ],
       "flags": [
         "crosscheck_disagreement_in_interval"
@@ -1803,9 +1762,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 391110,
-      "end_ms": 395990,
-      "text": "哦，这种的话，公共区域的话，我认为的话，这种比如说有有公共区域。",
+      "start_ms": 390940,
+      "end_ms": 404550,
+      "text": "哦，这种的话，公共区域的话，我认为的话，这种比如说有这种公共区域的话，还是有必要的，你不能说是没有规矩不成方圆嘛，你如果能真正随便停放的话，也太那个什么。",
       "speakers": [
         "S01"
       ],
@@ -1813,584 +1772,14 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "哦，",
-          "start_ms": 391110,
-          "end_ms": 391430,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "这",
-          "start_ms": 391510,
-          "end_ms": 391590,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "种",
-          "start_ms": 391590,
-          "end_ms": 391830,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 391830,
-          "end_ms": 391910,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "话，",
-          "start_ms": 391910,
-          "end_ms": 392150,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "公",
-          "start_ms": 392150,
-          "end_ms": 392390,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "共",
-          "start_ms": 392310,
-          "end_ms": 392470,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "区",
-          "start_ms": 392550,
-          "end_ms": 392710,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "域",
-          "start_ms": 392710,
-          "end_ms": 392790,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 392790,
-          "end_ms": 392790,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "话，",
-          "start_ms": 392790,
-          "end_ms": 393030,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 393030,
-          "end_ms": 393030,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "认",
-          "start_ms": 393190,
-          "end_ms": 393270,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "为",
-          "start_ms": 393350,
-          "end_ms": 393430,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 393430,
-          "end_ms": 393590,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "话，",
-          "start_ms": 393590,
-          "end_ms": 393750,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "这",
-          "start_ms": 393750,
-          "end_ms": 393830,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "种",
-          "start_ms": 393830,
-          "end_ms": 394150,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "比",
-          "start_ms": 394150,
-          "end_ms": 394310,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "如",
-          "start_ms": 394310,
-          "end_ms": 394310,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "说",
-          "start_ms": 394470,
-          "end_ms": 394630,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "有",
-          "start_ms": 394630,
-          "end_ms": 394710,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "有",
-          "start_ms": 394630,
-          "end_ms": 394710,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "公",
-          "start_ms": 395510,
-          "end_ms": 395670,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "共",
-          "start_ms": 395510,
-          "end_ms": 395830,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "区",
-          "start_ms": 395830,
-          "end_ms": 395910,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "域。",
-          "start_ms": 395990,
-          "end_ms": 395990,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
-      "start_ms": 395970,
-      "end_ms": 404370,
-      "text": "域的话还是有必要的，你不能说是没有规矩不成方圆嘛，你如果能在这种随便情况的话也太那个什么。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "域",
-          "start_ms": 395970,
-          "end_ms": 396050,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 396050,
-          "end_ms": 396130,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "话",
-          "start_ms": 396130,
-          "end_ms": 396370,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "还",
-          "start_ms": 396290,
-          "end_ms": 396370,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 396370,
-          "end_ms": 396610,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "有",
-          "start_ms": 396530,
-          "end_ms": 396610,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "必",
-          "start_ms": 396690,
-          "end_ms": 396770,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "要",
-          "start_ms": 396770,
-          "end_ms": 397010,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的，",
-          "start_ms": 397010,
-          "end_ms": 397090,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "你",
-          "start_ms": 397570,
-          "end_ms": 397650,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "不",
-          "start_ms": 397650,
-          "end_ms": 397730,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "能",
-          "start_ms": 397730,
-          "end_ms": 397890,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "说",
-          "start_ms": 397890,
-          "end_ms": 398050,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 398050,
-          "end_ms": 398770,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "没",
-          "start_ms": 399330,
-          "end_ms": 399490,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "有",
-          "start_ms": 399490,
-          "end_ms": 399650,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "规",
-          "start_ms": 399650,
-          "end_ms": 399890,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "矩",
-          "start_ms": 399890,
-          "end_ms": 400050,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "不",
-          "start_ms": 400050,
-          "end_ms": 400210,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "成",
-          "start_ms": 400210,
-          "end_ms": 400370,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "方",
-          "start_ms": 400370,
-          "end_ms": 400610,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "圆",
-          "start_ms": 400690,
-          "end_ms": 400770,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "嘛，",
-          "start_ms": 400770,
-          "end_ms": 401090,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "你",
-          "start_ms": 401090,
-          "end_ms": 401170,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "如",
-          "start_ms": 401250,
-          "end_ms": 401330,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "果",
-          "start_ms": 401330,
-          "end_ms": 401490,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "能",
-          "start_ms": 401490,
-          "end_ms": 401650,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "在",
-          "start_ms": 401650,
-          "end_ms": 401810,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "这",
-          "start_ms": 401810,
-          "end_ms": 401810,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "种",
-          "start_ms": 401810,
-          "end_ms": 401970,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "随",
-          "start_ms": 401970,
-          "end_ms": 402130,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "便",
-          "start_ms": 402130,
-          "end_ms": 402290,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "情",
-          "start_ms": 402290,
-          "end_ms": 402450,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "况",
-          "start_ms": 402610,
-          "end_ms": 402770,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 402850,
-          "end_ms": 402850,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "话",
-          "start_ms": 402850,
-          "end_ms": 403010,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "也",
-          "start_ms": 403010,
-          "end_ms": 403090,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "太",
-          "start_ms": 403250,
-          "end_ms": 403730,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "那",
-          "start_ms": 403970,
-          "end_ms": 404050,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "个",
-          "start_ms": 404050,
-          "end_ms": 404130,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "什",
-          "start_ms": 404130,
-          "end_ms": 404210,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "么。",
-          "start_ms": 404290,
-          "end_ms": 404370,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 404950,
-      "end_ms": 411310,
+      "start_ms": 404920,
+      "end_ms": 411350,
       "text": "也太对对这种我们市的环境规划啦，各种类型的话也会造成很大的影响。",
       "speakers": [
         "S01"
@@ -2405,13 +1794,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 412080,
+      "start_ms": 412060,
       "end_ms": 418310,
       "text": "嗯，是的，这样子的话也会影响一些，影响一些交通嗯秩序啊这些。",
-      "speakers": [
-        "S03"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -2422,8 +1811,8 @@
     },
     {
       "start_ms": 417620,
-      "end_ms": 422890,
-      "text": "还有警察啦，他们制指导的时候，都会造成都会造成一系列的影响。",
+      "end_ms": 422930,
+      "text": "对，警察啦，他们制指导的时候，都会造成都会造成一系列的影响。",
       "speakers": [
         "S01"
       ],
@@ -2438,12 +1827,12 @@
     },
     {
       "start_ms": 420540,
-      "end_ms": 421010,
+      "end_ms": 421050,
       "text": "嗯。",
-      "speakers": [],
+      "speakers": [
+        "S03"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -2453,8 +1842,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 423690,
-      "end_ms": 428970,
+      "start_ms": 423680,
+      "end_ms": 428990,
       "text": "然后是之前我还听说到有一个病毒车，你们知道是什么什么东西吗？",
       "speakers": [
         "S01"
@@ -2470,7 +1859,7 @@
     },
     {
       "start_ms": 429510,
-      "end_ms": 435850,
+      "end_ms": 435870,
       "text": "嗯，就是那个在车辆二维码上贴着带有病毒的二维码嘛，然后在传播那种嘛。",
       "speakers": [
         "S03"
@@ -2485,7 +1874,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 436050,
+      "start_ms": 436040,
       "end_ms": 439830,
       "text": "哦，就是说他们一就是说以假乱真那些二维码对吧？",
       "speakers": [
@@ -2501,8 +1890,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 439150,
-      "end_ms": 440110,
+      "start_ms": 439180,
+      "end_ms": 440310,
       "text": "对对对对对。",
       "speakers": [
         "S03"
@@ -2511,56 +1900,15 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "对",
-          "start_ms": 439150,
-          "end_ms": 439150,
-          "speakers": [
-            "S03"
-          ]
-        },
-        {
-          "text": "对",
-          "start_ms": 439470,
-          "end_ms": 439630,
-          "speakers": [
-            "S03"
-          ]
-        },
-        {
-          "text": "对",
-          "start_ms": 439550,
-          "end_ms": 439630,
-          "speakers": [
-            "S03"
-          ]
-        },
-        {
-          "text": "对",
-          "start_ms": 439550,
-          "end_ms": 439630,
-          "speakers": [
-            "S03"
-          ]
-        },
-        {
-          "text": "对。",
-          "start_ms": 439630,
-          "end_ms": 440110,
-          "speakers": [
-            "S03"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
-      "start_ms": 440650,
+      "start_ms": 440630,
       "end_ms": 445050,
-      "text": "哦，那这样这样的话，就是说一般小的录入的话，都是会发生什么情况呢？",
+      "text": "哦，那这样这样的话，就是说一般小的路过的话，都是会发生什么情况呢？",
       "speakers": [
         "S01"
       ],
@@ -2574,9 +1922,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 445380,
+      "start_ms": 445340,
       "end_ms": 458610,
-      "text": "可能说会对用手机扫的话，可能说是会对手机上面的一些性能啊，造成一些影响，有可能什么黑客进入手机啊这种，窃取嗯个人信息这些。",
+      "text": "可能说会对用手机扫的话，可能说是会对手机上面的一些性能啊造成一些影响，有可能什么黑客进入手机啊这种，窃取嗯个人信息这些。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -2591,7 +1939,7 @@
     },
     {
       "start_ms": 452680,
-      "end_ms": 453250,
+      "end_ms": 453270,
       "text": "影响。",
       "speakers": [
         "S01"
@@ -2606,9 +1954,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 458740,
-      "end_ms": 459350,
-      "text": "啊对。",
+      "start_ms": 458750,
+      "end_ms": 459370,
+      "text": "哦，对。",
       "speakers": [
         "S01"
       ],
@@ -2623,12 +1971,12 @@
     },
     {
       "start_ms": 458820,
-      "end_ms": 462000,
-      "text": "对，再严重的可能就是把你的财产。",
-      "speakers": [],
+      "end_ms": 468010,
+      "text": "对，再严重的也是会就是把你的财产，嗯，手机上不是有的会绑定什么的嘛，就是对，直接把你钱给转到别地方去。",
+      "speakers": [
+        "S03"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -2638,282 +1986,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 462280,
-      "end_ms": 467880,
-      "text": "嗯手机上不是有的会绑定什么的嘛，就可以对直接把你钱给转到别的地方去。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "嗯",
-          "start_ms": 462280,
-          "end_ms": 462600,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "手",
-          "start_ms": 462760,
-          "end_ms": 462920,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "机",
-          "start_ms": 462920,
-          "end_ms": 463000,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "上",
-          "start_ms": 463000,
-          "end_ms": 463240,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "不",
-          "start_ms": 463240,
-          "end_ms": 463320,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 463320,
-          "end_ms": 463400,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "有",
-          "start_ms": 463480,
-          "end_ms": 463720,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 463640,
-          "end_ms": 463720,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "会",
-          "start_ms": 463800,
-          "end_ms": 463960,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "绑",
-          "start_ms": 463960,
-          "end_ms": 464200,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "定",
-          "start_ms": 464200,
-          "end_ms": 464360,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "什",
-          "start_ms": 464360,
-          "end_ms": 464440,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "么",
-          "start_ms": 464440,
-          "end_ms": 464600,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 465000,
-          "end_ms": 465080,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "嘛，",
-          "start_ms": 464680,
-          "end_ms": 464840,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "就",
-          "start_ms": 465080,
-          "end_ms": 465160,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "可",
-          "start_ms": 465960,
-          "end_ms": 466040,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "以",
-          "start_ms": 466040,
-          "end_ms": 466200,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "对",
-          "start_ms": 466040,
-          "end_ms": 466200,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "直",
-          "start_ms": 466200,
-          "end_ms": 466280,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "接",
-          "start_ms": 466280,
-          "end_ms": 466360,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "把",
-          "start_ms": 466360,
-          "end_ms": 466520,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "你",
-          "start_ms": 466520,
-          "end_ms": 466600,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "钱",
-          "start_ms": 466600,
-          "end_ms": 466920,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "给",
-          "start_ms": 466920,
-          "end_ms": 467000,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "转",
-          "start_ms": 467000,
-          "end_ms": 467160,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "到",
-          "start_ms": 467240,
-          "end_ms": 467240,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "别",
-          "start_ms": 467480,
-          "end_ms": 467560,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 467560,
-          "end_ms": 467720,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "地",
-          "start_ms": 467640,
-          "end_ms": 467720,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "方",
-          "start_ms": 467720,
-          "end_ms": 467800,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "去。",
-          "start_ms": 467800,
-          "end_ms": 467880,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 464920,
-      "end_ms": 466940,
-      "text": "对直接转移转移到那个。",
+      "start_ms": 464890,
+      "end_ms": 466410,
+      "text": "对，直接转移转移到。",
       "speakers": [
         "S01"
       ],
@@ -2927,9 +2002,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 468560,
-      "end_ms": 472540,
-      "text": "哦转转，然后现在现在的时候他也能在发卡呀发。",
+      "start_ms": 468540,
+      "end_ms": 472610,
+      "text": "哦，转移，然后现在现在的时候，他也能能发卡呀，他。",
       "speakers": [
         "S01"
       ],
@@ -2943,9 +2018,25 @@
       "decision": "primary"
     },
     {
-      "start_ms": 472220,
-      "end_ms": 473040,
-      "text": "嗯对。",
+      "start_ms": 472680,
+      "end_ms": 473110,
+      "text": "对。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 473650,
+      "end_ms": 486120,
+      "text": "然后是，我呃还有没有什么别的现状吗？这这有之类的，因为我感觉上面提的，我们你们提的这些现状还是太少了，跟群众反馈的还是说。",
       "speakers": [
         "S01"
       ],
@@ -2959,474 +2050,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 473840,
-      "end_ms": 483360,
-      "text": "然后是，我呃还有没有什么别的现状吗？这这有之类的，因为我感觉上面提的，我你们提的这些现状还是",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "然",
-          "start_ms": 473840,
-          "end_ms": 474000,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "后",
-          "start_ms": 474080,
-          "end_ms": 474160,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是，",
-          "start_ms": 474160,
-          "end_ms": 474880,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 475840,
-          "end_ms": 476000,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "呃",
-          "start_ms": 476240,
-          "end_ms": 476560,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "还",
-          "start_ms": 476560,
-          "end_ms": 476640,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "有",
-          "start_ms": 476640,
-          "end_ms": 476800,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "没",
-          "start_ms": 476800,
-          "end_ms": 476880,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "有",
-          "start_ms": 476880,
-          "end_ms": 476960,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "什",
-          "start_ms": 476960,
-          "end_ms": 477040,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "么",
-          "start_ms": 477040,
-          "end_ms": 477200,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "别",
-          "start_ms": 477200,
-          "end_ms": 477360,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 477360,
-          "end_ms": 477440,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "现",
-          "start_ms": 477440,
-          "end_ms": 477680,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "状",
-          "start_ms": 477680,
-          "end_ms": 477760,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "吗？",
-          "start_ms": 477760,
-          "end_ms": 478240,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "这",
-          "start_ms": 478400,
-          "end_ms": 478400,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "这",
-          "start_ms": 478400,
-          "end_ms": 478480,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "有",
-          "start_ms": 479120,
-          "end_ms": 479200,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "之",
-          "start_ms": 479200,
-          "end_ms": 479360,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "类",
-          "start_ms": 479360,
-          "end_ms": 479520,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的，",
-          "start_ms": 479520,
-          "end_ms": 479760,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "因",
-          "start_ms": 479760,
-          "end_ms": 479840,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "为",
-          "start_ms": 479840,
-          "end_ms": 479840,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 479840,
-          "end_ms": 480000,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "感",
-          "start_ms": 480000,
-          "end_ms": 480240,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "觉",
-          "start_ms": 480240,
-          "end_ms": 480320,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "上",
-          "start_ms": 480320,
-          "end_ms": 480480,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "面",
-          "start_ms": 480480,
-          "end_ms": 480640,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "提",
-          "start_ms": 480720,
-          "end_ms": 480880,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的，",
-          "start_ms": 480880,
-          "end_ms": 481120,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 481120,
-          "end_ms": 481120,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "你",
-          "start_ms": 481520,
-          "end_ms": 481600,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "们",
-          "start_ms": 481600,
-          "end_ms": 481680,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "提",
-          "start_ms": 481680,
-          "end_ms": 481920,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 481920,
-          "end_ms": 482000,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "这",
-          "start_ms": 482000,
-          "end_ms": 482080,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "些",
-          "start_ms": 482080,
-          "end_ms": 482400,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "现",
-          "start_ms": 482400,
-          "end_ms": 482640,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "状",
-          "start_ms": 482640,
-          "end_ms": 482880,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "还",
-          "start_ms": 482880,
-          "end_ms": 482960,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 482960,
-          "end_ms": 483360,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 483960,
-      "end_ms": 486040,
-      "text": "太少了，跟群众反馈的还是说。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "太",
-          "start_ms": 483960,
-          "end_ms": 484120,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "少",
-          "start_ms": 484120,
-          "end_ms": 484440,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "了，",
-          "start_ms": 484440,
-          "end_ms": 484600,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "跟",
-          "start_ms": 484600,
-          "end_ms": 484760,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "群",
-          "start_ms": 484760,
-          "end_ms": 484920,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "众",
-          "start_ms": 484920,
-          "end_ms": 485080,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "反",
-          "start_ms": 485160,
-          "end_ms": 485240,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "馈",
-          "start_ms": 485320,
-          "end_ms": 485480,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 485480,
-          "end_ms": 485720,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "还",
-          "start_ms": 485560,
-          "end_ms": 485720,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 485720,
-          "end_ms": 485800,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "说。",
-          "start_ms": 485800,
-          "end_ms": 486040,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 486820,
-      "end_ms": 487320,
+      "start_ms": 486740,
+      "end_ms": 487310,
       "text": "就。",
       "speakers": [
         "S01"
@@ -3441,9 +2066,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 487220,
-      "end_ms": 491140,
-      "text": "那就还有就是把那个单车据为己有嘛。",
+      "start_ms": 487160,
+      "end_ms": 491130,
+      "text": "嗯，就还有就是把那个单车据为己有嘛。",
       "speakers": [
         "S03"
       ],
@@ -3457,9 +2082,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 491640,
-      "end_ms": 494120,
-      "text": "他单车据为己有，还有这种人在吗？",
+      "start_ms": 491580,
+      "end_ms": 494070,
+      "text": "单车据为己有，还有这种人在吗？",
       "speakers": [
         "S01"
       ],
@@ -3473,8 +2098,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 492760,
-      "end_ms": 493220,
+      "start_ms": 492720,
+      "end_ms": 493210,
       "text": "对呀。",
       "speakers": [
         "S03"
@@ -3489,9 +2114,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 494120,
-      "end_ms": 509920,
-      "text": "对呀，就是你在小区里面你也能看见，就是他把自己他把那个车就当做是自己的，就给我就也不给别人，就是就把它弄成自己的，然后就是也不锁车，也不把那个就把共享单车当成免费单车的那种。",
+      "start_ms": 494070,
+      "end_ms": 509880,
+      "text": "对呀，就是你在小区里面你也能看见，就是他把自己，他把那个车就当做成自己的，就给我就也不给别人，就是就把它弄成自己的，然后就是也不锁车，也不把那个就把共享单车当成免费单车的那种。",
       "speakers": [
         "S03"
       ],
@@ -3505,9 +2130,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 510080,
-      "end_ms": 514020,
-      "text": "他怎么了？他一般怎么他一般都怎么弄呢？直接把车把。",
+      "start_ms": 510030,
+      "end_ms": 516170,
+      "text": "他怎么了？他一般怎么，他一般都怎么弄呢？直接把或者把弄掉吗？还是怎么弄？",
       "speakers": [
         "S01"
       ],
@@ -3521,25 +2146,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 514940,
-      "end_ms": 516220,
-      "text": "弄掉吗？还是怎么弄？",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 516240,
-      "end_ms": 520020,
-      "text": "有可能把那个锁的那种，不是它上面有一个锁的吗？然后。",
+      "start_ms": 516210,
+      "end_ms": 520010,
+      "text": "有可能把那个锁的那种，不是不是专门有一个锁的吗？然后。",
       "speakers": [
         "S03"
       ],
@@ -3553,8 +2162,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 520060,
-      "end_ms": 521060,
+      "start_ms": 520010,
+      "end_ms": 521010,
       "text": "把锁拆掉吗？",
       "speakers": [
         "S01"
@@ -3569,204 +2178,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 520740,
-      "end_ms": 527620,
-      "text": "把锁拆掉，也有可能是他另外再加一道锁，对对，然后他把自己的那道锁，",
+      "start_ms": 520680,
+      "end_ms": 527950,
+      "text": "把锁拆掉，也有可能是他另外再加一道锁，对对，然后他把自己的那道锁加。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
         "speaker_unknown",
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "把",
-          "start_ms": 520740,
-          "end_ms": 520900,
-          "speakers": []
-        },
-        {
-          "text": "锁",
-          "start_ms": 520980,
-          "end_ms": 521140,
-          "speakers": []
-        },
-        {
-          "text": "拆",
-          "start_ms": 521220,
-          "end_ms": 521380,
-          "speakers": []
-        },
-        {
-          "text": "掉，",
-          "start_ms": 521380,
-          "end_ms": 521700,
-          "speakers": []
-        },
-        {
-          "text": "也",
-          "start_ms": 521940,
-          "end_ms": 522020,
-          "speakers": []
-        },
-        {
-          "text": "有",
-          "start_ms": 522020,
-          "end_ms": 522180,
-          "speakers": []
-        },
-        {
-          "text": "可",
-          "start_ms": 522180,
-          "end_ms": 522340,
-          "speakers": []
-        },
-        {
-          "text": "能",
-          "start_ms": 522340,
-          "end_ms": 522580,
-          "speakers": []
-        },
-        {
-          "text": "是",
-          "start_ms": 522580,
-          "end_ms": 522980,
-          "speakers": []
-        },
-        {
-          "text": "他",
-          "start_ms": 523060,
-          "end_ms": 523380,
-          "speakers": []
-        },
-        {
-          "text": "另",
-          "start_ms": 523380,
-          "end_ms": 523540,
-          "speakers": []
-        },
-        {
-          "text": "外",
-          "start_ms": 523540,
-          "end_ms": 523700,
-          "speakers": []
-        },
-        {
-          "text": "再",
-          "start_ms": 523700,
-          "end_ms": 523860,
-          "speakers": []
-        },
-        {
-          "text": "加",
-          "start_ms": 523860,
-          "end_ms": 524100,
-          "speakers": []
-        },
-        {
-          "text": "一",
-          "start_ms": 524100,
-          "end_ms": 524100,
-          "speakers": []
-        },
-        {
-          "text": "道",
-          "start_ms": 524180,
-          "end_ms": 524340,
-          "speakers": []
-        },
-        {
-          "text": "锁，",
-          "start_ms": 524420,
-          "end_ms": 524660,
-          "speakers": []
-        },
-        {
-          "text": "对",
-          "start_ms": 525140,
-          "end_ms": 525300,
-          "speakers": []
-        },
-        {
-          "text": "对，",
-          "start_ms": 525540,
-          "end_ms": 525860,
-          "speakers": []
-        },
-        {
-          "text": "然",
-          "start_ms": 525940,
-          "end_ms": 526020,
-          "speakers": []
-        },
-        {
-          "text": "后",
-          "start_ms": 526020,
-          "end_ms": 526180,
-          "speakers": []
-        },
-        {
-          "text": "他",
-          "start_ms": 526260,
-          "end_ms": 526340,
-          "speakers": []
-        },
-        {
-          "text": "把",
-          "start_ms": 526340,
-          "end_ms": 526660,
-          "speakers": []
-        },
-        {
-          "text": "自",
-          "start_ms": 526660,
-          "end_ms": 526740,
-          "speakers": []
-        },
-        {
-          "text": "己",
-          "start_ms": 526820,
-          "end_ms": 526900,
-          "speakers": []
-        },
-        {
-          "text": "的",
-          "start_ms": 526980,
-          "end_ms": 527140,
-          "speakers": []
-        },
-        {
-          "text": "那",
-          "start_ms": 527140,
-          "end_ms": 527140,
-          "speakers": []
-        },
-        {
-          "text": "道",
-          "start_ms": 527220,
-          "end_ms": 527460,
-          "speakers": []
-        },
-        {
-          "text": "锁，",
-          "start_ms": 527540,
-          "end_ms": 527620,
-          "speakers": []
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 524800,
-      "end_ms": 525960,
-      "text": "另外再加一道锁。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -4520,9 +2938,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 703940,
-      "end_ms": 713380,
-      "text": "查查一下他们到底是哪个地方的，然后严惩一下他们，不然的话，我们这边治安这方面应该也不会太好。",
+      "start_ms": 704020,
+      "end_ms": 713440,
+      "text": "查查一下他们到底是哪个地方的，然后严惩一下他们，不然的话我们这边治安这方面应该也不会太好。",
       "speakers": [
         "S02"
       ],
@@ -4530,351 +2948,14 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "查",
-          "start_ms": 703940,
-          "end_ms": 704180,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "查",
-          "start_ms": 704260,
-          "end_ms": 704500,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "一",
-          "start_ms": 704500,
-          "end_ms": 704500,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "下",
-          "start_ms": 704500,
-          "end_ms": 704660,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "他",
-          "start_ms": 704660,
-          "end_ms": 704820,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "们",
-          "start_ms": 704900,
-          "end_ms": 705220,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "到",
-          "start_ms": 705540,
-          "end_ms": 705700,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "底",
-          "start_ms": 705700,
-          "end_ms": 705780,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 705780,
-          "end_ms": 706100,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "哪",
-          "start_ms": 706100,
-          "end_ms": 706100,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "个",
-          "start_ms": 706260,
-          "end_ms": 706260,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "地",
-          "start_ms": 706340,
-          "end_ms": 706420,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "方",
-          "start_ms": 706500,
-          "end_ms": 706740,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "的，",
-          "start_ms": 706740,
-          "end_ms": 706820,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "然",
-          "start_ms": 706820,
-          "end_ms": 707060,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "后",
-          "start_ms": 707140,
-          "end_ms": 707380,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "严",
-          "start_ms": 707540,
-          "end_ms": 707700,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "惩",
-          "start_ms": 707700,
-          "end_ms": 707860,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "一",
-          "start_ms": 707860,
-          "end_ms": 707940,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "下",
-          "start_ms": 707940,
-          "end_ms": 708020,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "他",
-          "start_ms": 708180,
-          "end_ms": 708260,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "们，",
-          "start_ms": 708340,
-          "end_ms": 708420,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "不",
-          "start_ms": 708820,
-          "end_ms": 708900,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "然",
-          "start_ms": 708900,
-          "end_ms": 709060,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 709140,
-          "end_ms": 709220,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "话，",
-          "start_ms": 709220,
-          "end_ms": 709540,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 710260,
-          "end_ms": 710340,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "们",
-          "start_ms": 710340,
-          "end_ms": 710420,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "这",
-          "start_ms": 710420,
-          "end_ms": 710500,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "边",
-          "start_ms": 710500,
-          "end_ms": 711060,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "治",
-          "start_ms": 711060,
-          "end_ms": 711220,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "安",
-          "start_ms": 711220,
-          "end_ms": 711540,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "这",
-          "start_ms": 711540,
-          "end_ms": 711620,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "方",
-          "start_ms": 712020,
-          "end_ms": 712260,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "面",
-          "start_ms": 712180,
-          "end_ms": 712340,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "应",
-          "start_ms": 712340,
-          "end_ms": 712500,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "该",
-          "start_ms": 712500,
-          "end_ms": 712660,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "也",
-          "start_ms": 712660,
-          "end_ms": 712740,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "不",
-          "start_ms": 712740,
-          "end_ms": 712900,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "会",
-          "start_ms": 712980,
-          "end_ms": 712980,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "太",
-          "start_ms": 712980,
-          "end_ms": 713220,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "好。",
-          "start_ms": 713300,
-          "end_ms": 713380,
-          "speakers": [
-            "S02"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
-      "start_ms": 713520,
-      "end_ms": 719320,
+      "start_ms": 713550,
+      "end_ms": 719310,
       "text": "是的，也会说说说句不好听的，也会影响到我们当地的治治安。",
       "speakers": [
         "S01"
@@ -4889,948 +2970,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 720600,
-      "end_ms": 725720,
-      "text": "然然后是呃下面这些现状当中都可以了，然后是",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "然",
-          "start_ms": 720600,
-          "end_ms": 720760,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "然",
-          "start_ms": 721240,
-          "end_ms": 721480,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "后",
-          "start_ms": 721480,
-          "end_ms": 721560,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 721560,
-          "end_ms": 722360,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "呃",
-          "start_ms": 722600,
-          "end_ms": 722760,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "下",
-          "start_ms": 722760,
-          "end_ms": 723000,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "面",
-          "start_ms": 723000,
-          "end_ms": 723080,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "这",
-          "start_ms": 723080,
-          "end_ms": 723160,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "些",
-          "start_ms": 723160,
-          "end_ms": 723320,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "现",
-          "start_ms": 723320,
-          "end_ms": 723640,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "状",
-          "start_ms": 723640,
-          "end_ms": 723800,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "当",
-          "start_ms": 723800,
-          "end_ms": 724040,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "中",
-          "start_ms": 724040,
-          "end_ms": 724040,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "都",
-          "start_ms": 724040,
-          "end_ms": 724200,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "可",
-          "start_ms": 724280,
-          "end_ms": 724440,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "以",
-          "start_ms": 724440,
-          "end_ms": 724600,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "了，",
-          "start_ms": 724600,
-          "end_ms": 724760,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "然",
-          "start_ms": 724840,
-          "end_ms": 725080,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "后",
-          "start_ms": 725000,
-          "end_ms": 725080,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 725080,
-          "end_ms": 725720,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 726200,
-      "end_ms": 736200,
-      "text": "现在我们分析一下产生这些现状的原因吧，然后是到底是怎么样弄成我们现在我们市里的共享单车出现了这么多的这么多的问题。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "现",
-          "start_ms": 726200,
-          "end_ms": 726360,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "在",
-          "start_ms": 726360,
-          "end_ms": 726760,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 726760,
-          "end_ms": 726760,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "们",
-          "start_ms": 726760,
-          "end_ms": 726920,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "分",
-          "start_ms": 726920,
-          "end_ms": 727000,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "析",
-          "start_ms": 727000,
-          "end_ms": 727240,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "一",
-          "start_ms": 727240,
-          "end_ms": 727240,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "下",
-          "start_ms": 727240,
-          "end_ms": 727560,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "产",
-          "start_ms": 727720,
-          "end_ms": 727880,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "生",
-          "start_ms": 727880,
-          "end_ms": 727960,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "这",
-          "start_ms": 727960,
-          "end_ms": 728040,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "些",
-          "start_ms": 728040,
-          "end_ms": 728120,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "现",
-          "start_ms": 728120,
-          "end_ms": 728360,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "状",
-          "start_ms": 728360,
-          "end_ms": 728440,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 728440,
-          "end_ms": 728520,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "原",
-          "start_ms": 728600,
-          "end_ms": 728600,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "因",
-          "start_ms": 728840,
-          "end_ms": 729000,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "吧，",
-          "start_ms": 729000,
-          "end_ms": 729320,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "然",
-          "start_ms": 729320,
-          "end_ms": 729480,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "后",
-          "start_ms": 729480,
-          "end_ms": 729560,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 729560,
-          "end_ms": 729880,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "到",
-          "start_ms": 729880,
-          "end_ms": 730040,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "底",
-          "start_ms": 730040,
-          "end_ms": 730120,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 730120,
-          "end_ms": 730680,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "怎",
-          "start_ms": 731000,
-          "end_ms": 731080,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "么",
-          "start_ms": 731080,
-          "end_ms": 731240,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "样",
-          "start_ms": 731240,
-          "end_ms": 731480,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "弄",
-          "start_ms": 731560,
-          "end_ms": 731560,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "成",
-          "start_ms": 731560,
-          "end_ms": 731720,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 731720,
-          "end_ms": 731880,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "们",
-          "start_ms": 731960,
-          "end_ms": 732040,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "现",
-          "start_ms": 732040,
-          "end_ms": 732200,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "在",
-          "start_ms": 732280,
-          "end_ms": 732680,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 733160,
-          "end_ms": 733240,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "们",
-          "start_ms": 733320,
-          "end_ms": 733400,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "市",
-          "start_ms": 733400,
-          "end_ms": 733640,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "里",
-          "start_ms": 733640,
-          "end_ms": 733720,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 733720,
-          "end_ms": 733880,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "共",
-          "start_ms": 733880,
-          "end_ms": 733880,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "享",
-          "start_ms": 733880,
-          "end_ms": 733960,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "单",
-          "start_ms": 734120,
-          "end_ms": 734200,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "车",
-          "start_ms": 734200,
-          "end_ms": 734360,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "出",
-          "start_ms": 734360,
-          "end_ms": 734440,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "现",
-          "start_ms": 734520,
-          "end_ms": 734600,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "了",
-          "start_ms": 734600,
-          "end_ms": 734760,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "这",
-          "start_ms": 734760,
-          "end_ms": 734840,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "么",
-          "start_ms": 734840,
-          "end_ms": 734920,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "多",
-          "start_ms": 735160,
-          "end_ms": 735320,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 735240,
-          "end_ms": 735320,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "这",
-          "start_ms": 735320,
-          "end_ms": 735400,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "么",
-          "start_ms": 735400,
-          "end_ms": 735560,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "多",
-          "start_ms": 735640,
-          "end_ms": 735720,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 735880,
-          "end_ms": 735880,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "问",
-          "start_ms": 735880,
-          "end_ms": 735960,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "题。",
-          "start_ms": 736040,
-          "end_ms": 736200,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 737140,
-      "end_ms": 747940,
-      "text": "嗯，那我这边讲一下那个乱停放问题吧，就是说我们这边停放的话可以多设几个停放的站点，然后我们现在都是有一",
-      "speakers": [],
-      "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "嗯，",
-          "start_ms": 737140,
-          "end_ms": 737300,
-          "speakers": []
-        },
-        {
-          "text": "那",
-          "start_ms": 737300,
-          "end_ms": 737460,
-          "speakers": []
-        },
-        {
-          "text": "我",
-          "start_ms": 737460,
-          "end_ms": 737620,
-          "speakers": []
-        },
-        {
-          "text": "这",
-          "start_ms": 737620,
-          "end_ms": 737780,
-          "speakers": []
-        },
-        {
-          "text": "边",
-          "start_ms": 737780,
-          "end_ms": 737940,
-          "speakers": []
-        },
-        {
-          "text": "讲",
-          "start_ms": 737940,
-          "end_ms": 738260,
-          "speakers": []
-        },
-        {
-          "text": "一",
-          "start_ms": 738260,
-          "end_ms": 738260,
-          "speakers": []
-        },
-        {
-          "text": "下",
-          "start_ms": 738260,
-          "end_ms": 738660,
-          "speakers": []
-        },
-        {
-          "text": "那",
-          "start_ms": 738660,
-          "end_ms": 738660,
-          "speakers": []
-        },
-        {
-          "text": "个",
-          "start_ms": 738660,
-          "end_ms": 739140,
-          "speakers": []
-        },
-        {
-          "text": "乱",
-          "start_ms": 739140,
-          "end_ms": 739300,
-          "speakers": []
-        },
-        {
-          "text": "停",
-          "start_ms": 739300,
-          "end_ms": 739460,
-          "speakers": []
-        },
-        {
-          "text": "放",
-          "start_ms": 739540,
-          "end_ms": 739700,
-          "speakers": []
-        },
-        {
-          "text": "问",
-          "start_ms": 739780,
-          "end_ms": 739860,
-          "speakers": []
-        },
-        {
-          "text": "题",
-          "start_ms": 739860,
-          "end_ms": 740020,
-          "speakers": []
-        },
-        {
-          "text": "吧，",
-          "start_ms": 740020,
-          "end_ms": 740180,
-          "speakers": []
-        },
-        {
-          "text": "就",
-          "start_ms": 740660,
-          "end_ms": 740740,
-          "speakers": []
-        },
-        {
-          "text": "是",
-          "start_ms": 740820,
-          "end_ms": 740820,
-          "speakers": []
-        },
-        {
-          "text": "说",
-          "start_ms": 741140,
-          "end_ms": 741540,
-          "speakers": []
-        },
-        {
-          "text": "我",
-          "start_ms": 741220,
-          "end_ms": 741620,
-          "speakers": []
-        },
-        {
-          "text": "们",
-          "start_ms": 741620,
-          "end_ms": 741700,
-          "speakers": []
-        },
-        {
-          "text": "这",
-          "start_ms": 741780,
-          "end_ms": 741940,
-          "speakers": []
-        },
-        {
-          "text": "边",
-          "start_ms": 741940,
-          "end_ms": 742260,
-          "speakers": []
-        },
-        {
-          "text": "停",
-          "start_ms": 742340,
-          "end_ms": 742580,
-          "speakers": []
-        },
-        {
-          "text": "放",
-          "start_ms": 742660,
-          "end_ms": 742900,
-          "speakers": []
-        },
-        {
-          "text": "的",
-          "start_ms": 742900,
-          "end_ms": 742980,
-          "speakers": []
-        },
-        {
-          "text": "话",
-          "start_ms": 742980,
-          "end_ms": 743140,
-          "speakers": []
-        },
-        {
-          "text": "可",
-          "start_ms": 743140,
-          "end_ms": 743220,
-          "speakers": []
-        },
-        {
-          "text": "以",
-          "start_ms": 743300,
-          "end_ms": 743380,
-          "speakers": []
-        },
-        {
-          "text": "多",
-          "start_ms": 743380,
-          "end_ms": 743620,
-          "speakers": []
-        },
-        {
-          "text": "设",
-          "start_ms": 743620,
-          "end_ms": 743940,
-          "speakers": []
-        },
-        {
-          "text": "几",
-          "start_ms": 743940,
-          "end_ms": 744180,
-          "speakers": []
-        },
-        {
-          "text": "个",
-          "start_ms": 744340,
-          "end_ms": 744500,
-          "speakers": []
-        },
-        {
-          "text": "停",
-          "start_ms": 744500,
-          "end_ms": 744660,
-          "speakers": []
-        },
-        {
-          "text": "放",
-          "start_ms": 744660,
-          "end_ms": 744820,
-          "speakers": []
-        },
-        {
-          "text": "的",
-          "start_ms": 744820,
-          "end_ms": 744900,
-          "speakers": []
-        },
-        {
-          "text": "站",
-          "start_ms": 744900,
-          "end_ms": 745220,
-          "speakers": []
-        },
-        {
-          "text": "点，",
-          "start_ms": 745220,
-          "end_ms": 745460,
-          "speakers": []
-        },
-        {
-          "text": "然",
-          "start_ms": 745860,
-          "end_ms": 746100,
-          "speakers": []
-        },
-        {
-          "text": "后",
-          "start_ms": 746100,
-          "end_ms": 746180,
-          "speakers": []
-        },
-        {
-          "text": "我",
-          "start_ms": 746180,
-          "end_ms": 746500,
-          "speakers": []
-        },
-        {
-          "text": "们",
-          "start_ms": 746660,
-          "end_ms": 746740,
-          "speakers": []
-        },
-        {
-          "text": "现",
-          "start_ms": 746740,
-          "end_ms": 746980,
-          "speakers": []
-        },
-        {
-          "text": "在",
-          "start_ms": 746980,
-          "end_ms": 747380,
-          "speakers": []
-        },
-        {
-          "text": "都",
-          "start_ms": 747380,
-          "end_ms": 747460,
-          "speakers": []
-        },
-        {
-          "text": "是",
-          "start_ms": 747540,
-          "end_ms": 747700,
-          "speakers": []
-        },
-        {
-          "text": "有",
-          "start_ms": 747700,
-          "end_ms": 747860,
-          "speakers": []
-        },
-        {
-          "text": "一",
-          "start_ms": 747860,
-          "end_ms": 747940,
-          "speakers": []
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 740320,
-      "end_ms": 740740,
-      "text": "嗯。",
+      "start_ms": 720450,
+      "end_ms": 736270,
+      "text": "然然后是呃下面这些现状倒是可以了，然后是现在我们分析一下产生这些现状的原因吧，然后是到底是怎么样弄成我们现在我们市里的共享单车出现了这么多的这么多的问题。",
       "speakers": [
         "S01"
       ],
@@ -5844,25 +2986,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 745540,
-      "end_ms": 745920,
+      "start_ms": 720470,
+      "end_ms": 720850,
       "text": "嗯。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 747960,
-      "end_ms": 760520,
-      "text": "些嗯APP定位导航的嘛，但是我觉得这些并不够，然后我们应该专门就是设一个停停放点，就是有那种标牌的那种，对对对上。",
       "speakers": [
         "S02"
       ],
@@ -5870,416 +2996,31 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "些",
-          "start_ms": 747960,
-          "end_ms": 748440,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "嗯",
-          "start_ms": 748760,
-          "end_ms": 749240,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "APP",
-          "start_ms": 749880,
-          "end_ms": 750200,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "定",
-          "start_ms": 750360,
-          "end_ms": 750520,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "位",
-          "start_ms": 750520,
-          "end_ms": 750600,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "导",
-          "start_ms": 750600,
-          "end_ms": 750760,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "航",
-          "start_ms": 750760,
-          "end_ms": 751080,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 751080,
-          "end_ms": 751160,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "嘛，",
-          "start_ms": 751160,
-          "end_ms": 751320,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "但",
-          "start_ms": 751320,
-          "end_ms": 751480,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 751480,
-          "end_ms": 751560,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 751560,
-          "end_ms": 751720,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "觉",
-          "start_ms": 751720,
-          "end_ms": 751800,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "得",
-          "start_ms": 751800,
-          "end_ms": 751960,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "这",
-          "start_ms": 751960,
-          "end_ms": 752040,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "些",
-          "start_ms": 752040,
-          "end_ms": 752520,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "并",
-          "start_ms": 752600,
-          "end_ms": 752760,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "不",
-          "start_ms": 752760,
-          "end_ms": 753000,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "够，",
-          "start_ms": 753000,
-          "end_ms": 753320,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "然",
-          "start_ms": 753400,
-          "end_ms": 753560,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "后",
-          "start_ms": 753560,
-          "end_ms": 753720,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 753720,
-          "end_ms": 753800,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "们",
-          "start_ms": 753800,
-          "end_ms": 754040,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "应",
-          "start_ms": 754120,
-          "end_ms": 754200,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "该",
-          "start_ms": 754200,
-          "end_ms": 754520,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "专",
-          "start_ms": 755000,
-          "end_ms": 755160,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "门",
-          "start_ms": 755240,
-          "end_ms": 755480,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "就",
-          "start_ms": 755480,
-          "end_ms": 755960,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 755960,
-          "end_ms": 756200,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "设",
-          "start_ms": 756200,
-          "end_ms": 756440,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "一",
-          "start_ms": 756440,
-          "end_ms": 756600,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "个",
-          "start_ms": 756600,
-          "end_ms": 756760,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "停",
-          "start_ms": 756760,
-          "end_ms": 757240,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "停",
-          "start_ms": 757400,
-          "end_ms": 757640,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "放",
-          "start_ms": 757640,
-          "end_ms": 757880,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "点，",
-          "start_ms": 757880,
-          "end_ms": 758120,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "就",
-          "start_ms": 758120,
-          "end_ms": 758280,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 758280,
-          "end_ms": 758440,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "有",
-          "start_ms": 758440,
-          "end_ms": 758520,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "那",
-          "start_ms": 758520,
-          "end_ms": 758680,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "种",
-          "start_ms": 758680,
-          "end_ms": 758840,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "标",
-          "start_ms": 758920,
-          "end_ms": 759080,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "牌",
-          "start_ms": 759080,
-          "end_ms": 759320,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 759320,
-          "end_ms": 759400,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "那",
-          "start_ms": 759400,
-          "end_ms": 759560,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "种，",
-          "start_ms": 759560,
-          "end_ms": 759720,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "对",
-          "start_ms": 759880,
-          "end_ms": 760280,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "对",
-          "start_ms": 760200,
-          "end_ms": 760280,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "对",
-          "start_ms": 760280,
-          "end_ms": 760280,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "上。",
-          "start_ms": 760440,
-          "end_ms": 760520,
-          "speakers": [
-            "S02"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
-      "start_ms": 753680,
-      "end_ms": 755120,
-      "text": "对APP定位系统。",
+      "start_ms": 736940,
+      "end_ms": 749420,
+      "text": "嗯，那我这边讲一下那个乱停放问题吧，就是说我们这边停放的话可以多设几个停放的站点，然后我们现在都是有一些嗯。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 740280,
+      "end_ms": 740750,
+      "text": "嗯。",
       "speakers": [
         "S01"
       ],
@@ -6293,8 +3034,56 @@
       "decision": "primary"
     },
     {
-      "start_ms": 759740,
-      "end_ms": 760340,
+      "start_ms": 745480,
+      "end_ms": 745910,
+      "text": "嗯。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 749750,
+      "end_ms": 764680,
+      "text": "APP定位导航的嘛，但是我觉得这些并不够，然后我们应该专门就是设一个停停放点，就是有那种标牌的那种，对对对，对，这样子的话大家呃不光是嗯。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 753660,
+      "end_ms": 754110,
+      "text": "对。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 759720,
+      "end_ms": 760310,
       "text": "标牌。",
       "speakers": [
         "S01"
@@ -6309,9 +3098,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 760620,
-      "end_ms": 771320,
-      "text": "对，这样子的话，大家嗯不光是嗯嗯APP上面定位，然后嗯肉眼然后也能找到这些嗯停放点。",
+      "start_ms": 764880,
+      "end_ms": 771310,
+      "text": "嗯，APP上面定位，然后嗯肉眼然后也能找到这些嗯停放点。",
       "speakers": [
         "S02"
       ],
@@ -6326,8 +3115,8 @@
     },
     {
       "start_ms": 771540,
-      "end_ms": 779120,
-      "text": "你这样以后做标牌的话，对我们市里的财政来说，包括各个方面来说都是一项很巨大的成本，这个你有没有考虑过？",
+      "end_ms": 779110,
+      "text": "你这样有做标牌的话，对我们市里的财政来说，包括各个方面来说都是一项很巨大的成本，这个你有没有考虑过？",
       "speakers": [
         "S01"
       ],
@@ -6342,8 +3131,8 @@
     },
     {
       "start_ms": 779340,
-      "end_ms": 789040,
-      "text": "嗯，这方面的话，我目前只想到了这个办法，或者就是或者是在那个。",
+      "end_ms": 784410,
+      "text": "嗯，这方面的话，我目前只想到了这个办法，或者。",
       "speakers": [
         "S02"
       ],
@@ -6357,9 +3146,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 791020,
-      "end_ms": 792060,
-      "text": "停放点设置",
+      "start_ms": 785480,
+      "end_ms": 786610,
+      "text": "就是。",
       "speakers": [
         "S02"
       ],
@@ -6367,56 +3156,15 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "停",
-          "start_ms": 791020,
-          "end_ms": 791180,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "放",
-          "start_ms": 791180,
-          "end_ms": 791500,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "点",
-          "start_ms": 791500,
-          "end_ms": 791580,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "设",
-          "start_ms": 791580,
-          "end_ms": 791900,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "置",
-          "start_ms": 791900,
-          "end_ms": 792060,
-          "speakers": [
-            "S02"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
-      "start_ms": 792060,
-      "end_ms": 800620,
-      "text": "一个小机器，然后嗯实时更新一下二维码，然后嗯呃用户在扫完二维码之后呢，就可以。",
+      "start_ms": 787520,
+      "end_ms": 789050,
+      "text": "或者是在那个。",
       "speakers": [
         "S02"
       ],
@@ -6424,296 +3172,31 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "一",
-          "start_ms": 792060,
-          "end_ms": 792300,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "个",
-          "start_ms": 792300,
-          "end_ms": 792620,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "小",
-          "start_ms": 792620,
-          "end_ms": 792860,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "机",
-          "start_ms": 792860,
-          "end_ms": 792940,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "器，",
-          "start_ms": 793020,
-          "end_ms": 793260,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "然",
-          "start_ms": 793260,
-          "end_ms": 793420,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "后",
-          "start_ms": 793420,
-          "end_ms": 793900,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "嗯",
-          "start_ms": 794220,
-          "end_ms": 794380,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "实",
-          "start_ms": 794380,
-          "end_ms": 794620,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "时",
-          "start_ms": 794620,
-          "end_ms": 794780,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "更",
-          "start_ms": 794860,
-          "end_ms": 795020,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "新",
-          "start_ms": 795020,
-          "end_ms": 795180,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "一",
-          "start_ms": 795180,
-          "end_ms": 795180,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "下",
-          "start_ms": 795180,
-          "end_ms": 795500,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "二",
-          "start_ms": 795500,
-          "end_ms": 795580,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "维",
-          "start_ms": 795580,
-          "end_ms": 795660,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "码，",
-          "start_ms": 795660,
-          "end_ms": 795980,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "然",
-          "start_ms": 795980,
-          "end_ms": 796220,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "后",
-          "start_ms": 796300,
-          "end_ms": 796620,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "嗯",
-          "start_ms": 797100,
-          "end_ms": 797420,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "呃",
-          "start_ms": 797580,
-          "end_ms": 797820,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "用",
-          "start_ms": 797820,
-          "end_ms": 798060,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "户",
-          "start_ms": 798060,
-          "end_ms": 798220,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "在",
-          "start_ms": 798220,
-          "end_ms": 798300,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "扫",
-          "start_ms": 798380,
-          "end_ms": 798700,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "完",
-          "start_ms": 798700,
-          "end_ms": 798780,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "二",
-          "start_ms": 799020,
-          "end_ms": 799100,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "维",
-          "start_ms": 799100,
-          "end_ms": 799180,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "码",
-          "start_ms": 799180,
-          "end_ms": 799340,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "之",
-          "start_ms": 799340,
-          "end_ms": 799500,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "后",
-          "start_ms": 799580,
-          "end_ms": 799740,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "呢，",
-          "start_ms": 799740,
-          "end_ms": 799900,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "就",
-          "start_ms": 799900,
-          "end_ms": 800060,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "可",
-          "start_ms": 800140,
-          "end_ms": 800220,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "以。",
-          "start_ms": 800220,
-          "end_ms": 800620,
-          "speakers": [
-            "S02"
-          ]
-        }
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 790920,
+      "end_ms": 800750,
+      "text": "停放点设置一个小机器，然后嗯实时更新一下二维码，然后嗯嗯用户在扫完二维码之后呢，就可以。",
+      "speakers": [
+        "S02"
       ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
       "start_ms": 800680,
-      "end_ms": 802320,
-      "text": "自动把车子提走，对吧。",
+      "end_ms": 802310,
+      "text": "自动把车子提走，对吗？",
       "speakers": [
         "S01"
       ],
@@ -6727,8 +3210,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 802040,
-      "end_ms": 804820,
+      "start_ms": 802020,
+      "end_ms": 804810,
       "text": "是的是的是的，这样子的话就是。",
       "speakers": [
         "S02"
@@ -6743,8 +3226,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 804760,
-      "end_ms": 805820,
+      "start_ms": 804750,
+      "end_ms": 805850,
       "text": "大数据时代。",
       "speakers": [
         "S01"
@@ -6759,9 +3242,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 805860,
+      "start_ms": 805850,
       "end_ms": 807620,
-      "text": "对停放点的话。",
+      "text": "对，停放点的话。",
       "speakers": [
         "S02"
       ],
@@ -6775,9 +3258,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 808260,
-      "end_ms": 813620,
-      "text": "都是规定好的，然后这些车没没办法停放的话，就无法规划。",
+      "start_ms": 808220,
+      "end_ms": 813610,
+      "text": "都是规定好的，然后这些车没没办法停放的话就无法归还。",
       "speakers": [
         "S02"
       ],
@@ -6791,9 +3274,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 813620,
-      "end_ms": 814720,
-      "text": "无法规划啊。",
+      "start_ms": 809810,
+      "end_ms": 810250,
+      "text": "嗯。",
       "speakers": [
         "S01"
       ],
@@ -6807,8 +3290,24 @@
       "decision": "primary"
     },
     {
-      "start_ms": 814440,
-      "end_ms": 814860,
+      "start_ms": 813610,
+      "end_ms": 814650,
+      "text": "无法归还啊。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 814450,
+      "end_ms": 814850,
       "text": "对。",
       "speakers": [
         "S02"
@@ -6823,8 +3322,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 815820,
-      "end_ms": 817940,
+      "start_ms": 815780,
+      "end_ms": 817950,
       "text": "对，其实这样也是一个办法，我觉得。",
       "speakers": [
         "S01"
@@ -6839,25 +3338,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 818420,
-      "end_ms": 818780,
-      "text": "嗯。",
-      "speakers": [
-        "S02"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 818940,
-      "end_ms": 825020,
-      "text": "然后我这边的话，我就想说就是那些换了的车，换了的车的话就是。",
+      "start_ms": 818380,
+      "end_ms": 825040,
+      "text": "嗯，然后我这边的话我就想说，就是那些换了的车，换了的车的话就是。",
       "speakers": [
         "S03"
       ],
@@ -6871,9 +3354,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 826180,
-      "end_ms": 840720,
-      "text": "换了车肯定要有修的嘛，人家修的话，他就是可以利用那种互联网技术，就是共享单车企业就可以将那种需要维护的单车远程锁定一下嘛，就可以派那个专业的维修人员去那边收一下。",
+      "start_ms": 826120,
+      "end_ms": 840750,
+      "text": "换了车肯定要有修的嘛，人家修的话，他就是可以利用那种互联网技术，就是共享单车企业就可以将那种需要维护的单车远程锁定一下嘛，就可以派那个专业的维修人员去那边修一下。",
       "speakers": [
         "S03"
       ],
@@ -6887,9 +3370,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 839000,
-      "end_ms": 846160,
-      "text": "对对对，但是保他维修，但如果是离得太远的话，中间的人力成本费的话，他们厂家能不能干得起啊。",
+      "start_ms": 839010,
+      "end_ms": 846180,
+      "text": "对对对，但是保单维修，但如果是离得太远的话，中间的人力成本费的话，他们厂家能不能担得起啊？",
       "speakers": [
         "S01"
       ],
@@ -6903,9 +3386,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 841260,
-      "end_ms": 841940,
-      "text": "对对对。",
+      "start_ms": 841250,
+      "end_ms": 841610,
+      "text": "对。",
       "speakers": [
         "S03"
       ],
@@ -6919,8 +3402,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 847840,
-      "end_ms": 848520,
+      "start_ms": 847820,
+      "end_ms": 848550,
       "text": "对呀。",
       "speakers": [
         "S01"
@@ -6936,7 +3419,7 @@
     },
     {
       "start_ms": 848820,
-      "end_ms": 849220,
+      "end_ms": 849210,
       "text": "嗯。",
       "speakers": [
         "S03"
@@ -6951,8 +3434,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 849380,
-      "end_ms": 858160,
+      "start_ms": 849360,
+      "end_ms": 858180,
       "text": "对啊，因为是太远的话，比方说我们在滨江，或者是他们在西溪湿地这种的话，他们来来回一趟的话，也厂家也是很麻烦的。",
       "speakers": [
         "S01"
@@ -6967,8 +3450,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 858780,
-      "end_ms": 866720,
+      "start_ms": 858760,
+      "end_ms": 866710,
       "text": "这样的话，其实也无形之中增加了厂家的成本，然后是不知道他们会不会愿意这样做呢？",
       "speakers": [
         "S01"
@@ -6983,8 +3466,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 867980,
-      "end_ms": 873840,
+      "start_ms": 867950,
+      "end_ms": 873850,
       "text": "然后虽然说这个点子是个很好的点子，但我们可以先按照这样继续做下去。",
       "speakers": [
         "S01"
@@ -7016,7 +3499,7 @@
     },
     {
       "start_ms": 875480,
-      "end_ms": 879720,
+      "end_ms": 879810,
       "text": "然后也应该加强对用户信用评分的那种建设。",
       "speakers": [
         "S03"

@@ -3,10 +3,7 @@
   "status": "completed",
   "error": null,
   "warnings": [
-    "joint_window_retry:527000:joint boundary alignment failed; cannot deduplicate safely",
-    "joint_window_retry:615000:joint boundary alignment failed; cannot deduplicate safely",
-    "joint_window_retry:659000:joint boundary alignment failed; cannot deduplicate safely",
-    "joint_window_retry:681000:joint boundary alignment failed; cannot deduplicate safely"
+    "joint_window_retry:527000:joint boundary alignment failed; cannot deduplicate safely"
   ],
   "segments": [
     {
@@ -2111,56 +2108,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 527950,
-      "end_ms": 528910,
-      "text": "这么长了。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "这",
-          "start_ms": 527950,
-          "end_ms": 528110,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "么",
-          "start_ms": 528110,
-          "end_ms": 528270,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "长",
-          "start_ms": 528270,
-          "end_ms": 528590,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "了。",
-          "start_ms": 528590,
-          "end_ms": 528910,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 529310,
-      "end_ms": 532050,
-      "text": "一种尖利的怪声突然大叫起来。",
+      "start_ms": 528070,
+      "end_ms": 532110,
+      "text": "这么长了，一种尖利的怪声突然大叫起来。",
       "speakers": [
         "S01"
       ],
@@ -2172,8 +2122,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 532830,
-      "end_ms": 548230,
+      "start_ms": 532790,
+      "end_ms": 548240,
       "text": "我吃了一喝，赶忙抬起头，却见一个凸颧骨，薄嘴唇，五十岁上下的女人站在我面前，两手搭在皮肩，没有系裙，张着两脚，正像一个画图仪器里细角伶仃的圆规。",
       "speakers": [
         "S01"
@@ -2202,7 +2152,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 551830,
+      "start_ms": 551820,
       "end_ms": 554710,
       "text": "不认识了吗？我还抱过你嘞。",
       "speakers": [
@@ -2217,7 +2167,7 @@
     },
     {
       "start_ms": 555910,
-      "end_ms": 563430,
+      "end_ms": 563440,
       "text": "我愈加愕然了，幸而我的母亲也就进来，从旁说，她多年出门，统忘却了。",
       "speakers": [
         "S01"
@@ -2233,7 +2183,7 @@
     },
     {
       "start_ms": 564330,
-      "end_ms": 570550,
+      "end_ms": 570540,
       "text": "你该记得吧，便向着我说，这是斜对门的杨二嫂，开豆腐店的。",
       "speakers": [
         "S01"
@@ -2263,7 +2213,7 @@
     },
     {
       "start_ms": 591550,
-      "end_ms": 603230,
+      "end_ms": 603220,
       "text": "那时人说，因为伊这豆腐店的买卖非常好，但这大约因为年龄的关系，我却并未蒙着一好感化，所以竟完全忘却了。",
       "speakers": [
         "S01"
@@ -2278,9 +2228,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 604350,
-      "end_ms": 615950,
-      "text": "然而圆规很不平，显出鄙夷的神色，仿佛嗤笑法国人不知道拿破仑，美国人不知道华盛顿似的，冷笑说，忘了，这真是贵人",
+      "start_ms": 604260,
+      "end_ms": 616650,
+      "text": "然而圆规很不平，显出鄙夷的神色，仿佛嗤笑法国人不知道拿破仑，美国人不知道华盛顿似的，冷笑说，忘了，这真是贵人眼高。",
       "speakers": [
         "S01"
       ],
@@ -2288,425 +2238,15 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "然",
-          "start_ms": 604350,
-          "end_ms": 604430,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "而",
-          "start_ms": 604430,
-          "end_ms": 604590,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "圆",
-          "start_ms": 604590,
-          "end_ms": 604830,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "规",
-          "start_ms": 604830,
-          "end_ms": 604990,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "很",
-          "start_ms": 604990,
-          "end_ms": 605150,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "不",
-          "start_ms": 605150,
-          "end_ms": 605310,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "平，",
-          "start_ms": 605310,
-          "end_ms": 605710,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "显",
-          "start_ms": 606030,
-          "end_ms": 606190,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "出",
-          "start_ms": 606190,
-          "end_ms": 606350,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "鄙",
-          "start_ms": 606350,
-          "end_ms": 606510,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "夷",
-          "start_ms": 606510,
-          "end_ms": 606670,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 606670,
-          "end_ms": 606830,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "神",
-          "start_ms": 606830,
-          "end_ms": 607070,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "色，",
-          "start_ms": 607070,
-          "end_ms": 607310,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "仿",
-          "start_ms": 607630,
-          "end_ms": 607790,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "佛",
-          "start_ms": 607790,
-          "end_ms": 608110,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "嗤",
-          "start_ms": 608110,
-          "end_ms": 608350,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "笑",
-          "start_ms": 608350,
-          "end_ms": 608510,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "法",
-          "start_ms": 608510,
-          "end_ms": 608750,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "国",
-          "start_ms": 608750,
-          "end_ms": 608910,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "人",
-          "start_ms": 608910,
-          "end_ms": 608990,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "不",
-          "start_ms": 608990,
-          "end_ms": 609230,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "知",
-          "start_ms": 609230,
-          "end_ms": 609310,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "道",
-          "start_ms": 609310,
-          "end_ms": 609550,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "拿",
-          "start_ms": 609550,
-          "end_ms": 609630,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "破",
-          "start_ms": 609630,
-          "end_ms": 609870,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "仑，",
-          "start_ms": 609870,
-          "end_ms": 610190,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "美",
-          "start_ms": 610350,
-          "end_ms": 610590,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "国",
-          "start_ms": 610590,
-          "end_ms": 610670,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "人",
-          "start_ms": 610670,
-          "end_ms": 610830,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "不",
-          "start_ms": 610830,
-          "end_ms": 610990,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "知",
-          "start_ms": 610990,
-          "end_ms": 611150,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "道",
-          "start_ms": 611150,
-          "end_ms": 611230,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "华",
-          "start_ms": 611230,
-          "end_ms": 611390,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "盛",
-          "start_ms": 611390,
-          "end_ms": 611630,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "顿",
-          "start_ms": 611630,
-          "end_ms": 611790,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "似",
-          "start_ms": 611790,
-          "end_ms": 612030,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的，",
-          "start_ms": 612030,
-          "end_ms": 612190,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "冷",
-          "start_ms": 612430,
-          "end_ms": 612590,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "笑",
-          "start_ms": 612590,
-          "end_ms": 612830,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "说，",
-          "start_ms": 612830,
-          "end_ms": 613230,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "忘",
-          "start_ms": 613870,
-          "end_ms": 614190,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "了，",
-          "start_ms": 614190,
-          "end_ms": 614510,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "这",
-          "start_ms": 614830,
-          "end_ms": 614990,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "真",
-          "start_ms": 614990,
-          "end_ms": 615230,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 615230,
-          "end_ms": 615470,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "贵",
-          "start_ms": 615470,
-          "end_ms": 615710,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "人",
-          "start_ms": 615710,
-          "end_ms": 615950,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
-      "start_ms": 616110,
-      "end_ms": 616510,
-      "text": "高。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "高。",
-          "start_ms": 616110,
-          "end_ms": 616510,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 617730,
-      "end_ms": 621610,
-      "text": "哪有这事，我我惶恐着站起来说。",
+      "start_ms": 617720,
+      "end_ms": 621640,
+      "text": "哪有这事，我，我惶恐着站起来说。",
       "speakers": [
         "S01"
       ],
@@ -2721,7 +2261,7 @@
     },
     {
       "start_ms": 621980,
-      "end_ms": 631720,
+      "end_ms": 631760,
       "text": "那么我对你说，迅哥儿，你阔了，搬动又笨重，你还要什么这些破烂木器，让我拿去吧，我们小户人家用得着。",
       "speakers": [
         "S01"
@@ -2736,8 +2276,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 633220,
-      "end_ms": 637010,
+      "start_ms": 633210,
+      "end_ms": 637020,
       "text": "我并没有阔嘞，我我去卖了这些再去。",
       "speakers": [
         "S01"
@@ -2752,8 +2292,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 637680,
-      "end_ms": 648860,
+      "start_ms": 637710,
+      "end_ms": 648890,
       "text": "哎呀呀，你放了道台了，还说不阔，你现在有三房姨太太，出门便是八抬的大轿，还说不阔，哈，什么都瞒不过我。",
       "speakers": [
         "S01"
@@ -2769,7 +2309,7 @@
     },
     {
       "start_ms": 650210,
-      "end_ms": 654580,
+      "end_ms": 654640,
       "text": "我知道无话可说了，便闭了口，默默地站着。",
       "speakers": [
         "S01"
@@ -2784,9 +2324,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 655400,
-      "end_ms": 660040,
-      "text": "哎呀哎呀，真是愈有钱便愈是一毫不肯放松，愈是",
+      "start_ms": 655320,
+      "end_ms": 662310,
+      "text": "哎呀哎呀，真是愈有钱便愈是一毫不肯放松，愈是一毫不肯放松便愈有钱。",
       "speakers": [
         "S01"
       ],
@@ -2794,272 +2334,14 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "哎",
-          "start_ms": 655400,
-          "end_ms": 655800,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "呀",
-          "start_ms": 655800,
-          "end_ms": 656280,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "哎",
-          "start_ms": 656280,
-          "end_ms": 656280,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "呀，",
-          "start_ms": 656360,
-          "end_ms": 656600,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "真",
-          "start_ms": 656600,
-          "end_ms": 656840,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 656840,
-          "end_ms": 657000,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "愈",
-          "start_ms": 657000,
-          "end_ms": 657320,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "有",
-          "start_ms": 657320,
-          "end_ms": 657480,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "钱",
-          "start_ms": 657480,
-          "end_ms": 657720,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "便",
-          "start_ms": 657720,
-          "end_ms": 657960,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "愈",
-          "start_ms": 657960,
-          "end_ms": 658120,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 658120,
-          "end_ms": 658280,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "一",
-          "start_ms": 658280,
-          "end_ms": 658440,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "毫",
-          "start_ms": 658440,
-          "end_ms": 658680,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "不",
-          "start_ms": 658680,
-          "end_ms": 658760,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "肯",
-          "start_ms": 658760,
-          "end_ms": 658920,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "放",
-          "start_ms": 658920,
-          "end_ms": 659160,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "松，",
-          "start_ms": 659160,
-          "end_ms": 659480,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "愈",
-          "start_ms": 659800,
-          "end_ms": 659880,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 659880,
-          "end_ms": 660040,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
-      "start_ms": 660030,
-      "end_ms": 662190,
-      "text": "一毫不肯放松，便愈有钱。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "一",
-          "start_ms": 660030,
-          "end_ms": 660190,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "毫",
-          "start_ms": 660190,
-          "end_ms": 660430,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "不",
-          "start_ms": 660430,
-          "end_ms": 660510,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "肯",
-          "start_ms": 660510,
-          "end_ms": 660670,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "放",
-          "start_ms": 660670,
-          "end_ms": 660910,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "松，",
-          "start_ms": 660910,
-          "end_ms": 661150,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "便",
-          "start_ms": 661150,
-          "end_ms": 661310,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "愈",
-          "start_ms": 661310,
-          "end_ms": 661470,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "有",
-          "start_ms": 661470,
-          "end_ms": 661630,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "钱。",
-          "start_ms": 661630,
-          "end_ms": 662190,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 662750,
-      "end_ms": 672110,
+      "start_ms": 662720,
+      "end_ms": 672160,
       "text": "圆规一面愤愤的回转身，一面续续的说，慢慢向外走，顺便将我母亲的一副手套塞在裤腰里，出去了。",
       "speakers": [
         "S01"
@@ -3074,8 +2356,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 672960,
-      "end_ms": 681940,
+      "start_ms": 672950,
+      "end_ms": 681980,
       "text": "此后又有近处的本家和亲戚来访问我，我一面应酬，偷空便收拾些行李，这样的过了三四天。",
       "speakers": [
         "S01"
@@ -3088,8 +2370,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 683450,
-      "end_ms": 691540,
+      "start_ms": 683460,
+      "end_ms": 691610,
       "text": "一日是天气很冷的午后，我吃过午饭，坐着喝茶，觉得外面有人进来了，便回头去看。",
       "speakers": [
         "S01"
@@ -3104,8 +2386,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 692050,
-      "end_ms": 696720,
+      "start_ms": 692090,
+      "end_ms": 696810,
       "text": "我看时不由得非常出惊，慌忙站起身，迎着走去。",
       "speakers": [
         "S01"
@@ -3120,9 +2402,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 698580,
-      "end_ms": 703990,
-      "text": "进来的便是闰土，虽然我一见便知道是闰土，但又不是我。",
+      "start_ms": 698630,
+      "end_ms": 703980,
+      "text": "进来的便是闰土，虽然我一见便知道是闰土，但又不是我",
       "speakers": [
         "S01"
       ],
