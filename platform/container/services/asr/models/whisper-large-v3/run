@@ -4,13 +4,26 @@ set -euo pipefail
 
 model_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
+export XDG_CACHE_HOME=/home/x/.cache
+export VLLM_CACHE_ROOT=/home/x/.cache/vllm
+export CUDA_CACHE_PATH=/home/x/.cache/nv/ComputeCache
+export CUDA_CACHE_MAXSIZE=4294967296
+export TORCH_EXTENSIONS_DIR=/home/x/.cache/torch_extensions
+export VLLM_ENABLE_STARTUP_PLAN=1
+export VLLM_MEDIA_LOADING_THREAD_COUNT=16
+export OMP_NUM_THREADS=8
+export MKL_NUM_THREADS=8
+export OPENBLAS_NUM_THREADS=8
+export NUMEXPR_MAX_THREADS=8
+export MAX_JOBS=24
+export FLASHINFER_NVCC_THREADS=10
+
 export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 export TOKENIZERS_PARALLELISM=false
-export OMP_NUM_THREADS=4
 
 export CUDA_HOME=/usr/local/cuda-13.0
-export CUDA_CACHE_PATH=/home/x/.cache/nv/ComputeCache
+export FLASHINFER_WORKSPACE_BASE=/home/x/.cache/flashinfer-workspaces/whisper-large-v3
 export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64
 
 # 448 是 Whisper decoder 的上下文限制，不能套其他模型的 8192。
@@ -28,6 +41,7 @@ exec uv run \
   --tensor-parallel-size 1 \
   --max-model-len 448 \
   --gpu-memory-utilization 0.10 \
+  --model-loader-extra-config '{"enable_multithread_load":true,"num_threads":8}' \
   --seed 0 \
   --generation-config vllm \
   "$@"

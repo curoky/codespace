@@ -129,7 +129,7 @@ evidence，仍未完整结束的响应按失败处理。
 | --- | --- | --- | --- |
 | `${RESOURCE_DATA}/models` | `/model-data` | 正常部署 rw；预下载测试可 ro | 13 个固定 snapshot、HF metadata 与 `.revision`；跨 image / container 保留 |
 | `${RESOURCE_DATA}/requests` | `/data/asr` | rw，UID/GID `5230:5230` 可写 | 上传原音、解码 WAV 和切片；语义上是临时空间，正常与可处理异常请求都清理 |
-| `${RESOURCE_DATA}/cache` | `/home/x/.cache` | rw，UID/GID `5230:5230` 可写 | vLLM、TorchInductor、CUDA、Triton、FlashInfer 与 Torch extensions 的可再生编译 cache；跨 image / container 保留，不含转写正文 |
+| `${RESOURCE_DATA}/cache` | `/home/x/.cache` | rw，UID/GID `5230:5230` 可写 | vLLM startup plan、TorchInductor、CUDA、Triton、FlashInfer 与 Torch extensions 的可再生 cache；跨 image / container 保留，不含转写正文 |
 | Podman secret `huggingface_token` | `/run/secrets/huggingface_token` | ro，x 可读 | 仅 marker 缺失或 revision 改变时读取，不写入 image 或 model-data |
 | Podman private shared memory | `/dev/shm` | rw，8 GiB | FireRed tensor parallel / NCCL 的进程间通信；不持久化 |
 | 容器内部 tmpfs / writable layer | `/run/asr` | rw | 启动期 GPU UUID 环境文件；容器替换即消失 |
@@ -138,7 +138,17 @@ evidence，仍未完整结束的响应按失败处理。
 `/opt/asr` 只包含代码与预装环境，不能被 volume 遮蔽。没有 `/model-data` mount 时权重会
 落入容器 writable layer 并随容器替换丢失，因此不属于受支持的持久部署形态。
 `/home/x/.cache` 只复用与当前代码、模型和 GPU 兼容的 cache key；首次启动仍会生成缺失产物，
-无需也不能在没有 GPU 和运行时权重的 image build 中预热。
+无需也不能在没有 GPU 和运行时权重的 image build 中预热。首次成功启动还会保存显存
+profiling 的 startup plan；相同配置再次启动时通过空闲显存校验后复用。
+每个 `models/<model>/run` 固定该模型完整的 cache、CPU/JIT、CUDA、loader 与 serving 参数；
+s6 只注入实例端口和 placement 得到的 GPU UUID，因此模型目录可以脱离 s6 definition 检查其
+完整运行配置。
+FireRed TP2 使用固定 KV cache，不复用 startup plan，也不执行 memory profiling，避免两个
+rank 因共卡显存基线不同走入不同 collective 路径；显存比例只作为启动上限检查，不决定
+KV cache 容量。FireRed TP2 禁用 custom all-reduce 并使用 NCCL，避免固定 KV 路径下两个
+rank 在 FlashInfer workspace 初始化时进入不对称状态；其 FlashInfer all-reduce backend
+同样关闭，TP 通信只走 NCCL symmetric memory / PyNCCL。FlashInfer JIT cache 按模型环境
+分目录；不同模型首次编译可并行，同一模型的多个实例共享已编译 extension。
 
 ## Model Inventory And Deployment
 

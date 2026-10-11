@@ -32,6 +32,19 @@ SDK。逐模型的 Python、SDK、Transformers、vLLM、Torch、CUDA、Serving �
 在 `DESIGN.md` 的模型汇总表；实际 source of truth 仍是各目录 `.python-version`、
 `pyproject.toml` 与 `uv.lock`。升级依赖后必须从 lock 的 Linux 解析结果更新该表。
 
+每个 `models/<model>/run` 自包含该模型的固定运行参数，包括持久 cache 路径、CPU 并行预算、
+JIT 并发、CUDA toolchain、loader 与 serving 参数；Dockerfile 和 s6 instance
+definition 不复制这些值。vLLM checkpoint 使用固定多线程 safetensors loader；native
+extension build 与媒体加载使用模型脚本声明的固定预算。FlashInfer JIT cache 按模型环境
+隔离，避免不同 venv 的绝对源码路径使同一 extension 串行反复重编译；同模型的多个实例
+共享一份。s6 longrun 负责切换到 x、设置 HOME，并注入 scheduler 生成的实例端口和 GPU UUID。
+TorchInductor compile thread 数由 vLLM 自己固定，不从项目侧强行覆盖。
+FireRed TP2 的两个 rank 共卡显存基线不同，使用固定 KV cache 并关闭 startup plan，让两个
+rank 一起跳过 collective memory profiling；`gpu-memory-utilization` 只保留为启动显存上限
+检查，不参与 KV cache 容量计算。禁用 custom all-reduce，避免固定 KV 路径下两个 rank 在
+FlashInfer workspace 初始化时走入不对称状态；同时关闭 FlashInfer all-reduce backend，TP
+通信只使用 NCCL symmetric memory / PyNCCL。其他单卡 vLLM 实例继续复用 startup plan。
+
 Server 内部模型调用使用 Pydantic 团队维护的 `httpx2`，vLLM client 通过原生
 `AsyncClient.sse()` 解析 Server-Sent Events；`models/vllm.py` 只负责 OpenAI completion
 schema 与完整性判断。独立 CLI 仍用 HTTPX 普通 JSON API，并用 Pydantic 校验完整响应。
@@ -158,7 +171,7 @@ cache 后才结束 layer；s6 graph 切回 root 编译。
 | `/var/log/s6.asr-*.log` | 使用 `redirfd -w` 与 `fdmove`，沿用 shared runtime |
 | `/model-data` | 正常部署 rw；x 必须可写；禁止挂载 `/opt/asr` 或模型目录遮蔽代码与 venv |
 | `/data/asr` | x 可写的请求临时区，不保存转录结果或任务状态 |
-| `/home/x/.cache` | x 可写的持久 runtime cache；只保存 vLLM / TorchInductor / CUDA / Triton / FlashInfer / Torch extensions 可再生编译产物 |
+| `/home/x/.cache` | x 可写的持久 runtime cache；只保存 vLLM startup plan、TorchInductor / CUDA / Triton / FlashInfer / Torch extensions 可再生编译产物 |
 
 HF token 只在 download oneshot 需要联网时从 `/run/secrets/huggingface_token` 读取；必须
 以 UID/GID `5230:5230` 可读，不能进入命令行、脚本、image layer 或 model-data。marker

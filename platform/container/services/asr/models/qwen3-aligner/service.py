@@ -28,6 +28,7 @@ def app() -> FastAPI:
         max_model_len=8192,
         tensor_parallel_size=1,
         gpu_memory_utilization=0.10,
+        model_loader_extra_config={"enable_multithread_load": True, "num_threads": 8},
         hf_overrides={"architectures": ["Qwen3ASRForcedAlignerForTokenClassification"]},
     )
 

@@ -4,16 +4,31 @@ set -euo pipefail
 
 model_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
+export XDG_CACHE_HOME=/home/x/.cache
+export VLLM_CACHE_ROOT=/home/x/.cache/vllm
+export CUDA_CACHE_PATH=/home/x/.cache/nv/ComputeCache
+export CUDA_CACHE_MAXSIZE=4294967296
+export TORCH_EXTENSIONS_DIR=/home/x/.cache/torch_extensions
+export VLLM_ENABLE_STARTUP_PLAN=0
+export VLLM_MEDIA_LOADING_THREAD_COUNT=16
+export OMP_NUM_THREADS=8
+export MKL_NUM_THREADS=8
+export OPENBLAS_NUM_THREADS=8
+export NUMEXPR_MAX_THREADS=8
+export MAX_JOBS=24
+export FLASHINFER_NVCC_THREADS=10
+
 export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 export TOKENIZERS_PARALLELISM=false
-export OMP_NUM_THREADS=4
 
 export CUDA_HOME=/usr/local/cuda-13.0
-export CUDA_CACHE_PATH=/home/x/.cache/nv/ComputeCache
+export FLASHINFER_WORKSPACE_BASE=/home/x/.cache/flashinfer-workspaces/firered-llm
 export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64
+export VLLM_ALLREDUCE_USE_FLASHINFER=0
 
 # FP32 / TP=2 沿用作者对转换权重的部署配方；改精度或 TP 前须验证并同步 catalog.py。
+# 固定 KV cache 让两个 TP rank 一起跳过 collective memory profiling。
 # vLLM 从 processor 固定 30 秒输入；上层使用相同窗口边界，不传不支持的 server 级 ASR 配置。
 exec uv run \
   --project "$model_dir" \
@@ -27,7 +42,10 @@ exec uv run \
   --dtype float32 \
   --tensor-parallel-size 2 \
   --max-model-len 8192 \
+  --disable-custom-all-reduce \
   --gpu-memory-utilization 0.40 \
+  --kv-cache-memory-bytes 6854387712 \
+  --model-loader-extra-config '{"enable_multithread_load":true,"num_threads":9}' \
   --seed 0 \
   --generation-config vllm \
   "$@"

@@ -39,7 +39,9 @@ def test_each_model_has_revisioned_download_and_static_service(tmp_path: Path) -
         for instance in model_instances:
             serve = graph / f"asr-{instance.id}"
             run = (serve / "run").read_text()
+            assert "/run/s6/container_environment" not in run
             assert "s6-setuidgid x" in run
+            assert "s6-env HOME=/home/x" in run
             assert f"/run/asr/{instance.id}/PORT" in run
             dependency = serve / f"dependencies.d/asr-{spec.id}-download"
             assert dependency.is_file()
@@ -125,14 +127,44 @@ def test_image_contains_no_model_weights() -> None:
 def test_runtime_compilation_cache_is_persistent() -> None:
     root = Path(__file__).resolve().parents[1]
     dockerfile = (root / "Dockerfile").read_text()
+    assert "ENV XDG_CACHE_HOME=" not in dockerfile
+    runtime_environment = (
+        "export XDG_CACHE_HOME=/home/x/.cache",
+        "export VLLM_CACHE_ROOT=/home/x/.cache/vllm",
+        "export CUDA_CACHE_PATH=/home/x/.cache/nv/ComputeCache",
+        "export CUDA_CACHE_MAXSIZE=4294967296",
+        "export TORCH_EXTENSIONS_DIR=/home/x/.cache/torch_extensions",
+        "export VLLM_MEDIA_LOADING_THREAD_COUNT=16",
+        "export OMP_NUM_THREADS=8",
+        "export MKL_NUM_THREADS=8",
+        "export OPENBLAS_NUM_THREADS=8",
+        "export NUMEXPR_MAX_THREADS=8",
+        "export MAX_JOBS=24",
+        "export FLASHINFER_NVCC_THREADS=10",
+    )
+    for run_path in (root / "models").glob("*/run"):
+        run = run_path.read_text()
+        for setting in runtime_environment:
+            assert setting in run
+        startup_plan = 0 if run_path.parent.name == "firered-llm" else 1
+        assert f"export VLLM_ENABLE_STARTUP_PLAN={startup_plan}" in run
+
     for setting in (
         "XDG_CACHE_HOME=/home/x/.cache",
         "VLLM_CACHE_ROOT=/home/x/.cache/vllm",
-        "FLASHINFER_WORKSPACE_BASE=/home/x",
         "CUDA_CACHE_PATH=/home/x/.cache/nv/ComputeCache",
+        "CUDA_CACHE_MAXSIZE=4294967296",
         "TORCH_EXTENSIONS_DIR=/home/x/.cache/torch_extensions",
+        "VLLM_ENABLE_STARTUP_PLAN=1",
+        "VLLM_MEDIA_LOADING_THREAD_COUNT=16",
+        "OMP_NUM_THREADS=8",
+        "MKL_NUM_THREADS=8",
+        "OPENBLAS_NUM_THREADS=8",
+        "NUMEXPR_MAX_THREADS=8",
+        "MAX_JOBS=24",
+        "FLASHINFER_NVCC_THREADS=10",
     ):
-        assert setting in dockerfile
+        assert setting not in dockerfile
     assert "TRITON_CACHE_DIR" not in dockerfile
     assert "chown x:x /data/asr /model-data /run/asr /home/x/.cache" in dockerfile
     for model in (
@@ -149,6 +181,37 @@ def test_runtime_compilation_cache_is_persistent() -> None:
             in (root / "models" / model / "run").read_text()
         )
 
+    loader_config = (
+        '--model-loader-extra-config \'{"enable_multithread_load":true,"num_threads":8}\''
+    )
+    for model in (
+        "moss-audio",
+        "moss-td",
+        "qwen3-asr-1.7b",
+        "vibevoice",
+        "whisper-large-v3",
+    ):
+        run = (root / "models" / model / "run").read_text()
+        assert loader_config in run
+        assert f"FLASHINFER_WORKSPACE_BASE=/home/x/.cache/flashinfer-workspaces/{model}" in run
+    firered = (root / "models/firered-llm/run").read_text()
+    assert (
+        '--model-loader-extra-config \'{"enable_multithread_load":true,"num_threads":9}\''
+        in firered
+    )
+    assert "export VLLM_ALLREDUCE_USE_FLASHINFER=0" in firered
+    assert "--disable-custom-all-reduce" in firered
+    assert "--kv-cache-memory-bytes 6854387712" in firered
+    assert "--gpu-memory-utilization 0.40" in firered
+    assert (
+        "FLASHINFER_WORKSPACE_BASE=/home/x/.cache/flashinfer-workspaces/qwen3-aligner"
+        in (root / "models/qwen3-aligner/run").read_text()
+    )
+    assert "export VLLM_ENABLE_STARTUP_PLAN=0" in firered
+    aligner = (root / "models/qwen3-aligner/service.py").read_text()
+    assert (
+        'model_loader_extra_config={"enable_multithread_load": True, "num_threads": 8}' in aligner
+    )
     example = Path(__file__).resolve().parents[5] / "config.example.yaml"
     deployment = yaml.safe_load(example.read_text())["services"]["asr"]["container"]
     assert "${RESOURCE_DATA}/cache:/home/x/.cache" in deployment["volumes"]
