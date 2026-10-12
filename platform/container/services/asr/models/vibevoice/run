@@ -32,7 +32,7 @@ exec uv run \
   --project "$model_dir" \
   --frozen \
   --no-sync \
-  vllm serve \
+  python "$model_dir/serve.py" \
   "$model_dir/weights" \
   --served-model-name vibevoice \
   --host 127.0.0.1 \
@@ -41,6 +41,7 @@ exec uv run \
   --tensor-parallel-size 1 \
   --chat-template "$model_dir/chat_template.jinja" \
   --max-model-len 65536 \
+  --max-num-seqs 2 \
   --gpu-memory-utilization 0.60 \
   --model-loader-extra-config '{"enable_multithread_load":true,"num_threads":8}' \
   --seed 0 \

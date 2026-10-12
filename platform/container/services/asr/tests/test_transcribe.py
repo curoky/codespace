@@ -252,8 +252,8 @@ def test_static_placement_starts_all_models_on_configured_devices(tmp_path: Path
         assert scheduler.instances["moss-td"].devices == ["GPU-3"]
         assert scheduler.instances["vibevoice-a"].devices == ["GPU-5"]
         assert scheduler.instances["vibevoice-b"].devices == ["GPU-6"]
-        assert scheduler.instances["qwen3-aligner-review"].devices == ["GPU-1"]
-        assert scheduler.instances["qwen3-aligner-recipe"].devices == ["GPU-0"]
+        assert scheduler.instances["qwen3-aligner-review"].devices == ["GPU-6"]
+        assert scheduler.instances["qwen3-aligner-recipe"].devices == ["GPU-7"]
         assert all(instance.running for instance in scheduler.instances.values())
         await scheduler.close()
         assert all(instance.running for instance in scheduler.instances.values())
@@ -307,18 +307,49 @@ def test_failed_request_cleans_temporary_audio(tmp_path: Path) -> None:
         assert list(work.iterdir()) == []
 
 
-def test_instance_pool_runs_two_replicas_and_queues_the_third_call(tmp_path: Path) -> None:
+def test_instance_pool_fills_replica_capacity_and_queues_the_fifth_call(
+    tmp_path: Path,
+) -> None:
     scheduler = runtime(tmp_path)
 
     async def run() -> None:
         first = await scheduler.acquire("vibevoice")
         second = await scheduler.acquire("vibevoice")
-        assert {first.id, second.id} == {"vibevoice-a", "vibevoice-b"}
+        third = await scheduler.acquire("vibevoice")
+        fourth = await scheduler.acquire("vibevoice")
+        assert [first.id, second.id, third.id, fourth.id] == [
+            "vibevoice-a",
+            "vibevoice-a",
+            "vibevoice-b",
+            "vibevoice-b",
+        ]
         waiting = asyncio.create_task(scheduler.acquire("vibevoice"))
         await asyncio.sleep(0)
         other = await asyncio.wait_for(scheduler.acquire("firered-llm"), 0.2)
         assert not waiting.done()
         await scheduler.release(other)
+        await scheduler.release(first)
+        fifth = await waiting
+        assert fifth is first
+        await scheduler.release(fifth)
+        await scheduler.release(second)
+        await scheduler.release(third)
+        await scheduler.release(fourth)
+        await scheduler.close()
+
+    asyncio.run(run())
+
+
+def test_instance_capacity_runs_two_calls_and_queues_the_third_call(tmp_path: Path) -> None:
+    scheduler = runtime(tmp_path)
+
+    async def run() -> None:
+        first = await scheduler.acquire("firered-llm")
+        second = await scheduler.acquire("firered-llm")
+        assert first is second
+        waiting = asyncio.create_task(scheduler.acquire("firered-llm"))
+        await asyncio.sleep(0)
+        assert not waiting.done()
         await scheduler.release(first)
         third = await waiting
         assert third is first
@@ -629,6 +660,34 @@ def test_review_processes_windows_by_model(tmp_path: Path) -> None:
             "whisper-large-v3": "您好世界。",
             "moss-audio": "你好世界。",
         }
+
+
+def test_review_skips_multiple_speaker_windows(tmp_path: Path) -> None:
+    scheduler = runtime(tmp_path)
+    audio = tmp_path / "audio.wav"
+    audio.write_bytes(wav(30))
+    pipeline = Pipeline(scheduler.config, Inference(scheduler, tmp_path), audio, 30000, Options())
+    window = Window(start_ms=0, end_ms=30000, core_start_ms=0, core_end_ms=30000)
+    pipeline.chunks = [window]
+    pipeline.speakers = [
+        Span(start_ms=0, end_ms=15000, speaker="S01"),
+        Span(start_ms=15000, end_ms=30000, speaker="S02"),
+    ]
+    pipeline.candidates = {
+        window.model_dump_json(): {"qwen3-asr-1.7b": "你好", "firered-llm": "您好"}
+    }
+
+    async def recognize(model: str, window: Window, *, step: str) -> InferenceResult:
+        raise AssertionError(f"unexpected review call: {model}")
+
+    pipeline.recognize = recognize  # type: ignore[method-assign]
+
+    async def run() -> None:
+        await pipeline.review()
+        await scheduler.close()
+
+    asyncio.run(run())
+    assert pipeline.reviewed == {}
 
 
 def test_first_pass_runs_models_concurrently_but_windows_serially(tmp_path: Path) -> None:

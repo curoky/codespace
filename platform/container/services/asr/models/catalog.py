@@ -7,6 +7,7 @@ class ModelSpec:
     family: str
     gpus: int = 1
     memory_gib: float = 12
+    max_inflight: int = 1
     startup_seconds: int = 900
     max_audio_seconds: int = 30
     hotwords: bool = False
@@ -14,10 +15,10 @@ class ModelSpec:
 
 
 MODELS = (
-    ModelSpec("firered-llm", "firered", gpus=2, memory_gib=32),
+    ModelSpec("firered-llm", "firered", gpus=2, memory_gib=32, max_inflight=2),
     ModelSpec("firered-punc", "firered", gpus=0, memory_gib=0),
     ModelSpec("firered-vad", "firered", gpus=0, memory_gib=0, max_audio_seconds=86400),
-    ModelSpec("moss-audio", "moss-audio", memory_gib=32),
+    ModelSpec("moss-audio", "moss-audio", memory_gib=32, max_inflight=2),
     ModelSpec("moss-td", "moss-td", memory_gib=48, max_audio_seconds=180),
     ModelSpec("nemotron-diarization", "nemotron", max_audio_seconds=86400),
     ModelSpec("paraformer", "paraformer", memory_gib=4),
@@ -29,8 +30,15 @@ MODELS = (
         num_speakers=True,
     ),
     ModelSpec("qwen3-aligner", "qwen", memory_gib=8, max_audio_seconds=300),
-    ModelSpec("qwen3-asr-1.7b", "qwen", hotwords=True),
+    ModelSpec("qwen3-asr-1.7b", "qwen", max_inflight=2, hotwords=True),
     ModelSpec("sensevoice", "sensevoice", memory_gib=4),
-    ModelSpec("vibevoice", "vibevoice", memory_gib=48, max_audio_seconds=180, hotwords=True),
+    ModelSpec(
+        "vibevoice",
+        "vibevoice",
+        memory_gib=48,
+        max_inflight=2,
+        max_audio_seconds=180,
+        hotwords=True,
+    ),
     ModelSpec("whisper-large-v3", "whisper", memory_gib=8),
 )

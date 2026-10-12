@@ -43,7 +43,11 @@ FireRed TP2 的两个 rank 共卡显存基线不同，使用固定 KV cache 并�
 rank 一起跳过 collective memory profiling；`gpu-memory-utilization` 只保留为启动显存上限
 检查，不参与 KV cache 容量计算。禁用 custom all-reduce，避免固定 KV 路径下两个 rank 在
 FlashInfer workspace 初始化时走入不对称状态；同时关闭 FlashInfer all-reduce backend，TP
-通信只使用 NCCL symmetric memory / PyNCCL。其他单卡 vLLM 实例继续复用 startup plan。
+通信只使用 NCCL symmetric memory / PyNCCL。FireRed、MOSS-Audio 与 Qwen3-ASR 的 scheduler
+容量和 vLLM `max-num-seqs` 同为 2，允许 batch throughput 模式下两个请求 continuous batching。
+VibeVoice 两个实例也各有两个 slot；scheduler 按配置顺序填满 A 再溢出到 B，保留同卡 batching，
+避免主动把 04 与 GPU 6 上另一请求的 Paraformer first pass 重叠。其他模型实例容量均为 1。其他
+单卡 vLLM 实例继续复用 startup plan。
 
 Server 内部模型调用使用 Pydantic 团队维护的 `httpx2`，vLLM client 通过原生
 `AsyncClient.sse()` 解析 Server-Sent Events；`models/vllm.py` 只负责 OpenAI completion
@@ -113,7 +117,8 @@ VibeVoice 原版 / HF、FireRed 原始 / 转换权重不能互换；FunASR 的 `
 - FireRedPunc 是最终句读的唯一 owner。送入标点模型前删除全部 Unicode punctuation，只保留
   数字内部的小数点、千分位逗号和时间冒号；输出改变非标点内容时拒绝。不在正文与标点层
   叠加句读，也不用重复标点正则修补模型输出。
-- 整窗复听替换要求主模型改变且独立家族精确支持，窗口不能含敏感内容。Qwen 才允许局部
+- 多人窗口禁止融合替换且 joint recipes 不消费 review 文本，因此不执行无效复听。其余整窗复听
+  替换要求主模型改变且独立家族精确支持，窗口不能含敏感内容。Qwen 才允许局部
   edit-span：左右各至少四个稳定 content-character 锚点，且同一 edit 必须由两个独立模型家族
   在首轮候选或复听中精确支持。数值、热词和英文专名只保护各自 span，多人窗口仍整窗禁止
   替换；同家族和重复采样不增加独立票数，两份融合稿不能读取对方定稿。
@@ -129,7 +134,7 @@ VibeVoice 原版 / HF、FireRed 原始 / 转换权重不能互换；FunASR 的 `
 - 同一请求按逻辑模型、切片路径与有效参数缓存并 single-flight；失败调用不缓存，取消
   必须释放实例。请求间只共享常驻进程，不共享识别结果。
 - Aligner review 固定走 `qwen3-aligner-review`，recipe finalize 固定走
-  `qwen3-aligner-recipe`。VibeVoice 长窗并发投递到 A / B 副本，必须按原窗口顺序合并。
+  `qwen3-aligner-recipe`。VibeVoice 长窗按 A / B 副本容量并发投递，必须按原窗口顺序合并。
 - 原始响应与参数只在 evidence 出现一次。trace 记录关键 phase、实际模型调用、cache hit、
   GPU UUID / index、模型锁、CPU 排队、推理时间，以及请求全程每秒 GPU 利用率采样；不复制
   正文或完整部署清单。`utilization.memory` 表示 HBM 读写活跃时间，不得解释为显存占用率或
@@ -143,8 +148,9 @@ vLLM 显存比例。placement 不能写 Host 物理卡号。
 
 `scheduler.py` 在 lifespan startup 时把逻辑序号映射为 GPU UUID，要求已使用显存不超过
 512 MiB，写完全部实例环境后通过一次 s6 transaction 并行启动，并发等待全部 health。
-请求期每实例最多一个在途调用，
-逻辑模型池选择当前空闲副本；不启停、回收、迁移或降级模型。
+请求期每实例默认最多一个在途调用，只有 FireRed LLM、MOSS-Audio、Qwen3-ASR 与两个
+VibeVoice 实例固定允许两个；逻辑模型池按配置顺序选择仍有容量的实例。不启停、回收、迁移或
+降级模型。
 
 `ops/processes.py` 负责有超时的子进程与 GPU inventory，并以 x 经 sudo 调 root-owned
 `/usr/local/bin/asr-model-service`。sudoers 只授权该固定入口；shared s6 live state 仍由

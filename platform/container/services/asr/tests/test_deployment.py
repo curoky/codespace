@@ -203,6 +203,10 @@ def test_runtime_compilation_cache_is_persistent() -> None:
     assert "--disable-custom-all-reduce" in firered
     assert "--kv-cache-memory-bytes 6854387712" in firered
     assert "--gpu-memory-utilization 0.40" in firered
+    assert "--max-num-seqs 2" in firered
+    assert "--max-num-seqs 2" in (root / "models/moss-audio/run").read_text()
+    assert "--max-num-seqs 2" in (root / "models/qwen3-asr-1.7b/run").read_text()
+    assert "--max-num-seqs 2" in (root / "models/vibevoice/run").read_text()
     assert (
         "FLASHINFER_WORKSPACE_BASE=/home/x/.cache/flashinfer-workspaces/qwen3-aligner"
         in (root / "models/qwen3-aligner/run").read_text()
@@ -272,8 +276,14 @@ def test_static_placement_uses_eight_80_gib_gpus_for_parallel_stages() -> None:
         for index in instance.placement:
             loads[index] += spec.memory_gib
     assert resources.gpu_memory_gib == 80
-    assert loads == [40, 58, 32, 48, 12, 52, 52, 8]
+    assert loads == [32, 50, 32, 48, 12, 52, 60, 16]
     assert all(load < resources.gpu_memory_gib for load in loads)
+    assert {spec.id: spec.max_inflight for spec in MODELS if spec.max_inflight != 1} == {
+        "firered-llm": 2,
+        "moss-audio": 2,
+        "qwen3-asr-1.7b": 2,
+        "vibevoice": 2,
+    }
 
     first_pass = {
         "firered-llm": {0, 1},

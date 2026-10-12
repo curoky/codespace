@@ -147,7 +147,12 @@ FireRed TP2 使用固定 KV cache，不复用 startup plan，也不执行 memory
 rank 因共卡显存基线不同走入不同 collective 路径；显存比例只作为启动上限检查，不决定
 KV cache 容量。FireRed TP2 禁用 custom all-reduce 并使用 NCCL，避免固定 KV 路径下两个
 rank 在 FlashInfer workspace 初始化时进入不对称状态；其 FlashInfer all-reduce backend
-同样关闭，TP 通信只走 NCCL symmetric memory / PyNCCL。FlashInfer JIT cache 按模型环境
+同样关闭，TP 通信只走 NCCL symmetric memory / PyNCCL。FireRed 的 scheduler capacity 与
+vLLM `max-num-seqs` 都固定为 2，使两个并发文件的 FireRed 调用可以 continuous batching。
+MOSS-Audio 与 Qwen3-ASR 也固定两个 slot 和两个 sequence，避免跨请求 review / first pass
+串行排队。VibeVoice 两个副本各固定两个 slot，按配置顺序先填 A 再溢出到 B；其他模型实例保持
+单在途。
+FlashInfer JIT cache 按模型环境
 分目录；不同模型首次编译可并行，同一模型的多个实例共享已编译 extension。
 
 ## Model Inventory And Deployment
@@ -168,7 +173,7 @@ rank 在 FlashInfer workspace 初始化时进入不对称状态；其 FlashInfer
 | [`nemotron-diarization`](https://huggingface.co/nvidia/Nemotron-3-Diarization) | 8005 | 05；独立 speaker 重标 | 本模型 HTTP | NeMo 3.1.0+ca3f93a51 | 3.12.14 | 4.57.6 | — | 2.13.0 | 13.0.3 | GPU 1 | 12 | 0.185 | 5.288 |
 | [`paraformer`](https://huggingface.co/funasr/paraformer-zh) | 8006 | first pass；中文旁路校验 | 本模型 HTTP | [FunASR][funasr] 1.4.16 | 3.12.14 | 4.57.6 | — | 2.13.0 | 13.0.3 | GPU 6 | 4 | 0.820 | 4.973 |
 | [`pyannote-community-1`](https://huggingface.co/pyannote/speaker-diarization-community-1) | 8007 | prepare；全文件身份与跨窗映射 | 本模型 HTTP | [pyannote.audio][pyannote] 4.0.7 | 3.12.14 | — | — | 2.13.0 | 13.0.3 | GPU 1 | 6 | 0.031 | 4.819 |
-| [`qwen3-aligner`](https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B) | 8008 / 8013 | review / finalize；字词时间 | pooling + 本模型 HTTP（[Qwen SDK][qwen]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 1 review / GPU 0 recipe | 8 | 1.709 | 7.396 |
+| [`qwen3-aligner`](https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B) | 8008 / 8013 | review / finalize；字词时间 | pooling + 本模型 HTTP（[Qwen SDK][qwen]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 6 review / GPU 7 recipe | 8 | 1.709 | 7.396 |
 | [`qwen3-asr-1.7b`](https://huggingface.co/Qwen/Qwen3-ASR-1.7B) | 8009 | first pass / review；第一主稿 | transcription（[Qwen SDK][qwen]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 4 | 12 | 4.376 | 7.392 |
 | [`sensevoice`](https://huggingface.co/FunAudioLLM/SenseVoiceSmall) | 8010 | first pass；中文旁路校验 | 本模型 HTTP | [FunASR][sensevoice] 1.4.16 | 3.12.14 | 4.57.6 | — | 2.13.0 | 13.0.3 | GPU 5 | 4 | 0.872 | 4.973 |
 | [`vibevoice`](https://huggingface.co/microsoft/VibeVoice-ASR-HF) | 8011 / 8014 | 04；联合正文、时间、speaker | audio chat（[作者文档][vibevoice]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 5 / GPU 6 副本 | 48 | 15.517 | 7.392 |
@@ -182,19 +187,20 @@ Checkpoint 只统计固定 revision 的 weight 文件；不可拆分的 `.nemo`�
 ## GPU Placement
 
 当前 placement 使用 8 张 80 GiB GPU。大模型 server 在启动时使用互不重叠的 GPU，避免并行
-显存 profiling 与首次 JIT 相互干扰；两个轻量 Aligner 分别与 FireRed 的两个 TP rank 共卡，
-避免彼此并发 profiling。两个 VibeVoice 实例动态分担 04 的长窗。
+显存 profiling 与首次 JIT 相互干扰；review Aligner 放到 GPU 6，recipe Aligner 与 Whisper 共用
+GPU 7，避免跨请求 review / finalize 互相排队。VibeVoice A 先用双在途 continuous batching，
+B 在超过两个并发调用时承接溢出，避免主动与 GPU 6 上另一请求的 Paraformer first pass 竞争。
 
 | 逻辑 GPU | 常驻模型（显存预算 / 卡） | 合计预算 | 不同时推理的关键边界 |
 | ---: | --- | ---: | --- |
-| 0 | `firered-llm` 32 GiB（TP rank）、`qwen3-aligner-recipe` 8 GiB | 40 GiB | recipe Aligner 只在 review 全部结束后运行 |
-| 1 | `firered-llm` 32 GiB（TP rank）、`qwen3-aligner-review` 8 GiB、`pyannote-community-1` 6 GiB、`nemotron-diarization` 12 GiB | 58 GiB | Aligner / Pyannote / Nemotron 不与 FireRed 同时推理 |
+| 0 | `firered-llm` 32 GiB（TP rank） | 32 GiB | FireRed TP rank 独占计算 |
+| 1 | `firered-llm` 32 GiB（TP rank）、`pyannote-community-1` 6 GiB、`nemotron-diarization` 12 GiB | 50 GiB | Pyannote / Nemotron 不与同请求的 FireRed 同时推理 |
 | 2 | `moss-audio` 32 GiB | 32 GiB | 独立 review lane |
 | 3 | `moss-td` 48 GiB | 48 GiB | 独立 03 lane |
 | 4 | `qwen3-asr-1.7b` 12 GiB | 12 GiB | 独立 first pass / review lane |
 | 5 | `sensevoice` 4 GiB、`vibevoice-a` 48 GiB | 52 GiB | SenseVoice 在 first pass；A 副本执行 04 长窗 |
-| 6 | `paraformer` 4 GiB、`vibevoice-b` 48 GiB | 52 GiB | Paraformer 在 first pass；B 副本执行 04 长窗 |
-| 7 | `whisper-large-v3` 8 GiB | 8 GiB | 独立 review lane |
+| 6 | `paraformer` 4 GiB、`vibevoice-b` 48 GiB、`qwen3-aligner-review` 8 GiB | 60 GiB | Paraformer 在 first pass；review Aligner 与 04 overflow 按 phase 错开 |
+| 7 | `whisper-large-v3` 8 GiB、`qwen3-aligner-recipe` 8 GiB | 16 GiB | Whisper review 结束后进入 recipe finalize |
 
 placement 只选择容器可见 GPU，部署必须暴露逻辑 0–7 全部八张卡。
 显存比例是进程静态上限而非精确占用，实际部署仍必须检查 CUDA context、TP / NCCL 与运行

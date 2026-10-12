@@ -9,12 +9,12 @@ resources:
     - {id: nemotron-diarization, model: nemotron-diarization, port: 8005, placement: [1]}
     - {id: paraformer, model: paraformer, port: 8006, placement: [6]}
     - {id: pyannote-community-1, model: pyannote-community-1, port: 8007, placement: [1]}
-    - {id: qwen3-aligner-review, model: qwen3-aligner, port: 8008, placement: [1]}
+    - {id: qwen3-aligner-review, model: qwen3-aligner, port: 8008, placement: [6]}
     - {id: qwen3-asr-1.7b, model: qwen3-asr-1.7b, port: 8009, placement: [4]}
     - {id: sensevoice, model: sensevoice, port: 8010, placement: [5]}
     - {id: vibevoice-a, model: vibevoice, port: 8011, placement: [5]}
     - {id: whisper-large-v3, model: whisper-large-v3, port: 8012, placement: [7]}
-    - {id: qwen3-aligner-recipe, model: qwen3-aligner, port: 8013, placement: [0]}
+    - {id: qwen3-aligner-recipe, model: qwen3-aligner, port: 8013, placement: [7]}
     - {id: vibevoice-b, model: vibevoice, port: 8014, placement: [6]}
 cpu_requests: 2
 chunking:

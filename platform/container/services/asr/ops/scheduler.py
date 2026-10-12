@@ -27,7 +27,10 @@ class Instance:
     devices: list[str] = field(default_factory=list)
     gpu_indices: list[str] = field(default_factory=list)
     running: bool = False
-    lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    slots: asyncio.BoundedSemaphore = field(init=False)
+
+    def __post_init__(self) -> None:
+        self.slots = asyncio.BoundedSemaphore(self.spec.max_inflight)
 
 
 @dataclass
@@ -209,17 +212,16 @@ class Scheduler:
         async with condition:
             while True:
                 instance = next(
-                    (candidate for candidate in pool if not candidate.lock.locked()), None
+                    (candidate for candidate in pool if not candidate.slots.locked()), None
                 )
                 if instance is not None:
-                    await instance.lock.acquire()
+                    await instance.slots.acquire()
                     break
                 await condition.wait()
         metrics.model_queue_seconds = time.monotonic() - started
         return instance
 
     async def release(self, instance: Instance) -> None:
-        if instance.lock.locked():
-            instance.lock.release()
-            async with self.conditions[instance.model]:
-                self.conditions[instance.model].notify_all()
+        instance.slots.release()
+        async with self.conditions[instance.model]:
+            self.conditions[instance.model].notify_all()

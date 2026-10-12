@@ -42,6 +42,7 @@ exec uv run \
   --dtype float32 \
   --tensor-parallel-size 2 \
   --max-model-len 8192 \
+  --max-num-seqs 2 \
   --disable-custom-all-reduce \
   --gpu-memory-utilization 0.40 \
   --kv-cache-memory-bytes 6854387712 \

@@ -151,6 +151,9 @@ class Pipeline:
         for window in self.chunks:
             key = window.model_dump_json()
             candidates = self.candidates[key]
+            # 多人窗口禁止融合替换，joint recipes 也不消费 review 文本；跳过不会改变正文。
+            if len(owners(window.core_start_ms, window.core_end_ms, self.speakers)) > 1:
+                continue
             has_dispute = len({normalized(text) for text in candidates.values()}) > 1
             suspicious = any(
                 not text.strip() or re.search(r"(.{2,8})\1{3,}", text)
