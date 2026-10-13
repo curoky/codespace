@@ -14,6 +14,8 @@ device、publication 和 tunnel 属于控制面配置；leaf Dockerfile 只定�
   home profile 或 rootless Podman。
 - `support/` 是唯一明确拥有 Host rootful Podman socket maintenance 职责的 leaf；不要把该
   mount 或权限推广到其他 Service。
+- `.github/workflows/publish-services.yaml` 每次触发先发布 shared runtime，成功后按静态
+  matrix 并行发布全部 Service leaf。
 
 ## Leaf Contracts
 

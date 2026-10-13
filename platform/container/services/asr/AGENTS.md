@@ -64,6 +64,8 @@ Host、GPU、mount、secret 和网络由 Codespace 部署配置拥有。模型�
   异常退出由 s6 supervision 重启。
 - 权重不进入镜像，环境安装与 hardlink 去重在构建时完成。保留非 root 推理身份，secret
   使用部署注入；真实 token、机器配置、音频 cache 和模型 cache 不提交。
+- Models 目录整体复制后安装环境，不逐模型枚举依赖文件；模型代码变化也会使环境安装层
+  缓存失效。
 - Scheduler 和 Models 分别构建发布，修改 Recipe 不应触发模型环境重装或模型容器替换。
 
 ## Audio And Results

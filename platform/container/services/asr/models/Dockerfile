@@ -35,27 +35,13 @@ RUN curl --fail --location --retry 3 \
   && dpkg-deb --extract /tmp/cuda-compat.deb / \
   && rm /tmp/cuda-compat.deb
 
-COPY --chown=x:x platform/container/services/asr/models/firered-llm/pyproject.toml platform/container/services/asr/models/firered-llm/uv.lock platform/container/services/asr/models/firered-llm/.python-version /opt/asr/models/firered-llm/
-COPY --chown=x:x platform/container/services/asr/models/firered-punc/pyproject.toml platform/container/services/asr/models/firered-punc/uv.lock platform/container/services/asr/models/firered-punc/.python-version /opt/asr/models/firered-punc/
-COPY --chown=x:x platform/container/services/asr/models/firered-vad/pyproject.toml platform/container/services/asr/models/firered-vad/uv.lock platform/container/services/asr/models/firered-vad/.python-version /opt/asr/models/firered-vad/
-COPY --chown=x:x platform/container/services/asr/models/moss-audio/pyproject.toml platform/container/services/asr/models/moss-audio/uv.lock platform/container/services/asr/models/moss-audio/.python-version /opt/asr/models/moss-audio/
-COPY --chown=x:x platform/container/services/asr/models/moss-td/pyproject.toml platform/container/services/asr/models/moss-td/uv.lock platform/container/services/asr/models/moss-td/.python-version /opt/asr/models/moss-td/
-COPY --chown=x:x platform/container/services/asr/models/nemotron-diarization/pyproject.toml platform/container/services/asr/models/nemotron-diarization/uv.lock platform/container/services/asr/models/nemotron-diarization/.python-version /opt/asr/models/nemotron-diarization/
-COPY --chown=x:x platform/container/services/asr/models/paraformer/pyproject.toml platform/container/services/asr/models/paraformer/uv.lock platform/container/services/asr/models/paraformer/.python-version /opt/asr/models/paraformer/
-COPY --chown=x:x platform/container/services/asr/models/pyannote-community-1/pyproject.toml platform/container/services/asr/models/pyannote-community-1/uv.lock platform/container/services/asr/models/pyannote-community-1/.python-version /opt/asr/models/pyannote-community-1/
-COPY --chown=x:x platform/container/services/asr/models/qwen3-aligner/pyproject.toml platform/container/services/asr/models/qwen3-aligner/uv.lock platform/container/services/asr/models/qwen3-aligner/.python-version /opt/asr/models/qwen3-aligner/
-COPY --chown=x:x platform/container/services/asr/models/qwen3-asr-1.7b/pyproject.toml platform/container/services/asr/models/qwen3-asr-1.7b/uv.lock platform/container/services/asr/models/qwen3-asr-1.7b/.python-version /opt/asr/models/qwen3-asr-1.7b/
-COPY --chown=x:x platform/container/services/asr/models/runtime/pyproject.toml platform/container/services/asr/models/runtime/uv.lock platform/container/services/asr/models/runtime/.python-version /opt/asr/models/runtime/
-COPY --chown=x:x platform/container/services/asr/models/sensevoice/pyproject.toml platform/container/services/asr/models/sensevoice/uv.lock platform/container/services/asr/models/sensevoice/.python-version /opt/asr/models/sensevoice/
-COPY --chown=x:x platform/container/services/asr/models/vibevoice/pyproject.toml platform/container/services/asr/models/vibevoice/uv.lock platform/container/services/asr/models/vibevoice/.python-version /opt/asr/models/vibevoice/
-COPY --chown=x:x platform/container/services/asr/models/whisper-large-v3/pyproject.toml platform/container/services/asr/models/whisper-large-v3/uv.lock platform/container/services/asr/models/whisper-large-v3/.python-version /opt/asr/models/whisper-large-v3/
+COPY --chown=x:x platform/container/services/asr/models/ /opt/asr/models/
 COPY --chmod=0755 platform/container/services/asr/models/install-environments.sh /usr/local/bin/install-asr-model-environments
 
 RUN rm -f /etc/s6/s6-rc.d/default/contents.d/miniserve-logs \
     /etc/s6/s6-rc.d/default/contents.d/supercronic \
   && mkdir -p /data/asr /model-data /run/asr /home/x/.cache \
   && chown x:x /data/asr /model-data /run/asr /home/x/.cache /opt/asr/models/*/
-
 
 USER x
 RUN export HOME=/home/x \
@@ -65,7 +51,6 @@ RUN export HOME=/home/x \
   && rm -rf /home/x/.cache/uv
 
 USER root
-COPY --chown=x:x platform/container/services/asr/models/ /opt/asr/models/
 COPY platform/container/services/asr/protocol.py /opt/asr/protocol.py
 COPY platform/container/services/asr/models/rootfs/ /
 RUN for script in /opt/asr/models/*/download_model.sh; do \

@@ -18,7 +18,7 @@ podman build --file platform/container/services/asr/scheduler/Dockerfile \
   --tag localhost/codespace-asr-scheduler:test .
 ```
 
-模型依赖环境与 serving 分层构建；权重不入镜像。确认实际模型环境可 import，不将构建成功
+Models 目录整体复制后安装依赖环境；权重不入镜像。确认实际模型环境可 import，不将构建成功
 当成推理验证。检查 GPU 空闲情况；停止现有任务须有用户授权。
 
 ## Runtime
