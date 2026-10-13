@@ -52,7 +52,7 @@ uv run --script platform/container/services/asr/regression/evaluate.py --markdow
 
 `run.py --scenario <scenario>` 用于受影响场景回归。manifest 的 `recipes` 与实际登记保持
 一致；CLI 省略 `--recipe` 执行场景全部方案，定点测试可以选择一套，但不代替完整基线。
-结果文件名以 `<scenario>--<recipe>` 发布，不保留固定五份结果的假设。
+结果文件名以 `<scenario>--<recipe>` 发布，结果数量由所选 Recipe 决定。
 
 审计所有返回状态、正文、时间范围、unknown speaker、alignment flags、raw evidence 与
 模型 revision。耗时来自 client evidence 的准备和端到端完成，以及 trace 的 server
@@ -151,27 +151,4 @@ Shell 检查。两个镜像构建通过；完整模型集合与 CPU VAD / Punc �
 10 条真实录音、26 份结果全部完成，状态、时间范围、revision、参数和双轨身份审计通过。
 本次验证容器与专用网络已清理，GPU 0–7 显存使用均回到 0 MiB。
 
-## Comparison With v1
-
-v1 对照取自 Git commit `2169e33` 的 committed baseline。共同的 9 条录音、reference 和
-原有场景的评分口径保持一致；以下是每个场景三条录音的 macro CER，越低越好：
-
-| Scenario | 对应方案 | v1 CER | v2 CER |
-| --- | --- | ---: | ---: |
-| conversation | MOSS joint | 7.15% | 7.20% |
-| conversation | Qwen + Pyannote | 8.11% | 8.25% |
-| conversation | VibeVoice | 10.24% | 9.89% |
-| meeting | MOSS joint | 22.57% | 22.48% |
-| meeting | Qwen + Nemotron | 32.76% | 32.89% |
-| meeting | VibeVoice | 40.12% | 41.83% |
-| narration | Qwen | 2.54% | 2.61% |
-| narration | FireRed | 2.395% | 2.396% |
-
-当前准确率总体持平，部分改善、部分退化，不宣称全面提升。MOSS 的会议 macro SA-CER
-从 18.13% 降到 17.75%，DER 从 22.91% 降到 22.44%；VibeVoice 的会议正文仍有退化。
-双轨是新增能力，v1 没有对应基线。朗读候选数量减少也不代表最佳成绩提升：v1 VibeVoice
-在《狂人日记》的 CER 为 2.10%，v2 当前最佳为 FireRed 的 2.20%。
-
-以上各来自一轮基线，小幅差异尚未经过重复运行确认。v1 每条录音执行五套方案、文件串行；
-v2 按场景执行两到三套方案、两个文件并发，GPU placement 也有调整，因此本次耗时不作为
-公平的版本性能对比。后续按单场景继续优化准确率，并用相同工作负载验证性能变化。
+当前指标来自一轮真实回归；稳定性和参数优化通过对应场景的重复实测确认。

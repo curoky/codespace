@@ -28,7 +28,7 @@ export FLASHINFER_WORKSPACE_BASE=/home/x/.cache/flashinfer-workspaces/firered-ll
 export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64
 export VLLM_ALLREDUCE_USE_FLASHINFER=0
 
-# FP32 / TP=2 沿用作者对转换权重的部署配方；改精度或 TP 前须验证并同步 catalog.py。
+# 转换权重的上游部署配方使用 FP32 / TP=2；调整精度或 TP 前须做真实音频验证。
 # 固定 KV cache 让两个 TP rank 一起跳过 collective memory profiling。
 # vLLM 从 processor 固定 30 秒输入；上层使用相同窗口边界，不传不支持的 server 级 ASR 配置。
 export PYTHONPATH="$model_dir/../.."

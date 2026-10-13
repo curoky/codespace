@@ -1,7 +1,7 @@
 # ASR Maintenance
 
 本目录维护本地离线 ASR 的 Scheduler 与 Models 两个镜像。设计与核心诉求见
-[DESIGN-v2.md](DESIGN-v2.md)，语料与实测结果见 [regression/AGENTS.md](regression/AGENTS.md)。
+[DESIGN.md](DESIGN.md)，语料与实测结果见 [regression/AGENTS.md](regression/AGENTS.md)。
 
 ## Working Principles
 
@@ -40,8 +40,8 @@ Host、GPU、mount、secret 和网络由 Codespace 部署配置拥有。模型�
 - 共用代码限于音频操作、HTTP、数据结构和 trace。场景算法留在本方案内；文件过大时拆到
   本方案目录，不建立公共 pipeline 基类、继承 hook、DAG DSL 或插件注册系统。
 - 同一模型服务可以被多个 Recipe 调用。修改其默认推理行为时，验证所有受影响方案。
-- 新增 Recipe 时同步显式入口映射、场景默认列表、回归选择和 CLI 输出，不保留固定五份
-  结果的假设。省略 Recipe 列表时执行该场景登记的全部候选。
+- 新增 Recipe 时同步显式入口映射、场景默认列表、回归选择和 CLI 输出，结果数量由所选
+  Recipe 决定。省略 Recipe 列表时执行该场景登记的全部候选。
 - 模型组合、切窗和参数通过本场景真实音频测试确定，设计示例不作为固定方案清单。
 - 请求、Recipe、音轨、窗口和模型调用在依赖满足后尽可能并发，不增加无关的阶段等待。
   并发额度跨请求和 Recipe 共享，由 Scheduler 的固定实例容量和 serving 共同控制。
@@ -101,7 +101,7 @@ Host、GPU、mount、secret 和网络由 Codespace 部署配置拥有。模型�
 | GPU placement | 所选模型同时驻留、实际并发与显存余量 |
 | Dockerfile / 依赖 / 安装 | 对应镜像构建、环境 import、无内嵌权重、去重结果 |
 
-以仓库根目录为 context 构建受影响镜像；首次拆分与共同合同变更验证两个镜像：
+以仓库根目录为 context 构建受影响镜像；共同合同变更验证两个镜像：
 
 ```bash
 podman build --file platform/container/services/asr/scheduler/Dockerfile \
@@ -110,7 +110,7 @@ podman build --file platform/container/services/asr/models/Dockerfile \
   --tag localhost/codespace-asr-models:test .
 ```
 
-真实 GPU 验证沿用 `test-asr` skill，并使其步骤与两镜像结构一致。使用本次部署所需的空闲
+真实 GPU 验证使用 `test-asr` skill。使用本次部署所需的空闲
 GPU，不停止其他任务；验证 Scheduler 重建后模型仍常驻，结束时清理本次测试容器。
 
 回归采用日常并发路径，按场景登记的 Recipe 列表执行，不固定音频或结果数量。记录 client
