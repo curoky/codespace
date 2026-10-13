@@ -2,9 +2,10 @@ import json
 import threading
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Form, HTTPException, UploadFile
 
-from protocol import InferenceRequest, InferenceResult, Span
+from models.audio import evidence, uploaded
+from protocol import InferenceResult, Span
 
 
 def app() -> FastAPI:
@@ -21,21 +22,21 @@ def app() -> FastAPI:
         return {"status": "ready"}
 
     @service.post("/vad")
-    def detect(request: InferenceRequest) -> InferenceResult:
-        if request.audio is None:
-            raise HTTPException(422, "audio is required")
-        path = Path(request.audio).resolve()
-        if not path.is_relative_to(Path("/data/asr")) or not path.is_file():
-            raise HTTPException(422, "audio must be a file inside /data/asr")
-        with lock:
-            # 每次处理完整文件，不能逐短窗重置检测状态。
-            result, _ = model.detect(str(path))
-            return InferenceResult(
-                spans=[
-                    Span(start_ms=round(a * 1000), end_ms=round(b * 1000))
-                    for a, b in result["timestamps"]
-                ],
-                raw=json.loads(json.dumps(result)),
-            )
+    def detect(file: UploadFile | None = None, options: str = Form("{}")) -> InferenceResult:
+        with uploaded(file, options) as request:
+            if request.audio is None:
+                raise HTTPException(422, "audio is required")
+            path = Path(request.audio).resolve()
+            with lock:
+                # 每次处理完整文件，不能逐短窗重置检测状态。
+                result, _ = model.detect(str(path))
+                result_record = InferenceResult(
+                    spans=[
+                        Span(start_ms=round(a * 1000), end_ms=round(b * 1000))
+                        for a, b in result["timestamps"]
+                    ],
+                    raw=json.loads(json.dumps(result)),
+                )
+                return evidence(result_record, request, Path(__file__).resolve().parent)
 
     return service

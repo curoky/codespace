@@ -51,7 +51,7 @@ async def transcribe(
     audio = await asyncio.to_thread(Path(request.audio).read_bytes)
     data = {
         "model": model,
-        "language": "zh",
+        "language": request.language,
         "temperature": "0",
         "seed": "0",
         "stream": "true",

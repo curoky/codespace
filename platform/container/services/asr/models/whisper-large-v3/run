@@ -27,15 +27,17 @@ export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64
 
 # 448 是 Whisper decoder 的上下文限制，不能套其他模型的 8192。
 # vLLM 从 processor 固定 30 秒输入；本模型只复听争议区间，不单独裁决主稿。
+export PYTHONPATH="$model_dir/../.."
+
 exec uv run \
   --project "$model_dir" \
   --frozen \
   --no-sync \
-  vllm serve \
+  python "$model_dir/api.py" vllm serve \
   "$model_dir/weights" \
   --served-model-name whisper-large-v3 \
   --host 127.0.0.1 \
-  --port "${ASR_PORT:?}" \
+  --port "$((ASR_PORT + 1000))" \
   --dtype bfloat16 \
   --tensor-parallel-size 1 \
   --max-model-len 448 \

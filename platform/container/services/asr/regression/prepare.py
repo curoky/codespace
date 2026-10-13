@@ -5,6 +5,7 @@
 import argparse
 import hashlib
 import shutil
+import subprocess
 import sys
 import tarfile
 import tempfile
@@ -110,7 +111,9 @@ def first_channel_pcm(source: Path, destination: Path, duration_seconds: int) ->
                 remaining -= len(samples) // channels
 
 
-def materialize(fixture: dict[str, object], source_path: Path, temporary: Path) -> None:
+def materialize(
+    fixture: dict[str, object], source_path: Path, temporary: Path, second: Path | None = None
+) -> None:
     audio = fixture["audio"]
     if not isinstance(audio, dict):
         raise ValueError(f"invalid audio entry for {fixture['id']}")
@@ -133,9 +136,49 @@ def materialize(fixture: dict[str, object], source_path: Path, temporary: Path) 
     else:
         if not isinstance(transform, dict):
             raise ValueError(f"invalid transform for {fixture['id']}")
-        if transform.get("kind") != "first_channel_pcm":
+        if transform.get("kind") == "conversation_tracks":
+            if second is None:
+                raise ValueError("second track is required")
+            normalized = temporary / "tracks.wav"
+            subprocess.run(  # noqa: S603 - fixed FFmpeg arguments and verified corpus paths
+                [
+                    shutil.which("ffmpeg") or "ffmpeg",
+                    "-nostdin",
+                    "-v",
+                    "error",
+                    "-y",
+                    "-i",
+                    str(source_path),
+                    "-i",
+                    str(second),
+                    "-filter_complex",
+                    "[0:a]pan=stereo|c0=c0|c1=0*c0[a];"
+                    "[1:a]pan=stereo|c0=0*c0|c1=c0[b];"
+                    "[a][b]amix=inputs=2:duration=longest:normalize=0[out]",
+                    "-map",
+                    "[out]",
+                    "-t",
+                    str(transform["duration_seconds"]),
+                    "-ar",
+                    "16000",
+                    "-c:a",
+                    "pcm_s16le",
+                    "-f",
+                    "wav",
+                    str(normalized),
+                ],
+                check=True,
+            )
+            with (
+                wave.open(str(normalized), "rb") as recording,
+                wave.open(str(candidate), "wb") as out,
+            ):
+                out.setparams(recording.getparams())
+                out.writeframes(recording.readframes(int(transform["duration_seconds"]) * 16000))
+        elif transform.get("kind") == "first_channel_pcm":
+            first_channel_pcm(input_path, candidate, int(transform["duration_seconds"]))
+        else:
             raise ValueError(f"unsupported transform for {fixture['id']}: {transform}")
-        first_channel_pcm(input_path, candidate, int(transform["duration_seconds"]))
 
     error = verify(candidate, int(audio["size_bytes"]), str(audio["sha256"]))
     if error is not None:
@@ -208,7 +251,11 @@ def main() -> None:
             source_path = temporary / "source"
             download(source, source_path)
             for fixture in source_fixtures:
-                materialize(fixture, source_path, temporary)
+                second = None
+                if "second_source" in fixture:
+                    second = temporary / "second.wav"
+                    download(sources[fixture["second_source"]], second)
+                materialize(fixture, source_path, temporary, second)
 
 
 if __name__ == "__main__":

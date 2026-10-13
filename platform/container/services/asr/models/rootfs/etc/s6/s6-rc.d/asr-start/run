@@ -1,0 +1,2 @@
+#!/usr/local/bin/execlineb -P
+/usr/local/bin/asr-start

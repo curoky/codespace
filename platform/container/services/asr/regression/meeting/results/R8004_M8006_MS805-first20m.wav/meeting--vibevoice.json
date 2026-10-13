@@ -1,0 +1,6537 @@
+{
+  "recipe": "meeting/vibevoice",
+  "status": "completed",
+  "error": null,
+  "warnings": [],
+  "segments": [
+    {
+      "start_ms": 3250,
+      "end_ms": 11400,
+      "text": "咱们公司打算新上一款游戏，我们需要提高它的市场竞争力来引爆它的卖点。我们大家可以选择一款游戏吧？",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 11400,
+      "end_ms": 13380,
+      "text": "那我来选个，对吧？",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 13980,
+      "end_ms": 14660,
+      "text": "是挺多的了。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 15670,
+      "end_ms": 16470,
+      "text": "英雄联盟呀。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 18450,
+      "end_ms": 19730,
+      "text": "啊，或者是王者。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 21410,
+      "end_ms": 23230,
+      "text": "最火的应该就是王者荣耀了。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 24250,
+      "end_ms": 26120,
+      "text": "主要是他大人小孩儿都玩儿。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 28050,
+      "end_ms": 30350,
+      "text": "比较简单，还容易上手。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 31990,
+      "end_ms": 32450,
+      "text": "王者荣耀。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 32450,
+      "end_ms": 40140,
+      "text": "那就王者荣耀吧。我们就选择这一款。首先咱们需要探讨的第一个问题，就是如何延长客户们的使用时间呢？",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 40140,
+      "end_ms": 41000,
+      "text": "客户实实。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 41000,
+      "end_ms": 42570,
+      "text": "确实，这个太重要了。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 44340,
+      "end_ms": 45580,
+      "text": "确实，对，花时间。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 46640,
+      "end_ms": 48720,
+      "text": "而且我们需要提高它的市场竞争。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 49630,
+      "end_ms": 52280,
+      "text": "对我们很重要，到时候客户延长，我觉得要从……",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 52280,
+      "end_ms": 55760,
+      "text": "对，跟着客户他的群体。主要小孩儿玩儿的多。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 56930,
+      "end_ms": 57710,
+      "text": "青年人。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 59240,
+      "end_ms": 60310,
+      "text": "还有上班族。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 61360,
+      "end_ms": 63400,
+      "text": "青年，是这些人群都很……",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 63850,
+      "end_ms": 69210,
+      "text": "觉得有点缺，我们就，要不就说完之后，就青少年，我们减掉青少年，或者孩子。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 69520,
+      "end_ms": 70330,
+      "text": "孩子就挺多。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 71820,
+      "end_ms": 73100,
+      "text": "因为他会有防沉迷。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 74570,
+      "end_ms": 75500,
+      "text": "防沉迷。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 76130,
+      "end_ms": 77210,
+      "text": "都是十八岁以下。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 78290,
+      "end_ms": 79500,
+      "text": "十八岁以上。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 80610,
+      "end_ms": 82700,
+      "text": "十八岁以下，成人的青少年。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 83830,
+      "end_ms": 84750,
+      "text": "那如果就……",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 86410,
+      "end_ms": 87110,
+      "text": "对。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 87410,
+      "end_ms": 91310,
+      "text": "有一定消费能力，我觉得首先得有。我们毕竟要盈利，对吧？",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 91310,
+      "end_ms": 98680,
+      "text": "你想让他多玩儿，你可以安排一些福利。你比如说每天签到可以领什么东西，然后签到连签几天可以领……",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 99810,
+      "end_ms": 101550,
+      "text": "对，一周、半个月、一个月。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 103440,
+      "end_ms": 104360,
+      "text": "比如一年全……",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 105770,
+      "end_ms": 107930,
+      "text": "送个什么特别大的福利，对。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 108580,
+      "end_ms": 109300,
+      "text": "装备什么的。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 110300,
+      "end_ms": 111160,
+      "text": "通行证。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 112890,
+      "end_ms": 115780,
+      "text": "只能通过通行证，每天……",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 117430,
+      "end_ms": 118420,
+      "text": "最后一块儿。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 119710,
+      "end_ms": 124100,
+      "text": "对吧？但是那就是说，我刚那个就有点儿重复了。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 124100,
+      "end_ms": 125780,
+      "text": "还可以设置一个合适的价位。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 126810,
+      "end_ms": 129660,
+      "text": "是不是能不能结合到一起？你是怎么……",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 131030,
+      "end_ms": 132990,
+      "text": "你看啊，比如说它通行证，是吧？",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 134150,
+      "end_ms": 135130,
+      "text": "签到，对。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 136510,
+      "end_ms": 143050,
+      "text": "就是你通行证通过你购买通行证的方式，然后完之后你就签到，完之后……",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 143050,
+      "end_ms": 148010,
+      "text": "对，两个结合起来。就你既要买，你还得签到。哎，就同时一起。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 149930,
+      "end_ms": 150640,
+      "text": "对呀。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 150640,
+      "end_ms": 153120,
+      "text": "[Unintelligible Speech]",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 153120,
+      "end_ms": 166630,
+      "text": "对，在通行证有的，它一般是上面是你光签到，但是你不买，你可以领一些东西。再比如，比如说周一到周五你能领什么，但周六周天你不能领。但是下面的，你要是买了通行证，你就能领。对对。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 167880,
+      "end_ms": 169320,
+      "text": "如果你周周天一般人去……",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 170370,
+      "end_ms": 171870,
+      "text": "休息时间多更多了，对对对。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 173480,
+      "end_ms": 174500,
+      "text": "别让孩子玩儿一会儿。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 175280,
+      "end_ms": 176000,
+      "text": "对呀。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 176000,
+      "end_ms": 177280,
+      "text": "奖励措施。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 177540,
+      "end_ms": 179900,
+      "text": "对，这个挺好的。一些折算的。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 181710,
+      "end_ms": 182680,
+      "text": "它只能通过这5%。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 183980,
+      "end_ms": 185360,
+      "text": "这是你身份的象征。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 185360,
+      "end_ms": 195870,
+      "text": "对对对。哎，为了让更多的人来参与这款游戏，我们可以设置一些什么新手福利啊，什么的。就你新手来前一周，前一个半个月会给你送什么东西。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 197790,
+      "end_ms": 198650,
+      "text": "那你就洗个200。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 199790,
+      "end_ms": 206720,
+      "text": "而且他新手来了以后，你新手再推荐你的朋友、你的好友来，哎，会更多更有福利。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 208000,
+      "end_ms": 208630,
+      "text": "所以我觉得……",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 209470,
+      "end_ms": 212610,
+      "text": "通过他带他的朋友来之后，是不是可以给他一定的……",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 212610,
+      "end_ms": 214730,
+      "text": "对，就是更多给他的更多的奖励。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 216520,
+      "end_ms": 217980,
+      "text": "机制增加什么的。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 217980,
+      "end_ms": 221630,
+      "text": "所以这样儿就通过这种赚的东西，就延长了客户的一个使用时间。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 222810,
+      "end_ms": 230730,
+      "text": "而且不管是新手，你很多老玩家，你也可以给他老玩家回归福利。老玩家回归以后…，还可以给他送东西。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 231820,
+      "end_ms": 233160,
+      "text": "设计得更冒险。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 234960,
+      "end_ms": 237530,
+      "text": "有一个非常好看的皮肤，是老玩家……",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 238500,
+      "end_ms": 241450,
+      "text": "必须的。专门给他设计一款啊。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 242940,
+      "end_ms": 245740,
+      "text": "一想又想起了以前啊，真如岁月。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 247310,
+      "end_ms": 248910,
+      "text": "哎，这也是一种情怀哈。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 248910,
+      "end_ms": 255290,
+      "text": "我觉得还可以把环节设计得更冒险一点儿，让观众、让那个玩家觉得他那个有冒险的心。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 255520,
+      "end_ms": 258210,
+      "text": "让他体会一下游戏的，游戏那种感觉。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 260000,
+      "end_ms": 260620,
+      "text": "抽奖呗。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 260620,
+      "end_ms": 261570,
+      "text": "抽奖。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 261570,
+      "end_ms": 262050,
+      "text": "对对对。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 262050,
+      "end_ms": 266810,
+      "text": "抽奖无选择。抽奖无选择的方式，转盘。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 266810,
+      "end_ms": 268180,
+      "text": "转盘大转盘。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 270010,
+      "end_ms": 270940,
+      "text": "可以开宝箱。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 270940,
+      "end_ms": 271810,
+      "text": "开宝箱。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 271810,
+      "end_ms": 272510,
+      "text": "可以开宝。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 272510,
+      "end_ms": 273260,
+      "text": "开宝箱。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 273260,
+      "end_ms": 274780,
+      "text": "感觉会像游戏一样。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 276210,
+      "end_ms": 285980,
+      "text": "金钥匙，金钥匙设计成钥匙。比如说你打游戏，你赢一把有几率爆几个钥匙，然后几个钥匙开一个宝箱。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 286040,
+      "end_ms": 288910,
+      "text": "你这个钥匙只开宝箱有一定爆机的几率。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 290380,
+      "end_ms": 291340,
+      "text": "调整的方式。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 293300,
+      "end_ms": 295630,
+      "text": "宝箱有机会掉落钻石。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 297550,
+      "end_ms": 298520,
+      "text": "对，或或……",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 300020,
+      "end_ms": 300910,
+      "text": "对。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 300910,
+      "end_ms": 309120,
+      "text": "或者你游戏中你完成了双杀、三杀、五杀，或者你超神都可以，有几率爆钥匙或者爆钻石。穿插的。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 310890,
+      "end_ms": 313640,
+      "text": "对，通过这些方式都可以延长客户的使用时间。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 313640,
+      "end_ms": 317510,
+      "text": "他会从游戏中感觉非常开心。刺激也有成就感。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 317510,
+      "end_ms": 318430,
+      "text": "对对对。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 319680,
+      "end_ms": 321140,
+      "text": "啊，对对对。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 322610,
+      "end_ms": 328780,
+      "text": "除了给客户奖励来延长使用时间，咱们还有除了是游戏设置上，还有什么呢？",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 328780,
+      "end_ms": 329920,
+      "text": "游戏设置上。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 329920,
+      "end_ms": 335050,
+      "text": "哦，容易设上。我觉，因为设上我们可以，比如说方便一些那种上年纪的……",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 336630,
+      "end_ms": 337290,
+      "text": "对，用……",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 337290,
+      "end_ms": 338500,
+      "text": "对孩子什么的。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 339960,
+      "end_ms": 342960,
+      "text": "中年、年冠之王，对吧？用的那种手残党。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 344590,
+      "end_ms": 346580,
+      "text": "我们新手的入门。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 346580,
+      "end_ms": 352000,
+      "text": "我直接可以加上，比如说一些有的人不想用手机玩儿，他不习惯，可以粘手柄啊什么的。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 352000,
+      "end_ms": 354380,
+      "text": "打的更舒服一点，对不对？",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 356290,
+      "end_ms": 360050,
+      "text": "但手柄可能就是额外需要买一些外设。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 360050,
+      "end_ms": 363970,
+      "text": "但是这样互动的成本会提高，或者你要跟公司去对接。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 365750,
+      "end_ms": 366870,
+      "text": "是的，确实没错。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 368750,
+      "end_ms": 376040,
+      "text": "我觉得还是这个，还可以继续往下想想，再我们可以再想些别的，对吧？随手柄，它那些都有那个升级成本。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 377410,
+      "end_ms": 380070,
+      "text": "这些流程啊，然后可以，对吧？",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 380070,
+      "end_ms": 382410,
+      "text": "就是手机的和手机。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 383840,
+      "end_ms": 384400,
+      "text": "稳啊！",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 386220,
+      "end_ms": 388470,
+      "text": "要不你不能，你拿个设备，你有个手机。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 389060,
+      "end_ms": 393230,
+      "text": "就觉得感觉不太公平。操作的简难易程度就不太一样了。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 393230,
+      "end_ms": 397410,
+      "text": "对，我们也可以，也可以设置，在说比如像什么高玩家有的设置。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 399190,
+      "end_ms": 412220,
+      "text": "我们大概在延长时间里呢，我们有三点。第一点就是我们通过给客户奖励来刺激他们的消费，第二我们在游戏进程中设计冒险的环节来刺激他们的兴趣。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 412220,
+      "end_ms": 423390,
+      "text": "第三，我们在游戏设置里，我们通过调整，调整一些那个丰富一些设置来吸引大家注意力。那咱们第二个需要探讨的问题就是这个促销方式。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 424430,
+      "end_ms": 426120,
+      "text": "咱们是用什么样的促销方式？",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 427560,
+      "end_ms": 428630,
+      "text": "个人注意呢？",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 428630,
+      "end_ms": 430120,
+      "text": "多方面儿促销嘛。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 430120,
+      "end_ms": 431190,
+      "text": "促销方式就好多了。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 431190,
+      "end_ms": 433650,
+      "text": "我觉得也是，可以多方面的促销。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 434780,
+      "end_ms": 435480,
+      "text": "更比较火。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 435900,
+      "end_ms": 436870,
+      "text": "主要是皮肤嘛。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 438140,
+      "end_ms": 450260,
+      "text": "大家玩儿，就每一个人群里都能设计很多种皮肤。而且是根据每年节日呀、节假日，比如情人节皮肤呀、春节皮肤。对，就一年都能设计很多款。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 450260,
+      "end_ms": 452420,
+      "text": "对，并且自己。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 452420,
+      "end_ms": 454070,
+      "text": "哎，你自己可以自己DIY。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 455990,
+      "end_ms": 461610,
+      "text": "就给你，给你一个设定的权限。你可以自己设定，加自己加喜欢的元素什么的。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 463040,
+      "end_ms": 463980,
+      "text": "这就非常棒了。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 464310,
+      "end_ms": 465320,
+      "text": "这个是非常棒的。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 466570,
+      "end_ms": 477230,
+      "text": "像有的时候那种限定皮肤，你可以为了他让他买，因为限定皮肤可能会贵一点。但是你买限定皮肤，我给你送你几个别的皮肤。买一送三，买一送四，唉。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 478150,
+      "end_ms": 478900,
+      "text": "对。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 480770,
+      "end_ms": 483990,
+      "text": "买完人家感觉别买完了都是一价儿的感觉不到。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 484460,
+      "end_ms": 491750,
+      "text": "或者他会遇到，比如说你送的皮肤他已经有了，你就可以只给他可以折成那个点券儿啊，或者是点成钻石呀什么的。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 492080,
+      "end_ms": 495320,
+      "text": "就是我们游戏内有的东西不能在游戏外头做折现。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 496820,
+      "end_ms": 500680,
+      "text": "对，这样。然后就可以享用它。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 502340,
+      "end_ms": 505670,
+      "text": "比如说购买一个皮肤，我们可以给他那个适当优惠点儿。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 507460,
+      "end_ms": 513310,
+      "text": "或者是买多的，比如说团购价，团购价，我一次买二十个，一次买三十个。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 514770,
+      "end_ms": 516290,
+      "text": "这是对他很好的。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 517400,
+      "end_ms": 519000,
+      "text": "他就给我买多，我就给你多嘛。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 520860,
+      "end_ms": 522280,
+      "text": "这样打一个折，卖价低一点儿。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 522680,
+      "end_ms": 525240,
+      "text": "对，玩家一看，我买的多越好，合了。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 526680,
+      "end_ms": 528000,
+      "text": "抢来了再说。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 528000,
+      "end_ms": 532230,
+      "text": "然后大家一，诶，就去，是的。来，你可以跟主打车买，继续转。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 533950,
+      "end_ms": 536030,
+      "text": "就是那种开黑的那种，对吧？",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 536030,
+      "end_ms": 546450,
+      "text": "或者是，或者是比如说你五个人，别人弄一个团购，你如果拉够五个人一起来买，更便宜。和好友，对，和好友一起，对。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 547500,
+      "end_ms": 551250,
+      "text": "像装备，我们应该应该给他用什么样的促销方式？",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 552310,
+      "end_ms": 555070,
+      "text": "是不是可以，就是给它整个花哨？",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 555330,
+      "end_ms": 569650,
+      "text": "装备一般应该是，它可以弄那个线下的手办。线下手办，把那个游戏里的原型的皮肤换成手办，然后就比如说，哎，按活动举行线下的这种活动，就可以去购买。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 570970,
+      "end_ms": 572280,
+      "text": "对，周边周边。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 572280,
+      "end_ms": 573100,
+      "text": "对对对。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 573100,
+      "end_ms": 575450,
+      "text": "周边一些游戏的手机壳。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 576070,
+      "end_ms": 576900,
+      "text": "钥匙链儿。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 578830,
+      "end_ms": 581270,
+      "text": "卖得比较火爆的皮肤的那种手机壳啊。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 582690,
+      "end_ms": 584030,
+      "text": "然后还有那些衣服。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 585920,
+      "end_ms": 588910,
+      "text": "你喜欢的皮肤不仅给你的游戏人物买了，你自己也买了。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 589350,
+      "end_ms": 594030,
+      "text": "更喜欢了，你喜欢的英雄，呃，游戏里的皮肤。哎，对对对。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 594670,
+      "end_ms": 596570,
+      "text": "非常棒，非常棒，这个。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 598370,
+      "end_ms": 606340,
+      "text": "我们的促销方式可以丰富的选择，多样化的选择。我们可以通过优惠，买一赠一、买一赠三。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 606340,
+      "end_ms": 607070,
+      "text": "买一赠四。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 607070,
+      "end_ms": 608780,
+      "text": "或者是购买立减的措施。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 608780,
+      "end_ms": 609800,
+      "text": "对对对，购买立减。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 610620,
+      "end_ms": 611360,
+      "text": "对。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 611360,
+      "end_ms": 615050,
+      "text": "你买的非常的简洁，然后让你买其他的。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 615050,
+      "end_ms": 617820,
+      "text": "[Unintelligible Speech]",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 617820,
+      "end_ms": 630320,
+      "text": "也可以，就是过个，比如说每个周日或者找一个特殊的日子，如果你上线签到，就给你送买，送，就送你一点儿那个券。啊，送你一点优惠券。比如说啊，比如送你，比如说一千优惠券。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 630400,
+      "end_ms": 636150,
+      "text": "是不是，或者是，或者满减券，比如你满满五百，给你返多少，对，这种券儿就是非常棒。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 636150,
+      "end_ms": 637000,
+      "text": "对对对。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 638340,
+      "end_ms": 644210,
+      "text": "但我觉得这个应该应该应该是每天都要签到，这样它会延长它使用时间。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 645260,
+      "end_ms": 646450,
+      "text": "每天签到使用。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 646450,
+      "end_ms": 654560,
+      "text": "对，这也会更吸引老玩家。老玩家可能好久没没玩儿了，一天看官网，诶。两周以后有个活动，还挺优惠的。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 655950,
+      "end_ms": 658260,
+      "text": "对，呼朋唤友，他就人多了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 658260,
+      "end_ms": 662750,
+      "text": "专门有的时候，比如说在你注册游戏的那一天，就设成你的生日。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 662750,
+      "end_ms": 666730,
+      "text": "啊，诶，对对对。对，人家生日给你送个大礼。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 668670,
+      "end_ms": 669340,
+      "text": "今天是我的。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 671330,
+      "end_ms": 672620,
+      "text": "特别有归属感。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 674580,
+      "end_ms": 677090,
+      "text": "是的，这个非常好，非常好。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 677090,
+      "end_ms": 678040,
+      "text": "非常棒啊！",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 678040,
+      "end_ms": 683450,
+      "text": "好的，那我们接下来讨论一下，咱们是通过什么方式去宣传咱们这款游戏呀？",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 683450,
+      "end_ms": 685680,
+      "text": "什么方式去宣传呢？首先得……",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 686550,
+      "end_ms": 687360,
+      "text": "相结合。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 688990,
+      "end_ms": 695730,
+      "text": "线上，你官网官网，你的活动要经常更新。嗯，给大家一些选择的空间。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 695730,
+      "end_ms": 697470,
+      "text": "我觉得官网是大家看到最表……",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 697470,
+      "end_ms": 703180,
+      "text": "对，官网，大家肯定一看玩什么先看官网。有什么活动介绍呀、宣传片呀，什么的都从官网看。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 703180,
+      "end_ms": 704000,
+      "text": "官网肯定也是。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 704000,
+      "end_ms": 705320,
+      "text": "有好看的宣传片。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 706490,
+      "end_ms": 709640,
+      "text": "设计一个好看的宣传片，能够吸引大家注意力。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 709850,
+      "end_ms": 714220,
+      "text": "对，现在宣传片都要要震撼，要深入人心。吸引人。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 715510,
+      "end_ms": 716240,
+      "text": "对。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 717810,
+      "end_ms": 720160,
+      "text": "大片儿的感觉，史诗级。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 721330,
+      "end_ms": 722090,
+      "text": "有爆点。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 722690,
+      "end_ms": 724170,
+      "text": "游戏单后的动画公司。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 726150,
+      "end_ms": 727200,
+      "text": "真的是。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 728480,
+      "end_ms": 729640,
+      "text": "对。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 730050,
+      "end_ms": 731390,
+      "text": "对对对，宣传文字。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 731390,
+      "end_ms": 735660,
+      "text": "你给那种特效皮肤，然后加上炫酷的动画一创作，更吸引人了。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 736450,
+      "end_ms": 739340,
+      "text": "根据我们这个历史背景，做一段这种小的宣传片儿。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 740210,
+      "end_ms": 740770,
+      "text": "没错。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 742070,
+      "end_ms": 745740,
+      "text": "也放几个，比如说有一个那个特别热门的一个",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 746770,
+      "end_ms": 747600,
+      "text": "稍微写一点儿。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 748780,
+      "end_ms": 759750,
+      "text": "宣传呀什么的。其实有的家长可能看孩子说一天天玩儿，但是孩子一看，你看我们宣传片介绍的非常好呀。哎，你看，有啊，有特别有意义，有学习的意义。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 761390,
+      "end_ms": 762190,
+      "text": "上边玩儿玩儿。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 763550,
+      "end_ms": 764090,
+      "text": "可以。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 765180,
+      "end_ms": 766060,
+      "text": "还是有教育意义。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 766060,
+      "end_ms": 767780,
+      "text": "还有教育意义，对。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 767780,
+      "end_ms": 771210,
+      "text": "我们跟历史也很有关，对吧？有一定的连接。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 771720,
+      "end_ms": 772630,
+      "text": "就这就很棒了。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 772630,
+      "end_ms": 773400,
+      "text": "就非常棒。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 773400,
+      "end_ms": 777650,
+      "text": "我们还可以在游戏里加入我们的宣传，比如说用公告栏的方式。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 778120,
+      "end_ms": 779650,
+      "text": "公告栏，对。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 780690,
+      "end_ms": 781630,
+      "text": "是是。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 783160,
+      "end_ms": 792130,
+      "text": "闯过一关。对，闯过一关呢，他就再给你一个像让你找迷宫似的，给你一个宣传。对对对。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 793020,
+      "end_ms": 794230,
+      "text": "而且不用动画。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 795990,
+      "end_ms": 797440,
+      "text": "宝箱里面儿不是这一关。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 798360,
+      "end_ms": 803600,
+      "text": "对对。开宝箱前先看十秒钟宣传片儿。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 805540,
+      "end_ms": 810240,
+      "text": "对，没错没错，对。就像在那游戏里插播广告一样。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 810240,
+      "end_ms": 820250,
+      "text": "但这个广告时间要短。比如说，过个，比如你游戏过个半个小时，然后从那里边那个滚动条儿，从那个右下角滚过来，嗯，滚动一下这种。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 821610,
+      "end_ms": 832340,
+      "text": "当然，那滚动条不能做太大，那影响玩家视线。对对对。对，肯定小一点长条儿，就滚个10秒钟。对，过半个小时滚一下。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 833640,
+      "end_ms": 835000,
+      "text": "40分钟、50分钟滚一下。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 835000,
+      "end_ms": 835550,
+      "text": "对对对。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 835550,
+      "end_ms": 838720,
+      "text": "都可以，都是实现，可以就是，就是约会。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 838820,
+      "end_ms": 844010,
+      "text": "现在一般都请明星来代言游戏产品，那我们也要请那个演员或者明星。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 845780,
+      "end_ms": 846540,
+      "text": "线上。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 847810,
+      "end_ms": 849040,
+      "text": "请一些模特。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 849040,
+      "end_ms": 849740,
+      "text": "然后。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 849740,
+      "end_ms": 850790,
+      "text": "cos一下我们。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 851870,
+      "end_ms": 853060,
+      "text": "经典经典人物。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 853700,
+      "end_ms": 854580,
+      "text": "吸引一下。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 854580,
+      "end_ms": 855140,
+      "text": "对对对。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 855140,
+      "end_ms": 857330,
+      "text": "或者说我们也可以自己演个参演进来，对不对？",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 857520,
+      "end_ms": 860410,
+      "text": "对，我们可以先报名挑选。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 862070,
+      "end_ms": 863080,
+      "text": "是玩家心。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 863990,
+      "end_ms": 866890,
+      "text": "对，都有他独一无二的心中专属。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 867480,
+      "end_ms": 868240,
+      "text": "不一样。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 868240,
+      "end_ms": 869020,
+      "text": "是，没错。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 869020,
+      "end_ms": 876810,
+      "text": "我们请明星和模特代言，举办线下Cosplay展览。还可以在官网上宣传，在游戏里进行。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 878460,
+      "end_ms": 880000,
+      "text": "我们还可以在商场里。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 880000,
+      "end_ms": 882930,
+      "text": "商场里，就是那种人特别多的地方。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 884080,
+      "end_ms": 885280,
+      "text": "特别多的地方。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 886940,
+      "end_ms": 895380,
+      "text": "大家一看又震撼又有吸引力，然后吸引更多的人，哎。你们这什么游戏啊？还看着挺有震撼力的，然后我们也下一个一起玩。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 896530,
+      "end_ms": 897570,
+      "text": "啊，对对对。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 898750,
+      "end_ms": 900830,
+      "text": "这怎么上车？",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 902450,
+      "end_ms": 916490,
+      "text": "对对对，哎，对对对，过两天，哎，再换一个地方，对吧？这东西还可以在官网上通知，发出这种公告啊，我们将于什么时候、什么地点发生这个，唉。就吸引更多的人来观看。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 916490,
+      "end_ms": 918540,
+      "text": "是的是的。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 918910,
+      "end_ms": 921650,
+      "text": "我们还可以在商场那LED大屏上打。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 923070,
+      "end_ms": 924960,
+      "text": "这样，我给你一个活动。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 925740,
+      "end_ms": 929350,
+      "text": "而且还可以在一些热播剧、什么爱奇艺平台、腾讯平台去发。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 930940,
+      "end_ms": 932370,
+      "text": "广告的投入嘛，植入。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 933580,
+      "end_ms": 936100,
+      "text": "电视剧前也可以刷60秒儿的广告，是吗？",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 937630,
+      "end_ms": 940570,
+      "text": "不是，是啊，对。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 941910,
+      "end_ms": 945340,
+      "text": "线下表演的时候，发一些限时的优惠券。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 946830,
+      "end_ms": 955570,
+      "text": "你可以到现场签多少名，比如签50名、签100名。或者是或者前10名给你送个，直接送个手办呀，什么的。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 957490,
+      "end_ms": 960010,
+      "text": "这样可以推动我们手办的那个市场。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 960910,
+      "end_ms": 962510,
+      "text": "赠送点儿什么小礼品啊。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 962510,
+      "end_ms": 965770,
+      "text": "周边啥的，对。小礼物什么的。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 967730,
+      "end_ms": 969030,
+      "text": "预算比较可以。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 970880,
+      "end_ms": 972120,
+      "text": "对对对。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 973150,
+      "end_ms": 977050,
+      "text": "有很多小孩儿，你送他一个手办，他特别开心，他能开心好几天。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 977860,
+      "end_ms": 981290,
+      "text": "在商场发放一些免费的购物袋，上面印着我们的游戏。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 983230,
+      "end_ms": 988090,
+      "text": "我们还可以把那个咱们的宣传单儿印出来，放在厕所或者公共区域。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 989320,
+      "end_ms": 992610,
+      "text": "周围，这样大家一去就可以看见了。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 993390,
+      "end_ms": 995450,
+      "text": "增加我们这种人力的这种。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 996460,
+      "end_ms": 997280,
+      "text": "减少人力。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 998460,
+      "end_ms": 1000990,
+      "text": "减少时间。效率也比较高了，是吧？",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1002160,
+      "end_ms": 1005730,
+      "text": "我们还可以在一些学校大学里去办cosplay展。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1006850,
+      "end_ms": 1009830,
+      "text": "对，大学生也是一个非常重要的群体。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1011450,
+      "end_ms": 1013020,
+      "text": "这么广大的一个游历。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1013950,
+      "end_ms": 1025340,
+      "text": "有生活啊，大家都有。没错。独立的那种消费人群，可以考虑独立人群。大学生这个人群，对，确实大学生太多了。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1025340,
+      "end_ms": 1026550,
+      "text": "他们有时间。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1026550,
+      "end_ms": 1032210,
+      "text": "也有精力。也有热情。对，他经常玩儿，他喜爱。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1032210,
+      "end_ms": 1034740,
+      "text": "尤其和宿舍的同学一起开黑，可能……",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1034740,
+      "end_ms": 1036930,
+      "text": "嗯，对。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1036930,
+      "end_ms": 1037980,
+      "text": "对对对，没有错。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1037980,
+      "end_ms": 1042130,
+      "text": "招人嘛，对吧？而且大学里大部分人的精力。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1042230,
+      "end_ms": 1043480,
+      "text": "线下比赛。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1043840,
+      "end_ms": 1044680,
+      "text": "对，线下比赛。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1045780,
+      "end_ms": 1046300,
+      "text": "比赛方式。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1047540,
+      "end_ms": 1056000,
+      "text": "高校间的这种比赛，对吧？然后去宣传我们的这种游戏，多么牛逼。号召大家，召召唤朋友，我们组个队，组个战队啊。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1056000,
+      "end_ms": 1063690,
+      "text": "我们去参加一下，然后前几名或者十几名会有那些奖品啊什么的。对对对。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1063820,
+      "end_ms": 1068730,
+      "text": "高校这种联赛啊，或者我们高校，我们其实用高校生的方式，对吧？",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1070590,
+      "end_ms": 1073390,
+      "text": "咱们再讨论一下宣传预算的问题。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1075370,
+      "end_ms": 1077020,
+      "text": "这个预算还真没考虑，是吧？",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1078200,
+      "end_ms": 1079230,
+      "text": "预算的话……",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1080640,
+      "end_ms": 1083340,
+      "text": "像那些手办的话，应该还会稍微少一点。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1083340,
+      "end_ms": 1090880,
+      "text": "稍微少点儿。那种盈利方式，小奖品、小礼品，我觉得这个可以可以平衡。因为啥呢？它预算比较低。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1092840,
+      "end_ms": 1095620,
+      "text": "小小奖品能往往能产生有一些大效果。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1097150,
+      "end_ms": 1098620,
+      "text": "最后会老非常有利。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1098620,
+      "end_ms": 1112810,
+      "text": "你说那小孩儿他拿个手办那个小奖品回去，虽然是毛绒玩具，他开心，他给自己朋友炫耀一下。哎呀，你这个哪来的呀？我玩儿那个什么什么来的。兴趣就来了，更多的人就来了。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1114360,
+      "end_ms": 1120590,
+      "text": "要大概考虑一下预算了，大家想想，咱们的预算这么拉满算下来，大概是……",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1121650,
+      "end_ms": 1123140,
+      "text": "估计得超过50万了。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1123900,
+      "end_ms": 1126550,
+      "text": "我觉得也是，咱包括请明星啊。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1127670,
+      "end_ms": 1128720,
+      "text": "举办线下展。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1130650,
+      "end_ms": 1133470,
+      "text": "而且你还需要场地，场地费还是很贵的。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1134710,
+      "end_ms": 1135630,
+      "text": "50万确实有点儿少。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1136070,
+      "end_ms": 1138660,
+      "text": "稍微有点儿少，刚才你讲到那个请明星。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1140440,
+      "end_ms": 1141190,
+      "text": "是啊。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1142330,
+      "end_ms": 1143310,
+      "text": "还差不多一点儿。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1144740,
+      "end_ms": 1145860,
+      "text": "80万呢？",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1145860,
+      "end_ms": 1148940,
+      "text": "80万够吗？我们可以要不再升高点儿。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1148940,
+      "end_ms": 1151270,
+      "text": "[Unintelligible Speech]",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1151270,
+      "end_ms": 1152130,
+      "text": "对吧？",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1153620,
+      "end_ms": 1154310,
+      "text": "多点回报。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1154710,
+      "end_ms": 1156010,
+      "text": "回报可能会更大一点儿，毕竟。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1157950,
+      "end_ms": 1159800,
+      "text": "那么多那种好的方式。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1160980,
+      "end_ms": 1161630,
+      "text": "对。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1163230,
+      "end_ms": 1168420,
+      "text": "咱们刚刚说了，宣传方式中还有什么来着？有商宣吗？",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1168860,
+      "end_ms": 1170400,
+      "text": "线上线下结合。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1172220,
+      "end_ms": 1173240,
+      "text": "官网啦。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1174100,
+      "end_ms": 1178230,
+      "text": "然后像去去大学宣传。对，各种形式的。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1178690,
+      "end_ms": 1180310,
+      "text": "还有举办模特展览。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1181760,
+      "end_ms": 1183580,
+      "text": "吸引一群一群人的参与。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1185010,
+      "end_ms": 1185850,
+      "text": "就像漫展一样。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1187090,
+      "end_ms": 1188050,
+      "text": "非常慕名而来。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1190010,
+      "end_ms": 1190490,
+      "text": "颁奖。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1192440,
+      "end_ms": 1195760,
+      "text": "对，而且可以就是举办，你像一个主题，像公园儿一样。",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1197570,
+      "end_ms": 1198940,
+      "text": "很多青年人小孩儿都……",
+      "speakers": [
+        "S04"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1199720,
+      "end_ms": 1200000,
+      "text": "对。",
+      "speakers": [],
+      "flags": [
+        "speaker_unknown"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    }
+  ],
+  "activity": [
+    {
+      "start_ms": 3340,
+      "end_ms": 9280,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 9370,
+      "end_ms": 11500,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 11540,
+      "end_ms": 31530,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 31540,
+      "end_ms": 35180,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 35340,
+      "end_ms": 46660,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 46840,
+      "end_ms": 65680,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 65690,
+      "end_ms": 73430,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 73440,
+      "end_ms": 75580,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 75630,
+      "end_ms": 94740,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 94840,
+      "end_ms": 111220,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 111230,
+      "end_ms": 118410,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 118540,
+      "end_ms": 121800,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 121810,
+      "end_ms": 128310,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 128760,
+      "end_ms": 130720,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 131160,
+      "end_ms": 133080,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 133270,
+      "end_ms": 137330,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 137520,
+      "end_ms": 138430,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 138730,
+      "end_ms": 143060,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 143070,
+      "end_ms": 162800,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 162820,
+      "end_ms": 177370,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 177450,
+      "end_ms": 188510,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 188520,
+      "end_ms": 206810,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 206820,
+      "end_ms": 217970,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 217980,
+      "end_ms": 236690,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 236840,
+      "end_ms": 248940,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 248950,
+      "end_ms": 264700,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 264920,
+      "end_ms": 266400,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 266870,
+      "end_ms": 268160,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 268370,
+      "end_ms": 281590,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 281600,
+      "end_ms": 293750,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 293780,
+      "end_ms": 305240,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 305250,
+      "end_ms": 324140,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 324150,
+      "end_ms": 328990,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 329020,
+      "end_ms": 333310,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 333340,
+      "end_ms": 336110,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 336460,
+      "end_ms": 356150,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 356940,
+      "end_ms": 368870,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 369150,
+      "end_ms": 376220,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 376420,
+      "end_ms": 388430,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 388440,
+      "end_ms": 397700,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 397770,
+      "end_ms": 402530,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 402560,
+      "end_ms": 419920,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 419960,
+      "end_ms": 423570,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 423690,
+      "end_ms": 428710,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 429000,
+      "end_ms": 443240,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 443250,
+      "end_ms": 462930,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 462940,
+      "end_ms": 470170,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 470210,
+      "end_ms": 488920,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 488930,
+      "end_ms": 499270,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 499500,
+      "end_ms": 502700,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 502710,
+      "end_ms": 516460,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 516500,
+      "end_ms": 535630,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 535720,
+      "end_ms": 547640,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 547760,
+      "end_ms": 557110,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 557240,
+      "end_ms": 559590,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 560070,
+      "end_ms": 573230,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 573240,
+      "end_ms": 588390,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 588400,
+      "end_ms": 596910,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 598750,
+      "end_ms": 616420,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 616590,
+      "end_ms": 617210,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 617300,
+      "end_ms": 632620,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 632720,
+      "end_ms": 644350,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 644390,
+      "end_ms": 662850,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 662860,
+      "end_ms": 679030,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 679040,
+      "end_ms": 692940,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 692950,
+      "end_ms": 709740,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 709750,
+      "end_ms": 715640,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 715780,
+      "end_ms": 735770,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 735780,
+      "end_ms": 748790,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 748910,
+      "end_ms": 768110,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 768160,
+      "end_ms": 770730,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 770770,
+      "end_ms": 771600,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 771720,
+      "end_ms": 785430,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 785440,
+      "end_ms": 802090,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 802100,
+      "end_ms": 821970,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 822040,
+      "end_ms": 823870,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 823930,
+      "end_ms": 842960,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 842970,
+      "end_ms": 858940,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 858950,
+      "end_ms": 873750,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 873760,
+      "end_ms": 888640,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 888650,
+      "end_ms": 907950,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 907960,
+      "end_ms": 924980,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 924990,
+      "end_ms": 943280,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 943380,
+      "end_ms": 945360,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 945520,
+      "end_ms": 960850,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 960860,
+      "end_ms": 972180,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 972220,
+      "end_ms": 984640,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 984650,
+      "end_ms": 1001170,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1001180,
+      "end_ms": 1018100,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1018110,
+      "end_ms": 1024060,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1024410,
+      "end_ms": 1027230,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1027430,
+      "end_ms": 1040670,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1040680,
+      "end_ms": 1057590,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1057710,
+      "end_ms": 1060190,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1060540,
+      "end_ms": 1061620,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1061630,
+      "end_ms": 1070380,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1070460,
+      "end_ms": 1073450,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1073690,
+      "end_ms": 1079840,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1079860,
+      "end_ms": 1098810,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1098820,
+      "end_ms": 1117690,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1117700,
+      "end_ms": 1123310,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1123380,
+      "end_ms": 1141230,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1141240,
+      "end_ms": 1146060,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1146140,
+      "end_ms": 1151380,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1151750,
+      "end_ms": 1161910,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1162130,
+      "end_ms": 1162820,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1163360,
+      "end_ms": 1165650,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1165840,
+      "end_ms": 1167110,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1167390,
+      "end_ms": 1172330,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1172400,
+      "end_ms": 1192390,
+      "text": "",
+      "speaker": null
+    },
+    {
+      "start_ms": 1192400,
+      "end_ms": 1200000,
+      "text": "",
+      "speaker": null
+    }
+  ],
+  "speakers": [
+    {
+      "start_ms": 3250,
+      "end_ms": 11400,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 11400,
+      "end_ms": 13380,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 13980,
+      "end_ms": 14660,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 15670,
+      "end_ms": 16470,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 18450,
+      "end_ms": 19730,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 21410,
+      "end_ms": 23230,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 24250,
+      "end_ms": 26120,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 28050,
+      "end_ms": 30350,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 31990,
+      "end_ms": 32450,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 32450,
+      "end_ms": 40140,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 40140,
+      "end_ms": 41000,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 41000,
+      "end_ms": 42570,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 44340,
+      "end_ms": 45580,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 46640,
+      "end_ms": 48720,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 49630,
+      "end_ms": 52280,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 52280,
+      "end_ms": 55760,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 56930,
+      "end_ms": 57710,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 59240,
+      "end_ms": 60310,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 61360,
+      "end_ms": 63400,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 63850,
+      "end_ms": 69210,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 69520,
+      "end_ms": 70330,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 71820,
+      "end_ms": 73100,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 74570,
+      "end_ms": 75500,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 76130,
+      "end_ms": 77210,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 78290,
+      "end_ms": 79500,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 80610,
+      "end_ms": 82700,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 83830,
+      "end_ms": 84750,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 86410,
+      "end_ms": 87110,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 87410,
+      "end_ms": 91310,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 91310,
+      "end_ms": 98680,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 99810,
+      "end_ms": 101550,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 103440,
+      "end_ms": 104360,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 105770,
+      "end_ms": 107930,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 108580,
+      "end_ms": 109300,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 110300,
+      "end_ms": 111160,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 112890,
+      "end_ms": 115780,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 117430,
+      "end_ms": 118420,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 119710,
+      "end_ms": 124100,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 124100,
+      "end_ms": 125780,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 126810,
+      "end_ms": 129660,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 131030,
+      "end_ms": 132990,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 134150,
+      "end_ms": 135130,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 136510,
+      "end_ms": 143050,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 143050,
+      "end_ms": 148010,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 149930,
+      "end_ms": 150640,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 153120,
+      "end_ms": 166630,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 167880,
+      "end_ms": 169320,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 170370,
+      "end_ms": 171870,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 173480,
+      "end_ms": 174500,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 175280,
+      "end_ms": 176000,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 176000,
+      "end_ms": 177280,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 177540,
+      "end_ms": 179900,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 181710,
+      "end_ms": 182680,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 183980,
+      "end_ms": 185360,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 185360,
+      "end_ms": 195870,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 197790,
+      "end_ms": 198650,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 199790,
+      "end_ms": 206720,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 208000,
+      "end_ms": 208630,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 209470,
+      "end_ms": 212610,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 212610,
+      "end_ms": 214730,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 216520,
+      "end_ms": 217980,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 217980,
+      "end_ms": 221630,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 222810,
+      "end_ms": 230730,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 231820,
+      "end_ms": 233160,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 234960,
+      "end_ms": 237530,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 238500,
+      "end_ms": 241450,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 242940,
+      "end_ms": 245740,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 247310,
+      "end_ms": 248910,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 248910,
+      "end_ms": 255290,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 255520,
+      "end_ms": 258210,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 260000,
+      "end_ms": 260620,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 260620,
+      "end_ms": 261570,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 261570,
+      "end_ms": 262050,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 262050,
+      "end_ms": 266810,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 266810,
+      "end_ms": 268180,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 270010,
+      "end_ms": 270940,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 270940,
+      "end_ms": 271810,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 271810,
+      "end_ms": 272510,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 272510,
+      "end_ms": 273260,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 273260,
+      "end_ms": 274780,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 276210,
+      "end_ms": 285980,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 286040,
+      "end_ms": 288910,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 290380,
+      "end_ms": 291340,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 293300,
+      "end_ms": 295630,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 297550,
+      "end_ms": 298520,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 300020,
+      "end_ms": 300910,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 300910,
+      "end_ms": 309120,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 310890,
+      "end_ms": 313640,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 313640,
+      "end_ms": 317510,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 317510,
+      "end_ms": 318430,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 319680,
+      "end_ms": 321140,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 322610,
+      "end_ms": 328780,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 328780,
+      "end_ms": 329920,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 329920,
+      "end_ms": 335050,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 336630,
+      "end_ms": 337290,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 337290,
+      "end_ms": 338500,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 339960,
+      "end_ms": 342960,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 344590,
+      "end_ms": 346580,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 346580,
+      "end_ms": 352000,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 360050,
+      "end_ms": 363970,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 368750,
+      "end_ms": 376040,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 377410,
+      "end_ms": 380070,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 386220,
+      "end_ms": 388470,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 393230,
+      "end_ms": 397410,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 399190,
+      "end_ms": 412220,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 412220,
+      "end_ms": 423390,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 424430,
+      "end_ms": 426120,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 427560,
+      "end_ms": 428630,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 428630,
+      "end_ms": 430120,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 431190,
+      "end_ms": 433650,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 434780,
+      "end_ms": 435480,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 452420,
+      "end_ms": 454070,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 464310,
+      "end_ms": 465320,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 478150,
+      "end_ms": 478900,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 480770,
+      "end_ms": 483990,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 492080,
+      "end_ms": 495320,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 496820,
+      "end_ms": 500680,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 502340,
+      "end_ms": 505670,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 517400,
+      "end_ms": 519000,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 520860,
+      "end_ms": 522280,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 528000,
+      "end_ms": 532230,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 533950,
+      "end_ms": 536030,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 536030,
+      "end_ms": 546450,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 547500,
+      "end_ms": 551250,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 552310,
+      "end_ms": 555070,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 555330,
+      "end_ms": 569650,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 570970,
+      "end_ms": 572280,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 572280,
+      "end_ms": 573100,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 573100,
+      "end_ms": 575450,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 576070,
+      "end_ms": 576900,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 578830,
+      "end_ms": 581270,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 582690,
+      "end_ms": 584030,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 585920,
+      "end_ms": 588910,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 589350,
+      "end_ms": 594030,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 594670,
+      "end_ms": 596570,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 598370,
+      "end_ms": 606340,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 606340,
+      "end_ms": 607070,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 607070,
+      "end_ms": 608780,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 608780,
+      "end_ms": 609800,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 610620,
+      "end_ms": 611360,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 611360,
+      "end_ms": 615050,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 617820,
+      "end_ms": 630320,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 630400,
+      "end_ms": 636150,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 636150,
+      "end_ms": 637000,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 638340,
+      "end_ms": 644210,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 645260,
+      "end_ms": 646450,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 646450,
+      "end_ms": 654560,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 655950,
+      "end_ms": 658260,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 658260,
+      "end_ms": 662750,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 662750,
+      "end_ms": 666730,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 668670,
+      "end_ms": 669340,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 671330,
+      "end_ms": 672620,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 674580,
+      "end_ms": 677090,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 677090,
+      "end_ms": 678040,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 678040,
+      "end_ms": 683450,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 683450,
+      "end_ms": 685680,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 686550,
+      "end_ms": 687360,
+      "text": "",
+      "speaker": "S03"
+    },
+    {
+      "start_ms": 688990,
+      "end_ms": 695730,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 695730,
+      "end_ms": 697470,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 697470,
+      "end_ms": 703180,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 703180,
+      "end_ms": 704000,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 715510,
+      "end_ms": 716240,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 730050,
+      "end_ms": 731390,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 736450,
+      "end_ms": 739340,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 742070,
+      "end_ms": 745740,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 746770,
+      "end_ms": 747600,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 761390,
+      "end_ms": 762190,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 765180,
+      "end_ms": 766060,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 767780,
+      "end_ms": 771210,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 772630,
+      "end_ms": 773400,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 780690,
+      "end_ms": 781630,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 793020,
+      "end_ms": 794230,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 795990,
+      "end_ms": 797440,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 835550,
+      "end_ms": 838720,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 845780,
+      "end_ms": 846540,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 847810,
+      "end_ms": 849040,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 849740,
+      "end_ms": 850790,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 853700,
+      "end_ms": 854580,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 855140,
+      "end_ms": 857330,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 862070,
+      "end_ms": 863080,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 867480,
+      "end_ms": 868240,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 880000,
+      "end_ms": 882930,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 884080,
+      "end_ms": 885280,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 886940,
+      "end_ms": 895380,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 896530,
+      "end_ms": 897570,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 898750,
+      "end_ms": 900830,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 902450,
+      "end_ms": 916490,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 916490,
+      "end_ms": 918540,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 918910,
+      "end_ms": 921650,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 923070,
+      "end_ms": 924960,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 925740,
+      "end_ms": 929350,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 930940,
+      "end_ms": 932370,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 933580,
+      "end_ms": 936100,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 937630,
+      "end_ms": 940570,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 941910,
+      "end_ms": 945340,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 946830,
+      "end_ms": 955570,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 957490,
+      "end_ms": 960010,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 960910,
+      "end_ms": 962510,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 962510,
+      "end_ms": 965770,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 967730,
+      "end_ms": 969030,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 970880,
+      "end_ms": 972120,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 973150,
+      "end_ms": 977050,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 977860,
+      "end_ms": 981290,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 983230,
+      "end_ms": 988090,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 989320,
+      "end_ms": 992610,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 993390,
+      "end_ms": 995450,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 996460,
+      "end_ms": 997280,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 998460,
+      "end_ms": 1000990,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1002160,
+      "end_ms": 1005730,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1006850,
+      "end_ms": 1009830,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1011450,
+      "end_ms": 1013020,
+      "text": "",
+      "speaker": "S01"
+    },
+    {
+      "start_ms": 1013950,
+      "end_ms": 1025340,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1025340,
+      "end_ms": 1026550,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 1026550,
+      "end_ms": 1032210,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1032210,
+      "end_ms": 1034740,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1034740,
+      "end_ms": 1036930,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1036930,
+      "end_ms": 1037980,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 1037980,
+      "end_ms": 1042130,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1042230,
+      "end_ms": 1043480,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 1043840,
+      "end_ms": 1044680,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1045780,
+      "end_ms": 1046300,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1047540,
+      "end_ms": 1056000,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1063820,
+      "end_ms": 1068730,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1070590,
+      "end_ms": 1073390,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 1075370,
+      "end_ms": 1077020,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1083340,
+      "end_ms": 1090880,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1097150,
+      "end_ms": 1098620,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1114360,
+      "end_ms": 1120590,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 1123900,
+      "end_ms": 1126550,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 1127670,
+      "end_ms": 1128720,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 1136070,
+      "end_ms": 1138660,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1140440,
+      "end_ms": 1141190,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1142330,
+      "end_ms": 1143310,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1144740,
+      "end_ms": 1145860,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 1145860,
+      "end_ms": 1148940,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1151270,
+      "end_ms": 1152130,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1154710,
+      "end_ms": 1156010,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1157950,
+      "end_ms": 1159800,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1163230,
+      "end_ms": 1168420,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 1172220,
+      "end_ms": 1173240,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1178690,
+      "end_ms": 1180310,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 1181760,
+      "end_ms": 1183580,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 1185010,
+      "end_ms": 1185850,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 1190010,
+      "end_ms": 1190490,
+      "text": "",
+      "speaker": "S02"
+    },
+    {
+      "start_ms": 1192440,
+      "end_ms": 1195760,
+      "text": "",
+      "speaker": "S04"
+    },
+    {
+      "start_ms": 1197570,
+      "end_ms": 1198940,
+      "text": "",
+      "speaker": "S04"
+    }
+  ],
+  "evidence": "evidence.json"
+}

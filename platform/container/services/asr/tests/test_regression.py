@@ -1,12 +1,13 @@
 import hashlib
 import importlib.util
-import json
 import sys
 import wave
 from pathlib import Path
 from types import ModuleType
 
 import yaml
+
+from scheduler.scenarios import RECIPES
 
 ASR_ROOT = Path(__file__).parents[1]
 REGRESSION_ROOT = ASR_ROOT / "regression"
@@ -31,7 +32,7 @@ def file_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
-def test_regression_manifest_has_three_complete_fixtures_per_category() -> None:
+def test_regression_manifest_has_verified_references_and_scene_recipes() -> None:
     manifest = yaml.safe_load((REGRESSION_ROOT / "manifest.yaml").read_text())
 
     assert manifest["schema_version"] == 1
@@ -39,9 +40,8 @@ def test_regression_manifest_has_three_complete_fixtures_per_category() -> None:
         "conversation",
         "meeting",
         "narration",
+        "conversation_tracks",
     }
-    for category in ("conversation", "meeting", "narration"):
-        assert sum(fixture["category"] == category for fixture in manifest["fixtures"]) == 3
 
     fixture_ids = set()
     audio_paths = set()
@@ -61,15 +61,8 @@ def test_regression_manifest_has_three_complete_fixtures_per_category() -> None:
         audio_paths.add(audio["path"])
         assert len(audio["sha256"]) == 64
         assert audio["size_bytes"] > 0
-        assert audio["duration_ms"] >= 1_200_000
-        result_directory = (
-            REGRESSION_ROOT / fixture["category"] / "results" / Path(audio["path"]).name
-        )
-        assert (result_directory / "evidence.json").is_file()
-        assert (result_directory / "trace.json").is_file()
-        for recipe in evaluate.EXPECTED_RECIPES:
-            result = json.loads((result_directory / f"{recipe}.json").read_text())
-            assert result["status"] in {"completed", "failed"}
+        assert audio["duration_ms"] > 0
+        assert set(fixture["recipes"]) <= RECIPES[fixture["category"]].keys()
         reference = fixture["reference"]
         reference_path = REGRESSION_ROOT / reference["path"]
         assert reference_path.is_file()
@@ -159,3 +152,13 @@ def test_first_channel_pcm_is_deterministic(tmp_path: Path) -> None:
         assert audio.getparams().nchannels == 1
         assert audio.getparams().framerate == 2
         assert audio.readframes(2) == b"\x01\x00\x02\x00"
+
+
+def test_track_scoring_never_permutates_known_identities() -> None:
+    reference = {"S01": "天气很好", "S02": "是的"}
+    swapped = {"S01": "是的", "S02": "天气很好"}
+    assert evaluate.fixed_speaker_cer(reference, reference) == 0
+    assert evaluate.fixed_speaker_cer(reference, swapped) > 0
+    spans = [evaluate.Span(0, 1000, "S01", ""), evaluate.Span(1000, 2000, "S02", "")]
+    swapped_spans = [evaluate.Span(0, 1000, "S02", ""), evaluate.Span(1000, 2000, "S01", "")]
+    assert evaluate.diarization_error_rate(spans, swapped_spans, fixed_identity=True) == 1

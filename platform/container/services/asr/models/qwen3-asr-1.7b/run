@@ -27,15 +27,17 @@ export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64
 
 # BF16 保留原精度；8192 包含音频编码与输出预算，不是音频秒数。
 # vLLM 从 processor 固定 30 秒输入；上层使用相同窗口边界。
+export PYTHONPATH="$model_dir/../.."
+
 exec uv run \
   --project "$model_dir" \
   --frozen \
   --no-sync \
-  vllm serve \
+  python "$model_dir/api.py" vllm serve \
   "$model_dir/weights" \
   --served-model-name qwen3-asr-1.7b \
   --host 127.0.0.1 \
-  --port "${ASR_PORT:?}" \
+  --port "$((ASR_PORT + 1000))" \
   --dtype bfloat16 \
   --tensor-parallel-size 1 \
   --max-model-len 8192 \

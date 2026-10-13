@@ -1,9 +1,10 @@
 import threading
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Form, HTTPException, UploadFile
 
-from protocol import InferenceRequest, InferenceResult, Span
+from models.audio import evidence, uploaded
+from protocol import InferenceResult, Span
 
 
 def app() -> FastAPI:
@@ -37,30 +38,32 @@ def app() -> FastAPI:
         return {"status": "ready"}
 
     @service.post("/diarize")
-    def diarize(request: InferenceRequest) -> InferenceResult:
-        if request.audio is None:
-            raise HTTPException(422, "audio is required")
-        path = Path(request.audio).resolve()
-        if not path.is_relative_to(Path("/data/asr")) or not path.is_file():
-            raise HTTPException(422, "audio must be a file inside /data/asr")
-        with lock:
-            # NeMo's file-path loader segfaults in Lhotse 2.0.0a6. The server already
-            # normalizes every request to mono 16 kHz PCM, so bypass that loader.
-            audio, rate = sf.read(path, dtype="float32")
-            if rate != 16000 or audio.ndim != 1:
-                raise ValueError("diarizer expects mono 16 kHz PCM")
-            # Each diarize call owns one array and initializes its own streaming cache.
-            result = model.diarize(audio=[audio], sample_rate=rate, batch_size=1, num_workers=0)[0]
-            spans = []
-            for segment in result:
-                start, end, speaker = segment.split()
-                spans.append(
-                    Span(
-                        start_ms=round(float(start) * 1000),
-                        end_ms=round(float(end) * 1000),
-                        speaker=speaker,
+    def diarize(file: UploadFile | None = None, options: str = Form("{}")) -> InferenceResult:
+        with uploaded(file, options) as request:
+            if request.audio is None:
+                raise HTTPException(422, "audio is required")
+            path = Path(request.audio).resolve()
+            with lock:
+                # NeMo's file-path loader segfaults in Lhotse 2.0.0a6. The server already
+                # normalizes every request to mono 16 kHz PCM, so bypass that loader.
+                audio, rate = sf.read(path, dtype="float32")
+                if rate != 16000 or audio.ndim != 1:
+                    raise ValueError("diarizer expects mono 16 kHz PCM")
+                # Each diarize call owns one array and initializes its own streaming cache.
+                result = model.diarize(
+                    audio=[audio], sample_rate=rate, batch_size=1, num_workers=0
+                )[0]
+                spans = []
+                for segment in result:
+                    start, end, speaker = segment.split()
+                    spans.append(
+                        Span(
+                            start_ms=round(float(start) * 1000),
+                            end_ms=round(float(end) * 1000),
+                            speaker=speaker,
+                        )
                     )
-                )
-            return InferenceResult(spans=spans, raw=result)
+                result_record = InferenceResult(spans=spans, raw=result)
+                return evidence(result_record, request, Path(__file__).resolve().parent)
 
     return service

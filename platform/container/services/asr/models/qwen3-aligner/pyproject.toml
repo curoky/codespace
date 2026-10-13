@@ -3,6 +3,7 @@ name = "asr-model-qwen3-aligner"
 version = "0.1.0"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+  "python-multipart==0.0.32",
   "huggingface-hub==1.33.0",
   "vllm[audio]==0.31.0",
   "uvicorn>=0.54.0"

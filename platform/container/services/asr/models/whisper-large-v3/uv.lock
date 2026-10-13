@@ -147,13 +147,23 @@ name = "asr-model-whisper-large-v3"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "fastapi" },
+    { name = "httpx2" },
     { name = "huggingface-hub" },
+    { name = "pydantic" },
+    { name = "python-multipart" },
+    { name = "uvicorn" },
     { name = "vllm", extra = ["audio"] },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "fastapi", specifier = "==0.136.3" },
+    { name = "httpx2", specifier = "==2.13.1" },
     { name = "huggingface-hub", specifier = "==1.33.0" },
+    { name = "pydantic", specifier = "==2.13.5" },
+    { name = "python-multipart", specifier = "==0.0.32" },
+    { name = "uvicorn", specifier = "==0.54.0" },
     { name = "vllm", extras = ["audio"], specifier = "==0.31.0" },
 ]
 

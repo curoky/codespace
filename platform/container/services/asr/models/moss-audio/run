@@ -27,15 +27,17 @@ export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64
 
 # 8B Instruct 只复听争议短窗，8192 为音频及逐字转写留预算，不做量化。
 # trust-remote-code 用于固定 snapshot 的自定义音频组件。
+export PYTHONPATH="$model_dir/../.."
+
 exec uv run \
   --project "$model_dir" \
   --frozen \
   --no-sync \
-  vllm serve \
+  python "$model_dir/api.py" vllm serve \
   "$model_dir/weights" \
   --served-model-name moss-audio \
   --host 127.0.0.1 \
-  --port "${ASR_PORT:?}" \
+  --port "$((ASR_PORT + 1000))" \
   --dtype bfloat16 \
   --tensor-parallel-size 1 \
   --max-model-len 8192 \

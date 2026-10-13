@@ -3,6 +3,11 @@ name = "asr-model-vibevoice"
 version = "0.1.0"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+  "fastapi==0.136.3",
+  "uvicorn==0.54.0",
+  "python-multipart==0.0.32",
+  "httpx2==2.13.1",
+  "pydantic==2.13.5",
   "huggingface-hub==1.33.0",
   "vllm[audio]==0.31.0"
 ]

@@ -1,139 +1,177 @@
 # ASR Regression
 
-本目录保存 ASR 的固定 9 音频 corpus、标准答案、最新 committed result 和确定性质量指标。本文
-只记录当前可复现基线与操作合同；实验过程由 Git history 和仓库外原始日志承担，不在这里累积
-逐轮调优记录。
+`manifest.yaml` 声明真实语料、固定 source revision、checksum、转换规则、逐字 reference
+和每个场景实际执行的 Recipe。音频 cache 位于 `<scenario>/audio/`，不入 Git。
 
-## Corpus
+## Corpus And Scoring
 
-`manifest.yaml` 是 source of truth，固定 source revision、下载 URL、checksum、转换规则、音频
-属性、speaker metadata 和 reference 规则。CER 与 SA-CER 使用逐字 transcript reference；meeting
-DER 使用 `diar-forced-alignment` 固定 revision 的 AliMeeting Test Far RTTM，conversation DER 使用
-MagicData gold timing。DER 为 0 秒 collar 且保留 overlap。指标单元格依次为
-**CER / SA-CER / DER**，均为越低越好；`—` 表示单 speaker fixture 不适用该指标。
+- `conversation`：MagicData-RAMC 的三条双人自然对话，逐字与 speaker gold reference。
+- `meeting`：AliMeeting 三条远场会议前 20 分钟；正文使用官方 TextGrid，DER 使用固定
+  `diar-forced-alignment` revision 的 RTTM，保留 overlap，collar 为零。
+- `narration`：三条 LibriVox 鲁迅朗读，《狂人日记》使用已校对的 audio-verbatim reference，
+  其余采用原文底本；没有 gold speaker timing，因此只统计正文 CER。
+- `conversation_tracks`：AliMeeting R8009_M8021 前 20 分钟真实双人头戴麦克风录音，
+  SPK8027 / SPK8028 对应 channel 0 / 1，固定为 S01 / S02。官方 TextGrid 预处理成
+  `conversation_tracks/R8009_M8021.json`，保留原始时间、独立身份、静音和 overlap。
+  来源、成员路径、license 和 checksum 都在 manifest；一次性预处理脚本不入 Git。
 
-| Fixture | 来源 / License | 类型 | 内容 | 时长 | 大小 | 01 Qwen fusion | 02 FireRed fusion | 03 MOSS-TD | 04 VibeVoice | 05 Qwen + Nemotron |
-| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `conversation-weather` | [MagicData-RAMC dev](https://huggingface.co/datasets/EaseZh/magicdata_ramc/tree/79d508c3c3de40a0db55135f78113a7dfe6066d2) / CC BY-NC-ND 4.0 | 双人自然对话；gold | 天气、气候与生活体验 | 30:07.875 | 55.17 MiB | 7.89% / 9.49% / 10.60% | 7.80% / 8.84% / 10.60% | 7.51% / 7.51% / 5.97% | 9.45% / 9.45% / 15.15% | 7.92% / 20.58% / 21.83% |
-| `conversation-education` | [MagicData-RAMC dev](https://huggingface.co/datasets/EaseZh/magicdata_ramc/tree/79d508c3c3de40a0db55135f78113a7dfe6066d2) / CC BY-NC-ND 4.0 | 双人自然对话；gold | 学校、专业与就业规划 | 32:18.350 | 59.15 MiB | 6.41% / 9.59% / 14.01% | 7.23% / 10.25% / 14.01% | 5.96% / 8.04% / 12.05% | 8.66% / 10.55% / 24.34% | 6.41% / 9.57% / 16.46% |
-| `conversation-film` | [MagicData-RAMC dev](https://huggingface.co/datasets/EaseZh/magicdata_ramc/tree/79d508c3c3de40a0db55135f78113a7dfe6066d2) / CC BY-NC-ND 4.0 | 双人自然对话；gold | 《哪吒》剧情、票房与角色 | 30:58.400 | 56.71 MiB | 10.02% / 12.08% / 10.84% | 10.32% / 12.17% / 10.84% | 7.96% / 8.23% / 5.85% | 12.61% / 13.10% / 18.73% | 10.02% / 11.64% / 14.46% |
-| `meeting-annual-event` | [AliMeeting test](https://huggingface.co/datasets/ggfox00000/dia-alimeeting-test/tree/cef2837c4a1a0762074522c1bbbbb90eb4d1acf5) / CC BY-SA 4.0 | 四人远场会议；gold | 年会、节目与抽奖安排 | 20:00.000 | 36.62 MiB | 26.57% / 40.27% / 26.88% | 34.51% / 44.82% / 26.88% | 15.67% / 11.70% / 19.05% | 33.67% / 38.49% / 37.89% | 27.01% / 34.21% / 8.96% |
-| `meeting-game-launch` | [AliMeeting test](https://huggingface.co/datasets/ggfox00000/dia-alimeeting-test/tree/cef2837c4a1a0762074522c1bbbbb90eb4d1acf5) / CC BY-SA 4.0 | 四人远场会议；gold | 手游用户、奖励与卖点 | 20:00.000 | 36.62 MiB | 55.91% / 69.52% / 39.71% | 65.04% / 72.65% / 39.71% | 39.09% / 32.66% / 31.24% | 61.80% / 78.79% / 77.55% | 56.22% / 70.62% / 20.29% |
-| `meeting-bike-sharing` | [AliMeeting test](https://huggingface.co/datasets/ggfox00000/dia-alimeeting-test/tree/cef2837c4a1a0762074522c1bbbbb90eb4d1acf5) / CC BY-SA 4.0 | 三人远场会议；gold | 单车停放、安全与治理 | 20:00.000 | 36.62 MiB | 14.90% / 19.07% / 22.96% | 32.34% / 36.10% / 22.96% | 12.95% / 10.03% / 18.45% | 24.88% / 41.24% / 36.37% | 15.05% / 17.54% / 5.69% |
-| `narration-madmans-diary` | [LibriVox《呐喊》](https://archive.org/details/call_to_arms_jl_librivox) / Public Domain | 单人朗读；audio-verbatim | 鲁迅《狂人日记》 | 20:34.245 | 18.84 MiB | 2.49% / — / — | 2.22% / — / — | 2.94% / — / — | 2.10% / — / — | 2.49% / — / — |
-| `narration-hometown` | [LibriVox《呐喊》](https://archive.org/details/call_to_arms_jl_librivox) / Public Domain | 单人朗读；source text | 鲁迅《故乡》 | 20:25.213 | 18.70 MiB | 2.15% / — / — | 1.84% / — / — | 2.71% / — / — | 3.04% / — / — | 2.15% / — / — |
-| `narration-village-opera` | [LibriVox《呐喊》](https://archive.org/details/call_to_arms_jl_librivox) / Public Domain | 单人朗读；source text | 鲁迅《社戏》 | 22:20.920 | 20.46 MiB | 2.99% / — / — | 3.12% / — / — | 3.72% / — / — | 3.22% / — / — | 2.99% / — / — |
+普通混音场景的 SA-CER / DER 允许全局 speaker 排列；双轨评分固定身份，不允许排列。
+双轨时间排序的全局 CER 会受同时讲话的段落排序影响，正文质量以逐轨 CER 和固定身份
+SA-CER 为主；固定身份检查另外逐段验证 channel / segment / token 一致性。
+`per_speaker_cer` 分别记录两轨 CER，`fixed_speaker_cer` 能检测左右轨交换。双轨 DER 使用
+原始 transcript segment timing，包含段内静音，不将该值与 meeting 的 forced-alignment
+DER 混为同一口径。
 
-conversation 不裁切或转码。meeting 的确定性音频抽取由 `prepare.py` 实现，RTTM 在评分时裁到
-相同的前 20 分钟。narration 评估正文区间排除 LibriVox 开头与结尾 announcement；单 speaker
-语料不计算 SA-CER 和 DER。
+## Ownership
 
-## Latest Baseline
-
-本节的 9 音频 committed baseline 于 2026-10-13 从正式 image
-`e791f212cf519ae5d83f51038fde2747d56a1291e7929f0f04b33829721dc993`
-生成，未使用代码 bind mount。image 未压缩大小为 12,370,497,805 bytes。13 个固定 model
-revision marker 全部命中，模型下载阶段为 0 秒。
-
-### Build And Automated Tests
-
-- `task check:full` 通过：476 项主测试、68 项 ASR 测试，以及 format、lint、type、lock、Shell
-  检查。
-- 正式 Dockerfile build 成功；所有模型环境从 lock 安装并完成 hardlink 去重。
-- 9 份 trace 全部 `completed`，45/45 recipes 全部 `completed`。
-- 12,715 个 trace events completed，最终 recipe、trace 与 evidence 无 error。
-- 1,156 组 GPU samples 无采样错误；容器 restart count 为 0、未 OOM、没有模型异常退出。
-
-### Startup
-
-本轮从精确 image ID 启动，15/15 实例 ready 后公开 `/health`。全部回归完成后正常停止容器，
-GPU 0–7 均回到 0 MiB。本轮未把启动 wall 作为性能测量，不沿用其他 image 的冷 / 热启动数字。
-
-### End-To-End Performance
-
-正式 committed baseline 使用 `--parallel 1`，避免跨文件竞争污染单项质量与 trace。九条
-server trace 合计 1,292.708 秒（21.545 分钟），中位数 127.813 秒，最大 206.102 秒。
-
-| Fixture | 音频时长 | Trace wall | Trace / audio | 最终状态 |
-| --- | ---: | ---: | ---: | --- |
-| `conversation-weather` | 1,807.875 s | 172.098 s | 0.095× | 5/5 recipes completed |
-| `conversation-education` | 1,938.350 s | 182.905 s | 0.094× | 5/5 recipes completed |
-| `conversation-film` | 1,858.400 s | 206.102 s | 0.111× | 5/5 recipes completed |
-| `meeting-annual-event` | 1,200.000 s | 127.813 s | 0.107× | 5/5 recipes completed |
-| `meeting-game-launch` | 1,200.000 s | 126.212 s | 0.105× | 5/5 recipes completed |
-| `meeting-bike-sharing` | 1,200.000 s | 93.367 s | 0.078× | 5/5 recipes completed |
-| `narration-madmans-diary` | 1,234.245 s | 110.658 s | 0.090× | 5/5 recipes completed |
-| `narration-hometown` | 1,225.213 s | 133.331 s | 0.109× | 5/5 recipes completed |
-| `narration-village-opera` | 1,340.920 s | 140.222 s | 0.105× | 5/5 recipes completed |
-| **合计** | **13,005.003 s** | **1,292.708 s** | **0.099×** | **45/45 recipes completed** |
-
-串行质量回归中的 GPU 平均 compute busy 为 52.8%、59.1%、26.6%、22.9%、17.9%、30.4%、
-2.5%、10.8%。这不是 throughput placement 评分：GPU 6 承担短 Paraformer、review Aligner 和
-VibeVoice overflow，串行单文件不会主动使用 overflow。placement 的验收目标是 critical path、
-phase 隔离和无 queue 回归，不是八卡平均利用率相等。
-
-### Quality
-
-下表来自最新 `metrics.json` 的 9-fixture macro。详细 45 项结果以该文件和
-`evaluate.py --markdown` 输出为准。
-
-| Recipe | Completed | Macro CER | Macro SA-CER | Macro DER |
-| --- | ---: | ---: | ---: | ---: |
-| `01-qwen-fusion` | 9/9 | 14.37% | 26.67% | 20.83% |
-| `02-firered-fusion` | 9/9 | 18.27% | 30.81% | 20.83% |
-| `03-moss-td` | 9/9 | **10.95%** | **13.03%** | 15.43% |
-| `04-vibevoice` | 9/9 | 17.72% | 31.94% | 35.01% |
-| `05-qwen-nemotron` | 9/9 | 14.47% | 27.36% | **14.61%** |
-
-conversation 的最低 macro CER / SA-CER / DER 都是 03（7.15% / 7.93% / 7.96%）；meeting 的最低
-CER / SA-CER 是 03（22.57% / 18.13%），最低 DER 是 05（11.65%）；narration 最低 CER 是 02
-（2.40%）。03 的全局一对一 speaker 映射显著改善 attribution，且正文仍是五方案中最好。
-
-04 现在同样按 joint model 自有 segment 计算 speaker activity，不再复用 Pyannote activity。其
-meeting macro SA-CER / DER 为 52.84% / 50.61%，说明旧口径掩盖了 VibeVoice 自身 diarization 的
-真实弱点；这不是可接受的 speaker 基线，后续优化不能再通过共享外部 activity 隐藏问题。
-
-meeting DER reference 使用 Nemotron 官方评估采用的 forced-alignment RTTM，而不是面向转写的
-原始 TextGrid segment；后者会把段内静音计作语音，不适合 frame-level DER。当前 05 的 meeting
-DER 为 11.65%，与模型报告的 AliMeeting Test Far 10.47% 处于同一量级；本 corpus 只取三条录音
-的前 20 分钟，因此不宣称复现完整 test set 分数。
-
-## Result Ownership
-
-| Path | Ownership |
+| Path | Responsibility |
 | --- | --- |
-| `<category>/audio/` | 可删除、可重建的本地 cache；`.gitignore` 忽略，不提交 |
-| `<category>/*.txt`、`*.TextGrid`、`*.rttm` | committed reference；修改后同步 manifest checksum |
-| `<category>/results/<audio>/` | 五份 Markdown/JSON、共享 evidence、index 与 trace 的 committed baseline |
-| `metrics.json` | `evaluate.py` 从 committed results 确定性生成 |
+| `manifest.yaml` | 输入、reference 与回归 Recipe 的 source of truth |
+| `<scenario>/audio/` | 可删除、可校验重建的本地 cache |
+| `<scenario>/*.txt`, `*.TextGrid`, `*.rttm`, `*.json` | committed reference |
+| `<scenario>/results/<audio>/` | 本场景各 Recipe Markdown / JSON、evidence、trace 与 index |
+| `metrics.json` | evaluate 从当前结果确定性生成的指标 |
 
-不要手工编辑 result 或 metrics。只有完成全量 9 音频、结构审计和质量审查后才替换 committed
-baseline；部分运行不得提交为新基线。
+不要手工编辑结果或指标。只有全量场景运行、结构审计和质量审查完成后才替换 committed
+baseline。实验日志放仓库外；不得用模拟结果宣称质量改善。
 
 ## Workflow
-
-准备或校验音频 cache：
 
 ```bash
 uv run --script platform/container/services/asr/regression/prepare.py
 uv run --script platform/container/services/asr/regression/prepare.py --check
 ```
 
-服务 ready 后串行刷新三类结果；`--overwrite` 只用于明确替换 committed baseline：
+服务和所需模型 ready 后，读取 manifest 的人数与 Recipe，按两个文件并发执行：
 
 ```bash
-for category in conversation meeting narration; do
-  uv run platform/container/services/asr/client/asr.py \
-    "platform/container/services/asr/regression/$category/audio" \
-    --server http://127.0.0.1:8080 \
-    --out "platform/container/services/asr/regression/$category/results" \
-    --parallel 1 \
-    --overwrite
-done
-
+uv run --script platform/container/services/asr/regression/run.py \
+  --server http://127.0.0.1:18080
 uv run --script platform/container/services/asr/regression/evaluate.py --markdown
 ```
 
-验收必须确认：9/9 trace completed、45/45 recipe completed、最终 evidence 无 error、GPU sample
-无 error、结果目录 14 个产物齐全。结束后复制所需的仓库外启动/模型日志，正常停止容器，并用
-`nvidia-smi` 确认 GPU 0–7 均为 0 MiB。
+`run.py --scenario <scenario>` 用于受影响场景回归。manifest 的 `recipes` 与实际登记保持
+一致；CLI 省略 `--recipe` 执行场景全部方案，定点测试可以选择一套，但不代替完整基线。
+结果文件名以 `<scenario>--<recipe>` 发布，不保留固定五份结果的假设。
+
+审计所有返回状态、正文、时间范围、unknown speaker、alignment flags、raw evidence 与
+模型 revision。耗时来自 client evidence 的准备和端到端完成，以及 trace 的 server
+总耗时、每模型等待和推理阶段；跨请求并发导致等待属于正常容量约束。
+
+## Baseline
+
+以下结果来自最终两镜像部署，按 manifest 执行所有 Recipe；client 同时处理两条录音，
+实例额度跨请求与 Recipe 共享。模型 revision 和实际参数保存在各结果的 evidence 中。
+CER / SA-CER / DER 均为越低越好，`—` 表示该语料没有对应 gold 指标。
+
+
+| Fixture | Recipe | CER | SA-CER | DER |
+| --- | --- | ---: | ---: | ---: |
+| conversation-weather | conversation/moss_joint | 7.61% | 7.61% | 6.15% |
+| conversation-weather | conversation/qwen_pyannote | 8.15% | 9.74% | 10.60% |
+| conversation-weather | conversation/vibevoice | 9.14% | 9.13% | 13.84% |
+| conversation-education | conversation/moss_joint | 6.04% | 8.11% | 12.39% |
+| conversation-education | conversation/qwen_pyannote | 6.35% | 9.50% | 14.01% |
+| conversation-education | conversation/vibevoice | 8.52% | 10.53% | 24.02% |
+| conversation-film | conversation/moss_joint | 7.96% | 8.23% | 5.85% |
+| conversation-film | conversation/qwen_pyannote | 10.25% | 12.29% | 10.84% |
+| conversation-film | conversation/vibevoice | 12.02% | 12.24% | 16.83% |
+| meeting-annual-event | meeting/moss_joint | 15.65% | 11.48% | 18.41% |
+| meeting-annual-event | meeting/qwen_nemotron | 26.20% | 33.50% | 8.96% |
+| meeting-annual-event | meeting/vibevoice | 34.15% | 35.11% | 35.74% |
+| meeting-game-launch | meeting/moss_joint | 38.89% | 31.85% | 30.76% |
+| meeting-game-launch | meeting/qwen_nemotron | 55.96% | 70.53% | 20.29% |
+| meeting-game-launch | meeting/vibevoice | 62.46% | 82.34% | 78.42% |
+| meeting-bike-sharing | meeting/moss_joint | 12.90% | 9.92% | 18.15% |
+| meeting-bike-sharing | meeting/qwen_nemotron | 16.50% | 19.32% | 5.69% |
+| meeting-bike-sharing | meeting/vibevoice | 28.89% | 46.62% | 37.18% |
+| narration-madmans-diary | narration/qwen | 2.62% | — | — |
+| narration-madmans-diary | narration/firered | 2.20% | — | — |
+| narration-hometown | narration/qwen | 2.22% | — | — |
+| narration-hometown | narration/firered | 1.89% | — | — |
+| narration-village-opera | narration/qwen | 3.01% | — | — |
+| narration-village-opera | narration/firered | 3.10% | — | — |
+| conversation-tracks-childrens-day | conversation_tracks/qwen | 13.89% | 4.44% | 10.59% |
+| conversation-tracks-childrens-day | conversation_tracks/firered | 13.61% | 4.02% | 10.59% |
+
+
+Client request 包含准备、上传和等待响应，Server 来自 trace；同时运行两个录音，不能将这些耗时相加当作批次总耗时。
+
+| Fixture | Prepare (s) | Request (s) | Server (s) |
+| --- | ---: | ---: | ---: |
+| conversation-weather | 0.32 | 160.67 | 160.00 |
+| conversation-education | 0.36 | 205.59 | 204.86 |
+| conversation-film | 0.32 | 158.03 | 157.23 |
+| meeting-annual-event | 0.29 | 129.92 | 129.40 |
+| meeting-game-launch | 0.22 | 90.78 | 90.35 |
+| meeting-bike-sharing | 0.22 | 94.13 | 93.68 |
+| narration-madmans-diary | 0.98 | 115.83 | 114.47 |
+| narration-hometown | 0.98 | 126.92 | 125.53 |
+| narration-village-opera | 1.06 | 175.83 | 174.37 |
+| conversation-tracks-childrens-day | 0.28 | 178.42 | 177.51 |
+
+双轨逐轨 CER：
+
+| Recipe | S01 | S02 |
+| --- | ---: | ---: |
+| conversation_tracks/qwen | 5.43% | 3.63% |
+| conversation_tracks/firered | 5.29% | 2.98% |
+
+全部结果状态、区间、模型 revision、参数与双轨固定身份已审计通过。原始 token 的缺失时间仍保持 null；alignment、unknown speaker 和标点改字拒绝均保留为显式标记。
+
+| Recipe | Segments | Alignment flags | Unknown speaker flags |
+| --- | ---: | ---: | ---: |
+| conversation/moss_joint | 1461 | 0 | 0 |
+| conversation/qwen_pyannote | 1213 | 179 | 74 |
+| conversation/vibevoice | 797 | 0 | 0 |
+| conversation_tracks/firered | 375 | 10 | 0 |
+| conversation_tracks/qwen | 370 | 3 | 0 |
+| meeting/moss_joint | 1505 | 0 | 0 |
+| meeting/qwen_nemotron | 3223 | 2479 | 231 |
+| meeting/vibevoice | 749 | 0 | 67 |
+| narration/firered | 306 | 2 | 0 |
+| narration/qwen | 305 | 0 | 0 |
+
+双轨全局 CER 受重叠发言的时间排序影响，正文质量以逐轨 CER 和固定身份 SA-CER 为主要依据。两套分轨方案使用相同 VAD，因此本次 DER 相同；该值评价语音时间范围，不表示运行了 diarization。
+
+并发 trace 审查确认：Qwen、FireRed、MOSS-audio、VibeVoice 的实际在途推理达到各两路，其余模型不超过各自固定额度；检查区间边界时允许独立毫秒取整的误差。全部混录 joint 生成调用在 speaker anchor 完成前提交，实际开跑仍受跨请求共享额度约束。
+
+在本 corpus 中，MOSS joint 的混录正文优于其他候选，Nemotron 的远场 DER 较低；VibeVoice 的远场正文和 speaker 指标较弱，Qwen 融合在远场重叠讲话中仍有较多 alignment 标记。候选彼此独立，保留当前实测差异，后续升级按对应场景重新评测。
+
+## Validation Provenance
+
+本次基线于 2026-10-13 从两个完整构建的镜像生成，未使用代码 bind mount：
+
+- Models：`f9536a57c774b0f010043122086ffc45f1469882c1848b4961f87f1edd3986a7`。
+- Scheduler：`10106247ccb066bb990079b4438cf121466cd8432dd17dace0d3f35aae48098b`。
+
+`task check:full` 通过，包括 47 项 ASR 测试、446 项控制面测试及格式、lint、类型、锁文件和
+Shell 检查。两个镜像构建通过；完整模型集合与 CPU VAD / Punc 子集分别验证了静态 s6 选择
+启动。全部 13 个模型服务 ready，替换 Scheduler 时 Models 启动时间与常驻进程保持。
+10 条真实录音、26 份结果全部完成，状态、时间范围、revision、参数和双轨身份审计通过。
+本次验证容器与专用网络已清理，GPU 0–7 显存使用均回到 0 MiB。
+
+## Comparison With v1
+
+v1 对照取自 Git commit `2169e33` 的 committed baseline。共同的 9 条录音、reference 和
+原有场景的评分口径保持一致；以下是每个场景三条录音的 macro CER，越低越好：
+
+| Scenario | 对应方案 | v1 CER | v2 CER |
+| --- | --- | ---: | ---: |
+| conversation | MOSS joint | 7.15% | 7.20% |
+| conversation | Qwen + Pyannote | 8.11% | 8.25% |
+| conversation | VibeVoice | 10.24% | 9.89% |
+| meeting | MOSS joint | 22.57% | 22.48% |
+| meeting | Qwen + Nemotron | 32.76% | 32.89% |
+| meeting | VibeVoice | 40.12% | 41.83% |
+| narration | Qwen | 2.54% | 2.61% |
+| narration | FireRed | 2.395% | 2.396% |
+
+当前准确率总体持平，部分改善、部分退化，不宣称全面提升。MOSS 的会议 macro SA-CER
+从 18.13% 降到 17.75%，DER 从 22.91% 降到 22.44%；VibeVoice 的会议正文仍有退化。
+双轨是新增能力，v1 没有对应基线。朗读候选数量减少也不代表最佳成绩提升：v1 VibeVoice
+在《狂人日记》的 CER 为 2.10%，v2 当前最佳为 FireRed 的 2.20%。
+
+以上各来自一轮基线，小幅差异尚未经过重复运行确认。v1 每条录音执行五套方案、文件串行；
+v2 按场景执行两到三套方案、两个文件并发，GPU placement 也有调整，因此本次耗时不作为
+公平的版本性能对比。后续按单场景继续优化准确率，并用相同工作负载验证性能变化。

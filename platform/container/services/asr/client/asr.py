@@ -6,6 +6,7 @@ import asyncio
 import json
 import shutil
 import tempfile
+import time
 from pathlib import Path
 from typing import Annotated, Literal, cast
 
@@ -34,55 +35,12 @@ class Result(ResponseRecord):
     segments: list[Segment] = Field(default_factory=list)
 
 
-class TraceEvent(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    kind: Literal["phase", "model"]
-    name: str
-    channel: str | None = None
-    status: Literal["completed", "failed"]
-    started_ms: int = Field(ge=0)
-    duration_ms: int = Field(ge=0)
-    model: str | None = None
-    cache_hit: bool | None = None
-    gpu_ids: list[str] = Field(default_factory=list)
-    gpu_indices: list[str] = Field(default_factory=list)
-    model_queue_ms: int | None = Field(default=None, ge=0)
-    cpu_queue_ms: int | None = Field(default=None, ge=0)
-    inference_ms: int | None = Field(default=None, ge=0)
-    input_summary: dict[str, JsonValue] = Field(default_factory=dict)
-    output_summary: dict[str, JsonValue] = Field(default_factory=dict)
-    error: str | None = None
-
-
-class GPUDeviceSample(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    id: str
-    index: str
-    gpu_percent: int = Field(ge=0, le=100)
-    memory_percent: int = Field(ge=0, le=100)
-    memory_used_mib: int = Field(ge=0)
-    power_watts: float | None = Field(default=None, ge=0)
-
-
-class GPUUtilizationSample(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    timestamp_ms: int = Field(ge=0)
-    devices: list[GPUDeviceSample]
-
-
 class TraceDocument(BaseModel):
     model_config = ConfigDict(extra="forbid")
-
-    schema_version: Literal[2]
-    status: Literal["completed", "partial"]
-    duration_ms: int = Field(ge=0)
-    events: list[TraceEvent]
-    gpu_sample_interval_ms: Literal[1000]
-    gpu_samples: list[GPUUtilizationSample]
-    gpu_sampling_error: str | None = None
+    schema_version: Literal[3]
+    status: Literal["completed"]
+    duration_ms: int
+    events: list[dict[str, JsonValue]]
 
 
 class TranscriptionResponse(BaseModel):
@@ -153,18 +111,24 @@ def write_response(payload: JsonValue, destination: Path) -> bool:
     completed = True
     for result in response.results:
         recipe = result.recipe
+        filename = recipe.replace("/", "--")
         status = result.status
-        if not recipe or Path(recipe).name != recipe or recipe in recipes:
+        if (
+            not recipe
+            or any(part in {"", ".", ".."} for part in recipe.split("/"))
+            or "\\" in recipe
+            or recipe in recipes
+        ):
             raise ValueError("server returned an invalid or duplicate recipe")
         recipes.add(recipe)
         completed &= status == "completed"
-        lines.append(f"- [{recipe}]({recipe}.md) · {status} · [JSON]({recipe}.json)")
+        lines.append(f"- [{recipe}]({filename}.md) · {status} · [JSON]({filename}.json)")
         document = result.model_dump(mode="json")
         document["evidence"] = "evidence.json"
-        (destination / f"{recipe}.json").write_text(
+        (destination / f"{filename}.json").write_text(
             json.dumps(document, ensure_ascii=False, indent=2)
         )
-        (destination / f"{recipe}.md").write_text(markdown(result))
+        (destination / f"{filename}.md").write_text(markdown(result))
     lines.extend(
         [
             "",
@@ -186,6 +150,55 @@ def write_response(payload: JsonValue, destination: Path) -> bool:
     return completed
 
 
+async def prepare(
+    source: Path,
+    destination: Path,
+    *,
+    separate: bool,
+    second: Path | None = None,
+    offset_ms: int = 0,
+    streams: str | None = None,
+) -> None:
+    command = ["ffmpeg", "-nostdin", "-v", "error", "-y", "-i", str(source)]
+    if second is not None:
+        command += ["-i", str(second)]
+        first_delay = max(0, -offset_ms)
+        second_delay = max(0, offset_ms)
+        graph = (
+            f"[0:a:0]aformat=channel_layouts=mono,adelay={first_delay}:all=1,pan=stereo|c0=c0|c1=0*c0[a];"
+            f"[1:a:0]aformat=channel_layouts=mono,adelay={second_delay}:all=1,pan=stereo|c0=0*c0|c1=c0[b];"
+            "[a][b]amix=inputs=2:duration=longest:normalize=0[out]"
+        )
+        command += ["-filter_complex", graph, "-map", "[out]"]
+    elif streams is not None:
+        left, right = map(int, streams.split(","))
+        command += [
+            "-filter_complex",
+            f"[0:a:{left}]aformat=channel_layouts=mono,pan=stereo|c0=c0|c1=0*c0[a];"
+            f"[0:a:{right}]aformat=channel_layouts=mono,pan=stereo|c0=0*c0|c1=c0[b];"
+            "[a][b]amix=inputs=2:duration=longest:normalize=0[out]",
+            "-map",
+            "[out]",
+        ]
+    else:
+        command += ["-map", "0:a:0"]
+    command += [
+        "-ac",
+        "2" if separate else "1",
+        "-ar",
+        "16000",
+        "-c:a",
+        "pcm_s16le",
+        "-f",
+        "wav",
+        str(destination),
+    ]
+    process = await asyncio.create_subprocess_exec(*command, stderr=asyncio.subprocess.PIPE)
+    _, error = await process.communicate()
+    if process.returncode:
+        raise ValueError(error.decode())
+
+
 async def process(
     client: httpx.AsyncClient,
     source: Path,
@@ -199,15 +212,28 @@ async def process(
         raise FileExistsError(f"{destination} 已存在；使用 --overwrite 重新转录并覆盖")
     destination.parent.mkdir(parents=True, exist_ok=True)
     typer.echo(f"{source}: 转录中")
-    with source.open("rb") as audio:
-        response = await client.post(
-            "/transcribe",
-            data={"options": options},
-            files={"file": (source.name, audio)},
-            timeout=httpx.Timeout(None, connect=30),
+    started = time.monotonic()
+    with tempfile.TemporaryDirectory(prefix="asr-input-") as temporary:
+        audio_path = Path(temporary) / "audio.wav"
+        await prepare(
+            source, audio_path, separate=json.loads(options)["scenario"] == "conversation_tracks"
         )
+        prepared_ms = round((time.monotonic() - started) * 1000)
+        with audio_path.open("rb") as audio:
+            response = await client.post(
+                "/transcribe",
+                data={"options": options},
+                files={"file": (source.name, audio, "audio/wav")},
+                timeout=httpx.Timeout(None, connect=30),
+            )
     response.raise_for_status()
     payload = cast(JsonValue, response.json())
+    evidence = payload.get("evidence") if isinstance(payload, dict) else None
+    if isinstance(evidence, dict):
+        evidence["client"] = {
+            "prepare_ms": prepared_ms,
+            "request_ms": round((time.monotonic() - started) * 1000),
+        }
     with tempfile.TemporaryDirectory(prefix=".asr-", dir=destination.parent) as temporary:
         result = Path(temporary) / "result"
         result.mkdir()
@@ -259,22 +285,47 @@ def main(
     parallel: Annotated[int, typer.Option(min=1)] = 2,
     num_speakers: Annotated[int | None, typer.Option(min=1)] = None,
     hotword: Annotated[list[str] | None, typer.Option()] = None,
-    separate_channels: bool = False,
-    vad_off: bool = False,
+    scenario: Annotated[str, typer.Option()] = "conversation",
+    recipe: Annotated[list[str] | None, typer.Option()] = None,
+    second_track: Annotated[Path | None, typer.Option(exists=True)] = None,
+    second_offset_ms: int = 0,
+    streams: Annotated[str | None, typer.Option()] = None,
     overwrite: bool = False,
 ) -> None:
     options = json.dumps(
         {
             "num_speakers": num_speakers,
             "hotwords": hotword or [],
-            "separate_channels": separate_channels,
-            "vad_mode": "off" if vad_off else "on",
+            "scenario": scenario,
+            "recipes": recipe or [],
         }
     )
     try:
-        success = asyncio.run(
-            run(source.resolve(), server, out.resolve(), parallel, options, overwrite)
-        )
+        if second_track is not None and streams is not None:
+            raise ValueError("choose second-track or streams")
+        if second_track is not None or streams is not None:
+            if scenario != "conversation_tracks" or not source.is_file():
+                raise ValueError("track options require one recording and conversation_tracks")
+            with tempfile.TemporaryDirectory(prefix="asr-tracks-") as temporary:
+                normalized = Path(temporary) / source.name
+                normalized = normalized.with_suffix(".wav")
+                asyncio.run(
+                    prepare(
+                        source,
+                        normalized,
+                        separate=True,
+                        second=second_track,
+                        offset_ms=second_offset_ms,
+                        streams=streams,
+                    )
+                )
+                success = asyncio.run(
+                    run(normalized, server, out.resolve(), parallel, options, overwrite)
+                )
+        else:
+            success = asyncio.run(
+                run(source.resolve(), server, out.resolve(), parallel, options, overwrite)
+            )
     except (httpx.HTTPError, OSError, ValueError) as exc:
         typer.echo(str(exc), err=True)
         raise typer.Exit(1) from exc

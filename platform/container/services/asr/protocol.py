@@ -38,6 +38,8 @@ class InferenceRequest(Record):
     text: str = ""
     hotwords: list[str] = Field(default_factory=list)
     num_speakers: int | None = Field(default=None, ge=1)
+    mode: str = "verbatim"
+    language: str = "zh"
 
 
 class InferenceResult(Record):
@@ -46,3 +48,5 @@ class InferenceResult(Record):
     tokens: list[Token] = Field(default_factory=list)
     raw: JsonValue = None
     warnings: list[str] = Field(default_factory=list)
+    revision: str = ""
+    parameters: dict[str, JsonValue] = Field(default_factory=dict)

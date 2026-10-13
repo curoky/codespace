@@ -120,20 +120,33 @@ services:
       network_mode: bridge
       restart: unless-stopped
 
-  asr:
+  asr-scheduler:
     hosts: [gpu-h100]
     tunnel_ports: [8080]
     container:
-      image: ghcr.io/curoky/codespace:service-asr
+      image: ghcr.io/curoky/codespace:service-asr-scheduler
+      platform: linux/amd64
+      pull_policy: always
+      network_mode: bridge
+      volumes:
+        - ${RESOURCE_DATA}/requests:/data/asr
+      restart: unless-stopped
+
+  asr-models:
+    hosts: [gpu-h100]
+    container:
+      image: ghcr.io/curoky/codespace:service-asr-models
       platform: linux/amd64
       pull_policy: always
       network_mode: bridge
       shm_size: 8g
       pids_limit: -1
       devices: [nvidia.com/gpu=all]
+      environment:
+        ASR_MODELS: firered-llm,firered-punc,firered-vad,moss-audio,moss-td,nemotron-diarization,paraformer,pyannote-community-1,qwen3-aligner,qwen3-asr-1.7b,sensevoice,vibevoice,whisper-large-v3
+        ASR_PLACEMENT: '{"firered-llm":[0,1],"moss-audio":[2],"moss-td":[3],"nemotron-diarization":[1],"paraformer":[6],"pyannote-community-1":[1],"qwen3-aligner":[7],"qwen3-asr-1.7b":[4],"sensevoice":[5],"vibevoice":[5],"whisper-large-v3":[7]}'
       volumes:
         - ${RESOURCE_DATA}/models:/model-data
-        - ${RESOURCE_DATA}/requests:/data/asr
         - ${RESOURCE_DATA}/cache:/home/x/.cache
       secrets:
         - {source: huggingface_token, uid: '5230', gid: '5230', mode: 0400}

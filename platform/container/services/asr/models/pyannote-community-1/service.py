@@ -1,9 +1,10 @@
 import threading
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Form, HTTPException, UploadFile
 
-from protocol import InferenceRequest, InferenceResult, Span
+from models.audio import evidence, uploaded
+from protocol import InferenceResult, Span
 
 
 def app() -> FastAPI:
@@ -22,27 +23,31 @@ def app() -> FastAPI:
         return {"status": "ready"}
 
     @service.post("/diarize")
-    def diarize(request: InferenceRequest) -> InferenceResult:
-        if request.audio is None:
-            raise HTTPException(422, "audio is required")
-        path = Path(request.audio).resolve()
-        if not path.is_relative_to(Path("/data/asr")) or not path.is_file():
-            raise HTTPException(422, "audio must be a file inside /data/asr")
-        with lock:
-            # 直接传 waveform，避免引入另一套音频解码器；人数只采用用户明确输入。
-            audio, rate = sf.read(path, dtype="float32", always_2d=True)
-            kwargs = {"num_speakers": request.num_speakers} if request.num_speakers else {}
-            result = model({"waveform": torch.from_numpy(audio.T), "sample_rate": rate}, **kwargs)
-            # 使用普通 diarization 保留重叠，exclusive 输出会抹掉插话。
-            # 标签仅在本文件内有效，不能逐短窗重新聚类或跨文件识别人名。
-            spans = [
-                Span(
-                    start_ms=round(turn.start * 1000),
-                    end_ms=round(turn.end * 1000),
-                    speaker=str(speaker),
+    def diarize(file: UploadFile | None = None, options: str = Form("{}")) -> InferenceResult:
+        with uploaded(file, options) as request:
+            if request.audio is None:
+                raise HTTPException(422, "audio is required")
+            path = Path(request.audio).resolve()
+            with lock:
+                # 直接传 waveform，避免引入另一套音频解码器；人数只采用用户明确输入。
+                audio, rate = sf.read(path, dtype="float32", always_2d=True)
+                kwargs = {"num_speakers": request.num_speakers} if request.num_speakers else {}
+                result = model(
+                    {"waveform": torch.from_numpy(audio.T), "sample_rate": rate}, **kwargs
                 )
-                for turn, speaker in result.speaker_diarization
-            ]
-            return InferenceResult(spans=spans, raw=[span.model_dump() for span in spans])
+                # 使用普通 diarization 保留重叠，exclusive 输出会抹掉插话。
+                # 标签仅在本文件内有效，不能逐短窗重新聚类或跨文件识别人名。
+                spans = [
+                    Span(
+                        start_ms=round(turn.start * 1000),
+                        end_ms=round(turn.end * 1000),
+                        speaker=str(speaker),
+                    )
+                    for turn, speaker in result.speaker_diarization
+                ]
+                result_record = InferenceResult(
+                    spans=spans, raw=[span.model_dump() for span in spans]
+                )
+                return evidence(result_record, request, Path(__file__).resolve().parent)
 
     return service

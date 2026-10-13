@@ -1,9 +1,10 @@
 import threading
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Form, HTTPException, UploadFile
 
-from protocol import InferenceRequest, InferenceResult
+from models.audio import evidence, uploaded
+from protocol import InferenceResult
 
 
 def app() -> FastAPI:
@@ -27,15 +28,17 @@ def app() -> FastAPI:
         return {"status": "ready"}
 
     @service.post("/transcribe")
-    def transcribe(request: InferenceRequest) -> InferenceResult:
-        if request.audio is None:
-            raise HTTPException(422, "audio is required")
-        path = Path(request.audio).resolve()
-        if not path.is_relative_to(Path("/data/asr")) or not path.is_file():
-            raise HTTPException(422, "audio must be a file inside /data/asr")
-        with lock:
-            # 文件请求之间不共享流式 cache。
-            result = model.generate(input=str(path), cache={})[0]
-            return InferenceResult(text=result["text"], raw=result)
+    def transcribe(file: UploadFile | None = None, options: str = Form("{}")) -> InferenceResult:
+        with uploaded(file, options) as request:
+            if request.mode not in {"verbatim", "narration", "conversation", "meeting"}:
+                raise HTTPException(422, "unsupported inference mode")
+            if request.audio is None:
+                raise HTTPException(422, "audio is required")
+            path = Path(request.audio).resolve()
+            with lock:
+                # 文件请求之间不共享流式 cache。
+                result = model.generate(input=str(path), cache={})[0]
+                result_record = InferenceResult(text=result["text"], raw=result)
+                return evidence(result_record, request, Path(__file__).resolve().parent)
 
     return service

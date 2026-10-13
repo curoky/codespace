@@ -17,13 +17,6 @@ import yaml
 from rapidfuzz.distance import Levenshtein
 
 ROOT = Path(__file__).resolve().parent
-EXPECTED_RECIPES = (
-    "01-qwen-fusion",
-    "02-firered-fusion",
-    "03-moss-td",
-    "04-vibevoice",
-    "05-qwen-nemotron",
-)
 ANNOTATION = re.compile(r"\[(?:LAUGHTER|NOISE|VOCALIZED-NOISE|\*|\+)\]", re.IGNORECASE)
 FOOTNOTE_MARKERS = str.maketrans("", "", "⑴⑵⑶⑷⑸⑹⑺⑻⑼⑽")
 
@@ -167,6 +160,8 @@ def reference_spans(fixture: dict[str, object]) -> list[Span]:
     match reference["format"]:
         case "magicdata_tsv":
             return parse_magicdata(path)
+        case "tracks_json":
+            return [Span(**span) for span in json.loads(path.read_text())]
         case "textgrid":
             return parse_textgrid(path, int(reference["end_ms"]))
         case "source_text":
@@ -254,6 +249,19 @@ def concatenate_by_speaker(spans: Iterable[Span]) -> dict[str, str]:
     return {speaker: normalize("".join(parts)) for speaker, parts in values.items()}
 
 
+def fixed_speaker_cer(reference: dict[str, str], hypothesis: dict[str, str]) -> float:
+    total = sum(map(len, reference.values()))
+    if not total:
+        raise ValueError("speaker-attributed reference is empty")
+    return (
+        sum(
+            Levenshtein.distance(reference.get(speaker, ""), hypothesis.get(speaker, ""))
+            for speaker in reference.keys() | hypothesis.keys()
+        )
+        / total
+    )
+
+
 def permutation_cer(reference: dict[str, str], hypothesis: dict[str, str]) -> float:
     references = list(reference.values())
     hypotheses = list(hypothesis.values())
@@ -312,8 +320,14 @@ def best_speaker_mapping(reference: list[Span], hypothesis: list[Span]) -> dict[
     return dict(assign(0, 0)[1])
 
 
-def diarization_error_rate(reference: list[Span], hypothesis: list[Span]) -> float:
-    mapping = best_speaker_mapping(reference, hypothesis)
+def diarization_error_rate(
+    reference: list[Span], hypothesis: list[Span], *, fixed_identity: bool = False
+) -> float:
+    mapping = (
+        {span.speaker: span.speaker for span in hypothesis}
+        if fixed_identity
+        else best_speaker_mapping(reference, hypothesis)
+    )
     events: dict[int, list[tuple[str, str, bool]]] = defaultdict(list)
     for kind, spans in (("reference", reference), ("hypothesis", hypothesis)):
         for span in spans:
@@ -363,8 +377,9 @@ def evaluate_fixture(fixture: dict[str, object]) -> list[dict[str, object]]:
     has_gold_timing = reference_config["quality"] == "gold"
     result_directory = ROOT / str(fixture["category"]) / "results" / Path(str(audio["path"])).name
     rows = []
-    for recipe in EXPECTED_RECIPES:
-        path = result_directory / f"{recipe}.json"
+    for name in fixture["recipes"]:
+        recipe = f"{fixture['category']}/{name}"
+        path = result_directory / f"{recipe.replace('/', '--')}.json"
         document = json.loads(path.read_text())
         if document.get("status") != "completed":
             rows.append(
@@ -400,13 +415,29 @@ def evaluate_fixture(fixture: dict[str, object]) -> list[dict[str, object]]:
                 "reference_quality": reference_config["quality"],
                 "status": "completed",
                 "error": None,
+                "per_speaker_cer": (
+                    {
+                        speaker: edit_counts(text, hypothesis_by_speaker.get(speaker, ""))["cer"]
+                        for speaker, text in reference_by_speaker.items()
+                    }
+                    if fixture["category"] == "conversation_tracks"
+                    else None
+                ),
                 "speaker_attributed_cer": (
-                    permutation_cer(reference_by_speaker, hypothesis_by_speaker)
+                    (
+                        fixed_speaker_cer(reference_by_speaker, hypothesis_by_speaker)
+                        if fixture["category"] == "conversation_tracks"
+                        else permutation_cer(reference_by_speaker, hypothesis_by_speaker)
+                    )
                     if has_gold_timing
                     else None
                 ),
                 "diarization_error_rate": (
-                    diarization_error_rate(diarization_reference, activity)
+                    diarization_error_rate(
+                        diarization_reference,
+                        activity,
+                        fixed_identity=fixture["category"] == "conversation_tracks",
+                    )
                     if has_gold_timing
                     else None
                 ),

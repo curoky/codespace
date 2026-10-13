@@ -2,20 +2,20 @@ import itertools
 from importlib import import_module
 
 from protocol import Span, Token
-from server.audio import union, windows
-from server.config import ChunkConfig
-from server.transcript import (
-    Segment,
+from scheduler.audio import union, windows
+from scheduler.config import ChunkConfig
+from scheduler.scenarios.conversation.moss_joint import mapped_identity
+from scheduler.scenarios.narration.qwen import (
     align_text,
     choose,
-    mapped_identity,
     normalized,
     owners,
     punctuation_input,
     utterances,
 )
+from scheduler.transcript import Segment
 
-parse_joint = import_module("models.moss-td.client").parse
+parse_joint = import_module("models.moss-td.inference").parse
 
 
 def test_normalization_keeps_negation_numbers_units_and_repetition() -> None:
@@ -162,6 +162,16 @@ def test_vad_union_covers_speaker_activity_and_bounded_windows() -> None:
     assert clips[0].end_ms > clips[1].start_ms
 
 
+def test_vad_short_pauses_keep_utterance_context_in_one_window() -> None:
+    clips = windows(
+        [Span(start_ms=1000, end_ms=2000), Span(start_ms=2400, end_ms=4000)],
+        5000,
+        ChunkConfig(),
+    )
+    assert len(clips) == 1
+    assert (clips[0].start_ms, clips[0].end_ms) == (700, 4300)
+
+
 def test_alignment_preserves_text_and_does_not_invent_invalid_times() -> None:
     tokens = align_text(
         "你好， hello!",
@@ -220,6 +230,22 @@ def test_local_speaker_names_are_mapped_by_evidence() -> None:
     assert mapped_identity([Span(start_ms=4200, end_ms=6800, speaker="S01")], reference) == {
         "S01": "S02"
     }
+
+
+def test_utterance_time_encloses_tokens_that_arrive_out_of_order() -> None:
+    segment = Segment(
+        start_ms=0,
+        end_ms=2000,
+        text="用比",
+        tokens=[
+            Token(text="用", start_ms=1300, end_ms=1560),
+            Token(text="比", start_ms=840, end_ms=920),
+        ],
+    )
+    result = utterances(segment, [Span(start_ms=0, end_ms=2000, speaker="S01")])
+    assert len(result) == 1
+    assert result[0].text == "用比"
+    assert (result[0].start_ms, result[0].end_ms) == (840, 1560)
 
 
 def test_local_speaker_mapping_maximizes_one_to_one_evidence() -> None:

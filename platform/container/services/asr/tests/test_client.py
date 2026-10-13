@@ -1,19 +1,15 @@
 import asyncio
+import wave
+from array import array
 from pathlib import Path
 from unittest.mock import patch
 
 import httpx
 import pytest
 
-from client.asr import process, run, write_response
+from client.asr import prepare, process, run, write_response
 
-RECIPES = (
-    "01-qwen-fusion",
-    "02-firered-fusion",
-    "03-moss-td",
-    "04-vibevoice",
-    "05-qwen-nemotron",
-)
+RECIPES = ("narration/qwen", "narration/firered")
 
 
 def payload(*, recipes: tuple[str, ...] = RECIPES, status: str = "completed") -> dict:
@@ -37,34 +33,13 @@ def payload(*, recipes: tuple[str, ...] = RECIPES, status: str = "completed") ->
             for recipe in recipes
         ],
         "evidence": {"filename": "recording.wav"},
-        "trace": {
-            "schema_version": 2,
-            "status": "completed" if status == "completed" else "partial",
-            "duration_ms": 1200,
-            "events": [],
-            "gpu_sample_interval_ms": 1000,
-            "gpu_samples": [
-                {
-                    "timestamp_ms": 25,
-                    "devices": [
-                        {
-                            "id": "GPU-0",
-                            "index": "0",
-                            "gpu_percent": 75,
-                            "memory_percent": 40,
-                            "memory_used_mib": 12345,
-                            "power_watts": 300.5,
-                        }
-                    ],
-                }
-            ],
-        },
+        "trace": {"schema_version": 3, "status": "completed", "duration_ms": 1200, "events": []},
     }
 
 
 def test_each_invocation_transcribes_without_saved_client_state(tmp_path: Path) -> None:
     source = tmp_path / "recording.wav"
-    source.write_bytes(b"audio")
+    write_wav(source)
     output = tmp_path / "output"
     calls = []
 
@@ -77,14 +52,18 @@ def test_each_invocation_transcribes_without_saved_client_state(tmp_path: Path) 
             base_url="http://asr", transport=httpx.MockTransport(respond)
         ) as client:
             for _ in range(2):
-                assert await process(client, source, output, options="{}", overwrite=True)
-                assert "01-qwen-fusion" in (output / "index.md").read_text()
-                assert "测试。" in (output / "01-qwen-fusion.md").read_text()
-                assert '"evidence": "evidence.json"' in (output / "01-qwen-fusion.json").read_text()
+                assert await process(
+                    client, source, output, options='{"scenario":"narration"}', overwrite=True
+                )
+                assert "narration/qwen" in (output / "index.md").read_text()
+                assert "测试。" in (output / "narration--qwen.md").read_text()
+                assert (
+                    '"evidence": "evidence.json"' in (output / "narration--qwen.json").read_text()
+                )
                 assert "trace.html" in (output / "index.md").read_text()
                 assert 'id="trace-data"' in (output / "trace.html").read_text()
-                assert "GPU Utilization" in (output / "trace.html").read_text()
-                assert len(list(output.iterdir())) == 14
+                assert "Model Timeline" in (output / "trace.html").read_text()
+                assert len(list(output.iterdir())) == 8
                 assert not (output / ".asr-state.json").exists()
 
     asyncio.run(invoke())
@@ -102,12 +81,12 @@ def test_recipe_names_cannot_escape_output_directory(tmp_path: Path) -> None:
 def test_markdown_does_not_preserve_model_line_end_whitespace(tmp_path: Path) -> None:
     destination = tmp_path / "output"
     destination.mkdir()
-    response = payload(recipes=("01-qwen-fusion",))
+    response = payload(recipes=("narration/qwen",))
     response["results"][0]["segments"][0]["text"] = "第一行 \n第二行\t"
 
     write_response(response, destination)
 
-    document = (destination / "01-qwen-fusion.md").read_text()
+    document = (destination / "narration--qwen.md").read_text()
     assert "第一行\n第二行\n" in document
     assert all(line == line.rstrip() for line in document.splitlines())
 
@@ -138,7 +117,7 @@ def test_cli_controls_file_concurrency(tmp_path: Path) -> None:
     source = tmp_path / "recordings"
     source.mkdir()
     for i in range(4):
-        (source / f"{i}.wav").write_bytes(b"audio")
+        write_wav(source / f"{i}.wav")
     active = 0
     peak = 0
 
@@ -152,5 +131,29 @@ def test_cli_controls_file_concurrency(tmp_path: Path) -> None:
 
     client = httpx.AsyncClient(base_url="http://asr", transport=httpx.MockTransport(respond))
     with patch("client.asr.httpx.AsyncClient", return_value=client):
-        assert asyncio.run(run(source, "http://asr", tmp_path / "output", 2, "{}", False))
+        assert asyncio.run(
+            run(source, "http://asr", tmp_path / "output", 2, '{"scenario":"narration"}', False)
+        )
     assert peak == 2
+
+
+def write_wav(path: Path, value: int = 1000, frames: int = 16000) -> None:
+    with wave.open(str(path), "wb") as audio:
+        audio.setnchannels(1)
+        audio.setsampwidth(2)
+        audio.setframerate(16000)
+        audio.writeframes(array("h", [value] * frames).tobytes())
+
+
+def test_two_tracks_preserve_identity_offset_and_longer_tail(tmp_path: Path) -> None:
+    first, second, target = (tmp_path / name for name in ("first.wav", "second.wav", "out.wav"))
+    write_wav(first, 1000, 16000)
+    write_wav(second, 2000, 32000)
+    asyncio.run(prepare(first, target, separate=True, second=second, offset_ms=500))
+    with wave.open(str(target), "rb") as audio:
+        assert audio.getnchannels() == 2
+        assert audio.getnframes() == 40000
+        samples = array("h", audio.readframes(audio.getnframes()))
+    assert samples[0:2] == array("h", [1000, 0])
+    assert samples[16000:16002] == array("h", [1000, 2000])
+    assert samples[-2:] == array("h", [0, 2000])

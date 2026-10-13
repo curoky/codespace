@@ -29,15 +29,17 @@ export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64
 
 # 使用模型原生 131072 context，为最长一小时窗口的音频 token 与结构化输出留预算。
 # 同步放宽 vLLM 默认 25 MiB / 600 秒的输入保护；模型类固定不二次切片。
+export PYTHONPATH="$model_dir/../.."
+
 exec uv run \
   --project "$model_dir" \
   --frozen \
   --no-sync \
-  vllm serve \
+  python "$model_dir/api.py" vllm serve \
   "$model_dir/weights" \
   --served-model-name moss-td \
   --host 127.0.0.1 \
-  --port "${ASR_PORT:?}" \
+  --port "$((ASR_PORT + 1000))" \
   --dtype bfloat16 \
   --tensor-parallel-size 1 \
   --max-model-len 131072 \

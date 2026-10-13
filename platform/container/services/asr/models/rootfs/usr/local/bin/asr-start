@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+exec /opt/asr/models/runtime/.venv/bin/python /opt/asr/models/start.py

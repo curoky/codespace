@@ -1,6 +1,7 @@
 import asyncio
 import json
 import wave
+from importlib import import_module, util
 from pathlib import Path
 
 import httpx2
@@ -12,19 +13,7 @@ from models.vllm import (
     complete,
     complete_with_generation_retry,
 )
-from ops.scheduler import Scheduler
 from protocol import InferenceRequest, InferenceResult
-from server.config import read_config
-
-SDK_ENDPOINTS = {
-    "firered-punc": "/punctuate",
-    "firered-vad": "/vad",
-    "nemotron-diarization": "/diarize",
-    "paraformer": "/transcribe",
-    "pyannote-community-1": "/diarize",
-    "qwen3-aligner": "/align",
-    "sensevoice": "/transcribe",
-}
 
 
 @pytest.mark.parametrize("finish,done", [("length", True), ("stop", False)])
@@ -200,30 +189,6 @@ def test_vllm_retries_persistent_repetition_with_sampling() -> None:
     ]
 
 
-@pytest.mark.parametrize(("model", "endpoint"), SDK_ENDPOINTS.items())
-def test_sdk_model_clients_forward_the_shared_protocol(model: str, endpoint: str) -> None:
-    request_payload = InferenceRequest(audio="/data/asr/audio.wav", text="测试")
-    calls: list[tuple[str, dict[str, object]]] = []
-
-    def respond(request: httpx2.Request) -> httpx2.Response:
-        calls.append((request.url.path, json.loads(request.content)))
-        return httpx2.Response(200, json={"text": "完成"}, request=request)
-
-    async def run() -> InferenceResult:
-        scheduler = Scheduler(
-            read_config(Path(__file__).resolve().parents[1] / "server/server.yaml")
-        )
-        try:
-            async with httpx2.AsyncClient(transport=httpx2.MockTransport(respond)) as client:
-                instance = scheduler.pools[model][0]
-                return await instance.client(client, instance.url, request_payload)
-        finally:
-            await scheduler.close()
-
-    assert asyncio.run(run()).text == "完成"
-    assert calls == [(endpoint, request_payload.model_dump(mode="json"))]
-
-
 @pytest.mark.parametrize(
     ("model", "max_tokens", "hotwords"),
     (
@@ -254,19 +219,16 @@ def test_vllm_transcription_clients_keep_model_specific_fields(
         )
 
     async def run() -> InferenceResult:
-        scheduler = Scheduler(
-            read_config(Path(__file__).resolve().parents[1] / "server/server.yaml")
-        )
-        try:
-            async with httpx2.AsyncClient(transport=httpx2.MockTransport(respond)) as client:
-                instance = scheduler.pools[model][0]
-                return await instance.client(
-                    client,
-                    instance.url,
-                    InferenceRequest(audio=str(audio), hotwords=hotwords),
-                )
-        finally:
-            await scheduler.close()
+        async with httpx2.AsyncClient(transport=httpx2.MockTransport(respond)) as client:
+            spec = util.spec_from_file_location(
+                "model_inference", Path(__file__).parents[1] / "models" / model / "inference.py"
+            )
+            assert spec and spec.loader
+            module = util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            return await module.infer(
+                client, "http://model", InferenceRequest(audio=str(audio), hotwords=hotwords)
+            )
 
     result = asyncio.run(run())
     assert result.text.endswith("完成[1.0]") if model == "moss-td" else result.text == "完成"
@@ -281,7 +243,8 @@ def test_vllm_transcription_clients_keep_model_specific_fields(
         assert "测试词".encode() in body
 
 
-def test_vibevoice_uses_upstream_transcription_request(tmp_path: Path) -> None:
+@pytest.mark.parametrize("mode", ["conversation", "meeting"])
+def test_vibevoice_uses_upstream_transcription_request(tmp_path: Path, mode: str) -> None:
     audio = tmp_path / "audio.wav"
     with wave.open(str(audio), "wb") as output:
         output.setnchannels(1)
@@ -315,31 +278,39 @@ def test_vibevoice_uses_upstream_transcription_request(tmp_path: Path) -> None:
         )
 
     async def run() -> None:
-        scheduler = Scheduler(
-            read_config(Path(__file__).resolve().parents[1] / "server/server.yaml")
-        )
-        try:
-            async with httpx2.AsyncClient(transport=httpx2.MockTransport(respond)) as client:
-                instance = scheduler.instances["vibevoice-a"]
-                result = await instance.client(
-                    client,
-                    instance.url,
-                    InferenceRequest(audio=str(audio), hotwords=["测试词"]),
-                )
-            assert result.text.endswith('"Content":"[Silence]"}]')
-            assert len(result.spans) == 1
-            assert result.spans[0].speaker == "0"
-        finally:
-            await scheduler.close()
+        async with httpx2.AsyncClient(transport=httpx2.MockTransport(respond)) as client:
+            result = await import_module("models.vibevoice.inference").infer(
+                client,
+                "http://model",
+                InferenceRequest(audio=str(audio), hotwords=["测试词"], mode=mode),
+            )
+        assert result.text.endswith('"Content":"[Silence]"}]')
+        assert len(result.spans) == 1
+        assert result.spans[0].speaker == "0"
+        assert isinstance(result.raw, dict)
+        assert result.raw["generation_parameters"] == {
+            "temperature": 0.5 if mode == "meeting" else 0,
+            "top_p": 0.9 if mode == "meeting" else 1,
+            "seed": 2 if mode == "meeting" else 0,
+            "repetition_penalty": 1.1 if mode == "meeting" else 1.0,
+        }
 
     asyncio.run(run())
     assert payload is not None
     assert payload["max_tokens"] == 32768
-    assert payload["temperature"] == 0
-    assert payload["top_p"] == 1
+    assert payload["temperature"] == (0.5 if mode == "meeting" else 0)
+    assert payload["top_p"] == (0.9 if mode == "meeting" else 1)
+    assert payload["repetition_penalty"] == (1.1 if mode == "meeting" else 1.0)
     assert payload["chat_template_kwargs"] == {"audio_duration": "1.00"}
     assert payload["messages"][0]["content"][0]["type"] == "audio_url"
     assert payload["messages"][0]["content"][0]["audio_url"]["url"].startswith(
         "data:audio/wav;base64,"
     )
     assert payload["messages"][0]["content"][1] == {"type": "text", "text": "测试词"}
+
+
+def test_punctuation_preserves_case_numbers_and_rejects_word_changes() -> None:
+    preserve = import_module("models.firered-punc.service").preserve_content
+    assert preserve("四S店CPU频率3.14GHz", "四s店，cpu频率3.14ghz。") == "四S店，CPU频率3.14GHz。"
+    with pytest.raises(ValueError, match="changed transcript"):
+        preserve("不是五十万", "是五十万")

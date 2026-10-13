@@ -36,6 +36,16 @@ sources:
     url: https://archive.org/download/call_to_arms_jl_librivox/calltoarms_16_lu.mp3
     size_bytes: 21457198
     sha256: 9234f9c1fa6dc6096e740e98c9a845d0f604601e5c494d7196bce94d87d295a5
+  alimeeting-tracks-8027:
+    kind: file
+    url: https://huggingface.co/datasets/ggfox00000/dia-alimeeting-test/resolve/cef2837c4a1a0762074522c1bbbbb90eb4d1acf5/audio/near/R8009_M8021_N_SPK8027.wav?download=true
+    size_bytes: 64263788
+    sha256: 17d14fe8cf0f4c33c78175552088a4fd89e1f9f487e2c8ae6cc02a9a22681dd5
+  alimeeting-tracks-8028:
+    kind: file
+    url: https://huggingface.co/datasets/ggfox00000/dia-alimeeting-test/resolve/cef2837c4a1a0762074522c1bbbbb90eb4d1acf5/audio/near/R8009_M8021_N_SPK8028.wav?download=true
+    size_bytes: 64263564
+    sha256: 44d62ba06ea8887386636c3c60781847373d53ad96284231f91c9d91eab56bb3
 
 reference_sources:
   alimeeting-forced-alignment:
@@ -46,6 +56,7 @@ reference_sources:
 fixtures:
   - id: conversation-weather
     category: conversation
+    recipes: [moss_joint, qwen_pyannote, vibevoice]
     title: 天气、地域气候与日常生活
     summary: 一男一女讨论南北方天气差异、气候变暖、穿衣和生活体验。
     source: magicdata-ramc-dev
@@ -69,6 +80,7 @@ fixtures:
 
   - id: conversation-education
     category: conversation
+    recipes: [moss_joint, qwen_pyannote, vibevoice]
     title: 学业、专业选择与校园生活
     summary: 一男一女交流学校经历、专业方向、课程安排和就业规划。
     source: magicdata-ramc-dev
@@ -92,6 +104,7 @@ fixtures:
 
   - id: conversation-film
     category: conversation
+    recipes: [moss_joint, qwen_pyannote, vibevoice]
     title: 动画电影与观影体验
     summary: 一男一女围绕《哪吒之魔童降世》的剧情、票房和角色展开自然对话。
     source: magicdata-ramc-dev
@@ -115,6 +128,7 @@ fixtures:
 
   - id: meeting-annual-event
     category: meeting
+    recipes: [moss_joint, qwen_nemotron, vibevoice]
     title: 公司年会策划
     summary: 四人讨论年会日期、团建差异、节目、抽奖和员工参与安排。
     source: alimeeting-r8002-m8002
@@ -148,6 +162,7 @@ fixtures:
 
   - id: meeting-game-launch
     category: meeting
+    recipes: [moss_joint, qwen_nemotron, vibevoice]
     title: 游戏产品竞争力
     summary: 四人讨论手游目标用户、使用时长、奖励机制和市场卖点。
     source: alimeeting-r8004-m8006
@@ -181,6 +196,7 @@ fixtures:
 
   - id: meeting-bike-sharing
     category: meeting
+    recipes: [moss_joint, qwen_nemotron, vibevoice]
     title: 共享单车治理
     summary: 三人讨论共享单车乱停放、交通安全、车辆损坏和城市治理措施。
     source: alimeeting-r8008-m8014
@@ -214,6 +230,7 @@ fixtures:
 
   - id: narration-madmans-diary
     category: narration
+    recipes: [qwen, firered]
     title: 《狂人日记》
     summary: 单人朗读鲁迅小说《狂人日记》，包含连续文学叙事和大量书面语。
     source: librivox-calltoarms-02
@@ -243,6 +260,7 @@ fixtures:
 
   - id: narration-hometown
     category: narration
+    recipes: [qwen, firered]
     title: 《故乡》
     summary: 单人朗读鲁迅小说《故乡》，包含人物对话、方言词和长篇叙事。
     source: librivox-calltoarms-09
@@ -269,6 +287,7 @@ fixtures:
 
   - id: narration-village-opera
     category: narration
+    recipes: [qwen, firered]
     title: 《社戏》
     summary: 单人朗读鲁迅小说《社戏》，包含场景描写、儿童群体对话和乡土词汇。
     source: librivox-calltoarms-16
@@ -292,3 +311,36 @@ fixtures:
       audio_start_ms: 8070
       audio_end_ms: 1325830
       sha256: 41da7d083ac0bd512a1a9af22c40553d160bcba02b1a693ab03866978c93d6de
+
+  - id: conversation-tracks-childrens-day
+    category: conversation_tracks
+    recipes: [qwen, firered]
+    title: 双人独立头戴麦克风对话
+    summary: 两人讨论培训机构儿童节活动；原始独立近场音轨保留静音和重叠讲话。
+    source: alimeeting-tracks-8027
+    second_source: alimeeting-tracks-8028
+    transform:
+      kind: conversation_tracks
+      duration_seconds: 1200
+    audio:
+      path: conversation_tracks/audio/R8009_M8021-first20m-stereo.wav
+      sha256: e84dd43b4ade90594226ce8505bf23ab39372e6a530931478128bb135534c895
+      size_bytes: 76800044
+      duration_ms: 1200000
+      codec: pcm_s16le
+      sample_rate_hz: 16000
+      channels: 2
+    speakers:
+      count: 2
+      genders: [unspecified]
+      channel_mapping: {0: S01, 1: S02}
+    reference:
+      path: conversation_tracks/R8009_M8021.json
+      format: tracks_json
+      quality: gold
+      end_ms: 1200000
+      sha256: 9a12633e7396c26c64767e0688899e4344789f9bab76ab4ab207ca5282fd6b3b
+      source_url: https://speech-lab-share-data.oss-cn-shanghai.aliyuncs.com/AliMeeting/openlr/Test_Ali.tar.gz
+      source_member: Test_Ali/Test_Ali_far/textgrid_dir/R8009_M8021.TextGrid
+      source_sha256: 130d8194aa1d6dec38e54783b9191b667297e128904813658e814587913612fa
+      license: CC BY-SA 4.0

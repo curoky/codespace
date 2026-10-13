@@ -27,15 +27,17 @@ export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64
 
 # HF checkpoint 使用原生 audio chat；固定模板补上 vLLM 不会替换的音频时长占位符。
 # BF16 保留精度；65536 同时容纳音频 prompt 和上游 32768 token 生成预算。
+export PYTHONPATH="$model_dir/../.."
+
 exec uv run \
   --project "$model_dir" \
   --frozen \
   --no-sync \
-  python "$model_dir/serve.py" \
+  python "$model_dir/api.py" python "$model_dir/serve.py" \
   "$model_dir/weights" \
   --served-model-name vibevoice \
   --host 127.0.0.1 \
-  --port "${ASR_PORT:?}" \
+  --port "$((ASR_PORT + 1000))" \
   --dtype bfloat16 \
   --tensor-parallel-size 1 \
   --chat-template "$model_dir/chat_template.jinja" \

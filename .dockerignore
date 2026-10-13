@@ -22,8 +22,9 @@
 .coverage.*
 htmlcov
 
-# Host ASR weights are never image inputs; selected snapshots are downloaded during the build.
+# ASR weights and regression artifacts are never image inputs.
 platform/container/services/asr/models/*/weights
+platform/container/services/asr/regression
 
 # Node dependencies are never needed in image build contexts.
 **/node_modules

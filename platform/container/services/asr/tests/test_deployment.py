@@ -1,355 +1,42 @@
-import ast
-import asyncio
-import os
-import subprocess
 from pathlib import Path
+from unittest.mock import patch
 
-import httpx2
-import yaml
+import pytest
 
-from models.catalog import MODELS
-from ops.scheduler import Scheduler
-from server.config import Config, read_config
+from models import start
 
-
-def config() -> Config:
-    return read_config(Path(__file__).resolve().parents[1] / "server/server.yaml")
+ROOT = Path(__file__).parents[1]
 
 
-def test_each_model_owns_revisioned_download_client_and_static_service(
-    tmp_path: Path,
-) -> None:
-    root = Path(__file__).resolve().parents[1]
-    graph = root / "rootfs/etc/s6/s6-rc.d"
-    model_service = root / "rootfs/usr/local/bin/asr-model-service"
-    subprocess.run(["bash", "-n", str(model_service)], check=True)
-    model_service_text = model_service.read_text()
-    assert 'change "${services[@]}"' in model_service_text
-    assert 'for service in "${services[@]}"' in model_service_text
-    instances = config().resources.instances
-    for spec in MODELS:
-        directory = root / "models" / spec.id
-        for script in ("run", "download_model.sh"):
-            subprocess.run(["bash", "-n", str(directory / script)], check=True)
-        assert (directory / "client.py").is_file()
-        run_script = (directory / "run").read_text()
-        assert "source " not in run_script
-        for source in directory.glob("*.py"):
-            ast.parse(source.read_text(), filename=str(source))
-        service_source = directory / "service.py"
-        if service_source.is_file():
-            assert "from models.service" not in service_source.read_text()
-        download = graph / f"asr-{spec.id}-download"
-        model_instances = [instance for instance in instances if instance.model == spec.id]
-        assert model_instances
-        for instance in model_instances:
-            serve = graph / f"asr-{instance.id}"
-            run = (serve / "run").read_text()
-            assert "/run/s6/container_environment" not in run
-            assert "s6-setuidgid x" in run
-            assert "s6-env HOME=/home/x" in run
-            assert f"/run/asr/{instance.id}/PORT" in run
-            dependency = serve / f"dependencies.d/asr-{spec.id}-download"
-            assert dependency.is_file()
-        download_up = (download / "up").read_text()
-        assert "download_model.sh" in download_up
-        assert "HF_TOKEN_PATH=/run/secrets/huggingface_token" in download_up
-        download_script = (directory / "download_model.sh").read_text()
-        assert "hf download" in download_script
-        assert "--include" in download_script
-        assert "--exclude" not in download_script
-        assert "revision=" in download_script
-        assert "weights/.revision" in download_script
-        assert 'mkdir -p "$(readlink -m -- "$model_dir/weights")"' in download_script
-        assert not (directory / "download_model.py").exists()
-        for script in (download_script, run_script):
-            assert "--frozen" in script
-            assert "--no-sync" in script
-            assert "--locked" not in script
+def test_start_only_selects_requested_static_services(tmp_path: Path) -> None:
+    (tmp_path / "ASR_MODELS").write_text("firered-vad,qwen3-asr-1.7b")
+    (tmp_path / "ASR_PLACEMENT").write_text('{"qwen3-asr-1.7b":[2]}')
+    original = Path
 
-        revision = next(
-            line.removeprefix("revision=")
-            for line in download_script.splitlines()
-            if line.startswith("revision=")
-        )
-        local_model = tmp_path / spec.id
-        (local_model / "weights").mkdir(parents=True)
-        (local_model / "weights/.revision").write_text(revision)
-        local_script = local_model / "download_model.sh"
-        local_script.write_text(download_script)
-        subprocess.run(
-            ["bash", str(local_script)],
-            check=True,
-            env={"PATH": "/usr/bin:/bin"},
-        )
+    def path(value: str) -> Path:
+        return tmp_path / "models" if value == "/run/asr" else tmp_path / original(value).name
 
-
-def test_image_installs_model_environments_in_one_layer() -> None:
-    root = Path(__file__).resolve().parents[1]
-    installer = root / "install-model-environments.sh"
-    subprocess.run(["bash", "-n", str(installer)], check=True)
-
-    installer_text = installer.read_text()
-    assert "UV_LINK_MODE=hardlink" in installer_text
-    assert "uv sync" in installer_text
-    assert '--project "$model_dir"' in installer_text
-    for package in (
-        "cuda-toolkit",
-        "nvidia-cuda-crt",
-        "nvidia-cuda-nvcc",
-        "nvidia-nvvm",
+    with (
+        patch("models.start.Path", side_effect=path),
+        patch("models.start.subprocess.run") as launch,
+        patch("models.start.signal.pause"),
     ):
-        assert f"--no-install-package {package}" in installer_text
-
-    dockerfile = (root / "Dockerfile").read_text()
-    assert (
-        "nvidia/cuda:13.0.3-devel-ubuntu24.04@sha256:"
-        "b7ae301dea2c162444795462ce17a05f6a516e5a75944b57af5b88540a1a2266" in dockerfile
-    )
-    assert "COPY --from=cuda-toolkit /opt/cuda-13.0/ /usr/local/cuda-13.0/" in dockerfile
-    assert "PATH=/usr/local/cuda-13.0/bin:${PATH}" in dockerfile
-    install = "/usr/local/bin/install-asr-model-environments"
-    deduplicate = "hardlink --ignore-time --respect-xattrs --maximize"
-    assert dockerfile.count(install) == 2
-    assert dockerfile.count(deduplicate) == 1
-    assert "/opt/asr/models/*/.venv /opt/asr/server/.venv" in dockerfile
-    assert "rm -rf /home/x/.cache/uv" in dockerfile
-    assert (
-        dockerfile.index(install, dockerfile.index("RUN export HOME"))
-        < dockerfile.index(deduplicate)
-        < dockerfile.index("rm -rf /home/x/.cache/uv")
-    )
-
-
-def test_image_contains_no_model_weights() -> None:
-    root = Path(__file__).resolve().parents[1]
-    dockerfile = (root / "Dockerfile").read_text()
-    assert "install-bundled-model-weights" not in dockerfile
-    assert "type=secret" not in dockerfile
-    assert "mkdir -p /data/asr /model-data /run/asr /home/x/.cache" in dockerfile
-    assert 'ln -s "/model-data/${model_dir##*/}" "$model_dir/weights"' in dockerfile
-
-
-def test_runtime_compilation_cache_is_persistent() -> None:
-    root = Path(__file__).resolve().parents[1]
-    dockerfile = (root / "Dockerfile").read_text()
-    assert "ENV XDG_CACHE_HOME=" not in dockerfile
-    runtime_environment = (
-        "export XDG_CACHE_HOME=/home/x/.cache",
-        "export VLLM_CACHE_ROOT=/home/x/.cache/vllm",
-        "export CUDA_CACHE_PATH=/home/x/.cache/nv/ComputeCache",
-        "export CUDA_CACHE_MAXSIZE=4294967296",
-        "export TORCH_EXTENSIONS_DIR=/home/x/.cache/torch_extensions",
-        "export VLLM_MEDIA_LOADING_THREAD_COUNT=16",
-        "export OMP_NUM_THREADS=8",
-        "export MKL_NUM_THREADS=8",
-        "export OPENBLAS_NUM_THREADS=8",
-        "export NUMEXPR_MAX_THREADS=8",
-        "export MAX_JOBS=24",
-        "export FLASHINFER_NVCC_THREADS=10",
-        "export HF_HUB_OFFLINE=1",
-        "export TRANSFORMERS_OFFLINE=1",
-        "export TOKENIZERS_PARALLELISM=false",
-    )
-    for run_path in (root / "models").glob("*/run"):
-        run = run_path.read_text()
-        for setting in runtime_environment:
-            assert setting in run
-        assert "export VLLM_ENABLE_STARTUP_PLAN=1" in run
-
-    for setting in (
-        "XDG_CACHE_HOME=/home/x/.cache",
-        "VLLM_CACHE_ROOT=/home/x/.cache/vllm",
-        "CUDA_CACHE_PATH=/home/x/.cache/nv/ComputeCache",
-        "CUDA_CACHE_MAXSIZE=4294967296",
-        "TORCH_EXTENSIONS_DIR=/home/x/.cache/torch_extensions",
-        "VLLM_ENABLE_STARTUP_PLAN=1",
-        "VLLM_MEDIA_LOADING_THREAD_COUNT=16",
-        "OMP_NUM_THREADS=8",
-        "MKL_NUM_THREADS=8",
-        "OPENBLAS_NUM_THREADS=8",
-        "NUMEXPR_MAX_THREADS=8",
-        "MAX_JOBS=24",
-        "FLASHINFER_NVCC_THREADS=10",
-    ):
-        assert setting not in dockerfile
-    assert "TRITON_CACHE_DIR" not in dockerfile
-    assert "chown x:x /data/asr /model-data /run/asr /home/x/.cache" in dockerfile
-    assert not (root / "models/runtime-env.bash").exists()
-
-    loader_config = (
-        '--model-loader-extra-config \'{"enable_multithread_load":true,"num_threads":8}\''
-    )
-    for model in (
-        "moss-audio",
-        "moss-td",
+        start.main()
+    assert launch.call_args.args[0][-2:] == ["asr-firered-vad", "asr-qwen3-asr-1.7b"]
+    assert sorted(p.name for p in (tmp_path / "models").iterdir()) == [
+        "firered-vad",
         "qwen3-asr-1.7b",
-        "vibevoice",
-        "whisper-large-v3",
+    ]
+    assert (tmp_path / "models/qwen3-asr-1.7b/CUDA_VISIBLE_DEVICES").read_text() == "2"
+    assert (tmp_path / "models/qwen3-asr-1.7b/PORT").read_text() == "8009"
+
+
+def test_missing_gpu_placement_fails_before_start(tmp_path: Path) -> None:
+    (tmp_path / "ASR_MODELS").write_text("qwen3-asr-1.7b")
+    with (
+        patch("models.start.Path", side_effect=lambda value: tmp_path / Path(value).name),
+        patch("models.start.subprocess.run") as launch,
+        pytest.raises(ValueError, match="placement"),
     ):
-        run = (root / "models" / model / "run").read_text()
-        assert loader_config in run
-        assert f"FLASHINFER_WORKSPACE_BASE=/home/x/.cache/flashinfer-workspaces/{model}" in run
-    firered = (root / "models/firered-llm/run").read_text()
-    assert (
-        '--model-loader-extra-config \'{"enable_multithread_load":true,"num_threads":9}\''
-        in firered
-    )
-    assert "export VLLM_ALLREDUCE_USE_FLASHINFER=0" in firered
-    assert "--disable-custom-all-reduce" in firered
-    assert "--kv-cache-memory-bytes 6854387712" in firered
-    assert "--gpu-memory-utilization 0.40" in firered
-    assert "--max-num-seqs 2" in firered
-    assert "--max-num-seqs 2" in (root / "models/moss-audio/run").read_text()
-    assert "--max-num-seqs 2" in (root / "models/qwen3-asr-1.7b/run").read_text()
-    assert "--max-num-seqs 2" in (root / "models/vibevoice/run").read_text()
-    assert (
-        "FLASHINFER_WORKSPACE_BASE=/home/x/.cache/flashinfer-workspaces/qwen3-aligner"
-        in (root / "models/qwen3-aligner/run").read_text()
-    )
-    assert "export VLLM_ENABLE_STARTUP_PLAN=0" in firered
-    aligner = (root / "models/qwen3-aligner/service.py").read_text()
-    assert (
-        'model_loader_extra_config={"enable_multithread_load": True, "num_threads": 8}' in aligner
-    )
-    example = Path(__file__).resolve().parents[5] / "config.example.yaml"
-    deployment = yaml.safe_load(example.read_text())["services"]["asr"]["container"]
-    assert "${RESOURCE_DATA}/cache:/home/x/.cache" in deployment["volumes"]
-
-
-def test_whisper_download_uses_only_vllm_safetensors() -> None:
-    script = (
-        Path(__file__).resolve().parents[1] / "models/whisper-large-v3/download_model.sh"
-    ).read_text()
-    assert "--include 'model.safetensors'" in script
-    for unused in ("*.safetensors", "model.fp32", "pytorch_model", "flax_model"):
-        assert unused not in script
-
-
-def test_funasr_downloads_pass_all_allowlist_patterns_to_legacy_hf_cli() -> None:
-    root = Path(__file__).resolve().parents[1] / "models"
-    for model in ("paraformer", "sensevoice"):
-        script = (root / model / "download_model.sh").read_text()
-        assert script.count("--include") == 1
-
-
-def test_vllm_transcription_config_is_model_owned() -> None:
-    root = Path(__file__).resolve().parents[1] / "models"
-    for model in ("firered-llm", "moss-td", "qwen3-asr-1.7b", "whisper-large-v3"):
-        assert "--speech-to-text-config" not in (root / model / "run").read_text()
-    moss_td = (root / "moss-td/run").read_text()
-    assert "--max-model-len 131072" in moss_td
-    assert "export VLLM_MAX_AUDIO_CLIP_FILESIZE_MB=128" in moss_td
-    assert "export VLLM_MAX_AUDIO_DECODE_DURATION_S=3600" in moss_td
-
-
-def test_vllm_models_use_global_cuda_toolchain() -> None:
-    root = Path(__file__).resolve().parents[1] / "models"
-    for model in (
-        "firered-llm",
-        "moss-audio",
-        "moss-td",
-        "qwen3-aligner",
-        "qwen3-asr-1.7b",
-        "vibevoice",
-        "whisper-large-v3",
-    ):
-        run = (root / model / "run").read_text()
-        project = (root / model / "pyproject.toml").read_text()
-        assert "export CUDA_HOME=/usr/local/cuda-13.0" in run
-        assert (
-            "export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64" in run
-        )
-        assert "cuda-toolkit[nvcc]" not in project
-
-
-def test_static_placement_uses_eight_80_gib_gpus_for_parallel_stages() -> None:
-    root = Path(__file__).resolve().parents[1]
-    resources = config().resources
-    specs = {spec.id: spec for spec in MODELS if spec.gpus}
-    assert {instance.model for instance in resources.instances if instance.placement} == set(specs)
-    loads = [0.0] * 8
-    for instance in resources.instances:
-        spec = {spec.id: spec for spec in MODELS}[instance.model]
-        assert len(instance.placement) == spec.gpus
-        assert len(set(instance.placement)) == len(instance.placement)
-        for index in instance.placement:
-            loads[index] += spec.memory_gib
-    assert resources.gpu_memory_gib == 80
-    assert loads == [32, 50, 32, 48, 12, 52, 60, 16]
-    assert all(load < resources.gpu_memory_gib for load in loads)
-    assert {spec.id: spec.max_inflight for spec in MODELS if spec.max_inflight != 1} == {
-        "firered-llm": 2,
-        "moss-audio": 2,
-        "qwen3-asr-1.7b": 2,
-        "vibevoice": 2,
-    }
-    assert specs["moss-td"].max_audio_seconds == 3600
-
-    first_pass = {
-        "firered-llm": {0, 1},
-        "qwen3-asr-1.7b": {4},
-        "sensevoice": {5},
-        "paraformer": {6},
-    }
-    assert len(set().union(*first_pass.values())) == sum(map(len, first_pass.values())) == 5
-
-    utilization = {
-        "firered-llm": "0.40",
-        "moss-audio": "0.40",
-        "moss-td": "0.60",
-        "qwen3-asr-1.7b": "0.15",
-        "vibevoice": "0.60",
-        "whisper-large-v3": "0.10",
-    }
-    for model, value in utilization.items():
-        run = (root / "models" / model / "run").read_text()
-        assert f"--gpu-memory-utilization {value}" in run
-
-    aligner = (root / "models/qwen3-aligner/service.py").read_text()
-    assert "gpu_memory_utilization=0.10" in aligner
-
-
-def test_normal_deployment_allocates_shared_memory() -> None:
-    example = Path(__file__).resolve().parents[5] / "config.example.yaml"
-    config = yaml.safe_load(example.read_text())
-    assert config["services"]["asr"]["container"]["shm_size"] == "8g"
-
-
-def test_model_runs_match_fixed_listeners(tmp_path: Path) -> None:
-    uv = tmp_path / "uv"
-    uv.write_text('#!/usr/bin/env bash\nprintf "%s\\n" "$@"\n')
-    uv.chmod(0o755)
-    scheduler = Scheduler(config())
-    try:
-        ports = set()
-        for instance in scheduler.instances.values():
-            directory = Path(__file__).resolve().parents[1] / "models" / instance.model
-            result = subprocess.run(
-                [str(directory / "run")],
-                env={
-                    **os.environ,
-                    "PATH": str(tmp_path) + os.pathsep + os.environ["PATH"],
-                    "ASR_HOST": "127.0.0.2",
-                    "ASR_PORT": str(httpx2.URL(instance.url).port),
-                },
-                cwd=tmp_path,
-                check=True,
-                text=True,
-                capture_output=True,
-            )
-            args = result.stdout.splitlines()
-            host = args[args.index("--host") + 1]
-            port = int(args[args.index("--port") + 1])
-            assert host == "127.0.0.1"
-            assert instance.url == f"http://{host}:{port}"
-            if instance.model == "vibevoice":
-                assert args[args.index("--max-model-len") + 1] == "65536"
-                template = args[args.index("--chat-template") + 1]
-                assert template.endswith("/vibevoice/chat_template.jinja")
-                assert "{{ audio_duration }}" in (directory / "chat_template.jinja").read_text()
-            assert port not in ports
-            ports.add(port)
-        assert ports == set(range(8000, 8015))
-    finally:
-        asyncio.run(scheduler.close())
+        start.main()
+    launch.assert_not_called()

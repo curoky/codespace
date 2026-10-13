@@ -18,7 +18,57 @@ on:
         type: boolean
 
 jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.select.outputs.matrix }}
+      base: ${{ steps.select.outputs.base }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: select
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          python3 - <<'PYTHON'
+          import json, os, subprocess
+          event = json.load(open(os.environ['GITHUB_EVENT_PATH']))
+          before = event.get('before', '')
+          all_images = os.environ['EVENT_NAME'] != 'push' or not before.strip('0')
+          paths = [] if all_images else subprocess.check_output(
+              ['git', 'diff', '--name-only', before, os.environ['GITHUB_SHA']], text=True
+          ).splitlines()
+          shared = all_images or any(
+              p == '.github/workflows/publish-services.yaml'
+              or p.startswith('platform/container/services/s6/')
+              or p.startswith('platform/container/workspace/rootfs/etc/s6/skel/')
+              or p == 'platform/container/workspace/scripts/install-s6.sh'
+              for p in paths
+          )
+          images = []
+          for service, directory in [
+              ('asr-scheduler', 'asr/scheduler'), ('asr-models', 'asr/models'),
+              ('secret', 'secret'), ('support', 'support'), ('vllm', 'vllm'),
+              ('sglang', 'sglang'), ('chatbox', 'chatbox'),
+          ]:
+              changed = shared or any(
+                  p.startswith('platform/container/services/' + directory + '/')
+                  or service.startswith('asr-') and p == 'platform/container/services/asr/protocol.py'
+                  for p in paths
+              )
+              if changed:
+                  images.append({'service': service, 'directory': directory, 'platforms': 'linux/amd64'})
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('matrix=' + json.dumps({'include': images}) + '\n')
+              output.write('base=' + str(shared).lower() + '\n')
+          PYTHON
+
   base:
+    needs: changes
+    if: needs.changes.outputs.base == 'true'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -54,7 +104,10 @@ jobs:
 
   images:
     name: images (${{ matrix.service }})
-    needs: base
+    needs: [changes, base]
+    if: >-
+      always() && needs.changes.result == 'success' && needs.base.result != 'failure' &&
+      needs.changes.outputs.matrix != '{"include": []}'
     runs-on: ubuntu-24.04
     permissions:
       contents: read
@@ -64,20 +117,7 @@ jobs:
       CACHE_SUFFIX: ${{ github.event_name == 'push' && '-min' || '' }}
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - service: asr
-            platforms: linux/amd64
-          - service: secret
-            platforms: linux/amd64
-          - service: support
-            platforms: linux/amd64
-          - service: vllm
-            platforms: linux/amd64
-          - service: sglang
-            platforms: linux/amd64
-          - service: chatbox
-            platforms: linux/amd64
+      matrix: ${{ fromJSON(needs.changes.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v5
       - uses: docker/setup-qemu-action@v3
@@ -92,7 +132,7 @@ jobs:
       - uses: docker/build-push-action@v7
         with:
           context: .
-          file: platform/container/services/${{ matrix.service }}/Dockerfile
+          file: platform/container/services/${{ matrix.directory }}/Dockerfile
           push: true
           provenance: false
           platforms: ${{ matrix.platforms }}

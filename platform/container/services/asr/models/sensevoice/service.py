@@ -1,9 +1,10 @@
 import threading
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Form, HTTPException, UploadFile
 
-from protocol import InferenceRequest, InferenceResult
+from models.audio import evidence, uploaded
+from protocol import InferenceResult
 
 
 def app() -> FastAPI:
@@ -27,16 +28,20 @@ def app() -> FastAPI:
         return {"status": "ready"}
 
     @service.post("/transcribe")
-    def transcribe(request: InferenceRequest) -> InferenceResult:
-        if request.audio is None:
-            raise HTTPException(422, "audio is required")
-        path = Path(request.audio).resolve()
-        if not path.is_relative_to(Path("/data/asr")) or not path.is_file():
-            raise HTTPException(422, "audio must be a file inside /data/asr")
-        with lock:
-            # 每请求新建 cache；关闭 ITN，避免数字规范化掩盖跨模型分歧。
-            # 情绪、语言和事件 tags 保留在 raw，上层比较时才剥离。
-            result = model.generate(input=str(path), cache={}, language="zh", use_itn=False)[0]
-            return InferenceResult(text=result["text"], raw=result)
+    def transcribe(file: UploadFile | None = None, options: str = Form("{}")) -> InferenceResult:
+        with uploaded(file, options) as request:
+            if request.mode not in {"verbatim", "narration", "conversation", "meeting"}:
+                raise HTTPException(422, "unsupported inference mode")
+            if request.audio is None:
+                raise HTTPException(422, "audio is required")
+            path = Path(request.audio).resolve()
+            with lock:
+                # 每请求新建 cache；关闭 ITN，避免数字规范化掩盖跨模型分歧。
+                # 情绪、语言和事件 tags 保留在 raw，上层比较时才剥离。
+                result = model.generate(
+                    input=str(path), cache={}, language=request.language, use_itn=False
+                )[0]
+                result_record = InferenceResult(text=result["text"], raw=result)
+                return evidence(result_record, request, Path(__file__).resolve().parent)
 
     return service
