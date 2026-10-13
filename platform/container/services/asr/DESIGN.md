@@ -1,6 +1,6 @@
 # ASR Design
 
-本文描述已实现的 Scheduler / Models 架构与核心诉求。维护与验证入口见
+本文集中维护 Scheduler / Models 架构、模型运行环境、场景方案与部署策略。维护与验证入口见
 [AGENTS.md](AGENTS.md)，真实语料与实测基线见 [regression/AGENTS.md](regression/AGENTS.md)。
 
 ## Core Requirements
@@ -19,7 +19,7 @@
 2. Models 打包全部模型，各模型保留独立 Python 环境、一个启动配置和静态 s6 服务。
 3. 环境变量选择容器启动哪些模型；同一镜像可部署为多个容器，模型按启动配置常驻。
 4. 每个 Recipe 独立维护完整 pipeline，可读性优先；允许重复，不建立通用 pipeline 框架。
-5. 默认尽可能并发，依赖满足且资源有余量就执行；并发容量通过实测固定。
+5. 每次部署一个场景的模型并集，全部方案并行；依赖满足且资源有余量就执行，容量通过实测固定。
 6. 文件适配、轨道整理和结果发布放到 client，server 接收规范输入并专注推理编排。
 7. 固定模型参数、处理规则和映射尽量直接写在所属代码中；一次性准备在运行前完成。
 8. 按本地正常使用路径实现，以明确报错和人工重跑处理失败，保持运行机制简单。
@@ -70,6 +70,178 @@ ASR_MODELS=qwen3-asr-1.7b,qwen3-aligner
 
 同一个模型的不同场景共享已加载的实例。语言、热词、提示词、解码选项和输出方式通过本模型
 支持的请求参数选择；不同操作可以使用独立 endpoint。请求处理不修改引擎全局配置。
+
+### Model Inventory
+
+版本来自当前 Models 镜像的各模型隔离环境。全部模型使用 Python 3.12.14，GPU Torch 的
+CUDA build 为 13.0；
+VAD / Punc 是 CPU wheel。模型端口与 GPU 归属由部署配置维护，不进入模型一览。
+
+| 模型 | 职责 | Serving / SDK | Transformers | vLLM | Torch | Ready 显存 (GiB) | 权重 (GiB) | `.venv` (GiB) |
+| --- | --- | --- | --- | --- | --- | ---: | ---: | ---: |
+| `firered-llm` | 识别 / 复听 | vLLM transcription | 5.17.0 | 0.31.0 | 2.13.0 | 25.43 × 2 | 31.147 | 7.568 |
+| `firered-punc` | 标点 | FireRedASR2S 0.0.1 | 5.1.0 | — | 2.10.0+cpu | 0（CPU） | 0.762 | 0.838 |
+| `firered-vad` | 语音活动 | FireRedASR2S 0.0.1 | 5.1.0 | — | 2.10.0+cpu | 0（CPU） | 0.002 | 0.838 |
+| `moss-audio` | 争议复听 | vLLM audio chat | 5.17.0 | 0.31.0 | 2.13.0 | 31.31 | 16.862 | 7.567 |
+| `moss-td` | 联合识别 / speaker | vLLM transcription | 5.17.0 | 0.31.0 | 2.13.0 | 42.48 | 1.692 | 7.567 |
+| `nemotron-diarization` | Speaker diarization | NeMo 3.1.0+ca3f93a51 | 4.57.6 | — | 2.13.0 | 1.17 | 0.185 | 5.319 |
+| `paraformer` | 识别旁路 | FunASR 1.4.16 | 4.57.6 | — | 2.13.0 | 1.35 | 0.820 | 4.998 |
+| `pyannote-community-1` | Speaker anchor | pyannote.audio 4.0.7 | — | — | 2.13.0 | 0.65 | 0.030 | 4.844 |
+| `qwen3-aligner` | Token 时间对齐 | vLLM pooling + HTTP | 5.17.0 | 0.31.0 | 2.13.0 | 11.41 | 1.709 | 7.567 |
+| `qwen3-asr-1.7b` | 识别 / 复听 | vLLM transcription | 5.17.0 | 0.31.0 | 2.13.0 | 10.04 | 4.376 | 7.567 |
+| `sensevoice` | 识别旁路 | FunASR 1.4.16 | 4.57.6 | — | 2.13.0 | 1.45 | 0.872 | 4.998 |
+| `vibevoice` | 联合识别 / speaker | vLLM audio chat | 5.17.0 | 0.31.0 | 2.13.0 | 38.57 | 15.517 | 7.567 |
+| `whisper-large-v3` | 独立复听 | vLLM transcription | 5.17.0 | 0.31.0 | 2.13.0 | 7.81 | 2.875 | 7.567 |
+
+权重只统计当前 snapshot 的 serving checkpoint，不包含 tokenizer、config、词典与 CMVN。
+`.venv` 是逐环境逻辑大小，hardlink 在各行重复计数，不能相加推算镜像物理占用。
+模型权重不进入镜像；Models 约 12.26 GB，Scheduler 约 0.34 GB，实际大小以构建结果为准。
+GPU 模型的 torchaudio 为 2.11.0，CPU 模型为 2.10.0+cpu；FireRedASR2S 固定 revision
+`4e7d9aa`，NeMo revision 体现在版本后缀中。
+
+Ready 显存为 2026-10-14 在 H100 80GB 上模型加载与预热完成、没有音频请求时的进程
+占用，单位 GiB；
+FireRed 的 `25.43 × 2` 是同一 TP=2 实例的两个 rank。小型 SDK 模型归属通过独立卡
+驻留记录核对，其余按已选 placement 和进程占用核对。该值包括权重、引擎缓存和 runtime，
+不是 checkpoint 大小或请求峰值；运行中的临时分配会增加显存，不能直接相加代替峰值验证。
+
+### Inference Configuration
+
+| 模型 | 精度 / TP | 上下文上限 | 同时在途容量 | 显存配置 |
+| --- | --- | ---: | ---: | --- |
+| `firered-llm` | FP32 / TP=2 | 8192 tokens | 2 | 每 rank 固定 KV 6.38 GiB，关闭 startup plan |
+| `moss-audio` | BF16 / TP=1 | 8192 tokens | 2 | `gpu_memory_utilization=0.40` |
+| `moss-td` | BF16 / TP=1 | 131072 tokens | 1 | `gpu_memory_utilization=0.60` |
+| `qwen3-asr-1.7b` | BF16 / TP=1 | 8192 tokens | 2 | `gpu_memory_utilization=0.15` |
+| `qwen3-aligner` | BF16 / TP=1，pooling eager | 8192 tokens | 1 | `gpu_memory_utilization=0.10` |
+| `vibevoice` | BF16 / TP=1 | 65536 tokens | 2 | `gpu_memory_utilization=0.60` |
+| `whisper-large-v3` | BF16 / TP=1 | 448 tokens | 1 | `gpu_memory_utilization=0.10` |
+| `sensevoice` / `paraformer` | SDK checkpoint 默认精度 | Recipe 短窗 | 各 1 | 按实际 checkpoint 与临时张量分配 |
+| `pyannote-community-1` / `nemotron-diarization` | SDK checkpoint 默认精度 | 全文件 diarization | 各 1 | 按实际 checkpoint 与临时张量分配 |
+| `firered-vad` / `firered-punc` | CPU SDK | 音频 / 文本 | 各 1 | 不占 GPU 显存 |
+
+生成模型的 memory utilization 是引擎配置，不是完整进程显存的硬上限；vLLM startup
+cache、CUDA Graph 与 encoder runtime 会影响 ready 占用。Aligner 的配置比例也不能
+直接当作完整进程预算。固定参数以模型 `run` / serving 为准，同时在途容量以场景
+`scheduler.yaml` 为准。版本和显存快照来自当前 Models image `6487add67ce8` 的实际
+环境与 ready 驻留；数据记录位于仓库外 `/workspace/asr-colocation-validation/`。
+
+### Scenario Deployment
+
+每次只部署一个场景。模型在接收请求前完成加载与预热，请求期间常驻；切换场景先等当前
+请求完成，再替换 Models 与 Scheduler 配置。每个场景一个 Scheduler、一个 Models
+容器，所有方案共用已加载的模型实例，不为方案复制完整模型组。
+
+| 场景 | 默认并行方案 | 常驻模型数 | GPU 数 | 部署策略 |
+| --- | --- | ---: | ---: | --- |
+| `narration` | Qwen、FireRed | 9 | 4 | FireRed 独占 TP 两卡，MOSS-audio 独立，较小融合模型同卡 |
+| `conversation_tracks` | 分轨 Qwen、分轨 FireRed | 9 | 8 | 每套方案内两轨并行，GPU 模型分别驻留，减少高窗口并发时的争抢 |
+| `conversation` | MOSS joint、Qwen + Pyannote、VibeVoice | 12 | 8 | joint 生成独立，Pyannote 与 VibeVoice 分卡，拆开融合复听负载 |
+| `meeting` | MOSS joint、Qwen + Nemotron、VibeVoice | 13 | 8 | VibeVoice 独立，speaker 模型与复听模型分组驻留 |
+
+朗读与分轨不加载 diarization / joint 模型；混录不加载 Nemotron。会议的完整依赖并集
+包含全部 13 个模型。条件复听模型也是部署依赖，不能在发现分歧后才加载。
+
+下表直接对应各场景 `deployment/<scenario>/models.env`。每格是这一张卡常驻的模型；
+`—` 表示不使用该卡。FireRed 两个 TP rank 属于同一模型实例。
+
+| 设备 | Narration | Conversation Tracks | Conversation | Meeting |
+| --- | --- | --- | --- | --- |
+| GPU 0 | FireRed TP rank | FireRed TP rank | FireRed TP rank | FireRed TP rank |
+| GPU 1 | FireRed TP rank | FireRed TP rank | FireRed TP rank | FireRed TP rank |
+| GPU 2 | MOSS-audio | MOSS-audio | Qwen、SenseVoice、Paraformer | Qwen、SenseVoice、Paraformer |
+| GPU 3 | Qwen、SenseVoice、Paraformer、Whisper、Aligner | Qwen | MOSS-TD | MOSS-TD |
+| GPU 4 | — | Whisper | VibeVoice | VibeVoice |
+| GPU 5 | — | Aligner | MOSS-audio | Pyannote、Nemotron |
+| GPU 6 | — | SenseVoice | Whisper | MOSS-audio |
+| GPU 7 | — | Paraformer | Aligner、Pyannote | Whisper、Aligner |
+| CPU | VAD、Punc | VAD、Punc | VAD、Punc | VAD、Punc |
+
+各方案的部署归属与共享边界：
+
+| 场景 / 方案 | 识别与复听资源 | Speaker 资源 | 共享边界 |
+| --- | --- | --- | --- |
+| `narration/qwen` | GPU 0–3；Qwen 为主正文 | 固定 S01 | 与 FireRed 方案共用全部模型 |
+| `narration/firered` | GPU 0–3；FireRed 为主正文 | 固定 S01 | 与 Qwen 方案共用全部模型 |
+| `conversation_tracks/qwen` | GPU 0–7；两轨各自 Qwen 融合 | channel 0/1 固定 S01/S02 | 两轨、两方案共享模型实例 |
+| `conversation_tracks/firered` | GPU 0–7；两轨各自 FireRed 融合 | channel 0/1 固定 S01/S02 | 两轨、两方案共享模型实例 |
+| `conversation/moss_joint` | GPU 3 MOSS-TD | GPU 7 Pyannote anchor | Pyannote 与 VAD 由三方案共享 |
+| `conversation/qwen_pyannote` | GPU 0、1、2、5、6、7 的融合模型 | GPU 7 Pyannote | Pyannote 与 VAD 由三方案共享 |
+| `conversation/vibevoice` | GPU 4 VibeVoice | GPU 7 Pyannote anchor | Pyannote 与 VAD 由三方案共享 |
+| `meeting/moss_joint` | GPU 3 MOSS-TD | GPU 5 Pyannote anchor | 两 joint 方案共享 Pyannote；三方案共享 VAD |
+| `meeting/qwen_nemotron` | GPU 0、1、2、6、7 的融合模型 | GPU 5 Nemotron | Nemotron 独立；与 Pyannote 同卡 |
+| `meeting/vibevoice` | GPU 4 VibeVoice | GPU 5 Pyannote anchor | 两 joint 方案共享 Pyannote；三方案共享 VAD |
+
+融合方案使用 CPU Punc 与 GPU Aligner；joint 方案保留模型句读和句段时间。模型地址与
+固定容量由同场景 `scheduler.yaml` 明确绑定，容器启动、mount、secret 和设备注入由
+控制面拥有。实际操作见 [deployment/AGENTS.md](deployment/AGENTS.md)。
+
+### Concurrency And Placement
+
+不同方案、独立轨道、窗口与模型调用在依赖满足后尽早执行。Scheduler 按模型实例容量
+限制在途请求，容量跨请求和方案共享；不增加 GPU 级互斥，同卡模型允许同时在途。
+同卡并发仍会争抢计算资源，因此 placement 以完整请求耗时验收，而不是只看能否装进显存。
+实例容量满时排队，单个模型等待不要求其他模型或整套方案停下。
+
+| 场景 | 当前布局的取舍 | 验证依据 |
+| --- | --- | --- |
+| 朗读 | 保留 4 卡共享小模型 | 拆到 8 卡两轮中位数只改善约 5%，首轮基本不变 |
+| 双轨 | 分散融合 GPU 模型 | 拆卡两轮中位数改善约 21%；Paraformer、Aligner、Qwen 调用明显变快 |
+| 混录 | 拆开 Pyannote / VibeVoice 和复听模型 | 拆卡两轮中位数改善约 33%；Pyannote 与 VibeVoice 调用接近减半 |
+| 会议 | VibeVoice 与 speaker / 复听模型分卡 | 拆卡两轮中位数改善约 30%；保留 speaker 质量波动说明 |
+
+这些布局已用每场景一条完整真实录音、每布局两次请求验证。连续请求会复用引擎缓存，
+两轮差异不能完全归因于 placement；当前选择是验证过的性能布局，未穷举最小 GPU 数量。
+双轨质量指标一致，朗读与混录正文指标接近。会议 VibeVoice 的 speaker 指标存在波动，
+拆卡仅确认为性能收益，不宣称质量提升；正式质量基线见 [regression/AGENTS.md](regression/AGENTS.md)。
+
+### GPU Pipeline
+
+图中每张 GPU 一行，横向表示时间顺序，方案用颜色区分，每个模型调用一个方块，箭头
+表示数据依赖。实色块表示 HTTP 请求在途，同色虚线框表示等待模型实例空位；同卡请求
+可上下错开。图示只展开融合方案一个争议窗口、分轨每轨一个窗口与 VibeVoice 三个长窗，
+不使用采样耗时。FireRed 同一次调用同时出现在 GPU 0、1。
+
+模型请求在途包括传输、serving 内部等待与推理，不能解释为 GPU kernel 实际计算区间。
+虚线只展示模型实例排队，不表示数据依赖或 GPU 内部排队；多窗口请求会重复这些调用。
+
+#### Narration · 4 GPUs
+
+Qwen、FireRed 两套融合方案共用全部模型。双方首轮和复听调用可以重叠；SenseVoice、
+Paraformer、Aligner 等单容量实例会让后到的调用等待。图中展开复听有分歧、需要纳入
+MOSS-audio 对齐的路径。
+
+![朗读：每张 GPU 一行，Qwen 与 FireRed 两种颜色，模型调用方块及依赖连线](deployment/figures/narration-timeline.png)
+
+[放大查看 SVG](deployment/figures/narration-timeline.svg)
+
+#### Conversation Tracks · 8 GPUs
+
+每套方案的两轨独立推进，所有任务仍共用一组模型实例，融合模型分散到独立 GPU。
+图中每个方块标明轨道，虚线框直接表示另一轨或另一方案占用实例时产生的等待。
+
+![双人分轨：GPU 时间泳道，方案颜色、逐轨模型调用与依赖](deployment/figures/conversation_tracks-timeline.png)
+
+[放大查看 SVG](deployment/figures/conversation_tracks-timeline.svg)
+
+#### Conversation · 8 GPUs
+
+三个方案同时开始。MOSS-TD、VibeVoice 与融合模型各自执行；GPU 7 的 Pyannote
+由三个方案共用一个槽位，后两次调用出现等待框。VibeVoice 生成不依赖 anchor，生成与其等待同时
+推进，结果组装再汇合两条依赖。
+
+![双人混录：GPU 时间泳道，三个方案的调用并行、Pyannote 等待及依赖汇合](deployment/figures/conversation-timeline.png)
+
+[放大查看 SVG](deployment/figures/conversation-timeline.svg)
+
+#### Meeting · 8 GPUs
+
+两套 joint 方案共用 GPU 5 的 Pyannote；Qwen 使用同卡独立 Nemotron。VibeVoice
+独占 GPU 4，等待 Pyannote 时仍可生成；融合模型在 GPU 0、1、2、6、7 上推进。
+
+![多人会议：GPU 时间泳道，独立 Nemotron、共享 Pyannote 与三个方案依赖](deployment/figures/meeting-timeline.png)
+
+[放大查看 SVG](deployment/figures/meeting-timeline.svg)
 
 ## Recipe Isolation
 

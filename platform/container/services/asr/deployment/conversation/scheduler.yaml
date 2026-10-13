@@ -1,0 +1,30 @@
+instances:
+- model: firered-llm
+  url: http://codespace-service-asr-models:8000
+  capacity: 2
+- model: firered-punc
+  url: http://codespace-service-asr-models:8001
+- model: firered-vad
+  url: http://codespace-service-asr-models:8002
+- model: moss-audio
+  url: http://codespace-service-asr-models:8003
+  capacity: 2
+- model: moss-td
+  url: http://codespace-service-asr-models:8004
+- model: paraformer
+  url: http://codespace-service-asr-models:8006
+- model: pyannote-community-1
+  url: http://codespace-service-asr-models:8007
+- model: qwen3-aligner
+  url: http://codespace-service-asr-models:8008
+- model: qwen3-asr-1.7b
+  url: http://codespace-service-asr-models:8009
+  capacity: 2
+- model: sensevoice
+  url: http://codespace-service-asr-models:8010
+- model: vibevoice
+  url: http://codespace-service-asr-models:8011
+  capacity: 2
+- model: whisper-large-v3
+  url: http://codespace-service-asr-models:8012
+cpu_requests: 4

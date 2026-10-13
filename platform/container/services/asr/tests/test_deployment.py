@@ -1,11 +1,50 @@
+import ast
+import json
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
 from models import start
+from scheduler.config import read_config
+from scheduler.scenarios import RECIPES
 
 ROOT = Path(__file__).parents[1]
+
+
+@pytest.mark.parametrize("scenario", RECIPES)
+def test_scene_deployment_covers_exact_recipe_dependencies(scenario: str) -> None:
+    defaults = read_config(ROOT / "scheduler/scheduler.yaml")
+    known = {instance.model for instance in defaults.instances}
+    required = set()
+    for recipe in RECIPES[scenario]:
+        tree = ast.parse((ROOT / f"scheduler/scenarios/{scenario}/{recipe}.py").read_text())
+        required.update(
+            node.value
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Constant)
+            and isinstance(node.value, str)
+            and node.value in known
+        )
+    directory = ROOT / "deployment" / scenario
+    environment = dict(
+        line.split("=", 1) for line in (directory / "models.env").read_text().splitlines()
+    )
+    selected = environment["ASR_MODELS"].split(",")
+    assert len(selected) == len(set(selected))
+    assert set(selected) == required
+    placement = json.loads(environment["ASR_PLACEMENT"])
+    assert set(placement) == required - {"firered-vad", "firered-punc"}
+    assert all(
+        devices and all(isinstance(device, int) and device >= 0 for device in devices)
+        for devices in placement.values()
+    )
+    assert len(placement["firered-llm"]) == 2
+    config = read_config(directory / "scheduler.yaml")
+    assert {instance.model for instance in config.instances} == required
+    assert config.instances == [
+        instance for instance in defaults.instances if instance.model in required
+    ]
 
 
 def test_start_only_selects_requested_static_services(tmp_path: Path) -> None:

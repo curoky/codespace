@@ -1,0 +1,23 @@
+instances:
+- model: firered-llm
+  url: http://codespace-service-asr-models:8000
+  capacity: 2
+- model: firered-punc
+  url: http://codespace-service-asr-models:8001
+- model: firered-vad
+  url: http://codespace-service-asr-models:8002
+- model: moss-audio
+  url: http://codespace-service-asr-models:8003
+  capacity: 2
+- model: paraformer
+  url: http://codespace-service-asr-models:8006
+- model: qwen3-aligner
+  url: http://codespace-service-asr-models:8008
+- model: qwen3-asr-1.7b
+  url: http://codespace-service-asr-models:8009
+  capacity: 2
+- model: sensevoice
+  url: http://codespace-service-asr-models:8010
+- model: whisper-large-v3
+  url: http://codespace-service-asr-models:8012
+cpu_requests: 4

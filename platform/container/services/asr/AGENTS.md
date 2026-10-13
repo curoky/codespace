@@ -27,11 +27,17 @@
 | `models/rootfs/` | 静态 s6 graph、按环境变量选择服务的启动入口 |
 | `models/Dockerfile` | 全部模型环境的安装、去重和镜像 |
 | `protocol.py` | 请求与结果的数据合同 |
+| `deployment/<scenario>/` | 单场景常驻模型选择、GPU placement 与 Scheduler 实例配置 |
 | `client/` | 源文件适配、轨道整理、并发提交、展示和文件发布 |
 | `regression/` | 固定音频声明、reference、manifest 并发执行、评测与实测基线 |
 
 Host、GPU、mount、secret 和网络由 Codespace 部署配置拥有。模型地址由 Scheduler 配置明确
 绑定；不在 Recipe 中写容器启停或 GPU 驱动操作。
+
+部署策略与模型一览统一维护在 [DESIGN.md](DESIGN.md)，操作入口见
+[deployment/AGENTS.md](deployment/AGENTS.md)。逐场景选择配置，只启动该
+场景全部 Recipe 的模型并集。每个请求并发执行本场景候选；切换场景在请求外完成，不按请求
+装卸模型。GPU 数量按真实请求完成时间与实际并发选择，不为填满设备增加无关模型。
 
 ## Recipe Rules
 
@@ -64,6 +70,8 @@ Host、GPU、mount、secret 和网络由 Codespace 部署配置拥有。模型�
   异常退出由 s6 supervision 重启。
 - 权重不进入镜像，环境安装与 hardlink 去重在构建时完成。保留非 root 推理身份，secret
   使用部署注入；真实 token、机器配置、音频 cache 和模型 cache 不提交。
+- 修改模型 lock、启动参数或 placement 时，同步 `DESIGN.md` 模型一览、部署表与图片；
+  版本来自实际环境，显存注明 ready 驻留或运行峰值，不混用预算。
 - Models 目录整体复制后安装环境，不逐模型枚举依赖文件；模型代码变化也会使环境安装层
   缓存失效。
 - Scheduler 和 Models 分别构建发布，修改 Recipe 不应触发模型环境重装或模型容器替换。
