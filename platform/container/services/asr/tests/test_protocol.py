@@ -16,6 +16,16 @@ from ops.scheduler import Scheduler
 from protocol import InferenceRequest, InferenceResult
 from server.config import read_config
 
+SDK_ENDPOINTS = {
+    "firered-punc": "/punctuate",
+    "firered-vad": "/vad",
+    "nemotron-diarization": "/diarize",
+    "paraformer": "/transcribe",
+    "pyannote-community-1": "/diarize",
+    "qwen3-aligner": "/align",
+    "sensevoice": "/transcribe",
+}
+
 
 @pytest.mark.parametrize("finish,done", [("length", True), ("stop", False)])
 def test_partial_generation_is_never_accepted(finish: str, done: bool) -> None:
@@ -188,6 +198,81 @@ def test_vllm_retries_persistent_repetition_with_sampling() -> None:
         {"repetition_penalty": 1.3},
         {"temperature": 0.5, "top_p": 0.9, "seed": 2},
     ]
+
+
+@pytest.mark.parametrize(("model", "endpoint"), SDK_ENDPOINTS.items())
+def test_sdk_model_clients_forward_the_shared_protocol(model: str, endpoint: str) -> None:
+    request_payload = InferenceRequest(audio="/data/asr/audio.wav", text="测试")
+    calls: list[tuple[str, dict[str, object]]] = []
+
+    def respond(request: httpx2.Request) -> httpx2.Response:
+        calls.append((request.url.path, json.loads(request.content)))
+        return httpx2.Response(200, json={"text": "完成"}, request=request)
+
+    async def run() -> InferenceResult:
+        scheduler = Scheduler(
+            read_config(Path(__file__).resolve().parents[1] / "server/server.yaml")
+        )
+        try:
+            async with httpx2.AsyncClient(transport=httpx2.MockTransport(respond)) as client:
+                instance = scheduler.pools[model][0]
+                return await instance.client(client, instance.url, request_payload)
+        finally:
+            await scheduler.close()
+
+    assert asyncio.run(run()).text == "完成"
+    assert calls == [(endpoint, request_payload.model_dump(mode="json"))]
+
+
+@pytest.mark.parametrize(
+    ("model", "max_tokens", "hotwords"),
+    (
+        ("firered-llm", "512", []),
+        ("qwen3-asr-1.7b", "512", ["测试词"]),
+        ("whisper-large-v3", "440", []),
+    ),
+)
+def test_vllm_transcription_clients_keep_model_specific_fields(
+    tmp_path: Path, model: str, max_tokens: str, hotwords: list[str]
+) -> None:
+    audio = tmp_path / "audio.wav"
+    audio.write_bytes(b"audio")
+    body = b""
+
+    def respond(request: httpx2.Request) -> httpx2.Response:
+        nonlocal body
+        body = request.read()
+        event = {"choices": [{"delta": {"content": "完成"}, "finish_reason": "stop"}]}
+        payload = "data: " + json.dumps(event) + "\n\ndata: [DONE]\n\n"
+        return httpx2.Response(
+            200,
+            text=payload,
+            headers={"content-type": "text/event-stream"},
+            request=request,
+        )
+
+    async def run() -> InferenceResult:
+        scheduler = Scheduler(
+            read_config(Path(__file__).resolve().parents[1] / "server/server.yaml")
+        )
+        try:
+            async with httpx2.AsyncClient(transport=httpx2.MockTransport(respond)) as client:
+                instance = scheduler.pools[model][0]
+                return await instance.client(
+                    client,
+                    instance.url,
+                    InferenceRequest(audio=str(audio), hotwords=hotwords),
+                )
+        finally:
+            await scheduler.close()
+
+    assert asyncio.run(run()).text == "完成"
+    assert b"/v1/audio/transcriptions" not in body
+    assert f"\r\n\r\n{model}\r\n".encode() in body
+    assert f"\r\n\r\n{max_tokens}\r\n".encode() in body
+    assert b"\r\n\r\nzh\r\n" in body
+    if hotwords:
+        assert "测试词".encode() in body
 
 
 def test_vibevoice_uses_upstream_transcription_request(tmp_path: Path) -> None:

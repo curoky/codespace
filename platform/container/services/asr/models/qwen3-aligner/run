@@ -17,18 +17,18 @@ export OPENBLAS_NUM_THREADS=8
 export NUMEXPR_MAX_THREADS=8
 export MAX_JOBS=24
 export FLASHINFER_NVCC_THREADS=10
-
-PYTHONPATH="$(cd -- "$model_dir/../.." && pwd)"
-export PYTHONPATH
 export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 export TOKENIZERS_PARALLELISM=false
+
 export VLLM_ENABLE_V1_MULTIPROCESSING=0
 
 export CUDA_HOME=/usr/local/cuda-13.0
 export FLASHINFER_WORKSPACE_BASE=/home/x/.cache/flashinfer-workspaces/qwen3-aligner
 export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64
 
+PYTHONPATH="$model_dir/../.."
+export PYTHONPATH
 exec uv run \
   --project "$model_dir" \
   --frozen \

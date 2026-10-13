@@ -31,7 +31,6 @@ def app() -> FastAPI:
         model_loader_extra_config={"enable_multithread_load": True, "num_threads": 8},
         hf_overrides={"architectures": ["Qwen3ASRForcedAlignerForTokenClassification"]},
     )
-
     service = FastAPI(docs_url=None, redoc_url=None)
     lock = threading.Lock()
 
@@ -40,11 +39,11 @@ def app() -> FastAPI:
         return {"status": "ready"}
 
     @service.post("/align")
-    def infer(request: InferenceRequest) -> InferenceResult:
+    def align(request: InferenceRequest) -> InferenceResult:
         if request.audio is None:
             raise HTTPException(422, "audio is required")
-        audio_path = Path(request.audio).resolve()
-        if not audio_path.is_relative_to(Path("/data/asr").resolve()) or not audio_path.is_file():
+        path = Path(request.audio).resolve()
+        if not path.is_relative_to(Path("/data/asr")) or not path.is_file():
             raise HTTPException(422, "audio must be a file inside /data/asr")
         with lock:
             # Chinese characters and whitespace-delimited Latin words match the author's tokenizer.
@@ -54,7 +53,7 @@ def app() -> FastAPI:
             prompt = "<|audio_start|><|audio_pad|><|audio_end|>" + "".join(
                 word + "<timestamp><timestamp>" for word in words
             )
-            audio, rate = sf.read(request.audio, dtype="float32")
+            audio, rate = sf.read(path, dtype="float32")
             if rate != 16000 or audio.ndim != 1:
                 raise ValueError("aligner expects mono 16 kHz PCM")
             result = model.encode(

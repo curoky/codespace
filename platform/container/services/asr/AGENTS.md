@@ -1,304 +1,164 @@
 # ASR Maintenance
 
-本目录是普通话完整录音转写服务。面向使用者和架构评审的启动、请求、挂载、模型、GPU 与
-image 视图统一放在 [DESIGN.md](DESIGN.md)；本文件只保留实现维护约束、版本组合、更新方法
-与验证证据。模型特有参数的原因和协议坑写在对应代码旁，不新增每模型说明文件。
+本目录维护普通话长录音转写 Service。面向系统使用者的架构、请求流程、持久数据与输出合同见
+[DESIGN.md](DESIGN.md)；本文件只规定实现 ownership、不可破坏的行为和验证方法。质量语料与
+最新实测基线见 [regression/AGENTS.md](regression/AGENTS.md)。
 
-## Context And Ownership
+## Source Of Truth
 
-| 修改内容 | Source of truth / 必须同步检查 |
+| 领域 | Source of truth |
 | --- | --- |
-| 产品边界、启动与请求流程、挂载、模型清单、GPU / image 视图 | `DESIGN.md` |
-| 模型启动参数与监听端口 | `models/<model>/run`；SDK 参数在同目录 `service.py` |
-| 权重来源、格式与体积 | `models/<model>/download_model.sh` 的 repo、revision、include；体积变化同步 `DESIGN.md` |
-| Python 与依赖版本 | 每目录 `.python-version`、`pyproject.toml`、`uv.lock` |
-| 模型请求协议 | `models/<model>/client.py` 的 `infer(http, url, request)` |
-| 能力、时长与显存预算 | `models/catalog.py`；instance / port / placement 在 `server/server.yaml` |
-| HTTP 边界与请求编排 | `server/api.py`、`transcribe.py`、`recipes.py`、`transcript.py` |
-| 文件并发与本地产物 | `client/asr.py` |
-| 长音频回归语料、标准答案、实测结果与质量指标 | `regression/AGENTS.md`、`regression/manifest.yaml` |
-| GPU 映射、s6 状态切换与进程退出 | `ops/`、`rootfs/etc/s6/s6-rc.d/` |
-| image、用户、目录与环境安装 | `Dockerfile`、`install-model-environments.sh`、`rootfs/` |
+| 模型能力、显存预算、时长与并发 | `models/catalog.py` |
+| 实例、端口、placement 与切窗 | `server/server.yaml` |
+| 模型 revision 与下载 allowlist | `models/<model>/download_model.sh` |
+| Python 与依赖 | 各目录 `.python-version`、`pyproject.toml`、`uv.lock` |
+| 模型运行环境与启动参数 | `models/<model>/run`、必要时同目录 `serve.py` |
+| 模型内部 HTTP 服务 | `models/<model>/service.py` 或上游 model server |
+| 模型调用协议 | `models/<model>/client.py`；vLLM 公共协议在 `models/vllm.py` |
+| HTTP API 与五方案编排 | `server/api.py`、`transcribe.py`、`recipes.py`、`transcript.py` |
+| GPU 映射与 s6 控制 | `ops/`、`rootfs/etc/s6/s6-rc.d/` |
+| image 与模型环境安装 | `Dockerfile`、`install-model-environments.sh`、`rootfs/` |
+| 回归 corpus 与结果 | `regression/manifest.yaml`、committed `results/`、`metrics.json` |
 | 正常部署输入 | repository root 的 `config.example.yaml` |
 
-只维护五方案实际使用的模型。不要增加通用 worker、任意模型组合、参数 launcher、环境准备
-job、动态 s6 definition、持久任务队列、任务状态、轮询、幂等键、恢复或跨请求缓存。配置
-使用 YAML；uv 工具文件除外。版本、端口、revision 与参数的实际值始终以代码和 lock 为准。
+版本、端口、revision、placement 和模型参数以实现文件为准；`DESIGN.md` 的汇总表用于快速
+审阅部署全貌，修改 source of truth 时必须同步更新，不能反向从文档驱动实现。
 
-## Runtime And Serving Maintenance
+## Scope
 
-server 使用 Python 3.14.7；模型环境彼此隔离，不能为了统一版本混装 Torch、torchaudio 或
-SDK。逐模型的 Python、SDK、Transformers、vLLM、Torch、CUDA、Serving 和存储体积只维护
-在 `DESIGN.md` 的模型汇总表；实际 source of truth 仍是各目录 `.python-version`、
-`pyproject.toml` 与 `uv.lock`。升级依赖后必须从 lock 的 Linux 解析结果更新该表。
+只维护五套固定方案所需的模型与静态实例。不要增加任意模型组合、动态 s6 definition、通用
+worker、持久任务队列、任务状态、轮询、幂等键、跨请求结果缓存或运行期模型迁移。Server 保持
+单进程；所有模型在公开 `/health` ready 前完成启动，不用 lazy ready 把启动成本转移给首请求。
 
-每个 `models/<model>/run` 自包含该模型的固定运行参数，包括持久 cache 路径、CPU 并行预算、
-JIT 并发、CUDA toolchain、loader 与 serving 参数；Dockerfile 和 s6 instance
-definition 不复制这些值。vLLM checkpoint 使用固定多线程 safetensors loader；native
-extension build 与媒体加载使用模型脚本声明的固定预算。FlashInfer JIT cache 按模型环境
-隔离，避免不同 venv 的绝对源码路径使同一 extension 串行反复重编译；同模型的多个实例
-共享一份。s6 longrun 负责切换到 x、设置 HOME，并注入 scheduler 生成的实例端口和 GPU UUID。
-TorchInductor compile thread 数由 vLLM 自己固定，不从项目侧强行覆盖。
-FireRed TP2 的两个 rank 共卡显存基线不同，使用固定 KV cache 并关闭 startup plan，让两个
-rank 一起跳过 collective memory profiling；`gpu-memory-utilization` 只保留为启动显存上限
-检查，不参与 KV cache 容量计算。禁用 custom all-reduce，避免固定 KV 路径下两个 rank 在
-FlashInfer workspace 初始化时走入不对称状态；同时关闭 FlashInfer all-reduce backend，TP
-通信只使用 NCCL symmetric memory / PyNCCL。FireRed、MOSS-Audio 与 Qwen3-ASR 的 scheduler
-容量和 vLLM `max-num-seqs` 同为 2，允许 batch throughput 模式下两个请求 continuous batching。
-VibeVoice 两个实例也各有两个 slot；scheduler 按配置顺序填满 A 再溢出到 B，保留同卡 batching，
-避免主动把 04 与 GPU 6 上另一请求的 Paraformer first pass 重叠。其他模型实例容量均为 1。其他
-单卡 vLLM 实例继续复用 startup plan。
+五套 recipe、HTTP schema、placement、模型参数和质量合同属于外部行为。结构重构必须先用测试
+钉住这些行为，不以兼容层、旧路径或 feature flag 保留过渡形态。
 
-Server 内部模型调用使用 Pydantic 团队维护的 `httpx2`，vLLM client 通过原生
-`AsyncClient.sse()` 解析 Server-Sent Events；`models/vllm.py` 只负责 OpenAI completion
-schema 与完整性判断。独立 CLI 仍用 HTTPX 普通 JSON API，并用 Pydantic 校验完整响应。
-升级任一 HTTP stack 时同时跑 protocol、client 与完整模拟 pipeline 测试。
+## Model Runtime Contracts
 
-升级 serving 时重新核对 model class、endpoint 与 response schema。Qwen 普通 / `-hf`、
-VibeVoice 原版 / HF、FireRed 原始 / 转换权重不能互换；FunASR 的 `paraformer-zh` 简称在
-不同 hub 指向不同仓库。
-
-## Model Contracts
-
-- `run` 与 `download_model.sh` 一律使用 `uv run --frozen --no-sync`，只运行 image 已安装的
-  环境；container startup 与手动下载都不能解析、安装或更新依赖。
-- 每个 `weights` 是 image 内固定 symlink，目标为 `/model-data/<model>`。下载脚本先创建
-  symlink 实际目标，再用固定 repo、revision 和显式 include 调 HF CLI；不下载其他框架或
-  精度副本。成功后写 `.revision`，marker 匹配时不访问 Hugging Face。
-- 监听端口与实例 placement 由 `server/server.yaml` 固定；scheduler 向 s6 写入 `PORT` 与
-  `CUDA_VISIBLE_DEVICES`，并把实例 URL 传给 client。端口变化还要更新 `DESIGN.md` 的模型表。
-- vLLM transcription 的 `SpeechToTextConfig` 由 model class 从 processor 构造，`run` 不传
-  server 级覆盖。普通 ASR 上层限制为 30 秒，联合模型按 catalog 上限切窗。
-- VibeVoice 必须沿用上游 transcription request。vLLM 不替换 checkpoint template 中的
-  `<|AUDIO_DURATION|>`，因此固定 chat template，并由 client 传真实 WAV 时长；audio data
-  URL、输出字段、生成预算与总上下文预算必须成套维护。
-- FireRed 中文请求必须显式传 `language=zh`；Whisper 固定中文 transcription。所有 vLLM
-  流都必须收到 `[DONE]` 且 finish reason 全为 `stop`，长度截断一律失败。正常调用保持模型
-  原始 greedy 参数；只有流式输出确认进入至少 64 字符、周期 1–8、重复至少 8 次的短周期
-  循环后，才依次用 repetition penalty 1.1 / 1.2 / 1.3 重试；三档仍循环时再使用固定
-  `temperature=0.5`、`top_p=0.9`、`seed=2` 轻采样。明确到达 length 上限时直接使用同一组
-  轻采样参数重试；成功响应必须在 evidence 记录实际参数与 retry warning，重试后仍不完整
-  则失败。
-- SDK 服务只接受 `/data/asr` 内真实文件；vLLM client 发送音频内容。SDK 中的 `cuda:0`
-  表示当前进程可见的第一张卡，不是 Host 物理卡 0。
-- 修改 tensor parallel、精度、显存比例、上下文或模型时长后，同步 `models/catalog.py`、
-  `server/server.yaml`、deployment test，以及 `DESIGN.md` 的模型 / GPU 表。
-
-### Storage Measurement
-
-`DESIGN.md` 的 checkpoint 大小按每个下载脚本固定 revision 的 repository metadata 统计，
-只计 serving 实际 include 的 weight；config、tokenizer、词典、CMVN 与 download cache 不
-计入 checkpoint，不可拆分的 `.nemo`、`.pth.tar` 按整文件计。完整 model-data 另计 allowlist
-内全部文件，但不计 HF metadata。
-
-`.venv` 逻辑大小对每个目录执行
-`du --apparent-size --block-size=1 --summarize`。共享 hardlink 会在每行完整计数，行值不能
-相加代表 image 物理占用。image 总量与 layer 分布以完成构建后的 `podman image inspect` 和
-`podman history --human=false` 为准；修改 revision、include、Python、lock、toolkit 或安装
-去重流程后重新测量，并同步 `DESIGN.md`。
+- `models/<model>/` 是独立部署单元，完整拥有 revision、environment、依赖、启动命令、内部
+  endpoint、client adapter，以及需要时的 HTTP service。阅读或修改一个模型的部署不需要追踪
+  catalog 分支、共享 shell 或 service factory；模型间只共享顶层 `protocol.py` 数据合同。
+- 每个 `run` 显式声明本模型的 cache、offline、CPU/JIT 和 model server 配置，不 source 其他
+  模型部署脚本。少量环境变量重复是部署边界的一部分，不为消除这些重复增加模板或生成器。
+- `run` 和 `download_model.sh` 使用 `uv run --frozen --no-sync`。容器启动和手动下载都不得
+  解析、安装或更新依赖。
+- `weights` 是指向 `/model-data/<model>` 的固定 symlink。下载脚本使用固定 repo、revision 和
+  显式 include，成功后写 `.revision`；marker 匹配时不访问 Hugging Face。
+- 每个 `client.py` 实现相同的 typed callable，并在本目录固定 endpoint、serialization、timeout
+  和模型特有参数。Scheduler 只加载该接口，不理解具体模型协议。
+- SDK 模型的 `service.py` 明确声明 health、endpoint、单在途锁、`/data/asr` 文件边界、checkpoint
+  加载和推理。SDK 中的 `cuda:0` 指进程可见的第一张卡。
+- vLLM transcription 通过 `models/vllm.py` 统一 multipart、SSE 完整性和生成重试。响应必须
+  收到 `[DONE]` 且所有 finish reason 为 `stop`；截断或不完整响应失败。
+- 正常生成保持模型原始 greedy 参数。确认至少 64 字符的 1–8 字符短周期重复后，依次用
+  repetition penalty 1.1、1.2、1.3 重试；仍重复或明确到达 length 后，使用固定 seed 的轻采样。
+  成功重试的实际参数和 warning 必须进入 evidence。
+- VibeVoice 沿用上游 transcription request，并传真实 WAV 时长。固定 chat template、上下文预算、
+  输出解析与 data URL 是一个协议单元。
+- 不修改 site-packages。确需修复第三方运行时行为时，在本目录的 launcher 或 wrapper 中建立
+  稳定、可测试的边界。
 
 ## Pipeline Invariants
 
-- `api.py` 只收完整文件并返回五份结果、共享 evidence 与 trace；server 不生成 ZIP、
-  Markdown、索引、可视化或客户端文件名。`client/asr.py` 严格校验 JSON，在临时目录生成
-  全部文件后原子发布，并给五份方案 JSON 添加 `evidence.json` 引用。`client/trace.html`
-  是无外部依赖的离线模板，流程聚合、方案对比、时间线、火焰图和 Chrome Trace export
-  GPU 利用率曲线、流程聚合、方案对比、时间线、火焰图和 Chrome Trace export 全部在浏览器
-  执行；`trace.json` 仍是唯一原始 trace 产物。Server 只按秒采集自身 placement 使用的 GPU
-  compute / HBM I/O busy、显存与功耗原始值，不生成聚合结论或展示层。
-- Server 必须单进程，不增加 uvicorn workers。上传与 options 是不可信 HTTP 输入，由
-  Pydantic 校验；模型完成状态、结构、截断和时间边界也在 server 校验。
-- 顺序固定为 prepare、四路 first pass、整批 review，随后 01–04 并行；05 只等待 01。prepare 先跑全文件
-  pyannote，再取 speaker 与 VAD 活动并集；短窗与 padding 在所有候选间保持相同。
-- first pass 的四个模型并行处理各自完整批次，同模型逐窗串行。候选不能互喂答案。只对
-  分歧、空识别或异常重复扩窗复听；Qwen / FireRed / Whisper / MOSS-Audio 四批分居独立
-  GPU lane 并行生成并各自批处理。MOSS-Audio 是延迟隐藏的 speculative review，只有三路
-  主复听对齐后仍不一致时才进入证据；所有复听都只保留原窗口中心点内正文。
-- FireRedPunc 是最终句读的唯一 owner。送入标点模型前删除全部 Unicode punctuation，只保留
-  数字内部的小数点、千分位逗号和时间冒号；输出改变非标点内容时拒绝。不在正文与标点层
-  叠加句读，也不用重复标点正则修补模型输出。
-- 多人窗口禁止融合替换且 joint recipes 不消费 review 文本，因此不执行无效复听。其余整窗复听
-  替换要求主模型改变且独立家族精确支持，窗口不能含敏感内容。Qwen 才允许局部
-  edit-span：左右各至少四个稳定 content-character 锚点，且同一 edit 必须由两个独立模型家族
-  在首轮候选或复听中精确支持。数值、热词和英文专名只保护各自 span，多人窗口仍整窗禁止
-  替换；同家族和重复采样不增加独立票数，两份融合稿不能读取对方定稿。
-- 联合模型保留自身正文、时间与局部 speaker；pyannote 只把无歧义的单人活动映射到全文件
-  身份。结构、时间范围与活动尾部要校验；失败窗口先去除 padding，再按 exact core 安全二分，
-  直到小于 8 秒的 exact core 仍失败才使方案失败。不做猜测裁剪、平均插值或伪造时间。
-  完全位于 core 内的 segment 直接保留联合模型时间与 mapped speaker，
-  只有跨 core 边界、确实需要裁剪正文时才调用 Aligner。
-- forced alignment 的零时长 token 保留原始时间点，按落入的半开 speaker span 归属身份；
-  不得为规避 `speaker_unknown` 人工扩展 token 时长或伪造边界。
-- 第五稿复用第一稿正文和时间，仅用 Nemotron 重标 speaker。已知超过 8 人时失败，未知
-  人数标 `unverified_max_8`，pyannote 观察超限标 `suspected_out_of_scope`。
-- 同一请求按逻辑模型、切片路径与有效参数缓存并 single-flight；失败调用不缓存，取消
-  必须释放实例。请求间只共享常驻进程，不共享识别结果。
-- Aligner review 固定走 `qwen3-aligner-review`，recipe finalize 固定走
-  `qwen3-aligner-recipe`。VibeVoice 长窗按 A / B 副本容量并发投递，必须按原窗口顺序合并。
-- 原始响应与参数只在 evidence 出现一次。trace 记录关键 phase、实际模型调用、cache hit、
-  GPU UUID / index、模型锁、CPU 排队、推理时间，以及请求全程每秒 GPU 利用率采样；不复制
-  正文或完整部署清单。`utilization.memory` 表示 HBM 读写活跃时间，不得解释为显存占用率或
-  PCIe copy throughput。
+- `api.py` 只接收完整文件并返回五份结果、共享 evidence 与 trace。Markdown、索引和离线
+  `trace.html` 由 CLI 生成并原子发布。
+- prepare 先做全文件 speaker diarization，再将 speaker activity 与 VAD 取并集。四路 first
+  pass 处理相同短窗，候选之间不能互喂答案。
+- review 只处理分歧、空识别或异常重复窗口。Qwen、FireRed、Whisper、MOSS-Audio 各自形成
+  独立批次；MOSS-Audio 是 speculative review，只有三路主复听仍不一致时才进入证据。
+- 多人窗口禁止融合替换，joint recipes 也不消费 review 文本，因此不得为多人窗口执行无效
+  review。Qwen 和 FireRed 两份融合稿独立裁定，不能读取对方定稿。
+- FireRedPunc 是最终句读唯一 owner。送入前去除 Unicode punctuation，只保留数字内部的小数点、
+  千分位逗号和时间冒号；模型若改写非标点正文则拒绝结果。
+- 03 MOSS-TD 与 04 VibeVoice 保留自己的正文、时间和 local speaker。Pyannote 只映射无歧义的
+  全文件身份。失败窗口先去 padding，再按 exact core 安全二分；不得猜测裁剪、平均插值或伪造
+  时间。仅跨 core 边界且确需裁正文时调用 Aligner。
+- 05 完整复用 01 正文与字词时间，只用 Nemotron 重标 speaker。已知超过八人时失败，未知人数
+  标记未验证。
+- 请求内以逻辑模型、切片和有效参数 cache 并 single-flight；失败不缓存，取消必须释放实例。
+  请求间只共享常驻进程，不共享识别结果。
+- 原始响应与参数只在 evidence 保存一次。trace 不复制正文，记录 phase、实际模型调用、cache
+  hit、GPU identity、模型锁、CPU 排队、推理时间和 GPU 原始采样。
 
-## Static Placement And Process Control
+## Placement And Process Control
 
-`server/server.yaml` 按实例声明逻辑模型、端口与可见 GPU 序号。当前每卡预算和并发隔离见
-`DESIGN.md`；deployment test 必须离线校验模型集合、TP 卡数、单卡总量、并发阶段不共卡与
-vLLM 显存比例。placement 不能写 Host 物理卡号。
+`server/server.yaml` 只使用容器可见 GPU 的逻辑序号。`scheduler.py` 在 startup 将逻辑序号映射
+为 GPU UUID，检查静态显存预算与空闲设备，写入实例环境后用一次 s6 transaction 启动全部实例，
+并发等待 health。请求失败不启停或迁移模型；模型异常退出由 s6 supervision 负责重启。
 
-`scheduler.py` 在 lifespan startup 时把逻辑序号映射为 GPU UUID，要求已使用显存不超过
-512 MiB，写完全部实例环境后通过一次 s6 transaction 并行启动，并发等待全部 health。
-请求期每实例默认最多一个在途调用，只有 FireRed LLM、MOSS-Audio、Qwen3-ASR 与两个
-VibeVoice 实例固定允许两个；逻辑模型池按配置顺序选择仍有容量的实例。不启停、回收、迁移或
-降级模型。
+并发 slot 必须同时匹配 catalog 与模型 server 的 batch capacity。实例池按配置顺序选择首个可用
+slot；VibeVoice A 优先承担同卡 continuous batching，B 只承接溢出。placement 关注 critical
+path 和 phase 隔离，不以八卡平均利用率相等为目标。
 
-`ops/processes.py` 负责有超时的子进程与 GPU inventory，并以 x 经 sudo 调 root-owned
-`/usr/local/bin/asr-model-service`。sudoers 只授权该固定入口；shared s6 live state 仍由
-root 管理。模型异常退出由 s6 supervision 重启；HTTP 请求失败不能触发停服。
+FireRed TP2 使用固定 KV cache，关闭 startup plan、custom all-reduce 和 FlashInfer all-reduce，
+TP 通信走 NCCL。修改 TP、精度、显存比例、上下文、max sequences、时长或 placement 时，必须
+同步 catalog、server config、deployment tests，并重新跑冷/热启动与九音频回归。
 
-停止由 s6 发 TERM，`timeout-kill` 与 `flag-timeout-killpg` 超时终止进程组；`finish` 以 x
-清理残留 engine 子进程。容器 shutdown 时 server 不再次逐模型 stop。独立排查模型前先停
-容器服务，不在运行中的 server 外手动改变 s6 状态。
+模型停止由 s6 发 TERM，超时后终止进程组；`finish` 清理 engine 子进程。独立排查模型前先停
+容器服务，不在运行中的 server 外改变 s6 状态。
 
-## Image, S6 And Mount Constraints
+## Image And Filesystem
 
-`install-model-environments.sh` 必须在一个 image layer 中遍历全部模型，以
-`UV_LINK_MODE=hardlink` 建独立 `.venv`。server 安装后用 util-linux `hardlink` 做第二遍
-内容级去重；它只忽略 mtime，mode、owner 与 xattr 不同的文件不会合并。任一 lock 失配、
-安装或去重失败都必须使 build 失败。Python / environment 安装阶段使用 `USER x`，清理 uv
-cache 后才结束 layer；s6 graph 切回 root 编译。
+模型权重不进入 image。`install-model-environments.sh` 在一个 layer 内安装隔离 `.venv`，再用
+hardlink 做内容级去重；任一 lock、安装或去重失败都必须使 build 失败。模型环境不能为统一版本
+而混装 Torch、torchaudio 或 SDK。
+
+运行身份固定为非 root 用户 `x`。模型权重、request workspace 和 compilation cache 使用部署
+声明的持久目录；Hugging Face token 只能来自 Podman secret。真实 token、Host 配置、模型 cache
+和回归音频 cache 不得提交。
 
 | s6 / filesystem 资产 | 维护约束 |
 | --- | --- |
 | `asr-<model>-download/` | oneshot；marker 命中立即完成，否则下载固定 snapshot |
-| `asr-<instance>/` | longrun；显式依赖逻辑模型 download oneshot，以 x 运行 |
+| `asr-<instance>/` | longrun；显式依赖对应 download oneshot，以 x 运行 |
 | `asr-server/` | 以 x 运行 `server/run`；只有它进入 default bundle |
 | `/usr/local/bin/asr-model-service` | root-owned 固定 start / stop 入口 |
-| `/var/log/s6.asr-*.log` | 使用 `redirfd -w` 与 `fdmove`，沿用 shared runtime |
+| `/var/log/s6.asr-*.log` | 使用 shared s6 runtime 的日志约定 |
 | `/model-data` | 正常部署 rw；x 必须可写；禁止挂载 `/opt/asr` 或模型目录遮蔽代码与 venv |
 | `/data/asr` | x 可写的请求临时区，不保存转录结果或任务状态 |
-| `/home/x/.cache` | x 可写的持久 runtime cache；只保存 vLLM startup plan、TorchInductor / CUDA / Triton / FlashInfer / Torch extensions 可再生编译产物 |
-
-HF token 只在 download oneshot 需要联网时从 `/run/secrets/huggingface_token` 读取；必须
-以 UID/GID `5230:5230` 可读，不能进入命令行、脚本、image layer 或 model-data。marker
-全部匹配时不能读取 token。FireRed TP / NCCL 要求 private `/dev/shm` 为 8 GiB，不能退回
-Podman 默认 64 MiB，也不改用 host IPC。
-
-## CUDA Forward Compatibility
-
-Host driver 不能升级。H100 支持 CUDA forward compatibility；当前 image 为 R535 显式
-提供 CUDA 13 compatibility userspace libraries 和全局 compiler toolkit。
-
-- Dockerfile 固定 `cuda-compat-13-0` 包与 SHA256，只解压用户态库到
-  `/usr/local/cuda-13.0/compat`，不修改 Host kernel module 或 ldconfig。
-- GPU `run` 在 Python 前固定 `LD_LIBRARY_PATH`；vLLM 同时固定 `CUDA_HOME`，让 engine
-  子进程继承 compat 与 JIT compiler。link-only driver stub 不进入 runtime library path。
-- 不使用 `VLLM_ENABLE_CUDA_COMPATIBILITY` 代替上述 wiring；这里不是官方 vLLM image
-  entrypoint。compat 只解决 driver interface，不解决 Torch、vLLM 或 extension 混装。
-- 不根据旧 driver 动态选择 Torch backend 或降级 CUDA；以 lock、实际 import、kernel、
-  Triton / vLLM extension、TP 与 NCCL 验证整套兼容性。
-
-2026-10-07 在 H100 / R535 `535.161.08` 上，原生用户态 Driver API 为 12020，PTX 9.0 JIT
-报错 222；compat 提供 Driver API 13000，并通过 VMM / POSIX FD、PTX 9.0 kernel 与 CUDA
-Graph 探针。该结果只证明底层接口，不能替代完整模型推理。
-
-## Alternatives Outside Scope
-
-这些候选只保留为选型背景，不为它们创建依赖、配置或兼容入口：
-
-| 环节 | 候选 | 未进入当前实现的原因 / 独立部署路径 |
-| --- | --- | --- |
-| ASR | FireRedASR2-AED | 官方 FireRed SDK，非当前 vLLM 转换权重 |
-| ASR | Fun-ASR-Nano-2512 | vLLM、Omni 与 FunASR 使用不同 checkpoint 形态 |
-| ASR | GLM-ASR-Nano-2512 | 官方 Transformers；虽有 vLLM / SGLang 路径，但不属于五方案 |
-| 热词 ASR | SeACo-Paraformer | 独立 hotword checkpoint，不等于当前 Paraformer |
-| VAD | TEN-VAD、FSMN-VAD、Silero | 当前固定 FireRedVAD，不保留替换开关 |
-| 对齐 / 标点 | fa-zh、CT-Punc | 当前固定 Qwen aligner 与 FireRedPunc |
-| Speaker embedding | CAM++ | embedding 不是完整 diarizer |
-
-Qwen 0.6B、Whisper turbo、MOSS-Audio 其他尺寸与 Thinking 变体也不在当前产品边界。
+| `/home/x/.cache` | x 可写的持久 runtime cache，只保存可再生编译与 serving cache |
 
 ## Validation
 
-行为修改运行：
+Python 改动按以下顺序检查：
+
+```bash
+uv run --project platform/container/services/asr/server \
+  ruff format --check platform/container/services/asr
+uv run --project platform/container/services/asr/server \
+  ruff check platform/container/services/asr
+MYPYPATH=platform/container/services/asr \
+uv run --project platform/container/services/asr/server \
+  mypy --strict \
+  platform/container/services/asr/server \
+  platform/container/services/asr/ops \
+  platform/container/services/asr/protocol.py \
+  platform/container/services/asr/client/asr.py \
+  platform/container/services/asr/models/catalog.py \
+  platform/container/services/asr/models/vllm.py
+uv run --project platform/container/services/asr/server \
+  pytest -c platform/container/services/asr/server/pyproject.toml \
+  platform/container/services/asr/tests
+```
+
+行为或 artifact 变更还必须运行：
 
 ```bash
 task check:full
-```
-
-image 或 runtime 依赖变化还必须从 repository root 构建：
-
-```bash
-podman build \
-  --file platform/container/services/asr/Dockerfile \
-  --tag localhost/codespace-asr:test \
-  .
+podman build --file platform/container/services/asr/Dockerfile \
+  --tag localhost/codespace-asr:test .
 ```
 
 | 修改 | 附加验证 |
 | --- | --- |
 | `run` / `client.py` / HTTP stack / s6 | 固定端口匹配；SSE 完整性；以 x 启动；health、真实短音频与停止后进程退出 |
-| download / uv / Dockerfile | image 无权重且包含全部环境；run / download 不 sync；检查两轮 hardlink 去重与最新 image size |
-| 权重 / SDK / vLLM | 锁文件与 import 版本、实际协议响应、截断、时间边界与模型 table |
+| download / uv / Dockerfile | image 无权重且包含全部环境；run / download 不 sync；检查 hardlink 去重与最新 image size |
+| 权重 / SDK / vLLM | 锁文件与 import 版本、实际协议响应、截断、时间边界与 `DESIGN.md` model table |
 | 融合 / speaker / 时间 | 行为测试与对应真实音频，不能以模拟响应宣称质量提升 |
-| regression corpus / baseline | `prepare.py --check`、`evaluate.py`、fixture tests；音频 cache 不提交，raw results 提交 |
+| regression corpus / baseline | `prepare.py --check`、`evaluate.py`、fixture tests；audio cache 不提交，raw results 提交 |
 | CUDA / placement | 八卡同时驻留、真实余量、kernel、TP / NCCL 与跨模型并发；不停止外部任务 |
 
-已验证 CPU FireRedVAD / FireRedPunc、H100 Nemotron、s6 服务链路、异常退出清理、停止超时，
-以及原子 HTTP 五方案模拟响应、共享 evidence 与临时音频清理。
-
-2026-10-09 在 8×H100 80 GiB / R535 Host 上只使用前 5 卡完成 20:34 真实普通话音频：
-15 个实例全部 ready，五份结果完成，客户端 139.32 秒，trace 138.263 秒；1626 次真实
-模型调用、24 次 cache hit、0 failure。01–04 在 113.136–113.137 秒同时启动，05 在 01 结束的
-129.123 秒启动，没有等待 02–04；VibeVoice A / B 各处理 4 个长窗，04 用时 25.007 秒。
-请求前五卡占用为 64,654 / 29,920 / 51,648 / 49,154 / 45,518 MiB，请求后为
-66,524 / 33,150 / 52,572 / 51,298 / 48,118 MiB，其余三卡为 0。无 OOM、shared-memory 错误或
-模型重启；容器 exit 0 后八卡全部回到 0 MiB。这证明当前 placement 与并发时序在该 Host
-可运行，不代表其他 GPU 容量、driver 或 revision。真实 GPU 验证必须遵循 repository 的
-`test-asr` skill。
-
-2026-10-09 在同一 Host 以新的 `audio_verbatim` 《狂人日记》参考做五卡质量复验：
-01 / 05 的 CER 从局部融合前 2.6420% 降到 2.4938%，接受 10 个 local-consensus 窗口；
-02 / 03 / 04 分别为 2.2222% / 2.9136% / 2.2716%。最终 trace 为 140.894 秒、1660 个事件、
-1650 个模型事件和 0 failure，只使用 GPU index 0–4；01–04 在 112.935–112.937 秒启动，
-05 在 01 完成的 123.764 秒启动。全量去标点输入后，真实文本中已无上游引号诱发的组合句读。
-
-2026-10-10 用 schema v2 在同一 Host 复跑 meeting `R8004_M8006_MS805-first20m.wav`：
-trace 为 1070.531 秒、863 个事件和 995 组请求全程 GPU 采样，sampling error 为空。GPU 0 / 1
-平均 compute busy 为 96.2% / 81.9%，GPU 2 / 3 / 4 仅 5.4% / 3.6% / 1.8%；CPU queue
-为 0，model queue 仅 0.318 秒，upload + decode 为 0.293 秒。89 次模型失败中 FireRed-LLM
-有 67 次生成到 length 上限，失败调用累计 855.961 秒；MOSS-Audio、Qwen3-ASR 与 Whisper
-另有 27 次 length failure，全部失败调用累计约 1023 秒。该样本的瓶颈是异常长生成把 GPU 0 / 1
-打满，同时其他卡受 DAG 与静态 placement 限制长期空闲，不是 CPU 并发或输入 copy；降低耗时应
-先修复生成长度与失败窗口，再评估跨卡并发，不能仅提高 `cpu_requests`。
-
-同日应用异常生成重试和 joint exact-core 边界回退后，以同一 meeting 音频完成五卡复验：
-五份方案全部 completed，trace 为 276.738 秒、2318 个事件、2308 个模型事件、2255 次非缓存
-调用、53 次 cache hit 和 255 组 GPU 采样。保存到 evidence 的 358 个 completion finish reason
-全部为 `stop`；短周期循环在 repetition penalty 1.1 / 1.2 / 1.3 下分别恢复 66 / 21 / 1 次，
-另有 1 次 length 由固定采样恢复。trace 中保留 3 个被严格检测提前取消的 VibeVoice 内部失败
-尝试，上层缩窗后 04 仍 completed，不应误报为零失败事件。CPU queue 仍为 0；model queue
-为 16.383 秒，其中 Qwen Aligner 占 15.313 秒，来自 exact-core 安全对齐。GPU 0–4 平均
-compute busy 为 53.5% / 37.8% / 33.9% / 30.9% / 22.7%，峰值均为 100%。相对修复前
-1070.531 秒，端到端耗时下降 74.2%；剩余耗时主要在 review 与 joint 质量恢复 / 对齐，不是
-CPU 或输入 copy。
-
-同日将 MOSS-Audio 放到独立 GPU 5，并把 Qwen / FireRed / Whisper / MOSS-Audio 四路 review
-改为独立 lane 并行后，以 image `localhost/codespace-asr:review-parallelism`（ID
-`6ed73e621356`）在 6×H100 上完成 9-case 全量回归。45/45 个 recipe completed，9 份 trace
-均为 completed 且模型 / phase failure 为 0；相对上一版 committed trace，9 例端到端累计从
-1881.674 秒降到 1388.708 秒，下降 26.20%，单例下降 19.48%–31.77%；review 累计从
-973.667 秒降到 555.780 秒，下降 42.92%，单例下降 35.51%–47.28%。R8004 baseline 与独立
-复验分别为 171.518 秒和 175.817 秒，五稿均 completed。joint 异常窗口先去除 padding，再按
-exact core 二分，只有小于 8 秒仍失败才使方案失败；不截断正文、不猜测边界。该轮替换容器的
-冷启动约 22 分钟，日志显示 vLLM / FlashInfer 重复 JIT；后续启动使用持久
-`/home/x/.cache` 复用可再生编译产物，不缓存请求正文或转写结果。该启动优化不属于上述请求
-耗时收益。
-
-同日将 15 个实例改为一次 s6 transaction 启动并并发等待 health，同时持久化 vLLM、
-FlashInfer、Torch extension 与 CUDA driver cache。最终 image `38079cd1f348` 使用 8×H100
-和已预热 cache 在 611 秒达到 15/15 ready，相对约 1320 秒串行基线下降 53.7%；全部模型
-death tally 为空，容器 restart 为 0，停止后八卡进程全部退出。实测 vLLM AOT compilation
-已降到亚秒至约 8 秒，剩余长尾是各大模型的 profile、CUDA Graph capture 与 warmup，不是
-Python / s6 调度、CPU queue 或权重 copy。空 cache 与热 cache 的对照曾从 631 秒降至 545 秒，
-约下降 13.6%；启动耗时有明显 warmup 竞争波动，因此这些数字是本 Host 的观测值而非 SLA。
+真实验证使用 `test-asr` skill：确认八张 GPU 空闲、挂载持久 model-data/cache、注入 HF secret，
+等待 15 个实例 ready 后运行真实音频。回归按
+[regression/AGENTS.md](regression/AGENTS.md) 的固定命令刷新九项结果并重算指标。结束时正常停止
+容器，并确认 GPU 0–7 显存均回到 0 MiB。

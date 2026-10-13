@@ -6,59 +6,59 @@
 
 好今天我们来首先开一下我们这个共享单车的会议，近最近我们市里面的共享单车多了起来，出现了很多共享单车的情况及问题，然后呢，我希望我们今天都趁着星期三下午这个机会，然后是在大家都有空的时候，然后我们能一起
 
-**[00:00:23.971–00:00:24.931] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:00:23.971–00:00:24.931] S01 · 待核对：disagreement, alignment_failed**
 
 嗯嗯我这边
 
-**[00:00:24.271–00:00:48.271] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:00:24.271–00:00:48.271] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 的
 
-**[00:00:24.271–00:00:48.271] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:00:24.271–00:00:48.271] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 发
 
-**[00:00:25.811–00:00:26.291] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:00:25.811–00:00:26.291] S01 · 待核对：disagreement, alignment_failed**
 
 话我也
 
-**[00:00:26.131–00:00:35.891] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:00:26.131–00:00:35.891] S01 · 待核对：disagreement, alignment_failed**
 
 现
 
-**[00:00:26.291–00:00:36.131] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:00:26.291–00:00:36.131] S01 · 待核对：disagreement, alignment_failed**
 
 些
 
-**[00:00:35.891–00:00:35.971] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:00:35.891–00:00:35.971] S02 · 待核对：disagreement, alignment_failed**
 
 了一
 
-**[00:00:36.291–00:00:47.331] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:00:36.291–00:00:47.331] S02 · 待核对：disagreement, alignment_failed**
 
 问题，就是这些嗯有些嗯素质不是那么高的人群啊，他们就会把这个单车就会乱停放，然后有些东西呢大
 
-**[00:00:47.331–00:00:47.971] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:00:47.331–00:00:47.971] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 家就是。
 
-**[00:00:48.611–00:00:51.891] S01 · 待核对：disagreement, needs_review**
+**[00:00:48.611–00:00:51.891] S01 · 待核对：disagreement**
 
 乱停放指的是停在哪哪些地方，
 
-**[00:00:52.131–00:00:58.371] S02 · 待核对：disagreement, needs_review**
+**[00:00:52.131–00:00:58.371] S02 · 待核对：disagreement**
 
 嗯停在比如说就是嗯嗯公就是机动车道啊这些机动
 
-**[00:00:58.371–00:00:58.611] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:00:58.371–00:00:58.611] S01/S02 · 待核对：disagreement, overlap**
 
 车
 
-**[00:00:58.611–00:01:06.371] S01 · 待核对：disagreement, needs_review**
+**[00:00:58.611–00:01:06.371] S01 · 待核对：disagreement**
 
 道上，然后是你能看到我有没有最近违反交通的一些例子发生，
 
-**[00:01:06.931–00:01:09.731] S02 · 待核对：disagreement, needs_review**
+**[00:01:06.931–00:01:09.731] S02 · 待核对：disagreement**
 
 嗯就是说最近的话。
 
@@ -138,71 +138,71 @@
 
 的。
 
-**[00:01:34.610–00:01:35.570] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:01:34.610–00:01:35.570] S01 · 待核对：disagreement, alignment_failed**
 
 嗯安
 
-**[00:01:34.910–00:01:58.910] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:01:34.910–00:01:58.910] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 全
 
-**[00:01:34.910–00:01:58.910] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:01:34.910–00:01:58.910] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 事
 
-**[00:01:35.570–00:01:36.690] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:01:35.570–00:01:36.690] S01 · 待核对：disagreement, alignment_failed**
 
 事故安全
 
-**[00:01:36.850–00:01:40.290] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:01:36.850–00:01:40.290] S01 · 待核对：disagreement, alignment_failed**
 
 故
 
-**[00:01:43.890–00:01:47.730] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:01:43.890–00:01:47.730] S03 · 待核对：disagreement, alignment_failed**
 
 目前我遇到好像都是就是拍照也没有
 
-**[00:01:47.890–00:01:48.050] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:01:47.890–00:01:48.050] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 发
 
-**[00:01:50.050–00:01:59.170] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:01:50.050–00:01:59.170] S02 · 待核对：disagreement, alignment_failed**
 
 生路怒这个问题，但是我这边的话也看到过就是他骑车的话就是左边右边都没有看，然后旁边也有，嗯机动车停在边。
 
-**[00:01:58.850–00:01:58.770] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:01:58.850–00:01:58.770] S02 · 待核对：disagreement, alignment_failed**
 
 然后
 
-**[00:01:58.850–00:02:04.930] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:01:58.850–00:02:04.930] S02 · 待核对：disagreement, alignment_failed**
 
 把车停在边上，然后没有停车位的那种，他就直接冲了出去，然后后面来车了就直接将他撞飞了，
 
-**[00:01:58.910–00:02:22.910] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:01:58.910–00:02:22.910] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 他
 
-**[00:02:05.490–00:02:06.130] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:02:05.490–00:02:06.130] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 然后这样子的
 
-**[00:02:06.130–00:02:10.130] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:02:06.130–00:02:10.130] S02 · 待核对：disagreement, alignment_failed**
 
 话，嗯他就是也受了很严重的伤，
 
-**[00:02:10.370–00:02:10.690] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:02:10.370–00:02:10.690] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 然
 
-**[00:02:10.690–00:02:14.450] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:02:10.690–00:02:14.450] S02 · 待核对：disagreement, alignment_failed**
 
 后这边的话他也影响到了他的家庭现在
 
-**[00:02:15.250–00:02:15.330] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:02:15.250–00:02:15.330] S01 · 待核对：disagreement, alignment_failed**
 
 对。
 
-**[00:02:22.770–00:02:27.970] S01 · 待核对：disagreement, needs_review**
+**[00:02:22.770–00:02:27.970] S01 · 待核对：disagreement**
 
 是还有一些什么别的问题吗？
 
@@ -222,23 +222,23 @@
 
 后，对的对的，然后车辆上有时候还会贴一些小广小广告啊啥
 
-**[00:03:10.910–00:03:28.130] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:03:10.910–00:03:28.130] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 啊
 
-**[00:03:12.290–00:03:12.050] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:03:12.290–00:03:12.050] S01 · 待核对：disagreement, alignment_failed**
 
 贴小广告
 
-**[00:03:12.530–00:03:13.570] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:03:12.530–00:03:13.570] S01 · 待核对：disagreement, alignment_failed**
 
 啥的，现在贴这种的多吗？
 
-**[00:03:14.210–00:03:23.890] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:03:14.210–00:03:23.890] S02 · 待核对：disagreement, alignment_failed**
 
 嗯嗯经过前一阵子的话也有经过大家的宣传的话，呃这方面减少了，但是还会有一些素质不那么高的人
 
-**[00:03:23.890–00:03:24.050] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:03:23.890–00:03:24.050] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 就是。
 
@@ -346,39 +346,39 @@
 
 周边的话会很多同学都骑自行车到学校门口嘛，然后这边的话他们，呃有可能是停放好的，但是后面的人会把它给，呃不小心碰倒啦，然后一溜车全倒了，然后也没人扶这种现象。
 
-**[00:05:14.382–00:05:26.600] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:05:14.382–00:05:26.600] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 坏掉
 
-**[00:05:14.382–00:05:26.600] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:05:14.382–00:05:26.600] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 掉
 
-**[00:05:15.022–00:05:15.102] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:05:15.022–00:05:15.102] S03 · 待核对：disagreement, alignment_failed**
 
 现
 
-**[00:05:15.182–00:05:15.342] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:05:15.182–00:05:15.342] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 这种
 
-**[00:05:15.422–00:05:15.342] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:05:15.422–00:05:15.342] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 对出
 
-**[00:05:16.302–00:05:16.702] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:05:16.302–00:05:16.702] S02 · 待核对：disagreement, alignment_failed**
 
 嗯就
 
-**[00:05:16.302–00:05:17.182] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:05:16.302–00:05:17.182] S02 · 待核对：disagreement, alignment_failed**
 
 了，
 
-**[00:05:16.382–00:05:22.542] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:05:16.382–00:05:22.542] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 坏
 
-**[00:05:22.702–00:05:26.062] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:05:22.702–00:05:26.062] S01 · 待核对：disagreement, alignment_failed**
 
 的话，其实这里面的坏掉的车子还还算多吗？
 
@@ -394,31 +394,31 @@
 
 再搞一个。
 
-**[00:05:30.937–00:05:30.937] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:05:30.937–00:05:30.937] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 嗯
 
-**[00:05:31.257–00:05:38.217] S02 · 待核对：disagreement, needs_review**
+**[00:05:31.257–00:05:38.217] S02 · 待核对：disagreement**
 
 对这种的话车子就是它的，嗯比如说链条啊就是不小心，嗯就
 
-**[00:05:39.097–00:05:40.617] S02/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:05:39.097–00:05:40.617] S02/S03 · 待核对：disagreement, overlap**
 
 撞了一下然后断
 
-**[00:05:40.857–00:05:46.777] S02 · 待核对：disagreement, needs_review**
+**[00:05:40.857–00:05:46.777] S02 · 待核对：disagreement**
 
 断一般来说车子质量还是在的，就有可能是偏了，就是它的链条掉掉了这样子，是的
 
-**[00:05:46.857–00:05:49.177] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:05:46.857–00:05:49.177] S01/S02 · 待核对：disagreement, overlap**
 
 是
 
-**[00:05:47.417–00:05:48.537] S01 · 待核对：disagreement, needs_review**
+**[00:05:47.417–00:05:48.537] S01 · 待核对：disagreement**
 
 的
 
-**[00:05:53.497–00:05:54.297] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:05:53.497–00:05:54.297] S01/S02 · 待核对：disagreement, overlap**
 
 直接。
 
@@ -426,11 +426,11 @@
 
 然后是这这样的话我们也应该引起重视，毕竟这种共享单车是要服务于大众的嘛。
 
-**[00:06:02.206–00:06:02.206] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:06:02.206–00:06:02.206] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 嗯，
 
-**[00:06:03.166–00:06:08.526] S01 · 待核对：disagreement, needs_review**
+**[00:06:03.166–00:06:08.526] S01 · 待核对：disagreement**
 
 是还有没有什么别的现状呢？就是说现在就是这种共享单车造成的影响。
 
@@ -450,103 +450,103 @@
 
 哦这种的话公共区域的话，我认为的话这种比如说有一种公共区域的话，还是有必要的，你不能说是没有规矩不成方圆嘛，你如果能真能随便停放的话，也太那个什么也太对，对这种我们市的环境规划啦，各种类型的话也会造成很大的影响。
 
-**[00:06:51.835–00:07:15.835] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:06:51.835–00:07:15.835] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 会
 
-**[00:06:51.835–00:07:15.835] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:06:51.835–00:07:15.835] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 么
 
-**[00:06:52.235–00:06:57.515] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:06:52.235–00:06:57.515] S02 · 待核对：disagreement, alignment_failed**
 
 嗯是的这样子的话也会影响一些，影响一些交通，嗯秩
 
-**[00:06:57.515–00:06:58.235] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:06:57.515–00:06:58.235] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 序啊这些，
 
-**[00:06:58.315–00:07:01.435] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:06:58.315–00:07:01.435] S01 · 待核对：disagreement, alignment_failed**
 
 嗯都会造成，都
 
-**[00:07:00.955–00:07:08.315] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:07:00.955–00:07:08.315] S01 · 待核对：disagreement, alignment_failed**
 
 造成一系列的影响，然后是之前我还听说到有一个病毒车，你们知道是什
 
-**[00:07:08.155–00:07:08.875] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:07:08.155–00:07:08.875] S01 · 待核对：disagreement, alignment_failed**
 
 什么东西吗，
 
-**[00:07:09.755–00:07:15.835] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:07:09.755–00:07:15.835] S03 · 待核对：disagreement, alignment_failed**
 
 就是那个在车辆二维码上贴着带有病毒的二维码嘛，然后再传播那种嘛。
 
-**[00:07:16.175–00:07:19.215] S01 · 待核对：disagreement, needs_review**
+**[00:07:16.175–00:07:19.215] S01 · 待核对：disagreement**
 
 哦，就是说他们以就是说以假乱真那些二维
 
-**[00:07:19.295–00:07:19.375] S01/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:07:19.295–00:07:19.375] S01/S03 · 待核对：disagreement, overlap**
 
 码
 
-**[00:07:20.735–00:07:24.975] S01 · 待核对：disagreement, needs_review**
+**[00:07:20.735–00:07:24.975] S01 · 待核对：disagreement**
 
 哦，那这样这样的话就是说一般扫的时候的话都是会发生什么情况呢？
 
-**[00:07:39.535–00:07:42.895] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:07:39.535–00:07:42.895] S03 · 待核对：disagreement, alignment_failed**
 
 对直接转移转移走了，对直
 
-**[00:07:39.835–00:08:03.835] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:07:39.835–00:08:03.835] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 移
 
-**[00:07:39.835–00:08:03.835] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:07:39.835–00:08:03.835] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 后
 
-**[00:07:39.835–00:08:03.835] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:07:39.835–00:08:03.835] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 们
 
-**[00:07:43.055–00:07:47.135] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:07:43.055–00:07:47.135] S03 · 待核对：disagreement, alignment_failed**
 
 转移转
 
-**[00:07:46.255–00:07:46.415] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:07:46.255–00:07:46.415] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 接
 
-**[00:07:47.215–00:07:47.375] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:07:47.215–00:07:47.375] S03 · 待核对：disagreement, alignment_failed**
 
 走
 
-**[00:07:48.655–00:07:49.775] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:07:48.655–00:07:49.775] S01 · 待核对：disagreement, alignment_failed**
 
 了，哦转一下，然
 
-**[00:07:49.855–00:08:01.135] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:07:49.855–00:08:01.135] S01 · 待核对：disagreement, alignment_failed**
 
 现在骗子的手段也很很发达呀看来，然后是我，呃还有没有什么别的现状呢，这就比如，之类的，因为我感觉上面提的我
 
-**[00:08:01.535–00:08:03.375] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:08:01.535–00:08:03.375] S01 · 待核对：disagreement, alignment_failed**
 
 你们提的这些现状还是。
 
-**[00:08:03.535–00:08:03.535] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:08:03.535–00:08:03.535] S01 · 待核对：disagreement, alignment_failed**
 
 对
 
-**[00:08:03.835–00:08:27.835] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:08:03.835–00:08:27.835] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 呀
 
-**[00:08:04.095–00:08:05.775] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:08:04.095–00:08:05.775] S01 · 待核对：disagreement, alignment_failed**
 
 就是你在
 
-**[00:08:15.215–00:08:28.015] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:08:15.215–00:08:28.015] S03 · 待核对：disagreement, alignment_failed**
 
 小区里面你也能看见，就是他把自己，他把那个车就当做是自己的，就给我就也不给别人就是，就把它弄成自己的，然后就是也不锁车也不把那个，就把共享单车。
 
@@ -594,59 +594,59 @@
 
 呢然后。
 
-**[00:08:51.935–00:09:03.935] S02 · 待核对：disagreement, needs_review**
+**[00:08:51.935–00:09:03.935] S02 · 待核对：disagreement**
 
 他把自己的锁，就是他用的时候他先把自己的锁解开，然后再扫，嗯我们本来单车上面的码，然后再用它，他是这样子，只有他自己能用，然后别人是用不了的，
 
-**[00:09:04.415–00:09:12.735] S01 · 待核对：disagreement, needs_review**
+**[00:09:04.415–00:09:12.735] S01 · 待核对：disagreement**
 
 哦那这样的话，这种人的道德可是真够低劣的，而且不知道你们现在日常生活中见到这种现象多吗？
 
-**[00:09:13.615–00:09:15.775] S02 · 待核对：disagreement, needs_review**
+**[00:09:13.615–00:09:15.775] S02 · 待核对：disagreement**
 
 嗯目前来说的话我
 
-**[00:09:15.535–00:09:16.655] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:09:15.535–00:09:16.655] S02 · 待核对：disagreement, alignment_failed**
 
 嗯对
 
-**[00:09:15.835–00:09:39.835] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:09:15.835–00:09:39.835] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 反
 
-**[00:09:15.835–00:09:39.835] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:09:15.835–00:09:39.835] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 会
 
-**[00:09:15.835–00:09:39.835] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:09:15.835–00:09:39.835] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 是
 
-**[00:09:15.835–00:09:39.835] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:09:15.835–00:09:39.835] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 哦
 
-**[00:09:16.495–00:09:20.175] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:09:16.495–00:09:20.175] S02 · 待核对：disagreement, alignment_failed**
 
 听到别人说
 
-**[00:09:16.655–00:09:17.295] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:09:16.655–00:09:17.295] S02 · 待核对：disagreement, alignment_failed**
 
 正嗯也
 
-**[00:09:22.095–00:09:22.175] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:09:22.095–00:09:22.175] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 吧，
 
-**[00:09:22.255–00:09:22.335] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:09:22.255–00:09:22.335] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 对
 
-**[00:09:22.895–00:09:25.215] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:09:22.895–00:09:25.215] S02 · 待核对：disagreement, alignment_failed**
 
 我
 
-**[00:09:25.055–00:09:39.455] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:09:25.055–00:09:39.455] S01 · 待核对：disagreement, alignment_failed**
 
 就感觉，我就感觉这种以前是都感觉是不可思议的，不可思议的事情，然后是最后就在我们的日常生活中竟然就真真切切的发生并出现了，而且他们这种公用车的话。
 
@@ -658,99 +658,99 @@
 
 嗯，对的对的。
 
-**[00:09:47.393–00:09:58.833] S02 · 待核对：disagreement, needs_review**
+**[00:09:47.393–00:09:58.833] S02 · 待核对：disagreement**
 
 然后他们这样子的话，我们虽然虽然这边不能说教导他怎么提高自己的道德，但是这方面的话我们还是要解决的，
 
-**[00:09:59.153–00:10:09.713] S01 · 待核对：disagreement, needs_review**
+**[00:09:59.153–00:10:09.713] S01 · 待核对：disagreement**
 
 这些我们先把这些现状现在面临的现状先说出来，之后的解决的话我们到时候群策群力一起分析一起解决
 
-**[00:10:10.273–00:10:10.913] S01/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:10:10.273–00:10:10.913] S01/S03 · 待核对：disagreement, overlap**
 
 好
 
-**[00:10:10.753–00:10:10.913] S03 · 待核对：disagreement, needs_review**
+**[00:10:10.753–00:10:10.913] S03 · 待核对：disagreement**
 
 吧。
 
-**[00:10:10.933–00:10:11.013] S02/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:10:10.933–00:10:11.013] S02/S03 · 待核对：disagreement, overlap**
 
 的
 
-**[00:10:11.093–00:10:11.093] S02 · 待核对：disagreement, needs_review**
+**[00:10:11.093–00:10:11.093] S02 · 待核对：disagreement**
 
 好
 
-**[00:10:11.253–00:10:12.293] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:10:11.253–00:10:12.293] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 的，
 
-**[00:10:12.293–00:10:15.493] S01 · 待核对：disagreement, needs_review**
+**[00:10:12.293–00:10:15.493] S01 · 待核对：disagreement**
 
 嗯还有没有什么别的现状呢，
 
-**[00:10:15.893–00:10:27.093] S02 · 待核对：disagreement, needs_review**
+**[00:10:15.893–00:10:27.093] S02 · 待核对：disagreement**
 
 嗯这边的话我嗯也没有嗯看到过或者听到过其他现状了，然后就就这几个问题我们，嗯看一下你有没有什么解决的方案吧，我
 
-**[00:10:28.293–00:10:29.653] S01 · 待核对：disagreement, needs_review**
+**[00:10:28.293–00:10:29.653] S01 · 待核对：disagreement**
 
 这边就是嗯。
 
-**[00:10:34.467–00:10:58.467] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:10:34.467–00:10:58.467] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 车
 
-**[00:10:34.467–00:10:58.467] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:10:34.467–00:10:58.467] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 知
 
-**[00:10:34.467–00:10:58.467] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:10:34.467–00:10:58.467] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 这
 
-**[00:10:34.867–00:10:40.707] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:10:34.867–00:10:40.707] S03 · 待核对：disagreement, alignment_failed**
 
 对就也有那种很没有素质的吧，也可能这样说就是，就对那种共享单
 
-**[00:10:40.947–00:10:42.707] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:10:40.947–00:10:42.707] S03 · 待核对：disagreement, alignment_failed**
 
 你就他就是恶意
 
-**[00:10:42.787–00:10:43.267] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:10:42.787–00:10:43.267] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 破坏，
 
-**[00:10:43.587–00:10:47.347] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:10:43.587–00:10:47.347] S03 · 待核对：disagreement, alignment_failed**
 
 恶意就是他恶意就是看你开着自行车随便
 
-**[00:10:47.347–00:10:49.027] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:10:47.347–00:10:49.027] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 给你放着，然后就觉得不怎么
 
-**[00:10:49.107–00:10:50.787] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:10:49.107–00:10:50.787] S03 · 待核对：disagreement, alignment_failed**
 
 那个，就是想给你破坏掉，
 
-**[00:10:50.947–00:10:51.107] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:10:50.947–00:10:51.107] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 我也不
 
-**[00:10:51.667–00:10:53.267] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:10:51.667–00:10:53.267] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 道就是对就
 
-**[00:10:54.147–00:10:54.307] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:10:54.147–00:10:54.307] S01 · 待核对：disagreement, alignment_failed**
 
 种对
 
-**[00:10:55.587–00:10:55.667] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:10:55.587–00:10:55.667] S01 · 待核对：disagreement, alignment_failed**
 
 那个。
 
-**[00:10:57.747–00:10:57.827] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:10:57.747–00:10:57.827] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 更
 
@@ -778,11 +778,11 @@
 
 对这种东西我们应该，嗯查查一下他们到底是哪个地方
 
-**[00:11:47.687–00:11:47.927] S02 · 待核对：disagreement, needs_review**
+**[00:11:47.687–00:11:47.927] S02 · 待核对：disagreement**
 
 是的，也会说
 
-**[00:11:54.647–00:12:10.647] S01 · 待核对：disagreement, needs_review**
+**[00:11:54.647–00:12:10.647] S01 · 待核对：disagreement**
 
 说说句不好听的，也会影响到我们当地的治治安，然然后是呃下面这些现状倒是都可以了，然后是现在我们分析一下产生这些现状的原因吧，然后是到底是。
 
@@ -814,31 +814,31 @@
 
 上
 
-**[00:12:40.679–00:13:04.679] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:12:40.679–00:13:04.679] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 我
 
-**[00:12:41.019–00:12:48.539] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:12:41.019–00:12:48.539] S02 · 待核对：disagreement, alignment_failed**
 
 对对这样子的话大家呃不光是嗯嗯app上面定位然后嗯肉眼然后
 
-**[00:12:48.539–00:12:48.939] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:12:48.539–00:12:48.939] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 也能找
 
-**[00:12:48.939–00:12:51.339] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:12:48.939–00:12:51.339] S02 · 待核对：disagreement, alignment_failed**
 
 到这些，嗯停放点，
 
-**[00:12:51.659–00:12:53.339] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:12:51.659–00:12:53.339] S01 · 待核对：disagreement, alignment_failed**
 
 嗯这方面的话
 
-**[00:12:52.379–00:12:52.459] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:12:52.379–00:12:52.459] S01 · 待核对：disagreement, alignment_failed**
 
 目
 
-**[00:13:01.659–00:13:04.299] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:13:01.659–00:13:04.299] S02 · 待核对：disagreement, alignment_failed**
 
 前只想到了这个办法或者。
 
@@ -890,15 +890,15 @@
 
 嗯然后我这边的话我就想说就是那些坏了的车，坏了的车的话，就是坏了车肯定要有修的嘛，然后修的话他就是可以利用那种互联网技术就是共享单车企业就可以将那种需要维护的单车远程锁定一下嘛，就可以派那个专业的维修人
 
-**[00:13:59.448–00:14:00.088] S03 · 待核对：disagreement, needs_review**
+**[00:13:59.448–00:14:00.088] S03 · 待核对：disagreement**
 
 对对对啊，
 
-**[00:14:00.088–00:14:02.248] S01/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:14:00.088–00:14:02.248] S01/S03 · 待核对：disagreement, overlap**
 
 单独保价维修，但如果是离
 
-**[00:14:02.248–00:14:06.088] S01 · 待核对：disagreement, needs_review**
+**[00:14:02.248–00:14:06.088] S01 · 待核对：disagreement**
 
 得太远的话，中间的人力成本费的话，咱们厂家能不能担得起啊？
 
@@ -926,15 +926,15 @@
 
 然后虽然说这个点子是个很好的点子，但我们可以先按照这样继续做下去。
 
-**[00:14:35.189–00:14:35.189] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:14:35.189–00:14:35.189] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 嗯
 
-**[00:14:35.589–00:14:48.309] S03 · 待核对：disagreement, needs_review**
+**[00:14:35.589–00:14:48.309] S03 · 待核对：disagreement**
 
 然后也应该加强那个用户信用评分的那种建设，将违规严重用户列入那种信誉信用黑名单，就是对他们进行那些监管，
 
-**[00:14:49.269–00:14:52.789] S01 · 待核对：disagreement, needs_review**
+**[00:14:49.269–00:14:52.789] S01 · 待核对：disagreement**
 
 就不要给他们列入信用黑名单进行监管对吧对。
 
@@ -946,71 +946,71 @@
 
 次。
 
-**[00:15:23.129–00:15:31.369] S01 · 待核对：disagreement, needs_review**
+**[00:15:23.129–00:15:31.369] S01 · 待核对：disagreement**
 
 上次建建立名单的时候还没上上次提出这个问题的时候都没弄好，然后是你们这这个问题你们需要去考虑一下，
 
-**[00:15:31.769–00:15:32.489] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:15:31.769–00:15:32.489] S01/S02 · 待核对：disagreement, overlap**
 
 你们说一下自己的
 
-**[00:15:32.569–00:15:32.889] S01 · 待核对：disagreement, needs_review**
+**[00:15:32.569–00:15:32.889] S01 · 待核对：disagreement**
 
 意见。
 
-**[00:15:47.129–00:16:00.169] S02 · 待核对：disagreement, needs_review**
+**[00:15:47.129–00:16:00.169] S02 · 待核对：disagreement**
 
 题还是不是普遍存在，或者说是对比上次有没有嗯转好好转这样子，然后的话我们也会嗯对这个方面就多多加注意，
 
-**[00:16:01.289–00:16:11.049] S01 · 待核对：disagreement, needs_review**
+**[00:16:01.289–00:16:11.049] S01 · 待核对：disagreement**
 
 是是的，你们你们确实是这种要多加注意起来，而且是我们的平时的党员干部也要积极的，也要积极的下深入到群众中去嘛也
 
-**[00:16:10.889–00:16:13.449] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:16:10.889–00:16:13.449] S01 · 待核对：disagreement, alignment_failed**
 
 嗯就那个
 
-**[00:16:11.189–00:16:35.189] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:16:11.189–00:16:35.189] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 那
 
-**[00:16:11.189–00:16:35.189] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:16:11.189–00:16:35.189] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 专
 
-**[00:16:11.189–00:16:35.189] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:16:11.189–00:16:35.189] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 门的。
 
-**[00:16:15.849–00:16:18.569] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:16:15.849–00:16:18.569] S03 · 待核对：disagreement, alignment_failed**
 
 针对运营公司管理的那种，去管理
 
-**[00:16:18.729–00:16:19.689] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:16:18.729–00:16:19.689] S03 · 待核对：disagreement, alignment_failed**
 
 种单车的东西嘛，
 
-**[00:16:20.169–00:16:20.409] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:16:20.169–00:16:20.409] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 就是
 
-**[00:16:21.129–00:16:30.969] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:16:21.129–00:16:30.969] S03 · 待核对：disagreement, alignment_failed**
 
 设立那种专门，就是专门去管理那种小组，就是专门来解决那个，就是那个自行车那种坏的那种问题，或者那种，
 
-**[00:16:31.049–00:16:32.729] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:16:31.049–00:16:32.729] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 就专门设立
 
-**[00:16:33.369–00:16:33.609] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:16:33.369–00:16:33.609] S01 · 待核对：disagreement, alignment_failed**
 
 门
 
-**[00:16:33.609–00:16:33.769] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:16:33.609–00:16:33.769] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 对
 
-**[00:16:33.849–00:16:34.249] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:16:33.849–00:16:34.249] S03 · 待核对：disagreement, alignment_failed**
 
 设立专
 
@@ -1058,27 +1058,27 @@
 
 有嗯。
 
-**[00:17:04.675–00:17:12.275] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:17:04.675–00:17:12.275] S02 · 待核对：disagreement, alignment_failed**
 
 然后我这边有几个同事，比如说我们那边的嗯嗯张秘书啊这些，他们目前的话就，
 
-**[00:17:04.975–00:17:28.975] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:17:04.975–00:17:28.975] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 对
 
-**[00:17:13.155–00:17:21.235] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:17:13.155–00:17:21.235] S02 · 待核对：disagreement, alignment_failed**
 
 对对你可以我我我可以跟他们再说一下这个事情，然后让他们，嗯去探实地
 
-**[00:17:21.315–00:17:21.475] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:17:21.315–00:17:21.475] S01 · 待核对：disagreement, alignment_failed**
 
 探
 
-**[00:17:21.475–00:17:21.715] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:17:21.475–00:17:21.715] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 测
 
-**[00:17:21.715–00:17:22.915] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:17:21.715–00:17:22.915] S01 · 待核对：disagreement, alignment_failed**
 
 一下。
 
@@ -1142,15 +1142,15 @@
 
 么样的是就这种关于共享单车的宣传或处理的，就这种宣传管理的方案有没有能不能拿出来一个？
 
-**[00:18:16.835–00:18:29.475] S02 · 待核对：disagreement, needs_review**
+**[00:18:16.835–00:18:29.475] S02 · 待核对：disagreement**
 
 校园这方面，嗯如果说在学校多校多宣传的话，学生的话一般也有可能会把这些事情告诉家长，然后这样子的话传播嗯速度话就会快一些，
 
-**[00:18:29.635–00:18:30.675] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:18:29.635–00:18:30.675] S01/S02 · 待核对：disagreement, overlap**
 
 是
 
-**[00:18:30.675–00:18:30.835] S01 · 待核对：disagreement, needs_review**
+**[00:18:30.675–00:18:30.835] S01 · 待核对：disagreement**
 
 的是的嗯。
 
@@ -1166,35 +1166,35 @@
 
 后要不既然是我们本来就属于滨江区，就以滨江区高教园那几个高校作作为，然后是你们你们商量一下认为哪几个高校比较适合选取一两个。
 
-**[00:19:04.995–00:19:09.955] S02 · 待核对：disagreement, needs_review**
+**[00:19:04.995–00:19:09.955] S02 · 待核对：disagreement**
 
 有专科这方面多多选几个学校去做几场演讲是
 
-**[00:19:09.955–00:19:12.275] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:19:09.955–00:19:12.275] S01/S02 · 待核对：disagreement, overlap**
 
 吧，
 
-**[00:19:11.955–00:19:14.755] S01 · 待核对：disagreement, needs_review**
+**[00:19:11.955–00:19:14.755] S01 · 待核对：disagreement**
 
 啊然后是我们这边的人员，然后也要下去对吧，
 
-**[00:19:15.075–00:19:15.155] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:19:15.075–00:19:15.155] S01/S02 · 待核对：disagreement, overlap**
 
 然
 
-**[00:19:15.155–00:19:15.235] S01/S02/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:19:15.155–00:19:15.235] S01/S02/S03 · 待核对：disagreement, overlap**
 
 后
 
-**[00:19:15.235–00:19:15.315] S01/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:19:15.235–00:19:15.315] S01/S03 · 待核对：disagreement, overlap**
 
 就
 
-**[00:19:15.315–00:19:15.635] S01/S02/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:19:15.315–00:19:15.635] S01/S02/S03 · 待核对：disagreement, overlap**
 
 下
 
-**[00:19:15.635–00:19:28.995] S01 · 待核对：disagreement, needs_review**
+**[00:19:15.635–00:19:28.995] S01 · 待核对：disagreement**
 
 去下下去去这，然后是我们到时候先，呃找好几个学校，找好几个学校做好专门儿的试点工作，做我们做好做好咱们的试点工作，然后是具体学校的定的具
 

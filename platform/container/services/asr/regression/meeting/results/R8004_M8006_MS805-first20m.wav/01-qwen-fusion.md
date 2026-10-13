@@ -126,15 +126,15 @@
 
 要，那我们如何
 
-**[00:00:50.688–00:00:51.008] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:00:50.688–00:00:51.008] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 客
 
-**[00:00:50.928–00:00:52.288] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:00:50.928–00:00:52.288] S02 · 待核对：disagreement, alignment_failed**
 
 户延长我觉得要从，
 
-**[00:00:50.988–00:01:14.988] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:00:50.988–00:01:14.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 青
 
@@ -142,55 +142,55 @@
 
 延。
 
-**[00:00:52.368–00:00:53.408] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:00:52.368–00:00:53.408] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 对跟的是客户他的
 
-**[00:00:53.408–00:00:53.888] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:00:53.408–00:00:53.888] S03 · 待核对：disagreement, alignment_failed**
 
 群体，
 
-**[00:00:54.368–00:00:56.768] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:00:54.368–00:00:56.768] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 他主要小孩儿多得多，对小孩，
 
-**[00:00:57.088–00:01:01.568] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:00:57.088–00:01:01.568] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 年人，成年人，老人，还有上班族，对小孩，对青
 
-**[00:01:01.568–00:01:03.168] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:01:01.568–00:01:03.168] S01 · 待核对：disagreement, alignment_failed**
 
 年是这些人群都很
 
-**[00:01:03.408–00:01:03.968] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:01:03.408–00:01:03.968] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 多，首先我觉得
 
-**[00:01:03.968–00:01:09.088] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:01:03.968–00:01:09.088] S02 · 待核对：disagreement, alignment_failed**
 
 这个人群就要不就分完之后就青少年，我们减少到青少年或者孩子，
 
-**[00:01:09.168–00:01:10.848] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:01:09.168–00:01:10.848] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 孩子对孩子就挺多的，尽量少
 
-**[00:01:11.168–00:01:11.328] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:01:11.168–00:01:11.328] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 玩
 
-**[00:01:11.328–00:01:11.568] S01/S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:01:11.328–00:01:11.568] S01/S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 对
 
-**[00:01:11.568–00:01:13.568] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:01:11.568–00:01:13.568] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 吧，因为他会有防沉迷，对
 
-**[00:01:13.568–00:01:14.368] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:01:13.568–00:01:14.368] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 防沉迷，三个小
 
-**[00:01:14.368–00:01:15.008] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:01:14.368–00:01:15.008] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 时防沉迷。
 
@@ -296,23 +296,27 @@
 
 **[00:01:38.988–00:02:02.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
-哎
-
-**[00:01:38.988–00:02:02.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
-
 通
 
 **[00:01:38.988–00:02:02.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
-通行
+行
 
 **[00:01:38.988–00:02:02.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
-什么一
+什么
 
-**[00:01:39.008–00:01:41.888] S03/S04 · 待核对：disagreement, alignment_failed, overlap**
+**[00:01:38.988–00:02:02.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
-么福利，对一周半个月一个月，对，
+这
+
+**[00:01:38.988–00:02:02.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
+
+的
+
+**[00:01:39.008–00:01:42.928] S03/S04 · 待核对：disagreement, alignment_failed, overlap**
+
+么对一周半个月一个月，对，哎
 
 **[00:01:43.168–00:01:43.488] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
@@ -328,7 +332,7 @@
 
 **[00:01:45.728–00:01:47.328] S03 · 待核对：disagreement, alignment_failed**
 
-以，你送个什么特别大的福利
+以，你送个什么特别大的福利，
 
 **[00:01:47.328–00:01:47.968] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
@@ -346,17 +350,25 @@
 
 通行证，
 
-**[00:01:50.528–00:01:51.088] S04 · 待核对：disagreement, alignment_failed**
+**[00:01:50.528–00:01:50.848] S04 · 待核对：disagreement, alignment_failed**
 
 行证
 
 **[00:01:50.768–00:01:53.168] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
-证，
+证
 
 **[00:01:52.208–00:01:52.448] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 是
+
+**[00:01:52.448–00:01:52.768] S02/S03/S04 · 待核对：disagreement, alignment_failed, overlap**
+
+啊，
+
+**[00:01:52.768–00:01:52.928] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
+
+通
 
 **[00:01:53.408–00:01:53.808] S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
@@ -364,15 +376,23 @@
 
 **[00:01:53.808–00:01:55.808] S04 · 待核对：disagreement, alignment_failed**
 
-的皮肤只能通过通行证，每天
+的皮肤，只能通过通行证每天
 
-**[00:01:55.808–00:01:59.488] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
+**[00:01:53.888–00:01:54.048] S04 · 待核对：disagreement, alignment_failed**
 
-干干完一个号你才能兑换，是那通行证
+一
 
-**[00:01:59.488–00:02:00.608] S04 · 待核对：disagreement, alignment_failed**
+**[00:01:55.808–00:01:56.688] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
-你说对吧，
+干干完
+
+**[00:01:56.288–00:01:58.048] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
+
+个好你才能兑换，
+
+**[00:01:59.808–00:02:00.608] S04 · 待核对：disagreement, alignment_failed**
+
+时候对吧，
 
 **[00:02:00.688–00:02:01.008] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
@@ -382,123 +402,127 @@
 
 就，
 
+**[00:02:01.808–00:02:02.528] S02 · 待核对：disagreement, alignment_failed**
+
+但是通行证
+
 **[00:02:01.808–00:02:03.248] S02 · 待核对：disagreement, alignment_failed**
 
 但是他就和我刚那个就有点儿。
 
-**[00:02:04.288–00:02:05.808] S02/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:02:04.288–00:02:05.808] S02/S03 · 待核对：disagreement, overlap**
 
 可以设置一个合适的价位，比
 
-**[00:02:05.888–00:02:08.208] S02 · 待核对：disagreement, needs_review**
+**[00:02:05.888–00:02:08.208] S02 · 待核对：disagreement**
 
 如说把他们两个就是能不能结合到一起，
 
-**[00:02:08.848–00:02:09.728] S02/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:02:08.848–00:02:09.728] S02/S03 · 待核对：disagreement, overlap**
 
 你是怎么说
 
-**[00:02:11.168–00:02:14.048] S02 · 待核对：disagreement, needs_review**
+**[00:02:11.168–00:02:14.048] S02 · 待核对：disagreement**
 
 你看啊，比如说通行证是吧，还有我刚刚不是说
 
-**[00:02:14.048–00:02:16.208] S02/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:02:14.048–00:02:16.208] S02/S03 · 待核对：disagreement, overlap**
 
 有签到，对还有送
 
-**[00:02:16.208–00:02:16.448] S02 · 待核对：disagreement, needs_review**
+**[00:02:16.208–00:02:16.448] S02 · 待核对：disagreement**
 
 礼物，
 
-**[00:02:16.448–00:02:16.768] S02/S04 · 待核对：disagreement, needs_review, overlap**
+**[00:02:16.448–00:02:16.768] S02/S04 · 待核对：disagreement, overlap**
 
 就是
 
-**[00:02:16.768–00:02:19.888] S02 · 待核对：disagreement, needs_review**
+**[00:02:16.768–00:02:19.888] S02 · 待核对：disagreement**
 
 你通行证通过你购买通行证
 
-**[00:02:20.208–00:02:20.448] S02/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:02:20.208–00:02:20.448] S02/S03 · 待核对：disagreement, overlap**
 
 方
 
-**[00:02:20.448–00:02:22.768] S02 · 待核对：disagreement, needs_review**
+**[00:02:20.448–00:02:22.768] S02 · 待核对：disagreement**
 
 式，然后完之后你又签到完之后，
 
-**[00:02:23.168–00:02:26.848] S02/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:02:23.168–00:02:26.848] S02/S03 · 待核对：disagreement, overlap**
 
 对两个结合起来对吧，就你既要买你还得签到哎。
 
-**[00:02:26.688–00:02:28.448] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:02:26.688–00:02:28.448] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 哎就同时疫情，对
 
-**[00:02:26.988–00:02:50.988] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:02:26.988–00:02:50.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 天
 
-**[00:02:26.988–00:02:50.988] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:02:26.988–00:02:50.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 多。
 
-**[00:02:28.448–00:02:29.888] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:02:28.448–00:02:29.888] S02 · 待核对：disagreement, alignment_failed**
 
 对对对对对，
 
-**[00:02:32.048–00:02:32.608] S02/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:02:32.048–00:02:32.608] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 发钱的
 
-**[00:02:32.608–00:02:32.768] S02/S03/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:02:32.608–00:02:32.768] S02/S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 话，
 
-**[00:02:32.768–00:02:34.768] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:02:32.768–00:02:34.768] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 是的，好，这通行证有的，
 
-**[00:02:34.768–00:02:38.528] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:02:34.768–00:02:38.528] S03 · 待核对：disagreement, alignment_failed**
 
 它一般是上面是你光签到，但是你不买你可以领一些东西，
 
-**[00:02:38.848–00:02:39.488] S03/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:02:38.848–00:02:39.488] S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 但比如比如说
 
-**[00:02:39.488–00:02:44.128] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:02:39.488–00:02:44.128] S03 · 待核对：disagreement, alignment_failed**
 
 周一到周五你能领什么，但周六周天你不能领，但是下面的你要是
 
-**[00:02:44.368–00:02:50.368] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:02:44.368–00:02:50.368] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 买了通行证你就都能领，对对是有这样的区分的，对
 
-**[00:02:48.368–00:02:49.648] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:02:48.368–00:02:49.648] S02 · 待核对：disagreement, alignment_failed**
 
 周六周天，比如说你周六周
 
-**[00:02:48.768–00:02:49.648] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:02:48.768–00:02:49.648] S02 · 待核对：disagreement, alignment_failed**
 
 一般人群肯定多
 
-**[00:02:49.648–00:02:49.888] S02/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:02:49.648–00:02:49.888] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 休息，
 
-**[00:02:49.888–00:02:50.048] S01/S02/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:02:49.888–00:02:50.048] S01/S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 他
 
-**[00:02:50.048–00:02:50.288] S01/S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:02:50.048–00:02:50.288] S01/S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 很
 
-**[00:02:50.288–00:02:51.008] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:02:50.288–00:02:51.008] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 对休息时间多
 
-**[00:02:51.088–00:02:51.248] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:02:51.088–00:02:51.248] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 更
 
@@ -528,7 +552,7 @@
 
 **[00:03:02.608–00:03:03.888] S03/S04 · 待核对：disagreement, overlap**
 
-对只能通过这个方式
+对只能通过这种方式
 
 **[00:03:03.488–00:03:03.968] S03/S04 · 待核对：disagreement, overlap**
 
@@ -570,95 +594,95 @@
 
 周前一个半个月会
 
-**[00:03:14.688–00:03:15.008] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:03:14.688–00:03:15.008] S03 · 待核对：disagreement, alignment_failed**
 
 会
 
-**[00:03:14.988–00:03:38.988] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:03:14.988–00:03:38.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 利，
 
-**[00:03:14.988–00:03:38.988] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:03:14.988–00:03:38.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 且
 
-**[00:03:14.988–00:03:38.988] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:03:14.988–00:03:38.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 觉
 
-**[00:03:14.988–00:03:38.988] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:03:14.988–00:03:38.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 他
 
-**[00:03:15.008–00:03:20.528] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:03:15.008–00:03:20.528] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 给你送什么东西，对或者是而且他新手
 
-**[00:03:20.528–00:03:23.968] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:03:20.528–00:03:23.968] S03 · 待核对：disagreement, alignment_failed**
 
 来了以后，你新手再推荐你的朋友，你的好友
 
-**[00:03:23.968–00:03:25.008] S03/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:03:23.968–00:03:25.008] S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 来，哎
 
-**[00:03:25.008–00:03:25.248] S02/S03/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:03:25.008–00:03:25.248] S02/S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 会
 
-**[00:03:25.568–00:03:26.048] S03/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:03:25.568–00:03:26.048] S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 更多更
 
-**[00:03:26.048–00:03:27.968] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:03:26.048–00:03:27.968] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 有福利，真的这个玩意儿真
 
-**[00:03:27.968–00:03:29.648] S02/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:03:27.968–00:03:29.648] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 的很有福
 
-**[00:03:28.448–00:03:28.928] S02/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:03:28.448–00:03:28.928] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 而
 
-**[00:03:29.008–00:03:29.088] S02/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:03:29.008–00:03:29.088] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 我
 
-**[00:03:29.088–00:03:29.648] S02/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:03:29.088–00:03:29.648] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 得比如他通
 
-**[00:03:29.648–00:03:30.368] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:03:29.648–00:03:30.368] S02 · 待核对：disagreement, alignment_failed**
 
 过他带他的
 
-**[00:03:30.448–00:03:30.768] S02/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:03:30.448–00:03:30.768] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 朋友来
 
-**[00:03:30.768–00:03:31.568] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:03:30.768–00:03:31.568] S02 · 待核对：disagreement, alignment_failed**
 
 之后，是不
 
-**[00:03:31.568–00:03:31.648] S02/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:03:31.568–00:03:31.648] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 是
 
-**[00:03:31.648–00:03:32.608] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:03:31.648–00:03:32.608] S02 · 待核对：disagreement, alignment_failed**
 
 可以给他一定的，
 
-**[00:03:32.688–00:03:37.088] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:03:32.688–00:03:37.088] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 对就是更多给他的更多的奖励，比如送什么东西，对对给
 
-**[00:03:36.368–00:03:37.088] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:03:36.368–00:03:37.088] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 积分儿增
 
-**[00:03:37.088–00:03:38.848] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:03:37.088–00:03:38.848] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 加什么的，所以这样就
 
@@ -666,7 +690,7 @@
 
 通过这种方式可能就延长我们客户的一个使用时间，
 
-**[00:03:38.848–00:03:39.248] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:03:38.848–00:03:39.248] S02 · 待核对：disagreement, alignment_failed**
 
 通过这种。
 
@@ -844,31 +868,39 @@
 
 **[00:04:26.988–00:04:50.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
-盘
-
-**[00:04:26.988–00:04:50.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
-
 集
-
-**[00:04:26.988–00:04:50.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
-
-匙
 
 **[00:04:27.008–00:04:27.248] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 转盘。
 
-**[00:04:27.008–00:04:29.248] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
+**[00:04:27.008–00:04:29.488] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
-转盘大转盘，对
+转盘大转盘，对对对
 
-**[00:04:30.368–00:04:31.168] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
+**[00:04:30.048–00:04:30.368] S01/S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
-转盘转
+对
+
+**[00:04:30.368–00:04:30.848] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
+
+大转盘，
+
+**[00:04:30.368–00:04:31.248] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
+
+转盘
+
+**[00:04:30.768–00:04:31.808] S01/S02/S03 · 待核对：disagreement, alignment_failed, overlap**
+
+转
 
 **[00:04:31.248–00:04:31.568] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 也行，
+
+**[00:04:31.808–00:04:33.808] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
+
+盘
 
 **[00:04:31.808–00:04:31.968] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
@@ -884,7 +916,7 @@
 
 **[00:04:34.288–00:04:34.848] S01 · 待核对：disagreement, alignment_failed**
 
-游戏一点，
+游戏一点
 
 **[00:04:35.328–00:04:36.608] S01/S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
@@ -892,19 +924,15 @@
 
 **[00:04:35.488–00:04:36.048] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
-设一点宝箱
+设一点宝箱，
 
-**[00:04:36.448–00:04:37.168] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
+**[00:04:36.448–00:04:37.088] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 集钥匙，
 
-**[00:04:36.688–00:04:38.048] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
+**[00:04:36.688–00:04:41.888] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
-钥
-
-**[00:04:38.208–00:04:41.888] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
-
-设计什么钥匙，比如说你打游戏你赢
+钥匙设计什么钥匙啊，比如说你打游戏，你赢
 
 **[00:04:41.888–00:04:42.768] S03 · 待核对：disagreement, alignment_failed**
 
@@ -1046,75 +1074,75 @@
 
 对对，他会从游戏中感觉。
 
-**[00:05:14.688–00:05:16.928] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:05:14.688–00:05:16.928] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 其中感觉非常开心，非常刺激，
 
-**[00:05:14.988–00:05:38.988] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:05:14.988–00:05:38.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 了，
 
-**[00:05:14.988–00:05:38.988] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:05:14.988–00:05:38.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 上，
 
-**[00:05:14.988–00:05:38.988] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:05:14.988–00:05:38.988] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 大
 
-**[00:05:16.848–00:05:17.648] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:05:16.848–00:05:17.648] S03 · 待核对：disagreement, alignment_failed**
 
 也有成就感，
 
-**[00:05:17.728–00:05:18.288] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:05:17.728–00:05:18.288] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 对对对，
 
-**[00:05:18.688–00:05:18.928] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:05:18.688–00:05:18.928] S02 · 待核对：disagreement, alignment_failed**
 
 有
 
-**[00:05:18.928–00:05:19.088] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:05:18.928–00:05:19.088] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 专
 
-**[00:05:19.088–00:05:19.728] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:05:19.088–00:05:19.728] S02 · 待核对：disagreement, alignment_failed**
 
 属皮肤，
 
-**[00:05:19.728–00:05:21.728] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:05:19.728–00:05:21.728] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 太有炫酷
 
-**[00:05:21.808–00:05:22.848] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:05:21.808–00:05:22.848] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 太开心
 
-**[00:05:22.928–00:05:23.008] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:05:22.928–00:05:23.008] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 我们除
 
-**[00:05:23.008–00:05:23.328] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:05:23.008–00:05:23.328] S01 · 待核对：disagreement, alignment_failed**
 
 了，
 
-**[00:05:23.008–00:05:28.688] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:05:23.008–00:05:28.688] S01 · 待核对：disagreement, alignment_failed**
 
 了给客户奖励来延长使用时间，咱们还有除了是游戏设置上还有什么呢，
 
-**[00:05:29.088–00:05:29.888] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:05:29.088–00:05:29.888] S03 · 待核对：disagreement, alignment_failed**
 
 游戏设置
 
-**[00:05:30.128–00:05:36.608] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:05:30.128–00:05:36.608] S02 · 待核对：disagreement, alignment_failed**
 
-哦游戏设置上，我觉得游戏设置上可以，比如方便一些那种上年纪的就是什么，比
+哦游戏设置啊，我觉得游戏设置我们可以比如方便一些那种上年纪的就是什么，比
 
-**[00:05:36.528–00:05:38.048] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:05:36.528–00:05:38.048] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 如让他操作一些数字
 
-**[00:05:37.888–00:05:39.248] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:05:37.888–00:05:39.248] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 智能施法。
 
@@ -1152,7 +1180,7 @@
 
 **[00:05:46.768–00:05:47.568] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
-或者可以加上，
+或者这可以加上，
 
 **[00:05:47.568–00:05:50.928] S03 · 待核对：disagreement, alignment_failed**
 
@@ -1258,14 +1286,6 @@
 
 对吧就是。
 
-**[00:06:20.340–00:06:20.820] S02 · 待核对：disagreement, alignment_failed**
-
-是
-
-**[00:06:20.640–00:06:44.640] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
-
-机
-
 **[00:06:20.640–00:06:44.640] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 可
@@ -1282,13 +1302,9 @@
 
 的
 
-**[00:06:22.660–00:06:23.460] S02/S03/S04 · 待核对：disagreement, alignment_failed, overlap**
+**[00:06:22.740–00:06:23.460] S02/S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 玩，
-
-**[00:06:22.980–00:06:23.700] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
-
-手
 
 **[00:06:23.460–00:06:23.700] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
@@ -1350,175 +1366,175 @@
 
 大概在延长时间里呢，我们有三点，第一点就是我们通过给客户。
 
-**[00:06:44.580–00:06:46.100] S01 · 待核对：disagreement, needs_review**
+**[00:06:44.580–00:06:46.100] S01 · 待核对：disagreement**
 
 客户奖励来刺
 
-**[00:06:46.100–00:06:48.420] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:06:46.100–00:06:48.420] S01/S02 · 待核对：disagreement, overlap**
 
 激他们的消费，第二，我们通过在
 
-**[00:06:48.660–00:06:49.860] S01 · 待核对：disagreement, needs_review**
+**[00:06:48.660–00:06:49.860] S01 · 待核对：disagreement**
 
 游戏进程中设计
 
-**[00:06:49.860–00:06:50.260] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:06:49.860–00:06:50.260] S01/S02 · 待核对：disagreement, overlap**
 
 冒险
 
-**[00:06:50.260–00:06:51.300] S01 · 待核对：disagreement, needs_review**
+**[00:06:50.260–00:06:51.300] S01 · 待核对：disagreement**
 
 的环节来刺激
 
-**[00:06:51.300–00:06:52.180] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:06:51.300–00:06:52.180] S01/S02 · 待核对：disagreement, overlap**
 
 他们的兴趣，
 
-**[00:06:52.500–00:06:53.060] S01 · 待核对：disagreement, needs_review**
+**[00:06:52.500–00:06:53.060] S01 · 待核对：disagreement**
 
 第三，我们
 
-**[00:06:53.060–00:06:53.380] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:06:53.060–00:06:53.380] S01/S02 · 待核对：disagreement, overlap**
 
 在游
 
-**[00:06:53.380–00:06:56.500] S01 · 待核对：disagreement, needs_review**
+**[00:06:53.380–00:06:56.500] S01 · 待核对：disagreement**
 
 戏设置里，我们通过调整，调整一些那
 
-**[00:06:56.500–00:06:56.740] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:06:56.500–00:06:56.740] S01/S02 · 待核对：disagreement, overlap**
 
 个
 
-**[00:06:56.740–00:06:56.900] S01/S02/S04 · 待核对：disagreement, needs_review, overlap**
+**[00:06:56.740–00:06:56.900] S01/S02/S04 · 待核对：disagreement, overlap**
 
 丰
 
-**[00:06:56.900–00:06:57.780] S01 · 待核对：disagreement, needs_review**
+**[00:06:56.900–00:06:57.780] S01 · 待核对：disagreement**
 
 富一些设置
 
-**[00:06:57.780–00:06:57.860] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:06:57.780–00:06:57.860] S01/S02 · 待核对：disagreement, overlap**
 
 来
 
-**[00:06:58.180–00:06:59.380] S01/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:06:58.180–00:06:59.380] S01/S03 · 待核对：disagreement, overlap**
 
 吸引玩家的注
 
-**[00:06:59.380–00:07:03.300] S01 · 待核对：disagreement, needs_review**
+**[00:06:59.380–00:07:03.300] S01 · 待核对：disagreement**
 
 意力，那咱们第二个需要探讨的问题就是这个促销方式，
 
-**[00:07:03.700–00:07:04.180] S03 · 待核对：disagreement, needs_review**
+**[00:07:03.700–00:07:04.180] S03 · 待核对：disagreement**
 
 促销方
 
-**[00:07:04.180–00:07:04.340] S01/S03/S04 · 待核对：disagreement, needs_review, overlap**
+**[00:07:04.180–00:07:04.340] S01/S03/S04 · 待核对：disagreement, overlap**
 
 式，
 
-**[00:07:04.500–00:07:04.980] S03/S04 · 待核对：disagreement, needs_review, overlap**
+**[00:07:04.500–00:07:04.980] S03/S04 · 待核对：disagreement, overlap**
 
 咱们是
 
-**[00:07:04.980–00:07:05.540] S01/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:07:04.980–00:07:05.540] S01/S03 · 待核对：disagreement, overlap**
 
 用什么样
 
-**[00:07:05.540–00:07:06.260] S01 · 待核对：disagreement, needs_review**
+**[00:07:05.540–00:07:06.260] S01 · 待核对：disagreement**
 
 的促销方式
 
-**[00:07:06.260–00:07:06.340] S01/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:07:06.260–00:07:06.340] S01/S03 · 待核对：disagreement, overlap**
 
 能
 
-**[00:07:06.340–00:07:08.020] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:07:06.340–00:07:08.020] S01/S02 · 待核对：disagreement, overlap**
 
 够吸引广大客户的注
 
-**[00:07:08.020–00:07:08.420] S01 · 待核对：disagreement, needs_review**
+**[00:07:08.020–00:07:08.420] S01 · 待核对：disagreement**
 
 意呢？
 
-**[00:07:08.980–00:07:10.180] S02 · 待核对：disagreement, needs_review**
+**[00:07:08.980–00:07:10.180] S02 · 待核对：disagreement**
 
 多方面促销吧，
 
-**[00:07:10.180–00:07:11.300] S02/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:07:10.180–00:07:11.300] S02/S03 · 待核对：disagreement, overlap**
 
 促销方式就很多了，
 
-**[00:07:11.300–00:07:11.620] S01/S02/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:07:11.300–00:07:11.620] S01/S02/S03 · 待核对：disagreement, overlap**
 
 对
 
-**[00:07:11.620–00:07:12.660] S01/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:07:11.620–00:07:12.660] S01/S03 · 待核对：disagreement, overlap**
 
 我觉得也是可
 
-**[00:07:12.660–00:07:13.780] S01 · 待核对：disagreement, needs_review**
+**[00:07:12.660–00:07:13.780] S01 · 待核对：disagreement**
 
 以多方面促销，
 
-**[00:07:13.860–00:07:13.940] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:07:13.860–00:07:13.940] S01/S02 · 待核对：disagreement, overlap**
 
 对比
 
-**[00:07:13.940–00:07:16.420] S01/S02/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:07:13.940–00:07:16.420] S01/S02/S03 · 待核对：disagreement, overlap**
 
 如
 
-**[00:07:13.940–00:07:15.140] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:07:13.940–00:07:15.140] S01/S02 · 待核对：disagreement, overlap**
 
 说你说像那种
 
-**[00:07:15.140–00:07:15.540] S02 · 待核对：disagreement, needs_review**
+**[00:07:15.140–00:07:15.540] S02 · 待核对：disagreement**
 
 他们比较
 
-**[00:07:15.540–00:07:15.780] S01/S02/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:07:15.540–00:07:15.780] S01/S02/S03 · 待核对：disagreement, overlap**
 
 火
 
-**[00:07:15.700–00:07:18.980] S02/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:07:15.700–00:07:18.980] S02/S03 · 待核对：disagreement, overlap**
 
 的像那个，主要就有皮肤嘛，皮肤对对对皮肤是大家玩，
 
-**[00:07:18.980–00:07:21.220] S03 · 待核对：disagreement, needs_review**
+**[00:07:18.980–00:07:21.220] S03 · 待核对：disagreement**
 
 就每一个英雄你都能设计很多种皮
 
-**[00:07:21.220–00:07:21.460] S02/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:07:21.220–00:07:21.460] S02/S03 · 待核对：disagreement, overlap**
 
 肤，对，
 
-**[00:07:21.780–00:07:22.340] S03/S04 · 待核对：disagreement, needs_review, overlap**
+**[00:07:21.780–00:07:22.340] S03/S04 · 待核对：disagreement, overlap**
 
 然后像而
 
-**[00:07:22.340–00:07:22.660] S02/S03/S04 · 待核对：disagreement, needs_review, overlap**
+**[00:07:22.340–00:07:22.660] S02/S03/S04 · 待核对：disagreement, overlap**
 
 且是
 
-**[00:07:22.660–00:07:23.060] S03 · 待核对：disagreement, needs_review**
+**[00:07:22.660–00:07:23.060] S03 · 待核对：disagreement**
 
 根据
 
-**[00:07:23.540–00:07:25.860] S03/S04 · 待核对：disagreement, needs_review, overlap**
+**[00:07:23.540–00:07:25.860] S03/S04 · 待核对：disagreement, overlap**
 
 每年节日呀节假日，比如情人节
 
-**[00:07:25.860–00:07:26.020] S02/S03/S04 · 待核对：disagreement, needs_review, overlap**
+**[00:07:25.860–00:07:26.020] S02/S03/S04 · 待核对：disagreement, overlap**
 
 皮
 
-**[00:07:26.020–00:07:31.940] S02/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:07:26.020–00:07:31.940] S02/S03 · 待核对：disagreement, overlap**
 
 肤呀，春节皮肤，对就一年都能设计很多款，对春节万圣节自
 
-**[00:07:31.940–00:07:32.340] S02 · 待核对：disagreement, needs_review**
+**[00:07:31.940–00:07:32.340] S02 · 待核对：disagreement**
 
 己。
 
@@ -1886,67 +1902,67 @@
 
 备我们应该。
 
-**[00:09:08.340–00:09:10.740] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:09:08.340–00:09:10.740] S01 · 待核对：disagreement, alignment_failed**
 
 我们应该应该给他用什么样的促
 
-**[00:09:08.640–00:09:32.640] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:09:08.640–00:09:32.640] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 周
 
-**[00:09:08.640–00:09:32.640] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:09:08.640–00:09:32.640] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 对。
 
-**[00:09:10.740–00:09:11.540] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:09:10.740–00:09:11.540] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 销方式，装备
 
-**[00:09:12.340–00:09:15.380] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:09:12.340–00:09:15.380] S02 · 待核对：disagreement, alignment_failed**
 
 是不是可以就是给他整个，花哨一点
 
-**[00:09:15.380–00:09:16.020] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:09:15.380–00:09:16.020] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 装装备一
 
-**[00:09:16.020–00:09:19.460] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:09:16.020–00:09:19.460] S03 · 待核对：disagreement, alignment_failed**
 
 般应该是他可以弄那个线下的手办，
 
-**[00:09:20.260–00:09:20.500] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:09:20.260–00:09:20.500] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 线
 
-**[00:09:20.500–00:09:22.500] S03/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:09:20.500–00:09:22.500] S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 下手办，把那个游戏里的原型
 
-**[00:09:22.500–00:09:24.900] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:09:22.500–00:09:24.900] S03 · 待核对：disagreement, alignment_failed**
 
 的皮肤办成手办，然后
 
-**[00:09:25.060–00:09:27.220] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:09:25.060–00:09:27.220] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 就比如说哎按活动
 
-**[00:09:27.540–00:09:29.860] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:09:27.540–00:09:29.860] S03 · 待核对：disagreement, alignment_failed**
 
 举行线下的这种活动就可以去购买，这
 
-**[00:09:30.100–00:09:30.900] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:09:30.100–00:09:30.900] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 就又一个方式，
 
-**[00:09:31.140–00:09:31.540] S02/S03/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:09:31.140–00:09:31.540] S02/S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 对
 
-**[00:09:31.540–00:09:31.860] S02/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:09:31.540–00:09:31.860] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 周边
 
-**[00:09:31.700–00:09:32.340] S02/S03/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:09:31.700–00:09:32.340] S02/S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 边，
 
@@ -1954,7 +1970,7 @@
 
 对对
 
-**[00:09:32.420–00:09:32.660] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:09:32.420–00:09:32.660] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 对对
 
@@ -2102,67 +2118,67 @@
 
 
 
-**[00:09:58.770–00:09:58.930] S01 · 待核对：disagreement, needs_review**
+**[00:09:58.770–00:09:58.930] S01 · 待核对：disagreement**
 
 我
 
-**[00:09:58.930–00:09:59.170] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:09:58.930–00:09:59.170] S01/S02 · 待核对：disagreement, overlap**
 
 们的
 
-**[00:09:59.170–00:10:01.730] S01 · 待核对：disagreement, needs_review**
+**[00:09:59.170–00:10:01.730] S01 · 待核对：disagreement**
 
 促销方式可以丰富的选择，多样化
 
-**[00:10:01.730–00:10:02.050] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:10:01.730–00:10:02.050] S01/S02 · 待核对：disagreement, overlap**
 
 的选
 
-**[00:10:02.130–00:10:03.490] S01/S04 · 待核对：disagreement, needs_review, overlap**
+**[00:10:02.130–00:10:03.490] S01/S04 · 待核对：disagreement, overlap**
 
 择，我们可以通
 
-**[00:10:03.490–00:10:04.530] S01 · 待核对：disagreement, needs_review**
+**[00:10:03.490–00:10:04.530] S01 · 待核对：disagreement**
 
 过优惠
 
-**[00:10:04.770–00:10:05.810] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:10:04.770–00:10:05.810] S01/S02 · 待核对：disagreement, overlap**
 
 买买一赠一，
 
-**[00:10:05.810–00:10:06.610] S01 · 待核对：disagreement, needs_review**
+**[00:10:05.810–00:10:06.610] S01 · 待核对：disagreement**
 
 买一赠三，买
 
-**[00:10:06.610–00:10:11.970] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:10:06.610–00:10:11.970] S01/S02 · 待核对：disagreement, overlap**
 
 一赠四，或者是购买立减的措施，对对购买立减，对购买立减，对你买了
 
-**[00:10:11.970–00:10:12.290] S02/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:10:11.970–00:10:12.290] S02/S03 · 待核对：disagreement, overlap**
 
 可以返
 
-**[00:10:12.290–00:10:12.450] S02/S03/S04 · 待核对：disagreement, needs_review, overlap**
+**[00:10:12.290–00:10:12.450] S02/S03/S04 · 待核对：disagreement, overlap**
 
 还
 
-**[00:10:12.450–00:10:14.370] S02/S04 · 待核对：disagreement, needs_review, overlap**
+**[00:10:12.450–00:10:14.370] S02/S04 · 待核对：disagreement, overlap**
 
 点券，然后返还点券，那你买其
 
-**[00:10:14.370–00:10:14.930] S04 · 待核对：disagreement, needs_review**
+**[00:10:14.370–00:10:14.930] S04 · 待核对：disagreement**
 
 他的，
 
-**[00:10:15.090–00:10:15.570] S02/S04 · 待核对：disagreement, needs_review, overlap**
+**[00:10:15.090–00:10:15.570] S02/S04 · 待核对：disagreement, overlap**
 
 嗯是，
 
-**[00:10:16.610–00:10:18.370] S02 · 待核对：disagreement, needs_review**
+**[00:10:16.610–00:10:18.370] S02 · 待核对：disagreement**
 
 对我觉得就可以这样，
 
-**[00:10:18.450–00:10:22.530] S03 · 待核对：disagreement, needs_review**
+**[00:10:18.450–00:10:22.530] S03 · 待核对：disagreement**
 
 也可以就是过，比如说每个周日或者找一个特殊的日子，如果你上线
 
@@ -2270,11 +2286,11 @@
 
 对对对对对对对，你的生日给你送个大礼。送大礼，对对对对，
 
-**[00:11:10.150–00:11:10.150] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:11:10.150–00:11:10.150] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 是
 
-**[00:11:10.150–00:11:10.710] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:11:10.150–00:11:10.710] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 啊，
 
@@ -2282,119 +2298,119 @@
 
 啊。
 
-**[00:11:10.450–00:11:34.450] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:11:10.450–00:11:34.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 常
 
-**[00:11:10.450–00:11:34.450] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:11:10.450–00:11:34.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 线
 
-**[00:11:10.450–00:11:34.450] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:11:10.450–00:11:34.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 下
 
-**[00:11:10.450–00:11:34.450] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:11:10.450–00:11:34.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 个
 
-**[00:11:11.590–00:11:11.990] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:11:11.590–00:11:11.990] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 特别有
 
-**[00:11:11.990–00:11:15.990] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:11:11.990–00:11:15.990] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 归属感，哎周边哎周边，是的，这个是非
 
-**[00:11:16.150–00:11:17.430] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:11:16.150–00:11:17.430] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 好，非
 
-**[00:11:17.430–00:11:17.590] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:11:17.430–00:11:17.590] S03 · 待核对：disagreement, alignment_failed**
 
 常
 
-**[00:11:17.430–00:11:17.590] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:11:17.430–00:11:17.590] S03 · 待核对：disagreement, alignment_failed**
 
 常
 
-**[00:11:17.670–00:11:17.430] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:11:17.670–00:11:17.430] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 好，非
 
-**[00:11:17.670–00:11:18.710] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:11:17.670–00:11:18.710] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 棒啊，好
 
-**[00:11:18.710–00:11:19.270] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:11:18.710–00:11:19.270] S01 · 待核对：disagreement, alignment_failed**
 
 的，那
 
-**[00:11:19.270–00:11:19.510] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:11:19.270–00:11:19.510] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 我们接
 
-**[00:11:19.510–00:11:23.510] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:11:19.510–00:11:23.510] S01 · 待核对：disagreement, alignment_failed**
 
 下来讨论一下，咱们是通过什么方式去宣传咱们这款游戏啊，
 
-**[00:11:23.590–00:11:23.670] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:11:23.590–00:11:23.670] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 什
 
-**[00:11:23.670–00:11:24.390] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:11:23.670–00:11:24.390] S02 · 待核对：disagreement, alignment_failed**
 
 么方式去
 
-**[00:11:24.390–00:11:25.110] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:11:24.390–00:11:25.110] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 宣传，首
 
-**[00:11:25.190–00:11:25.510] S02/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:11:25.190–00:11:25.510] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 先得
 
-**[00:11:26.230–00:11:27.430] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:11:26.230–00:11:27.430] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 上线下相结合，
 
-**[00:11:27.670–00:11:29.670] S02/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:11:27.670–00:11:29.670] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 线
 
-**[00:11:28.230–00:11:28.390] S02/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:11:28.230–00:11:28.390] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 线
 
-**[00:11:28.550–00:11:28.630] S02/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:11:28.550–00:11:28.630] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 这
 
-**[00:11:28.870–00:11:29.430] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:11:28.870–00:11:29.430] S02 · 待核对：disagreement, alignment_failed**
 
 力度可
 
-**[00:11:29.430–00:11:30.790] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:11:29.430–00:11:30.790] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 以，线上你官网官
 
-**[00:11:29.670–00:11:29.910] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:11:29.670–00:11:29.910] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 上
 
-**[00:11:30.790–00:11:31.510] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:11:30.790–00:11:31.510] S03 · 待核对：disagreement, alignment_failed**
 
 网那个活动
 
-**[00:11:31.510–00:11:32.310] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:11:31.510–00:11:32.310] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 要经常更新，
 
-**[00:11:32.950–00:11:33.350] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:11:32.950–00:11:33.350] S03 · 待核对：disagreement, alignment_failed**
 
 哎给
 
-**[00:11:33.350–00:11:34.310] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:11:33.350–00:11:34.310] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 大家一些。
 
@@ -2468,7 +2484,7 @@
 
 **[00:11:58.450–00:12:22.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
-棒，
+棒。
 
 **[00:11:58.790–00:11:59.190] S01/S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
@@ -2488,7 +2504,7 @@
 
 **[00:12:03.590–00:12:04.310] S04 · 待核对：disagreement, alignment_failed**
 
-动画公司，
+动画公司。
 
 **[00:12:04.390–00:12:04.710] S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
@@ -2510,37 +2526,13 @@
 
 是，
 
-**[00:12:07.910–00:12:08.630] S04 · 待核对：disagreement, alignment_failed**
-
-大一点，
-
-**[00:12:08.630–00:12:09.350] S03/S04 · 待核对：disagreement, alignment_failed, overlap**
-
-炫
-
 **[00:12:08.950–00:12:09.510] S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 对
 
-**[00:12:09.590–00:12:11.750] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
-
-把自己
-
 **[00:12:10.470–00:12:11.590] S02 · 待核对：disagreement, alignment_failed**
 
 对对对，宣传我们自
-
-**[00:12:10.790–00:12:07.910] S02 · 待核对：disagreement, alignment_failed**
-
-的图标放
-
-**[00:12:11.110–00:12:11.590] S02 · 待核对：disagreement, alignment_failed**
-
-酷
-
-**[00:12:11.590–00:12:11.750] S02/S03/S04 · 待核对：disagreement, alignment_failed, overlap**
-
-一
 
 **[00:12:11.590–00:12:11.670] S02/S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
@@ -2550,17 +2542,13 @@
 
 以及给那
 
-**[00:12:11.750–00:12:11.830] S03/S04 · 待核对：disagreement, alignment_failed, overlap**
-
-点，
-
 **[00:12:12.070–00:12:14.390] S03 · 待核对：disagreement, alignment_failed**
 
 种特效皮肤，然后加上炫酷的动画一
 
 **[00:12:14.390–00:12:15.750] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
-创作更吸引人了，
+创作更吸引人了。
 
 **[00:12:15.830–00:12:15.990] S02 · 待核对：disagreement, alignment_failed**
 
@@ -2580,7 +2568,7 @@
 
 **[00:12:19.830–00:12:22.150] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
-史视频画放网上对吧，
+史视频画放网上对吧？
 
 **[00:12:22.310–00:12:22.630] S02 · 待核对：disagreement, alignment_failed**
 
@@ -2660,7 +2648,7 @@
 
 **[00:12:46.450–00:13:10.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
-啊，对
+啊，对，
 
 **[00:12:46.450–00:13:10.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
@@ -2668,7 +2656,15 @@
 
 **[00:12:46.450–00:13:10.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
+置
+
+**[00:12:46.450–00:13:10.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
+
 成
+
+**[00:12:46.450–00:13:10.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
+
+过
 
 **[00:12:46.450–00:13:10.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
@@ -2726,41 +2722,49 @@
 
 哈哈
 
-**[00:13:02.070–00:13:04.310] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
+**[00:13:02.070–00:13:01.750] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
-对是设计的有点
+这是设
+
+**[00:13:02.950–00:13:03.430] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
+
+一点
 
 **[00:13:03.510–00:13:04.310] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
-我觉得可以
-
-**[00:13:04.310–00:13:06.070] S01 · 待核对：disagreement, alignment_failed**
-
-闯过一
+我觉得可以，
 
 **[00:13:04.550–00:13:04.710] S01 · 待核对：disagreement, alignment_failed**
 
 本，
 
-**[00:13:05.670–00:13:05.990] S01 · 待核对：disagreement, alignment_failed**
+**[00:13:05.510–00:13:06.070] S01 · 待核对：disagreement, alignment_failed**
 
-闯过
+对闯过一
 
-**[00:13:05.990–00:13:06.870] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
+**[00:13:05.990–00:13:07.590] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
-一关呢，他
+一
 
-**[00:13:06.070–00:13:06.390] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
+**[00:13:06.070–00:13:06.790] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
-关，对
+关，对闯
+
+**[00:13:06.310–00:13:06.870] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
+
+呢，他
 
 **[00:13:06.870–00:13:08.070] S01 · 待核对：disagreement, alignment_failed**
 
-就再给你一个，
+就再给你一个
+
+**[00:13:07.670–00:13:08.070] S01 · 待核对：disagreement, alignment_failed**
+
+关
 
 **[00:13:08.070–00:13:09.670] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
-像是让你找迷宫似
+像去让你找迷宫似
 
 **[00:13:09.830–00:13:10.710] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
@@ -2982,75 +2986,75 @@ cos
 
 报名挑选，对没错是。
 
-**[00:14:22.150–00:14:27.270] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
+**[00:14:22.150–00:14:27.270] S02/S03 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, overlap**
 
-是，对，都有他独一无二的心中专属。
+是，对，都有他独一无二的心中专属，
 
-**[00:14:22.450–00:14:46.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
+**[00:14:22.450–00:14:46.450] 说话人未知 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, speaker_unknown**
 
 商
 
-**[00:14:22.450–00:14:46.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
+**[00:14:22.450–00:14:46.450] 说话人未知 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, speaker_unknown**
 
-嘛。
+嘛，
 
-**[00:14:22.450–00:14:46.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
+**[00:14:22.450–00:14:46.450] 说话人未知 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, speaker_unknown**
 
 可
 
-**[00:14:27.590–00:14:27.910] S01/S02/S03 · 待核对：disagreement, alignment_failed, overlap**
+**[00:14:27.590–00:14:27.910] S01/S02/S03 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, overlap**
 
 是
 
-**[00:14:27.910–00:14:28.230] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
+**[00:14:27.910–00:14:28.230] S02/S03 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, overlap**
 
-的对，
+的，对，
 
-**[00:14:28.550–00:14:29.350] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
+**[00:14:28.550–00:14:29.350] S01/S03 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, overlap**
 
 是没错。我
 
-**[00:14:29.430–00:14:33.670] S01 · 待核对：disagreement, alignment_failed**
+**[00:14:29.430–00:14:33.670] S01 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed**
 
-们请明星和模特代言，举办线下cosplay展览。
+们请明星和模特代言，举办线下 cosplay 展览，
 
-**[00:14:33.830–00:14:34.870] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
+**[00:14:33.830–00:14:34.870] S01/S03 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, overlap**
 
 是，还可以在
 
-**[00:14:35.270–00:14:36.870] S01 · 待核对：disagreement, alignment_failed**
+**[00:14:35.270–00:14:36.870] S01 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed**
 
 官网上宣传，在游戏里
 
-**[00:14:36.870–00:14:39.270] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
+**[00:14:36.870–00:14:39.270] S01/S03 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, overlap**
 
-进行广告插播。我们还可以在
+进行广告插播，我们还可以在
 
-**[00:14:39.270–00:14:39.830] S01 · 待核对：disagreement, alignment_failed**
+**[00:14:39.270–00:14:39.830] S01 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed**
 
 商场
 
-**[00:14:39.830–00:14:40.150] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
+**[00:14:39.830–00:14:40.150] S01/S02 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, overlap**
 
 里发
 
-**[00:14:40.150–00:14:40.870] S01/S02/S03 · 待核对：disagreement, alignment_failed, overlap**
+**[00:14:40.150–00:14:40.870] S01/S02/S03 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, overlap**
 
 宣
 
-**[00:14:40.870–00:14:41.430] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
+**[00:14:40.870–00:14:41.430] S01/S03 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, overlap**
 
 传单呢。
 
-**[00:14:40.870–00:14:45.350] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
+**[00:14:40.870–00:14:45.350] S01/S03 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, overlap**
 
-场里就找那种人特别多的地方。对，特别多的地方
+场里，就找那种人特别多的地方，对，特别多的地方
 
-**[00:14:45.350–00:14:45.510] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
+**[00:14:45.350–00:14:45.510] S01/S03 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, overlap**
 
-对
+对，
 
-**[00:14:45.670–00:14:45.990] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
+**[00:14:45.670–00:14:45.990] S02/S04 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, overlap**
 
 不是。
 
@@ -3160,11 +3164,7 @@ cos
 
 **[00:15:10.450–00:15:34.450] 说话人未知 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, speaker_unknown**
 
-个
-
-**[00:15:10.450–00:15:34.450] 说话人未知 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, speaker_unknown**
-
-对对对
+对对
 
 **[00:15:10.450–00:15:34.450] 说话人未知 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, speaker_unknown**
 
@@ -3214,17 +3214,17 @@ cos
 
 上打出
 
-**[00:15:21.750–00:15:22.310] S01/S02 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, overlap**
+**[00:15:21.750–00:15:22.550] S01/S02 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, overlap**
 
-我们那
+我们的主题
 
-**[00:15:22.390–00:15:22.470] S01/S02 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, overlap**
+**[00:15:22.470–00:15:24.150] S01/S02 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, overlap**
 
-主
+对
 
-**[00:15:22.470–00:15:24.870] S01/S02/S03 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, overlap**
+**[00:15:22.950–00:15:24.870] S01/S02/S03 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, overlap**
 
-题广告。
+广告。
 
 **[00:15:25.350–00:15:25.190] S01/S02 · 待核对：disagreement, punctuation_changed_content_rejected, alignment_failed, overlap**
 
@@ -3258,23 +3258,23 @@ cos
 
 电视剧前
 
-**[00:15:34.150–00:15:34.470] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:15:34.150–00:15:34.470] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 最前
 
-**[00:15:34.450–00:15:58.450] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:15:34.450–00:15:58.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 一
 
-**[00:15:34.450–00:15:58.450] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:15:34.450–00:15:58.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 一
 
-**[00:15:34.450–00:15:58.450] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:15:34.450–00:15:58.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 手
 
-**[00:15:34.470–00:15:35.830] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:15:34.470–00:15:35.830] S03 · 待核对：disagreement, alignment_failed**
 
 也可以插六十秒的广告
 
@@ -3282,79 +3282,79 @@ cos
 
 可以。
 
-**[00:15:35.830–00:15:35.910] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:15:35.830–00:15:35.910] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 什
 
-**[00:15:35.910–00:15:36.870] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:15:35.910–00:15:36.870] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 么的，对对
 
-**[00:15:39.830–00:15:39.990] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:15:39.830–00:15:39.990] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 是
 
-**[00:15:39.990–00:15:40.230] S02/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:15:39.990–00:15:40.230] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 啊
 
-**[00:15:39.990–00:15:41.030] S02/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:15:39.990–00:15:41.030] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 啊，对六十秒，
 
-**[00:15:41.030–00:15:41.510] S02/S03/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:15:41.030–00:15:41.510] S02/S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 看
 
-**[00:15:41.510–00:15:41.990] S03/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:15:41.510–00:15:41.990] S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 一下看
 
-**[00:15:42.150–00:15:42.390] S03/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:15:42.150–00:15:42.390] S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 下看
 
-**[00:15:42.150–00:15:42.310] S03/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:15:42.150–00:15:42.310] S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 下，
 
-**[00:15:42.310–00:15:45.110] S04 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:15:42.310–00:15:45.110] S04 · 待核对：disagreement, alignment_failed**
 
 表演的时候发一些限时的优惠券，
 
-**[00:15:45.510–00:15:47.270] S02/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:15:45.510–00:15:47.270] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 对对，你只有到现
 
-**[00:15:47.270–00:15:48.070] S03/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:15:47.270–00:15:48.070] S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 场的，你可以到到
 
-**[00:15:48.070–00:15:49.190] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:15:48.070–00:15:49.190] S03 · 待核对：disagreement, alignment_failed**
 
 现场前多少名，
 
-**[00:15:49.510–00:15:51.030] S03/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:15:49.510–00:15:51.030] S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 比如前五十名前
 
-**[00:15:51.030–00:15:51.430] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:15:51.030–00:15:51.430] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 一百名，
 
-**[00:15:51.750–00:15:52.070] S03/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:15:51.750–00:15:52.070] S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 对对
 
-**[00:15:51.990–00:15:52.070] S02/S03/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:15:51.990–00:15:52.070] S02/S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 对，
 
-**[00:15:52.070–00:15:57.670] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:15:52.070–00:15:57.670] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 或者是或者前十名给你送个直接送个手办呀什么的，那是吧，手办对
 
-**[00:15:57.670–00:15:58.630] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:15:57.670–00:15:58.630] S02 · 待核对：disagreement, alignment_failed**
 
 办，这样可以推动我们。
 
@@ -3518,67 +3518,67 @@ cos
 
 吸引大学生。
 
-**[00:16:46.950–00:16:53.350] S01/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:16:46.950–00:16:53.350] S01/S03 · 待核对：disagreement, overlap**
 
 对大学生也是一个非常重要的群体，是这么大的一个有力，全国
 
-**[00:16:54.790–00:16:55.910] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:16:54.790–00:16:55.910] S01/S02 · 待核对：disagreement, overlap**
 
 啊大学生有多少人
 
-**[00:16:55.910–00:16:56.150] S01/S02/S04 · 待核对：disagreement, needs_review, overlap**
+**[00:16:55.910–00:16:56.150] S01/S02/S04 · 待核对：disagreement, overlap**
 
 群
 
-**[00:16:56.230–00:16:56.310] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:16:56.230–00:16:56.310] S01/S02 · 待核对：disagreement, overlap**
 
 对
 
-**[00:16:56.310–00:16:57.110] S02/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:16:56.310–00:16:57.110] S02/S03 · 待核对：disagreement, overlap**
 
 吧，是没错，
 
-**[00:16:57.110–00:16:57.350] S02/S03/S04 · 待核对：disagreement, needs_review, overlap**
+**[00:16:57.110–00:16:57.350] S02/S03/S04 · 待核对：disagreement, overlap**
 
 主
 
-**[00:16:57.350–00:16:58.950] S02 · 待核对：disagreement, needs_review**
+**[00:16:57.350–00:16:58.950] S02 · 待核对：disagreement**
 
 力的这种消费人群，
 
-**[00:16:58.950–00:16:59.110] S02/S04 · 待核对：disagreement, needs_review, overlap**
+**[00:16:58.950–00:16:59.110] S02/S04 · 待核对：disagreement, overlap**
 
 可以
 
-**[00:16:59.350–00:17:00.950] S02/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:16:59.350–00:17:00.950] S02/S03 · 待核对：disagreement, overlap**
 
 主力人群主力主力主
 
-**[00:17:00.950–00:17:02.470] S02 · 待核对：disagreement, needs_review**
+**[00:17:00.950–00:17:02.470] S02 · 待核对：disagreement**
 
 力主力大学生这个人
 
-**[00:17:02.470–00:17:03.270] S02/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:17:02.470–00:17:03.270] S02/S03 · 待核对：disagreement, overlap**
 
 群，大学生对
 
-**[00:17:03.350–00:17:03.430] S02/S04 · 待核对：disagreement, needs_review, overlap**
+**[00:17:03.350–00:17:03.430] S02/S04 · 待核对：disagreement, overlap**
 
 确
 
-**[00:17:03.430–00:17:05.030] S02 · 待核对：disagreement, needs_review**
+**[00:17:03.430–00:17:05.030] S02 · 待核对：disagreement**
 
 实大学生太
 
-**[00:17:05.030–00:17:06.950] S04 · 待核对：disagreement, needs_review**
+**[00:17:05.030–00:17:06.950] S04 · 待核对：disagreement**
 
 重要了，他们有时间也有
 
-**[00:17:07.430–00:17:08.630] S03/S04 · 待核对：disagreement, needs_review, overlap**
+**[00:17:07.430–00:17:08.630] S03/S04 · 待核对：disagreement, overlap**
 
 也有精力也有热情，
 
-**[00:17:09.670–00:17:10.470] S02/S03 · 待核对：disagreement, needs_review, overlap**
+**[00:17:09.670–00:17:10.470] S02/S03 · 待核对：disagreement, overlap**
 
 对他经常玩。
 
@@ -3684,7 +3684,7 @@ cos
 
 **[00:17:25.990–00:17:26.310] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
-方式这
+方式，这
 
 **[00:17:26.310–00:17:27.270] S02/S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
@@ -3702,117 +3702,117 @@ cos
 
 种
 
-**[00:17:32.230–00:17:32.790] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
+**[00:17:32.070–00:17:32.790] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
-对号召大
+下比赛，对号召大
 
 **[00:17:32.790–00:17:34.710] S03 · 待核对：disagreement, alignment_failed**
 
 家，召召唤朋友，我们组个。
 
-**[00:17:34.150–00:17:35.750] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:17:34.150–00:17:35.750] S03 · 待核对：disagreement, alignment_failed**
 
 好，我们组个队组个战队
 
-**[00:17:34.450–00:17:58.450] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:17:34.450–00:17:58.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 对
 
-**[00:17:35.750–00:17:36.870] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:17:35.750–00:17:36.870] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 啊，我们去参加一
 
-**[00:17:36.870–00:17:42.710] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:17:36.870–00:17:42.710] S03 · 待核对：disagreement, alignment_failed**
 
 下，然后前几名或者十几名会有那些奖品啊什么的，
 
-**[00:17:42.710–00:17:43.110] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:17:42.710–00:17:43.110] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 对对对
 
-**[00:17:43.430–00:17:43.910] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:17:43.430–00:17:43.910] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 对对，
 
-**[00:17:43.910–00:17:47.430] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:17:43.910–00:17:47.430] S02 · 待核对：disagreement, alignment_failed**
 
 高校这种联赛啊，或者说我们高校我们这种高校升
 
-**[00:17:47.430–00:17:47.910] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:17:47.430–00:17:47.910] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 级的方
 
-**[00:17:47.910–00:17:48.950] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:17:47.910–00:17:48.950] S02 · 待核对：disagreement, alignment_failed**
 
 式对吧，
 
-**[00:17:48.950–00:17:49.270] S01/S02/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:17:48.950–00:17:49.270] S01/S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 高
 
-**[00:17:49.270–00:17:49.430] S02/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:17:49.270–00:17:49.430] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 校
 
-**[00:17:49.430–00:17:50.150] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:17:49.430–00:17:50.150] S02 · 待核对：disagreement, alignment_failed**
 
 往上升的方式，
 
-**[00:17:50.790–00:17:50.950] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:17:50.790–00:17:50.950] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 咱
 
-**[00:17:50.950–00:17:51.830] S01/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:17:50.950–00:17:51.830] S01/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 们再讨论一
 
-**[00:17:51.830–00:17:53.350] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:17:51.830–00:17:53.350] S01 · 待核对：disagreement, alignment_failed**
 
 下宣传预算的问题。
 
-**[00:17:53.670–00:17:54.070] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:17:53.670–00:17:54.070] S02 · 待核对：disagreement, alignment_failed**
 
 预算
 
-**[00:17:54.070–00:17:54.150] S02/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:17:54.070–00:17:54.150] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 我
 
-**[00:17:54.230–00:17:54.310] S02/S03/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:17:54.230–00:17:54.310] S02/S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 觉
 
-**[00:17:54.550–00:17:55.110] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:17:54.550–00:17:55.110] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 得要想
 
-**[00:17:55.110–00:17:56.950] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:17:55.110–00:17:56.950] S02 · 待核对：disagreement, alignment_failed**
 
 这么多，这预算还真没考虑对
 
-**[00:17:56.950–00:17:57.590] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:17:56.950–00:17:57.590] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 吧，嗯，我
 
-**[00:17:57.670–00:17:57.990] S02/S04 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:17:57.670–00:17:57.990] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 就比较
 
-**[00:17:58.390–00:17:58.710] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:17:58.390–00:17:58.710] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 预算。
 
 **[00:17:58.390–00:18:01.030] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
-预算的话，像那
+预算的话像那
 
 **[00:17:58.450–00:18:22.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
-能
+后
 
 **[00:17:58.450–00:18:22.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
-效
+小奖
 
 **[00:17:58.450–00:18:22.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
@@ -3842,13 +3842,25 @@ cos
 
 嗯
 
-**[00:18:05.190–00:18:06.790] S02 · 待核对：disagreement, alignment_failed**
+**[00:18:05.190–00:18:06.310] S02 · 待核对：disagreement, alignment_failed**
 
-对对，就小小奖品
+对对，投入比较
 
-**[00:18:07.030–00:18:07.350] S02 · 待核对：disagreement, alignment_failed**
+**[00:18:05.910–00:18:07.030] S02 · 待核对：disagreement, alignment_failed**
 
-你往
+小奖品，对就小
+
+**[00:18:06.550–00:18:07.350] S02 · 待核对：disagreement, alignment_failed**
+
+品能
+
+**[00:18:07.350–00:18:07.350] S02 · 待核对：disagreement, alignment_failed**
+
+往
+
+**[00:18:12.390–00:18:12.710] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
+
+少，然
 
 **[00:18:14.230–00:18:14.630] S03/S04 · 待核对：disagreement, alignment_failed, overlap**
 
@@ -3870,6 +3882,10 @@ cos
 
 宣
 
+**[00:18:17.030–00:18:17.830] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
+
+效果
+
 **[00:18:17.190–00:18:19.430] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 传
@@ -3878,91 +3894,91 @@ cos
 
 好，
 
-**[00:18:17.670–00:18:17.830] S02 · 待核对：disagreement, alignment_failed**
-
-果
-
 **[00:18:17.830–00:18:18.790] S02 · 待核对：disagreement, alignment_failed**
 
 非常有利，
 
+**[00:18:18.870–00:18:18.950] S03 · 待核对：disagreement, alignment_failed**
+
+你
+
 **[00:18:18.870–00:18:21.430] S03 · 待核对：disagreement, alignment_failed**
 
-你看那小孩儿他拿个手办拿个小奖品回去，
+你看那小孩他拿个手办拿个小奖品回去，
 
 **[00:18:21.430–00:18:22.710] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
-不如虽然是毛绒玩具。
+不如，虽然是毛绒玩具。
 
-**[00:18:22.150–00:18:26.550] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:18:22.150–00:18:26.550] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 毛绒玩具，他开心他给自己朋友炫耀一下啊，他班里同
 
-**[00:18:22.450–00:18:46.450] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:18:22.450–00:18:46.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 我
 
-**[00:18:26.550–00:18:27.030] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:18:26.550–00:18:27.030] S03 · 待核对：disagreement, alignment_failed**
 
 学一看，哎你
 
-**[00:18:27.030–00:18:29.190] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:18:27.030–00:18:29.190] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 这个哪来的呀，要我玩那个
 
-**[00:18:29.190–00:18:29.750] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:18:29.190–00:18:29.750] S03 · 待核对：disagreement, alignment_failed**
 
 什么什么来
 
-**[00:18:29.750–00:18:32.950] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:18:29.750–00:18:32.950] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 的，哇他就兴趣又来了，人更多的人就来了，
 
-**[00:18:33.190–00:18:33.430] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:18:33.190–00:18:33.430] S02 · 待核对：disagreement, alignment_failed**
 
 们
 
-**[00:18:34.470–00:18:35.430] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:18:34.470–00:18:35.430] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 要大
 
-**[00:18:35.430–00:18:39.350] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:18:35.430–00:18:39.350] S01 · 待核对：disagreement, alignment_failed**
 
 概考虑一下预算了，大家想想咱们的预算是满打
 
-**[00:18:39.350–00:18:39.990] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:18:39.350–00:18:39.990] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 满算下
 
-**[00:18:39.990–00:18:40.710] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:18:39.990–00:18:40.710] S01 · 待核对：disagreement, alignment_failed**
 
 来大概是，
 
-**[00:18:40.710–00:18:41.670] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:18:40.710–00:18:41.670] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 哎
 
-**[00:18:41.670–00:18:41.830] S02/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:18:41.670–00:18:41.830] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 呀，
 
-**[00:18:41.830–00:18:43.030] S03 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:18:41.830–00:18:43.030] S03 · 待核对：disagreement, alignment_failed**
 
 估计得超过五十万了，
 
-**[00:18:43.430–00:18:43.670] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:18:43.430–00:18:43.670] S01 · 待核对：disagreement, alignment_failed**
 
 嗯
 
-**[00:18:44.070–00:18:44.870] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:18:44.070–00:18:44.870] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 我觉得也是，
 
-**[00:18:45.110–00:18:45.590] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:18:45.110–00:18:45.590] S01 · 待核对：disagreement, alignment_failed**
 
 咱包括
 
-**[00:18:45.990–00:18:46.710] S01/S03 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:18:45.990–00:18:46.710] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 请明星啊。
 
@@ -3980,19 +3996,19 @@ cos
 
 **[00:18:46.450–00:19:10.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
-各
+对
 
 **[00:18:46.450–00:19:10.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
-项
+目
 
 **[00:18:46.450–00:19:10.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
-还
+要
 
 **[00:18:46.450–00:19:10.450] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
-点
+点，对
 
 **[00:18:47.270–00:18:49.030] S01/S03 · 待核对：disagreement, alignment_failed, overlap**
 
@@ -4028,15 +4044,7 @@ cos
 
 **[00:18:56.390–00:18:58.470] S02 · 待核对：disagreement, alignment_failed**
 
-能觉得稍微有点儿少，刚刚你想咱们想请
-
-**[00:18:58.230–00:18:58.470] S02 · 待核对：disagreement, alignment_failed**
-
-请
-
-**[00:18:58.870–00:18:59.030] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
-
-明
+能觉得稍微有点少，刚刚你想咱们要请明请
 
 **[00:18:58.870–00:18:59.190] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
@@ -4050,49 +4058,37 @@ cos
 
 呀
 
-**[00:18:59.910–00:19:00.390] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
+**[00:18:59.910–00:19:00.710] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
-呀
+呀，那么是
 
-**[00:19:01.270–00:19:01.350] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
+**[00:19:01.270–00:19:01.750] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
 对
 
-**[00:19:01.270–00:19:01.990] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
+**[00:19:01.430–00:19:01.910] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
-对呀对呀，
+种项
 
-**[00:19:03.510–00:19:03.670] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
+**[00:19:01.830–00:19:04.070] S01/S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
-种
+各
 
-**[00:19:03.670–00:19:04.070] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
+**[00:19:02.470–00:19:02.790] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
-需要多
+还需
 
-**[00:19:03.990–00:19:04.070] S01/S02/S04 · 待核对：disagreement, alignment_failed, overlap**
+**[00:19:03.910–00:19:04.070] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
-目
+多
 
 **[00:19:04.070–00:19:04.870] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 一点儿，那
 
-**[00:19:04.150–00:19:04.630] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
-
-对
-
-**[00:19:04.710–00:19:04.870] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
-
-那么
-
 **[00:19:04.870–00:19:05.110] S01/S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
 八
-
-**[00:19:05.110–00:19:05.190] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
-
-是
 
 **[00:19:05.110–00:19:07.030] S02 · 待核对：disagreement, alignment_failed**
 
@@ -4112,7 +4108,7 @@ cos
 
 **[00:19:10.150–00:19:10.630] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
-儿，对我觉得应该。
+我觉得应该。
 
 **[00:19:10.150–00:19:12.470] S02/S04 · 待核对：disagreement, alignment_failed, overlap**
 
@@ -4172,13 +4168,13 @@ cos
 
 **[00:19:18.230–00:19:20.070] S02 · 待核对：disagreement, alignment_failed**
 
-那么多，那种好的方式对吧，
+那么多那种好的方式对吧，
 
-**[00:19:20.310–00:19:21.670] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
+**[00:19:20.230–00:19:21.270] S02/S03 · 待核对：disagreement, alignment_failed, overlap**
 
-对没有，对
+是没有，对
 
-**[00:19:22.470–00:19:23.590] S02 · 待核对：disagreement, alignment_failed**
+**[00:19:22.470–00:19:22.550] S02 · 待核对：disagreement, alignment_failed**
 
 们
 

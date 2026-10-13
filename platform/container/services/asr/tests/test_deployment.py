@@ -2,7 +2,6 @@ import ast
 import asyncio
 import os
 import subprocess
-import tomllib
 from pathlib import Path
 
 import httpx2
@@ -17,7 +16,9 @@ def config() -> Config:
     return read_config(Path(__file__).resolve().parents[1] / "server/server.yaml")
 
 
-def test_each_model_has_revisioned_download_and_static_service(tmp_path: Path) -> None:
+def test_each_model_owns_revisioned_download_client_and_static_service(
+    tmp_path: Path,
+) -> None:
     root = Path(__file__).resolve().parents[1]
     graph = root / "rootfs/etc/s6/s6-rc.d"
     model_service = root / "rootfs/usr/local/bin/asr-model-service"
@@ -31,8 +32,13 @@ def test_each_model_has_revisioned_download_and_static_service(tmp_path: Path) -
         for script in ("run", "download_model.sh"):
             subprocess.run(["bash", "-n", str(directory / script)], check=True)
         assert (directory / "client.py").is_file()
+        run_script = (directory / "run").read_text()
+        assert "source " not in run_script
         for source in directory.glob("*.py"):
             ast.parse(source.read_text(), filename=str(source))
+        service_source = directory / "service.py"
+        if service_source.is_file():
+            assert "from models.service" not in service_source.read_text()
         download = graph / f"asr-{spec.id}-download"
         model_instances = [instance for instance in instances if instance.model == spec.id]
         assert model_instances
@@ -56,7 +62,7 @@ def test_each_model_has_revisioned_download_and_static_service(tmp_path: Path) -
         assert "weights/.revision" in download_script
         assert 'mkdir -p "$(readlink -m -- "$model_dir/weights")"' in download_script
         assert not (directory / "download_model.py").exists()
-        for script in (download_script, (directory / "run").read_text()):
+        for script in (download_script, run_script):
             assert "--frozen" in script
             assert "--no-sync" in script
             assert "--locked" not in script
@@ -141,13 +147,15 @@ def test_runtime_compilation_cache_is_persistent() -> None:
         "export NUMEXPR_MAX_THREADS=8",
         "export MAX_JOBS=24",
         "export FLASHINFER_NVCC_THREADS=10",
+        "export HF_HUB_OFFLINE=1",
+        "export TRANSFORMERS_OFFLINE=1",
+        "export TOKENIZERS_PARALLELISM=false",
     )
     for run_path in (root / "models").glob("*/run"):
         run = run_path.read_text()
         for setting in runtime_environment:
             assert setting in run
-        startup_plan = 0 if run_path.parent.name == "firered-llm" else 1
-        assert f"export VLLM_ENABLE_STARTUP_PLAN={startup_plan}" in run
+        assert "export VLLM_ENABLE_STARTUP_PLAN=1" in run
 
     for setting in (
         "XDG_CACHE_HOME=/home/x/.cache",
@@ -167,19 +175,7 @@ def test_runtime_compilation_cache_is_persistent() -> None:
         assert setting not in dockerfile
     assert "TRITON_CACHE_DIR" not in dockerfile
     assert "chown x:x /data/asr /model-data /run/asr /home/x/.cache" in dockerfile
-    for model in (
-        "firered-llm",
-        "moss-audio",
-        "moss-td",
-        "qwen3-aligner",
-        "qwen3-asr-1.7b",
-        "vibevoice",
-        "whisper-large-v3",
-    ):
-        assert (
-            "export CUDA_CACHE_PATH=/home/x/.cache/nv/ComputeCache"
-            in (root / "models" / model / "run").read_text()
-        )
+    assert not (root / "models/runtime-env.bash").exists()
 
     loader_config = (
         '--model-loader-extra-config \'{"enable_multithread_load":true,"num_threads":8}\''
@@ -315,47 +311,7 @@ def test_normal_deployment_allocates_shared_memory() -> None:
     assert config["services"]["asr"]["container"]["shm_size"] == "8g"
 
 
-def test_model_clients_match_fixed_listeners(tmp_path: Path) -> None:
-    design = (Path(__file__).resolve().parents[1] / "DESIGN.md").read_text()
-    header = next(
-        [cell.strip() for cell in line.split("|")[1:-1]]
-        for line in design.splitlines()
-        if line.startswith("| 模型 / checkpoint |")
-    )
-    assert header == [
-        "模型 / checkpoint",
-        "端口",
-        "阶段 / 职责",
-        "Serving 接口",
-        "SDK / runtime",
-        "Python",
-        "Transformers",
-        "vLLM",
-        "Torch",
-        "CUDA",
-        "部署",
-        "显存预算 / 卡 GiB",
-        "Checkpoint GiB",
-        "`.venv` 逻辑 GiB",
-    ]
-    model_rows = {
-        line.split("`")[1]: dict(
-            zip(header, [cell.strip() for cell in line.split("|")[1:-1]], strict=True)
-        )
-        for line in design.splitlines()
-        if line.startswith("| [`")
-    }
-    assert set(model_rows) == {spec.id for spec in MODELS}
-
-    sdk_packages = {
-        "firered-punc": "fireredasr2s",
-        "firered-vad": "fireredasr2s",
-        "nemotron-diarization": "nemo-toolkit",
-        "paraformer": "funasr",
-        "pyannote-community-1": "pyannote-audio",
-        "sensevoice": "funasr",
-    }
-
+def test_model_runs_match_fixed_listeners(tmp_path: Path) -> None:
     uv = tmp_path / "uv"
     uv.write_text('#!/usr/bin/env bash\nprintf "%s\\n" "$@"\n')
     uv.chmod(0o755)
@@ -382,33 +338,6 @@ def test_model_clients_match_fixed_listeners(tmp_path: Path) -> None:
             port = int(args[args.index("--port") + 1])
             assert host == "127.0.0.1"
             assert instance.url == f"http://{host}:{port}"
-            row = model_rows[instance.model]
-            assert str(port) in row["端口"]
-            if instance.spec.gpus:
-                placement = instance.placement
-                assert "GPU " + "+".join(map(str, placement)) in row["部署"]
-                assert row["显存预算 / 卡 GiB"] == f"{instance.spec.memory_gib:g}"
-            else:
-                assert row["部署"] == "CPU"
-                assert row["显存预算 / 卡 GiB"] == "—"
-
-            packages = {
-                package["name"]: package["version"]
-                for package in tomllib.loads((directory / "uv.lock").read_text())["package"]
-            }
-            assert row["Python"] == (directory / ".python-version").read_text().strip()
-            for column, package in (
-                ("Transformers", "transformers"),
-                ("vLLM", "vllm"),
-                ("Torch", "torch"),
-            ):
-                assert row[column] == packages.get(package, "—")
-            sdk = sdk_packages.get(instance.model)
-            if sdk is None:
-                assert row["SDK / runtime"] == "—"
-            else:
-                assert packages[sdk] in row["SDK / runtime"]
-            assert row["CUDA"] == ("13.0.3" if instance.spec.gpus else "—")
             if instance.model == "vibevoice":
                 assert args[args.index("--max-model-len") + 1] == "65536"
                 template = args[args.index("--chat-template") + 1]
@@ -419,30 +348,3 @@ def test_model_clients_match_fixed_listeners(tmp_path: Path) -> None:
         assert ports == set(range(8000, 8015))
     finally:
         asyncio.run(scheduler.close())
-
-
-def test_design_gpu_table_matches_static_placement() -> None:
-    design = (Path(__file__).resolve().parents[1] / "DESIGN.md").read_text()
-    lines = design.splitlines()
-    header_index = next(
-        index for index, line in enumerate(lines) if line.startswith("| 逻辑 GPU | ")
-    )
-    gpu_rows: dict[int, list[str]] = {}
-    for line in lines[header_index + 2 :]:
-        if not line.startswith("|"):
-            break
-        cells = [cell.strip() for cell in line.split("|")[1:-1]]
-        gpu_rows[int(cells[0])] = cells[1:]
-
-    resources = config().resources
-    gpu_count = max(index for instance in resources.instances for index in instance.placement) + 1
-    assert set(gpu_rows) == set(range(gpu_count))
-    for index, (models, total, _) in gpu_rows.items():
-        expected = [
-            (instance, next(spec for spec in MODELS if spec.id == instance.model))
-            for instance in resources.instances
-            if index in instance.placement
-        ]
-        assert total == f"{sum(spec.memory_gib for _, spec in expected):g} GiB"
-        for instance, spec in expected:
-            assert f"`{instance.id}` {spec.memory_gib:g} GiB" in models

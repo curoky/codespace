@@ -52,131 +52,131 @@
 
 对。
 
-**[00:00:44.187–00:00:50.507] S01 · 待核对：disagreement, needs_review**
+**[00:00:44.187–00:00:50.507] S01 · 待核对：disagreement**
 
 说南方就是四季如春，感觉现在不一样了，可能是全球变天气变暖了
 
-**[00:00:50.507–00:00:50.747] S02 · 待核对：disagreement, needs_review**
+**[00:00:50.507–00:00:50.747] S02 · 待核对：disagreement**
 
 吧，
 
-**[00:00:50.907–00:00:52.347] S02 · 待核对：disagreement, needs_review**
+**[00:00:50.907–00:00:52.347] S02 · 待核对：disagreement**
 
 对全球天气变暖
 
-**[00:00:52.507–00:00:52.587] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:00:52.507–00:00:52.587] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 了，
 
-**[00:00:53.147–00:00:55.067] S02 · 待核对：disagreement, needs_review**
+**[00:00:53.147–00:00:55.067] S02 · 待核对：disagreement**
 
 呃有地理因素也
 
-**[00:00:55.067–00:00:55.227] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:00:55.067–00:00:55.227] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
-有
+有，
 
-**[00:00:55.707–00:00:56.587] S02 · 待核对：disagreement, needs_review**
+**[00:00:55.707–00:00:56.587] S02 · 待核对：disagreement**
 
 呃人文因
 
-**[00:00:56.827–00:00:56.907] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:00:56.827–00:00:56.907] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 素，
 
-**[00:00:57.387–00:01:02.907] S01 · 待核对：disagreement, needs_review**
+**[00:00:57.387–00:01:02.907] S01 · 待核对：disagreement**
 
 是的，人文因素像说环境污染啊，噪音那些对大气的影响是挺大的，
 
-**[00:01:03.387–00:01:03.547] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:01:03.387–00:01:03.547] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 地
 
-**[00:01:03.547–00:01:04.987] S01 · 待核对：disagreement, needs_review**
+**[00:01:03.547–00:01:04.987] S01 · 待核对：disagreement**
 
-心因素也许说
+行为因素，也许说
 
-**[00:01:05.467–00:01:05.547] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:01:05.467–00:01:05.547] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 我
 
-**[00:01:05.547–00:01:07.787] S01 · 待核对：disagreement, needs_review**
+**[00:01:05.547–00:01:07.787] S01 · 待核对：disagreement**
 
 们对一些东西的破坏就说
 
-**[00:01:07.407–00:01:11.247] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:01:07.407–00:01:11.247] S01 · 待核对：disagreement, alignment_failed**
 
 就说树木的砍伐那些都造成了对大自然的伤害，
 
-**[00:01:07.707–00:01:31.707] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:01:07.707–00:01:31.707] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 氧
 
-**[00:01:12.047–00:01:12.287] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:01:12.047–00:01:12.287] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 是的，
 
-**[00:01:12.927–00:01:17.727] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:01:12.927–00:01:17.727] S02 · 待核对：disagreement, alignment_failed**
 
 呃我们砍伐树木，呃那氧气被隔
 
-**[00:01:17.967–00:01:18.127] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:01:17.967–00:01:18.127] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 绝
 
-**[00:01:18.127–00:01:19.567] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:01:18.127–00:01:19.567] S02 · 待核对：disagreement, alignment_failed**
 
 了，全球
 
-**[00:01:19.567–00:01:19.727] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:01:19.567–00:01:19.727] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 变
 
-**[00:01:19.727–00:01:19.727] S01 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:01:19.727–00:01:19.727] S01 · 待核对：disagreement, alignment_failed, overlap**
 
 成
 
-**[00:01:20.207–00:01:21.087] S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:01:20.207–00:01:21.087] S02 · 待核对：disagreement, alignment_failed, overlap**
 
 化
 
-**[00:01:20.607–00:01:20.767] S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:01:20.607–00:01:20.767] S02 · 待核对：disagreement, alignment_failed, overlap**
 
 二
 
-**[00:01:21.087–00:01:21.327] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:01:21.087–00:01:21.327] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 碳
 
-**[00:01:21.407–00:01:23.647] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:01:21.407–00:01:23.647] S01 · 待核对：disagreement, alignment_failed**
 
 了，温室效应就开始显现出来
 
-**[00:01:23.647–00:01:24.207] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:01:23.647–00:01:24.207] S02 · 待核对：disagreement, alignment_failed**
 
 了，
 
-**[00:01:24.127–00:01:24.207] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, overlap, speaker_unknown**
+**[00:01:24.127–00:01:24.207] 说话人未知 · 待核对：disagreement, alignment_failed, overlap, speaker_unknown**
 
 对，
 
-**[00:01:25.087–00:01:28.127] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:01:25.087–00:01:28.127] S01 · 待核对：disagreement, alignment_failed**
 
 身为一个南方人啊，我就觉得南方天气非常好
 
-**[00:01:28.207–00:01:28.447] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:01:28.207–00:01:28.447] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 的呀，
 
-**[00:01:28.847–00:01:30.767] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:01:28.847–00:01:30.767] S01 · 待核对：disagreement, alignment_failed**
 
 像我们四季有四季分
 
-**[00:01:30.847–00:01:31.087] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:01:30.847–00:01:31.087] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 明，
 
-**[00:01:31.567–00:01:31.967] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:01:31.567–00:01:31.967] S02 · 待核对：disagreement, alignment_failed**
 
 对。
 
@@ -200,87 +200,87 @@
 
 暑。
 
-**[00:01:45.983–00:01:50.303] S01 · 待核对：disagreement, needs_review**
+**[00:01:45.983–00:01:50.303] S01 · 待核对：disagreement**
 
 现在昨天立冬了，但是我感觉天气还是非常的炎
 
-**[00:01:51.023–00:01:51.343] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:01:51.023–00:01:51.343] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 热，对
 
-**[00:01:52.063–00:01:56.303] S01 · 待核对：disagreement, needs_review**
+**[00:01:52.063–00:01:56.303] S01 · 待核对：disagreement**
 
 晚上可能说被子要多盖一点，不然就会觉得就好凉
 
-**[00:01:56.303–00:01:56.463] S02 · 待核对：disagreement, needs_review**
+**[00:01:56.303–00:01:56.463] S02 · 待核对：disagreement**
 
 啊，
 
-**[00:01:56.863–00:01:56.943] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:01:56.863–00:01:56.943] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 对
 
-**[00:01:58.143–00:01:58.303] S02 · 待核对：disagreement, needs_review**
+**[00:01:58.143–00:01:58.303] S02 · 待核对：disagreement**
 
 就
 
-**[00:01:58.303–00:01:58.623] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:01:58.303–00:01:58.623] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 是
 
-**[00:01:59.023–00:02:00.223] S02 · 待核对：disagreement, needs_review**
+**[00:01:59.023–00:02:00.223] S02 · 待核对：disagreement**
 
 呃早
 
-**[00:02:00.223–00:02:00.463] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:02:00.223–00:02:00.463] S01/S02 · 待核对：disagreement, overlap**
 
 晚
 
-**[00:02:00.623–00:02:00.783] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:02:00.623–00:02:00.783] S01/S02 · 待核对：disagreement, overlap**
 
 多
 
-**[00:02:00.783–00:02:00.863] 说话人未知 · 待核对：disagreement, needs_review, overlap, speaker_unknown**
+**[00:02:00.783–00:02:00.863] 说话人未知 · 待核对：disagreement, overlap, speaker_unknown**
 
 冷，
 
-**[00:02:01.663–00:02:01.823] S02 · 待核对：disagreement, needs_review, overlap**
+**[00:02:01.663–00:02:01.823] S02 · 待核对：disagreement, overlap**
 
 就
 
-**[00:02:01.903–00:02:02.143] S02 · 待核对：disagreement, needs_review**
+**[00:02:01.903–00:02:02.143] S02 · 待核对：disagreement**
 
 中
 
-**[00:02:02.143–00:02:02.463] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:02:02.143–00:02:02.463] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 午
 
-**[00:02:03.103–00:02:03.743] S02 · 待核对：disagreement, needs_review**
+**[00:02:03.103–00:02:03.743] S02 · 待核对：disagreement**
 
 就白天
 
-**[00:02:03.903–00:02:03.983] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:02:03.903–00:02:03.983] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 很
 
-**[00:02:04.143–00:02:04.223] S01 · 待核对：disagreement, needs_review**
+**[00:02:04.143–00:02:04.223] S01 · 待核对：disagreement**
 
 热，
 
-**[00:02:04.543–00:02:05.583] S01 · 待核对：disagreement, needs_review**
+**[00:02:04.543–00:02:05.583] S01 · 待核对：disagreement**
 
 对早晚温差太
 
-**[00:02:05.583–00:02:05.903] S02 · 待核对：disagreement, needs_review**
+**[00:02:05.583–00:02:05.903] S02 · 待核对：disagreement**
 
 大了，
 
-**[00:02:06.063–00:02:07.503] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:02:06.063–00:02:07.503] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 对太大了，
 
-**[00:02:08.063–00:02:09.503] S02 · 待核对：disagreement, needs_review**
+**[00:02:08.063–00:02:09.503] S02 · 待核对：disagreement**
 
 就是呃一
 
@@ -288,55 +288,55 @@
 
 保暖。
 
-**[00:02:12.684–00:02:19.244] S01 · 待核对：disagreement, needs_review**
+**[00:02:12.684–00:02:19.244] S01 · 待核对：disagreement**
 
 北方的天气他们就是一年四季都是非常的干旱，就是热的那一种，晚上就会比较凉爽一
 
-**[00:02:19.244–00:02:19.484] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:02:19.244–00:02:19.484] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 点，
 
-**[00:02:19.804–00:02:20.364] S02 · 待核对：disagreement, needs_review**
+**[00:02:19.804–00:02:20.364] S02 · 待核对：disagreement**
 
 对凉
 
-**[00:02:20.364–00:02:20.604] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:02:20.364–00:02:20.604] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 爽，
 
-**[00:02:21.164–00:02:22.364] S02 · 待核对：disagreement, needs_review**
+**[00:02:21.164–00:02:22.364] S02 · 待核对：disagreement**
 
 但是呢我们这
 
-**[00:02:22.364–00:02:22.604] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:02:22.364–00:02:22.604] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 里，
 
-**[00:02:23.004–00:02:24.764] S02 · 待核对：disagreement, needs_review**
+**[00:02:23.004–00:02:24.764] S02 · 待核对：disagreement**
 
 呃冬天
 
-**[00:02:24.764–00:02:25.004] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:02:24.764–00:02:25.004] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 呢
 
-**[00:02:25.404–00:02:26.844] S02 · 待核对：disagreement, needs_review**
+**[00:02:25.404–00:02:26.844] S02 · 待核对：disagreement**
 
 又湿
 
-**[00:02:26.844–00:02:26.924] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:02:26.844–00:02:26.924] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 冷，
 
-**[00:02:27.324–00:02:27.884] S02 · 待核对：disagreement, needs_review**
+**[00:02:27.324–00:02:27.884] S02 · 待核对：disagreement**
 
 北方是
 
-**[00:02:28.124–00:02:28.364] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:02:28.124–00:02:28.364] S01/S02 · 待核对：disagreement, overlap**
 
 干
 
-**[00:02:28.444–00:02:28.604] S01 · 待核对：disagreement, needs_review, overlap**
+**[00:02:28.444–00:02:28.604] S01 · 待核对：disagreement, overlap**
 
 旱。
 
@@ -388,31 +388,31 @@
 
 么叫。
 
-**[00:02:50.573–00:02:52.333] S02 · 待核对：disagreement, needs_review**
+**[00:02:50.573–00:02:52.333] S02 · 待核对：disagreement**
 
 没有我们南方就淑
 
-**[00:02:52.333–00:02:52.493] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:02:52.333–00:02:52.493] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
-雅，
+雅
 
-**[00:02:52.733–00:02:52.893] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:02:52.733–00:02:52.893] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 对
 
-**[00:02:53.293–00:02:53.933] S01 · 待核对：disagreement, needs_review**
+**[00:02:53.453–00:02:53.933] S01 · 待核对：disagreement**
 
-就比较那
+比较那
 
-**[00:02:53.933–00:02:54.093] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:02:53.933–00:02:54.093] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 种
 
-**[00:02:54.733–00:02:55.933] S01 · 待核对：disagreement, needs_review**
+**[00:02:54.733–00:02:55.933] S01 · 待核对：disagreement**
 
 温和，他们比较霸
 
-**[00:02:56.013–00:02:56.253] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:02:56.013–00:02:56.253] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 气。
 
@@ -540,47 +540,47 @@
 
 京城北京城紫禁城啊，有些北京大学啊这些古典的学院对你影响，西安的秦始皇那边。
 
-**[00:04:15.028–00:04:19.348] S01 · 待核对：disagreement, needs_review**
+**[00:04:15.028–00:04:19.348] S01 · 待核对：disagreement**
 
 洛阳的一些比较有名的小吃都是非常受欢迎的，
 
-**[00:04:19.748–00:04:19.988] S02 · 待核对：disagreement, needs_review**
+**[00:04:19.748–00:04:19.988] S02 · 待核对：disagreement**
 
 是
 
-**[00:04:19.988–00:04:20.068] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:04:19.988–00:04:20.068] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 的，
 
-**[00:04:21.108–00:04:26.388] S01 · 待核对：disagreement, needs_review**
+**[00:04:21.108–00:04:26.388] S01 · 待核对：disagreement**
 
 今国庆的时候，据说天安门广场的人都站满了，就是为了去看国旗，
 
-**[00:04:27.028–00:04:31.988] S02 · 待核对：disagreement, needs_review**
+**[00:04:27.028–00:04:31.988] S02 · 待核对：disagreement**
 
 是国庆的，是观国旗，庆祝我们中华人民共和
 
-**[00:04:32.068–00:04:32.308] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:04:32.068–00:04:32.308] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 国
 
-**[00:04:32.868–00:04:33.268] S02 · 待核对：disagreement, needs_review**
+**[00:04:32.868–00:04:33.268] S02 · 待核对：disagreement**
 
 七十华
 
-**[00:04:33.348–00:04:33.588] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:04:33.348–00:04:33.588] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 诞，
 
-**[00:04:33.988–00:04:34.148] S01 · 待核对：disagreement, needs_review**
+**[00:04:33.988–00:04:34.148] S01 · 待核对：disagreement**
 
 是
 
-**[00:04:34.148–00:04:34.308] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:04:34.148–00:04:34.308] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 的，
 
-**[00:04:34.628–00:04:38.628] S01 · 待核对：disagreement, needs_review**
+**[00:04:34.628–00:04:38.628] S01 · 待核对：disagreement**
 
 然后有长城，是非常令人羡向往的一个
 
@@ -820,47 +820,47 @@
 
 的。
 
-**[00:06:40.242–00:06:40.562] S02 · 待核对：disagreement, needs_review**
+**[00:06:40.242–00:06:40.562] S02 · 待核对：disagreement**
 
 西
 
-**[00:06:40.562–00:06:40.882] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:06:40.562–00:06:40.882] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 安
 
-**[00:06:41.522–00:06:43.842] S02 · 待核对：disagreement, needs_review**
+**[00:06:41.522–00:06:43.842] S02 · 待核对：disagreement**
 
 也是一个非常不错的景
 
-**[00:06:43.842–00:06:44.082] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:06:43.842–00:06:44.082] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 点，
 
-**[00:06:44.722–00:06:46.082] S01 · 待核对：disagreement, needs_review**
+**[00:06:44.722–00:06:46.082] S01 · 待核对：disagreement**
 
 是的，景点是很
 
-**[00:06:46.082–00:06:46.242] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:06:46.082–00:06:46.242] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 多，
 
-**[00:06:46.562–00:06:52.882] S01 · 待核对：disagreement, needs_review**
+**[00:06:46.562–00:06:52.882] S01 · 待核对：disagreement**
 
 现在他们就说旅游的人喜欢去南方旅游，主要是在大理云南这些地方，
 
-**[00:06:53.122–00:06:56.322] S02 · 待核对：disagreement, needs_review**
+**[00:06:53.122–00:06:56.322] S02 · 待核对：disagreement**
 
 对这个也是古建筑啊，
 
-**[00:06:56.802–00:07:00.162] S01 · 待核对：disagreement, needs_review**
+**[00:06:56.802–00:07:00.162] S01 · 待核对：disagreement**
 
 主要是风景好，人好，环境比较舒适。
 
-**[00:07:00.402–00:07:00.642] S02 · 待核对：disagreement, needs_review**
+**[00:07:00.402–00:07:00.642] S02 · 待核对：disagreement**
 
 是
 
-**[00:07:00.642–00:07:00.722] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:07:00.642–00:07:00.722] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 的。
 
@@ -1272,59 +1272,59 @@
 
 不能说一味的只传承古代的一些愚昧的那些思想，也是说
 
-**[00:11:32.743–00:11:35.303] S01 · 待核对：disagreement, needs_review**
+**[00:11:32.743–00:11:35.303] S01 · 待核对：disagreement**
 
 有好的也有坏的，我们就要继承好的，而
 
-**[00:11:35.383–00:11:35.543] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:11:35.383–00:11:35.543] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 抛
 
-**[00:11:35.863–00:11:45.943] S01 · 待核对：disagreement, needs_review**
+**[00:11:35.863–00:11:45.943] S01 · 待核对：disagreement**
 
-还要抛弃那些坏的，要吸收更多外来的先进的，让我们世让他这些思想随着时代的潮流越来越成为一股潮流，一组
+还要抛弃那些坏的，要吸收更多外来的先进的，让我们使让他这些思想随着时代的潮流越来越成为一股潮流，一组
 
-**[00:11:46.023–00:11:46.183] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:11:46.023–00:11:46.183] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 古
 
-**[00:11:46.663–00:11:48.343] S01 · 待核对：disagreement, needs_review**
+**[00:11:46.663–00:11:48.343] S01 · 待核对：disagreement**
 
 那种古雅的文
 
-**[00:11:48.343–00:11:48.583] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:11:48.343–00:11:48.583] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 化，
 
-**[00:11:49.063–00:11:49.383] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:11:49.063–00:11:49.383] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 对
 
-**[00:11:49.863–00:11:52.503] S02 · 待核对：disagreement, needs_review**
+**[00:11:49.863–00:11:52.503] S02 · 待核对：disagreement**
 
 我们不要把自己盲
 
-**[00:11:52.503–00:11:52.823] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:11:52.503–00:11:52.823] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 目，
 
-**[00:11:53.303–00:11:53.863] S02 · 待核对：disagreement, needs_review**
+**[00:11:53.303–00:11:53.863] S02 · 待核对：disagreement**
 
 所有
 
-**[00:11:53.863–00:11:54.103] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:11:53.863–00:11:54.103] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 的
 
-**[00:11:54.503–00:11:54.663] S02 · 待核对：disagreement, needs_review**
+**[00:11:54.503–00:11:54.663] S02 · 待核对：disagreement**
 
 我
 
-**[00:11:54.663–00:11:55.063] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:11:54.663–00:11:55.063] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 们的
 
-**[00:11:55.863–00:11:56.583] S02 · 待核对：disagreement, needs_review**
+**[00:11:55.863–00:11:56.583] S02 · 待核对：disagreement**
 
 古代的知
 
@@ -1478,7 +1478,7 @@
 
 **[00:12:46.321–00:12:47.521] S02 · 待核对：disagreement, needs_review, alignment_failed**
 
-看不到那里也看
+看不到，那里也看
 
 **[00:12:47.521–00:12:47.601] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
 
@@ -1490,7 +1490,7 @@
 
 **[00:12:48.001–00:12:50.881] S01 · 待核对：disagreement, needs_review, alignment_failed**
 
-对而而且他们的水资源或者那
+对，而而且他们的水资源或者那
 
 **[00:12:50.881–00:12:51.201] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
 
@@ -1506,7 +1506,7 @@
 
 **[00:12:53.921–00:12:55.921] S01 · 待核对：disagreement, needs_review, alignment_failed**
 
-南水北调这些工程是
+拦水，摆掉这些工程，是
 
 **[00:12:56.001–00:12:56.641] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
 
@@ -1518,7 +1518,7 @@
 
 **[00:13:01.521–00:13:03.521] S01 · 待核对：disagreement, needs_review, alignment_failed**
 
-方，两个就是说不连接在
+方，两个就说不连接在
 
 **[00:13:03.521–00:13:03.761] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
 
@@ -1628,63 +1628,63 @@
 
 
 
-**[00:13:36.666–00:13:36.826] S01 · 待核对：disagreement, needs_review**
+**[00:13:36.666–00:13:36.826] S01 · 待核对：disagreement**
 
 然
 
-**[00:13:36.826–00:13:37.226] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:13:36.826–00:13:37.226] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 后说
 
-**[00:13:37.626–00:13:43.226] S01 · 待核对：disagreement, needs_review**
+**[00:13:37.626–00:13:43.226] S01 · 待核对：disagreement**
 
 南北方就是每天都是太阳高照，然后他们的太阳能发电也是非常有先
 
-**[00:13:43.226–00:13:43.546] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:13:43.226–00:13:43.546] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 进的，
 
-**[00:13:44.026–00:13:46.986] S02 · 待核对：disagreement, needs_review**
+**[00:13:44.026–00:13:46.986] S02 · 待核对：disagreement**
 
 对太阳能发电是绿色环
 
-**[00:13:46.986–00:13:47.386] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:13:46.986–00:13:47.386] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 保的。
 
-**[00:13:48.546–00:13:49.826] S01 · 待核对：disagreement, needs_review**
+**[00:13:48.546–00:13:49.826] S01 · 待核对：disagreement**
 
 我们南方也不缺发
 
-**[00:13:49.826–00:13:49.986] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:13:49.826–00:13:49.986] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 电的，
 
-**[00:13:50.786–00:13:51.426] S02 · 待核对：disagreement, needs_review**
+**[00:13:50.786–00:13:51.426] S02 · 待核对：disagreement**
 
 有水
 
-**[00:13:51.586–00:13:51.746] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:13:51.586–00:13:51.746] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 发
 
-**[00:13:51.746–00:13:51.986] S01 · 待核对：disagreement, needs_review**
+**[00:13:51.746–00:13:51.986] S01 · 待核对：disagreement**
 
 电，
 
-**[00:13:52.226–00:13:53.026] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:13:52.226–00:13:53.026] S01/S02 · 待核对：disagreement, overlap**
 
 风
 
-**[00:13:53.026–00:13:53.346] 说话人未知 · 待核对：disagreement, needs_review, overlap, speaker_unknown**
+**[00:13:53.026–00:13:53.346] 说话人未知 · 待核对：disagreement, overlap, speaker_unknown**
 
 能啊
 
-**[00:13:54.146–00:13:54.466] S02 · 待核对：disagreement, needs_review**
+**[00:13:54.146–00:13:54.466] S02 · 待核对：disagreement**
 
 等等
 
-**[00:13:54.466–00:13:54.786] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:13:54.466–00:13:54.786] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 啊。
 
@@ -1888,23 +1888,23 @@
 
 就是种在水里的茶叶，我觉得也是不
 
-**[00:15:04.090–00:15:07.050] S01 · 待核对：disagreement, needs_review**
+**[00:15:04.090–00:15:07.050] S01 · 待核对：disagreement**
 
 错的，是个不错的选择，也是一个很大的开发项
 
-**[00:15:07.050–00:15:07.210] S02 · 待核对：disagreement, needs_review**
+**[00:15:07.050–00:15:07.210] S02 · 待核对：disagreement**
 
 目，
 
-**[00:15:07.530–00:15:07.850] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:15:07.530–00:15:07.850] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 对呀
 
-**[00:15:08.730–00:15:09.610] S02 · 待核对：disagreement, needs_review**
+**[00:15:08.730–00:15:09.610] S02 · 待核对：disagreement**
 
 也是一种创
 
-**[00:15:09.690–00:15:09.930] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:15:09.690–00:15:09.930] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 新。
 
@@ -2292,79 +2292,79 @@
 
 如果你去呃。
 
-**[00:18:53.367–00:18:53.767] S02 · 待核对：disagreement, needs_review**
+**[00:18:53.367–00:18:53.767] S02 · 待核对：disagreement**
 
 乌鲁木
 
-**[00:18:53.767–00:18:54.167] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:18:53.767–00:18:54.167] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 齐
 
-**[00:18:54.727–00:18:54.967] S02 · 待核对：disagreement, needs_review**
+**[00:18:54.727–00:18:54.967] S02 · 待核对：disagreement**
 
 晚
 
-**[00:18:55.047–00:18:55.367] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:18:55.047–00:18:55.367] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 上
 
-**[00:18:56.327–00:18:56.567] S02 · 待核对：disagreement, needs_review**
+**[00:18:56.327–00:18:56.567] S02 · 待核对：disagreement**
 
 去
 
-**[00:18:56.567–00:18:57.207] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:18:56.567–00:18:57.207] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 的那
 
-**[00:18:57.207–00:18:58.007] S02 · 待核对：disagreement, needs_review**
+**[00:18:57.207–00:18:58.007] S02 · 待核对：disagreement**
 
 里那里
 
-**[00:18:58.007–00:18:58.247] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:18:58.007–00:18:58.247] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 去
 
-**[00:18:58.727–00:18:59.607] S02 · 待核对：disagreement, needs_review**
+**[00:18:58.727–00:18:59.607] S02 · 待核对：disagreement**
 
 那里是白天
 
-**[00:18:59.607–00:18:59.687] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:18:59.607–00:18:59.687] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 了，
 
-**[00:19:00.247–00:19:00.407] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:19:00.247–00:19:00.407] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 对
 
-**[00:19:00.727–00:19:00.967] S01 · 待核对：disagreement, needs_review**
+**[00:19:00.727–00:19:00.967] S01 · 待核对：disagreement**
 
 所以
 
-**[00:19:00.967–00:19:01.207] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:19:00.967–00:19:01.207] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 说
 
-**[00:19:01.527–00:19:08.327] S01 · 待核对：disagreement, needs_review**
+**[00:19:01.527–00:19:08.327] S01 · 待核对：disagreement**
 
 这边两天就是让我们有一个循环的周期，让你四季就感觉都在一个地方，因为南方这边是冬天，
 
-**[00:19:08.407–00:19:08.567] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:19:08.407–00:19:08.567] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 你
 
-**[00:19:08.967–00:19:10.087] S01 · 待核对：disagreement, needs_review**
+**[00:19:08.967–00:19:10.087] S01 · 待核对：disagreement**
 
 北方那边就是夏天，
 
-**[00:19:10.407–00:19:10.727] S01 · 待核对：disagreement, needs_review, overlap**
+**[00:19:10.407–00:19:10.727] S01 · 待核对：disagreement, overlap**
 
 也可
 
-**[00:19:10.727–00:19:13.767] S01 · 待核对：disagreement, needs_review**
+**[00:19:10.727–00:19:13.767] S01 · 待核对：disagreement**
 
 以说体验两个不同的夏天和两个冬天
 
-**[00:19:14.087–00:19:14.247] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:19:14.087–00:19:14.247] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 是。
 
@@ -2392,79 +2392,79 @@
 
 的。
 
-**[00:19:41.398–00:19:42.278] S02 · 待核对：disagreement, needs_review**
+**[00:19:41.398–00:19:42.278] S02 · 待核对：disagreement**
 
 我们南
 
-**[00:19:42.438–00:19:42.678] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:19:42.438–00:19:42.678] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 方
 
-**[00:19:43.238–00:19:46.918] S02 · 待核对：disagreement, needs_review**
+**[00:19:43.238–00:19:46.918] S02 · 待核对：disagreement**
 
 的水池去北方种池也有一定发
 
-**[00:19:46.918–00:19:47.078] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:19:46.918–00:19:47.078] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 展，
 
-**[00:19:47.478–00:19:49.718] S01 · 待核对：disagreement, needs_review**
+**[00:19:47.478–00:19:49.718] S01 · 待核对：disagreement**
 
 是的发展我觉得发展前景挺好
 
-**[00:19:49.798–00:19:49.878] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:19:49.798–00:19:49.878] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 的。
 
-**[00:19:51.354–00:19:57.994] S01 · 待核对：disagreement, needs_review**
+**[00:19:51.354–00:19:57.994] S01 · 待核对：disagreement**
 
 因为北方本来就是个比较干旱的地方，然后它又缺少一些水植种植的东
 
-**[00:19:57.994–00:19:58.314] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:19:57.994–00:19:58.314] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 西，
 
-**[00:19:58.634–00:19:58.794] S01 · 待核对：disagreement, needs_review**
+**[00:19:58.634–00:19:58.794] S01 · 待核对：disagreement**
 
 如果
 
-**[00:19:58.794–00:19:59.114] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:19:58.794–00:19:59.114] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 说
 
-**[00:19:59.354–00:20:02.874] S01 · 待核对：disagreement, needs_review**
+**[00:19:59.354–00:20:02.874] S01 · 待核对：disagreement**
 
 这个东西发展过去了，就家家户户都可以自己
 
-**[00:20:02.874–00:20:03.114] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:20:02.874–00:20:03.114] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 种，
 
-**[00:20:03.434–00:20:06.954] S01 · 待核对：disagreement, needs_review**
+**[00:20:03.434–00:20:06.954] S01 · 待核对：disagreement**
 
 而且比较种植的范围就比较小，如果说有大的范围
 
-**[00:20:07.034–00:20:07.194] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:20:07.034–00:20:07.194] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 就
 
-**[00:20:07.594–00:20:08.314] S01 · 待核对：disagreement, needs_review**
+**[00:20:07.594–00:20:08.314] S01 · 待核对：disagreement**
 
 对这
 
-**[00:20:08.314–00:20:08.634] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:20:08.314–00:20:08.634] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 些
 
-**[00:20:08.954–00:20:13.354] S01 · 待核对：disagreement, needs_review**
+**[00:20:08.954–00:20:13.354] S01 · 待核对：disagreement**
 
 吃一些比较水植的，就是说没有接触过的东西也是对很好
 
-**[00:20:13.354–00:20:13.594] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:20:13.354–00:20:13.594] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 的
 
-**[00:20:13.834–00:20:14.794] S01 · 待核对：disagreement, needs_review**
+**[00:20:13.834–00:20:14.794] S01 · 待核对：disagreement**
 
 说不用说
 
@@ -2522,7 +2522,7 @@
 
 **[00:20:29.588–00:20:30.948] S01 · 待核对：disagreement, needs_review**
 
-肉泡米，羊泡
+肉泡羊泡
 
 **[00:20:31.028–00:20:31.348] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
 
@@ -2626,11 +2626,11 @@
 
 **[00:21:00.328–00:21:00.648] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
 
-喜，
+行，
 
 **[00:21:01.128–00:21:04.088] S01 · 待核对：disagreement, needs_review**
 
-会玩在不喜，结果是就是他们两个人就会相互
+会玩在不行，结果是就是他们两个人就会相互
 
 **[00:21:04.168–00:21:04.328] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
 
@@ -2696,79 +2696,79 @@
 
 有。
 
-**[00:21:35.608–00:21:39.368] S02 · 待核对：disagreement, needs_review**
+**[00:21:35.608–00:21:39.368] S02 · 待核对：disagreement**
 
 什么看法，他有什么看法，综合一点是什么
 
-**[00:21:39.368–00:21:39.688] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:21:39.368–00:21:39.688] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 看法，
 
-**[00:21:40.008–00:21:40.088] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:21:40.008–00:21:40.088] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 嗯
 
-**[00:21:40.488–00:21:44.808] S01 · 待核对：disagreement, needs_review**
+**[00:21:40.488–00:21:44.808] S01 · 待核对：disagreement**
 
 起来就是有各有各的特色，让你感觉每个人都有每个的特点，
 
-**[00:21:45.048–00:21:45.208] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:21:45.048–00:21:45.208] S01/S02 · 待核对：disagreement, overlap**
 
 让
 
-**[00:21:45.208–00:21:45.208] S01 · 待核对：disagreement, needs_review, overlap**
+**[00:21:45.208–00:21:45.208] S01 · 待核对：disagreement, overlap**
 
 你
 
-**[00:21:45.368–00:21:47.288] S01 · 待核对：disagreement, needs_review**
+**[00:21:45.368–00:21:47.288] S01 · 待核对：disagreement**
 
 感觉看起来就是非常的新
 
-**[00:21:47.288–00:21:47.368] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:21:47.288–00:21:47.368] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 颖，
 
-**[00:21:47.688–00:21:48.008] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:21:47.688–00:21:48.008] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 对
 
-**[00:21:48.648–00:21:49.448] S02 · 待核对：disagreement, needs_review**
+**[00:21:48.648–00:21:49.448] S02 · 待核对：disagreement**
 
 你吸引这
 
-**[00:21:49.448–00:21:49.768] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:21:49.448–00:21:49.768] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 些，
 
-**[00:21:50.248–00:21:50.968] S02 · 待核对：disagreement, needs_review**
+**[00:21:50.248–00:21:50.968] S02 · 待核对：disagreement**
 
 嗯吸引那
 
-**[00:21:50.968–00:21:51.928] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:21:50.968–00:21:51.928] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 些你
 
-**[00:21:52.568–00:21:53.288] S02 · 待核对：disagreement, needs_review**
+**[00:21:52.568–00:21:53.288] S02 · 待核对：disagreement**
 
 终归属
 
-**[00:21:53.288–00:21:53.608] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:21:53.288–00:21:53.608] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 于
 
-**[00:21:54.088–00:21:54.328] S02 · 待核对：disagreement, needs_review**
+**[00:21:54.088–00:21:54.328] S02 · 待核对：disagreement**
 
 你自
 
-**[00:21:54.328–00:21:54.568] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:21:54.328–00:21:54.568] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 己，
 
-**[00:21:55.448–00:21:55.688] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:21:55.448–00:21:55.688] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 是的
 
-**[00:21:56.088–00:21:59.128] S01 · 待核对：disagreement, needs_review**
+**[00:21:56.088–00:21:59.128] S01 · 待核对：disagreement**
 
 我我跟过一个北方的老师，然后感觉
 
@@ -3256,67 +3256,67 @@
 
 习。
 
-**[00:26:00.343–00:26:00.503] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:26:00.343–00:26:00.503] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 从
 
-**[00:26:01.143–00:26:03.543] S02 · 待核对：disagreement, needs_review**
+**[00:26:01.143–00:26:03.543] S02 · 待核对：disagreement**
 
 呃古代有优秀的传
 
-**[00:26:03.543–00:26:04.503] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:26:03.543–00:26:04.503] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 统留
 
-**[00:26:04.903–00:26:05.223] S02 · 待核对：disagreement, needs_review**
+**[00:26:04.903–00:26:05.223] S02 · 待核对：disagreement**
 
 传承
 
-**[00:26:05.223–00:26:05.703] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:26:05.223–00:26:05.703] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 下来，
 
-**[00:26:06.103–00:26:08.103] S02 · 待核对：disagreement, needs_review**
+**[00:26:06.103–00:26:08.103] S02 · 待核对：disagreement**
 
 把新事物和古老的
 
-**[00:26:08.103–00:26:08.503] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:26:08.103–00:26:08.503] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 事物
 
-**[00:26:08.983–00:26:09.223] S02 · 待核对：disagreement, needs_review**
+**[00:26:08.983–00:26:09.223] S02 · 待核对：disagreement**
 
 相
 
-**[00:26:09.223–00:26:09.543] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:26:09.223–00:26:09.543] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 结合，
 
-**[00:26:09.943–00:26:11.463] S01 · 待核对：disagreement, needs_review**
+**[00:26:09.943–00:26:11.463] S01 · 待核对：disagreement**
 
 新文化和旧文化的碰
 
-**[00:26:11.463–00:26:12.103] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:26:11.463–00:26:12.103] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 撞，对
 
-**[00:26:12.663–00:26:17.223] S01 · 待核对：disagreement, needs_review**
+**[00:26:12.663–00:26:17.223] S01 · 待核对：disagreement**
 
 然后发展成一个比较，又有新文化又有旧文化又带有潮流时
 
-**[00:26:17.223–00:26:18.503] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:26:17.223–00:26:18.503] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 代的即
 
-**[00:26:19.143–00:26:22.023] S01 · 待核对：disagreement, needs_review**
+**[00:26:19.143–00:26:22.023] S01 · 待核对：disagreement**
 
 文学，然后那些遗留下来的什么
 
-**[00:26:22.503–00:26:22.903] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:26:22.503–00:26:22.903] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 呃
 
-**[00:26:23.303–00:26:23.943] S01 · 待核对：disagreement, needs_review**
+**[00:26:23.303–00:26:23.943] S01 · 待核对：disagreement**
 
 句子就
 
@@ -3502,65 +3502,65 @@
 
 **[00:27:52.725–00:28:01.845] S01 · 待核对：disagreement, needs_review**
 
-平，先用一个比较和蔼的，或者说比较热情的形式适应别的不同的文化，即使你自己不喜欢，但是别人你是热情的，是一份心
+平，先用一个比较和蔼的，或者说比较热情的情绪适应别的不同的文化，即使你自己不喜欢，但是别人你是热情的，是一份心
 
 **[00:28:01.925–00:28:02.005] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
 
 意。
 
-**[00:28:03.040–00:28:03.280] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:28:03.040–00:28:03.280] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 是的，
 
-**[00:28:04.080–00:28:04.960] S02 · 待核对：disagreement, needs_review**
+**[00:28:04.080–00:28:04.960] S02 · 待核对：disagreement**
 
 呃各个国
 
-**[00:28:05.040–00:28:05.280] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:28:05.040–00:28:05.280] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 家
 
-**[00:28:05.280–00:28:07.760] S02 · 待核对：disagreement, needs_review**
+**[00:28:05.280–00:28:07.760] S02 · 待核对：disagreement**
 
 的民俗都不一样，也要去尊
 
-**[00:28:08.000–00:28:08.160] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:28:08.000–00:28:08.160] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 敬
 
-**[00:28:08.800–00:28:10.160] S02 · 待核对：disagreement, needs_review**
+**[00:28:08.800–00:28:10.160] S02 · 待核对：disagreement**
 
 他们的国家
 
-**[00:28:10.160–00:28:10.160] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:28:10.160–00:28:10.160] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 的
 
-**[00:28:10.720–00:28:10.880] S02 · 待核对：disagreement, needs_review**
+**[00:28:10.720–00:28:10.880] S02 · 待核对：disagreement**
 
 看
 
-**[00:28:10.960–00:28:11.200] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:28:10.960–00:28:11.200] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 法，
 
-**[00:28:11.840–00:28:18.160] S01 · 待核对：disagreement, needs_review**
+**[00:28:11.840–00:28:18.160] S01 · 待核对：disagreement**
 
 在就是说在文化课上学过说有些国家是不吃猪肉的，你就不能在他们的面前吃
 
-**[00:28:18.160–00:28:18.320] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:28:18.160–00:28:18.320] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 猪
 
-**[00:28:18.320–00:28:20.720] S01 · 待核对：disagreement, needs_review**
+**[00:28:18.320–00:28:20.720] S01 · 待核对：disagreement**
 
 肉，因为这样表示他们对他们不尊
 
-**[00:28:20.720–00:28:20.960] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:28:20.720–00:28:20.960] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 敬，
 
-**[00:28:21.280–00:28:26.720] S01 · 待核对：disagreement, needs_review**
+**[00:28:21.280–00:28:26.720] S01 · 待核对：disagreement**
 
 有些就是风俗习惯就是西餐的礼仪或者说一些见面的方式不一样你要
 
@@ -3652,69 +3652,69 @@
 
 异的。
 
-**[00:29:33.647–00:29:33.887] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:29:33.647–00:29:33.887] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
-是的，
+是的
 
-**[00:29:34.607–00:29:35.647] S02 · 待核对：disagreement, needs_review**
+**[00:29:34.607–00:29:35.647] S02 · 待核对：disagreement**
 
 国家与国
 
-**[00:29:35.647–00:29:35.967] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:29:35.647–00:29:35.967] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 家
 
-**[00:29:36.847–00:29:38.767] S02 · 待核对：disagreement, needs_review**
+**[00:29:36.847–00:29:38.767] S02 · 待核对：disagreement**
 
 交往也是有交流的方
 
-**[00:29:38.767–00:29:39.087] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:29:38.767–00:29:39.087] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 式，
 
-**[00:29:39.487–00:29:41.967] S02 · 待核对：disagreement, needs_review**
+**[00:29:39.487–00:29:41.967] S02 · 待核对：disagreement**
 
 但是你要和平的方式去解
 
-**[00:29:41.967–00:29:42.207] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:29:41.967–00:29:42.207] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 决
 
-**[00:29:42.927–00:29:43.727] S02 · 待核对：disagreement, needs_review**
+**[00:29:42.927–00:29:43.727] S02 · 待核对：disagreement**
 
 的所有的问
 
-**[00:29:43.807–00:29:43.967] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:29:43.807–00:29:43.967] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 题，
 
-**[00:29:44.927–00:29:51.247] S01 · 待核对：disagreement, needs_review**
+**[00:29:44.927–00:29:51.247] S01 · 待核对：disagreement**
 
 他说不是说一味的只说我接受你递过来的，还是说我递给你的，你一定要接受，我们要相
 
-**[00:29:51.327–00:29:51.567] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:29:51.327–00:29:51.567] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 互的
 
-**[00:29:52.207–00:29:53.167] S01 · 待核对：disagreement, needs_review**
+**[00:29:52.207–00:29:53.167] S01 · 待核对：disagreement**
 
 结合在一起，
 
-**[00:29:53.167–00:29:53.327] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:29:53.167–00:29:53.327] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 要
 
-**[00:29:53.807–00:29:54.767] S01 · 待核对：disagreement, needs_review**
+**[00:29:53.807–00:29:54.767] S01 · 待核对：disagreement**
 
 要友好的交
 
-**[00:29:54.767–00:29:55.007] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:29:54.767–00:29:55.007] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
-流。
+流，
 
-**[00:29:55.567–00:29:57.327] S01 · 待核对：disagreement, needs_review**
+**[00:29:55.567–00:29:57.327] S01 · 待核对：disagreement**
 
-是的，我跟你说我喜欢这样，
+是的，我一说我喜欢这样，
 
 **[00:29:57.347–00:29:59.747] S01 · 待核对：disagreement, needs_review**
 

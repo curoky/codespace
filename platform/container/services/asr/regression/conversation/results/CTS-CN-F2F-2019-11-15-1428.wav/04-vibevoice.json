@@ -3,13 +3,28 @@
   "status": "completed",
   "error": null,
   "warnings": [
+    "joint_window_retry:351000:joint boundary alignment failed; cannot deduplicate safely",
     "joint_window_retry:879000:joint boundary alignment failed; cannot deduplicate safely"
   ],
   "segments": [
     {
       "start_ms": 0,
-      "end_ms": 13530,
-      "text": "爱树智慧语音采集，2019年11月9日。最近我们天气做的有点变化，我感觉跟北方天气差不多，白天冷，白天热。",
+      "end_ms": 550,
+      "text": "嗯。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 740,
+      "end_ms": 15410,
+      "text": "爱树智慧语音采集，2019年11月9日。最近我们天气这有点变化，我感觉跟北方天气差不多，白天冷，白天热。晚上呢？",
       "speakers": [
         "S01"
       ],
@@ -23,22 +38,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 14260,
-      "end_ms": 15470,
-      "text": "晚上冷。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 16460,
-      "end_ms": 17380,
+      "start_ms": 16440,
+      "end_ms": 17350,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -53,8 +54,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 17510,
-      "end_ms": 26610,
+      "start_ms": 17500,
+      "end_ms": 26550,
       "text": "这差异，这地理差异真的非常大呀！在以前就读，在地理知识上说过，新疆人就是晚上",
       "speakers": [
         "S01"
@@ -70,7 +71,7 @@
     },
     {
       "start_ms": 27890,
-      "end_ms": 31700,
+      "end_ms": 31670,
       "text": "围着火锅，围着火炉，吃糖，吃西瓜。",
       "speakers": [
         "S01"
@@ -85,8 +86,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 31700,
-      "end_ms": 32310,
+      "start_ms": 31670,
+      "end_ms": 32290,
       "text": "吃西瓜。",
       "speakers": [
         "S02"
@@ -101,8 +102,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 32310,
-      "end_ms": 41520,
+      "start_ms": 32290,
+      "end_ms": 41510,
       "text": "白天那个太阳热的，就会放在，把鸡蛋放在下面，都会蒸熟的那一种。我们这边的天气挺像的呀，一点都不像南方的天气呀。",
       "speakers": [
         "S01"
@@ -117,8 +118,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 41520,
-      "end_ms": 42120,
+      "start_ms": 41510,
+      "end_ms": 42110,
       "text": "对。",
       "speakers": [
         "S02"
@@ -133,9 +134,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 43860,
-      "end_ms": 50740,
-      "text": "说南方就是四季如春，感觉现在不一样了。可能是全球变，天气变暖了吧。",
+      "start_ms": 43850,
+      "end_ms": 50720,
+      "text": "说南方就是四季如春，感觉现在不一样了。可能是全球变，天气变暖了吧？",
       "speakers": [
         "S01"
       ],
@@ -149,9 +150,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 50740,
-      "end_ms": 56970,
-      "text": "对，全球天气变暖了，呃，有地理因素，也有，呃，人为因素。",
+      "start_ms": 50720,
+      "end_ms": 56910,
+      "text": "对，全球变暖了，呃，有地理因素，也有，呃，人为因素。",
       "speakers": [
         "S02"
       ],
@@ -165,9 +166,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 57060,
-      "end_ms": 71470,
-      "text": "是的，人为因素，像些环境污染啊、噪音那些，对大气的影响是挺大的。据行为所学说，我们对一些东西的破坏，就说树木的砍伐那些，都造成了对大自然的伤害。",
+      "start_ms": 57040,
+      "end_ms": 71440,
+      "text": "是的，人为因素，像是环境污染啊、噪音那些，对大气的影响是挺大的。地球温度学说，我们对一些东西的破坏，就说树木的砍伐那些，都造成了对大自然的伤害。",
       "speakers": [
         "S01"
       ],
@@ -182,8 +183,8 @@
     },
     {
       "start_ms": 71680,
-      "end_ms": 79810,
-      "text": "是的，呃，我们砍伐树木，呃，把氧气被梗住了，全球变成",
+      "end_ms": 79780,
+      "text": "是的，呃，我们砍伐树木，呃，把氧气被隔绝了，全球变成",
       "speakers": [
         "S02"
       ],
@@ -197,8 +198,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 79810,
-      "end_ms": 80480,
+      "start_ms": 79780,
+      "end_ms": 80460,
       "text": "二氧化碳。",
       "speakers": [
         "S01"
@@ -213,8 +214,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 80480,
-      "end_ms": 81460,
+      "start_ms": 80460,
+      "end_ms": 81430,
       "text": "二氧化碳了。",
       "speakers": [
         "S02"
@@ -229,8 +230,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 81460,
-      "end_ms": 83870,
+      "start_ms": 81430,
+      "end_ms": 83840,
       "text": "温室效应就开始显现出来了。",
       "speakers": [
         "S01"
@@ -245,8 +246,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 84880,
-      "end_ms": 91250,
+      "start_ms": 84850,
+      "end_ms": 91220,
       "text": "身为一个南方人啊，我就觉得南方天气是非常好的呀，像我们四季有四季分明。",
       "speakers": [
         "S01"
@@ -261,8 +262,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 91250,
-      "end_ms": 92990,
+      "start_ms": 91220,
+      "end_ms": 92940,
       "text": "对，四季分明。",
       "speakers": [
         "S02"
@@ -277,8 +278,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 92990,
-      "end_ms": 103640,
+      "start_ms": 92940,
+      "end_ms": 103590,
       "text": "就各种季节就会有不同的，就有现象，说四季分明，就是说冬天比较寒冷，其他的天气都是比较好的，夏天是酷暑。",
       "speakers": [
         "S01"
@@ -293,8 +294,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 103640,
-      "end_ms": 104690,
+      "start_ms": 103710,
+      "end_ms": 104610,
       "text": "酷暑。",
       "speakers": [
         "S02"
@@ -310,8 +311,8 @@
     },
     {
       "start_ms": 105610,
-      "end_ms": 116600,
-      "text": "现在昨天立冬了，但是我感觉天气还是非常的炎热。晚上可能说，被子要多盖一点，不然就会觉得就着凉了。",
+      "end_ms": 116560,
+      "text": "现在昨天立冬了，但是我感觉天气还是非常的炎热。晚上可能说被子要多盖一点，不然就会觉得就着凉了。",
       "speakers": [
         "S01"
       ],
@@ -325,8 +326,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 117750,
-      "end_ms": 124310,
+      "start_ms": 117740,
+      "end_ms": 124270,
       "text": "就是，呃，早晚多冷。就中午，就白天很热。",
       "speakers": [
         "S02"
@@ -341,8 +342,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 124310,
-      "end_ms": 125860,
+      "start_ms": 124270,
+      "end_ms": 125830,
       "text": "对，早晚温差太大了。",
       "speakers": [
         "S01"
@@ -357,8 +358,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 125860,
-      "end_ms": 130510,
+      "start_ms": 125830,
+      "end_ms": 130460,
       "text": "对，太大了，就是，呃，要保暖。",
       "speakers": [
         "S02"
@@ -373,8 +374,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 132310,
-      "end_ms": 139530,
+      "start_ms": 132300,
+      "end_ms": 139510,
       "text": "北方的天气，他们就是一年四季都是非常的干，就是热的那一种，晚上就会比较凉爽一点。",
       "speakers": [
         "S01"
@@ -389,7 +390,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 139530,
+      "start_ms": 139510,
       "end_ms": 148000,
       "text": "对，凉爽，但是呢，我们这里，呃，冬天呢，呃，又湿冷，北方是",
       "speakers": [
@@ -405,8 +406,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 149960,
-      "end_ms": 159660,
+      "start_ms": 149970,
+      "end_ms": 159630,
       "text": "我在电视上就看见过很多种电视节目啊，旅行的这个电视节目。我感觉北方的人啊，都是特别的豪爽大气的那一种。",
       "speakers": [
         "S01"
@@ -421,8 +422,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 159660,
-      "end_ms": 160470,
+      "start_ms": 159630,
+      "end_ms": 160450,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -437,8 +438,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 160470,
-      "end_ms": 169570,
+      "start_ms": 160450,
+      "end_ms": 169530,
       "text": "而且比较彪悍，不会就说藏着，对江南，没有江南的那种。玉，这种书雅，这种书雅。",
       "speakers": [
         "S01"
@@ -453,8 +454,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 170160,
-      "end_ms": 172580,
+      "start_ms": 170150,
+      "end_ms": 172550,
       "text": "没有，我们南方只有书雅。",
       "speakers": [
         "S02"
@@ -469,8 +470,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 172740,
-      "end_ms": 175940,
+      "start_ms": 172790,
+      "end_ms": 175990,
       "text": "对，也比较那种温和，他们比较霸",
       "speakers": [
         "S01"
@@ -482,104 +483,104 @@
       "tokens": [
         {
           "text": "对，",
-          "start_ms": 172740,
-          "end_ms": 172900,
+          "start_ms": 172790,
+          "end_ms": 172870,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "也",
-          "start_ms": 173300,
-          "end_ms": 173380,
+          "start_ms": 173350,
+          "end_ms": 173430,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "比",
-          "start_ms": 173460,
-          "end_ms": 173540,
+          "start_ms": 173510,
+          "end_ms": 173590,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "较",
-          "start_ms": 173620,
-          "end_ms": 173780,
+          "start_ms": 173590,
+          "end_ms": 173830,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "那",
-          "start_ms": 173780,
-          "end_ms": 173940,
+          "start_ms": 173830,
+          "end_ms": 173910,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "种",
-          "start_ms": 173940,
-          "end_ms": 174180,
+          "start_ms": 173910,
+          "end_ms": 174150,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "温",
-          "start_ms": 174740,
-          "end_ms": 174820,
+          "start_ms": 174710,
+          "end_ms": 174870,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "和，",
-          "start_ms": 174900,
-          "end_ms": 175140,
+          "start_ms": 174870,
+          "end_ms": 175110,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "他",
-          "start_ms": 175300,
-          "end_ms": 175380,
+          "start_ms": 175270,
+          "end_ms": 175430,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "们",
-          "start_ms": 175380,
-          "end_ms": 175460,
+          "start_ms": 175430,
+          "end_ms": 175430,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "比",
-          "start_ms": 175540,
-          "end_ms": 175620,
+          "start_ms": 175590,
+          "end_ms": 175590,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "较",
-          "start_ms": 175620,
-          "end_ms": 175700,
+          "start_ms": 175590,
+          "end_ms": 175750,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "霸",
-          "start_ms": 175780,
-          "end_ms": 175940,
+          "start_ms": 175830,
+          "end_ms": 175990,
           "speakers": [
             "S01"
           ]
@@ -632,7 +633,7 @@
     },
     {
       "start_ms": 181310,
-      "end_ms": 187910,
+      "end_ms": 187890,
       "text": "对，这样的感觉，让人就相处起来就非常好的，就会说，有什么话就会直说。",
       "speakers": [
         "S01"
@@ -647,8 +648,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 187910,
-      "end_ms": 188610,
+      "start_ms": 187890,
+      "end_ms": 188600,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -663,9 +664,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 188610,
+      "start_ms": 188600,
       "end_ms": 200060,
-      "text": "但是不带伤害的，即使说他们说话特别直，有点伤害，但是他也是，不不是下意识的，就是说，不是不意，不下意识的说出来的，对人也没有什么很大的伤害。",
+      "text": "而且不带伤害的，即使说他们说话特别直，有点伤害，但是他也是，不不是下意识的，就是说，是不意，不下意识的说出来的，对人也没有什么很大的伤害。",
       "speakers": [
         "S01"
       ],
@@ -696,8 +697,8 @@
     },
     {
       "start_ms": 200830,
-      "end_ms": 212250,
-      "text": "而且北方人就特别喜欢北方的食品，就是说，特色就非常的好多，特色多。就说，因为他们那边主主管，就是大米、小麦。",
+      "end_ms": 212220,
+      "text": "而且北方人就特别喜欢北方的食品，就是说，特色就非常的好多，特色都就是说，因为他们那边主主管就是大米、小麦。",
       "speakers": [
         "S01"
       ],
@@ -711,8 +712,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 212780,
-      "end_ms": 218230,
+      "start_ms": 212750,
+      "end_ms": 218200,
       "text": "这类的粮食，他们的面食就是说，特别的广，而且特别的著名。",
       "speakers": [
         "S01"
@@ -727,8 +728,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 218800,
-      "end_ms": 233430,
+      "start_ms": 218780,
+      "end_ms": 233400,
       "text": "是的，呃，但我们南方是个以米为为主食，但是，呃，米又分了很多种，米粉，等等等等等等。都有很多。",
       "speakers": [
         "S02"
@@ -743,9 +744,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 235310,
-      "end_ms": 250330,
-      "text": "但北方就说，一些比较地理，比较有些比较显，就是说，有历史的建筑啊，像，京城，北京城，紫禁城，有些北京大学啊，这些古典的学院。",
+      "start_ms": 235260,
+      "end_ms": 250310,
+      "text": "那北方就说，一些比较地理，比较有些比较显，就是说，有历史的建筑啊，像，京城、北京城、紫禁城，还有些北京大学啊，这些古典的学院。",
       "speakers": [
         "S01"
       ],
@@ -759,9 +760,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 250330,
-      "end_ms": 259470,
-      "text": "对，有点像西安的秦始皇那边。洛阳的一些看比较有名的小吃，都是非常受欢迎的。",
+      "start_ms": 250310,
+      "end_ms": 259440,
+      "text": "对，有点像西安的秦始皇那边。洛阳的一些比较有名的小吃，都是非常受欢迎的。",
       "speakers": [
         "S01"
       ],
@@ -775,8 +776,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 259470,
-      "end_ms": 260140,
+      "start_ms": 259440,
+      "end_ms": 260210,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -791,9 +792,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 260710,
-      "end_ms": 266490,
-      "text": "今国庆的时候，是说，天安门广场人都站满了，都是为了去看国旗。",
+      "start_ms": 260700,
+      "end_ms": 266480,
+      "text": "今国庆的时候，据说天安门广场人都站满了，都是为了去看国旗。",
       "speakers": [
         "S01"
       ],
@@ -807,8 +808,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 266660,
-      "end_ms": 273480,
+      "start_ms": 266640,
+      "end_ms": 273620,
       "text": "是，国庆呢，是观国旗，庆祝我们中华人民共和国77大。",
       "speakers": [
         "S02"
@@ -823,7 +824,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 273660,
+      "start_ms": 273620,
       "end_ms": 286810,
       "text": "是的，然后就，长城是非常令人羡向往的一个地方。我没有去爬过长城，我就觉得长城非常的雄伟壮观，很想去体验一次。",
       "speakers": [
@@ -840,7 +841,7 @@
     },
     {
       "start_ms": 286810,
-      "end_ms": 292810,
+      "end_ms": 292790,
       "text": "嗯，体验。我也没体验，我真的也想体验一次。",
       "speakers": [
         "S02"
@@ -855,8 +856,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 292810,
-      "end_ms": 305140,
+      "start_ms": 292790,
+      "end_ms": 305120,
       "text": "因为可能说，有上次是有机会去体验的，因为天气太寒冷了，受不了。觉得可能是那边的，是温度和湿度，很湿度，不适应我们这南方的人。",
       "speakers": [
         "S01"
@@ -871,8 +872,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 305840,
-      "end_ms": 309150,
+      "start_ms": 305810,
+      "end_ms": 309140,
       "text": "南方的人可以去那里吧？",
       "speakers": [
         "S02"
@@ -887,9 +888,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 309810,
-      "end_ms": 312940,
-      "text": "就是说，影响可能就是说，有点到不过来。",
+      "start_ms": 309780,
+      "end_ms": 312910,
+      "text": "那时候影响，可能就说，有点到不过来。",
       "speakers": [
         "S01"
       ],
@@ -903,7 +904,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 312940,
+      "start_ms": 312910,
       "end_ms": 313730,
       "text": "是的。",
       "speakers": [
@@ -919,8 +920,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 315150,
-      "end_ms": 323880,
+      "start_ms": 315120,
+      "end_ms": 323860,
       "text": "但我还是喜欢我们的北方。喜欢北方，因为我觉得那边的人比较胸怀，比较开阔，又比较大气。",
       "speakers": [
         "S01"
@@ -935,8 +936,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 323880,
-      "end_ms": 324880,
+      "start_ms": 323860,
+      "end_ms": 324840,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -951,9 +952,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 324880,
-      "end_ms": 332250,
-      "text": "然后就不用很拘束，学的那种小女孩家，那种拘束，自己想干嘛就干嘛。",
+      "start_ms": 324840,
+      "end_ms": 332230,
+      "text": "然后就不用很拘束，学的那种小女孩家那种拘束，自己想干嘛就干嘛。",
       "speakers": [
         "S01"
       ],
@@ -967,9 +968,25 @@
       "decision": "primary"
     },
     {
-      "start_ms": 334080,
+      "start_ms": 333320,
+      "end_ms": 334040,
+      "text": "是。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 334040,
       "end_ms": 349000,
-      "text": "然后说，古装电视剧都是在北方拍的，感觉那边的就是，古代气息啊，那种韵味就非常的，都在，都存在着，有一种，回顾以前历史的感觉。",
+      "text": "然后说，古装电视剧都是在北方拍的，感觉那边的就是，古代气息啊，那种韵味就非常的，都在，都存在着，有一种回顾以前历史的感觉。",
       "speakers": [
         "S01"
       ],
@@ -983,8 +1000,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 349880,
-      "end_ms": 351800,
+      "start_ms": 349840,
+      "end_ms": 351840,
       "text": "是的。北",
       "speakers": [
         "S02"
@@ -996,24 +1013,24 @@
       "tokens": [
         {
           "text": "是",
-          "start_ms": 349880,
-          "end_ms": 350040,
+          "start_ms": 349840,
+          "end_ms": 350080,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "的。",
-          "start_ms": 350040,
-          "end_ms": 350120,
+          "start_ms": 350080,
+          "end_ms": 350320,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "北",
-          "start_ms": 351640,
-          "end_ms": 351800,
+          "start_ms": 351600,
+          "end_ms": 351840,
           "speakers": [
             "S02"
           ]
@@ -1024,9 +1041,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 351800,
-      "end_ms": 358040,
-      "text": "方是有悠久的历史，但是我们南方就没有啊。",
+      "start_ms": 352000,
+      "end_ms": 358120,
+      "text": "是有悠久的历史，但是我们南方就没有啊。",
       "speakers": [
         "S02"
       ],
@@ -1034,160 +1051,15 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "方",
-          "start_ms": 351800,
-          "end_ms": 352200,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 352440,
-          "end_ms": 353080,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "有",
-          "start_ms": 353400,
-          "end_ms": 353480,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "悠",
-          "start_ms": 353560,
-          "end_ms": 353800,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "久",
-          "start_ms": 353800,
-          "end_ms": 353880,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 353880,
-          "end_ms": 354040,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "历",
-          "start_ms": 354040,
-          "end_ms": 354280,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "史，",
-          "start_ms": 354280,
-          "end_ms": 354520,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "但",
-          "start_ms": 355320,
-          "end_ms": 355400,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 355400,
-          "end_ms": 355880,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 355960,
-          "end_ms": 356120,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "们",
-          "start_ms": 356120,
-          "end_ms": 356280,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "南",
-          "start_ms": 356520,
-          "end_ms": 356680,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "方",
-          "start_ms": 356760,
-          "end_ms": 357000,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "就",
-          "start_ms": 357400,
-          "end_ms": 357560,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "没",
-          "start_ms": 357560,
-          "end_ms": 357720,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "有",
-          "start_ms": 357720,
-          "end_ms": 357800,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "啊。",
-          "start_ms": 357880,
-          "end_ms": 358040,
-          "speakers": [
-            "S02"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
-      "start_ms": 359210,
-      "end_ms": 366210,
-      "text": "就一个，呃，南宋、北宋，就在",
+      "start_ms": 359230,
+      "end_ms": 366180,
+      "text": "就一个，呃，南宋北宋就在",
       "speakers": [
         "S02"
       ],
@@ -1202,7 +1074,7 @@
     },
     {
       "start_ms": 367000,
-      "end_ms": 369050,
+      "end_ms": 369040,
       "text": "隋朝也在南方。",
       "speakers": [
         "S01"
@@ -1217,24 +1089,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 370870,
-      "end_ms": 371690,
-      "text": "嗯。",
-      "speakers": [
-        "S02"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 371790,
-      "end_ms": 382410,
+      "start_ms": 371540,
+      "end_ms": 382430,
       "text": "我觉得南方主要是说是那种文艺一点的气息，原像，嗯，园林啊，苏州的园林和杭州的西湖，都是非常令人向往的。",
       "speakers": [
         "S01"
@@ -1249,8 +1105,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 383580,
-      "end_ms": 386060,
+      "start_ms": 383640,
+      "end_ms": 386110,
       "text": "适合去旅游，四季如春呀！",
       "speakers": [
         "S01"
@@ -1265,7 +1121,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 386060,
+      "start_ms": 386110,
       "end_ms": 386810,
       "text": "是的。",
       "speakers": [
@@ -1281,8 +1137,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 388340,
-      "end_ms": 395610,
+      "start_ms": 388400,
+      "end_ms": 395620,
       "text": "哎，嗯，我们那在，呃，在",
       "speakers": [
         "S02"
@@ -1297,9 +1153,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 396980,
-      "end_ms": 404120,
-      "text": "古建筑的西安，也是一个非常不错的景点。",
+      "start_ms": 397020,
+      "end_ms": 398820,
+      "text": "古建筑的",
       "speakers": [
         "S02"
       ],
@@ -1313,9 +1169,25 @@
       "decision": "primary"
     },
     {
-      "start_ms": 404270,
-      "end_ms": 412820,
-      "text": "是的，景点是很多，现在他们就说旅游的人啊，喜欢去南方旅游。主要是在大理、云南这些地方。",
+      "start_ms": 399870,
+      "end_ms": 404120,
+      "text": "西安也是一个非常不错的景点。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 404310,
+      "end_ms": 412860,
+      "text": "是的，景点是很多，现在他们就说旅游的人啊，喜欢去南方旅游，主要是在大理、云南这些地方。",
       "speakers": [
         "S01"
       ],
@@ -1329,9 +1201,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 412820,
-      "end_ms": 416380,
-      "text": "对，这个也是古建筑啊。",
+      "start_ms": 414110,
+      "end_ms": 416400,
+      "text": "这个也是古建筑啊。",
       "speakers": [
         "S02"
       ],
@@ -1345,8 +1217,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 416380,
-      "end_ms": 420110,
+      "start_ms": 416400,
+      "end_ms": 420140,
       "text": "主要是风景好，人也好，环境比较舒适。",
       "speakers": [
         "S01"
@@ -1361,8 +1233,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 420110,
-      "end_ms": 420910,
+      "start_ms": 420140,
+      "end_ms": 420930,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -1377,9 +1249,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 421560,
-      "end_ms": 432700,
-      "text": "我去过一次的桂林，就说桂林山水甲天下，我感觉桂林就是那种山和水都非常美，感觉身在其中，就是如身如在画中一样。",
+      "start_ms": 421620,
+      "end_ms": 432740,
+      "text": "我去过一次桂林，就说桂林山水甲天下，我感觉桂林就是那种山和水都非常美，感觉身在其中，就是如身如在画中一样。",
       "speakers": [
         "S01"
       ],
@@ -1393,9 +1265,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 433740,
-      "end_ms": 441530,
-      "text": "然后，桂林有个特产叫桂林米粉，他们的米粉就是说非常的好吃，那尝试了一下，还是不错的。",
+      "start_ms": 433780,
+      "end_ms": 448780,
+      "text": "然后，桂林有个特产叫桂林米粉，他们的米粉就是说非常的好吃，但尝试了一下还是不错的。我们湖南还有个洞庭湖，我们湖南省与你之相吗？洞庭湖是非常受人欢迎的。",
       "speakers": [
         "S01"
       ],
@@ -1409,24 +1281,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 442540,
-      "end_ms": 448750,
-      "text": "我们湖南还有个洞庭湖，我们湖南是鱼米之乡嘛，洞庭湖是非常受人欢迎的。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 448750,
-      "end_ms": 449350,
+      "start_ms": 448780,
+      "end_ms": 449400,
       "text": "是。",
       "speakers": [
         "S02"
@@ -1441,8 +1297,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 451940,
-      "end_ms": 459970,
+      "start_ms": 452080,
+      "end_ms": 460010,
       "text": "我们我们对环境有些保护，也有也有坏处。",
       "speakers": [
         "S02"
@@ -1455,9 +1311,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 460660,
-      "end_ms": 471490,
-      "text": "对啊，对啊，现在就说一些地理环境，就对洞庭湖的保护啊，湿地的保护，就说有些可能是以前的人没有意识到，说",
+      "start_ms": 460710,
+      "end_ms": 473040,
+      "text": "对啊，对啊，现在就说一些地理环境，就对洞庭湖的保护啊，湿地的保护就说有些可能是以前的人没有意识到，就对环境的伤害会有",
       "speakers": [
         "S01"
       ],
@@ -1471,9 +1327,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 471490,
+      "start_ms": 473040,
       "end_ms": 478500,
-      "text": "对环境的伤害，会对我们后代会造成什么样的影响，会损害他们，现在的保护意识越来越强。",
+      "text": "对我们后代会造成什么样的影响，会损害他们，现在的保护意识越来越强。",
       "speakers": [
         "S01"
       ],
@@ -1503,9 +1359,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 480420,
-      "end_ms": 491420,
-      "text": "所像我南方人想去北方，最后北方又想去南方。像南方的四川、成都，有重重性的火锅，四川、成都的火锅还",
+      "start_ms": 480460,
+      "end_ms": 491450,
+      "text": "所身为南方人，想去北方，身为北方又想去南方。像南方的四川、成都，有重重庆的火锅，四川成都的火锅，还",
       "speakers": [
         "S01"
       ],
@@ -1519,8 +1375,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 491420,
-      "end_ms": 500090,
+      "start_ms": 491450,
+      "end_ms": 500100,
       "text": "四川本来是吃个吃辣的地方，可能就是适合他们的口味。我每年去游玩的人就非常的多。",
       "speakers": [
         "S01"
@@ -1535,7 +1391,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 500090,
+      "start_ms": 500100,
       "end_ms": 500910,
       "text": "是的。",
       "speakers": [
@@ -1551,7 +1407,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 501080,
+      "start_ms": 501090,
       "end_ms": 505090,
       "text": "而且，四川有我们的保护对象，就是熊猫。",
       "speakers": [
@@ -1568,7 +1424,7 @@
     },
     {
       "start_ms": 505090,
-      "end_ms": 505890,
+      "end_ms": 505900,
       "text": "熊猫。",
       "speakers": [
         "S02"
@@ -1583,8 +1439,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 505890,
-      "end_ms": 507050,
+      "start_ms": 505900,
+      "end_ms": 507080,
       "text": "四川的熊猫。",
       "speakers": [
         "S01"
@@ -1599,8 +1455,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 508560,
-      "end_ms": 519770,
+      "start_ms": 508610,
+      "end_ms": 519790,
       "text": "听起来就让人感觉很，因为熊猫本来就是奥运，就是奥运会的五项级五吉祥物。现在又是我们的保护，然后喜欢它的人又非常的多。",
       "speakers": [
         "S01"
@@ -1615,7 +1471,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 519770,
+      "start_ms": 519790,
       "end_ms": 522410,
       "text": "也是我们国家的保护动物。",
       "speakers": [
@@ -1632,7 +1488,7 @@
     },
     {
       "start_ms": 522410,
-      "end_ms": 523050,
+      "end_ms": 523030,
       "text": "是的。",
       "speakers": [
         "S01"
@@ -1647,8 +1503,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 524500,
-      "end_ms": 526650,
+      "start_ms": 524520,
+      "end_ms": 526570,
       "text": "也是我们国家的象征。",
       "speakers": [
         "S02"
@@ -1661,9 +1517,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 527640,
-      "end_ms": 529000,
-      "text": "",
+      "start_ms": 527300,
+      "end_ms": 528000,
+      "text": "嗯。",
       "speakers": [
         "S01"
       ],
@@ -1898,7 +1754,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 533860,
+      "start_ms": 533870,
       "end_ms": 536910,
       "text": "又可爱活泼。",
       "speakers": [
@@ -1930,7 +1786,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 540280,
+      "start_ms": 540290,
       "end_ms": 549860,
       "text": "虽然说没有，就是说没有去亲身体验过，但是在各种的电视啊，或者平台上，看见过熊猫。都会被它们深深的给吸引住。",
       "speakers": [
@@ -1947,7 +1803,7 @@
     },
     {
       "start_ms": 549860,
-      "end_ms": 550760,
+      "end_ms": 550750,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -1962,7 +1818,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 551900,
+      "start_ms": 551910,
       "end_ms": 557930,
       "text": "然而，北方天气呢，就是适合北，我觉得北方适合冬天去玩，你知道为什么吗？",
       "speakers": [
@@ -1979,7 +1835,7 @@
     },
     {
       "start_ms": 558480,
-      "end_ms": 559430,
+      "end_ms": 559410,
       "text": "不知道。",
       "speakers": [
         "S02"
@@ -1994,9 +1850,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 559430,
+      "start_ms": 559410,
       "end_ms": 571930,
-      "text": "因为北方有哈尔滨啊，哈尔滨是我们的冰城。然后，这的冰雕就会不，就是在冬天的话，它就会零下几十度，就不会冰化。就会，你的冰雕就会在那里，不会倒。",
+      "text": "因为北方有哈尔滨啊，哈尔滨是我们的冰城。然后，做的冰雕就会不，就是在冬天的话，它就会零下几十度，就不会冰化。就会，你的冰雕就会在那里，不会倒。",
       "speakers": [
         "S01"
       ],
@@ -2044,7 +1900,7 @@
     {
       "start_ms": 593430,
       "end_ms": 606120,
-      "text": "是的，现在是不是说没有工作吗？工作的第，有工作以前，我会说打算去去北京游玩一趟，去看看以前说的紫禁城、长城。",
+      "text": "是的，现在是不是说没有工作吗？工作第1，有工作以前，我会说打算去去北京游玩一趟，去看看以前说的紫禁城、长城。",
       "speakers": [
         "S01"
       ],
@@ -2059,8 +1915,8 @@
     },
     {
       "start_ms": 606120,
-      "end_ms": 614320,
-      "text": "这些游玩比较好的地方，就是著名的古典，就是古代唐朝，他们这些朝代建立在这里的，也有。",
+      "end_ms": 614300,
+      "text": "这些游玩比较好的地方，就是著名的古典，就是古代唐朝他们这些朝代建立在这里的，也有。",
       "speakers": [
         "S01"
       ],
@@ -2074,7 +1930,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 614320,
+      "start_ms": 614300,
       "end_ms": 615300,
       "text": "是的。",
       "speakers": [
@@ -2090,9 +1946,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 616840,
+      "start_ms": 616850,
       "end_ms": 623640,
-      "text": "感觉，就是说，听起来，就是说，经常听家人说有多么多么好，没有自己亲身体验过，还是不行。",
+      "text": "感觉就是说，听起来就是说，经常听家人说有多么多么好，没有自己亲身体验过，还是不行。",
       "speakers": [
         "S01"
       ],
@@ -2107,7 +1963,7 @@
     },
     {
       "start_ms": 623640,
-      "end_ms": 627440,
+      "end_ms": 627410,
       "text": "是古代。",
       "speakers": [
         "S02"
@@ -2122,8 +1978,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 628460,
-      "end_ms": 639530,
+      "start_ms": 628470,
+      "end_ms": 639510,
       "text": "我们国家是很有悠久的历史。我们，呃，我们，呃，住在这个地球上，要保护地球环境。",
       "speakers": [
         "S02"
@@ -2138,7 +1994,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 639710,
+      "start_ms": 639740,
       "end_ms": 645410,
       "text": "也要保护我们身边每个动物。是吧？",
       "speakers": [
@@ -2170,7 +2026,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 656510,
+      "start_ms": 656540,
       "end_ms": 666880,
       "text": "北京的书，北北大、清华，它们这些古代的建筑，都是一些留下来的，遗流传，遗传传承下来的，那种风尚也是传承下来的。",
       "speakers": [
@@ -2186,9 +2042,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 667610,
-      "end_ms": 673680,
-      "text": "对我们，就是说，五千年的优秀文化传统，它传下来了，对我们有很大的帮助。",
+      "start_ms": 667630,
+      "end_ms": 673660,
+      "text": "对我们，就是说，5000年的优秀文化传统，它传下来了，对我们有很大的帮助。",
       "speakers": [
         "S01"
       ],
@@ -2202,8 +2058,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 673820,
-      "end_ms": 674610,
+      "start_ms": 673840,
+      "end_ms": 674620,
       "text": "是。",
       "speakers": [
         "S02"
@@ -2218,7 +2074,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 674610,
+      "start_ms": 674620,
       "end_ms": 687400,
       "text": "所以说，我现在弘扬，就是说，要传承古代的优秀传统文化，又要吸收外界的一些优秀的传统文化，中西合璧，才能让我们的中国发展的越来越好。",
       "speakers": [
@@ -2234,7 +2090,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 687900,
+      "start_ms": 687910,
       "end_ms": 699420,
       "text": "不能说，一味的只传承古代的一些愚昧的那些思想，也是说，有好的也有坏的，我们就是要继承好的，而抛，而要抛弃那些坏的，要吸收更多外来的先进的。",
       "speakers": [
@@ -2429,7 +2285,7 @@
     {
       "start_ms": 704200,
       "end_ms": 708520,
-      "text": "越成为一股潮流，一股这种古雅的文化。",
+      "text": "越成为一股潮流，一种古，这种古雅的文化。",
       "speakers": [
         "S01"
       ],
@@ -2503,9 +2359,17 @@
           ]
         },
         {
-          "text": "股",
-          "start_ms": 705720,
+          "text": "种",
+          "start_ms": 705640,
           "end_ms": 705880,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "古，",
+          "start_ms": 706040,
+          "end_ms": 706120,
           "speakers": [
             "S01"
           ]
@@ -2520,7 +2384,7 @@
         },
         {
           "text": "种",
-          "start_ms": 706920,
+          "start_ms": 706840,
           "end_ms": 707160,
           "speakers": [
             "S01"
@@ -2560,7 +2424,7 @@
         },
         {
           "text": "化。",
-          "start_ms": 708360,
+          "start_ms": 708280,
           "end_ms": 708520,
           "speakers": [
             "S01"
@@ -2572,9 +2436,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 708660,
+      "start_ms": 708670,
       "end_ms": 722550,
-      "text": "对，我们不要把自己盲目，所有的我们的古代的知识也要学着现在的创新技术，也要，嗯，把",
+      "text": "对，我们不要把自己盲目，所有的我们的古代的知识，也要学着现在的创新技术，也要，嗯，把",
       "speakers": [
         "S02"
       ],
@@ -2589,8 +2453,8 @@
     },
     {
       "start_ms": 723030,
-      "end_ms": 734580,
-      "text": "我们的环境变好，也要把我们所有学的知识变成运用。保护我们的知识，也要保护我们的环境。",
+      "end_ms": 734570,
+      "text": "我们的环境变好，也要把我们所有学的知识，变成运用保护我们的知识，也要保护我们的环境。",
       "speakers": [
         "S02"
       ],
@@ -2604,7 +2468,7 @@
     {
       "start_ms": 735610,
       "end_ms": 750310,
-      "text": "说北方，还有就是说比较是，呃，最近还不是说3套工业基地都是在北方嘛。然后，特别的，就说对北方的污染，就是有一定影响的，像北京的雾霾那些，就是非常对人的影响就非常的大。",
+      "text": "说北方，还有，就是说比较是，呃，最近还不是说3套工业基地都是在北方嘛。然后，特别的，就是说对北方的污染，就是有一定影响的，像北京的雾霾那些，就是非常对人的影响就非常的大。",
       "speakers": [
         "S01"
       ],
@@ -2619,7 +2483,7 @@
     },
     {
       "start_ms": 751110,
-      "end_ms": 754150,
+      "end_ms": 754170,
       "text": "然后，他们那边的温室效应比我们这边更高。",
       "speakers": [
         "S01"
@@ -2634,7 +2498,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 754150,
+      "start_ms": 754170,
       "end_ms": 755010,
       "text": "是的。",
       "speakers": [
@@ -2651,8 +2515,8 @@
     },
     {
       "start_ms": 755010,
-      "end_ms": 760890,
-      "text": "就说，有时候就走出去一看，那都是灰沉沉的一片，都不知道哪里是哪里。",
+      "end_ms": 760900,
+      "text": "就说，有时候说走出去一看，那都是灰沉沉的，一看都不知道哪里是哪里。",
       "speakers": [
         "S01"
       ],
@@ -2666,9 +2530,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 760890,
+      "start_ms": 760900,
       "end_ms": 767810,
-      "text": "是的。往灰尘里面，都这里看不到，那也看不到。",
+      "text": "是的。往灰尘的里面，都这里看不到，那也看不到。",
       "speakers": [
         "S02"
       ],
@@ -2700,7 +2564,7 @@
     {
       "start_ms": 781640,
       "end_ms": 783930,
-      "text": "2个，就说不连接在一起。",
+      "text": "2个，就是说，不连接在一起。",
       "speakers": [
         "S01"
       ],
@@ -2714,7 +2578,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 785070,
+      "start_ms": 785080,
       "end_ms": 797270,
       "text": "连接一起，南方的水就多，北方的水就不多。我们把南方的水引到北方里去，北方要",
       "speakers": [
@@ -2732,7 +2596,7 @@
     {
       "start_ms": 797270,
       "end_ms": 802910,
-      "text": "电力，或者一些一些燃气啊。对我们北方人，就会有极大的帮助。",
+      "text": "电力，或者一些一些燃气啊，对我们北方人就会有极大的帮助。",
       "speakers": [
         "S01"
       ],
@@ -2764,7 +2628,7 @@
     {
       "start_ms": 803670,
       "end_ms": 814000,
-      "text": "现在说，以前就说是煤，有煤炭烧制的，也是从北方运过来的。天然气这些，让我们的生活就会更加的方便。",
+      "text": "现在说，以前就说是煤，有煤炭烧制的，也是从北方运过来的。现在有天然气这些，让我们的生活就会更加的方便。",
       "speakers": [
         "S01"
       ],
@@ -2778,7 +2642,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 814130,
+      "start_ms": 814150,
       "end_ms": 815040,
       "text": "是的。",
       "speakers": [
@@ -2795,7 +2659,7 @@
     },
     {
       "start_ms": 816260,
-      "end_ms": 823670,
+      "end_ms": 823680,
       "text": "然后说，南北方就是每天都是太阳高照，然后他们的太阳能发电也是非常有先进的。",
       "speakers": [
         "S01"
@@ -2810,7 +2674,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 823670,
+      "start_ms": 823680,
       "end_ms": 827500,
       "text": "对，太阳能发电是最适合环保的。",
       "speakers": [
@@ -2826,8 +2690,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 828160,
-      "end_ms": 830010,
+      "start_ms": 828150,
+      "end_ms": 830030,
       "text": "我们南方也不缺发电的。",
       "speakers": [
         "S01"
@@ -2843,7 +2707,7 @@
     },
     {
       "start_ms": 830380,
-      "end_ms": 832020,
+      "end_ms": 832010,
       "text": "有水发电。",
       "speakers": [
         "S02"
@@ -2858,7 +2722,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 832020,
+      "start_ms": 832010,
       "end_ms": 832590,
       "text": "对呀，是。",
       "speakers": [
@@ -2874,7 +2738,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 833810,
+      "start_ms": 833780,
       "end_ms": 834940,
       "text": "等等啊。",
       "speakers": [
@@ -2890,9 +2754,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 835500,
+      "start_ms": 835460,
       "end_ms": 838590,
-      "text": "所以说，2种结合起来，还是非非常好的。",
+      "text": "所以说，2种结合起来还是非非常好的。",
       "speakers": [
         "S01"
       ],
@@ -2923,7 +2787,7 @@
     },
     {
       "start_ms": 850510,
-      "end_ms": 854290,
+      "end_ms": 854280,
       "text": "说到独特，我觉得南方的水，梯田还是非常不错的。",
       "speakers": [
         "S01"
@@ -2939,7 +2803,7 @@
     },
     {
       "start_ms": 855480,
-      "end_ms": 863650,
+      "end_ms": 863670,
       "text": "这个节约水资源，还有，又很大，又成为一大这种风景区，让人更更加的了解到。",
       "speakers": [
         "S01"
@@ -2954,8 +2818,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 864250,
-      "end_ms": 866800,
+      "start_ms": 864240,
+      "end_ms": 866790,
       "text": "怎么种植水稻？",
       "speakers": [
         "S02"
@@ -2971,7 +2835,7 @@
     },
     {
       "start_ms": 866990,
-      "end_ms": 867790,
+      "end_ms": 867750,
       "text": "是的。",
       "speakers": [
         "S01"
@@ -2986,9 +2850,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 870360,
-      "end_ms": 874460,
-      "text": "而且，我们南方的茶叶，在北方是非常的受欢迎。",
+      "start_ms": 870340,
+      "end_ms": 874450,
+      "text": "而且，我们南方的茶叶在北方是非常的受欢迎。",
       "speakers": [
         "S01"
       ],
@@ -3000,7 +2864,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 874460,
+      "start_ms": 874450,
       "end_ms": 878440,
       "text": "是的。我们南方，各种各样的茶叶。",
       "speakers": [
@@ -3015,8 +2879,8 @@
     },
     {
       "start_ms": 880000,
-      "end_ms": 892200,
-      "text": "北方的茶叶都是由我们南方运过去的。以前他们古代皇帝，就是说，不乏缺茶叶，但是，就是说运输工程就非常的麻烦。从南方到运送到北方。",
+      "end_ms": 892210,
+      "text": "北方的茶叶都是由我们南方运过去的。以前他们古代皇帝就是说，不乏缺茶叶，但是就是说运输工程就非常的麻烦。从南方到运送到北方。",
       "speakers": [
         "S01"
       ],
@@ -3030,7 +2894,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 892310,
+      "start_ms": 892320,
       "end_ms": 893090,
       "text": "是的。",
       "speakers": [
@@ -3110,7 +2974,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 911640,
+      "start_ms": 911650,
       "end_ms": 917530,
       "text": "我们南北有，嗯，有温度差异，也有地理差异。",
       "speakers": [
@@ -3127,7 +2991,7 @@
     },
     {
       "start_ms": 917530,
-      "end_ms": 927280,
+      "end_ms": 927270,
       "text": "是的，因为地理差异，让北方的水果就特别的适适合，就是冬天吃。然后我们南方的水果都是夏季或者秋季。",
       "speakers": [
         "S01"
@@ -3142,9 +3006,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 927540,
+      "start_ms": 927510,
       "end_ms": 939340,
-      "text": "这种2者相互结合起来，有空运、航运或水运，让2者的，就是说，一些物质交换就非常的方便。也让我们吃到了更多以前不敢尝、没有见识过的东西。",
+      "text": "这种2者相互结合起来，有空运、航运或水运，让2者的，就是说，一些物质交换就非常的方便。也让我们吃到了更多以前不敢尝，没有见识过的东西。",
       "speakers": [
         "S01"
       ],
@@ -3255,7 +3119,7 @@
     },
     {
       "start_ms": 997630,
-      "end_ms": 1001230,
+      "end_ms": 1001220,
       "text": "挺好的。但是我们",
       "speakers": [
         "S02"
@@ -3287,7 +3151,7 @@
     },
     {
       "start_ms": 1006720,
-      "end_ms": 1010360,
+      "end_ms": 1010350,
       "text": "是的，所以说，南方是个避暑的地方。",
       "speakers": [
         "S01"
@@ -3303,7 +3167,7 @@
     },
     {
       "start_ms": 1011410,
-      "end_ms": 1016110,
+      "end_ms": 1016100,
       "text": "因为我们这里的山水就非常的好，空气温度适宜。",
       "speakers": [
         "S01"
@@ -3318,8 +3182,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1016110,
-      "end_ms": 1018550,
+      "start_ms": 1016100,
+      "end_ms": 1018540,
       "text": "对，温度适宜，空气也好。",
       "speakers": [
         "S02"
@@ -3335,7 +3199,7 @@
     },
     {
       "start_ms": 1020010,
-      "end_ms": 1028090,
+      "end_ms": 1028060,
       "text": "北方呢，就适合属于那种，适合去吃游玩的地方。因为特色的好吃。",
       "speakers": [
         "S01"
@@ -3367,7 +3231,7 @@
     },
     {
       "start_ms": 1039570,
-      "end_ms": 1040430,
+      "end_ms": 1040410,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -3384,7 +3248,7 @@
     {
       "start_ms": 1041350,
       "end_ms": 1056000,
-      "text": "是一些，就说，就是因为世界的交流，就是互联网的沟通，就说，南方人也去北方。只见识过北方人，也去见南方，见识过，有选择不同地区，从南方进到北方，或者是说，从",
+      "text": "是一些，就说，就是因为世界的交流，就是互联网的沟通，就说，南方人也去北方。只见识过，北方人也去见南方，见识过，有选择不同地区，从南方进到北方，或者是说，从",
       "speakers": [
         "S01"
       ],
@@ -3399,7 +3263,7 @@
     },
     {
       "start_ms": 1055960,
-      "end_ms": 1057320,
+      "end_ms": 1057400,
       "text": "北方定居到南方的。",
       "speakers": [
         "S01"
@@ -3412,15 +3276,15 @@
         {
           "text": "北",
           "start_ms": 1055960,
-          "end_ms": 1056120,
+          "end_ms": 1056200,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "方",
-          "start_ms": 1056120,
-          "end_ms": 1056360,
+          "start_ms": 1056200,
+          "end_ms": 1056440,
           "speakers": [
             "S01"
           ]
@@ -3428,7 +3292,7 @@
         {
           "text": "定",
           "start_ms": 1056440,
-          "end_ms": 1056520,
+          "end_ms": 1056600,
           "speakers": [
             "S01"
           ]
@@ -3452,14 +3316,14 @@
         {
           "text": "南",
           "start_ms": 1056840,
-          "end_ms": 1057000,
+          "end_ms": 1057080,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "方",
-          "start_ms": 1057000,
+          "start_ms": 1057080,
           "end_ms": 1057240,
           "speakers": [
             "S01"
@@ -3468,7 +3332,7 @@
         {
           "text": "的。",
           "start_ms": 1057240,
-          "end_ms": 1057320,
+          "end_ms": 1057400,
           "speakers": [
             "S01"
           ]
@@ -3479,7 +3343,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1058850,
+      "start_ms": 1058820,
       "end_ms": 1064350,
       "text": "这样子，对人，就是说，让人生活中，还有很大的差异，也让人改变了很多。",
       "speakers": [
@@ -3496,7 +3360,7 @@
     },
     {
       "start_ms": 1067990,
-      "end_ms": 1079160,
+      "end_ms": 1079150,
       "text": "不同的，就是说，不同的生活，就是说，有不同的生活习惯，也许说，你是一个很很，就是说，很开放的汉子，也许到了南方，你就会变成很温顺。",
       "speakers": [
         "S01"
@@ -3511,8 +3375,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1079160,
-      "end_ms": 1079850,
+      "start_ms": 1079150,
+      "end_ms": 1079840,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -3527,7 +3391,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1079850,
+      "start_ms": 1079840,
       "end_ms": 1082570,
       "text": "上海男人就是这样子的，什么都会做。",
       "speakers": [
@@ -3576,7 +3440,7 @@
     },
     {
       "start_ms": 1094310,
-      "end_ms": 1099440,
+      "end_ms": 1099430,
       "text": "是的，环境是不同的，呃，影响是非常大的。",
       "speakers": [
         "S02"
@@ -3591,8 +3455,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1099440,
-      "end_ms": 1101280,
+      "start_ms": 1099430,
+      "end_ms": 1101270,
       "text": "但是，差异也是有一些的。",
       "speakers": [
         "S01"
@@ -3607,7 +3471,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1101280,
+      "start_ms": 1101270,
       "end_ms": 1107310,
       "text": "对，有些，呃，我们我们地理上，",
       "speakers": [
@@ -3638,7 +3502,7 @@
     },
     {
       "start_ms": 1117430,
-      "end_ms": 1125640,
+      "end_ms": 1125630,
       "text": "但是，呃，夏天又，夏天白天长，夜晚短，就是夏天的时间。",
       "speakers": [
         "S02"
@@ -3653,7 +3517,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1125730,
+      "start_ms": 1125720,
       "end_ms": 1128780,
       "text": "对，所以说，南方和北方会完全倒过来的。",
       "speakers": [
@@ -3686,7 +3550,7 @@
     },
     {
       "start_ms": 1139940,
-      "end_ms": 1153810,
+      "end_ms": 1153820,
       "text": "对，所以说，这边2年，就是让我们有一个循环的周期，让你四季就感觉都在一个地方。因为南方这边是冬天，你北方那边就是夏天。说，体验2个不同的夏天和2个冬天。",
       "speakers": [
         "S01"
@@ -3718,7 +3582,7 @@
     },
     {
       "start_ms": 1168670,
-      "end_ms": 1170240,
+      "end_ms": 1170230,
       "text": "可以，也是可以。",
       "speakers": [
         "S02"
@@ -3733,7 +3597,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1170240,
+      "start_ms": 1170230,
       "end_ms": 1175130,
       "text": "然后，北，我们南方的水质啊，那些东西，到北方是非常有发展的。",
       "speakers": [
@@ -3749,7 +3613,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1181050,
+      "start_ms": 1181040,
       "end_ms": 1187230,
       "text": "我们南方的水质，去北方种植，也有一定发展。",
       "speakers": [
@@ -3782,7 +3646,7 @@
     },
     {
       "start_ms": 1198380,
-      "end_ms": 1207230,
+      "end_ms": 1207250,
       "text": "如果说这个东西发展过去了，就家家户户都可以自己种。而且，比较种植的范围就比较小，如果说有大的范围，就",
       "speakers": [
         "S01"
@@ -3797,9 +3661,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1207890,
+      "start_ms": 1207250,
       "end_ms": 1220050,
-      "text": "这些吃的一些比较水质的，就是说，没有接触过的东西，也是对很好的。说，不用说，去很远很远的地方，说代购回来，或者干嘛，自己在家里就可以种。",
+      "text": "对这些吃的一些比较水质的，就是说，没有接触过的东西，也是对很好的。说，不用说，去很远很远的地方，说代购回来，或者干嘛，自己在家里就可以种。",
       "speakers": [
         "S01"
       ],
@@ -3814,7 +3678,7 @@
     },
     {
       "start_ms": 1220050,
-      "end_ms": 1220950,
+      "end_ms": 1220930,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -4038,7 +3902,7 @@
     },
     {
       "start_ms": 1341110,
-      "end_ms": 1341940,
+      "end_ms": 1341970,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -4053,7 +3917,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1342260,
+      "start_ms": 1342240,
       "end_ms": 1345940,
       "text": "所以说，跟不同的朋友相处，还是有不同的收获。",
       "speakers": [
@@ -4070,7 +3934,7 @@
     },
     {
       "start_ms": 1345940,
-      "end_ms": 1346690,
+      "end_ms": 1346670,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -4101,22 +3965,6 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1360300,
-      "end_ms": 1362660,
-      "text": "[Environmental Sounds]",
-      "speakers": [],
-      "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
       "start_ms": 1362660,
       "end_ms": 1367510,
       "text": "你在这边企业公司，有遇见不同的人吗？北方的人有吗？",
@@ -4134,7 +3982,7 @@
     },
     {
       "start_ms": 1367510,
-      "end_ms": 1368520,
+      "end_ms": 1368540,
       "text": "没有。",
       "speakers": [
         "S02"
@@ -4149,7 +3997,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1368520,
+      "start_ms": 1368540,
       "end_ms": 1369550,
       "text": "都是南方的。",
       "speakers": [
@@ -4213,8 +4061,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1390430,
-      "end_ms": 1391080,
+      "start_ms": 1390440,
+      "end_ms": 1391090,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -4229,9 +4077,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1391340,
+      "start_ms": 1391350,
       "end_ms": 1403220,
-      "text": "你不要被表面给吓住，也是说北方也有弱，弱弱小小的姑娘，但是她里面的性子显示了，就是非常的开朗，活泼，热情的。有点招架不住。",
+      "text": "你不要被表面给吓住，也是说，北方也有弱，弱弱小小的姑娘，但是她里面的性子，显示的就是非常的开朗，活泼，热情的。有点招架不住。",
       "speakers": [
         "S01"
       ],
@@ -4245,7 +4093,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1403360,
+      "start_ms": 1403350,
       "end_ms": 1407150,
       "text": "就是她把所有的心理话，都往外面说。",
       "speakers": [
@@ -4312,7 +4160,7 @@
     {
       "start_ms": 1407960,
       "end_ms": 1413320,
-      "text": "憋在这里，所以说，自然也活得很开心，很自在。跟他们交朋友，就非常的轻松了。",
+      "text": "逼着自己，所以说，自然也活得很开心，很自在。跟他们交朋友，就非常的轻松了。",
       "speakers": [
         "S01"
       ],
@@ -4322,7 +4170,7 @@
       "channel": null,
       "tokens": [
         {
-          "text": "憋",
+          "text": "逼",
           "start_ms": 1407960,
           "end_ms": 1408040,
           "speakers": [
@@ -4330,7 +4178,7 @@
           ]
         },
         {
-          "text": "在",
+          "text": "着",
           "start_ms": 1408040,
           "end_ms": 1408120,
           "speakers": [
@@ -4338,15 +4186,15 @@
           ]
         },
         {
-          "text": "这",
+          "text": "自",
           "start_ms": 1408120,
-          "end_ms": 1408200,
+          "end_ms": 1408280,
           "speakers": [
             "S01"
           ]
         },
         {
-          "text": "里，",
+          "text": "己，",
           "start_ms": 1408280,
           "end_ms": 1408360,
           "speakers": [
@@ -4499,7 +4347,7 @@
         },
         {
           "text": "朋",
-          "start_ms": 1411960,
+          "start_ms": 1412040,
           "end_ms": 1412200,
           "speakers": [
             "S01"
@@ -4575,7 +4423,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1413340,
+      "start_ms": 1413350,
       "end_ms": 1414070,
       "text": "是的。",
       "speakers": [
@@ -4592,8 +4440,8 @@
     },
     {
       "start_ms": 1417710,
-      "end_ms": 1429170,
-      "text": "我在，就是说，在读书的时候，也有一些不北方的朋友，因为大学生活本来就是来自54汉的嘛。不同的人，就是有不同的经历。",
+      "end_ms": 1429180,
+      "text": "我在，就是说，在读书的时候，也有一些不北方的朋友，因为大学生活本来就是来自五湖四海的嘛。不同的人，就是有不同的经历。",
       "speakers": [
         "S01"
       ],
@@ -4608,8 +4456,8 @@
     },
     {
       "start_ms": 1429840,
-      "end_ms": 1444610,
-      "text": "也许说，他只喜欢，我觉得有些人，就是对我来说，就特别的专一。只喜欢一样东西，就不会再多喜欢其他的东西，就像他们一些人交朋友啊，就是说，我只固定的交你这一个，我跟你玩的最好。",
+      "end_ms": 1444620,
+      "text": "也许说，他只喜欢，我我觉得，有些人就是，对我来说，就特别的专一。只喜欢一样东西，就不会再多喜欢其他的东西，就像他们一些人交朋友啊，就是说，我只固定的交你这一个，我跟你玩的最好。",
       "speakers": [
         "S01"
       ],
@@ -4623,9 +4471,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1444610,
-      "end_ms": 1448840,
-      "text": "但是我不会跟别人玩的很好，我觉得这样的性格还是需要改变一下。",
+      "start_ms": 1444620,
+      "end_ms": 1448850,
+      "text": "但是我不会跟别人玩的很少，我觉得这样的性格还是需要改变一下。",
       "speakers": [
         "S01"
       ],
@@ -4640,8 +4488,8 @@
     },
     {
       "start_ms": 1449210,
-      "end_ms": 1452890,
-      "text": "是的，交朋友是交54汉的。",
+      "end_ms": 1452900,
+      "text": "是的，交朋友是交五湖四海的。",
       "speakers": [
         "S02"
       ],
@@ -4655,9 +4503,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1452890,
+      "start_ms": 1452900,
       "end_ms": 1464040,
-      "text": "对，你不能说，我只是，他就，他们就会觉得我是要摆方人，我不喜欢跟南方人交朋友，因为他们说南方人就是太太内向了，说话文文雅雅的，就太斯文了点，不适合他。",
+      "text": "对，你不能说，我只是，他就，他们就会觉得，我是要摆方人，我不喜欢跟南方人交朋友，因为他们说，南方人就是太太内向了，说话文文雅雅的，就是太斯文了点，不适合他。",
       "speakers": [
         "S01"
       ],
@@ -4672,7 +4520,7 @@
     },
     {
       "start_ms": 1464310,
-      "end_ms": 1464920,
+      "end_ms": 1464910,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -4687,9 +4535,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1464920,
-      "end_ms": 1475240,
-      "text": "他就说，想去交那种粗犷的那种开朗热情的朋友，但是那时候我们这一个人，就是班上的人，差不多都是南方人，就没有北方人。",
+      "start_ms": 1464910,
+      "end_ms": 1475260,
+      "text": "他就说，想去交那种粗犷的那种开朗热情的朋友，但是那时候，我们这一个人，就是班上的人，差不多都是南方人，就没有北方人。",
       "speakers": [
         "S01"
       ],
@@ -4703,9 +4551,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1475240,
-      "end_ms": 1481290,
-      "text": "但是他不可能就是一个人单着嘛，就是在加入我们，才发现其实学习的是挺多的。",
+      "start_ms": 1475260,
+      "end_ms": 1481310,
+      "text": "但是他不可能就是一个人呆着嘛，就是在加入了我们，才发现，其实学习的是挺多的。",
       "speakers": [
         "S01"
       ],
@@ -4719,8 +4567,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1482850,
-      "end_ms": 1483500,
+      "start_ms": 1482880,
+      "end_ms": 1483530,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -4735,9 +4583,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1483800,
-      "end_ms": 1486960,
-      "text": "我们学习的，也从他身上学习的也很多。",
+      "start_ms": 1483810,
+      "end_ms": 1486970,
+      "text": "我们学习的，也从他身上学习的，也很多。",
       "speakers": [
         "S01"
       ],
@@ -4749,9 +4597,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1488810,
-      "end_ms": 1498840,
-      "text": "就说南北差异是有大的，但是我觉得，因为现在这个天气和地理文化差异，就是非常的融合，因为互联网的交通。",
+      "start_ms": 1488830,
+      "end_ms": 1498860,
+      "text": "就说，南北差异是有大的，但是我觉得，因为现在这个天气和地理文化差异，就是非常的融合，又有互联网的交通。",
       "speakers": [
         "S01"
       ],
@@ -4765,9 +4613,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1498840,
+      "start_ms": 1498860,
       "end_ms": 1507930,
-      "text": "觉得是非常，也许以后就会有一些文化或者习俗上的差异，但是也不会大的方面不会太差。",
+      "text": "觉得是非常，也许以后就会有一些文化或者习俗上的差异，但是也不会大的方面，不会太差。",
       "speakers": [
         "S01"
       ],
@@ -4781,9 +4629,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1508260,
-      "end_ms": 1517450,
-      "text": "嗯，是的，嗯，行为上有了差异，但是我们要交流。才有可能的一切。",
+      "start_ms": 1508280,
+      "end_ms": 1517480,
+      "text": "嗯，是的，嗯，行为上有差异，但是我们要交流。才有肯定的一切。",
       "speakers": [
         "S02"
       ],
@@ -4797,7 +4645,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1518210,
+      "start_ms": 1518230,
       "end_ms": 1531680,
       "text": "嗯，就说他们那边的，就是那种传统的思想，就是那种开放的，然后又对他们那边，就有时候就会注重那些文学，就是国语教学，我觉得是非常体面的，可以去尝试一下。",
       "speakers": [
@@ -4813,8 +4661,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1533760,
-      "end_ms": 1535050,
+      "start_ms": 1533810,
+      "end_ms": 1535060,
       "text": "肯定尝试。",
       "speakers": [
         "S02"
@@ -4829,7 +4677,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1535540,
+      "start_ms": 1535560,
       "end_ms": 1547930,
       "text": "因为本来就是古文学，国国学留下来，是给我们自己传承的，但是到了这一代，起了新青年一代，学习的更少，也接触的更少。",
       "speakers": [
@@ -4845,9 +4693,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1548060,
-      "end_ms": 1558730,
-      "text": "现在新中国复，要走富强文明的道路，要新中国复兴，那肯定要把这些东西要拾起来。从一基础的开始学习。",
+      "start_ms": 1548080,
+      "end_ms": 1558740,
+      "text": "现在新中国复，要走富强文明的道路，要有新中国复兴，那肯定要把这些东西要拾起来。从一基础的开始学习。",
       "speakers": [
         "S01"
       ],
@@ -4861,8 +4709,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1559850,
-      "end_ms": 1569590,
+      "start_ms": 1559870,
+      "end_ms": 1569610,
       "text": "从，呃，古代有优秀的传统，就传承下来。把新事物和古老的事物相结合。",
       "speakers": [
         "S02"
@@ -4877,9 +4725,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1569590,
-      "end_ms": 1577430,
-      "text": "新文化和旧文化的碰撞。然后发展成一个比较，又有新文化，又有旧文化，又带有潮流时代的。",
+      "start_ms": 1569610,
+      "end_ms": 1577440,
+      "text": "新文化和旧文化的碰撞。要发展成一个比较，又有新文化，又有旧文化，又带有潮流时代的。",
       "speakers": [
         "S01"
       ],
@@ -4893,9 +4741,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1579160,
-      "end_ms": 1583960,
-      "text": "文学，然后那些遗留下来的什么，呃，质子，这",
+      "start_ms": 1579180,
+      "end_ms": 1583980,
+      "text": "文学，然后那些遗留下来的什么，呃，质子，就",
       "speakers": [
         "S01"
       ],
@@ -4906,136 +4754,136 @@
       "tokens": [
         {
           "text": "文",
-          "start_ms": 1579160,
-          "end_ms": 1579240,
+          "start_ms": 1579180,
+          "end_ms": 1579260,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "学，",
-          "start_ms": 1579240,
-          "end_ms": 1579640,
+          "start_ms": 1579260,
+          "end_ms": 1579580,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "然",
-          "start_ms": 1579640,
-          "end_ms": 1579800,
+          "start_ms": 1579660,
+          "end_ms": 1579740,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "后",
-          "start_ms": 1579800,
-          "end_ms": 1580040,
+          "start_ms": 1579740,
+          "end_ms": 1580060,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "那",
-          "start_ms": 1580200,
-          "end_ms": 1580360,
+          "start_ms": 1580220,
+          "end_ms": 1580380,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "些",
-          "start_ms": 1580360,
-          "end_ms": 1580680,
+          "start_ms": 1580380,
+          "end_ms": 1580700,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "遗",
-          "start_ms": 1580760,
-          "end_ms": 1580840,
+          "start_ms": 1580780,
+          "end_ms": 1580860,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "留",
-          "start_ms": 1580840,
-          "end_ms": 1581080,
+          "start_ms": 1580860,
+          "end_ms": 1581020,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "下",
-          "start_ms": 1581080,
-          "end_ms": 1581240,
+          "start_ms": 1581020,
+          "end_ms": 1581260,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "来",
-          "start_ms": 1581240,
-          "end_ms": 1581320,
+          "start_ms": 1581260,
+          "end_ms": 1581340,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "的",
-          "start_ms": 1581320,
-          "end_ms": 1581480,
+          "start_ms": 1581340,
+          "end_ms": 1581500,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "什",
-          "start_ms": 1581480,
-          "end_ms": 1581640,
+          "start_ms": 1581500,
+          "end_ms": 1581660,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "么，",
-          "start_ms": 1581640,
-          "end_ms": 1581960,
+          "start_ms": 1581660,
+          "end_ms": 1581980,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "呃，",
-          "start_ms": 1582520,
-          "end_ms": 1582920,
+          "start_ms": 1582540,
+          "end_ms": 1582860,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "质",
-          "start_ms": 1583320,
-          "end_ms": 1583560,
+          "start_ms": 1583340,
+          "end_ms": 1583500,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "子，",
-          "start_ms": 1583560,
-          "end_ms": 1583800,
+          "start_ms": 1583580,
+          "end_ms": 1583740,
           "speakers": [
             "S01"
           ]
         },
         {
-          "text": "这",
-          "start_ms": 1583800,
-          "end_ms": 1583960,
+          "text": "就",
+          "start_ms": 1583820,
+          "end_ms": 1583980,
           "speakers": [
             "S01"
           ]
@@ -5409,7 +5257,7 @@
     {
       "start_ms": 1594610,
       "end_ms": 1605180,
-      "text": "和现现在的西药，它们是有各自各有帮助的。每个人说吃药都会毒，但是我打中药和我吃西药和吃中药，又有什么区别的？",
+      "text": "和现现在的西药，它们是有各自各有帮助的。每个人说吃药都会毒，但是我当中药和我吃西药和吃中药，又有什么区别的？",
       "speakers": [
         "S01"
       ],
@@ -5457,7 +5305,7 @@
     {
       "start_ms": 1620350,
       "end_ms": 1634510,
-      "text": "所以说不同南北人，就是说不一定说我看见你就是那种敌对的，而是可以是非常友好的，非常文明的、和谐的。可以一起交朋友。我们说56个民族在一起，那是才是最完美的，缺一不少。",
+      "text": "所以说不同南北人，就是说不一定说我看见你就是那种敌对的，而且可以是非常友好的，非常文明的、和谐的。可以一起交朋友，我们说56个民族在一起，那是才是最完美的，缺一不少。",
       "speakers": [
         "S01"
       ],
@@ -5472,7 +5320,7 @@
     },
     {
       "start_ms": 1634510,
-      "end_ms": 1646830,
+      "end_ms": 1646840,
       "text": "对，每个民族都有独特的发展。但是我们有一个，要团结，才有共同的路可走。",
       "speakers": [
         "S02"
@@ -5520,7 +5368,7 @@
     },
     {
       "start_ms": 1675470,
-      "end_ms": 1682080,
+      "end_ms": 1682110,
       "text": "比较热情的心，去适应别的不同的文化，即使你自己不喜欢，但是别人也是热情的，是因为心意。",
       "speakers": [
         "S01"
@@ -5536,8 +5384,8 @@
     },
     {
       "start_ms": 1682620,
-      "end_ms": 1691190,
-      "text": "是的。呃，各个国家的民俗都不一样，也要去尊敬他们的国家的看法。",
+      "end_ms": 1691180,
+      "text": "是的，呃，各个国家的民俗都不一样，也要去尊敬。他们的国家的看法。",
       "speakers": [
         "S02"
       ],
@@ -5551,9 +5399,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1691450,
+      "start_ms": 1691460,
       "end_ms": 1700970,
-      "text": "在，就是说在文化课上学过，说有些国家是不吃猪肉的，你就不能在他们的面前吃猪肉。因为这样子表示他们对他们不尊敬。",
+      "text": "在，就是说在文化课上学过，说有些国家是不吃猪肉的，你就不能在他们的人面前吃猪肉。因为这样子表示他们对他们不尊敬。",
       "speakers": [
         "S01"
       ],
@@ -5568,8 +5416,8 @@
     },
     {
       "start_ms": 1700970,
-      "end_ms": 1714710,
-      "text": "有些就是风俗习惯，就是说西餐的礼仪，或者说一些健康的方式不一样，你要去学会。去适应也要，如果说去这种旅游之前，要做好一定的攻略，不要去冒冒失失的去打扰别人的。",
+      "end_ms": 1714700,
+      "text": "有些就是风俗习惯，就是说西餐的礼仪，或者说一些见面的方式不一样，你要去学会。去适应也要，如果说去这种旅游之前，要做好一定的攻略，不要去冒冒失失的去打扰别人的。",
       "speakers": [
         "S01"
       ],
@@ -5583,7 +5431,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1714710,
+      "start_ms": 1714700,
       "end_ms": 1722580,
       "text": "的一些古代的这种传传承下来的文化，要这样子会给别人带来一种不适感，或者一种厌厌倦感。",
       "speakers": [
@@ -5600,7 +5448,7 @@
     },
     {
       "start_ms": 1722580,
-      "end_ms": 1723440,
+      "end_ms": 1723450,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -5615,9 +5463,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1724950,
+      "start_ms": 1724940,
       "end_ms": 1736970,
-      "text": "虽然说我们现在是和大学生，就是处于这种学校时间，就是外出的经历比较少见，但是以工作以后，肯定会有许多外出的经历。",
+      "text": "虽然说我们现在是和大学生，就是处于这种学校时间，就是外出的经历比较少见，但是工作以后肯定会有许多外出的经历。",
       "speakers": [
         "S01"
       ],
@@ -5649,7 +5497,7 @@
     {
       "start_ms": 1750680,
       "end_ms": 1759720,
-      "text": "也让，但是我们以后做好攻略以后，也许你就比那里的人，更加熟悉他们那里的环境，让你自己成为也也比较",
+      "text": "也让，但是我们以后做好攻略以后，也许你就比烂的人，更加熟悉他们烂的环境，让你自己成为也也比较",
       "speakers": [
         "S01"
       ],
@@ -5811,17 +5659,9 @@
           ]
         },
         {
-          "text": "那",
+          "text": "烂",
           "start_ms": 1754440,
           "end_ms": 1754680,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "里",
-          "start_ms": 1754680,
-          "end_ms": 1754760,
           "speakers": [
             "S01"
           ]
@@ -5891,16 +5731,8 @@
           ]
         },
         {
-          "text": "那",
+          "text": "烂",
           "start_ms": 1756200,
-          "end_ms": 1756280,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "里",
-          "start_ms": 1756360,
           "end_ms": 1756360,
           "speakers": [
             "S01"
@@ -6489,8 +6321,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1773340,
-      "end_ms": 1784140,
+      "start_ms": 1773310,
+      "end_ms": 1784110,
       "text": "是啊，国家与国家交往也是有交流的方式，但是你要和平的方式去解决。的所有的问题。",
       "speakers": [
         "S02"
@@ -6505,9 +6337,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1784540,
-      "end_ms": 1795160,
-      "text": "还说，不是说一味的只说我接受你递过来的，或者说我递给你的，你一定要接受，我们要相互的结合在一起，要要友好的交流。",
+      "start_ms": 1784530,
+      "end_ms": 1795130,
+      "text": "他说，不是说一味的只说我接受你递过来的，或者说我递给你的，你一定要接受，我们要相互的结合在一起，要要友好的交流。",
       "speakers": [
         "S01"
       ],
@@ -6521,8 +6353,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1795230,
-      "end_ms": 1795850,
+      "start_ms": 1795240,
+      "end_ms": 1795820,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -6537,8 +6369,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1795850,
-      "end_ms": 1805410,
+      "start_ms": 1795820,
+      "end_ms": 1805380,
       "text": "我跟你说，我喜欢这样，你一定要接受，我不喜欢这样，你就不能就不能这么做，我们要相互的融洽，各退一步，互相尊重，这才是最好的。",
       "speakers": [
         "S01"
@@ -6553,8 +6385,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1805750,
-      "end_ms": 1807150,
+      "start_ms": 1805730,
+      "end_ms": 1807120,
       "text": "这是最好的路。",
       "speakers": [
         "S02"
@@ -6569,8 +6401,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1807390,
-      "end_ms": 1807470,
+      "start_ms": 1807360,
+      "end_ms": 1807520,
       "text": "对。",
       "speakers": [
         "S01"
@@ -6582,8 +6414,8 @@
       "tokens": [
         {
           "text": "对。",
-          "start_ms": 1807390,
-          "end_ms": 1807470,
+          "start_ms": 1807360,
+          "end_ms": 1807520,
           "speakers": [
             "S01"
           ]

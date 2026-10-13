@@ -1795,9 +1795,7 @@
       "speakers": [
         "S01"
       ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
+      "flags": [],
       "channel": null,
       "tokens": [],
       "candidates": {},

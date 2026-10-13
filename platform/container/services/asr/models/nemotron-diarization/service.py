@@ -29,7 +29,6 @@ def app() -> FastAPI:
     model.sortformer_modules.chunk_right_context = 40
     model.sortformer_modules.spkcache_update_period = 300
     model._check_streaming_parameters()
-
     service = FastAPI(docs_url=None, redoc_url=None)
     lock = threading.Lock()
 
@@ -38,16 +37,16 @@ def app() -> FastAPI:
         return {"status": "ready"}
 
     @service.post("/diarize")
-    def infer(request: InferenceRequest) -> InferenceResult:
+    def diarize(request: InferenceRequest) -> InferenceResult:
         if request.audio is None:
             raise HTTPException(422, "audio is required")
-        audio_path = Path(request.audio).resolve()
-        if not audio_path.is_relative_to(Path("/data/asr").resolve()) or not audio_path.is_file():
+        path = Path(request.audio).resolve()
+        if not path.is_relative_to(Path("/data/asr")) or not path.is_file():
             raise HTTPException(422, "audio must be a file inside /data/asr")
         with lock:
             # NeMo's file-path loader segfaults in Lhotse 2.0.0a6. The server already
             # normalizes every request to mono 16 kHz PCM, so bypass that loader.
-            audio, rate = sf.read(audio_path, dtype="float32")
+            audio, rate = sf.read(path, dtype="float32")
             if rate != 16000 or audio.ndim != 1:
                 raise ValueError("diarizer expects mono 16 kHz PCM")
             # Each diarize call owns one array and initializes its own streaming cache.

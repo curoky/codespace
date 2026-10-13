@@ -19,7 +19,6 @@ def app() -> FastAPI:
         disable_log=True,
         trust_remote_code=False,
     )
-
     service = FastAPI(docs_url=None, redoc_url=None)
     lock = threading.Lock()
 
@@ -28,15 +27,15 @@ def app() -> FastAPI:
         return {"status": "ready"}
 
     @service.post("/transcribe")
-    def infer(request: InferenceRequest) -> InferenceResult:
+    def transcribe(request: InferenceRequest) -> InferenceResult:
         if request.audio is None:
             raise HTTPException(422, "audio is required")
-        audio_path = Path(request.audio).resolve()
-        if not audio_path.is_relative_to(Path("/data/asr").resolve()) or not audio_path.is_file():
+        path = Path(request.audio).resolve()
+        if not path.is_relative_to(Path("/data/asr")) or not path.is_file():
             raise HTTPException(422, "audio must be a file inside /data/asr")
         with lock:
             # 文件请求之间不共享流式 cache。
-            result = model.generate(input=request.audio, cache={})[0]
+            result = model.generate(input=str(path), cache={})[0]
             return InferenceResult(text=result["text"], raw=result)
 
     return service

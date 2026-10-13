@@ -6,31 +6,31 @@
 
 爱数智慧语音采集，二零一九年十一月三日。
 
-**[00:00:05.502–00:00:18.600] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:00:05.502–00:00:18.600] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 吗？
 
-**[00:00:05.822–00:00:07.262] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:00:05.822–00:00:07.262] S02 · 待核对：disagreement, alignment_failed**
 
 最近最火的电影你看过没有？
 
-**[00:00:07.902–00:00:10.142] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:00:07.902–00:00:10.142] S01 · 待核对：disagreement, alignment_failed**
 
 是那个动漫电影名叫哪吒
 
-**[00:00:10.622–00:00:12.062] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:00:10.622–00:00:12.062] S02 · 待核对：disagreement, alignment_failed**
 
 嗯，哪吒之魔童降世。啊，
 
-**[00:00:12.462–00:00:12.702] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:00:12.462–00:00:12.702] S01 · 待核对：disagreement, alignment_failed**
 
 对啊，
 
-**[00:00:12.862–00:00:13.502] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:00:12.862–00:00:13.502] S02 · 待核对：disagreement, alignment_failed**
 
 那个好火的。
 
-**[00:00:13.822–00:00:17.982] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:00:13.822–00:00:17.982] S01 · 待核对：disagreement, alignment_failed**
 
 对啊，我好像记得它还是破了动漫票房的最高记录吧。
 
@@ -110,27 +110,27 @@
 
 对因为另因为我记得好像是敖丙和，和那个哪吒好像是那
 
-**[00:01:30.960–00:01:33.120] S01 · 待核对：disagreement, needs_review**
+**[00:01:30.960–00:01:33.120] S01 · 待核对：disagreement**
 
 个两个两个灵珠吧，
 
-**[00:01:33.680–00:01:38.640] S02 · 待核对：disagreement, needs_review**
+**[00:01:33.680–00:01:38.640] S02 · 待核对：disagreement**
 
 对一个一个是，反正一个好像是善良的，一个是。
 
-**[00:01:40.500–00:01:46.020] S01 · 待核对：disagreement, needs_review**
+**[00:01:40.500–00:01:46.020] S01 · 待核对：disagreement**
 
 哪吒是，哪吒是那个比较，哪吒是罪恶的，然后敖敖丙是善良的，
 
-**[00:01:46.260–00:01:49.380] S02 · 待核对：disagreement, needs_review**
+**[00:01:46.260–00:01:49.380] S02 · 待核对：disagreement**
 
 本来应该哪吒是善良的吧，但是被换了，
 
-**[00:01:49.700–00:01:49.780] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:01:49.700–00:01:49.780] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 那
 
-**[00:01:50.900–00:01:55.540] S02 · 待核对：disagreement, needs_review**
+**[00:01:50.900–00:01:55.540] S02 · 待核对：disagreement**
 
 里面敖丙都，敖丙还突破了，也突破了以前的一个那个，以前的敖丙都。
 
@@ -190,39 +190,39 @@
 
 像以前也看过一些他的作品，然后还有那个谁啊那个。
 
-**[00:02:28.520–00:02:52.520] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:02:28.520–00:02:52.520] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 个
 
-**[00:02:28.840–00:02:29.000] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:02:28.840–00:02:29.000] S02 · 待核对：disagreement, alignment_failed**
 
 那
 
-**[00:02:29.000–00:02:30.120] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:02:29.000–00:02:30.120] S02 · 待核对：disagreement, alignment_failed**
 
 哪吒他的师傅
 
-**[00:02:30.600–00:02:31.400] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:02:30.600–00:02:31.400] S01 · 待核对：disagreement, alignment_failed**
 
 那那个太乙真人
 
-**[00:02:31.560–00:02:31.960] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:02:31.560–00:02:31.960] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 嘛，对啊我
 
-**[00:02:33.640–00:02:45.240] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:02:33.640–00:02:45.240] S01 · 待核对：disagreement, alignment_failed**
 
 感觉他肥胖，感觉他憨态可掬的样子，还有他走路起来那种，那种稳中带骚的那种感觉真的是，就是是感感觉很好笑
 
-**[00:02:45.720–00:02:49.480] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:02:45.720–00:02:49.480] S02 · 待核对：disagreement, alignment_failed**
 
 他那个体型，一个是搞笑，然后还有就是他那个口音嘛，
 
-**[00:02:49.960–00:02:50.360] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:02:49.960–00:02:50.360] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 他
 
-**[00:02:50.360–00:02:52.760] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:02:50.360–00:02:52.760] S02 · 待核对：disagreement, alignment_failed**
 
 那个四川的口音，说起话来真的好可。
 
@@ -270,19 +270,19 @@
 
 是个外国人吧。
 
-**[00:03:25.680–00:03:30.850] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:03:25.680–00:03:30.850] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 该
 
-**[00:03:26.000–00:03:27.040] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:03:26.000–00:03:27.040] S01 · 待核对：disagreement, alignment_failed**
 
 是个外国人应
 
-**[00:03:27.200–00:03:28.000] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:03:27.200–00:03:28.000] S01 · 待核对：disagreement, alignment_failed**
 
 不应该吧，
 
-**[00:03:28.880–00:03:30.240] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:03:28.880–00:03:30.240] S02 · 待核对：disagreement, alignment_failed**
 
 依稀记得好像是个外国人。
 
@@ -406,11 +406,11 @@
 
 他就做了一些那个。
 
-**[00:05:32.421–00:05:37.781] S01 · 待核对：disagreement, needs_review**
+**[00:05:32.421–00:05:37.781] S01 · 待核对：disagreement**
 
 就是就是逆天逆天逆天行事的那些事情嘛，
 
-**[00:05:38.421–00:05:44.101] S02 · 待核对：disagreement, needs_review**
+**[00:05:38.421–00:05:44.101] S02 · 待核对：disagreement**
 
 嗯然后就是毁坏村庄之类的吧，到处放火，我还记得那个电影情节里。
 
@@ -422,19 +422,19 @@
 
 嗯。
 
-**[00:05:52.190–00:05:57.630] S02 · 待核对：disagreement, needs_review**
+**[00:05:52.190–00:05:57.630] S02 · 待核对：disagreement**
 
 那哪吒这个电影应该获得了很多那个吧，很我觉得很多人都觉得它很好啊，
 
-**[00:05:58.190–00:06:04.110] S01 · 待核对：disagreement, needs_review**
+**[00:05:58.190–00:06:04.110] S01 · 待核对：disagreement**
 
 对啊，然后它在它在那个零一九年那个九月六日嘛，它获
 
-**[00:06:04.110–00:06:04.510] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:06:04.110–00:06:04.510] S01/S02 · 待核对：disagreement, overlap**
 
 得了
 
-**[00:06:04.510–00:06:06.750] S01 · 待核对：disagreement, needs_review**
+**[00:06:04.510–00:06:06.750] S01 · 待核对：disagreement**
 
 那个十二届中国国际漫画。
 
@@ -494,31 +494,31 @@
 
 虽然虽然那个灵珠灵珠搞混有他的错在里面，但是他一直为了那个哪吒。
 
-**[00:07:46.500–00:07:52.900] S02 · 待核对：disagreement, needs_review**
+**[00:07:46.500–00:07:52.900] S02 · 待核对：disagreement**
 
 一直然后还把哪吒收为徒弟啊，一直带着哪吒修炼啊什么的，为了为了让哪吒能够活下去，
 
-**[00:07:53.380–00:07:53.620] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:07:53.380–00:07:53.620] S01/S02 · 待核对：disagreement, overlap**
 
 还你
 
-**[00:07:53.860–00:07:57.940] S01 · 待核对：disagreement, needs_review**
+**[00:07:53.860–00:07:57.940] S01 · 待核对：disagreement**
 
 觉得他在现实中能教会你什么一些什么样的性格什么样的东西呢。
 
-**[00:08:00.000–00:08:03.040] S02 · 待核对：disagreement, needs_review**
+**[00:08:00.000–00:08:03.040] S02 · 待核对：disagreement**
 
 就是学会他的身身性洒脱吧，
 
-**[00:08:03.520–00:08:03.760] S01 · 待核对：disagreement, needs_review**
+**[00:08:03.520–00:08:03.760] S01 · 待核对：disagreement**
 
 嗯
 
-**[00:08:03.920–00:08:07.120] S02 · 待核对：disagreement, needs_review**
+**[00:08:03.920–00:08:07.120] S02 · 待核对：disagreement**
 
 然后他很幽默啊，又不贪恋那种权色啊，
 
-**[00:08:07.440–00:08:23.520] S01 · 待核对：disagreement, needs_review**
+**[00:08:07.440–00:08:23.520] S01 · 待核对：disagreement**
 
 对啊，然后我觉得的话，我觉得我要是能到太乙真人那边学习，我能学习学习一些比较正能量的，比如像那种，那种乐观的，乐观的生活态度，还有那种生活生活激情，生活
 
@@ -530,31 +530,31 @@
 
 而且而且太乙真人他这个形这个角色啊，他是。
 
-**[00:08:34.160–00:08:47.040] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:08:34.160–00:08:47.040] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 啊，
 
-**[00:08:34.480–00:08:35.360] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:08:34.480–00:08:35.360] S02 · 待核对：disagreement, alignment_failed**
 
 有凭有据的。
 
-**[00:08:35.760–00:08:35.840] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:08:35.760–00:08:35.840] S01 · 待核对：disagreement, alignment_failed**
 
 对
 
-**[00:08:36.640–00:08:42.480] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:08:36.640–00:08:42.480] S01 · 待核对：disagreement, alignment_failed**
 
 然后太乙真人他刚开头走的那一段舞蹈是感觉
 
-**[00:08:43.360–00:08:44.640] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:08:43.360–00:08:44.640] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 走秀，诶那对对对，走
 
-**[00:08:45.040–00:08:45.840] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:08:45.040–00:08:45.840] S02 · 待核对：disagreement, alignment_failed**
 
 那个t台。
 
-**[00:08:46.080–00:08:46.320] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:08:46.080–00:08:46.320] S01 · 待核对：disagreement, alignment_failed**
 
 对啊。
 
@@ -706,23 +706,23 @@
 
 为他的武打片都是自己上阵的。
 
-**[00:10:56.530–00:10:58.210] S02 · 待核对：disagreement, needs_review**
+**[00:10:56.530–00:10:58.210] S02 · 待核对：disagreement**
 
 不像现在有的明星，动不动就
 
-**[00:10:59.010–00:10:59.330] S01 · 待核对：disagreement, needs_review**
+**[00:10:59.010–00:10:59.330] S01 · 待核对：disagreement**
 
 提神
 
-**[00:10:59.330–00:11:00.130] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:10:59.330–00:11:00.130] S01/S02 · 待核对：disagreement, overlap**
 
 啊，
 
-**[00:11:00.690–00:11:03.890] S02 · 待核对：disagreement, needs_review**
+**[00:11:00.690–00:11:03.890] S02 · 待核对：disagreement**
 
 啊痛啊，碰到一点点哪里就就不干啊，
 
-**[00:11:04.050–00:11:20.210] S01 · 待核对：disagreement, needs_review**
+**[00:11:04.050–00:11:20.210] S01 · 待核对：disagreement**
 
 哦想起这里我我想到了以前成龙，成龙他不是做了，做了三个，就三个很危险的动作嘛，就是第一个，第一个好像是在，在一个国外的地方，他就拍摄电影嘛，从一个二十八
 
@@ -810,19 +810,19 @@
 
 病啊。
 
-**[00:12:53.320–00:12:53.400] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:12:53.320–00:12:53.400] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 他
 
-**[00:12:53.400–00:12:55.640] S02 · 待核对：disagreement, needs_review**
+**[00:12:53.400–00:12:55.640] S02 · 待核对：disagreement**
 
 受伤这么严重，他应该都是伤疤身上。
 
-**[00:12:56.280–00:13:02.120] S01 · 待核对：disagreement, needs_review**
+**[00:12:56.280–00:13:02.120] S01 · 待核对：disagreement**
 
 对啊，然后没没发现他现在往年都一般都不打武打片，都是接接一些代言嘛。哦
 
-**[00:13:03.160–00:13:06.920] S02 · 待核对：disagreement, needs_review**
+**[00:13:03.160–00:13:06.920] S02 · 待核对：disagreement**
 
 也是哦，他好像都是那种喜剧吧，喜剧式的。
 
@@ -838,15 +838,15 @@
 
 呢个？
 
-**[00:13:18.100–00:13:19.540] S01 · 待核对：disagreement, needs_review**
+**[00:13:18.100–00:13:19.540] S01 · 待核对：disagreement**
 
 那个警察故事
 
-**[00:13:19.940–00:13:21.620] S02 · 待核对：disagreement, needs_review**
+**[00:13:19.940–00:13:21.620] S02 · 待核对：disagreement**
 
 哦警察故事那个系列都是好像，
 
-**[00:13:21.860–00:13:22.900] S01 · 待核对：disagreement, needs_review**
+**[00:13:21.860–00:13:22.900] S01 · 待核对：disagreement**
 
 对还有那个。
 
@@ -1186,39 +1186,39 @@ one，还有一个同年他又是被那
 
 但他应该还是能走。
 
-**[00:18:55.570–00:19:02.530] S01 · 待核对：disagreement, needs_review**
+**[00:18:55.570–00:19:02.530] S01 · 待核对：disagreement**
 
 感觉，嗯，因为因为成因为成成龙的话，成龙的话
 
-**[00:19:03.490–00:19:05.890] S02 · 待核对：disagreement, needs_review**
+**[00:19:03.490–00:19:05.890] S02 · 待核对：disagreement**
 
 他不是普通人，他的那个功夫
 
-**[00:19:05.810–00:19:06.770] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:19:05.810–00:19:06.770] S01/S02 · 待核对：disagreement, overlap**
 
 我们一般
 
-**[00:19:06.770–00:19:07.170] S02 · 待核对：disagreement, needs_review**
+**[00:19:06.770–00:19:07.170] S02 · 待核对：disagreement**
 
 人不能走，
 
-**[00:19:07.170–00:19:07.730] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:19:07.170–00:19:07.730] S01/S02 · 待核对：disagreement, overlap**
 
 他也可以走，
 
-**[00:19:08.050–00:19:14.850] S01 · 待核对：disagreement, needs_review**
+**[00:19:08.050–00:19:14.850] S01 · 待核对：disagreement**
 
 毕毕竟是主角嘛，然后你能跟我我你能跟我说一下那个警察故事三那个超级警察吗？
 
-**[00:19:15.250–00:19:15.410] S02 · 待核对：disagreement, needs_review**
+**[00:19:15.250–00:19:15.410] S02 · 待核对：disagreement**
 
 对
 
-**[00:19:16.290–00:19:16.370] S01 · 待核对：disagreement, needs_review**
+**[00:19:16.290–00:19:16.370] S01 · 待核对：disagreement**
 
 啊
 
-**[00:19:16.930–00:19:17.170] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:19:16.930–00:19:17.170] S01/S02 · 待核对：disagreement, overlap**
 
 我。
 
@@ -1242,43 +1242,43 @@ one，还有一个同年他又是被那
 
 嗯。
 
-**[00:19:40.600–00:20:00.770] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:19:40.600–00:20:00.770] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 么
 
-**[00:19:40.600–00:20:00.770] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:19:40.600–00:20:00.770] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 啊，
 
-**[00:19:40.920–00:19:43.080] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:19:40.920–00:19:43.080] S02 · 待核对：disagreement, alignment_failed**
 
 它还是大陆和香港联合的办，
 
-**[00:19:43.800–00:19:44.440] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:19:43.800–00:19:44.440] S01 · 待核对：disagreement, alignment_failed**
 
 嗯，可以啊，
 
-**[00:19:45.000–00:19:47.080] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:19:45.000–00:19:47.080] S02 · 待核对：disagreement, alignment_failed**
 
 就是想进军我们大陆市场嘛，
 
-**[00:19:47.480–00:19:47.720] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:19:47.480–00:19:47.720] S01 · 待核对：disagreement, alignment_failed**
 
 啊，
 
-**[00:19:48.440–00:19:50.760] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:19:48.440–00:19:50.760] S02 · 待核对：disagreement, alignment_failed**
 
 然后那个里面的反派也特别的出色，
 
-**[00:19:51.160–00:19:55.800] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:19:51.160–00:19:55.800] S01 · 待核对：disagreement, alignment_failed**
 
 嗯，他他那些反派是想是想搞破坏还是怎
 
-**[00:19:55.880–00:19:56.200] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:19:55.880–00:19:56.200] S02 · 待核对：disagreement, alignment_failed**
 
 样？对
 
-**[00:19:56.120–00:20:00.200] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:19:56.120–00:20:00.200] S02 · 待核对：disagreement, alignment_failed**
 
 就是想搞破坏而已，然后打戏特别精彩主要是。
 
@@ -1286,39 +1286,39 @@ one，还有一个同年他又是被那
 
 然后那个大战啊，也是那种大场面的制作，真的小时候看的让人很激动啊。
 
-**[00:20:07.880–00:20:11.640] S02 · 待核对：disagreement, needs_review**
+**[00:20:07.880–00:20:11.640] S02 · 待核对：disagreement**
 
 你说这部功夫电影啊，你们男生应该还还喜欢一个吴京吧，
 
-**[00:20:12.120–00:20:17.000] S01 · 待核对：disagreement, needs_review**
+**[00:20:12.120–00:20:17.000] S01 · 待核对：disagreement**
 
 对啊吴京他是我是吴京，本来我开始不知道他这个人嘛，
 
-**[00:20:17.240–00:20:17.640] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:20:17.240–00:20:17.640] S01/S02 · 待核对：disagreement, overlap**
 
 然后
 
-**[00:20:17.800–00:20:19.880] S01 · 待核对：disagreement, needs_review**
+**[00:20:17.800–00:20:19.880] S01 · 待核对：disagreement**
 
 然后他拍了那个战狼一和那个战
 
-**[00:20:19.880–00:20:20.440] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:20:19.880–00:20:20.440] S01/S02 · 待核对：disagreement, overlap**
 
 狼二，尤其
 
-**[00:20:20.440–00:20:22.280] S01 · 待核对：disagreement, needs_review**
+**[00:20:20.440–00:20:22.280] S01 · 待核对：disagreement**
 
 是战狼二，对
 
-**[00:20:22.680–00:20:24.440] S02 · 待核对：disagreement, needs_review**
+**[00:20:22.680–00:20:24.440] S02 · 待核对：disagreement**
 
 勾起了那种什么爱国情怀
 
-**[00:20:24.920–00:20:25.480] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:20:24.920–00:20:25.480] S01/S02 · 待核对：disagreement, overlap**
 
 那段时间，
 
-**[00:20:25.640–00:20:31.480] S01 · 待核对：disagreement, needs_review**
+**[00:20:25.640–00:20:31.480] S01 · 待核对：disagreement**
 
 然后然后我看到他们他这个打戏打打的很精彩，我又不又不得不想去上
 
@@ -1618,19 +1618,19 @@ one，还有一个同年他又是被那
 
 然后然后你。
 
-**[00:25:24.260–00:25:25.220] S02 · 待核对：disagreement, needs_review**
+**[00:25:24.260–00:25:25.220] S02 · 待核对：disagreement**
 
 那你看过战狼一吗
 
-**[00:25:25.860–00:25:26.340] S01 · 待核对：disagreement, needs_review**
+**[00:25:25.860–00:25:26.340] S01 · 待核对：disagreement**
 
 我没有啊，
 
-**[00:25:26.900–00:25:27.780] S02 · 待核对：disagreement, needs_review**
+**[00:25:26.900–00:25:27.780] S02 · 待核对：disagreement**
 
 没看过战狼一吗，
 
-**[00:25:27.860–00:25:30.900] S01 · 待核对：disagreement, needs_review**
+**[00:25:27.860–00:25:30.900] S01 · 待核对：disagreement**
 
 嗯那你能给我透露一些那个剧情。
 
@@ -1806,27 +1806,27 @@ one，还有一个同年他又是被那
 
 身为一个中国军人，为了国家付出了很多，然后。
 
-**[00:27:44.030–00:27:46.190] S02 · 待核对：disagreement, needs_review**
+**[00:27:44.030–00:27:46.190] S02 · 待核对：disagreement**
 
 嗯，真的爱国这个东西很重要，
 
-**[00:27:46.750–00:27:49.070] S01 · 待核对：disagreement, needs_review**
+**[00:27:46.750–00:27:49.070] S01 · 待核对：disagreement**
 
 嗯，还有一些生活上的态度呢，
 
-**[00:27:49.870–00:27:53.310] S02 · 待核对：disagreement, needs_review**
+**[00:27:49.870–00:27:53.310] S02 · 待核对：disagreement**
 
 生活上就是要不屈不挠，身为一个中国军人嘛，他就是
 
-**[00:27:53.310–00:27:53.790] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:27:53.310–00:27:53.790] S01/S02 · 待核对：disagreement, overlap**
 
 中国军人
 
-**[00:27:53.790–00:27:59.070] S02 · 待核对：disagreement, needs_review**
+**[00:27:53.790–00:27:59.070] S02 · 待核对：disagreement**
 
 就是不屈不挠啊，为了任务啊，牺牲自己啊，那种伟大的情怀吧，
 
-**[00:27:59.470–00:28:07.150] S01 · 待核对：disagreement, needs_review**
+**[00:27:59.470–00:28:07.150] S01 · 待核对：disagreement**
 
 对啊，嗯，我战狼在那部电影感觉一一直坚守着军人一个原则，你知道什么原则吗？就是就是。
 
@@ -1918,19 +1918,19 @@ one，还有一个同年他又是被那
 
 而且它的耗资耗资巨大呀，中外联合打造的，有一流的那种创作队伍和三d技术。
 
-**[00:29:21.510–00:29:24.470] S01 · 待核对：disagreement, needs_review**
+**[00:29:21.510–00:29:24.470] S01 · 待核对：disagreement**
 
 那它在这部电影上是是没下血本嘛，
 
-**[00:29:24.950–00:29:28.630] S02 · 待核对：disagreement, needs_review**
+**[00:29:24.950–00:29:28.630] S02 · 待核对：disagreement**
 
 啊，它这它而且它还原很还原了很真实的战场。
 
-**[00:29:30.036–00:29:35.236] S02 · 待核对：disagreement, needs_review**
+**[00:29:30.036–00:29:35.236] S02 · 待核对：disagreement**
 
 历时七年打造了这种，打造了这样一个中国的传奇故事吧，
 
-**[00:29:35.876–00:29:40.036] S01 · 待核对：disagreement, needs_review**
+**[00:29:35.876–00:29:40.036] S01 · 待核对：disagreement**
 
 嗯，然后嗯他那他有什么有有什么负面评价没有？
 
@@ -1954,27 +1954,27 @@ one，还有一个同年他又是被那
 
 我觉得也有一点点对吧。
 
-**[00:30:04.503–00:30:08.823] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:30:04.503–00:30:08.823] S02 · 待核对：disagreement, alignment_failed**
 
 对吧但是我觉得从大的方向来说吧，
 
-**[00:30:04.803–00:30:28.803] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:30:04.803–00:30:28.803] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 的，
 
-**[00:30:09.623–00:30:09.783] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:30:09.623–00:30:09.783] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 还
 
-**[00:30:09.783–00:30:22.103] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:30:09.783–00:30:22.103] S02 · 待核对：disagreement, alignment_failed**
 
 是非常好的，挑不出那种硬伤的，因而且它的高潮也比较多，大家的观感都比较好，片子是很好的，我觉得从某一方面来说这个片子还是挺好的，
 
-**[00:30:22.903–00:30:24.183] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:30:22.903–00:30:24.183] S01 · 待核对：disagreement, alignment_failed**
 
 某一方面来说现在挺好
 
-**[00:30:24.823–00:30:29.063] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:30:24.823–00:30:29.063] S01 · 待核对：disagreement, alignment_failed**
 
 我也感觉，感觉我我对它的感觉是因为它那个爱国。
 

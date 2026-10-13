@@ -15,6 +15,8 @@ from ops.processes import GPU, GPUUtilization, gpu_utilization, service, visible
 from protocol import InferenceRequest, InferenceResult
 from server.config import Config, ModelInstanceConfig
 
+ModelClient = Callable[[httpx2.AsyncClient, str, InferenceRequest], Awaitable[InferenceResult]]
+
 
 @dataclass
 class Instance:
@@ -23,7 +25,7 @@ class Instance:
     spec: ModelSpec
     url: str
     placement: list[int]
-    client: Callable[[httpx2.AsyncClient, str, InferenceRequest], Awaitable[InferenceResult]]
+    client: ModelClient
     devices: list[str] = field(default_factory=list)
     gpu_indices: list[str] = field(default_factory=list)
     running: bool = False
@@ -59,10 +61,7 @@ class Scheduler:
         self.http = httpx2.AsyncClient(timeout=10, trust_env=False)
         self.cpu = asyncio.Semaphore(config.cpu_requests)
         specs = {spec.id: spec for spec in MODELS}
-        clients: dict[
-            str,
-            Callable[[httpx2.AsyncClient, str, InferenceRequest], Awaitable[InferenceResult]],
-        ] = {}
+        clients: dict[str, ModelClient] = {}
         for spec in MODELS:
             directory = Path(__file__).resolve().parents[1] / "models" / spec.id
             module_spec = importlib.util.spec_from_file_location(
@@ -74,10 +73,7 @@ class Scheduler:
             module = importlib.util.module_from_spec(module_spec)
             sys.modules[module_spec.name] = module
             module_spec.loader.exec_module(module)
-            client = cast(
-                Callable[[httpx2.AsyncClient, str, InferenceRequest], Awaitable[InferenceResult]],
-                module.infer,
-            )
+            client = cast(ModelClient, module.infer)
             clients[spec.id] = client
         for configured in config.resources.instances:
             try:
@@ -111,7 +107,7 @@ class Scheduler:
     def _instance(
         configured: ModelInstanceConfig,
         spec: ModelSpec,
-        client: Callable[[httpx2.AsyncClient, str, InferenceRequest], Awaitable[InferenceResult]],
+        client: ModelClient,
     ) -> Instance:
         return Instance(
             configured.id,

@@ -17,10 +17,20 @@ class ModelSpec:
 MODELS = (
     ModelSpec("firered-llm", "firered", gpus=2, memory_gib=32, max_inflight=2),
     ModelSpec("firered-punc", "firered", gpus=0, memory_gib=0),
-    ModelSpec("firered-vad", "firered", gpus=0, memory_gib=0, max_audio_seconds=86400),
+    ModelSpec(
+        "firered-vad",
+        "firered",
+        gpus=0,
+        memory_gib=0,
+        max_audio_seconds=86400,
+    ),
     ModelSpec("moss-audio", "moss-audio", memory_gib=32, max_inflight=2),
     ModelSpec("moss-td", "moss-td", memory_gib=48, max_audio_seconds=180),
-    ModelSpec("nemotron-diarization", "nemotron", max_audio_seconds=86400),
+    ModelSpec(
+        "nemotron-diarization",
+        "nemotron",
+        max_audio_seconds=86400,
+    ),
     ModelSpec("paraformer", "paraformer", memory_gib=4),
     ModelSpec(
         "pyannote-community-1",
@@ -29,7 +39,12 @@ MODELS = (
         max_audio_seconds=86400,
         num_speakers=True,
     ),
-    ModelSpec("qwen3-aligner", "qwen", memory_gib=8, max_audio_seconds=300),
+    ModelSpec(
+        "qwen3-aligner",
+        "qwen",
+        memory_gib=8,
+        max_audio_seconds=300,
+    ),
     ModelSpec("qwen3-asr-1.7b", "qwen", max_inflight=2, hotwords=True),
     ModelSpec("sensevoice", "sensevoice", memory_gib=4),
     ModelSpec(

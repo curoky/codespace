@@ -2,11 +2,14 @@
   "recipe": "04-vibevoice",
   "status": "completed",
   "error": null,
-  "warnings": [],
+  "warnings": [
+    "joint_window_retry:175000:joint boundary alignment failed; cannot deduplicate safely",
+    "joint_window_retry:527000:joint boundary alignment failed; cannot deduplicate safely"
+  ],
   "segments": [
     {
       "start_ms": 2000,
-      "end_ms": 6550,
+      "end_ms": 6530,
       "text": "爱数智慧云采洁，2019年11月2日。",
       "speakers": [
         "S01"
@@ -21,8 +24,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 11950,
-      "end_ms": 24470,
+      "start_ms": 11920,
+      "end_ms": 24450,
       "text": "我毕业于太原市交通学院，是一个中级类学院。然后，现在在山西交通职业技术学院。",
       "speakers": [
         "S01"
@@ -37,8 +40,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 24810,
-      "end_ms": 31770,
+      "start_ms": 24770,
+      "end_ms": 31750,
       "text": "呃，在新校区里读那个车辆系，你是学哪个专业的，哪个学校毕业的？",
       "speakers": [
         "S01"
@@ -51,8 +54,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 32410,
-      "end_ms": 44450,
+      "start_ms": 32360,
+      "end_ms": 44430,
       "text": "我是在那个金融学院，跟你们离得挺近的，然后我学那个自动化的，我是机械系的。然后，我们系里面男生比较多，然后女生就比较少。",
       "speakers": [
         "S02"
@@ -67,8 +70,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 46470,
-      "end_ms": 59710,
+      "start_ms": 46420,
+      "end_ms": 59690,
       "text": "然后，我学的是车辆系，跟你那个机械系挺都差不多。我们有好几个高中同学都考进了你们金融学院。",
       "speakers": [
         "S01"
@@ -83,8 +86,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 59710,
-      "end_ms": 71210,
+      "start_ms": 59690,
+      "end_ms": 71200,
       "text": "但是，由于我就是高中的时候没有好好学，就没有进入你们学校。就感受一下二本线的大学校园生活。",
       "speakers": [
         "S01"
@@ -99,8 +102,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 71320,
-      "end_ms": 77530,
+      "start_ms": 71200,
+      "end_ms": 77480,
       "text": "你们学校没，你们学校的饭都挺好吃的，你们现在还跑早操吗？",
       "speakers": [
         "S01"
@@ -115,8 +118,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 78080,
-      "end_ms": 90120,
+      "start_ms": 78020,
+      "end_ms": 90100,
       "text": "我们那个啥，早操的话，是大一和大二的跑，大三和大四的已经那个啥。就不需要了，然后我是大四的，所以我现在就可以每天睡懒觉。",
       "speakers": [
         "S02"
@@ -131,8 +134,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 90120,
-      "end_ms": 97370,
+      "start_ms": 90100,
+      "end_ms": 97350,
       "text": "然后，嗯，我们学校其实普通二本的话，跟你们学校也差不多，没什么区别的。",
       "speakers": [
         "S02"
@@ -147,8 +150,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 98100,
-      "end_ms": 103870,
+      "start_ms": 98020,
+      "end_ms": 103830,
       "text": "我们学校大一大二也在跑早操，还有晚自习，我们大二还有晚自习。",
       "speakers": [
         "S01"
@@ -163,8 +166,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 105160,
-      "end_ms": 106280,
+      "start_ms": 105110,
+      "end_ms": 106250,
       "text": "你们真惨。",
       "speakers": [
         "S02"
@@ -177,8 +180,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 108720,
-      "end_ms": 111610,
+      "start_ms": 108670,
+      "end_ms": 111580,
       "text": "你现在是考，准备考研吗？",
       "speakers": [
         "S01"
@@ -193,8 +196,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 111710,
-      "end_ms": 123370,
+      "start_ms": 111640,
+      "end_ms": 123330,
       "text": "我不考研，然后我现在正在找工作，做一些兼职，先挣点钱再说吧。然后，考研、考公那些我都不干。",
       "speakers": [
         "S02"
@@ -209,8 +212,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 123370,
-      "end_ms": 129430,
+      "start_ms": 123330,
+      "end_ms": 129400,
       "text": "那你们就是可以从，就是从事什什什么样的职业？",
       "speakers": [
         "S01"
@@ -225,8 +228,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 129930,
-      "end_ms": 142930,
+      "start_ms": 129870,
+      "end_ms": 142890,
       "text": "嗯，我们可以就是去工厂里面当那些调设备的那种调试员。或者是，就是当那个老师，专科里面的老师啥的。",
       "speakers": [
         "S02"
@@ -241,9 +244,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 143640,
-      "end_ms": 153950,
-      "text": "专科里面老师可还行啊，那个就是你们班儿其他男生跟你们干的都一样吗？就找工作那些的。",
+      "start_ms": 143580,
+      "end_ms": 153910,
+      "text": "专科里面老师可还行啊？那个，就是你们班儿其他男生跟你们干的都一样吗？就找工作那些的。",
       "speakers": [
         "S01"
       ],
@@ -257,9 +260,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 154640,
-      "end_ms": 168090,
-      "text": "应该不一样吧，他们其实我们这个专业的话，对，嗯，男生要的挺多的，女生她一般要的很少。然后，我们这个专业的女生，像我们的学姐",
+      "start_ms": 154580,
+      "end_ms": 167990,
+      "text": "应该不一样吧，他们其实我们这个专业的话，对，嗯，男生要的挺多的，女生她一般要的很少。然后，我们这个专业的女生，像我们的学姐，",
       "speakers": [
         "S02"
       ],
@@ -273,8 +276,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 168140,
-      "end_ms": 175470,
+      "start_ms": 168090,
+      "end_ms": 175430,
       "text": "也基本80%、90%都那个啥转业。不是我们这个行业的人了。",
       "speakers": [
         "S02"
@@ -289,9 +292,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 176050,
-      "end_ms": 188830,
-      "text": "那跟我们一样，我们学这个车辆，就是汽水，差不多也是跟你们类似。不过，我们就男生比较多，然后那女生就特别少。",
+      "start_ms": 176000,
+      "end_ms": 188680,
+      "text": "那跟我们一样，我们学这个车辆，就其实也差不多，也是跟你们类似。不过，我们就男生比较多，然后那女生就特别少。",
       "speakers": [
         "S01"
       ],
@@ -305,9 +308,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 189510,
-      "end_ms": 199830,
-      "text": "一个系能有30个女生吧，差不多，然后我们系是个大系。前2天跟工程系给分开了。",
+      "start_ms": 189370,
+      "end_ms": 199680,
+      "text": "1个系能有30个女生吧，差不多，然后我们系是个大系。前2年跟工程系给分开了。",
       "speakers": [
         "S01"
       ],
@@ -321,9 +324,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 202180,
-      "end_ms": 214610,
-      "text": "那就是，我们我们原先叫车辆工程系，是一个大系，然后就就2个系，挺多人的，就是我们学校的，就特别大，特特别特别大，一个系。",
+      "start_ms": 201990,
+      "end_ms": 214470,
+      "text": "那就是，我们我们原先叫车辆工程系，是一个大系，然后就就2个系，挺多人的，就是我们学校的，就特别大，特特别特别大，1个系。",
       "speakers": [
         "S01"
       ],
@@ -337,8 +340,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 214850,
-      "end_ms": 223330,
+      "start_ms": 214710,
+      "end_ms": 223180,
       "text": "那个系，那个系，工程系，现在在旧校区。他们学的跟你们一样，然后里里面就是",
       "speakers": [
         "S01"
@@ -353,9 +356,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 223810,
-      "end_ms": 235940,
-      "text": "机械和一些制图，其他的，我们像，给给就给我们分开了，我们就只工只学一些车辆方面的，我觉得你们那个",
+      "start_ms": 223660,
+      "end_ms": 235820,
+      "text": "机械和一些制图，其他的，我们像，我们给给，就给我们分开了，我们就只工只学一些车辆方面的，我觉得你们那个",
       "speakers": [
         "S01"
       ],
@@ -369,8 +372,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 236610,
-      "end_ms": 242790,
+      "start_ms": 236480,
+      "end_ms": 242610,
       "text": "学校挺好的，你们你们机械系是不是还得穿那，穿那个迷彩上课？",
       "speakers": [
         "S01"
@@ -385,8 +388,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 243060,
-      "end_ms": 256080,
+      "start_ms": 242910,
+      "end_ms": 255940,
       "text": "嗯，我们机械系，像我们机资和工艺的话，哎，还有我们自动化，都需要那个实习。就是磨锤子、钳工、精工那些，都需要嘛，还有像我们的话，还有电工。",
       "speakers": [
         "S02"
@@ -401,9 +404,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 256200,
-      "end_ms": 267720,
-      "text": "然后，然后，我们我们系的话，有3个专业，就我们这一届。有那个机械制造、机器自动化，还有工艺，还有自动化。",
+      "start_ms": 256060,
+      "end_ms": 267580,
+      "text": "然后，然后，我们我们系的话，有3个专业，就我们这一届。有那个机械制造、机械自动化，还有工艺，还有自动化。",
       "speakers": [
         "S02"
       ],
@@ -417,9 +420,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 267720,
-      "end_ms": 277520,
-      "text": "然后，像去年的话，它多了几个其他专业，有那个啥，轨道。好像也有你们这个车辆。",
+      "start_ms": 267580,
+      "end_ms": 277840,
+      "text": "然后，像去年的话，它多了几个其他专业，有那个啥，轨道。好像也有你们这个车辆工程。",
       "speakers": [
         "S02"
       ],
@@ -433,9 +436,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 279310,
-      "end_ms": 286510,
-      "text": "对，我我几，我那几个同学，应该是，就是考考进，就是专业考，就是你们学校里面的车辆工程。",
+      "start_ms": 279180,
+      "end_ms": 286380,
+      "text": "对，我我几，我那几个同学，应该是就是考考进，就是专业考，就是你们学校里面的车辆工程。",
       "speakers": [
         "S01"
       ],
@@ -449,8 +452,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 286790,
-      "end_ms": 289160,
+      "start_ms": 286660,
+      "end_ms": 289020,
       "text": "那挺好呀，我的学弟。",
       "speakers": [
         "S02"
@@ -465,8 +468,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 290940,
-      "end_ms": 294280,
+      "start_ms": 290810,
+      "end_ms": 294160,
       "text": "那你们系，你们学校有哪哪几个系呢？",
       "speakers": [
         "S01"
@@ -481,8 +484,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 294750,
-      "end_ms": 305450,
+      "start_ms": 294610,
+      "end_ms": 305330,
       "text": "我们学校还有那个经管系，它是比较好的那个专业。然后，还有文学，还有英语系。",
       "speakers": [
         "S02"
@@ -497,9 +500,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 305700,
-      "end_ms": 317210,
-      "text": "还有生物，还有化学、数学、信工。其他系呢，也都挺好的，然后我感觉体育系的男生比较帅。",
+      "start_ms": 305560,
+      "end_ms": 320240,
+      "text": "还有生物，还有化学、数学、信工，其他系呢，也都挺好的。然后，我感觉体育系的男生比较帅，然后那个经管系的女生",
       "speakers": [
         "S02"
       ],
@@ -513,9 +516,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 317210,
-      "end_ms": 330770,
-      "text": "然后，那个经管系的女生就学习特别努力。她们每天都起得非常早，回去也很晚。然后，她们那个学习氛围比我们强很多。",
+      "start_ms": 320240,
+      "end_ms": 330640,
+      "text": "就学习特别努力，她们每天都起得非常早，回去也很晚。然后，她们那个学习氛围比我们强很多。",
       "speakers": [
         "S02"
       ],
@@ -529,8 +532,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 330770,
-      "end_ms": 331990,
+      "start_ms": 330640,
+      "end_ms": 331840,
       "text": "那有舞蹈系吗？",
       "speakers": [
         "S01"
@@ -545,8 +548,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 332520,
-      "end_ms": 335390,
+      "start_ms": 332400,
+      "end_ms": 335250,
       "text": "舞蹈没有系，但是应该有这个专业。",
       "speakers": [
         "S02"
@@ -561,9 +564,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 335580,
-      "end_ms": 337540,
-      "text": "跟音乐系是一个专业吧？",
+      "start_ms": 335440,
+      "end_ms": 337410,
+      "text": "跟音乐系是一个专业吗？",
       "speakers": [
         "S01"
       ],
@@ -577,8 +580,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 337540,
-      "end_ms": 343550,
+      "start_ms": 337410,
+      "end_ms": 343420,
       "text": "应该是这样子的，你有认识的人吗？哦，那挺好，应该很有气质。",
       "speakers": [
         "S02"
@@ -593,8 +596,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 344040,
-      "end_ms": 351400,
+      "start_ms": 343520,
+      "end_ms": 352000,
       "text": "还行吧，我前女友就是音乐系的。那个，现在她去和顺去支教了。",
       "speakers": [
         "S01"
@@ -603,216 +606,31 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "还",
-          "start_ms": 344040,
-          "end_ms": 344120,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "行",
-          "start_ms": 344120,
-          "end_ms": 344360,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "吧，",
-          "start_ms": 344360,
-          "end_ms": 344600,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 344680,
-          "end_ms": 344840,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "前",
-          "start_ms": 344920,
-          "end_ms": 345160,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "女",
-          "start_ms": 345160,
-          "end_ms": 345240,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "友",
-          "start_ms": 345240,
-          "end_ms": 345400,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "就",
-          "start_ms": 345400,
-          "end_ms": 345480,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 345480,
-          "end_ms": 345880,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "音",
-          "start_ms": 345960,
-          "end_ms": 346040,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "乐",
-          "start_ms": 346040,
-          "end_ms": 346200,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "系",
-          "start_ms": 346200,
-          "end_ms": 346360,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "的。",
-          "start_ms": 346360,
-          "end_ms": 346440,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "那",
-          "start_ms": 347400,
-          "end_ms": 347560,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "个，",
-          "start_ms": 347560,
-          "end_ms": 347800,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "现",
-          "start_ms": 348360,
-          "end_ms": 348600,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "在",
-          "start_ms": 348600,
-          "end_ms": 348680,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "她",
-          "start_ms": 348680,
-          "end_ms": 348760,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "去",
-          "start_ms": 348760,
-          "end_ms": 349560,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "和",
-          "start_ms": 350120,
-          "end_ms": 350440,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "顺",
-          "start_ms": 350440,
-          "end_ms": 350680,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "去",
-          "start_ms": 350680,
-          "end_ms": 350840,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "支",
-          "start_ms": 350840,
-          "end_ms": 351000,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "教",
-          "start_ms": 351000,
-          "end_ms": 351160,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "了。",
-          "start_ms": 351160,
-          "end_ms": 351400,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
-      "start_ms": 352310,
-      "end_ms": 353090,
+      "start_ms": 352400,
+      "end_ms": 353110,
       "text": "就是。",
+      "speakers": [
+        "S01"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 353110,
+      "end_ms": 353650,
+      "text": "哦。",
       "speakers": [
         "S02"
       ],
@@ -826,7 +644,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 353540,
+      "start_ms": 353650,
       "end_ms": 360750,
       "text": "就是，你们师范类，师范类专业的，都要去那个，都大三，今年都要去支教。",
       "speakers": [
@@ -842,9 +660,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 361330,
-      "end_ms": 373650,
-      "text": "对，他们学那个师范类的，基本都要出去支教，像我们不是师范类的，是去实习。学校里面会统一安排，那你们学校有什么专业呢？",
+      "start_ms": 361320,
+      "end_ms": 373630,
+      "text": "对，他们学那个师范类的，基本都要出去支教，像我们不是师范类的，是去实习。支教里面会统一安排，那你们学校有什么专业呢？",
       "speakers": [
         "S02"
       ],
@@ -858,9 +676,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 373650,
-      "end_ms": 384100,
-      "text": "我们学校有，就，工物系。还有，信息，信息系，还有那个，工程和车辆。",
+      "start_ms": 373630,
+      "end_ms": 384110,
+      "text": "我们学校有，就，工路系。还有，信息，信息系，还有那个，工程和车辆。",
       "speakers": [
         "S01"
       ],
@@ -875,7 +693,7 @@
     },
     {
       "start_ms": 387310,
-      "end_ms": 394140,
+      "end_ms": 394150,
       "text": "还有，也有经管系，不过我们那个经管系是专科类的，跟你们本科比不了，那个啥，我们，",
       "speakers": [
         "S01"
@@ -890,8 +708,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 394960,
-      "end_ms": 408430,
+      "start_ms": 394930,
+      "end_ms": 408440,
       "text": "我们实训的时候，呃，也得要，就是，打磨一些，呃，量具。还有，整车实训，就是在车上整那些，呃，",
       "speakers": [
         "S01"
@@ -906,7 +724,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 409870,
+      "start_ms": 409880,
       "end_ms": 424380,
       "text": "在车上整车实训。就，四轮定位，或者是，二级维护，一些简单的维护训练项目。对，我们以后在4S店，或者是在一些企业里边，",
       "speakers": [
@@ -939,8 +757,8 @@
     },
     {
       "start_ms": 431880,
-      "end_ms": 446810,
-      "text": "我们学校的饭，被誉为，就是，这附近几个学校里面，最好吃的食堂的饭。然后，我们学校食堂的饭的话，有很多种类，然后，我比较推荐的是，有一个重庆鸡公煲。",
+      "end_ms": 442280,
+      "text": "我们学校的饭，被誉为，就是，这附近几个学校里面，最好吃的食堂的饭。然后，我们学校食堂的饭的话，有很多种类。",
       "speakers": [
         "S02"
       ],
@@ -954,9 +772,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 446810,
-      "end_ms": 458060,
-      "text": "那个很好吃，然后，我们还有一个那种主题餐厅，在西餐的2层。那个餐厅，挺高大上吧，挺好的。",
+      "start_ms": 442280,
+      "end_ms": 455520,
+      "text": "然后，我比较推荐的是，有一个重庆鸡公煲，那个很好吃。然后，我们还有一个那种主题餐厅，在西餐的2层，那个餐厅挺，",
       "speakers": [
         "S02"
       ],
@@ -970,9 +788,25 @@
       "decision": "primary"
     },
     {
-      "start_ms": 458470,
-      "end_ms": 464220,
-      "text": "在那个西区那边儿，是不是还有小吃街，还有东区那边儿？",
+      "start_ms": 455640,
+      "end_ms": 458080,
+      "text": "高大上吧，挺好的。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 458490,
+      "end_ms": 464230,
+      "text": "在那个西区那边儿，是不是还有小区街，还有东区那边儿？",
       "speakers": [
         "S01"
       ],
@@ -986,7 +820,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 464500,
+      "start_ms": 464510,
       "end_ms": 474380,
       "text": "对，然后，嗯，那个，就是，有一个服务中心吧，里面的那些，小吃也非常的好吃，你可以去看一看。",
       "speakers": [
@@ -1002,9 +836,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 475320,
-      "end_ms": 488070,
-      "text": "然后，嗯，我们学校里面的，设施那些，都比较齐全，像，可以租衣服啊，什么的。就像其他学校都没有的。",
+      "start_ms": 475330,
+      "end_ms": 488080,
+      "text": "然后，嗯，我们学校里面的设施那些，都比较齐全。像，可以租衣服啊，什么的，就像其他学校都没有的。",
       "speakers": [
         "S02"
       ],
@@ -1018,9 +852,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 488650,
-      "end_ms": 501820,
-      "text": "对，你们学校特别，主要是，你们学校晚上，那个，那个，路灯特别亮，然后，就是，每天滑滑板的时候，你们那个过障碍物的时候，都都能看清楚，就，",
+      "start_ms": 488680,
+      "end_ms": 501830,
+      "text": "对，你们学校特别，主要是，你们学校晚上那个，那个，路灯特别亮，然后，就是，每天滑滑板的时候，你们那个过障碍物的时候，都都能看清楚，就，",
       "speakers": [
         "S01"
       ],
@@ -1034,9 +868,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 502390,
-      "end_ms": 511140,
-      "text": "没，我们学校那么暗，我们学校可能是为了省钱，就把所有的路灯全给撤了，就晚上没有路灯。",
+      "start_ms": 502410,
+      "end_ms": 511150,
+      "text": "没我们学校那么暗，我们学校可能是为了省钱，就把所有的路灯全给撤了，就晚上没有路灯。",
       "speakers": [
         "S01"
       ],
@@ -1050,7 +884,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 512470,
+      "start_ms": 512490,
       "end_ms": 516560,
       "text": "对，黑乎乎的一片。你们学校，",
       "speakers": [
@@ -1067,7 +901,7 @@
     },
     {
       "start_ms": 517710,
-      "end_ms": 521450,
+      "end_ms": 521470,
       "text": "你们学校北门儿那边儿，是不是有那个图书馆了？",
       "speakers": [
         "S01"
@@ -1082,9 +916,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 521870,
-      "end_ms": 527630,
-      "text": "对呀，我还在里面那个啥，当图书管理员呢，然后，我们图书馆前面有一个，大",
+      "start_ms": 521570,
+      "end_ms": 527330,
+      "text": "对呀，我还在里面那个啥，当图书管理员呢，然后，我们图书馆前面有一个，",
       "speakers": [
         "S02"
       ],
@@ -1092,289 +926,15 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "对",
-          "start_ms": 521870,
-          "end_ms": 522030,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "呀，",
-          "start_ms": 522030,
-          "end_ms": 522190,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 522190,
-          "end_ms": 522350,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "还",
-          "start_ms": 522350,
-          "end_ms": 522510,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "在",
-          "start_ms": 522510,
-          "end_ms": 522750,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "里",
-          "start_ms": 522750,
-          "end_ms": 522910,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "面",
-          "start_ms": 522910,
-          "end_ms": 523150,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "那",
-          "start_ms": 523150,
-          "end_ms": 523230,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "个",
-          "start_ms": 523230,
-          "end_ms": 523390,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "啥，",
-          "start_ms": 523390,
-          "end_ms": 523710,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "当",
-          "start_ms": 523710,
-          "end_ms": 524030,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "图",
-          "start_ms": 524030,
-          "end_ms": 524270,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "书",
-          "start_ms": 524190,
-          "end_ms": 524270,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "管",
-          "start_ms": 524270,
-          "end_ms": 524430,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "理",
-          "start_ms": 524430,
-          "end_ms": 524510,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "员",
-          "start_ms": 524510,
-          "end_ms": 524750,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "呢，",
-          "start_ms": 524750,
-          "end_ms": 524910,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "然",
-          "start_ms": 525390,
-          "end_ms": 525470,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "后，",
-          "start_ms": 525470,
-          "end_ms": 525550,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 525550,
-          "end_ms": 525710,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "们",
-          "start_ms": 525710,
-          "end_ms": 525870,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "图",
-          "start_ms": 525870,
-          "end_ms": 526030,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "书",
-          "start_ms": 526030,
-          "end_ms": 526030,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "馆",
-          "start_ms": 526030,
-          "end_ms": 526190,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "前",
-          "start_ms": 526270,
-          "end_ms": 526510,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "面",
-          "start_ms": 526510,
-          "end_ms": 526670,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "有",
-          "start_ms": 526670,
-          "end_ms": 526830,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "一",
-          "start_ms": 526830,
-          "end_ms": 526910,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "个，",
-          "start_ms": 526910,
-          "end_ms": 527310,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "大",
-          "start_ms": 527550,
-          "end_ms": 527630,
-          "speakers": [
-            "S02"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
-      "start_ms": 527880,
-      "end_ms": 528120,
-      "text": "大的。",
-      "speakers": [
-        "S02"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [
-        {
-          "text": "大",
-          "start_ms": 527880,
-          "end_ms": 528120,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "的。",
-          "start_ms": 528120,
-          "end_ms": 528120,
-          "speakers": [
-            "S02"
-          ]
-        }
-      ],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 529000,
-      "end_ms": 539390,
-      "text": "那个，你们那个孔子像。你们那孔子像和和那个那个是钟楼吗？是你们学校的？",
+      "start_ms": 528000,
+      "end_ms": 539430,
+      "text": "孔子像那个，你们那个孔子像，你们那个孔子像和和那个那个是钟楼吗？是你们学校的？",
       "speakers": [
         "S01"
       ],
@@ -1388,8 +948,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 540210,
-      "end_ms": 553770,
+      "start_ms": 540240,
+      "end_ms": 553820,
       "text": "钟楼是建了好几年才建成的，好像是去年校庆的时候才完工的。我们学校还有体育馆，曾经还举办过那个毽球比赛，全国性质的。",
       "speakers": [
         "S02"
@@ -1404,8 +964,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 553970,
-      "end_ms": 555910,
+      "start_ms": 554020,
+      "end_ms": 555960,
       "text": "就是挺高大上。",
       "speakers": [
         "S02"
@@ -1420,8 +980,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 557380,
-      "end_ms": 560400,
+      "start_ms": 557420,
+      "end_ms": 560460,
       "text": "那你们学校那个军训严格吗？",
       "speakers": [
         "S01"
@@ -1434,8 +994,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 560780,
-      "end_ms": 566010,
+      "start_ms": 560840,
+      "end_ms": 566020,
       "text": "军训挺严的，一般都是半个月吧，然后要穿那个军训服。",
       "speakers": [
         "S02"
@@ -1448,8 +1008,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 566940,
-      "end_ms": 570320,
+      "start_ms": 567030,
+      "end_ms": 570380,
       "text": "那我们挺惨的，我们军训1个月。",
       "speakers": [
         "S01"
@@ -1464,8 +1024,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 570490,
-      "end_ms": 571910,
+      "start_ms": 570520,
+      "end_ms": 571940,
       "text": "那够惨呀！",
       "speakers": [
         "S02"
@@ -1480,8 +1040,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 571910,
-      "end_ms": 585250,
+      "start_ms": 571940,
+      "end_ms": 585300,
       "text": "而且我们是有上一届的带我们，上一届就经过半年的训练，就特别严那种训练，然后他们学校会给他们发一个教官证。",
       "speakers": [
         "S01"
@@ -1496,8 +1056,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 585750,
-      "end_ms": 589270,
+      "start_ms": 585800,
+      "end_ms": 589320,
       "text": "就他们带下一批大一的。",
       "speakers": [
         "S01"
@@ -1512,9 +1072,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 589640,
-      "end_ms": 592930,
-      "text": "哦，他们是那种属于国企班那样子的吗？",
+      "start_ms": 589710,
+      "end_ms": 592980,
+      "text": "哦，他们是那种属于国旗班那样子的吗？",
       "speakers": [
         "S02"
       ],
@@ -1528,9 +1088,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 593610,
-      "end_ms": 605880,
-      "text": "跟国企班有不一样，国企班是从教官里面重新重新给筛选出来的。教官儿，教官儿特别严，我们教官儿有1个男的，1个女的，就",
+      "start_ms": 593660,
+      "end_ms": 605940,
+      "text": "跟国旗班有不一样，国旗班是从教官里面重新重新给筛选出来的。教官儿，教官儿特别严，我们教官儿有1个男的，1个女的，就",
       "speakers": [
         "S01"
       ],
@@ -1544,8 +1104,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 606060,
-      "end_ms": 614860,
+      "start_ms": 606130,
+      "end_ms": 614920,
       "text": "以前刚上大一的时候，我一直以为他们是武警支队的，结果到后来才发现他们他是我，他是我们的学长跟学姐。",
       "speakers": [
         "S01"
@@ -1560,8 +1120,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 615050,
-      "end_ms": 617230,
+      "start_ms": 615110,
+      "end_ms": 617280,
       "text": "还有学姐呢，教官。",
       "speakers": [
         "S02"
@@ -1576,9 +1136,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 617710,
-      "end_ms": 621320,
-      "text": "我们学姐特别严格，就每次",
+      "start_ms": 617770,
+      "end_ms": 630400,
+      "text": "我们学姐特别严格，就每次每次每次，别的每次到了晚上，别的区队都散了，然后我们班儿留到最后。快熄灯才让我们回去。",
       "speakers": [
         "S01"
       ],
@@ -1592,9 +1152,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 622410,
-      "end_ms": 630330,
-      "text": "每次每次，别的每次到了晚上，别的区队都散了，然后我们班儿留到最后。快熄灯前，我们回去。",
+      "start_ms": 631210,
+      "end_ms": 642530,
+      "text": "就因为，就因为我们男教官说女教官儿说的话，我们今天没听。就有几个女教官儿不高兴了，然后就2次就体罚我们。",
       "speakers": [
         "S01"
       ],
@@ -1608,24 +1168,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 631140,
-      "end_ms": 642460,
-      "text": "就因为，就因为我们男教官说女教官儿说的话，我们今天没听。就有几个女教官儿不高兴了，然后就2张就体罚我们。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 643390,
-      "end_ms": 648900,
+      "start_ms": 643450,
+      "end_ms": 648950,
       "text": "女教官要整起人来，那可是真可怕，得罪谁都不要得罪女人。",
       "speakers": [
         "S02"
@@ -1640,9 +1184,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 649000,
-      "end_ms": 661880,
-      "text": "我们女教官儿让我们在那个，就我们跟建校旁边有1个特别大的，就空距离大大约200米，然后让我们去挖到挖跳过去，再挖跳回来。",
+      "start_ms": 649060,
+      "end_ms": 661940,
+      "text": "我们女教官儿让我们在那个，就我们跟建校旁边有1个特别大的，就空距离，大大约200米，然后让我们去挖到，挖跳过去，再挖跳回来。",
       "speakers": [
         "S01"
       ],
@@ -1656,8 +1200,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 662240,
-      "end_ms": 666550,
+      "start_ms": 662310,
+      "end_ms": 666610,
       "text": "一共2次，就相当于800米。",
       "speakers": [
         "S01"
@@ -1672,9 +1216,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 667060,
-      "end_ms": 681230,
-      "text": "哦，那么那么远，我挖跳就不行，我每次挖跳都那个偷懒，特别能偷懒。然后教官每次见了我都，嗯，也没话说，因为是女生嘛，他总会宽容一点。",
+      "start_ms": 667140,
+      "end_ms": 681300,
+      "text": "哦，那么那么远，我挖跳就不行，我每次挖跳都那个偷懒，特别能偷懒。然后教官每次见我都，嗯，也没话说，因为是女生嘛，她总会宽容一点。",
       "speakers": [
         "S02"
       ],
@@ -1688,8 +1232,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 681630,
-      "end_ms": 686700,
+      "start_ms": 681700,
+      "end_ms": 686780,
       "text": "你们学校，你们学校那个操场挺大的，有2个操场吧？",
       "speakers": [
         "S01"
@@ -1704,8 +1248,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 687060,
-      "end_ms": 699200,
+      "start_ms": 687130,
+      "end_ms": 699280,
       "text": "对，我们东边有1个，西边也有1个，然后那个西边的比较正式。就像西边，它会有那个看台，然后它看台下面是我们那个实训基地。",
       "speakers": [
         "S02"
@@ -1720,9 +1264,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 699770,
-      "end_ms": 704010,
-      "text": "就是我们机械系的专属营地，磨锤子、",
+      "start_ms": 699370,
+      "end_ms": 704000,
+      "text": "就是我们机械系的专属营地，磨锤子。",
       "speakers": [
         "S02"
       ],
@@ -1730,128 +1274,7 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "就",
-          "start_ms": 699770,
-          "end_ms": 699850,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 699850,
-          "end_ms": 700490,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 700490,
-          "end_ms": 700650,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "们",
-          "start_ms": 700650,
-          "end_ms": 700730,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "机",
-          "start_ms": 700730,
-          "end_ms": 700890,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "械",
-          "start_ms": 700890,
-          "end_ms": 701050,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "系",
-          "start_ms": 701050,
-          "end_ms": 701210,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "的",
-          "start_ms": 701210,
-          "end_ms": 701530,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "专",
-          "start_ms": 701930,
-          "end_ms": 702090,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "属",
-          "start_ms": 702090,
-          "end_ms": 702330,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "营",
-          "start_ms": 702330,
-          "end_ms": 702650,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "地，",
-          "start_ms": 702650,
-          "end_ms": 702890,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "磨",
-          "start_ms": 703290,
-          "end_ms": 703450,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "锤",
-          "start_ms": 703450,
-          "end_ms": 703690,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "子、",
-          "start_ms": 703770,
-          "end_ms": 704010,
-          "speakers": [
-            "S02"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
@@ -1938,8 +1361,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 707940,
-      "end_ms": 708730,
+      "start_ms": 707910,
+      "end_ms": 708710,
       "text": "铣工。",
       "speakers": [
         "S02"
@@ -1954,7 +1377,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 708730,
+      "start_ms": 708710,
       "end_ms": 722510,
       "text": "我就有好几次在你们操场玩儿的时候就经过那边儿，那边儿就看到呃，有人在下面，是穿穿穿的迷彩，我是跟我朋友说",
       "speakers": [
@@ -1987,7 +1410,7 @@
     },
     {
       "start_ms": 727810,
-      "end_ms": 741110,
+      "end_ms": 741120,
       "text": "对呀，我们学校里面就像机械系，也是最大的一个系。虽然说，就是录取进来的时候，分不高，但是人数是最多的。然后，现在专业也在慢慢的变多。",
       "speakers": [
         "S02"
@@ -2002,7 +1425,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 741240,
+      "start_ms": 741250,
       "end_ms": 753830,
       "text": "它好像是因为我们学校要往那个工科方面转。就是要转成工科新学校，之前是那个师范类嘛，女生多，然后现在往那个",
       "speakers": [
@@ -2050,7 +1473,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 770260,
+      "start_ms": 770270,
       "end_ms": 773450,
       "text": "没有没有，还有其他师范类学校呢。",
       "speakers": [
@@ -2082,7 +1505,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 780310,
+      "start_ms": 780330,
       "end_ms": 781650,
       "text": "学校女生漂亮吗？",
       "speakers": [
@@ -2131,7 +1554,7 @@
     },
     {
       "start_ms": 807890,
-      "end_ms": 814370,
+      "end_ms": 814380,
       "text": "然后像师范类的话，他们就会去支教，他们估计大三的时候就要走去支教。",
       "speakers": [
         "S02"
@@ -2146,7 +1569,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 814370,
+      "start_ms": 814380,
       "end_ms": 815730,
       "text": "那经管系呢？",
       "speakers": [
@@ -2163,8 +1586,8 @@
     },
     {
       "start_ms": 816310,
-      "end_ms": 824160,
-      "text": "经管系，如果是师范类的话，也是去支教。但是他们实习的话，我也不清楚。",
+      "end_ms": 824170,
+      "text": "经管系如果是师范类的话，也是去支教。但是他们实习的话，我也不清楚。",
       "speakers": [
         "S02"
       ],
@@ -2179,7 +1602,7 @@
     },
     {
       "start_ms": 826440,
-      "end_ms": 830530,
+      "end_ms": 830550,
       "text": "那个学姐，平时你们都学哪些书本？",
       "speakers": [
         "S01"
@@ -2209,7 +1632,7 @@
     },
     {
       "start_ms": 845790,
-      "end_ms": 858910,
+      "end_ms": 858920,
       "text": "毛泽东思想那些，然后，嗯，还有形势政策。上了大二的话，就开始专业课了，我们首先会学那个电路，是基础嘛。",
       "speakers": [
         "S02"
@@ -2224,8 +1647,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 858910,
-      "end_ms": 872780,
+      "start_ms": 858920,
+      "end_ms": 872800,
       "text": "还有大学物理、C语言，嗯，单片机、微机原理。还有模电、数电，还有最重要的那种专业课，对于我们来说的话，就是自动控制原理。",
       "speakers": [
         "S02"
@@ -2240,9 +1663,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 872780,
-      "end_ms": 878780,
-      "text": "还有现代控制，那你们的是不是应该也差不多，能学的，咱们应该学的？",
+      "start_ms": 872800,
+      "end_ms": 878800,
+      "text": "还有现代控制，那你们的是不是应该也差不多，我觉得咱们应该学的。",
       "speakers": [
         "S02"
       ],
@@ -2384,7 +1807,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 896560,
+      "start_ms": 896570,
       "end_ms": 908410,
       "text": "重要的还是一些，对我们专业课来说，入门的一些书本，像礼仪然后就是保养，还有那个",
       "speakers": [
@@ -2402,7 +1825,7 @@
     {
       "start_ms": 910180,
       "end_ms": 924250,
-      "text": "教程，就是对一些维护啊，还有那个售后到透析的一些，就是对最基本的教程，到大二的时候，我们那个专业课比例就比较",
+      "text": "教程，就是对一些维护啊，还有那个售后到后期的一些，就是对最基本的教程，到大二的时候，我们那个专业课比例就比较",
       "speakers": [
         "S01"
       ],
@@ -2417,7 +1840,7 @@
     },
     {
       "start_ms": 924860,
-      "end_ms": 936700,
+      "end_ms": 936710,
       "text": "占的多了，就像机械基础啊、识图啊呃，然后高，像数学跟英语，就其实就微乎其微了，占的，但是也有",
       "speakers": [
         "S01"
@@ -2434,7 +1857,7 @@
     {
       "start_ms": 937570,
       "end_ms": 951030,
-      "text": "最最多的就是我们那个的，就像底盘儿啦发动机，还有检车，还有二手车，或者加加一些保险，还有那个",
+      "text": "最最多的就是我们那个的，出家的，呃，像底盘儿啦发动机，还有检车，还有二手车，或者加加一些保险，还有那个",
       "speakers": [
         "S01"
       ],
@@ -2448,9 +1871,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 951930,
-      "end_ms": 965560,
-      "text": "销售的，销售类的一些书，就跟其他专业有很大的不同，因为其他专业像实训啊，还有啥，他们没有专门的实训室也没有专门的",
+      "start_ms": 951940,
+      "end_ms": 965570,
+      "text": "销售的，销售类的一些书，就跟其他专业有很大的不同，因为其他专业像实训啊，还是啥，他们没有专门的实训室也没有专门的",
       "speakers": [
         "S01"
       ],
@@ -2465,7 +1888,7 @@
     },
     {
       "start_ms": 966430,
-      "end_ms": 978080,
+      "end_ms": 978100,
       "text": "设备，然后就他们实训的比例占的没有我们多。那个学姐，我觉得你们应该是可以干我们这一行，可以吗？",
       "speakers": [
         "S01"
@@ -2480,8 +1903,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 978540,
-      "end_ms": 989790,
+      "start_ms": 978530,
+      "end_ms": 989810,
       "text": "我们应该也差不多可以干点儿销售啥的吧，也只能干这个了。嗯，其实我感觉你们的话，嗯，就是那个实操性比我们",
       "speakers": [
         "S02"
@@ -2496,8 +1919,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 989900,
-      "end_ms": 1001880,
+      "start_ms": 989810,
+      "end_ms": 1001890,
       "text": "会多很多，我们，我感觉大部分时间还都在那个理论学习上。就是没有你们那么多的那个实训啊，啥的，感觉会比你们少一点。",
       "speakers": [
         "S02"
@@ -2512,9 +1935,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1002390,
-      "end_ms": 1014570,
-      "text": "我们老师就说过，说本科院校他们那个书本理论比我们要强，强很，强很多，但是那个，嗯，像",
+      "start_ms": 1002380,
+      "end_ms": 1014580,
+      "text": "我们老师就说过，说本科院校他们那个书本理论比我们要强，强很强很多，但是那个，嗯，像",
       "speakers": [
         "S01"
       ],
@@ -2528,7 +1951,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1015800,
+      "start_ms": 1015780,
       "end_ms": 1025990,
       "text": "像实操，呃，还有也动手能力可能比不上我们，因为他们，你们那个设备就是比较老旧。",
       "speakers": [
@@ -2923,7 +2346,7 @@
     },
     {
       "start_ms": 1063740,
-      "end_ms": 1078750,
+      "end_ms": 1078730,
       "text": "我们我们那个实训设备，像解码仪，就是车上这些，就比较检，就最最常用的这些，呃，那个，就检检检测那个车辆的故障问题，那个故障码和解码仪。",
       "speakers": [
         "S01"
@@ -2939,8 +2362,8 @@
     },
     {
       "start_ms": 1079030,
-      "end_ms": 1093330,
-      "text": "呃，然后它对那个设备要求特别大，我我我们这个设备已经很久没有换过了，最新一次换是11年丰田的，就是很老的一种。",
+      "end_ms": 1093310,
+      "text": "呃，然后它对那个设备要求特别大，我我我们这个，设备已经很久没有换过了，最新一次换是11年丰田的，就是很老的一种。",
       "speakers": [
         "S01"
       ],
@@ -2955,7 +2378,7 @@
     },
     {
       "start_ms": 1093690,
-      "end_ms": 1106570,
+      "end_ms": 1106560,
       "text": "日本丰田已经快要淘汰的一种，然后让我们给用上了，因为比较便宜。我们学校就是比较有钱，我们学校经常就把自己的操场给租了。",
       "speakers": [
         "S01"
@@ -2970,9 +2393,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1106570,
-      "end_ms": 1118550,
-      "text": "往外租，然后去挣钱，呃，我们靠操场那边儿地，是像建院买的，我们学校没有太多地。",
+      "start_ms": 1106560,
+      "end_ms": 1118530,
+      "text": "往外租，然后去挣钱，呃，我们，靠操场那边儿地，是像建院买的，我们学校没有太多地。",
       "speakers": [
         "S01"
       ],
@@ -2986,8 +2409,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1118940,
-      "end_ms": 1129800,
+      "start_ms": 1118950,
+      "end_ms": 1129780,
       "text": "从当当当初从那个旧校区搬到新校区的时候，费了不少钱财，才从那个建校买的地。",
       "speakers": [
         "S01"
@@ -3002,9 +2425,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1131800,
-      "end_ms": 1138010,
-      "text": "就这样，这样学姐，平时你们课程之后，课外都干些什么？",
+      "start_ms": 1131870,
+      "end_ms": 1138000,
+      "text": "就这样，这样，学姐，平时你们课程之后，课外都干些什么？",
       "speakers": [
         "S01"
       ],
@@ -3018,9 +2441,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1138410,
-      "end_ms": 1153170,
-      "text": "像，嗯，那个，我们现在大四那个课比较少了嘛。我的话，就前几天报了一个瑜伽班。我就在我们学校附近学瑜伽，然后每天下午晚上1课。",
+      "start_ms": 1138440,
+      "end_ms": 1153160,
+      "text": "像，嗯，那个，我们现在大四那个偏课比较少了嘛。我的话，就前几天报了一个瑜伽班。我就在我们学校附近学瑜伽，然后每天下午5点上1课。",
       "speakers": [
         "S02"
       ],
@@ -3034,7 +2457,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1153290,
+      "start_ms": 1153310,
       "end_ms": 1164000,
       "text": "上午的话，因为我4级还没有过，我都大四了还没有过，我在努力准备4级。然后我们宿舍的话，大部分人都考研。",
       "speakers": [
@@ -3050,8 +2473,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1164110,
-      "end_ms": 1174210,
+      "start_ms": 1164130,
+      "end_ms": 1174230,
       "text": "然后他们都在准备考研，现在那个也没多少时间了嘛。然后压力都非常大，看着他们非常的辛苦。",
       "speakers": [
         "S02"
@@ -3066,8 +2489,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1174600,
-      "end_ms": 1179800,
+      "start_ms": 1174620,
+      "end_ms": 1179790,
       "text": "然后你们呢，你们有那个专升本的那个打算吗？",
       "speakers": [
         "S02"
@@ -3082,9 +2505,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1180660,
-      "end_ms": 1195110,
-      "text": "有，我们班有好几个专升本的，但是专升本的学校就有大同学院或者金融学院。然后就还有其他3本，我觉得3本就没有再升的必要了。",
+      "start_ms": 1180690,
+      "end_ms": 1195100,
+      "text": "有，我们班有好几个专升本的，但是，专升本的学校就有大同学院或者金融学院。然后就还有其他3本，我觉得3本就没有再升的必要了。",
       "speakers": [
         "S01"
       ],
@@ -3098,9 +2521,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1196560,
-      "end_ms": 1209650,
-      "text": "像金融学院之类的，可以，但是没必要。因为前几天招聘会上的一些单位，其实说，就是说他们说金融学院",
+      "start_ms": 1195320,
+      "end_ms": 1209640,
+      "text": "呃，像金融学院之类的，可以，但是没必要。因为前几天招兵会上的一些单位，其实说，就是说他们说金融学院，",
       "speakers": [
         "S01"
       ],
@@ -3116,7 +2539,7 @@
     {
       "start_ms": 1209910,
       "end_ms": 1221380,
-      "text": "和我们学校其实都差不多。因为专科生嘛，就比较比较便宜一点，然后就是在尽量是我们在我们专科里面找。",
+      "text": "和我们学校其实都差不多。因为专科生嘛，就比较，就便宜一点，然后就是在尽量是我们在我们专科里面找。",
       "speakers": [
         "S01"
       ],
@@ -3130,9 +2553,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1222490,
-      "end_ms": 1232090,
-      "text": "平常平时我又在外边儿玩儿玩儿滑板了，刷手机，然后打篮球了。我平时不太喜欢在宿舍里面",
+      "start_ms": 1222510,
+      "end_ms": 1232030,
+      "text": "平常平时我又在外边儿玩儿，玩儿滑板了，刷手机，然后打篮球了。我平时不太喜欢在宿舍里面",
       "speakers": [
         "S01"
       ],
@@ -3143,304 +2566,304 @@
       "tokens": [
         {
           "text": "平",
-          "start_ms": 1222490,
-          "end_ms": 1222650,
+          "start_ms": 1222510,
+          "end_ms": 1222590,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "常",
-          "start_ms": 1222650,
-          "end_ms": 1222810,
+          "start_ms": 1222590,
+          "end_ms": 1222830,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "平",
-          "start_ms": 1222810,
-          "end_ms": 1223050,
+          "start_ms": 1222830,
+          "end_ms": 1222990,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "时",
-          "start_ms": 1223050,
-          "end_ms": 1223290,
+          "start_ms": 1222990,
+          "end_ms": 1223230,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "我",
-          "start_ms": 1223290,
-          "end_ms": 1223290,
+          "start_ms": 1223230,
+          "end_ms": 1223470,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "又",
-          "start_ms": 1223450,
-          "end_ms": 1223530,
+          "start_ms": 1223470,
+          "end_ms": 1223550,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "在",
-          "start_ms": 1223530,
-          "end_ms": 1224010,
+          "start_ms": 1223550,
+          "end_ms": 1223950,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "外",
-          "start_ms": 1224090,
-          "end_ms": 1224170,
+          "start_ms": 1224110,
+          "end_ms": 1224190,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "边",
-          "start_ms": 1224170,
-          "end_ms": 1224250,
+          "start_ms": 1224190,
+          "end_ms": 1224270,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "儿",
-          "start_ms": 1224250,
-          "end_ms": 1224570,
+          "start_ms": 1224270,
+          "end_ms": 1224590,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "玩",
-          "start_ms": 1225210,
-          "end_ms": 1225370,
+          "start_ms": 1225150,
+          "end_ms": 1225390,
           "speakers": [
             "S01"
           ]
         },
         {
-          "text": "儿",
-          "start_ms": 1225370,
-          "end_ms": 1225370,
+          "text": "儿，",
+          "start_ms": 1225310,
+          "end_ms": 1225390,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "玩",
-          "start_ms": 1225370,
-          "end_ms": 1225530,
+          "start_ms": 1225390,
+          "end_ms": 1225550,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "儿",
-          "start_ms": 1225450,
-          "end_ms": 1225530,
+          "start_ms": 1225470,
+          "end_ms": 1225550,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "滑",
-          "start_ms": 1225770,
-          "end_ms": 1226010,
+          "start_ms": 1225790,
+          "end_ms": 1226030,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "板",
-          "start_ms": 1226010,
-          "end_ms": 1226090,
+          "start_ms": 1226030,
+          "end_ms": 1226190,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "了，",
-          "start_ms": 1226090,
-          "end_ms": 1226570,
+          "start_ms": 1226110,
+          "end_ms": 1226590,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "刷",
-          "start_ms": 1227050,
-          "end_ms": 1227130,
+          "start_ms": 1226990,
+          "end_ms": 1227150,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "手",
-          "start_ms": 1227130,
-          "end_ms": 1227290,
+          "start_ms": 1227150,
+          "end_ms": 1227310,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "机，",
-          "start_ms": 1227290,
-          "end_ms": 1227530,
+          "start_ms": 1227310,
+          "end_ms": 1227550,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "然",
-          "start_ms": 1227530,
-          "end_ms": 1227770,
+          "start_ms": 1227550,
+          "end_ms": 1227710,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "后",
-          "start_ms": 1227770,
-          "end_ms": 1228090,
+          "start_ms": 1227710,
+          "end_ms": 1228110,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "打",
-          "start_ms": 1228250,
-          "end_ms": 1228490,
+          "start_ms": 1228270,
+          "end_ms": 1228430,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "篮",
-          "start_ms": 1228490,
-          "end_ms": 1228650,
+          "start_ms": 1228430,
+          "end_ms": 1228670,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "球",
-          "start_ms": 1228650,
-          "end_ms": 1228890,
+          "start_ms": 1228670,
+          "end_ms": 1228830,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "了。",
-          "start_ms": 1228890,
-          "end_ms": 1229130,
+          "start_ms": 1228830,
+          "end_ms": 1229150,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "我",
-          "start_ms": 1230090,
-          "end_ms": 1230170,
+          "start_ms": 1230110,
+          "end_ms": 1230110,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "平",
-          "start_ms": 1230330,
-          "end_ms": 1230490,
+          "start_ms": 1230270,
+          "end_ms": 1230430,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "时",
-          "start_ms": 1230490,
-          "end_ms": 1230650,
+          "start_ms": 1230430,
+          "end_ms": 1230590,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "不",
-          "start_ms": 1230650,
-          "end_ms": 1230890,
+          "start_ms": 1230590,
+          "end_ms": 1230910,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "太",
-          "start_ms": 1230890,
-          "end_ms": 1231050,
+          "start_ms": 1230910,
+          "end_ms": 1231070,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "喜",
-          "start_ms": 1231050,
-          "end_ms": 1231210,
+          "start_ms": 1231070,
+          "end_ms": 1231230,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "欢",
-          "start_ms": 1231210,
-          "end_ms": 1231370,
+          "start_ms": 1231230,
+          "end_ms": 1231390,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "在",
-          "start_ms": 1231370,
-          "end_ms": 1231450,
+          "start_ms": 1231390,
+          "end_ms": 1231470,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "宿",
-          "start_ms": 1231450,
-          "end_ms": 1231610,
+          "start_ms": 1231470,
+          "end_ms": 1231630,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "舍",
-          "start_ms": 1231610,
-          "end_ms": 1231770,
+          "start_ms": 1231630,
+          "end_ms": 1231790,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "里",
-          "start_ms": 1231770,
-          "end_ms": 1231850,
+          "start_ms": 1231790,
+          "end_ms": 1231870,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "面",
-          "start_ms": 1231850,
-          "end_ms": 1232090,
+          "start_ms": 1231870,
+          "end_ms": 1232030,
           "speakers": [
             "S01"
           ]
@@ -3700,7 +3123,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1238560,
+      "start_ms": 1238570,
       "end_ms": 1240910,
       "text": "噢，那你不打游戏，是吧？",
       "speakers": [
@@ -3716,7 +3139,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1241330,
+      "start_ms": 1241340,
       "end_ms": 1253000,
       "text": "打一点，但是他们打的那种像网游一些，我不太喜欢，我喜欢那种代入感比较强的，像些单机游戏还可以，他们玩儿的",
       "speakers": [
@@ -3733,7 +3156,7 @@
     },
     {
       "start_ms": 1254130,
-      "end_ms": 1256380,
+      "end_ms": 1256390,
       "text": "没有什么特别的趣味。",
       "speakers": [
         "S01"
@@ -3796,8 +3219,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1284230,
-      "end_ms": 1289670,
+      "start_ms": 1284240,
+      "end_ms": 1289680,
       "text": "因为饭也便宜，还有就一些其他的原因，就去过。",
       "speakers": [
         "S01"
@@ -3812,8 +3235,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1289670,
-      "end_ms": 1304610,
+      "start_ms": 1289680,
+      "end_ms": 1304620,
       "text": "噢，像我的话，大一大二大三就不怎么出去，然后现在是大四了，然后也觉得该出去见见世界了，所以就嗯，经常出去，呃，干个其他呀，见个朋友呀，啥的。",
       "speakers": [
         "S02"
@@ -3828,7 +3251,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1304950,
+      "start_ms": 1304960,
       "end_ms": 1308090,
       "text": "我们宿舍有云南的，你们有没有外地？",
       "speakers": [
@@ -3908,7 +3331,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1337310,
+      "start_ms": 1337320,
       "end_ms": 1342040,
       "text": "从大一到现在，基本上没有出去过。",
       "speakers": [
@@ -3925,7 +3348,7 @@
     },
     {
       "start_ms": 1342040,
-      "end_ms": 1356140,
+      "end_ms": 1356120,
       "text": "嗯，像我周围的男生的话，他们也不怎么出去兼职啊，啥的，嗯。但是他们每个人的选择吧，他们就比较注重学习，然后看每个人在大学里面的选择，对不对？",
       "speakers": [
         "S02"
@@ -3955,7 +3378,7 @@
     },
     {
       "start_ms": 1361020,
-      "end_ms": 1366460,
+      "end_ms": 1366450,
       "text": "我们是上床下桌，我们一个宿舍住住6个人。",
       "speakers": [
         "S01"
@@ -3970,9 +3393,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1366460,
-      "end_ms": 1376830,
-      "text": "我们宿舍比较挤，8个人，而且是上床下床，全是人。宿舍里面只要人都占地上的话，就满了。满满当当。",
+      "start_ms": 1366450,
+      "end_ms": 1376840,
+      "text": "我们宿舍比较挤，8个人，而且是上床下床，全是人。宿舍里面，只要人都占地上的话，就满了。满满当当。",
       "speakers": [
         "S02"
       ],
@@ -3986,7 +3409,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1376830,
+      "start_ms": 1376840,
       "end_ms": 1388710,
       "text": "我们宿舍特别的，就是我们在阳台，我们是那个像落地窗一样，有个阳台。我们在阳台，就宿舍合伙买了一个摇椅。",
       "speakers": [
@@ -4003,7 +3426,7 @@
     },
     {
       "start_ms": 1388710,
-      "end_ms": 1401140,
+      "end_ms": 1401150,
       "text": "还买了茶具，在那个平时就喜欢在在阳台就喝喝茶啥的，都大二大三了。大大二的时候，大三就基本上没动那动过那个茶具。",
       "speakers": [
         "S01"
@@ -4018,7 +3441,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1401140,
+      "start_ms": 1401150,
       "end_ms": 1405250,
       "text": "没有啊，大三基本都开始出来挣钱啊，干啥，是吧？",
       "speakers": [
@@ -4312,7 +3735,7 @@
         },
         {
           "text": "己",
-          "start_ms": 1411800,
+          "start_ms": 1411720,
           "end_ms": 1411800,
           "speakers": [
             "S01"
@@ -4429,7 +3852,7 @@
     },
     {
       "start_ms": 1426840,
-      "end_ms": 1437870,
+      "end_ms": 1437880,
       "text": "就是床上，然后玩儿手机，就是也不出去。就是我之前如果出去兼职的话，我都会叫他们嘛，然后后来",
       "speakers": [
         "S02"
@@ -4446,7 +3869,7 @@
     {
       "start_ms": 1438360,
       "end_ms": 1445990,
-      "text": "说着说着，就每次都不去嘛，我才明白他们是不愿意出去挣钱的，后来我就再也不去叫他们了。",
+      "text": "说着说着，就每次都不去嘛，我才明白他们是不愿意出去挣钱的，后来我就再也不去叫他们。",
       "speakers": [
         "S02"
       ],
@@ -4461,8 +3884,8 @@
     },
     {
       "start_ms": 1446320,
-      "end_ms": 1454520,
-      "text": "是，跟我那个云南哥们儿一样，他不想出去，直接说，我不想去。也不太强求。",
+      "end_ms": 1454530,
+      "text": "是，跟我那个云南哥们儿一样，他不想出去，直接说我不想去。也不太强求。",
       "speakers": [
         "S01"
       ],
@@ -4476,9 +3899,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1455060,
-      "end_ms": 1465310,
-      "text": "然后他就每天跟我们说的，就是自己不太喜欢这边的。练习的，喜欢吃，喜欢吃那些米饭啥的。",
+      "start_ms": 1455080,
+      "end_ms": 1465320,
+      "text": "然后他就每天跟我们说的，就是自己不太喜欢这边的。面食，他喜欢吃，喜欢吃那些米饭啥的。",
       "speakers": [
         "S01"
       ],
@@ -4492,8 +3915,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1466310,
-      "end_ms": 1475620,
+      "start_ms": 1466320,
+      "end_ms": 1475640,
       "text": "像，嗯，我们宿舍的话，我感觉他们就是没有目的的，每天生活着，已经大四了，就还比较迷茫。",
       "speakers": [
         "S02"
@@ -4509,7 +3932,7 @@
     },
     {
       "start_ms": 1475930,
-      "end_ms": 1485620,
+      "end_ms": 1485640,
       "text": "就比如说，他们会说自己没钱，但是有那个机会，他们也不愿意抓住。然后就等那个机会过去。",
       "speakers": [
         "S02"
@@ -4524,8 +3947,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1485950,
-      "end_ms": 1488320,
+      "start_ms": 1485960,
+      "end_ms": 1488340,
       "text": "你们是1个专业1个宿舍吗？",
       "speakers": [
         "S01"
@@ -4556,8 +3979,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1491830,
-      "end_ms": 1494860,
+      "start_ms": 1491840,
+      "end_ms": 1494880,
       "text": "对吧？因为你们女，因为你们女生少，所以就",
       "speakers": [
         "S01"
@@ -4572,9 +3995,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1494860,
-      "end_ms": 1506090,
-      "text": "对，就混合宿舍嘛。也挺好的，因为人都不错嘛，只是他们那个啥，可能想法不一样吧。每个人的想法都比较不一样，他们比较腼腆。",
+      "start_ms": 1495300,
+      "end_ms": 1506080,
+      "text": "就混合宿舍嘛。也挺好的，因为人都不错嘛，只是他们那个啥，可能想法不一样吧。每个人的想法都比较不一样，他们比较腼腆。",
       "speakers": [
         "S02"
       ],
@@ -4588,7 +4011,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1507880,
+      "start_ms": 1507890,
       "end_ms": 1515730,
       "text": "而且女生的话，可能压力没有男生那么大。就觉得他们自己也不把这个当回事儿。",
       "speakers": [
@@ -4604,9 +4027,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1516720,
-      "end_ms": 1522660,
-      "text": "对，压力是挺大的，我们的压力特别大。就实习，就想着要买车。",
+      "start_ms": 1516740,
+      "end_ms": 1522680,
+      "text": "对，压力是挺大的，我们压力特别大。就实习，就想着要买车。",
       "speakers": [
         "S01"
       ],
@@ -4621,7 +4044,7 @@
     },
     {
       "start_ms": 1524010,
-      "end_ms": 1525410,
+      "end_ms": 1525430,
       "text": "干其他的，反正",
       "speakers": [
         "S01"
@@ -4636,9 +4059,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1525410,
-      "end_ms": 1539560,
-      "text": "感觉你们男生的话，一过20岁，就感觉，嗯，要自己做点事情啊，什么的。女生的话，就是每天吃吃喝喝，玩玩乐乐，钱够花就行，就是可能报复",
+      "start_ms": 1525430,
+      "end_ms": 1539580,
+      "text": "感觉你们男生的话，一过20岁就感觉，嗯，要自己做点事情啊，什么的。女生的话，就是每天吃吃喝喝，玩儿玩儿乐乐，钱够花就行，就是可能报复",
       "speakers": [
         "S02"
       ],
@@ -4653,7 +4076,7 @@
     },
     {
       "start_ms": 1539740,
-      "end_ms": 1551480,
+      "end_ms": 1551500,
       "text": "的话，没有男生有远大抱负吧，也可能是我认识的人的那个抱负不多，也有那种嗯，挺抱负挺大的女生，只是我没怎么见过。",
       "speakers": [
         "S02"
@@ -4670,7 +4093,7 @@
     {
       "start_ms": 1552950,
       "end_ms": 1565480,
-      "text": "像像你们学校，跟那个跟太原师范比起来，你们学校那个整个色调，有比较喜欢，有有点暖色，暖色调。",
+      "text": "像像你们学校，跟那个跟太原师范比起来，你们学校那个整个色调有比较奇幻，有有点暖色，暖色调。",
       "speakers": [
         "S01"
       ],
@@ -4685,8 +4108,8 @@
     },
     {
       "start_ms": 1566290,
-      "end_ms": 1570110,
-      "text": "像我们学校，跟那个太原师范和建销",
+      "end_ms": 1570130,
+      "text": "像我们学校，跟那个太原师范和建校",
       "speakers": [
         "S01"
       ],
@@ -4700,8 +4123,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1570110,
-      "end_ms": 1572090,
+      "start_ms": 1570130,
+      "end_ms": 1572100,
       "text": "灰色的是吧，就感觉",
       "speakers": [
         "S02"
@@ -4716,8 +4139,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1572920,
-      "end_ms": 1576240,
+      "start_ms": 1572940,
+      "end_ms": 1576250,
       "text": "对，特别枯燥，特别严肃。",
       "speakers": [
         "S01"
@@ -4732,8 +4155,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1576480,
-      "end_ms": 1584000,
+      "start_ms": 1576490,
+      "end_ms": 1584010,
       "text": "嗯，我也是有这样的感觉，但是进去一看的话，感觉还没有那么明显，只是在外面看的",
       "speakers": [
         "S02"
@@ -4745,272 +4168,272 @@
       "tokens": [
         {
           "text": "嗯，",
-          "start_ms": 1576480,
-          "end_ms": 1577040,
+          "start_ms": 1576490,
+          "end_ms": 1577050,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "我",
-          "start_ms": 1577520,
-          "end_ms": 1577680,
+          "start_ms": 1577530,
+          "end_ms": 1577530,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "也",
-          "start_ms": 1577680,
-          "end_ms": 1577760,
+          "start_ms": 1577530,
+          "end_ms": 1577770,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "是",
-          "start_ms": 1577760,
-          "end_ms": 1577840,
+          "start_ms": 1577770,
+          "end_ms": 1577850,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "有",
-          "start_ms": 1577840,
-          "end_ms": 1578000,
+          "start_ms": 1577850,
+          "end_ms": 1578010,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "这",
-          "start_ms": 1578000,
-          "end_ms": 1578080,
+          "start_ms": 1578010,
+          "end_ms": 1578010,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "样",
-          "start_ms": 1578080,
-          "end_ms": 1578160,
+          "start_ms": 1578010,
+          "end_ms": 1578090,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "的",
-          "start_ms": 1578160,
-          "end_ms": 1578240,
+          "start_ms": 1578090,
+          "end_ms": 1578170,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "感",
-          "start_ms": 1578240,
-          "end_ms": 1578400,
+          "start_ms": 1578170,
+          "end_ms": 1578410,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "觉，",
-          "start_ms": 1578400,
-          "end_ms": 1578560,
+          "start_ms": 1578410,
+          "end_ms": 1578570,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "但",
-          "start_ms": 1578560,
-          "end_ms": 1578720,
+          "start_ms": 1578570,
+          "end_ms": 1578730,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "是",
-          "start_ms": 1578720,
-          "end_ms": 1579120,
+          "start_ms": 1578730,
+          "end_ms": 1579130,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "进",
-          "start_ms": 1579600,
-          "end_ms": 1579840,
+          "start_ms": 1579610,
+          "end_ms": 1579850,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "去",
-          "start_ms": 1579840,
-          "end_ms": 1580080,
+          "start_ms": 1579850,
+          "end_ms": 1580090,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "一",
-          "start_ms": 1580080,
-          "end_ms": 1580160,
+          "start_ms": 1580090,
+          "end_ms": 1580170,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "看",
-          "start_ms": 1580160,
-          "end_ms": 1580480,
+          "start_ms": 1580170,
+          "end_ms": 1580490,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "的",
-          "start_ms": 1580480,
-          "end_ms": 1580560,
+          "start_ms": 1580490,
+          "end_ms": 1580570,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "话，",
-          "start_ms": 1580560,
-          "end_ms": 1580960,
+          "start_ms": 1580570,
+          "end_ms": 1580970,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "感",
-          "start_ms": 1580960,
-          "end_ms": 1581200,
+          "start_ms": 1580970,
+          "end_ms": 1581210,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "觉",
-          "start_ms": 1581200,
-          "end_ms": 1581360,
+          "start_ms": 1581210,
+          "end_ms": 1581370,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "还",
-          "start_ms": 1581360,
-          "end_ms": 1581680,
+          "start_ms": 1581370,
+          "end_ms": 1581690,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "没",
-          "start_ms": 1581680,
-          "end_ms": 1581760,
+          "start_ms": 1581690,
+          "end_ms": 1581770,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "有",
-          "start_ms": 1581760,
-          "end_ms": 1581840,
+          "start_ms": 1581770,
+          "end_ms": 1581850,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "那",
-          "start_ms": 1581920,
-          "end_ms": 1582000,
+          "start_ms": 1581930,
+          "end_ms": 1581930,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "么",
-          "start_ms": 1582000,
-          "end_ms": 1582080,
+          "start_ms": 1581930,
+          "end_ms": 1582090,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "明",
-          "start_ms": 1582080,
-          "end_ms": 1582240,
+          "start_ms": 1582090,
+          "end_ms": 1582250,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "显，",
-          "start_ms": 1582240,
-          "end_ms": 1582480,
+          "start_ms": 1582250,
+          "end_ms": 1582490,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "只",
-          "start_ms": 1582560,
-          "end_ms": 1582640,
+          "start_ms": 1582490,
+          "end_ms": 1582650,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "是",
-          "start_ms": 1582640,
-          "end_ms": 1582800,
+          "start_ms": 1582650,
+          "end_ms": 1582810,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "在",
-          "start_ms": 1582800,
-          "end_ms": 1583040,
+          "start_ms": 1582810,
+          "end_ms": 1583050,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "外",
-          "start_ms": 1583440,
-          "end_ms": 1583600,
+          "start_ms": 1583450,
+          "end_ms": 1583610,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "面",
-          "start_ms": 1583600,
-          "end_ms": 1583760,
+          "start_ms": 1583610,
+          "end_ms": 1583770,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "看",
-          "start_ms": 1583760,
-          "end_ms": 1583920,
+          "start_ms": 1583770,
+          "end_ms": 1583930,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "的",
-          "start_ms": 1583920,
-          "end_ms": 1584000,
+          "start_ms": 1583930,
+          "end_ms": 1584010,
           "speakers": [
             "S02"
           ]
@@ -5095,7 +4518,7 @@
     },
     {
       "start_ms": 1585540,
-      "end_ms": 1587550,
+      "end_ms": 1587560,
       "text": "你们图书馆里面很大吗？",
       "speakers": [
         "S01"
@@ -5111,7 +4534,7 @@
     },
     {
       "start_ms": 1587620,
-      "end_ms": 1589860,
+      "end_ms": 1589870,
       "text": "图书馆里面挺大的吧？",
       "speakers": [
         "S02"
@@ -5126,8 +4549,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1590710,
-      "end_ms": 1599010,
+      "start_ms": 1590720,
+      "end_ms": 1599020,
       "text": "我们学校图书馆，17年我们大一的时候准备盖的，现在说盖好了，但是",
       "speakers": [
         "S01"
@@ -5142,8 +4565,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1600660,
-      "end_ms": 1601160,
+      "start_ms": 1600650,
+      "end_ms": 1601170,
       "text": "不让我们",
       "speakers": [
         "S01"
@@ -5159,8 +4582,8 @@
     },
     {
       "start_ms": 1601680,
-      "end_ms": 1613260,
-      "text": "里面的那个设施比较不完善吧？然后我们学校也是，哎，我们学校好像我们1栏舍已经盖好了，就是1层有2间儿吧？",
+      "end_ms": 1613250,
+      "text": "里面的那个设施比较不完善吧？然后我们学校也是，哎，我们学校好像我们1揽舍已经盖好了，就是1层有2间儿吧？",
       "speakers": [
         "S02"
       ],
@@ -5176,7 +4599,7 @@
     {
       "start_ms": 1613540,
       "end_ms": 1620260,
-      "text": "就是1个栏舍，然后有十几层儿，就是挺大的，每个层里面都有管理员，还有老师。",
+      "text": "就是1揽舍，然后有十几层儿，就是挺大的，每个层里面都有管理员，还有老师。",
       "speakers": [
         "S02"
       ],
@@ -5190,7 +4613,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1621720,
+      "start_ms": 1621740,
       "end_ms": 1622550,
       "text": "觉得挺好的。",
       "speakers": [
@@ -5207,7 +4630,7 @@
     },
     {
       "start_ms": 1622550,
-      "end_ms": 1624240,
+      "end_ms": 1624250,
       "text": "那你们分过宿舍吗？",
       "speakers": [
         "S01"
@@ -5223,7 +4646,7 @@
     },
     {
       "start_ms": 1624890,
-      "end_ms": 1632780,
+      "end_ms": 1632790,
       "text": "宿舍没有，就直接学校给安排的，后来也没有搬过，我在这个宿舍已经住了第4年了。就没变过。",
       "speakers": [
         "S02"
@@ -5237,8 +4660,8 @@
     },
     {
       "start_ms": 1633090,
-      "end_ms": 1642010,
-      "text": "你们宿舍外面是那个，那个那个，就是对面是那个西区的1个小吃街。",
+      "end_ms": 1642020,
+      "text": "你们宿舍外面是那个，那个那个，就是对面是那个西区的一个小吃街。",
       "speakers": [
         "S01"
       ],
@@ -5252,9 +4675,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1642300,
+      "start_ms": 1642310,
       "end_ms": 1653530,
-      "text": "不是不是，我们是在那个啥，西门儿的最边儿上，那几栋楼里面，1栋。就是像我们大四，基本都在西门儿上的那个那3栋楼里面。",
+      "text": "不是不是，我们是在那个啥，西门儿的最边儿上，那几栋楼里面1栋。就是像我们大四，基本都在西门儿上的那个那3层楼里面。",
       "speakers": [
         "S02"
       ],
@@ -5268,8 +4691,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1654320,
-      "end_ms": 1657680,
+      "start_ms": 1654330,
+      "end_ms": 1657690,
       "text": "西门往右走，再往上，就是",
       "speakers": [
         "S01"
@@ -5284,9 +4707,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1657680,
-      "end_ms": 1658360,
-      "text": "向左走。",
+      "start_ms": 1657690,
+      "end_ms": 1658350,
+      "text": "往左走。",
       "speakers": [
         "S02"
       ],
@@ -5301,7 +4724,7 @@
     },
     {
       "start_ms": 1658980,
-      "end_ms": 1661740,
+      "end_ms": 1661750,
       "text": "啊，我说西门往右走，再往上。",
       "speakers": [
         "S01"
@@ -5316,9 +4739,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1661740,
-      "end_ms": 1663530,
-      "text": "然后那就是那个系楼。",
+      "start_ms": 1662260,
+      "end_ms": 1663520,
+      "text": "是那个系楼。",
       "speakers": [
         "S02"
       ],
@@ -5332,8 +4755,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1664250,
-      "end_ms": 1665910,
+      "start_ms": 1664270,
+      "end_ms": 1665920,
       "text": "美术系跟音乐系。",
       "speakers": [
         "S01"
@@ -5348,8 +4771,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1665910,
-      "end_ms": 1669200,
+      "start_ms": 1665920,
+      "end_ms": 1669210,
       "text": "嗯，还有生生物系和化学系，也都在那儿，好像。",
       "speakers": [
         "S02"
@@ -5364,7 +4787,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1672340,
+      "start_ms": 1672360,
       "end_ms": 1675030,
       "text": "那个学姐，你有没有挂过科？",
       "speakers": [
@@ -5381,7 +4804,7 @@
     },
     {
       "start_ms": 1675030,
-      "end_ms": 1688910,
+      "end_ms": 1688920,
       "text": "我目前还没有挂科，但是都比较那个啥，飘着过，像那个我记得，不知道大几的时候，考那个马克思我就是那个60分儿，整60分儿，飘过，像我们宿舍还有59.6的",
       "speakers": [
         "S02"
@@ -5396,7 +4819,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1688910,
+      "start_ms": 1688920,
       "end_ms": 1696210,
       "text": "我们班还有59.7的，他们就挂了，还得补考，就挺那个啥，感觉他们挺悲哀的。",
       "speakers": [
@@ -5413,7 +4836,7 @@
     },
     {
       "start_ms": 1697520,
-      "end_ms": 1699840,
+      "end_ms": 1699830,
       "text": "你们学校是不是已经取消补考？",
       "speakers": [
         "S01"
@@ -5426,7 +4849,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1700400,
+      "start_ms": 1700410,
       "end_ms": 1702970,
       "text": "好像是这样子，我也不知道。",
       "speakers": [
@@ -5443,8 +4866,8 @@
     },
     {
       "start_ms": 1702970,
-      "end_ms": 1705740,
-      "text": "那取消补考之后，他们该怎么办？",
+      "end_ms": 1705730,
+      "text": "那取消补考之后，他该怎么办？",
       "speakers": [
         "S01"
       ],
@@ -5458,7 +4881,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1705920,
+      "start_ms": 1705930,
       "end_ms": 1708700,
       "text": "还有1个清考，大四的时候有1个清考。",
       "speakers": [
@@ -5474,7 +4897,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1710340,
+      "start_ms": 1710350,
       "end_ms": 1713150,
       "text": "嗯，那你呢？你在大学成绩怎么样？",
       "speakers": [
@@ -5507,8 +4930,8 @@
     },
     {
       "start_ms": 1728640,
-      "end_ms": 1737840,
-      "text": "应该是我们那个，我喜欢的课程多了，呃就像高数或英语这些，就比较少的那那种的。",
+      "end_ms": 1737850,
+      "text": "应该是我们那个，我喜欢的课程多了，呃就像高数或英语，这些就比较少的那那种的。",
       "speakers": [
         "S01"
       ],
@@ -5523,7 +4946,7 @@
     },
     {
       "start_ms": 1739410,
-      "end_ms": 1752610,
+      "end_ms": 1752600,
       "text": "我感觉，我们咱们咱们咱们2个专业之间的那个成绩都差不多，你们你们就现在学的，可能是我们将来",
       "speakers": [
         "S01"
@@ -5536,8 +4959,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1753760,
-      "end_ms": 1760000,
+      "start_ms": 1753790,
+      "end_ms": 1760030,
       "text": "我们那个系现在要创新，可能是要你们现在学的那些，呃，",
       "speakers": [
         "S01"
@@ -5549,184 +4972,184 @@
       "tokens": [
         {
           "text": "我",
-          "start_ms": 1753760,
-          "end_ms": 1753920,
+          "start_ms": 1753790,
+          "end_ms": 1753870,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "们",
-          "start_ms": 1753920,
-          "end_ms": 1754160,
+          "start_ms": 1753870,
+          "end_ms": 1754190,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "那",
-          "start_ms": 1754160,
-          "end_ms": 1754320,
+          "start_ms": 1754190,
+          "end_ms": 1754270,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "个",
-          "start_ms": 1754320,
-          "end_ms": 1754400,
+          "start_ms": 1754270,
+          "end_ms": 1754430,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "系",
-          "start_ms": 1754400,
-          "end_ms": 1754960,
+          "start_ms": 1754430,
+          "end_ms": 1754990,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "现",
-          "start_ms": 1755120,
-          "end_ms": 1755280,
+          "start_ms": 1755150,
+          "end_ms": 1755310,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "在",
-          "start_ms": 1755280,
-          "end_ms": 1755440,
+          "start_ms": 1755310,
+          "end_ms": 1755470,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "要",
-          "start_ms": 1755440,
-          "end_ms": 1755840,
+          "start_ms": 1755470,
+          "end_ms": 1755790,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "创",
-          "start_ms": 1755840,
-          "end_ms": 1756080,
+          "start_ms": 1755870,
+          "end_ms": 1756110,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "新，",
-          "start_ms": 1756080,
-          "end_ms": 1756560,
+          "start_ms": 1756110,
+          "end_ms": 1756510,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "可",
-          "start_ms": 1756720,
-          "end_ms": 1756800,
+          "start_ms": 1756670,
+          "end_ms": 1756830,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "能",
-          "start_ms": 1756800,
-          "end_ms": 1756960,
+          "start_ms": 1756830,
+          "end_ms": 1756990,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "是",
-          "start_ms": 1756960,
-          "end_ms": 1757120,
+          "start_ms": 1756990,
+          "end_ms": 1757150,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "要",
-          "start_ms": 1757120,
-          "end_ms": 1757440,
+          "start_ms": 1757150,
+          "end_ms": 1757390,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "你",
-          "start_ms": 1757440,
-          "end_ms": 1757600,
+          "start_ms": 1757470,
+          "end_ms": 1757550,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "们",
-          "start_ms": 1757600,
-          "end_ms": 1757760,
+          "start_ms": 1757550,
+          "end_ms": 1757790,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "现",
-          "start_ms": 1757760,
-          "end_ms": 1758000,
+          "start_ms": 1757790,
+          "end_ms": 1758030,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "在",
-          "start_ms": 1758000,
-          "end_ms": 1758240,
+          "start_ms": 1758030,
+          "end_ms": 1758190,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "学",
-          "start_ms": 1758240,
-          "end_ms": 1758560,
+          "start_ms": 1758270,
+          "end_ms": 1758590,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "的",
-          "start_ms": 1758560,
-          "end_ms": 1758640,
+          "start_ms": 1758510,
+          "end_ms": 1758670,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "那",
-          "start_ms": 1758640,
-          "end_ms": 1758800,
+          "start_ms": 1758670,
+          "end_ms": 1758750,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "些，",
-          "start_ms": 1758800,
-          "end_ms": 1759040,
+          "start_ms": 1758750,
+          "end_ms": 1758990,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "呃，",
-          "start_ms": 1759680,
-          "end_ms": 1760000,
+          "start_ms": 1759630,
+          "end_ms": 1760030,
           "speakers": [
             "S01"
           ]
@@ -5878,7 +5301,7 @@
         },
         {
           "text": "进",
-          "start_ms": 1765080,
+          "start_ms": 1765160,
           "end_ms": 1765480,
           "speakers": [
             "S01"
@@ -5946,7 +5369,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1766910,
+      "start_ms": 1766850,
       "end_ms": 1774370,
       "text": "应该是了，会这样子的。那那个啥，你们学校里面那些奖助学金，会跟那个成绩挂钩吗？",
       "speakers": [
@@ -5962,7 +5385,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1775030,
+      "start_ms": 1775020,
       "end_ms": 1787110,
       "text": "会有一点，但是助学金不会，助学金只要没挂过科。就只要是有那个建档立卡和低保，他都必须给。不在乎你考多少。",
       "speakers": [
@@ -5979,8 +5402,8 @@
     },
     {
       "start_ms": 1787110,
-      "end_ms": 1797920,
-      "text": "对对对，我们学校现在也是这样子的。奖学金的话，就那啥，就必须得看成绩了。而且还得看你1学年的成绩。",
+      "end_ms": 1797930,
+      "text": "对对对，我们学校现在也是这样子的。奖学金的话，就那样，就必须得看成绩了。而且还得看你1学年的成绩。",
       "speakers": [
         "S02"
       ],
@@ -5995,7 +5418,7 @@
     },
     {
       "start_ms": 1798610,
-      "end_ms": 1812910,
+      "end_ms": 1812930,
       "text": "我们班长在我们班儿，他们大一的时候，就是班委就基本上把这个钱全部都拿走了，因为我们班主任当时没有，",
       "speakers": [
         "S01"
@@ -6011,7 +5434,7 @@
     },
     {
       "start_ms": 1813390,
-      "end_ms": 1820370,
+      "end_ms": 1820390,
       "text": "去管这个事情，刚军训完，班主任就没没见过我们，他只认识班委。",
       "speakers": [
         "S01"
@@ -6024,9 +5447,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1820910,
-      "end_ms": 1835540,
-      "text": "也没有管，因为当时班主任管了其他班儿，所以他没有时间管我们这个事情。班委几个，他们把钱就全部都拿走了。就把他们把名额全部都占了。",
+      "start_ms": 1820920,
+      "end_ms": 1835550,
+      "text": "也没有管，因为当时班主任管的其他班儿，所以他没有时间管我们这个事情。班委几个，他们把钱就全部都拿走了。就把他们把名额全部都占了。",
       "speakers": [
         "S01"
       ],
@@ -6041,8 +5464,8 @@
     },
     {
       "start_ms": 1835620,
-      "end_ms": 1850160,
-      "text": "那你们你们班主任那会儿，其实应该那个啥，都问一问的话，因为毕竟是助学金嘛。像我们班主任刚大一那会儿的话，他就会把全班人的情况都给私聊一下，都问清楚。",
+      "end_ms": 1846470,
+      "text": "那你们你们班主任那会儿，其实应该那个啥，都问一问的话，因为毕竟是助学金嘛。像我们班主任刚大一那会儿的话，他就会把，",
       "speakers": [
         "S02"
       ],
@@ -6056,9 +5479,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1850160,
-      "end_ms": 1857850,
-      "text": "然后他再自己决定一下，给哪个人，因为这个有时候几千块钱来说也挺重要。",
+      "start_ms": 1846470,
+      "end_ms": 1857860,
+      "text": "全班人的情况都给私聊一下，都问清楚，然后他再自己决定一下给哪个人。因为这个，有时候几千块钱来说，也挺重要。",
       "speakers": [
         "S02"
       ],
@@ -6072,15 +5495,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1858380,
-      "end_ms": 1861450,
+      "start_ms": 1858390,
+      "end_ms": 1861470,
       "text": "你们班费有交过吗？",
       "speakers": [
         "S01"
       ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
+      "flags": [],
       "channel": null,
       "tokens": [],
       "candidates": {},
@@ -6088,9 +5509,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1861970,
-      "end_ms": 1867310,
-      "text": "有交过，1次100呢，刚大一那会儿交的比较多，后来就不怎么交了。",
+      "start_ms": 1861990,
+      "end_ms": 1867340,
+      "text": "有交过，一次100呢，刚大一那会儿交的比较多，后来就不怎么交了。",
       "speakers": [
         "S02"
       ],
@@ -6104,8 +5525,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1867310,
-      "end_ms": 1871970,
+      "start_ms": 1867340,
+      "end_ms": 1871990,
       "text": "我们交过班费，但下落都不明了，不知道拿班费干啥。",
       "speakers": [
         "S01"
@@ -6121,8 +5542,8 @@
     },
     {
       "start_ms": 1872370,
-      "end_ms": 1876080,
-      "text": "你们没有那个聚过餐那些吗？搞过活动，1个班里面？",
+      "end_ms": 1876110,
+      "text": "你们没有那个聚过餐那些吗？搞过活动，一个班里面。",
       "speakers": [
         "S02"
       ],
@@ -6136,8 +5557,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1876320,
-      "end_ms": 1881410,
+      "start_ms": 1876340,
+      "end_ms": 1881430,
       "text": "搞活动，像元旦就买瓜子儿那些，用不了多少钱呀。",
       "speakers": [
         "S01"
@@ -6152,9 +5573,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1882970,
-      "end_ms": 1897430,
-      "text": "那就那个啥，就得好好问问了。我们的话，就虽然交了挺多钱，但是他会让我们去饭店里面吃饭。红花馆、KTV那些的，就也算是有个交代，不管多少吧。",
+      "start_ms": 1882980,
+      "end_ms": 1897440,
+      "text": "那就那个啥，就得好好问问了。我们的话，就虽然交的挺多钱，但是他会让我们去饭店里面吃饭。红花馆、KTV那些的，就也算是有个交代，不管多少吧。",
       "speakers": [
         "S02"
       ],
@@ -6168,8 +5589,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1897430,
-      "end_ms": 1900110,
+      "start_ms": 1897500,
+      "end_ms": 1900140,
       "text": "你在学校参加参加过什么社团？",
       "speakers": [
         "S01"
@@ -6184,8 +5605,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1900670,
-      "end_ms": 1902830,
+      "start_ms": 1900680,
+      "end_ms": 1902860,
       "text": "我参加过那个台球。",
       "speakers": [
         "S02"
@@ -6198,8 +5619,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1903860,
-      "end_ms": 1906090,
+      "start_ms": 1903880,
+      "end_ms": 1906110,
       "text": "台球社还是排球社？",
       "speakers": [
         "S01"
@@ -6214,8 +5635,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1906090,
-      "end_ms": 1909950,
+      "start_ms": 1906110,
+      "end_ms": 1909970,
       "text": "台球，打过台球，但是我没参加过几天就放弃了。",
       "speakers": [
         "S02"
@@ -6230,8 +5651,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1911340,
-      "end_ms": 1913220,
+      "start_ms": 1911380,
+      "end_ms": 1913250,
       "text": "选择了那个图书管理员。",
       "speakers": [
         "S01"
@@ -6244,7 +5665,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1913220,
+      "start_ms": 1913250,
       "end_ms": 1917910,
       "text": "嗯，图书管理员是大三的时候。后来慢慢的吧。",
       "speakers": [
@@ -6261,7 +5682,7 @@
     },
     {
       "start_ms": 1917910,
-      "end_ms": 1920800,
+      "end_ms": 1920820,
       "text": "我们学校的图书管理员，每个月都有工资的。",
       "speakers": [
         "S01"
@@ -6276,8 +5697,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1920800,
-      "end_ms": 1924540,
+      "start_ms": 1920820,
+      "end_ms": 1924570,
       "text": "对呀，都有呀。不多，1个月150。",
       "speakers": [
         "S02"
@@ -6292,8 +5713,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1924540,
-      "end_ms": 1925480,
+      "start_ms": 1924570,
+      "end_ms": 1925510,
       "text": "我们200。",
       "speakers": [
         "S01"
@@ -6308,8 +5729,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1925550,
-      "end_ms": 1927100,
+      "start_ms": 1925510,
+      "end_ms": 1927120,
       "text": "那比我们多50。",
       "speakers": [
         "S02"
@@ -6324,8 +5745,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1927100,
-      "end_ms": 1934000,
+      "start_ms": 1927120,
+      "end_ms": 1934010,
       "text": "但是他们特别累，他们每天就下课就得去，到了现在才好了那么一点。",
       "speakers": [
         "S01"
@@ -6340,8 +5761,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1934480,
-      "end_ms": 1935840,
+      "start_ms": 1934490,
+      "end_ms": 1935850,
       "text": "我们倒是不用，我",
       "speakers": [
         "S02"
@@ -6353,56 +5774,56 @@
       "tokens": [
         {
           "text": "我",
-          "start_ms": 1934480,
-          "end_ms": 1934640,
+          "start_ms": 1934490,
+          "end_ms": 1934650,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "们",
-          "start_ms": 1934640,
-          "end_ms": 1934800,
+          "start_ms": 1934650,
+          "end_ms": 1934810,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "倒",
-          "start_ms": 1934800,
-          "end_ms": 1934960,
+          "start_ms": 1934810,
+          "end_ms": 1934970,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "是",
-          "start_ms": 1934960,
-          "end_ms": 1935120,
+          "start_ms": 1934970,
+          "end_ms": 1935130,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "不",
-          "start_ms": 1935120,
-          "end_ms": 1935280,
+          "start_ms": 1935130,
+          "end_ms": 1935290,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "用，",
-          "start_ms": 1935280,
-          "end_ms": 1935600,
+          "start_ms": 1935290,
+          "end_ms": 1935610,
           "speakers": [
             "S02"
           ]
         },
         {
           "text": "我",
-          "start_ms": 1935760,
-          "end_ms": 1935840,
+          "start_ms": 1935770,
+          "end_ms": 1935850,
           "speakers": [
             "S02"
           ]

@@ -75,7 +75,7 @@
     },
     {
       "start_ms": 14480,
-      "end_ms": 15680,
+      "end_ms": 15720,
       "text": "嗯，是的。",
       "speakers": [
         "S01"
@@ -219,7 +219,7 @@
     },
     {
       "start_ms": 26320,
-      "end_ms": 28140,
+      "end_ms": 28180,
       "text": "对网上推移对吧。",
       "speakers": [],
       "flags": [
@@ -363,7 +363,7 @@
     },
     {
       "start_ms": 40840,
-      "end_ms": 45520,
+      "end_ms": 45620,
       "text": "确实这个太重要，你说如果要不使用的话，确实对我们也影响很大。",
       "speakers": [],
       "flags": [
@@ -442,7 +442,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 46760,
+      "start_ms": 46750,
       "end_ms": 49020,
       "text": "而且我们需要提高它的市场竞争力。",
       "speakers": [
@@ -459,7 +459,7 @@
     },
     {
       "start_ms": 46810,
-      "end_ms": 47780,
+      "end_ms": 47820,
       "text": "对那我们就。",
       "speakers": [],
       "flags": [
@@ -554,7 +554,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 57040,
+      "start_ms": 57020,
       "end_ms": 59820,
       "text": "人，青年，老人，对。",
       "speakers": [],
@@ -570,7 +570,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 60240,
+      "start_ms": 60220,
       "end_ms": 61020,
       "text": "对小孩儿。",
       "speakers": [
@@ -603,7 +603,7 @@
     },
     {
       "start_ms": 63280,
-      "end_ms": 72320,
+      "end_ms": 72420,
       "text": "首先我觉得这个人群，我们就要不就分完之后就青少年，我们减少到青少年或者孩子，孩子就是，尽量给小孩儿对吧，对。",
       "speakers": [],
       "flags": [
@@ -682,7 +682,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 73460,
+      "start_ms": 73480,
       "end_ms": 78320,
       "text": "不过我觉得还是有青少年，都十八岁以下的，还需要上学。",
       "speakers": [
@@ -714,7 +714,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 77140,
+      "start_ms": 77120,
       "end_ms": 77620,
       "text": "对。",
       "speakers": [
@@ -779,7 +779,7 @@
     },
     {
       "start_ms": 86580,
-      "end_ms": 87080,
+      "end_ms": 87120,
       "text": "对。",
       "speakers": [
         "S01"
@@ -955,7 +955,7 @@
     },
     {
       "start_ms": 105620,
-      "end_ms": 106020,
+      "end_ms": 106120,
       "text": "哎。",
       "speakers": [
         "S01"
@@ -1002,7 +1002,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 109140,
+      "start_ms": 109120,
       "end_ms": 109720,
       "text": "对。",
       "speakers": [],
@@ -1020,7 +1020,7 @@
     {
       "start_ms": 109240,
       "end_ms": 116720,
-      "text": "还有那种通行证，你可以设，设一些监管的，比如只能通过通行证，每天该该领的。",
+      "text": "还有那种通行证，你可以设，设一些基本的，比如只能通过通行证，每天该该领的。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -1035,7 +1035,7 @@
     },
     {
       "start_ms": 109480,
-      "end_ms": 110020,
+      "end_ms": 110120,
       "text": "对。",
       "speakers": [
         "S02"
@@ -1098,7 +1098,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 116140,
+      "start_ms": 116120,
       "end_ms": 119120,
       "text": "嗯，对，是。",
       "speakers": [
@@ -1162,7 +1162,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 121180,
+      "start_ms": 121160,
       "end_ms": 121520,
       "text": "对。",
       "speakers": [
@@ -1211,7 +1211,7 @@
     },
     {
       "start_ms": 131100,
-      "end_ms": 135420,
+      "end_ms": 135520,
       "text": "你看啊，比如说通行证是吧，我们还有刚刚不是说有门票，对。",
       "speakers": [],
       "flags": [
@@ -1226,7 +1226,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 134040,
+      "start_ms": 134020,
       "end_ms": 136120,
       "text": "签到，对，对，有签到。",
       "speakers": [
@@ -1275,7 +1275,7 @@
     },
     {
       "start_ms": 140010,
-      "end_ms": 140520,
+      "end_ms": 140620,
       "text": "啊。",
       "speakers": [],
       "flags": [
@@ -1290,7 +1290,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 143110,
+      "start_ms": 143080,
       "end_ms": 148320,
       "text": "对两个结合起来，就你既要买你还得签到，哎，就同时一起。",
       "speakers": [
@@ -1323,7 +1323,7 @@
     },
     {
       "start_ms": 144820,
-      "end_ms": 145320,
+      "end_ms": 145420,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -1338,7 +1338,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 145980,
+      "start_ms": 145920,
       "end_ms": 147520,
       "text": "对，对。",
       "speakers": [
@@ -1371,7 +1371,7 @@
     },
     {
       "start_ms": 149840,
-      "end_ms": 150320,
+      "end_ms": 150420,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -1419,7 +1419,7 @@
     },
     {
       "start_ms": 153910,
-      "end_ms": 154320,
+      "end_ms": 154420,
       "text": "是。",
       "speakers": [
         "S01"
@@ -1515,7 +1515,7 @@
     },
     {
       "start_ms": 168480,
-      "end_ms": 168820,
+      "end_ms": 168920,
       "text": "对。",
       "speakers": [
         "S01"
@@ -1755,7 +1755,7 @@
     },
     {
       "start_ms": 184220,
-      "end_ms": 184640,
+      "end_ms": 184660,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -1819,7 +1819,7 @@
     },
     {
       "start_ms": 188120,
-      "end_ms": 188440,
+      "end_ms": 188480,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -1835,7 +1835,7 @@
     },
     {
       "start_ms": 192000,
-      "end_ms": 192440,
+      "end_ms": 192460,
       "text": "是。",
       "speakers": [],
       "flags": [
@@ -1867,7 +1867,7 @@
     },
     {
       "start_ms": 195120,
-      "end_ms": 200220,
+      "end_ms": 200240,
       "text": "对，刺激他这个前半个月他的使用，比如说他这半个月他喜欢我们这款游戏，他就一直玩儿，对吧。",
       "speakers": [
         "S03"
@@ -1883,7 +1883,7 @@
     },
     {
       "start_ms": 196920,
-      "end_ms": 197340,
+      "end_ms": 197380,
       "text": "对。",
       "speakers": [
         "S03"
@@ -1899,7 +1899,7 @@
     },
     {
       "start_ms": 197780,
-      "end_ms": 198380,
+      "end_ms": 198420,
       "text": "对对对。",
       "speakers": [],
       "flags": [
@@ -1915,7 +1915,7 @@
     },
     {
       "start_ms": 198580,
-      "end_ms": 207740,
+      "end_ms": 207780,
       "text": "或者是，而且他新手来了以后，你新手再推荐你的朋友，你的好友来，哎，会更多更有福利，哎，对。",
       "speakers": [
         "S03"
@@ -1931,7 +1931,7 @@
     },
     {
       "start_ms": 200340,
-      "end_ms": 200780,
+      "end_ms": 200820,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -1963,7 +1963,7 @@
     },
     {
       "start_ms": 206080,
-      "end_ms": 209280,
+      "end_ms": 209320,
       "text": "对，对，而且我觉得咱们呢。",
       "speakers": [],
       "flags": [
@@ -1995,7 +1995,7 @@
     },
     {
       "start_ms": 207620,
-      "end_ms": 208620,
+      "end_ms": 208640,
       "text": "对，推荐这个福利。",
       "speakers": [],
       "flags": [
@@ -2010,7 +2010,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 208540,
+      "start_ms": 208560,
       "end_ms": 213420,
       "text": "哎，比如说他通过他带他的朋友来之后，是不是可以给他一定的，比如。",
       "speakers": [
@@ -2059,7 +2059,7 @@
     },
     {
       "start_ms": 214340,
-      "end_ms": 215120,
+      "end_ms": 215220,
       "text": "对，对。",
       "speakers": [
         "S03"
@@ -2139,7 +2139,7 @@
     },
     {
       "start_ms": 221660,
-      "end_ms": 222140,
+      "end_ms": 222160,
       "text": "是。",
       "speakers": [],
       "flags": [
@@ -2155,7 +2155,7 @@
     },
     {
       "start_ms": 224000,
-      "end_ms": 224420,
+      "end_ms": 224440,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -2203,7 +2203,7 @@
     },
     {
       "start_ms": 229340,
-      "end_ms": 229820,
+      "end_ms": 229880,
       "text": "啊。",
       "speakers": [
         "S03"
@@ -2235,7 +2235,7 @@
     },
     {
       "start_ms": 230840,
-      "end_ms": 231260,
+      "end_ms": 231320,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -2283,7 +2283,7 @@
     },
     {
       "start_ms": 233620,
-      "end_ms": 234020,
+      "end_ms": 234120,
       "text": "对。",
       "speakers": [
         "S03"
@@ -2299,7 +2299,7 @@
     },
     {
       "start_ms": 234220,
-      "end_ms": 237820,
+      "end_ms": 237880,
       "text": "是，有一个非常好看的皮肤，是老玩家回去。",
       "speakers": [],
       "flags": [
@@ -2395,7 +2395,7 @@
     },
     {
       "start_ms": 239420,
-      "end_ms": 240920,
+      "end_ms": 240940,
       "text": "对对对，我新新回来。",
       "speakers": [],
       "flags": [
@@ -2459,7 +2459,7 @@
     },
     {
       "start_ms": 245720,
-      "end_ms": 247720,
+      "end_ms": 247740,
       "text": "峥嵘岁月，然后走，多人一起开。",
       "speakers": [],
       "flags": [
@@ -2475,7 +2475,7 @@
     },
     {
       "start_ms": 247480,
-      "end_ms": 248820,
+      "end_ms": 248840,
       "text": "毕竟是一种情怀哈。",
       "speakers": [],
       "flags": [
@@ -2603,7 +2603,7 @@
     },
     {
       "start_ms": 259020,
-      "end_ms": 259320,
+      "end_ms": 259420,
       "text": "对。",
       "speakers": [
         "S03"
@@ -2635,7 +2635,7 @@
     },
     {
       "start_ms": 260920,
-      "end_ms": 261540,
+      "end_ms": 261580,
       "text": "抽奖。",
       "speakers": [
         "S03"
@@ -2651,7 +2651,7 @@
     },
     {
       "start_ms": 261480,
-      "end_ms": 262820,
+      "end_ms": 262880,
       "text": "对对对，抽奖我感觉。",
       "speakers": [],
       "flags": [
@@ -2699,7 +2699,7 @@
     },
     {
       "start_ms": 266980,
-      "end_ms": 267920,
+      "end_ms": 267940,
       "text": "转盘，大转盘。",
       "speakers": [
         "S03"
@@ -2714,7 +2714,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 267220,
+      "start_ms": 267240,
       "end_ms": 267720,
       "text": "是。",
       "speakers": [
@@ -2778,9 +2778,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 269920,
-      "end_ms": 271720,
-      "text": "可以开开启那个宝箱。",
+      "start_ms": 269940,
+      "end_ms": 271780,
+      "text": "可以开启那个宝箱。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -2795,7 +2795,7 @@
     },
     {
       "start_ms": 270080,
-      "end_ms": 275920,
+      "end_ms": 275940,
       "text": "对，转盘，转盘也行，他可以开启宝箱，对，开宝箱感觉更像游戏一点儿，游戏设置。",
       "speakers": [],
       "flags": [
@@ -2827,7 +2827,7 @@
     },
     {
       "start_ms": 272280,
-      "end_ms": 274020,
+      "end_ms": 274040,
       "text": "还有宝箱，对，宝箱。",
       "speakers": [
         "S03"
@@ -2843,7 +2843,7 @@
     },
     {
       "start_ms": 273780,
-      "end_ms": 274220,
+      "end_ms": 274280,
       "text": "对。",
       "speakers": [
         "S03"
@@ -2875,7 +2875,7 @@
     },
     {
       "start_ms": 275680,
-      "end_ms": 286140,
+      "end_ms": 286180,
       "text": "宝箱，集钥匙，集钥匙，设计什么钥匙，比如说你打游戏，你赢一把，有几率爆几个钥匙，然后几个钥匙开一个宝箱。",
       "speakers": [
         "S03"
@@ -3003,7 +3003,7 @@
     },
     {
       "start_ms": 285920,
-      "end_ms": 292920,
+      "end_ms": 292980,
       "text": "如果说你这个钥匙去看吧，它有一定暴击的几率，它其实有可以做调整的方式，对吧，对吧。",
       "speakers": [
         "S03"
@@ -3051,7 +3051,7 @@
     },
     {
       "start_ms": 290020,
-      "end_ms": 290480,
+      "end_ms": 290520,
       "text": "嗯。",
       "speakers": [],
       "flags": [
@@ -3083,7 +3083,7 @@
     },
     {
       "start_ms": 291840,
-      "end_ms": 292280,
+      "end_ms": 292320,
       "text": "对。",
       "speakers": [
         "S03"
@@ -3099,7 +3099,7 @@
     },
     {
       "start_ms": 291920,
-      "end_ms": 292420,
+      "end_ms": 292480,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -3115,7 +3115,7 @@
     },
     {
       "start_ms": 295780,
-      "end_ms": 296220,
+      "end_ms": 296280,
       "text": "对。",
       "speakers": [
         "S03"
@@ -3131,7 +3131,7 @@
     },
     {
       "start_ms": 296220,
-      "end_ms": 296840,
+      "end_ms": 296880,
       "text": "对对对。",
       "speakers": [
         "S03"
@@ -3148,7 +3148,7 @@
     {
       "start_ms": 296600,
       "end_ms": 298620,
-      "text": "大家可以去捡，对，或或。",
+      "text": "对他可以去捡，对，或或。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -3179,7 +3179,7 @@
     },
     {
       "start_ms": 298420,
-      "end_ms": 299140,
+      "end_ms": 299180,
       "text": "对，没错。",
       "speakers": [
         "S03"
@@ -3196,7 +3196,7 @@
     {
       "start_ms": 299680,
       "end_ms": 300220,
-      "text": "对对对。",
+      "text": "对对。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -3211,7 +3211,7 @@
     },
     {
       "start_ms": 299880,
-      "end_ms": 300920,
+      "end_ms": 300980,
       "text": "是，对。",
       "speakers": [],
       "flags": [
@@ -3243,7 +3243,7 @@
     },
     {
       "start_ms": 304020,
-      "end_ms": 304520,
+      "end_ms": 304620,
       "text": "哎。",
       "speakers": [
         "S03"
@@ -3355,7 +3355,7 @@
     },
     {
       "start_ms": 314280,
-      "end_ms": 314720,
+      "end_ms": 314820,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -3387,7 +3387,7 @@
     },
     {
       "start_ms": 316080,
-      "end_ms": 316520,
+      "end_ms": 316580,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -3403,7 +3403,7 @@
     },
     {
       "start_ms": 317620,
-      "end_ms": 322420,
+      "end_ms": 322520,
       "text": "对，有专属皮肤，对吧，然后就，来个像。",
       "speakers": [
         "S03"
@@ -3435,7 +3435,7 @@
     },
     {
       "start_ms": 317980,
-      "end_ms": 318620,
+      "end_ms": 318680,
       "text": "对对。",
       "speakers": [],
       "flags": [
@@ -3466,7 +3466,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 320920,
+      "start_ms": 320940,
       "end_ms": 322420,
       "text": "可以炫酷，可以特效。",
       "speakers": [],
@@ -3499,7 +3499,7 @@
     },
     {
       "start_ms": 322640,
-      "end_ms": 323140,
+      "end_ms": 323180,
       "text": "炫酷。",
       "speakers": [
         "S03"
@@ -3515,7 +3515,7 @@
     },
     {
       "start_ms": 329020,
-      "end_ms": 330040,
+      "end_ms": 330080,
       "text": "游戏设置上。",
       "speakers": [
         "S03"
@@ -3595,7 +3595,7 @@
     },
     {
       "start_ms": 339680,
-      "end_ms": 340180,
+      "end_ms": 340220,
       "text": "嗯。",
       "speakers": [],
       "flags": [
@@ -3611,7 +3611,7 @@
     },
     {
       "start_ms": 342080,
-      "end_ms": 342540,
+      "end_ms": 342580,
       "text": "是。",
       "speakers": [
         "S03"
@@ -3627,7 +3627,7 @@
     },
     {
       "start_ms": 344120,
-      "end_ms": 344720,
+      "end_ms": 344820,
       "text": "是。",
       "speakers": [],
       "flags": [
@@ -3643,7 +3643,7 @@
     },
     {
       "start_ms": 344620,
-      "end_ms": 346320,
+      "end_ms": 346380,
       "text": "降低新手的入门。",
       "speakers": [],
       "flags": [
@@ -3675,7 +3675,7 @@
     },
     {
       "start_ms": 347020,
-      "end_ms": 347520,
+      "end_ms": 347620,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -3833,9 +3833,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 352620,
-      "end_ms": 354420,
-      "text": "更相对的也对，对。",
+      "start_ms": 352580,
+      "end_ms": 353840,
+      "text": "更香脆的也对。",
       "speakers": [
         "S01"
       ],
@@ -3851,7 +3851,7 @@
     {
       "start_ms": 353580,
       "end_ms": 356720,
-      "text": "对，来电儿效应嘛，对。",
+      "text": "对，来电棒儿这样的，对。",
       "speakers": [
         "S02"
       ],
@@ -3881,8 +3881,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 359780,
-      "end_ms": 368540,
+      "start_ms": 359760,
+      "end_ms": 368580,
       "text": "对呀，但是这样可能我们成本会提高，或者我们两个要跟公司去对接，这个东西就很多很多事情啊，就有点不好了，对吧。",
       "speakers": [
         "S01"
@@ -3929,7 +3929,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 364220,
+      "start_ms": 364210,
       "end_ms": 365720,
       "text": "有些人可能就会忘了去。",
       "speakers": [],
@@ -3977,8 +3977,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 369120,
-      "end_ms": 380260,
+      "start_ms": 369110,
+      "end_ms": 380280,
       "text": "我觉得还是这个还可以去玩一下，再我们可以再想些别的，对吧，比如说设一手柄，可能一些对我们需要去降低成本，这照我们中途的这些流程啊，然后我们可以，对吧。",
       "speakers": [
         "S01"
@@ -3993,7 +3993,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 373160,
+      "start_ms": 373150,
       "end_ms": 373520,
       "text": "嗯。",
       "speakers": [
@@ -4025,7 +4025,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 373580,
+      "start_ms": 373560,
       "end_ms": 373860,
       "text": "对。",
       "speakers": [],
@@ -4057,7 +4057,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 376480,
+      "start_ms": 376460,
       "end_ms": 378120,
       "text": "对降低成本，对。",
       "speakers": [],
@@ -4089,9 +4089,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 381010,
-      "end_ms": 381820,
-      "text": "因为我们是盈利。",
+      "start_ms": 381520,
+      "end_ms": 381840,
+      "text": "对。",
       "speakers": [
         "S01"
       ],
@@ -4106,8 +4106,8 @@
     },
     {
       "start_ms": 382540,
-      "end_ms": 383060,
-      "text": "手机。",
+      "end_ms": 387040,
+      "text": "手机，就变得玩啊，对，可以可以，是。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -4137,9 +4137,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 383680,
-      "end_ms": 384020,
-      "text": "对。",
+      "start_ms": 383620,
+      "end_ms": 385120,
+      "text": "对，对对对对。",
       "speakers": [
         "S01"
       ],
@@ -4153,9 +4153,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 383740,
-      "end_ms": 387040,
-      "text": "就变得玩啊，对，可以可以，是。",
+      "start_ms": 384420,
+      "end_ms": 385820,
+      "text": "对玩儿，对。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -4169,25 +4169,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 384420,
-      "end_ms": 385820,
-      "text": "哎，对对对。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 384980,
+      "start_ms": 385980,
       "end_ms": 389240,
-      "text": "对对对，要要不你不能你拿出手柄，对我的手机就有点不好了。",
+      "text": "要要不你不能你拿出手柄，对我的手机就有点不好了。",
       "speakers": [
         "S01"
       ],
@@ -4201,7 +4185,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 388840,
+      "start_ms": 388820,
       "end_ms": 393340,
       "text": "然后你就觉得感觉不太公平，对不对，那操作的简难易程度就不太一样了。",
       "speakers": [],
@@ -4233,9 +4217,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 390610,
-      "end_ms": 392320,
-      "text": "对对，有点儿有点儿不好。",
+      "start_ms": 390580,
+      "end_ms": 391520,
+      "text": "对对，对。",
       "speakers": [
         "S01"
       ],
@@ -4250,7 +4234,7 @@
     },
     {
       "start_ms": 391120,
-      "end_ms": 391520,
+      "end_ms": 391480,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -4265,7 +4249,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 393360,
+      "start_ms": 393350,
       "end_ms": 399620,
       "text": "对，我们也也可以也可以设置，在玩留下什么高玩玩家有的设置，对吧，对，高个儿。",
       "speakers": [
@@ -4297,7 +4281,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 397820,
+      "start_ms": 397810,
       "end_ms": 398720,
       "text": "高玩玩家。",
       "speakers": [],
@@ -4393,7 +4377,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 412520,
+      "start_ms": 412510,
       "end_ms": 423320,
       "text": "第三，我们在游戏设置里，我们通过调整，调整一些那个丰富一些设置，来吸引玩家的注意力，那咱们第二个需要探讨的问题就是这个促销方式。",
       "speakers": [
@@ -4410,7 +4394,7 @@
     },
     {
       "start_ms": 412610,
-      "end_ms": 412940,
+      "end_ms": 412920,
       "text": "对。",
       "speakers": [
         "S01"
@@ -4426,7 +4410,7 @@
     },
     {
       "start_ms": 415660,
-      "end_ms": 416020,
+      "end_ms": 415980,
       "text": "是。",
       "speakers": [
         "S01"
@@ -4442,8 +4426,8 @@
     },
     {
       "start_ms": 416520,
-      "end_ms": 418520,
-      "text": "是，对，是对对对。",
+      "end_ms": 418620,
+      "text": "是，对，是，对对对。",
       "speakers": [
         "S01"
       ],
@@ -4473,8 +4457,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 418220,
-      "end_ms": 418580,
+      "start_ms": 418210,
+      "end_ms": 418540,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -4489,7 +4473,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 423720,
+      "start_ms": 423710,
       "end_ms": 424480,
       "text": "促销方式。",
       "speakers": [],
@@ -4537,7 +4521,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 426260,
+      "start_ms": 426240,
       "end_ms": 432820,
       "text": "我觉得促销方式咱们可以，多方面促销吧，我觉得不要局限于一种，对吧。",
       "speakers": [
@@ -4585,7 +4569,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 433720,
+      "start_ms": 433710,
       "end_ms": 435920,
       "text": "比如说你说像那种，像比较火的。",
       "speakers": [
@@ -4761,8 +4745,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 450220,
-      "end_ms": 451120,
+      "start_ms": 450180,
+      "end_ms": 451040,
       "text": "血型啊，或者。",
       "speakers": [],
       "flags": [
@@ -4777,7 +4761,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 450920,
+      "start_ms": 450880,
       "end_ms": 451320,
       "text": "对。",
       "speakers": [
@@ -4793,7 +4777,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 451180,
+      "start_ms": 451140,
       "end_ms": 456120,
       "text": "或者你自己，哎，你自己可以自己D I Y，对吧，对。",
       "speakers": [
@@ -4811,7 +4795,7 @@
     {
       "start_ms": 454240,
       "end_ms": 456820,
-      "text": "啊，非常个性，个性化一点。",
+      "text": "嗯，像个性，个性化礼品。",
       "speakers": [
         "S02"
       ],
@@ -4825,8 +4809,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 454520,
-      "end_ms": 463940,
+      "start_ms": 454510,
+      "end_ms": 463920,
       "text": "哦，对对对，对，就给你给你一个设定的权限，是你可以自己设定，加自己加喜欢的元素什么的，对，对，这就非常棒。",
       "speakers": [],
       "flags": [
@@ -4858,7 +4842,7 @@
     },
     {
       "start_ms": 456580,
-      "end_ms": 457380,
+      "end_ms": 457340,
       "text": "对，喜欢。",
       "speakers": [],
       "flags": [
@@ -4955,7 +4939,7 @@
     {
       "start_ms": 463720,
       "end_ms": 469220,
-      "text": "对，对这个是非常棒的，个性个性化一点的设计，对，嗯。",
+      "text": "对，对这个是非常棒的，个性个性化礼品设计，对，嗯。",
       "speakers": [
         "S02"
       ],
@@ -4985,7 +4969,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 466660,
+      "start_ms": 466640,
       "end_ms": 480120,
       "text": "对，像就是那种限定皮肤，你可以为了他让他买，比如限定皮肤可能会贵一点，但是你买限定皮肤给你送你几个别的皮肤，你买一送三，买一送四，哎，对对对，是，对。",
       "speakers": [],
@@ -5003,7 +4987,7 @@
     {
       "start_ms": 470320,
       "end_ms": 472820,
-      "text": "啊，啊，对，应该这样。",
+      "text": "啊，啊，对，要这样。",
       "speakers": [
         "S01"
       ],
@@ -5033,7 +5017,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 474580,
+      "start_ms": 474540,
       "end_ms": 475420,
       "text": "哎，对。",
       "speakers": [
@@ -5065,9 +5049,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 475120,
-      "end_ms": 480620,
-      "text": "对，对，买一赠一什么的，对，买一赠一什么的，对。",
+      "start_ms": 475080,
+      "end_ms": 475620,
+      "text": "对。",
       "speakers": [
         "S02"
       ],
@@ -5081,25 +5065,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 476580,
-      "end_ms": 477020,
-      "text": "对。",
-      "speakers": [],
-      "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 478580,
-      "end_ms": 479720,
-      "text": "买一赠一。",
+      "start_ms": 476120,
+      "end_ms": 479020,
+      "text": "买一送一，对，买一送一。",
       "speakers": [
         "S01"
       ],
@@ -5113,7 +5081,23 @@
       "decision": "primary"
     },
     {
-      "start_ms": 480020,
+      "start_ms": 477380,
+      "end_ms": 480620,
+      "text": "买一赠一什么的，对，买一赠一什么的，对。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 479980,
       "end_ms": 485220,
       "text": "不能不能说你买完，人家感觉别人买完又是一个价格，感觉不到我的我新买的。",
       "speakers": [
@@ -5129,8 +5113,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 480860,
-      "end_ms": 481080,
+      "start_ms": 480840,
+      "end_ms": 481040,
       "text": "就。",
       "speakers": [],
       "flags": [
@@ -5162,7 +5146,7 @@
     },
     {
       "start_ms": 486160,
-      "end_ms": 486580,
+      "end_ms": 486520,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -5178,7 +5162,7 @@
     },
     {
       "start_ms": 489020,
-      "end_ms": 491720,
+      "end_ms": 491620,
       "text": "哇，哇，对对对，对。",
       "speakers": [
         "S01"
@@ -5225,8 +5209,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 495160,
-      "end_ms": 498220,
+      "start_ms": 495140,
+      "end_ms": 498140,
       "text": "对，那肯定，对对对，是，对，这有什么。",
       "speakers": [],
       "flags": [
@@ -5257,7 +5241,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 496960,
+      "start_ms": 496940,
       "end_ms": 501620,
       "text": "对，这样，这样我们才好一点儿，然后我们就可以享用它，就是比如说。",
       "speakers": [
@@ -5289,7 +5273,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 501760,
+      "start_ms": 501740,
       "end_ms": 511220,
       "text": "还有像，比如说购买一个皮肤，我们可以给他那个适当优惠一点儿，对，通过什么奖励他，增加他积分儿什么的，对，哎，对，就是。",
       "speakers": [
@@ -5321,7 +5305,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 506120,
+      "start_ms": 506080,
       "end_ms": 506920,
       "text": "对，优惠。",
       "speakers": [],
@@ -5354,7 +5338,7 @@
     },
     {
       "start_ms": 509820,
-      "end_ms": 511620,
+      "end_ms": 511520,
       "text": "团队，对，对。",
       "speakers": [
         "S01"
@@ -5401,7 +5385,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 516620,
+      "start_ms": 516580,
       "end_ms": 524520,
       "text": "就他比如团购，他有个买多，我就可以多嘛，买多就折扣多，哎，买一件儿打一个折，买两件儿给他，买三件儿给他，对吧。",
       "speakers": [
@@ -5417,7 +5401,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 519180,
+      "start_ms": 519160,
       "end_ms": 520820,
       "text": "啊，对，肯定。",
       "speakers": [],
@@ -5465,7 +5449,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 523000,
+      "start_ms": 522980,
       "end_ms": 526820,
       "text": "对，玩家一看，我买的多越好，何乐不为，对，肯定。",
       "speakers": [],
@@ -5710,10 +5694,10 @@
       "start_ms": 527750,
       "end_ms": 528310,
       "text": "",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -5726,10 +5710,10 @@
       "start_ms": 527980,
       "end_ms": 529100,
       "text": "的小伙伴叫你一起。",
-      "speakers": [],
+      "speakers": [
+        "S03"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -5738,49 +5722,65 @@
           "text": "的",
           "start_ms": 527980,
           "end_ms": 528140,
-          "speakers": []
+          "speakers": [
+            "S03"
+          ]
         },
         {
           "text": "小",
           "start_ms": 528140,
           "end_ms": 528300,
-          "speakers": []
+          "speakers": [
+            "S03"
+          ]
         },
         {
           "text": "伙",
           "start_ms": 528300,
           "end_ms": 528380,
-          "speakers": []
+          "speakers": [
+            "S03"
+          ]
         },
         {
           "text": "伴",
           "start_ms": 528380,
           "end_ms": 528540,
-          "speakers": []
+          "speakers": [
+            "S03"
+          ]
         },
         {
           "text": "叫",
           "start_ms": 528540,
           "end_ms": 528780,
-          "speakers": []
+          "speakers": [
+            "S03"
+          ]
         },
         {
           "text": "你",
           "start_ms": 528780,
           "end_ms": 528860,
-          "speakers": []
+          "speakers": [
+            "S03"
+          ]
         },
         {
           "text": "一",
           "start_ms": 528860,
           "end_ms": 528860,
-          "speakers": []
+          "speakers": [
+            "S03"
+          ]
         },
         {
           "text": "起。",
           "start_ms": 528860,
           "end_ms": 529100,
-          "speakers": []
+          "speakers": [
+            "S03"
+          ]
         }
       ],
       "candidates": {},
@@ -5789,24 +5789,8 @@
     },
     {
       "start_ms": 529010,
-      "end_ms": 530310,
-      "text": "哎，就就就。",
-      "speakers": [],
-      "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 529310,
-      "end_ms": 530250,
-      "text": "就去你这。",
+      "end_ms": 532810,
+      "text": "哎，就就就就就必须买，对。",
       "speakers": [
         "S03"
       ],
@@ -5820,8 +5804,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 529650,
-      "end_ms": 530310,
+      "start_ms": 529620,
+      "end_ms": 530320,
       "text": "是对。",
       "speakers": [],
       "flags": [
@@ -5836,8 +5820,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 530180,
-      "end_ms": 532220,
+      "start_ms": 530210,
+      "end_ms": 532210,
       "text": "哎，你必须你买不买，你必须得买。",
       "speakers": [
         "S03"
@@ -5852,24 +5836,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 531340,
-      "end_ms": 532820,
-      "text": "必须买，对。",
-      "speakers": [],
-      "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
       "start_ms": 532540,
-      "end_ms": 533940,
+      "end_ms": 533960,
       "text": "买的越多还越优惠。",
       "speakers": [],
       "flags": [
@@ -5903,10 +5871,10 @@
       "start_ms": 533650,
       "end_ms": 536610,
       "text": "我说就那种开黑的那种，对吧，开黑五。",
-      "speakers": [],
+      "speakers": [
+        "S03"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -5916,8 +5884,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 536380,
-      "end_ms": 547020,
+      "start_ms": 536410,
+      "end_ms": 547010,
       "text": "或者是或者是比如说你五个人，别人弄一个团购，你如果拉够五个人一起来买更便宜，是好友对和好友一起，对，没错。",
       "speakers": [],
       "flags": [
@@ -5932,8 +5900,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 538640,
-      "end_ms": 540220,
+      "start_ms": 538650,
+      "end_ms": 540210,
       "text": "对，用一个系列的。",
       "speakers": [
         "S03"
@@ -5948,13 +5916,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 541840,
-      "end_ms": 542320,
+      "start_ms": 541850,
+      "end_ms": 542350,
       "text": "哎。",
-      "speakers": [],
+      "speakers": [
+        "S03"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -5964,9 +5932,25 @@
       "decision": "primary"
     },
     {
-      "start_ms": 542640,
-      "end_ms": 543420,
+      "start_ms": 542650,
+      "end_ms": 543410,
       "text": "对对对。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 542740,
+      "end_ms": 545010,
+      "text": "是，十个人都更便宜呢。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -5980,45 +5964,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 542720,
-      "end_ms": 545020,
-      "text": "是，十个人都更便宜了。",
-      "speakers": [],
-      "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
-        "crosscheck_disagreement_in_interval"
+      "start_ms": 546570,
+      "end_ms": 548750,
+      "text": "对，我觉得，对对对。",
+      "speakers": [
+        "S02"
       ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 546560,
-      "end_ms": 546920,
-      "text": "对。",
-      "speakers": [],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 546610,
-      "end_ms": 547040,
-      "text": "对。",
-      "speakers": [],
-      "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -6029,7 +5981,7 @@
     },
     {
       "start_ms": 547740,
-      "end_ms": 552140,
+      "end_ms": 552150,
       "text": "像装备我们应该应该给他用什么样的促销方式？装备。",
       "speakers": [],
       "flags": [
@@ -6044,13 +5996,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 550710,
-      "end_ms": 552120,
+      "start_ms": 550720,
+      "end_ms": 552110,
       "text": "装备或者。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -6061,7 +6013,7 @@
     },
     {
       "start_ms": 551310,
-      "end_ms": 552020,
+      "end_ms": 552010,
       "text": "装备。",
       "speakers": [
         "S03"
@@ -6076,8 +6028,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 551620,
-      "end_ms": 552480,
+      "start_ms": 551630,
+      "end_ms": 552450,
       "text": "装备对。",
       "speakers": [],
       "flags": [
@@ -6092,13 +6044,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 552480,
-      "end_ms": 555620,
+      "start_ms": 552450,
+      "end_ms": 555610,
       "text": "是不是可以就是给他整个花哨一点儿的。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -6109,7 +6061,7 @@
     },
     {
       "start_ms": 555320,
-      "end_ms": 571040,
+      "end_ms": 571050,
       "text": "装装备一般应该是，他可以弄那个线下的手办，线下手办把那个游戏里的原型的皮肤换成手办，然后就比如说，哎，按活动举行线下的这种活动就可以去购买，这又一个方向。",
       "speakers": [],
       "flags": [
@@ -6125,12 +6077,12 @@
     },
     {
       "start_ms": 555610,
-      "end_ms": 556220,
+      "end_ms": 556210,
       "text": "对。",
-      "speakers": [],
+      "speakers": [
+        "S03"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -6141,12 +6093,12 @@
     },
     {
       "start_ms": 559980,
-      "end_ms": 563820,
+      "end_ms": 563810,
       "text": "哎，对对，线下手办，对，这个味道。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -6156,8 +6108,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 561540,
-      "end_ms": 562020,
+      "start_ms": 561550,
+      "end_ms": 562010,
       "text": "对。",
       "speakers": [
         "S03"
@@ -6173,7 +6125,7 @@
     },
     {
       "start_ms": 563880,
-      "end_ms": 564520,
+      "end_ms": 564510,
       "text": "对对对。",
       "speakers": [
         "S03"
@@ -6189,8 +6141,8 @@
     },
     {
       "start_ms": 564880,
-      "end_ms": 568220,
-      "text": "海报啊，比如说不一样的那种，对吧，对。",
+      "end_ms": 565850,
+      "text": "海报啊。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -6204,11 +6156,11 @@
       "decision": "primary"
     },
     {
-      "start_ms": 565010,
-      "end_ms": 565820,
-      "text": "海报。",
+      "start_ms": 565110,
+      "end_ms": 568210,
+      "text": "对，比如说不一样的那种，对吧，对。",
       "speakers": [
-        "S03"
+        "S02"
       ],
       "flags": [
         "crosscheck_disagreement_in_interval"
@@ -6221,8 +6173,8 @@
     },
     {
       "start_ms": 569980,
-      "end_ms": 573780,
-      "text": "已经，对周边周边这种，是。",
+      "end_ms": 573750,
+      "text": "已经，对周边周边上，是。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -6237,8 +6189,8 @@
     },
     {
       "start_ms": 570020,
-      "end_ms": 570420,
-      "text": "都。",
+      "end_ms": 570610,
+      "text": "周边。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -6253,12 +6205,12 @@
     },
     {
       "start_ms": 570810,
-      "end_ms": 572420,
-      "text": "就对，周边玩儿的。",
-      "speakers": [],
+      "end_ms": 572810,
+      "text": "就对，对，周边。",
+      "speakers": [
+        "S03"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -6268,9 +6220,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 571340,
-      "end_ms": 572220,
-      "text": "周边好。",
+      "start_ms": 571350,
+      "end_ms": 572310,
+      "text": "周边玩儿好。",
       "speakers": [
         "S03"
       ],
@@ -6285,7 +6237,7 @@
     },
     {
       "start_ms": 572320,
-      "end_ms": 573020,
+      "end_ms": 573010,
       "text": "对对对。",
       "speakers": [],
       "flags": [
@@ -6300,13 +6252,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 573540,
-      "end_ms": 576220,
+      "start_ms": 573550,
+      "end_ms": 576210,
       "text": "啊，周边嘛，然后，这些手机壳。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -6317,7 +6269,7 @@
     },
     {
       "start_ms": 573880,
-      "end_ms": 575520,
+      "end_ms": 575510,
       "text": "游戏里头的手机壳。",
       "speakers": [
         "S03"
@@ -6333,7 +6285,7 @@
     },
     {
       "start_ms": 575640,
-      "end_ms": 578920,
+      "end_ms": 578910,
       "text": "对，样式面儿，啊，对，可以开发。",
       "speakers": [],
       "flags": [
@@ -6349,7 +6301,7 @@
     },
     {
       "start_ms": 576040,
-      "end_ms": 576520,
+      "end_ms": 576510,
       "text": "对对。",
       "speakers": [],
       "flags": [
@@ -6365,8 +6317,8 @@
     },
     {
       "start_ms": 576320,
-      "end_ms": 577420,
-      "text": "都可以开发的。",
+      "end_ms": 577610,
+      "text": "都可以开发的，对。",
       "speakers": [
         "S03"
       ],
@@ -6381,12 +6333,12 @@
     },
     {
       "start_ms": 576980,
-      "end_ms": 583820,
-      "text": "对，这个东西也开发，有很多这种卖的比较火爆的皮肤的那种手机壳儿啊，手办呀，周边，然后。",
-      "speakers": [],
+      "end_ms": 583750,
+      "text": "对，这个东西也开发，有有有卖的比较火爆的皮肤的那种手机壳儿啊，手办呀，周边，然后。",
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -6396,8 +6348,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 577740,
-      "end_ms": 578620,
+      "start_ms": 577750,
+      "end_ms": 578610,
       "text": "都可以开发。",
       "speakers": [],
       "flags": [
@@ -6412,8 +6364,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 581320,
-      "end_ms": 581720,
+      "start_ms": 581310,
+      "end_ms": 581750,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -6429,7 +6381,7 @@
     },
     {
       "start_ms": 581480,
-      "end_ms": 582120,
+      "end_ms": 582110,
       "text": "对对对。",
       "speakers": [],
       "flags": [
@@ -6445,7 +6397,7 @@
     },
     {
       "start_ms": 583080,
-      "end_ms": 589120,
+      "end_ms": 589110,
       "text": "然后还有那些衣服，你喜欢你喜欢的你喜欢的皮肤不仅给你的游戏人物买了，你自己也买了。",
       "speakers": [
         "S03"
@@ -6461,12 +6413,12 @@
     },
     {
       "start_ms": 583820,
-      "end_ms": 584420,
-      "text": "对，非常。",
-      "speakers": [
-        "S03"
-      ],
+      "end_ms": 584110,
+      "text": "对。",
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -6477,7 +6429,7 @@
     },
     {
       "start_ms": 584040,
-      "end_ms": 586420,
+      "end_ms": 586450,
       "text": "海报什么的，对。",
       "speakers": [],
       "flags": [
@@ -6493,12 +6445,12 @@
     },
     {
       "start_ms": 584110,
-      "end_ms": 585520,
+      "end_ms": 585450,
       "text": "对，衣服也可以。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -6509,12 +6461,12 @@
     },
     {
       "start_ms": 588680,
-      "end_ms": 590620,
+      "end_ms": 590510,
       "text": "自己可以，对，穿。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -6525,7 +6477,7 @@
     },
     {
       "start_ms": 589040,
-      "end_ms": 595520,
+      "end_ms": 595510,
       "text": "对，更喜欢的，就你喜欢的英雄，啊，你喜欢的皮肤，哎，对对，就非常棒。",
       "speakers": [],
       "flags": [
@@ -6540,8 +6492,24 @@
       "decision": "primary"
     },
     {
-      "start_ms": 590280,
-      "end_ms": 591020,
+      "start_ms": 589810,
+      "end_ms": 590250,
+      "text": "对。",
+      "speakers": [],
+      "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 590310,
+      "end_ms": 591050,
       "text": "对呀。",
       "speakers": [],
       "flags": [
@@ -6557,12 +6525,12 @@
     },
     {
       "start_ms": 591180,
-      "end_ms": 591820,
+      "end_ms": 591810,
       "text": "这有个人。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -6572,24 +6540,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 591540,
-      "end_ms": 596720,
-      "text": "对，对，穿着，对，这个经常，我觉得这个非常棒，这个。",
-      "speakers": [],
-      "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 592520,
-      "end_ms": 593020,
+      "start_ms": 591580,
+      "end_ms": 592010,
       "text": "对。",
       "speakers": [
         "S03"
@@ -6604,8 +6556,24 @@
       "decision": "primary"
     },
     {
-      "start_ms": 597220,
-      "end_ms": 597520,
+      "start_ms": 592510,
+      "end_ms": 596710,
+      "text": "对，穿着，对，这个经常，我觉得这个非常棒，这个。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 597210,
+      "end_ms": 597510,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -6620,7 +6588,7 @@
     },
     {
       "start_ms": 598720,
-      "end_ms": 608920,
+      "end_ms": 608950,
       "text": "我们的促销方式可以丰富的选择，多样化的选择，我们可以通过优惠，买买一赠一，买一赠三，买一赠四，或者是购买立减的措施。",
       "speakers": [],
       "flags": [
@@ -6635,11 +6603,11 @@
       "decision": "primary"
     },
     {
-      "start_ms": 598820,
-      "end_ms": 599220,
-      "text": "对。",
+      "start_ms": 598810,
+      "end_ms": 599910,
+      "text": "所以我觉得。",
       "speakers": [
-        "S03"
+        "S02"
       ],
       "flags": [
         "crosscheck_disagreement_in_interval"
@@ -6651,13 +6619,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 601640,
-      "end_ms": 603220,
+      "start_ms": 601650,
+      "end_ms": 603210,
       "text": "对，然后多种选择。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -6667,13 +6635,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 604020,
-      "end_ms": 605220,
+      "start_ms": 604010,
+      "end_ms": 605210,
       "text": "然后那样的，对。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -6684,7 +6652,7 @@
     },
     {
       "start_ms": 605040,
-      "end_ms": 605720,
+      "end_ms": 605710,
       "text": "优惠。",
       "speakers": [],
       "flags": [
@@ -6700,7 +6668,7 @@
     },
     {
       "start_ms": 606620,
-      "end_ms": 608020,
+      "end_ms": 607910,
       "text": "啊，对对。",
       "speakers": [],
       "flags": [
@@ -6715,13 +6683,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 607040,
-      "end_ms": 608620,
+      "start_ms": 607010,
+      "end_ms": 608610,
       "text": "啊，对，对。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -6732,7 +6700,7 @@
     },
     {
       "start_ms": 608880,
-      "end_ms": 609520,
+      "end_ms": 609510,
       "text": "对对对。",
       "speakers": [
         "S03"
@@ -6748,7 +6716,7 @@
     },
     {
       "start_ms": 609040,
-      "end_ms": 610220,
+      "end_ms": 610150,
       "text": "对，购买立减，对。",
       "speakers": [],
       "flags": [
@@ -6763,8 +6731,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 609820,
-      "end_ms": 610220,
+      "start_ms": 609840,
+      "end_ms": 610210,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -6779,13 +6747,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 610120,
-      "end_ms": 613720,
+      "start_ms": 610110,
+      "end_ms": 613710,
       "text": "购买立减，对，这个，啊，对，返还减券。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -6795,8 +6763,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 611120,
-      "end_ms": 611520,
+      "start_ms": 611110,
+      "end_ms": 611510,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -6811,9 +6779,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 611520,
-      "end_ms": 614820,
-      "text": "你买了可以返还减券，然后，让你买其他的。",
+      "start_ms": 611510,
+      "end_ms": 614810,
+      "text": "你买了可以返还减券，然后让你买其他的。",
       "speakers": [
         "S03"
       ],
@@ -6827,8 +6795,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 611820,
-      "end_ms": 612320,
+      "start_ms": 611810,
+      "end_ms": 612310,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -6844,7 +6812,7 @@
     },
     {
       "start_ms": 613780,
-      "end_ms": 614320,
+      "end_ms": 614350,
       "text": "嗯。",
       "speakers": [],
       "flags": [
@@ -6860,8 +6828,24 @@
     },
     {
       "start_ms": 614980,
-      "end_ms": 616120,
+      "end_ms": 616110,
       "text": "嗯，对，非常好。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 615210,
+      "end_ms": 615610,
+      "text": "对。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -6875,9 +6859,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 615220,
-      "end_ms": 616120,
-      "text": "对，没错。",
+      "start_ms": 615310,
+      "end_ms": 615850,
+      "text": "是。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -6891,24 +6875,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 615320,
-      "end_ms": 617920,
-      "text": "是，对，啊。",
-      "speakers": [],
-      "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 616540,
-      "end_ms": 616920,
+      "start_ms": 616550,
+      "end_ms": 616850,
       "text": "对。",
       "speakers": [
         "S03"
@@ -6923,13 +6891,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 617120,
-      "end_ms": 618420,
+      "start_ms": 617110,
+      "end_ms": 618410,
       "text": "我觉得就可以这样。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -6939,24 +6907,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 618340,
-      "end_ms": 632420,
-      "text": "也可以就是过，比如说每个周日或者找一个特殊的日子，如果你上线签到，就给你送买，送，就送你一点儿那个劵，啊，送你一点儿优惠劵，比如说，比如送你别人一千优惠劵，是不是，或者是，或者满减劵。",
-      "speakers": [],
-      "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 621140,
-      "end_ms": 621920,
+      "start_ms": 617540,
+      "end_ms": 617950,
       "text": "啊。",
       "speakers": [],
       "flags": [
@@ -6971,13 +6923,45 @@
       "decision": "primary"
     },
     {
-      "start_ms": 623180,
-      "end_ms": 624820,
-      "text": "哎，送在线。",
+      "start_ms": 618350,
+      "end_ms": 632410,
+      "text": "也可以就是过，比如说每个周日或者找一个特殊的日子，如果你上线签到，就给你送买，购，就送你一点儿那个劵，啊，送你一点儿优惠劵，比如说啊，比如送你别人一千优惠劵，是不是，或者是或者满减劵。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
         "speaker_unknown",
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 621180,
+      "end_ms": 621910,
+      "text": "啊。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 623180,
+      "end_ms": 624810,
+      "text": "哎，送在线。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -6988,8 +6972,8 @@
     },
     {
       "start_ms": 626180,
-      "end_ms": 628720,
-      "text": "啊，是，三手写的。",
+      "end_ms": 627110,
+      "text": "啊，是。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -7003,8 +6987,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 627340,
-      "end_ms": 628020,
+      "start_ms": 627350,
+      "end_ms": 628010,
       "text": "对对对。",
       "speakers": [
         "S03"
@@ -7019,9 +7003,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 628740,
-      "end_ms": 629120,
-      "text": "对。",
+      "start_ms": 627780,
+      "end_ms": 628650,
+      "text": "三手写的。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -7035,11 +7019,11 @@
       "decision": "primary"
     },
     {
-      "start_ms": 629980,
-      "end_ms": 630620,
-      "text": "满减。",
+      "start_ms": 628710,
+      "end_ms": 629010,
+      "text": "对。",
       "speakers": [
-        "S03"
+        "S02"
       ],
       "flags": [
         "crosscheck_disagreement_in_interval"
@@ -7051,9 +7035,25 @@
       "decision": "primary"
     },
     {
-      "start_ms": 630020,
-      "end_ms": 631520,
-      "text": "游戏的优惠劵。",
+      "start_ms": 629980,
+      "end_ms": 630610,
+      "text": "满减。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 630010,
+      "end_ms": 631510,
+      "text": "游戏里头的优惠劵。",
       "speakers": [
         "S03"
       ],
@@ -7068,8 +7068,8 @@
     },
     {
       "start_ms": 632680,
-      "end_ms": 636620,
-      "text": "比如你满满五百给你返多少，对，这种劵儿，就是非常棒，对。",
+      "end_ms": 636610,
+      "text": "比如你满满五百给你返多少，对，这种劵儿就是非常棒，对。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -7083,13 +7083,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 632740,
-      "end_ms": 633220,
+      "start_ms": 632750,
+      "end_ms": 633110,
       "text": "哎。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -7099,8 +7099,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 634720,
-      "end_ms": 635720,
+      "start_ms": 634710,
+      "end_ms": 635650,
       "text": "对，对。",
       "speakers": [],
       "flags": [
@@ -7115,13 +7115,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 635620,
-      "end_ms": 639720,
-      "text": "对，这样挺好，这样，我觉得可以促销，就是说低的折扣。",
-      "speakers": [],
+      "start_ms": 635610,
+      "end_ms": 639710,
+      "text": "对，这样挺好，这样我觉得可以促销，就是说低的折扣。",
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -7131,8 +7131,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 636220,
-      "end_ms": 636820,
+      "start_ms": 636210,
+      "end_ms": 636810,
       "text": "对对。",
       "speakers": [
         "S03"
@@ -7147,8 +7147,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 637620,
-      "end_ms": 638420,
+      "start_ms": 637610,
+      "end_ms": 638410,
       "text": "对，对。",
       "speakers": [],
       "flags": [
@@ -7164,8 +7164,8 @@
     },
     {
       "start_ms": 638480,
-      "end_ms": 644120,
-      "text": "但我觉得这个应该应该，应该是每天都要签到，这样它会延长它使用时间。",
+      "end_ms": 644150,
+      "text": "但我觉得这个应该应该应该是每天都要签到，这样它会延长它使用时间。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -7179,8 +7179,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 639520,
-      "end_ms": 640920,
+      "start_ms": 639510,
+      "end_ms": 640910,
       "text": "或者还有那些。",
       "speakers": [
         "S03"
@@ -7195,13 +7195,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 644220,
-      "end_ms": 647120,
-      "text": "或者我们可以就是，每天签到是一个活动。",
-      "speakers": [],
+      "start_ms": 644210,
+      "end_ms": 647110,
+      "text": "或者我们可以就是每天签到是一个活动。",
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -7212,7 +7212,7 @@
     },
     {
       "start_ms": 644780,
-      "end_ms": 645420,
+      "end_ms": 645410,
       "text": "对对对。",
       "speakers": [
         "S03"
@@ -7227,8 +7227,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 646520,
-      "end_ms": 659020,
+      "start_ms": 646510,
+      "end_ms": 659010,
       "text": "对，这也会更吸引老玩家，老玩家可能好久没没玩儿了，一天看官网，哎，哎两周以后有个活动，还挺优惠的，是，他他换，对，互换友，他就人多了，对，就非常棒。",
       "speakers": [],
       "flags": [
@@ -7243,13 +7243,29 @@
       "decision": "primary"
     },
     {
-      "start_ms": 648140,
-      "end_ms": 649220,
+      "start_ms": 647110,
+      "end_ms": 647450,
+      "text": "对。",
+      "speakers": [],
+      "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 648150,
+      "end_ms": 649210,
       "text": "对，对。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -7259,8 +7275,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 648380,
-      "end_ms": 648820,
+      "start_ms": 648350,
+      "end_ms": 648810,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -7275,8 +7291,72 @@
       "decision": "primary"
     },
     {
-      "start_ms": 650340,
-      "end_ms": 650820,
+      "start_ms": 650350,
+      "end_ms": 650710,
+      "text": "对。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 650410,
+      "end_ms": 652310,
+      "text": "对，你说，哎，是。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 652810,
+      "end_ms": 653110,
+      "text": "对。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 653510,
+      "end_ms": 654810,
+      "text": "活动，对。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 654810,
+      "end_ms": 655250,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -7291,13 +7371,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 650420,
-      "end_ms": 654920,
-      "text": "对，对，A是这个，对，活动，对，对。",
-      "speakers": [],
+      "start_ms": 654980,
+      "end_ms": 656510,
+      "text": "对，要换换友，还是。",
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -7307,40 +7387,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 655020,
-      "end_ms": 655420,
-      "text": "对。",
-      "speakers": [],
-      "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 655120,
-      "end_ms": 656120,
-      "text": "对，互换友。",
-      "speakers": [],
-      "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 657520,
-      "end_ms": 662720,
+      "start_ms": 657510,
+      "end_ms": 662710,
       "text": "或者有一些专属折扣，就比如说在你注册游戏的那一天，就算作你的生日。",
       "speakers": [
         "S03"
@@ -7356,7 +7404,23 @@
     },
     {
       "start_ms": 660180,
-      "end_ms": 660720,
+      "end_ms": 660710,
+      "text": "啊。",
+      "speakers": [
+        "S02"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 661010,
+      "end_ms": 661410,
       "text": "啊。",
       "speakers": [],
       "flags": [
@@ -7372,12 +7436,12 @@
     },
     {
       "start_ms": 662880,
-      "end_ms": 663320,
+      "end_ms": 663210,
       "text": "啊。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -7388,7 +7452,7 @@
     },
     {
       "start_ms": 662880,
-      "end_ms": 668420,
+      "end_ms": 668410,
       "text": "哎，对对对，对，你的生日给你送个大礼，对。",
       "speakers": [],
       "flags": [
@@ -7403,8 +7467,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 663320,
-      "end_ms": 668620,
+      "start_ms": 663310,
+      "end_ms": 668610,
       "text": "哎，对，对对对对，没错，送送，送大礼，对。",
       "speakers": [],
       "flags": [
@@ -7419,13 +7483,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 664320,
-      "end_ms": 665620,
+      "start_ms": 664310,
+      "end_ms": 665510,
       "text": "对，专属折扣。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -7435,25 +7499,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 664820,
-      "end_ms": 665420,
+      "start_ms": 664810,
+      "end_ms": 665410,
       "text": "这个。",
-      "speakers": [],
-      "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 666380,
-      "end_ms": 667420,
-      "text": "群里微信。",
       "speakers": [
         "S03"
       ],
@@ -7467,13 +7515,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 666820,
-      "end_ms": 671920,
-      "text": "对，那游戏给你打，今天是我的生日，今天有大皮肤庆祝一下。",
-      "speakers": [],
+      "start_ms": 666380,
+      "end_ms": 671910,
+      "text": "绝对，对，那游戏给你打，今天是我的生日，今天有大皮肤庆祝一下。",
+      "speakers": [
+        "S03"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -7484,7 +7532,7 @@
     },
     {
       "start_ms": 669480,
-      "end_ms": 670020,
+      "end_ms": 670010,
       "text": "对对对。",
       "speakers": [],
       "flags": [
@@ -7499,8 +7547,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 669920,
-      "end_ms": 670620,
+      "start_ms": 669910,
+      "end_ms": 670550,
       "text": "是啊。",
       "speakers": [],
       "flags": [
@@ -7515,8 +7563,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 671520,
-      "end_ms": 673320,
+      "start_ms": 671510,
+      "end_ms": 673310,
       "text": "特别有归属感，哎。",
       "speakers": [],
       "flags": [
@@ -7531,9 +7579,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 671620,
-      "end_ms": 674120,
-      "text": "对对对对对，对，对。",
+      "start_ms": 671610,
+      "end_ms": 674150,
+      "text": "对对对对对，对对对，对。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -7547,13 +7595,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 673020,
-      "end_ms": 675820,
+      "start_ms": 673010,
+      "end_ms": 675810,
       "text": "对，周边，对，周边，对。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -7563,8 +7611,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 674040,
-      "end_ms": 675820,
+      "start_ms": 674080,
+      "end_ms": 675810,
       "text": "哎，周边，对。",
       "speakers": [],
       "flags": [
@@ -7579,8 +7627,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 674820,
-      "end_ms": 677120,
+      "start_ms": 674810,
+      "end_ms": 677150,
       "text": "是的，这个非常好，非常好。",
       "speakers": [],
       "flags": [
@@ -7595,13 +7643,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 676320,
-      "end_ms": 676720,
+      "start_ms": 676310,
+      "end_ms": 676710,
       "text": "对。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -7611,8 +7659,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 677320,
-      "end_ms": 678420,
+      "start_ms": 677310,
+      "end_ms": 678410,
       "text": "非常棒，对。",
       "speakers": [],
       "flags": [
@@ -7627,13 +7675,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 677520,
-      "end_ms": 678720,
+      "start_ms": 677510,
+      "end_ms": 678710,
       "text": "这个还是挺好的。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -7644,7 +7692,7 @@
     },
     {
       "start_ms": 678280,
-      "end_ms": 683420,
+      "end_ms": 683450,
       "text": "好的，那我们接下来讨论一下，咱们是通过什么方式去宣传咱们这款游戏呀？",
       "speakers": [],
       "flags": [
@@ -7659,8 +7707,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 679120,
-      "end_ms": 679720,
+      "start_ms": 679110,
+      "end_ms": 679610,
       "text": "嗯。",
       "speakers": [
         "S03"
@@ -7676,12 +7724,12 @@
     },
     {
       "start_ms": 683580,
-      "end_ms": 685920,
-      "text": "什么方式去宣传，我。",
-      "speakers": [],
+      "end_ms": 685910,
+      "text": "什么方式去宣传，对吧。",
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -7692,7 +7740,7 @@
     },
     {
       "start_ms": 684380,
-      "end_ms": 685220,
+      "end_ms": 685210,
       "text": "宣传。",
       "speakers": [],
       "flags": [
@@ -7707,8 +7755,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 684420,
-      "end_ms": 687020,
+      "start_ms": 684410,
+      "end_ms": 687010,
       "text": "对，首先得大家要感兴趣。",
       "speakers": [
         "S03"
@@ -7723,8 +7771,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 685920,
-      "end_ms": 687520,
+      "start_ms": 685910,
+      "end_ms": 687450,
       "text": "线上线下相结合。",
       "speakers": [],
       "flags": [
@@ -7740,12 +7788,12 @@
     },
     {
       "start_ms": 687380,
-      "end_ms": 690620,
+      "end_ms": 690610,
       "text": "对，线上线下相结合，这个意义可以，我觉得。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -7756,7 +7804,7 @@
     },
     {
       "start_ms": 687980,
-      "end_ms": 688620,
+      "end_ms": 688610,
       "text": "对对对。",
       "speakers": [
         "S03"
@@ -7771,8 +7819,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 689440,
-      "end_ms": 695920,
+      "start_ms": 689410,
+      "end_ms": 695880,
       "text": "线上那个官网，官网那个活动要经常更新，哎，给大家一些选择的空间。",
       "speakers": [],
       "flags": [
@@ -7787,13 +7835,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 691620,
-      "end_ms": 694920,
+      "start_ms": 691610,
+      "end_ms": 694910,
       "text": "对，官网，对吧，官网上的活动，大家。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -7803,8 +7851,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 692120,
-      "end_ms": 692720,
+      "start_ms": 692110,
+      "end_ms": 692650,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -7820,12 +7868,12 @@
     },
     {
       "start_ms": 695780,
-      "end_ms": 699220,
+      "end_ms": 699210,
       "text": "我觉得官网是大家看到最比较多的一个，对，对，对。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -7835,8 +7883,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 697540,
-      "end_ms": 703320,
+      "start_ms": 697510,
+      "end_ms": 703310,
       "text": "对，官网，大家肯定一看玩儿什么，先看官网，哎，什么活动，介绍呀，宣传片儿呀什么的，都从官网看。",
       "speakers": [],
       "flags": [
@@ -7851,8 +7899,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 697820,
-      "end_ms": 698320,
+      "start_ms": 697810,
+      "end_ms": 698250,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -7868,7 +7916,7 @@
     },
     {
       "start_ms": 699480,
-      "end_ms": 699920,
+      "end_ms": 699910,
       "text": "嗯。",
       "speakers": [
         "S03"
@@ -7883,13 +7931,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 699980,
-      "end_ms": 701620,
+      "start_ms": 699910,
+      "end_ms": 701510,
       "text": "对，看到官网。",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -7899,8 +7947,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 700220,
-      "end_ms": 700820,
+      "start_ms": 700210,
+      "end_ms": 700750,
       "text": "是。",
       "speakers": [],
       "flags": [
@@ -7915,8 +7963,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 702380,
-      "end_ms": 702820,
+      "start_ms": 702350,
+      "end_ms": 702750,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -7934,10 +7982,10 @@
       "start_ms": 702980,
       "end_ms": 704020,
       "text": "我觉得官网肯定是",
-      "speakers": [],
+      "speakers": [
+        "S02"
+      ],
       "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -7946,49 +7994,65 @@
           "text": "我",
           "start_ms": 702980,
           "end_ms": 703140,
-          "speakers": []
+          "speakers": [
+            "S02"
+          ]
         },
         {
           "text": "觉",
           "start_ms": 703140,
           "end_ms": 703220,
-          "speakers": []
+          "speakers": [
+            "S02"
+          ]
         },
         {
           "text": "得",
           "start_ms": 703220,
           "end_ms": 703300,
-          "speakers": []
+          "speakers": [
+            "S02"
+          ]
         },
         {
           "text": "官",
           "start_ms": 703300,
           "end_ms": 703460,
-          "speakers": []
+          "speakers": [
+            "S02"
+          ]
         },
         {
           "text": "网",
           "start_ms": 703460,
           "end_ms": 703700,
-          "speakers": []
+          "speakers": [
+            "S02"
+          ]
         },
         {
           "text": "肯",
           "start_ms": 703700,
           "end_ms": 703780,
-          "speakers": []
+          "speakers": [
+            "S02"
+          ]
         },
         {
           "text": "定",
           "start_ms": 703780,
           "end_ms": 703860,
-          "speakers": []
+          "speakers": [
+            "S02"
+          ]
         },
         {
           "text": "是",
           "start_ms": 703860,
           "end_ms": 704020,
-          "speakers": []
+          "speakers": [
+            "S02"
+          ]
         }
       ],
       "candidates": {},
@@ -8239,7 +8303,7 @@
     },
     {
       "start_ms": 717020,
-      "end_ms": 720880,
+      "end_ms": 720840,
       "text": "啊，那种大片儿的感觉，史诗级，啊。",
       "speakers": [],
       "flags": [
@@ -8254,7 +8318,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 717120,
+      "start_ms": 717040,
       "end_ms": 717620,
       "text": "啊。",
       "speakers": [],
@@ -8271,7 +8335,7 @@
     },
     {
       "start_ms": 719220,
-      "end_ms": 723180,
+      "end_ms": 723140,
       "text": "对，对，大家应该喜欢科幻风，对吧，科幻。",
       "speakers": [
         "S03"
@@ -8303,7 +8367,7 @@
     },
     {
       "start_ms": 721740,
-      "end_ms": 722720,
+      "end_ms": 722680,
       "text": "哦，特别棒。",
       "speakers": [],
       "flags": [
@@ -8335,7 +8399,7 @@
     },
     {
       "start_ms": 724320,
-      "end_ms": 727080,
+      "end_ms": 727060,
       "text": "是是是，是，真的是。",
       "speakers": [],
       "flags": [
@@ -8415,7 +8479,7 @@
     },
     {
       "start_ms": 731620,
-      "end_ms": 736320,
+      "end_ms": 736280,
       "text": "一些给那种特效皮肤，然后加上炫酷的动画一创作，更吸引人了，是。",
       "speakers": [],
       "flags": [
@@ -8639,7 +8703,7 @@
     },
     {
       "start_ms": 762680,
-      "end_ms": 764880,
+      "end_ms": 764840,
       "text": "啊，可以，没事。",
       "speakers": [],
       "flags": [
@@ -8656,7 +8720,7 @@
     {
       "start_ms": 763880,
       "end_ms": 767780,
-      "text": "对，但是有娱乐还是有教育意义，对，对。",
+      "text": "对，对，但有娱乐还是有教育意义，对，对。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -8720,7 +8784,7 @@
     {
       "start_ms": 768140,
       "end_ms": 774320,
-      "text": "我们跟历史有关挂钩，对吧，有一定的连接，对，对，就非常棒，非常棒。",
+      "text": "我们跟历史有关挂钩，对吧，有一定的连接，对，对，就非常棒，对，非常好。",
       "speakers": [
         "S03"
       ],
@@ -8815,7 +8879,7 @@
     },
     {
       "start_ms": 779720,
-      "end_ms": 784820,
+      "end_ms": 784880,
       "text": "港台的，对，这种，对，这是点儿成本，我觉得可以，对，对。",
       "speakers": [
         "S03"
@@ -8878,7 +8942,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 789380,
+      "start_ms": 789360,
       "end_ms": 795520,
       "text": "啊，对，迷宫，那种，发现，发现，比如，看我们这个宝箱。",
       "speakers": [
@@ -8927,7 +8991,7 @@
     },
     {
       "start_ms": 794520,
-      "end_ms": 796380,
+      "end_ms": 796340,
       "text": "是是是，没错，啊。",
       "speakers": [],
       "flags": [
@@ -8959,8 +9023,8 @@
     },
     {
       "start_ms": 796240,
-      "end_ms": 798420,
-      "text": "宝箱里面不是可以放什么宣传。",
+      "end_ms": 801120,
+      "text": "宝箱里面不是可以放什么宣传，对，对，对，宣传片儿可以。",
       "speakers": [
         "S03"
       ],
@@ -8975,7 +9039,7 @@
     },
     {
       "start_ms": 798280,
-      "end_ms": 804080,
+      "end_ms": 804040,
       "text": "啊，对，对，不是，开宝箱前先看十十秒钟宣传片儿，啊。",
       "speakers": [],
       "flags": [
@@ -8993,54 +9057,6 @@
       "start_ms": 798420,
       "end_ms": 800420,
       "text": "对，啊，对对对。",
-      "speakers": [
-        "S02"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 799540,
-      "end_ms": 799940,
-      "text": "对。",
-      "speakers": [],
-      "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 799880,
-      "end_ms": 801020,
-      "text": "对，宣传片儿可以。",
-      "speakers": [
-        "S03"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 801020,
-      "end_ms": 801620,
-      "text": "插播。",
       "speakers": [
         "S02"
       ],
@@ -9072,7 +9088,7 @@
     {
       "start_ms": 803640,
       "end_ms": 804820,
-      "text": "给自己一个动力。",
+      "text": "给自己个动力。",
       "speakers": [
         "S03"
       ],
@@ -9166,7 +9182,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 817280,
+      "start_ms": 817260,
       "end_ms": 817820,
       "text": "嗯。",
       "speakers": [
@@ -9199,7 +9215,7 @@
     },
     {
       "start_ms": 818480,
-      "end_ms": 819480,
+      "end_ms": 819520,
       "text": "对，滚动条儿。",
       "speakers": [
         "S03"
@@ -9214,7 +9230,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 819080,
+      "start_ms": 819040,
       "end_ms": 819620,
       "text": "对。",
       "speakers": [],
@@ -9278,7 +9294,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 829620,
+      "start_ms": 829600,
       "end_ms": 831620,
       "text": "对，滚个十秒钟，对。",
       "speakers": [
@@ -9310,7 +9326,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 832780,
+      "start_ms": 832760,
       "end_ms": 836920,
       "text": "哎，对，或者过四十分钟，五十分钟滚一下也行，对。",
       "speakers": [
@@ -9326,7 +9342,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 833080,
+      "start_ms": 833060,
       "end_ms": 833520,
       "text": "对。",
       "speakers": [],
@@ -9343,7 +9359,7 @@
     },
     {
       "start_ms": 835200,
-      "end_ms": 836280,
+      "end_ms": 836240,
       "text": "对对对，是。",
       "speakers": [],
       "flags": [
@@ -9358,7 +9374,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 835800,
+      "start_ms": 835780,
       "end_ms": 839620,
       "text": "都可以，我觉得时间可以，就是这个就比较宽泛一点儿。",
       "speakers": [
@@ -9375,7 +9391,7 @@
     },
     {
       "start_ms": 839320,
-      "end_ms": 850080,
+      "end_ms": 850040,
       "text": "现在一般都请明星来代言游戏产品，那我们也要请那个演员或者明星来帮我们宣传一下，在线上，在网络上，互联网上，电视上，对。",
       "speakers": [
         "S02"
@@ -9423,7 +9439,7 @@
     },
     {
       "start_ms": 845220,
-      "end_ms": 845820,
+      "end_ms": 845780,
       "text": "对。",
       "speakers": [
         "S03"
@@ -9487,7 +9503,7 @@
     },
     {
       "start_ms": 850540,
-      "end_ms": 851220,
+      "end_ms": 851280,
       "text": "cosplay。",
       "speakers": [
         "S03"
@@ -9567,8 +9583,8 @@
     },
     {
       "start_ms": 854320,
-      "end_ms": 868920,
-      "text": "是，或者说玩家可以自己也给参与进来，对，我们让玩家可以先报名，先选人物去cos出来，对吧，先参与一下，毕竟每个玩家心目中都有他喜欢的，对不对，对吧，对吧，心目中不一样的，对不对。",
+      "end_ms": 865420,
+      "text": "是，或者说玩家可以自己也给参与进来，对，我们让玩家可以现场报名，对，喜欢的物去购买，对吧，可以参与一下，毕竟每个玩家心目中都有他喜欢的，对，对。",
       "speakers": [
         "S03"
       ],
@@ -9600,7 +9616,7 @@
     {
       "start_ms": 857840,
       "end_ms": 862820,
-      "text": "对，我们可以，这样报名，挑选，对，没错，是。",
+      "text": "对，我们可以，现场报名，挑选，对，没错，是。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -9630,7 +9646,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 860880,
+      "start_ms": 860840,
       "end_ms": 862320,
       "text": "对，自己喜欢的剧。",
       "speakers": [],
@@ -9678,8 +9694,24 @@
       "decision": "primary"
     },
     {
+      "start_ms": 866820,
+      "end_ms": 868920,
+      "text": "他心目中不一样的，对。",
+      "speakers": [
+        "S03"
+      ],
+      "flags": [
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
       "start_ms": 867620,
-      "end_ms": 868180,
+      "end_ms": 868120,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -9695,7 +9727,7 @@
     },
     {
       "start_ms": 868280,
-      "end_ms": 869380,
+      "end_ms": 869340,
       "text": "对，是，没错。",
       "speakers": [],
       "flags": [
@@ -10088,7 +10120,7 @@
     },
     {
       "start_ms": 873820,
-      "end_ms": 875280,
+      "end_ms": 875240,
       "text": "是，对，这挺好的。",
       "speakers": [],
       "flags": [
@@ -10135,8 +10167,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 877280,
-      "end_ms": 878980,
+      "start_ms": 877240,
+      "end_ms": 878940,
       "text": "嗯，是，是，是，没错。",
       "speakers": [],
       "flags": [
@@ -10250,22 +10282,6 @@
       "start_ms": 884980,
       "end_ms": 886680,
       "text": "对，人流量多。",
-      "speakers": [
-        "S04"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 885280,
-      "end_ms": 885680,
-      "text": "对。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -10279,9 +10295,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 885510,
-      "end_ms": 886910,
-      "text": "可不是，啊。",
+      "start_ms": 885240,
+      "end_ms": 886920,
+      "text": "对可不是，啊。",
       "speakers": [
         "S02"
       ],
@@ -10296,8 +10312,8 @@
     },
     {
       "start_ms": 886250,
-      "end_ms": 887810,
-      "text": "它就多多啊，对吧。",
+      "end_ms": 887720,
+      "text": "看人多多往里边儿。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -10313,7 +10329,7 @@
     {
       "start_ms": 886880,
       "end_ms": 895120,
-      "text": "然后大家一看又震撼，又有吸引力，然后吸引更多的人，哎说你们这什么游戏啊，哎看着挺挺有震撼力的，然后我们也下一个一起玩。",
+      "text": "人大家一看又震撼，又有吸引力，然后吸引更多的人，哎说你们这什么游戏啊，哎看着挺挺有震撼力的，然后我们也下一个一起玩。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -10327,8 +10343,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 888780,
-      "end_ms": 889510,
+      "start_ms": 888750,
+      "end_ms": 889420,
       "text": "哎。",
       "speakers": [],
       "flags": [
@@ -10343,13 +10359,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 889380,
-      "end_ms": 890110,
+      "start_ms": 889340,
+      "end_ms": 890120,
       "text": "对对对。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -10360,12 +10376,12 @@
     },
     {
       "start_ms": 891340,
-      "end_ms": 892110,
+      "end_ms": 892120,
       "text": "对对对。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -10392,12 +10408,12 @@
     },
     {
       "start_ms": 893380,
-      "end_ms": 896140,
+      "end_ms": 896120,
       "text": "就特别美，像王府井三里屯。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -10408,7 +10424,7 @@
     },
     {
       "start_ms": 895610,
-      "end_ms": 896910,
+      "end_ms": 896920,
       "text": "对，就是王府井。",
       "speakers": [
         "S02"
@@ -10439,25 +10455,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 896510,
-      "end_ms": 897110,
-      "text": "王府井。",
-      "speakers": [
-        "S02"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 897010,
-      "end_ms": 899850,
-      "text": "玩会儿，它有桃园大悦城。",
+      "start_ms": 896480,
+      "end_ms": 899820,
+      "text": "王府井大院儿，它有桃园大院儿。",
       "speakers": [
         "S02"
       ],
@@ -10472,24 +10472,8 @@
     },
     {
       "start_ms": 897540,
-      "end_ms": 898110,
+      "end_ms": 898120,
       "text": "对对对。",
-      "speakers": [
-        "S04"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 897640,
-      "end_ms": 900410,
-      "text": "对，就那种那种轮回的形式，哎。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -10503,9 +10487,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 898340,
-      "end_ms": 899110,
-      "text": "人间轮回。",
+      "start_ms": 897620,
+      "end_ms": 900420,
+      "text": "对，造成这种轮回的形式，哎。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -10521,7 +10505,7 @@
     {
       "start_ms": 899780,
       "end_ms": 901220,
-      "text": "热门商圈轮回。",
+      "text": "热门商圈，轮回。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -10536,7 +10520,7 @@
     },
     {
       "start_ms": 900340,
-      "end_ms": 900910,
+      "end_ms": 900920,
       "text": "是。",
       "speakers": [
         "S02"
@@ -10552,8 +10536,8 @@
     },
     {
       "start_ms": 901280,
-      "end_ms": 907820,
-      "text": "哎对，喜好在在王府井，哎，某一天在，再某天，哎，你再去换一个地方，对吧。",
+      "end_ms": 908680,
+      "text": "哎对，喜好在在王府井，哎，某一天在，再某天，哎，你再去换一个地方，对吧，哎。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -10567,8 +10551,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 901640,
-      "end_ms": 902810,
+      "start_ms": 901620,
+      "end_ms": 902820,
       "text": "哎，对对对。",
       "speakers": [
         "S02"
@@ -10583,8 +10567,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 902550,
-      "end_ms": 903280,
+      "start_ms": 902540,
+      "end_ms": 903220,
       "text": "对对对。",
       "speakers": [],
       "flags": [
@@ -10600,12 +10584,12 @@
     },
     {
       "start_ms": 903910,
-      "end_ms": 904540,
+      "end_ms": 904520,
       "text": "对对对。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -10631,13 +10615,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 905440,
-      "end_ms": 905840,
+      "start_ms": 905420,
+      "end_ms": 905820,
       "text": "对。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -10647,13 +10631,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 906940,
-      "end_ms": 907610,
+      "start_ms": 906920,
+      "end_ms": 907580,
       "text": "对对对。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -10680,7 +10664,7 @@
     },
     {
       "start_ms": 908140,
-      "end_ms": 908680,
+      "end_ms": 908720,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -10696,7 +10680,7 @@
     },
     {
       "start_ms": 910240,
-      "end_ms": 911810,
+      "end_ms": 911820,
       "text": "哎，对。",
       "speakers": [],
       "flags": [
@@ -10712,8 +10696,8 @@
     },
     {
       "start_ms": 912880,
-      "end_ms": 918910,
-      "text": "对，这个在网上，然后我们可以明确，对吧，明确可以报名，对吧。",
+      "end_ms": 917520,
+      "text": "对，这个在网上，然后我们可以明确，对吧，明确可以报名。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -10728,12 +10712,12 @@
     },
     {
       "start_ms": 916880,
-      "end_ms": 917810,
-      "text": "对对。",
-      "speakers": [
-        "S04"
-      ],
+      "end_ms": 918020,
+      "text": "对对对。",
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -10743,8 +10727,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 917010,
-      "end_ms": 917580,
+      "start_ms": 917040,
+      "end_ms": 917620,
       "text": "是。",
       "speakers": [
         "S02"
@@ -10759,8 +10743,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 917380,
-      "end_ms": 918040,
+      "start_ms": 917340,
+      "end_ms": 918120,
       "text": "是是。",
       "speakers": [],
       "flags": [
@@ -10776,8 +10760,8 @@
     },
     {
       "start_ms": 917740,
-      "end_ms": 931810,
-      "text": "是的，我们还可以在商场那LED大屏上打出我们的主题，是啊，对，而且还可以在一些热播剧，什么爱奇艺平台，腾讯平台插我们的，对，广告。",
+      "end_ms": 931020,
+      "text": "是的，我们还可以在商场那LED大屏上打出我们的主题，是啊，对，而且还可以在一些热播剧，什么爱奇艺平台，腾讯平台插播的，对对。",
       "speakers": [
         "S02"
       ],
@@ -10792,12 +10776,12 @@
     },
     {
       "start_ms": 918340,
-      "end_ms": 920310,
+      "end_ms": 920320,
       "text": "玩家自己也可以报名。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -10823,8 +10807,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 921840,
-      "end_ms": 925810,
+      "start_ms": 921860,
+      "end_ms": 925820,
       "text": "对，对呀，我们一些活动，对吧。",
       "speakers": [],
       "flags": [
@@ -10840,7 +10824,7 @@
     },
     {
       "start_ms": 922410,
-      "end_ms": 923080,
+      "end_ms": 923020,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -10855,8 +10839,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 925010,
-      "end_ms": 925480,
+      "start_ms": 925000,
+      "end_ms": 925420,
       "text": "是。",
       "speakers": [],
       "flags": [
@@ -10887,9 +10871,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 929340,
-      "end_ms": 932910,
-      "text": "对，对，插我们游戏的广告，投入啊，植入啊。",
+      "start_ms": 929360,
+      "end_ms": 932920,
+      "text": "对，对插我们游戏的广告，投入啊，植入啊。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -10904,12 +10888,12 @@
     },
     {
       "start_ms": 929710,
-      "end_ms": 930280,
-      "text": "对。",
-      "speakers": [
-        "S04"
-      ],
+      "end_ms": 930320,
+      "text": "对对。",
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -10919,9 +10903,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 932510,
-      "end_ms": 934910,
-      "text": "在电影电视剧前都插过来一点儿。",
+      "start_ms": 931210,
+      "end_ms": 934920,
+      "text": "广告，在电影电视剧前头插播一点儿。",
       "speakers": [
         "S02"
       ],
@@ -10936,7 +10920,7 @@
     },
     {
       "start_ms": 933180,
-      "end_ms": 936280,
+      "end_ms": 936220,
       "text": "对，电电视剧前也可以插六十秒的广告什么的。",
       "speakers": [],
       "flags": [
@@ -10951,8 +10935,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 935810,
-      "end_ms": 936310,
+      "start_ms": 935820,
+      "end_ms": 936320,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -10968,7 +10952,7 @@
     },
     {
       "start_ms": 935880,
-      "end_ms": 937780,
+      "end_ms": 937720,
       "text": "对对，啊。",
       "speakers": [
         "S02"
@@ -10983,9 +10967,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 936010,
-      "end_ms": 941410,
-      "text": "对，我听说有些没开会员儿的，不是，对吧，六十秒的，对吧，六十秒的开一下。",
+      "start_ms": 936000,
+      "end_ms": 941420,
+      "text": "对，我听说有些没开会员儿的，不是，对吧，六十秒的，六十秒的，六十秒的，开一下。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -11000,12 +10984,12 @@
     },
     {
       "start_ms": 938840,
-      "end_ms": 939310,
+      "end_ms": 939420,
       "text": "对。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -11016,7 +11000,7 @@
     },
     {
       "start_ms": 939740,
-      "end_ms": 942310,
+      "end_ms": 942280,
       "text": "是，对，看一下，看一下。",
       "speakers": [],
       "flags": [
@@ -11031,8 +11015,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 940110,
-      "end_ms": 940580,
+      "start_ms": 940120,
+      "end_ms": 940520,
       "text": "对。",
       "speakers": [
         "S02"
@@ -11048,12 +11032,12 @@
     },
     {
       "start_ms": 941140,
-      "end_ms": 945110,
+      "end_ms": 945080,
       "text": "我觉得我们在线下表演的时候，发一些限时的优惠券。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -11064,7 +11048,7 @@
     },
     {
       "start_ms": 943580,
-      "end_ms": 943980,
+      "end_ms": 943920,
       "text": "对。",
       "speakers": [
         "S02"
@@ -11080,7 +11064,7 @@
     },
     {
       "start_ms": 945510,
-      "end_ms": 946010,
+      "end_ms": 946020,
       "text": "对。",
       "speakers": [
         "S02"
@@ -11096,7 +11080,7 @@
     },
     {
       "start_ms": 945580,
-      "end_ms": 946910,
+      "end_ms": 946920,
       "text": "对，可以，那不是。",
       "speakers": [],
       "flags": [
@@ -11111,13 +11095,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 946040,
-      "end_ms": 947710,
-      "text": "对，你只有到现场来。",
-      "speakers": [
-        "S04"
-      ],
+      "start_ms": 946020,
+      "end_ms": 947620,
+      "text": "对，你只有到现场。",
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -11144,12 +11128,12 @@
     },
     {
       "start_ms": 947980,
-      "end_ms": 948410,
+      "end_ms": 948420,
       "text": "对。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -11160,12 +11144,12 @@
     },
     {
       "start_ms": 949480,
-      "end_ms": 950110,
+      "end_ms": 950120,
       "text": "对对对。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -11175,8 +11159,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 949940,
-      "end_ms": 951210,
+      "start_ms": 949980,
+      "end_ms": 951220,
       "text": "哎，对，像。",
       "speakers": [],
       "flags": [
@@ -11191,13 +11175,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 951640,
-      "end_ms": 952310,
+      "start_ms": 951660,
+      "end_ms": 952320,
       "text": "对对对。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -11208,7 +11192,7 @@
     },
     {
       "start_ms": 952480,
-      "end_ms": 952910,
+      "end_ms": 952920,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -11224,8 +11208,8 @@
     },
     {
       "start_ms": 953980,
-      "end_ms": 959810,
-      "text": "可以，那种那种那种，对吧，手办，对我们手办，这样也可以推动我们手办的这个销量。",
+      "end_ms": 959820,
+      "text": "可以，那种那种的，对吧，手办，对我们手办，这样也可以推动我们手办的这个销量。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -11240,12 +11224,12 @@
     },
     {
       "start_ms": 955640,
-      "end_ms": 956310,
+      "end_ms": 956320,
       "text": "对对对。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -11255,8 +11239,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 955810,
-      "end_ms": 956480,
+      "start_ms": 955880,
+      "end_ms": 956420,
       "text": "是。",
       "speakers": [
         "S02"
@@ -11272,7 +11256,7 @@
     },
     {
       "start_ms": 959180,
-      "end_ms": 965110,
+      "end_ms": 965120,
       "text": "对，对，没错，能赠送点儿什么小礼品啊，周边儿啥的，对，对。",
       "speakers": [
         "S02"
@@ -11288,12 +11272,12 @@
     },
     {
       "start_ms": 959240,
-      "end_ms": 960610,
+      "end_ms": 960620,
       "text": "对，是。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -11304,12 +11288,12 @@
     },
     {
       "start_ms": 959340,
-      "end_ms": 960110,
+      "end_ms": 960120,
       "text": "对对对。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -11319,9 +11303,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 963040,
-      "end_ms": 974210,
-      "text": "对，小礼品，周边儿完全可以，小礼，小礼物，对，我们，哎，比较可以，简单的小预算比较低点儿，对吧，对吧，所以我们，到最，各位听友，对吧。",
+      "start_ms": 963060,
+      "end_ms": 973320,
+      "text": "对，小礼品，周边儿完全可以，小礼，小礼物，对，我们，哎，比较可以，简单的小预算比较低点儿，可以，对吧，所以我们，到最，各位听友。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -11336,7 +11320,7 @@
     },
     {
       "start_ms": 963380,
-      "end_ms": 965910,
+      "end_ms": 965920,
       "text": "啊，对，小礼物什么的。",
       "speakers": [],
       "flags": [
@@ -11351,8 +11335,24 @@
       "decision": "primary"
     },
     {
-      "start_ms": 965980,
-      "end_ms": 971910,
+      "start_ms": 964840,
+      "end_ms": 965320,
+      "text": "对。",
+      "speakers": [],
+      "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 966060,
+      "end_ms": 971920,
       "text": "对，小礼物，啊，预算比较可以，对，是低点儿的预算。",
       "speakers": [
         "S02"
@@ -11367,8 +11367,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 969910,
-      "end_ms": 970910,
+      "start_ms": 969920,
+      "end_ms": 970920,
       "text": "对，预算。",
       "speakers": [],
       "flags": [
@@ -11383,13 +11383,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 971040,
-      "end_ms": 971710,
+      "start_ms": 971080,
+      "end_ms": 971720,
       "text": "对对对。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -11400,8 +11400,8 @@
     },
     {
       "start_ms": 973040,
-      "end_ms": 977710,
-      "text": "对，就很多小孩儿你送他一个手办，他特别开心，能看，看些好几天，对不对。",
+      "end_ms": 977720,
+      "text": "对，就很多小孩儿，你送他一个手办，他特别开心，能看，看些好几天，对不对。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -11416,7 +11416,7 @@
     },
     {
       "start_ms": 973780,
-      "end_ms": 974280,
+      "end_ms": 974220,
       "text": "对。",
       "speakers": [
         "S02"
@@ -11432,7 +11432,7 @@
     },
     {
       "start_ms": 975480,
-      "end_ms": 976310,
+      "end_ms": 976320,
       "text": "那可不。",
       "speakers": [
         "S02"
@@ -11447,8 +11447,24 @@
       "decision": "primary"
     },
     {
-      "start_ms": 976980,
-      "end_ms": 977610,
+      "start_ms": 975820,
+      "end_ms": 976420,
+      "text": "啊。",
+      "speakers": [],
+      "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 977060,
+      "end_ms": 977620,
       "text": "对。",
       "speakers": [
         "S02"
@@ -11464,8 +11480,8 @@
     },
     {
       "start_ms": 977240,
-      "end_ms": 978410,
-      "text": "啊，对，非常。",
+      "end_ms": 978420,
+      "text": "啊，非常。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -11480,12 +11496,12 @@
     },
     {
       "start_ms": 977340,
-      "end_ms": 982010,
-      "text": "可以在商场发放一些免费的购物袋，上面印着我们的游戏，对吧。",
-      "speakers": [
-        "S04"
-      ],
+      "end_ms": 981520,
+      "text": "可以在商场发放一些免费的购物袋，上面印着我们的游戏。",
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -11512,7 +11528,7 @@
     },
     {
       "start_ms": 981480,
-      "end_ms": 983910,
+      "end_ms": 983920,
       "text": "对，对，购物袋也可以。",
       "speakers": [],
       "flags": [
@@ -11527,9 +11543,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 982110,
-      "end_ms": 982680,
-      "text": "是。",
+      "start_ms": 981520,
+      "end_ms": 982620,
+      "text": "对，是。",
       "speakers": [
         "S02"
       ],
@@ -11544,7 +11560,7 @@
     },
     {
       "start_ms": 983510,
-      "end_ms": 993610,
+      "end_ms": 993620,
       "text": "我们还可以把那个，咱们的宣传单儿印出来，放放在厕所或者公共区域的那个，对，周围，这样大家一去就可以看见了，对，自去。",
       "speakers": [
         "S02"
@@ -11559,8 +11575,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 988010,
-      "end_ms": 988810,
+      "start_ms": 988000,
+      "end_ms": 988820,
       "text": "啊。",
       "speakers": [],
       "flags": [
@@ -11576,7 +11592,7 @@
     },
     {
       "start_ms": 988340,
-      "end_ms": 990410,
+      "end_ms": 990420,
       "text": "对，对，区域周围，对。",
       "speakers": [],
       "flags": [
@@ -11591,8 +11607,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 988610,
-      "end_ms": 990810,
+      "start_ms": 988620,
+      "end_ms": 990820,
       "text": "周围，周围。",
       "speakers": [],
       "flags": [
@@ -11607,13 +11623,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 989910,
-      "end_ms": 990410,
+      "start_ms": 989920,
+      "end_ms": 990420,
       "text": "对。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -11624,7 +11640,7 @@
     },
     {
       "start_ms": 992640,
-      "end_ms": 995410,
+      "end_ms": 995420,
       "text": "增长我们那种，增长我们这个人力的这个去。",
       "speakers": [],
       "flags": [
@@ -11639,8 +11655,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 995410,
-      "end_ms": 1002310,
+      "start_ms": 995420,
+      "end_ms": 1002280,
       "text": "对对对，减少人力，减少人力，对，减少时间，对，没错，对，很好。",
       "speakers": [],
       "flags": [
@@ -11656,7 +11672,7 @@
     },
     {
       "start_ms": 995440,
-      "end_ms": 996310,
+      "end_ms": 996320,
       "text": "没错。",
       "speakers": [
         "S02"
@@ -11672,12 +11688,12 @@
     },
     {
       "start_ms": 996240,
-      "end_ms": 996910,
+      "end_ms": 996920,
       "text": "对对对。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -11687,9 +11703,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 996510,
-      "end_ms": 998810,
-      "text": "对，对吧，像，对，对，对。",
+      "start_ms": 996520,
+      "end_ms": 1000920,
+      "text": "对，对吧，这样，对，对，效率比较高的这样。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -11704,7 +11720,7 @@
     },
     {
       "start_ms": 997480,
-      "end_ms": 999610,
+      "end_ms": 999620,
       "text": "还可以节省时间，是。",
       "speakers": [
         "S02"
@@ -11719,25 +11735,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 999510,
-      "end_ms": 999910,
+      "start_ms": 999520,
+      "end_ms": 999920,
       "text": "对。",
-      "speakers": [
-        "S04"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 999640,
-      "end_ms": 1000910,
-      "text": "效率比较高的这样。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -11751,8 +11751,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1000510,
-      "end_ms": 1001680,
+      "start_ms": 1000520,
+      "end_ms": 1001620,
       "text": "对，对。",
       "speakers": [
         "S02"
@@ -11768,12 +11768,12 @@
     },
     {
       "start_ms": 1001240,
-      "end_ms": 1003810,
+      "end_ms": 1003820,
       "text": "成本也，不是成本也挺高的。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -11784,7 +11784,7 @@
     },
     {
       "start_ms": 1002340,
-      "end_ms": 1009180,
+      "end_ms": 1009120,
       "text": "我们还可以在一些学校大学里去办cosplay展，吸引大学生的参与，哎，对。",
       "speakers": [
         "S02"
@@ -11800,7 +11800,7 @@
     },
     {
       "start_ms": 1005740,
-      "end_ms": 1006310,
+      "end_ms": 1006320,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -11831,9 +11831,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1007280,
-      "end_ms": 1011410,
-      "text": "对，对，对，对，对，对，对，对，对，对，对。",
+      "start_ms": 1007320,
+      "end_ms": 1007820,
+      "text": "对。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -11847,9 +11847,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1009010,
-      "end_ms": 1011410,
-      "text": "对，对，对，对，对，对，对。",
+      "start_ms": 1008380,
+      "end_ms": 1012120,
+      "text": "对，对，对，对，对，对，对，对，对，对。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -11864,7 +11864,7 @@
     },
     {
       "start_ms": 1010240,
-      "end_ms": 1013310,
+      "end_ms": 1013320,
       "text": "是，那可不，这么庞大的一个游力群。",
       "speakers": [
         "S02"
@@ -11879,8 +11879,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1011810,
-      "end_ms": 1013610,
+      "start_ms": 1011820,
+      "end_ms": 1013620,
       "text": "大学生，大学生。",
       "speakers": [],
       "flags": [
@@ -11895,9 +11895,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1013110,
-      "end_ms": 1020410,
-      "text": "对，对，全国啊，大学生多少人群，对吧，就我们主力的那种消费人群，可以有，对，对，对，对。",
+      "start_ms": 1013120,
+      "end_ms": 1023820,
+      "text": "对，对，全国啊，大学生有多少人群，对吧，作为主力的那种消费人群，可以这种，对，我们这种，对，对，大学生这个人群，对，确实。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -11912,7 +11912,7 @@
     },
     {
       "start_ms": 1014980,
-      "end_ms": 1015910,
+      "end_ms": 1015820,
       "text": "嗯，是。",
       "speakers": [
         "S02"
@@ -11928,7 +11928,7 @@
     },
     {
       "start_ms": 1016240,
-      "end_ms": 1017310,
+      "end_ms": 1017320,
       "text": "是，没错。",
       "speakers": [],
       "flags": [
@@ -11943,8 +11943,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1019010,
-      "end_ms": 1019610,
+      "start_ms": 1019020,
+      "end_ms": 1019620,
       "text": "对。",
       "speakers": [
         "S02"
@@ -11959,8 +11959,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1019310,
-      "end_ms": 1020810,
+      "start_ms": 1019320,
+      "end_ms": 1020820,
       "text": "主力人群，主力人群。",
       "speakers": [],
       "flags": [
@@ -11975,8 +11975,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1021110,
-      "end_ms": 1021780,
+      "start_ms": 1021120,
+      "end_ms": 1021720,
       "text": "是。",
       "speakers": [
         "S02"
@@ -11991,8 +11991,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1022610,
-      "end_ms": 1023210,
+      "start_ms": 1022620,
+      "end_ms": 1023220,
       "text": "大学生。",
       "speakers": [],
       "flags": [
@@ -12007,24 +12007,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1023010,
-      "end_ms": 1025810,
-      "text": "对，确实，大学生太多了，所以我们。",
-      "speakers": [],
-      "flags": [
-        "joint_identity_unresolved",
-        "speaker_unknown",
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 1023110,
-      "end_ms": 1023580,
+      "start_ms": 1023120,
+      "end_ms": 1023520,
       "text": "对。",
       "speakers": [
         "S02"
@@ -12039,13 +12023,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1025410,
-      "end_ms": 1027010,
-      "text": "他们有时间也有。",
-      "speakers": [
-        "S04"
-      ],
+      "start_ms": 1024420,
+      "end_ms": 1025820,
+      "text": "大学生太多了，所以我们。",
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -12055,8 +12039,24 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1027410,
-      "end_ms": 1033310,
+      "start_ms": 1025420,
+      "end_ms": 1027020,
+      "text": "他们有时间也有。",
+      "speakers": [],
+      "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 1027420,
+      "end_ms": 1033320,
       "text": "也有精力，也有热情，对，他经常玩儿，他喜爱这个，对。",
       "speakers": [],
       "flags": [
@@ -12072,8 +12072,8 @@
     },
     {
       "start_ms": 1027540,
-      "end_ms": 1029810,
-      "text": "对，对，精力有热情。",
+      "end_ms": 1029820,
+      "text": "对，精力有热情。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -12088,7 +12088,7 @@
     },
     {
       "start_ms": 1028980,
-      "end_ms": 1029710,
+      "end_ms": 1029720,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -12104,12 +12104,12 @@
     },
     {
       "start_ms": 1029240,
-      "end_ms": 1029810,
+      "end_ms": 1029820,
       "text": "对。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -12120,7 +12120,7 @@
     },
     {
       "start_ms": 1029640,
-      "end_ms": 1030110,
+      "end_ms": 1030120,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -12136,12 +12136,12 @@
     },
     {
       "start_ms": 1030880,
-      "end_ms": 1031810,
+      "end_ms": 1031820,
       "text": "对，他们喜欢。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -12151,9 +12151,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1030910,
-      "end_ms": 1041410,
-      "text": "对吧，对，他们，比如四个人几个人一起开个会，对吧，对，对喜爱，大学生确实有这种人群，对吧，大学生这种，对吧，去我们大学里，把我们的这个。",
+      "start_ms": 1030920,
+      "end_ms": 1041420,
+      "text": "对吧，对，他们，比如四个人几个人一起开个会，怎么怎么怎么喜爱，大学生确实有这种人群，对吧，大学生这种，对吧，去我们大学里，把我们的这个。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -12168,12 +12168,12 @@
     },
     {
       "start_ms": 1032980,
-      "end_ms": 1033510,
+      "end_ms": 1033520,
       "text": "对。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -12183,8 +12183,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1034310,
-      "end_ms": 1036310,
+      "start_ms": 1034320,
+      "end_ms": 1036220,
       "text": "嗯，对，对。",
       "speakers": [
         "S02"
@@ -12200,7 +12200,7 @@
     },
     {
       "start_ms": 1034680,
-      "end_ms": 1035180,
+      "end_ms": 1035120,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -12216,12 +12216,12 @@
     },
     {
       "start_ms": 1036840,
-      "end_ms": 1037510,
+      "end_ms": 1037520,
       "text": "对对对。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -12231,8 +12231,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1037110,
-      "end_ms": 1037610,
+      "start_ms": 1037120,
+      "end_ms": 1037520,
       "text": "对。",
       "speakers": [
         "S02"
@@ -12263,8 +12263,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1038810,
-      "end_ms": 1039580,
+      "start_ms": 1038820,
+      "end_ms": 1039520,
       "text": "是的。",
       "speakers": [
         "S02"
@@ -12279,13 +12279,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1041210,
-      "end_ms": 1043310,
+      "start_ms": 1041220,
+      "end_ms": 1043320,
       "text": "你可以举办一些线下的比赛。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -12296,7 +12296,7 @@
     },
     {
       "start_ms": 1041840,
-      "end_ms": 1042610,
+      "end_ms": 1042620,
       "text": "最高一些。",
       "speakers": [],
       "flags": [
@@ -12312,7 +12312,7 @@
     },
     {
       "start_ms": 1043480,
-      "end_ms": 1046510,
+      "end_ms": 1046520,
       "text": "对，对，线下比赛，对，比赛的方式。",
       "speakers": [
         "S02"
@@ -12327,8 +12327,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1043510,
-      "end_ms": 1044010,
+      "start_ms": 1043520,
+      "end_ms": 1043920,
       "text": "对。",
       "speakers": [],
       "flags": [
@@ -12344,7 +12344,7 @@
     },
     {
       "start_ms": 1043640,
-      "end_ms": 1046510,
+      "end_ms": 1046520,
       "text": "对，线下比赛，对，比赛的方式。",
       "speakers": [],
       "flags": [
@@ -12360,7 +12360,7 @@
     },
     {
       "start_ms": 1044380,
-      "end_ms": 1045810,
+      "end_ms": 1045820,
       "text": "比赛，对，对。",
       "speakers": [],
       "flags": [
@@ -12375,13 +12375,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1045240,
-      "end_ms": 1045810,
+      "start_ms": 1045320,
+      "end_ms": 1045820,
       "text": "对对。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -12391,13 +12391,13 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1046110,
-      "end_ms": 1047210,
+      "start_ms": 1046140,
+      "end_ms": 1047220,
       "text": "比赛的方式。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
@@ -12407,8 +12407,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1046910,
-      "end_ms": 1052210,
+      "start_ms": 1046920,
+      "end_ms": 1052220,
       "text": "这种高校的现在这种比赛，对吧，然后去宣传我们的这种游戏，通过评论区的。",
       "speakers": [],
       "flags": [
@@ -12424,7 +12424,7 @@
     },
     {
       "start_ms": 1052140,
-      "end_ms": 1055810,
+      "end_ms": 1055820,
       "text": "对，号召大家，召召唤朋友，我们组个队，组个战队。",
       "speakers": [],
       "flags": [
@@ -12439,8 +12439,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1053110,
-      "end_ms": 1053810,
+      "start_ms": 1053220,
+      "end_ms": 1053820,
       "text": "啊。",
       "speakers": [],
       "flags": [
@@ -12455,32 +12455,28 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1054640,
-      "end_ms": 1055040,
+      "start_ms": 1054680,
+      "end_ms": 1055000,
       "text": "对，对。",
-      "speakers": [
-        "S04"
-      ],
+      "speakers": [],
       "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
       "tokens": [
         {
           "text": "对，",
-          "start_ms": 1054640,
-          "end_ms": 1055040,
-          "speakers": [
-            "S04"
-          ]
+          "start_ms": 1054680,
+          "end_ms": 1055000,
+          "speakers": []
         },
         {
           "text": "对。",
-          "start_ms": 1054800,
-          "end_ms": 1055040,
-          "speakers": [
-            "S04"
-          ]
+          "start_ms": 1054760,
+          "end_ms": 1055000,
+          "speakers": []
         }
       ],
       "candidates": {},
@@ -12760,8 +12756,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1084340,
-      "end_ms": 1084820,
+      "start_ms": 1084480,
+      "end_ms": 1084880,
       "text": "嗯。",
       "speakers": [],
       "flags": [
@@ -13080,7 +13076,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1121520,
+      "start_ms": 1121500,
       "end_ms": 1123080,
       "text": "哎呀，估计得超过五十万了。",
       "speakers": [],
@@ -13610,7 +13606,7 @@
     {
       "start_ms": 1178800,
       "end_ms": 1189920,
-      "text": "还有举办模特展览，像cosplay会吸引一群一群人的参与，就尤其举办像，就像漫展一样，很多人都会去看，然后很多青年人群呀什么的。",
+      "text": "还有举办模特展览，像cosplay会吸引一群一群人的参与，就尤其举办像，就像漫展一样，很多人都会去看，然后很多青年人群呀，什么的。",
       "speakers": [],
       "flags": [
         "joint_identity_unresolved",
@@ -13689,7 +13685,7 @@
     },
     {
       "start_ms": 1184020,
-      "end_ms": 1188120,
+      "end_ms": 1188520,
       "text": "去参与一下，对，对，漫展，对，对，对。",
       "speakers": [],
       "flags": [

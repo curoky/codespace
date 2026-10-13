@@ -1,46 +1,43 @@
-# ASR Service Design
+# ASR System Design
 
-本服务把完整的普通话对话录音转成带时间戳、说话人和待核对标记的原话记录。每个输入
-固定产出 5 份 Markdown、5 份 JSON、索引、共享证据和执行追踪。它面向离线文件，不处理
-实时流、翻译、摘要、粤语或跨文件身份识别。
+ASR Service 将一个普通话完整录音一次性转换为五份可比较的转写。它是 Host 级单例：一个公开
+HTTP server 编排 15 个常驻模型实例，CLI 负责批量上传和发布人类可读产物。系统不提供实时流式
+识别、任意模型组合、跨请求任务队列或运行期模型调度。
+
+实现细节的 source of truth 见 [AGENTS.md](AGENTS.md)，质量与性能基线见
+[regression/AGENTS.md](regression/AGENTS.md)。
+
+## System Boundary
 
 ```mermaid
 flowchart LR
-    Input[录音文件或目录] --> CLI[macOS / Host CLI]
-    CLI -->|POST /transcribe| API[ASR container :8080]
-    API --> Pipeline[五方案 pipeline]
-    Pipeline --> Models[13 个逻辑模型 / 15 个常驻实例<br/>loopback :8000–8014]
-    Models --> Pipeline
-    Pipeline -->|结构化 JSON| CLI
-    CLI --> Output[本地原子产物目录]
+    Client[ASR CLI] -->|multipart file + options| API[Single-process FastAPI]
+    API --> Work[Request workspace]
+    API --> Pipeline[Pipeline]
+    Pipeline --> Scheduler[Static scheduler]
+    Scheduler --> S6[s6 model services]
+    S6 --> Models[15 resident instances]
+    Pipeline --> Response[5 results + evidence + trace]
+    Response --> Client
+    Client --> Files[Markdown / JSON / offline trace]
 ```
 
-控制面只部署一个 Linux Service container。容器内的 server 拥有请求期编排，s6 拥有模型
-进程生命周期；模型权重、请求临时空间与客户端产物彼此分离。实现维护入口见
-[AGENTS.md](AGENTS.md)。
+Server 拥有 HTTP 校验、临时文件、模型编排、五方案结果、共享 evidence 和原始 trace。CLI 拥有
+目录遍历、文件级并发、Markdown、索引、离线可视化和原子发布。模型 service 只监听 loopback，
+外部调用者不能绕过编排层。
 
-## Service Startup
+每个 `models/<model>/` 是一个完整部署单元，包含锁定依赖、权重下载、运行环境、启动命令和
+client adapter；需要自建 HTTP 服务的模型还在同目录拥有 endpoint 与推理实现。模型之间不共享
+部署基类或启动模板，只通过顶层 `InferenceRequest` / `InferenceResult` 合同与 Scheduler 解耦。
+具有实质 SSE 完整性和生成重试逻辑的 vLLM transport 由多个模型复用。
 
-容器只有在全部 15 个模型实例通过 health check 后才对外 ready。模型部署是启动期的一次性
-动作，请求期间不下载权重、不启停模型，也不重新排布 GPU。
+## Startup
 
-```mermaid
-flowchart TD
-    C[控制面创建容器<br/>GPU + mounts + secret + 8 GiB shm] --> S6[s6 root supervision]
-    S6 --> Server[asr-server longrun<br/>以 x 启动 FastAPI lifespan]
-    Server --> Reset[停止本容器遗留模型状态]
-    Reset --> Inventory[nvidia-smi 读取可见 GPU<br/>逻辑序号映射为 UUID]
-    Inventory --> Guard{8 张卡可见且空闲显存满足预算?}
-    Guard -->|否| Fail[启动失败，容器不 ready]
-    Guard -->|是| Start[一次 s6 transaction<br/>并行启动全部模型]
-    Start --> Download{各模型 .revision<br/>匹配固定 snapshot?}
-    Download -->|否| HF[download oneshot<br/>从 Hugging Face 补齐权重]
-    Download -->|是| Run[model longrun]
-    HF --> Run
-    Run --> Health[并发等待 127.0.0.1:8000–8014 health]
-    Health -->|任一失败或超时| Cleanup[停止已启动模型并失败]
-    Health -->|全部成功| Ready[开放 GET /health 与 POST /transcribe]
-```
+1. s6 oneshot 检查每个固定 model revision；缺失时从 Hugging Face 下载到持久 model-data。
+2. FastAPI lifespan 枚举容器可见 GPU，要求设备空闲并验证静态显存预算。
+3. Scheduler 将逻辑 placement 映射为 GPU UUID，为每个实例写入端口与可见设备。
+4. 一次 s6 transaction 并行启动全部模型，Server 并发等待 15 个 loopback health endpoint。
+5. 只有全部实例 ready 后，公开 `/health` 才可用。
 
 | 阶段 | Owner | 写入状态 | 失败语义 |
 | --- | --- | --- | --- |
@@ -50,186 +47,155 @@ flowchart TD
 | 模型驻留 | s6 model longrun | GPU / CPU memory 与 loopback listener | 任一模型 health 超时即回收已启动模型 |
 | API ready | FastAPI lifespan | 无持久状态 | 只有全部模型 ready 后才接受请求 |
 
-s6 以 root 监督，server、download 与 model process 均以固定用户 x 运行。停止时 s6 并行
-终止 graph；每个 model 的 `finish` 清理残留 engine 子进程，server 只关闭自己的 HTTP
-client，避免和 graph teardown 竞态。
+模型进程、权重和 compilation cache 都在请求前准备完毕。热启动可以复用 cache，但 readiness
+合同不允许将 JIT、模型加载或 graph capture 推迟到首请求。
 
-## Request Execution Flow
-
-一个文件对应一个长连接 HTTP 请求。CLI 的 `--parallel` 控制文件级并发；容器内不同模型
-可以并行；逻辑模型由实例池选择空闲副本，每个实例最多一个在途调用。相同模型、切片与有效参数只在当前请求
-内复用，跨请求没有任务队列、结果缓存或恢复状态。
+## Request Pipeline
 
 ```mermaid
 flowchart TD
-    Upload[上传完整文件] --> Decode[FFmpeg 解码<br/>mono 16 kHz PCM]
-    Decode --> Prepare["prepare<br/>Pyannote speaker + FireRedVAD 活动并集<br/>生成共享短窗"]
-    Prepare --> First["共享 first pass<br/>Qwen + FireRed + SenseVoice + Paraformer<br/>四路批次并行"]
-    First --> Dispute["筛选分歧、空结果、异常重复窗口"]
-    Dispute --> Review["共享 review<br/>Qwen + FireRed + Whisper + MOSS 扩窗并行复听<br/>主复听仍有争议才采用 MOSS"]
-    Review --> Evidence["共享证据包<br/>activity + Pyannote speaker + 短窗<br/>四路 candidates + review responses"]
+    Upload[Upload / decode] --> Prepare[Pyannote + FireRed VAD]
+    Prepare --> First[Qwen + FireRed + SenseVoice + Paraformer first pass]
+    First --> Review[Disputed-window review]
+    Review --> Evidence[Shared evidence]
 
-    subgraph FusionRecipes["01 / 02 · 双主稿融合"]
-        QwenFusion["01<br/>Qwen first-pass 作为主稿<br/>交叉证据裁定"] --> QwenFinalize["FireRedPunc 标点<br/>Qwen Aligner 字词时间"] --> Out01["01-qwen-fusion"]
-        FireRedFusion["02<br/>FireRed first-pass 作为主稿<br/>交叉证据裁定"] --> FireRedFinalize["FireRedPunc 标点<br/>Qwen Aligner 字词时间"] --> Out02["02-firered-fusion"]
-    end
+    Evidence --> R1[01 Qwen fusion]
+    Evidence --> R2[02 FireRed fusion]
+    Evidence --> R3[03 MOSS-TD joint]
+    Evidence --> R4[04 VibeVoice joint]
+    R1 --> R5[05 Qwen text + Nemotron speakers]
 
-    subgraph JointRecipes["03 / 04 · 独立长窗联合转写"]
-        MossJoint["MOSS-TD 独立生成<br/>正文 + 时间 + local speaker"] --> MossFinalize["映射 Pyannote identity<br/>Qwen Aligner 裁剪边界"] --> Out03["03-moss-td"]
-        VibeJoint["VibeVoice 独立生成<br/>正文 + 时间 + local speaker"] --> VibeFinalize["映射 Pyannote identity<br/>Qwen Aligner 裁剪边界"] --> Out04["04-vibevoice"]
-    end
-
-    subgraph RelabelRecipe["05 · 复用 01 后仅重标 speaker"]
-        Nemotron["Nemotron 全文件 diarization"] --> Relabel["复制 01 正文与字词时间<br/>替换 speaker"] --> Out05["05-qwen-nemotron"]
-    end
-
-    Evidence -->|Qwen 主稿和全部交叉证据| QwenFusion
-    Evidence -->|FireRed 主稿和全部交叉证据| FireRedFusion
-    Evidence -->|只复用活动、身份映射和争议标记| MossJoint
-    Evidence -->|只复用活动、身份映射和争议标记<br/>长窗动态分发到 A / B 副本| VibeJoint
-    Out01 -->|唯一跨方案依赖| Nemotron
-    Out01 --> Response["results + shared evidence + trace"]
-    Out02 --> Response
-    Out03 --> Response
-    Out04 --> Response
-    Out05 --> Response
-    Response --> Publish[CLI 生成文件并原子发布]
+    R1 --> Output[Response]
+    R2 --> Output
+    R3 --> Output
+    R4 --> Output
+    R5 --> Output
 ```
 
-图中的 01–04 都从同一个共享证据包出发并同时执行；唯一跨方案依赖是
-05 复制已完成的 01。03 / 04 的正文由各自联合模型重新生成，共享 first pass 只用于质量
-标记和 identity 映射，不参与替换其正文。05 在 01 完成后立即启动，不等待 02–04。
+prepare 先获得全文件 speaker activity，再与 VAD 取并集生成公共窗口。四路 first pass 使用同一
+批窗口且互不交换结果。只有分歧、空结果或异常重复窗口进入 review；Qwen、FireRed、Whisper
+与 MOSS-Audio 的批次在独立 lane 执行。01–04 从同一 evidence 出发并行完成，唯一跨方案依赖是
+05 等待 01 后复制其正文和时间。
 
 | 共享阶段 | 并发 / 复用 | 主要约束 |
 | --- | --- | --- |
 | upload / decode | 每请求一次；CPU semaphore | 原音写入请求临时目录，解码保留原始时间轴 |
-| prepare | pyannote 后 FireRedVAD | speaker 活动与 VAD 取并集；`--vad-off` 使用全文 |
-| first pass | 4 个模型批次并行；各模型逐窗串行 | 候选互不喂答案，使用相同短窗 |
-| review | Qwen / FireRed / Whisper / MOSS-Audio 四批在独立 GPU lane 并行 | MOSS speculative 结果仅在三路主复听仍不一致时对齐并采用；同家族不增加独立票数 |
-| response / publish | server 返回一次 JSON；CLI 在临时目录生成全部文件 | 只有完整接收并写完后才替换目标目录 |
+| prepare | Pyannote 后 FireRedVAD | speaker 活动与 VAD 取并集；`--vad-off` 使用全文 |
+| first pass | 四个模型批次并行；各模型逐窗串行 | 候选互不喂答案，使用相同短窗 |
+| review | Qwen / FireRed / Whisper / MOSS-Audio 四批在独立 GPU lane 并行 | MOSS speculative 结果仅在三路主复听仍不一致时采用；同家族不增加独立票数 |
+| response / publish | Server 返回一次 JSON；CLI 在临时目录生成全部文件 | 只有完整接收并写完后才替换目标目录 |
 
-| 方案 | 独立正文来源 | 复用内容 | 本方案独有处理 | 最终 speaker / 时间 |
+| Recipe | 独立正文来源 | 复用内容 | 本方案独有处理 | 最终 speaker / 时间 |
 | --- | --- | --- | --- | --- |
-| 01 Qwen fusion | Qwen first-pass 短窗主稿 | 四路 candidates、全部 review、Pyannote speaker | 交叉证据裁定；FireRedPunc；Qwen Aligner | Pyannote speaker；重新对齐的字词时间 |
-| 02 FireRed fusion | FireRed first-pass 短窗主稿 | 与 01 相同，但不读取 01 定稿 | 独立裁定；FireRedPunc；Qwen Aligner | Pyannote speaker；重新对齐的字词时间 |
-| 03 MOSS-TD | MOSS-TD 长窗联合输出 | activity 尾部检查、Pyannote identity 映射、first-pass 争议标记 | 保留自身正文、时间和 local speaker；失败先去除 padding，再按 exact core 安全二分到 8 秒边界 | local speaker 映射到全局身份；仅跨 core 的 segment 用 Aligner 裁剪，不猜测边界 |
-| 04 VibeVoice | VibeVoice 长窗联合输出 | 与 03 相同，但不读取 03 或融合稿 | 保留自身正文、时间和 local speaker；失败先去除 padding，再按 exact core 安全二分到 8 秒边界 | local speaker 映射到全局身份；仅跨 core 的 segment 用 Aligner 裁剪，不猜测边界 |
-| 05 Qwen + Nemotron | 完整复制 01 正文与字词时间 | 仅依赖已完成的 01；不重新 ASR | Nemotron 对全文件独立 diarization，仅重新切分 speaker | Nemotron speaker；正文和字词时间保持 01 不变 |
+| `01-qwen-fusion` | Qwen first-pass 短窗主稿 | 四路 candidates、全部 review、Pyannote speaker | 交叉证据裁定；FireRedPunc；Qwen Aligner | Pyannote speaker；重新对齐的字词时间 |
+| `02-firered-fusion` | FireRed first-pass 短窗主稿 | 与 01 相同，但不读取 01 定稿 | 独立裁定；FireRedPunc；Qwen Aligner | Pyannote speaker；重新对齐的字词时间 |
+| `03-moss-td` | MOSS-TD 长窗联合输出 | activity 尾部检查、Pyannote identity 映射、first-pass 争议标记 | 保留自身正文、时间和 local speaker；失败先去 padding，再按 exact core 安全二分 | local speaker 映射为全局身份；仅跨 core 的 segment 用 Aligner 裁剪 |
+| `04-vibevoice` | VibeVoice 长窗联合输出 | 与 03 相同，但不读取 03 或融合稿 | 保留自身正文、时间和 local speaker；失败先去 padding，再按 exact core 安全二分 | local speaker 映射为全局身份；仅跨 core 的 segment 用 Aligner 裁剪 |
+| `05-qwen-nemotron` | 完整复制 01 正文与字词时间 | 仅依赖已完成的 01；不重新 ASR | Nemotron 对全文件独立 diarization，仅重新切分 speaker | Nemotron speaker；正文和字词时间保持 01 不变 |
 
-模型调用先查请求内缓存，再以逻辑模型、切片与有效参数做 single-flight，最后从实例池取得副本；
-因此副本数增加不会让相同调用重复推理。vLLM 流必须收到标准 SSE 的 `[DONE]`，且所有
-completion 都以 `stop` 结束；截断响应不能进入融合。正常生成保持原始 greedy 参数，只有
-检测到至少 64 字符的严格短周期循环才按 1.1 / 1.2 / 1.3 逐级启用 repetition penalty；
-三档仍循环或明确 length 后使用固定 seed 轻采样重试。所有成功重试的实际参数与原因进入
-evidence，仍未完整结束的响应按失败处理。
+多人窗口不做融合替换。联合模型保留自身正文与时间，不拿融合稿修补。所有模型调用在请求内
+single-flight，相同逻辑模型、音频切片和有效参数只推理一次。
 
-## Persistent Data And Mounts
+## Model Roles
 
-| Host / runtime source | Container path | Mode | 生命周期与内容 |
-| --- | --- | --- | --- |
-| `${RESOURCE_DATA}/models` | `/model-data` | 正常部署 rw；预下载测试可 ro | 13 个固定 snapshot、HF metadata 与 `.revision`；跨 image / container 保留 |
-| `${RESOURCE_DATA}/requests` | `/data/asr` | rw，UID/GID `5230:5230` 可写 | 上传原音、解码 WAV 和切片；语义上是临时空间，正常与可处理异常请求都清理 |
-| `${RESOURCE_DATA}/cache` | `/home/x/.cache` | rw，UID/GID `5230:5230` 可写 | vLLM startup plan、TorchInductor、CUDA、Triton、FlashInfer 与 Torch extensions 的可再生 cache；跨 image / container 保留，不含转写正文 |
-| Podman secret `huggingface_token` | `/run/secrets/huggingface_token` | ro，x 可读 | 仅 marker 缺失或 revision 改变时读取，不写入 image 或 model-data |
-| Podman private shared memory | `/dev/shm` | rw，8 GiB | FireRed tensor parallel / NCCL 的进程间通信；不持久化 |
-| 容器内部 tmpfs / writable layer | `/run/asr` | rw | 启动期 GPU UUID 环境文件；容器替换即消失 |
-| CLI 所在机器的 `--out` | 不挂入容器 | client-owned | 最终 14 个文件；server 不拥有用户结果目录 |
+| 阶段 | 模型 |
+| --- | --- |
+| prepare | FireRed VAD、Pyannote Community-1 |
+| first pass | Qwen3-ASR、FireRed LLM、SenseVoice、Paraformer |
+| review | Qwen3-ASR、FireRed LLM、Whisper Large V3、MOSS-Audio |
+| punctuation / alignment | FireRedPunc、Qwen3 Forced Aligner |
+| joint recipes | MOSS Transcribe-Diarize、VibeVoice ASR |
+| alternate diarization | Nemotron Diarization |
 
-`/opt/asr` 只包含代码与预装环境，不能被 volume 遮蔽。没有 `/model-data` mount 时权重会
-落入容器 writable layer 并随容器替换丢失，因此不属于受支持的持久部署形态。
-`/home/x/.cache` 只复用与当前代码、模型和 GPU 兼容的 cache key；首次启动仍会生成缺失产物，
-无需也不能在没有 GPU 和运行时权重的 image build 中预热。首次成功启动还会保存显存
-profiling 的 startup plan；相同配置再次启动时通过空闲显存校验后复用。
-每个 `models/<model>/run` 固定该模型完整的 cache、CPU/JIT、CUDA、loader 与 serving 参数；
-s6 只注入实例端口和 placement 得到的 GPU UUID，因此模型目录可以脱离 s6 definition 检查其
-完整运行配置。
-FireRed TP2 使用固定 KV cache，不复用 startup plan，也不执行 memory profiling，避免两个
-rank 因共卡显存基线不同走入不同 collective 路径；显存比例只作为启动上限检查，不决定
-KV cache 容量。FireRed TP2 禁用 custom all-reduce 并使用 NCCL，避免固定 KV 路径下两个
-rank 在 FlashInfer workspace 初始化时进入不对称状态；其 FlashInfer all-reduce backend
-同样关闭，TP 通信只走 NCCL symmetric memory / PyNCCL。FireRed 的 scheduler capacity 与
-vLLM `max-num-seqs` 都固定为 2，使两个并发文件的 FireRed 调用可以 continuous batching。
-MOSS-Audio 与 Qwen3-ASR 也固定两个 slot 和两个 sequence，避免跨请求 review / first pass
-串行排队。VibeVoice 两个副本各固定两个 slot，按配置顺序先填 A 再溢出到 B；其他模型实例保持
-单在途。
-FlashInfer JIT cache 按模型环境
-分目录；不同模型首次编译可并行，同一模型的多个实例共享已编译 extension。
+下面恢复面向维护者的汇总视图，便于一次看清完整部署。实际 source of truth 仍是
+`models/catalog.py`、`server/server.yaml`、各模型 lock 与 `run`；修改这些实现时必须同步表格。
 
-## Model Inventory And Deployment
+### Model Inventory
 
-全部模型在启动期常驻。下表是模型 checkpoint、请求职责、Serving、Runtime Stack、部署与
-存储体积的唯一汇总视图，不在 `AGENTS.md` 另建版本分组表。GPU 是容器可见设备的逻辑序号，
-显存是 `models/catalog.py` 声明的每卡静态预算；Python 与依赖版本来自各模型 lock 的 Linux
-解析结果。CUDA 指 toolkit release，CPU-only 记为 `—`。Checkpoint 与 `.venv` 大小均为
-二进制 GiB，权重全部外置。
-
-| 模型 / checkpoint | 端口 | 阶段 / 职责 | Serving 接口 | SDK / runtime | Python | Transformers | vLLM | Torch | CUDA | 部署 | 显存预算 / 卡 GiB | Checkpoint GiB | `.venv` 逻辑 GiB |
+| 模型 | 端口 | 阶段 / 职责 | Serving | SDK / runtime | Python | Transformers | vLLM | Torch | CUDA | 部署 | 显存预算 / 卡 | Checkpoint | `.venv` 逻辑大小 |
 | --- | ---: | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---: | ---: | ---: |
-| [`firered-llm`](https://huggingface.co/allendou/FireRedASR2-LLM-vllm) | 8000 | first pass / review；第二主稿 | transcription（[作者配方][firered]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 0+1，TP=2 | 32 | 31.147 | 7.392 |
-| [`firered-punc`](https://huggingface.co/FireRedTeam/FireRedPunc) | 8001 | 01 / 02；标点校验 | 本模型 HTTP | [FireRedASR2S][firered] 0.0.1 @ `4e7d9aa` | 3.12.14 | 5.1.0 | — | 2.10.0+cpu | — | CPU | — | 0.762 | 0.832 |
-| [`firered-vad`](https://huggingface.co/FireRedTeam/FireRedVAD) | 8002 | prepare；语音活动范围 | 本模型 HTTP | [FireRedASR2S][firered] 0.0.1 @ `4e7d9aa` | 3.12.14 | 5.1.0 | — | 2.10.0+cpu | — | CPU | — | 0.002 | 0.832 |
-| [`moss-audio`](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-8B-Instruct) | 8003 | review；残余争议复听 | audio chat（[作者文档][moss-audio]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 2 | 32 | 16.862 | 7.392 |
-| [`moss-td`](https://huggingface.co/OpenMOSS-Team/MOSS-Transcribe-Diarize) | 8004 | 03；联合正文、时间、speaker | transcription（[作者文档][moss-td]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 3 | 48 | 1.692 | 7.396 |
-| [`nemotron-diarization`](https://huggingface.co/nvidia/Nemotron-3-Diarization) | 8005 | 05；独立 speaker 重标 | 本模型 HTTP | NeMo 3.1.0+ca3f93a51 | 3.12.14 | 4.57.6 | — | 2.13.0 | 13.0.3 | GPU 1 | 12 | 0.185 | 5.288 |
-| [`paraformer`](https://huggingface.co/funasr/paraformer-zh) | 8006 | first pass；中文旁路校验 | 本模型 HTTP | [FunASR][funasr] 1.4.16 | 3.12.14 | 4.57.6 | — | 2.13.0 | 13.0.3 | GPU 6 | 4 | 0.820 | 4.973 |
-| [`pyannote-community-1`](https://huggingface.co/pyannote/speaker-diarization-community-1) | 8007 | prepare；全文件身份与跨窗映射 | 本模型 HTTP | [pyannote.audio][pyannote] 4.0.7 | 3.12.14 | — | — | 2.13.0 | 13.0.3 | GPU 1 | 6 | 0.031 | 4.819 |
-| [`qwen3-aligner`](https://huggingface.co/Qwen/Qwen3-ForcedAligner-0.6B) | 8008 / 8013 | review / finalize；字词时间 | pooling + 本模型 HTTP（[Qwen SDK][qwen]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 6 review / GPU 7 recipe | 8 | 1.709 | 7.396 |
-| [`qwen3-asr-1.7b`](https://huggingface.co/Qwen/Qwen3-ASR-1.7B) | 8009 | first pass / review；第一主稿 | transcription（[Qwen SDK][qwen]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 4 | 12 | 4.376 | 7.392 |
-| [`sensevoice`](https://huggingface.co/FunAudioLLM/SenseVoiceSmall) | 8010 | first pass；中文旁路校验 | 本模型 HTTP | [FunASR][sensevoice] 1.4.16 | 3.12.14 | 4.57.6 | — | 2.13.0 | 13.0.3 | GPU 5 | 4 | 0.872 | 4.973 |
-| [`vibevoice`](https://huggingface.co/microsoft/VibeVoice-ASR-HF) | 8011 / 8014 | 04；联合正文、时间、speaker | audio chat（[作者文档][vibevoice]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 5 / GPU 6 副本 | 48 | 15.517 | 7.392 |
-| [`whisper-large-v3`](https://huggingface.co/openai/whisper-large-v3) | 8012 | review；独立复听 | transcription（[模型来源][whisper]） | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 7 | 8 | 2.875 | 7.392 |
+| `firered-llm` | 8000 | first pass / review；第二主稿 | vLLM transcription | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 0+1，TP=2 | 32 GiB | 31.147 GiB | 7.392 GiB |
+| `firered-punc` | 8001 | 01 / 02 标点校验 | 本模型 HTTP | FireRedASR2S 0.0.1 @ `4e7d9aa` | 3.12.14 | 5.1.0 | — | 2.10.0+cpu | — | CPU | — | 0.762 GiB | 0.832 GiB |
+| `firered-vad` | 8002 | prepare 语音活动 | 本模型 HTTP | FireRedASR2S 0.0.1 @ `4e7d9aa` | 3.12.14 | 5.1.0 | — | 2.10.0+cpu | — | CPU | — | 0.002 GiB | 0.832 GiB |
+| `moss-audio` | 8003 | review 残余争议复听 | vLLM audio chat | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 2 | 32 GiB | 16.862 GiB | 7.392 GiB |
+| `moss-td` | 8004 | 03 联合正文、时间、speaker | vLLM transcription | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 3 | 48 GiB | 1.692 GiB | 7.396 GiB |
+| `nemotron-diarization` | 8005 | 05 独立 speaker 重标 | 本模型 HTTP | NeMo 3.1.0+ca3f93a51 | 3.12.14 | 4.57.6 | — | 2.13.0 | 13.0.3 | GPU 1 | 12 GiB | 0.185 GiB | 5.288 GiB |
+| `paraformer` | 8006 | first pass 中文旁路 | 本模型 HTTP | FunASR 1.4.16 | 3.12.14 | 4.57.6 | — | 2.13.0 | 13.0.3 | GPU 6 | 4 GiB | 0.820 GiB | 4.973 GiB |
+| `pyannote-community-1` | 8007 | prepare 全文件身份 | 本模型 HTTP | pyannote.audio 4.0.7 | 3.12.14 | — | — | 2.13.0 | 13.0.3 | GPU 1 | 6 GiB | 0.031 GiB | 4.819 GiB |
+| `qwen3-aligner` | 8008 / 8013 | review / finalize 字词时间 | pooling + 本模型 HTTP | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 6 / GPU 7 | 8 GiB | 1.709 GiB | 7.396 GiB |
+| `qwen3-asr-1.7b` | 8009 | first pass / review；第一主稿 | vLLM transcription | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 4 | 12 GiB | 4.376 GiB | 7.392 GiB |
+| `sensevoice` | 8010 | first pass 中文旁路 | 本模型 HTTP | FunASR 1.4.16 | 3.12.14 | 4.57.6 | — | 2.13.0 | 13.0.3 | GPU 5 | 4 GiB | 0.872 GiB | 4.973 GiB |
+| `vibevoice` | 8011 / 8014 | 04 联合正文、时间、speaker | vLLM audio chat | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 5 / GPU 6 | 48 GiB | 15.517 GiB | 7.392 GiB |
+| `whisper-large-v3` | 8012 | review 独立复听 | vLLM transcription | — | 3.12.14 | 5.17.0 | 0.31.0 | 2.13.0 | 13.0.3 | GPU 7 | 8 GiB | 2.875 GiB | 7.392 GiB |
 
-Checkpoint 只统计固定 revision 的 weight 文件；不可拆分的 `.nemo`、`.pth.tar` 按整个文件
-计入，不含 tokenizer、config、词典、CMVN 和下载 cache。13 个 checkpoint 合计 76.850 GiB，
-当前 allowlist 的完整 `/model-data` 约 76.912 GiB。13 个模型 `.venv` 的逻辑大小合计
-73.488 GiB，但大量内容通过 hardlink 共用，不能把逐行数值相加当作 image 物理占用。
+Checkpoint 只统计固定 revision 的 serving weight；完整 allowlist 还包含 tokenizer、config、词典
+和 CMVN。`.venv` 是逐目录逻辑大小，共享 hardlink 会被每行重复计数，不能相加代表 image 物理
+占用。
 
-## GPU Placement
-
-当前 placement 使用 8 张 80 GiB GPU。大模型 server 在启动时使用互不重叠的 GPU，避免并行
-显存 profiling 与首次 JIT 相互干扰；review Aligner 放到 GPU 6，recipe Aligner 与 Whisper 共用
-GPU 7，避免跨请求 review / finalize 互相排队。VibeVoice A 先用双在途 continuous batching，
-B 在超过两个并发调用时承接溢出，避免主动与 GPU 6 上另一请求的 Paraformer first pass 竞争。
+### GPU Placement
 
 | 逻辑 GPU | 常驻模型（显存预算 / 卡） | 合计预算 | 不同时推理的关键边界 |
 | ---: | --- | ---: | --- |
 | 0 | `firered-llm` 32 GiB（TP rank） | 32 GiB | FireRed TP rank 独占计算 |
-| 1 | `firered-llm` 32 GiB（TP rank）、`pyannote-community-1` 6 GiB、`nemotron-diarization` 12 GiB | 50 GiB | Pyannote / Nemotron 不与同请求的 FireRed 同时推理 |
+| 1 | `firered-llm` 32 GiB、`pyannote-community-1` 6 GiB、`nemotron-diarization` 12 GiB | 50 GiB | Pyannote / Nemotron 不与同请求的 FireRed 同时推理 |
 | 2 | `moss-audio` 32 GiB | 32 GiB | 独立 review lane |
 | 3 | `moss-td` 48 GiB | 48 GiB | 独立 03 lane |
 | 4 | `qwen3-asr-1.7b` 12 GiB | 12 GiB | 独立 first pass / review lane |
 | 5 | `sensevoice` 4 GiB、`vibevoice-a` 48 GiB | 52 GiB | SenseVoice 在 first pass；A 副本执行 04 长窗 |
-| 6 | `paraformer` 4 GiB、`vibevoice-b` 48 GiB、`qwen3-aligner-review` 8 GiB | 60 GiB | Paraformer 在 first pass；review Aligner 与 04 overflow 按 phase 错开 |
+| 6 | `paraformer` 4 GiB、`vibevoice-b` 48 GiB、`qwen3-aligner-review` 8 GiB | 60 GiB | Paraformer 在 first pass；Aligner 与 04 overflow 按 phase 错开 |
 | 7 | `whisper-large-v3` 8 GiB、`qwen3-aligner-recipe` 8 GiB | 16 GiB | Whisper review 结束后进入 recipe finalize |
 
-placement 只选择容器可见 GPU，部署必须暴露逻辑 0–7 全部八张卡。
-显存比例是进程静态上限而非精确占用，实际部署仍必须检查 CUDA context、TP / NCCL 与运行
-波动。
+静态 placement 按 phase 隔离 critical path；低平均 GPU utilization 本身不是缺陷，强制均衡可能
+让长模型与另一请求的 first pass 争用同卡。
 
-## Image Size Distribution
+## HTTP Contract
 
-模型权重不在 image 中。下表使用 2026-10-09 本地 `podman image inspect` 与
-`podman history --human=false` 的未压缩 layer size；registry 压缩传输大小会不同。当前
-`localhost/codespace-asr:test` 总计 12.37 GB（11.52 GiB）。
+- `GET /health`：仅在全部模型 ready 后返回 `{"status":"ready"}`。
+- `POST /transcribe`：multipart `file` 加 JSON 字符串 `options`，返回 `results`、`evidence`、
+  `trace`。
+- options、模型响应、时间边界和结构均由 Pydantic 校验。空文件和非法输入返回 422。
+- 某个 recipe 失败可返回 partial；decode 或公共 prepare 失败使整个请求失败。
+- 请求 workspace 位于 `/data/asr` 的临时目录，响应完成或异常后删除。
+
+模型内部 transport 分两类：标准 SDK 服务接收 JSON `InferenceRequest`；自定义 vLLM / chat
+服务使用各自固定协议。vLLM SSE 只有完整收到 `[DONE]` 且正常 stop 才可作为证据。
+
+## Persistence And Security
+
+| Host / runtime source | Container path | Mode | 生命周期与内容 |
+| --- | --- | --- | --- |
+| `${RESOURCE_DATA}/models` | `/model-data` | 正常部署 rw；预下载测试可 ro | 13 个固定 snapshot、HF metadata 与 `.revision`；跨 image / container 保留 |
+| `${RESOURCE_DATA}/requests` | `/data/asr` | rw，UID/GID `5230:5230` 可写 | 上传、解码和切片；请求结束清理 |
+| `${RESOURCE_DATA}/cache` | `/home/x/.cache` | rw，UID/GID `5230:5230` 可写 | vLLM、TorchInductor、CUDA、Triton、FlashInfer 与 Torch extension cache；跨启动保留 |
+| Podman secret `huggingface_token` | `/run/secrets/huggingface_token` | ro，x 可读 | 仅 marker 缺失或 revision 改变时读取 |
+| Podman private shared memory | `/dev/shm` | rw，8 GiB | FireRed TP / NCCL IPC；不持久化 |
+| 容器 writable layer | `/run/asr` | rw | scheduler 生成的端口与 GPU UUID；容器替换即消失 |
+| CLI 所在机器的 `--out` | 不挂入容器 | client-owned | 最终 14 个文件；Server 不拥有用户结果目录 |
+
+模型权重不进入 image。Hugging Face token 只通过 Podman secret 注入，并且仅在 marker 缺失或
+revision 改变时读取。服务使用固定非 root 用户运行；公开 API 不接受 Host 路径。
+
+## Image Footprint
+
+下表是当前 image 组成的量级视图；精确值以完成构建后的 `podman image inspect` 与
+`podman history --human=false` 为准。模型权重全部外置，不计入 image。
 
 | Layer 类别 | 大小 | 占 image | 内容 |
 | --- | ---: | ---: | --- |
-| Python 与全部 uv 环境 | 10.65 GB | 86.1% | server + 13 个隔离 `.venv`；uv cache 与内容级 hardlink 去重后写入同一 layer |
-| 系统软件与 uv | 851 MB | 6.9% | FFmpeg、libsndfile、compiler、git、sudo、uv |
-| CUDA 13 compiler toolkit | 393 MB | 3.2% | nvcc、headers、NVVM、runtime linker inputs 与 driver stub |
-| CUDA forward-compat libraries | 322 MB | 2.6% | H100 / R535 使用的 CUDA 13 userspace compatibility package |
-| `service-s6` base | 154 MB | 1.2% | Debian、s6、基础工具与固定用户 |
-| ASR 代码、配置与 s6 graph | 约 4 MB | <0.1% | server、models、ops、client、文档和 service definitions |
+| Python 与全部 uv 环境 | 约 10.65 GB | 约 86.1% | Server + 13 个隔离 `.venv`；uv cache 清理并做 hardlink 去重 |
+| 系统软件与 uv | 约 851 MB | 约 6.9% | FFmpeg、libsndfile、compiler、git、sudo、uv |
+| CUDA 13 compiler toolkit | 约 393 MB | 约 3.2% | nvcc、headers、NVVM、runtime linker inputs 与 driver stub |
+| CUDA forward-compat libraries | 约 322 MB | 约 2.6% | H100 / R535 使用的 CUDA 13 userspace compatibility package |
+| `service-s6` base | 约 154 MB | 约 1.2% | Debian、s6、基础工具与固定用户 |
+| ASR 代码、配置与 s6 graph | 约 4 MB | <0.1% | Server、models、ops、client、文档和 service definitions |
 
-镜像内 `/opt/asr` 的已分配空间约 10.19 GB（9.49 GiB）。单目录 `du` 会把 hardlink 归到
-首次遍历到的模型，不能据此判断某个模型环境独占了多少空间；模型表中的 `.venv` 因而只
-表示逻辑大小。全局 CUDA compiler toolkit 相比仅有 compat libraries 的形态增加约
-0.35 GiB，但避免 13 个环境各自携带编译器。
+当前正式 image 未压缩大小约 12.37 GB。修改 lock、toolkit、安装或 hardlink 流程后必须重新测量；
+不能用逐模型 `.venv` 逻辑大小之和推断 image 物理占用。
 
 ## Output Contract
 
 ```text
-texts/<录音相对路径与文件名>/
+<out>/<recording>/
 ├── 01-qwen-fusion.md / .json
 ├── 02-firered-fusion.md / .json
 ├── 03-moss-td.md / .json
@@ -241,16 +207,9 @@ texts/<录音相对路径与文件名>/
 └── trace.html
 ```
 
-`evidence.json` 只保存一份模型原始响应、候选、复听依据与参数；每份方案 JSON 用引用指向
-它。`trace.json` 记录 phase、模型、固定 GPU identity、模型锁 / CPU 排队、推理耗时，以及
-请求全程每秒一次的 GPU compute / HBM I/O busy、显存和功耗原始采样，不复制正文，是工程
-追踪的原始数据。采样只覆盖 placement 使用的 GPU；HBM I/O busy 不是显存占用率，也不是
-PCIe copy throughput。`trace.html` 由 CLI 在本地生成并嵌入同一份 trace，浏览器离线渲染
-GPU 曲线与汇总、流程图、单方案与五方案对齐的 pipeline、调用时间线、累计耗时火焰图和
-模型指标，也可导出含 GPU counter 的 Chrome Trace Event JSON；server 不生成聚合结论或
-展示层。共享阶段只统计一次，方案视图分别显示自身 wall time 与从请求起点到完成的端到端
-时间。某个方案失败时其余方案仍可返回；decode 或公共 speaker 准备失败时整个 HTTP 请求
-失败。
+`evidence.json` 保存一次模型原始响应、候选、复听依据与实际参数；recipe JSON 通过引用使用它。
+`trace.json` 是 phase、调用、排队、cache 与 GPU 原始采样的唯一工程追踪数据，不复制正文。
+`trace.html` 由 CLI 生成且无外部依赖，可离线查看流程、时间线、火焰图和 GPU 曲线。
 
 ```bash
 uv run platform/container/services/asr/client/asr.py ./recordings \
@@ -258,13 +217,3 @@ uv run platform/container/services/asr/client/asr.py ./recordings \
   --out ./texts \
   --parallel 2
 ```
-
-[qwen]: https://github.com/QwenLM/Qwen3-ASR
-[firered]: https://github.com/FireRedTeam/FireRedASR2S
-[sensevoice]: https://github.com/FunAudioLLM/SenseVoice
-[funasr]: https://github.com/modelscope/FunASR
-[whisper]: https://github.com/openai/whisper
-[moss-td]: https://github.com/OpenMOSS/MOSS-Transcribe-Diarize
-[moss-audio]: https://github.com/OpenMOSS/MOSS-Audio
-[vibevoice]: https://github.com/microsoft/VibeVoice/blob/main/docs/vibevoice-asr.md
-[pyannote]: https://github.com/pyannote/pyannote-audio

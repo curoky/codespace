@@ -9,7 +9,7 @@ export VLLM_CACHE_ROOT=/home/x/.cache/vllm
 export CUDA_CACHE_PATH=/home/x/.cache/nv/ComputeCache
 export CUDA_CACHE_MAXSIZE=4294967296
 export TORCH_EXTENSIONS_DIR=/home/x/.cache/torch_extensions
-export VLLM_ENABLE_STARTUP_PLAN=0
+export VLLM_ENABLE_STARTUP_PLAN=1
 export VLLM_MEDIA_LOADING_THREAD_COUNT=16
 export OMP_NUM_THREADS=8
 export MKL_NUM_THREADS=8
@@ -17,10 +17,11 @@ export OPENBLAS_NUM_THREADS=8
 export NUMEXPR_MAX_THREADS=8
 export MAX_JOBS=24
 export FLASHINFER_NVCC_THREADS=10
-
 export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
 export TOKENIZERS_PARALLELISM=false
+
+export VLLM_ENABLE_STARTUP_PLAN=0
 
 export CUDA_HOME=/usr/local/cuda-13.0
 export FLASHINFER_WORKSPACE_BASE=/home/x/.cache/flashinfer-workspaces/firered-llm

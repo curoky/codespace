@@ -142,43 +142,43 @@
 
 个经管系的女生就学习特别努力，她们每天都起的非常早，回去也很晚，然后她们那个学习氛围比我们强很多。
 
-**[00:05:32.822–00:05:35.222] S02 · 待核对：disagreement, needs_review**
+**[00:05:32.822–00:05:35.222] S02 · 待核对：disagreement**
 
 舞蹈没有系，但是应该有这个专业
 
-**[00:05:35.862–00:05:37.462] S01 · 待核对：disagreement, needs_review**
+**[00:05:35.862–00:05:37.462] S01 · 待核对：disagreement**
 
 跟音乐系是一个专业了，
 
-**[00:05:37.702–00:05:38.582] S02 · 待核对：disagreement, needs_review**
+**[00:05:37.702–00:05:38.582] S02 · 待核对：disagreement**
 
 应该是这样子
 
-**[00:05:38.582–00:05:38.822] 说话人未知 · 待核对：disagreement, needs_review, speaker_unknown**
+**[00:05:38.582–00:05:38.822] 说话人未知 · 待核对：disagreement, speaker_unknown**
 
 的，
 
-**[00:05:39.382–00:05:40.262] S02 · 待核对：disagreement, needs_review**
+**[00:05:39.382–00:05:40.262] S02 · 待核对：disagreement**
 
 你有认识的人吗？
 
-**[00:05:40.582–00:05:40.822] S01 · 待核对：disagreement, needs_review**
+**[00:05:40.582–00:05:40.822] S01 · 待核对：disagreement**
 
 有，
 
-**[00:05:41.382–00:05:43.382] S02 · 待核对：disagreement, needs_review**
+**[00:05:41.382–00:05:43.382] S02 · 待核对：disagreement**
 
 哦那挺好，应该很有气质，
 
-**[00:05:44.022–00:05:46.502] S01 · 待核对：disagreement, needs_review**
+**[00:05:44.022–00:05:46.502] S01 · 待核对：disagreement**
 
 还行吧，我前女友就是音乐系的，
 
-**[00:05:46.902–00:05:47.542] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:05:46.902–00:05:47.542] S01/S02 · 待核对：disagreement, overlap**
 
 啊那
 
-**[00:05:47.542–00:05:51.382] S01 · 待核对：disagreement, needs_review**
+**[00:05:47.542–00:05:51.382] S01 · 待核对：disagreement**
 
 个现在她去和顺去支教了。
 
@@ -234,11 +234,11 @@
 
 的二层那个餐厅挺高大上吧挺好的。
 
-**[00:07:38.827–00:07:44.027] S01 · 待核对：disagreement, needs_review**
+**[00:07:38.827–00:07:44.027] S01 · 待核对：disagreement**
 
 在那个西区那边是不是还有小吃街，还有东区那边，
 
-**[00:07:44.827–00:07:54.187] S02 · 待核对：disagreement, needs_review**
+**[00:07:44.827–00:07:54.187] S02 · 待核对：disagreement**
 
 对然后，嗯那个就是有一个服务中心吧，里面的那些小吃也非常的好吃，你可以去看一看。
 
@@ -286,19 +286,19 @@
 
 你们学校？
 
-**[00:08:37.936–00:08:41.296] S01 · 待核对：disagreement, needs_review**
+**[00:08:37.936–00:08:41.296] S01 · 待核对：disagreement**
 
 你们学校北门那边是不是有那个图书馆了，
 
-**[00:08:41.856–00:08:47.296] S02 · 待核对：disagreement, needs_review**
+**[00:08:41.856–00:08:47.296] S02 · 待核对：disagreement**
 
 对呀我还在里面那个啥，当图书管理员呢，然后我们图书馆前面有一个
 
-**[00:08:47.536–00:08:49.216] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:08:47.536–00:08:49.216] S01/S02 · 待核对：disagreement, overlap**
 
 超级大的孔子像，
 
-**[00:08:49.296–00:08:51.536] S01 · 待核对：disagreement, needs_review**
+**[00:08:49.296–00:08:51.536] S01 · 待核对：disagreement**
 
 那个你们那个孔子像。
 
@@ -522,7 +522,7 @@
 
 还有就是保养，还有那个。
 
-**[00:15:10.609–00:15:15.409] S01 · 待核对：disagreement**
+**[00:15:10.609–00:15:15.409] S01**
 
 教程就是对一些维护啊，还有那个售后。
 
@@ -574,15 +574,15 @@
 
 像我们的设备的话是买的人家就是很多年前人家都不用了的那种，早就退出市场了已经，然后像我们女生的话，嗯比如说实训的时候如果跟男生一个组的话，基本都不动手，都是男生动手，而且动手的机会也没有那么多，就感觉是男生动手比较多女
 
-**[00:17:30.405–00:17:43.285] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:17:30.405–00:17:43.285] S02 · 待核对：disagreement, alignment_failed**
 
 女生基本就不懂，而且像那种几十年代的那种设备，就是感觉很难搞懂，也不是很难搞懂是太大型了，就感觉操作不动，
 
-**[00:17:30.545–00:17:54.545] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:17:30.545–00:17:54.545] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 个。
 
-**[00:17:44.165–00:17:54.805] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:17:44.165–00:17:54.805] S01 · 待核对：disagreement, alignment_failed**
 
 我们我们那个实训设备像解码也就是车上一些就比较简就最最常用的一些那个，就检检检测那
 
@@ -686,19 +686,19 @@
 
 对对对，我不喜欢宅，我就喜欢在外面浪，我就从就没打没没几天在那个宿舍里面待过，从大一开始一直在外边，像周围大学城。
 
-**[00:21:13.790–00:21:22.670] S01 · 待核对：disagreement, needs_review**
+**[00:21:13.790–00:21:22.670] S01 · 待核对：disagreement**
 
 除了比较偏僻的中医药和，和那个卫生健康，其他学校大部分都跑过，像你们金融学院跑的最多的，
 
-**[00:21:23.470–00:21:24.030] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:21:23.470–00:21:24.030] S01/S02 · 待核对：disagreement, overlap**
 
 因为饭
 
-**[00:21:24.590–00:21:29.710] S01 · 待核对：disagreement, needs_review**
+**[00:21:24.590–00:21:29.710] S01 · 待核对：disagreement**
 
 因为饭也便宜，还有就一些其他的原因就去过，
 
-**[00:21:29.950–00:21:37.070] S02 · 待核对：disagreement, needs_review**
+**[00:21:29.950–00:21:37.070] S02 · 待核对：disagreement**
 
 嗯像我的话大一大二大三就不怎么出去，然后现在是大四了，然后也觉得该
 
@@ -710,43 +710,43 @@
 
 的。
 
-**[00:21:45.446–00:21:48.086] S01 · 待核对：disagreement, needs_review**
+**[00:21:45.446–00:21:48.086] S01 · 待核对：disagreement**
 
 我们宿舍有云南的，你们有没有外地，
 
-**[00:21:48.406–00:21:56.966] S02 · 待核对：disagreement, needs_review**
+**[00:21:48.406–00:21:56.966] S02 · 待核对：disagreement**
 
 我们有我们有一个四川姑娘，还有一个宁夏的姑娘，她们都那个啥，长得挺那个啥秀气的，
 
-**[00:21:57.206–00:21:59.366] S01 · 待核对：disagreement, needs_review**
+**[00:21:57.206–00:21:59.366] S01 · 待核对：disagreement**
 
 挺娇小的，南方人长得比较娇
 
-**[00:21:59.366–00:21:59.686] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:21:59.366–00:21:59.686] S01/S02 · 待核对：disagreement, overlap**
 
 小，
 
-**[00:21:59.686–00:22:02.806] S02 · 待核对：disagreement, needs_review**
+**[00:21:59.686–00:22:02.806] S02 · 待核对：disagreement**
 
 对对对，但是那个啥性格比较那个啥泼辣，
 
-**[00:22:03.286–00:22:07.446] S01 · 待核对：disagreement, needs_review**
+**[00:22:03.286–00:22:07.446] S01 · 待核对：disagreement**
 
 我我我们宿舍云南哥们就特别喜欢吃辣他。
 
-**[00:22:08.610–00:22:16.290] S01 · 待核对：disagreement, needs_review**
+**[00:22:08.610–00:22:16.290] S01 · 待核对：disagreement**
 
 比较腼腆我觉得个人觉得他有点一点点懒，因为他，就生活费和其他都是从他家里要的，
 
-**[00:22:17.090–00:22:17.410] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:22:17.090–00:22:17.410] S01/S02 · 待核对：disagreement, overlap**
 
 然后
 
-**[00:22:17.730–00:22:21.970] S01 · 待核对：disagreement, needs_review**
+**[00:22:17.730–00:22:21.970] S01 · 待核对：disagreement**
 
 从大一到现在基本上没有出去过，
 
-**[00:22:22.450–00:22:27.090] S02 · 待核对：disagreement, needs_review**
+**[00:22:22.450–00:22:27.090] S02 · 待核对：disagreement**
 
 嗯像我周围的他男生的话他们也不怎么出去兼职啊啥的。
 
@@ -766,27 +766,27 @@
 
 那像你们的话一个宿舍住多少人？
 
-**[00:22:41.480–00:22:46.440] S01 · 待核对：disagreement, needs_review**
+**[00:22:41.480–00:22:46.440] S01 · 待核对：disagreement**
 
 我们是上床下桌，我们一个宿舍住住六个人，
 
-**[00:22:46.840–00:22:55.160] S02 · 待核对：disagreement, needs_review**
+**[00:22:46.840–00:22:55.160] S02 · 待核对：disagreement**
 
 我们宿舍比较挤八个人，而且是上床下床全是人，宿舍里面只要人都站地上的话就满了
 
-**[00:22:55.960–00:22:56.440] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:22:55.960–00:22:56.440] S01/S02 · 待核对：disagreement, overlap**
 
 满满
 
-**[00:22:56.440–00:22:56.680] S02 · 待核对：disagreement, needs_review**
+**[00:22:56.440–00:22:56.680] S02 · 待核对：disagreement**
 
 当
 
-**[00:22:56.680–00:22:56.840] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:22:56.680–00:22:56.840] S01/S02 · 待核对：disagreement, overlap**
 
 当，
 
-**[00:22:57.160–00:23:05.080] S01 · 待核对：disagreement, needs_review**
+**[00:22:57.160–00:23:05.080] S01 · 待核对：disagreement**
 
 我们宿舍特别的就是我们在阳台，我们是那个像落地窗一样有个阳台，我们在阳台就。
 
@@ -810,19 +810,19 @@
 
 像我们宿舍的话，挣钱的人的话只有我一个人，然后有四个考研的，还有一个的话是，还有两个的话是，他们每天在宿舍就是床上然后玩手机就是也不出去就是我。
 
-**[00:23:53.500–00:24:05.900] S02 · 待核对：disagreement, needs_review**
+**[00:23:53.500–00:24:05.900] S02 · 待核对：disagreement**
 
 之前如果出去兼职的话我都会叫他们吧，然后后来说着说着就每次都不去嘛，我才明白他们是不愿意出去挣钱的，后来我就再也不去叫他们了，
 
-**[00:24:06.620–00:24:14.460] S01 · 待核对：disagreement, needs_review**
+**[00:24:06.620–00:24:14.460] S01 · 待核对：disagreement**
 
 是跟我那个云南哥们一样，他不想出去直接说懒得去也不太强求。
 
-**[00:24:15.450–00:24:25.290] S01 · 待核对：disagreement, needs_review**
+**[00:24:15.450–00:24:25.290] S01 · 待核对：disagreement**
 
 然后他就每天跟我们说了，就是自己不太喜欢这边的面食，就喜欢吃，喜欢吃那些米饭啥的，
 
-**[00:24:26.650–00:24:38.970] S02 · 待核对：disagreement, needs_review**
+**[00:24:26.650–00:24:38.970] S02 · 待核对：disagreement**
 
 像嗯我们宿舍的话，我感觉他们就是没有目的的每天生活着，已经大四了就还比较迷茫，就比如说他们会说自己没钱但是。
 
@@ -886,19 +886,19 @@
 
 像像你们学校跟那个，跟太原师范比起来，你们学校那个整个色调有比较喜欢，有有了暖色暖色调。
 
-**[00:26:06.305–00:26:14.920] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:26:06.305–00:26:14.920] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 特别，
 
-**[00:26:06.625–00:26:09.505] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:26:06.625–00:26:09.505] S01 · 待核对：disagreement, alignment_failed**
 
 像我们学校跟那个太原师范和
 
-**[00:26:09.505–00:26:10.065] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:26:09.505–00:26:10.065] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 建校
 
-**[00:26:13.185–00:26:14.305] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:26:13.185–00:26:14.305] S01 · 待核对：disagreement, alignment_failed**
 
 对特别枯燥特别。
 
@@ -946,15 +946,15 @@
 
 每个层里面都有管理员还有老师。
 
-**[00:27:01.290–00:27:01.850] S02 · 待核对：disagreement, needs_review**
+**[00:27:01.290–00:27:01.850] S02 · 待核对：disagreement**
 
 嗯
 
-**[00:27:01.930–00:27:02.090] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:27:01.930–00:27:02.090] S01/S02 · 待核对：disagreement, overlap**
 
 那你
 
-**[00:27:02.810–00:27:04.170] S01 · 待核对：disagreement, needs_review**
+**[00:27:02.810–00:27:04.170] S01 · 待核对：disagreement**
 
 那你们分过宿舍吗？
 
@@ -966,11 +966,11 @@
 
 你们宿舍外面是不是有那个。
 
-**[00:27:17.833–00:27:21.993] S01 · 待核对：disagreement, needs_review**
+**[00:27:17.833–00:27:21.993] S01 · 待核对：disagreement**
 
 那个就是对面是那个西区的一个小吃街，
 
-**[00:27:22.713–00:27:27.593] S02 · 待核对：disagreement, needs_review**
+**[00:27:22.713–00:27:27.593] S02 · 待核对：disagreement**
 
 不是不是我们是在那个啥，西门的最边上那几栋楼里面一栋。
 
@@ -1022,15 +1022,15 @@
 
 你们学校是不是已经取消补考。
 
-**[00:28:20.832–00:28:22.912] S02 · 待核对：disagreement, needs_review**
+**[00:28:20.832–00:28:22.912] S02 · 待核对：disagreement**
 
 好像是这样，我也不知
 
-**[00:28:22.912–00:28:25.712] S01 · 待核对：disagreement, needs_review**
+**[00:28:22.912–00:28:25.712] S01 · 待核对：disagreement**
 
 道那学校不好之后他该怎么办，
 
-**[00:28:26.432–00:28:28.752] S02 · 待核对：disagreement, needs_review**
+**[00:28:26.432–00:28:28.752] S02 · 待核对：disagreement**
 
 还有一个清考，大四的时候有一个清考。
 
@@ -1066,23 +1066,23 @@
 
 你们就现在学的可能是我们将来。
 
-**[00:29:13.448–00:29:34.830] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:29:13.448–00:29:34.830] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 样
 
-**[00:29:13.768–00:29:26.088] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:29:13.768–00:29:26.088] S01 · 待核对：disagreement, alignment_failed**
 
 我们那个系现在要创新可能是要你们现在学的那些，呃知识那些课本可能到我们要就是引进一样那
 
-**[00:29:26.168–00:29:26.568] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:29:26.168–00:29:26.568] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 那
 
-**[00:29:26.408–00:29:26.728] S01/S02 · 待核对：disagreement, needs_review, alignment_failed, overlap**
+**[00:29:26.408–00:29:26.728] S01/S02 · 待核对：disagreement, alignment_failed, overlap**
 
 那种，
 
-**[00:29:27.368–00:29:34.328] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:29:27.368–00:29:34.328] S02 · 待核对：disagreement, alignment_failed**
 
 应该是会这样子的，那那个啥你们学校里面那些奖助学金会跟那个成绩挂钩吗？
 
@@ -1090,19 +1090,19 @@
 
 会有一点但是助学金不会，助学金只要没挂过科。
 
-**[00:29:40.431–00:29:45.151] S01 · 待核对：disagreement, needs_review**
+**[00:29:40.431–00:29:45.151] S01 · 待核对：disagreement**
 
 就只要是有那个建档立卡和低保他都必须给，
 
-**[00:29:45.391–00:29:46.271] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:29:45.391–00:29:46.271] S01/S02 · 待核对：disagreement, overlap**
 
 就不在乎
 
-**[00:29:46.271–00:29:47.311] S01 · 待核对：disagreement, needs_review**
+**[00:29:46.271–00:29:47.311] S01 · 待核对：disagreement**
 
 你考多少，
 
-**[00:29:47.311–00:29:57.871] S02 · 待核对：disagreement, needs_review**
+**[00:29:47.311–00:29:57.871] S02 · 待核对：disagreement**
 
 对对对我们学校现在也是这样子的，奖学金的话就那个就必须得看成绩了，而且还得看你一学年的成绩。
 
@@ -1150,7 +1150,7 @@
 
 的。
 
-**[00:30:58.895–00:31:01.455] S01 · 待核对：disagreement, needs_review**
+**[00:30:58.895–00:31:01.455] S01**
 
 你们班费有交过吗？
 
@@ -1158,27 +1158,27 @@
 
 有交过一次一百呢，刚大一那会儿交的比较多，后来就不怎么交了。
 
-**[00:31:07.520–00:31:31.520] 说话人未知 · 待核对：disagreement, needs_review, alignment_failed, speaker_unknown**
+**[00:31:07.520–00:31:31.520] 说话人未知 · 待核对：disagreement, alignment_failed, speaker_unknown**
 
 了
 
-**[00:31:07.840–00:31:12.000] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:31:07.840–00:31:12.000] S01 · 待核对：disagreement, alignment_failed**
 
 我们交过班费，但下落都不明了，不知道拿班费干啥，
 
-**[00:31:12.320–00:31:15.920] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:31:12.320–00:31:15.920] S02 · 待核对：disagreement, alignment_failed**
 
 那你们没有那个聚过餐那些吗，搞过活动，一个班里
 
-**[00:31:16.800–00:31:20.800] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:31:16.800–00:31:20.800] S01 · 待核对：disagreement, alignment_failed**
 
 搞活动像元旦就买瓜子那些，用不
 
-**[00:31:20.640–00:31:21.360] S01 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:31:20.640–00:31:21.360] S01 · 待核对：disagreement, alignment_failed**
 
 多少钱呀，
 
-**[00:31:21.920–00:31:31.440] S02 · 待核对：disagreement, needs_review, alignment_failed**
+**[00:31:21.920–00:31:31.440] S02 · 待核对：disagreement, alignment_failed**
 
 哦那就那个啥就得好好问问，我们的话就虽然交了挺多钱，但是他会让我们去饭店里面吃饭。
 
@@ -1194,11 +1194,11 @@
 
 我参加过那个台球。
 
-**[00:31:44.323–00:31:46.163] S01 · 待核对：disagreement, needs_review**
+**[00:31:44.323–00:31:46.163] S01 · 待核对：disagreement**
 
 台球社还是排球社，
 
-**[00:31:46.403–00:31:49.843] S02 · 待核对：disagreement, needs_review**
+**[00:31:46.403–00:31:49.843] S02 · 待核对：disagreement**
 
 台球打过台球但是我没参加过几天就放弃了。
 
@@ -1218,46 +1218,46 @@
 
 候。
 
-**[00:31:57.085–00:31:58.045] S02 · 待核对：disagreement, needs_review**
+**[00:31:57.085–00:31:58.045] S02 · 待核对：disagreement**
 
 后来慢慢的吧，
 
-**[00:31:58.205–00:32:00.845] S01 · 待核对：disagreement, needs_review**
+**[00:31:58.205–00:32:00.845] S01 · 待核对：disagreement**
 
 我们学校图书馆里面每个月都有工资的，
 
-**[00:32:01.245–00:32:01.885] S02 · 待核对：disagreement, needs_review**
+**[00:32:01.245–00:32:01.885] S02 · 待核对：disagreement**
 
 对呀都有呀，
 
-**[00:32:02.285–00:32:02.765] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:32:02.285–00:32:02.765] S01/S02 · 待核对：disagreement, overlap**
 
 只不过
 
-**[00:32:02.685–00:32:03.485] S02 · 待核对：disagreement, needs_review**
+**[00:32:02.685–00:32:03.485] S02 · 待核对：disagreement**
 
 很不多
 
-**[00:32:03.645–00:32:04.045] S01/S02 · 待核对：disagreement, needs_review, overlap**
+**[00:32:03.645–00:32:04.045] S01/S02 · 待核对：disagreement, overlap**
 
 一个月
 
-**[00:32:04.045–00:32:04.525] S02 · 待核对：disagreement, needs_review**
+**[00:32:04.045–00:32:04.525] S02 · 待核对：disagreement**
 
 一百五
 
-**[00:32:04.845–00:32:05.485] S01 · 待核对：disagreement, needs_review**
+**[00:32:04.845–00:32:05.485] S01 · 待核对：disagreement**
 
 我们二百，
 
-**[00:32:06.045–00:32:06.205] S02 · 待核对：disagreement, needs_review**
+**[00:32:06.045–00:32:06.205] S02 · 待核对：disagreement**
 
 但是
 
-**[00:32:07.645–00:32:13.965] S01 · 待核对：disagreement, needs_review**
+**[00:32:07.645–00:32:13.965] S01 · 待核对：disagreement**
 
 他们特别累，他们每天就下课就得去，到了现在才好那么一点，
 
-**[00:32:14.445–00:32:17.565] S02 · 待核对：disagreement, needs_review**
+**[00:32:14.445–00:32:17.565] S02 · 待核对：disagreement**
 
 我们倒是不用我们有四个人。

@@ -114,7 +114,7 @@ def markdown(result: Result) -> str:
                 f"**[{timestamp(segment.start_ms)}–{timestamp(segment.end_ms)}] "
                 f"{speaker}{suffix}**",
                 "",
-                segment.text,
+                "\n".join(line.rstrip() for line in segment.text.splitlines()),
                 "",
             ]
         )

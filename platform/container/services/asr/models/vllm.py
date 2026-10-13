@@ -1,10 +1,12 @@
+import asyncio
 from collections.abc import Callable
 from contextlib import AbstractAsyncContextManager
+from pathlib import Path
 
 import httpx2
 from pydantic import ConfigDict, Field, JsonValue
 
-from protocol import InferenceResult, Record
+from protocol import InferenceRequest, InferenceResult, Record
 
 type EventSourceContext = AbstractAsyncContextManager[httpx2.EventSource]
 type GenerationOptions = dict[str, float | int]
@@ -32,6 +34,43 @@ class RepetitiveGenerationError(ValueError):
 
 class GenerationLimitError(ValueError):
     pass
+
+
+async def transcribe(
+    http: httpx2.AsyncClient,
+    url: str,
+    request: InferenceRequest,
+    *,
+    model: str,
+    max_completion_tokens: int,
+    use_hotwords: bool = False,
+) -> InferenceResult:
+    """调用兼容 OpenAI transcription SSE 的 vLLM 模型。"""
+    if request.audio is None:
+        raise ValueError("audio required")
+    audio = await asyncio.to_thread(Path(request.audio).read_bytes)
+    data = {
+        "model": model,
+        "language": "zh",
+        "temperature": "0",
+        "seed": "0",
+        "stream": "true",
+        "max_completion_tokens": str(max_completion_tokens),
+    }
+    if use_hotwords and request.hotwords:
+        data["hotwords"] = ",".join(request.hotwords)
+
+    def source(options: GenerationOptions) -> EventSourceContext:
+        attempt = {**data, **{key: str(value) for key, value in options.items()}}
+        return http.sse(
+            url + "/v1/audio/transcriptions",
+            method="POST",
+            data=attempt,
+            files={"file": ("audio.wav", audio, "audio/wav")},
+            timeout=1800,
+        )
+
+    return await complete_with_generation_retry(source)
 
 
 def repetitive_suffix(text: str) -> bool:

@@ -99,6 +99,19 @@ def test_recipe_names_cannot_escape_output_directory(tmp_path: Path) -> None:
     assert not (tmp_path / "outside.json").exists()
 
 
+def test_markdown_does_not_preserve_model_line_end_whitespace(tmp_path: Path) -> None:
+    destination = tmp_path / "output"
+    destination.mkdir()
+    response = payload(recipes=("01-qwen-fusion",))
+    response["results"][0]["segments"][0]["text"] = "第一行 \n第二行\t"
+
+    write_response(response, destination)
+
+    document = (destination / "01-qwen-fusion.md").read_text()
+    assert "第一行\n第二行\n" in document
+    assert all(line == line.rstrip() for line in document.splitlines())
+
+
 def test_trace_report_escapes_embedded_html(tmp_path: Path) -> None:
     destination = tmp_path / "output"
     destination.mkdir()
