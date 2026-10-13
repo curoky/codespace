@@ -37,6 +37,12 @@ sources:
     size_bytes: 21457198
     sha256: 9234f9c1fa6dc6096e740e98c9a845d0f604601e5c494d7196bce94d87d295a5
 
+reference_sources:
+  alimeeting-forced-alignment:
+    url: https://github.com/nttcslab-sp/diar-forced-alignment
+    revision: 9527b7c64846fb38316a610f32e9d3466bd6d8b7
+    license: CC BY-SA 4.0
+
 fixtures:
   - id: conversation-weather
     category: conversation
@@ -132,6 +138,13 @@ fixtures:
       quality: gold
       end_ms: 1200000
       sha256: 827829ba312c511bd13b7428155faec0bdaf78dd833afffeff0933aab1d77ee3
+    diarization_reference:
+      source: alimeeting-forced-alignment
+      path: meeting/R8002_M8002.rttm
+      format: rttm
+      quality: forced_alignment
+      end_ms: 1200000
+      sha256: 6e61b6ffd2dbd1dcd6ac13b08d63c404926100c56292e705775b4c0ec8f00612
 
   - id: meeting-game-launch
     category: meeting
@@ -158,6 +171,13 @@ fixtures:
       quality: gold
       end_ms: 1200000
       sha256: 0fc2d372ef3fec17a7c053b7290560d60ba7b30fdc68a96d0ebe32e8710c4c62
+    diarization_reference:
+      source: alimeeting-forced-alignment
+      path: meeting/R8004_M8006.rttm
+      format: rttm
+      quality: forced_alignment
+      end_ms: 1200000
+      sha256: ab47b3daf266230f650762a691885cec303fbe46f7ddb2a1a828009b917ad5e5
 
   - id: meeting-bike-sharing
     category: meeting
@@ -184,6 +204,13 @@ fixtures:
       quality: gold
       end_ms: 1200000
       sha256: caf8fae43da74bd027b13d77d875cbbcb94093fd7c04cc5c3617531ad899f713
+    diarization_reference:
+      source: alimeeting-forced-alignment
+      path: meeting/R8008_M8014.rttm
+      format: rttm
+      quality: forced_alignment
+      end_ms: 1200000
+      sha256: 6418f31b6ea312d98448bb95646a8f655a8a900ba6cefa29909d62758c4d7d26
 
   - id: narration-madmans-diary
     category: narration

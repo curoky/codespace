@@ -2,1822 +2,1674 @@
 
 状态：completed
 
-**[00:00:01.580–00:00:06.440] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:01.650–00:00:06.410] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-爱数智慧语音采集，二零一九年十一月二日
+爱数智慧语音采集二零一九年十一月二日
 
-**[00:00:12.060–00:00:13.730] S01**
+**[00:00:12.120–00:00:13.710] S01**
 
 我毕业于
 
-**[00:00:14.630–00:00:18.780] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:14.680–00:00:18.750] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-太原市交通学院，是一个中职类学院
+太原市交通学院是一个中职类学院
 
-**[00:00:19.410–00:00:20.080] S01**
+**[00:00:19.460–00:00:24.310] S01**
 
-然后
+然后现在在山西交通职业技术学院
 
-**[00:00:20.660–00:00:24.350] S01**
+**[00:00:24.990–00:00:28.100] S01**
 
-现在在山西交通职业技术学院
+呃在新校区里读那个车辆系
 
-**[00:00:24.950–00:00:28.130] S01**
+**[00:00:28.540–00:00:31.630] S01**
 
-呃，在新校区里读那个车辆系
+你是学哪个专业的哪个学校毕业的
 
-**[00:00:28.480–00:00:31.670] S01**
+**[00:00:32.620–00:00:35.780] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-你是学哪个专业的，哪个学校毕业的
+我是在那个金融学院跟你们离得挺近的
 
-**[00:00:32.580–00:00:35.810] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:36.340–00:00:40.020] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-我是在那个金融学院，跟你们离得挺近的
+然后我学那个自动化的我是机械系的
 
-**[00:00:36.300–00:00:40.050] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:40.400–00:00:44.300] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-然后我学那个自动化的，我是机械系的
+然后我们系里面男生比较多然后女生就比较少
 
-**[00:00:40.360–00:00:44.310] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:46.740–00:00:50.600] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-然后我们系里面男生比较多，然后女生就比较少
+然后我学的是车辆系跟你那个机械系
 
-**[00:00:46.660–00:00:50.620] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:51.100–00:00:53.400] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-然后我学的是车辆系，跟你那个机械系
+挺都差不多
 
-**[00:00:51.080–00:00:51.780] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:53.580–00:00:59.620] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-挺
+我们有好几个高中同学都考进了你们金融学院
 
-**[00:00:52.280–00:00:57.300] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-都差不多，我们有好几个高中同学都
-
-**[00:00:57.710–00:00:59.630] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-考进了你们金融学院
-
-**[00:00:59.860–00:01:03.820] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:00:59.900–00:01:03.800] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 但是由于我就是高中的时候没有好好学
 
-**[00:01:04.100–00:01:05.140] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:04.140–00:01:06.980] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就没有
+就没有进入你们学校
 
-**[00:01:05.730–00:01:07.000] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-进入你们学校
-
-**[00:01:07.300–00:01:11.090] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:07.340–00:01:11.060] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 就感受一下二本线的大学校园生活
 
-**[00:01:11.480–00:01:14.700] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:11.540–00:01:14.660] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-你们学校每天，你们学校的饭都挺好吃的
+你们学校每天你们学校的饭都挺好吃的
 
-**[00:01:15.420–00:01:17.420] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:15.460–00:01:17.400] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 你们现在还跑早操吗
 
-**[00:01:18.240–00:01:21.980] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:18.300–00:01:21.980] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-我们那个啥，早操的话是大一和大二的跑
+我们那个啥早操的话是大一和大二的跑
 
-**[00:01:22.300–00:01:24.690] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:22.340–00:01:24.660] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 大三和大四的已经那个啥
 
-**[00:01:25.040–00:01:28.480] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:25.060–00:01:30.020] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-就不需要了，然后我是大四的，所以我现在就可以
+就不需要了然后我是大四的所以我现在就可以每天睡懒觉
 
-**[00:01:28.900–00:01:30.010] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:30.300–00:01:37.220] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-每天睡懒觉
+然后嗯我们学校其实普通二本的话跟你们学校也差不多没什么区别的
 
-**[00:01:30.260–00:01:34.880] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:38.260–00:01:43.780] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-然后，嗯，我们学校其实普通二本的话，跟你们学校也
+我们学校大一大二也在跑早操还有晚自习我们大二还有晚自习
 
-**[00:01:35.200–00:01:37.220] S02 · 待核对：crosscheck_disagreement_in_interval**
-
-差不多，没什么区别的
-
-**[00:01:38.180–00:01:41.100] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-我们学校大一大二也在跑早操
-
-**[00:01:41.420–00:01:43.800] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-还有晚自习，我们大二还有晚自习
-
-**[00:01:45.340–00:01:46.140] S02**
+**[00:01:45.380–00:01:46.140] S02**
 
 你们真惨
 
-**[00:01:48.860–00:01:51.480] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:48.900–00:01:51.460] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-你现在是考，准备考研吗
+你现在是考准备考研吗
 
-**[00:01:51.860–00:01:55.220] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:51.900–00:01:55.220] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-我不考研，然后我现在正在找工作
+我不考研然后我现在正在找工作
 
-**[00:01:55.540–00:01:58.260] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:55.620–00:01:58.260] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-做一些兼职，先挣点钱再说吧
+做一些兼职先挣点钱再说吧
 
-**[00:01:58.880–00:02:03.260] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:01:58.900–00:02:03.260] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 然后考研考公那些我都不干
 
-**[00:02:03.540–00:02:04.480] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:02:03.620–00:02:04.460] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 那你们
 
-**[00:02:05.260–00:02:09.300] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:02:05.300–00:02:09.300] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就是可以从，就是从事，是什么样的职业
+就是可以从就是从事此什么样的职业
 
-**[00:02:10.100–00:02:15.980] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:02:10.140–00:02:15.980] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯，我们可以就是去工厂里面，当那些调设备的那种调试员
+嗯我们可以就是去工厂里面当那些调设备的那种调试员
 
-**[00:02:16.540–00:02:19.680] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:02:16.580–00:02:19.660] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 或者是就是当那个老师
 
-**[00:02:20.360–00:02:22.880] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:02:20.420–00:02:22.860] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 专科里面的老师啥的
 
-**[00:02:23.840–00:02:25.220] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:02:23.860–00:02:27.060] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-专科里面的老师
+专科里面的老师可还行啊那个
 
-**[00:02:25.740–00:02:27.080] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:02:27.460–00:02:33.820] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-可还行啊，那个
+就是你们班其他男生跟你们干的都一样吗就找工作那些的
 
-**[00:02:27.420–00:02:28.880] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:02:34.860–00:02:37.340] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-就是你们
+应该不一样吧他们其实我们这个
 
-**[00:02:29.260–00:02:33.840] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:02:37.860–00:02:43.500] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-班其他男生跟你们干的都一样吗，就找工作那些的
+专业的话对嗯男生要的挺多的女生她一般要的很少
 
-**[00:02:34.820–00:02:37.340] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:02:43.780–00:02:47.940] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-应该不一样吧，他们，其实我们这个
+然后我们这个专业的女生像我们的学姐
 
-**[00:02:37.860–00:02:43.540] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:02:48.340–00:02:55.340] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-专业的话，对，嗯，男生要的挺多的，女生她一般要的很少
+也基本百分之八九十都那个啥转业嗯不是我们这个行业的人了
 
-**[00:02:43.740–00:02:47.980] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:02:56.260–00:03:02.020] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-然后我们这个专业的女生，像我们的学姐
+那跟我们一样我们学这个车辆就其实差不多也是跟你们类似
 
-**[00:02:48.300–00:02:51.540] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:03:03.020–00:03:08.700] S01**
 
-也基本百分之八九十都那个啥
+不过我们就男生比较多然后那女生就特别少
 
-**[00:02:51.740–00:02:55.340] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:03:09.740–00:03:11.180] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-转了业，嗯，不是我们这个行业的人了
+一个系能有
 
-**[00:02:56.250–00:03:02.040] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:03:11.940–00:03:15.820] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-那跟我们一样，我们学这个车辆，就其实差不多也是跟你们类似。
+三十个女生吧差不多然后我们系是个大系
 
-**[00:03:03.030–00:03:08.710] S01**
+**[00:03:16.460–00:03:19.700] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-不过我们就男生比较多，然后那女生就特别少。
+前两天跟工程系给分开了
 
-**[00:03:09.720–00:03:19.720] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:03:22.340–00:03:23.700] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-一个系能有三十个女生吧，差不多，然后我们系是个大系，前人家跟工程系给分开了。
+那就是我们
 
-**[00:03:22.310–00:03:28.080] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:03:24.420–00:03:28.060] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-那就是我们，我们原先叫车辆工程系，是一个大系，然后就。
+我们原先叫车辆工程系是一个大系然后就
 
-**[00:03:28.820–00:03:34.540] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:03:28.860–00:03:34.500] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就两个系，挺多人的，就是我们学校的，就特别大，特特别特别大一个系。
+就两个系挺多人的就是我们学校的就特别大特特别特别大的一个系
 
-**[00:03:34.990–00:03:43.210] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:03:35.020–00:03:43.180] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-那个系那个系，工程系现在在旧校区，他们学的跟你们一样，然后里里面就是。
+那个系那个系工程系现在在旧校区他们学的跟你们一样然后里里面就是
 
-**[00:03:43.990–00:03:50.940] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:03:44.020–00:03:49.420] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-机械和一些制图其他的，我们下午给给就给我们分开了，我们就只工。
+机械和一些制图其他的我们下午给给就给我们分开了
 
-**[00:03:51.620–00:03:53.420] S01**
+**[00:03:49.740–00:03:50.940] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就学一些车辆方面的。
+我们就只工
 
-**[00:03:54.140–00:03:55.850] S01**
+**[00:03:51.660–00:03:53.420] S01**
 
-我觉得你们那个。
+就学一些车辆方面的
 
-**[00:03:56.830–00:04:02.680] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:03:54.180–00:03:55.860] S01**
 
-学校挺好的，你你们机械系是不是还穿那穿那个迷彩上课？
+我觉得你们那个
 
-**[00:04:03.210–00:04:15.980] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:03:56.860–00:04:02.660] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯，我们机械系，像我们机资和工艺的话，哎，还有我们自动化都需要那个实习，就是磨锤子，钳工，金工那些都需要嘛，还有像我们的话，还有电工。
+学校挺好的你你们机械系是不是还得穿那穿那个迷彩上课
 
-**[00:04:16.340–00:04:21.140] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:04:03.260–00:04:06.660] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-然后，然后我们我们系的话有三个专业，就我们这一届。
+嗯我们机械系像我们机资和工艺的话
 
-**[00:04:21.660–00:04:27.660] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:04:06.860–00:04:15.020] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-有那个机械制造，机器自动化，还有工艺，还有自动化。
+还还有我们自动化都需要那个实习就是磨锤子钳工金工那些都需要嘛还有像我们的话还有
 
-**[00:04:27.910–00:04:34.060] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:04:15.260–00:04:21.140] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-然后像去年的话，它多了几个，其他专业有那个啥轨道。
+电工然后然后我们我们系的话有三个专业就我们这一届
 
-**[00:04:35.220–00:04:38.010] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:04:21.700–00:04:27.660] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-好像也有你们这个车辆工程。
+有那个机械制造机器自动化还有工艺还有自动化
 
-**[00:04:39.510–00:04:46.420] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:04:27.940–00:04:34.060] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-对我我我那几个同学应该是，就是考考应，就是专业考就是你们学校里面的车辆工程。
+然后像去年的话它多了几个其他专业有那个啥轨道
 
-**[00:04:46.980–00:04:49.010] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:04:35.260–00:04:38.020] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-那挺好呀，我的学弟。
+好像也有你们这个车辆工程
 
-**[00:04:51.110–00:04:54.140] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:04:39.540–00:04:46.420] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-那你们系，你们学校有哪哪几个系的？
+对我我我那几个同学应该是就是考考应就是专业考就是你们学校里面的车辆工程
 
-**[00:04:54.920–00:05:00.350] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:04:47.020–00:04:49.020] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-我们学校还有那个金管系，它是比较好的那个专业。
+那挺好呀我的学弟
 
-**[00:05:00.810–00:05:10.340] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:04:51.140–00:04:54.140] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-然后还有文学，还有英语系，还有生物，还有化学，数学，信工。
+那你们系你们学校有哪哪几个系的
 
-**[00:05:10.620–00:05:17.110] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:04:54.980–00:05:00.340] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-其他系呢也都挺好的，然后我感觉体育系的男生比较帅。
+我们学校还有那个金管系它是比较好的那个专业
 
-**[00:05:17.360–00:05:26.420] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:05:00.860–00:05:05.340] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-然后那个金管系的女生就学习特别努力，她们每天都起得非常早，回去也很晚。
+然后还有文学还有英语系
 
-**[00:05:26.800–00:05:30.810] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:05:05.900–00:05:10.340] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-然后她们那个学习氛围比我们强很多。
+还有生物还有化学数学信工
 
-**[00:05:30.860–00:05:31.880] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:05:10.660–00:05:13.100] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-那有舞蹈系吗？
+其他系呢也都挺好的
 
-**[00:05:32.740–00:05:35.280] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:05:13.380–00:05:17.100] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-舞蹈没有系，但是应该有这个专业。
+然后我感觉体育系的男生比较帅
 
-**[00:05:35.770–00:05:37.540] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:05:17.420–00:05:22.700] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-跟音乐系是一个专业了。
+然后那个金管系的女生就学习特别努力
 
-**[00:05:37.580–00:05:40.380] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:05:23.020–00:05:26.420] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-应该是这样子的，你有认识的人吗？
+她们每天都起得非常早回去也很晚
 
-**[00:05:40.480–00:05:40.940] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:05:26.820–00:05:30.820] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-有。
+然后她们那个学习氛围比我们强很多
 
-**[00:05:41.220–00:05:43.410] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:05:30.860–00:05:31.860] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-哦，那挺好，应该很有气质。
+那有舞蹈系吗
 
-**[00:05:43.880–00:05:46.610] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:05:32.780–00:05:35.260] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-还行吧，我前女友就是音乐系的。
+舞蹈没有系但是应该有这个专业
 
-**[00:05:46.770–00:05:47.340] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:05:35.820–00:05:37.540] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-哦。
+跟音乐系是一个专业吗
 
-**[00:05:46.970–00:05:51.440] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:05:37.620–00:05:40.380] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-啊，那个，现在她去和顺去支教了。
+应该是这样子的你有认识的人吗
 
-**[00:05:52.550–00:05:53.750] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:05:40.500–00:05:40.940] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-是，嗯。
+有
 
-**[00:05:53.820–00:06:00.640] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:05:41.260–00:05:43.420] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-就是你们师范类师范类专业的都要去那个，就大三今年都要去支教。
+哦那挺好应该很有气质
 
-**[00:06:01.610–00:06:08.880] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:05:43.940–00:05:46.580] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-对，他们学那个师范类的基本都要出去支教，像我们不是师范类的，是去实习。
+还行吧我前女友就是音乐系的
 
-**[00:06:09.750–00:06:11.320] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:05:46.820–00:05:47.140] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-学校里面会统一安排。
+哦
 
-**[00:06:11.920–00:06:13.620] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:05:47.140–00:05:51.420] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-那你们学校有什么专业呢？
+啊那个现在她去和顺去支教了
 
-**[00:06:13.820–00:06:16.540] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:05:52.540–00:05:53.140] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我们学校有就公路系。
+就是
 
-**[00:06:17.560–00:06:21.520] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:05:53.220–00:05:53.820] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-还有信息信息系，还有那个。
+哦
 
-**[00:06:22.480–00:06:23.980] S01**
+**[00:05:53.820–00:06:00.660] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-工程和车辆。
+就是你们师范类师范类专业的都要去那个都大三今年都要去支教
 
-**[00:06:27.550–00:06:32.220] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:01.620–00:06:08.900] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-还有也有经管系，不过我们那个经管系是专科类的，跟你们本科比不了。
+对她们学那个师范类的基本都要出去支教像我们不是师范类的是去实习
 
-**[00:06:32.820–00:06:34.010] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:09.740–00:06:13.660] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-那个啥，我们。
+支教里面会统一安排那你们学校有什么专业呢
 
-**[00:06:35.070–00:06:38.920] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:13.820–00:06:16.580] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我们实训的时候，啊也得要。
+我们学校有就公路系
 
-**[00:06:39.680–00:06:48.410] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:17.540–00:06:21.540] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就是打磨一些呃量具，还有整车实训，就是在车上整那些，呃。
+还有信息信息系还有那个
 
-**[00:06:50.120–00:06:52.010] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:22.460–00:06:24.020] S01**
 
-在车上整车实训。
+工程和车辆
 
-**[00:06:53.080–00:06:58.640] S01**
+**[00:06:27.540–00:06:32.260] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就四轮定位，或者是二级维护一些简单的维护训练项目。
+还有也有金管系不过我们那个金管系是专科类的跟你们本科比不了
 
-**[00:06:59.360–00:07:04.280] S01**
+**[00:06:32.820–00:06:34.020] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-对我们以后在四S店，或者是在一些企业里边。
+那个啥我们
 
-**[00:07:05.010–00:07:08.120] S01**
+**[00:06:35.060–00:06:38.940] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-呃，工作就很很很大的帮助。
+我们实训的时候啊也得要
 
-**[00:07:08.960–00:07:11.510] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:39.660–00:06:47.020] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我听说你们学校的饭特别好吃，真的吗？
+就是打磨一些呃量具还有整车实训就是在车上整那些
 
-**[00:07:12.080–00:07:18.580] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:47.580–00:06:48.460] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我们学校的饭被誉为，就是这附近几个学校里面最好吃的食堂的饭。
+呃
 
-**[00:07:18.970–00:07:28.540] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:50.100–00:06:52.020] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-然后我们学校食堂的饭的话有很多种类，然后我比较推荐的是有一个重庆鸡公煲，那个很好吃。
+在车上整车实训
 
-**[00:07:28.930–00:07:37.970] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:53.060–00:06:58.660] S01**
 
-然后我们还有一个那种主题餐厅，在西餐的二次儿，那个餐厅挺高大上吧，挺好的。
+就四轮定位或者是二级维护一些简单的维护训练项目
 
-**[00:07:38.750–00:07:44.060] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:06:59.340–00:07:04.300] S01**
 
-在那个西区那边儿，是不是还有小区街，还有东区那边儿。
+对我们以后在四S店或者是在一些企业里边
 
-**[00:07:44.760–00:07:52.420] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:05.020–00:07:08.140] S01**
 
-对，然后嗯那个就是有一个服务中心吧，里面的那些小吃也非常的好吃。
+呃工作就很很很大的帮助
 
-**[00:07:52.980–00:07:54.240] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:08.940–00:07:11.500] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-你可以去看一看。
+我听说你们学校的饭特别好吃真的吗
 
-**[00:07:55.580–00:08:05.520] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:12.060–00:07:18.620] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-然后，嗯，我们学校里面的设施那些都比较齐全，像可以租衣服啊什么的。
+我们学校的饭被誉为就是这附近几个学校里面最好吃的食堂的饭
 
-**[00:08:06.120–00:08:07.950] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:18.940–00:07:22.180] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-就像其他学校都没有的。
+然后我们学校食堂的饭的话有很多种类
 
-**[00:08:08.930–00:08:10.250] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:22.460–00:07:28.580] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-对，你们学校特别。
+然后我比较推荐的是有一个重庆鸡公煲那个很好吃
 
-**[00:08:11.150–00:08:13.020] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:28.900–00:07:33.700] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-主要是你们学校晚上那个。
+然后我们还有一个那种主题餐厅在西餐的二层
 
-**[00:08:13.680–00:08:21.750] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:34.020–00:07:37.980] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-那个路灯特别亮，然后就是每天滑滑板的时候，你们那个过障碍物的时候都都能看清楚，就。
+那个餐厅挺高大上吧挺好的
 
-**[00:08:22.640–00:08:31.040] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:38.740–00:07:44.060] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-没有我们学校那么暗，我们学校可能是为了省钱，就把所有的路灯全给撤了，就晚上没有路灯。
+在那个西区那边是不是还有校区街还有东区那边
 
-**[00:08:31.680–00:08:32.440] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:44.740–00:07:52.420] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-那么惨。
+对然后嗯那个就是有一个服务中心吧里面的那些小吃也非常的好吃
+
+**[00:07:52.980–00:07:54.260] S02 · 待核对：crosscheck_disagreement_in_interval**
+
+你可以去看一看
+
+**[00:07:55.580–00:08:02.420] S02 · 待核对：crosscheck_disagreement_in_interval**
+
+然后嗯我们学校里面的设施那些都比较齐全
+
+**[00:08:02.660–00:08:07.980] S02 · 待核对：crosscheck_disagreement_in_interval**
+
+像可以租衣服啊什么的就像其他学校都没有的
+
+**[00:08:08.940–00:08:10.260] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+对你们学校特别
+
+**[00:08:11.140–00:08:15.980] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+主要是你们学校晚上那个那个路灯特别亮
+
+**[00:08:16.220–00:08:21.740] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+然后就是每天滑滑板的时候你们那个过障碍物的时候都都能看清楚就
+
+**[00:08:22.620–00:08:29.740] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+没我们学校那么暗我们学校可能是为了省钱就把所有的路灯全给撤了
+
+**[00:08:29.900–00:08:31.060] S01 · 待核对：crosscheck_disagreement_in_interval**
+
+就晚上没有路灯
+
+**[00:08:31.660–00:08:32.460] S02 · 待核对：crosscheck_disagreement_in_interval**
+
+那么惨
 
 **[00:08:32.740–00:08:33.980] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-对，黑乎乎的一片。
+对黑乎乎的一片
 
-**[00:08:35.070–00:08:36.480] S01**
+**[00:08:35.060–00:08:36.500] S01**
 
-你们学校。
+你们学校
 
-**[00:08:37.820–00:08:41.350] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:37.820–00:08:41.380] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-你们学校北门儿那边儿是不是有那个图书馆儿啊？
+你们学校北门那边是不是有那个图书馆的
 
-**[00:08:41.910–00:08:48.070] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:41.820–00:08:45.020] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-对呀，我还在里面那个啥，当图书管理员呢，然后我们图书馆儿前面有一个超级大
+对呀我还在里面那个啥当图书管理员呢
 
-**[00:08:47.480–00:08:47.880] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:45.220–00:08:49.220] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-红。
+然后我们图书馆前面有一个超级大的孔子像
 
-**[00:08:47.880–00:08:49.640] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:49.220–00:08:51.780] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-大的孔子像，对。
+那个你们那个孔子像
 
-**[00:08:48.380–00:08:51.720] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:52.820–00:08:54.340] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-孔子像，那个，你们那个孔子像。
+你那个孔子像和
 
-**[00:08:52.820–00:08:54.320] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:55.220–00:08:56.780] S01**
 
-你们那个孔子像和。
+和那个那个是
 
-**[00:08:55.220–00:08:56.740] S01**
+**[00:08:57.780–00:09:00.220] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-和那个那个是。
+钟楼吗是你们学校的建筑
 
-**[00:08:57.760–00:09:00.140] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:09:00.580–00:09:07.100] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-钟楼吗？是你们学校的建筑。
+钟楼是建好几年才建成的好像是去年校庆的时候才完工的
 
-**[00:08:59.640–00:09:07.040] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:09:07.820–00:09:15.980] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-对呀，钟楼是建了好几年才建成的，好像是去年校庆的时候才完工的。
+我们学校还有体育馆曾经还举办过那个毽球比赛全国性质的就是挺高大上
 
-**[00:09:07.830–00:09:15.960] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:09:17.780–00:09:20.500] S01**
 
-我们学校还有体育馆，曾经还举办过那个毽球比赛，全国性质的，就是挺高大上。
+那你们学校那个军训严格吗
 
-**[00:09:17.780–00:09:20.480] S01**
+**[00:09:21.140–00:09:27.020] S02**
 
-那你们学校那个军训严格吗？
+军训挺严的一般都是半个月吧然后要穿那个军训服啥的
 
-**[00:09:21.160–00:09:26.980] S02**
+**[00:09:27.300–00:09:30.380] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-军训挺严的，一般都是半个月吧，然后要穿那个军训服啥的。
+那我们挺惨的我们军训一个月
 
-**[00:09:27.310–00:09:30.350] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:09:30.860–00:09:31.980] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-那我们挺惨的，我们军训一个月。
+那够惨呀
 
-**[00:09:30.880–00:09:31.960] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:09:32.260–00:09:35.180] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-那够惨呀。
+而且我们是有上一届的带我们
 
-**[00:09:32.240–00:09:37.880] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:09:35.740–00:09:41.620] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-而且我们是由上一届的带我们，上一届就经过。
+上一届就经过半年的训练就特别严那种训练
 
-**[00:09:38.550–00:09:45.320] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:09:42.020–00:09:45.340] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-半年的训练，就特别严那种训练，然后他们学校会给他们发一个教官证。
+然后他们学校会给他们发一个教官证
 
-**[00:09:46.130–00:09:47.240] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:09:46.140–00:09:49.340] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就他们。
+就他们带下一批大一的
 
-**[00:09:47.880–00:09:49.320] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:09:50.020–00:09:53.020] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-带下批大一的。
+哦他们是那种属于国旗班那样子的吗
 
-**[00:09:50.010–00:09:53.010] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:09:53.980–00:10:00.100] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-哦，他们是那种属于国旗班那样子的吗？
+跟国旗班有不一样国旗班是从教官里面重新重新给筛选出来的
 
-**[00:09:53.980–00:10:00.080] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:00.860–00:10:05.940] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-跟国旗班有不一样，国旗班是从教官里面重新重新给筛选出来的。
+教官教官特别严我们教官就一个男的一个女的就
 
-**[00:10:00.870–00:10:08.180] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:06.460–00:10:08.220] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-教官，教官特别严，我们教官有一个男的一个女的，就以前刚上大一的时候。
+以前刚上大一的时候
 
-**[00:10:08.720–00:10:14.940] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:08.740–00:10:14.940] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我一直以为他们是武警支队的，结果到后来才发现他们他是我，他是我们的学长跟学姐。
+我一直以为他们是武警支队的结果到后来才发现他们他是我他是我们的学长跟学姐
 
-**[00:10:15.440–00:10:17.280] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:15.460–00:10:17.300] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-还有学姐呢，教官。
+还有学姐呢教官
 
-**[00:10:18.080–00:10:21.420] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:18.100–00:10:21.460] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我们学姐特别严格，就每次。
+我们学姐特别严格就每次
 
-**[00:10:22.810–00:10:28.020] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:22.820–00:10:28.020] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-每次每次别的，每次到了晚上，别的支队都散了，然后我们班留到最后。
+每次每次别的每次到了晚上别的区队都散了然后我们班留到最后
 
-**[00:10:28.780–00:10:30.420] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:28.780–00:10:30.460] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-快熄灯才让我们回去。
+快牺牲才让我们回去
 
-**[00:10:31.550–00:10:38.040] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:31.540–00:10:38.060] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就因为就因为我们男教官说，女教官说的话，我们尽量没听。
+就因为就因为我们男教官说女教官说的话我们今天没听
 
 **[00:10:38.540–00:10:42.540] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就惹女教官不高兴了，然后就然后就体罚我们。
+就惹女教官不高兴了然后就脸上就体罚我们
 
-**[00:10:43.810–00:10:48.940] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:43.820–00:10:48.980] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-女教官要争气，那可是真可怕，得罪谁都不要得罪女人。
+女教官要整起那可是真可怕得罪谁都不要得罪女人
 
-**[00:10:49.360–00:10:51.340] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:49.380–00:10:51.380] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我们女教官让我们在那个。
+我们女教官让我们在那个
 
-**[00:10:52.080–00:11:01.980] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:52.100–00:10:58.860] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就我们跟建校旁边有一个特别大的，就空距离大大约二百米，然后让我们去挖到挖跳过去，再挖跳回来。
+就我们跟建校旁边有一个特别大的就空距离大大约二百米
 
-**[00:11:02.600–00:11:05.020] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:59.100–00:11:01.980] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-一共两次，就相当于。
+然后让我们去挖到挖跳过去再挖跳回来
 
-**[00:11:06.040–00:11:06.660] S01**
+**[00:11:02.620–00:11:05.020] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-八百米。
+一共两次就相当于
 
-**[00:11:07.460–00:11:16.880] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:06.060–00:11:06.700] S01**
 
-哦，那么那么远，我挖跳就不行，我每次挖跳都那个偷懒，特别能偷懒，然后教官每次见了我都。
+八百米
 
-**[00:11:17.560–00:11:21.340] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:07.500–00:11:13.940] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯，也没话说，因为是女生嘛，他总会宽容一点。
+哦那么那么远我挖跳就不行我每次挖跳都那个偷懒特别能偷懒
 
-**[00:11:22.040–00:11:26.840] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:14.260–00:11:16.900] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-你们学校，你们学校那个操场挺大的，有两个操场吧。
+然后教官每次见我都
 
-**[00:11:27.460–00:11:35.280] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:17.580–00:11:21.380] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-对，我们东边有一个，西边也有一个，然后那个西边的比较正式，就像西边它会有那个看台。
+嗯也没话说因为是女生嘛她总会宽容一点
 
-**[00:11:35.810–00:11:44.050] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:22.020–00:11:26.860] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-然后他看台下面是我们的那个实训基地，就是我们机械系的战术营地，磨锤子，
+你们学校你们学校那个操场挺大的有两个操场吧
 
-**[00:11:44.520–00:11:46.520] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:27.460–00:11:32.460] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-金工钳工，还有那个。
+对，我们东边有一个西边也有一个然后那个西边的比较正式
 
-**[00:11:47.620–00:11:48.140] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:32.820–00:11:35.300] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-对。
+就像西边它会有那个看台
 
-**[00:11:48.040–00:11:48.820] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:35.740–00:11:39.300] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-钳工。
+然后它看台下面是我们的那个实训基地
 
-**[00:11:49.000–00:11:53.340] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:39.700–00:11:46.620] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-我就有好几次在你们操场玩的时候。
+就是我们机械系的专属营地磨锤子金工钳工还有那个
 
-**[00:11:54.020–00:11:57.020] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:47.740–00:11:48.140] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就经过那边，那边就看到。
+对
 
-**[00:11:57.880–00:12:04.860] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:48.140–00:11:48.780] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-呃，有人在下面实习，穿穿穿的迷彩，我跟我朋友说，这就跟我们那个跟咱们一样。
+钳工
 
-**[00:12:05.620–00:12:07.840] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:49.100–00:11:53.340] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-说他们学校怎么还有这种专业。
+我就有好几次在你们操场玩的时候
 
-**[00:12:08.060–00:12:12.040] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:54.140–00:11:57.020] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-对呀，我们学校里面就像机械系也是最大的一个系。
+就经过那边那边就看到
 
-**[00:12:12.320–00:12:17.640] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:58.020–00:12:04.860] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-虽然说就是录取进来的时候分不高，但是人数是最多的。
+呃有人在下面实习穿穿穿着迷彩我跟我朋友说这就跟我们那个跟咱们一样
 
-**[00:12:18.060–00:12:21.080] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:12:05.740–00:12:07.860] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-然后现在专业也在慢慢的变多。
+就他们学校怎么还有这种专业
 
-**[00:12:21.520–00:12:26.640] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:12:08.220–00:12:12.020] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-他好像是因为我们学校要往那个工科方面转。
+对呀我们学校里面就像机械系也是最大的一个系
 
-**[00:12:27.140–00:12:33.880] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:12:12.460–00:12:17.660] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-就是要转成工科新学校，之前是那个师范类嘛，女生多，然后现在往那个。
+虽然说就是录取进来的时候分不高但是人数是最多的
 
-**[00:12:34.620–00:12:44.940] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:12:18.220–00:12:21.100] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-工科型学校里面转的话，就是要把那些工科要专业要增多，系也要扩大，招生人数每年也都在扩大。
+然后现在专业也在慢慢的变多
 
-**[00:12:46.220–00:12:50.080] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:12:21.620–00:12:26.660] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-你们学校是整个大学生女生最最多的一个学校。
+它好像是因为我们学校要往那个工科方面转
 
-**[00:12:50.520–00:12:53.520] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:12:27.300–00:12:33.860] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-没有没有，还有其他师范类学校的。
+就是要转成工科新学校之前是那个师范类嘛女生多然后现在往那个
 
-**[00:12:53.740–00:12:59.000] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:12:34.740–00:12:38.140] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-没有，台湾师范学校学女学生没有你们学校女学生多。
+工科型学校里面转的话就是要把那些
 
-**[00:12:59.360–00:13:01.760] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:12:38.580–00:12:44.940] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯，那我们学校也是漂亮吧。
+工科要专业要增多系也要要扩大招生人数每年也都在扩大
 
-**[00:12:59.820–00:13:00.620] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:12:46.340–00:12:50.100] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-而且。
+你们学校是整个大学城女生最最多的一个学校
 
-**[00:13:01.840–00:13:05.140] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:12:50.660–00:12:53.500] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-挺漂亮的，那个呃，你们。
+没有没有还有其他师范类学校的
 
-**[00:13:05.820–00:13:08.240] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:12:53.860–00:12:59.020] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-到了大三的时候。
+没有太原师范学校学女学生没有你们学校女学生多
 
-**[00:13:08.740–00:13:12.680] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:12:59.500–00:13:01.740] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-是不是要得去外边就是实习几个月呢？
+嗯那我们学校也是漂亮吧
 
-**[00:13:13.180–00:13:21.220] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:13:01.980–00:13:05.140] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯，差不多吧，像看每个专业，然后像我们专业的话，是那个每年大四的第一个学期的那个寒假。
+挺漂亮的那个呃你们
 
-**[00:13:21.600–00:13:25.520] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:13:05.940–00:13:12.660] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就要去实习，还然后还有第二年的那个。
+到了大三的时候是不是要得去外边就是实习几个月呢
 
-**[00:13:25.820–00:13:27.920] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:13:13.300–00:13:14.580] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-第二个学期也会去实习。
+嗯差不多吧
 
-**[00:13:28.160–00:13:34.440] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:13:14.860–00:13:21.220] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-然后像师范类的话，他们就会去支教，他们估计大三的时候就要走去支教。
+像看每个专业然后像我们专业的话是那个每年大四的第一个学期的那个寒假
 
-**[00:13:34.600–00:13:35.800] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:13:21.740–00:13:27.940] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-那经管系呢？
+就要去实习还然后还有第二年的那个第二个学期也会去实习
 
-**[00:13:36.600–00:13:39.980] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:13:28.300–00:13:34.460] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-经管系如果是师范类的话，也是去支教。
+然后像师范类的话他们就会去支教他们估计大三的时候就要走去支教
 
-**[00:13:40.300–00:13:44.140] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:13:34.740–00:13:35.780] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-但是他们实习的话，我也不清楚。
+那金管系呢
 
-**[00:13:46.680–00:13:50.600] S01**
+**[00:13:36.740–00:13:44.140] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-那个学姐，平时你们都学哪些书本？
+金管系如果是师范类的话也是去支教但是他们实习的话我也不清楚
 
-**[00:13:51.180–00:13:54.980] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:13:46.820–00:13:50.580] S01**
 
-嗯，像我们的话，大一的话就是公共课嘛。
+那个学姐平时你们都学哪些书本
 
-**[00:13:55.340–00:14:04.060] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:13:51.300–00:13:55.020] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-都会学高数，现代概率，还有那个马克思思修，还有。
+嗯像我们的话大一的话就是公共课嘛
 
-**[00:14:04.340–00:14:05.440] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:13:55.500–00:14:01.500] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯。
+都会学高数现代概率还有那个马克思
 
-**[00:14:06.020–00:14:10.920] S02**
+**[00:14:01.780–00:14:05.460] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-毛泽东思想那些，然后嗯，还有形势政策。
+思修还有嗯
 
-**[00:14:11.840–00:14:18.960] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:14:06.180–00:14:10.900] S02**
 
-上了大二的话就开始专业课了，我们首先会学那个电路是基础嘛。
+毛泽东思想那些然后嗯还有形势政策
 
-**[00:14:19.160–00:14:24.480] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:14:11.940–00:14:15.340] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-还有大学物理C语言，嗯，单片机微机原理。
+上了大二的话就开始专业课了
 
-**[00:14:24.860–00:14:32.880] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:14:15.700–00:14:21.700] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-还有模电速电，还有最重要的那种专业课，对于我们来说的话，就是自动控制原理。
+我们首先会学那个电路是基础嘛还有大学物理C语言
 
-**[00:14:32.980–00:14:38.840] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:14:22.020–00:14:24.500] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-还有现代控制，那你们呢，是不是应该也差不多呢？我觉得咱们应该学的。
+嗯单片机微机原理
 
-**[00:14:39.380–00:14:39.940] S01**
+**[00:14:24.980–00:14:31.260] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-我们
+还有模电速电还有最重要的那种专业课对于我们来说的话就是
 
-**[00:14:40.370–00:14:42.130] S01**
+**[00:14:31.620–00:14:38.860] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-大一的时候学的是。
+自动控制原理还有现代控制那你们呢是不是应该也差不多那我觉得咱们应该学的
 
-**[00:14:43.680–00:14:50.440] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:14:39.260–00:14:42.220] S01**
 
-呃，学的是思修，还有就就一些就是不太重要的一些课。
+我们大一的时候学的是
 
-**[00:14:50.990–00:14:56.310] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:14:43.740–00:14:50.460] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-像呃专业英语高数也有学，但是比例不是特别重。
+呃学的是思修还有就就一些就是不太重要的一些课
 
-**[00:14:56.890–00:15:03.480] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:14:51.020–00:14:56.300] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-重要的还是一些，对我们专业课来说，入门的一些书本，像礼仪。
+像呃专业英语高数也有学但是比例不是特别重
 
-**[00:15:04.390–00:15:08.420] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:14:56.980–00:15:03.500] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-还有就是保养，还有那个。
+重要的还是一些对我们专业课来说入门的一些书本像礼仪
 
-**[00:15:10.470–00:15:15.550] S01**
+**[00:15:04.500–00:15:08.420] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-教程，就是对一些维护啊，还有那个售后。
+还有就是保养还有那个
 
-**[00:15:16.410–00:15:24.250] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:10.540–00:15:15.540] S01**
 
-到后期的一些，就是对最基本的教程，到大二的时候，我们那个专业课比例就比较。
+教程就是对一些维护啊还有那个售后
 
-**[00:15:25.150–00:15:29.510] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:16.500–00:15:24.220] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-占的多了，就像这些基础啊，识图啊。
+到后期的一些就是对最基本的教程到大二的时候我们那个专业课比例就比较
 
-**[00:15:29.970–00:15:36.780] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:25.220–00:15:29.500] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-呃，然后高像数学跟英语，就其实就微乎其微了这样的，但是也有。
+占的多了就像机械基础啊识图啊
 
-**[00:15:37.880–00:15:51.040] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:30.020–00:15:36.780] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-最最多的就是我们那个的，出现了呃像底盘啦，发动机，还有整车，还有二手车或者加加一些保险，还有那个。
+呃然后高像数学跟英语就其实就微乎其微了这样的但是也有
 
-**[00:15:52.210–00:16:02.870] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:37.940–00:15:42.980] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-销售的销售类的一些书，就跟其他专业有很大的不同，因为其他专业像实训啊还是啥，他们没有专门的实训室。
+最最多的就是我们那个的出现了呃像底盘啦
 
-**[00:16:04.030–00:16:05.640] S01**
+**[00:15:43.340–00:15:51.020] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-也没有专门的。
+发动机还有整车还有二手车或者加加一些保险还有那个
 
-**[00:16:06.750–00:16:11.070] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:52.260–00:15:59.860] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-设备，然后就他们实训的比例占的没有我们多。
+销售的销售类的一些书就跟其他专业有很大的不同因为其他专业像实训啊还是啥他们
 
-**[00:16:11.650–00:16:18.110] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:00.020–00:16:02.860] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-那个学姐，我觉得你们应该是可以干我们这一行，可以吗？
+没有专门的实训室
 
-**[00:16:18.870–00:16:23.940] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:04.140–00:16:05.620] S01**
 
-我们应该也差不多可以干点儿销售啥的吧，也只能干这个了。
+也没有专门的
 
-**[00:16:24.350–00:16:34.680] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:06.820–00:16:11.060] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯，其实我感觉你们的话，嗯，就是那个实操性比我们会多很多，我们我感觉大部分时间还都在那个。
+设备然后就他们实训的比例占的没有我们多
 
-**[00:16:34.980–00:16:41.940] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:11.740–00:16:13.220] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-理论学习上，就是没有你们那么多的那个实训啊啥的，感觉会比你们少一点。
+那个学姐我
 
-**[00:16:42.710–00:16:48.420] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:14.100–00:16:18.100] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我们老师就说过，说本科院校他们那个。
+觉得你们应该是可以干我们这一行可以吗
 
-**[00:16:49.060–00:16:52.850] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:18.940–00:16:23.940] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-书本理论比我们要强强很强很多，但是那个。
+我们应该也差不多可以干点销售啥的吧也只能干这个了
 
-**[00:16:53.460–00:16:54.680] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:24.460–00:16:32.180] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯，像。
+嗯其实我感觉你们的话嗯就是那个实操性比我们会多很多我们
 
-**[00:16:54.880–00:16:56.040] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:32.220–00:16:36.420] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-动手操作。
+我感觉大部分时间还都在那个理论学习上
 
-**[00:16:56.020–00:17:00.340] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:36.740–00:16:41.940] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-像实操，呃，还有也动手能力。
+就是没有你们那么多的那个实训啊啥的感觉会比你们少一点
 
-**[00:17:00.760–00:17:06.110] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:42.820–00:16:45.020] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-可能比不上我们，因为他们你们那个设备就是比较老旧。
+我们老师就说过说
 
-**[00:17:06.180–00:17:12.720] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:45.860–00:16:48.420] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-对，像我们的设备的话是买的，人家就是很多年前人家都不用了的那种。
+本科院校他们那个
 
-**[00:17:13.120–00:17:23.060] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:49.140–00:16:52.820] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-早就退出市场了已经，然后像我们女生的话，嗯，比如说实训的时候，如果跟男生一个组的话，基本都不动手。
+书本理论比我们要强强很强很多但是那个
 
-**[00:17:23.380–00:17:27.940] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:53.580–00:16:55.540] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-都是男生动手，而且动手的机会也没有那么多，就感觉。
+嗯像实
 
-**[00:17:28.380–00:17:35.920] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:55.540–00:16:56.060] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-是男生动手比较多，女生基本就不动，而且像那种几十年代的那种设备。
+操作
 
-**[00:17:36.520–00:17:43.310] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:56.060–00:16:58.620] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就是感觉很难搞懂，也不是很难搞懂，是太大型了，就感觉操作不动。
+像实操呃还有
 
-**[00:17:44.050–00:17:48.120] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:59.140–00:17:06.100] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我们我们那个实训设备，像解码仪，就是车上这些。
+也动手能力可能比不上我们因为他们你们那个设备就是比较老旧
 
-**[00:17:48.620–00:17:51.760] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:06.260–00:17:12.700] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-就比较简，就是最最常用的一些。
+对像我们的设备的话是买的，人家就是很多年前人家都不用了的那种
 
-**[00:17:52.140–00:17:52.960] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:13.220–00:17:15.460] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-呃，那个。
+早就退出市场了已经
 
-**[00:17:53.480–00:17:55.890] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:15.860–00:17:23.020] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-就检检检测那个车辆的。
+然后像我们女生的话嗯比如说实训的时候如果跟男生一个组的话基本都不动手
 
-**[00:17:56.380–00:17:58.810] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:23.500–00:17:27.900] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-故障问题，那个故障码和解码仪。
+都是男生动手而且动手的机会也没有那么多就感觉
 
-**[00:17:59.280–00:18:01.440] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:28.460–00:17:32.060] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-呃，然后他对那个。
+是男生动手比较多女生基本就不动而且
 
-**[00:18:01.910–00:18:05.450] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:32.380–00:17:35.900] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-设备要求特别大，我我我们这个。
+像那种几十年代的那种设备
 
-**[00:18:06.030–00:18:13.350] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:36.500–00:17:43.330] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-设备已经很久没有换过了，最新一次换是一一年丰田的，就是很老的一种。
+就是感觉很难搞懂也不是很难搞懂是太大型了就感觉操作不动
 
-**[00:18:14.000–00:18:19.060] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:44.060–00:17:51.780] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-一本丰田已经快要淘汰了一种，然后让我们给用上，因为比较便宜。
+我们我们那个实训设备像解码仪就是车上这些就比较简就最最常用那些
 
-**[00:18:19.730–00:18:23.180] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:52.220–00:17:58.820] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我们学校其实比较有钱，我们学校。
+那个就检检检测那个车辆的故障问题那个故障码和解码仪
 
-**[00:18:23.560–00:18:25.540] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:59.330–00:18:05.460] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-经常就把自己的操场给。
+呃然后他对那个设备要求特别大我我我们这个
 
-**[00:18:25.950–00:18:29.730] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:18:06.060–00:18:13.380] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-租了，往外租，然后去挣钱。
+设备已经很久没有换过了最新一次换是一一年丰田的就是很老的一种
 
-**[00:18:30.080–00:18:31.210] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:18:14.020–00:18:19.060] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-呃，我们。
+一本丰田已经快要淘汰了一种然后让我们给用上因为比较便宜
 
-**[00:18:31.660–00:18:36.180] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:18:19.820–00:18:26.660] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-靠操场那边地是，像建院买的，我们学校。
+我们学校其实比较有钱我们学校经常就把自己的操场给租了
 
-**[00:18:36.730–00:18:38.650] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:18:26.900–00:18:29.740] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-没有太多地。
+往外租然后去挣钱
 
-**[00:18:39.240–00:18:43.320] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:18:30.140–00:18:36.220] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-从当当当初从那个旧校区搬到新校区的时候。
+呃我们靠操场那边地是像建院买的我们学校
 
-**[00:18:44.320–00:18:45.010] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:18:36.780–00:18:38.660] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-费了。
+没有太多地
 
-**[00:18:46.160–00:18:47.210] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:18:39.300–00:18:43.330] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-不少钱财。
+从当当当初从那个旧校区搬到新校区的时候
 
-**[00:18:47.680–00:18:49.880] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:18:44.380–00:18:45.020] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-才从那个建校买的地。
+费了
 
-**[00:18:52.180–00:18:55.280] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:18:46.220–00:18:49.860] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就这样，呃，像学姐平时你们。
+不少钱财才从那个建校买的地
 
-**[00:18:55.620–00:18:58.060] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:18:52.260–00:18:58.060] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-课程之后课外都干些什么？
+就这样呃像学姐平时你们课程之后课外都干些什么
 
-**[00:18:58.800–00:19:03.730] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:18:58.820–00:19:03.740] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-像嗯，那个我们现在大四那个课比较少了嘛。
+像嗯那个我们现在大四那个课比较少了嘛
 
-**[00:19:03.980–00:19:07.620] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:19:04.020–00:19:07.620] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-我的话就前几天报了一个瑜伽班。
+我的话就前几天报了一个瑜伽班
 
-**[00:19:07.880–00:19:13.220] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:19:07.940–00:19:13.220] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-我就在我们学校附近学瑜伽，然后每天下午晚上有课。
+我就在我们学校附近学瑜伽然后每天下午晚上有课
 
-**[00:19:13.620–00:19:19.950] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:19:13.660–00:19:19.940] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-上午的话，因为我四级还没有过，我都大四了还没有过，我在努力准备四级。
+上午的话因为我四级还没有过我都大四了还没有过我在努力准备四级
 
-**[00:19:20.280–00:19:24.010] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:19:20.330–00:19:24.020] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-然后我们宿舍的话，大部分人都考研。
+然后我们宿舍的话大部分人都考研
 
-**[00:19:24.440–00:19:25.850] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:19:24.500–00:19:30.740] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-然后他们都在。
+然后他们都在准备考研现在那个也没多少时间了嘛
 
-**[00:19:26.080–00:19:27.720] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:19:30.860–00:19:34.300] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-准备考研，现在。
+然后压力都非常大看着他们非常的辛苦
 
-**[00:19:28.000–00:19:34.280] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:19:35.020–00:19:39.860] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-那个也没多少时间了嘛，然后压力都非常大，看着他们非常的辛苦。
+然后你们呢你们有那个专升本的那个打算吗
 
-**[00:19:34.940–00:19:37.450] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:19:41.060–00:19:44.260] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-然后你们呢，你们有那个。
+有我们班有好几个专升本的但是
 
-**[00:19:38.010–00:19:39.880] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:19:45.220–00:19:51.820] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-专升本的那个打算吗？
+专升本的学校就有大同学院或者金融学院然后就还有其他三本我觉得三本
 
-**[00:19:40.980–00:19:44.260] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:19:52.380–00:19:55.140] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-有，我们班有好几个专升本的，但是。
+就没有再升的必要了
 
-**[00:19:45.180–00:19:48.820] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:19:55.700–00:19:56.330] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-专升本的学校就有大同学院或者金融学院。
+呃
 
-**[00:19:49.080–00:19:51.820] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:19:56.980–00:20:02.300] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-然后就还有其他三本，我觉得三本。
+像金融学院之类的可以但是没必要
 
-**[00:19:52.310–00:19:53.650] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:20:02.740–00:20:09.740] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就没有再。
+因为前几天招兵会上那些单位企业说就是说他们说金融学院
 
-**[00:19:54.020–00:19:55.160] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:20:10.300–00:20:12.820] S01**
 
-升的必要了。
+和我们学校其实都差不多
 
-**[00:19:55.640–00:19:56.340] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:20:13.540–00:20:15.780] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-呃。
+因为专科生嘛就比较
 
-**[00:19:56.910–00:19:59.710] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:20:16.820–00:20:21.460] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-像金融学院之类的。
+就便宜一点然后就在尽量是我们在我们专科里面找
 
-**[00:20:00.240–00:20:02.310] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:20:22.420–00:20:29.220] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-可以，但是没必要。
+像平时我就在外边玩玩滑板了刷刷街然后打篮球了
 
-**[00:20:02.680–00:20:03.610] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:20:29.940–00:20:32.620] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-因为。
+我平时不太喜欢在宿舍里面呆着
 
-**[00:20:04.060–00:20:06.060] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:20:33.620–00:20:38.660] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-前几天招聘会上那些。
+觉得在宿舍呆着就没意思他们都买了电脑啥的我觉得没啥意思
 
-**[00:20:06.420–00:20:09.740] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:20:38.900–00:20:40.940] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-单位其实说，就是说他们说金融学院。
+哦那你不打游戏是吧
 
-**[00:20:10.240–00:20:12.820] S01**
+**[00:20:41.740–00:20:47.460] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-和我们学校其实都差不多。
+打一点但是他们打的那种像网游一些我不太喜欢我喜欢那种
 
-**[00:20:13.440–00:20:15.780] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:20:48.260–00:20:53.020] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-因为专科生嘛，就比较。
+代入感比较强的像些单机游戏还可以他们玩的
 
-**[00:20:16.740–00:20:21.480] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:20:54.500–00:20:56.380] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就便宜一点，然后就在尽量是我们在我们专科里面找。
-
-**[00:20:22.340–00:20:24.710] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-实际上平时我就在外边。
-
-**[00:20:25.020–00:20:29.210] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-玩玩滑板了，刷刷街，然后打篮球了。
-
-**[00:20:30.070–00:20:32.070] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-我平时不太喜欢在宿舍里面
-
-**[00:20:32.040–00:20:32.520] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-呆着。
-
-**[00:20:33.640–00:20:38.660] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-觉得在宿舍呆着就没意思，他们都买了电脑啥的，我觉得没啥意思。
-
-**[00:20:38.920–00:20:40.920] S02 · 待核对：crosscheck_disagreement_in_interval**
-
-哦，那你不打游戏是吧？
-
-**[00:20:41.720–00:20:43.820] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-打一点，但是他们打的那种。
-
-**[00:20:44.280–00:20:47.460] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-像网游一些我不太喜欢，我喜欢那种。
-
-**[00:20:48.250–00:20:49.840] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-代入感比较强的。
-
-**[00:20:50.310–00:20:52.980] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-像些单机游戏还可以，他们玩的。
-
-**[00:20:54.510–00:20:56.360] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-没有什么特别的趣味。
+没有什么特别的趣味
 
 **[00:20:56.820–00:21:01.060] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-哦，那你是应该是算是喜欢户外，不怎么喜欢室内运动。
+哦那你是应该是算是喜欢户外不怎么喜欢室内运动
 
-**[00:21:01.120–00:21:05.020] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:21:01.100–00:21:05.020] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-对对对，我不喜欢宅，我就喜欢在外面玩，我就。
+对对对我不喜欢宅我就喜欢在外面玩我就
 
-**[00:21:05.260–00:21:12.520] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:21:05.260–00:21:12.540] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-从就没打，没没几天在那个宿舍里面呆，我从大一开始一直在外边，像周围大学城。
+从就没打没没几天在那个宿舍里面呆过从大一开始一直在外边像周围大学城
 
-**[00:21:13.720–00:21:17.660] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:21:13.700–00:21:17.660] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-除了比较偏僻的中医药和和那个。
+除了比较偏僻的中医药和和那个
 
-**[00:21:18.300–00:21:22.780] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:21:18.300–00:21:22.820] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-卫生健康，其他学校大部分都跑过，像金融学院跑的最多的。
+卫生健康其他学校大部分都跑过像你们金融学院跑的最多的
 
-**[00:21:23.380–00:21:24.120] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:21:23.380–00:21:29.780] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-因为饭。
+因为饭因为饭也便宜还有就一些其他的原因就去过
 
-**[00:21:23.420–00:21:24.480] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:21:29.900–00:21:33.860] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-咱们有忌嘛。
+嗯像我的话大一大二大三就不怎么出去
 
-**[00:21:24.520–00:21:26.940] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:21:34.220–00:21:41.820] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-因为饭也便宜，还有就。
+然后现在是大四了然后也觉得该出去见见世界了所以就嗯经常出去
 
-**[00:21:27.580–00:21:29.780] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:21:42.260–00:21:44.620] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-一些其他的原因就去过。
+呃干个其他呀见个朋友呀啥的
 
-**[00:21:29.910–00:21:33.880] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:21:45.300–00:21:48.140] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-哦，像我的话，大一大二大三就不怎么出去。
+我们宿舍有云南的你们有没有外地
 
-**[00:21:34.210–00:21:41.820] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:21:48.380–00:21:52.820] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-然后现在是大四了，然后也觉得该出去见见世界了，所以就嗯，经常出去。
+我们有我们有一个四川姑娘还有一个宁夏的姑娘
 
-**[00:21:42.240–00:21:44.620] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:21:53.060–00:21:57.060] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-然后干个其他呀，见个朋友呀啥的。
+她们都那个啥长得挺那个啥秀气的
 
-**[00:21:45.310–00:21:48.120] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:21:57.140–00:21:59.660] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我们宿舍有云南的，你们有没有外地的？
+挺娇小南方人长得比较娇小
 
-**[00:21:48.360–00:21:55.040] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:21:59.660–00:22:02.900] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-我们有，我们有一个四川姑娘，还有一个宁夏的姑娘，她们都那个啥，长得。
+对对对但是那个啥性格比较那个啥泼辣
 
-**[00:21:55.610–00:21:57.020] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:22:03.140–00:22:07.580] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-挺那个啥秀气的。
+我我我们宿舍云南哥们就特别喜欢吃辣他
 
-**[00:21:57.160–00:21:59.700] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:22:08.540–00:22:13.020] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-挺娇小，南方人长得比较娇小。
-
-**[00:21:59.660–00:22:02.880] S02 · 待核对：crosscheck_disagreement_in_interval**
-
-对对对，但是那个啥性格比较那个啥泼辣。
-
-**[00:22:03.160–00:22:06.500] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-我我我们宿舍云南哥们儿就特别喜欢吃辣。
-
-**[00:22:06.960–00:22:07.560] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-他。
-
-**[00:22:08.520–00:22:13.000] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-比较腼腆，我觉得个人觉得他有点一点点懒，因为他。
+比较腼腆我觉得个人觉得他有点一点点懒因为他
 
 **[00:22:13.460–00:22:16.340] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就生活费和其他都是从他家里要的。
+就生活费和其他都是从他家里要的
 
-**[00:22:16.680–00:22:17.480] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:22:16.660–00:22:17.540] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-对对对。
+对对对
 
-**[00:22:16.960–00:22:19.340] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:22:17.660–00:22:19.340] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-然后从大一到现在。
+从大一到现在
 
-**[00:22:20.160–00:22:22.040] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:22:20.140–00:22:22.060] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-基本上没有出去过。
+基本上没有出去过
 
-**[00:22:22.380–00:22:27.020] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:22:22.380–00:22:27.100] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯，像我周围的他男生的话，他们也不怎么出去兼职啊啥的。
+嗯像我周围的他男生的话他们也不怎么出去兼职啊啥的
 
-**[00:22:27.680–00:22:28.420] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:22:27.660–00:22:28.420] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯。
+嗯
 
-**[00:22:29.060–00:22:32.840] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:22:29.060–00:22:36.100] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-但是他们每个人的选择吧，他们就比较注重学习。
+但是他们每个人的选择吧他们就比较注重学习然后看每个人在大学里面的选择这点
 
-**[00:22:33.180–00:22:36.060] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:22:37.940–00:22:40.660] S02**
 
-然后看每个人在大学里面的选择这点。
+那像你们的话一个宿舍住多少人
 
-**[00:22:37.920–00:22:40.680] S02**
+**[00:22:41.420–00:22:44.420] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-那像你们的话，一个宿舍住多少人？
+我们是上床下桌我们一个宿舍
 
-**[00:22:41.400–00:22:44.400] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:22:45.140–00:22:46.580] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我们是上床下桌，我们一个宿舍。
+住住六个人
 
-**[00:22:45.180–00:22:46.540] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:22:46.740–00:22:51.940] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-租住六个人。
+我们宿舍比较挤八个人而且是上床下床全是人
 
-**[00:22:46.740–00:22:55.180] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:22:52.140–00:22:56.940] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-我们宿舍比较挤，八个人，而且是上床下床全是人，宿舍里面只要人都站地上的话就满了。
+宿舍里面只要人都站地上的话就满了满满当当
 
-**[00:22:55.840–00:22:56.940] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:22:57.020–00:23:02.660] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-满满当当。
+我们宿舍特别的就是我们在阳台我们是那个像落地窗一样有个阳台
 
-**[00:22:55.860–00:22:56.340] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:23:03.020–00:23:06.940] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我。
+我们在阳台就宿舍合伙
 
-**[00:22:57.040–00:23:02.660] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:23:07.420–00:23:13.460] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我们宿舍特别的就是我们在阳台，我们是那个像落地窗一样，有个阳台。
-
-**[00:23:03.020–00:23:04.060] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-我们在阳台。
-
-**[00:23:04.600–00:23:06.940] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-就宿舍合伙。
-
-**[00:23:07.400–00:23:13.440] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-买了一个摇椅，还买了茶具，在那个平时就喜欢在在阳台。
+买了一个摇椅还买了茶具在那个平时就喜欢在在阳台
 
 **[00:23:14.100–00:23:16.820] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就喝喝茶啥的，都大二大三了。
+就喝喝茶啥的都大二大三了
 
-**[00:23:17.440–00:23:21.300] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:23:17.460–00:23:21.300] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-大二大二的时候，大三就基本上没动那动过那个茶具。
+大二大二的时候大三就基本上没动那动过那个茶具
 
-**[00:23:21.340–00:23:25.280] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:23:21.340–00:23:25.300] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-没啊，大三基本都开始出来挣钱啊，干啥是吧？
+没啊大三基本都开始出来挣钱啊干啥是吧
 
-**[00:23:25.660–00:23:28.060] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:23:25.580–00:23:32.940] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-没有，我们宿舍就就就我跟我哥
+没有我们宿舍就就就我跟我哥们我们两个愿意出来其他人每个人有自己的想法
 
-**[00:23:28.040–00:23:35.000] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:23:33.500–00:23:35.140] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-们儿，我们两个愿意出来，其他人每个人有自己的想法，不太强求人别人的。
+不太强求人别人的
 
-**[00:23:35.680–00:23:41.160] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:23:35.660–00:23:41.180] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-像我们宿舍的话，挣钱的人人的话，只有我一个人，然后有四个考研的。
+像我们宿舍的话挣钱的人人的话只有我一个人然后有四个考研的
 
-**[00:23:41.580–00:23:46.320] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:23:41.580–00:23:46.340] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-还有一个的话是，还有两个的话是，他们每天在宿舍。
+还有一个的话是还有两个的话是他们每天在宿舍
 
-**[00:23:47.080–00:23:51.660] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:23:47.060–00:23:51.700] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-就是床上，然后玩手机，就是也不出去。
+就是床上然后玩手机就是也不出去
 
-**[00:23:52.250–00:23:57.840] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:23:52.260–00:23:57.860] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-就是我之前如果出去兼职的话，我都会叫他们吧，然后后来。
+就是我之前如果出去兼职的话我都会叫他们吧然后后来
 
-**[00:23:58.610–00:24:05.980] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:23:58.620–00:24:06.020] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-说着说着就每次都不去嘛，我才明白，他们是不愿意出去挣钱的，后来我就再也不去叫他们。
+说着说着就每次都不去嘛我才明白他们是不愿意出去挣钱的后来我就再也不去叫他们
 
-**[00:24:06.520–00:24:12.480] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:06.540–00:24:10.180] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-是跟我那个云南哥们一样，他不想出去，直接说懒得去。
+是跟我那个云南哥们一样他不想出去
 
-**[00:24:12.710–00:24:13.210] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:10.860–00:24:12.540] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯。
+直接说懒得去
 
-**[00:24:13.140–00:24:14.540] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:12.700–00:24:13.180] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-也不太强求。
+嗯
 
-**[00:24:15.310–00:24:21.610] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:13.180–00:24:14.540] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-然后他就每天跟我们说的就是，自己不太喜欢这边的。
+也不太强求
 
-**[00:24:21.930–00:24:25.350] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:15.340–00:24:21.620] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-厌食的，喜欢吃喜欢吃那些米饭啥的。
+然后他就每天跟我们说的就是自己不太喜欢这边的
 
-**[00:24:25.430–00:24:30.750] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:21.940–00:24:25.380] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-哦，像嗯，我们宿舍的话，我感觉他们就是。
+厌食的喜欢吃喜欢吃那些米饭啥的
 
-**[00:24:31.310–00:24:35.630] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:25.420–00:24:30.780] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-没有目的的，每天生活着已经大四了，就还比较迷茫。
+哦像嗯我们宿舍的话我感觉他们就是
 
-**[00:24:36.170–00:24:45.640] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:31.300–00:24:35.660] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-就比如说他们会说自己没钱，但是有那个机会，他们也不愿意抓住，然后就等那个机会过去。
+没有目的的每天生活着已经大四了就还比较迷茫
 
-**[00:24:46.180–00:24:49.020] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:36.180–00:24:42.940] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-你们是一个专业一个宿舍吗？一个班儿。
+就比如说他们会说自己没钱但是有那个机会他们也不愿意抓住
 
-**[00:24:48.450–00:24:48.950] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:43.220–00:24:45.660] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-对。
+然后就等那个机会过去
 
-**[00:24:49.410–00:24:51.240] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:46.220–00:24:49.020] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯，不是一个班，是两个班。
+你们是一个专业一个宿舍吗一个班
 
-**[00:24:52.110–00:24:54.970] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:49.420–00:24:51.260] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-对吧，因为你们因为你们女生少，所以就。
+嗯不是一个班是两个班
 
-**[00:24:54.940–00:25:02.030] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:52.100–00:24:54.980] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-对，就混合宿舍嘛，但是关系有也挺好的，因为人都不错嘛，只是他们那个啥，可能想法不一样吧。
+对吧因为你们因为你们女生少所以就
 
-**[00:25:02.870–00:25:06.050] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:54.980–00:24:56.700] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-每个人的想法都比较不一样，他们比较腼腆。
+对就混合宿舍嘛
 
-**[00:25:08.120–00:25:15.740] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:56.980–00:25:02.020] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-而且女生的话，可能压力没有男生那么大，就觉得他们自己也不把这个当回事儿。
+但关系有也挺好的因为人都不错嘛只是他们那个啥可能想法不一样吧
 
-**[00:25:16.990–00:25:19.910] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:25:02.860–00:25:06.060] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-对，压力是挺大的，我们压力特别大。
+每个人的想法都比较不一样他们比较腼腆
 
-**[00:25:19.970–00:25:20.490] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:25:08.140–00:25:12.020] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯。
+而且女生的话可能压力没有男生那么大
 
-**[00:25:20.420–00:25:22.720] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:25:12.540–00:25:15.740] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-就其实就想着要买车。
+就觉得他们自己也不把这个当回事
 
-**[00:25:23.410–00:25:24.110] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:25:16.980–00:25:19.900] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯，对。
+对压力是挺大的我们压力特别大
 
-**[00:25:23.680–00:25:25.440] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:25:19.940–00:25:20.460] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-还有干其他的，反正。
+嗯
 
-**[00:25:25.630–00:25:32.520] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:25:20.460–00:25:22.700] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-感觉你们男生的话，一过二十岁就感觉，呃，要自己做点事情啊什么的。
+就其实就想着要买车
 
-**[00:25:32.610–00:25:39.580] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:25:23.420–00:25:23.740] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-女生的话就是每天吃吃喝喝，玩玩乐乐，钱够花就行，就是可能报复。
+嗯
 
-**[00:25:39.990–00:25:46.680] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:25:23.740–00:25:25.460] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-的话，没有男生有远大抱负吧，也可能是我认识的人的那个抱负不多，也有那种。
+还有干其他的反正
 
-**[00:25:47.110–00:25:51.510] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:25:25.620–00:25:28.940] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯，挺报复挺大的女生，只是我没怎么见过。
+感觉你们男生的话一过二十岁就感觉
 
-**[00:25:53.210–00:25:56.510] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:25:29.420–00:25:36.020] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-像像你们学校，跟那个。
+呃要自己做点事情啊什么的女生的话就是每天吃吃喝喝玩玩乐乐
 
-**[00:25:57.330–00:26:05.510] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:25:36.340–00:25:42.860] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-跟太原师范比起来，你们学校那个整个色调有比较喜欢，有有点暖色，暖色调。
+钱够花就行就是可能抱负的话没有男生有远大抱负吧
 
-**[00:26:06.560–00:26:10.110] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:25:43.020–00:25:46.700] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-像我们学校跟那个太原师范和建校。
+也可能是我认识的人的那个抱负不多也有那种
 
-**[00:26:09.440–00:26:13.060] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:25:47.100–00:25:51.540] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-就是灰色的是吧，就感觉懵懵的。
+嗯挺抱负挺大的女生只是我没怎么见过
 
-**[00:26:13.110–00:26:14.510] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:25:53.220–00:25:56.540] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-对，特别枯燥，特别。
+像像你们学校跟那个
 
-**[00:26:15.630–00:26:16.310] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:25:57.340–00:26:05.500] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-严肃。
+跟太原师范比起来你们学校那个整个色调有比较喜欢有有点暖色暖色调
 
-**[00:26:16.460–00:26:24.060] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:26:06.580–00:26:10.140] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯，我也是有这样的感觉，但是进去一看的话，感觉还没有那么明显，只是在外面看的
+像我们学校跟那个太原师范和建校
 
-**[00:26:24.040–00:26:25.320] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:26:10.340–00:26:13.060] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-时候感觉懵懵的。
+灰色的是吧就感觉懵懵的
 
-**[00:26:25.880–00:26:27.570] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:26:13.100–00:26:14.540] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-你们图书馆里面很大吗？
+对特别枯燥特别
 
-**[00:26:27.960–00:26:29.930] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:26:15.620–00:26:16.340] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-图书馆里面挺大的吧。
+严肃
 
-**[00:26:31.020–00:26:32.680] S01**
+**[00:26:16.380–00:26:19.220] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-我们学校图书馆。
+嗯我也是有这样的感觉但是
 
-**[00:26:33.680–00:26:36.810] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:26:19.620–00:26:25.420] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-一七年我们大一的时候准备盖的，现在。
+进去一看的话感觉还没有那么明显只是在外面看的时候感觉懵懵的
 
-**[00:26:37.350–00:26:39.050] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:26:25.900–00:26:27.620] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-说盖好了，但是。
+你们图书馆里面很大吗
 
-**[00:26:39.620–00:26:40.370] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:26:27.980–00:26:29.940] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-从来。
+图书馆里面挺大的吧
 
-**[00:26:40.940–00:26:41.750] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:26:31.060–00:26:32.700] S01**
 
-不让我们进。
+我们学校图书馆
 
-**[00:26:41.010–00:26:44.410] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:26:33.740–00:26:36.820] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-应该是里面的那个设施比较不完善吧。
+一七年我们大一的时候准备盖的现在
 
-**[00:26:44.850–00:26:47.220] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:26:37.420–00:26:40.420] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-然后我我们学校也是。
+说盖好了但是从来
 
-**[00:26:47.900–00:26:50.950] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:26:40.980–00:26:44.460] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-哎，我们学校好像我们一来的时候已经盖好了。
+应该是里面的那个设施比较不完善吧
 
-**[00:26:51.220–00:26:53.250] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:26:44.900–00:26:47.260] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-就是一层有两家吧。
+然后我我们学校也是
 
-**[00:26:53.820–00:26:54.820] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:26:47.940–00:26:53.300] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-就是阅览室。
+哎我们学校好像我们一来的时候已经盖好了就是一层有两间吧
 
-**[00:26:55.070–00:26:56.410] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:26:53.860–00:27:00.300] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-然后有十几层。
+就是阅览室然后有十几层就是挺大的每个层里面都有管理员还有老师
 
-**[00:26:56.620–00:27:00.260] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:27:01.220–00:27:02.740] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-就是挺大的，每个层里面都有管理员，还有老师。
+嗯感觉挺好的
 
-**[00:27:01.150–00:27:02.770] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:27:02.740–00:27:04.260] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯，感觉挺好的。
+那你们分过宿舍吗
 
-**[00:27:01.810–00:27:02.250] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:27:05.260–00:27:12.860] S02**
 
-那你。
+宿舍没有就直接学校给安排的后来也没有搬过我在这个宿舍已经住了第四年了就没变过
 
-**[00:27:02.670–00:27:04.240] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:27:13.460–00:27:16.540] S01**
 
-那你们分过宿舍吗？
+你们宿舍外面是不是有那个
 
-**[00:27:05.220–00:27:08.780] S02**
+**[00:27:17.740–00:27:22.060] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-宿舍没有，就直接学校给安排的，后来也没有搬过。
+那个就是对面是那个西区的一个校区街
 
-**[00:27:09.020–00:27:11.610] S02**
+**[00:27:22.700–00:27:27.780] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-我在这个宿舍已经住了第四年了。
+不是不是我们是在那个啥西门的最边上那几栋楼里面一栋
 
-**[00:27:11.980–00:27:12.850] S02**
+**[00:27:29.020–00:27:33.540] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-就没变过。
+是像我们大四基本都在西门上的那个那三栋楼里面
 
-**[00:27:13.420–00:27:14.470] S01**
+**[00:27:34.740–00:27:37.860] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-你们宿舍。
+西门往右走再往上就是
 
-**[00:27:14.890–00:27:16.480] S01**
+**[00:27:37.860–00:27:38.460] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-外面是不是有那个。
+向左走
 
-**[00:27:17.670–00:27:20.120] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:27:39.340–00:27:41.940] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-那个就是对面是那个。
+啊我是西门往右走再往上
 
-**[00:27:20.550–00:27:22.040] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:27:41.940–00:27:43.620] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-西区的一个小吃街。
+嗯那就是那个系楼
 
-**[00:27:22.620–00:27:25.980] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:27:44.660–00:27:45.980] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-不是不是，我们是在那个啥，西门的最边上。
+美术系跟音乐系
 
-**[00:27:26.250–00:27:27.720] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:27:46.220–00:27:49.100] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-那几栋楼里面一栋。
+哦还有生生物系和化学系也都在那里
 
-**[00:27:28.820–00:27:33.510] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:27:52.740–00:27:55.020] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就是像我们大四基本都在西门上的那个那三栋楼里面。
+那个学姐你有没有挂过科
 
-**[00:27:34.670–00:27:36.050] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:27:55.500–00:28:03.460] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-西门往右走。
+我目前还没有挂科但是都比较那个啥飘着过像那个我记得不知道大几的时候考那个马克思
 
-**[00:27:36.380–00:27:37.950] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:28:03.940–00:28:11.060] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-再往上就是。
+我就是那个六十分整六十分飘过像我们宿舍还有五十九点六的我们班还有五十九点七的
 
-**[00:27:37.750–00:27:38.410] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:28:11.260–00:28:15.220] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-向左走。
+他们就挂了还得补考就挺那个啥感觉他们
 
-**[00:27:39.280–00:27:42.050] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:28:15.740–00:28:17.820] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-啊，我说西门往右走，再往上。
+很悲哀的然后我超级幸运
 
-**[00:27:41.810–00:27:43.610] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:28:17.820–00:28:19.900] S01**
 
-嗯，那就是那个系楼。
+你们学校是不是已经取消补考
 
-**[00:27:44.580–00:27:45.980] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:28:20.820–00:28:23.140] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-美术系跟音乐系。
+好像是这样子我也不知道
 
-**[00:27:46.180–00:27:49.050] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:28:23.180–00:28:25.820] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-哦，还有生生物系和化学系也都在那里。
+那取消补考之后他该怎么办
 
-**[00:27:52.680–00:27:55.040] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:28:26.340–00:28:28.860] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-那个学姐你有没有挂过科？
+还有一个清考大四的时候有一个清考
 
-**[00:27:55.420–00:28:03.440] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:28:30.740–00:28:33.260] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-我目前还没有挂科，但是都比较那个啥，飘着过，像那个我记得不知道大几的时候考那个马克思。
+嗯那你呢你在大学成绩怎么样
 
-**[00:28:03.880–00:28:06.840] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:28:33.460–00:28:40.660] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我就是那个六十分，整六十分飘过。
+我大一大二大一的时候大一上学期就比较低迷然后在那个中间
 
-**[00:28:06.980–00:28:12.720] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:28:41.460–00:28:48.180] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-像我们宿舍还有五十九点六的，我们班还有五十九点七的，他们就挂了，还得补考。
+到了下半学期我不知道怎么突然就成了前十名了我不知道不知道怎么搞的
 
-**[00:28:13.150–00:28:15.180] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:28:49.020–00:28:52.940] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就挺那个啥，感觉他们。
+应该是我们那个我喜欢的课程多了呃
 
-**[00:28:15.700–00:28:17.780] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:28:53.740–00:28:57.940] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-很悲哀的，然后我超级幸运。
+就像高数或英语一些就比较少的那那种的
 
-**[00:28:16.310–00:28:17.450] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:28:59.820–00:29:07.340] S01**
 
-你们学校。
+我感觉我们咱咱们咱们两个专业之间的那个成绩都差不多你们
 
-**[00:28:17.780–00:28:19.910] S01**
+**[00:29:08.620–00:29:12.700] S01**
 
-你们学校是不是已经取消补考？
+你们就现在学的可能是我们将来
 
-**[00:28:20.780–00:28:21.910] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:29:13.700–00:29:19.100] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-好像是这样。
+我们那个系现在要创新可能是要你们现在学的那些
 
-**[00:28:22.350–00:28:23.110] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:29:19.580–00:29:26.900] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我也不知道。
+呃知识那些课本可能到我们要就是引进一样那那样那种
 
-**[00:28:23.110–00:28:25.810] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:29:27.260–00:29:28.980] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-那取消补考之后，他该怎么办？
+应该是会这样子的
 
-**[00:28:26.250–00:28:28.880] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:29:29.420–00:29:34.420] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-还有一个清考，大四的时候有一个清考。
+那那个啥你们学校里面那些奖助学金会跟那个成绩挂钩吗
 
-**[00:28:30.680–00:28:33.250] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:29:35.380–00:29:39.460] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯，那你呢？你在大学成绩怎么样？
+会有一点但是助学金不会助学金只要没挂过科
 
-**[00:28:33.410–00:28:35.650] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:29:40.340–00:29:47.300] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我大一大二，大一的时候。
+就只要是有那个建档立卡和低保他都必须给就不在乎你考多少
 
-**[00:28:35.850–00:28:37.750] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:29:47.300–00:29:50.100] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-大一上半学期就比较。
+对对对我们学校现在也是这样子的
 
-**[00:28:38.020–00:28:40.650] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:29:50.540–00:29:57.940] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-低迷，然后在那个中间。
+奖学金的话就那个就必须得看成绩了而且还得看你一学年的成绩
 
-**[00:28:41.350–00:28:43.180] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:29:58.980–00:30:00.540] S01**
 
-到了下半学期。
+我们班长
 
-**[00:28:43.420–00:28:48.150] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:30:01.460–00:30:05.340] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我不知道怎么突然就成了前十名了，我不知道不知道怎么搞的。
+在我们班他们大一的时候
 
-**[00:28:48.980–00:28:51.980] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:30:05.820–00:30:12.980] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-应该是我们那个我喜欢的课程多了。
+就是班委就基本上把这个钱全部都拿走因为我们班主任当时没有
 
-**[00:28:52.310–00:28:52.910] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:30:13.820–00:30:20.420] S01**
 
-呃。
+去管这个事情刚军训完班主任就没没见过我们他只认识班委
 
-**[00:28:53.680–00:28:57.910] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:30:21.300–00:30:28.740] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就像高数或英语一些，就比较少的那那种的。
+也没有管因为当时班主任管的其他班所以他没有时间管我们这个事情
 
-**[00:28:59.750–00:29:04.580] S01**
+**[00:30:29.220–00:30:35.620] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我感觉我们，咱们咱们咱们两个专业之间的那个。
+班委这个他们把钱就全部都拿走了就他们把名额全部都占了
 
-**[00:29:04.880–00:29:06.110] S01**
+**[00:30:36.020–00:30:38.060] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-成绩都差不多。
+那你们你们班主任那会其实
 
-**[00:29:06.550–00:29:07.350] S01**
+**[00:30:38.820–00:30:42.900] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-你们。
+应该那个啥都问一问的话因为毕竟是助学金嘛
 
-**[00:29:08.550–00:29:12.710] S01**
+**[00:30:43.300–00:30:50.220] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-你们就现在学的可能是我们将来。
+像我们班主任刚大一那会的话他就会把全班人的情况都给私聊一下都问清楚
 
-**[00:29:13.650–00:29:19.080] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:30:50.540–00:30:57.900] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-我们那个系现在要创新，可能是要你们现在学的那些。
+然后他再自己决定一下给哪个人因为这个有时候几千块钱来说也挺重要
 
-**[00:29:19.670–00:29:19.990] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:30:58.820–00:31:01.540] S01**
 
-呃，
+你们班费有交过吗
 
-**[00:29:20.090–00:29:26.730] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:31:02.340–00:31:07.420] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-就是那些课本儿，可能到我们要就是引进一样，那那样那种。
+有交过一次一百的刚大一那会交的比较多后来就不怎么交了
 
-**[00:29:26.180–00:29:28.980] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:31:07.780–00:31:12.140] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-对对对，应该是会这样子的。
+我们交过班费但价格都不明了不知道拿班费干啥
 
-**[00:29:29.340–00:29:34.380] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:31:12.220–00:31:16.100] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-那那个啥，你们学校里面那些奖助学金会跟那个成绩挂钩吗？
+那你们没有那个聚过餐那些吗搞过活动一个班里面
 
-**[00:29:35.330–00:29:39.420] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:31:16.740–00:31:21.500] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-会有一点，但是助学金不会，助学金只要没挂过科。
+搞活动像元旦就买瓜子那些用不了多少钱呀
 
-**[00:29:40.280–00:29:47.280] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:31:21.820–00:31:22.740] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-就只要是有那个建档立卡和低保，他都必须给，就不在乎你考多少。
+哦
 
-**[00:29:45.480–00:29:46.040] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:31:23.380–00:31:26.020] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-哦。
+那就那个啥就得好好问问
 
-**[00:29:47.240–00:29:50.080] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:31:26.460–00:31:31.540] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-对对对，我们学校现在也是这样子的。
+我们的话就虽然交了挺多钱但是他会让我们去饭店里面吃饭
 
-**[00:29:50.450–00:29:57.920] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:31:31.860–00:31:37.580] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-奖学金的话，就那个就必须得看成绩了，而且还得看你一学年的成绩。
+红扒馆K T V那些的就也算是有个交代不管多少吧
 
-**[00:29:58.920–00:30:00.520] S01**
+**[00:31:37.900–00:31:40.180] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-我们班长。
+你在学校参加参加过什么社团
 
-**[00:30:01.410–00:30:05.310] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:31:41.060–00:31:42.900] S02**
 
-在我们班儿，他们大一的时候。
+我参加过那个台球
 
-**[00:30:05.740–00:30:12.960] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:31:44.220–00:31:46.260] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-就是班委就基本上把这个钱全部都拿走，因为我们班主任当时没有。
+台球社还是排球社
 
-**[00:30:13.710–00:30:20.420] S01**
+**[00:31:46.340–00:31:50.020] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-去管这个事情，刚军训完，班主任就没没见过我们，他只认识班委。
+台球打过台球但是我没参加过几天就放弃了
 
-**[00:30:21.210–00:30:28.720] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:31:51.060–00:31:53.300] S01**
 
-也没有管，因为当时班主任管的其他班儿，所以他没有时间管我们这个事情。
+就选择了那个图书管理员
 
-**[00:30:29.150–00:30:35.620] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:31:53.700–00:31:56.020] S02**
 
-班委几个，他们把钱就全部都拿走了，就把他们把名额全部都占了。
+嗯图书管理员是大三的时候
 
-**[00:30:32.710–00:30:33.240] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:31:57.020–00:31:58.060] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-嗯。
+后来慢慢的吧
 
-**[00:30:35.920–00:30:38.040] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:31:58.140–00:32:00.940] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-那你们，你们班主任那会儿其实。
+我们学校图书管理员每个月都工资的
 
-**[00:30:38.720–00:30:42.890] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:32:01.140–00:32:04.780] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-应该那个啥，都问一问的话，因为毕竟是助学金嘛。
+对呀都有呀只不过很不多一个月一百五
 
-**[00:30:43.210–00:30:50.220] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:32:04.780–00:32:05.580] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-像我们班主任刚大一那会儿的话，他就会把全班人的情况都给私聊一下，都问清楚。
+我们二百
 
-**[00:30:50.440–00:30:57.910] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:32:05.940–00:32:07.300] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-然后他再自己决定一下给哪个人，因为这个有时候几千块钱来说也挺重要。
+比我们多五十
 
-**[00:30:58.690–00:31:01.540] S01**
+**[00:32:07.340–00:32:14.020] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-你们班费有交过吗？
+但是他们特别累他们每天就下课就得去到了现在才好那么一点
 
-**[00:31:02.270–00:31:07.380] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:32:14.380–00:32:17.660] S02 · 待核对：crosscheck_disagreement_in_interval**
 
-有交过一次一百呢，刚大一那会儿交的比较多，后来就不怎么交了。
-
-**[00:31:07.690–00:31:12.120] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-我们交过班费，但价格都不明了，不知道拿班费干啥。
-
-**[00:31:12.170–00:31:16.080] S02 · 待核对：crosscheck_disagreement_in_interval**
-
-那你们没有那个聚过餐那些吗？搞过活动，一个班里面。
-
-**[00:31:16.650–00:31:21.480] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-搞活动，像元旦就买瓜子儿那些，用不了多少钱呀。
-
-**[00:31:21.720–00:31:22.750] S02 · 待核对：crosscheck_disagreement_in_interval**
-
-哦。
-
-**[00:31:23.290–00:31:26.020] S02 · 待核对：crosscheck_disagreement_in_interval**
-
-那就那个啥，就得好好问问。
-
-**[00:31:26.370–00:31:34.080] S02 · 待核对：crosscheck_disagreement_in_interval**
-
-我们的话就虽然交了挺多钱，但是他会让我们去饭店里面吃饭，红扒馆K T V那些的。
-
-**[00:31:34.460–00:31:37.520] S02 · 待核对：crosscheck_disagreement_in_interval**
-
-就也算是有个交代，不管多少吧。
-
-**[00:31:37.820–00:31:40.160] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-你在学校参加，参加过什么社团？
-
-**[00:31:40.970–00:31:42.910] S02**
-
-我参加过那个台球。
-
-**[00:31:44.140–00:31:46.240] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-台球社还是排球社？
-
-**[00:31:46.260–00:31:50.010] S02 · 待核对：crosscheck_disagreement_in_interval**
-
-台球，打过台球，但是我没参加过几天就放弃了。
-
-**[00:31:50.990–00:31:53.310] S01**
-
-就选择了那个图书管理员。
-
-**[00:31:53.600–00:31:55.980] S02**
-
-嗯，图书管理员是大三的时候。
-
-**[00:31:56.940–00:31:58.040] S02 · 待核对：crosscheck_disagreement_in_interval**
-
-后来慢慢的吧。
-
-**[00:31:58.080–00:32:00.920] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-我们学校的图书管理员每个月都有工资的。
-
-**[00:32:01.050–00:32:04.780] S02 · 待核对：crosscheck_disagreement_in_interval**
-
-对呀，都有呀，只不过很不多，一个月一百五。
-
-**[00:32:02.140–00:32:02.710] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-你们。
-
-**[00:32:04.720–00:32:05.580] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-我们二百。
-
-**[00:32:05.880–00:32:07.310] S02 · 待核对：crosscheck_disagreement_in_interval**
-
-嗯，比我们都五十。
-
-**[00:32:07.310–00:32:14.040] S01 · 待核对：crosscheck_disagreement_in_interval**
-
-但是他们特别累，他们每天就下课就得去，到了现在才好那么一点。
-
-**[00:32:14.440–00:32:15.880] S02 · 待核对：crosscheck_disagreement_in_interval**
-
-我们倒是不用，我
-
-**[00:32:15.800–00:32:17.560] S02 · 待核对：crosscheck_disagreement_in_interval**
-
-们有四个人。
+我们倒是不用我们有四个人

@@ -456,6 +456,7 @@ def test_joint_windows_run_concurrently_and_merge_in_time_order(tmp_path: Path) 
     audio.write_bytes(wav(400))
     pipeline = Pipeline(scheduler.config, Inference(scheduler, tmp_path), audio, 400000, Options())
     pipeline.activity = [Span(start_ms=0, end_ms=400000)]
+    pipeline.speakers = [Span(start_ms=0, end_ms=400000, speaker="S01")]
     active = 0
     maximum = 0
 
@@ -501,6 +502,10 @@ def test_joint_windows_run_concurrently_and_merge_in_time_order(tmp_path: Path) 
     assert [segment.start_ms for segment in result.segments] == sorted(
         segment.start_ms for segment in result.segments
     )
+    assert result.speakers == [
+        Span(start_ms=segment.start_ms, end_ms=segment.end_ms, speaker="S01")
+        for segment in result.segments
+    ]
 
 
 def test_joint_alignment_failure_retries_without_boundary_padding(tmp_path: Path) -> None:

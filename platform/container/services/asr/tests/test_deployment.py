@@ -237,6 +237,10 @@ def test_vllm_transcription_config_is_model_owned() -> None:
     root = Path(__file__).resolve().parents[1] / "models"
     for model in ("firered-llm", "moss-td", "qwen3-asr-1.7b", "whisper-large-v3"):
         assert "--speech-to-text-config" not in (root / model / "run").read_text()
+    moss_td = (root / "moss-td/run").read_text()
+    assert "--max-model-len 131072" in moss_td
+    assert "export VLLM_MAX_AUDIO_CLIP_FILESIZE_MB=128" in moss_td
+    assert "export VLLM_MAX_AUDIO_DECODE_DURATION_S=3600" in moss_td
 
 
 def test_vllm_models_use_global_cuda_toolchain() -> None:
@@ -280,6 +284,7 @@ def test_static_placement_uses_eight_80_gib_gpus_for_parallel_stages() -> None:
         "qwen3-asr-1.7b": 2,
         "vibevoice": 2,
     }
+    assert specs["moss-td"].max_audio_seconds == 3600
 
     first_pass = {
         "firered-llm": {0, 1},

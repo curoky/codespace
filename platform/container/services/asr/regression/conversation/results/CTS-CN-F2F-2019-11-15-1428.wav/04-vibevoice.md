@@ -298,23 +298,23 @@
 
 我们我们对环境有些保护，也有也有坏处。
 
-**[00:07:40.710–00:07:53.040] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:40.710–00:07:53.050] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 对啊，对啊，现在就说一些地理环境，就对洞庭湖的保护啊，湿地的保护就说有些可能是以前的人没有意识到，就对环境的伤害会有
 
-**[00:07:53.040–00:07:58.500] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:53.050–00:07:58.510] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 对我们后代会造成什么样的影响，会损害他们，现在的保护意识越来越强。
 
-**[00:07:58.500–00:07:59.310] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:07:58.510–00:07:59.320] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 是的。
 
-**[00:08:00.460–00:08:11.450] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:00.470–00:08:11.460] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 所身为南方人，想去北方，身为北方又想去南方。像南方的四川、成都，有重重庆的火锅，四川成都的火锅，还
 
-**[00:08:11.450–00:08:20.100] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:11.460–00:08:20.100] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 四川本来是吃个吃辣的地方，可能就是适合他们的口味。我每年去游玩的人就非常的多。
 
@@ -322,35 +322,35 @@
 
 是的。
 
-**[00:08:21.090–00:08:25.090] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:21.110–00:08:25.090] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 而且，四川有我们的保护对象，就是熊猫。
 
-**[00:08:25.090–00:08:25.900] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:25.090–00:08:25.910] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 熊猫。
 
-**[00:08:25.900–00:08:27.080] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:25.910–00:08:27.100] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 四川的熊猫。
 
-**[00:08:28.610–00:08:39.790] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:28.610–00:08:39.800] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 听起来就让人感觉很，因为熊猫本来就是奥运，就是奥运会的五项级五吉祥物。现在又是我们的保护，然后喜欢它的人又非常的多。
 
-**[00:08:39.790–00:08:42.410] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:39.800–00:08:42.420] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 也是我们国家的保护动物。
 
-**[00:08:42.410–00:08:43.030] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:08:42.420–00:08:43.030] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 是的。
 
-**[00:08:44.520–00:08:46.570] S02**
+**[00:08:44.530–00:08:46.610] S02**
 
 也是我们国家的象征。
 
-**[00:08:47.300–00:08:48.000] S01**
+**[00:08:47.800–00:08:48.000] S01**
 
 嗯。
 
@@ -394,15 +394,15 @@
 
 是的，但是，呃，北方也有北方的特点。南方也有南方的特点，只要保护环境环境对我们有很大的欣赏。
 
-**[00:09:53.430–00:10:06.120] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:09:53.430–00:10:06.130] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-是的，现在是不是说没有工作吗？工作第1，有工作以前，我会说打算去去北京游玩一趟，去看看以前说的紫禁城、长城。
+是的，现在是不是说没有工作吗？工作的第1，有工作以前，我会说打算去去北京游玩一趟，去看看以前说的紫禁城、长城。
 
-**[00:10:06.120–00:10:14.300] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:06.130–00:10:14.310] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-这些游玩比较好的地方，就是著名的古典，就是古代唐朝他们这些朝代建立在这里的，也有。
+这些游玩比较好的地方，就是著名的古典，就是古代唐朝，他们这些朝代建立在这里的，也有。
 
-**[00:10:14.300–00:10:15.300] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:14.310–00:10:15.300] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 是的。
 
@@ -414,11 +414,11 @@
 
 是古代。
 
-**[00:10:28.470–00:10:39.510] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:28.470–00:10:39.530] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 我们国家是很有悠久的历史。我们，呃，我们，呃，住在这个地球上，要保护地球环境。
 
-**[00:10:39.740–00:10:45.410] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:39.720–00:10:45.410] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 也要保护我们身边每个动物。是吧？
 
@@ -426,15 +426,15 @@
 
 是的，就是说，环境保护好，如果说古代的人没有保护意识，那么说就是说，这些古建筑也就不会遗留下来。
 
-**[00:10:56.540–00:11:06.880] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:10:56.530–00:11:06.880] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 北京的书，北北大、清华，它们这些古代的建筑，都是一些留下来的，遗流传，遗传传承下来的，那种风尚也是传承下来的。
 
-**[00:11:07.630–00:11:13.660] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:07.620–00:11:13.680] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 对我们，就是说，5000年的优秀文化传统，它传下来了，对我们有很大的帮助。
 
-**[00:11:13.840–00:11:14.620] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:11:13.830–00:11:14.620] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 是。
 
@@ -458,7 +458,7 @@
 
 对，我们不要把自己盲目，所有的我们的古代的知识，也要学着现在的创新技术，也要，嗯，把
 
-**[00:12:03.030–00:12:14.570] S02**
+**[00:12:03.030–00:12:14.580] S02**
 
 我们的环境变好，也要把我们所有学的知识，变成运用保护我们的知识，也要保护我们的环境。
 
@@ -466,11 +466,11 @@
 
 说北方，还有，就是说比较是，呃，最近还不是说3套工业基地都是在北方嘛。然后，特别的，就是说对北方的污染，就是有一定影响的，像北京的雾霾那些，就是非常对人的影响就非常的大。
 
-**[00:12:31.110–00:12:34.170] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:12:31.110–00:12:34.160] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 然后，他们那边的温室效应比我们这边更高。
 
-**[00:12:34.170–00:12:35.010] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:12:34.160–00:12:35.010] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 是的。
 
@@ -486,15 +486,15 @@
 
 对，而且，而且他们的水资源，或者那些资源，就是比较缺乏。排水、白掉这些工程，所以一直说，北南方和北方还是要连接起来，不是说北方就属于北方，南方就属于南方。
 
-**[00:13:01.640–00:13:03.930] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:13:01.640–00:13:03.920] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 2个，就是说，不连接在一起。
 
-**[00:13:05.080–00:13:17.270] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:13:05.080–00:13:17.280] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 连接一起，南方的水就多，北方的水就不多。我们把南方的水引到北方里去，北方要
 
-**[00:13:17.270–00:13:22.910] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:13:17.280–00:13:22.910] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 电力，或者一些一些燃气啊，对我们北方人就会有极大的帮助。
 
@@ -506,7 +506,7 @@
 
 现在说，以前就说是煤，有煤炭烧制的，也是从北方运过来的。现在有天然气这些，让我们的生活就会更加的方便。
 
-**[00:13:34.150–00:13:35.040] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:13:34.140–00:13:35.040] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 是的。
 
@@ -518,7 +518,7 @@
 
 对，太阳能发电是最适合环保的。
 
-**[00:13:48.150–00:13:50.030] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:13:48.160–00:13:50.030] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 我们南方也不缺发电的。
 
@@ -526,11 +526,11 @@
 
 有水发电。
 
-**[00:13:52.010–00:13:52.590] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:13:52.010–00:13:52.440] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-对呀，是。
+对呀。
 
-**[00:13:53.780–00:13:54.940] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:13:53.780–00:13:54.920] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 等等啊。
 
@@ -546,23 +546,23 @@
 
 说到独特，我觉得南方的水，梯田还是非常不错的。
 
-**[00:14:15.480–00:14:23.670] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:14:15.470–00:14:23.660] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 这个节约水资源，还有，又很大，又成为一大这种风景区，让人更更加的了解到。
 
-**[00:14:24.240–00:14:26.790] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:14:24.240–00:14:26.780] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 怎么种植水稻？
 
-**[00:14:26.990–00:14:27.750] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:14:26.980–00:14:27.740] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 是的。
 
-**[00:14:30.340–00:14:34.450] S01**
+**[00:14:30.350–00:14:34.440] S01**
 
 而且，我们南方的茶叶在北方是非常的受欢迎。
 
-**[00:14:34.450–00:14:38.440] S02**
+**[00:14:34.440–00:14:38.440] S02**
 
 是的。我们南方，各种各样的茶叶。
 
@@ -570,7 +570,7 @@
 
 北方的茶叶都是由我们南方运过去的。以前他们古代皇帝就是说，不乏缺茶叶，但是就是说运输工程就非常的麻烦。从南方到运送到北方。
 
-**[00:14:52.320–00:14:53.090] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:14:52.310–00:14:53.090] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 是的。
 
@@ -582,19 +582,19 @@
 
 是的。
 
-**[00:14:58.410–00:15:07.220] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:14:58.410–00:15:07.210] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 而且我觉得，北方他们有这种水质的。就是种在水里的茶叶，我觉得也是不错的，是个不错的选择，也是个很大的开发项目。
 
-**[00:15:07.220–00:15:10.110] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:07.210–00:15:10.110] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 对的，也是一种创新。
 
-**[00:15:11.650–00:15:17.530] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:11.640–00:15:17.530] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 我们南北有，嗯，有温度差异，也有地理差异。
 
-**[00:15:17.530–00:15:27.270] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:17.530–00:15:27.260] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 是的，因为地理差异，让北方的水果就特别的适适合，就是冬天吃。然后我们南方的水果都是夏季或者秋季。
 
@@ -602,11 +602,11 @@
 
 这种2者相互结合起来，有空运、航运或水运，让2者的，就是说，一些物质交换就非常的方便。也让我们吃到了更多以前不敢尝，没有见识过的东西。
 
-**[00:15:39.340–00:15:53.580] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:39.340–00:15:53.570] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 是的。我们现在物质发达了，为什古代，嗯，物质很匮乏。但是，结合古代和现代的技术，有很大的提高。
 
-**[00:15:55.380–00:16:03.400] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:15:55.370–00:16:03.400] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 这人让，就是说，他们的技术就对我们的影响也很大，在前人的基础上，就创造了更多有意义的东西。
 
@@ -634,19 +634,19 @@
 
 但是，避暑也有避暑的条件。
 
-**[00:16:46.720–00:16:50.350] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:46.710–00:16:50.350] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 是的，所以说，南方是个避暑的地方。
 
-**[00:16:51.410–00:16:56.100] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:51.410–00:16:56.110] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 因为我们这里的山水就非常的好，空气温度适宜。
 
-**[00:16:56.100–00:16:58.540] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:16:56.110–00:16:58.550] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 对，温度适宜，空气也好。
 
-**[00:17:00.010–00:17:08.060] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:17:00.010–00:17:08.070] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 北方呢，就适合属于那种，适合去吃游玩的地方。因为特色的好吃。
 
@@ -718,7 +718,7 @@
 
 是的，如果你去，呃，乌鲁木齐，晚上去的，那你，那你去，那你是白天了。
 
-**[00:18:59.940–00:19:13.820] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:18:59.940–00:19:13.810] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 对，所以说，这边2年，就是让我们有一个循环的周期，让你四季就感觉都在一个地方。因为南方这边是冬天，你北方那边就是夏天。说，体验2个不同的夏天和2个冬天。
 
@@ -726,7 +726,7 @@
 
 就让人感觉，就是说，每年过的，就是生活的，就不一样。然后，一些像北方的一些东西啊，就是种到我们南方种植，也是这样，也是可以的。
 
-**[00:19:28.670–00:19:30.230] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:19:28.660–00:19:30.230] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 可以，也是可以。
 
@@ -734,27 +734,27 @@
 
 然后，北，我们南方的水质啊，那些东西，到北方是非常有发展的。
 
-**[00:19:41.040–00:19:47.230] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:19:41.040–00:19:47.240] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 我们南方的水质，去北方种植，也有一定发展。
 
-**[00:19:47.230–00:19:58.380] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:19:47.240–00:19:58.370] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 是的，发展，我觉得，发展前景挺好的。因为北方本来就是个比较干旱的地方，然后它又缺少一些水质种植的东西。
 
-**[00:19:58.380–00:20:07.250] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:19:58.370–00:20:07.230] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 如果说这个东西发展过去了，就家家户户都可以自己种。而且，比较种植的范围就比较小，如果说有大的范围，就
 
-**[00:20:07.250–00:20:20.050] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:20:07.230–00:20:20.040] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 对这些吃的一些比较水质的，就是说，没有接触过的东西，也是对很好的。说，不用说，去很远很远的地方，说代购回来，或者干嘛，自己在家里就可以种。
 
-**[00:20:20.050–00:20:20.930] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:20:20.040–00:20:20.940] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 是的。
 
-**[00:20:22.580–00:20:31.520] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:20:22.550–00:20:31.500] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 对，我们南方主要是面食，就是米饭，北方就是面食。像肉，肉泡，凉，凉泡馍。
 
@@ -818,31 +818,35 @@
 
 是的。
 
-**[00:22:27.610–00:22:40.300] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:22:27.610–00:22:40.310] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 你说，交个外国朋友吧，你，他会提高你的外语，但是你也会帮助他提升他的中文。不同的技巧，有不同，不同的人会给你带来不同的生活习惯，会给你带来不同的帮助。
+
+**[00:22:40.310–00:22:42.660] 说话人未知 · 待核对：joint_identity_unresolved, speaker_unknown, crosscheck_disagreement_in_interval**
+
+[Environmental Sounds]
 
 **[00:22:42.660–00:22:47.510] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 你在这边企业公司，有遇见不同的人吗？北方的人有吗？
 
-**[00:22:47.510–00:22:48.540] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:22:47.510–00:22:48.510] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 没有。
 
-**[00:22:48.540–00:22:49.550] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:22:48.510–00:22:49.560] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 都是南方的。
 
-**[00:22:50.570–00:22:56.480] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:22:50.600–00:22:56.480] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 你觉得南方人跟南方相处，肯定会有很多，但是跟北方人相处，就会有不同的体验。
 
-**[00:22:56.480–00:22:57.160] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:22:56.480–00:22:57.150] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 是的。
 
-**[00:22:57.160–00:23:10.310] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:22:57.150–00:23:10.310] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 因为北方人就特别的和蔼，就是热情，你问个什么，他会给你解释很多。尤其是你第1次看见，你会说，这个人怎么这么热情啊，有点吓住人呢，其实相处下来，就是他一直就是这个样子。
 
@@ -850,11 +854,11 @@
 
 是的。
 
-**[00:23:11.350–00:23:23.220] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:23:11.360–00:23:23.220] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 你不要被表面给吓住，也是说，北方也有弱，弱弱小小的姑娘，但是她里面的性子，显示的就是非常的开朗，活泼，热情的。有点招架不住。
 
-**[00:23:23.350–00:23:27.150] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:23:23.360–00:23:27.150] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 就是她把所有的心理话，都往外面说。
 
@@ -874,19 +878,19 @@
 
 我在，就是说，在读书的时候，也有一些不北方的朋友，因为大学生活本来就是来自五湖四海的嘛。不同的人，就是有不同的经历。
 
-**[00:23:49.840–00:24:04.620] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:23:49.850–00:24:04.610] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 也许说，他只喜欢，我我觉得，有些人就是，对我来说，就特别的专一。只喜欢一样东西，就不会再多喜欢其他的东西，就像他们一些人交朋友啊，就是说，我只固定的交你这一个，我跟你玩的最好。
 
-**[00:24:04.620–00:24:08.850] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:04.610–00:24:08.840] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 但是我不会跟别人玩的很少，我觉得这样的性格还是需要改变一下。
 
-**[00:24:09.210–00:24:12.900] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:09.210–00:24:12.890] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 是的，交朋友是交五湖四海的。
 
-**[00:24:12.900–00:24:24.040] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:12.890–00:24:24.050] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 对，你不能说，我只是，他就，他们就会觉得，我是要摆方人，我不喜欢跟南方人交朋友，因为他们说，南方人就是太太内向了，说话文文雅雅的，就是太斯文了点，不适合他。
 
@@ -894,15 +898,15 @@
 
 是的。
 
-**[00:24:24.910–00:24:35.260] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:24.910–00:24:35.250] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 他就说，想去交那种粗犷的那种开朗热情的朋友，但是那时候，我们这一个人，就是班上的人，差不多都是南方人，就没有北方人。
 
-**[00:24:35.260–00:24:41.310] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:35.250–00:24:41.300] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 但是他不可能就是一个人呆着嘛，就是在加入了我们，才发现，其实学习的是挺多的。
 
-**[00:24:42.880–00:24:43.530] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:42.850–00:24:43.500] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 是的。
 
@@ -910,7 +914,7 @@
 
 我们学习的，也从他身上学习的，也很多。
 
-**[00:24:48.830–00:24:58.860] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:24:48.820–00:24:58.860] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 就说，南北差异是有大的，但是我觉得，因为现在这个天气和地理文化差异，就是非常的融合，又有互联网的交通。
 
@@ -918,7 +922,7 @@
 
 觉得是非常，也许以后就会有一些文化或者习俗上的差异，但是也不会大的方面，不会太差。
 
-**[00:25:08.280–00:25:17.480] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:25:08.280–00:25:17.470] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 嗯，是的，嗯，行为上有差异，但是我们要交流。才有肯定的一切。
 
@@ -926,11 +930,11 @@
 
 嗯，就说他们那边的，就是那种传统的思想，就是那种开放的，然后又对他们那边，就有时候就会注重那些文学，就是国语教学，我觉得是非常体面的，可以去尝试一下。
 
-**[00:25:33.810–00:25:35.060] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:25:33.780–00:25:35.070] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 肯定尝试。
 
-**[00:25:35.560–00:25:47.930] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:25:35.550–00:25:47.930] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 因为本来就是古文学，国国学留下来，是给我们自己传承的，但是到了这一代，起了新青年一代，学习的更少，也接触的更少。
 
@@ -938,7 +942,7 @@
 
 现在新中国复，要走富强文明的道路，要有新中国复兴，那肯定要把这些东西要拾起来。从一基础的开始学习。
 
-**[00:25:59.870–00:26:09.610] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:25:59.860–00:26:09.610] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 从，呃，古代有优秀的传统，就传承下来。把新事物和古老的事物相结合。
 
@@ -986,15 +990,15 @@
 
 比较热情的心，去适应别的不同的文化，即使你自己不喜欢，但是别人也是热情的，是因为心意。
 
-**[00:28:02.620–00:28:11.180] S02 · 待核对：crosscheck_disagreement_in_interval**
+**[00:28:02.630–00:28:11.190] S02 · 待核对：crosscheck_disagreement_in_interval**
 
 是的，呃，各个国家的民俗都不一样，也要去尊敬。他们的国家的看法。
 
-**[00:28:11.460–00:28:20.970] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:28:11.460–00:28:20.980] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 在，就是说在文化课上学过，说有些国家是不吃猪肉的，你就不能在他们的人面前吃猪肉。因为这样子表示他们对他们不尊敬。
 
-**[00:28:20.970–00:28:34.700] S01 · 待核对：crosscheck_disagreement_in_interval**
+**[00:28:20.980–00:28:34.700] S01 · 待核对：crosscheck_disagreement_in_interval**
 
 有些就是风俗习惯，就是说西餐的礼仪，或者说一些见面的方式不一样，你要去学会。去适应也要，如果说去这种旅游之前，要做好一定的攻略，不要去冒冒失失的去打扰别人的。
 
@@ -1008,7 +1012,7 @@
 
 **[00:28:44.940–00:28:56.970] S01 · 待核对：crosscheck_disagreement_in_interval**
 
-虽然说我们现在是和大学生，就是处于这种学校时间，就是外出的经历比较少见，但是工作以后肯定会有许多外出的经历。
+虽然说我们现在是大学生，就是处于这种学校时间，就是外出的经历比较少见，但是工作以后肯定会有许多外出的经历。
 
 **[00:28:56.970–00:29:10.360] S01 · 待核对：crosscheck_disagreement_in_interval**
 

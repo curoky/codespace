@@ -18,7 +18,7 @@ async def infer(http: httpx2.AsyncClient, url: str, request: InferenceRequest) -
         "temperature": "0",
         "seed": "0",
         "stream": "true",
-        "max_completion_tokens": "8192",
+        "max_completion_tokens": "65536",
     }
     async with http.sse(
         url + "/v1/audio/transcriptions",

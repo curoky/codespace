@@ -25,7 +25,7 @@ MODELS = (
         max_audio_seconds=86400,
     ),
     ModelSpec("moss-audio", "moss-audio", memory_gib=32, max_inflight=2),
-    ModelSpec("moss-td", "moss-td", memory_gib=48, max_audio_seconds=180),
+    ModelSpec("moss-td", "moss-td", memory_gib=48, max_audio_seconds=3600),
     ModelSpec(
         "nemotron-diarization",
         "nemotron",

@@ -45,6 +45,12 @@ def test_regression_manifest_has_three_complete_fixtures_per_category() -> None:
 
     fixture_ids = set()
     audio_paths = set()
+    reference_sources = manifest["reference_sources"]
+    assert reference_sources["alimeeting-forced-alignment"] == {
+        "url": "https://github.com/nttcslab-sp/diar-forced-alignment",
+        "revision": "9527b7c64846fb38316a610f32e9d3466bd6d8b7",
+        "license": "CC BY-SA 4.0",
+    }
     for fixture in manifest["fixtures"]:
         assert fixture["id"] not in fixture_ids
         fixture_ids.add(fixture["id"])
@@ -72,6 +78,17 @@ def test_regression_manifest_has_three_complete_fixtures_per_category() -> None:
             source_path = REGRESSION_ROOT / reference["source_path"]
             assert source_path.is_file()
             assert file_sha256(source_path) == reference["source_sha256"]
+        diarization_reference = fixture.get("diarization_reference")
+        if fixture["category"] == "meeting":
+            assert diarization_reference is not None
+            assert diarization_reference["source"] in reference_sources
+            assert diarization_reference["format"] == "rttm"
+            assert diarization_reference["quality"] == "forced_alignment"
+            diarization_path = REGRESSION_ROOT / diarization_reference["path"]
+            assert diarization_path.is_file()
+            assert file_sha256(diarization_path) == diarization_reference["sha256"]
+        else:
+            assert diarization_reference is None
 
     for source in manifest["sources"].values():
         assert source["url"].startswith("https://")
@@ -89,6 +106,9 @@ def test_reference_parsers_cover_declared_speakers_and_text() -> None:
         assert evaluate.normalize("".join(span.text for span in spans))
         if fixture["reference"]["quality"] == "gold":
             assert len({span.speaker for span in spans}) == fixture["speakers"]["count"]
+            diarization_spans = evaluate.diarization_reference_spans(fixture)
+            assert diarization_spans
+            assert len({span.speaker for span in diarization_spans}) == fixture["speakers"]["count"]
 
 
 def test_metrics_distinguish_text_and_speaker_errors() -> None:

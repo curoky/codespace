@@ -222,6 +222,25 @@ def test_local_speaker_names_are_mapped_by_evidence() -> None:
     }
 
 
+def test_local_speaker_mapping_maximizes_one_to_one_evidence() -> None:
+    reference = [
+        Span(start_ms=0, end_ms=1000, speaker="S01"),
+        Span(start_ms=1000, end_ms=2000, speaker="S02"),
+    ]
+    local = [
+        Span(start_ms=0, end_ms=900, speaker="local-a"),
+        Span(start_ms=0, end_ms=800, speaker="local-b"),
+        Span(start_ms=1000, end_ms=1700, speaker="local-b"),
+        Span(start_ms=3000, end_ms=4000, speaker="local-c"),
+    ]
+
+    assert mapped_identity(local, reference) == {
+        "local-a": "S01",
+        "local-b": "S02",
+        "local-c": None,
+    }
+
+
 def test_joint_transcript_parsing_preserves_overlap() -> None:
     result = parse_joint("[0.2][S01]你好[1.5][1.0][S02]嗯[2.0]")
     assert result[0].end_ms > result[1].start_ms

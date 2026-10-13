@@ -2,7 +2,10 @@
   "recipe": "04-vibevoice",
   "status": "completed",
   "error": null,
-  "warnings": [],
+  "warnings": [
+    "joint_window_retry:351000:joint boundary alignment failed; cannot deduplicate safely",
+    "joint_window_retry:1407000:joint boundary alignment failed; cannot deduplicate safely"
+  ],
   "segments": [
     {
       "start_ms": 0,
@@ -20,7 +23,7 @@
     },
     {
       "start_ms": 5410,
-      "end_ms": 7500,
+      "end_ms": 7490,
       "text": "最近最火的电影，你看过没有？",
       "speakers": [
         "S02"
@@ -35,7 +38,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 7500,
+      "start_ms": 7490,
       "end_ms": 10340,
       "text": "是那个动漫电影，名叫哪吒吗？",
       "speakers": [
@@ -69,7 +72,7 @@
     {
       "start_ms": 13570,
       "end_ms": 18160,
-      "text": "对啊，我好像它还是破了动漫票房的最高纪录吧？",
+      "text": "对啊，我好像，它还是破了动漫票房的最高纪录吧？",
       "speakers": [
         "S01"
       ],
@@ -100,7 +103,7 @@
     },
     {
       "start_ms": 22720,
-      "end_ms": 24650,
+      "end_ms": 24640,
       "text": "嗯，那你，嗯，那你",
       "speakers": [
         "S01"
@@ -115,7 +118,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 24650,
+      "start_ms": 24640,
       "end_ms": 26140,
       "text": "你看，你是看过吧？",
       "speakers": [
@@ -164,7 +167,7 @@
     },
     {
       "start_ms": 32940,
-      "end_ms": 34090,
+      "end_ms": 33970,
       "text": "你没看过吗？",
       "speakers": [
         "S02"
@@ -179,8 +182,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 34420,
-      "end_ms": 35570,
+      "start_ms": 34410,
+      "end_ms": 35550,
       "text": "我看过啊。",
       "speakers": [
         "S01"
@@ -195,9 +198,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 37310,
+      "start_ms": 37320,
       "end_ms": 41160,
-      "text": "就是那个啊，你不是说你看过吗？说啥啦？",
+      "text": "就是那个啊，你不是说你看过吗？说的啥嘛？",
       "speakers": [
         "S02"
       ],
@@ -211,8 +214,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 42150,
-      "end_ms": 54310,
+      "start_ms": 42160,
+      "end_ms": 54590,
       "text": "好像是讲述哪哪吒，生来为魔，却却要那个逆行，逆向而行，做自己的故事，我感觉应该颠覆了，颠覆了以前那个",
       "speakers": [
         "S01"
@@ -227,8 +230,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 54550,
-      "end_ms": 58850,
+      "start_ms": 54590,
+      "end_ms": 58860,
       "text": "哪吒和哪吒，颠覆了以前哪吒的故事。",
       "speakers": [
         "S01"
@@ -243,7 +246,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 58960,
+      "start_ms": 58950,
       "end_ms": 61830,
       "text": "嗯，跟以前看的很很不一样。",
       "speakers": [
@@ -260,7 +263,7 @@
     },
     {
       "start_ms": 61830,
-      "end_ms": 64160,
+      "end_ms": 64180,
       "text": "嗯，对啊，它的",
       "speakers": [
         "S01"
@@ -275,9 +278,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 66780,
+      "start_ms": 66790,
       "end_ms": 76210,
-      "text": "它，我觉得它以前不是和敖丙，就是那个敖丙，那个龙王之太子嘛。反目成仇嘛，以前以前就是还帮了敖丙的那个龙筋嘛。",
+      "text": "它，我觉得，它以前不是和敖丙，就是那个敖丙，那个龙王之太子嘛。反目成仇嘛，以前以前就是还帮了敖丙的那个龙筋嘛。",
       "speakers": [
         "S01"
       ],
@@ -292,7 +295,7 @@
     },
     {
       "start_ms": 77000,
-      "end_ms": 80500,
+      "end_ms": 80490,
       "text": "到到这部动漫里面，他和那个敖丙是个好朋友。",
       "speakers": [
         "S01"
@@ -307,7 +310,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 80670,
+      "start_ms": 80660,
       "end_ms": 82130,
       "text": "嗯，还是唯一的好朋友。",
       "speakers": [
@@ -324,8 +327,8 @@
     },
     {
       "start_ms": 82130,
-      "end_ms": 93250,
-      "text": "对，因为那，因为我觉得好像是敖丙和和那个哪吒，好像是那个两个两个领珠吧。",
+      "end_ms": 93260,
+      "text": "对，因为那，因为我觉得，好像是敖丙和和那个哪吒，好像是那个两个两个领珠吧。",
       "speakers": [
         "S01"
       ],
@@ -339,8 +342,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 94310,
-      "end_ms": 98890,
+      "start_ms": 94320,
+      "end_ms": 98880,
       "text": "一个一个是，反正一个好像是善良的，一个是",
       "speakers": [
         "S02"
@@ -356,7 +359,7 @@
     },
     {
       "start_ms": 100210,
-      "end_ms": 106020,
+      "end_ms": 106030,
       "text": "哪吒是，哪吒是那个比较，哪吒是罪恶的，然后敖敖丙是善良的。",
       "speakers": [
         "S01"
@@ -371,8 +374,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 106020,
-      "end_ms": 117880,
+      "start_ms": 106030,
+      "end_ms": 117890,
       "text": "本来应该哪吒是善良的吧。但是被换了。那里面敖丙都，敖丙还突破了，也突破了以前的一个那个，以前的敖丙都颜值都不怎么高的。",
       "speakers": [
         "S02"
@@ -387,9 +390,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 118230,
-      "end_ms": 124600,
-      "text": "在抖音啊、微博里面都说，敖丙你要是长这个样子，以前我早就把哪吒看完了，好多人都这样说。",
+      "start_ms": 118210,
+      "end_ms": 124410,
+      "text": "在抖音啊、微博里面，都说敖丙，你要是长这个样子，以前我早就把哪吒看完了，好多人都这样说。",
       "speakers": [
         "S02"
       ],
@@ -403,8 +406,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 124600,
-      "end_ms": 125710,
+      "start_ms": 124660,
+      "end_ms": 125720,
       "text": "哇，是吗？",
       "speakers": [
         "S01"
@@ -419,7 +422,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 125710,
+      "start_ms": 125720,
       "end_ms": 134710,
       "text": "对啊。敖丙，敖丙那个声音也挺好听的呀，你知道那个是谁呀？是谁配的音呀？动漫不是都有配音吗？",
       "speakers": [
@@ -436,7 +439,7 @@
     },
     {
       "start_ms": 134710,
-      "end_ms": 135230,
+      "end_ms": 135240,
       "text": "对啊。",
       "speakers": [
         "S01"
@@ -451,8 +454,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 135230,
-      "end_ms": 136000,
+      "start_ms": 135240,
+      "end_ms": 136010,
       "text": "敖丙。",
       "speakers": [
         "S02"
@@ -467,8 +470,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 136170,
-      "end_ms": 137310,
+      "start_ms": 136190,
+      "end_ms": 137320,
       "text": "敖丙。",
       "speakers": [
         "S01"
@@ -483,7 +486,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 137780,
+      "start_ms": 137800,
       "end_ms": 140210,
       "text": "是什哪位老师配的音，是吧？",
       "speakers": [
@@ -500,7 +503,7 @@
     },
     {
       "start_ms": 140210,
-      "end_ms": 142370,
+      "end_ms": 142380,
       "text": "敖丙是汉默配的音。",
       "speakers": [
         "S01"
@@ -515,9 +518,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 143670,
-      "end_ms": 150250,
-      "text": "好像以前也看过一些他的作品，然后还有那个谁啊，那个那个哪吒他的师傅。",
+      "start_ms": 143710,
+      "end_ms": 150260,
+      "text": "好像以前也看过一些他的作品，然后还有那个谁啊，那个那个哪吒，他的师傅",
       "speakers": [
         "S02"
       ],
@@ -531,7 +534,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 150250,
+      "start_ms": 150260,
       "end_ms": 151560,
       "text": "那那个太乙真人嘛。",
       "speakers": [
@@ -548,7 +551,7 @@
     },
     {
       "start_ms": 151560,
-      "end_ms": 152410,
+      "end_ms": 152420,
       "text": "对啊，那个太乙真人，我觉",
       "speakers": [
         "S02"
@@ -563,7 +566,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 152930,
+      "start_ms": 152920,
       "end_ms": 165390,
       "text": "对啊，我感觉他肥胖，感觉他憨态可掬的样子，还有他走路起来那种那种稳重淡骚的那种感觉，真的是真是，是感，感觉很好笑。",
       "speakers": [
@@ -595,8 +598,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 173760,
-      "end_ms": 175920,
+      "start_ms": 173770,
+      "end_ms": 175930,
       "text": "太乙真人，他的那个，他那个",
       "speakers": [
         "S01"
@@ -608,88 +611,88 @@
       "tokens": [
         {
           "text": "太",
-          "start_ms": 173760,
-          "end_ms": 174000,
+          "start_ms": 173770,
+          "end_ms": 173930,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "乙",
-          "start_ms": 173920,
-          "end_ms": 174000,
+          "start_ms": 173930,
+          "end_ms": 174010,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "真",
-          "start_ms": 174000,
-          "end_ms": 174080,
+          "start_ms": 174010,
+          "end_ms": 174090,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "人，",
-          "start_ms": 174080,
-          "end_ms": 174400,
+          "start_ms": 174090,
+          "end_ms": 174410,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "他",
-          "start_ms": 174400,
-          "end_ms": 174560,
+          "start_ms": 174410,
+          "end_ms": 174570,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "的",
-          "start_ms": 174560,
-          "end_ms": 174640,
+          "start_ms": 174570,
+          "end_ms": 174650,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "那",
-          "start_ms": 174720,
-          "end_ms": 174880,
+          "start_ms": 174730,
+          "end_ms": 174890,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "个，",
-          "start_ms": 174880,
-          "end_ms": 175040,
+          "start_ms": 174890,
+          "end_ms": 175050,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "他",
-          "start_ms": 175440,
-          "end_ms": 175520,
+          "start_ms": 175450,
+          "end_ms": 175530,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "那",
-          "start_ms": 175520,
-          "end_ms": 175680,
+          "start_ms": 175530,
+          "end_ms": 175690,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "个",
-          "start_ms": 175680,
-          "end_ms": 175920,
+          "start_ms": 175690,
+          "end_ms": 175930,
           "speakers": [
             "S01"
           ]
@@ -813,7 +816,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 180830,
+      "start_ms": 180820,
       "end_ms": 186240,
       "text": "然后，那你知道那个那个少那个少年哪吒配音是谁吗？",
       "speakers": [
@@ -909,8 +912,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 211700,
-      "end_ms": 212330,
+      "start_ms": 211680,
+      "end_ms": 212320,
       "text": "然后",
       "speakers": [
         "S02"
@@ -925,7 +928,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 212330,
+      "start_ms": 212320,
       "end_ms": 213530,
       "text": "那叫什么名字呢？",
       "speakers": [
@@ -941,13 +944,28 @@
       "decision": "primary"
     },
     {
-      "start_ms": 214340,
+      "start_ms": 214330,
       "end_ms": 217930,
       "text": "我也不太清楚，哎，反正那个名字比较复杂，是个外国人。",
       "speakers": [
         "S02"
       ],
       "flags": [],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 217930,
+      "end_ms": 220740,
+      "text": "[Human Sounds]",
+      "speakers": [],
+      "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown"
+      ],
       "channel": null,
       "tokens": [],
       "candidates": {},
@@ -971,7 +989,23 @@
       "decision": "primary"
     },
     {
-      "start_ms": 228470,
+      "start_ms": 225850,
+      "end_ms": 228480,
+      "text": "[Environmental Sounds]",
+      "speakers": [],
+      "flags": [
+        "joint_identity_unresolved",
+        "speaker_unknown",
+        "crosscheck_disagreement_in_interval"
+      ],
+      "channel": null,
+      "tokens": [],
+      "candidates": {},
+      "reviews": {},
+      "decision": "primary"
+    },
+    {
+      "start_ms": 228480,
       "end_ms": 231690,
       "text": "那这个这个电影，它具体到底是怎样的？",
       "speakers": [
@@ -988,7 +1022,7 @@
     },
     {
       "start_ms": 231940,
-      "end_ms": 242220,
+      "end_ms": 242210,
       "text": "我觉得，它应该是这样子的，走那个，首先那个片，那个电影的开头，它是，它是天地灵气",
       "speakers": [
         "S01"
@@ -1003,7 +1037,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 242450,
+      "start_ms": 242460,
       "end_ms": 251850,
       "text": "它孕育出1颗能量，能量巨大的混元珠嘛，然后那个原始天尊将混元珠提炼成了灵珠和魔丸。",
       "speakers": [
@@ -1019,7 +1053,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 252070,
+      "start_ms": 252080,
       "end_ms": 264210,
       "text": "然后那个灵珠投胎为人，助周，助周伐伐纣时，可堪大用嘛，就是干，就是他投胎是为了帮",
       "speakers": [
@@ -1067,7 +1101,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 283610,
+      "start_ms": 283600,
       "end_ms": 297620,
       "text": "3年后，天雷会降临，然后摧毁，摧毁魔丸嘛。然后那个太乙真人，太乙真人，他就受命将灵珠托生于那个陈塘关的李靖家的儿子，那个哪吒身上嘛。",
       "speakers": [
@@ -1083,8 +1117,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 298030,
-      "end_ms": 302700,
+      "start_ms": 298020,
+      "end_ms": 302710,
       "text": "然后，阴差阳错嘛，灵珠和魔丸竟然被调包了。",
       "speakers": [
         "S01"
@@ -1099,7 +1133,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 304010,
+      "start_ms": 304020,
       "end_ms": 304810,
       "text": "调包。",
       "speakers": [
@@ -1132,7 +1166,7 @@
     },
     {
       "start_ms": 318420,
-      "end_ms": 320320,
+      "end_ms": 320330,
       "text": "啊，所以哪吒就是魔童。",
       "speakers": [
         "S02"
@@ -1147,7 +1181,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 320320,
+      "start_ms": 320330,
       "end_ms": 325050,
       "text": "对，然后那个，然后哪吒就成了那个混世大魔王嘛。",
       "speakers": [
@@ -1163,8 +1197,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 325920,
-      "end_ms": 327330,
+      "start_ms": 325930,
+      "end_ms": 327320,
       "text": "那他做了些啥呀？",
       "speakers": [
         "S02"
@@ -1179,7 +1213,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 327330,
+      "start_ms": 327320,
       "end_ms": 337910,
       "text": "他做了些什么，他就他就做了一些那个，就是就是逆天，逆天，逆天行事的那些事情嘛。",
       "speakers": [
@@ -1211,7 +1245,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 345720,
+      "start_ms": 345730,
       "end_ms": 348370,
       "text": "到处捣乱，捉弄人家。",
       "speakers": [
@@ -1228,7 +1262,7 @@
     },
     {
       "start_ms": 349300,
-      "end_ms": 350010,
+      "end_ms": 350020,
       "text": "嗯。",
       "speakers": [
         "S01"
@@ -1241,7 +1275,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 351680,
+      "start_ms": 351700,
       "end_ms": 353000,
       "text": "",
       "speakers": [
@@ -1257,9 +1291,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 352200,
-      "end_ms": 357720,
-      "text": "那哪吒这个电影，应该获得了很多那个吧，很，我觉得很多人都觉得它很好啊。",
+      "start_ms": 352000,
+      "end_ms": 357740,
+      "text": "哪吒这个电影应该获得了很多那个吧，很，我觉得很多人都觉得它很好啊。",
       "speakers": [
         "S02"
       ],
@@ -1267,264 +1301,15 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "那",
-          "start_ms": 352200,
-          "end_ms": 352440,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "哪",
-          "start_ms": 352360,
-          "end_ms": 352440,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "吒",
-          "start_ms": 352440,
-          "end_ms": 352520,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "这",
-          "start_ms": 352600,
-          "end_ms": 352760,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "个",
-          "start_ms": 352760,
-          "end_ms": 352760,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "电",
-          "start_ms": 352760,
-          "end_ms": 353080,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "影，",
-          "start_ms": 353080,
-          "end_ms": 353160,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "应",
-          "start_ms": 353160,
-          "end_ms": 353240,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "该",
-          "start_ms": 353240,
-          "end_ms": 353480,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "获",
-          "start_ms": 353880,
-          "end_ms": 354040,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "得",
-          "start_ms": 354040,
-          "end_ms": 354120,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "了",
-          "start_ms": 354120,
-          "end_ms": 354120,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "很",
-          "start_ms": 354120,
-          "end_ms": 354360,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "多",
-          "start_ms": 354360,
-          "end_ms": 354520,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "那",
-          "start_ms": 354520,
-          "end_ms": 354760,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "个",
-          "start_ms": 354840,
-          "end_ms": 354840,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "吧，",
-          "start_ms": 354840,
-          "end_ms": 355160,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "很，",
-          "start_ms": 355160,
-          "end_ms": 355320,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "我",
-          "start_ms": 356040,
-          "end_ms": 356120,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "觉",
-          "start_ms": 356120,
-          "end_ms": 356280,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "得",
-          "start_ms": 356280,
-          "end_ms": 356280,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "很",
-          "start_ms": 356280,
-          "end_ms": 356440,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "多",
-          "start_ms": 356520,
-          "end_ms": 356600,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "人",
-          "start_ms": 356600,
-          "end_ms": 356680,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "都",
-          "start_ms": 356680,
-          "end_ms": 356760,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "觉",
-          "start_ms": 356760,
-          "end_ms": 356920,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "得",
-          "start_ms": 356920,
-          "end_ms": 357080,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "它",
-          "start_ms": 357000,
-          "end_ms": 357160,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "很",
-          "start_ms": 357080,
-          "end_ms": 357240,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "好",
-          "start_ms": 357320,
-          "end_ms": 357480,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "啊。",
-          "start_ms": 357480,
-          "end_ms": 357720,
-          "speakers": [
-            "S02"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
       "start_ms": 357740,
-      "end_ms": 366810,
-      "text": "对啊，然后它在，它在那个，019年那个9月6日嘛，它获得了那个12届中国国际漫画，",
+      "end_ms": 366740,
+      "text": "对啊，然后它在，它在那个，零一九年那个9月6日嘛，它获得了那个12届中国国际漫画",
       "speakers": [
         "S01"
       ],
@@ -1538,9 +1323,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 367410,
-      "end_ms": 377510,
-      "text": "国际漫漫画，第第16届那个中国动漫金龙颁奖大会，于广州进行嘛。然后那个，就是不是那个哪吒那个电影嘛。",
+      "start_ms": 367380,
+      "end_ms": 381280,
+      "text": "国际漫漫画，第第16届那个中国动漫金融颁奖大会于广州进行嘛。然后那个，就是不是那个哪吒那个电影嘛。它获得了那个最佳动画片长片那个金奖。",
       "speakers": [
         "S01"
       ],
@@ -1554,9 +1339,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 377760,
-      "end_ms": 389690,
-      "text": "它获得了那个最佳动画片长片那个金奖，还有那个最佳动画动画导演奖，还有一个最佳动画编剧奖。还有一个最佳动画配音奖，它获得了好多。",
+      "start_ms": 381280,
+      "end_ms": 389650,
+      "text": "然后那个最佳动画动画导演奖，还有一个最佳动画编剧奖。还有一个最佳动画配音奖，它获得了好多。",
       "speakers": [
         "S01"
       ],
@@ -1570,8 +1355,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 389690,
-      "end_ms": 390850,
+      "start_ms": 389650,
+      "end_ms": 390820,
       "text": "全被拿了。",
       "speakers": [
         "S02"
@@ -1586,9 +1371,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 390850,
-      "end_ms": 396280,
-      "text": "对啊，我感觉它它这个，它这个电影那个含金量，也也挺高的。",
+      "start_ms": 390820,
+      "end_ms": 396260,
+      "text": "对啊，我感觉它它这个，它这个电影那个含金量也也挺高的。",
       "speakers": [
         "S01"
       ],
@@ -1602,9 +1387,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 396280,
-      "end_ms": 398240,
-      "text": "看那个票房就知道，能获得的票房。",
+      "start_ms": 396260,
+      "end_ms": 398200,
+      "text": "看那个票房就知道，那么高的票房。",
       "speakers": [
         "S02"
       ],
@@ -1618,9 +1403,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 398440,
-      "end_ms": 409500,
-      "text": "然后，最最主要的是，它在，19，同年的一九年的10月8日，然后它代表中国内地去参选那个，那个，",
+      "start_ms": 398410,
+      "end_ms": 409470,
+      "text": "然后，最最主要的是，它在，一九，同年的一九年的10月8日，然后它代表中国内地去参选那个那个",
       "speakers": [
         "S01"
       ],
@@ -1634,8 +1419,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 409720,
-      "end_ms": 418330,
+      "start_ms": 409660,
+      "end_ms": 418290,
       "text": "二，嗯，20年的那个，92，90，92届奥斯卡最佳国际影片。奥斯卡，你应该知道是什么吧？",
       "speakers": [
         "S01"
@@ -1650,8 +1435,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 418330,
-      "end_ms": 418930,
+      "start_ms": 418290,
+      "end_ms": 418880,
       "text": "知道，知道。",
       "speakers": [
         "S02"
@@ -1666,9 +1451,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 418930,
-      "end_ms": 427730,
-      "text": "就是奥奥斯卡金奖，还有那个，啊，那个奥斯卡影帝的那那个，是吧？还有最佳国际影片啊。",
+      "start_ms": 418880,
+      "end_ms": 427680,
+      "text": "就是奥奥斯卡经典和那个，啊，那个奥斯卡影帝的那那个什么。啊，最佳国际影片啊。",
       "speakers": [
         "S01"
       ],
@@ -1682,8 +1467,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 429260,
-      "end_ms": 436910,
+      "start_ms": 429220,
+      "end_ms": 436890,
       "text": "然后，你你觉得，你觉得你在那个哪吒里面，你你最喜欢哪个哪个人物呢？他的性格又是什么呢？",
       "speakers": [
         "S01"
@@ -1698,8 +1483,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 437060,
-      "end_ms": 440230,
+      "start_ms": 437000,
+      "end_ms": 440190,
       "text": "当然就喜欢那个太乙真人了，特别搞笑，我觉得太乙真人。",
       "speakers": [
         "S02"
@@ -1714,9 +1499,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 440230,
-      "end_ms": 449210,
-      "text": "你觉得他要是，他要是，感觉他要是，他在现实中，你觉得你你有什么东西向他学习的？",
+      "start_ms": 440190,
+      "end_ms": 449160,
+      "text": "你觉得他要是，他要是感觉他要是，他在现实中，你觉得你你有什么东西向他学习的？",
       "speakers": [
         "S01"
       ],
@@ -1730,9 +1515,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 449910,
-      "end_ms": 458580,
-      "text": "太乙吧，他就是，我觉得他最大的亮点就是有一颗善良的心嘛。他他能够，反正就一直为了，为了，",
+      "start_ms": 449860,
+      "end_ms": 461420,
+      "text": "太乙吧，他就是，我觉得他最大的亮点就是有一颗善良的心嘛。他他能够，反正就一直为了，为了虽然，虽然那个",
       "speakers": [
         "S02"
       ],
@@ -1746,9 +1531,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 459130,
-      "end_ms": 473090,
-      "text": "虽然，虽然那个灵珠，灵珠搞混以后，他的错在里面，但是他一直为了那个哪吒，一直，然后还把哪吒收为徒弟啊，一直带着哪吒修炼啊，什么的，为了，为了让哪吒能够活下去。",
+      "start_ms": 461420,
+      "end_ms": 473040,
+      "text": "灵珠，灵珠搞混，有他的错在里面，但是他一直为了那个哪吒一直，然后还把哪吒收为徒弟啊，一直带着哪吒修炼啊，什么的，为了为了让哪吒能够活下去。",
       "speakers": [
         "S02"
       ],
@@ -1762,9 +1547,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 473880,
-      "end_ms": 478210,
-      "text": "他在现实中，能教会你什么一些什么样的性格，什么样的东西呢？",
+      "start_ms": 473680,
+      "end_ms": 478180,
+      "text": "你觉得他在现实中能教会你什么，一些什么样的性格，什么样的东西吗？",
       "speakers": [
         "S01"
       ],
@@ -1778,9 +1563,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 479630,
-      "end_ms": 487210,
-      "text": "就是，学会他的身，身心洒脱吧。然后他很幽默啊，又不贪恋那种权色啊。",
+      "start_ms": 479600,
+      "end_ms": 487170,
+      "text": "就是学会他的身，身心洒脱吧。然后他很幽默啊，又不贪恋那种权色啊。",
       "speakers": [
         "S02"
       ],
@@ -1794,9 +1579,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 487210,
-      "end_ms": 496380,
-      "text": "对啊，然后我觉得的话，我觉得我要是能从太乙真人里面学习，我能学习，学习一些比较正能量的，比如像那种，",
+      "start_ms": 487510,
+      "end_ms": 496440,
+      "text": "啊，然后我觉得的话，我觉得我要是能从太乙真人里面学习，我能学习学习一些比较正能量的，比如像那种",
       "speakers": [
         "S01"
       ],
@@ -1810,9 +1595,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 496840,
-      "end_ms": 506660,
-      "text": "那种乐观的，乐观的生活态度，还有那种生活，生活激情，生活激情的那种态度，还有那种知足常乐的那种态度。",
+      "start_ms": 496770,
+      "end_ms": 506610,
+      "text": "那种乐观的，乐观的生活态度，还有那种生活生活，激情生活，激情的那种态度，还有那种知足常乐的那种态度。",
       "speakers": [
         "S01"
       ],
@@ -1826,9 +1611,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 508250,
-      "end_ms": 515510,
-      "text": "而且，而且太乙真人他这个，这个角色啊，他是，有凭有据的。",
+      "start_ms": 508210,
+      "end_ms": 515450,
+      "text": "而且而且，太乙真人他这个形，这个角色啊，他是有凭有据的。",
       "speakers": [
         "S02"
       ],
@@ -1842,9 +1627,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 515510,
-      "end_ms": 522700,
-      "text": "对啊，然后太乙真人他刚开头走的那一段武打，是感觉，",
+      "start_ms": 515450,
+      "end_ms": 522640,
+      "text": "对啊，然后太乙真人他刚开头走的那一段武打，是感觉",
       "speakers": [
         "S01"
       ],
@@ -1858,8 +1643,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 524680,
-      "end_ms": 525840,
+      "start_ms": 524630,
+      "end_ms": 525810,
       "text": "那个T台。",
       "speakers": [
         "S02"
@@ -1874,8 +1659,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 526080,
-      "end_ms": 528080,
+      "start_ms": 525810,
+      "end_ms": 528000,
       "text": "对啊，感觉他",
       "speakers": [
         "S01"
@@ -1884,48 +1669,7 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "对",
-          "start_ms": 526080,
-          "end_ms": 526160,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "啊，",
-          "start_ms": 526160,
-          "end_ms": 526320,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "感",
-          "start_ms": 527520,
-          "end_ms": 527680,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "觉",
-          "start_ms": 527680,
-          "end_ms": 527760,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "他",
-          "start_ms": 527840,
-          "end_ms": 528080,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
@@ -2038,7 +1782,7 @@
     {
       "start_ms": 531720,
       "end_ms": 540150,
-      "text": "真的，感觉像，感觉像是，噢，说说起这个，说起这个，你你有没有想到那个泰囧的那个周继是什么？",
+      "text": "真的，感觉像，感觉像是，噢，说，说起这个，说起这个，你你有没有想到那个泰囧的那个周继是什么？",
       "speakers": [
         "S01"
       ],
@@ -2053,7 +1797,7 @@
     },
     {
       "start_ms": 540150,
-      "end_ms": 540960,
+      "end_ms": 540970,
       "text": "猪啊。",
       "speakers": [
         "S02"
@@ -2068,7 +1812,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 540960,
+      "start_ms": 540970,
       "end_ms": 546700,
       "text": "对啊，他那周杰，他那猪，还有，还有，感觉那个猪，那个猪，好好搞笑。",
       "speakers": [
@@ -2085,7 +1829,7 @@
     },
     {
       "start_ms": 546700,
-      "end_ms": 548520,
+      "end_ms": 548530,
       "text": "那个猪也符合他的身份嘛。",
       "speakers": [
         "S02"
@@ -2100,9 +1844,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 548520,
+      "start_ms": 548530,
       "end_ms": 553610,
-      "text": "对啊。还有，还有，不过我感觉他也有一点不好的。",
+      "text": "对啊。啊，还有，不过我感觉他也有一点不好的。",
       "speakers": [
         "S01"
       ],
@@ -2148,7 +1892,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 563620,
+      "start_ms": 563610,
       "end_ms": 572170,
       "text": "而且他经受不住诱惑，就是那个他喝酒的那一段。就是因为他喝酒，所以才导致了那个领主被偷啊。",
       "speakers": [
@@ -2166,7 +1910,7 @@
     {
       "start_ms": 572820,
       "end_ms": 573780,
-      "text": "还有，",
+      "text": "还有。",
       "speakers": [
         "S01"
       ],
@@ -2211,7 +1955,7 @@
     },
     {
       "start_ms": 592360,
-      "end_ms": 597910,
+      "end_ms": 597900,
       "text": "嗯，不过我感觉他申公豹很好笑，他最好笑的一点是口吃。",
       "speakers": [
         "S01"
@@ -2228,7 +1972,7 @@
     {
       "start_ms": 599580,
       "end_ms": 614150,
-      "text": "申公豹，申公豹后面还有个故事嘞。申公豹那个变身的特效啊，之前本来导演是找了一个特效的公司，但是做了两三个月都没有做出来那个想要的效果。",
+      "text": "申公豹，申公豹后面还有个故事嘞。申公豹那个变身的特效啊。之前本来导演是找了一个特效的公司。但是做了两三个月都没有做出来那个想要的效果。",
       "speakers": [
         "S02"
       ],
@@ -2258,8 +2002,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 624840,
-      "end_ms": 627070,
+      "start_ms": 624820,
+      "end_ms": 627060,
       "text": "最后才是终于还是做出来了。",
       "speakers": [
         "S01"
@@ -2274,7 +2018,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 628720,
+      "start_ms": 628730,
       "end_ms": 632800,
       "text": "除了那个哪吒，以前还看过好多关于成龙的电影。",
       "speakers": [
@@ -2292,7 +2036,7 @@
     {
       "start_ms": 632800,
       "end_ms": 643940,
-      "text": "对啊，成龙是那国际巨星，也是我一直那个崇拜的偶像嘛。我说，然后我崇拜的偶像里面，成龙就是，感觉他在电影里面就是很",
+      "text": "对啊，成龙是那国际巨星，也是我一直那个崇拜的偶像嘛。我说，啊，我崇拜的偶像里面，成龙就是，感觉他在电影里面就是很",
       "speakers": [
         "S01"
       ],
@@ -2308,7 +2052,7 @@
     {
       "start_ms": 644280,
       "end_ms": 652600,
-      "text": "很很认真，而且他他，我感觉他最好的一点就是什么嘛，他就是说拍电影的时候从来都不用替身的。",
+      "text": "很很认真，而且他他，我感觉他最好的一点就是什么嘛。他就是说，拍电影的时候从来都不用替身的。",
       "speakers": [
         "S01"
       ],
@@ -2338,7 +2082,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 656060,
+      "start_ms": 656070,
       "end_ms": 658650,
       "text": "不像现在有的明星，动不动就",
       "speakers": [
@@ -2355,7 +2099,7 @@
     },
     {
       "start_ms": 658650,
-      "end_ms": 659220,
+      "end_ms": 659230,
       "text": "替身。",
       "speakers": [
         "S01"
@@ -2370,9 +2114,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 660220,
+      "start_ms": 660230,
       "end_ms": 663830,
-      "text": "啊，痛啊，碰到一点点哪里就就不干啊。",
+      "text": "啊，痛啊，碰到一点点哪里就不干啊。",
       "speakers": [
         "S02"
       ],
@@ -2387,8 +2131,8 @@
     },
     {
       "start_ms": 663830,
-      "end_ms": 671550,
-      "text": "哦，像你这里，我我又想到了以前成龙，成龙他不是做了，做了3个，是3个很危险的动作嘛。",
+      "end_ms": 671560,
+      "text": "噢，像你这里，我我又想到了以前成龙，成龙他不是做了，做了3个，是3个很危险的动作嘛。",
       "speakers": [
         "S01"
       ],
@@ -2402,8 +2146,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 671550,
-      "end_ms": 672480,
+      "start_ms": 671560,
+      "end_ms": 672490,
       "text": "哪3个？",
       "speakers": [
         "S02"
@@ -2418,7 +2162,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 672480,
+      "start_ms": 672490,
       "end_ms": 685780,
       "text": "就是第1个，第1个好像是在在一个国外的地方，他就拍摄电影嘛。从一个28楼的那个那个楼下那里，他直接，他直接没没有任何安全措施，直接",
       "speakers": [
@@ -2435,8 +2179,8 @@
     },
     {
       "start_ms": 685780,
-      "end_ms": 697570,
-      "text": "直接从从塔顶跑，塔顶跑向塔顶，跑向塔，就是让，就是那个塔顶一直跑下去嘛。",
+      "end_ms": 697560,
+      "text": "直接从从塔顶跑下，塔顶跑向塔顶，跑向塔，就是让，就是那个塔顶一直跑下去嘛。",
       "speakers": [
         "S01"
       ],
@@ -2466,9 +2210,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 703360,
-      "end_ms": 703760,
-      "text": "怎么吧？",
+      "start_ms": 702880,
+      "end_ms": 703840,
+      "text": "真不帮。",
       "speakers": [
         "S02"
       ],
@@ -2476,32 +2220,7 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "怎",
-          "start_ms": 703360,
-          "end_ms": 703440,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "么",
-          "start_ms": 703440,
-          "end_ms": 703520,
-          "speakers": [
-            "S02"
-          ]
-        },
-        {
-          "text": "吧？",
-          "start_ms": 703680,
-          "end_ms": 703760,
-          "speakers": [
-            "S02"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
@@ -2524,7 +2243,7 @@
     },
     {
       "start_ms": 705180,
-      "end_ms": 706010,
+      "end_ms": 706020,
       "text": "怎么帮？",
       "speakers": [
         "S02"
@@ -2539,8 +2258,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 706010,
-      "end_ms": 719120,
+      "start_ms": 706020,
+      "end_ms": 719110,
       "text": "对啊，还有一个，还有一个，他从一个，他从一个商品，就是那个那个商场那里，从从一个这么高的，从一个很高的地方，然后直接拿",
       "speakers": [
         "S01"
@@ -2555,7 +2274,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 720110,
+      "start_ms": 720070,
       "end_ms": 722410,
       "text": "爬个柱子滑下来，是吧？我好像看到过那个。",
       "speakers": [
@@ -2573,7 +2292,7 @@
     {
       "start_ms": 722410,
       "end_ms": 732930,
-      "text": "不，他不是爬个柱子，他是直接，就是不是有那些，嗯，是那些灯泡，灯泡吗？亮起一闪一闪的那些吗？他不是有个绳子一样",
+      "text": "不，他不是爬个柱子，他是直接，就是不是有那些，嗯，是那些灯泡灯泡吗？亮起一闪一闪的那些吗？他不是有个绳子一样",
       "speakers": [
         "S01"
       ],
@@ -2588,8 +2307,8 @@
     },
     {
       "start_ms": 733010,
-      "end_ms": 743780,
-      "text": "连接绳子的嘛，他直接，嗯，抓住那个，直接滑下来，滑到，滑到下面。还有一个是，还有个是嘛，还有个是",
+      "end_ms": 743800,
+      "text": "连接绳子的吗？他直接，嗯，抓住那个，直接滑下来，滑到，滑到下面。还有一个是，还有个是嘛，还有个是",
       "speakers": [
         "S01"
       ],
@@ -2603,7 +2322,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 745670,
+      "start_ms": 745680,
       "end_ms": 747120,
       "text": "是在",
       "speakers": [
@@ -2617,7 +2336,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 748610,
+      "start_ms": 748620,
       "end_ms": 760450,
       "text": "这个我也不清楚了，反正我记得，嗯，最后一次好像是在那个很严重的地方，就是他自己的头盖骨这里。嗯，因为跳了，他那一次他头的骨那里碎裂了嘛，然后",
       "speakers": [
@@ -2634,8 +2353,8 @@
     },
     {
       "start_ms": 760450,
-      "end_ms": 772500,
-      "text": "他还是请那个外地医生，那个本地的医生，正好有一个头颅，头颅医生路过嘛，然后就看到了，然后把成了，就做，就治好了自己的伤。",
+      "end_ms": 772530,
+      "text": "他还是请那个外地医生，那个本地的医生正好有一个头颅，头颅医生路过嘛，然后就看到了，然后把成了，就做，就治好了自己的伤。",
       "speakers": [
         "S01"
       ],
@@ -2649,8 +2368,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 772980,
-      "end_ms": 775690,
+      "start_ms": 772990,
+      "end_ms": 775710,
       "text": "他受伤这么严重，他应该都是伤到身上。",
       "speakers": [
         "S02"
@@ -2665,7 +2384,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 775950,
+      "start_ms": 775970,
       "end_ms": 782250,
       "text": "对啊，然后没没发现啊，现在往年都一般都不打，不打片，都是接接一些代言嘛。",
       "speakers": [
@@ -2697,7 +2416,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 791390,
+      "start_ms": 791380,
       "end_ms": 794910,
       "text": "喜剧式的动作风格的，我想一下。",
       "speakers": [
@@ -2713,8 +2432,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 795940,
-      "end_ms": 799600,
+      "start_ms": 795950,
+      "end_ms": 799610,
       "text": "那个那个，警察故事。",
       "speakers": [
         "S01"
@@ -2729,8 +2448,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 799600,
-      "end_ms": 801650,
+      "start_ms": 799610,
+      "end_ms": 801660,
       "text": "哦，警察故事那个系列都是，好像",
       "speakers": [
         "S02"
@@ -2745,8 +2464,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 801650,
-      "end_ms": 803160,
+      "start_ms": 801660,
+      "end_ms": 803190,
       "text": "对，还有那个",
       "speakers": [
         "S01"
@@ -2761,7 +2480,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 804380,
+      "start_ms": 804400,
       "end_ms": 806000,
       "text": "还有那个，什么东西啊？",
       "speakers": [
@@ -2777,9 +2496,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 807580,
-      "end_ms": 813180,
-      "text": "还有，还有一个警察故事3和超级警察。",
+      "start_ms": 807610,
+      "end_ms": 813200,
+      "text": "嗯，还有一个警察故事3和超级警察。",
       "speakers": [
         "S01"
       ],
@@ -2794,8 +2513,8 @@
     },
     {
       "start_ms": 814610,
-      "end_ms": 815710,
-      "text": "都是警察。",
+      "end_ms": 817510,
+      "text": "都是警察。都是演警察。",
       "speakers": [
         "S02"
       ],
@@ -2809,39 +2528,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 815710,
-      "end_ms": 816170,
-      "text": "对啊。",
-      "speakers": [
-        "S01"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 816170,
-      "end_ms": 817500,
-      "text": "他好像都是演警察。",
-      "speakers": [
-        "S02"
-      ],
-      "flags": [
-        "crosscheck_disagreement_in_interval"
-      ],
-      "channel": null,
-      "tokens": [],
-      "candidates": {},
-      "reviews": {},
-      "decision": "primary"
-    },
-    {
-      "start_ms": 818300,
+      "start_ms": 818310,
       "end_ms": 830250,
       "text": "还有还有，他一个，他一个，最好，最，就是最好的一次，好像是在在12年，被美国的那个纽约时报",
       "speakers": [
@@ -2858,7 +2545,7 @@
     },
     {
       "start_ms": 830250,
-      "end_ms": 841510,
+      "end_ms": 841530,
       "text": "被评为那个史上20位最大的动作影星之一。嗯，动作影星第1位，你知道吧？他是在20个里面的第1位。Number one.",
       "speakers": [
         "S01"
@@ -2873,7 +2560,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 842070,
+      "start_ms": 842080,
       "end_ms": 855120,
       "text": "还有一个，同年，他又是被那个吉尼斯世界纪录大选，被评为表演特技最多的演员。然后又又在16年，又获得了89届奥斯卡中",
       "speakers": [
@@ -2906,7 +2593,7 @@
     },
     {
       "start_ms": 862650,
-      "end_ms": 868710,
+      "end_ms": 868720,
       "text": "他他那个风格也，风格就挺挺好的，然后拍的太多了，那个电影。",
       "speakers": [
         "S02"
@@ -2922,7 +2609,7 @@
     },
     {
       "start_ms": 870310,
-      "end_ms": 871650,
+      "end_ms": 871660,
       "text": "他还有一些啥嘞？",
       "speakers": [
         "S02"
@@ -2937,9 +2624,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 871970,
-      "end_ms": 880050,
-      "text": "还有还有，说我们我们刚刚提到，提到的那些12千万，不是老之后",
+      "start_ms": 871980,
+      "end_ms": 880060,
+      "text": "还有还有，说我们我们刚刚提到提到的那些42000万，不是老之后",
       "speakers": [
         "S01"
       ],
@@ -2950,208 +2637,200 @@
       "tokens": [
         {
           "text": "还",
-          "start_ms": 871970,
-          "end_ms": 872130,
+          "start_ms": 871980,
+          "end_ms": 872140,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "有",
-          "start_ms": 872130,
-          "end_ms": 872210,
+          "start_ms": 872140,
+          "end_ms": 872220,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "还",
-          "start_ms": 873330,
-          "end_ms": 873410,
+          "start_ms": 873260,
+          "end_ms": 873420,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "有，",
-          "start_ms": 873410,
-          "end_ms": 873410,
+          "start_ms": 873420,
+          "end_ms": 873420,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "说",
-          "start_ms": 873890,
-          "end_ms": 874050,
+          "start_ms": 873900,
+          "end_ms": 874060,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "我",
-          "start_ms": 874050,
-          "end_ms": 874130,
+          "start_ms": 874060,
+          "end_ms": 874060,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "们",
-          "start_ms": 874050,
-          "end_ms": 874290,
+          "start_ms": 874060,
+          "end_ms": 874300,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "我",
-          "start_ms": 875170,
-          "end_ms": 875250,
+          "start_ms": 875180,
+          "end_ms": 875260,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "们",
-          "start_ms": 875250,
-          "end_ms": 875410,
+          "start_ms": 875260,
+          "end_ms": 875340,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "刚",
-          "start_ms": 875970,
-          "end_ms": 876210,
+          "start_ms": 875980,
+          "end_ms": 876220,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "刚",
-          "start_ms": 876210,
-          "end_ms": 876370,
+          "start_ms": 876220,
+          "end_ms": 876380,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "提",
-          "start_ms": 876610,
-          "end_ms": 876770,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "到，",
-          "start_ms": 876770,
-          "end_ms": 876930,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "提",
-          "start_ms": 877250,
-          "end_ms": 877490,
+          "start_ms": 876620,
+          "end_ms": 876780,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "到",
-          "start_ms": 877490,
-          "end_ms": 877570,
+          "start_ms": 876780,
+          "end_ms": 876940,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "提",
+          "start_ms": 877260,
+          "end_ms": 877500,
+          "speakers": [
+            "S01"
+          ]
+        },
+        {
+          "text": "到",
+          "start_ms": 877500,
+          "end_ms": 877580,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "的",
-          "start_ms": 877730,
-          "end_ms": 877730,
+          "start_ms": 877580,
+          "end_ms": 877740,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "那",
-          "start_ms": 877730,
-          "end_ms": 877890,
+          "start_ms": 877740,
+          "end_ms": 877900,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "些",
-          "start_ms": 877890,
-          "end_ms": 878210,
+          "start_ms": 877900,
+          "end_ms": 878140,
           "speakers": [
             "S01"
           ]
         },
         {
-          "text": "12",
-          "start_ms": 878690,
-          "end_ms": 878850,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "千",
-          "start_ms": 878850,
-          "end_ms": 879010,
+          "text": "42000",
+          "start_ms": 878620,
+          "end_ms": 879260,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "万，",
-          "start_ms": 879010,
-          "end_ms": 879250,
+          "start_ms": 879020,
+          "end_ms": 879260,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "不",
-          "start_ms": 879330,
-          "end_ms": 879330,
+          "start_ms": 879340,
+          "end_ms": 879340,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "是",
-          "start_ms": 879330,
-          "end_ms": 879570,
+          "start_ms": 879340,
+          "end_ms": 879500,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "老",
-          "start_ms": 879570,
-          "end_ms": 879730,
+          "start_ms": 879500,
+          "end_ms": 879740,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "之",
-          "start_ms": 879810,
-          "end_ms": 879890,
+          "start_ms": 879820,
+          "end_ms": 879900,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "后",
-          "start_ms": 879890,
-          "end_ms": 880050,
+          "start_ms": 879900,
+          "end_ms": 880060,
           "speakers": [
             "S01"
           ]
@@ -3499,7 +3178,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 907910,
+      "start_ms": 907920,
       "end_ms": 911430,
       "text": "啊，还有，还有那个全球10大慈善之星。",
       "speakers": [
@@ -3515,8 +3194,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 912310,
-      "end_ms": 916950,
+      "start_ms": 912340,
+      "end_ms": 916940,
       "text": "成龙吧，我最喜欢他的就是那个警察故事那个系列，你看过没有？",
       "speakers": [
         "S02"
@@ -3531,7 +3210,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 916950,
+      "start_ms": 916940,
       "end_ms": 917510,
       "text": "嗯。",
       "speakers": [
@@ -3547,8 +3226,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 919220,
-      "end_ms": 920160,
+      "start_ms": 919230,
+      "end_ms": 920170,
       "text": "哪一些？",
       "speakers": [
         "S02"
@@ -3595,7 +3274,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 930110,
+      "start_ms": 930130,
       "end_ms": 931990,
       "text": "对，好像是有5、6部。",
       "speakers": [
@@ -3611,7 +3290,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 932550,
+      "start_ms": 932570,
       "end_ms": 933810,
       "text": "嗯，哪一些？",
       "speakers": [
@@ -3628,7 +3307,7 @@
     },
     {
       "start_ms": 933810,
-      "end_ms": 948810,
+      "end_ms": 948800,
       "text": "嗯，他的第1部警察故事是在85年，他他应该，他是自，自己自导自演嘛。他，他那个故，他那个警察故事那个内容，大概是那个那个成龙",
       "speakers": [
         "S01"
@@ -3643,7 +3322,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 949940,
+      "start_ms": 949950,
       "end_ms": 951110,
       "text": "成龙",
       "speakers": [
@@ -3657,7 +3336,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 955260,
+      "start_ms": 955270,
       "end_ms": 966970,
       "text": "大概是这样子，那个陈家驹举报了他那个大毒枭那个朱涛嘛。然后，却因为那个关键证人那个沙莲娜的失踪，无法，就是无法抓到他。",
       "speakers": [
@@ -3674,7 +3353,7 @@
     },
     {
       "start_ms": 967600,
-      "end_ms": 980760,
+      "end_ms": 980780,
       "text": "然后，陈家驹又被降职处分了，然后，事，事后，那个大毒枭那个朱涛那个朱，那个朱涛，就开始报复陈家驹，因为他没，他把他抓进去嘛，然后，庆幸的是，他，他那个",
       "speakers": [
         "S01"
@@ -3705,8 +3384,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 988620,
-      "end_ms": 990280,
+      "start_ms": 988630,
+      "end_ms": 990290,
       "text": "那个时候，香港很乱吧？",
       "speakers": [
         "S02"
@@ -3721,7 +3400,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 990280,
+      "start_ms": 990290,
       "end_ms": 991340,
       "text": "对啊，然后",
       "speakers": [
@@ -3753,7 +3432,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 997280,
+      "start_ms": 997290,
       "end_ms": 998930,
       "text": "还有陈家驹，然后",
       "speakers": [
@@ -3769,8 +3448,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1000550,
-      "end_ms": 1009830,
+      "start_ms": 1000570,
+      "end_ms": 1009850,
       "text": "然后，那个成龙，他就拼命寻找，拼命寻找证据，然后，最后在那个商场那里，就商场那里，就是刚刚我跟你说的，他那里，他那里",
       "speakers": [
         "S01"
@@ -3785,8 +3464,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1011110,
-      "end_ms": 1014970,
+      "start_ms": 1011120,
+      "end_ms": 1015000,
       "text": "然后，他抓着彩灯，跳下灯，跳下那一幕。",
       "speakers": [
         "S01"
@@ -3801,8 +3480,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1015080,
-      "end_ms": 1016950,
+      "start_ms": 1015090,
+      "end_ms": 1016970,
       "text": "那一幕，很令人印象深刻。",
       "speakers": [
         "S02"
@@ -3833,7 +3512,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1023760,
+      "start_ms": 1023770,
       "end_ms": 1027610,
       "text": "对，那个那个好像还入选了，我知道，好像还入选了什么",
       "speakers": [
@@ -3850,7 +3529,7 @@
     },
     {
       "start_ms": 1029110,
-      "end_ms": 1031440,
+      "end_ms": 1031450,
       "text": "什么电影的10大精彩时刻。",
       "speakers": [
         "S02"
@@ -3865,7 +3544,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1032120,
+      "start_ms": 1032130,
       "end_ms": 1035310,
       "text": "对啊，好像成为了，好像就占了3个。",
       "speakers": [
@@ -3881,9 +3560,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1037210,
-      "end_ms": 1047100,
-      "text": "还有那个，还有第2部，那是那个警察故事续集嘛。他那个陈，嗯，陈家驹刚刚上完天，那个陈家驹嘛。",
+      "start_ms": 1037220,
+      "end_ms": 1047110,
+      "text": "还有那个，还有第2部，那是那个警察故事续集嘛。他那个陈，嗯，陈家驹刚刚上文天那个陈家驹嘛。",
       "speakers": [
         "S01"
       ],
@@ -3897,8 +3576,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1048010,
-      "end_ms": 1056010,
+      "start_ms": 1047970,
+      "end_ms": 1055970,
       "text": "他因为伤，因为不满意上司，放走了一个极其重，极其危险的重犯而犯伤。就是你放走那个大毒枭",
       "speakers": [
         "S01"
@@ -3910,312 +3589,312 @@
       "tokens": [
         {
           "text": "他",
-          "start_ms": 1048010,
-          "end_ms": 1048170,
+          "start_ms": 1047970,
+          "end_ms": 1048210,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "因",
-          "start_ms": 1048170,
-          "end_ms": 1048330,
+          "start_ms": 1048210,
+          "end_ms": 1048370,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "为",
-          "start_ms": 1048330,
-          "end_ms": 1048410,
+          "start_ms": 1048370,
+          "end_ms": 1048450,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "伤，",
-          "start_ms": 1048490,
-          "end_ms": 1048810,
+          "start_ms": 1048450,
+          "end_ms": 1048850,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "因",
-          "start_ms": 1049050,
-          "end_ms": 1049210,
+          "start_ms": 1049010,
+          "end_ms": 1049170,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "为",
-          "start_ms": 1049210,
-          "end_ms": 1049370,
+          "start_ms": 1049170,
+          "end_ms": 1049410,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "不",
-          "start_ms": 1049450,
-          "end_ms": 1049450,
+          "start_ms": 1049410,
+          "end_ms": 1049490,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "满",
-          "start_ms": 1049450,
-          "end_ms": 1049690,
+          "start_ms": 1049490,
+          "end_ms": 1049730,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "意",
-          "start_ms": 1049690,
-          "end_ms": 1049850,
+          "start_ms": 1049730,
+          "end_ms": 1049810,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "上",
-          "start_ms": 1049850,
-          "end_ms": 1050010,
+          "start_ms": 1049810,
+          "end_ms": 1050050,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "司，",
-          "start_ms": 1050010,
-          "end_ms": 1050250,
+          "start_ms": 1050050,
+          "end_ms": 1050210,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "放",
-          "start_ms": 1050250,
-          "end_ms": 1050410,
+          "start_ms": 1050210,
+          "end_ms": 1050450,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "走",
-          "start_ms": 1050410,
-          "end_ms": 1050570,
+          "start_ms": 1050450,
+          "end_ms": 1050610,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "了",
-          "start_ms": 1050570,
-          "end_ms": 1050570,
+          "start_ms": 1050610,
+          "end_ms": 1050610,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "一",
-          "start_ms": 1050570,
-          "end_ms": 1050730,
+          "start_ms": 1050610,
+          "end_ms": 1050690,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "个",
-          "start_ms": 1050730,
-          "end_ms": 1050810,
+          "start_ms": 1050690,
+          "end_ms": 1050850,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "极",
-          "start_ms": 1050890,
-          "end_ms": 1051050,
+          "start_ms": 1050850,
+          "end_ms": 1051010,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "其",
-          "start_ms": 1051050,
-          "end_ms": 1051210,
+          "start_ms": 1051010,
+          "end_ms": 1051250,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "重，",
-          "start_ms": 1051210,
-          "end_ms": 1051370,
+          "start_ms": 1051250,
+          "end_ms": 1051330,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "极",
-          "start_ms": 1052010,
-          "end_ms": 1052170,
+          "start_ms": 1051970,
+          "end_ms": 1052130,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "其",
-          "start_ms": 1052170,
-          "end_ms": 1052330,
+          "start_ms": 1052130,
+          "end_ms": 1052290,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "危",
-          "start_ms": 1052330,
-          "end_ms": 1052410,
+          "start_ms": 1052290,
+          "end_ms": 1052450,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "险",
-          "start_ms": 1052410,
-          "end_ms": 1052650,
+          "start_ms": 1052450,
+          "end_ms": 1052610,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "的",
-          "start_ms": 1052650,
-          "end_ms": 1052730,
+          "start_ms": 1052610,
+          "end_ms": 1052690,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "重",
-          "start_ms": 1053130,
-          "end_ms": 1053370,
+          "start_ms": 1053170,
+          "end_ms": 1053330,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "犯",
-          "start_ms": 1053370,
-          "end_ms": 1053610,
+          "start_ms": 1053330,
+          "end_ms": 1053570,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "而",
-          "start_ms": 1053610,
-          "end_ms": 1053610,
+          "start_ms": 1053570,
+          "end_ms": 1053650,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "犯",
-          "start_ms": 1053610,
-          "end_ms": 1053850,
+          "start_ms": 1053650,
+          "end_ms": 1053810,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "伤。",
-          "start_ms": 1053850,
-          "end_ms": 1054090,
+          "start_ms": 1053890,
+          "end_ms": 1054130,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "就",
-          "start_ms": 1054730,
-          "end_ms": 1054810,
+          "start_ms": 1054690,
+          "end_ms": 1054770,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "是",
-          "start_ms": 1054810,
-          "end_ms": 1054970,
+          "start_ms": 1054770,
+          "end_ms": 1055010,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "你",
-          "start_ms": 1054970,
-          "end_ms": 1055050,
+          "start_ms": 1055010,
+          "end_ms": 1055090,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "放",
-          "start_ms": 1055050,
-          "end_ms": 1055290,
+          "start_ms": 1055090,
+          "end_ms": 1055250,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "走",
-          "start_ms": 1055290,
-          "end_ms": 1055370,
+          "start_ms": 1055250,
+          "end_ms": 1055330,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "那",
-          "start_ms": 1055370,
-          "end_ms": 1055450,
+          "start_ms": 1055410,
+          "end_ms": 1055490,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "个",
-          "start_ms": 1055530,
-          "end_ms": 1055530,
+          "start_ms": 1055490,
+          "end_ms": 1055490,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "大",
-          "start_ms": 1055530,
-          "end_ms": 1055770,
+          "start_ms": 1055570,
+          "end_ms": 1055730,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "毒",
-          "start_ms": 1055770,
-          "end_ms": 1055850,
+          "start_ms": 1055730,
+          "end_ms": 1055810,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "枭",
-          "start_ms": 1055850,
-          "end_ms": 1056010,
+          "start_ms": 1055810,
+          "end_ms": 1055970,
           "speakers": [
             "S01"
           ]
@@ -4532,8 +4211,8 @@
     },
     {
       "start_ms": 1065250,
-      "end_ms": 1070930,
-      "text": "一家电话公司，就是刚刚去的那电话公司，他找到那个炸弹手，和",
+      "end_ms": 1070920,
+      "text": "一家电话公司，就是刚刚去的那电话公司，他找到那个炸弹，火喝。",
       "speakers": [
         "S01"
       ],
@@ -4548,7 +4227,7 @@
     },
     {
       "start_ms": 1072410,
-      "end_ms": 1082230,
+      "end_ms": 1082210,
       "text": "那个陈家驹，他就他就刚刚好看到了，然后赶到了现场。然后，他又放放弃了和他女朋友度蜜月，度蜜月的那个",
       "speakers": [
         "S01"
@@ -4563,8 +4242,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1082230,
-      "end_ms": 1082760,
+      "start_ms": 1082210,
+      "end_ms": 1082750,
       "text": "机会。",
       "speakers": [
         "S02"
@@ -4579,9 +4258,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1082760,
+      "start_ms": 1082750,
       "end_ms": 1086170,
-      "text": "机会，然后会去处理这件事，处理这件事情嘛。",
+      "text": "机会，然后会去处理这些事，处理这些事情嘛。",
       "speakers": [
         "S01"
       ],
@@ -4612,7 +4291,7 @@
     },
     {
       "start_ms": 1096410,
-      "end_ms": 1097340,
+      "end_ms": 1097330,
       "text": "报复他。",
       "speakers": [
         "S02"
@@ -4628,7 +4307,7 @@
     },
     {
       "start_ms": 1097420,
-      "end_ms": 1106460,
+      "end_ms": 1106440,
       "text": "不是报复他，是是想报复这个公司，没报复他，然后他就觉然后，他的调查到后面，他不，他觉得不简单了嘛。",
       "speakers": [
         "S01"
@@ -4643,7 +4322,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1107040,
+      "start_ms": 1107030,
       "end_ms": 1115610,
       "text": "然后，他在，就是那个放炸弹的，放炸弹的那个人，他就炸毁了那警察局的大门，把他女朋友都拐走了。",
       "speakers": [
@@ -4659,8 +4338,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1116710,
-      "end_ms": 1118200,
+      "start_ms": 1116690,
+      "end_ms": 1118180,
       "text": "然后，他就要去救他女朋友。",
       "speakers": [
         "S02"
@@ -4675,9 +4354,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1118200,
-      "end_ms": 1130960,
-      "text": "对啊，很一般救全都叫赎金的嘛。带了大量的赎金，然后去那里的时候，去那里的时候，结果那里发现那，发现那布布满了好多炸弹，你觉得觉得能走吗？",
+      "start_ms": 1118180,
+      "end_ms": 1130940,
+      "text": "对啊，很一般救权都要赎金的嘛。带了大量的赎金，然后去那里的时候，去那里的时候，结果那里发现那，发现那布布满了好多炸弹，你觉得觉得能走吗？",
       "speakers": [
         "S01"
       ],
@@ -4691,8 +4370,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1130960,
-      "end_ms": 1132040,
+      "start_ms": 1130940,
+      "end_ms": 1132030,
       "text": "肯定不能啊。",
       "speakers": [
         "S02"
@@ -4707,7 +4386,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1133080,
+      "start_ms": 1133070,
       "end_ms": 1134550,
       "text": "但他应该还是能走。",
       "speakers": [
@@ -4723,9 +4402,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1135120,
-      "end_ms": 1142630,
-      "text": "感觉，嗯，因为因为，因为，因为，成成龙的话，成龙的话",
+      "start_ms": 1135110,
+      "end_ms": 1142610,
+      "text": "感觉，因为因为，因为陈，因为陈成龙的话，成龙的话",
       "speakers": [
         "S01"
       ],
@@ -4739,8 +4418,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1143030,
-      "end_ms": 1147050,
+      "start_ms": 1143020,
+      "end_ms": 1147020,
       "text": "他不是普通人，他的那个功夫，我们一般人不能走。",
       "speakers": [
         "S02"
@@ -4755,9 +4434,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1147780,
-      "end_ms": 1154940,
-      "text": "毕竟是主角嘛。然后，你能跟我，我，你能跟我说一下那个警察故事3，那个超级警察吗？",
+      "start_ms": 1147760,
+      "end_ms": 1154910,
+      "text": "毕竟是主角嘛。然后，你能跟我，我，你能跟我说一下那个警察故事3那个超级警察吗？",
       "speakers": [
         "S01"
       ],
@@ -4771,8 +4450,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1154940,
-      "end_ms": 1155930,
+      "start_ms": 1154910,
+      "end_ms": 1155910,
       "text": "没看那个吗？",
       "speakers": [
         "S02"
@@ -4787,7 +4466,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1155930,
+      "start_ms": 1155910,
       "end_ms": 1156470,
       "text": "对啊。",
       "speakers": [
@@ -4804,7 +4483,7 @@
     },
     {
       "start_ms": 1157000,
-      "end_ms": 1171470,
+      "end_ms": 1171450,
       "text": "看的那个，他就是那个他这个，这个杨紫琼啊，是这个新出1到2的杨紫琼，是那个007邦女郎啊。那个好有，好有名的，她由花瓶吧，转型成为了1个打手。",
       "speakers": [
         "S02"
@@ -4819,8 +4498,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1171470,
-      "end_ms": 1173150,
+      "start_ms": 1171450,
+      "end_ms": 1173140,
       "text": "嗯，成打手了。",
       "speakers": [
         "S01"
@@ -4835,8 +4514,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1173150,
-      "end_ms": 1183210,
+      "start_ms": 1173140,
+      "end_ms": 1183200,
       "text": "嗯，就是出现的，出首次出现，也是这个警察片首次出现能打的这个女生。她也是大陆和香港联合的吧。",
       "speakers": [
         "S02"
@@ -4852,7 +4531,7 @@
     },
     {
       "start_ms": 1183830,
-      "end_ms": 1184630,
+      "end_ms": 1184610,
       "text": "可以啊。",
       "speakers": [
         "S01"
@@ -4867,8 +4546,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1184630,
-      "end_ms": 1190860,
+      "start_ms": 1184610,
+      "end_ms": 1190840,
       "text": "就是想进军我们大陆市场嘛。然后，那个里面的反派也特别的出色。",
       "speakers": [
         "S02"
@@ -4883,9 +4562,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1190860,
-      "end_ms": 1195310,
-      "text": "嗯，他他那些反派是想，是想搞破坏，还是怎么样？",
+      "start_ms": 1190840,
+      "end_ms": 1195290,
+      "text": "嗯，他他那些反派是想，是想搞破坏还是怎么样？",
       "speakers": [
         "S01"
       ],
@@ -4899,9 +4578,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1195310,
-      "end_ms": 1206580,
-      "text": "对啊，就是想搞破坏而已，然后打戏特别精彩，主要是然后，那个大战啊，也是那种大场面的制作，真的，小时候看的让人很激动啊。",
+      "start_ms": 1195340,
+      "end_ms": 1206550,
+      "text": "对啊，就是想搞破坏而已，然后打戏特别精彩，主要是然后，那个大战也是那种大场面的制作，真的，小时候看的让人很激动啊。",
       "speakers": [
         "S02"
       ],
@@ -4915,8 +4594,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1207400,
-      "end_ms": 1211530,
+      "start_ms": 1207370,
+      "end_ms": 1211520,
       "text": "你说这部功夫电影啊，你们男性应该还还喜欢，应该要吴京吧？",
       "speakers": [
         "S02"
@@ -4931,8 +4610,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1211740,
-      "end_ms": 1221110,
+      "start_ms": 1211730,
+      "end_ms": 1221080,
       "text": "对啊，吴京他是，我是吴京，本来我开始不知道他这个人嘛。然后，他，然后他拍的那个战狼1和那个战狼2，尤其是战狼2。",
       "speakers": [
         "S01"
@@ -4947,9 +4626,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1221110,
-      "end_ms": 1224480,
-      "text": "战狼2好。勾起了那种什么爱国情怀。",
+      "start_ms": 1221080,
+      "end_ms": 1224460,
+      "text": "战狼2好。勾起了那种什么爱国情怀啊。",
       "speakers": [
         "S02"
       ],
@@ -4963,8 +4642,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1225650,
-      "end_ms": 1231970,
+      "start_ms": 1225620,
+      "end_ms": 1231940,
       "text": "然后，然后我看到他们，他这个打戏打，打的很精彩，我又不，我不得不想去上网去查一",
       "speakers": [
         "S01"
@@ -4976,272 +4655,272 @@
       "tokens": [
         {
           "text": "然",
-          "start_ms": 1225650,
-          "end_ms": 1225730,
+          "start_ms": 1225620,
+          "end_ms": 1225700,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "后，",
-          "start_ms": 1225730,
-          "end_ms": 1226050,
+          "start_ms": 1225700,
+          "end_ms": 1226100,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "然",
-          "start_ms": 1226210,
-          "end_ms": 1226290,
+          "start_ms": 1226180,
+          "end_ms": 1226260,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "后",
-          "start_ms": 1226290,
-          "end_ms": 1226450,
+          "start_ms": 1226260,
+          "end_ms": 1226420,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "我",
-          "start_ms": 1226450,
-          "end_ms": 1226530,
+          "start_ms": 1226420,
+          "end_ms": 1226500,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "看",
-          "start_ms": 1226530,
-          "end_ms": 1226690,
+          "start_ms": 1226500,
+          "end_ms": 1226660,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "到",
-          "start_ms": 1226690,
-          "end_ms": 1226770,
+          "start_ms": 1226660,
+          "end_ms": 1226740,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "他",
-          "start_ms": 1226770,
-          "end_ms": 1226930,
+          "start_ms": 1226740,
+          "end_ms": 1226900,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "们，",
-          "start_ms": 1226930,
-          "end_ms": 1227010,
+          "start_ms": 1226900,
+          "end_ms": 1227060,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "他",
-          "start_ms": 1227250,
-          "end_ms": 1227490,
+          "start_ms": 1227220,
+          "end_ms": 1227460,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "这",
-          "start_ms": 1227490,
-          "end_ms": 1227650,
+          "start_ms": 1227460,
+          "end_ms": 1227620,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "个",
-          "start_ms": 1227650,
-          "end_ms": 1227730,
+          "start_ms": 1227620,
+          "end_ms": 1227780,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "打",
-          "start_ms": 1227730,
-          "end_ms": 1227970,
+          "start_ms": 1227780,
+          "end_ms": 1228020,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "戏",
-          "start_ms": 1227970,
-          "end_ms": 1228210,
+          "start_ms": 1228020,
+          "end_ms": 1228180,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "打，",
-          "start_ms": 1228210,
-          "end_ms": 1228290,
+          "start_ms": 1228180,
+          "end_ms": 1228260,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "打",
-          "start_ms": 1228450,
-          "end_ms": 1228610,
+          "start_ms": 1228500,
+          "end_ms": 1228580,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "的",
-          "start_ms": 1228610,
-          "end_ms": 1228690,
+          "start_ms": 1228580,
+          "end_ms": 1228660,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "很",
-          "start_ms": 1228690,
-          "end_ms": 1228850,
+          "start_ms": 1228660,
+          "end_ms": 1228820,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "精",
-          "start_ms": 1228850,
-          "end_ms": 1228930,
+          "start_ms": 1228820,
+          "end_ms": 1228900,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "彩，",
-          "start_ms": 1228930,
-          "end_ms": 1229010,
+          "start_ms": 1228900,
+          "end_ms": 1229060,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "我",
-          "start_ms": 1229010,
-          "end_ms": 1229090,
+          "start_ms": 1229060,
+          "end_ms": 1229140,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "又",
-          "start_ms": 1229090,
-          "end_ms": 1229250,
+          "start_ms": 1229140,
+          "end_ms": 1229220,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "不，",
-          "start_ms": 1229330,
-          "end_ms": 1229490,
+          "start_ms": 1229300,
+          "end_ms": 1229460,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "我",
-          "start_ms": 1229810,
-          "end_ms": 1229810,
+          "start_ms": 1229780,
+          "end_ms": 1229860,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "不",
-          "start_ms": 1229890,
-          "end_ms": 1229970,
+          "start_ms": 1229940,
+          "end_ms": 1230020,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "得",
-          "start_ms": 1229970,
-          "end_ms": 1230290,
+          "start_ms": 1230020,
+          "end_ms": 1230260,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "不",
-          "start_ms": 1230370,
-          "end_ms": 1230450,
+          "start_ms": 1230340,
+          "end_ms": 1230500,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "想",
-          "start_ms": 1230450,
-          "end_ms": 1230850,
+          "start_ms": 1230500,
+          "end_ms": 1230820,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "去",
-          "start_ms": 1230930,
-          "end_ms": 1231250,
+          "start_ms": 1230900,
+          "end_ms": 1231300,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "上",
-          "start_ms": 1231250,
-          "end_ms": 1231490,
+          "start_ms": 1231300,
+          "end_ms": 1231540,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "网",
-          "start_ms": 1231490,
-          "end_ms": 1231570,
+          "start_ms": 1231540,
+          "end_ms": 1231620,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "去",
-          "start_ms": 1231570,
-          "end_ms": 1231730,
+          "start_ms": 1231620,
+          "end_ms": 1231700,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "查",
-          "start_ms": 1231730,
-          "end_ms": 1231890,
+          "start_ms": 1231700,
+          "end_ms": 1231940,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "一",
-          "start_ms": 1231890,
-          "end_ms": 1231970,
+          "start_ms": 1231940,
+          "end_ms": 1231940,
           "speakers": [
             "S01"
           ]
@@ -5422,7 +5101,7 @@
     },
     {
       "start_ms": 1235310,
-      "end_ms": 1239990,
+      "end_ms": 1239970,
       "text": "嗯，他，我听说他，他拍那个打戏特技，都去那个部队实习了3-4个月。",
       "speakers": [
         "S02"
@@ -5438,7 +5117,7 @@
     },
     {
       "start_ms": 1240060,
-      "end_ms": 1240590,
+      "end_ms": 1240580,
       "text": "对啊。",
       "speakers": [
         "S01"
@@ -5453,8 +5132,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1240590,
-      "end_ms": 1241250,
+      "start_ms": 1240580,
+      "end_ms": 1241240,
       "text": "学习。",
       "speakers": [
         "S02"
@@ -5469,8 +5148,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1241250,
-      "end_ms": 1255450,
+      "start_ms": 1241240,
+      "end_ms": 1255440,
       "text": "然后，然后我就从网上调调查了，很调查一些，结果大概了解了他是什么样的人嘛，他是，在74年，74年4月3号，出生在北京嘛。",
       "speakers": [
         "S01"
@@ -5485,7 +5164,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1255810,
+      "start_ms": 1255800,
       "end_ms": 1258810,
       "text": "然后，他毕业的大学是那个北京体育大学。",
       "speakers": [
@@ -5502,7 +5181,7 @@
     },
     {
       "start_ms": 1258810,
-      "end_ms": 1259830,
+      "end_ms": 1259820,
       "text": "北京体育大学。",
       "speakers": [
         "S02"
@@ -5517,8 +5196,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1259830,
-      "end_ms": 1264490,
+      "start_ms": 1259820,
+      "end_ms": 1264480,
       "text": "然后，体育大学你应该晓得，就是那种，然后，身身体素质很好的那种嘛。",
       "speakers": [
         "S01"
@@ -5534,8 +5213,8 @@
     },
     {
       "start_ms": 1266460,
-      "end_ms": 1273890,
-      "text": "然后，他又在89年，进入了那个北京市的武术队，就是，简单来说，就是打那种，就是，",
+      "end_ms": 1273880,
+      "text": "然后，他又在89年，进入了那个北京市的武术队，就是，简单来说，是打那种，就是，",
       "speakers": [
         "S01"
       ],
@@ -5549,8 +5228,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1273890,
-      "end_ms": 1274790,
+      "start_ms": 1273880,
+      "end_ms": 1274780,
       "text": "北北。",
       "speakers": [
         "S02"
@@ -5565,7 +5244,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1274790,
+      "start_ms": 1274780,
       "end_ms": 1282250,
       "text": "练功夫的。还有，他又在94年，又获得了全国武术比赛，金银枪术和队内冠军。",
       "speakers": [
@@ -5581,7 +5260,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1282410,
+      "start_ms": 1282400,
       "end_ms": 1290170,
       "text": "他又在95年，95年，又就个人，又出演了个人的首部电影，功夫小子闯情关，那个。",
       "speakers": [
@@ -5599,7 +5278,7 @@
     {
       "start_ms": 1290170,
       "end_ms": 1291360,
-      "text": "噢，功夫小子。",
+      "text": "哦，功夫小子。",
       "speakers": [
         "S02"
       ],
@@ -5613,7 +5292,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1292930,
+      "start_ms": 1292920,
       "end_ms": 1301060,
       "text": "然后，他又在99年，他又出出演了一部武侠剧，武侠剧应该应该很火，就是以前那个小李飞刀。",
       "speakers": [
@@ -5645,8 +5324,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1305940,
-      "end_ms": 1307520,
+      "start_ms": 1305950,
+      "end_ms": 1307530,
       "text": "然后，他在，",
       "speakers": [
         "S01"
@@ -5707,8 +5386,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1328340,
-      "end_ms": 1329250,
+      "start_ms": 1328320,
+      "end_ms": 1329240,
       "text": "他又在，",
       "speakers": [
         "S01"
@@ -5723,7 +5402,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1329250,
+      "start_ms": 1329240,
       "end_ms": 1330330,
       "text": "硬汉形象。",
       "speakers": [
@@ -5740,7 +5419,7 @@
     },
     {
       "start_ms": 1330330,
-      "end_ms": 1337570,
+      "end_ms": 1337560,
       "text": "他又在15年，又主演，又犯，又主演了一部犯罪悬疑片，你知道它叫什么名字吗？",
       "speakers": [
         "S01"
@@ -5755,8 +5434,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1337690,
-      "end_ms": 1339070,
+      "start_ms": 1337680,
+      "end_ms": 1339050,
       "text": "17年。",
       "speakers": [
         "S02"
@@ -5772,7 +5451,7 @@
     },
     {
       "start_ms": 1339400,
-      "end_ms": 1340370,
+      "end_ms": 1340350,
       "text": "15年。",
       "speakers": [
         "S01"
@@ -5787,9 +5466,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1340550,
-      "end_ms": 1347970,
-      "text": "15年。噢，那个那个杀破狼吧，好像跟那个战狼差不多吧，是一个系列的感觉，好像。",
+      "start_ms": 1340540,
+      "end_ms": 1347960,
+      "text": "15年。哦，那个那个杀破狼吧，好像跟那个战狼差不多吧，是一个系列的感觉，好像。",
       "speakers": [
         "S02"
       ],
@@ -5803,9 +5482,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1349310,
+      "start_ms": 1349270,
       "end_ms": 1358030,
-      "text": "不是一个系列的，它是听的名字像，因为2个都有个狼字嘛。它那个那个战狼的话，是那个战狼的话，是，",
+      "text": "不是一个系列的，它是听的名字像，因为2个都有个狼字嘛。那个那个战狼的话，是那个战狼的话，是，",
       "speakers": [
         "S01"
       ],
@@ -5819,7 +5498,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1358310,
+      "start_ms": 1358300,
       "end_ms": 1366860,
       "text": "它是打搞爱国激情的，那个杀破狼是那个犯罪悬疑的。2，2个，所以说，嗯，不能放在一边。",
       "speakers": [
@@ -5835,8 +5514,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1367000,
-      "end_ms": 1369610,
+      "start_ms": 1366970,
+      "end_ms": 1369600,
       "text": "战狼好像是他自编自导自演的，哎。",
       "speakers": [
         "S02"
@@ -5851,8 +5530,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1369610,
-      "end_ms": 1370150,
+      "start_ms": 1369600,
+      "end_ms": 1370120,
       "text": "对啊。",
       "speakers": [
         "S01"
@@ -5867,8 +5546,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1371440,
-      "end_ms": 1374050,
+      "start_ms": 1371410,
+      "end_ms": 1374030,
       "text": "还获得了最佳的导演提名。",
       "speakers": [
         "S02"
@@ -5883,8 +5562,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1374420,
-      "end_ms": 1376950,
+      "start_ms": 1374410,
+      "end_ms": 1376930,
       "text": "你觉得战狼1和战狼2，你觉得哪个好一点？",
       "speakers": [
         "S01"
@@ -5899,8 +5578,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1376950,
-      "end_ms": 1381670,
+      "start_ms": 1376930,
+      "end_ms": 1381650,
       "text": "战狼2吧，战狼2可能更有，更有激情，跟，",
       "speakers": [
         "S02"
@@ -5915,8 +5594,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1382810,
-      "end_ms": 1385740,
+      "start_ms": 1382800,
+      "end_ms": 1385730,
       "text": "更加让人，情绪澎湃一点。",
       "speakers": [
         "S02"
@@ -5931,7 +5610,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1385740,
+      "start_ms": 1385730,
       "end_ms": 1395910,
       "text": "嗯，然后我感觉，战狼1的话，战狼1的话，战狼1和战狼2，我感觉2个都差不多，只不过我感觉，从战狼2，战狼2，",
       "speakers": [
@@ -5947,9 +5626,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1396270,
-      "end_ms": 1404300,
-      "text": "因为战狼1它体现的故事，是，是雇佣军来，哈，雇雇佣军来，来侵犯中国的那个嘛。",
+      "start_ms": 1396240,
+      "end_ms": 1404280,
+      "text": "因为战狼1，它体现的故事，是，是雇佣军，然后，雇雇佣军，来来侵犯中国的那个嘛。",
       "speakers": [
         "S01"
       ],
@@ -5963,8 +5642,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1404720,
-      "end_ms": 1406160,
+      "start_ms": 1404710,
+      "end_ms": 1406140,
       "text": "嗯，战狼2呢？",
       "speakers": [
         "S02"
@@ -5979,9 +5658,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1406480,
-      "end_ms": 1408000,
-      "text": "然后，战狼2，他是去非洲，",
+      "start_ms": 1406460,
+      "end_ms": 1407980,
+      "text": "然后，战狼2，它是去非洲，",
       "speakers": [
         "S01"
       ],
@@ -5992,80 +5671,80 @@
       "tokens": [
         {
           "text": "然",
-          "start_ms": 1406480,
-          "end_ms": 1406480,
+          "start_ms": 1406460,
+          "end_ms": 1406540,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "后，",
-          "start_ms": 1406480,
-          "end_ms": 1406560,
+          "start_ms": 1406540,
+          "end_ms": 1406620,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "战",
-          "start_ms": 1406560,
-          "end_ms": 1406720,
+          "start_ms": 1406620,
+          "end_ms": 1406780,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "狼",
-          "start_ms": 1406720,
-          "end_ms": 1406960,
+          "start_ms": 1406780,
+          "end_ms": 1407020,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "2，",
-          "start_ms": 1406960,
-          "end_ms": 1407040,
+          "start_ms": 1407020,
+          "end_ms": 1407020,
           "speakers": [
             "S01"
           ]
         },
         {
-          "text": "他",
-          "start_ms": 1407040,
-          "end_ms": 1407200,
+          "text": "它",
+          "start_ms": 1407020,
+          "end_ms": 1407180,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "是",
-          "start_ms": 1407200,
-          "end_ms": 1407360,
+          "start_ms": 1407180,
+          "end_ms": 1407340,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "去",
-          "start_ms": 1407360,
-          "end_ms": 1407520,
+          "start_ms": 1407340,
+          "end_ms": 1407500,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "非",
-          "start_ms": 1407520,
-          "end_ms": 1407760,
+          "start_ms": 1407500,
+          "end_ms": 1407820,
           "speakers": [
             "S01"
           ]
         },
         {
           "text": "洲，",
-          "start_ms": 1407760,
-          "end_ms": 1408000,
+          "start_ms": 1407820,
+          "end_ms": 1407980,
           "speakers": [
             "S01"
           ]
@@ -6076,9 +5755,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1407960,
-      "end_ms": 1409960,
-      "text": "然后，然后撤侨那里嘛。",
+      "start_ms": 1408000,
+      "end_ms": 1410110,
+      "text": "啊，撤侨那里嘛。",
       "speakers": [
         "S01"
       ],
@@ -6086,88 +5765,15 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "然",
-          "start_ms": 1407960,
-          "end_ms": 1408040,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "后，",
-          "start_ms": 1408040,
-          "end_ms": 1408280,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "然",
-          "start_ms": 1408600,
-          "end_ms": 1408680,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "后",
-          "start_ms": 1408680,
-          "end_ms": 1408840,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "撤",
-          "start_ms": 1409080,
-          "end_ms": 1409240,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "侨",
-          "start_ms": 1409240,
-          "end_ms": 1409560,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "那",
-          "start_ms": 1409560,
-          "end_ms": 1409720,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "里",
-          "start_ms": 1409720,
-          "end_ms": 1409800,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "嘛。",
-          "start_ms": 1409800,
-          "end_ms": 1409960,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
     },
     {
-      "start_ms": 1411010,
-      "end_ms": 1413810,
-      "text": "大概呢，大概那个张朗朗讲了些啥呢？",
+      "start_ms": 1410940,
+      "end_ms": 1413760,
+      "text": "大概呢，大概那个战狼2讲了些啥呢？",
       "speakers": [
         "S02"
       ],
@@ -6181,9 +5787,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1414080,
-      "end_ms": 1425950,
-      "text": "他是讲，就是那，嗯，战，从张朗朗一开始，他不是张朗朗，张朗朗，他不是被被处罚了吗？他又在，他又在",
+      "start_ms": 1414010,
+      "end_ms": 1425910,
+      "text": "它是讲，就是那战，从战狼1开始，它不是战狼1，战狼1它不是被被处罚了吗？然后，它又在，它又在",
       "speakers": [
         "S01"
       ],
@@ -6197,9 +5803,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1426410,
-      "end_ms": 1427880,
-      "text": "张朗朗和张朗朗是连起来的。",
+      "start_ms": 1426340,
+      "end_ms": 1427830,
+      "text": "战狼1和战狼2是连起来的。",
       "speakers": [
         "S02"
       ],
@@ -6213,9 +5819,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1427880,
-      "end_ms": 1435850,
-      "text": "对啊，他又在非洲那里，非洲那里，因为那一次不是那个非洲恐，嗯，非洲恐慌嘛，那个电视剧里面的",
+      "start_ms": 1427830,
+      "end_ms": 1435810,
+      "text": "对啊，它又在非洲那里，非洲那里，因为那一次不是那个非洲恐，非洲恐慌嘛，那个电视剧里面的",
       "speakers": [
         "S01"
       ],
@@ -6229,8 +5835,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1435850,
-      "end_ms": 1436580,
+      "start_ms": 1435810,
+      "end_ms": 1436540,
       "text": "恐怖分子。",
       "speakers": [
         "S02"
@@ -6245,9 +5851,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1436580,
-      "end_ms": 1442800,
-      "text": "对，他就想撤侨行动，撤侨行动，他就想去救，去救，去救一个",
+      "start_ms": 1436540,
+      "end_ms": 1442740,
+      "text": "对，它就想撤侨行动，撤侨行动，它就想去救，去救，去救一个",
       "speakers": [
         "S01"
       ],
@@ -6261,9 +5867,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1444190,
-      "end_ms": 1447610,
-      "text": "嗯，对，他救博士，想找他的女朋友。",
+      "start_ms": 1444120,
+      "end_ms": 1447580,
+      "text": "嗯，对，它救博士，想找他的女朋友。",
       "speakers": [
         "S02"
       ],
@@ -6277,9 +5883,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1447610,
-      "end_ms": 1459180,
-      "text": "对，然后他一开始是想他的女朋友，然后去那里之后，然后又想去，又又去找那个博士了。然后，他他被卷入一场非洲国家的叛乱嘛。",
+      "start_ms": 1447580,
+      "end_ms": 1459130,
+      "text": "对，然后它一开始是想他的女朋友，然后去那里的时候，然后又想去，又又去找那个博士了。然后，它它被卷入一场非洲国家的叛乱嘛。",
       "speakers": [
         "S01"
       ],
@@ -6293,9 +5899,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1460430,
-      "end_ms": 1474200,
-      "text": "然后，他他自己，他自己因为想去救那个博士，他自己可以安全撤离的，去撤离回中国嘛，他但是，他没有忘记那个军人的死，然后又重回战场，想要去救援的那个故事。",
+      "start_ms": 1460360,
+      "end_ms": 1474150,
+      "text": "然后，它它自己，它自己因为想去救那个博士，它自己可以安全撤离的去，去撤离回中国嘛，它但是它没有忘记那个军人的死，然后又重回战场，想要去救援的那个故事。",
       "speakers": [
         "S01"
       ],
@@ -6309,8 +5915,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1474200,
-      "end_ms": 1476510,
+      "start_ms": 1474150,
+      "end_ms": 1476450,
       "text": "哦，最后成功了吧？",
       "speakers": [
         "S02"
@@ -6325,8 +5931,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1476510,
-      "end_ms": 1479610,
+      "start_ms": 1476450,
+      "end_ms": 1479530,
       "text": "嗯，最后，最后是成功，最后是成功了。",
       "speakers": [
         "S01"
@@ -6341,9 +5947,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1481630,
-      "end_ms": 1491830,
-      "text": "张朗朗真的看的热血沸腾啊，极其，极其，极其爱国行动。那段时间，好像也是中国的美国那个贸易战吧？",
+      "start_ms": 1481670,
+      "end_ms": 1491780,
+      "text": "战狼2真的看得热血沸腾啊，激起激起激起爱国心。正好那1段时间，好像也是中国跟美国那个贸易战吧。",
       "speakers": [
         "S02"
       ],
@@ -6357,9 +5963,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1492930,
-      "end_ms": 1496610,
-      "text": "所以更加，就票房，票房很高。",
+      "start_ms": 1492910,
+      "end_ms": 1496560,
+      "text": "所以更加就，票房票房很高。",
       "speakers": [
         "S02"
       ],
@@ -6373,9 +5979,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1496610,
-      "end_ms": 1503550,
-      "text": "再再说，但这次撤侨行动，这这，战狼里面的撤侨行动，是，是真实的。",
+      "start_ms": 1496560,
+      "end_ms": 1503500,
+      "text": "再再说，但这次撤侨行动，这这战狼里面的撤侨行动，是是真实的。",
       "speakers": [
         "S01"
       ],
@@ -6389,8 +5995,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1503790,
-      "end_ms": 1506700,
+      "start_ms": 1503720,
+      "end_ms": 1506640,
       "text": "真的。根据真实事例改编的。",
       "speakers": [
         "S02"
@@ -6405,8 +6011,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1506700,
-      "end_ms": 1511440,
+      "start_ms": 1506640,
+      "end_ms": 1511370,
       "text": "不是真实事例改编，它是，呃，撤侨行动是真实的，其其他的都不是真实的。",
       "speakers": [
         "S01"
@@ -6421,8 +6027,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1514730,
-      "end_ms": 1515860,
+      "start_ms": 1514700,
+      "end_ms": 1515810,
       "text": "原来是这样。",
       "speakers": [
         "S02"
@@ -6437,9 +6043,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1517680,
-      "end_ms": 1520630,
-      "text": "好，然后你",
+      "start_ms": 1517620,
+      "end_ms": 1520550,
+      "text": "好。然后，你",
       "speakers": [
         "S01"
       ],
@@ -6453,8 +6059,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1523910,
-      "end_ms": 1525400,
+      "start_ms": 1523850,
+      "end_ms": 1525340,
       "text": "那你看过战狼1吗？",
       "speakers": [
         "S02"
@@ -6469,8 +6075,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1525400,
-      "end_ms": 1526540,
+      "start_ms": 1525340,
+      "end_ms": 1526490,
       "text": "我没有啊。",
       "speakers": [
         "S01"
@@ -6485,8 +6091,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1526540,
-      "end_ms": 1527670,
+      "start_ms": 1526490,
+      "end_ms": 1527620,
       "text": "你没看过战狼1吗？",
       "speakers": [
         "S02"
@@ -6501,8 +6107,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1527670,
-      "end_ms": 1531250,
+      "start_ms": 1527620,
+      "end_ms": 1531200,
       "text": "嗯，那你能给我透露一些那个剧情？",
       "speakers": [
         "S01"
@@ -6517,9 +6123,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1532440,
-      "end_ms": 1540170,
-      "text": "战狼，战狼1就是讲的那个，那个在那种外边境的，在那种外边境的那个地方",
+      "start_ms": 1532380,
+      "end_ms": 1540110,
+      "text": "战狼战狼1就是讲的那个那个在中外边境的，在中外边境的那个地方",
       "speakers": [
         "S02"
       ],
@@ -6533,8 +6139,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1541450,
-      "end_ms": 1548420,
+      "start_ms": 1541380,
+      "end_ms": 1548340,
       "text": "有，有一支特种兵战队。然后，吴京就是里面的一个特种兵嘛。",
       "speakers": [
         "S02"
@@ -6549,9 +6155,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1549740,
-      "end_ms": 1560360,
-      "text": "他就，他就是，他就是为了，为了就，吴京在里面饰演的冷战冷锋嘛。他就是在执行任务的时候",
+      "start_ms": 1549680,
+      "end_ms": 1560300,
+      "text": "他就，他就是，他就是为了，为了就，吴京在里面饰演的人叫冷锋嘛。他就是在执行任务的时候",
       "speakers": [
         "S02"
       ],
@@ -6565,8 +6171,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1560360,
-      "end_ms": 1561910,
+      "start_ms": 1560300,
+      "end_ms": 1561840,
       "text": "执行什么样的任务呢？",
       "speakers": [
         "S01"
@@ -6581,9 +6187,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1562380,
-      "end_ms": 1571560,
-      "text": "执行一个，就是对抗恐怖分子的任务嘛。他违抗了军令，打死了一个恐怖分子。被开除了。",
+      "start_ms": 1562320,
+      "end_ms": 1571510,
+      "text": "执行一个就是对抗恐怖分子的任务嘛。他违抗了军令，打死了一个恐怖分子。被开除了。",
       "speakers": [
         "S02"
       ],
@@ -6597,8 +6203,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1572240,
-      "end_ms": 1581350,
+      "start_ms": 1572160,
+      "end_ms": 1581250,
       "text": "但是，但是，就有一个领导却意外的看到了他的才能。就又把他调到了一个神秘的部队，那个部队就叫战狼。",
       "speakers": [
         "S02"
@@ -6613,9 +6219,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1582420,
-      "end_ms": 1584100,
-      "text": "我还记得，这是",
+      "start_ms": 1581970,
+      "end_ms": 1584000,
+      "text": "我还记得，嗯，这是",
       "speakers": [
         "S01"
       ],
@@ -6623,56 +6229,7 @@
         "crosscheck_disagreement_in_interval"
       ],
       "channel": null,
-      "tokens": [
-        {
-          "text": "我",
-          "start_ms": 1582420,
-          "end_ms": 1582500,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "还",
-          "start_ms": 1582500,
-          "end_ms": 1582660,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "记",
-          "start_ms": 1582660,
-          "end_ms": 1582820,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "得，",
-          "start_ms": 1582820,
-          "end_ms": 1582900,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "这",
-          "start_ms": 1583780,
-          "end_ms": 1583860,
-          "speakers": [
-            "S01"
-          ]
-        },
-        {
-          "text": "是",
-          "start_ms": 1583860,
-          "end_ms": 1584100,
-          "speakers": [
-            "S01"
-          ]
-        }
-      ],
+      "tokens": [],
       "candidates": {},
       "reviews": {},
       "decision": "primary"
@@ -6798,7 +6355,7 @@
     },
     {
       "start_ms": 1599490,
-      "end_ms": 1611010,
+      "end_ms": 1611000,
       "text": "然后，但是那个毒枭嘛之前那个毒枭他的朋友，为了帮他复仇嘛就跨越了边境，入侵中国，想找冷锋的麻烦嘛。",
       "speakers": [
         "S02"
@@ -6830,7 +6387,7 @@
     },
     {
       "start_ms": 1624550,
-      "end_ms": 1627120,
+      "end_ms": 1627110,
       "text": "就为了，为了，为了赢得这个胜利。",
       "speakers": [
         "S02"
@@ -6845,8 +6402,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1628980,
-      "end_ms": 1634170,
+      "start_ms": 1628970,
+      "end_ms": 1634160,
       "text": "这片片啊，他获得了那个18届上海国际电影节的奖项。",
       "speakers": [
         "S02"
@@ -6861,7 +6418,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1634170,
+      "start_ms": 1634160,
       "end_ms": 1635160,
       "text": "嗯，还有。",
       "speakers": [
@@ -6878,7 +6435,7 @@
     },
     {
       "start_ms": 1635160,
-      "end_ms": 1642850,
+      "end_ms": 1642840,
       "text": "还有那个金鸡奖，还有，得到了，还得到了成龙的那个东土片的1个奖。",
       "speakers": [
         "S02"
@@ -6893,8 +6450,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1643120,
-      "end_ms": 1645150,
+      "start_ms": 1643110,
+      "end_ms": 1645140,
       "text": "可以啊，那含金量很高啊！",
       "speakers": [
         "S01"
@@ -6909,7 +6466,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1645150,
+      "start_ms": 1645140,
       "end_ms": 1647650,
       "text": "对啊，因为他就是这个东土片很厉害啊。",
       "speakers": [
@@ -6926,7 +6483,7 @@
     },
     {
       "start_ms": 1647650,
-      "end_ms": 1655280,
+      "end_ms": 1655250,
       "text": "那你，那你能从从战狼这部电影，也从吴京这个人身上，你能学到一些什么，什么样的心得吗？",
       "speakers": [
         "S01"
@@ -6942,7 +6499,7 @@
     },
     {
       "start_ms": 1655540,
-      "end_ms": 1662700,
+      "end_ms": 1662690,
       "text": "所以，我觉得最典型的，可能就是爱国吧。身为1个中国军人，为了国家付出了很多，然后",
       "speakers": [
         "S02"
@@ -6957,8 +6514,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1663710,
-      "end_ms": 1666410,
+      "start_ms": 1663700,
+      "end_ms": 1666400,
       "text": "真的，爱国这个东西很重要。",
       "speakers": [
         "S02"
@@ -6973,8 +6530,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1666410,
-      "end_ms": 1669300,
+      "start_ms": 1666400,
+      "end_ms": 1669290,
       "text": "嗯，还有一些生活上的态度呢？",
       "speakers": [
         "S01"
@@ -6989,8 +6546,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1669780,
-      "end_ms": 1679130,
+      "start_ms": 1669770,
+      "end_ms": 1679120,
       "text": "生活上，就是要不屈不挠，成为中国军人嘛，他就是军人，就是不屈不挠啊，为了任务啊，牺牲自己啊，那种伟大的情怀吧。",
       "speakers": [
         "S02"
@@ -7005,7 +6562,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1679130,
+      "start_ms": 1679120,
       "end_ms": 1687380,
       "text": "对啊，嗯，我战狼在那部电影，感觉一直坚守的军人1个原则，叫什么原则吗？就是，就是",
       "speakers": [
@@ -7023,7 +6580,7 @@
     {
       "start_ms": 1688430,
       "end_ms": 1696610,
-      "text": "就是，就是，军人军人的军人的的军人的天职，就是服从命令。",
+      "text": "就是，就是，军人，军人的军人的的军人的天职，就是服从命令。",
       "speakers": [
         "S01"
       ],
@@ -7037,7 +6594,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1698360,
+      "start_ms": 1698350,
       "end_ms": 1699300,
       "text": "然后，",
       "speakers": [
@@ -7067,7 +6624,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1713250,
+      "start_ms": 1713260,
       "end_ms": 1721700,
       "text": "战狼吧，其实它从某种程度来说吧，它的看点是比较鲜明的。目标也很明确。",
       "speakers": [
@@ -7083,7 +6640,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1722060,
+      "start_ms": 1722050,
       "end_ms": 1723760,
       "text": "那你对它的评价是什么呢？",
       "speakers": [
@@ -7115,9 +6672,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1728710,
+      "start_ms": 1728700,
       "end_ms": 1741550,
-      "text": "主义这张牌，虽然虽然不好用，但是真的，只要用的时机对吧，它那个效果真的是惊人的。它的这个战狼，就正好补上了这个空，把那种普通观众的强国情绪吧。",
+      "text": "主义这上拍，虽然虽然不好用，但是真的，只要用的时机对吧，它那个效果真的是惊人的。它的这个战狼，就正好补上了这个空，把那种普通观众的强国情绪吧。",
       "speakers": [
         "S02"
       ],
@@ -7133,7 +6690,7 @@
     {
       "start_ms": 1742880,
       "end_ms": 1750860,
-      "text": "让，让我们有了1个情绪，可以发发出来，那样1个出口。成为了一匹黑马，让这个战狼",
+      "text": "让，让我们有了1个情绪，可以发，发出来，那样1个出口。成为了一匹黑马，让这个战狼",
       "speakers": [
         "S02"
       ],
@@ -7149,7 +6706,7 @@
     {
       "start_ms": 1752270,
       "end_ms": 1759950,
-      "text": "而且，它的耗资耗资巨大呀，中外联合打造的，有一流的那种创作队伍和3D",
+      "text": "而且，它的耗资，耗资巨大呀，中外联合打造的，有一流的那种创作队伍和3D",
       "speakers": [
         "S02"
       ],
@@ -7199,7 +6756,7 @@
           ]
         },
         {
-          "text": "资",
+          "text": "资，",
           "start_ms": 1753550,
           "end_ms": 1753790,
           "speakers": [
@@ -7437,7 +6994,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1761210,
+      "start_ms": 1761110,
       "end_ms": 1764510,
       "text": "那它这这部电影是是是美强学笨吗？",
       "speakers": [
@@ -7453,9 +7010,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1765000,
-      "end_ms": 1775430,
-      "text": "它这，它而且它还原，还还原了很真实的战场。历史7年，打造了这种，打造了这样一个中国的传奇故事吧。",
+      "start_ms": 1765710,
+      "end_ms": 1775440,
+      "text": "它，而且它还原，还还原了很真实的战场。历史7年。打造了这种，打造了这样一个中国的传奇故事吧。",
       "speakers": [
         "S02"
       ],
@@ -7469,8 +7026,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1776250,
-      "end_ms": 1780210,
+      "start_ms": 1776210,
+      "end_ms": 1780220,
       "text": "然后，那它那它有什么，有有什么负面评价没有？",
       "speakers": [
         "S01"
@@ -7485,8 +7042,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1780860,
-      "end_ms": 1787970,
+      "start_ms": 1780780,
+      "end_ms": 1787980,
       "text": "负面可能唯一的负面就是，有人说它走的是爱国主旋律的那种老路子。",
       "speakers": [
         "S02"
@@ -7501,8 +7058,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1789130,
-      "end_ms": 1795370,
+      "start_ms": 1789110,
+      "end_ms": 1795390,
       "text": "就是那种老套路，就没有那种新鲜感，让人觉得这是这是它唯一的那种负面评价了。",
       "speakers": [
         "S02"
@@ -7517,8 +7074,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1795640,
-      "end_ms": 1802310,
+      "start_ms": 1795600,
+      "end_ms": 1802340,
       "text": "那那你觉得它是它这个负面评价，你觉得它那个它那个它那个观点是不是正确的呢？",
       "speakers": [
         "S01"
@@ -7533,8 +7090,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1802610,
-      "end_ms": 1812330,
+      "start_ms": 1802560,
+      "end_ms": 1812340,
       "text": "我觉得也有一点点，对吧？但是我觉得从大的方向来说吧，还是非常好的，挑不出那种硬伤的。",
       "speakers": [
         "S02"
@@ -7549,9 +7106,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1812710,
-      "end_ms": 1822210,
-      "text": "因，而且它的高潮比较多，大家的观感都比较好，片子是很好的，我觉得从某一方面来说，这个片子还是挺好的。",
+      "start_ms": 1812660,
+      "end_ms": 1822220,
+      "text": "因，而且它的高潮比较多，大家的观感都比较好，片子是很好，我觉得从某一方面来说，这个片子还是挺好的。",
       "speakers": [
         "S02"
       ],
@@ -7565,9 +7122,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1822480,
-      "end_ms": 1834880,
-      "text": "某一方面来说，非常挺好的，我也感觉，感觉我我对它的感觉是，因为它那个爱国之心嘛，因为，嗯，普通民众如果要是没当兵的话，他对那种爱国之心也就是",
+      "start_ms": 1822440,
+      "end_ms": 1834870,
+      "text": "某一方面来说，片子还挺好的，我也感觉，感觉我我对它的感觉是因为它那个爱国之心嘛，因为，嗯，普通民众如果要是没当兵的话，他对那种爱国之心也就是",
       "speakers": [
         "S01"
       ],
@@ -7581,8 +7138,8 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1834880,
-      "end_ms": 1844750,
+      "start_ms": 1834870,
+      "end_ms": 1844740,
       "text": "嗯，不怎么强烈，只有那些军人对它的爱国之心才会强烈感嘛。然后它就利用这部电影，因为这部电影它就它的强烈感",
       "speakers": [
         "S01"
@@ -7597,9 +7154,9 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1844950,
+      "start_ms": 1844920,
       "end_ms": 1851510,
-      "text": "就是把观众民众人民看了这部电影的那个爱国之情，又又提高了一个层次。",
+      "text": "就是把观众民众人民看完这部电影的那个爱国之情，又又提高了一个层次。",
       "speakers": [
         "S01"
       ],
@@ -7613,7 +7170,7 @@
       "decision": "primary"
     },
     {
-      "start_ms": 1851630,
+      "start_ms": 1851510,
       "end_ms": 1856530,
       "text": "没错，歌颂了我们中国的这种集体主义和强国感吧。",
       "speakers": [
@@ -10679,4136 +10236,1862 @@
   ],
   "speakers": [
     {
-      "start_ms": 1043,
-      "end_ms": 4739,
+      "start_ms": 0,
+      "end_ms": 4910,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 5802,
-      "end_ms": 7388,
+      "start_ms": 5410,
+      "end_ms": 7490,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 7945,
-      "end_ms": 10358,
+      "start_ms": 7490,
+      "end_ms": 10340,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 10578,
-      "end_ms": 12198,
+      "start_ms": 10340,
+      "end_ms": 13570,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 12417,
-      "end_ms": 12788,
+      "start_ms": 13570,
+      "end_ms": 18160,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 12822,
-      "end_ms": 13632,
+      "start_ms": 18650,
+      "end_ms": 22720,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 13767,
-      "end_ms": 18070,
+      "start_ms": 22720,
+      "end_ms": 24640,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 19032,
-      "end_ms": 20990,
+      "start_ms": 24640,
+      "end_ms": 26140,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 21513,
-      "end_ms": 22812,
+      "start_ms": 27410,
+      "end_ms": 28720,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 22913,
-      "end_ms": 24601,
+      "start_ms": 29200,
+      "end_ms": 32820,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 24972,
-      "end_ms": 26086,
+      "start_ms": 32940,
+      "end_ms": 33970,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 27723,
-      "end_ms": 28617,
+      "start_ms": 34410,
+      "end_ms": 35550,
       "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 29630,
-      "end_ms": 32667,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 33325,
-      "end_ms": 33916,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 34810,
-      "end_ms": 35452,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 37662,
-      "end_ms": 39367,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 39400,
-      "end_ms": 39805,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 40430,
-      "end_ms": 41020,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 42472,
-      "end_ms": 46741,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 46876,
-      "end_ms": 49272,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 49441,
-      "end_ms": 55972,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 56157,
-      "end_ms": 58739,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 59347,
-      "end_ms": 61878,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 62013,
-      "end_ms": 62738,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 63481,
-      "end_ms": 64072,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 67177,
-      "end_ms": 76222,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 71530,
-      "end_ms": 72307,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 76492,
-      "end_ms": 80423,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 76559,
-      "end_ms": 77048,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 81031,
-      "end_ms": 82297,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 82297,
-      "end_ms": 82533,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 83377,
-      "end_ms": 85283,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 85402,
-      "end_ms": 86330,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 86650,
-      "end_ms": 87663,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 88152,
-      "end_ms": 90245,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 90734,
-      "end_ms": 93130,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 93653,
-      "end_ms": 94008,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 94683,
-      "end_ms": 96337,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 96910,
-      "end_ms": 98902,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 100522,
-      "end_ms": 103340,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 103525,
-      "end_ms": 106107,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 106225,
-      "end_ms": 108082,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 108284,
-      "end_ms": 108571,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 108571,
-      "end_ms": 109398,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 110815,
-      "end_ms": 111355,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 111507,
-      "end_ms": 115777,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 116587,
-      "end_ms": 119742,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 118021,
-      "end_ms": 118493,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 119759,
-      "end_ms": 123134,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 123691,
-      "end_ms": 124585,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 124973,
-      "end_ms": 125648,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 126155,
-      "end_ms": 126543,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 126863,
-      "end_ms": 127066,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 127623,
-      "end_ms": 130947,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 131707,
-      "end_ms": 133225,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 133512,
-      "end_ms": 134761,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 134896,
-      "end_ms": 135318,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 135419,
-      "end_ms": 135908,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 136550,
-      "end_ms": 137174,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 138119,
-      "end_ms": 140228,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 140431,
-      "end_ms": 142287,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 142878,
-      "end_ms": 143435,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 143603,
-      "end_ms": 143975,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 143907,
-      "end_ms": 147805,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 148852,
-      "end_ms": 150252,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 150539,
-      "end_ms": 151990,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 151670,
-      "end_ms": 153155,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 152615,
-      "end_ms": 161373,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 162149,
-      "end_ms": 165338,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 165727,
-      "end_ms": 169574,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 169996,
-      "end_ms": 170333,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 170215,
-      "end_ms": 171447,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 171751,
-      "end_ms": 173202,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 173202,
-      "end_ms": 173371,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 173725,
-      "end_ms": 178788,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 179176,
-      "end_ms": 179665,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 181285,
-      "end_ms": 182753,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 183209,
-      "end_ms": 186179,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 186719,
-      "end_ms": 187748,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 187748,
-      "end_ms": 188035,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 188845,
-      "end_ms": 190162,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 191528,
-      "end_ms": 193148,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 194127,
-      "end_ms": 194617,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 194667,
-      "end_ms": 196000,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 196507,
-      "end_ms": 197536,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 198481,
-      "end_ms": 203071,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 203999,
-      "end_ms": 204877,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 206007,
-      "end_ms": 208100,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 208859,
-      "end_ms": 210260,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 211238,
-      "end_ms": 211627,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 212082,
-      "end_ms": 212605,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 212386,
-      "end_ms": 213483,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 214765,
-      "end_ms": 217853,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 221212,
-      "end_ms": 224317,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 224536,
-      "end_ms": 225802,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 228873,
-      "end_ms": 231623,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 232349,
-      "end_ms": 235201,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 235505,
-      "end_ms": 236433,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 236922,
-      "end_ms": 251941,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 247351,
-      "end_ms": 247756,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 252363,
-      "end_ms": 258033,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 259180,
-      "end_ms": 264260,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 264496,
-      "end_ms": 266116,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 266521,
-      "end_ms": 268242,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 269221,
-      "end_ms": 269710,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 270149,
-      "end_ms": 283447,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 283987,
-      "end_ms": 287952,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 288070,
-      "end_ms": 288593,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 288965,
-      "end_ms": 295799,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 295985,
-      "end_ms": 297689,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 297858,
-      "end_ms": 298229,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 298364,
-      "end_ms": 301081,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 301553,
-      "end_ms": 302853,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 304372,
-      "end_ms": 304962,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 304473,
-      "end_ms": 316066,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 310193,
-      "end_ms": 310733,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 311695,
-      "end_ms": 312202,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 316538,
-      "end_ms": 318412,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 318833,
-      "end_ms": 320318,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 320740,
-      "end_ms": 321398,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 321820,
-      "end_ms": 324959,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 326343,
-      "end_ms": 327271,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 327760,
-      "end_ms": 328925,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 330038,
-      "end_ms": 331523,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 332401,
-      "end_ms": 332975,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 333717,
-      "end_ms": 337801,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 338408,
-      "end_ms": 338864,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 339269,
-      "end_ms": 341125,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 341480,
-      "end_ms": 341800,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 342003,
-      "end_ms": 344129,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 346188,
-      "end_ms": 347032,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 347521,
-      "end_ms": 348331,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 349782,
-      "end_ms": 349951,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 352145,
-      "end_ms": 355469,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 356009,
-      "end_ms": 357680,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 358051,
-      "end_ms": 359654,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 360076,
-      "end_ms": 366809,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 364092,
-      "end_ms": 364480,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 367822,
-      "end_ms": 369762,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 369998,
-      "end_ms": 374740,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 375162,
-      "end_ms": 386418,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 377626,
-      "end_ms": 378132,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 386722,
-      "end_ms": 389675,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 389978,
-      "end_ms": 390856,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 391126,
-      "end_ms": 392408,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 392645,
-      "end_ms": 396307,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 396577,
-      "end_ms": 398315,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 398669,
-      "end_ms": 399023,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 399310,
-      "end_ms": 400492,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 400559,
-      "end_ms": 401285,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 402010,
-      "end_ms": 408237,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 408372,
-      "end_ms": 416253,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 416978,
-      "end_ms": 418480,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 418447,
-      "end_ms": 419088,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 419037,
-      "end_ms": 425315,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 425973,
-      "end_ms": 427610,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 429584,
-      "end_ms": 436857,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 437380,
-      "end_ms": 440232,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 440452,
-      "end_ms": 442190,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 442882,
-      "end_ms": 443793,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 443978,
-      "end_ms": 449125,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 450256,
-      "end_ms": 451403,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 451842,
-      "end_ms": 454576,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 454576,
-      "end_ms": 454897,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 455572,
-      "end_ms": 456618,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 456955,
-      "end_ms": 458423,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 459503,
-      "end_ms": 461444,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 461680,
-      "end_ms": 465443,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 466507,
-      "end_ms": 473105,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 473324,
-      "end_ms": 478066,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 473408,
-      "end_ms": 473560,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 479990,
-      "end_ms": 480648,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 481002,
-      "end_ms": 483112,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 483483,
-      "end_ms": 483787,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 483905,
-      "end_ms": 487212,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 487415,
-      "end_ms": 496544,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 496983,
-      "end_ms": 506551,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 508593,
-      "end_ms": 509082,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 509521,
-      "end_ms": 512187,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 512660,
-      "end_ms": 513402,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 514465,
-      "end_ms": 515478,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 515731,
-      "end_ms": 517165,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 517520,
-      "end_ms": 522616,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 523325,
-      "end_ms": 525890,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 523375,
-      "end_ms": 524641,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 526058,
-      "end_ms": 526463,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 527459,
-      "end_ms": 530328,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 532032,
-      "end_ms": 534580,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 534968,
-      "end_ms": 540132,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 540605,
-      "end_ms": 541027,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 541178,
-      "end_ms": 544030,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 544435,
-      "end_ms": 545195,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 545802,
-      "end_ms": 546629,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 547135,
-      "end_ms": 548671,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 548722,
-      "end_ms": 549059,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 550375,
-      "end_ms": 551219,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 551540,
-      "end_ms": 553582,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 554138,
-      "end_ms": 554847,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 554138,
-      "end_ms": 557075,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 557142,
-      "end_ms": 557800,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 559285,
-      "end_ms": 560011,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 560483,
-      "end_ms": 562070,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 562458,
-      "end_ms": 562711,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 564044,
-      "end_ms": 564432,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 564078,
-      "end_ms": 567908,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 568010,
-      "end_ms": 568043,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 568043,
-      "end_ms": 568465,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 568060,
-      "end_ms": 570170,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 570659,
-      "end_ms": 572093,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 573224,
-      "end_ms": 573730,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 575620,
-      "end_ms": 577460,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 578135,
-      "end_ms": 581476,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 581594,
-      "end_ms": 584092,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 584092,
-      "end_ms": 584142,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 584142,
-      "end_ms": 584311,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 584969,
-      "end_ms": 589357,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 589947,
-      "end_ms": 592478,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 592563,
-      "end_ms": 597811,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 598300,
-      "end_ms": 598688,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 600022,
-      "end_ms": 602198,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 603143,
-      "end_ms": 605354,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 605624,
-      "end_ms": 606080,
-      "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 605658,
-      "end_ms": 608915,
+      "start_ms": 37320,
+      "end_ms": 41160,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 609539,
-      "end_ms": 612357,
+      "start_ms": 42160,
+      "end_ms": 54590,
       "text": "",
-      "speaker": "S02"
+      "speaker": "S01"
     },
     {
-      "start_ms": 613201,
-      "end_ms": 614062,
+      "start_ms": 54590,
+      "end_ms": 58860,
       "text": "",
-      "speaker": "S02"
+      "speaker": "S01"
     },
     {
-      "start_ms": 614618,
-      "end_ms": 616762,
+      "start_ms": 58950,
+      "end_ms": 61830,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 616981,
-      "end_ms": 617369,
+      "start_ms": 61830,
+      "end_ms": 64180,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 617285,
-      "end_ms": 618230,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 618803,
-      "end_ms": 619107,
+      "start_ms": 66790,
+      "end_ms": 76210,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 618837,
-      "end_ms": 620626,
+      "start_ms": 77000,
+      "end_ms": 80490,
       "text": "",
-      "speaker": "S02"
+      "speaker": "S01"
     },
     {
-      "start_ms": 621436,
-      "end_ms": 624524,
+      "start_ms": 80660,
+      "end_ms": 82130,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 624575,
-      "end_ms": 624980,
+      "start_ms": 82130,
+      "end_ms": 93260,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 625047,
-      "end_ms": 627038,
+      "start_ms": 94320,
+      "end_ms": 98880,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 629182,
-      "end_ms": 630548,
+      "start_ms": 100210,
+      "end_ms": 106030,
       "text": "",
-      "speaker": "S02"
+      "speaker": "S01"
     },
     {
-      "start_ms": 631021,
-      "end_ms": 632894,
+      "start_ms": 106030,
+      "end_ms": 117890,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 633046,
-      "end_ms": 637687,
+      "start_ms": 118210,
+      "end_ms": 124410,
       "text": "",
-      "speaker": "S01"
+      "speaker": "S02"
     },
     {
-      "start_ms": 637973,
-      "end_ms": 644065,
+      "start_ms": 124660,
+      "end_ms": 125720,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 644622,
-      "end_ms": 647778,
+      "start_ms": 125720,
+      "end_ms": 134710,
       "text": "",
-      "speaker": "S01"
+      "speaker": "S02"
     },
     {
-      "start_ms": 647896,
-      "end_ms": 652823,
+      "start_ms": 134710,
+      "end_ms": 135240,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 652823,
-      "end_ms": 654832,
+      "start_ms": 135240,
+      "end_ms": 136010,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 655253,
-      "end_ms": 655473,
+      "start_ms": 136190,
+      "end_ms": 137320,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 656519,
-      "end_ms": 658662,
+      "start_ms": 137800,
+      "end_ms": 140210,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 659017,
-      "end_ms": 659928,
+      "start_ms": 140210,
+      "end_ms": 142380,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 659388,
-      "end_ms": 660265,
+      "start_ms": 143710,
+      "end_ms": 150260,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 660637,
-      "end_ms": 662594,
+      "start_ms": 150260,
+      "end_ms": 151560,
       "text": "",
-      "speaker": "S02"
+      "speaker": "S01"
     },
     {
-      "start_ms": 663252,
-      "end_ms": 664012,
+      "start_ms": 151560,
+      "end_ms": 152420,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 664028,
-      "end_ms": 671538,
+      "start_ms": 152920,
+      "end_ms": 165390,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 671977,
-      "end_ms": 672584,
+      "start_ms": 165390,
+      "end_ms": 172990,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 672736,
-      "end_ms": 690218,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 690758,
-      "end_ms": 693070,
+      "start_ms": 173770,
+      "end_ms": 175930,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 693340,
-      "end_ms": 695197,
+      "start_ms": 176120,
+      "end_ms": 179480,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 696277,
-      "end_ms": 697475,
+      "start_ms": 180820,
+      "end_ms": 186240,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 698065,
-      "end_ms": 698453,
+      "start_ms": 186240,
+      "end_ms": 193210,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 698453,
-      "end_ms": 702217,
+      "start_ms": 194620,
+      "end_ms": 196030,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 703330,
-      "end_ms": 703870,
+      "start_ms": 196030,
+      "end_ms": 205050,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 705001,
-      "end_ms": 705322,
+      "start_ms": 205560,
+      "end_ms": 208210,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 705440,
-      "end_ms": 706030,
+      "start_ms": 208430,
+      "end_ms": 210450,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 706368,
-      "end_ms": 711160,
+      "start_ms": 211680,
+      "end_ms": 212320,
       "text": "",
-      "speaker": "S01"
+      "speaker": "S02"
     },
     {
-      "start_ms": 711734,
-      "end_ms": 714232,
+      "start_ms": 212320,
+      "end_ms": 213530,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 714890,
-      "end_ms": 716560,
+      "start_ms": 214330,
+      "end_ms": 217930,
       "text": "",
-      "speaker": "S01"
+      "speaker": "S02"
     },
     {
-      "start_ms": 717083,
-      "end_ms": 720020,
+      "start_ms": 220740,
+      "end_ms": 225850,
       "text": "",
-      "speaker": "S01"
+      "speaker": "S02"
     },
     {
-      "start_ms": 719480,
-      "end_ms": 722568,
+      "start_ms": 228480,
+      "end_ms": 231690,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 722382,
-      "end_ms": 722551,
+      "start_ms": 231940,
+      "end_ms": 242210,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 722568,
-      "end_ms": 725943,
+      "start_ms": 242460,
+      "end_ms": 251850,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 726095,
-      "end_ms": 738903,
+      "start_ms": 252080,
+      "end_ms": 264210,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 729233,
-      "end_ms": 730010,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 739561,
-      "end_ms": 740843,
+      "start_ms": 264210,
+      "end_ms": 268250,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 742126,
-      "end_ms": 743729,
+      "start_ms": 269740,
+      "end_ms": 283490,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 746041,
-      "end_ms": 747172,
+      "start_ms": 283600,
+      "end_ms": 297620,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 748167,
-      "end_ms": 748235,
+      "start_ms": 298020,
+      "end_ms": 302710,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 748927,
-      "end_ms": 771083,
+      "start_ms": 304020,
+      "end_ms": 304810,
       "text": "",
-      "speaker": "S01"
+      "speaker": "S02"
     },
     {
-      "start_ms": 771185,
-      "end_ms": 772450,
+      "start_ms": 304810,
+      "end_ms": 318420,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 773412,
-      "end_ms": 775724,
+      "start_ms": 318420,
+      "end_ms": 320330,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 776230,
-      "end_ms": 782170,
+      "start_ms": 320330,
+      "end_ms": 325050,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 782828,
-      "end_ms": 783622,
+      "start_ms": 325930,
+      "end_ms": 327320,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 784077,
-      "end_ms": 787250,
+      "start_ms": 327320,
+      "end_ms": 337910,
       "text": "",
-      "speaker": "S02"
+      "speaker": "S01"
     },
     {
-      "start_ms": 788718,
-      "end_ms": 789477,
+      "start_ms": 338850,
+      "end_ms": 344170,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 790068,
-      "end_ms": 790912,
+      "start_ms": 345730,
+      "end_ms": 348370,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 791755,
-      "end_ms": 794978,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 795485,
-      "end_ms": 795653,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 796295,
-      "end_ms": 796868,
+      "start_ms": 349300,
+      "end_ms": 350020,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 798100,
-      "end_ms": 799636,
+      "start_ms": 351700,
+      "end_ms": 353000,
       "text": "",
-      "speaker": "S01"
+      "speaker": "S02"
     },
     {
-      "start_ms": 799889,
-      "end_ms": 801728,
+      "start_ms": 352000,
+      "end_ms": 357740,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 801863,
-      "end_ms": 803112,
+      "start_ms": 357740,
+      "end_ms": 366740,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 804783,
-      "end_ms": 805880,
+      "start_ms": 367380,
+      "end_ms": 381280,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 808006,
-      "end_ms": 813068,
+      "start_ms": 381280,
+      "end_ms": 389650,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 814975,
-      "end_ms": 815836,
+      "start_ms": 389650,
+      "end_ms": 390820,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 815954,
-      "end_ms": 816663,
+      "start_ms": 390820,
+      "end_ms": 396260,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 816292,
-      "end_ms": 817507,
+      "start_ms": 396260,
+      "end_ms": 398200,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 817793,
-      "end_ms": 819110,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 820257,
-      "end_ms": 823868,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 824071,
-      "end_ms": 826282,
+      "start_ms": 398410,
+      "end_ms": 409470,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 826636,
-      "end_ms": 834736,
+      "start_ms": 409660,
+      "end_ms": 418290,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 835411,
-      "end_ms": 837470,
+      "start_ms": 418290,
+      "end_ms": 418880,
       "text": "",
-      "speaker": "S01"
+      "speaker": "S02"
     },
     {
-      "start_ms": 837993,
-      "end_ms": 840288,
+      "start_ms": 418880,
+      "end_ms": 427680,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 840406,
-      "end_ms": 841503,
+      "start_ms": 429220,
+      "end_ms": 436890,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 840457,
-      "end_ms": 841081,
+      "start_ms": 437000,
+      "end_ms": 440190,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 842296,
-      "end_ms": 847105,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 847325,
-      "end_ms": 860808,
+      "start_ms": 440190,
+      "end_ms": 449160,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 863086,
-      "end_ms": 863542,
+      "start_ms": 449860,
+      "end_ms": 461420,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 863778,
-      "end_ms": 868722,
+      "start_ms": 461420,
+      "end_ms": 473040,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 868992,
-      "end_ms": 869279,
+      "start_ms": 473680,
+      "end_ms": 478180,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 870697,
-      "end_ms": 871675,
+      "start_ms": 479600,
+      "end_ms": 487170,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 871996,
-      "end_ms": 872452,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 873262,
-      "end_ms": 874780,
+      "start_ms": 487510,
+      "end_ms": 496440,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 875101,
-      "end_ms": 884264,
+      "start_ms": 496770,
+      "end_ms": 506610,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 882188,
-      "end_ms": 882863,
+      "start_ms": 508210,
+      "end_ms": 515450,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 884568,
-      "end_ms": 886053,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 886289,
-      "end_ms": 892482,
+      "start_ms": 515450,
+      "end_ms": 522640,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 892516,
-      "end_ms": 895047,
+      "start_ms": 524630,
+      "end_ms": 525810,
       "text": "",
-      "speaker": "S01"
+      "speaker": "S02"
     },
     {
-      "start_ms": 895267,
-      "end_ms": 901544,
+      "start_ms": 525810,
+      "end_ms": 528000,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 902590,
-      "end_ms": 906438,
+      "start_ms": 528120,
+      "end_ms": 529960,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 907906,
-      "end_ms": 911433,
+      "start_ms": 531720,
+      "end_ms": 540150,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 912597,
-      "end_ms": 916985,
+      "start_ms": 540150,
+      "end_ms": 540970,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 916394,
-      "end_ms": 916630,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 917153,
-      "end_ms": 917525,
+      "start_ms": 540970,
+      "end_ms": 546700,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 919583,
-      "end_ms": 920107,
+      "start_ms": 546700,
+      "end_ms": 548530,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 924258,
-      "end_ms": 926705,
+      "start_ms": 548530,
+      "end_ms": 553610,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 927329,
-      "end_ms": 928595,
+      "start_ms": 554780,
+      "end_ms": 556930,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 928409,
-      "end_ms": 929084,
+      "start_ms": 556930,
+      "end_ms": 562120,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 930485,
-      "end_ms": 931868,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 932932,
-      "end_ms": 933742,
+      "start_ms": 563610,
+      "end_ms": 572170,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 934180,
-      "end_ms": 936931,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 937623,
-      "end_ms": 938062,
+      "start_ms": 572820,
+      "end_ms": 573780,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 938703,
-      "end_ms": 941133,
+      "start_ms": 575210,
+      "end_ms": 589440,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 941116,
-      "end_ms": 941639,
+      "start_ms": 589560,
+      "end_ms": 592360,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 941150,
-      "end_ms": 941200,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 941504,
-      "end_ms": 945233,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 946347,
-      "end_ms": 947242,
+      "start_ms": 592360,
+      "end_ms": 597900,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 947849,
-      "end_ms": 948777,
+      "start_ms": 599580,
+      "end_ms": 614150,
       "text": "",
-      "speaker": "S01"
+      "speaker": "S02"
     },
     {
-      "start_ms": 950262,
-      "end_ms": 951005,
+      "start_ms": 614150,
+      "end_ms": 624410,
       "text": "",
-      "speaker": "S01"
+      "speaker": "S02"
     },
     {
-      "start_ms": 955612,
-      "end_ms": 960235,
+      "start_ms": 624820,
+      "end_ms": 627060,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 960320,
-      "end_ms": 960843,
+      "start_ms": 628730,
+      "end_ms": 632800,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 960758,
-      "end_ms": 963239,
+      "start_ms": 632800,
+      "end_ms": 643940,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 963290,
-      "end_ms": 966918,
+      "start_ms": 644280,
+      "end_ms": 652600,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 967424,
-      "end_ms": 967863,
+      "start_ms": 652600,
+      "end_ms": 654820,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 967778,
-      "end_ms": 972908,
+      "start_ms": 656070,
+      "end_ms": 658650,
       "text": "",
-      "speaker": "S01"
+      "speaker": "S02"
     },
     {
-      "start_ms": 973465,
-      "end_ms": 980705,
+      "start_ms": 658650,
+      "end_ms": 659230,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 981245,
-      "end_ms": 983894,
+      "start_ms": 660230,
+      "end_ms": 663830,
       "text": "",
-      "speaker": "S01"
+      "speaker": "S02"
     },
     {
-      "start_ms": 984400,
-      "end_ms": 987623,
+      "start_ms": 663830,
+      "end_ms": 671560,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 988957,
-      "end_ms": 990340,
+      "start_ms": 671560,
+      "end_ms": 672490,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 990509,
-      "end_ms": 991792,
+      "start_ms": 672490,
+      "end_ms": 685780,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 992720,
-      "end_ms": 996584,
+      "start_ms": 685780,
+      "end_ms": 697560,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 996736,
-      "end_ms": 996753,
+      "start_ms": 698160,
+      "end_ms": 702300,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 996753,
-      "end_ms": 997124,
+      "start_ms": 702880,
+      "end_ms": 703840,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 996803,
-      "end_ms": 996837,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 997124,
-      "end_ms": 997141,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 997563,
-      "end_ms": 998896,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1000887,
-      "end_ms": 1010455,
+      "start_ms": 704650,
+      "end_ms": 705180,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1010000,
-      "end_ms": 1010911,
+      "start_ms": 705180,
+      "end_ms": 706020,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1011451,
-      "end_ms": 1014910,
+      "start_ms": 706020,
+      "end_ms": 719110,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1015467,
-      "end_ms": 1017053,
+      "start_ms": 720070,
+      "end_ms": 722410,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1017188,
-      "end_ms": 1017458,
+      "start_ms": 722410,
+      "end_ms": 732930,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1018690,
-      "end_ms": 1023280,
+      "start_ms": 733010,
+      "end_ms": 743800,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1024192,
-      "end_ms": 1027533,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1029355,
-      "end_ms": 1031448,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1031718,
-      "end_ms": 1031802,
+      "start_ms": 745680,
+      "end_ms": 747120,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1032477,
-      "end_ms": 1032899,
+      "start_ms": 748620,
+      "end_ms": 760450,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1033760,
-      "end_ms": 1035312,
+      "start_ms": 760450,
+      "end_ms": 772530,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1036240,
-      "end_ms": 1036443,
+      "start_ms": 772990,
+      "end_ms": 775710,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1037624,
-      "end_ms": 1038282,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1038755,
-      "end_ms": 1039025,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1039177,
-      "end_ms": 1041607,
+      "start_ms": 775970,
+      "end_ms": 782250,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1041657,
-      "end_ms": 1042096,
+      "start_ms": 782480,
+      "end_ms": 790760,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1042096,
-      "end_ms": 1044374,
+      "start_ms": 791380,
+      "end_ms": 794910,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1045235,
-      "end_ms": 1047277,
+      "start_ms": 795950,
+      "end_ms": 799610,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1047277,
-      "end_ms": 1047682,
+      "start_ms": 799610,
+      "end_ms": 801660,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1047327,
-      "end_ms": 1047361,
+      "start_ms": 801660,
+      "end_ms": 803190,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1047547,
-      "end_ms": 1051681,
+      "start_ms": 804400,
+      "end_ms": 806000,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1051799,
-      "end_ms": 1062515,
+      "start_ms": 807610,
+      "end_ms": 813200,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1056693,
-      "end_ms": 1057132,
+      "start_ms": 814610,
+      "end_ms": 817510,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1062734,
-      "end_ms": 1063477,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1064236,
-      "end_ms": 1070868,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1071830,
-      "end_ms": 1074665,
+      "start_ms": 818310,
+      "end_ms": 830250,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1072032,
-      "end_ms": 1072201,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1074884,
-      "end_ms": 1077027,
+      "start_ms": 830250,
+      "end_ms": 841530,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1077398,
-      "end_ms": 1077905,
+      "start_ms": 842080,
+      "end_ms": 855120,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1078175,
-      "end_ms": 1082410,
+      "start_ms": 855120,
+      "end_ms": 860830,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1082410,
-      "end_ms": 1082917,
+      "start_ms": 862650,
+      "end_ms": 868720,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1083001,
-      "end_ms": 1086140,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1087827,
-      "end_ms": 1088317,
+      "start_ms": 870310,
+      "end_ms": 871660,
       "text": "",
-      "speaker": "S01"
+      "speaker": "S02"
     },
     {
-      "start_ms": 1089363,
-      "end_ms": 1094037,
+      "start_ms": 871980,
+      "end_ms": 880060,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1094172,
-      "end_ms": 1096366,
+      "start_ms": 880040,
+      "end_ms": 892040,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1096720,
-      "end_ms": 1097294,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1097817,
-      "end_ms": 1099100,
+      "start_ms": 892710,
+      "end_ms": 906450,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1099606,
-      "end_ms": 1106609,
+      "start_ms": 907920,
+      "end_ms": 911430,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1101783,
-      "end_ms": 1102289,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1106677,
-      "end_ms": 1107031,
+      "start_ms": 912340,
+      "end_ms": 916940,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1107402,
-      "end_ms": 1107875,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1108482,
-      "end_ms": 1115620,
+      "start_ms": 916940,
+      "end_ms": 917510,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1117088,
-      "end_ms": 1118523,
+      "start_ms": 919230,
+      "end_ms": 920170,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1118320,
-      "end_ms": 1119248,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1119569,
-      "end_ms": 1130943,
+      "start_ms": 923910,
+      "end_ms": 928310,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1121307,
-      "end_ms": 1121898,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1131432,
-      "end_ms": 1132006,
+      "start_ms": 928310,
+      "end_ms": 929180,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1132445,
-      "end_ms": 1132782,
+      "start_ms": 930130,
+      "end_ms": 931990,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1133474,
-      "end_ms": 1134487,
+      "start_ms": 932570,
+      "end_ms": 933810,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1135567,
-      "end_ms": 1137187,
+      "start_ms": 933810,
+      "end_ms": 948800,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1137659,
-      "end_ms": 1139127,
+      "start_ms": 949950,
+      "end_ms": 951110,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1139600,
-      "end_ms": 1141186,
+      "start_ms": 955270,
+      "end_ms": 966970,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1141675,
-      "end_ms": 1142587,
+      "start_ms": 967600,
+      "end_ms": 980780,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1143447,
-      "end_ms": 1145168,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1144814,
-      "end_ms": 1145303,
+      "start_ms": 980880,
+      "end_ms": 987690,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1145455,
-      "end_ms": 1148003,
+      "start_ms": 988630,
+      "end_ms": 990290,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1146215,
-      "end_ms": 1146704,
+      "start_ms": 990290,
+      "end_ms": 991340,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1147160,
-      "end_ms": 1149168,
+      "start_ms": 992580,
+      "end_ms": 996450,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1149404,
-      "end_ms": 1149758,
+      "start_ms": 997290,
+      "end_ms": 998930,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1149893,
-      "end_ms": 1151159,
+      "start_ms": 1000570,
+      "end_ms": 1009850,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1151378,
-      "end_ms": 1154990,
+      "start_ms": 1011120,
+      "end_ms": 1015000,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1155260,
-      "end_ms": 1156070,
+      "start_ms": 1015090,
+      "end_ms": 1016970,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1156103,
-      "end_ms": 1156542,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1156795,
-      "end_ms": 1157403,
+      "start_ms": 1018310,
+      "end_ms": 1023330,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1156964,
-      "end_ms": 1157875,
+      "start_ms": 1023770,
+      "end_ms": 1027610,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1158854,
-      "end_ms": 1160035,
+      "start_ms": 1029110,
+      "end_ms": 1031450,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1160913,
-      "end_ms": 1165840,
+      "start_ms": 1032130,
+      "end_ms": 1035310,
       "text": "",
-      "speaker": "S02"
+      "speaker": "S01"
     },
     {
-      "start_ms": 1166026,
-      "end_ms": 1166431,
+      "start_ms": 1037220,
+      "end_ms": 1047110,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1166954,
-      "end_ms": 1168321,
+      "start_ms": 1047970,
+      "end_ms": 1055970,
       "text": "",
-      "speaker": "S02"
+      "speaker": "S01"
     },
     {
-      "start_ms": 1168625,
-      "end_ms": 1171544,
+      "start_ms": 1055960,
+      "end_ms": 1065080,
       "text": "",
-      "speaker": "S02"
+      "speaker": "S01"
     },
     {
-      "start_ms": 1171747,
-      "end_ms": 1173434,
+      "start_ms": 1065250,
+      "end_ms": 1070920,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1173434,
-      "end_ms": 1176573,
+      "start_ms": 1072410,
+      "end_ms": 1082210,
       "text": "",
-      "speaker": "S02"
+      "speaker": "S01"
     },
     {
-      "start_ms": 1176978,
-      "end_ms": 1179982,
+      "start_ms": 1082210,
+      "end_ms": 1082750,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1180910,
-      "end_ms": 1183103,
+      "start_ms": 1082750,
+      "end_ms": 1086170,
       "text": "",
-      "speaker": "S02"
+      "speaker": "S01"
     },
     {
-      "start_ms": 1183897,
-      "end_ms": 1184605,
+      "start_ms": 1087440,
+      "end_ms": 1096410,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1184993,
-      "end_ms": 1185652,
+      "start_ms": 1096410,
+      "end_ms": 1097330,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1185955,
-      "end_ms": 1187153,
+      "start_ms": 1097420,
+      "end_ms": 1106440,
       "text": "",
-      "speaker": "S02"
+      "speaker": "S01"
     },
     {
-      "start_ms": 1187474,
-      "end_ms": 1187828,
+      "start_ms": 1107030,
+      "end_ms": 1115610,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1188402,
-      "end_ms": 1190933,
+      "start_ms": 1116690,
+      "end_ms": 1118180,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1191136,
-      "end_ms": 1195372,
+      "start_ms": 1118180,
+      "end_ms": 1130940,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1195726,
-      "end_ms": 1197245,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1197633,
-      "end_ms": 1198088,
+      "start_ms": 1130940,
+      "end_ms": 1132030,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1198898,
-      "end_ms": 1200282,
+      "start_ms": 1133070,
+      "end_ms": 1134550,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1201210,
-      "end_ms": 1201868,
+      "start_ms": 1135110,
+      "end_ms": 1142610,
       "text": "",
-      "speaker": "S02"
+      "speaker": "S01"
     },
     {
-      "start_ms": 1202223,
-      "end_ms": 1204147,
+      "start_ms": 1143020,
+      "end_ms": 1147020,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1204433,
-      "end_ms": 1206577,
+      "start_ms": 1147760,
+      "end_ms": 1154910,
       "text": "",
-      "speaker": "S02"
+      "speaker": "S01"
     },
     {
-      "start_ms": 1207808,
-      "end_ms": 1211690,
+      "start_ms": 1154910,
+      "end_ms": 1155910,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1212095,
-      "end_ms": 1217191,
+      "start_ms": 1155910,
+      "end_ms": 1156470,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1217191,
-      "end_ms": 1217630,
+      "start_ms": 1157000,
+      "end_ms": 1171450,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1217360,
-      "end_ms": 1221157,
+      "start_ms": 1171450,
+      "end_ms": 1173140,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1219975,
-      "end_ms": 1220380,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1221342,
-      "end_ms": 1222102,
+      "start_ms": 1173140,
+      "end_ms": 1183200,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1222102,
-      "end_ms": 1222473,
+      "start_ms": 1183830,
+      "end_ms": 1184610,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1222642,
-      "end_ms": 1224683,
+      "start_ms": 1184610,
+      "end_ms": 1190840,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1224650,
-      "end_ms": 1225409,
+      "start_ms": 1190840,
+      "end_ms": 1195290,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1224852,
-      "end_ms": 1225645,
+      "start_ms": 1195340,
+      "end_ms": 1206550,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1225527,
-      "end_ms": 1235230,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1235652,
-      "end_ms": 1240023,
+      "start_ms": 1207370,
+      "end_ms": 1211520,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1240327,
-      "end_ms": 1240782,
+      "start_ms": 1211730,
+      "end_ms": 1221080,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1240782,
-      "end_ms": 1241373,
+      "start_ms": 1221080,
+      "end_ms": 1224460,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1241373,
-      "end_ms": 1244815,
+      "start_ms": 1225620,
+      "end_ms": 1231940,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1244917,
-      "end_ms": 1255598,
+      "start_ms": 1231960,
+      "end_ms": 1235240,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1248967,
-      "end_ms": 1249355,
+      "start_ms": 1235310,
+      "end_ms": 1239970,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1255666,
-      "end_ms": 1259041,
+      "start_ms": 1240060,
+      "end_ms": 1240580,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1255700,
-      "end_ms": 1256172,
+      "start_ms": 1240580,
+      "end_ms": 1241240,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1259041,
-      "end_ms": 1259952,
+      "start_ms": 1241240,
+      "end_ms": 1255440,
       "text": "",
-      "speaker": "S02"
+      "speaker": "S01"
     },
     {
-      "start_ms": 1260053,
-      "end_ms": 1264694,
+      "start_ms": 1255800,
+      "end_ms": 1258810,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1264694,
-      "end_ms": 1266466,
+      "start_ms": 1258810,
+      "end_ms": 1259820,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1264728,
-      "end_ms": 1265622,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1266466,
-      "end_ms": 1272305,
+      "start_ms": 1259820,
+      "end_ms": 1264480,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1273047,
-      "end_ms": 1273823,
+      "start_ms": 1266460,
+      "end_ms": 1273880,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1274212,
-      "end_ms": 1275916,
+      "start_ms": 1273880,
+      "end_ms": 1274780,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1274887,
-      "end_ms": 1275747,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1276169,
-      "end_ms": 1282295,
+      "start_ms": 1274780,
+      "end_ms": 1282250,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1282683,
-      "end_ms": 1290226,
+      "start_ms": 1282400,
+      "end_ms": 1290170,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1290428,
-      "end_ms": 1291255,
+      "start_ms": 1290170,
+      "end_ms": 1291360,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1293348,
-      "end_ms": 1301026,
+      "start_ms": 1292920,
+      "end_ms": 1301060,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1301380,
-      "end_ms": 1302865,
+      "start_ms": 1301060,
+      "end_ms": 1302970,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1306308,
-      "end_ms": 1307455,
+      "start_ms": 1305950,
+      "end_ms": 1307530,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1309025,
-      "end_ms": 1322272,
+      "start_ms": 1308710,
+      "end_ms": 1318810,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1322626,
-      "end_ms": 1324988,
+      "start_ms": 1318810,
+      "end_ms": 1325110,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1325545,
-      "end_ms": 1327587,
+      "start_ms": 1325110,
+      "end_ms": 1327540,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1327773,
-      "end_ms": 1328043,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1328701,
-      "end_ms": 1329342,
+      "start_ms": 1328320,
+      "end_ms": 1329240,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1329443,
-      "end_ms": 1330253,
+      "start_ms": 1329240,
+      "end_ms": 1330330,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1330793,
-      "end_ms": 1334084,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1334793,
-      "end_ms": 1337476,
+      "start_ms": 1330330,
+      "end_ms": 1337560,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1338067,
-      "end_ms": 1338978,
+      "start_ms": 1337680,
+      "end_ms": 1339050,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1339754,
-      "end_ms": 1340277,
+      "start_ms": 1339400,
+      "end_ms": 1340350,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1340918,
-      "end_ms": 1341627,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1342640,
-      "end_ms": 1347955,
+      "start_ms": 1340540,
+      "end_ms": 1347960,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1348310,
-      "end_ms": 1348546,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1349255,
-      "end_ms": 1355954,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1356545,
-      "end_ms": 1357945,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1358705,
-      "end_ms": 1363312,
+      "start_ms": 1349270,
+      "end_ms": 1358030,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1364037,
-      "end_ms": 1366754,
+      "start_ms": 1358300,
+      "end_ms": 1366860,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1367362,
-      "end_ms": 1369657,
+      "start_ms": 1366970,
+      "end_ms": 1369600,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1369741,
-      "end_ms": 1370078,
+      "start_ms": 1369600,
+      "end_ms": 1370120,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1371715,
-      "end_ms": 1373943,
+      "start_ms": 1371410,
+      "end_ms": 1374030,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1374787,
-      "end_ms": 1376744,
+      "start_ms": 1374410,
+      "end_ms": 1376930,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1377267,
-      "end_ms": 1379191,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1380372,
-      "end_ms": 1381570,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1383123,
-      "end_ms": 1384085,
+      "start_ms": 1376930,
+      "end_ms": 1381650,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1384540,
-      "end_ms": 1385705,
+      "start_ms": 1382800,
+      "end_ms": 1385730,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1385992,
-      "end_ms": 1389552,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1389805,
-      "end_ms": 1394395,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1395003,
-      "end_ms": 1395830,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1396589,
-      "end_ms": 1402124,
+      "start_ms": 1385730,
+      "end_ms": 1395910,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1402580,
-      "end_ms": 1404183,
+      "start_ms": 1396240,
+      "end_ms": 1404280,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1405111,
+      "start_ms": 1404710,
       "end_ms": 1406140,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1406427,
-      "end_ms": 1409971,
+      "start_ms": 1406460,
+      "end_ms": 1407980,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1411321,
-      "end_ms": 1413802,
+      "start_ms": 1408000,
+      "end_ms": 1410110,
       "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1414375,
-      "end_ms": 1419083,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1419590,
-      "end_ms": 1420433,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1420923,
-      "end_ms": 1421935,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1422391,
-      "end_ms": 1422728,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1422863,
-      "end_ms": 1424939,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1423741,
-      "end_ms": 1424247,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1425226,
-      "end_ms": 1425817,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1426627,
-      "end_ms": 1427977,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1427977,
-      "end_ms": 1436245,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1435942,
-      "end_ms": 1436718,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1436785,
-      "end_ms": 1439975,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1440228,
-      "end_ms": 1441055,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1441662,
-      "end_ms": 1442725,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1443181,
-      "end_ms": 1443991,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1443215,
-      "end_ms": 1443738,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1444497,
-      "end_ms": 1447602,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1447822,
-      "end_ms": 1448193,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1448699,
-      "end_ms": 1449053,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1449442,
-      "end_ms": 1454825,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1455635,
-      "end_ms": 1459263,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1459263,
-      "end_ms": 1459685,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1460765,
-      "end_ms": 1461659,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1462942,
-      "end_ms": 1474096,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1474552,
-      "end_ms": 1476391,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1476779,
-      "end_ms": 1479428,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1480070,
-      "end_ms": 1480407,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1482061,
-      "end_ms": 1483782,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1484423,
-      "end_ms": 1486685,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1486972,
-      "end_ms": 1487512,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1487309,
-      "end_ms": 1489317,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1489857,
-      "end_ms": 1491781,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1492068,
-      "end_ms": 1492372,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1493215,
-      "end_ms": 1494025,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1495072,
-      "end_ms": 1496624,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1496810,
-      "end_ms": 1502277,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1502513,
-      "end_ms": 1503442,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1504100,
-      "end_ms": 1504589,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1504690,
-      "end_ms": 1505602,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1505281,
-      "end_ms": 1506648,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1506968,
-      "end_ms": 1511423,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1514984,
-      "end_ms": 1515710,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1516182,
-      "end_ms": 1516452,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1518055,
-      "end_ms": 1520519,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1524265,
-      "end_ms": 1525312,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1525818,
-      "end_ms": 1526510,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1526813,
-      "end_ms": 1527775,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1527792,
-      "end_ms": 1531150,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1532787,
-      "end_ms": 1535234,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1536415,
-      "end_ms": 1540212,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1540313,
-      "end_ms": 1540685,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1541782,
-      "end_ms": 1544026,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1544127,
-      "end_ms": 1544515,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1544752,
-      "end_ms": 1546169,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1546793,
-      "end_ms": 1548481,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1548565,
-      "end_ms": 1548953,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1550118,
-      "end_ms": 1551704,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1551974,
-      "end_ms": 1552025,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1552092,
-      "end_ms": 1553003,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1554067,
-      "end_ms": 1554607,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1555096,
-      "end_ms": 1557526,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1557931,
-      "end_ms": 1558302,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1558640,
-      "end_ms": 1560293,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1560665,
-      "end_ms": 1561795,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1562774,
-      "end_ms": 1563736,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1564175,
-      "end_ms": 1566065,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1566098,
-      "end_ms": 1566520,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1567027,
-      "end_ms": 1569507,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1570570,
-      "end_ms": 1571532,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1571785,
-      "end_ms": 1572106,
-      "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1572629,
-      "end_ms": 1573118,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1573675,
-      "end_ms": 1575548,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1575852,
-      "end_ms": 1577489,
+      "start_ms": 1410940,
+      "end_ms": 1413760,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1577742,
-      "end_ms": 1578046,
+      "start_ms": 1414010,
+      "end_ms": 1425910,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1578029,
-      "end_ms": 1581269,
+      "start_ms": 1426340,
+      "end_ms": 1427830,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1578080,
-      "end_ms": 1578097,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1581522,
-      "end_ms": 1581910,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1582383,
-      "end_ms": 1585201,
+      "start_ms": 1427830,
+      "end_ms": 1435810,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1585589,
-      "end_ms": 1585927,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1587057,
-      "end_ms": 1587580,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1588492,
-      "end_ms": 1588998,
+      "start_ms": 1435810,
+      "end_ms": 1436540,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1590719,
-      "end_ms": 1591242,
+      "start_ms": 1436540,
+      "end_ms": 1442740,
       "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1591681,
-      "end_ms": 1592272,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1592626,
-      "end_ms": 1593908,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1594837,
-      "end_ms": 1598262,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1598448,
-      "end_ms": 1598802,
-      "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1599899,
-      "end_ms": 1602042,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1602228,
-      "end_ms": 1603747,
+      "start_ms": 1444120,
+      "end_ms": 1447580,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1602262,
-      "end_ms": 1602717,
+      "start_ms": 1447580,
+      "end_ms": 1459130,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1604607,
-      "end_ms": 1606565,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1606683,
-      "end_ms": 1607088,
+      "start_ms": 1460360,
+      "end_ms": 1474150,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1606936,
-      "end_ms": 1608100,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1608590,
-      "end_ms": 1611087,
+      "start_ms": 1474150,
+      "end_ms": 1476450,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1611188,
-      "end_ms": 1611593,
+      "start_ms": 1476450,
+      "end_ms": 1479530,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1612454,
-      "end_ms": 1613095,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1613332,
-      "end_ms": 1615458,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1615964,
-      "end_ms": 1617483,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1618478,
-      "end_ms": 1619204,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1619896,
-      "end_ms": 1621465,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1622005,
-      "end_ms": 1622967,
+      "start_ms": 1481670,
+      "end_ms": 1491780,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1623676,
-      "end_ms": 1624233,
+      "start_ms": 1492910,
+      "end_ms": 1496560,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1624334,
-      "end_ms": 1624672,
+      "start_ms": 1496560,
+      "end_ms": 1503500,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1624857,
-      "end_ms": 1627068,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1629262,
-      "end_ms": 1633328,
+      "start_ms": 1503720,
+      "end_ms": 1506640,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1633717,
-      "end_ms": 1634240,
+      "start_ms": 1506640,
+      "end_ms": 1511370,
       "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1634375,
-      "end_ms": 1635303,
-      "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1635370,
-      "end_ms": 1636535,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1637581,
-      "end_ms": 1640872,
+      "start_ms": 1514700,
+      "end_ms": 1515810,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1641732,
-      "end_ms": 1642812,
+      "start_ms": 1517620,
+      "end_ms": 1520550,
       "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1643521,
-      "end_ms": 1645225,
-      "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1645343,
-      "end_ms": 1647723,
+      "start_ms": 1523850,
+      "end_ms": 1525340,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1647858,
-      "end_ms": 1649849,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1650153,
-      "end_ms": 1655215,
+      "start_ms": 1525340,
+      "end_ms": 1526490,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1655924,
-      "end_ms": 1658152,
+      "start_ms": 1526490,
+      "end_ms": 1527620,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1658438,
-      "end_ms": 1658810,
+      "start_ms": 1527620,
+      "end_ms": 1531200,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1658827,
-      "end_ms": 1661662,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1662134,
-      "end_ms": 1662623,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1664041,
-      "end_ms": 1664682,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1664750,
-      "end_ms": 1666353,
+      "start_ms": 1532380,
+      "end_ms": 1540110,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1666792,
-      "end_ms": 1669238,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1670032,
-      "end_ms": 1671652,
+      "start_ms": 1541380,
+      "end_ms": 1548340,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1671989,
-      "end_ms": 1675027,
+      "start_ms": 1549680,
+      "end_ms": 1560300,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1673305,
-      "end_ms": 1673761,
+      "start_ms": 1560300,
+      "end_ms": 1561840,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1675229,
-      "end_ms": 1677271,
+      "start_ms": 1562320,
+      "end_ms": 1571510,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1677743,
-      "end_ms": 1679093,
+      "start_ms": 1572160,
+      "end_ms": 1581250,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1679465,
-      "end_ms": 1687396,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1688830,
-      "end_ms": 1693589,
+      "start_ms": 1581970,
+      "end_ms": 1584000,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1694905,
-      "end_ms": 1696576,
+      "start_ms": 1583880,
+      "end_ms": 1585080,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1696913,
-      "end_ms": 1697251,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1698753,
-      "end_ms": 1699259,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1700677,
-      "end_ms": 1702229,
+      "start_ms": 1586660,
+      "end_ms": 1589000,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1703630,
-      "end_ms": 1705503,
+      "start_ms": 1590280,
+      "end_ms": 1598210,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1705705,
-      "end_ms": 1706093,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1706617,
-      "end_ms": 1708844,
+      "start_ms": 1599490,
+      "end_ms": 1611000,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1713670,
-      "end_ms": 1714548,
+      "start_ms": 1612040,
+      "end_ms": 1624130,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1715206,
-      "end_ms": 1719796,
+      "start_ms": 1624550,
+      "end_ms": 1627110,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1720235,
-      "end_ms": 1720252,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1720252,
-      "end_ms": 1721652,
+      "start_ms": 1628970,
+      "end_ms": 1634160,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1720268,
-      "end_ms": 1720420,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1722496,
-      "end_ms": 1723694,
+      "start_ms": 1634160,
+      "end_ms": 1635160,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1724690,
-      "end_ms": 1725247,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1725888,
-      "end_ms": 1727474,
+      "start_ms": 1635160,
+      "end_ms": 1642840,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1728166,
-      "end_ms": 1729178,
+      "start_ms": 1643110,
+      "end_ms": 1645140,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1728453,
-      "end_ms": 1730495,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1731895,
-      "end_ms": 1735912,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1736924,
-      "end_ms": 1741582,
+      "start_ms": 1645140,
+      "end_ms": 1647650,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1741987,
-      "end_ms": 1742324,
+      "start_ms": 1647650,
+      "end_ms": 1655250,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1742746,
-      "end_ms": 1747724,
+      "start_ms": 1655540,
+      "end_ms": 1662690,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1743151,
-      "end_ms": 1743708,
+      "start_ms": 1663700,
+      "end_ms": 1666400,
       "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1747977,
-      "end_ms": 1748011,
-      "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1748011,
-      "end_ms": 1748028,
+      "start_ms": 1666400,
+      "end_ms": 1669290,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1748028,
-      "end_ms": 1750778,
+      "start_ms": 1669770,
+      "end_ms": 1679120,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1748045,
-      "end_ms": 1748551,
+      "start_ms": 1679120,
+      "end_ms": 1687380,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1752230,
-      "end_ms": 1752652,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1753023,
-      "end_ms": 1754930,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1755419,
-      "end_ms": 1756887,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1757225,
-      "end_ms": 1760380,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1761511,
-      "end_ms": 1764380,
+      "start_ms": 1688430,
+      "end_ms": 1696610,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1764970,
-      "end_ms": 1768700,
+      "start_ms": 1698350,
+      "end_ms": 1699300,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1770016,
-      "end_ms": 1771028,
+      "start_ms": 1700310,
+      "end_ms": 1708810,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1771788,
-      "end_ms": 1775332,
+      "start_ms": 1713260,
+      "end_ms": 1721700,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1775855,
-      "end_ms": 1780107,
+      "start_ms": 1722050,
+      "end_ms": 1723760,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1781103,
-      "end_ms": 1783702,
+      "start_ms": 1724280,
+      "end_ms": 1727570,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1784545,
-      "end_ms": 1787971,
+      "start_ms": 1728700,
+      "end_ms": 1741550,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1788663,
-      "end_ms": 1788983,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1788713,
-      "end_ms": 1789152,
+      "start_ms": 1742880,
+      "end_ms": 1750860,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1789270,
-      "end_ms": 1794367,
+      "start_ms": 1752270,
+      "end_ms": 1759950,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1794637,
-      "end_ms": 1795396,
+      "start_ms": 1759960,
+      "end_ms": 1760280,
       "text": "",
       "speaker": "S02"
-    },
-    {
-      "start_ms": 1795868,
-      "end_ms": 1799024,
-      "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1799530,
-      "end_ms": 1799986,
-      "text": "",
-      "speaker": "S01"
     },
     {
-      "start_ms": 1800307,
-      "end_ms": 1802281,
+      "start_ms": 1761110,
+      "end_ms": 1764510,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1802905,
-      "end_ms": 1804947,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1805723,
-      "end_ms": 1806247,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1806500,
-      "end_ms": 1808862,
+      "start_ms": 1765710,
+      "end_ms": 1775440,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1809352,
-      "end_ms": 1809672,
+      "start_ms": 1776210,
+      "end_ms": 1780220,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1809672,
-      "end_ms": 1812254,
-      "text": "",
-      "speaker": "S02"
-    },
-    {
-      "start_ms": 1813013,
-      "end_ms": 1817080,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1817485,
-      "end_ms": 1819662,
+      "start_ms": 1780780,
+      "end_ms": 1787980,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1819865,
-      "end_ms": 1819898,
+      "start_ms": 1789110,
+      "end_ms": 1795390,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1819898,
-      "end_ms": 1820050,
+      "start_ms": 1795600,
+      "end_ms": 1802340,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1820050,
-      "end_ms": 1820067,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1820506,
-      "end_ms": 1822160,
+      "start_ms": 1802560,
+      "end_ms": 1812340,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1822801,
-      "end_ms": 1839912,
+      "start_ms": 1812660,
+      "end_ms": 1822220,
       "text": "",
-      "speaker": "S01"
-    },
-    {
-      "start_ms": 1840165,
-      "end_ms": 1840553,
-      "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1840553,
-      "end_ms": 1844772,
+      "start_ms": 1822440,
+      "end_ms": 1834870,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1845262,
-      "end_ms": 1849615,
+      "start_ms": 1834870,
+      "end_ms": 1844740,
       "text": "",
       "speaker": "S01"
     },
     {
-      "start_ms": 1850020,
-      "end_ms": 1851421,
+      "start_ms": 1844920,
+      "end_ms": 1851510,
       "text": "",
       "speaker": "S01"
-    },
-    {
-      "start_ms": 1851927,
-      "end_ms": 1852400,
-      "text": "",
-      "speaker": "S02"
     },
     {
-      "start_ms": 1852771,
-      "end_ms": 1856534,
+      "start_ms": 1851510,
+      "end_ms": 1856530,
       "text": "",
       "speaker": "S02"
     },
     {
-      "start_ms": 1856838,
-      "end_ms": 1857158,
+      "start_ms": 1856530,
+      "end_ms": 1858400,
       "text": "",
       "speaker": "S01"
     }

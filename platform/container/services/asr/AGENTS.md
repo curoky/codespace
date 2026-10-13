@@ -55,6 +55,8 @@ worker、持久任务队列、任务状态、轮询、幂等键、跨请求结�
   成功重试的实际参数和 warning 必须进入 evidence。
 - VibeVoice 沿用上游 transcription request，并传真实 WAV 时长。固定 chat template、上下文预算、
   输出解析与 data URL 是一个协议单元。
+- MOSS-TD 的 catalog 单窗时长、vLLM 上传大小与解码时长保护、context 和 completion budget 是
+  同一个能力合同；修改任一项都必须用完整单窗和边界时长真实音频验证最终时间戳。
 - 不修改 site-packages。确需修复第三方运行时行为时，在本目录的 launcher 或 wrapper 中建立
   稳定、可测试的边界。
 
@@ -70,9 +72,10 @@ worker、持久任务队列、任务状态、轮询、幂等键、跨请求结�
   review。Qwen 和 FireRed 两份融合稿独立裁定，不能读取对方定稿。
 - FireRedPunc 是最终句读唯一 owner。送入前去除 Unicode punctuation，只保留数字内部的小数点、
   千分位逗号和时间冒号；模型若改写非标点正文则拒绝结果。
-- 03 MOSS-TD 与 04 VibeVoice 保留自己的正文、时间和 local speaker。Pyannote 只映射无歧义的
-  全文件身份。失败窗口先去 padding，再按 exact core 安全二分；不得猜测裁剪、平均插值或伪造
-  时间。仅跨 core 边界且确需裁正文时调用 Aligner。
+- 03 MOSS-TD 与 04 VibeVoice 保留自己的正文、时间和 local speaker。Pyannote 只作为跨窗身份
+  anchor，local identity 按全局一对一最大重叠映射；joint result 的 speaker activity 来自联合
+  模型自身的映射后 segment。失败窗口先去 padding，再按 exact core 安全二分；不得猜测裁剪、
+  平均插值或伪造时间。仅跨 core 边界且确需裁正文时调用 Aligner。
 - 05 完整复用 01 正文与字词时间，只用 Nemotron 重标 speaker。已知超过八人时失败，未知人数
   标记未验证。
 - 请求内以逻辑模型、切片和有效参数 cache 并 single-flight；失败不缓存，取消必须释放实例。

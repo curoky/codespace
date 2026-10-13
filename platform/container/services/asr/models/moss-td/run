@@ -11,6 +11,8 @@ export CUDA_CACHE_MAXSIZE=4294967296
 export TORCH_EXTENSIONS_DIR=/home/x/.cache/torch_extensions
 export VLLM_ENABLE_STARTUP_PLAN=1
 export VLLM_MEDIA_LOADING_THREAD_COUNT=16
+export VLLM_MAX_AUDIO_CLIP_FILESIZE_MB=128
+export VLLM_MAX_AUDIO_DECODE_DURATION_S=3600
 export OMP_NUM_THREADS=8
 export MKL_NUM_THREADS=8
 export OPENBLAS_NUM_THREADS=8
@@ -25,8 +27,8 @@ export CUDA_HOME=/usr/local/cuda-13.0
 export FLASHINFER_WORKSPACE_BASE=/home/x/.cache/flashinfer-workspaces/moss-td
 export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64
 
-# 32768 为长音频及结构化输出留预算；180 秒是本项目窗口限制。
-# vLLM 的模型类固定不二次切片；自定义 processor 与固定 snapshot 一起维护。
+# 使用模型原生 131072 context，为最长一小时窗口的音频 token 与结构化输出留预算。
+# 同步放宽 vLLM 默认 25 MiB / 600 秒的输入保护；模型类固定不二次切片。
 exec uv run \
   --project "$model_dir" \
   --frozen \
@@ -38,7 +40,7 @@ exec uv run \
   --port "${ASR_PORT:?}" \
   --dtype bfloat16 \
   --tensor-parallel-size 1 \
-  --max-model-len 32768 \
+  --max-model-len 131072 \
   --gpu-memory-utilization 0.60 \
   --model-loader-extra-config '{"enable_multithread_load":true,"num_threads":8}' \
   --seed 0 \

@@ -120,6 +120,21 @@ def parse_textgrid(path: Path, end_ms: int) -> list[Span]:
     return spans
 
 
+def parse_rttm(path: Path, end_ms: int) -> list[Span]:
+    spans = []
+    for line_number, line in enumerate(path.read_text().splitlines(), 1):
+        fields = line.split()
+        if len(fields) != 10 or fields[0] != "SPEAKER":
+            raise ValueError(f"{path}:{line_number}: invalid RTTM speaker record")
+        start = round(float(fields[3]) * 1000)
+        end = round((float(fields[3]) + float(fields[4])) * 1000)
+        if start >= end:
+            raise ValueError(f"{path}:{line_number}: invalid RTTM time range")
+        if start < end_ms and end > 0:
+            spans.append(Span(max(0, start), min(end, end_ms), fields[7], ""))
+    return spans
+
+
 def parse_source_text(path: Path, reference: dict[str, object], duration_ms: int) -> list[Span]:
     text = path.read_text()
     start_marker = str(reference["start_marker"])
@@ -158,6 +173,22 @@ def reference_spans(fixture: dict[str, object]) -> list[Span]:
             return parse_source_text(path, reference, int(audio["duration_ms"]))
         case other:
             raise ValueError(f"unsupported reference format: {other}")
+
+
+def diarization_reference_spans(fixture: dict[str, object]) -> list[Span]:
+    config = fixture.get("diarization_reference")
+    if config is None:
+        return reference_spans(fixture)
+    if not isinstance(config, dict):
+        raise ValueError(f"invalid diarization reference for {fixture['id']}")
+    path = ROOT / str(config["path"])
+    expected = str(config["sha256"])
+    actual = sha256(path)
+    if actual != expected:
+        raise ValueError(f"diarization reference sha256 mismatch for {fixture['id']}: {actual}")
+    if config["format"] != "rttm":
+        raise ValueError(f"unsupported diarization reference format: {config['format']}")
+    return parse_rttm(path, int(config["end_ms"]))
 
 
 def hypothesis_spans(document: dict[str, object], start_ms: int, end_ms: int) -> list[Span]:
@@ -319,6 +350,7 @@ def diarization_error_rate(reference: list[Span], hypothesis: list[Span]) -> flo
 
 def evaluate_fixture(fixture: dict[str, object]) -> list[dict[str, object]]:
     reference = reference_spans(fixture)
+    diarization_reference = diarization_reference_spans(fixture)
     start_ms = min(span.start_ms for span in reference)
     end_ms = max(span.end_ms for span in reference)
     ordered_reference = sorted(reference, key=lambda value: value.start_ms)
@@ -374,7 +406,9 @@ def evaluate_fixture(fixture: dict[str, object]) -> list[dict[str, object]]:
                     else None
                 ),
                 "diarization_error_rate": (
-                    diarization_error_rate(reference, activity) if has_gold_timing else None
+                    diarization_error_rate(diarization_reference, activity)
+                    if has_gold_timing
+                    else None
                 ),
             }
         )

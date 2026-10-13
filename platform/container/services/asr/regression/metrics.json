@@ -37,37 +37,37 @@
     },
     {
       "reference_characters": 6857,
-      "hypothesis_characters": 6969,
-      "substitutions": 288,
-      "deletions": 67,
-      "insertions": 179,
-      "cer": 0.07787662242963395,
-      "character_accuracy": 0.9221233775703661,
+      "hypothesis_characters": 6939,
+      "substitutions": 289,
+      "deletions": 72,
+      "insertions": 154,
+      "cer": 0.07510573136940353,
+      "character_accuracy": 0.9248942686305964,
       "fixture": "conversation-weather",
       "category": "conversation",
       "recipe": "03-moss-td",
       "reference_quality": "gold",
       "status": "completed",
       "error": null,
-      "speaker_attributed_cer": 0.07802245880122502,
-      "diarization_error_rate": 0.10600755230598713
+      "speaker_attributed_cer": 0.07510573136940353,
+      "diarization_error_rate": 0.05970341313024047
     },
     {
       "reference_characters": 6857,
-      "hypothesis_characters": 6903,
-      "substitutions": 347,
+      "hypothesis_characters": 6921,
+      "substitutions": 346,
       "deletions": 119,
-      "insertions": 165,
-      "cer": 0.09202275047396821,
-      "character_accuracy": 0.9079772495260318,
+      "insertions": 183,
+      "cer": 0.09450196879101648,
+      "character_accuracy": 0.9054980312089835,
       "fixture": "conversation-weather",
       "category": "conversation",
       "recipe": "04-vibevoice",
       "reference_quality": "gold",
       "status": "completed",
       "error": null,
-      "speaker_attributed_cer": 0.09187691410237714,
-      "diarization_error_rate": 0.10600755230598713
+      "speaker_attributed_cer": 0.09450196879101648,
+      "diarization_error_rate": 0.1514998152716303
     },
     {
       "reference_characters": 6857,
@@ -122,37 +122,37 @@
     },
     {
       "reference_characters": 6926,
-      "hypothesis_characters": 7060,
-      "substitutions": 228,
-      "deletions": 47,
-      "insertions": 181,
-      "cer": 0.06583886803349696,
-      "character_accuracy": 0.9341611319665031,
+      "hypothesis_characters": 6988,
+      "substitutions": 239,
+      "deletions": 56,
+      "insertions": 118,
+      "cer": 0.05963037828472423,
+      "character_accuracy": 0.9403696217152757,
       "fixture": "conversation-education",
       "category": "conversation",
       "recipe": "03-moss-td",
       "reference_quality": "gold",
       "status": "completed",
       "error": null,
-      "speaker_attributed_cer": 0.08547502165752238,
-      "diarization_error_rate": 0.1400643971182223
+      "speaker_attributed_cer": 0.08042159976898643,
+      "diarization_error_rate": 0.12045000844530568
     },
     {
       "reference_characters": 6926,
-      "hypothesis_characters": 6989,
-      "substitutions": 307,
-      "deletions": 111,
-      "insertions": 174,
-      "cer": 0.08547502165752238,
-      "character_accuracy": 0.9145249783424776,
+      "hypothesis_characters": 6990,
+      "substitutions": 310,
+      "deletions": 113,
+      "insertions": 177,
+      "cer": 0.08663008951775916,
+      "character_accuracy": 0.9133699104822408,
       "fixture": "conversation-education",
       "category": "conversation",
       "recipe": "04-vibevoice",
       "reference_quality": "gold",
       "status": "completed",
       "error": null,
-      "speaker_attributed_cer": 0.10568870921166619,
-      "diarization_error_rate": 0.1400643971182223
+      "speaker_attributed_cer": 0.10554432572913659,
+      "diarization_error_rate": 0.2434003593577312
     },
     {
       "reference_characters": 6926,
@@ -208,36 +208,36 @@
     {
       "reference_characters": 7257,
       "hypothesis_characters": 7313,
-      "substitutions": 382,
-      "deletions": 100,
-      "insertions": 156,
-      "cer": 0.08791511643929999,
-      "character_accuracy": 0.9120848835607,
+      "substitutions": 332,
+      "deletions": 95,
+      "insertions": 151,
+      "cer": 0.0796472371503376,
+      "character_accuracy": 0.9203527628496624,
       "fixture": "conversation-film",
       "category": "conversation",
       "recipe": "03-moss-td",
       "reference_quality": "gold",
       "status": "completed",
       "error": null,
-      "speaker_attributed_cer": 0.09067107620228744,
-      "diarization_error_rate": 0.10841400075667715
+      "speaker_attributed_cer": 0.08226539892517569,
+      "diarization_error_rate": 0.058524453326986164
     },
     {
       "reference_characters": 7257,
-      "hypothesis_characters": 7161,
-      "substitutions": 511,
-      "deletions": 242,
-      "insertions": 146,
-      "cer": 0.12388039134628634,
-      "character_accuracy": 0.8761196086537136,
+      "hypothesis_characters": 7180,
+      "substitutions": 502,
+      "deletions": 245,
+      "insertions": 168,
+      "cer": 0.1260851591566763,
+      "character_accuracy": 0.8739148408433237,
       "fixture": "conversation-film",
       "category": "conversation",
       "recipe": "04-vibevoice",
       "reference_quality": "gold",
       "status": "completed",
       "error": null,
-      "speaker_attributed_cer": 0.12966790684856,
-      "diarization_error_rate": 0.10841400075667715
+      "speaker_attributed_cer": 0.13104588673005374,
+      "diarization_error_rate": 0.18730644572218408
     },
     {
       "reference_characters": 7257,
@@ -271,7 +271,7 @@
       "status": "completed",
       "error": null,
       "speaker_attributed_cer": 0.40274081958488556,
-      "diarization_error_rate": 0.21277786025670442
+      "diarization_error_rate": 0.2687584842725827
     },
     {
       "reference_characters": 7516,
@@ -288,41 +288,41 @@
       "status": "completed",
       "error": null,
       "speaker_attributed_cer": 0.44824374667376266,
-      "diarization_error_rate": 0.21277786025670442
+      "diarization_error_rate": 0.2687584842725827
     },
     {
       "reference_characters": 7516,
-      "hypothesis_characters": 7219,
-      "substitutions": 428,
-      "deletions": 548,
-      "insertions": 251,
-      "cer": 0.16325172964342735,
-      "character_accuracy": 0.8367482703565726,
+      "hypothesis_characters": 7196,
+      "substitutions": 394,
+      "deletions": 552,
+      "insertions": 232,
+      "cer": 0.1567323044172432,
+      "character_accuracy": 0.8432676955827568,
       "fixture": "meeting-annual-event",
       "category": "meeting",
       "recipe": "03-moss-td",
       "reference_quality": "gold",
       "status": "completed",
       "error": null,
-      "speaker_attributed_cer": 0.6008515167642363,
-      "diarization_error_rate": 0.21277786025670442
+      "speaker_attributed_cer": 0.11695050558807876,
+      "diarization_error_rate": 0.19051312880580226
     },
     {
       "reference_characters": 7516,
       "hypothesis_characters": 5674,
-      "substitutions": 421,
-      "deletions": 1949,
-      "insertions": 107,
-      "cer": 0.3295635976583289,
-      "character_accuracy": 0.6704364023416711,
+      "substitutions": 463,
+      "deletions": 1955,
+      "insertions": 113,
+      "cer": 0.3367482703565726,
+      "character_accuracy": 0.6632517296434274,
       "fixture": "meeting-annual-event",
       "category": "meeting",
       "recipe": "04-vibevoice",
       "reference_quality": "gold",
       "status": "completed",
       "error": null,
-      "speaker_attributed_cer": 0.4777807344332092,
-      "diarization_error_rate": 0.21277786025670442
+      "speaker_attributed_cer": 0.38491218733368815,
+      "diarization_error_rate": 0.37890858317496023
     },
     {
       "reference_characters": 7516,
@@ -339,7 +339,7 @@
       "status": "completed",
       "error": null,
       "speaker_attributed_cer": 0.3420702501330495,
-      "diarization_error_rate": 0.16218806095042718
+      "diarization_error_rate": 0.08957064732575729
     },
     {
       "reference_characters": 10623,
@@ -356,7 +356,7 @@
       "status": "completed",
       "error": null,
       "speaker_attributed_cer": 0.6951896827638143,
-      "diarization_error_rate": 0.33823365737439787
+      "diarization_error_rate": 0.39710581282795865
     },
     {
       "reference_characters": 10623,
@@ -373,41 +373,41 @@
       "status": "completed",
       "error": null,
       "speaker_attributed_cer": 0.7265367598606797,
-      "diarization_error_rate": 0.33823365737439787
+      "diarization_error_rate": 0.39710581282795865
     },
     {
       "reference_characters": 10623,
-      "hypothesis_characters": 8737,
-      "substitutions": 1470,
-      "deletions": 2318,
-      "insertions": 432,
-      "cer": 0.3972512472936082,
-      "character_accuracy": 0.6027487527063917,
+      "hypothesis_characters": 8662,
+      "substitutions": 1360,
+      "deletions": 2377,
+      "insertions": 416,
+      "cer": 0.39094417772757223,
+      "character_accuracy": 0.6090558222724278,
       "fixture": "meeting-game-launch",
       "category": "meeting",
       "recipe": "03-moss-td",
       "reference_quality": "gold",
       "status": "completed",
       "error": null,
-      "speaker_attributed_cer": 0.8183187423515015,
-      "diarization_error_rate": 0.33823365737439787
+      "speaker_attributed_cer": 0.3265555869340111,
+      "diarization_error_rate": 0.31236435885679353
     },
     {
       "reference_characters": 10623,
-      "hypothesis_characters": 4809,
-      "substitutions": 524,
-      "deletions": 5862,
-      "insertions": 48,
-      "cer": 0.6056669490727666,
-      "character_accuracy": 0.39433305092723336,
+      "hypothesis_characters": 4753,
+      "substitutions": 605,
+      "deletions": 5915,
+      "insertions": 45,
+      "cer": 0.6179986821048667,
+      "character_accuracy": 0.38200131789513325,
       "fixture": "meeting-game-launch",
       "category": "meeting",
       "recipe": "04-vibevoice",
       "reference_quality": "gold",
       "status": "completed",
       "error": null,
-      "speaker_attributed_cer": 0.8724465781794221,
-      "diarization_error_rate": 0.33823365737439787
+      "speaker_attributed_cer": 0.7879130189212087,
+      "diarization_error_rate": 0.7755311019410056
     },
     {
       "reference_characters": 10623,
@@ -424,7 +424,7 @@
       "status": "completed",
       "error": null,
       "speaker_attributed_cer": 0.706203520662713,
-      "diarization_error_rate": 0.22823157052675513
+      "diarization_error_rate": 0.20290896123083194
     },
     {
       "reference_characters": 5643,
@@ -441,7 +441,7 @@
       "status": "completed",
       "error": null,
       "speaker_attributed_cer": 0.19067871699450648,
-      "diarization_error_rate": 0.10893452395435411
+      "diarization_error_rate": 0.22960275661138502
     },
     {
       "reference_characters": 5643,
@@ -458,41 +458,41 @@
       "status": "completed",
       "error": null,
       "speaker_attributed_cer": 0.36097820308346623,
-      "diarization_error_rate": 0.10893452395435411
+      "diarization_error_rate": 0.22960275661138502
     },
     {
       "reference_characters": 5643,
-      "hypothesis_characters": 5444,
-      "substitutions": 294,
-      "deletions": 302,
-      "insertions": 103,
-      "cer": 0.1238702817650186,
-      "character_accuracy": 0.8761297182349814,
+      "hypothesis_characters": 5436,
+      "substitutions": 274,
+      "deletions": 332,
+      "insertions": 125,
+      "cer": 0.12954102427786637,
+      "character_accuracy": 0.8704589757221336,
       "fixture": "meeting-bike-sharing",
       "category": "meeting",
       "recipe": "03-moss-td",
       "reference_quality": "gold",
       "status": "completed",
       "error": null,
-      "speaker_attributed_cer": 0.21460216197058302,
-      "diarization_error_rate": 0.10893452395435411
+      "speaker_attributed_cer": 0.10030125819599504,
+      "diarization_error_rate": 0.18448378903331838
     },
     {
       "reference_characters": 5643,
-      "hypothesis_characters": 4996,
-      "substitutions": 650,
-      "deletions": 727,
-      "insertions": 80,
-      "cer": 0.2581959950381003,
-      "character_accuracy": 0.7418040049618997,
+      "hypothesis_characters": 5013,
+      "substitutions": 616,
+      "deletions": 709,
+      "insertions": 79,
+      "cer": 0.24880382775119617,
+      "character_accuracy": 0.7511961722488039,
       "fixture": "meeting-bike-sharing",
       "category": "meeting",
       "recipe": "04-vibevoice",
       "reference_quality": "gold",
       "status": "completed",
       "error": null,
-      "speaker_attributed_cer": 0.5247208931419458,
-      "diarization_error_rate": 0.10893452395435411
+      "speaker_attributed_cer": 0.4123693071061492,
+      "diarization_error_rate": 0.36371955774689974
     },
     {
       "reference_characters": 5643,
@@ -509,7 +509,7 @@
       "status": "completed",
       "error": null,
       "speaker_attributed_cer": 0.17543859649122806,
-      "diarization_error_rate": 0.14661346180361243
+      "diarization_error_rate": 0.05690646944568953
     },
     {
       "reference_characters": 4050,
@@ -547,12 +547,12 @@
     },
     {
       "reference_characters": 4050,
-      "hypothesis_characters": 4049,
-      "substitutions": 114,
-      "deletions": 2,
+      "hypothesis_characters": 4050,
+      "substitutions": 117,
+      "deletions": 1,
       "insertions": 1,
-      "cer": 0.028888888888888888,
-      "character_accuracy": 0.9711111111111111,
+      "cer": 0.029382716049382716,
+      "character_accuracy": 0.9706172839506173,
       "fixture": "narration-madmans-diary",
       "category": "narration",
       "recipe": "03-moss-td",
@@ -564,12 +564,12 @@
     },
     {
       "reference_characters": 4050,
-      "hypothesis_characters": 4051,
-      "substitutions": 88,
+      "hypothesis_characters": 4050,
+      "substitutions": 83,
       "deletions": 1,
-      "insertions": 2,
-      "cer": 0.022469135802469137,
-      "character_accuracy": 0.9775308641975309,
+      "insertions": 1,
+      "cer": 0.020987654320987655,
+      "character_accuracy": 0.9790123456790123,
       "fixture": "narration-madmans-diary",
       "category": "narration",
       "recipe": "04-vibevoice",
@@ -632,12 +632,12 @@
     },
     {
       "reference_characters": 4239,
-      "hypothesis_characters": 4239,
-      "substitutions": 122,
+      "hypothesis_characters": 4238,
+      "substitutions": 112,
       "deletions": 2,
-      "insertions": 2,
-      "cer": 0.029723991507430998,
-      "character_accuracy": 0.970276008492569,
+      "insertions": 1,
+      "cer": 0.027129039867893372,
+      "character_accuracy": 0.9728709601321066,
       "fixture": "narration-hometown",
       "category": "narration",
       "recipe": "03-moss-td",
@@ -650,11 +650,11 @@
     {
       "reference_characters": 4239,
       "hypothesis_characters": 4216,
-      "substitutions": 103,
+      "substitutions": 102,
       "deletions": 25,
       "insertions": 2,
-      "cer": 0.03066761028544468,
-      "character_accuracy": 0.9693323897145554,
+      "cer": 0.03043170559094126,
+      "character_accuracy": 0.9695682944090588,
       "fixture": "narration-hometown",
       "category": "narration",
       "recipe": "04-vibevoice",
@@ -717,12 +717,12 @@
     },
     {
       "reference_characters": 5155,
-      "hypothesis_characters": 5142,
-      "substitutions": 161,
-      "deletions": 14,
+      "hypothesis_characters": 5145,
+      "substitutions": 180,
+      "deletions": 11,
       "insertions": 1,
-      "cer": 0.03414161008729389,
-      "character_accuracy": 0.9658583899127061,
+      "cer": 0.03724539282250242,
+      "character_accuracy": 0.9627546071774976,
       "fixture": "narration-village-opera",
       "category": "narration",
       "recipe": "03-moss-td",
@@ -735,11 +735,11 @@
     {
       "reference_characters": 5155,
       "hypothesis_characters": 5146,
-      "substitutions": 146,
+      "substitutions": 153,
       "deletions": 11,
       "insertions": 2,
-      "cer": 0.03084384093113482,
-      "character_accuracy": 0.9691561590688652,
+      "cer": 0.032201745877788554,
+      "character_accuracy": 0.9677982541222114,
       "fixture": "narration-village-opera",
       "category": "narration",
       "recipe": "04-vibevoice",
@@ -776,7 +776,7 @@
       "failed": 0,
       "macro_cer": 0.14369626365260588,
       "macro_speaker_attributed_cer": 0.2667113608759416,
-      "macro_diarization_error_rate": 0.16907199862772382
+      "macro_diarization_error_rate": 0.20832550064880215
     },
     {
       "category": "all",
@@ -786,7 +786,7 @@
       "failed": 0,
       "macro_cer": 0.1827050055015883,
       "macro_speaker_attributed_cer": 0.3080539078223352,
-      "macro_diarization_error_rate": 0.16907199862772382
+      "macro_diarization_error_rate": 0.20832550064880215
     },
     {
       "category": "all",
@@ -794,9 +794,9 @@
       "fixtures": 9,
       "completed": 9,
       "failed": 0,
-      "macro_cer": 0.11208426178756653,
-      "macro_speaker_attributed_cer": 0.31465682962455926,
-      "macro_diarization_error_rate": 0.16907199862772382
+      "macro_cer": 0.10948422244076952,
+      "macro_speaker_attributed_cer": 0.1302666801302751,
+      "macro_diarization_error_rate": 0.1543398585997411
     },
     {
       "category": "all",
@@ -804,9 +804,9 @@
       "fixtures": 9,
       "completed": 9,
       "failed": 0,
-      "macro_cer": 0.17542058802955796,
-      "macro_speaker_attributed_cer": 0.3670302893195301,
-      "macro_diarization_error_rate": 0.16907199862772382
+      "macro_cer": 0.17715434482975612,
+      "macro_speaker_attributed_cer": 0.31938111576854217,
+      "macro_diarization_error_rate": 0.35006097720240187
     },
     {
       "category": "all",
@@ -816,7 +816,7 @@
       "failed": 0,
       "macro_cer": 0.1447192035177922,
       "macro_speaker_attributed_cer": 0.27360883941755687,
-      "macro_diarization_error_rate": 0.17740953562502537
+      "macro_diarization_error_rate": 0.14613503307860606
     },
     {
       "category": "conversation",
@@ -844,9 +844,9 @@
       "fixtures": 3,
       "completed": 3,
       "failed": 0,
-      "macro_cer": 0.0772102023008103,
-      "macro_speaker_attributed_cer": 0.08472285222034494,
-      "macro_diarization_error_rate": 0.11816198339362886
+      "macro_cer": 0.07146111560148845,
+      "macro_speaker_attributed_cer": 0.07926424335452188,
+      "macro_diarization_error_rate": 0.07955929163417744
     },
     {
       "category": "conversation",
@@ -854,9 +854,9 @@
       "fixtures": 3,
       "completed": 3,
       "failed": 0,
-      "macro_cer": 0.10045938782592563,
-      "macro_speaker_attributed_cer": 0.10907784338753444,
-      "macro_diarization_error_rate": 0.11816198339362886
+      "macro_cer": 0.10240573915515065,
+      "macro_speaker_attributed_cer": 0.11036406041673559,
+      "macro_diarization_error_rate": 0.19406887345051518
     },
     {
       "category": "conversation",
@@ -876,7 +876,7 @@
       "failed": 0,
       "macro_cer": 0.3246013281946046,
       "macro_speaker_attributed_cer": 0.42953640644773544,
-      "macro_diarization_error_rate": 0.21998201386181881
+      "macro_diarization_error_rate": 0.2984890179039755
     },
     {
       "category": "meeting",
@@ -886,7 +886,7 @@
       "failed": 0,
       "macro_cer": 0.43964039022511175,
       "macro_speaker_attributed_cer": 0.5119195698726362,
-      "macro_diarization_error_rate": 0.21998201386181881
+      "macro_diarization_error_rate": 0.2984890179039755
     },
     {
       "category": "meeting",
@@ -894,9 +894,9 @@
       "fixtures": 3,
       "completed": 3,
       "failed": 0,
-      "macro_cer": 0.22812441956735138,
-      "macro_speaker_attributed_cer": 0.5445908070287736,
-      "macro_diarization_error_rate": 0.21998201386181881
+      "macro_cer": 0.2257391688075606,
+      "macro_speaker_attributed_cer": 0.18126911690602832,
+      "macro_diarization_error_rate": 0.22912042556530474
     },
     {
       "category": "meeting",
@@ -904,9 +904,9 @@
       "fixtures": 3,
       "completed": 3,
       "failed": 0,
-      "macro_cer": 0.3978088472563986,
-      "macro_speaker_attributed_cer": 0.6249827352515257,
-      "macro_diarization_error_rate": 0.21998201386181881
+      "macro_cer": 0.40118359340421184,
+      "macro_speaker_attributed_cer": 0.5283981711203487,
+      "macro_diarization_error_rate": 0.5060530809542886
     },
     {
       "category": "meeting",
@@ -916,7 +916,7 @@
       "failed": 0,
       "macro_cer": 0.3275729235424361,
       "macro_speaker_attributed_cer": 0.4079041224289968,
-      "macro_diarization_error_rate": 0.17901103109359826
+      "macro_diarization_error_rate": 0.11646202600075957
     },
     {
       "category": "narration",
@@ -944,7 +944,7 @@
       "fixtures": 3,
       "completed": 3,
       "failed": 0,
-      "macro_cer": 0.030918163494537926,
+      "macro_cer": 0.031252382913259505,
       "macro_speaker_attributed_cer": null,
       "macro_diarization_error_rate": null
     },
@@ -954,7 +954,7 @@
       "fixtures": 3,
       "completed": 3,
       "failed": 0,
-      "macro_cer": 0.027993529006349546,
+      "macro_cer": 0.027873701929905823,
       "macro_speaker_attributed_cer": null,
       "macro_diarization_error_rate": null
     },

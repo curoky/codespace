@@ -450,6 +450,15 @@ class Pipeline:
         )
         result.segments = [segment for batch in batches for segment in batch]
         result.segments.sort(key=lambda segment: (segment.start_ms, segment.end_ms))
+        result.speakers = [
+            Span(
+                start_ms=segment.start_ms,
+                end_ms=segment.end_ms,
+                speaker=segment.speakers[0],
+            )
+            for segment in result.segments
+            if segment.speakers
+        ]
         if self.errors:
             result.warnings.append("crosscheck_incomplete")
         return result

@@ -228,6 +228,7 @@ def test_sdk_model_clients_forward_the_shared_protocol(model: str, endpoint: str
     ("model", "max_tokens", "hotwords"),
     (
         ("firered-llm", "512", []),
+        ("moss-td", "65536", []),
         ("qwen3-asr-1.7b", "512", ["测试词"]),
         ("whisper-large-v3", "440", []),
     ),
@@ -242,7 +243,8 @@ def test_vllm_transcription_clients_keep_model_specific_fields(
     def respond(request: httpx2.Request) -> httpx2.Response:
         nonlocal body
         body = request.read()
-        event = {"choices": [{"delta": {"content": "完成"}, "finish_reason": "stop"}]}
+        text = "[0.0][S01]完成[1.0]" if model == "moss-td" else "完成"
+        event = {"choices": [{"delta": {"content": text}, "finish_reason": "stop"}]}
         payload = "data: " + json.dumps(event) + "\n\ndata: [DONE]\n\n"
         return httpx2.Response(
             200,
@@ -266,11 +268,15 @@ def test_vllm_transcription_clients_keep_model_specific_fields(
         finally:
             await scheduler.close()
 
-    assert asyncio.run(run()).text == "完成"
+    result = asyncio.run(run())
+    assert result.text.endswith("完成[1.0]") if model == "moss-td" else result.text == "完成"
     assert b"/v1/audio/transcriptions" not in body
     assert f"\r\n\r\n{model}\r\n".encode() in body
     assert f"\r\n\r\n{max_tokens}\r\n".encode() in body
-    assert b"\r\n\r\nzh\r\n" in body
+    if model == "moss-td":
+        assert b"\r\n\r\nzh\r\n" not in body
+    else:
+        assert b"\r\n\r\nzh\r\n" in body
     if hotwords:
         assert "测试词".encode() in body
 

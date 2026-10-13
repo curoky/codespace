@@ -3,6 +3,7 @@ import re
 import unicodedata
 from collections import defaultdict
 from dataclasses import dataclass
+from functools import cache
 
 from pydantic import Field
 
@@ -115,17 +116,30 @@ def mapped_identity(local: list[Span], global_spans: list[Span]) -> dict[str, st
             ):
                 continue
             votes[segment.speaker][reference.speaker] += end - start
-    result: dict[str, str | None] = {}
-    for speaker in {s.speaker for s in local if s.speaker}:
-        ranked = sorted(votes[speaker].items(), key=lambda item: item[1], reverse=True)
-        result[speaker] = (
-            ranked[0][0]
-            if ranked
-            and ranked[0][1] >= 500
-            and (len(ranked) == 1 or ranked[0][1] >= 2 * ranked[1][1])
-            else None
-        )
-    return result
+    local_speakers = sorted({s.speaker for s in local if s.speaker})
+    global_speakers = sorted({s.speaker for s in global_spans if s.speaker})
+
+    @cache
+    def assign(index: int, used: int) -> tuple[int, tuple[tuple[str, str], ...]]:
+        if index == len(local_speakers):
+            return 0, ()
+        best_score, best_pairs = assign(index + 1, used)
+        local_speaker = local_speakers[index]
+        for position, global_speaker in enumerate(global_speakers):
+            if used & (1 << position):
+                continue
+            evidence = votes[local_speaker][global_speaker]
+            if not evidence:
+                continue
+            tail_score, tail_pairs = assign(index + 1, used | (1 << position))
+            candidate = evidence + tail_score
+            if candidate > best_score:
+                best_score = candidate
+                best_pairs = ((local_speaker, global_speaker), *tail_pairs)
+        return best_score, best_pairs
+
+    mapping = dict(assign(0, 0)[1])
+    return {speaker: mapping.get(speaker) for speaker in local_speakers}
 
 
 def align_text(text: str, tokens: list[Token], *, offset: int, limit: int) -> list[Token]:
