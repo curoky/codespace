@@ -323,7 +323,6 @@
   "python.useEnvironmentsExtension": true,
   "pythonTestExplorer.testFramework": "pytest",
   "redhat.telemetry.enabled": false,
-  "remote.autoForwardPorts": false,
   "remote.autoForwardPortsSource": "output",
   "remote.downloadExtensionsLocally": true,
   "remote.SSH.connectTimeout": 36000,
@@ -425,12 +424,14 @@
   "workbench.view.alwaysShowHeaderActions": true,
   "xml.server.binary.trustedHashes": [
     "3d9e771126ecadc94e645d7d2fa1ea98c50c9c283ffa9ddf39be665bd6cef445",
-    "0ba0adb68115248e110be22bfbdc79cb970ec5e6f62e9d69732ce68d15beecb6"
+    "0ba0adb68115248e110be22bfbdc79cb970ec5e6f62e9d69732ce68d15beecb6",
+    "21ad3fbc2a63e8873ad1491e0437204cddcacc511031b5b50083dfe0dd3de7e0"
   ],
   "xml.server.preferBinary": true,
   "xml.server.vmargs": "-Xmx1024M",
   "xml.symbols.maxItemsComputed": 400000,
   "yaml.disableSchemaDetection": [],
   "yaml.format.enable": true,
-  "yaml.format.singleQuote": true
+  "yaml.format.singleQuote": true,
+  "trae.floatingChat.buttonIcon": "ball"
 }

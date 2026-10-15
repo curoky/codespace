@@ -16,3 +16,5 @@
 
 [user]
 	useConfigOnly = true
+[safe]
+	directory = *

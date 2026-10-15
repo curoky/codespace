@@ -74,10 +74,12 @@ projects:
   codespace:
     source: [{type: github, repository: curoky/codespace}]
     hosts: [cpu, gpu-h100]
+    encrypted: false
 
   standalone-binaries:
     source: [{type: github, repository: curoky/standalone-binaries}]
     hosts: [gpu-h100]
+    encrypted: false
 
   automation:
     source: [{type: github, repository: curoky/automation}]
