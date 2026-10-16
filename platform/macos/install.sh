@@ -111,6 +111,9 @@ install_home_config() {
   link_home_path "$workspace_home" ".config/tmux/tmux.conf"
   link_home_path "$workspace_home" ".vimrc"
 
+  link_home_path "$macos_home" ".codex/skills/manage-software"
+  link_home_path "$macos_home" ".codex/skills/manage-software" \
+    ".trae-cn/skills/manage-software"
   link_home_path "$macos_home" ".config/mpv/mpv.conf"
   link_home_path "$macos_home" ".snipaste/config.ini"
   link_home_path "$macos_home" ".warp/settings.toml"

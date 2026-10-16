@@ -18,6 +18,9 @@ source、LaunchAgent、默认应用和控制面 SSH wiring。`install.sh` 必须
   `macos-bm-darwin-arm64` tag，CI 通过 `CODESPACE_BM_REFERENCE` 固定到本次发布的 digest。
 - `rootfs/Users/x/` 只保存 macOS-specific source。跨 macOS/Workspace 共用的 dotfile 和 SSH
   material 由 installer 链接 `platform/container/workspace/rootfs/home/x/`。
+- `rootfs/Users/x/.codex/skills/` 保存仅适用于 macOS client 的 Agent skill；installer 按
+  skill 目录同时链接到用户 home 的 `.codex/skills/` 和 `.trae-cn/skills/`，不与
+  Workspace skill 共用。
 - `scripts/` 拥有 macOS imperative setup；`tests/` 用隔离 HOME 验证 link/copy、权限与 SSH
   结构。
 

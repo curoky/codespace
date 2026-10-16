@@ -85,6 +85,13 @@ file_mode() {
   [ "$HOME/.ssh/codespace/workspace_login_key_ed25519" -ef \
     "$WORKSPACE_HOME/.ssh/workspace_login_key_ed25519" ]
 
+  [ -L "$HOME/.codex/skills/manage-software" ]
+  [ "$HOME/.codex/skills/manage-software" -ef \
+    "$MACOS_HOME/.codex/skills/manage-software" ]
+  [ -L "$HOME/.trae-cn/skills/manage-software" ]
+  [ "$HOME/.trae-cn/skills/manage-software" -ef \
+    "$MACOS_HOME/.codex/skills/manage-software" ]
+
   for relative_path in \
     .trae/sandbox.json \
     .trae/traecli.toml \
