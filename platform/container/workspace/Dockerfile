@@ -15,6 +15,7 @@ RUN rmdir /usr/local/sbin \
   && install -d /usr/local/sbin \
   && ln -s -r /usr/local/bin/bazelisk /usr/local/bin/bazel \
   && rm -rf /usr/local/store/nettools/bin/hostname \
+  && rm -rf /usr/local/store/bazelisk/bin/sha256sum \
   && find /usr/local/store -type d -exec chmod 0755 {} +
 
 # ---------------------------------- Conda -----------------------------------

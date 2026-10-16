@@ -31,6 +31,26 @@ installs:
     link-to: profile/clang-tools
 
   # - packages:
+  #   - clang18
+  #   - clang19
+  #   - clang20
+  #   - clang21
+  #   - clang22
+  #   - clang23
+
+  #   link-to: profile/clang
+
+  # - packages:
+  #   - lld_18
+  #   - lld_19
+  #   - lld_20
+  #   - lld_21
+  #   - lld_22
+  #   - lld_23
+
+  #   link-to: profile/lld
+
+  # - packages:
   #   - nodejs-slim24
   #   - nodejs-slim26
 

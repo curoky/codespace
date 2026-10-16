@@ -1,59 +1,129 @@
 prefix: /opt/bm
 installs:
   - packages:
-    - zsh-plugins
-    - smartmontools
-    - starship
+    - 7zz
+    # - age
+    # - aria2
     - atuin
-    - fzf
-    - yazi
-    - vim-plugins
-    - ripgrep
-    - fd
+    # - autoconf
+    # - automake
+    # - bash
     - bat
-    - eza
-    - gawk
-    - gnugrep
-    - gnused
-    - gnutar
-    - gettext
-    - findutils
-    - coreutils
+    - bats
+    - bazelisk
+    # - binman
+    # - binutils
+    # - bison
+    - buildifier
     - bzip2
-    - xz
-    - zstd
-    - zip
-    - unzip
-    - makeself
-    - wget
-    - rsync
+    # - cacert
+    - cloc
+    # - colima
     - connect
-    - netcat
-    - openssl
-    - lsof
+    - coreutils
+    # - croc
+    # - curl
+    # - diffutils
+    # - dive
+    # - docker-buildx
+    # - docker-compose
+    # - dprint
+    - exiftool
+    - eza
+    # - eza-ls
+    - fd
+    # - ffmpeg
+    # - file
+    - findutils
+    # - fira-code
+    # - flac
+    # - flex
+    - fzf
+    - gawk
     - gdu
-    - ncdu_1
-    - parallel
+    - gettext
+    - gh
+    - ghostscript
     - git-absorb
     - git-extras
-    - git-lfs
     - git-filter-repo
-    - lefthook
+    - git-lfs
+    - glab
+    - gnugrep
+    # - gnumake
     - gnupatch
-    - m4
+    # - gnupg
+    - gnused
+    - gnutar
+    # - gost
     - go-task
-    - bazelisk
-    - buildifier
-    - uv
-    - shfmt
-    - ruff
-    - cloc
-    - exiftool
-    - bats
-    - ghostscript
+    - gzip
+    - imagemagick
+    # - inetutils
+    - jq
+    - krb5
+    - lark-cli
+    - lefthook
+    - less
+    - libarchive
+    # - libtool
+    # - lima
+    - lsof
+    # - lxgw-wenkai
+    - m4
+    - makeself
+    # - mcfly
+    # - miniserve
+    - ncdu_1
+    # - nerd-fonts-fira-code
+    # - nerd-fonts-ubuntu-mono
+    - netcat
+    # - netron
+    # - ninja
+    # - nixcache
+    - openssl
+    # - oras
+    - parallel
+    # - patchelf
+    # - pkgconf
+    # - pnpm
     - poppler
+    # - postgresql
+    # - procs
     - qpdf
+    # - rclone
+    # - revive
+    # - rime-plugins
+    - ripgrep
+    - rsync
+    - ruff
+    # - scc
+    # - shellcheck
+    - shfmt
+    - smartmontools
+    # - sops
+    # - sqlite
+    - starship
+    # - supercronic
     - tesseract
+    # - tmux-plugins
+    # - tokei
+    # - tree
+    # - tzdata
+    - unzip
+    # - util-linux
+    - uv
+    # - vim
+    - vim-plugins
+    # - watchexec
+    - wget
+    # - xxd
+    - xz
+    - yazi
+    - zip
+    # - zsh
+    - zsh-plugins
+    - zstd
 
     link-to: .
 

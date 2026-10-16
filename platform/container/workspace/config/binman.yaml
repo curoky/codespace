@@ -2,7 +2,6 @@ prefix: /usr/local
 installs:
   - packages:
     - 7zz
-    # - aardvark-dns
     - age
     - aria2
     - atuin
@@ -20,19 +19,16 @@ installs:
     # - busybox
     - bzip2
     - cacert
-    # - catatonit
     - cloc
     - cmake
     # - cmake_3_27_9
     # - cmake_4_1_2
     # - codex
-    # - conmon
     # - connect
     # - copyparty
     # - coreutils
     - croc
     - cronie
-    # - crun
     - curl
     - diffutils
     - dive
@@ -77,9 +73,9 @@ installs:
     - go-task
     - gocryptfs
     # - gost
-    # - gpgme
     - graphviz
     - gzip
+    - imagemagick
     # - indent
     # - inetutils
     - iproute2
@@ -141,13 +137,10 @@ installs:
     - ripgrep
     - rsync
     - ruff
-    # - runc
     - scc
     - shadow
     - shellcheck
     - shfmt
-    # - skalibs
-    - snappy
     - sops
     - sqlite
     - starship
@@ -172,8 +165,6 @@ installs:
     - yazi
     - zellij
     - zip
-    - zlib
-    - zlib-ng
     - zsh
     - zsh-plugins
     - zstd
