@@ -190,7 +190,7 @@ enter_accept = true
 # keymap_cursor = { emacs = "blink-block", vim_insert = "blink-block", vim_normal = "steady-block" }
 
 # network_connect_timeout = 5
-# network_timeout = 30
+network_timeout = 300
 
 ## Extra HTTP headers to send on every request to the sync server. Useful when
 ## a self-hosted server sits behind a proxy that requires its own auth header,
