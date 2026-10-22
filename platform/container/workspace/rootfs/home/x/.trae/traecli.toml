@@ -1,18 +1,30 @@
-model = "GPT-5.6-Sol"
-model_provider = "trae"
-model_reasoning_effort = "high"
-
-service_tier = "priority"              # 后端优先排队（需账号权限）
-seed_super_relay_enabled = true        # 走 SuperRelay 加速中继
-
-commit_attribution = ""
-
-# —— 权限/审查（顶层，且互斥键只保留一套）——
 approval_policy = "never"
 approvals_reviewer = "user"
+commit_attribution = ""
 default_permissions = ":danger-full-access"
-# 注意：default_permissions 与 sandbox_mode 互斥，二选一。
-# 你已用 default_permissions=":danger-full-access"（等价全放开），无需再写 sandbox_mode。
+model = "GPT-6.1-Sol"
+model_provider = "trae"
+model_reasoning_effort = "high"
+seed_super_relay_enabled = true
+service_tier = "priority"
+
+[analytics]
+enabled = false
+
+[auto_review]
+enabled = false
+
+[features]
+guardian_v2 = false
+
+[marketplaces.traex-bd-plugins]
+auto_update = true
+ref = "main"
+source = "git@code.byted.org:ide/traex-bd-plugins.git"
+source_type = "git"
+
+[notice]
+hide_full_access_warning = true
 
 [plugins."ai-contribution@traex-bd-plugins"]
 enabled = false
@@ -20,21 +32,6 @@ enabled = false
 [projects."/workspace"]
 trust_level = "trusted"
 
-[notice]
-hide_full_access_warning = true
-
-# —— 关闭遥测 ——
 [trae_telemetry]
 endpoint_override = "http://127.0.0.1:1"
 verbose = 0
-
-# —— 关闭自动代码审查 ——
-[auto_review]
-enabled = false
-
-# —— 关闭 Guardian ——
-[features]
-guardian_v2 = false
-
-[analytics]
-enabled = false
