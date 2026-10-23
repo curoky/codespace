@@ -48,6 +48,8 @@ platform/container/workspace/build.sh --resource
   implementation，不用 standalone shadow 替换。
 - Workspace 内 service 默认监听 container loopback。Host publication 与 UI tunnel allowlist
   只由控制面 Project config 决定。
+- Ollama service definition 保留为可选服务，不随 default bundle 启动；显式启动前需先安装
+  service script 指定路径的 executable。
 - Atuin client 使用官方 sync；login credential 格式和 login service 由当前 s6 script 定义。
   未加入 default bundle 的 server definition 不应被其他 service 当作依赖。
 
