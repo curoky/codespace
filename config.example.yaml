@@ -1,11 +1,17 @@
+# Private Codespace control-plane configuration.
 hosts:
-  cpu:
+  cpu1:
+    container:
+      devices: [/dev/fuse, /dev/net/tun]
+      volumes:
+        - /etc/krb5.conf:/etc/krb5.conf:ro
+  cpu2:
     container:
       devices: [/dev/fuse, /dev/net/tun]
       volumes:
         - /etc/krb5.conf:/etc/krb5.conf:ro
 
-  gpu-h100:
+  h100:
     forward_environment: [MY_HOST_IP, MY_HOST_IPV6]
     container:
       devices: [nvidia.com/gpu=all, /dev/fuse, /dev/net/tun]
@@ -16,7 +22,7 @@ hosts:
         - /tmp/metric.sock:/tmp/metric.sock
         - /usr/local/[[mask]]:/usr/local/[[mask]]:ro
 
-  gpu-a10:
+  a10:
     forward_environment: [MY_HOST_IP, MY_HOST_IPV6]
     container:
       devices: [nvidia.com/gpu=all, /dev/fuse, /dev/net/tun]
@@ -72,26 +78,34 @@ project_defaults:
 
 projects:
   codespace:
-    source: [{type: github, repository: curoky/codespace}]
-    hosts: [cpu, gpu-h100]
+    source:
+      - {type: github, repository: curoky/codespace}
+    hosts: [cpu1, h100, cpu2]
     encrypted: false
+
+  learn-ml:
+    source: [{type: github, repository: curoky/learn-ml}]
+    hosts: [h100]
 
   standalone-binaries:
     source: [{type: github, repository: curoky/standalone-binaries}]
-    hosts: [gpu-h100]
+    hosts: [cpu1, h100]
     encrypted: false
 
   automation:
     source: [{type: github, repository: curoky/automation}]
-    hosts: [cpu]
+    hosts: [cpu1, cpu2]
+
+  userscripts:
+    source: [{type: github, repository: curoky/userscripts}]
+    hosts: [cpu1]
 
   agent-playbook:
     source: [{type: github, repository: curoky/agent-playbook}]
-    hosts: [cpu]
-
+    hosts: [cpu1]
   private-repo:
     source: [{ type: git, url: "git@git.example.com:team/private-repo" }]
-    hosts: [cpu]
+    hosts: [cpu1]
     encrypted: false
     container:
       image: registry.example.com/base/dev-image:latest
@@ -100,7 +114,7 @@ projects:
 
 services:
   support:
-    hosts: [cpu, gpu-h100]
+    hosts: [cpu1, h100]
     tunnel_ports: [8008]
     container:
       image: ghcr.io/curoky/codespace:service-support
@@ -113,7 +127,7 @@ services:
       restart: unless-stopped
 
   secret:
-    hosts: [cpu, gpu-h100]
+    hosts: [cpu1, h100]
     tunnel_ports: [8008, 8081]
     container:
       image: ghcr.io/curoky/codespace:service-secret
@@ -155,7 +169,7 @@ services:
       restart: unless-stopped
 
   vllm:
-    hosts: [gpu-h100]
+    hosts: [h100]
     tunnel_ports: [8080, 8008]
     container:
       image: ghcr.io/curoky/codespace:service-vllm
@@ -172,7 +186,7 @@ services:
       restart: unless-stopped
 
   sglang:
-    hosts: [gpu-h100]
+    hosts: [h100]
     tunnel_ports: [8080, 8008]
     container:
       image: ghcr.io/curoky/codespace:service-sglang
@@ -189,7 +203,7 @@ services:
       restart: unless-stopped
 
   chatbox:
-    hosts: [gpu-h100]
+    hosts: [h100]
     tunnel_ports: [8080, 8008]
     container:
       image: ghcr.io/curoky/codespace:service-chatbox
@@ -207,7 +221,7 @@ secrets:
   github_token_all_read: masked
   github_token_all_action_rw: masked
 
-  codespace_root_password: masked
+  codespace_root_password: '123'
   codespace_workspace_key: masked
   atuin_credentials: masked
 
