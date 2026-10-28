@@ -88,6 +88,7 @@ installs:
     - less
     - libarchive
     - libcap
+    - libjpeg
     - libtool
     - lsb-release
     - lsof

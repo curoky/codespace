@@ -66,6 +66,7 @@ installs:
     - lefthook
     - less
     - libarchive
+    - libjpeg
     # - libtool
     # - lima
     - lsof
