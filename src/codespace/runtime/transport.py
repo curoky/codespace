@@ -113,8 +113,10 @@ class PodmanTransport:
         hosts: Collection[str],
         *,
         runtime_parent: Path | None = None,
+        client_timeout: float = _CLIENT_TIMEOUT,
     ) -> None:
         self._hosts = frozenset(hosts)
+        self._client_timeout = client_timeout
         # OpenSSH adds a temporary suffix while binding; macOS limits Unix paths to 103 bytes.
         parent = runtime_parent if runtime_parent is not None else _DEFAULT_RUNTIME_PARENT
         self._runtime_dir = Path(tempfile.mkdtemp(prefix="codespace-", dir=parent))
@@ -276,7 +278,7 @@ class PodmanTransport:
         )
         client = PodmanClient(
             base_url=f"unix://{socket_path}",
-            timeout=_CLIENT_TIMEOUT,
+            timeout=self._client_timeout,
         )
         return _Master(
             control_path=control_path,

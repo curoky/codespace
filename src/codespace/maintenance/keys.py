@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated, Literal
@@ -18,6 +19,7 @@ from rich.table import Column, Table
 from codespace import workspaces as inventory
 from codespace.config import CONFIG_PATH, load_config
 from codespace.resources import RESOURCE_ID_RE
+from codespace.runtime.transport import PodmanTransport
 from codespace.workspaces import GitProvider, ProviderSource
 
 _HTTP_TIMEOUT = 30.0
@@ -69,9 +71,17 @@ def prune(
         if provider not in tokens
     ]
     hosts = sorted(config.hosts)
+    with (
+        closing(PodmanTransport(hosts, client_timeout=_CLIENT_TIMEOUT)) as transport,
+        ThreadPoolExecutor() as executor,
+    ):
+
+        def scan_host(host: str) -> set[str]:
+            return _active_workspace_ids(transport.client(host), host)
+
+        scanned = list(executor.map(scan_host, hosts))
+        active = {workspace_id for host_active in scanned for workspace_id in host_active}
     with ThreadPoolExecutor() as executor:
-        inventories = executor.map(_active_workspace_ids, hosts)
-        active = {workspace_id for host_active in inventories for workspace_id in host_active}
         listed = executor.map(
             list_deploy_keys,
             [repository[0] for repository in listable],
@@ -115,12 +125,8 @@ def prune(
     target.print(f"Deleted {len(unused)} unused key(s).")
 
 
-def _active_workspace_ids(host: str) -> set[str]:
-    with PodmanClient(
-        base_url=f"http+ssh://{host}/run/podman/podman.sock",
-        timeout=_CLIENT_TIMEOUT,
-    ) as client:
-        return {workspace.id for workspace in inventory.list_workspaces(client, host)}
+def _active_workspace_ids(client: PodmanClient, host: str) -> set[str]:
+    return {workspace.id for workspace in inventory.list_workspaces(client, host)}
 
 
 def _usage(title: str, routes: list[Route], active: set[str]) -> Usage:

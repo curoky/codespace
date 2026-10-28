@@ -5,6 +5,7 @@ from __future__ import annotations
 import shlex
 from collections.abc import Callable, Iterator
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from pathlib import Path
 from typing import Annotated, Literal, cast
 
@@ -17,6 +18,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, TimeElapsedColumn
 from rich.table import Column, Table
 
 from codespace.config import CONFIG_PATH, load_config
+from codespace.runtime.transport import PodmanTransport
 
 RESOURCE_VOLUME = "codespace-resource"
 _DIGEST_MARKER = ".codespace-resource-digest"
@@ -62,17 +64,16 @@ def sync(
     )
     tasks = {host: progress.add_task("queued", host=host, total=None) for host in hosts}
 
-    def sync_host(host: str) -> Action:
+    def plan_host(host: str, client: PodmanClient) -> Action:
         task = tasks[host]
 
         def stage(status: str) -> None:
             progress.update(task, description=status)
 
         try:
-            action = _sync_host(
-                host,
+            action = _plan_host(
+                client,
                 resource_image=resource_image,
-                apply=apply,
                 force=force,
                 stage=stage,
             )
@@ -82,14 +83,61 @@ def sync(
         progress.update(task, description=action, completed=1, total=1)
         return action
 
-    with progress, ThreadPoolExecutor() as executor:
-        actions = executor.map(sync_host, hosts)
+    with (
+        progress,
+        closing(PodmanTransport(hosts, client_timeout=_CLIENT_TIMEOUT)) as transport,
+        ThreadPoolExecutor() as executor,
+    ):
+
+        def scan_host(host: str) -> Action:
+            progress.update(tasks[host], description="connecting")
+            try:
+                return plan_host(host, transport.client(host))
+            except BaseException:
+                progress.update(tasks[host], description="[red]failed[/red]")
+                raise
+
+        actions = list(executor.map(scan_host, hosts))
         states = list(zip(hosts, actions, strict=True))
 
-    table = Table("Host", Column("Action", no_wrap=True))
-    for host, action in states:
-        table.add_row(host, action)
-    target.print(table)
+        target.print("Plan using local images:")
+        _print_plan(target, states)
+        if apply:
+
+            def refresh_host(host: str) -> tuple[Action, str]:
+                client = transport.client(host)
+                progress.update(tasks[host], description="pulling image", completed=0, total=None)
+                try:
+                    _pull_image(client, resource_image)
+                    action = plan_host(host, client)
+                    digest = _image_digest(client, resource_image) if action != "skip" else ""
+                    return action, digest
+                except BaseException:
+                    progress.update(tasks[host], description="[red]failed[/red]")
+                    raise
+
+            refreshed = list(executor.map(refresh_host, hosts))
+            states = [
+                (host, action) for host, (action, _digest) in zip(hosts, refreshed, strict=True)
+            ]
+            target.print("Plan after pulling images:")
+            _print_plan(target, states)
+
+            def fill_host(host: str, plan: tuple[Action, str]) -> None:
+                action, digest = plan
+                if action == "skip":
+                    return
+                progress.update(tasks[host], description="filling volume", completed=0, total=None)
+                try:
+                    _fill_volume(
+                        transport.client(host), resource_image, action=action, digest=digest
+                    )
+                except BaseException:
+                    progress.update(tasks[host], description="[red]failed[/red]")
+                    raise
+                progress.update(tasks[host], description=action, completed=1, total=1)
+
+            list(executor.map(fill_host, hosts, refreshed))
 
     pending = sum(action != "skip" for _host, action in states)
     if apply:
@@ -98,74 +146,63 @@ def sync(
         target.print(f"Dry run: {pending} volume(s); pass --apply to execute.")
 
 
-def _sync_host(
-    host: str,
+def _print_plan(console: Console, states: list[tuple[str, Action]]) -> None:
+    table = Table("Host", Column("Action", no_wrap=True))
+    for host, action in states:
+        table.add_row(host, action)
+    console.print(table)
+
+
+def _pull_image(client: PodmanClient, resource_image: str) -> None:
+    events = cast(
+        "Iterator[dict[str, str]]",
+        client.images.pull(resource_image, stream=True, decode=True, policy="always"),
+    )
+    for event in events:
+        if error := event.get("error"):
+            raise PodmanError(f"failed to pull {resource_image}: {error}")
+
+
+def _plan_host(
+    client: PodmanClient,
     *,
     resource_image: str,
-    apply: bool,
     force: bool,
     stage: Callable[[str], None] | None = None,
 ) -> Action:
     report = stage or (lambda _status: None)
-    report("connecting")
-    with PodmanClient(
-        base_url=f"http+ssh://{host}/run/podman/podman.sock",
-        timeout=_CLIENT_TIMEOUT,
-    ) as client:
-        if apply:
-            report("pulling image")
-            events = cast(
-                "Iterator[dict[str, str]]",
-                client.images.pull(resource_image, stream=True, decode=True, policy="always"),
-            )
-            for event in events:
-                if error := event.get("error"):
-                    raise PodmanError(f"failed to pull {resource_image}: {error}")
-
-        report("checking volume")
-        if not client.volumes.exists(RESOURCE_VOLUME):
-            action: Action = "create"
-        elif force:
-            action = "fill"
-        else:
-            report("checking digest")
-            try:
-                exit_code, _detail = _run_helper(
-                    client,
-                    resource_image,
-                    (
-                        f"grep -Fqx -- {shlex.quote(_image_digest(client, resource_image))} "
-                        f"/dst/{_DIGEST_MARKER}"
-                    ),
-                    read_only=True,
-                )
-            except APIError:
-                action = "fill"
-            else:
-                action = "skip" if exit_code == 0 else "fill"
-
-        if not apply or action == "skip":
-            return action
-
-        digest = _image_digest(client, resource_image)
-        if not client.volumes.exists(RESOURCE_VOLUME):
-            report("creating volume")
-            client.volumes.create(RESOURCE_VOLUME)
-        report("filling volume")
-        script = (
-            "find /dst -mindepth 1 -maxdepth 1 -exec rm -rf -- {} + "
-            "&& cp -a /opt/resource/. /dst/ "
-            f"&& printf '%s\\n' {shlex.quote(digest)} > /dst/{_DIGEST_MARKER}"
-        )
-        exit_code, detail = _run_helper(
+    report("checking volume")
+    if not client.volumes.exists(RESOURCE_VOLUME):
+        return "create"
+    if force:
+        return "fill"
+    report("checking digest")
+    try:
+        exit_code, _detail = _run_helper(
             client,
             resource_image,
-            script,
-            read_only=False,
+            (
+                f"grep -Fqx -- {shlex.quote(_image_digest(client, resource_image))} "
+                f"/dst/{_DIGEST_MARKER}"
+            ),
+            read_only=True,
         )
-        if exit_code != 0:
-            raise RuntimeError(f"resource fill failed ({exit_code}): {detail}")
-        return action
+    except APIError:
+        return "fill"
+    return "skip" if exit_code == 0 else "fill"
+
+
+def _fill_volume(client: PodmanClient, resource_image: str, *, action: Action, digest: str) -> None:
+    if action == "create":
+        client.volumes.create(RESOURCE_VOLUME)
+    script = (
+        "find /dst -mindepth 1 -maxdepth 1 -exec rm -rf -- {} + "
+        "&& cp -a /opt/resource/. /dst/ "
+        f"&& printf '%s\\n' {shlex.quote(digest)} > /dst/{_DIGEST_MARKER}"
+    )
+    exit_code, detail = _run_helper(client, resource_image, script, read_only=False)
+    if exit_code != 0:
+        raise RuntimeError(f"resource fill failed ({exit_code}): {detail}")
 
 
 def _image_digest(client: PodmanClient, resource_image: str) -> str:

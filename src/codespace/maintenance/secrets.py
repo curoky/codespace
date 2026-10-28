@@ -3,16 +3,16 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
-from functools import partial
+from contextlib import closing
 from pathlib import Path
 from typing import Annotated, Literal
 
 import typer
-from podman import PodmanClient
 from rich.console import Console
 from rich.table import Column, Table
 
 from codespace.config import CONFIG_PATH, load_config
+from codespace.runtime.transport import PodmanTransport
 
 _CLIENT_TIMEOUT = 30 * 60.0
 
@@ -43,51 +43,45 @@ def sync(
         return
 
     hosts = sorted(config.hosts)
-    with ThreadPoolExecutor() as executor:
-        actions = executor.map(
-            partial(_sync_host, configured=config.secrets, apply=apply),
-            hosts,
-        )
-        states = [
-            (host, name, action)
-            for host, host_actions in zip(hosts, actions, strict=True)
-            for name, action in host_actions
-        ]
+    with (
+        closing(PodmanTransport(hosts, client_timeout=_CLIENT_TIMEOUT)) as transport,
+        ThreadPoolExecutor() as executor,
+    ):
 
-    table = Table(
-        "Host",
-        Column("Secret", overflow="fold"),
-        Column("Action", no_wrap=True),
-    )
-    for host, name, action in states:
-        table.add_row(host, name, action)
-    target.print(table)
+        def scan_host(host: str) -> list[tuple[str, str, Action]]:
+            client = transport.client(host)
+            scanned: list[tuple[str, str, Action]] = []
+            for name in sorted(config.secrets):
+                action: Action = "replace" if client.secrets.exists(name) else "create"
+                scanned.append((host, name, action))
+            return scanned
+
+        plans = list(executor.map(scan_host, hosts))
+        states = [state for plan in plans for state in plan]
+
+        table = Table(
+            "Host",
+            Column("Secret", overflow="fold"),
+            Column("Action", no_wrap=True),
+        )
+        for host, name, action in states:
+            table.add_row(host, name, action)
+        target.print(table)
+        if apply:
+
+            def apply_host(plan: list[tuple[str, str, Action]]) -> None:
+                for host, name, action in plan:
+                    client = transport.client(host)
+                    if action == "replace":
+                        client.secrets.remove(name)
+                    client.secrets.create(name, config.secrets[name].encode())
+
+            list(executor.map(apply_host, plans))
+
     if apply:
         target.print(f"Applied {len(states)} secret(s).")
     else:
         target.print(f"Dry run: {len(states)} secret(s); pass --apply to execute.")
-
-
-def _sync_host(
-    host: str,
-    *,
-    configured: dict[str, str],
-    apply: bool,
-) -> list[tuple[str, Action]]:
-    actions: list[tuple[str, Action]] = []
-    with PodmanClient(
-        base_url=f"http+ssh://{host}/run/podman/podman.sock",
-        timeout=_CLIENT_TIMEOUT,
-    ) as client:
-        for name in sorted(configured):
-            action: Action = "replace" if client.secrets.exists(name) else "create"
-            actions.append((name, action))
-            if not apply:
-                continue
-            if action == "replace":
-                client.secrets.remove(name)
-            client.secrets.create(name, configured[name].encode())
-    return actions
 
 
 if __name__ == "__main__":

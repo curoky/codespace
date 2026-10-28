@@ -127,10 +127,13 @@ inspect 数据还原。
 
 - `maintenance/` 命令先完成 discovery 并输出可审计计划，默认 dry-run；只有显式 `--apply`
   修改远端状态。plan 与 apply 共用 decision code。
-- Host/repository 可以并发处理，但任一 inventory 失败都必须使命令失败；不得基于不完整状态
-  继续删除其他对象。
-- resource sync 先 pull image，再按 Host 最新 digest 判断是否重填 volume；digest marker 与
-  payload 写入属于同一次成功结果。secret 检查和可选写入使用同一 Host connection。
+- Host 通过同一个 `PodmanTransport` 复用连接，只串行 SSH 初次握手，避免共享 GSSAPI
+  ProxyJump 的并发认证冲突；各 Host discovery、apply 与 provider HTTP 请求可以并发。
+  任一 inventory 失败都必须使命令失败，所有 Host 检查完成并
+  输出计划后才写入 secret、resource volume 或删除 Workspace data/deploy key。
+- resource sync 先输出基于 Host 本地 image 的完整计划；apply 拉取所有 Host image 后按最新
+  digest 重新检查并输出执行计划，再填充 volume。digest marker 与 payload 写入属于同一次
+  成功结果。secret/resource sync 和 Workspace data prune 的检查与写入复用同一 Podman client。
 - prune 只处理 Codespace 可证明拥有且不再 active 的 data path 或 deploy key。未配置 provider
   token 时 warning 并跳过，不把缺少权限解释成对象不存在。
 

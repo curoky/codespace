@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from io import StringIO
+from threading import Barrier
 
 import pytest
 from rich.console import Console
@@ -10,13 +11,17 @@ from rich.console import Console
 from codespace.config import Config
 from codespace.maintenance import secrets
 
+from .conftest import TransportInstaller
+
 
 class FakeSecrets:
     def __init__(self, values: dict[str, bytes] | None = None) -> None:
         self.values = values or {}
+        self.inspected: list[str] = []
         self.writes: list[tuple[str, str]] = []
 
     def exists(self, name: str) -> bool:
+        self.inspected.append(name)
         return name in self.values
 
     def remove(self, name: str) -> None:
@@ -35,10 +40,7 @@ class FakeClient:
         self.secrets = secrets_store
         self.closed = False
 
-    def __enter__(self) -> FakeClient:
-        return self
-
-    def __exit__(self, *_args: object) -> None:
+    def close(self) -> None:
         self.closed = True
 
 
@@ -46,6 +48,7 @@ class FakeClient:
 def test_sync_only_writes_with_apply(
     config: Config,
     monkeypatch: pytest.MonkeyPatch,
+    install_transport: TransportInstaller,
     apply: bool,
 ) -> None:
     configured = Config.model_validate(
@@ -56,83 +59,132 @@ def test_sync_only_writes_with_apply(
         "office": FakeSecrets(),
     }
     clients: list[FakeClient] = []
-    options: list[dict[str, object]] = []
     stream = StringIO()
 
-    def create_client(**kwargs: object) -> FakeClient:
-        host = str(kwargs["base_url"]).removeprefix("http+ssh://").partition("/")[0]
+    def create_client(host: str) -> FakeClient:
         client = FakeClient(stores[host])
         clients.append(client)
-        options.append(kwargs)
         return client
 
     monkeypatch.setattr(secrets, "load_config", lambda _path: configured)
-    monkeypatch.setattr(secrets, "PodmanClient", create_client)
+    options = install_transport(secrets, create_client)
 
     secrets.sync(apply=apply, console=Console(file=stream, width=120))
 
     assert all(client.closed for client in clients)
-    assert {option["timeout"] for option in options} == {secrets._CLIENT_TIMEOUT}
+    assert options == {"hosts": ["home", "office"], "client_timeout": secrets._CLIENT_TIMEOUT}
     assert stores["home"].values == (
         {"api_token": b"value", "new": b"created"} if apply else {"api_token": b"old"}
     )
     assert stores["office"].values == ({"api_token": b"value", "new": b"created"} if apply else {})
     assert ("Applied" if apply else "Dry run") in stream.getvalue()
+    assert all(store.inspected == ["api_token", "new"] for store in stores.values())
     if apply:
         assert "Applied 4 secret(s)." in stream.getvalue()
 
 
-def test_sync_host_reports_sorted_actions_and_replaces_existing_secret(
+def test_sync_checks_all_hosts_and_prints_plan_before_writing(
+    config: Config,
     monkeypatch: pytest.MonkeyPatch,
+    install_transport: TransportInstaller,
 ) -> None:
-    store = FakeSecrets({"replace": b"old"})
-    client = FakeClient(store)
-    options: dict[str, object] = {}
-
-    def create_client(**kwargs: object) -> FakeClient:
-        options.update(kwargs)
-        return client
-
-    monkeypatch.setattr(secrets, "PodmanClient", create_client)
-
-    assert secrets._sync_host(
-        "home",
-        configured={"replace": "updated", "create": "new"},
-        apply=True,
-    ) == [("create", "create"), ("replace", "replace")]
-    assert options == {
-        "base_url": "http+ssh://home/run/podman/podman.sock",
-        "timeout": secrets._CLIENT_TIMEOUT,
+    configured = Config.model_validate(
+        {**config.model_dump(), "secrets": {"replace": "updated", "create": "new"}}
+    )
+    stores = {
+        "home": FakeSecrets({"replace": b"old"}),
+        "office": FakeSecrets(),
     }
-    assert store.values == {"replace": b"updated", "create": b"new"}
-    assert store.writes == [
+    stream = StringIO()
+    create = stores["home"].create
+
+    def create_after_plan(name: str, value: bytes) -> None:
+        assert all(store.inspected == ["create", "replace"] for store in stores.values())
+        assert "home" in stream.getvalue()
+        assert "office" in stream.getvalue()
+        assert "replace" in stream.getvalue()
+        assert "Applied" not in stream.getvalue()
+        create(name, value)
+
+    def create_client(host: str) -> FakeClient:
+        return FakeClient(stores[host])
+
+    monkeypatch.setattr(secrets, "load_config", lambda _path: configured)
+    install_transport(secrets, create_client)
+    monkeypatch.setattr(stores["home"], "create", create_after_plan)
+
+    secrets.sync(apply=True, console=Console(file=stream, width=120))
+
+    assert stores["home"].values == {"replace": b"updated", "create": b"new"}
+    assert stores["home"].writes == [
         ("create", "create"),
         ("remove", "replace"),
         ("create", "replace"),
     ]
-    assert client.closed is True
 
 
-def test_sync_fails_on_host_error(config: Config, monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize("failure", ["connect", "inventory"])
+def test_sync_host_failure_closes_clients_without_writing(
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+    install_transport: TransportInstaller,
+    failure: str,
+) -> None:
     configured = Config.model_validate({**config.model_dump(), "secrets": {"api_token": "value"}})
+    stores = {"home": FakeSecrets({"api_token": b"old"}), "office": FakeSecrets()}
+    clients: list[FakeClient] = []
     stream = StringIO()
 
-    def sync_host(
-        host: str,
-        *,
-        configured: dict[str, str],
-        apply: bool,
-    ) -> list[tuple[str, secrets.Action]]:
-        assert configured == {"api_token": "value"}
-        assert apply is True
-        if host == "office":
+    def fail_inventory(_name: str) -> bool:
+        raise RuntimeError("scan unavailable")
+
+    def create_client(host: str) -> FakeClient:
+        if host == "office" and failure == "connect":
             raise RuntimeError("scan unavailable")
-        return [("api_token", "create")]
+        client = FakeClient(stores[host])
+        clients.append(client)
+        return client
 
     monkeypatch.setattr(secrets, "load_config", lambda _path: configured)
-    monkeypatch.setattr(secrets, "_sync_host", sync_host)
+    install_transport(secrets, create_client)
+    if failure == "inventory":
+        monkeypatch.setattr(stores["office"], "exists", fail_inventory)
 
     with pytest.raises(RuntimeError, match="scan unavailable"):
         secrets.sync(apply=True, console=Console(file=stream, width=120))
 
     assert stream.getvalue() == ""
+    assert stores["home"].values == {"api_token": b"old"}
+    assert all(not store.writes for store in stores.values())
+    assert all(client.closed for client in clients)
+
+
+def test_sync_scans_and_applies_hosts_concurrently(
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+    install_transport: TransportInstaller,
+) -> None:
+    configured = Config.model_validate({**config.model_dump(), "secrets": {"token": "value"}})
+    clients = {host: FakeClient(FakeSecrets()) for host in configured.hosts}
+    scanned = Barrier(len(clients))
+    applied = Barrier(len(clients))
+
+    def exists(self: FakeSecrets, name: str) -> bool:
+        self.inspected.append(name)
+        scanned.wait(timeout=5)
+        return False
+
+    def create(self: FakeSecrets, name: str, value: bytes) -> None:
+        assert all(client.secrets.inspected == ["token"] for client in clients.values())
+        applied.wait(timeout=5)
+        self.values[name] = value
+
+    monkeypatch.setattr(secrets, "load_config", lambda _path: configured)
+    monkeypatch.setattr(FakeSecrets, "exists", exists)
+    monkeypatch.setattr(FakeSecrets, "create", create)
+    install_transport(secrets, clients.__getitem__)
+
+    secrets.sync(apply=True, console=Console(file=StringIO()))
+
+    assert all(client.secrets.values == {"token": b"value"} for client in clients.values())
+    assert all(client.closed for client in clients.values())

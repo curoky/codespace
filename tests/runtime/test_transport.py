@@ -82,8 +82,11 @@ def _fake_podman_client(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(transport_module, "PodmanClient", FakeClient)
 
 
+@pytest.mark.parametrize("client_timeout", [None, 1800.0])
 def test_transport_uses_control_master_and_private_runtime(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    client_timeout: float | None,
 ) -> None:
     commands: list[list[str]] = []
     processes: list[FakeProcess] = []
@@ -99,6 +102,7 @@ def test_transport_uses_control_master_and_private_runtime(
     transport = PodmanTransport(
         {"home"},
         runtime_parent=tmp_path,
+        **({} if client_timeout is None else {"client_timeout": client_timeout}),
     )
 
     returned = transport.client("home")
@@ -120,7 +124,7 @@ def test_transport_uses_control_master_and_private_runtime(
     assert "StrictHostKeyChecking=no" not in command
     assert returned is clients[0]
     assert clients[0].base_url == f"unix://{podman_socket_path}"
-    assert clients[0].timeout == 60.0
+    assert clients[0].timeout == (60.0 if client_timeout is None else client_timeout)
     assert stat.S_IMODE(transport.runtime_dir.stat().st_mode) == 0o700
 
     transport.close()

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from io import StringIO
+from threading import Barrier
 from typing import ClassVar
 
 import pytest
@@ -11,6 +12,8 @@ from rich.console import Console
 from codespace.config import Config
 from codespace.maintenance import keys
 from codespace.maintenance.keys import DeployKey
+
+from .conftest import TransportInstaller
 
 
 @pytest.mark.parametrize(
@@ -45,16 +48,21 @@ class FakePodmanClient:
         self.host = host
         self.closed = False
 
-    def __enter__(self) -> FakePodmanClient:
-        return self
-
-    def __exit__(self, *_args: object) -> None:
+    def close(self) -> None:
         self.closed = True
+
+
+@pytest.fixture(autouse=True)
+def _transport(install_transport: TransportInstaller) -> None:
+    install_transport(keys, FakePodmanClient)
 
 
 @pytest.mark.parametrize("apply", [False, True])
 def test_prune_deletes_only_planned_unused_keys(
-    config: Config, monkeypatch: pytest.MonkeyPatch, apply: bool
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+    install_transport: TransportInstaller,
+    apply: bool,
 ) -> None:
     data = config.model_dump()
     data["tokens"] = {"github": "test-token"}
@@ -69,42 +77,53 @@ def test_prune_deletes_only_planned_unused_keys(
     ]
     deleted: list[list[int]] = []
     clients: list[FakePodmanClient] = []
-    options: list[dict[str, object]] = []
+    scanned: list[str] = []
+    stream = StringIO()
 
-    def create_client(**kwargs: object) -> FakePodmanClient:
-        host = str(kwargs["base_url"]).removeprefix("http+ssh://").partition("/")[0]
+    def create_client(host: str) -> FakePodmanClient:
         client = FakePodmanClient(host)
         clients.append(client)
-        options.append(kwargs)
         return client
 
+    def inventory(_client: FakePodmanClient, host: str) -> list[object]:
+        scanned.append(host)
+        return [active]
+
+    def delete_keys(_provider: str, _token: str, _repo: str, ids: list[int]) -> None:
+        assert sorted(scanned) == ["home", "office"]
+        assert "space:codespace/old@home" in stream.getvalue()
+        deleted.append(ids)
+
     monkeypatch.setattr(keys, "load_config", lambda _path: configured)
-    monkeypatch.setattr(keys, "PodmanClient", create_client)
-    monkeypatch.setattr(keys.inventory, "list_workspaces", lambda *_args: [active])
+    options = install_transport(keys, create_client)
+    monkeypatch.setattr(keys.inventory, "list_workspaces", inventory)
     monkeypatch.setattr(keys, "list_deploy_keys", lambda *_args: listed)
     monkeypatch.setattr(
         keys,
         "delete_deploy_keys",
-        lambda _provider, _token, _repo, ids: deleted.append(ids),
+        delete_keys,
     )
 
-    keys.prune(apply=apply, console=Console(file=StringIO(), width=120))
+    keys.prune(apply=apply, console=Console(file=stream, width=120))
 
     assert deleted == ([[2]] if apply else [])
     assert all(client.closed for client in clients)
-    assert {option["timeout"] for option in options} == {keys._CLIENT_TIMEOUT}
+    assert options == {"hosts": ["home", "office"], "client_timeout": keys._CLIENT_TIMEOUT}
 
 
+@pytest.mark.parametrize("apply", [False, True])
 def test_prune_fails_before_listing_keys_when_host_scan_fails(
     config: Config,
     monkeypatch: pytest.MonkeyPatch,
+    apply: bool,
 ) -> None:
     data = config.model_dump()
     data["tokens"] = {"github": "test-token"}
     configured = Config.model_validate(data)
     listed = False
+    deleted: list[int] = []
 
-    def active_workspace_ids(host: str) -> set[str]:
+    def active_workspace_ids(_client: FakePodmanClient, host: str) -> set[str]:
         if host == "office":
             raise RuntimeError("scan failed")
         return set()
@@ -117,12 +136,41 @@ def test_prune_fails_before_listing_keys_when_host_scan_fails(
     monkeypatch.setattr(keys, "load_config", lambda _path: configured)
     monkeypatch.setattr(keys, "_active_workspace_ids", active_workspace_ids)
     monkeypatch.setattr(keys, "list_deploy_keys", list_keys)
+    monkeypatch.setattr(keys, "delete_deploy_keys", lambda *_args: deleted.append(1))
     stream = StringIO()
 
     with pytest.raises(RuntimeError, match="scan failed"):
-        keys.prune(apply=False, console=Console(file=stream, width=120))
+        keys.prune(apply=apply, console=Console(file=stream, width=120))
 
     assert listed is False
+    assert deleted == []
+    assert stream.getvalue() == ""
+
+
+def test_prune_does_not_delete_when_repository_scan_fails(
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    configured = Config.model_validate(
+        {**config.model_dump(), "tokens": {"github": "test-token", "gitlab": "test-token"}}
+    )
+    deleted: list[int] = []
+
+    def list_keys(provider: str, _token: str, _repo: str) -> list[DeployKey]:
+        if provider == "gitlab":
+            raise RuntimeError("repository scan failed")
+        return [DeployKey(2, "space:codespace/old@home")]
+
+    monkeypatch.setattr(keys, "load_config", lambda _path: configured)
+    monkeypatch.setattr(keys, "_active_workspace_ids", lambda _client, _host: set())
+    monkeypatch.setattr(keys, "list_deploy_keys", list_keys)
+    monkeypatch.setattr(keys, "delete_deploy_keys", lambda *_args: deleted.append(1))
+    stream = StringIO()
+
+    with pytest.raises(RuntimeError, match="repository scan failed"):
+        keys.prune(apply=True, console=Console(file=stream, width=120))
+
+    assert deleted == []
     assert stream.getvalue() == ""
 
 
@@ -139,7 +187,7 @@ def test_prune_warns_and_skips_repository_without_token(
         return []
 
     monkeypatch.setattr(keys, "load_config", lambda _path: configured)
-    monkeypatch.setattr(keys, "_active_workspace_ids", lambda _host: set())
+    monkeypatch.setattr(keys, "_active_workspace_ids", lambda _client, _host: set())
     monkeypatch.setattr(keys, "list_deploy_keys", list_keys)
     stream = StringIO()
 
@@ -147,6 +195,28 @@ def test_prune_warns_and_skips_repository_without_token(
 
     assert listed is False
     assert "token is not configured" in stream.getvalue()
+
+
+def test_prune_scans_hosts_concurrently(
+    config: Config,
+    monkeypatch: pytest.MonkeyPatch,
+    install_transport: TransportInstaller,
+) -> None:
+    clients = {host: FakePodmanClient(host) for host in config.hosts}
+    scanned = Barrier(len(clients))
+
+    def inventory(_client: FakePodmanClient, _host: str) -> list[object]:
+        scanned.wait(timeout=5)
+        return []
+
+    monkeypatch.setattr(keys, "load_config", lambda _path: config)
+    monkeypatch.setattr(keys.inventory, "list_workspaces", inventory)
+    monkeypatch.setattr(keys, "list_deploy_keys", lambda *_args: [])
+    install_transport(keys, clients.__getitem__)
+
+    keys.prune(apply=False, console=Console(file=StringIO()))
+
+    assert all(client.closed for client in clients.values())
 
 
 class GithubKey:

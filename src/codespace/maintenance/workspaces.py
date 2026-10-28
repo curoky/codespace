@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
-from functools import partial
+from contextlib import closing
 from pathlib import Path, PurePosixPath
 from typing import Annotated, Literal
 
@@ -16,7 +16,7 @@ from codespace import workspaces as inventory
 from codespace.config import CONFIG_PATH, load_config
 from codespace.resources import RESOURCE_ID_RE
 from codespace.runtime import container, host
-from codespace.runtime.transport import SSHRoute
+from codespace.runtime.transport import PodmanTransport, SSHRoute
 
 _CLIENT_TIMEOUT = 30 * 60.0
 
@@ -43,27 +43,40 @@ def prune(
     target = console or Console()
     config = load_config(config_path)
     hosts = sorted(config.hosts)
-    images = [config.workspace_helper_image(host_name) for host_name in hosts]
-    with ThreadPoolExecutor() as executor:
-        scans = executor.map(
-            partial(_prune_host, apply=apply),
-            hosts,
-            images,
-        )
+    images = {host_name: config.workspace_helper_image(host_name) for host_name in hosts}
+    with (
+        closing(PodmanTransport(hosts, client_timeout=_CLIENT_TIMEOUT)) as transport,
+        ThreadPoolExecutor() as executor,
+    ):
+
+        def scan_host(host_name: str) -> tuple[str, list[tuple[str, Usage]]]:
+            return _scan_host(transport.client(host_name), transport.ssh_route(host_name))
+
+        plans = list(executor.map(scan_host, hosts))
         states = [
             (host_name, path, usage)
-            for host_name, host_states in zip(hosts, scans, strict=True)
-            for path, usage in host_states
+            for host_name, (_root, scanned) in zip(hosts, plans, strict=True)
+            for path, usage in scanned
         ]
 
-    table = Table(
-        "Host",
-        Column("Workspace", overflow="fold"),
-        Column("In use", no_wrap=True),
-    )
-    for host_name, path, usage in states:
-        table.add_row(host_name, path, usage)
-    target.print(table)
+        table = Table(
+            "Host",
+            Column("Workspace", overflow="fold"),
+            Column("In use", no_wrap=True),
+        )
+        for host_name, path, usage in states:
+            table.add_row(host_name, path, usage)
+        target.print(table)
+        if apply:
+
+            def apply_host(host_name: str, plan: tuple[str, list[tuple[str, Usage]]]) -> None:
+                root, scanned = plan
+                client = transport.client(host_name)
+                for path, usage in scanned:
+                    if usage == "no":
+                        container.remove_data_directory(client, images[host_name], root, path)
+
+            list(executor.map(apply_host, hosts, plans))
 
     unused = sum(state[2] == "no" for state in states)
     if apply:
@@ -72,30 +85,18 @@ def prune(
         target.print(f"Dry run: {unused} unused Workspace(s); pass --apply to delete.")
 
 
-def _prune_host(
-    host_name: str,
-    image: str,
-    *,
-    apply: bool,
-) -> list[tuple[str, Usage]]:
-    route = SSHRoute(host_name)
+def _scan_host(
+    client: PodmanClient,
+    route: SSHRoute,
+) -> tuple[str, list[tuple[str, Usage]]]:
     data_paths = host.remote_data_paths(route)
     root = data_paths.workspaces
     scanned = host.list_workspaces(route, root)
-    with PodmanClient(
-        base_url=f"http+ssh://{host_name}/run/podman/podman.sock",
-        timeout=_CLIENT_TIMEOUT,
-    ) as client:
-        active = {
-            data_paths.workspace(workspace.project, workspace.workspace)
-            for workspace in inventory.list_workspaces(client, host_name)
-        }
-        states = [(path, _usage(root, path, active)) for path in scanned]
-        if apply:
-            for path, usage in states:
-                if usage == "no":
-                    container.remove_data_directory(client, image, root, path)
-    return states
+    active = {
+        data_paths.workspace(workspace.project, workspace.workspace)
+        for workspace in inventory.list_workspaces(client, route.host)
+    }
+    return root, [(path, _usage(root, path, active)) for path in scanned]
 
 
 def _usage(root: str, path: str, active: set[str]) -> Usage:
