@@ -433,6 +433,6 @@
   "yaml.disableSchemaDetection": [],
   "yaml.format.enable": true,
   "yaml.format.singleQuote": true,
-	"trae.floatingChat.buttonIcon": "ball",
-	"trae.floatingChat.enabled": false
+  "trae.floatingChat.buttonIcon": "ball",
+  "trae.floatingChat.enabled": false
 }

@@ -17,12 +17,6 @@ enabled = false
 [features]
 guardian_v2 = false
 
-[marketplaces.traex-bd-plugins]
-auto_update = true
-ref = "main"
-source = "git@code.byted.org:ide/traex-bd-plugins.git"
-source_type = "git"
-
 [notice]
 hide_full_access_warning = true
 
