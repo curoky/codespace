@@ -39,7 +39,7 @@ ENV UV_TOOL_DIR=/opt/uv/tools \
   UV_PYTHON_BIN_DIR=/opt/uv/bin
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates \
-  && uv python install --no-bin 3.14 \
+  && uv python install --default 3.14 \
   && uv tool install copyparty \
     --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14
 
@@ -107,6 +107,7 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
 
 # --------------------------------- Runtime ----------------------------------
 FROM docker.io/$BASE_IMAGE AS workspace
+ENV PATH=/opt/uv/bin:${PATH}
 
 COPY --link --from=stage_sb /usr/local /usr/local
 COPY --link --chown=5230:5230 --from=stage_nix /nix /nix

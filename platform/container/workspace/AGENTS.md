@@ -32,6 +32,8 @@ platform/container/workspace/build.sh --resource
   `/opt/java/tools`、`/opt/node/tools`。Node.js 24 runtime 由主 image 固定提供在
   `/opt/node/nodejs24`；不要用 wrapper 改写这些默认路径，也不要在启动时重建 immutable image
   内容。
+- 默认 `python`、`python3` 入口位于 `/opt/uv/bin`；OCI environment 与 shell profile 均将
+  该目录加入 PATH。默认解释器由主 image 提供，不依赖 resource 挂载。
 - PID 1 是 `/etc/s6/init/bin/init`，service graph 只在 image build 时编译。依赖
   `/workspace` 的 service 必须依赖 `gocryptfs-workspace`；runtime 不重跑 graph compile 或
   image-build oneshot。

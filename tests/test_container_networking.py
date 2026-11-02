@@ -218,7 +218,11 @@ def test_workspace_keeps_required_python_and_exposes_resource_python_tools() -> 
     dockerfile = (workspace / "Dockerfile").read_text()
     resource_dockerfile = (workspace / "resource.Dockerfile").read_text()
     profile = (workspace / "rootfs/etc/profile.d/app.sh").read_text()
-    assert "uv python install --no-bin 3.14" in dockerfile
+    assert "uv python install --default 3.14" in dockerfile
+    runtime_stage = dockerfile.split("FROM docker.io/$BASE_IMAGE AS workspace\n", 1)[1]
+    assert "ENV PATH=/opt/uv/bin:${PATH}" in runtime_stage
+    assert "COPY --link --chown=5230:5230 --from=stage_python /opt/uv /opt/uv" in runtime_stage
+    assert 'export PATH="$PATH:/opt/uv/bin"' in profile
     assert "--python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14" in dockerfile
     assert "uv tool install copyparty" in dockerfile
     assert "uv tool install copyparty" not in resource_dockerfile
