@@ -94,6 +94,7 @@
   },
   "accessibility.signalOptions.volume": 10,
   "AI.agent.v2.browserBuiltinEnabled": "off",
+  "AI.ide.computerUse.everInstalled": true,
   "AI.rules.importClaudeMd": true,
   "AI.toolcall.v2.command.allowList": "[\"python\",\"npm\",\"npx\",\"bazel\",\"nix\",\"nix-env\",\"nix-shell\",\"nix-channel\",\"grep\",\"ls\",\"echo\",\"head\",\"touch\",\"rm\",\"sleep\",\"tail\",\"cd\",\"cat\",\"python3\",\"./result-wget/bin/wget\",\"mkdir\",\"cp\",\"chmod\",\"/tmp/ptest/parallel/bin/parallel\",\"uv\"]",
   "AI.toolcall.v2.fileOp.allowPaths": "[\"/workspace/tmp\"]",
@@ -392,6 +393,8 @@
   "testMate.cpp.test.executables": "{_build,build,Build,BUILD,out,Out,OUT}/**/*{test,Test,TEST}*",
   "testMate.cpp.test.parallelExecutionLimit": 8,
   "thunder-client.saveToWorkspace": true,
+  "trae.floatingChat.buttonIcon": "ball",
+  "trae.floatingChat.enabled": false,
   "trae.network.proxy.effectiveMode": "system",
   "typescript.surveys.enabled": false,
   "update.showReleaseNotes": false,
@@ -432,7 +435,5 @@
   "xml.symbols.maxItemsComputed": 400000,
   "yaml.disableSchemaDetection": [],
   "yaml.format.enable": true,
-  "yaml.format.singleQuote": true,
-  "trae.floatingChat.buttonIcon": "ball",
-  "trae.floatingChat.enabled": false
+  "yaml.format.singleQuote": true
 }
