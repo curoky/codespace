@@ -85,8 +85,8 @@ platform/container/workspace/build.sh --resource
   `AGENTS.md` 维护重复清单，也不要从主 image 的其他 package manager 重复安装同名工具。
 - 多版本 family 保留版本目录；默认选择由 profile/PATH 显式声明。launcher 不能依赖 payload
   内部 content-addressed store 的易变路径。
-- Go tools、Clang tools 与 Protobuf 的 profile bin 均进入 PATH；Clang tools 保留带版本号的
-  command，Protobuf 的默认 command 由 manifest 中最后安装的版本提供。
+- Go tools、Clang tools 与 Protobuf 的 profile bin 均进入 PATH；Clang tools 与 Protobuf 的
+  默认 command 由 manifest 中最后安装的版本提供。
 - Java/Node CLI 通过各自通用 installer 隔离安装。Java 必须显式选择 `--java` 或
   `--inherit-java`；Maven 通过后者继承项目环境。Node 必须显式传入 `--node`，CLI 固定该 runtime。
   launcher 相对自身定位同一 tools root 下的 env，因此整个 Java/Node family 可从
