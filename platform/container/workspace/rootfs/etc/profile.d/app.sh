@@ -15,7 +15,7 @@ codespace_add_path() {
 codespace_add_path /home/x/.local/bin
 
 # rust
-export CARGO_HOME=/opt/rust/cargo
+export CARGO_HOME=/home/x/.cargo
 export RUSTUP_HOME=/opt/rust/rustup
 codespace_add_path "$CARGO_HOME/bin"
 codespace_add_path /opt/rust/cargo/bin

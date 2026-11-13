@@ -35,6 +35,10 @@ platform/container/workspace/build.sh --resource
 - 默认 `python`、`python3` 入口位于 `/opt/uv/bin`；OCI environment 与 shell profile 均将
   该目录加入 PATH。默认解释器由主 image 提供，不依赖 resource 挂载。
 - `/etc/profile.d/app.sh` 补齐 PATH 中缺失的目录，保留传入顺序；重复加载不重复添加目录。
+- Rust 工具链仍由只读 resource 提供，`RUSTUP_HOME` 指向 `/opt/rust/rustup`；`CARGO_HOME`
+  指向用户 `.cargo`，依赖缓存与用户安装的 Cargo CLI 可写。预装工具链带有标准库源码、LSP、
+  格式化、lint 与 LLVM 覆盖率组件；工具链更新或额外 target/component 需用户另行准备可写
+  工具链。
 - PID 1 是 `/etc/s6/init/bin/init`，service graph 只在 image build 时编译。依赖
   `/workspace` 的 service 必须依赖 `gocryptfs-workspace`；runtime 不重跑 graph compile 或
   image-build oneshot。

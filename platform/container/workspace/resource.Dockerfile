@@ -6,7 +6,8 @@ ENV CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup
 ENV PATH=/opt/rust/cargo/bin:${PATH}
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates curl \
-  && curl https://sh.rustup.rs -sSf | sh -s -- -y --profile default --no-modify-path --default-toolchain stable \
+  && curl https://sh.rustup.rs -sSf | bash -s -- -y --profile default --no-modify-path --default-toolchain stable \
+  && rustup component add rust-src rust-analyzer llvm-tools \
   && rustup component remove rust-docs
 
 # ---------------------------------- Binman ----------------------------------
@@ -163,7 +164,11 @@ COPY --from=stage_python /opt/resource/opt/uv /opt/resource/opt/uv
 # ----------------------------------- Test -----------------------------------
 FROM payload AS test
 USER 5230:5230
-RUN /opt/resource/opt/go/go1.27.1/bin/go version \
+RUN test -r /opt/resource/opt/rust/rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/library/core/src/lib.rs \
+  && /opt/resource/opt/rust/rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rust-analyzer --version \
+  && /opt/resource/opt/rust/rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/llvm-cov --version \
+  && /opt/resource/opt/rust/rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/llvm-profdata --version \
+  && /opt/resource/opt/go/go1.27.1/bin/go version \
   && /opt/resource/opt/llvm/llvm23.1.2/bin/clang --version \
   && test ! -e /opt/resource/usr/local/bin/bm \
   && /opt/resource/usr/local/bin/radare2 -v \
