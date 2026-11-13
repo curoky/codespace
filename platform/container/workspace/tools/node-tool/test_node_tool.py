@@ -30,6 +30,18 @@ def test_defaults_to_workspace_binman_pnpm() -> None:
     assert Path("/usr/local/bin/pnpm") == node_tool.DEFAULT_PNPM
 
 
+def test_cli_requires_explicit_node(tmp_path: Path) -> None:
+    root = tmp_path / "tools"
+    result = CliRunner().invoke(
+        node_tool.app,
+        ["install", "prettier@3.9.9", "--root", str(root)],
+        env={"PATH": str(create_fake_node(tmp_path) / "bin")},
+    )
+    assert result.exit_code == 2, result.output
+    assert "--node" in result.output
+    assert not root.exists()
+
+
 def make_executable(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content, encoding="utf-8")

@@ -31,18 +31,18 @@ export PATH="$PATH:/opt/llvm/llvm23.1.2/bin"
 
 # java
 export JAVA_HOME=/opt/java/openjdk27
+export PATH="$PATH:/opt/java/java-tool"
 export PATH="$PATH:/opt/java/tools/bin"
 export PATH="$PATH:/opt/resource/opt/java/tools/bin"
 export PATH="$PATH:$JAVA_HOME/bin"
 
 # nodejs
+export PATH="$PATH:/opt/node/node-tool"
 export PATH="$PATH:/opt/node/tools/bin"
 export PATH="$PATH:/opt/resource/opt/node/tools/bin"
 export PATH="$PATH:/opt/node/nodejs24/bin"
 
 # codespace
-export PATH="$PATH:/opt/codespace-tools/java-tool"
-export PATH="$PATH:/opt/codespace-tools/node-tool"
 export PATH="$PATH:/opt/podman/bin"
 
 # buildah

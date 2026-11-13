@@ -95,10 +95,11 @@ ADD --checksum=sha256:ddac49f903da9d5bac833e5cc79395098b9c33cfd3279be5f31bd00387
 
 COPY --from=stage_build_tools /usr/local/store/uv/bin/uv /usr/local/bin/uv
 COPY platform/container/workspace/tools/java-tool/ /tmp/java-tool/
-RUN /tmp/java-tool/java-tool \
+RUN /tmp/java-tool/java-tool init \
+  && /tmp/java-tool/java-tool \
     install maven@3.9.16 /tmp/apache-maven.tar.gz --extract \
     --executable mvn=bin/mvn --executable mvnDebug=bin/mvnDebug \
-    --executable mvnyjp=bin/mvnyjp --java /opt/java/openjdk27 \
+    --executable mvnyjp=bin/mvnyjp --inherit-java \
   && /tmp/java-tool/java-tool \
     install lemminx@0.31.2 /tmp/lemminx.jar \
     --jar lemminx=lemminx.jar --java /opt/java/openjdk27 \
@@ -126,7 +127,8 @@ RUN mkdir -p /opt/node/nodejs24 /opt/node/nodejs26/lib /opt/node/tools/bin \
 COPY --from=stage_build_tools /usr/local/store/uv/bin/uv /usr/local/bin/uv
 COPY --from=stage_build_tools /usr/local/store/pnpm/bin/pnpm /usr/local/bin/pnpm
 COPY platform/container/workspace/tools/node-tool/ /tmp/node-tool/
-RUN /tmp/node-tool/node-tool \
+RUN /tmp/node-tool/node-tool init \
+  && /tmp/node-tool/node-tool \
     install defuddle@0.19.4 \
     --node /opt/node/nodejs24 --pnpm /usr/local/bin/pnpm \
   && /tmp/node-tool/node-tool \

@@ -10,6 +10,7 @@ from pathlib import Path
 from types import ModuleType
 
 import pytest
+from typer.testing import CliRunner
 
 
 def load_java_tool() -> ModuleType:
@@ -117,6 +118,80 @@ def test_install_jar_creates_java_jar_launcher(tmp_path: Path) -> None:
     )
     assert commands == ("language-server",)
     assert result.stdout == f"java-home:{java_root}\nargs:-jar {installed_jar} --stdio\n"
+
+
+def test_project_tool_inherits_the_callers_java_home(tmp_path: Path) -> None:
+    root = tmp_path / "tools"
+    java_tool.install_tool(
+        "archive-tool@1.2.3",
+        create_tar_distribution(tmp_path),
+        java_root=None,
+        root=root,
+        extract=True,
+        executables=("archive-tool=bin/archive-tool",),
+        jars=(),
+        executable_dirs=(),
+    )
+    result = subprocess.run(
+        [str(root / "bin" / "archive-tool"), "build"],
+        check=True,
+        capture_output=True,
+        text=True,
+        env={"PATH": "/usr/bin:/bin", "JAVA_HOME": "/project/jdk"},
+    )
+    assert result.stdout == "java-home:/project/jdk\nargs:build\n"
+
+
+@pytest.mark.parametrize("inherit", [False, True])
+def test_cli_accepts_explicit_java_or_inherit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, inherit: bool
+) -> None:
+    selected: list[Path | None] = []
+
+    def capture_install(
+        *_args: object, java_root: Path | None, **_kwargs: object
+    ) -> tuple[str, ...]:
+        selected.append(java_root)
+        return ("language-server",)
+
+    monkeypatch.setattr(java_tool, "install_tool", capture_install)
+    arguments = [
+        "install",
+        "language-server@1.0",
+        str(create_jar(tmp_path)),
+        "--jar",
+        "language-server=language-server.jar",
+    ]
+    if inherit:
+        arguments.append("--inherit-java")
+    else:
+        arguments.extend(["--java", str(tmp_path / "jdk")])
+    result = CliRunner().invoke(java_tool.app, arguments, env={"JAVA_HOME": "/caller/jdk"})
+    assert result.exit_code == 0, result.output
+    assert selected == [None if inherit else tmp_path / "jdk"]
+
+
+@pytest.mark.parametrize("runtime_options", [[], ["--java", "/project/jdk", "--inherit-java"]])
+def test_cli_requires_one_java_runtime_choice(tmp_path: Path, runtime_options: list[str]) -> None:
+    root = tmp_path / "tools"
+    result = CliRunner().invoke(
+        java_tool.app,
+        [
+            "install",
+            "language-server@1.0",
+            str(create_jar(tmp_path)),
+            "--jar",
+            "language-server=language-server.jar",
+            "--root",
+            str(root),
+            *runtime_options,
+        ],
+        env={"JAVA_HOME": "/caller/jdk"},
+    )
+    assert result.exit_code == 2, result.output
+    assert "--java" in result.output
+    assert "--inherit-java" in result.output
+    assert not root.exists()
 
 
 def test_install_exposes_executable_directory(tmp_path: Path) -> None:

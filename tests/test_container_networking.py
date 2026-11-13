@@ -5,6 +5,7 @@
 import os
 import re
 import subprocess
+import sys
 import tomllib
 from pathlib import Path
 
@@ -259,27 +260,21 @@ def test_workspace_bundles_java_and_node_installers() -> None:
     node_tool = (workspace / "tools/node-tool/node-tool").read_text()
     java_tool = (workspace / "tools/java-tool/java-tool").read_text()
 
-    assert (
-        "COPY platform/container/workspace/tools/node-tool/ /opt/codespace-tools/node-tool/"
-        in dockerfile
-    )
-    assert (
-        "COPY platform/container/workspace/tools/java-tool/ /opt/codespace-tools/java-tool/"
-        in dockerfile
-    )
+    assert "COPY platform/container/workspace/tools/node-tool/ /opt/node/node-tool/" in dockerfile
+    assert "COPY platform/container/workspace/tools/java-tool/ /opt/java/java-tool/" in dockerfile
     resource_dockerfile = (workspace / "resource.Dockerfile").read_text()
     assert (
         "COPY platform/container/workspace/tools/node-tool/ /tmp/node-tool/" in resource_dockerfile
     )
-    assert "RUN /tmp/node-tool/node-tool \\" in resource_dockerfile
+    assert "/tmp/node-tool/node-tool init" in resource_dockerfile
     assert "uv run --locked --script /tmp/node-tool/node-tool.py" not in resource_dockerfile
     assert (
         "COPY platform/container/workspace/tools/java-tool/ /tmp/java-tool/" in resource_dockerfile
     )
-    assert "RUN /tmp/java-tool/java-tool \\" in resource_dockerfile
+    assert "/tmp/java-tool/java-tool init" in resource_dockerfile
     assert "uv run --locked --script /tmp/java-tool/java-tool.py" not in resource_dockerfile
-    assert "/opt/codespace-tools/node-tool/" in dockerfile
-    assert "/opt/codespace-tools/java-tool/" in dockerfile
+    assert "/opt/node/node-tool/node-tool init" in dockerfile
+    assert "/opt/java/java-tool/java-tool init" in dockerfile
     for name, wrapper in (("node-tool", node_tool), ("java-tool", java_tool)):
         tool = workspace / "tools" / name
         project = tomllib.loads((tool / "pyproject.toml").read_text())
@@ -288,13 +283,114 @@ def test_workspace_bundles_java_and_node_installers() -> None:
         assert (tool / "uv.lock").is_file()
         assert not (tool / f"{name}.py.lock").exists()
         assert 'script_dir="$(dirname "$(readlink -f "$0")")"' in wrapper
-        assert 'env -u VIRTUAL_ENV UV_PROJECT_ENVIRONMENT="$script_dir/.venv"' in wrapper
-        assert '/usr/local/bin/uv sync --project "$script_dir" --locked --no-dev --quiet' in wrapper
+        assert (
+            '/usr/local/bin/uv sync --project "$script_dir" --locked --no-dev --python 3.14'
+            in wrapper
+        )
         assert f'exec "$script_dir/.venv/bin/python" "$script_dir/{name}.py" "$@"' in wrapper
-    assert 'export PATH="$PATH:/opt/codespace-tools/java-tool"' in profile
-    assert 'export PATH="$PATH:/opt/codespace-tools/node-tool"' in profile
+    assert "/opt/java/java-tool" in profile
+    assert "/opt/node/node-tool" in profile
     assert os.access(workspace / "tools/java-tool/java-tool", os.X_OK)
     assert os.access(workspace / "tools/node-tool/node-tool", os.X_OK)
+
+
+@pytest.mark.parametrize("name", ["node-tool", "java-tool"])
+def test_tool_wrapper_requires_init_and_reuses_its_environment(tmp_path: Path, name: str) -> None:
+    tool = tmp_path / name
+    tool.mkdir()
+    fake_uv = tmp_path / "uv"
+    fake_uv.write_text(
+        f"#!{sys.executable}\n"
+        "import os\n"
+        "from pathlib import Path\n"
+        "import sys\n"
+        "environment = Path(os.environ['UV_PROJECT_ENVIRONMENT'])\n"
+        "record = environment.parent / 'sync-calls'\n"
+        "with record.open('a') as output:\n"
+        "    output.write(repr((os.environ.get('VIRTUAL_ENV'), "
+        "os.environ['UV_PYTHON_INSTALL_DIR'], sys.argv[1:])) + '\\n')\n"
+        "binary = environment / 'bin' / 'python'\n"
+        "binary.parent.mkdir(parents=True, exist_ok=True)\n"
+        "binary.write_text('#!/usr/bin/env bash\\nprintf \\'%s\\\\n\\' \\\"$@\\\"\\n')\n"
+        "binary.chmod(0o755)\n"
+    )
+    fake_uv.chmod(0o755)
+    source = (_CONTAINER / "workspace/tools" / name / name).read_text()
+    wrapper = tool / name
+    wrapper.write_text(source.replace("/usr/local/bin/uv", str(fake_uv)))
+    wrapper.chmod(0o755)
+    environment = {
+        "PATH": "/usr/bin:/bin",
+        "VIRTUAL_ENV": str(tmp_path / "caller-venv"),
+        "UV_PROJECT_ENVIRONMENT": str(tmp_path / "caller-project"),
+        "UV_PYTHON_INSTALL_DIR": str(tmp_path / "caller-python"),
+    }
+    for arguments in [[], ["--help"], ["install"]]:
+        result = subprocess.run(
+            [str(wrapper), *arguments],
+            env=environment,
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 1
+        assert result.stdout == ""
+        assert f'run "{wrapper} init" first' in result.stderr
+        assert not (tool / "sync-calls").exists()
+        assert not (tool / ".venv").exists()
+
+    result = subprocess.run(
+        [str(wrapper), "init", "--python", "3.13"],
+        env=environment,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 1
+    assert f"usage: {wrapper} init" in result.stderr
+    assert not (tool / "sync-calls").exists()
+
+    init_arguments = [str(wrapper), "init"]
+    result = subprocess.run(
+        init_arguments,
+        env=environment,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert result.stdout == ""
+    for argument in ["--help", "--version"]:
+        result = subprocess.run(
+            [str(wrapper), argument],
+            env=environment,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        assert result.stdout.splitlines() == [str(tool / f"{name}.py"), argument]
+    calls = (tool / "sync-calls").read_text().splitlines()
+    sync_arguments = ["sync", "--project", str(tool), "--locked", "--no-dev"]
+    assert calls == [repr((None, "/opt/uv/python", [*sync_arguments, "--python", "3.14"]))]
+
+    result = subprocess.run(
+        init_arguments,
+        env=environment,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert result.stdout == ""
+    result = subprocess.run(
+        [str(wrapper), "--help"],
+        env=environment,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert result.stdout.splitlines() == [str(tool / f"{name}.py"), "--help"]
+    assert (tool / "sync-calls").read_text().splitlines() == [
+        *calls,
+        repr((None, "/opt/uv/python", [*sync_arguments, "--python", "3.14"])),
+    ]
+    assert not (tmp_path / "caller-project").exists()
 
 
 def test_workspace_resource_image_installs_binman_manifest() -> None:

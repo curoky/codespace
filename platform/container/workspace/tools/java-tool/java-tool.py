@@ -14,14 +14,13 @@ from typing import Annotated, Literal
 
 import typer
 
-DEFAULT_JAVA = Path("/opt/java/openjdk27")
 DEFAULT_ROOT = Path("/opt/java/tools")
 NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]*$")
 
 app = typer.Typer(
     add_completion=False,
     no_args_is_help=True,
-    help="Install Java CLI distributions bound to an explicit Java runtime.",
+    help="Install Java CLI distributions with an explicit Java runtime choice.",
 )
 
 
@@ -152,7 +151,7 @@ def launchers_for(
 def write_launcher(
     path: Path,
     *,
-    java_root: Path,
+    java_root: Path | None,
     payload: Path,
     launcher: Launcher,
 ) -> None:
@@ -160,16 +159,24 @@ def write_launcher(
     relative_target = target.relative_to(path.parent.parent)
     command = f'"${{tool_root}}"/{shlex.quote(relative_target.as_posix())}'
     if launcher.kind == "jar":
-        command = f"{shlex.quote(str(java_root / 'bin' / 'java'))} -jar {command}"
+        java = "java" if java_root is None else shlex.quote(str(java_root / "bin" / "java"))
+        command = f"{java} -jar {command}"
+    environment = (
+        ()
+        if java_root is None
+        else (
+            f"JAVA_HOME={shlex.quote(str(java_root))}",
+            f'PATH={shlex.quote(str(java_root / "bin"))}:"${{PATH:-/usr/bin:/bin}}"',
+            "export JAVA_HOME PATH",
+        )
+    )
     path.write_text(
         "\n".join(
             (
                 "#!/usr/bin/env bash",
                 "set -euo pipefail",
                 'tool_root="$(dirname "$(dirname "$(readlink -f "$0")")")"',
-                f"JAVA_HOME={shlex.quote(str(java_root))}",
-                f'PATH={shlex.quote(str(java_root / "bin"))}:"${{PATH:-/usr/bin:/bin}}"',
-                "export JAVA_HOME PATH",
+                *environment,
                 f'exec {command} "$@"',
                 "",
             )
@@ -183,7 +190,7 @@ def install_tool(
     requested: str,
     source: Path,
     *,
-    java_root: Path,
+    java_root: Path | None,
     root: Path,
     extract: bool,
     executables: tuple[str, ...],
@@ -192,11 +199,12 @@ def install_tool(
 ) -> tuple[str, ...]:
     package, _ = parse_package(requested)
     source = source.resolve(strict=True)
-    java_root = java_root.absolute()
+    if java_root is not None:
+        java_root = java_root.absolute()
     root = root.resolve()
     if not source.is_file():
         raise JavaToolError(f"source is not a file: {source}")
-    if not os.access(java_root / "bin" / "java", os.X_OK):
+    if java_root is not None and not os.access(java_root / "bin" / "java", os.X_OK):
         raise JavaToolError(f"Java executable not found under: {java_root}")
 
     environments = root / "envs"
@@ -244,7 +252,10 @@ def main() -> None:
 def install(
     package: Annotated[str, typer.Argument(help="package as NAME@VERSION")],
     source: Annotated[Path, typer.Argument(help="release archive or JAR")],
-    java: Annotated[Path, typer.Option("--java", help="Java installation root")] = DEFAULT_JAVA,
+    java: Annotated[Path | None, typer.Option("--java", help="Java installation root")] = None,
+    inherit_java: Annotated[
+        bool, typer.Option("--inherit-java", help="Use the caller's Java environment instead")
+    ] = False,
     root: Annotated[Path, typer.Option("--root", help="tool installation root")] = DEFAULT_ROOT,
     extract: Annotated[bool, typer.Option("--extract", help="extract a ZIP or TAR source")] = False,
     executable: Annotated[
@@ -261,6 +272,10 @@ def install(
     ] = None,
 ) -> None:
     """Install one distribution and create its launchers."""
+    if java is None and not inherit_java:
+        raise typer.BadParameter("pass --java or --inherit-java")
+    if java is not None and inherit_java:
+        raise typer.BadParameter("--java and --inherit-java cannot be used together")
     try:
         commands = install_tool(
             package,

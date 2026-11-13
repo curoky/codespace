@@ -11,7 +11,6 @@ from urllib.parse import quote
 
 import typer
 
-DEFAULT_NODE = Path("/opt/node/nodejs24")
 DEFAULT_PNPM = Path("/usr/local/bin/pnpm")
 DEFAULT_ROOT = Path("/opt/node/tools")
 
@@ -166,7 +165,7 @@ def install(
     node: Annotated[
         Path,
         typer.Option("--node", help="Root of the Node.js installation"),
-    ] = DEFAULT_NODE,
+    ],
     pnpm: Annotated[
         Path,
         typer.Option("--pnpm", help="Path to the pnpm executable"),

@@ -120,8 +120,8 @@ COPY --link --chown=5230:5230 --from=stage_node /opt/node /opt/node
 COPY --link --from=stage_nvidia_container_toolkit /opt/nvidia-container-toolkit/ /opt/nvidia/nvidia-container-toolkit/
 
 COPY platform/container/workspace/rootfs/ /
-COPY platform/container/workspace/tools/node-tool/ /opt/codespace-tools/node-tool/
-COPY platform/container/workspace/tools/java-tool/ /opt/codespace-tools/java-tool/
+COPY platform/container/workspace/tools/node-tool/ /opt/node/node-tool/
+COPY platform/container/workspace/tools/java-tool/ /opt/java/java-tool/
 RUN --mount=type=bind,source=platform/container/workspace/scripts/configure-system.sh,target=/tmp/configure-system.sh \
   bash /tmp/configure-system.sh
 RUN --mount=type=bind,source=platform/container/workspace/scripts/install-s6.sh,target=/tmp/install-s6.sh \
@@ -129,7 +129,9 @@ RUN --mount=type=bind,source=platform/container/workspace/scripts/install-s6.sh,
 
 USER x
 COPY --chown=5230:5230 platform/container/workspace/agent/ /opt/codespace-agent/
-RUN UV_LINK_MODE=copy uv sync --project /opt/codespace-agent --locked --no-dev \
+RUN /opt/java/java-tool/java-tool init \
+  && /opt/node/node-tool/node-tool init \
+  && UV_LINK_MODE=copy uv sync --project /opt/codespace-agent --locked --no-dev \
     --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
   && git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-playbook \
   && HOME=/home/x bash /tmp/agent-playbook/install.sh \

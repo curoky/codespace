@@ -70,10 +70,16 @@ platform/container/workspace/build.sh --resource
   `AGENTS.md` 维护重复清单，也不要从主 image 的其他 package manager 重复安装同名工具。
 - 多版本 family 保留版本目录；默认选择由 profile/PATH 显式声明。launcher 不能依赖 payload
   内部 content-addressed store 的易变路径。
-- Java/Node CLI 通过各自通用 installer 隔离安装，并永久绑定 resource image 选定的外部
-  runtime。launcher 相对自身定位同一 tools root 下的 env，因此整个 Java/Node family 可从
+- Java/Node CLI 通过各自通用 installer 隔离安装。Java 必须显式选择 `--java` 或
+  `--inherit-java`；Maven 通过后者继承项目环境。Node 必须显式传入 `--node`，CLI 固定该 runtime。
+  launcher 相对自身定位同一 tools root 下的 env，因此整个 Java/Node family 可从
   build stage 搬到 resource payload；运行期增量安装只写入 `/opt/java/tools`、
   `/opt/node/tools`。package-specific metadata 留在 `resource.Dockerfile`。
+- Java/Node installer 的源码与独立 `.venv` 分别位于主 image 的 `/opt/java/java-tool`、
+  `/opt/node/node-tool`，与各自 runtime 和 tools 同属一个目录。resource build 使用临时副本，
+  不将 helper 或其构建环境写入 payload。两侧 build 通过 wrapper 的无参数 `init` 同步环境；
+  Python 版本由 wrapper 固定，uv 的安装目录固定为 `/opt/uv/python`。普通调用直接复用已有
+  环境；自身 Python 入口不可执行时报错并提示运行 `init`。依赖变更后显式运行 `init`。
 - Workspace helper 固定位于 `/opt/codespace`，Podman wrapper 固定位于 `/opt/podman/bin`；不保留
   对应的 `/usr/local` 兼容路径。
 
