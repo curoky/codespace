@@ -32,8 +32,11 @@ platform/container/workspace/build.sh --resource
   `/opt/java/tools`、`/opt/node/tools`。Node.js 24 runtime 由主 image 固定提供在
   `/opt/node/nodejs24`；不要用 wrapper 改写这些默认路径，也不要在启动时重建 immutable image
   内容。
-- 默认 `python`、`python3` 入口位于 `/opt/uv/bin`；OCI environment 与 shell profile 均将
-  该目录加入 PATH。默认解释器由主 image 提供，不依赖 resource 挂载。
+- 默认 Python 解释器由主 image 提供，不依赖 resource 挂载；通过 uv 管理项目环境与依赖。
+  resource 中的其他版本接入 `/opt/uv/python`，通过 uv 的 `--python` 按版本选择，不创建 PATH
+  入口。uv 不扫描版本目录 symlink，因此 rootfs 保留真实的完整版本目录，内部文件与目录
+  链接到 resource；短名链接到同一安装根下的完整版本目录，供工具与环境稳定引用。更新预装
+  Python 补丁号时同步更新对应 rootfs 目录和短名目标。
 - `/etc/profile.d/app.sh` 补齐 PATH 中缺失的目录，保留传入顺序；重复加载不重复添加目录。
 - Rust 工具链仍由只读 resource 提供，`RUSTUP_HOME` 指向 `/opt/rust/rustup`；`CARGO_HOME`
   指向用户 `.cargo`，依赖缓存与用户安装的 Cargo CLI 可写。预装工具链带有标准库源码、LSP、

@@ -55,7 +55,7 @@ ENV UV_TOOL_DIR=/opt/resource/opt/uv/tools \
   UV_PYTHON_BIN_DIR=/opt/resource/opt/uv/bin
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates \
-  && uv python install --no-bin 3.9 3.10 3.11 3.12 3.13 3.14 \
+  && uv python install --no-bin 3.9.25 3.10.22 3.11.17 3.12.15 3.13.16 3.14 \
   && uv tool install licenseheaders \
     --python /opt/resource/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
   && uv tool install netron \
@@ -67,7 +67,7 @@ RUN apt-get update -y \
   && uv tool install git-filter-repo \
     --python /opt/resource/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
   && uv tool install tensorboard \
-    --python /opt/resource/opt/uv/python/cpython-3.12-linux-x86_64-gnu/bin/python3.12 \
+    --python /opt/resource/opt/uv/python/cpython-3.12.15-linux-x86_64-gnu/bin/python3.12 \
     --with tensorboard-plugin-profile --with "setuptools==81.0.0"
 
 # ----------------------------------- Java -----------------------------------
@@ -193,11 +193,11 @@ RUN test -r /opt/resource/opt/rust/rustup/toolchains/stable-x86_64-unknown-linux
   && test -x /opt/resource/opt/node/tools/bin/defuddle \
   && test -x /opt/resource/opt/node/tools/bin/markdownlint-cli2 \
   && test -x /opt/resource/opt/node/tools/bin/prettier \
-  && /opt/resource/opt/uv/python/cpython-3.9-linux-x86_64-gnu/bin/python3.9 --version \
-  && /opt/resource/opt/uv/python/cpython-3.10-linux-x86_64-gnu/bin/python3.10 --version \
-  && /opt/resource/opt/uv/python/cpython-3.11-linux-x86_64-gnu/bin/python3.11 --version \
-  && /opt/resource/opt/uv/python/cpython-3.12-linux-x86_64-gnu/bin/python3.12 --version \
-  && /opt/resource/opt/uv/python/cpython-3.13-linux-x86_64-gnu/bin/python3.13 --version \
+  && /opt/resource/opt/uv/python/cpython-3.9.25-linux-x86_64-gnu/bin/python3.9 --version \
+  && /opt/resource/opt/uv/python/cpython-3.10.22-linux-x86_64-gnu/bin/python3.10 --version \
+  && /opt/resource/opt/uv/python/cpython-3.11.17-linux-x86_64-gnu/bin/python3.11 --version \
+  && /opt/resource/opt/uv/python/cpython-3.12.15-linux-x86_64-gnu/bin/python3.12 --version \
+  && /opt/resource/opt/uv/python/cpython-3.13.16-linux-x86_64-gnu/bin/python3.13 --version \
   && /opt/resource/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 --version \
   && test -x /opt/resource/opt/uv/bin/licenseheaders \
   && test -x /opt/resource/opt/uv/bin/netron \

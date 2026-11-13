@@ -218,16 +218,18 @@ def test_workspace_keeps_required_python_and_exposes_resource_python_tools() -> 
     dockerfile = (workspace / "Dockerfile").read_text()
     resource_dockerfile = (workspace / "resource.Dockerfile").read_text()
     profile = (workspace / "rootfs/etc/profile.d/app.sh").read_text()
-    assert "uv python install --default 3.14" in dockerfile
+    assert "uv python install 3.14" in dockerfile
     runtime_stage = dockerfile.split("FROM docker.io/$BASE_IMAGE AS workspace\n", 1)[1]
-    assert "ENV PATH=/opt/uv/bin:${PATH}" in runtime_stage
+    assert "ENV PATH=/opt/uv/bin:${PATH}" not in runtime_stage
     assert "COPY --link --chown=5230:5230 --from=stage_python /opt/uv /opt/uv" in runtime_stage
-    assert "/opt/uv/bin" in profile
+    assert '"$UV_PYTHON_BIN_DIR"' in profile
     assert "--python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14" in dockerfile
     assert "uv tool install copyparty" in dockerfile
     assert "uv tool install copyparty" not in resource_dockerfile
 
-    assert "uv python install --no-bin 3.9 3.10 3.11 3.12 3.13 3.14" in resource_dockerfile
+    python_install = re.search(r"uv python install --no-bin ([^\n]+)", resource_dockerfile)
+    assert python_install is not None
+    python_versions = python_install.group(1).removesuffix("\\").split()
     assert "FROM ghcr.io/astral-sh/uv:" not in resource_dockerfile
     assert (
         "COPY --from=stage_build_tools /usr/local/store/uv/bin/uv /usr/local/bin/uv"
@@ -239,17 +241,143 @@ def test_workspace_keeps_required_python_and_exposes_resource_python_tools() -> 
         "mitmproxy": "3.14",
         "dool": "3.14",
         "git-filter-repo": "3.14",
-        "tensorboard": "3.12",
+        "tensorboard": "3.12.15",
     }
     for tool, python in resource_tools.items():
+        minor = ".".join(python.split(".")[:2])
         assert f"uv tool install {tool}" in resource_dockerfile
         assert (
             f"--python /opt/resource/opt/uv/python/cpython-{python}-linux-x86_64-gnu/"
-            f"bin/python{python}" in resource_dockerfile
+            f"bin/python{minor}" in resource_dockerfile
         )
         assert f"uv tool install {tool}" not in dockerfile
     assert "/opt/resource/opt/uv/bin" in profile
-    assert not (workspace / "rootfs/opt/uv").exists()
+    python_root = workspace / "rootfs/opt/uv/python"
+    installations = {path.name: path for path in python_root.iterdir() if not path.is_symlink()}
+    aliases = {path.name: path.readlink() for path in python_root.iterdir() if path.is_symlink()}
+    assert set(installations) == {
+        f"cpython-{version}-linux-x86_64-gnu" for version in python_versions if version != "3.14"
+    }
+    assert aliases == {
+        f"cpython-{'.'.join(version.split('.')[:2])}-linux-x86_64-gnu": Path(
+            f"cpython-{version}-linux-x86_64-gnu"
+        )
+        for version in python_versions
+        if version != "3.14"
+    }
+    for installation in installations.values():
+        assert installation.is_dir() and not installation.is_symlink()
+        assert {path.name for path in installation.iterdir()} == {
+            "BUILD",
+            "bin",
+            "include",
+            "lib",
+            "share",
+        }
+        for child in installation.iterdir():
+            assert (
+                child.readlink()
+                == Path("/opt/resource/opt/uv/python") / installation.name / child.name
+            )
+
+
+@pytest.mark.skipif(
+    sys.platform != "linux" or os.uname().machine != "x86_64",
+    reason="Workspace Python installations target Linux x86_64",
+)
+def test_uv_discovers_linked_python_and_creates_a_venv(tmp_path: Path) -> None:
+    version = ".".join(str(part) for part in sys.version_info[:3])
+    minor = ".".join(str(part) for part in sys.version_info[:2])
+    python_root = tmp_path / "python"
+    installation = python_root / f"cpython-{version}-linux-x86_64-gnu"
+    installation.mkdir(parents=True)
+    alias = python_root / f"cpython-{minor}-linux-x86_64-gnu"
+    alias.symlink_to(installation.name)
+    declarations = _CONTAINER / "workspace/rootfs/opt/uv/python"
+    for child in next(path for path in declarations.iterdir() if not path.is_symlink()).iterdir():
+        (installation / child.name).symlink_to(Path(sys.base_prefix) / child.name)
+    environment = {**os.environ, "UV_PYTHON_INSTALL_DIR": str(python_root)}
+    environment.pop("VIRTUAL_ENV", None)
+    for requested in (minor, version):
+        result = subprocess.run(
+            [
+                "uv",
+                "python",
+                "find",
+                "--no-project",
+                "--no-config",
+                "--managed-python",
+                "--offline",
+                "--no-python-downloads",
+                requested,
+            ],
+            env=environment,
+            cwd=tmp_path,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        assert Path(result.stdout.strip()) == installation / "bin" / f"python{minor}"
+    venv = tmp_path / "venv"
+    subprocess.run(
+        [
+            "uv",
+            "venv",
+            "--managed-python",
+            "--offline",
+            "--no-python-downloads",
+            "--python",
+            version,
+            str(venv),
+        ],
+        env=environment,
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    result = subprocess.run(
+        [
+            str(venv / "bin/python"),
+            "-c",
+            "import ssl, ctypes, json, sys; print(sys.version.split()[0])",
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert result.stdout.strip() == version
+    alias_venv = tmp_path / "alias-venv"
+    subprocess.run(
+        [
+            "uv",
+            "venv",
+            "--managed-python",
+            "--offline",
+            "--no-python-downloads",
+            "--python",
+            str(alias / "bin" / f"python{minor}"),
+            str(alias_venv),
+        ],
+        env=environment,
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert (alias_venv / "bin/python").readlink() == alias / "bin" / f"python{minor}"
+    assert f"home = {alias / 'bin'}" in (alias_venv / "pyvenv.cfg").read_text()
+    result = subprocess.run(
+        [
+            str(alias_venv / "bin/python"),
+            "-c",
+            "import ssl, ctypes, json, sys; print(sys.version.split()[0])",
+        ],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert result.stdout.strip() == version
 
 
 def test_workspace_bundles_java_and_node_installers() -> None:
