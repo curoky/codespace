@@ -87,10 +87,70 @@ def test_workspace_gh_login_defaults_to_public_read_token() -> None:
 def test_workspace_agents_share_codex_skills() -> None:
     home = _CONTAINER / "workspace/rootfs/home/x"
 
-    for skill in ("debug-github", "manage-services", "manage-software"):
+    for skill in ("debug-github", "manage-services"):
         target = f"../../.codex/skills/{skill}"
         assert (home / ".trae/skills" / skill).readlink() == Path(target)
         assert (home / ".trae-cn/skills" / skill).readlink() == Path(target)
+
+
+def test_app_profile_sets_tools_and_preserves_inherited_environment(tmp_path: Path) -> None:
+    profile = _CONTAINER / "workspace/rootfs/etc/profile.d/app.sh"
+    inherited = {
+        "LANG": "C",
+        "LC_ALL": "C",
+        "LANGUAGE": "C",
+        "XDG_CACHE_HOME": "/project/cache",
+        "XDG_CONFIG_HOME": "/project/config",
+        "XDG_DATA_HOME": "/project/data",
+        "XDG_RUNTIME_DIR": "/project/runtime",
+        "TMPDIR": "/project/tmp",
+        "http_proxy": "http://project-proxy:3128",
+        "HTTP_PROXY": "http://project-proxy:3128",
+        "no_proxy": "project.internal",
+        "NO_PROXY": "project.internal",
+    }
+    result = subprocess.run(
+        [
+            "/bin/bash",
+            "-c",
+            '. "$1"; . "$1"; env -0',
+            "profile-test",
+            str(profile),
+        ],
+        env={
+            **inherited,
+            "HOME": str(tmp_path),
+            "PATH": "/project/venv/bin:/usr/bin:/bin",
+            "JAVA_HOME": "/project/jdk",
+            "CARGO_HOME": "/project/cargo",
+            "RUSTUP_HOME": "/project/rustup",
+            "CUDA_HOME": "/project/cuda",
+            "LD_LIBRARY_PATH": "/project/lib",
+        },
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    environment = dict(item.split("=", 1) for item in result.stdout.split("\0") if item)
+    assert {key: environment[key] for key in inherited} == inherited
+    entries = environment["PATH"].split(":")
+    assert entries[0] == "/project/venv/bin"
+    assert len(entries) == len(set(entries))
+    assert {"/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/sbin"}.isdisjoint(entries)
+    assert {
+        "/usr/local/profile/go/bin",
+        "/usr/local/profile/clang-tools/bin",
+        "/usr/local/profile/protobuf/bin",
+        "/home/x/go/bin",
+        "/home/x/.local/share/pnpm/bin",
+        "/opt/java/java-tool",
+        "/opt/java/openjdk27/bin",
+        "/opt/node/node-tool",
+    }.issubset(entries)
+    assert environment["JAVA_HOME"] == "/opt/java/openjdk27"
+    assert environment["CARGO_HOME"] == "/home/x/.cargo"
+    assert environment["RUSTUP_HOME"] == "/opt/rust/rustup"
+    assert environment["LD_LIBRARY_PATH"] == "/usr/local/cuda/lib64"
 
 
 def test_workspace_hosts_blackhole_runs_as_root_without_sudo() -> None:
@@ -171,9 +231,6 @@ def test_workspace_separates_read_only_runtimes_from_writable_tools() -> None:
     settings = yaml.safe_load(
         (workspace / "rootfs/home/x/.vscode-server/data/Machine/settings.json").read_text()
     )
-    software_skill = (
-        workspace / "rootfs/home/x/.codex/skills/manage-software/SKILL.md"
-    ).read_text()
     rootfs_opt = workspace / "rootfs/opt"
     expected_links = {
         **{
@@ -208,8 +265,6 @@ def test_workspace_separates_read_only_runtimes_from_writable_tools() -> None:
     assert "FROM test AS resource" in resource_dockerfile
     assert settings["prettier.prettierPath"].startswith("/opt/resource/opt/node/tools/")
     assert settings["xml.server.binary.path"] == "/opt/resource/opt/java/tools/bin/lemminx"
-    assert "/opt/resource/opt/java/tools/bin" in software_skill
-    assert "/opt/resource/opt/node/tools/bin" in software_skill
     assert actual_links == expected_links
 
 
@@ -220,7 +275,7 @@ def test_workspace_keeps_required_python_and_exposes_resource_python_tools() -> 
     profile = (workspace / "rootfs/etc/profile.d/app.sh").read_text()
     assert "uv python install 3.14" in dockerfile
     runtime_stage = dockerfile.split("FROM docker.io/$BASE_IMAGE AS workspace\n", 1)[1]
-    assert "ENV PATH=/opt/uv/bin:${PATH}" not in runtime_stage
+    assert not any(line.startswith("ENV ") for line in runtime_stage.splitlines())
     assert "COPY --link --chown=5230:5230 --from=stage_python /opt/uv /opt/uv" in runtime_stage
     assert '"$UV_PYTHON_BIN_DIR"' in profile
     assert "--python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14" in dockerfile

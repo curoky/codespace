@@ -137,5 +137,4 @@ RUN /opt/java/java-tool/java-tool init \
   && rm -rf /tmp/agent-playbook
 
 USER root
-ENV CONDA_PLUGINS_AUTO_ACCEPT_TOS=yes
 ENTRYPOINT ["/etc/s6/init/bin/init"]

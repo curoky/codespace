@@ -10,6 +10,8 @@ graph。控制面决定实例配置；image 定义容器内固定 filesystem 与
 - `agent/AGENTS.md`：容器内 bootstrap/Git HTTP Agent。
 - `tools/java-tool/AGENTS.md`、`tools/node-tool/AGENTS.md`：resource build 与 Workspace 运行期
   共用的 installer。
+- `rootfs/home/x/.codex/AGENTS.md`：Codex 全局容器规则；Python 使用 uv，缺失命令或 runtime
+  由用户手动安装，agent 不安装系统软件或全局 CLI。
 - `rootfs/home/x/.codex/skills/`：按任务加载的容器使用 skill；`.trae/skills` 与
   `.trae-cn/skills` 分别为每个内置 skill 创建链接。工具、GitHub 或 s6 的使用约定
   变化时同步更新对应 skill。它们不替代本维护文档。
@@ -27,21 +29,26 @@ platform/container/workspace/build.sh --resource
 ## Runtime Contract
 
 - 交互用户是 `x`（UID/GID `5230`）。image-owned system 文件位于 root-owned `/usr/local`、
-  `/opt/codespace`、`/opt/podman`、`/etc` 或只读 resource payload；普通 runtime 软件安装到
+  `/opt/codespace`、`/opt/podman`、`/etc` 或只读 resource payload；普通 runtime 软件由用户安装到
   用户 Nix profile，`bm` 自身默认安装到 `~/.local`，Java/Node CLI 分别由专用 installer 写入
   `/opt/java/tools`、`/opt/node/tools`。Node.js 24 runtime 由主 image 固定提供在
   `/opt/node/nodejs24`；不要用 wrapper 改写这些默认路径，也不要在启动时重建 immutable image
   内容。
+- Shell 启动遵循 Debian 与各 shell 的原生规则，不覆盖 `/etc/profile`、`/etc/bash.bashrc`，
+  不设置 `BASH_ENV`。系统 PATH 与 locale 留在系统环境及 `zshenv`；用户目录、代理、交互设置
+  留在 `.zshrc`。`/etc/profile.d/app.sh` 只提供工具 PATH 与应用环境，登录 Bash 经 Debian
+  profile 加载，Zsh 经 `zshenv` 加载；非登录 Bash 继承环境或显式加载。app profile 保留传入
+  PATH 顺序，重复加载不重复添加目录；固定的应用变量由镜像提供，项目调整在加载后进行。
+  Dockerfile 各 build stage 只设置自身需要的环境变量，主运行 stage 不声明开发 ENV。
 - 默认 Python 解释器由主 image 提供，不依赖 resource 挂载；通过 uv 管理项目环境与依赖。
   resource 中的其他版本接入 `/opt/uv/python`，通过 uv 的 `--python` 按版本选择，不创建 PATH
   入口。uv 不扫描版本目录 symlink，因此 rootfs 保留真实的完整版本目录，内部文件与目录
   链接到 resource；短名链接到同一安装根下的完整版本目录，供工具与环境稳定引用。更新预装
   Python 补丁号时同步更新对应 rootfs 目录和短名目标。
-- `/etc/profile.d/app.sh` 补齐 PATH 中缺失的目录，保留传入顺序；重复加载不重复添加目录。
 - Rust 工具链仍由只读 resource 提供，`RUSTUP_HOME` 指向 `/opt/rust/rustup`；`CARGO_HOME`
   指向用户 `.cargo`，依赖缓存与用户安装的 Cargo CLI 可写。预装工具链带有标准库源码、LSP、
   格式化、lint 与 LLVM 覆盖率组件；工具链更新或额外 target/component 需用户另行准备可写
-  工具链。
+  工具链。用户 Go 与 pnpm 的默认全局 bin 目录也进入 profile PATH。
 - PID 1 是 `/etc/s6/init/bin/init`，service graph 只在 image build 时编译。依赖
   `/workspace` 的 service 必须依赖 `gocryptfs-workspace`；runtime 不重跑 graph compile 或
   image-build oneshot。
@@ -78,6 +85,8 @@ platform/container/workspace/build.sh --resource
   `AGENTS.md` 维护重复清单，也不要从主 image 的其他 package manager 重复安装同名工具。
 - 多版本 family 保留版本目录；默认选择由 profile/PATH 显式声明。launcher 不能依赖 payload
   内部 content-addressed store 的易变路径。
+- Go tools、Clang tools 与 Protobuf 的 profile bin 均进入 PATH；Clang tools 保留带版本号的
+  command，Protobuf 的默认 command 由 manifest 中最后安装的版本提供。
 - Java/Node CLI 通过各自通用 installer 隔离安装。Java 必须显式选择 `--java` 或
   `--inherit-java`；Maven 通过后者继承项目环境。Node 必须显式传入 `--node`，CLI 固定该 runtime。
   launcher 相对自身定位同一 tools root 下的 env，因此整个 Java/Node family 可从

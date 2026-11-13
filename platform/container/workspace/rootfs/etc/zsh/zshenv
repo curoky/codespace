@@ -17,7 +17,7 @@ export LC_ALL=en_US.UTF-8
 export LANG=en_US.UTF-8
 export LANGUAGE=en_US.UTF-8
 
-# 工具链 env 与 PATH 由 profile.d 统一维护，POSIX sh 语法在 zsh 下同样可用。
+# 工具环境在非交互 Zsh 中也可用。
 . /etc/profile.d/app.sh
 
 if [ -d /etc/zshenv.d ]; then
