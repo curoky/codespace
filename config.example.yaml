@@ -226,4 +226,3 @@ secrets:
   atuin_credentials: masked
 
   huggingface_token: masked
-  github_action_token: masked
