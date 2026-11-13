@@ -2,6 +2,15 @@
 
 # shellcheck shell=bash
 
+# 多个 shell 入口会加载此文件；只补齐缺失目录，保留调用方的优先级。
+codespace_add_path() {
+  case ":${PATH:-}:" in
+    *":$1:"*) ;;
+    *) PATH="${PATH:+$PATH:}$1" ;;
+  esac
+  export PATH
+}
+
 # rust
 export CARGO_HOME=/opt/rust/cargo
 export RUSTUP_HOME=/opt/rust/rustup
