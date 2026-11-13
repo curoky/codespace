@@ -157,8 +157,7 @@ def test_workspace_image_packages_are_root_owned_and_user_installs_use_local() -
     assert "--from=stage_sb /opt/bm" not in dockerfile
     assert not (_CONTAINER / "workspace/rootfs/home/x/.local/bin/bm").exists()
     assert (
-        'export PATH="/home/x/.local/bin:$PATH"'
-        in (_CONTAINER / "workspace/rootfs/etc/profile.d/app.sh").read_text()
+        "/home/x/.local/bin" in (_CONTAINER / "workspace/rootfs/etc/profile.d/app.sh").read_text()
     )
     assert "- podman5-rootless" in manifest
     assert "bm download" not in dockerfile
@@ -192,10 +191,10 @@ def test_workspace_separates_read_only_runtimes_from_writable_tools() -> None:
         if path.is_symlink()
     }
 
-    assert 'export PATH="$PATH:/opt/java/tools/bin"' in profile
-    assert 'export PATH="$PATH:/opt/resource/opt/java/tools/bin"' in profile
-    assert 'export PATH="$PATH:/opt/node/tools/bin"' in profile
-    assert 'export PATH="$PATH:/opt/resource/opt/node/tools/bin"' in profile
+    assert "/opt/java/tools/bin" in profile
+    assert "/opt/resource/opt/java/tools/bin" in profile
+    assert "/opt/node/tools/bin" in profile
+    assert "/opt/resource/opt/node/tools/bin" in profile
     assert (
         "COPY --link --chown=5230:5230 --from=stage_node /opt/node /opt/node"
         in workspace_dockerfile
@@ -223,7 +222,7 @@ def test_workspace_keeps_required_python_and_exposes_resource_python_tools() -> 
     runtime_stage = dockerfile.split("FROM docker.io/$BASE_IMAGE AS workspace\n", 1)[1]
     assert "ENV PATH=/opt/uv/bin:${PATH}" in runtime_stage
     assert "COPY --link --chown=5230:5230 --from=stage_python /opt/uv /opt/uv" in runtime_stage
-    assert 'export PATH="$PATH:/opt/uv/bin"' in profile
+    assert "/opt/uv/bin" in profile
     assert "--python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14" in dockerfile
     assert "uv tool install copyparty" in dockerfile
     assert "uv tool install copyparty" not in resource_dockerfile
@@ -249,7 +248,7 @@ def test_workspace_keeps_required_python_and_exposes_resource_python_tools() -> 
             f"bin/python{python}" in resource_dockerfile
         )
         assert f"uv tool install {tool}" not in dockerfile
-    assert 'export PATH="$PATH:/opt/resource/opt/uv/bin"' in profile
+    assert "/opt/resource/opt/uv/bin" in profile
     assert not (workspace / "rootfs/opt/uv").exists()
 
 
@@ -417,10 +416,7 @@ def test_workspace_resource_image_installs_binman_manifest() -> None:
     assert "COPY --from=stage_sb /usr/local/profile /opt/resource/usr/local/profile" in dockerfile
     assert "/opt/resource/usr/local/bin/radare2 -v" in dockerfile
     assert "/opt/resource/usr/local/bin/rizin -v" in dockerfile
-    assert (
-        'export PATH="$PATH:/opt/resource/usr/local/bin"'
-        in (workspace / "rootfs/etc/profile.d/app.sh").read_text()
-    )
+    assert "/opt/resource/usr/local/bin" in (workspace / "rootfs/etc/profile.d/app.sh").read_text()
     assert not (workspace / "rootfs/usr/local/store/radare2").exists()
     assert not (workspace / "rootfs/usr/local/store/rizin").exists()
 
@@ -519,7 +515,7 @@ def test_workspace_podman_separates_image_files_from_user_data() -> None:
     assert "CONTAINERS_CONF=/etc/containers/containers.conf" in server
     assert "--network-config-dir=/opt/podman/network" in server
     assert "/opt/podman/conf" not in server
-    assert 'export PATH="$PATH:/opt/podman/bin"' in profile
+    assert "/opt/podman/bin" in profile
     assert "export BUILDAH_ISOLATION=chroot" in profile
     assert "export BUILDAH_ISOLATION=chroot" in server
     assert "exec /opt/podman/bin/podman-server" in run

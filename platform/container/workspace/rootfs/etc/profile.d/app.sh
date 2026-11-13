@@ -11,67 +11,72 @@ codespace_add_path() {
   export PATH
 }
 
+# user
+codespace_add_path /home/x/.local/bin
+
 # rust
 export CARGO_HOME=/opt/rust/cargo
 export RUSTUP_HOME=/opt/rust/rustup
-export PATH="$PATH:/opt/rust/cargo/bin"
+codespace_add_path "$CARGO_HOME/bin"
+codespace_add_path /opt/rust/cargo/bin
 
 # python
 export UV_TOOL_DIR=/opt/uv/tools
 export UV_TOOL_BIN_DIR=/opt/uv/bin
 export UV_PYTHON_INSTALL_DIR=/opt/uv/python
 export UV_PYTHON_BIN_DIR=/opt/uv/bin
-export PATH="$PATH:/opt/uv/bin"
-export PATH="$PATH:/opt/resource/opt/uv/bin"
+codespace_add_path "$UV_TOOL_BIN_DIR"
+codespace_add_path "$UV_PYTHON_BIN_DIR"
+codespace_add_path /opt/resource/opt/uv/bin
 
 # conda
 export CONDA_PLUGINS_AUTO_ACCEPT_TOS=yes
-export PATH="$PATH:/opt/conda/condabin"
+codespace_add_path /opt/conda/condabin
 
 # resource
-export PATH="$PATH:/opt/resource/usr/local/bin"
+codespace_add_path /opt/resource/usr/local/bin
 
 # go
-export PATH="$PATH:/opt/go/go1.27.1/bin"
+codespace_add_path /opt/go/go1.27.1/bin
 # export GOPROXY="https://goproxy.cn,direct"
 
 # llvm
-export PATH="$PATH:/opt/llvm/llvm23.1.2/bin"
+codespace_add_path /opt/llvm/llvm23.1.2/bin
 
 # java
 export JAVA_HOME=/opt/java/openjdk27
-export PATH="$PATH:/opt/java/java-tool"
-export PATH="$PATH:/opt/java/tools/bin"
-export PATH="$PATH:/opt/resource/opt/java/tools/bin"
-export PATH="$PATH:$JAVA_HOME/bin"
+codespace_add_path /opt/java/java-tool
+codespace_add_path /opt/java/tools/bin
+codespace_add_path /opt/resource/opt/java/tools/bin
+codespace_add_path "$JAVA_HOME/bin"
 
 # nodejs
-export PATH="$PATH:/opt/node/node-tool"
-export PATH="$PATH:/opt/node/tools/bin"
-export PATH="$PATH:/opt/resource/opt/node/tools/bin"
-export PATH="$PATH:/opt/node/nodejs24/bin"
+codespace_add_path /opt/node/node-tool
+codespace_add_path /opt/node/tools/bin
+codespace_add_path /opt/resource/opt/node/tools/bin
+codespace_add_path /opt/node/nodejs24/bin
 
 # codespace
-export PATH="$PATH:/opt/podman/bin"
+codespace_add_path /opt/podman/bin
 
 # buildah
 export BUILDAH_ISOLATION=chroot
 
-# user
-export PATH="/home/x/.local/bin:$PATH"
-
 # nix
-export PATH="$PATH:/nix/var/nix/profiles/default/bin"
-export PATH="$PATH:/home/x/.local/state/nix/profiles/profile/bin"
+codespace_add_path /nix/var/nix/profiles/default/bin
+codespace_add_path /home/x/.local/state/nix/profiles/profile/bin
 export NIX_PATH="/home/x/.nix-defexpr/channels"
 
 # cuda
 export CUDA_HOME=/usr/local/cuda
-export PATH="$PATH:/usr/local/cuda/bin:/opt/nvidia/nsight-systems-cli/2026.3.1/bin"
+codespace_add_path "$CUDA_HOME/bin"
+codespace_add_path /opt/nvidia/nsight-systems-cli/2026.3.1/bin
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/cuda/lib64"
 
 # kerberos
 export KRB5CCNAME=/opt/secret/krb5_ccache
+
+unset -f codespace_add_path
 
 # trae
 export TRAECLI_TRACE_ENABLED=false
