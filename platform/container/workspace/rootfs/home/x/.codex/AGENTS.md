@@ -1,6 +1,8 @@
 # Container Environment
 
-- 工具环境由 `/etc/profile.d/app.sh` 提供；Zsh 与登录 Bash 自动加载，其他入口按需加载。
-- Python 环境与项目依赖统一使用 uv，按需用 `--python` 选择预装版本。
+- 工具环境缺失时加载 `/etc/profile.d/app.sh`；项目工具链覆盖在加载后设置。
+- Python 环境与项目依赖使用 uv，按需用 `--python` 选择预装版本。
+- 切换 Node.js 时，从 `/opt/node/nodejs*` 选择预装版本，将其 `bin` 放到当前命令的 PATH 首位。
+- 切换 Java 时，将 `JAVA_HOME` 设为选定的 `/opt/java/openjdk*`，并将其 `bin` 放到 PATH 首位。
 - 缺少系统软件、全局 CLI 或 runtime 时，说明用途和安装方式，由用户手动安装。
-- `/opt/resource` 是只读 payload；项目工具链调整在加载容器环境后进行。
+- 构建和运行开发容器使用 `/opt/podman/bin/podman`。

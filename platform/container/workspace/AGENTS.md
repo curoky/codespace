@@ -12,8 +12,9 @@ Dockerfile、manifest、脚本、类型和测试为准，不在文档中复述�
 
 - 内嵌 Agent：`agent/AGENTS.md`。
 - CLI installer：`tools/java-tool/AGENTS.md`、`tools/node-tool/AGENTS.md`。
-- 容器内 AI 使用规则：`rootfs/home/x/.codex/AGENTS.md` 与同目录 `skills/`；使用约定变化时
-  更新对应规则或 skill。
+- 容器内 AI 使用规则：`rootfs/home/x/.codex/AGENTS.md` 与
+  `rootfs/home/x/.trae/user_rules/container-environment.md` 保持正文一致；专项操作位于
+  `rootfs/home/x/.codex/skills/`。使用约定变化时同步更新对应规则或 skill。
 
 ## Contracts
 
