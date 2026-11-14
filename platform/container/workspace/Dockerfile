@@ -30,6 +30,38 @@ RUN apt-get update -y \
 
 COPY platform/container/workspace/scripts/install-conda-environment.sh /opt/conda/condabin/install-conda-environment
 
+# ----------------------------------- Rust -----------------------------------
+FROM docker.io/debian:stable-slim AS stage_rust
+ENV CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup
+ENV PATH=/opt/rust/cargo/bin:${PATH}
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends ca-certificates curl \
+  && curl https://sh.rustup.rs -sSf | bash -s -- -y --profile default --no-modify-path --default-toolchain stable \
+  && rustup component add rust-src rust-analyzer llvm-tools \
+  && rustup component remove rust-docs
+
+# ------------------------------------ Go ------------------------------------
+FROM docker.io/debian:stable-slim AS stage_go
+ADD --checksum=sha256:63d339f0da5ab53635a56f2490a7984dfe12dfcff22ad749f63edaf590168445 \
+  https://go.dev/dl/go1.27.1.linux-amd64.tar.gz \
+  /tmp/go.tar.gz
+RUN mkdir -p /opt/go/go1.27.1 \
+  && tar -xzf /tmp/go.tar.gz --strip-components=1 -C /opt/go/go1.27.1
+
+# ----------------------------------- Java -----------------------------------
+FROM docker.io/debian:stable-slim AS stage_java
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends ca-certificates
+ADD --checksum=sha256:9c70e102f527ac674ac2fe9c7d47b9a04e2d19842ba5ab8e9b33f368bbadfaea \
+  https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u504-b01/OpenJDK8U-jdk_x64_linux_hotspot_8u504b01.tar.gz \
+  /tmp/openjdk8.tar.gz
+ADD --checksum=sha256:1cf69a4848ffb728b3b260dfd45206a51566ab571a02a30092271d4c580bccbc \
+  https://github.com/adoptium/temurin27-binaries/releases/download/jdk-27%2B35/OpenJDK27U-jdk_x64_linux_hotspot_27_35.tar.gz \
+  /tmp/openjdk27.tar.gz
+RUN mkdir -p /opt/java/openjdk8 /opt/java/openjdk27 \
+  && tar -xzf /tmp/openjdk8.tar.gz --strip-components=1 -C /opt/java/openjdk8 \
+  && tar -xzf /tmp/openjdk27.tar.gz --strip-components=1 -C /opt/java/openjdk27
+
 # ---------------------------------- Python ----------------------------------
 FROM docker.io/debian:stable-slim AS stage_python
 COPY --from=stage_sb /usr/local/store/uv/bin/uv /usr/local/bin/uv
@@ -44,14 +76,33 @@ RUN apt-get update -y \
     --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14
 
 # ---------------------------------- Node.js ---------------------------------
-FROM docker.io/debian:stable-slim AS stage_node
+FROM stage_python AS stage_node
 RUN apt-get update -y \
-  && apt-get install -y --no-install-recommends xz-utils
+  && apt-get install -y --no-install-recommends ca-certificates libatomic1 patchelf xz-utils
 ADD --checksum=sha256:fd8e59d5a511510f6a298afb548f18c7d2b1be404d8b4a27d94fbe49f56cb2d6 \
   https://nodejs.org/dist/v24.21.0/node-v24.21.0-linux-x64.tar.xz \
   /tmp/node24.tar.xz
-RUN mkdir -p /opt/node/nodejs24 \
-  && tar -xJf /tmp/node24.tar.xz --strip-components=1 -C /opt/node/nodejs24
+ADD --checksum=sha256:ca70e9e349de048b9522abb3adc05b3bd6f43c5ffd3ec57916c7da292f59f022 \
+  https://nodejs.org/dist/v26.10.0/node-v26.10.0-linux-x64.tar.xz \
+  /tmp/node26.tar.xz
+RUN mkdir -p /opt/node/nodejs24 /opt/node/nodejs26/lib /opt/node/tools/bin \
+  && tar -xJf /tmp/node24.tar.xz --strip-components=1 -C /opt/node/nodejs24 \
+  && tar -xJf /tmp/node26.tar.xz --strip-components=1 -C /opt/node/nodejs26 \
+  && cp -L /usr/lib/x86_64-linux-gnu/libatomic.so.1 /opt/node/nodejs26/lib/ \
+  && patchelf --set-rpath '$ORIGIN/../lib' /opt/node/nodejs26/bin/node
+
+COPY --from=stage_sb /usr/local/store/pnpm/bin/pnpm /usr/local/bin/pnpm
+COPY platform/container/workspace/tools/node-tool/ /tmp/node-tool/
+RUN /tmp/node-tool/node-tool init \
+  && /tmp/node-tool/node-tool \
+    install defuddle@0.19.4 \
+    --node /opt/node/nodejs24 --pnpm /usr/local/bin/pnpm \
+  && /tmp/node-tool/node-tool \
+    install markdownlint-cli2@0.23.3 \
+    --node /opt/node/nodejs24 --pnpm /usr/local/bin/pnpm \
+  && /tmp/node-tool/node-tool \
+    install prettier@3.9.9 \
+    --node /opt/node/nodejs24 --pnpm /usr/local/bin/pnpm
 
 # ------------------------- NVIDIA Container Toolkit ------------------------
 FROM docker.io/debian:stable-slim AS stage_nvidia_container_toolkit
@@ -109,7 +160,8 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
 FROM docker.io/$BASE_IMAGE AS workspace
 
 COPY platform/container/workspace/rootfs/ /
-RUN chown -hR 5230:5230 /home/x /opt/java /opt/node /opt/uv
+RUN mkdir -p /opt/java /opt/node \
+  && chown -hR 5230:5230 /home/x /opt/java /opt/node /opt/uv
 
 COPY --link --from=stage_sb /usr/local /usr/local
 COPY --chown=5230:5230 platform/container/workspace/tools/node-tool/ /opt/node/node-tool/
@@ -124,6 +176,9 @@ COPY --link --chown=5230:5230 --from=stage_nix /home/x/.local/state/nix /home/x/
 COPY --link --chown=5230:5230 --from=stage_python /opt/uv /opt/uv
 COPY --link --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
 COPY --link --chown=5230:5230 --from=stage_node /opt/node /opt/node
+COPY --link --chown=5230:5230 --from=stage_go /opt/go /opt/go
+COPY --link --chown=5230:5230 --from=stage_rust /opt/rust /opt/rust
+COPY --link --chown=5230:5230 --from=stage_java /opt/java /opt/java
 COPY --link --from=stage_nvidia_container_toolkit /opt/nvidia-container-toolkit/ /opt/nvidia/nvidia-container-toolkit/
 
 RUN --mount=type=bind,source=platform/container/workspace/scripts/install-s6.sh,target=/tmp/install-s6.sh \

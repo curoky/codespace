@@ -8,8 +8,8 @@ graph。控制面决定实例配置；image 定义容器内固定 filesystem 与
 - `Dockerfile`、`rootfs/`、`scripts/` 和 `config/binman.yaml`：主 Workspace image。
 - `resource.Dockerfile` 与 `config/binman-resource.yaml`：独立的大型工具 payload。
 - `agent/AGENTS.md`：容器内 bootstrap/Git HTTP Agent。
-- `tools/java-tool/AGENTS.md`、`tools/node-tool/AGENTS.md`：resource build 与 Workspace 运行期
-  共用的 installer。
+- `tools/java-tool/AGENTS.md`、`tools/node-tool/AGENTS.md`：image build 与 Workspace 运行期共用的
+  installer。
 - `rootfs/home/x/.codex/AGENTS.md`：Codex 全局容器规则；Python 使用 uv，缺失命令或 runtime
   由用户手动安装，agent 不安装系统软件或全局 CLI。
 - `rootfs/home/x/.codex/skills/`：按任务加载的容器使用 skill；`.trae/skills` 与
@@ -31,9 +31,9 @@ platform/container/workspace/build.sh --resource
 - 交互用户是 `x`（UID/GID `5230`）。image-owned system 文件位于 root-owned `/usr/local`、
   `/opt/codespace`、`/opt/podman`、`/etc` 或只读 resource payload；普通 runtime 软件由用户安装到
   用户 Nix profile，`bm` 自身默认安装到 `~/.local`，Java/Node CLI 分别由专用 installer 写入
-  `/opt/java/tools`、`/opt/node/tools`。Node.js 24 runtime 由主 image 固定提供在
-  `/opt/node/nodejs24`；不要用 wrapper 改写这些默认路径，也不要在启动时重建 immutable image
-  内容。
+  `/opt/java/tools`、`/opt/node/tools`。Go、Rust、OpenJDK、Node runtime 与预装 Node CLI 由主
+  image 提供，不依赖 resource；默认 Node 位于 `/opt/node/nodejs24`。不要用 wrapper 改写这些
+  默认路径，也不要在启动时重建 immutable image 内容。
 - Dockerfile 紧接 rootfs `COPY` 调整 home、Java、Node、uv 用户目录归属，不跟随 resource 链接；
   再通过 `COPY --chown` 合并预装 runtime，避免后续递归 `chown` 重复记录软件文件。
 - Shell 启动遵循 Debian 与各 shell 的原生规则，不覆盖 `/etc/profile`、`/etc/bash.bashrc`，
@@ -47,10 +47,10 @@ platform/container/workspace/build.sh --resource
   入口。uv 不扫描版本目录 symlink，因此 rootfs 保留真实的完整版本目录，内部文件与目录
   链接到 resource；短名链接到同一安装根下的完整版本目录，供工具与环境稳定引用。更新预装
   Python 补丁号时同步更新对应 rootfs 目录和短名目标。
-- Rust 工具链仍由只读 resource 提供，`RUSTUP_HOME` 指向 `/opt/rust/rustup`；`CARGO_HOME`
-  指向用户 `.cargo`，依赖缓存与用户安装的 Cargo CLI 可写。预装工具链带有标准库源码、LSP、
-  格式化、lint 与 LLVM 覆盖率组件；工具链更新或额外 target/component 需用户另行准备可写
-  工具链。用户 Go 与 pnpm 的默认全局 bin 目录也进入 profile PATH。
+- Rust 工具链由主 image 提供，`RUSTUP_HOME` 指向用户可写的 `/opt/rust/rustup`；`CARGO_HOME`
+  指向用户 `.cargo`，依赖缓存与用户安装的 Cargo CLI 留在 home。预装工具链带有标准库源码、
+  LSP、格式化、lint 与 LLVM 覆盖率组件；用户可在原目录更新 toolchain 或增加
+  target/component。用户 Go 与 pnpm 的默认全局 bin 目录也进入 profile PATH。
 - PID 1 是 `/etc/s6/init/bin/init`，service graph 只在 image build 时编译。依赖
   `/workspace` 的 service 必须依赖 `gocryptfs-workspace`；runtime 不重跑 graph compile 或
   image-build oneshot。
@@ -78,25 +78,24 @@ platform/container/workspace/build.sh --resource
   自带运行所需的 Python 3.14 与 uv tools；resource 提供其余 Python runtime 和可选 uv
   tools，并通过 `/opt/resource/opt/uv/bin` 直接加入 PATH。binman 安装的 package launcher 与
   store 必须一起保留在 `/opt/resource/usr/local/{bin,store}`，由 resource bin PATH 统一暴露；
-  resource build 使用 bm 提供的 uv 与 pnpm，但 payload 不携带这两个构建工具或 `bm` manager，
-  也不在主 image 为单个 package 建兼容链接。Java/Node runtime 同时保留在 resource payload，
-  其中 Java 与额外 Node runtime 通过只读子目录链接暴露；CLI tools 使用可写
-  `/opt/java/tools`、`/opt/node/tools`。未挂载时允许 resource 链接悬空，默认 s6 service 不得依赖
-  resource-only 内容。
-- `resource.Dockerfile` 是工具、版本、URL、checksum 和安装方式的 source of truth。不要在
-  `AGENTS.md` 维护重复清单，也不要从主 image 的其他 package manager 重复安装同名工具。
+  resource build 使用 bm 提供的 uv，但 payload 不携带 uv 或 `bm` manager，
+  也不在主 image 为单个 package 建兼容链接。resource 的 Java family 只携带 CLI tools；
+  installer 校验所需的 JDK 只存在于构建 stage，launcher 使用主 image 的 JDK。未挂载时允许
+  resource 链接悬空，默认 s6 service 不得依赖 resource-only 内容。
+- `Dockerfile` 与 `resource.Dockerfile` 分别拥有各自载荷的工具、版本、URL、checksum 和安装
+  方式。不要在 `AGENTS.md` 维护重复清单，也不要从其他 package manager 重复安装同名工具。
 - 多版本 family 保留版本目录；默认选择由 profile/PATH 显式声明。launcher 不能依赖 payload
   内部 content-addressed store 的易变路径。
 - Go tools、Clang tools 与 Protobuf 的 profile bin 均进入 PATH；Clang tools 与 Protobuf 的
   默认 command 由 manifest 中最后安装的版本提供。
 - Java/Node CLI 通过各自通用 installer 隔离安装。Java 必须显式选择 `--java` 或
   `--inherit-java`；Maven 通过后者继承项目环境。Node 必须显式传入 `--node`，CLI 固定该 runtime。
-  launcher 相对自身定位同一 tools root 下的 env，因此整个 Java/Node family 可从
-  build stage 搬到 resource payload；运行期增量安装只写入 `/opt/java/tools`、
-  `/opt/node/tools`。package-specific metadata 留在 `resource.Dockerfile`。
+  launcher 相对自身定位同一 tools root 下的 env；构建 stage 只将安装结果复制到所属 image，
+  运行期增量安装只写入 `/opt/java/tools`、
+  `/opt/node/tools`。package-specific metadata 留在对应 image 的 Dockerfile。
 - Java/Node installer 的源码与独立 `.venv` 分别位于主 image 的 `/opt/java/java-tool`、
-  `/opt/node/node-tool`，与各自 runtime 和 tools 同属一个目录。resource build 使用临时副本，
-  不将 helper 或其构建环境写入 payload。两侧 build 通过 wrapper 的无参数 `init` 同步环境；
+  `/opt/node/node-tool`，与各自 runtime 和 tools 同属一个目录。CLI 构建 stage 使用临时副本，
+  不将临时 helper 或其构建环境写入 payload。各 build 通过 wrapper 的无参数 `init` 同步环境；
   Python 版本由 wrapper 固定，uv 的安装目录固定为 `/opt/uv/python`。普通调用直接复用已有
   环境；自身 Python 入口不可执行时报错并提示运行 `init`。依赖变更后显式运行 `init`。
 - Workspace helper 固定位于 `/opt/codespace`，Podman wrapper 固定位于 `/opt/podman/bin`；不保留

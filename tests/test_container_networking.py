@@ -223,7 +223,7 @@ def test_workspace_image_packages_are_root_owned_and_user_installs_use_local() -
     assert "bm download" not in dockerfile
 
 
-def test_workspace_separates_read_only_runtimes_from_writable_tools() -> None:
+def test_workspace_bundles_runtimes_and_keeps_java_tools_in_resource() -> None:
     workspace = _CONTAINER / "workspace"
     workspace_dockerfile = (workspace / "Dockerfile").read_text()
     resource_dockerfile = (workspace / "resource.Dockerfile").read_text()
@@ -233,11 +233,6 @@ def test_workspace_separates_read_only_runtimes_from_writable_tools() -> None:
     )
     rootfs_opt = workspace / "rootfs/opt"
     expected_links = {
-        **{
-            f"java/{runtime}": Path(f"/opt/resource/opt/java/{runtime}")
-            for runtime in {"openjdk8", "openjdk27"}
-        },
-        "node/nodejs26": Path("/opt/resource/opt/node/nodejs26"),
         "nvidia/nsight-compute": Path("/opt/resource/opt/nvidia/nsight-compute"),
         "nvidia/nsight-systems-cli": Path("/opt/resource/opt/nvidia/nsight-systems-cli"),
     }
@@ -251,19 +246,24 @@ def test_workspace_separates_read_only_runtimes_from_writable_tools() -> None:
     assert "/opt/java/tools/bin" in profile
     assert "/opt/resource/opt/java/tools/bin" in profile
     assert "/opt/node/tools/bin" in profile
-    assert "/opt/resource/opt/node/tools/bin" in profile
-    assert (
-        "COPY --link --chown=5230:5230 --from=stage_node /opt/node /opt/node"
-        in workspace_dockerfile
-    )
+    assert "/opt/resource/opt/node" not in profile
+    for family in ("go", "node", "rust", "java"):
+        assert (
+            f"COPY --link --chown=5230:5230 --from=stage_{family} /opt/{family} /opt/{family}"
+            in workspace_dockerfile
+        )
+        assert not (rootfs_opt / family).is_symlink()
     assert "--java /opt/java/openjdk27" in resource_dockerfile
-    assert "--node /opt/node/nodejs24" in resource_dockerfile
-    assert "--pnpm /usr/local/bin/pnpm" in resource_dockerfile
-    assert "COPY --from=stage_java /opt/java /opt/resource/opt/java" in resource_dockerfile
-    assert "COPY --from=stage_node /opt/node /opt/resource/opt/node" in resource_dockerfile
+    assert "--node /opt/node/nodejs24" in workspace_dockerfile
+    assert "--pnpm /usr/local/bin/pnpm" in workspace_dockerfile
+    assert (
+        "COPY --from=stage_java /opt/java/tools /opt/resource/opt/java/tools" in resource_dockerfile
+    )
+    for family in ("go", "node", "rust"):
+        assert f"COPY --from=stage_{family}" not in resource_dockerfile
     assert "FROM payload AS test" in resource_dockerfile
     assert "FROM test AS resource" in resource_dockerfile
-    assert settings["prettier.prettierPath"].startswith("/opt/resource/opt/node/tools/")
+    assert settings["prettier.prettierPath"].startswith("/opt/node/tools/")
     assert settings["xml.server.binary.path"] == "/opt/resource/opt/java/tools/bin/lemminx"
     assert actual_links == expected_links
 
@@ -451,11 +451,10 @@ def test_workspace_bundles_java_and_node_installers() -> None:
         in dockerfile
     )
     resource_dockerfile = (workspace / "resource.Dockerfile").read_text()
-    assert (
-        "COPY platform/container/workspace/tools/node-tool/ /tmp/node-tool/" in resource_dockerfile
-    )
-    assert "/tmp/node-tool/node-tool init" in resource_dockerfile
-    assert "uv run --locked --script /tmp/node-tool/node-tool.py" not in resource_dockerfile
+    assert "COPY platform/container/workspace/tools/node-tool/ /tmp/node-tool/" in dockerfile
+    assert "/tmp/node-tool/node-tool init" in dockerfile
+    assert "node-tool" not in resource_dockerfile
+    assert "uv run --locked --script /tmp/node-tool/node-tool.py" not in dockerfile
     assert (
         "COPY platform/container/workspace/tools/java-tool/ /tmp/java-tool/" in resource_dockerfile
     )
@@ -591,7 +590,7 @@ def test_workspace_resource_image_installs_binman_manifest() -> None:
         in dockerfile
     )
     assert "/usr/local/bin/bm --prefix /usr/local install --file /tmp/binman.yaml" in dockerfile
-    assert "/usr/local/bin/bm --prefix /usr/local install --no-link uv pnpm" in dockerfile
+    assert "/usr/local/bin/bm --prefix /usr/local install --no-link uv" in dockerfile
     assert "registry.npmjs.org/@pnpm" not in dockerfile
     assert "rm -f /usr/local/bin/bm" in dockerfile
     assert "COPY --from=stage_sb /usr/local/bin /opt/resource/usr/local/bin" in dockerfile
@@ -601,7 +600,7 @@ def test_workspace_resource_image_installs_binman_manifest() -> None:
     assert "test ! -e /opt/resource/opt/uv/bin/uv" in dockerfile
     assert "test ! -e /opt/resource/usr/local/store/uv" in dockerfile
     assert "test ! -e /opt/resource/usr/local/store/pnpm" in dockerfile
-    assert "test ! -e /opt/resource/opt/node/tools/bin/pnpm" in dockerfile
+    assert "test ! -e /opt/resource/opt/node" in dockerfile
     assert "COPY --from=stage_sb /usr/local/profile /opt/resource/usr/local/profile" in dockerfile
     assert "/opt/resource/usr/local/bin/radare2 -v" in dockerfile
     assert "/opt/resource/usr/local/bin/rizin -v" in dockerfile
@@ -713,7 +712,7 @@ def test_workspace_podman_separates_image_files_from_user_data() -> None:
     assert not (workspace / "rootfs/usr/local/bin/podman").exists()
     assert not (workspace / "rootfs/usr/local/bin/podman-server").exists()
     assert "chown" not in configure
-    ownership = dockerfile.index("RUN chown -hR 5230:5230 /home/x /opt/java /opt/node /opt/uv")
+    ownership = dockerfile.index("chown -hR 5230:5230 /home/x /opt/java /opt/node /opt/uv")
     assert (
         dockerfile.index("COPY platform/container/workspace/rootfs/ /")
         < ownership

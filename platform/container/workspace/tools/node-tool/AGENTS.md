@@ -2,12 +2,12 @@
 
 ## Ownership
 
-`node-tool` 是 resource image 构建和 workspace 运行期共用的单向 npm CLI installer。每个
+`node-tool` 是 workspace image 构建和运行期共用的单向 npm CLI installer。每个
 package 拥有隔离的 pnpm project，公开命令集中写入 `/opt/node/tools/bin`，launcher 永久绑定
 调用者指定的外部 Node.js runtime，并相对自身位置查找同一 tools root 下的 env。
 
 它不管理 Node.js、pnpm、package catalog 或运行期升级。package spec、版本、pnpm artifact
-和选定 Node.js path 只属于调用方；resource image 预装集仍由 `resource.Dockerfile` 决定，
+和选定 Node.js path 只属于调用方；预装集由 workspace `Dockerfile` 决定，
 Python 实现不复制这些数据。
 
 ## Layout
@@ -53,11 +53,10 @@ platform/container/workspace/tools/node-tool/node-tool install \
   子进程。
 - 目标环境或任一公开命令已存在时直接失败。image build 从空 stage 开始，不实现 overwrite、
   uninstall、upgrade、rollback、并发写入或迁移。
-- pnpm 是 bm 安装到 `/usr/local` 的 native executable；resource build 只把它作为构建依赖，
-  不把 pnpm 本体复制进 resource payload。它不属于 node-tool 管理环境。
+- pnpm 是 bm 安装到 `/usr/local` 的 native executable，不属于 node-tool 管理环境。
 - `node-tool` 是独立的 uv project，依赖由同目录 `pyproject.toml` 与 `uv.lock` 声明。workspace
-  主 image 在 `/opt/node/node-tool` 同步 `.venv`；resource build 使用 `/tmp/node-tool`，不携带
-  helper 的源码与环境进入 payload。两侧 build 调用 `init`，忽略调用方的 `VIRTUAL_ENV` 和
+  主 image 在 `/opt/node/node-tool` 同步 `.venv`；CLI 构建 stage 使用 `/tmp/node-tool`，不携带
+  临时 helper 的源码与环境进入最终 image。各 build 调用 `init`，忽略调用方的 `VIRTUAL_ENV` 和
   `UV_PROJECT_ENVIRONMENT`。普通调用直接复用已有环境；自身 `.venv/bin/python` 不可执行时
   报错并提示运行 `init`。依赖变更后显式运行 `init`。
 
@@ -70,9 +69,9 @@ uv run ruff format --check platform/container/workspace/tools/node-tool
 uv run mypy platform/container/workspace/tools/node-tool/node-tool.py
 uv run pytest platform/container/workspace/tools/node-tool/test_node_tool.py --no-cov
 podman build . --network=host \
-  --file platform/container/workspace/resource.Dockerfile \
+  --file platform/container/workspace/Dockerfile \
   --target stage_node \
   --tag codespace-node-tool-test
 ```
 
-修改 package set、runtime binding 或最终 profile 时再构建完整 resource image。
+修改 package set、runtime binding 或最终 profile 时再构建完整 workspace image。
