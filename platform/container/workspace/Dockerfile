@@ -108,7 +108,15 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
 # --------------------------------- Runtime ----------------------------------
 FROM docker.io/$BASE_IMAGE AS workspace
 
+COPY platform/container/workspace/rootfs/ /
+RUN chown -hR 5230:5230 /home/x /opt/java /opt/node /opt/uv
+
 COPY --link --from=stage_sb /usr/local /usr/local
+COPY --chown=5230:5230 platform/container/workspace/tools/node-tool/ /opt/node/node-tool/
+COPY --chown=5230:5230 platform/container/workspace/tools/java-tool/ /opt/java/java-tool/
+RUN --mount=type=bind,source=platform/container/workspace/scripts/configure-system.sh,target=/tmp/configure-system.sh \
+  bash /tmp/configure-system.sh
+
 COPY --link --chown=5230:5230 --from=stage_nix /nix /nix
 COPY --link --chown=5230:5230 --from=stage_nix /home/x/.nix-defexpr /home/x/.nix-defexpr
 COPY --link --chown=5230:5230 --from=stage_nix /home/x/.nix-channels /home/x/.nix-channels
@@ -118,11 +126,6 @@ COPY --link --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
 COPY --link --chown=5230:5230 --from=stage_node /opt/node /opt/node
 COPY --link --from=stage_nvidia_container_toolkit /opt/nvidia-container-toolkit/ /opt/nvidia/nvidia-container-toolkit/
 
-COPY platform/container/workspace/rootfs/ /
-COPY platform/container/workspace/tools/node-tool/ /opt/node/node-tool/
-COPY platform/container/workspace/tools/java-tool/ /opt/java/java-tool/
-RUN --mount=type=bind,source=platform/container/workspace/scripts/configure-system.sh,target=/tmp/configure-system.sh \
-  bash /tmp/configure-system.sh
 RUN --mount=type=bind,source=platform/container/workspace/scripts/install-s6.sh,target=/tmp/install-s6.sh \
   bash /tmp/install-s6.sh
 

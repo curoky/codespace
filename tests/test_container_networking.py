@@ -442,8 +442,14 @@ def test_workspace_bundles_java_and_node_installers() -> None:
     node_tool = (workspace / "tools/node-tool/node-tool").read_text()
     java_tool = (workspace / "tools/java-tool/java-tool").read_text()
 
-    assert "COPY platform/container/workspace/tools/node-tool/ /opt/node/node-tool/" in dockerfile
-    assert "COPY platform/container/workspace/tools/java-tool/ /opt/java/java-tool/" in dockerfile
+    assert (
+        "COPY --chown=5230:5230 platform/container/workspace/tools/node-tool/ /opt/node/node-tool/"
+        in dockerfile
+    )
+    assert (
+        "COPY --chown=5230:5230 platform/container/workspace/tools/java-tool/ /opt/java/java-tool/"
+        in dockerfile
+    )
     resource_dockerfile = (workspace / "resource.Dockerfile").read_text()
     assert (
         "COPY platform/container/workspace/tools/node-tool/ /tmp/node-tool/" in resource_dockerfile
@@ -690,6 +696,7 @@ def test_workspace_podman_separates_image_files_from_user_data() -> None:
     workspace = _CONTAINER / "workspace"
     server = (workspace / "rootfs/opt/podman/bin/podman-server").read_text()
     configure = (workspace / "scripts/configure-system.sh").read_text()
+    dockerfile = (workspace / "Dockerfile").read_text()
     profile = (workspace / "rootfs/etc/profile.d/app.sh").read_text()
     run = (workspace / "rootfs/etc/s6/s6-rc.d/podman/run").read_text()
     finish = (workspace / "rootfs/etc/s6/s6-rc.d/podman/finish").read_text()
@@ -705,7 +712,13 @@ def test_workspace_podman_separates_image_files_from_user_data() -> None:
     assert "exec /opt/podman/bin/podman-server --stop-all" in finish
     assert not (workspace / "rootfs/usr/local/bin/podman").exists()
     assert not (workspace / "rootfs/usr/local/bin/podman-server").exists()
-    assert "chown -R 5230:5230 /home/x /opt" in configure
+    assert "chown" not in configure
+    ownership = dockerfile.index("RUN chown -hR 5230:5230 /home/x /opt/java /opt/node /opt/uv")
+    assert (
+        dockerfile.index("COPY platform/container/workspace/rootfs/ /")
+        < ownership
+        < dockerfile.index("COPY --link --from=stage_sb")
+    )
     assert "/usr/local/libexec/codespace" not in configure
 
 

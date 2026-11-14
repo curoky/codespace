@@ -34,6 +34,8 @@ platform/container/workspace/build.sh --resource
   `/opt/java/tools`、`/opt/node/tools`。Node.js 24 runtime 由主 image 固定提供在
   `/opt/node/nodejs24`；不要用 wrapper 改写这些默认路径，也不要在启动时重建 immutable image
   内容。
+- Dockerfile 紧接 rootfs `COPY` 调整 home、Java、Node、uv 用户目录归属，不跟随 resource 链接；
+  再通过 `COPY --chown` 合并预装 runtime，避免后续递归 `chown` 重复记录软件文件。
 - Shell 启动遵循 Debian 与各 shell 的原生规则，不覆盖 `/etc/profile`、`/etc/bash.bashrc`，
   不设置 `BASH_ENV`。系统 PATH 与 locale 留在系统环境及 `zshenv`；用户目录、代理、交互设置
   留在 `.zshrc`。`/etc/profile.d/app.sh` 只提供工具 PATH 与应用环境，登录 Bash 经 Debian

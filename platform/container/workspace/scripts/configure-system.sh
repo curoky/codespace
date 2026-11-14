@@ -19,7 +19,6 @@ chmod 4755 \
 rm -f /usr/local/bin/su /usr/local/sbin/su
 
 install -d -o 5230 -g 5230 -m 0700 /opt/secret
-chown -R 5230:5230 /home/x /opt
 chmod 0700 /home/x/.ssh
 chmod 0600 /etc/ssh/ssh_host_*_key
 chmod 0440 /etc/sudoers
