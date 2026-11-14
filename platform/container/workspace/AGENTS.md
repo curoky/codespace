@@ -75,8 +75,8 @@ platform/container/workspace/build.sh --resource
 ## Resource Payload
 
 - payload 根固定为 `/opt/resource`，通过 `codespace-resource` named volume 只读挂载。主 image
-  自带运行所需的 Python 3.14 与 uv tools；resource 提供其余 Python runtime 和可选 uv
-  tools，并通过 `/opt/resource/opt/uv/bin` 直接加入 PATH。binman 安装的 package launcher 与
+  自带运行所需的 Python 3.14 与 uv tools；resource 保留其他 Python runtime 和 TensorBoard，
+  通过 `/opt/resource/opt/uv/bin` 直接加入 PATH。binman 安装的 package launcher 与
   store 必须一起保留在 `/opt/resource/usr/local/{bin,store}`，由 resource bin PATH 统一暴露；
   resource build 使用 bm 提供的 uv，但 payload 不携带 uv 或 `bm` manager，
   也不在主 image 为单个 package 建兼容链接。resource 的 Java family 只携带 CLI tools；

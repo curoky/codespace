@@ -268,7 +268,7 @@ def test_workspace_bundles_runtimes_and_keeps_java_tools_in_resource() -> None:
     assert actual_links == expected_links
 
 
-def test_workspace_keeps_required_python_and_exposes_resource_python_tools() -> None:
+def test_workspace_keeps_required_python_and_bundles_python_tools() -> None:
     workspace = _CONTAINER / "workspace"
     dockerfile = (workspace / "Dockerfile").read_text()
     resource_dockerfile = (workspace / "resource.Dockerfile").read_text()
@@ -290,14 +290,10 @@ def test_workspace_keeps_required_python_and_exposes_resource_python_tools() -> 
         "COPY --from=stage_build_tools /usr/local/store/uv/bin/uv /usr/local/bin/uv"
         in resource_dockerfile
     )
-    resource_tools = {
-        "licenseheaders": "3.14",
-        "netron": "3.14",
-        "mitmproxy": "3.14",
-        "dool": "3.14",
-        "git-filter-repo": "3.14",
-        "tensorboard": "3.12.15",
-    }
+    for tool in ("licenseheaders", "netron", "mitmproxy", "dool", "git-filter-repo"):
+        assert f"uv tool install {tool}" in dockerfile
+        assert f"uv tool install {tool}" not in resource_dockerfile
+    resource_tools = {"tensorboard": "3.12.15"}
     for tool, python in resource_tools.items():
         minor = ".".join(python.split(".")[:2])
         assert f"uv tool install {tool}" in resource_dockerfile

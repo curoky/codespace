@@ -38,16 +38,6 @@ ENV UV_TOOL_DIR=/opt/resource/opt/uv/tools \
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates \
   && uv python install --no-bin 3.9.25 3.10.22 3.11.17 3.12.15 3.13.16 3.14 \
-  && uv tool install licenseheaders \
-    --python /opt/resource/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
-  && uv tool install netron \
-    --python /opt/resource/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
-  && uv tool install mitmproxy \
-    --python /opt/resource/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
-  && uv tool install dool \
-    --python /opt/resource/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
-  && uv tool install git-filter-repo \
-    --python /opt/resource/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
   && uv tool install tensorboard \
     --python /opt/resource/opt/uv/python/cpython-3.12.15-linux-x86_64-gnu/bin/python3.12 \
     --with tensorboard-plugin-profile --with "setuptools==81.0.0"
@@ -137,11 +127,6 @@ RUN /opt/resource/opt/llvm/llvm23.1.2/bin/clang --version \
   && /opt/resource/opt/uv/python/cpython-3.12.15-linux-x86_64-gnu/bin/python3.12 --version \
   && /opt/resource/opt/uv/python/cpython-3.13.16-linux-x86_64-gnu/bin/python3.13 --version \
   && /opt/resource/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 --version \
-  && test -x /opt/resource/opt/uv/bin/licenseheaders \
-  && test -x /opt/resource/opt/uv/bin/netron \
-  && test -x /opt/resource/opt/uv/bin/mitmproxy \
-  && test -x /opt/resource/opt/uv/bin/dool \
-  && test -x /opt/resource/opt/uv/bin/git-filter-repo \
   && test -x /opt/resource/opt/uv/bin/tensorboard
 
 # --------------------------------- Resource ---------------------------------

@@ -73,6 +73,16 @@ RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates \
   && uv python install 3.14 \
   && uv tool install copyparty \
+    --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
+  && uv tool install licenseheaders \
+    --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
+  && uv tool install netron \
+    --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
+  && uv tool install mitmproxy \
+    --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
+  && uv tool install dool \
+    --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
+  && uv tool install git-filter-repo \
     --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14
 
 # ---------------------------------- Node.js ---------------------------------
@@ -94,14 +104,11 @@ RUN mkdir -p /opt/node/nodejs24 /opt/node/nodejs26/lib /opt/node/tools/bin \
 COPY --from=stage_sb /usr/local/store/pnpm/bin/pnpm /usr/local/bin/pnpm
 COPY platform/container/workspace/tools/node-tool/ /tmp/node-tool/
 RUN /tmp/node-tool/node-tool init \
-  && /tmp/node-tool/node-tool \
-    install defuddle@0.19.4 \
+  && /tmp/node-tool/node-tool install defuddle@0.19.4 \
     --node /opt/node/nodejs24 --pnpm /usr/local/bin/pnpm \
-  && /tmp/node-tool/node-tool \
-    install markdownlint-cli2@0.23.3 \
+  && /tmp/node-tool/node-tool install markdownlint-cli2@0.23.3 \
     --node /opt/node/nodejs24 --pnpm /usr/local/bin/pnpm \
-  && /tmp/node-tool/node-tool \
-    install prettier@3.9.9 \
+  && /tmp/node-tool/node-tool install prettier@3.9.9 \
     --node /opt/node/nodejs24 --pnpm /usr/local/bin/pnpm
 
 # ------------------------- NVIDIA Container Toolkit ------------------------
