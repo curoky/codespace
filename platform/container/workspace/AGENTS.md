@@ -1,119 +1,61 @@
 # Workspace Image
 
-此目录拥有交互式 Workspace OCI image、只读 resource payload、rootfs、内嵌 Agent 和完整 s6
-graph。控制面决定实例配置；image 定义容器内固定 filesystem 与启动契约。
+提供可独立启动的交互式开发环境。主 image 拥有基础 runtime、rootfs 与 s6 graph；只读
+resource payload 提供可选工具。实例配置由控制面决定。
 
-## Context Map
+## Documentation
 
-- `Dockerfile`、`rootfs/`、`scripts/` 和 `config/binman.yaml`：主 Workspace image。
-- `resource.Dockerfile` 与 `config/binman-resource.yaml`：独立的大型工具 payload。
-- `agent/AGENTS.md`：容器内 bootstrap/Git HTTP Agent。
-- `tools/java-tool/AGENTS.md`、`tools/node-tool/AGENTS.md`：image build 与 Workspace 运行期共用的
-  installer。
-- `rootfs/home/x/.codex/AGENTS.md`：Codex 全局容器规则；Python 使用 uv，缺失命令或 runtime
-  由用户手动安装，agent 不安装系统软件或全局 CLI。
-- `rootfs/home/x/.codex/skills/`：按任务加载的容器使用 skill；`.trae/skills` 与
-  `.trae-cn/skills` 分别为每个内置 skill 创建链接。工具、GitHub 或 s6 的使用约定
-  变化时同步更新对应 skill。它们不替代本维护文档。
+AGENTS.md 保留核心诉求、职责边界、跨文件不变量、外部兼容约束和必要验证入口。尚未解决或
+仍依赖规避措施的常见问题，记录触发条件、影响和处理方式，确认限制消除后再删除。
+已有测试不代表约束的原因可以省略；工具清单、版本、完整布局、CLI 参数与执行流程以
+Dockerfile、manifest、脚本、类型和测试为准，不在文档中复述。
 
-## Build
+- 内嵌 Agent：`agent/AGENTS.md`。
+- CLI installer：`tools/java-tool/AGENTS.md`、`tools/node-tool/AGENTS.md`。
+- 容器内 AI 使用规则：`rootfs/home/x/.codex/AGENTS.md` 与同目录 `skills/`；使用约定变化时
+  更新对应规则或 skill。
+
+## Contracts
+
+- 主 image 的基础 runtime 与默认 service 不依赖 resource；未挂载 payload 时允许可选工具
+  链接悬空。构建期完成 immutable 内容和 s6 graph，启动时不重建。
+- image 拥有的系统内容与用户可写的软件、缓存分离；root service 只使用 root-owned 命令
+  路径。用户以 `x` 运行，挂载数据的身份必须与 Host 一致。
+- `/workspace`、`/workspace.enc` 与 `/opt/podman/data` 的初始化只准备挂载根，不递归
+  chown、迁移或清除已有数据。`home-init` 当前会递归调整指定 IDE 目录的归属，不得把这个
+  范围扩大到 Workspace 或 Podman 数据。
+- Shell 遵循发行版原生启动规则；应用环境集中在 `rootfs/etc/profile.d/app.sh`，重复加载不
+  改变已有 PATH 优先级。开发环境通过 filesystem 提供，不依赖主运行 stage 的 OCI ENV；
+  非登录 Bash 继承环境或显式加载 profile。项目覆盖在加载后进行，不用 wrapper 或
+  `BASH_ENV` 改写启动规则。
+- 依赖 `/workspace` 的 service 必须依赖 `gocryptfs-workspace`；必要 credential 从 runtime
+  secret 读取，缺失时 fail-fast。添加依赖不得隐式启用可选 service；启动时的用户安装
+  job 不属于 image build，编码后的 payload 不构成 secret 或信任边界。
+- service 默认监听 container loopback；对外暴露由控制面配置决定。
+- 每个 image 拥有自身的 package metadata，避免跨 package manager 重复安装。binman 的
+  launcher、store 与 profile 是完整载荷，必须一起保留；调用方使用稳定入口，不硬编码
+  内部 content-addressed store 路径。
+- 内置 Podman 仅服务 Workspace 用户，不连接 Host Podman。持久数据不能由多个运行中的
+  Workspace 共享；已有 storage driver 不自动迁移、重建或删除。
+- 保留 rootless Podman 所需的 subordinate IDs、setuid helper、容器权限与 unlimited pids；
+  内部 container 禁用 cgroups，shell 与 service 的构建都使用 chroot isolation。GPU CDI
+  根据注入的设备和 driver 在运行期生成，image 不携带 Host driver。
+
+## Known Pitfalls
+
+- 系统认证依赖发行版的 setuid `su` 与静态 sudo 可校验的 SHA-512 password hash；替换
+  standalone package 或调整密码初始化时，不能丢失这两个兼容条件。
+- Ollama 仅保留可选 service definition，未预装 executable；直接启用会失败，需先安装到
+  service script 指定路径。
+
+## Validation
+
+通用检查遵循根 `AGENTS.md`。行为或 artifact 变更还需构建受影响的 image：
 
 ```bash
-platform/container/workspace/build.sh [base-image]
+platform/container/workspace/build.sh
 platform/container/workspace/build.sh --resource
 ```
 
-主 image 的 filesystem、权限、s6 graph、Agent 或 runtime helper 变化时构建主 image；payload
-内容、symlink target 或 installer 变化时构建 resource image。两侧 contract 同时变化时都构建。
-
-## Runtime Contract
-
-- 交互用户是 `x`（UID/GID `5230`）。image-owned system 文件位于 root-owned `/usr/local`、
-  `/opt/codespace`、`/opt/podman`、`/etc` 或只读 resource payload；普通 runtime 软件由用户安装到
-  用户 Nix profile，`bm` 自身默认安装到 `~/.local`，Java/Node CLI 分别由专用 installer 写入
-  `/opt/java/tools`、`/opt/node/tools`。Go、Rust、OpenJDK、Node runtime 与预装 Node CLI 由主
-  image 提供，不依赖 resource；默认 Node 位于 `/opt/node/nodejs24`。不要用 wrapper 改写这些
-  默认路径，也不要在启动时重建 immutable image 内容。
-- Dockerfile 紧接 rootfs `COPY` 调整 home、Java、Node、uv 用户目录归属，不跟随 resource 链接；
-  再通过 `COPY --chown` 合并预装 runtime，避免后续递归 `chown` 重复记录软件文件。
-- Shell 启动遵循 Debian 与各 shell 的原生规则，不覆盖 `/etc/profile`、`/etc/bash.bashrc`，
-  不设置 `BASH_ENV`。系统 PATH 与 locale 留在系统环境及 `zshenv`；用户目录、代理、交互设置
-  留在 `.zshrc`。`/etc/profile.d/app.sh` 只提供工具 PATH 与应用环境，登录 Bash 经 Debian
-  profile 加载，Zsh 经 `zshenv` 加载；非登录 Bash 继承环境或显式加载。app profile 保留传入
-  PATH 顺序，重复加载不重复添加目录；固定的应用变量由镜像提供，项目调整在加载后进行。
-  Dockerfile 各 build stage 只设置自身需要的环境变量，主运行 stage 不声明开发 ENV。
-- 默认 Python 解释器由主 image 提供，不依赖 resource 挂载；通过 uv 管理项目环境与依赖。
-  resource 中的其他版本接入 `/opt/uv/python`，通过 uv 的 `--python` 按版本选择，不创建 PATH
-  入口。uv 不扫描版本目录 symlink，因此 rootfs 保留真实的完整版本目录，内部文件与目录
-  链接到 resource；短名链接到同一安装根下的完整版本目录，供工具与环境稳定引用。更新预装
-  Python 补丁号时同步更新对应 rootfs 目录和短名目标。
-- Rust 工具链由主 image 提供，`RUSTUP_HOME` 指向用户可写的 `/opt/rust/rustup`；`CARGO_HOME`
-  指向用户 `.cargo`，依赖缓存与用户安装的 Cargo CLI 留在 home。预装工具链带有标准库源码、
-  LSP、格式化、lint 与 LLVM 覆盖率组件；用户可在原目录更新 toolchain 或增加
-  target/component。用户 Go 与 pnpm 的默认全局 bin 目录也进入 profile PATH。
-- PID 1 是 `/etc/s6/init/bin/init`，service graph 只在 image build 时编译。依赖
-  `/workspace` 的 service 必须依赖 `gocryptfs-workspace`；runtime 不重跑 graph compile 或
-  image-build oneshot。
-- `custom-job` 是随 default bundle 启动的 image-build oneshot，以 `x` 用户执行编码后的安装
-  payload；编码只用于避免命令明文进入仓库，不作为 secret 或信任边界。
-- 加密 Workspace 的 `/workspace.enc` 由 Host bind 提供，Host 与容器内都保持
-  `5230:5230`；gocryptfs 以 `x` 运行，并通过 `allow_other` 提供明文读写视图。
-- `/workspace`、`/workspace.enc`、IDE cache、`/run/codespace-control` 和
-  `/opt/podman/data` 是外部状态边界。初始化只准备挂载根，不能递归 chown、迁移或清除已有
-  持久数据。
-- `CODESPACE_ENCRYPTED` 只能是 `true`/`false`。root password、workspace key 和其他
-  credential 只从 `/run/secrets/*` 读取；缺失必要 secret 必须 fail-fast。
-- root password 使用 SHA-512 hash 配合静态 sudo contract；`su` 保留发行版的 setuid
-  implementation，不用 standalone shadow 替换。
-- Workspace 内 service 默认监听 container loopback。Host publication 与 UI tunnel allowlist
-  只由控制面 Project config 决定。
-- Ollama service definition 保留为可选服务，不随 default bundle 启动；显式启动前需先安装
-  service script 指定路径的 executable。
-- Atuin client 使用官方 sync；login credential 格式和 login service 由当前 s6 script 定义。
-  未加入 default bundle 的 server definition 不应被其他 service 当作依赖。
-
-## Resource Payload
-
-- payload 根固定为 `/opt/resource`，通过 `codespace-resource` named volume 只读挂载。主 image
-  自带运行所需的 Python 3.14 与 uv tools；resource 保留其他 Python runtime 和 TensorBoard，
-  通过 `/opt/resource/opt/uv/bin` 直接加入 PATH。binman 安装的 package launcher 与
-  store 必须一起保留在 `/opt/resource/usr/local/{bin,store}`，由 resource bin PATH 统一暴露；
-  resource build 使用 bm 提供的 uv，但 payload 不携带 uv 或 `bm` manager，
-  也不在主 image 为单个 package 建兼容链接。resource 的 Java family 只携带 CLI tools；
-  installer 校验所需的 JDK 只存在于构建 stage，launcher 使用主 image 的 JDK。未挂载时允许
-  resource 链接悬空，默认 s6 service 不得依赖 resource-only 内容。
-- `Dockerfile` 与 `resource.Dockerfile` 分别拥有各自载荷的工具、版本、URL、checksum 和安装
-  方式。不要在 `AGENTS.md` 维护重复清单，也不要从其他 package manager 重复安装同名工具。
-- 多版本 family 保留版本目录；默认选择由 profile/PATH 显式声明。launcher 不能依赖 payload
-  内部 content-addressed store 的易变路径。
-- Go tools、Clang tools 与 Protobuf 的 profile bin 均进入 PATH；Clang tools 与 Protobuf 的
-  默认 command 由 manifest 中最后安装的版本提供。
-- Java/Node CLI 通过各自通用 installer 隔离安装。Java 必须显式选择 `--java` 或
-  `--inherit-java`；Maven 通过后者继承项目环境。Node 必须显式传入 `--node`，CLI 固定该 runtime。
-  launcher 相对自身定位同一 tools root 下的 env；构建 stage 只将安装结果复制到所属 image，
-  运行期增量安装只写入 `/opt/java/tools`、
-  `/opt/node/tools`。package-specific metadata 留在对应 image 的 Dockerfile。
-- Java/Node installer 的源码与独立 `.venv` 分别位于主 image 的 `/opt/java/java-tool`、
-  `/opt/node/node-tool`，与各自 runtime 和 tools 同属一个目录。CLI 构建 stage 使用临时副本，
-  不将临时 helper 或其构建环境写入 payload。各 build 通过 wrapper 的无参数 `init` 同步环境；
-  Python 版本由 wrapper 固定，uv 的安装目录固定为 `/opt/uv/python`。普通调用直接复用已有
-  环境；自身 Python 入口不可执行时报错并提示运行 `init`。依赖变更后显式运行 `init`。
-- Workspace helper 固定位于 `/opt/codespace`，Podman wrapper 固定位于 `/opt/podman/bin`；不保留
-  对应的 `/usr/local` 兼容路径。
-
-## Rootless Podman
-
-- 内置 Podman 只服务用户 `x`，固定使用
-  `unix:///run/user/5230/podman/podman.sock`；它不能连接或管理 Host rootful Podman。
-- `/opt/podman/data` 是唯一持久状态边界，不能由多个运行中的 Workspace 共享。保留 rootless
-  所需 subordinate IDs、setuid helper、capability/security 与 unlimited pids contract。
-- 全新 graphroot 根据 backing filesystem 选择 native overlay 或 VFS；已有 graphroot 沿用
-  原 driver，不自动迁移、重建或删除。内部 container 固定禁用 cgroups。Workspace shell 与
-  Podman service 都固定设置 `BUILDAH_ISOLATION=chroot`；直接运行 `podman build` 或
-  `buildah bud`，不要探测 cgroups 或手动覆盖 isolation。
-- GPU Host 由控制面使用 Host CDI 将设备与 driver 注入 Workspace；Podman 启动前再根据这些
-  runtime inputs 生成 `/var/run/cdi/nvidia.yaml`，供内部 container 使用
-  `nvidia.com/gpu=N|all`。Workspace image 只在 `/opt/nvidia/nvidia-container-toolkit` 携带
-  CDI 工具，不携带或固定 Host driver；没有 `/dev/nvidiactl` 时不生成 spec。
-- WSL 继承 filesystem，但使用独立 s6 bundle且不启动 Podman；涉及 inherited graph 时按
-  `platform/wsl/AGENTS.md` 追加验证。
+主 image 与 payload 的接口同时变化时两者都构建。共享 s6 资产变化时，按根文档索引追加
+Service 与 WSL 验证；其他被 WSL 继承的 filesystem 变化也需验证 WSL。
