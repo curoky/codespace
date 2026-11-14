@@ -9,6 +9,7 @@ from pathlib import Path
 from types import ModuleType
 
 import pytest
+from rich.text import Text
 from typer.testing import CliRunner
 
 
@@ -38,7 +39,7 @@ def test_cli_requires_explicit_node(tmp_path: Path) -> None:
         env={"PATH": str(create_fake_node(tmp_path) / "bin")},
     )
     assert result.exit_code == 2, result.output
-    assert "--node" in result.output
+    assert "--node" in Text.from_ansi(result.output).plain
     assert not root.exists()
 
 

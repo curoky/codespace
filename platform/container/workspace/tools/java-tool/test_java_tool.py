@@ -10,6 +10,7 @@ from pathlib import Path
 from types import ModuleType
 
 import pytest
+from rich.text import Text
 from typer.testing import CliRunner
 
 
@@ -189,8 +190,9 @@ def test_cli_requires_one_java_runtime_choice(tmp_path: Path, runtime_options: l
         env={"JAVA_HOME": "/caller/jdk"},
     )
     assert result.exit_code == 2, result.output
-    assert "--java" in result.output
-    assert "--inherit-java" in result.output
+    output = Text.from_ansi(result.output).plain
+    assert "--java" in output
+    assert "--inherit-java" in output
     assert not root.exists()
 
 
