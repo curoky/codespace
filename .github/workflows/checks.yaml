@@ -41,12 +41,12 @@ jobs:
         with:
           enable-cache: true
 
-      - name: Install task and shell tools
+      - name: Install check tools
         shell: bash
         run: |
           set -euo pipefail
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          brew install bats-core go-task shellcheck shfmt
+          brew install bats-core ffmpeg go-task shellcheck shfmt
           echo "${HOMEBREW_PREFIX}/bin" >>"${GITHUB_PATH}"
 
       - name: Sync locked dependencies

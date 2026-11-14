@@ -100,6 +100,7 @@ Host、GPU、mount、secret 和网络由 Codespace 部署配置拥有。模型�
 
 文档变更运行 `task check`；行为变更运行 `task check:full`。更新工具路径时同步根
 `Taskfile.yaml`，不让检查遗漏 Scheduler、模型 serving 或启动脚本。
+Client 测试需要 PATH 中可用的 FFmpeg。
 
 | 修改范围 | 额外验证 |
 | --- | --- |
