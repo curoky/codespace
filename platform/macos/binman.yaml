@@ -1,4 +1,4 @@
-prefix: /opt/bm
+prefix: /Users/x/.local
 installs:
   - packages:
     - 7zz
@@ -87,7 +87,7 @@ installs:
     - parallel
     # - patchelf
     # - pkgconf
-    # - pnpm
+    - pnpm
     - poppler
     # - postgresql
     # - procs

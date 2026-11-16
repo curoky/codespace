@@ -7,11 +7,10 @@
   <string>sh.atuin.daemon</string>
   <key>ProgramArguments</key>
   <array>
-    <string>/opt/bm/bin/atuin</string>
+    <string>/Users/x/.local/bin/atuin</string>
     <string>daemon</string>
     <string>start</string>
     <string>--show-logs</string>
-    <string>--force</string>
   </array>
   <key>RunAtLoad</key>
   <true/>
@@ -19,8 +18,10 @@
   <true/>
   <key>EnvironmentVariables</key>
   <dict>
+    <key>HOME</key>
+    <string>/Users/x</string>
     <key>PATH</key>
-    <string>/opt/bm/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <string>/Users/x/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
   </dict>
   <key>StandardOutPath</key>
   <string>/tmp/atuin.daemon.log</string>

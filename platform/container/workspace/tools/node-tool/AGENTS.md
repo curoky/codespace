@@ -1,8 +1,8 @@
 # node-tool
 
-为主 image 构建和 Workspace 运行期提供单向 npm CLI 安装。每个 package 使用隔离的 pnpm
-project；依赖解析、registry 与 store 交给 pnpm，installer 不管理 Node.js、pnpm 或 package
-catalog。
+为主 image 构建、Workspace 运行期和 macOS maintenance 提供单向 npm CLI 安装。每个 package
+使用隔离的 pnpm project；依赖解析、registry 与 store 交给 pnpm，installer 不管理 Node.js、
+pnpm 或 package catalog。
 
 ## Contracts
 
@@ -12,7 +12,9 @@ catalog。
 - lifecycle scripts 必须由调用方按 package 显式授权，不默认放行。
 - 目标或公开命令已存在时失败，不扩展 overwrite、upgrade、rollback 或并发写入能力。
 - installer 使用本目录独立的 uv project，与调用方 virtualenv 隔离；仅显式 `init` 同步
-  环境，普通调用不安装依赖。修改依赖后必须重新 `init`，已有环境不会自动同步。
+  环境，普通调用不安装依赖。`init` 的 uv executable 与 managed Python root 有 Workspace
+  默认值，非 Workspace 调用方通过参数显式覆盖。修改依赖后必须重新 `init`，已有环境不会
+  自动同步。
 
 ## Validation
 

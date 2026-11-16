@@ -1,41 +1,40 @@
 # macOS Platform
 
-此目录拥有唯一 client 环境：固定 `/Users/x` 的 Homebrew/binman 工具、macOS-specific home
-source、LaunchAgent、默认应用和控制面 SSH wiring。`install.sh` 必须可重复执行并收敛到声明
-状态。
+此目录拥有唯一 client 环境：固定 `/Users/x` 的 Homebrew、用户级开发工具、macOS-specific
+home source、LaunchAgent、默认应用和控制面 SSH wiring。`.agents/skills/manage-macos-environment`
+根据 actual state 调用独立维护脚本，不使用镜像构建或统一 installer。
 
 ## Ownership
 
-- `Brewfile` 是完整 Homebrew state；installer 使用 `brew bundle --force-cleanup`，manifest
-  外 formula/cask 会被删除。新增或移除软件只改 manifest，不在 installer 增加零散 brew
-  命令。
-- `binman.yaml` 声明 `/opt/bm` 中的 standalone tools；`install.sh` 只负责 bootstrap binman、
-  按 manifest 安装和建立必要 alias。
-- `scripts/build-bm-bundle.sh` 在 Darwin/arm64 上将 `binman.yaml` 组装成可迁移的 `bm/`
-  archive；`publish-macos.yaml` 将其作为单层 OCI artifact 发布到 GHCR，并在独立 hosted
-  macOS job 中验证完整装机。
-- `install-v2.sh` 复用现有 installer，但从 GHCR 下载、校验并替换 `/opt/bm`；默认读取
-  `macos-bm-darwin-arm64` tag，CI 通过 `CODESPACE_BM_REFERENCE` 固定到本次发布的 digest。
+- `Brewfile` 是完整 Homebrew state；`maintenance/homebrew.sh` 负责 Homebrew bootstrap 和
+  `brew bundle --force-cleanup`，manifest 外 formula/cask 会被删除。新增或移除软件只改
+  manifest，不增加零散 brew 命令。
+- `binman.yaml` 声明安装到 `~/.local` 的 standalone tools，与 Workspace 的 `/usr/local`
+  布局对应；`maintenance/binman.sh` 在线 bootstrap binman、按 manifest 安装并建立 alias。
+- `maintenance/` 中每个脚本拥有一个可独立收敛的 host 操作。uv、Node.js、Node CLI 和 Go
+  分别维护，脚本不 source 或调用同目录其他脚本；Node CLI 复用 Workspace `node-tool`，
+  依赖关系只由 Skill 编排。
 - `rootfs/Users/x/` 只保存 macOS-specific source。跨 macOS/Workspace 共用的 dotfile 和 SSH
-  material 由 installer 链接 `platform/container/workspace/rootfs/home/x/`。
-- `rootfs/Users/x/.codex/skills/` 保存仅适用于 macOS client 的 Agent skill；installer 按
-  skill 目录同时链接到用户 home 的 `.codex/skills/` 和 `.trae-cn/skills/`，不与
-  Workspace skill 共用。
-- `scripts/` 拥有 macOS imperative setup；`tests/` 用隔离 HOME 验证 link/copy、权限与 SSH
-  结构。
+  material 由 `maintenance/home-links.sh` 链接 `platform/container/workspace/rootfs/home/x/`。
+- `rootfs/Users/x/.codex/AGENTS.md` 以中文约束 macOS Agent 使用用户级工具链与声明式维护
+  入口，内容结构与 Workspace 全局规则保持一致；macOS 不额外安装软件管理 Skill。
+- `scripts/` 保存原子操作调用的实现资产或非环境维护工具；`tests/` 用隔离 HOME 验证
+  maintenance 操作、权限与 SSH 结构。
 
-## Installer Contracts
+## Maintenance Contracts
 
-- `link_home_path` 用于应随仓库 source 立即变化的配置；`copy_home_path` 只用于目标必须拥有
-  独立 inode、权限或运行期可变内容的文件。新增 home path 时明确选择其 ownership。
-- installer 可以替换它明确管理的目标，但不得扫描或清理未声明的用户路径。source file 在
-  link 前按 credential-like `0600` contract 处理。
+- 每个脚本直接执行时完成一个操作，必须可重复运行；不要新增全量安装入口、共享 helper
+  framework、bundle、发布 workflow 或脚本间隐式调用。少量重复优先于跨操作抽象。
+- 脚本可以替换它明确管理的目标，但不得扫描或清理未声明的用户路径。依赖不存在时直接失败，
+  由 Skill 先运行对应依赖操作。
+- home link source 默认为 `0600`；可执行 source 必须显式声明 `0755`。只有目标需要独立
+  inode、权限或运行期修改时才 copy。
 - client SSH 的静态 include/config、login key 和 known_hosts 来自声明 source；Workspace
-  动态 route 由控制面写入 `~/.ssh/codespace/workspaces/`，installer 只准备目录和 include。
-- LaunchAgent source 位于 rootfs，安装时 copy 到用户目录后用 `launchctl` 重新加载。可选
-  daemon 必须通过显式 `load_launch_agent` 调用启用。
-- installer 不启动或创建 Podman machine；控制面连接 Linux remote Host，macOS 本地 Podman
-  只属于用户显式操作。
+  动态 route 由控制面写入 `~/.ssh/codespace/workspaces/`，home links 只准备目录和 include。
+- LaunchAgent source 位于 rootfs，由对应 maintenance 脚本 copy 并重新加载。不要隐式启用
+  可选 service。
+- macOS maintenance 不启动或创建 Podman machine，也不构建 Workspace image；控制面连接
+  Linux remote Host，macOS 本地 Podman 只属于用户显式操作。
 
 ## Validation
 
@@ -43,5 +42,10 @@ source、LaunchAgent、默认应用和控制面 SSH wiring。`install.sh` 必须
 bats platform/macos/tests
 ```
 
-修改 plist 时额外运行 `plutil -lint <plist>`；修改 Swift setup 时执行对应 script；共享 home
-或 SSH trust material 变化时同时构建 Workspace image。完成后运行 `task check:full`。
+修改 plist 时额外运行 `plutil -lint <plist>`；修改 Swift setup 时执行对应 script。macOS-only
+变更不构建 Workspace image；修改共享 home、SSH trust material 或 container artifact 时才按
+对应模块要求构建。完成后运行 `task check:full`。
+
+`.github/workflows/check-macos.yaml` 在 Apple Silicon runner 上执行原生 contract 检查；push、
+定时和手动运行还会从空的 `/Users/x` 安装用户级工具链、home config 与 Atuin daemon。CI
+逐项检查 Brewfile 声明，但不安装 GUI cask，也不修改 runner 的默认应用关联。

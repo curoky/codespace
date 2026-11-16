@@ -466,15 +466,56 @@ def test_workspace_bundles_java_and_node_installers() -> None:
         assert (tool / "uv.lock").is_file()
         assert not (tool / f"{name}.py.lock").exists()
         assert 'script_dir="$(dirname "$(readlink -f "$0")")"' in wrapper
-        assert (
-            '/usr/local/bin/uv sync --project "$script_dir" --locked --no-dev --python 3.14'
-            in wrapper
-        )
         assert f'exec "$script_dir/.venv/bin/python" "$script_dir/{name}.py" "$@"' in wrapper
+    assert "uv_executable=/usr/local/bin/uv" in node_tool
+    assert "python_install_dir=/opt/uv/python" in node_tool
+    assert (
+        '"$uv_executable" sync --project "$script_dir" --locked --no-dev --python 3.14' in node_tool
+    )
+    assert (
+        '/usr/local/bin/uv sync --project "$script_dir" --locked --no-dev --python 3.14'
+        in java_tool
+    )
     assert "/opt/java/java-tool" in profile
     assert "/opt/node/node-tool" in profile
     assert os.access(workspace / "tools/java-tool/java-tool", os.X_OK)
     assert os.access(workspace / "tools/node-tool/node-tool", os.X_OK)
+
+
+def test_node_tool_init_accepts_explicit_uv_paths(tmp_path: Path) -> None:
+    tool = tmp_path / "node-tool"
+    tool.mkdir()
+    fake_uv = tmp_path / "uv"
+    fake_uv.write_text(
+        f"#!{sys.executable}\n"
+        "import os\n"
+        "from pathlib import Path\n"
+        "import sys\n"
+        "record = Path(os.environ['UV_PROJECT_ENVIRONMENT']).parent / 'init-call'\n"
+        "record.write_text(repr((os.environ.get('VIRTUAL_ENV'), "
+        "os.environ['UV_PYTHON_INSTALL_DIR'], sys.argv[1:])))\n"
+    )
+    fake_uv.chmod(0o755)
+    wrapper = tool / "node-tool"
+    wrapper.write_text((_CONTAINER / "workspace/tools/node-tool/node-tool").read_text())
+    wrapper.chmod(0o755)
+    python_root = tmp_path / "managed-python"
+
+    subprocess.run(
+        [
+            str(wrapper),
+            "init",
+            "--uv",
+            str(fake_uv),
+            "--python-install-dir",
+            str(python_root),
+        ],
+        check=True,
+        env={"PATH": "/usr/bin:/bin", "VIRTUAL_ENV": str(tmp_path / "caller")},
+    )
+
+    sync_arguments = ["sync", "--project", str(tool), "--locked", "--no-dev", "--python", "3.14"]
+    assert (tool / "init-call").read_text() == repr((None, str(python_root), sync_arguments))
 
 
 @pytest.mark.parametrize("name", ["node-tool", "java-tool"])
@@ -645,7 +686,7 @@ def test_workspace_resource_image_installs_binman_manifest() -> None:
         (_CONTAINER / "workspace/config/binman.yaml", "/usr/local"),
         (_CONTAINER / "workspace/config/binman-resource.yaml", "/usr/local"),
         (_CONTAINER / "services/s6/binman.yaml", "/usr/local"),
-        (_CONTAINER.parent / "macos/binman.yaml", "/opt/bm"),
+        (_CONTAINER.parent / "macos/binman.yaml", "/Users/x/.local"),
     ],
 )
 def test_binman_manifests_use_install_plan_schema(manifest_path: Path, prefix: str) -> None:
@@ -657,6 +698,41 @@ def test_binman_manifests_use_install_plan_schema(manifest_path: Path, prefix: s
     for install in manifest["installs"]:
         assert set(install) <= {"packages", "link-to"}
         assert install["packages"]
+
+
+def test_macos_toolchains_match_workspace_versions() -> None:
+    dockerfile = (_CONTAINER / "workspace/Dockerfile").read_text()
+    maintenance = _CONTAINER.parent / "macos/maintenance"
+    node_runtime = (maintenance / "node-runtime.sh").read_text()
+    node_tools = (maintenance / "node-tools.sh").read_text()
+    go = (maintenance / "go.sh").read_text()
+
+    node_versions = set(re.findall(r"node-v(\d+\.\d+\.\d+)-linux-x64", dockerfile))
+    assert len(node_versions) == 2
+    for version in node_versions:
+        assert version in node_runtime
+
+    go_version = re.search(r"go(\d+\.\d+\.\d+)\.linux-amd64", dockerfile)
+    assert go_version is not None
+    assert f'version="{go_version.group(1)}"' in go
+
+    prettier_version = re.search(r"node-tool install prettier@(\d+\.\d+\.\d+)", dockerfile)
+    assert prettier_version is not None
+    assert f'version="{prettier_version.group(1)}"' in node_tools
+    assert 'tools/node-tool"' in node_tools
+    assert '"$node_tool/node-tool" init' in node_tools
+    assert '--uv "$HOME/.local/bin/uv"' in node_tools
+    assert '--python-install-dir "$HOME/.local/share/uv/python"' in node_tools
+    assert '"$node_tool/node-tool" install "prettier@${version}"' in node_tools
+    assert '--node "$node_root/nodejs24"' in node_tools
+    assert '--pnpm "$HOME/.local/bin/pnpm"' in node_tools
+    assert '--root "$tools_root"' in node_tools
+
+    macos_manifest = yaml.safe_load((_CONTAINER.parent / "macos/binman.yaml").read_text())
+    macos_packages = {
+        package for install in macos_manifest["installs"] for package in install["packages"]
+    }
+    assert {"pnpm", "uv"} <= macos_packages
 
 
 def test_workspace_binman_manifests_do_not_overlap() -> None:

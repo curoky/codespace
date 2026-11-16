@@ -7,7 +7,7 @@
   <string>sh.atuin.server</string>
   <key>ProgramArguments</key>
   <array>
-    <string>/opt/bm/bin/atuin</string>
+    <string>/Users/x/.local/bin/atuin</string>
     <string>server</string>
     <string>start</string>
   </array>
@@ -18,7 +18,7 @@
   <key>EnvironmentVariables</key>
   <dict>
     <key>PATH</key>
-    <string>/opt/bm/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <string>/Users/x/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
     <key>ATUIN_HOST</key>
     <string>127.0.0.1</string>
     <key>ATUIN_PORT</key>

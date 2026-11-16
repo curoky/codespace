@@ -4,7 +4,7 @@ export XDG_DATA_HOME="$HOME/.local/share"
 export XDG_RUNTIME_DIR="$XDG_CACHE_HOME/runtime"
 export TMPDIR="$XDG_CACHE_HOME/tmp"
 
-typeset -g +x ZSH="/opt/bm/store/zsh-plugins/share/oh-my-zsh"
+typeset -g +x ZSH="$HOME/.local/store/zsh-plugins/share/oh-my-zsh"
 typeset -g +x ZSH_CACHE_DIR="$XDG_CACHE_HOME/oh-my-zsh"
 typeset -g +x HISTFILE="$HOME/.zsh_history"
 
@@ -22,8 +22,11 @@ export TMUX_CONF_LOCAL="$XDG_CONFIG_HOME/tmux/tmux.conf.local"
 export GOPROXY="https://goproxy.cn,direct"
 export HOMEBREW_NO_ANALYTICS=1
 export HOMEBREW_NO_AUTO_UPDATE=1
-export UV_NATIVE_TLS=true
 export UV_SYSTEM_CERTS=true
+export UV_TOOL_DIR="$HOME/.local/share/uv/tools"
+export UV_TOOL_BIN_DIR="$HOME/.local/share/uv/bin"
+export UV_PYTHON_INSTALL_DIR="$HOME/.local/share/uv/python"
+export UV_PYTHON_BIN_DIR="$HOME/.local/share/uv/bin"
 
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
@@ -34,14 +37,19 @@ fi
 typeset -U path PATH
 path=(
   "$HOME/.local/bin"
-  /opt/bm/bin
-  "$HOME/workspace/codespace/platform/container/workspace/rootfs/home/x/.local/bin"
+  "$HOME/.local/share/uv/bin"
+  "$HOME/.local/share/node/tools/bin"
+  "$HOME/.local/share/node/node-tool"
+  "$HOME/.local/share/node/nodejs24/bin"
+  "$HOME/go/bin"
+  "$HOME/.local/share/go/go1.27.1/bin"
+  "$HOME/.local/profile/go/bin"
   "${path[@]}"
 )
 
 typeset -U fpath FPATH
 fpath=(
-  /opt/bm/share/zsh/site-functions
+  "$HOME/.local/share/zsh/site-functions"
   "$ZSH/custom/plugins/zsh-completions/src"
   "${fpath[@]}"
 )
@@ -63,8 +71,8 @@ source "$ZSH/lib/git.zsh"
 source "$ZSH/plugins/extract/extract.plugin.zsh"
 source "$ZSH/plugins/git/git.plugin.zsh"
 
-source "/opt/bm/store/zsh-plugins/share/oh-my-zsh/custom/plugins/starship/starship.plugin.zsh"
-source "/opt/bm/store/zsh-plugins/share/oh-my-zsh/custom/plugins/atuin/atuin.plugin.zsh"
+source "$HOME/.local/store/zsh-plugins/share/oh-my-zsh/custom/plugins/starship/starship.plugin.zsh"
+source "$HOME/.local/store/zsh-plugins/share/oh-my-zsh/custom/plugins/atuin/atuin.plugin.zsh"
 source "$ZSH/custom/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
 source "$XDG_CONFIG_HOME/zsh/functions.zsh"

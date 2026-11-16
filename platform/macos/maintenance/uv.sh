@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+uv_root="$HOME/.local/share/uv"
+install -d "$uv_root"
+
+env \
+  UV_TOOL_DIR="$uv_root/tools" \
+  UV_TOOL_BIN_DIR="$uv_root/bin" \
+  UV_PYTHON_INSTALL_DIR="$uv_root/python" \
+  UV_PYTHON_BIN_DIR="$uv_root/bin" \
+  "$HOME/.local/bin/uv" python install 3.14
