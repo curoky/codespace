@@ -32,7 +32,7 @@ installs:
     - eza
     # - eza-ls
     - fd
-    # - ffmpeg
+    - ffmpeg
     # - file
     - findutils
     # - fira-code
