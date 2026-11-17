@@ -36,6 +36,8 @@ Dockerfile、manifest、脚本、类型和测试为准，不在文档中复述�
 - 每个 image 拥有自身的 package metadata，避免跨 package manager 重复安装。binman 的
   launcher、store 与 profile 是完整载荷，必须一起保留；调用方使用稳定入口，不硬编码
   内部 content-addressed store 路径。
+- Conda channel 的 ToS 接受记录由 rootfs 的系统级 metadata 提供，供 root 与 `x` 共同
+  使用。记录只接受指定版本的条款；条款更新后需重新接受并同步 rootfs，不自动接受新版本。
 - 内置 Podman 仅服务 Workspace 用户，不连接 Host Podman。持久数据不能由多个运行中的
   Workspace 共享；已有 storage driver 不自动迁移、重建或删除。
 - 保留 rootless Podman 所需的 subordinate IDs、setuid helper、容器权限与 unlimited pids；
