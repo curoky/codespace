@@ -1,0 +1,4 @@
+interface:
+  display_name: "macOS 环境维护"
+  short_description: "初始化并维护 macOS 本机开发工具、用户配置与后台服务"
+  default_prompt: "使用 $manage-macos-environment 检查本机 macOS 开发环境，并按当前状态执行所需的增量安装或维护。"
