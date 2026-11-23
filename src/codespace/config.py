@@ -38,7 +38,7 @@ from codespace.workspaces import (
     workspace_path,
 )
 
-CONFIG_PATH = Path("/Users/x/.config/codespace/config.yaml")
+CONFIG_PATH = Path.home() / ".config/codespace/config.yaml"
 
 type TcpPort = Annotated[StrictInt, Field(ge=1, le=65535)]
 type TunnelPorts = list[TcpPort]

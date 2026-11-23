@@ -40,6 +40,11 @@ Host；控制面通过本机 OpenSSH 管理 Host 上的 rootful Podman。
 - 目录按领域组织，不增加无明确 ownership 的 `common`、`utils` 或 compatibility
   package；不保留旧路径、fallback 或迁移层。
 - 不修改无关的用户、工作树或远端状态；真实 token、secret 与机器配置不得提交。
+- 当前用户的主目录优先使用 `$HOME`、`~` 或语言的 home API。显式设置固定用户 `x` 的
+  HOME、初始化其目录或操作固定 image 布局时直接使用 `/home/x`，不使用带用户名的
+  tilde 展开或额外账户查询。配置字段仅在确认原生支持路径展开时修改；不支持或无法
+  确认时保留原值，不增加安装时模板替换或 Shell 包装。rootfs source layout、跨 stage
+  COPY 和 container mount target 等固定 filesystem 合同保留绝对路径。
 
 ## Validation
 

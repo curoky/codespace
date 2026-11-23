@@ -48,7 +48,7 @@ RUN export HOME=/home/x \
   && uv python install 3.12.14 \
   && /usr/local/bin/install-asr-model-environments \
   && hardlink --ignore-time --respect-xattrs --maximize /opt/asr/models/*/.venv \
-  && rm -rf /home/x/.cache/uv
+  && rm -rf "$HOME/.cache/uv"
 
 USER root
 COPY platform/container/services/asr/protocol.py /opt/asr/protocol.py

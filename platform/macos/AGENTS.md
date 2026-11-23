@@ -1,6 +1,6 @@
 # macOS Platform
 
-此目录拥有唯一 client 环境：固定 `/Users/x` 的 Homebrew、用户级开发工具、macOS-specific
+此目录拥有唯一 client 环境：当前用户的 Homebrew、`$HOME` 下的开发工具、macOS-specific
 home source、LaunchAgent、默认应用和控制面 SSH wiring。`.agents/skills/manage-macos-environment`
 根据 actual state 调用独立维护脚本，不使用镜像构建或统一 installer。
 
@@ -30,11 +30,14 @@ home source、LaunchAgent、默认应用和控制面 SSH wiring。`.agents/skill
 - 默认 Node.js runtime、Node CLI 的 runtime binding 与 editor npm 路径保持一致；已有
   CLI 不随 Shell PATH 切换，binding 变化时由 Skill 编排对应 package 的重装。
 - home link source 默认为 `0600`；可执行 source 必须显式声明 `0755`。只有目标需要独立
-  inode、权限或运行期修改时才 copy。
+  inode、权限或运行期修改时才 copy。应用配置只使用该字段原生支持的路径语法，不增加
+  安装时模板替换。
+- 路径展开按应用的具体字段核实，不从其他字段推断。Snipaste `last_save_folder` 的 `~`
+  展开未获官方说明或原生验证，当前保留绝对路径。
 - client SSH 的静态 include/config、login key 和 known_hosts 来自声明 source；Workspace
   动态 route 由控制面写入 `~/.ssh/codespace/workspaces/`，home links 只准备目录和 include。
-- LaunchAgent source 位于 rootfs，由对应 maintenance 脚本 copy 并重新加载。不要隐式启用
-  可选 service。
+- LaunchAgent source 位于 rootfs，由对应 maintenance 脚本 copy 并重新加载。launchd
+  自身不展开变量，相关路径保留绝对值，不增加 Shell 包装。不要隐式启用可选 service。
 - macOS maintenance 不启动或创建 Podman machine，也不构建 Workspace image；控制面连接
   Linux remote Host，macOS 本地 Podman 只属于用户显式操作。
 

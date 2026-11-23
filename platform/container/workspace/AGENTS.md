@@ -24,6 +24,8 @@ Dockerfile、manifest、脚本、类型和测试为准，不在文档中复述�
   时移回 `s6-rc.d`、按需加入 bundle 并重建 image。
 - image 拥有的系统内容与用户可写的软件、缓存分离；root service 只使用 root-owned 命令
   路径。用户以 `x` 运行，挂载数据的身份必须与 Host 一致。
+- 用户工具路径从 `$HOME` 派生；s6 用户服务显式设置用户 `x` 的 HOME。root 的 home
+  初始化、rootfs 与跨 stage COPY 直接使用 image 的固定用户布局。
 - `/workspace`、`/workspace.enc` 与 `/opt/podman/data` 的初始化只准备挂载根，不递归
   chown、迁移或清除已有数据。`home-init` 当前会递归调整指定 IDE 目录的归属，不得把这个
   范围扩大到 Workspace 或 Podman 数据。

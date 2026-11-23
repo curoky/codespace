@@ -10,8 +10,8 @@ from pathlib import Path
 from codespace.runtime.transport import SSHRoute, ssh_base_options
 from codespace.workspaces import Workspace
 
-SSH_CONFIG_PATH = Path("/Users/x/.ssh/codespace/config")
-SSH_ROUTES_DIR = Path("/Users/x/.ssh/codespace/workspaces")
+SSH_CONFIG_PATH = Path.home() / ".ssh/codespace/config"
+SSH_ROUTES_DIR = Path.home() / ".ssh/codespace/workspaces"
 
 
 def connection_options(workspace: Workspace, route: SSHRoute) -> list[str]:

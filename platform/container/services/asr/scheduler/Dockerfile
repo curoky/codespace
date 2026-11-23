@@ -12,7 +12,7 @@ RUN rm -f /etc/s6/s6-rc.d/default/contents.d/miniserve-logs \
 USER x
 RUN uv python install 3.14.7 \
   && uv sync --locked --no-dev --project /opt/asr/scheduler \
-  && rm -rf /home/x/.cache/uv
+  && rm -rf "$HOME/.cache/uv"
 USER root
 RUN /etc/s6/install-s6.sh
 EXPOSE 8080

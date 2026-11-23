@@ -22,10 +22,9 @@ type SourceType = Literal["github", "gitlab", "git"]
 type AgentState = Literal["starting", "awaiting-provider", "ready", "failed"]
 
 SOCKET_PATH = Path("/run/codespace-control/agent.sock")
-DEPLOY_PUBLIC_KEY_PATH = Path("/home/x/.ssh/git_deploy_key_ed25519.pub")
+DEPLOY_PUBLIC_KEY_PATH = Path.home() / ".ssh/git_deploy_key_ed25519.pub"
 CHECKOUT = "/opt/codespace/bin/checkout"
 
-HELPER_HOME = "/home/x"
 HELPER_TIMEOUT = 60.0
 CHECKOUT_TIMEOUT = 900.0
 
@@ -69,8 +68,8 @@ def run_command(
             text=True,
             stdin=subprocess.DEVNULL,
             timeout=timeout,
-            cwd=HELPER_HOME,
-            env={**os.environ, "HOME": HELPER_HOME},
+            cwd=Path.home(),
+            env=os.environ.copy(),
         )
     except subprocess.CalledProcessError as exc:
         detail = (exc.stderr or exc.stdout or str(exc)).strip()

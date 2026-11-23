@@ -372,6 +372,7 @@ def _repository(
 
 
 def test_image_run_command_inherits_agent_identity(
+    tmp_path: Path,
     image_agent: ModuleType,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -382,13 +383,14 @@ def test_image_run_command_inherits_agent_identity(
         return subprocess.CompletedProcess(command, 0, stdout="", stderr="")
 
     monkeypatch.setattr(image_agent.subprocess, "run", run)
+    monkeypatch.setenv("HOME", str(tmp_path))
 
     image_agent.run_command(["git", "status"])
 
     environment = captured["env"]
     assert isinstance(environment, dict)
-    assert environment["HOME"] == "/home/x"
-    assert captured["cwd"] == "/home/x"
+    assert environment["HOME"] == str(tmp_path)
+    assert captured["cwd"] == tmp_path
     assert {"user", "group", "extra_groups"}.isdisjoint(captured)
 
 

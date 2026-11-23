@@ -4,11 +4,11 @@ set -euo pipefail
 
 model_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
-export XDG_CACHE_HOME=/home/x/.cache
-export VLLM_CACHE_ROOT=/home/x/.cache/vllm
-export CUDA_CACHE_PATH=/home/x/.cache/nv/ComputeCache
+export XDG_CACHE_HOME="$HOME/.cache"
+export VLLM_CACHE_ROOT="$HOME/.cache/vllm"
+export CUDA_CACHE_PATH="$HOME/.cache/nv/ComputeCache"
 export CUDA_CACHE_MAXSIZE=4294967296
-export TORCH_EXTENSIONS_DIR=/home/x/.cache/torch_extensions
+export TORCH_EXTENSIONS_DIR="$HOME/.cache/torch_extensions"
 export VLLM_ENABLE_STARTUP_PLAN=1
 export VLLM_MEDIA_LOADING_THREAD_COUNT=16
 export OMP_NUM_THREADS=8
@@ -22,7 +22,7 @@ export TRANSFORMERS_OFFLINE=1
 export TOKENIZERS_PARALLELISM=false
 
 export CUDA_HOME=/usr/local/cuda-13.0
-export FLASHINFER_WORKSPACE_BASE=/home/x/.cache/flashinfer-workspaces/qwen3-asr-1.7b
+export FLASHINFER_WORKSPACE_BASE="$HOME/.cache/flashinfer-workspaces/qwen3-asr-1.7b"
 export LD_LIBRARY_PATH=/usr/local/cuda-13.0/compat:/usr/local/cuda-13.0/lib64
 
 # BF16 保留原精度；8192 包含音频编码与输出预算，不是音频秒数。

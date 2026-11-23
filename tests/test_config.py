@@ -126,7 +126,7 @@ def test_example_gpu_service_sets_huggingface_environment_at_startup(service: st
             and secret.mode == 0o400
             for secret in container.secrets
         )
-    assert "export HF_HOME=/home/x/.cache/huggingface" in script
+    assert 'export HF_HOME="$HOME/.cache/huggingface"' in script
     assert "export HF_TOKEN_PATH=/run/secrets/huggingface_token" in script
 
 

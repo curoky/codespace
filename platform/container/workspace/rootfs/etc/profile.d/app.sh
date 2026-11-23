@@ -12,10 +12,10 @@ codespace_add_path() {
 }
 
 # user tools
-codespace_add_path /home/x/.local/bin
+codespace_add_path "$HOME/.local/bin"
 
 # rust
-export CARGO_HOME=/home/x/.cargo
+export CARGO_HOME="$HOME/.cargo"
 export RUSTUP_HOME=/opt/rust/rustup
 codespace_add_path "$CARGO_HOME/bin"
 codespace_add_path /opt/rust/cargo/bin
@@ -37,7 +37,7 @@ codespace_add_path /opt/conda/condabin
 codespace_add_path /opt/resource/usr/local/bin
 
 # go
-codespace_add_path /home/x/go/bin
+codespace_add_path "$HOME/go/bin"
 codespace_add_path /opt/go/go1.27.1/bin
 codespace_add_path /usr/local/profile/go/bin
 
@@ -56,8 +56,8 @@ codespace_add_path /opt/resource/opt/java/tools/bin
 codespace_add_path "$JAVA_HOME/bin"
 
 # nodejs
-export NPM_CONFIG_CACHE=/home/x/.cache/npm
-codespace_add_path /home/x/.local/share/pnpm/bin
+export NPM_CONFIG_CACHE="$HOME/.cache/npm"
+codespace_add_path "$HOME/.local/share/pnpm/bin"
 codespace_add_path /opt/node/node-tool
 codespace_add_path /opt/node/tools/bin
 codespace_add_path /opt/node/nodejs26/bin
@@ -70,9 +70,9 @@ codespace_add_path /opt/podman/bin
 export BUILDAH_ISOLATION=chroot
 
 # nix
-export NIX_PATH=/home/x/.nix-defexpr/channels
+export NIX_PATH="$HOME/.nix-defexpr/channels"
 codespace_add_path /nix/var/nix/profiles/default/bin
-codespace_add_path /home/x/.local/state/nix/profiles/profile/bin
+codespace_add_path "$HOME/.local/state/nix/profiles/profile/bin"
 
 # cuda
 export CUDA_HOME=/usr/local/cuda
@@ -84,7 +84,7 @@ export LD_LIBRARY_PATH=/usr/local/cuda/lib64
 export KRB5CCNAME=/opt/secret/krb5_ccache
 
 # tmux
-export TMUX_CONF_LOCAL=/home/x/.config/tmux/tmux.conf.local
+export TMUX_CONF_LOCAL="$HOME/.config/tmux/tmux.conf.local"
 
 unset -f codespace_add_path
 

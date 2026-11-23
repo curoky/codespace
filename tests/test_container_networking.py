@@ -141,15 +141,15 @@ def test_app_profile_sets_tools_and_preserves_inherited_environment(tmp_path: Pa
         "/usr/local/profile/go/bin",
         "/usr/local/profile/clang-tools/bin",
         "/usr/local/profile/protobuf/bin",
-        "/home/x/go/bin",
-        "/home/x/.local/share/pnpm/bin",
+        str(tmp_path / "go/bin"),
+        str(tmp_path / ".local/share/pnpm/bin"),
         "/opt/java/java-tool",
         "/opt/java/openjdk27/bin",
         "/opt/node/node-tool",
         "/opt/node/nodejs26/bin",
     }.issubset(entries)
     assert environment["JAVA_HOME"] == "/opt/java/openjdk27"
-    assert environment["CARGO_HOME"] == "/home/x/.cargo"
+    assert environment["CARGO_HOME"] == str(tmp_path / ".cargo")
     assert environment["RUSTUP_HOME"] == "/opt/rust/rustup"
     assert environment["LD_LIBRARY_PATH"] == "/usr/local/cuda/lib64"
 
@@ -218,7 +218,7 @@ def test_workspace_image_packages_are_root_owned_and_user_installs_use_local() -
     assert "--from=stage_sb /opt/bm" not in dockerfile
     assert not (_CONTAINER / "workspace/rootfs/home/x/.local/bin/bm").exists()
     assert (
-        "/home/x/.local/bin" in (_CONTAINER / "workspace/rootfs/etc/profile.d/app.sh").read_text()
+        '"$HOME/.local/bin"' in (_CONTAINER / "workspace/rootfs/etc/profile.d/app.sh").read_text()
     )
     assert "- podman5-rootless" in manifest
     assert "bm download" not in dockerfile
@@ -687,14 +687,14 @@ def test_workspace_resource_image_installs_binman_manifest() -> None:
         (_CONTAINER / "workspace/config/binman.yaml", "/usr/local"),
         (_CONTAINER / "workspace/config/binman-resource.yaml", "/usr/local"),
         (_CONTAINER / "services/s6/binman.yaml", "/usr/local"),
-        (_CONTAINER.parent / "macos/binman.yaml", "/Users/x/.local"),
+        (_CONTAINER.parent / "macos/binman.yaml", None),
     ],
 )
-def test_binman_manifests_use_install_plan_schema(manifest_path: Path, prefix: str) -> None:
+def test_binman_manifests_use_install_plan_schema(manifest_path: Path, prefix: str | None) -> None:
     manifest = yaml.safe_load(manifest_path.read_text())
 
-    assert set(manifest) == {"prefix", "installs"}
-    assert manifest["prefix"] == prefix
+    assert set(manifest) == ({"prefix", "installs"} if prefix else {"installs"})
+    assert manifest.get("prefix") == prefix
     assert manifest["installs"]
     for install in manifest["installs"]:
         assert set(install) <= {"packages", "link-to"}

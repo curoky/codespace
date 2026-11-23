@@ -24,7 +24,7 @@ inspect 数据还原。
 
 ## State Contracts
 
-- 控制面只读取 `/Users/x/.config/codespace/config.yaml`，并在进程入口一次性转换为 immutable
+- 控制面只读取 `~/.config/codespace/config.yaml`，并在进程入口一次性转换为 immutable
   Pydantic model。`config.example.yaml` 展示完整 schema；真实 token 与 secret 不得提交。
 - `config.py` 只描述 desired state。不要用当前配置补齐旧容器缺失的 labels、source、image
   或 path，也不要在 inventory 时隐式迁移。
@@ -85,7 +85,7 @@ inspect 数据还原。
 - Service apply 使用 replace reconciliation：先 pull image 并准备数据，再移除旧 container、
   创建新 container。失败保留当前现场，不恢复旧 container。Service remove 允许资源尚未部署，
   Workspace remove 要求目标 container 存在。
-- SSH route 原子写入 `/Users/x/.ssh/codespace/workspaces/`，并复用系统 OpenSSH config、
+- SSH route 原子写入 `~/.ssh/codespace/workspaces/`，并复用系统 OpenSSH config、
   Host authentication 与 host-key verification。
 - 容器端 Agent 位于 `platform/container/workspace/agent/`。修改 endpoint、payload、state 或
   timeout 时同步 client、server、lifecycle 和 `tests/workspaces/test_agent.py`，不保留旧协议

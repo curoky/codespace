@@ -12,6 +12,7 @@ device、publication 和 tunnel 属于控制面配置；leaf Dockerfile 只定�
   skel 和 service definition，并在自己的 filesystem 上运行 `install-s6.sh` 编译 graph。
 - leaf 只复制自身 `rootfs/` 和 service definition，不引入 Workspace SSH、deploy key、Agent、
   home profile 或 rootless Podman。
+- s6 用户服务显式设置用户 `x` 的 HOME；启动脚本的用户 cache 从 `$HOME` 派生。
 - `support/` 是唯一明确拥有 Host rootful Podman socket maintenance 职责的 leaf；不要把该
   mount 或权限推广到其他 Service。
 - `.github/workflows/publish-services.yaml` 每次触发先发布 shared runtime，成功后按静态

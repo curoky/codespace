@@ -1,4 +1,3 @@
-prefix: /Users/x/.local
 installs:
   - packages:
     - 7zz
