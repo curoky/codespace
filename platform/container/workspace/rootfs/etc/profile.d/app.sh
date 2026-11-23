@@ -60,7 +60,7 @@ export NPM_CONFIG_CACHE=/home/x/.cache/npm
 codespace_add_path /home/x/.local/share/pnpm/bin
 codespace_add_path /opt/node/node-tool
 codespace_add_path /opt/node/tools/bin
-codespace_add_path /opt/node/nodejs24/bin
+codespace_add_path /opt/node/nodejs26/bin
 
 # codespace
 export WORKSPACE=/workspace

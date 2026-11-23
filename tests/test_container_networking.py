@@ -146,6 +146,7 @@ def test_app_profile_sets_tools_and_preserves_inherited_environment(tmp_path: Pa
         "/opt/java/java-tool",
         "/opt/java/openjdk27/bin",
         "/opt/node/node-tool",
+        "/opt/node/nodejs26/bin",
     }.issubset(entries)
     assert environment["JAVA_HOME"] == "/opt/java/openjdk27"
     assert environment["CARGO_HOME"] == "/home/x/.cargo"
@@ -254,7 +255,7 @@ def test_workspace_bundles_runtimes_and_keeps_java_tools_in_resource() -> None:
         )
         assert not (rootfs_opt / family).is_symlink()
     assert "--java /opt/java/openjdk27" in resource_dockerfile
-    assert "--node /opt/node/nodejs24" in workspace_dockerfile
+    assert "--node /opt/node/nodejs26" in workspace_dockerfile
     assert "--pnpm /usr/local/bin/pnpm" in workspace_dockerfile
     assert (
         "COPY --from=stage_java /opt/java/tools /opt/resource/opt/java/tools" in resource_dockerfile
@@ -724,7 +725,7 @@ def test_macos_toolchains_match_workspace_versions() -> None:
     assert '--uv "$HOME/.local/bin/uv"' in node_tools
     assert '--python-install-dir "$HOME/.local/share/uv/python"' in node_tools
     assert '"$node_tool/node-tool" install "prettier@${version}"' in node_tools
-    assert '--node "$node_root/nodejs24"' in node_tools
+    assert '--node "$node_root/nodejs26"' in node_tools
     assert '--pnpm "$HOME/.local/bin/pnpm"' in node_tools
     assert '--root "$tools_root"' in node_tools
 

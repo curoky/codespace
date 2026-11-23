@@ -180,7 +180,7 @@ file_mode() {
   grep -Fqx '  "$HOME/.local/bin"' "$zshrc"
   grep -Fqx '  "$HOME/.local/share/uv/bin"' "$zshrc"
   grep -Fqx '  "$HOME/.local/share/node/tools/bin"' "$zshrc"
-  grep -Fqx '  "$HOME/.local/share/node/nodejs24/bin"' "$zshrc"
+  grep -Fqx '  "$HOME/.local/share/node/nodejs26/bin"' "$zshrc"
   grep -Fqx '  "$HOME/.local/share/go/go1.27.1/bin"' "$zshrc"
   grep -Fqx '  "$HOME/.local/profile/go/bin"' "$zshrc"
 }

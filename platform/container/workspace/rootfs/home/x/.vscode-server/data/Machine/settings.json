@@ -82,7 +82,7 @@
       "path": "/usr/local/bin/zsh"
     }
   },
-  "typescript.npm": "/opt/node/nodejs24/bin/npm",
+  "typescript.npm": "/opt/node/nodejs26/bin/npm",
   "xml.java.home": "/opt/java/openjdk27",
   "xml.server.binary.path": "/opt/resource/opt/java/tools/bin/lemminx",
   "xml.server.vmargs": "-Xmx5G"

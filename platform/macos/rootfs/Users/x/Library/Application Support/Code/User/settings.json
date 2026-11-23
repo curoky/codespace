@@ -381,7 +381,7 @@
   "terminal.integrated.defaultProfile.osx": "zsh",
   "terminal.integrated.fontFamily": "UbuntuMonoNFM",
   "terminal.integrated.fontSize": 23,
-  "typescript.npm": "/Users/x/.local/share/node/nodejs24/bin/npm",
+  "typescript.npm": "/Users/x/.local/share/node/nodejs26/bin/npm",
   "terminal.integrated.fontWeight": "500",
   "terminal.integrated.inheritEnv": false,
   "terminal.integrated.initialHint": false,

@@ -34,11 +34,14 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 增量依赖：
 
 - `uv.sh` 依赖 `binman.sh` 提供 uv。
-- `node-tools.sh` 依赖 `binman.sh` 提供 pnpm，并依赖 `node-runtime.sh` 提供 Node.js 24。
+- `node-tools.sh` 依赖 `binman.sh` 提供 pnpm，并依赖 `node-runtime.sh` 提供 Node.js 26。
 - `atuin-daemon.sh` 依赖 `binman.sh` 提供 Atuin。
 
 不要用临时 `brew install`、全局 `npm install`、全局 `pnpm add` 或手工复制文件替代这些脚本。
 软件声明变化时先修改对应 manifest 或脚本，再运行该操作。
+
+Node CLI 的 runtime binding 变化时，先移除对应 package 的 managed environment 与公开
+launcher，再运行 `node-tools.sh` 重装；仅改变 Shell PATH 不会更新已有 launcher 的 binding。
 
 ## Full Install
 
@@ -68,7 +71,7 @@ test -x "$HOME/.local/share/node/nodejs24/bin/node"
 test -x "$HOME/.local/share/node/nodejs26/bin/node"
 test -x "$HOME/.local/share/node/tools/bin/prettier"
 test -x "$HOME/.local/share/go/go1.27.1/bin/go"
-"$HOME/.local/share/node/nodejs24/bin/node" --version
+"$HOME/.local/share/node/nodejs26/bin/node" --version
 "$HOME/.local/share/go/go1.27.1/bin/go" version
 test -L "$HOME/.zshrc"
 

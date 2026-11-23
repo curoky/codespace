@@ -103,7 +103,7 @@ jobs:
         run: |
           set -euo pipefail
           export HOME="$CODESPACE_HOME"
-          export PATH="$HOME/.local/bin:$HOME/.local/share/uv/bin:$HOME/.local/share/node/tools/bin:$HOME/.local/share/node/nodejs24/bin:$HOME/.local/share/go/go1.27.1/bin:$PATH"
+          export PATH="$HOME/.local/bin:$HOME/.local/share/uv/bin:$HOME/.local/share/node/tools/bin:$HOME/.local/share/node/nodejs26/bin:$HOME/.local/share/go/go1.27.1/bin:$PATH"
 
           test -x "$HOME/.local/bin/uv"
           test -x "$HOME/.local/bin/pnpm"
@@ -118,13 +118,13 @@ jobs:
           pnpm --version
           python3.14 --version
           node --version
-          "$HOME/.local/share/node/nodejs26/bin/node" --version
+          "$HOME/.local/share/node/nodejs24/bin/node" --version
           prettier --version
           go version
 
           test "$(command -v uv)" = "$HOME/.local/bin/uv"
           test "$(command -v pnpm)" = "$HOME/.local/bin/pnpm"
-          test "$(command -v node)" = "$HOME/.local/share/node/nodejs24/bin/node"
+          test "$(command -v node)" = "$HOME/.local/share/node/nodejs26/bin/node"
           test "$(command -v prettier)" = "$HOME/.local/share/node/tools/bin/prettier"
           test "$(command -v go)" = "$HOME/.local/share/go/go1.27.1/bin/go"
 

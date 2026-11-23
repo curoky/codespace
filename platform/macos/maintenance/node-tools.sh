@@ -39,6 +39,6 @@ fi
 rm -rf "$environment" "$tools_root/bin/prettier"
 PATH="$HOME/.local/bin:$PATH" \
   "$node_tool/node-tool" install "prettier@${version}" \
-  --node "$node_root/nodejs24" \
+  --node "$node_root/nodejs26" \
   --pnpm "$HOME/.local/bin/pnpm" \
   --root "$tools_root"

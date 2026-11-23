@@ -29,6 +29,8 @@ Dockerfile、manifest、脚本、类型和测试为准，不在文档中复述�
   改变已有 PATH 优先级。开发环境通过 filesystem 提供，不依赖主运行 stage 的 OCI ENV；
   非登录 Bash 继承环境或显式加载 profile。项目覆盖在加载后进行，不用 wrapper 或
   `BASH_ENV` 改写启动规则。
+- 默认 Node.js runtime、内置 Node CLI 的 runtime binding 与 editor npm 路径保持一致；
+  修改默认版本时同步调整 profile、构建调用与 editor config。
 - 依赖 `/workspace` 的 service 必须依赖 `gocryptfs-workspace`；必要 credential 从 runtime
   secret 读取，缺失时 fail-fast。添加依赖不得隐式启用可选 service；启动时的用户安装
   job 不属于 image build，编码后的 payload 不构成 secret 或信任边界。

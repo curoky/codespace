@@ -27,6 +27,8 @@ home source、LaunchAgent、默认应用和控制面 SSH wiring。`.agents/skill
   framework、bundle、发布 workflow 或脚本间隐式调用。少量重复优先于跨操作抽象。
 - 脚本可以替换它明确管理的目标，但不得扫描或清理未声明的用户路径。依赖不存在时直接失败，
   由 Skill 先运行对应依赖操作。
+- 默认 Node.js runtime、Node CLI 的 runtime binding 与 editor npm 路径保持一致；已有
+  CLI 不随 Shell PATH 切换，binding 变化时由 Skill 编排对应 package 的重装。
 - home link source 默认为 `0600`；可执行 source 必须显式声明 `0755`。只有目标需要独立
   inode、权限或运行期修改时才 copy。
 - client SSH 的静态 include/config、login key 和 known_hosts 来自声明 source；Workspace

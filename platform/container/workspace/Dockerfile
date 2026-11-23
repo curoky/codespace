@@ -105,11 +105,11 @@ COPY --from=stage_sb /usr/local/store/pnpm/bin/pnpm /usr/local/bin/pnpm
 COPY platform/container/workspace/tools/node-tool/ /tmp/node-tool/
 RUN /tmp/node-tool/node-tool init \
   && /tmp/node-tool/node-tool install defuddle@0.19.4 \
-    --node /opt/node/nodejs24 --pnpm /usr/local/bin/pnpm \
+    --node /opt/node/nodejs26 --pnpm /usr/local/bin/pnpm \
   && /tmp/node-tool/node-tool install markdownlint-cli2@0.23.3 \
-    --node /opt/node/nodejs24 --pnpm /usr/local/bin/pnpm \
+    --node /opt/node/nodejs26 --pnpm /usr/local/bin/pnpm \
   && /tmp/node-tool/node-tool install prettier@3.9.9 \
-    --node /opt/node/nodejs24 --pnpm /usr/local/bin/pnpm
+    --node /opt/node/nodejs26 --pnpm /usr/local/bin/pnpm
 
 # ------------------------- NVIDIA Container Toolkit ------------------------
 FROM docker.io/debian:stable-slim AS stage_nvidia_container_toolkit

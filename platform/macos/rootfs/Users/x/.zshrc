@@ -40,7 +40,7 @@ path=(
   "$HOME/.local/share/uv/bin"
   "$HOME/.local/share/node/tools/bin"
   "$HOME/.local/share/node/node-tool"
-  "$HOME/.local/share/node/nodejs24/bin"
+  "$HOME/.local/share/node/nodejs26/bin"
   "$HOME/go/bin"
   "$HOME/.local/share/go/go1.27.1/bin"
   "$HOME/.local/profile/go/bin"
