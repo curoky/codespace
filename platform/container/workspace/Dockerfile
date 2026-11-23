@@ -147,6 +147,7 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
     # nixpkgs.mitmproxy nixpkgs.copyparty nixpkgs.dool nixpkgs.git-filter-repo \
     # nixpkgs.lemminx nixpkgs.ghidra nixpkgs.maven \
     nixpkgs_unstable.codex nixpkgs_unstable.claude-code \
+    nixpkgs_unstable.xvfb nixpkgs_unstable.xvfb-run nixpkgs_unstable.chromium \
     # nixpkgs.markdownlint-cli2 nixpkgs.pnpm nixpkgs.prettier \
     -p /nix/var/nix/profiles/default \
   # && nix-env -iA nixpkgs.jdk8_headless -p /nix/var/nix/profiles/jdk8 \
