@@ -43,6 +43,8 @@ Host；控制面通过本机 OpenSSH 管理 Host 上的 rootful Podman。
 
 ## Validation
 
+- 小风险改动无需构建镜像或运行完整测试，只做与改动直接相关的必要检查。以下要求适用于
+  其他改动；各模块的 artifact 验证要求也遵循此例外。
 - 文档或非行为变更至少运行 `task check`。
 - 控制面、脚本或其他行为变更运行 `task check:full`。
 - OCI、macOS 或 WSL artifact 变更还要执行目标目录 `AGENTS.md` 指定的 build、export 或
