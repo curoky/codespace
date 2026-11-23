@@ -39,6 +39,10 @@ jobs:
         run: |
           set -euo pipefail
           brew install bats-core shfmt
+          brew bundle list --file platform/macos/Brewfile --tap |
+            while read -r tap; do
+              brew tap "$tap"
+            done
           brew bundle list --file platform/macos/Brewfile --formula |
             xargs brew install
 

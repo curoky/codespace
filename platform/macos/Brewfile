@@ -1,3 +1,5 @@
+tap "julyx10/lap"
+
 cask "font-fira-code-nerd-font"
 cask "font-lxgw-wenkai"
 cask "font-ubuntu-mono-nerd-font"
