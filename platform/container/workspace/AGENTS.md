@@ -20,6 +20,8 @@ Dockerfile、manifest、脚本、类型和测试为准，不在文档中复述�
 
 - 主 image 的基础 runtime 与默认 service 不依赖 resource；未挂载 payload 时允许可选工具
   链接悬空。构建期完成 immutable 内容和 s6 graph，启动时不重建。
+- 停用的 s6 service definition 保存在 `rootfs/etc/s6/archive/`，不参与服务图编译；重新启用
+  时移回 `s6-rc.d`、按需加入 bundle 并重建 image。
 - image 拥有的系统内容与用户可写的软件、缓存分离；root service 只使用 root-owned 命令
   路径。用户以 `x` 运行，挂载数据的身份必须与 Host 一致。
 - `/workspace`、`/workspace.enc` 与 `/opt/podman/data` 的初始化只准备挂载根，不递归
@@ -50,8 +52,7 @@ Dockerfile、manifest、脚本、类型和测试为准，不在文档中复述�
 
 - 系统认证依赖发行版的 setuid `su` 与静态 sudo 可校验的 SHA-512 password hash；替换
   standalone package 或调整密码初始化时，不能丢失这两个兼容条件。
-- Ollama 仅保留可选 service definition，未预装 executable；直接启用会失败，需先安装到
-  service script 指定路径。
+- 归档的 Ollama service 未预装 executable；恢复并启用前需先安装到 service script 指定路径。
 
 ## Validation
 

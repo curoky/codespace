@@ -25,9 +25,9 @@ def _s6_longrun_directories() -> list[Path]:
 
 def _s6_service_entrypoints() -> list[Path]:
     entrypoints = [
-        _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/atuin-server/run",
+        _CONTAINER / "workspace/rootfs/etc/s6/archive/atuin-server/run",
         _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/miniserve-logs/run",
-        _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/ollama/run",
+        _CONTAINER / "workspace/rootfs/etc/s6/archive/ollama/run",
         _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/supercronic/run",
         _CONTAINER / "workspace/rootfs/etc/s6/s6-rc.d/workspace-agent/run",
     ]
@@ -57,7 +57,7 @@ def test_workspace_atuin_uses_official_sync_service_with_secret_login() -> None:
     login = (services / "atuin-login/up").read_text()
 
     assert 'sync_address = "https://api.atuin.sh"' in config
-    assert (services / "atuin-server/run").exists()
+    assert (workspace / "rootfs/etc/s6/archive/atuin-server/run").exists()
     assert (services / "atuin-login/up").exists()
     assert (services / "default/contents.d/atuin-login").exists()
     assert not (services / "default/contents.d/atuin-server").exists()
@@ -857,7 +857,7 @@ def test_s6_longrun_entrypoints_are_executable(service: Path) -> None:
 @pytest.mark.parametrize(
     ("relative_service", "probe"),
     [
-        ("workspace/rootfs/etc/s6/s6-rc.d/atuin-server", "127.0.0.1:8002/"),
+        ("workspace/rootfs/etc/s6/archive/atuin-server", "127.0.0.1:8002/"),
         ("workspace/rootfs/etc/s6/s6-rc.d/sshd", "127.0.0.1 22"),
         ("services/chatbox/rootfs/etc/s6/s6-rc.d/nginx", "127.0.0.1:8080/healthz"),
         ("services/secret/rootfs/etc/s6/s6-rc.d/rclone-webdav", "127.0.0.1:8080/"),
