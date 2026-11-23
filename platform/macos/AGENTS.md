@@ -50,5 +50,6 @@ bats platform/macos/tests
 
 `.github/workflows/check-macos.yaml` 在 Apple Silicon runner 上执行原生 contract 检查；push、
 定时和手动运行还会从空的 `/Users/x` 安装用户级工具链、home config 与 Atuin daemon。CI
-先注册 Brewfile 声明的 tap，再逐项检查 cask；`brew bundle list --cask` 输出短名称，
-第三方 cask 必须显式声明其 tap。CI 不安装 GUI cask，也不修改 runner 的默认应用关联。
+通过 Bundle 安装 formula 与 tap，跳过全部 cask 后再逐项检查。第三方 cask 的信任声明放在
+tap 的 `trusted.casks` 中，使跳过 cask 安装时仍会应用；`brew bundle list --cask` 输出
+短名称，第三方 cask 必须显式声明其 tap。CI 不安装 GUI cask，也不修改 runner 的默认应用关联。

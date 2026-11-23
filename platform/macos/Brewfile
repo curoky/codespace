@@ -1,4 +1,4 @@
-tap "julyx10/lap"
+tap "julyx10/lap", trusted: { casks: ["lap"] }
 
 cask "font-fira-code-nerd-font"
 cask "font-lxgw-wenkai"
@@ -14,7 +14,7 @@ cask "secretive"
 cask "obs"
 cask "gimp"
 cask "finetune"
-cask "julyx10/lap/lap", trusted: true
+cask "julyx10/lap/lap"
 
 # Optional casks
 # tap "ecopastehub/ecopaste"

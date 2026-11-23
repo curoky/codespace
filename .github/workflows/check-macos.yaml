@@ -39,12 +39,9 @@ jobs:
         run: |
           set -euo pipefail
           brew install bats-core shfmt
-          brew bundle list --file platform/macos/Brewfile --tap |
-            while read -r tap; do
-              brew tap "$tap"
-            done
-          brew bundle list --file platform/macos/Brewfile --formula |
-            xargs brew install
+          casks="$(brew bundle list --file platform/macos/Brewfile --cask)"
+          HOMEBREW_BUNDLE_CASK_SKIP="$casks" \
+            brew bundle install --file platform/macos/Brewfile --no-upgrade
 
       - name: Validate native contracts
         shell: bash
