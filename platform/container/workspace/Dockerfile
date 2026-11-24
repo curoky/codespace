@@ -47,6 +47,18 @@ ADD --checksum=sha256:63d339f0da5ab53635a56f2490a7984dfe12dfcff22ad749f63edaf590
 RUN mkdir -p /home/x/.local/opt/go/go1.27.1 \
   && tar -xzf /tmp/go.tar.gz --strip-components=1 -C /home/x/.local/opt/go/go1.27.1
 
+# --------------------------- Workspace executables --------------------------
+FROM docker.io/golang:1.27.4 AS stage_workspace_tools
+ENV CGO_ENABLED=0
+WORKDIR /src
+COPY platform/container/workspace/go.mod platform/container/workspace/go.sum ./
+RUN go mod download
+COPY platform/container/workspace/agent/ ./agent/
+COPY platform/container/workspace/tools/ ./tools/
+RUN go build -mod=readonly -trimpath -o /out/node-tool ./tools/node-tool \
+  && go build -mod=readonly -trimpath -o /out/java-tool ./tools/java-tool \
+  && go build -mod=readonly -trimpath -o /out/workspace-agent ./agent
+
 # ----------------------------------- Java -----------------------------------
 FROM docker.io/debian:stable-slim AS stage_java
 RUN apt-get update -y \
@@ -95,14 +107,11 @@ RUN mkdir -p /home/x/.local/opt/node/nodejs24 /home/x/.local/opt/node/nodejs26/l
   && patchelf --set-rpath '$ORIGIN/../lib' /home/x/.local/opt/node/nodejs26/bin/node
 
 COPY --from=stage_sb /usr/local/store/pnpm/bin/pnpm /usr/local/bin/pnpm
-COPY platform/container/workspace/tools/node-tool/ /tmp/node-tool/
-RUN UV_PYTHON_INSTALL_DIR=/home/x/.local/opt/uv/python /tmp/node-tool/node-tool init \
-  && /tmp/node-tool/node-tool install defuddle@0.19.4 \
-    --node /home/x/.local/opt/node/nodejs26 --pnpm /usr/local/bin/pnpm --root /home/x/.local/opt/node/tools \
-  && /tmp/node-tool/node-tool install markdownlint-cli2@0.23.3 \
-    --node /home/x/.local/opt/node/nodejs26 --pnpm /usr/local/bin/pnpm --root /home/x/.local/opt/node/tools \
-  && /tmp/node-tool/node-tool install prettier@3.9.9 \
-    --node /home/x/.local/opt/node/nodejs26 --pnpm /usr/local/bin/pnpm --root /home/x/.local/opt/node/tools
+ENV HOME=/home/x PATH=/home/x/.local/opt/node:${PATH}
+COPY --from=stage_workspace_tools /out/node-tool /home/x/.local/opt/node/node-tool
+RUN node-tool install defuddle@0.19.4 \
+  && node-tool install markdownlint-cli2@0.23.3 \
+  && node-tool install prettier@3.9.9
 
 # ------------------------- NVIDIA Container Toolkit ------------------------
 FROM docker.io/debian:stable-slim AS stage_nvidia_container_toolkit
@@ -164,8 +173,8 @@ COPY platform/container/workspace/rootfs/ /
 RUN chown -hR 5230:5230 /home/x
 
 COPY --link --from=stage_sb /usr/local /usr/local
-COPY --chown=5230:5230 platform/container/workspace/tools/node-tool/ /home/x/.local/opt/node/node-tool/
-COPY --chown=5230:5230 platform/container/workspace/tools/java-tool/ /home/x/.local/opt/java/java-tool/
+COPY --chown=5230:5230 --from=stage_workspace_tools /out/java-tool /home/x/.local/opt/java/java-tool
+COPY --chown=5230:5230 --from=stage_workspace_tools /out/workspace-agent /opt/codespace-agent/workspace-agent
 RUN --mount=type=bind,source=platform/container/workspace/scripts/configure-system.sh,target=/tmp/configure-system.sh \
   bash /tmp/configure-system.sh
 
@@ -185,15 +194,8 @@ RUN --mount=type=bind,source=platform/container/workspace/scripts/install-s6.sh,
   bash /tmp/install-s6.sh
 
 USER x
-COPY --chown=5230:5230 platform/container/workspace/agent/ /opt/codespace-agent/
-RUN export UV_PYTHON_INSTALL_DIR=/home/x/.local/opt/uv/python \
-    UV_PYTHON_BIN_DIR=/home/x/.local/opt/uv/bin \
-  && /home/x/.local/opt/java/java-tool/java-tool init \
-  && /home/x/.local/opt/node/node-tool/node-tool init \
-  && UV_LINK_MODE=copy /usr/local/bin/uv sync --project /opt/codespace-agent --locked --no-dev \
-    --python "$UV_PYTHON_BIN_DIR/python3.14" \
-  && git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-playbook \
-  && HOME=/home/x bash /tmp/agent-playbook/install.sh \
+RUN git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-playbook \
+  && bash /tmp/agent-playbook/install.sh \
   && rm -rf /tmp/agent-playbook
 
 USER root

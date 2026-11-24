@@ -1,6 +1,10 @@
 pre-commit:
   parallel: true
   jobs:
+    - name: go-format
+      glob: '*.go'
+      run: test -z "$(gofmt -l {staged_files})"
+
     - name: python-format
       glob: '*.py'
       run: uv run ruff format --check --no-cache --force-exclude {staged_files}

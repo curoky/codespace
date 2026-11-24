@@ -114,23 +114,26 @@ teardown() {
   [ "$output" = '' ]
 }
 
-@test "Java tools use their own Python environment and preserve installed packages" {
-  mkdir -p "$HOME/.local/bin" "$HOME/.local/opt/uv/bin" \
-    "$HOME/.local/opt/java/openjdk27/bin" "$HOME/.local/opt/java/tools/envs/custom"
-  touch "$HOME/.local/opt/java/tools/envs/custom/keep"
-  install -m 0755 "$TEST_ROOT/bundle/jdk-27+35/Contents/Home/bin/java" \
-    "$HOME/.local/opt/java/openjdk27/bin/java"
-  install -m 0755 "$TEST_ROOT/bundle/jdk-27+35/Contents/Home/bin/java" \
-    "$HOME/.local/opt/uv/bin/python3.14"
-  cat >"$HOME/.local/bin/uv" <<'EOF'
+prepare_java_tool() {
+  mkdir -p "$HOME/.local/bin"
+  cat >"$HOME/.local/bin/oras" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
-printf 'uv %s\npython %s\nvenv %s\n' "$*" "$UV_PYTHON_INSTALL_DIR" "${VIRTUAL_ENV:-}" >>"$TEST_EVENTS"
-mkdir -p "$UV_PROJECT_ENVIRONMENT/bin"
-printf '#!/usr/bin/env bash\nprintf "%%s\\n" "$*"\n' >"$UV_PROJECT_ENVIRONMENT/bin/python"
-chmod 0755 "$UV_PROJECT_ENVIRONMENT/bin/python"
+printf 'oras %s\n' "$*" >>"$TEST_EVENTS"
+[[ "$1" == pull && "$2" == ghcr.io/curoky/codespace:java-tool-darwin-arm64 && "$3" == -o ]]
+[[ ${TEST_ORAS_STATUS:-0} == 0 ]] || exit "$TEST_ORAS_STATUS"
+printf '#!/usr/bin/env bash\nprintf "%%s\\n" "$*"\n' >"$4/java-tool"
+tar -czf "$4/java-tool.tar.gz" -C "$4" java-tool
+rm "$4/java-tool"
 EOF
-  chmod 0755 "$HOME/.local/bin/uv"
+  chmod 0755 "$HOME/.local/bin/oras"
+}
+
+@test "Java tools download a standalone helper and preserve installed packages" {
+  prepare_java_tool
+  mkdir -p \
+    "$HOME/.local/opt/java/tools/envs/custom"
+  touch "$HOME/.local/opt/java/tools/envs/custom/keep"
   VIRTUAL_ENV="$TEST_ROOT/caller-env"
   UV_PROJECT_ENVIRONMENT="$TEST_ROOT/caller-project"
   export VIRTUAL_ENV UV_PROJECT_ENVIRONMENT
@@ -138,24 +141,39 @@ EOF
   run "$MACOS_DIR/maintenance/java-tools.sh"
   [ "$status" -eq 0 ]
   local installer="$HOME/.local/opt/java/java-tool"
-  [ -x "$installer/java-tool" ]
-  [ -x "$installer/.venv/bin/python" ]
-  cmp "$installer/java-tool.py" "$MACOS_DIR/../container/workspace/tools/java-tool/java-tool.py"
-  grep -Fqx "python $HOME/.local/opt/uv/python" "$TEST_EVENTS"
-  grep -Fqx 'venv ' "$TEST_EVENTS"
+  [ -x "$installer" ]
+  [ ! -e "$installer/.venv" ]
+  grep -Fq 'oras pull ghcr.io/curoky/codespace:java-tool-darwin-arm64' "$TEST_EVENTS"
+  [ ! -e "$HOME/.local/opt/go" ]
+  [ ! -e "$HOME/.local/opt/java/openjdk27" ]
   [ ! -e "$TEST_ROOT/caller-project" ]
   [ -f "$HOME/.local/opt/java/tools/envs/custom/keep" ]
 
-  run "$installer/java-tool" --help
+  run "$installer" --help
   [ "$status" -eq 0 ]
-  [ "$output" = "$installer/java-tool.py --help" ]
+  [ "$output" = --help ]
   run "$MACOS_DIR/maintenance/java-tools.sh"
   [ "$status" -eq 0 ]
   [ -f "$HOME/.local/opt/java/tools/envs/custom/keep" ]
 }
 
-@test "Java tools fail before copying source when dependencies are missing" {
+@test "Java tools fail before changing installations when ORAS is missing" {
   run "$MACOS_DIR/maintenance/java-tools.sh"
   [ "$status" -eq 1 ]
   [ ! -e "$HOME/.local/opt/java/java-tool" ]
+}
+
+@test "Java tool download failure preserves the existing helper and packages" {
+  prepare_java_tool
+  mkdir -p "$HOME/.local/opt/java/tools/envs/custom"
+  touch "$HOME/.local/opt/java/tools/envs/custom/keep"
+  printf 'existing helper\n' >"$HOME/.local/opt/java/java-tool"
+  export TEST_ORAS_STATUS=22
+
+  run "$MACOS_DIR/maintenance/java-tools.sh"
+  [ "$status" -eq 22 ]
+  [ "$(<"$HOME/.local/opt/java/java-tool")" = 'existing helper' ]
+  [ -f "$HOME/.local/opt/java/tools/envs/custom/keep" ]
+  run find "$TMPDIR" -mindepth 1
+  [ "$output" = '' ]
 }

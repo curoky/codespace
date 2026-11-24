@@ -24,7 +24,7 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 | Rust toolchain 缺失或需要更新 | `platform/macos/maintenance/rust.sh` |
 | LLVM SDK 缺失或版本变化 | `platform/macos/maintenance/llvm.sh` |
 | Java 缺失或版本变化 | `platform/macos/maintenance/java-runtime.sh` |
-| java-tool 缺失或 source 变化 | `platform/macos/maintenance/java-tools.sh` |
+| java-tool 缺失或发布产物变化 | `platform/macos/maintenance/java-tools.sh` |
 | home links 或 copied config 缺失 | `platform/macos/maintenance/home-links.sh` |
 | 默认应用关联需要重置 | `platform/macos/maintenance/default-apps.sh` |
 | Atuin daemon 缺失或需要重载 | `platform/macos/maintenance/atuin-daemon.sh` |
@@ -42,8 +42,8 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 
 - `uv.sh` 依赖 `binman.sh` 提供 uv。
 - `python-tools.sh` 依赖 `binman.sh` 与 `uv.sh`。
-- `node-tools.sh` 依赖 `binman.sh`、`uv.sh` 与 `node-runtime.sh`。
-- `java-tools.sh` 依赖 `java-runtime.sh` 与 `uv.sh`；不默认安装 Java CLI package。
+- `node-tools.sh` 依赖 `binman.sh` 提供 ORAS、pnpm，以及 `node-runtime.sh`。
+- `java-tools.sh` 依赖 `binman.sh` 提供 ORAS；不默认安装 Java CLI package。
 - `atuin-daemon.sh` 依赖 `binman.sh` 提供 Atuin。
 
 不要用临时 `brew install`、全局 `npm install`、全局 `pnpm add` 或手工复制文件替代这些脚本。
@@ -91,7 +91,7 @@ test -x "$HOME/.local/opt/node/nodejs26/bin/node"
 test -x "$HOME/.local/opt/node/tools/bin/prettier"
 "$HOME/.local/opt/node/tools/bin/defuddle" --help
 "$HOME/.local/opt/node/tools/bin/markdownlint-cli2" --version
-"$HOME/.local/opt/node/node-tool/node-tool" --help
+"$HOME/.local/opt/node/node-tool" --help
 test -x "$HOME/.local/opt/go/go1.27.1/bin/go"
 "$HOME/.local/opt/node/nodejs26/bin/node" --version
 "$HOME/.local/opt/go/go1.27.1/bin/go" version
@@ -103,7 +103,7 @@ CARGO_HOME="$HOME/.cargo" RUSTUP_HOME="$HOME/.local/opt/rust/rustup" \
 "$HOME/.local/opt/llvm/llvm23.1.2/bin/clang-format" --version
 "$HOME/.local/opt/java/openjdk27/bin/java" -version
 "$HOME/.local/opt/java/openjdk27/bin/javac" -version
-"$HOME/.local/opt/java/java-tool/java-tool" --help
+"$HOME/.local/opt/java/java-tool" --help
 test -L "$HOME/.zshrc"
 
 domain="gui/$(id -u)"

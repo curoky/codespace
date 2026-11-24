@@ -1,9 +1,6 @@
 version: '3'
 
 vars:
-  JAVA_TOOL: platform/container/workspace/tools/java-tool
-  NODE_TOOL: platform/container/workspace/tools/node-tool
-  WORKSPACE_AGENT: platform/container/workspace/agent
   WORKSPACE_IMAGE: platform/container/workspace
   ASR_SERVICE: platform/container/services/asr
 
@@ -15,10 +12,10 @@ tasks:
     silent: true
 
   sync:
-    desc: 按 lock 同步控制面与 Workspace Agent 依赖
+    desc: 按 lock 同步控制面与 Go 依赖
     cmds:
       - uv sync --locked
-      - uv sync --project {{.WORKSPACE_AGENT}} --locked --no-dev
+      - cd {{.WORKSPACE_IMAGE}} && go mod download
 
   serve:
     desc: 前台启动控制面
@@ -31,9 +28,10 @@ tasks:
       - scripts/run-control-plane.sh
 
   format:
-    desc: 格式化 Python 与 Shell
+    desc: 格式化 Python、Go 与 Shell
     cmds:
-      - uv run ruff format src tests {{.WORKSPACE_AGENT}}/agent.py {{.JAVA_TOOL}} {{.NODE_TOOL}} {{.ASR_SERVICE}}
+      - uv run ruff format src tests {{.ASR_SERVICE}}
+      - cd {{.WORKSPACE_IMAGE}} && go tool goimports -w agent tools
       - >-
         find {{.ASR_SERVICE}}/models -maxdepth 2 -type f -name run -print0 |
         xargs -0 shfmt -w -i 2 -ci
@@ -46,9 +44,10 @@ tasks:
         xargs -0 -P 6 -n 1 sh -c 'test ! -f "$1" || shfmt -w -i 2 -ci "$1"' sh
 
   format:check:
-    desc: 检查 Python 与 Shell 格式
+    desc: 检查 Python、Go 与 Shell 格式
     cmds:
-      - uv run ruff format --check src tests {{.WORKSPACE_AGENT}}/agent.py {{.JAVA_TOOL}} {{.NODE_TOOL}} {{.ASR_SERVICE}}
+      - uv run ruff format --check src tests {{.ASR_SERVICE}}
+      - cd {{.WORKSPACE_IMAGE}} && test -z "$(go tool goimports -l agent tools)"
       - >-
         find {{.ASR_SERVICE}}/models -maxdepth 2 -type f -name run -print0 |
         xargs -0 shfmt -d -i 2 -ci
@@ -61,9 +60,10 @@ tasks:
         xargs -0 -P 6 -n 1 sh -c 'test ! -f "$1" || shfmt -d -i 2 -ci "$1"' sh
 
   lint:
-    desc: 运行 Ruff 与 ShellCheck
+    desc: 运行 Ruff、Go lint 与 ShellCheck
     cmds:
-      - uv run ruff check src tests {{.WORKSPACE_AGENT}}/agent.py {{.JAVA_TOOL}} {{.NODE_TOOL}} {{.ASR_SERVICE}}
+      - uv run ruff check src tests {{.ASR_SERVICE}}
+      - cd {{.WORKSPACE_IMAGE}} && go tool golangci-lint run
       - >-
         git ls-files -z --cached --others --exclude-standard -- '*.sh' '*.bats' |
         xargs -0 -P 6 -n 1 sh -c 'test ! -f "$1" || shellcheck -x "$1"' sh
@@ -76,33 +76,33 @@ tasks:
         xargs -0 shellcheck
 
   typecheck:
-    desc: 运行 strict Mypy
+    desc: 运行 strict Mypy 与 Go vet
     cmds:
-      - MYPYPATH={{.WORKSPACE_AGENT}} uv run mypy src/codespace {{.WORKSPACE_AGENT}}/agent.py
-      - uv run mypy {{.JAVA_TOOL}}/java-tool.py
-      - uv run mypy {{.NODE_TOOL}}/node-tool.py
+      - uv run mypy src/codespace
+      - cd {{.WORKSPACE_IMAGE}} && go vet ./...
       - >-
         MYPYPATH={{.ASR_SERVICE}} uv run --project {{.ASR_SERVICE}}/scheduler mypy --strict
         {{.ASR_SERVICE}}/scheduler {{.ASR_SERVICE}}/models/audio.py
         {{.ASR_SERVICE}}/models/engine.py {{.ASR_SERVICE}}/models/start.py {{.ASR_SERVICE}}/protocol.py
         {{.ASR_SERVICE}}/client/asr.py {{.ASR_SERVICE}}/models/vllm.py {{.ASR_SERVICE}}/regression/run.py
-      - >-
-        cd {{.WORKSPACE_AGENT}} &&
-        uv run --locked python -c "import agent"
 
   test:
-    desc: 运行控制面与 macOS installer 测试
+    desc: 运行控制面、Go 与 macOS installer 测试
     deps:
       - task: test:python
       - task: test:shell
+      - task: test:go
 
   test:python:
     internal: true
     cmds:
       - uv run pytest
-      - uv run pytest {{.JAVA_TOOL}}/test_java_tool.py --no-cov
-      - uv run pytest {{.NODE_TOOL}}/test_node_tool.py --no-cov
       - uv run --project {{.ASR_SERVICE}}/scheduler pytest -c {{.ASR_SERVICE}}/scheduler/pyproject.toml {{.ASR_SERVICE}}/tests
+
+  test:go:
+    internal: true
+    cmds:
+      - cd {{.WORKSPACE_IMAGE}} && go test -race -cover ./...
 
   test:shell:
     internal: true
@@ -112,12 +112,10 @@ tasks:
         xargs -0 -P 6 -n 1 bats
 
   lock:check:
-    desc: 校验所有 uv lock
+    desc: 校验 uv 与 Go lock
     cmds:
       - uv lock --check
-      - uv lock --project {{.WORKSPACE_AGENT}} --check
-      - uv lock --project {{.JAVA_TOOL}} --check
-      - uv lock --project {{.NODE_TOOL}} --check
+      - cd {{.WORKSPACE_IMAGE}} && go mod tidy -diff
       - uv lock --project {{.ASR_SERVICE}}/scheduler --check
       - >-
         for model in {{.ASR_SERVICE}}/models/*/pyproject.toml; do
@@ -132,11 +130,17 @@ tasks:
       - task: typecheck
       - task: lock:check
 
+  security:go:
+    desc: 扫描 Go executable 漏洞
+    cmds:
+      - cd {{.WORKSPACE_IMAGE}} && go tool govulncheck ./...
+
   check:full:
     desc: 运行完整本地与 CI 检查
     deps:
       - task: check
       - task: test
+      - task: security:go
 
   secrets:sync:
     desc: 同步 Podman secrets，默认 dry-run

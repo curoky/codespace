@@ -37,6 +37,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: platform/container/workspace/go.mod
+          cache-dependency-path: platform/container/workspace/go.sum
+
       - uses: astral-sh/setup-uv@v10.0.1
         with:
           enable-cache: true

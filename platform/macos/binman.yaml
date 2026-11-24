@@ -80,7 +80,7 @@ installs:
     # - ninja
     # - nixcache
     - openssl
-    # - oras
+    - oras
     - parallel
     # - patchelf
     # - pkgconf

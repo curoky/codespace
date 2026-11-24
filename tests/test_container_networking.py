@@ -7,7 +7,6 @@ import os
 import re
 import subprocess
 import sys
-import tomllib
 from pathlib import Path
 
 import pytest
@@ -150,9 +149,9 @@ def test_app_profile_sets_tools_and_preserves_inherited_environment(tmp_path: Pa
         str(tmp_path / ".local/share/pnpm/bin"),
         str(tmp_path / ".local/opt/uv/bin"),
         str(tmp_path / ".local/opt/conda/condabin"),
-        str(tmp_path / ".local/opt/java/java-tool"),
+        str(tmp_path / ".local/opt/java"),
         str(tmp_path / ".local/opt/java/openjdk27/bin"),
-        str(tmp_path / ".local/opt/node/node-tool"),
+        str(tmp_path / ".local/opt/node"),
         str(tmp_path / ".local/opt/node/tools/bin"),
         str(tmp_path / ".local/opt/node/nodejs26/bin"),
     }.issubset(entries)
@@ -266,9 +265,8 @@ def test_workspace_bundles_runtimes_and_keeps_java_tools_in_resource() -> None:
             f"/home/x/.local/opt/{family} /home/x/.local/opt/{family}" in workspace_dockerfile
         )
         assert not (rootfs_opt / family).exists()
-    assert "--java /home/x/.local/opt/java/openjdk27" in resource_dockerfile
-    assert "--node /home/x/.local/opt/node/nodejs26" in workspace_dockerfile
-    assert "--pnpm /usr/local/bin/pnpm" in workspace_dockerfile
+    assert "ENV HOME=/home/x" in resource_dockerfile
+    assert "RUN node-tool install" in workspace_dockerfile
     assert (
         "COPY --from=stage_java /home/x/.local/opt/java/tools "
         "/opt/resource/home/x/.local/opt/java/tools" in resource_dockerfile
@@ -300,11 +298,8 @@ def test_workspace_keeps_required_python_and_bundles_python_tools() -> None:
         "/home/x/.local/opt/uv /home/x/.local/opt/uv" in runtime_stage
     )
     assert '"$UV_PYTHON_BIN_DIR"' in profile
-    assert "UV_PYTHON_BIN_DIR=/home/x/.local/opt/uv/bin" in runtime_stage
-    assert (
-        "uv sync --project /opt/codespace-agent --locked --no-dev \\\n"
-        '    --python "$UV_PYTHON_BIN_DIR/python3.14"' in runtime_stage
-    )
+    assert "UV_PYTHON_BIN_DIR=/home/x/.local/opt/uv/bin" in dockerfile
+    assert "uv sync --project /opt/codespace-agent" not in runtime_stage
     python_tools = {
         "copyparty",
         "licenseheaders",
@@ -525,185 +520,64 @@ def test_uv_discovers_linked_python_and_creates_a_venv(tmp_path: Path) -> None:
     assert result.stdout.strip() == version
 
 
-def test_workspace_bundles_java_and_node_installers() -> None:
+def test_workspace_bundles_compiled_executables() -> None:
     workspace = _CONTAINER / "workspace"
     dockerfile = (workspace / "Dockerfile").read_text()
-    profile = (workspace / "rootfs/etc/profile.d/app.sh").read_text()
-    node_tool = (workspace / "tools/node-tool/node-tool").read_text()
-    java_tool = (workspace / "tools/java-tool/java-tool").read_text()
-
-    assert (
-        "COPY --chown=5230:5230 platform/container/workspace/tools/node-tool/ "
-        "/home/x/.local/opt/node/node-tool/" in dockerfile
-    )
-    assert (
-        "COPY --chown=5230:5230 platform/container/workspace/tools/java-tool/ "
-        "/home/x/.local/opt/java/java-tool/" in dockerfile
-    )
     resource_dockerfile = (workspace / "resource.Dockerfile").read_text()
-    assert "COPY platform/container/workspace/tools/node-tool/ /tmp/node-tool/" in dockerfile
-    assert "/tmp/node-tool/node-tool init" in dockerfile
-    assert "node-tool" not in resource_dockerfile
-    assert "uv run --locked --script /tmp/node-tool/node-tool.py" not in dockerfile
+    profile = (workspace / "rootfs/etc/profile.d/app.sh").read_text()
+
+    assert "FROM docker.io/golang:1.27.4 AS stage_workspace_tools" in dockerfile
+    assert "ENV CGO_ENABLED=0" in dockerfile
+    assert "ARG TARGETOS" not in dockerfile
+    assert "ARG TARGETARCH" not in dockerfile
+    assert "/out/workspace-agent /opt/codespace-agent/workspace-agent" in dockerfile
+    assert "/out/node-tool /home/x/.local/opt/node/node-tool" in dockerfile
+    assert "/out/java-tool /home/x/.local/opt/java/java-tool" in dockerfile
     assert (
-        "COPY platform/container/workspace/tools/java-tool/ /tmp/java-tool/" in resource_dockerfile
+        "COPY --from=stage_java_tool /out/java-tool /usr/local/bin/java-tool" in resource_dockerfile
     )
-    assert "/tmp/java-tool/java-tool init" in resource_dockerfile
-    assert "uv run --locked --script /tmp/java-tool/java-tool.py" not in resource_dockerfile
-    assert "RUN export UV_PYTHON_INSTALL_DIR=/home/x/.local/opt/uv/python" in dockerfile
-    assert "/home/x/.local/opt/node/node-tool/node-tool init" in dockerfile
-    assert "/home/x/.local/opt/java/java-tool/java-tool init" in dockerfile
-    for name, wrapper in (("node-tool", node_tool), ("java-tool", java_tool)):
+    assert "node-tool" not in resource_dockerfile
+    for name in ("node-tool", "java-tool"):
         tool = workspace / "tools" / name
-        project = tomllib.loads((tool / "pyproject.toml").read_text())
-        assert project["project"]["dependencies"] == ["typer==0.27.2"]
-        assert project["tool"]["uv"]["package"] is False
-        assert (tool / "uv.lock").is_file()
-        assert not (tool / f"{name}.py.lock").exists()
-        assert 'script_dir="$(dirname "$(readlink -f "$0")")"' in wrapper
-        assert f'exec "$script_dir/.venv/bin/python" "$script_dir/{name}.py" "$@"' in wrapper
-        assert 'uv sync --project "$script_dir" --locked --no-dev --python 3.14' in wrapper
-        assert "UV_PYTHON_INSTALL_DIR" not in wrapper
-    assert dockerfile.count("--root /home/x/.local/opt/node/tools") == 3
-    assert resource_dockerfile.count("--root /home/x/.local/opt/java/tools") == 3
-    assert '"$HOME/.local/opt/java/java-tool"' in profile
-    assert '"$HOME/.local/opt/node/node-tool"' in profile
-    assert os.access(workspace / "tools/java-tool/java-tool", os.X_OK)
-    assert os.access(workspace / "tools/node-tool/node-tool", os.X_OK)
+        assert (tool / "main.go").is_file()
+        assert (tool / "launcher.bash.tmpl").is_file()
+        assert not (tool / "pyproject.toml").exists()
+        assert not (tool / "uv.lock").exists()
+        assert not (tool / f"{name}.py").exists()
+    assert "--pnpm" not in dockerfile
+    assert "--root /home/x/.local/opt/node/tools" not in dockerfile
+    assert "--root /home/x/.local/opt/java/tools" not in resource_dockerfile
+    assert '"$HOME/.local/opt/java"' in profile
+    assert '"$HOME/.local/opt/node"' in profile
 
 
 @pytest.mark.parametrize("name", ["node-tool", "java-tool"])
-def test_tool_init_accepts_native_uv_paths(tmp_path: Path, name: str) -> None:
-    tool = tmp_path / name
-    tool.mkdir()
-    fake_uv = tmp_path / "uv"
-    fake_uv.write_text(
-        f"#!{sys.executable}\n"
-        "import os\n"
-        "from pathlib import Path\n"
-        "import sys\n"
-        "record = Path(os.environ['UV_PROJECT_ENVIRONMENT']).parent / 'init-call'\n"
-        "record.write_text(repr((os.environ.get('VIRTUAL_ENV'), "
-        "os.environ['UV_PYTHON_INSTALL_DIR'], sys.argv[1:])))\n"
-    )
-    fake_uv.chmod(0o755)
-    wrapper = tool / name
-    wrapper.write_text((_CONTAINER / "workspace/tools" / name / name).read_text())
-    wrapper.chmod(0o755)
-    python_root = tmp_path / "managed-python"
-
-    subprocess.run(
-        [str(wrapper), "init"],
-        check=True,
-        env={
-            "PATH": f"{tmp_path}:/usr/bin:/bin",
-            "VIRTUAL_ENV": str(tmp_path / "caller"),
-            "UV_PYTHON_INSTALL_DIR": str(python_root),
-        },
-    )
-
-    sync_arguments = ["sync", "--project", str(tool), "--locked", "--no-dev", "--python", "3.14"]
-    assert (tool / "init-call").read_text() == repr((None, str(python_root), sync_arguments))
-
-
-@pytest.mark.parametrize("name", ["node-tool", "java-tool"])
-def test_tool_wrapper_requires_init_and_reuses_its_environment(tmp_path: Path, name: str) -> None:
-    tool = tmp_path / name
-    tool.mkdir()
-    fake_uv = tmp_path / "uv"
-    fake_uv.write_text(
-        f"#!{sys.executable}\n"
-        "import os\n"
-        "from pathlib import Path\n"
-        "import sys\n"
-        "environment = Path(os.environ['UV_PROJECT_ENVIRONMENT'])\n"
-        "record = environment.parent / 'sync-calls'\n"
-        "with record.open('a') as output:\n"
-        "    output.write(repr((os.environ.get('VIRTUAL_ENV'), "
-        "os.environ['UV_PYTHON_INSTALL_DIR'], sys.argv[1:])) + '\\n')\n"
-        "binary = environment / 'bin' / 'python'\n"
-        "binary.parent.mkdir(parents=True, exist_ok=True)\n"
-        "binary.write_text('#!/usr/bin/env bash\\nprintf \\'%s\\\\n\\' \\\"$@\\\"\\n')\n"
-        "binary.chmod(0o755)\n"
-    )
-    fake_uv.chmod(0o755)
-    source = (_CONTAINER / "workspace/tools" / name / name).read_text()
-    wrapper = tool / name
-    wrapper.write_text(source)
-    wrapper.chmod(0o755)
+def test_compiled_tool_needs_no_python_environment(
+    tmp_path: Path, workspace_binaries: dict[str, Path], name: str
+) -> None:
     environment = {
-        "PATH": f"{tmp_path}:/usr/bin:/bin",
-        "VIRTUAL_ENV": str(tmp_path / "caller-venv"),
-        "UV_PROJECT_ENVIRONMENT": str(tmp_path / "caller-project"),
-        "UV_PYTHON_INSTALL_DIR": str(tmp_path / "caller-python"),
+        "HOME": str(tmp_path),
+        "PATH": "/missing",
+        "VIRTUAL_ENV": str(tmp_path / "caller"),
+        "UV_PROJECT_ENVIRONMENT": str(tmp_path / "project"),
     }
-    for arguments in [[], ["--help"], ["install"]]:
-        result = subprocess.run(
-            [str(wrapper), *arguments],
-            env=environment,
-            capture_output=True,
-            text=True,
-        )
-        assert result.returncode == 1
-        assert result.stdout == ""
-        assert f'run "{wrapper} init" first' in result.stderr
-        assert not (tool / "sync-calls").exists()
-        assert not (tool / ".venv").exists()
-
     result = subprocess.run(
-        [str(wrapper), "init", "--python", "3.13"],
+        [str(workspace_binaries[name]), "--help"],
+        env=environment,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert name in result.stdout
+    assert not (tmp_path / "project").exists()
+    result = subprocess.run(
+        [str(workspace_binaries[name]), "init"],
         env=environment,
         capture_output=True,
         text=True,
     )
     assert result.returncode == 1
-    assert f"usage: {wrapper} init" in result.stderr
-    assert not (tool / "sync-calls").exists()
-
-    init_arguments = [str(wrapper), "init"]
-    result = subprocess.run(
-        init_arguments,
-        env=environment,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    assert result.stdout == ""
-    for argument in ["--help", "--version"]:
-        result = subprocess.run(
-            [str(wrapper), argument],
-            env=environment,
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        assert result.stdout.splitlines() == [str(tool / f"{name}.py"), argument]
-    calls = (tool / "sync-calls").read_text().splitlines()
-    sync_arguments = ["sync", "--project", str(tool), "--locked", "--no-dev"]
-    python_root = str(tmp_path / "caller-python")
-    assert calls == [repr((None, python_root, [*sync_arguments, "--python", "3.14"]))]
-
-    result = subprocess.run(
-        init_arguments,
-        env=environment,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    assert result.stdout == ""
-    result = subprocess.run(
-        [str(wrapper), "--help"],
-        env=environment,
-        check=True,
-        capture_output=True,
-        text=True,
-    )
-    assert result.stdout.splitlines() == [str(tool / f"{name}.py"), "--help"]
-    assert (tool / "sync-calls").read_text().splitlines() == [
-        *calls,
-        repr((None, python_root, [*sync_arguments, "--python", "3.14"])),
-    ]
-    assert not (tmp_path / "caller-project").exists()
+    assert 'unknown command "init"' in result.stderr
 
 
 def test_workspace_resource_image_installs_binman_manifest() -> None:
@@ -816,22 +690,70 @@ def test_macos_toolchains_match_workspace_versions() -> None:
     node_packages = set(re.findall(r"node-tool install ([\w-]+@\d+\.\d+\.\d+)", dockerfile))
     assert node_packages == {"defuddle@0.19.4", "markdownlint-cli2@0.23.3", "prettier@3.9.9"}
     assert set(re.findall(r"[\w-]+@\d+\.\d+\.\d+", node_tools)) == node_packages
-    assert 'tools/node-tool"' in node_tools
-    assert '"$node_tool/node-tool" init' in node_tools
-    assert 'UV_PYTHON_INSTALL_DIR="$HOME/.local/opt/uv/python"' in node_tools
+    assert '"$oras" pull ghcr.io/curoky/codespace:node-tool-darwin-arm64' in node_tools
+    assert "go1." not in node_tools
     assert 'node_root="$HOME/.local/opt/node"' in node_runtime
     assert 'node_root="$HOME/.local/opt/node"' in node_tools
     for package in node_packages:
-        assert f'"$node_tool/node-tool" install {package}' in node_tools
-    assert '--node "$node_root/nodejs26"' in node_tools
-    assert '--pnpm "$HOME/.local/bin/pnpm"' in node_tools
-    assert '--root "$tools_root"' in node_tools
+        assert f"node-tool install {package}" in node_tools
+    assert "--node" not in node_tools
+    assert "--pnpm" not in node_tools
+    assert "--root" not in node_tools
 
     macos_manifest = yaml.safe_load((_CONTAINER.parent / "macos/binman.yaml").read_text())
     macos_packages = {
         package for install in macos_manifest["installs"] for package in install["packages"]
     }
-    assert {"pnpm", "uv"} <= macos_packages
+    assert {"pnpm", "uv", "oras"} <= macos_packages
+
+
+def test_macos_installers_use_published_arm64_artifacts() -> None:
+    workspace = _CONTAINER / "workspace"
+    macos = _CONTAINER.parent / "macos"
+    workflow_path = _CONTAINER.parent.parent / ".github/workflows/publish-workspace-tools.yaml"
+    workflow = yaml.safe_load(workflow_path.read_text())
+    publish = workflow["jobs"]["publish"]
+    assert publish["runs-on"] == "macos-15"
+    assert publish["strategy"]["matrix"]["tool"] == ["node-tool", "java-tool"]
+    steps = publish["steps"]
+    build = next(step for step in steps if step.get("name") == "Build macOS arm64 binary")
+    assert build["env"]["GOOS"] == "darwin"
+    assert build["env"]["GOARCH"] == "arm64"
+    assert build["env"]["CGO_ENABLED"] == "0"
+    assert any(step.get("uses") == "oras-project/setup-oras@v1" for step in steps)
+    assert not any(step.get("uses", "").startswith("docker/") for step in steps)
+    publish_script = next(
+        step["run"] for step in steps if step.get("name") == "Publish OCI artifact"
+    )
+    assert "--artifact-platform darwin/arm64" in publish_script
+    assert 'oras tag "$reference" "$TOOL-darwin-arm64"' in publish_script
+    assert "FROM scratch AS node-tool" not in (workspace / "Dockerfile").read_text()
+    assert not (workspace / "tools/Dockerfile").exists()
+    for name in ("node", "java"):
+        script = (macos / f"maintenance/{name}-tools.sh").read_text()
+        assert f'"$oras" pull ghcr.io/curoky/codespace:{name}-tool-darwin-arm64' in script
+        assert f'tar -xzf "$work_dir/{name}-tool.tar.gz"' in script
+        assert f'install -m 0755 "$work_dir/{name}-tool"' in script
+        assert "workspace_source" not in script
+        assert "go1." not in script
+
+
+def test_macos_source_validation_waits_for_successful_publish() -> None:
+    workflows = _CONTAINER.parent.parent / ".github/workflows"
+    validation = yaml.safe_load((workflows / "check-macos.yaml").read_text())
+    publish = yaml.safe_load((workflows / "publish-workspace-tools.yaml").read_text())
+    # PyYAML follows YAML 1.1, where an unquoted "on" key is a boolean.
+    trigger = validation[True]["workflow_run"]
+    assert trigger == {
+        "workflows": [publish["name"]],
+        "types": ["completed"],
+        "branches": ["master"],
+    }
+    assert validation["jobs"]["check"]["if"] == (
+        "github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'"
+    )
+    for path in publish[True]["push"]["paths"]:
+        assert path not in validation[True]["push"]["paths"]
 
 
 def test_macos_java_configuration_uses_only_the_managed_jdk() -> None:
@@ -872,8 +794,8 @@ def test_macos_python_configuration_uses_uv_managed_paths() -> None:
     assert '"$HOME/.local/bin/uv" python install 3.14' in uv_script
     for operation in ("java-tools.sh", "node-tools.sh"):
         script = (macos / "maintenance" / operation).read_text()
-        assert 'UV_PYTHON_INSTALL_DIR="$HOME/.local/opt/uv/python"' in script
-        assert 'test -x "$HOME/.local/opt/uv/bin/python3.14"' in script
+        assert "UV_PYTHON_INSTALL_DIR" not in script
+        assert "python3.14" not in script
 
 
 def test_python_cli_ownership_is_aligned_without_package_manager_duplicates() -> None:

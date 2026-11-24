@@ -49,40 +49,37 @@ prepare_node_archive() {
 }
 
 prepare_tool_dependencies() {
-  mkdir -p "$HOME/.local/bin" "$HOME/.local/opt/uv/bin" \
+  mkdir -p "$HOME/.local/bin" \
     "$HOME/.local/opt/node/nodejs26/bin"
-  cat >"$HOME/.local/opt/node/nodejs26/bin/node" <<'EOF'
-#!/usr/bin/env bash
-exit 0
-EOF
-  cat >"$HOME/.local/bin/pnpm" <<'EOF'
-#!/usr/bin/env bash
-exit 0
-EOF
-  cat >"$HOME/.local/bin/uv" <<'EOF'
+  printf '#!/usr/bin/env bash\nexit 0\n' >"$HOME/.local/opt/node/nodejs26/bin/node"
+  printf '#!/usr/bin/env bash\nexit 0\n' >"$HOME/.local/bin/pnpm"
+  cat >"$TEST_ROOT/fake-node-tool" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
-printf 'uv %s\npython %s\nvenv %s\n' "$*" "$UV_PYTHON_INSTALL_DIR" "${VIRTUAL_ENV:-}" >>"$TEST_EVENTS"
-mkdir -p "$UV_PROJECT_ENVIRONMENT/bin"
-cat >"$UV_PROJECT_ENVIRONMENT/bin/python" <<'PYTHON'
-#!/usr/bin/env bash
-set -euo pipefail
-printf 'python-call %s\n' "$*" >>"$TEST_EVENTS"
-[[ "$3" != "${TEST_FAIL_PACKAGE:-}" ]] || exit 42
-package="${3%@*}"
-version="${3##*@}"
+printf 'tool-call %s\n' "$*" >>"$TEST_EVENTS"
+[[ "$2" != "${TEST_FAIL_PACKAGE:-}" ]] || exit 42
+package="${2%@*}"
+version="${2##*@}"
 root="$HOME/.local/opt/node/tools"
 mkdir -p "$root/envs/$package/node_modules/$package" "$root/bin"
 printf '{"name":"%s","version":"%s","bin":{"%s":"cli.js"}}\n' "$package" "$version" "$package" \
   >"$root/envs/$package/node_modules/$package/package.json"
 printf '#!/usr/bin/env bash\nexit 0\n' >"$root/bin/$package"
 chmod 0755 "$root/bin/$package"
-PYTHON
-chmod 0755 "$UV_PROJECT_ENVIRONMENT/bin/python"
 EOF
-  printf '#!/usr/bin/env bash\nexit 0\n' >"$HOME/.local/opt/uv/bin/python3.14"
-  chmod 0755 "$HOME/.local/bin/"* "$HOME/.local/opt/node/nodejs26/bin/node"
-  chmod 0755 "$HOME/.local/opt/uv/bin/python3.14"
+  chmod 0755 "$TEST_ROOT/fake-node-tool"
+  cat >"$HOME/.local/bin/oras" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+printf 'oras %s\n' "$*" >>"$TEST_EVENTS"
+[[ "$1" == pull && "$2" == ghcr.io/curoky/codespace:node-tool-darwin-arm64 && "$3" == -o ]]
+[[ ${TEST_ORAS_STATUS:-0} == 0 ]] || exit "$TEST_ORAS_STATUS"
+cp "$TEST_ROOT/fake-node-tool" "$4/node-tool"
+tar -czf "$4/node-tool.tar.gz" -C "$4" node-tool
+rm "$4/node-tool"
+EOF
+  chmod 0755 "$HOME/.local/bin/pnpm" "$HOME/.local/opt/node/nodejs26/bin/node" \
+    "$HOME/.local/bin/oras"
 }
 
 @test "Node installs both runtimes into the user-local opt layout" {
@@ -127,13 +124,12 @@ EOF
   run "$MACOS_DIR/maintenance/node-tools.sh"
   [ "$status" -eq 0 ]
   local installer="$HOME/.local/opt/node/node-tool"
-  [ -x "$installer/node-tool" ]
-  [ -x "$installer/.venv/bin/python" ]
-  cmp "$installer/node-tool.py" "$MACOS_DIR/../container/workspace/tools/node-tool/node-tool.py"
-  grep -Fqx "python $HOME/.local/opt/uv/python" "$TEST_EVENTS"
-  grep -Fqx 'venv ' "$TEST_EVENTS"
+  [ -x "$installer" ]
+  [ ! -e "$installer/.venv" ]
+  grep -Fq 'oras pull ghcr.io/curoky/codespace:node-tool-darwin-arm64' "$TEST_EVENTS"
+  [ ! -e "$HOME/.local/opt/go" ]
   for package in defuddle@0.19.4 markdownlint-cli2@0.23.3 prettier@3.9.9; do
-    grep -Fqx "python-call $installer/node-tool.py install $package --node $HOME/.local/opt/node/nodejs26 --pnpm $HOME/.local/bin/pnpm --root $HOME/.local/opt/node/tools" "$TEST_EVENTS"
+    grep -Fqx "tool-call install $package" "$TEST_EVENTS"
     [ -x "$HOME/.local/opt/node/tools/bin/${package%@*}" ]
   done
   [ ! -e "$TEST_ROOT/caller-project" ]
@@ -142,7 +138,7 @@ EOF
 
   run "$MACOS_DIR/maintenance/node-tools.sh"
   [ "$status" -eq 0 ]
-  [ "$(grep -c '^python-call ' "$TEST_EVENTS")" = 6 ]
+  [ "$(grep -c '^tool-call ' "$TEST_EVENTS")" = 6 ]
   [ ! -e "$HOME/.local/opt/node/tools/envs/custom" ]
 }
 
@@ -154,9 +150,9 @@ EOF
   for package in defuddle markdownlint-cli2 prettier; do
     touch "$root/envs/$package/stale"
   done
-  mkdir -p "$root/envs/custom" "$root/store" "$HOME/.cache/npm" "$HOME/.local/opt/node/node-tool"
+  mkdir -p "$root/envs/custom" "$root/store" "$HOME/.cache/npm"
   touch "$root/envs/custom/keep" "$root/store/keep" "$HOME/.cache/npm/keep"
-  touch "$HOME/.local/opt/node/node-tool/stale"
+  printf 'stale\n' >"$HOME/.local/opt/node/node-tool"
 
   run "$MACOS_DIR/maintenance/node-tools.sh"
   [ "$status" -eq 0 ]
@@ -165,10 +161,10 @@ EOF
   done
   [ ! -e "$root/envs/custom" ]
   [ ! -e "$root/store/keep" ]
-  [ ! -e "$HOME/.local/opt/node/node-tool/stale" ]
+  grep -Fq 'tool-call' "$HOME/.local/opt/node/node-tool"
   [ -x "$HOME/.local/opt/node/nodejs26/bin/node" ]
   [ -f "$HOME/.cache/npm/keep" ]
-  [ "$(grep -c '^python-call ' "$TEST_EVENTS")" = 6 ]
+  [ "$(grep -c '^tool-call ' "$TEST_EVENTS")" = 6 ]
 }
 
 @test "Node tools replace partial installations without reading package metadata" {
@@ -181,7 +177,7 @@ EOF
   [ "$status" -eq 0 ]
   [ -x "$HOME/.local/opt/node/tools/bin/prettier" ]
   [ -f "$HOME/.local/opt/node/tools/envs/defuddle/node_modules/defuddle/package.json" ]
-  [ "$(grep -c '^python-call ' "$TEST_EVENTS")" = 6 ]
+  [ "$(grep -c '^tool-call ' "$TEST_EVENTS")" = 6 ]
 }
 
 @test "Node tools stop immediately when a package installation fails" {
@@ -191,20 +187,34 @@ EOF
   [ "$status" -eq 42 ]
   [ -x "$HOME/.local/opt/node/tools/bin/defuddle" ]
   [ ! -e "$HOME/.local/opt/node/tools/envs/prettier" ]
-  [ "$(grep -c '^python-call ' "$TEST_EVENTS")" = 2 ]
+  [ "$(grep -c '^tool-call ' "$TEST_EVENTS")" = 2 ]
 }
 
-@test "Node tools fail before copying source when a dependency is missing" {
-  for dependency in node pnpm uv python; do
+@test "Node tools fail before changing installations when a dependency is missing" {
+  for dependency in node pnpm oras; do
     prepare_tool_dependencies
     case "$dependency" in
       node) rm "$HOME/.local/opt/node/nodejs26/bin/node" ;;
       pnpm) rm "$HOME/.local/bin/pnpm" ;;
-      uv) rm "$HOME/.local/bin/uv" ;;
-      python) rm "$HOME/.local/opt/uv/bin/python3.14" ;;
+      oras) rm "$HOME/.local/bin/oras" ;;
     esac
     run "$MACOS_DIR/maintenance/node-tools.sh"
     [ "$status" -eq 1 ]
     [ ! -e "$HOME/.local/opt/node/node-tool" ]
   done
+}
+
+@test "Node tool download failure preserves the helper and installed packages" {
+  prepare_tool_dependencies
+  mkdir -p "$HOME/.local/opt/node/tools/envs/custom"
+  touch "$HOME/.local/opt/node/tools/envs/custom/keep"
+  cp "$TEST_ROOT/fake-node-tool" "$HOME/.local/opt/node/node-tool"
+  export TEST_ORAS_STATUS=22
+
+  run "$MACOS_DIR/maintenance/node-tools.sh"
+  [ "$status" -eq 22 ]
+  [ -f "$HOME/.local/opt/node/tools/envs/custom/keep" ]
+  cmp "$TEST_ROOT/fake-node-tool" "$HOME/.local/opt/node/node-tool"
+  run find "$TMPDIR" -mindepth 1
+  [ "$output" = '' ]
 }

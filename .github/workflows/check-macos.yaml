@@ -7,8 +7,6 @@ on:
       - '.agents/skills/manage-macos-environment/**'
       - 'platform/macos/**'
       - 'platform/container/workspace/rootfs/home/x/**'
-      - 'platform/container/workspace/tools/node-tool/**'
-      - 'platform/container/workspace/tools/java-tool/**'
       - 'platform/container/workspace/Dockerfile'
   pull_request:
     paths:
@@ -18,9 +16,15 @@ on:
       - 'platform/container/workspace/rootfs/home/x/**'
       - 'platform/container/workspace/tools/node-tool/**'
       - 'platform/container/workspace/tools/java-tool/**'
+      - 'platform/container/workspace/go.mod'
+      - 'platform/container/workspace/go.sum'
       - 'platform/container/workspace/Dockerfile'
   schedule:
     - cron: '0 4 * * 0'
+  workflow_run:
+    workflows: [Publish workspace tools]
+    types: [completed]
+    branches: [master]
   workflow_dispatch:
 
 concurrency:
@@ -29,6 +33,7 @@ concurrency:
 
 jobs:
   check:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: macos-15
     timeout-minutes: 45
     permissions:
@@ -129,10 +134,11 @@ jobs:
           set -euo pipefail
           export HOME="$CODESPACE_HOME"
           export JAVA_HOME="$HOME/.local/opt/java/openjdk27"
-          export PATH="$HOME/.local/bin:$HOME/.local/opt/uv/bin:$HOME/.local/opt/node/tools/bin:$HOME/.local/opt/node/node-tool:$HOME/.local/opt/node/nodejs26/bin:$HOME/.local/opt/go/go1.27.1/bin:$HOME/.local/opt/java/java-tool:$HOME/.local/opt/java/tools/bin:$JAVA_HOME/bin:$PATH"
+          export PATH="$HOME/.local/bin:$HOME/.local/opt/uv/bin:$HOME/.local/opt/node/tools/bin:$HOME/.local/opt/node:$HOME/.local/opt/node/nodejs26/bin:$HOME/.local/opt/go/go1.27.1/bin:$HOME/.local/opt/java:$HOME/.local/opt/java/tools/bin:$JAVA_HOME/bin:$PATH"
 
           test -x "$HOME/.local/bin/uv"
           test -x "$HOME/.local/bin/pnpm"
+          test -x "$HOME/.local/bin/oras"
           test -x "$HOME/.local/opt/uv/bin/python3.14"
           test -x "$HOME/.local/opt/node/nodejs24/bin/node"
           test -x "$HOME/.local/opt/node/nodejs26/bin/node"
@@ -145,6 +151,7 @@ jobs:
 
           uv --version
           pnpm --version
+          oras version
           python3.14 --version
           node --version
           "$HOME/.local/opt/node/nodejs24/bin/node" --version
@@ -161,13 +168,13 @@ jobs:
           test "$(command -v python3.14)" = "$HOME/.local/opt/uv/bin/python3.14"
           test "$(command -v pnpm)" = "$HOME/.local/bin/pnpm"
           test "$(command -v node)" = "$HOME/.local/opt/node/nodejs26/bin/node"
-          test "$(command -v node-tool)" = "$HOME/.local/opt/node/node-tool/node-tool"
+          test "$(command -v node-tool)" = "$HOME/.local/opt/node/node-tool"
           test "$(command -v prettier)" = "$HOME/.local/opt/node/tools/bin/prettier"
           test "$(command -v defuddle)" = "$HOME/.local/opt/node/tools/bin/defuddle"
           test "$(command -v markdownlint-cli2)" = "$HOME/.local/opt/node/tools/bin/markdownlint-cli2"
           test "$(command -v go)" = "$HOME/.local/opt/go/go1.27.1/bin/go"
           test "$(command -v java)" = "$JAVA_HOME/bin/java"
-          test "$(command -v java-tool)" = "$HOME/.local/opt/java/java-tool/java-tool"
+          test "$(command -v java-tool)" = "$HOME/.local/opt/java/java-tool"
 
           domain="gui/$(id -u)"
           launchctl print "$domain/sh.atuin.daemon" >/dev/null
@@ -325,8 +332,7 @@ jobs:
             'console.log(process.execPath);' >"$work_dir/package/cli.js"
           chmod 0755 "$work_dir/package/cli.js"
           tar -czf "$work_dir/smoke.tgz" -C "$work_dir" package
-          "$HOME/.local/opt/node/node-tool/node-tool" install "$work_dir/smoke.tgz" \
-            --node "$HOME/.local/opt/node/nodejs26" --pnpm "$HOME/.local/bin/pnpm" \
+          "$HOME/.local/opt/node/node-tool" install "$work_dir/smoke.tgz" \
             --root "$work_dir/tools"
           mv "$work_dir/tools" "$work_dir/relocated"
           test "$(PATH="$HOME/.local/opt/node/nodejs24/bin:/usr/bin:/bin" \
@@ -353,8 +359,8 @@ jobs:
           javac -d "$work_dir/classes" "$work_dir/JavaToolSmoke.java"
           jar --create --file "$work_dir/smoke.jar" --main-class JavaToolSmoke \
             -C "$work_dir/classes" .
-          "$HOME/.local/opt/java/java-tool/java-tool" install smoke@1 "$work_dir/smoke.jar" \
-            --jar smoke=smoke.jar --java "$JAVA_HOME" --root "$work_dir/tools"
+          "$HOME/.local/opt/java/java-tool" install smoke@1 "$work_dir/smoke.jar" \
+            --jar smoke=smoke.jar --root "$work_dir/tools"
           mv "$work_dir/tools" "$work_dir/relocated"
           test "$(JAVA_HOME=/missing PATH="$HOME/.local/bin:/usr/bin:/bin" \
             "$work_dir/relocated/bin/smoke")" = "$JAVA_HOME"

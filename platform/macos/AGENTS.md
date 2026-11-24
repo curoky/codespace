@@ -24,13 +24,16 @@ home source、LaunchAgent、默认应用和控制面 SSH wiring。`.agents/skill
 ## Maintenance Contracts
 
 - 每个脚本直接执行时完成一个操作，必须可重复运行；不要新增全量安装入口、共享 helper
-  framework、bundle、发布 workflow 或脚本间隐式调用。少量重复优先于跨操作抽象。
+  framework、bundle 或脚本间隐式调用。少量重复优先于跨操作抽象。
 - 优先复用软件或包管理器原生的简单维护能力；否则直接重建受管安装目录，不自建复杂的
   增量更新或局部修复策略。不得扫描或清理未声明的用户路径；依赖缺失时直接失败，由
   Skill 先运行对应依赖操作。
 - 默认 Node.js runtime、Node CLI 的 runtime binding 与 editor npm 路径保持一致；已有
   CLI 不随 Shell PATH 切换，binding 变化时由 Skill 编排对应 package 的重装。
 - `maintenance/node-tools.sh` 的默认 Node CLI 与 Workspace 保持一致。
+- Node/Java installer 从本仓库 GHCR 的 macOS arm64 OCI artifact 安装，使用 binman 提供的
+  ORAS 下载并验证内容，不需要本地 compiler、Docker 或 Podman。Node CLI 维护依赖 Node.js
+  与 pnpm，Java helper 维护不安装 distribution，也不要求预先安装 JDK。
 - JDK 从 Temurin archive 提取 `Contents/Home`，采用 Linux 的 runtime 根布局，不注册
   系统 JDK；Shell 与 editor 使用同一 runtime。
 - Python runtime 与隔离 CLI 由 uv 管理，使用 `UV_*_DIR` 指定用户级软件目录；缓存与项目
@@ -62,7 +65,8 @@ bats platform/macos/tests
 对应模块要求构建。完成后运行 `task check:full`。
 
 `.github/workflows/check-macos.yaml` 在 Apple Silicon runner 上执行原生 contract 检查；push、
-定时和手动运行还会从空的 `/Users/x` 安装用户级工具链、home config 与 Atuin daemon。CI
+定时、手动运行和 installer 发布成功后还会从空的 `/Users/x` 安装用户级工具链、home config
+与 Atuin daemon。工具 source 变更的安装验证在发布成功后触发，避免检查旧 binary。CI
 通过 Bundle 安装 formula 与 tap，跳过全部 cask 后再逐项检查。第三方 cask 的信任声明放在
 tap 的 `trusted.casks` 中，使跳过 cask 安装时仍会应用；`brew bundle list --cask` 输出
 短名称，第三方 cask 必须显式声明其 tap。CI 不安装 GUI cask，也不修改 runner 的默认应用关联。

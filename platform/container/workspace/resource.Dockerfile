@@ -43,6 +43,13 @@ RUN apt-get update -y \
     --with tensorboard-plugin-profile --with "setuptools==81.0.0"
 
 # ----------------------------------- Java -----------------------------------
+FROM docker.io/golang:1.27.4 AS stage_java_tool
+WORKDIR /src
+COPY platform/container/workspace/go.mod platform/container/workspace/go.sum ./
+RUN go mod download
+COPY platform/container/workspace/tools/java-tool/ ./tools/java-tool/
+RUN CGO_ENABLED=0 go build -mod=readonly -trimpath -o /out/java-tool ./tools/java-tool
+
 FROM docker.io/debian:stable-slim AS stage_java
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates
@@ -63,20 +70,18 @@ ADD --checksum=sha256:ddac49f903da9d5bac833e5cc79395098b9c33cfd3279be5f31bd00387
   https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_12.1.4_build/ghidra_12.1.4_PUBLIC_20260921.zip \
   /tmp/ghidra.zip
 
-COPY --from=stage_build_tools /usr/local/store/uv/bin/uv /usr/local/bin/uv
-COPY platform/container/workspace/tools/java-tool/ /tmp/java-tool/
-RUN UV_PYTHON_INSTALL_DIR=/home/x/.local/opt/uv/python /tmp/java-tool/java-tool init \
-  && /tmp/java-tool/java-tool \
+ENV HOME=/home/x
+COPY --from=stage_java_tool /out/java-tool /usr/local/bin/java-tool
+RUN java-tool \
     install maven@3.9.16 /tmp/apache-maven.tar.gz --extract \
     --executable mvn=bin/mvn --executable mvnDebug=bin/mvnDebug \
-    --executable mvnyjp=bin/mvnyjp --inherit-java --root /home/x/.local/opt/java/tools \
-  && /tmp/java-tool/java-tool \
+    --executable mvnyjp=bin/mvnyjp --inherit-java \
+  && java-tool \
     install lemminx@0.31.2 /tmp/lemminx.jar \
-    --jar lemminx=lemminx.jar --java /home/x/.local/opt/java/openjdk27 --root /home/x/.local/opt/java/tools \
-  && /tmp/java-tool/java-tool \
+    --jar lemminx=lemminx.jar \
+  && java-tool \
     install ghidra@12.1.4 /tmp/ghidra.zip --extract \
-    --executable ghidra=ghidraRun --executable-dir ghidra-=support \
-    --java /home/x/.local/opt/java/openjdk27 --root /home/x/.local/opt/java/tools
+    --executable ghidra=ghidraRun --executable-dir ghidra-=support
 
 # ----------------------------------- CUDA -----------------------------------
 # CUDA 12.2 is the newest toolkit supported by the target Host's 535 driver.

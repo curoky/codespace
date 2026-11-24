@@ -2,9 +2,36 @@
 
 from __future__ import annotations
 
+import os
+import subprocess
+from pathlib import Path
+
 import pytest
 
 from codespace.config import Config
+
+
+@pytest.fixture(scope="session")
+def workspace_binaries(tmp_path_factory: pytest.TempPathFactory) -> dict[str, Path]:
+    workspace = Path(__file__).resolve().parents[1] / "platform/container/workspace"
+    output = tmp_path_factory.mktemp("workspace-binaries")
+    binaries = {}
+    for name, package in {
+        "node-tool": "./tools/node-tool",
+        "java-tool": "./tools/java-tool",
+        "workspace-agent": "./agent",
+    }.items():
+        binary = output / name
+        subprocess.run(  # noqa: S603
+            ["go", "build", "-mod=readonly", "-trimpath", "-o", str(binary), package],  # noqa: S607
+            cwd=workspace,
+            env={**os.environ, "CGO_ENABLED": "0"},
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        binaries[name] = binary
+    return binaries
 
 
 @pytest.fixture

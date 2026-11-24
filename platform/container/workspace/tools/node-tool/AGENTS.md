@@ -6,16 +6,16 @@ pnpm 或 package catalog。
 
 ## Contracts
 
-- 调用方显式选择 Node.js runtime 与 pnpm executable；CLI 及其子进程固定使用所选 runtime，
-  不受项目环境切换影响。
+- 默认绑定用户级 Node.js runtime，pnpm 从调用方 PATH 查找；runtime 覆盖只在确有需要时
+  显式传递。CLI 及其子进程固定使用安装时选定的 runtime，不受项目环境切换影响。
 - 从安装结果的 `package.json#bin` 发现命令，不维护 package-to-command 清单；launcher
   相对 tools root 定位，使安装结果可在 image stage 间搬迁，但绑定的 Node.js 路径仍须可用。
-- 默认 tools root 从当前用户的 Home 派生；构建 stage 显式指定安装根。
+- 默认 tools root 从当前用户的 Home 派生；构建 stage 显式设置固定用户的 HOME。
 - lifecycle scripts 必须由调用方按 package 显式授权，不默认放行。
 - 目标或公开命令已存在时失败，不扩展 overwrite、upgrade、rollback 或并发写入能力。
-- installer 使用本目录独立的 uv project，与调用方 virtualenv 隔离；仅显式 `init` 同步
-  环境，普通调用不安装依赖。`init` 使用调用方 PATH 中的 uv 与原生 Python 安装目录配置。
-  修改依赖后必须重新 `init`。
+- installer 是独立 Go executable，与 Agent、java-tool 共用上层 Go module；无运行期
+  Python、uv 或编译器依赖，不提供 `init`。Bash launcher 通过 `text/template` 渲染，模板
+  由 `go:embed` 编译进 executable；路径使用 Shell quoting，不依赖外部模板文件。
 
 ## Validation
 

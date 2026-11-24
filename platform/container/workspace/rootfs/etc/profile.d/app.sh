@@ -50,7 +50,7 @@ codespace_add_path /usr/local/profile/protobuf/bin
 
 # java
 export JAVA_HOME="$HOME/.local/opt/java/openjdk27"
-codespace_add_path "$HOME/.local/opt/java/java-tool"
+codespace_add_path "$HOME/.local/opt/java"
 codespace_add_path "$HOME/.local/opt/java/tools/bin"
 codespace_add_path /opt/resource/home/x/.local/opt/java/tools/bin
 codespace_add_path "$JAVA_HOME/bin"
@@ -58,7 +58,7 @@ codespace_add_path "$JAVA_HOME/bin"
 # nodejs
 export NPM_CONFIG_CACHE="$HOME/.cache/npm"
 codespace_add_path "$HOME/.local/share/pnpm/bin"
-codespace_add_path "$HOME/.local/opt/node/node-tool"
+codespace_add_path "$HOME/.local/opt/node"
 codespace_add_path "$HOME/.local/opt/node/tools/bin"
 codespace_add_path "$HOME/.local/opt/node/nodejs26/bin"
 

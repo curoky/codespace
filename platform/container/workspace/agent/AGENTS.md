@@ -10,7 +10,15 @@
 - Git 状态汇总所有 checkout 的未提交修改及未被 remote 包含的提交；包含 detached HEAD，
   排除 Agent checkpoint refs，避免漏报用户工作或产生误报。
 - 外部命令使用 argv，不拼接 shell。
+- bootstrap 与 server 同进程运行，状态通过锁保护；授权等待与外部命令响应 shutdown
+  cancellation。只监听 Unix socket，不提供 TCP listener。
+- Unix socket 保留 Host-side OpenSSH 的读写权限，访问范围由受限的父目录控制，不能依赖
+  container 用户 UID 与 Host 登录用户 UID 相同。
 - 协议变化同步控制面 client `src/codespace/workspaces/agent.py` 与双方 lifecycle tests。
 
-依赖由本目录独立的 `pyproject.toml` 与 `uv.lock` 管理。通用检查由根 `Taskfile.yaml`
-统一执行；Agent 变更还需按上层约定构建主 image。
+Agent 是独立 Go executable，与两个 installer 共用上层 Go module。HTTP server 使用标准库，
+不依赖 Python runtime。默认 filesystem 合同写在入口中；socket 与 checkout helper 的可选
+覆盖用于隔离测试，不由控制面传递。
+
+通用检查由根 `Taskfile.yaml` 统一执行；Go tests 覆盖 Agent 行为，控制面 tests 通过真实
+executable 与 Unix socket 验证双方协议。Agent 变更还需按上层约定构建主 image。

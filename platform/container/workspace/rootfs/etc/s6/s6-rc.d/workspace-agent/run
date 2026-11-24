@@ -11,4 +11,4 @@ foreground { chmod 0730 -- /run/codespace-control }
 s6-setuidgid x
 s6-env HOME=/home/x
 s6-env KRB5CCNAME=/opt/secret/krb5_ccache
-exec /opt/codespace-agent/.venv/bin/python /opt/codespace-agent/agent.py
+exec /opt/codespace-agent/workspace-agent

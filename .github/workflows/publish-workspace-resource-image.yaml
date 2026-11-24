@@ -6,6 +6,9 @@ on:
       - '.github/workflows/publish-workspace-resource-image.yaml'
       - 'platform/container/workspace/resource.Dockerfile'
       - 'platform/container/workspace/config/binman-resource.yaml'
+      - 'platform/container/workspace/tools/java-tool/**'
+      - 'platform/container/workspace/go.mod'
+      - 'platform/container/workspace/go.sum'
   schedule:
     - cron: '0 2 * * *'
   workflow_dispatch:

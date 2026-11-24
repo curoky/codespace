@@ -18,6 +18,16 @@ Dockerfile、manifest、脚本、类型和测试为准，不在文档中复述�
 
 ## Contracts
 
+- Agent、node-tool 与 java-tool 是三个独立 Go executable，共用本目录的 Go module 与
+  锁定工具链。构建 stage 编译后只复制 binary；运行期不初始化依赖或编译。macOS
+  maintenance 下载对应预编译 installer。默认 runtime binding 与 profile 一致，
+  构建时通过固定用户 HOME 派生路径，不重复传递默认值。
+- 两个 installer binary 直接位于用户级 Node/Java 根目录，与 runtime 和 tools 子目录并列，
+  不使用同名 wrapper 目录。profile 与 macOS Shell 把这两个根目录加入 PATH。
+- `publish-workspace-tools.yaml` 原生构建并发布 macOS arm64 installer 压缩包到本仓库
+  GHCR，由 ORAS 分发，不使用 Dockerfile。artifact 不包含 runtime、package manager 或
+  Shell；首次 macOS 安装前必须已有公开发布的 artifact。主 image 的 Linux binary 从
+  source 构建，不依赖 GHCR installer tag。
 - 主 image 的基础 runtime 与默认 service 不依赖 resource；未挂载 payload 时允许可选工具
   链接悬空。构建期完成 immutable 内容和 s6 graph，启动时不重建。
 - 停用的 s6 service definition 保存在 `rootfs/etc/s6/archive/`，不参与服务图编译；重新启用
@@ -33,8 +43,8 @@ Dockerfile、manifest、脚本、类型和测试为准，不在文档中复述�
   改变已有 PATH 优先级。开发环境通过 filesystem 提供，不依赖主运行 stage 的 OCI ENV；
   非登录 Bash 继承环境或显式加载 profile。项目覆盖在加载后进行，不用 wrapper 或
   `BASH_ENV` 改写启动规则。
-- 默认 Node.js runtime、内置 Node CLI 的 runtime binding 与 editor npm 路径保持一致；
-  修改默认版本时同步调整 profile、构建调用与 editor config。
+- 默认 Node.js runtime、node-tool 的默认 binding、内置 Node CLI 的 runtime binding 与
+  editor npm 路径保持一致；修改默认版本时同步调整 profile、installer 与 editor config。
 - uv 管理用户级 Python 与隔离 CLI，缓存和项目 virtualenv 独立。Resource Python 的完整
   payload 在固定挂载路径安装；主 image 通过 runtime 子目录链接提供 uv discovery，不能
   移动 virtualenv 或改写其 interpreter binding。

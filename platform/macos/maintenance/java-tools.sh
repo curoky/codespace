@@ -1,25 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-macos_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
-java_tool_source="$macos_dir/../container/workspace/tools/java-tool"
 java_root="$HOME/.local/opt/java"
 java_tool="$java_root/java-tool"
 
-test -x "$java_root/openjdk27/bin/java"
-test -x "$HOME/.local/bin/uv"
-test -x "$HOME/.local/opt/uv/bin/python3.14"
+oras="$HOME/.local/bin/oras"
+test -x "$oras"
 
-mkdir -p "$java_tool" "$java_root/tools/bin"
-install -m 0755 \
-  "$java_tool_source/java-tool" \
-  "$java_tool_source/java-tool.py" \
-  "$java_tool/"
-install -m 0644 \
-  "$java_tool_source/.python-version" \
-  "$java_tool_source/pyproject.toml" \
-  "$java_tool_source/uv.lock" \
-  "$java_tool/"
+work_dir="$(mktemp -d)"
+trap 'rm -rf "$work_dir"' EXIT
+"$oras" pull ghcr.io/curoky/codespace:java-tool-darwin-arm64 -o "$work_dir"
+tar -xzf "$work_dir/java-tool.tar.gz" -C "$work_dir" java-tool
+test -f "$work_dir/java-tool"
 
-PATH="$HOME/.local/bin:$PATH" UV_PYTHON_INSTALL_DIR="$HOME/.local/opt/uv/python" \
-  "$java_tool/java-tool" init
+rm -rf "$java_tool"
+mkdir -p "$java_root/tools/bin"
+install -m 0755 "$work_dir/java-tool" "$java_tool"
