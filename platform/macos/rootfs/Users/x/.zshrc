@@ -49,6 +49,7 @@ path=(
   "$HOME/.local/profile/go/bin"
   "$CARGO_HOME/bin"
   "$HOME/.local/opt/rust/cargo/bin"
+  "$HOME/.local/opt/llvm/llvm23.1.2/bin"
   "$HOME/.local/opt/java/java-tool"
   "$HOME/.local/opt/java/tools/bin"
   "$JAVA_HOME/bin"

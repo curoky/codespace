@@ -129,6 +129,8 @@
     "windsurf": false
   },
   "chat.viewSessions.orientation": "stacked",
+  "C_Cpp.clang_format_path": "/Users/x/.local/opt/llvm/llvm23.1.2/bin/clang-format",
+  "clang-format.executable": "/Users/x/.local/opt/llvm/llvm23.1.2/bin/clang-format",
   "clang-format.fallbackStyle": "Google",
   "cmake.buildDirectory": "${workspaceRoot}/_build",
   "cmake.buildToolArgs": [

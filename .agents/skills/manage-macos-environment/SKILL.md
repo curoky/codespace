@@ -21,6 +21,7 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 | Prettier 缺失或版本变化 | `platform/macos/maintenance/node-tools.sh` |
 | Go 缺失或版本变化 | `platform/macos/maintenance/go.sh` |
 | Rust toolchain 缺失或需要更新 | `platform/macos/maintenance/rust.sh` |
+| LLVM SDK 缺失或版本变化 | `platform/macos/maintenance/llvm.sh` |
 | Java 缺失或版本变化 | `platform/macos/maintenance/java-runtime.sh` |
 | java-tool 缺失或 source 变化 | `platform/macos/maintenance/java-tools.sh` |
 | home links 或 copied config 缺失 | `platform/macos/maintenance/home-links.sh` |
@@ -31,7 +32,7 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 
 - standalone CLI：修改 `platform/macos/binman.yaml`，运行 `binman.sh`。
 - macOS formula 或 GUI application：修改 `platform/macos/Brewfile`，运行 `homebrew.sh`。
-- Python、Node.js、Go、Rust 或 Java runtime 与 CLI：修改对应 maintenance 脚本，运行该脚本。
+- Python、Node.js、Go、Rust、LLVM 或 Java runtime 与 CLI：修改对应 maintenance 脚本，运行该脚本。
 - home config 或 LaunchAgent：修改 rootfs source，再运行 `home-links.sh` 或对应 service 脚本。
 
 增量依赖：
@@ -58,11 +59,12 @@ launcher，再运行 `node-tools.sh` 重装；仅改变 Shell PATH 不会更新�
 5. `platform/macos/maintenance/node-tools.sh`
 6. `platform/macos/maintenance/go.sh`
 7. `platform/macos/maintenance/rust.sh`
-8. `platform/macos/maintenance/java-runtime.sh`
-9. `platform/macos/maintenance/java-tools.sh`
-10. `platform/macos/maintenance/home-links.sh`
-11. `platform/macos/maintenance/default-apps.sh`
-12. `platform/macos/maintenance/atuin-daemon.sh`
+8. `platform/macos/maintenance/llvm.sh`
+9. `platform/macos/maintenance/java-runtime.sh`
+10. `platform/macos/maintenance/java-tools.sh`
+11. `platform/macos/maintenance/home-links.sh`
+12. `platform/macos/maintenance/default-apps.sh`
+13. `platform/macos/maintenance/atuin-daemon.sh`
 
 某一步失败时停止，不运行依赖它的后续步骤。修复后从失败的原子操作继续，不重复执行无关操作。
 
@@ -85,6 +87,8 @@ CARGO_HOME="$HOME/.cargo" RUSTUP_HOME="$HOME/.local/opt/rust/rustup" \
   "$HOME/.local/opt/rust/cargo/bin/rustc" --version
 CARGO_HOME="$HOME/.cargo" RUSTUP_HOME="$HOME/.local/opt/rust/rustup" \
   "$HOME/.local/opt/rust/cargo/bin/rustup" component list --installed
+"$HOME/.local/opt/llvm/llvm23.1.2/bin/clang" --version
+"$HOME/.local/opt/llvm/llvm23.1.2/bin/clang-format" --version
 "$HOME/.local/opt/java/openjdk27/bin/java" -version
 "$HOME/.local/opt/java/openjdk27/bin/javac" -version
 "$HOME/.local/opt/java/java-tool/java-tool" --help

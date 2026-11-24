@@ -42,7 +42,7 @@ codespace_add_path "$HOME/.local/opt/go/go1.27.1/bin"
 codespace_add_path /usr/local/profile/go/bin
 
 # llvm
-codespace_add_path /opt/llvm/llvm23.1.2/bin
+codespace_add_path "$HOME/.local/opt/llvm/llvm23.1.2/bin"
 codespace_add_path /usr/local/profile/clang-tools/bin
 
 # protobuf

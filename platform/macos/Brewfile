@@ -54,7 +54,6 @@ cask "julyx10/lap/lap"
 
 brew "bash"
 # brew "bats-core"
-brew "clang-format"
 # brew "python@3"
 # brew "go"
 # brew "node@24"

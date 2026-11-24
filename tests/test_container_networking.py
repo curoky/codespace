@@ -146,6 +146,7 @@ def test_app_profile_sets_tools_and_preserves_inherited_environment(tmp_path: Pa
         str(tmp_path / ".local/opt/go/go1.27.1/bin"),
         str(tmp_path / ".cargo/bin"),
         str(tmp_path / ".local/opt/rust/cargo/bin"),
+        str(tmp_path / ".local/opt/llvm/llvm23.1.2/bin"),
         str(tmp_path / ".local/share/pnpm/bin"),
         str(tmp_path / ".local/opt/uv/bin"),
         str(tmp_path / ".local/opt/conda/condabin"),
@@ -920,6 +921,30 @@ def test_rust_toolchain_installations_are_separate_from_user_cargo_data() -> Non
             f"toolchains/stable-{host}/share/zsh/site-functions"
             in (platform / home_source / ".zshrc").read_text()
         )
+
+
+def test_llvm_sdk_and_formatter_paths_match_across_platforms() -> None:
+    workspace = _CONTAINER / "workspace"
+    macos = _CONTAINER.parent / "macos"
+    link = workspace / "rootfs/home/x/.local/opt/llvm"
+    assert link.is_symlink()
+    assert link.readlink() == Path("/opt/resource/home/x/.local/opt/llvm")
+    assert not (workspace / "rootfs/opt/llvm").exists()
+    resource = (workspace / "resource.Dockerfile").read_text()
+    assert (
+        "COPY --from=stage_llvm /home/x/.local/opt/llvm "
+        "/opt/resource/home/x/.local/opt/llvm" in resource
+    )
+    assert "-C /home/x/.local/opt/llvm/llvm23.1.2" in resource
+    assert 'version="23.1.2"' in (macos / "maintenance/llvm.sh").read_text()
+    assert 'brew "clang-format"' not in (macos / "Brewfile").read_text()
+    for settings_path, home in (
+        (workspace / "rootfs/home/x/.vscode-server/data/Machine/settings.json", "/home/x"),
+        (macos / "rootfs/Users/x/Library/Application Support/Code/User/settings.json", "/Users/x"),
+    ):
+        settings = settings_path.read_text()
+        for field in ("C_Cpp.clang_format_path", "clang-format.executable"):
+            assert f'"{field}": "{home}/.local/opt/llvm/llvm23.1.2/bin/clang-format"' in settings
 
 
 def test_workspace_binman_manifests_do_not_overlap() -> None:

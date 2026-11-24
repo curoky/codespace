@@ -25,8 +25,8 @@ RUN apt-get update -y \
 ADD --checksum=sha256:b5ed9675149cc837c282e9b6962c276c9fa62863d5b2f91537b60848552995b7 \
   https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.2/LLVM-23.1.2-Linux-X64.tar.xz \
   /tmp/llvm.tar.xz
-RUN mkdir -p /opt/llvm/llvm23.1.2 \
-  && tar -xJf /tmp/llvm.tar.xz --strip-components=1 -C /opt/llvm/llvm23.1.2
+RUN mkdir -p /home/x/.local/opt/llvm/llvm23.1.2 \
+  && tar -xJf /tmp/llvm.tar.xz --strip-components=1 -C /home/x/.local/opt/llvm/llvm23.1.2
 
 # ---------------------------------- Python ----------------------------------
 FROM docker.io/debian:stable-slim AS stage_python
@@ -87,7 +87,7 @@ FROM nvcr.io/nvidia/devtools/nsight-systems-cli:2026.3.1-ubuntu22.04 AS stage_ns
 
 # --------------------------------- Payload ----------------------------------
 FROM docker.io/debian:stable-slim AS payload
-COPY --from=stage_llvm /opt/llvm /opt/resource/opt/llvm
+COPY --from=stage_llvm /home/x/.local/opt/llvm /opt/resource/home/x/.local/opt/llvm
 COPY --from=stage_cuda /usr/local/cuda-12.2 /opt/resource/usr/local/cuda-12.2
 COPY --from=stage_cuda /opt/nvidia/nsight-compute /opt/resource/opt/nvidia/nsight-compute
 COPY --from=stage_nsys /opt/nvidia/nsight-systems-cli /opt/resource/opt/nvidia/nsight-systems-cli
@@ -100,7 +100,7 @@ COPY --from=stage_python /opt/resource/home/x/.local/opt/uv /opt/resource/home/x
 # ----------------------------------- Test -----------------------------------
 FROM payload AS test
 USER 5230:5230
-RUN /opt/resource/opt/llvm/llvm23.1.2/bin/clang --version \
+RUN /opt/resource/home/x/.local/opt/llvm/llvm23.1.2/bin/clang --version \
   && test ! -e /opt/resource/home/x/.local/opt/go \
   && test ! -e /opt/resource/home/x/.local/opt/rust \
   && test ! -e /opt/resource/home/x/.local/opt/node \
