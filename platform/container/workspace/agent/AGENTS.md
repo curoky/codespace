@@ -1,5 +1,7 @@
 # Workspace Agent
 
+## Scope
+
 仅通过 Unix socket 向控制面提供最小 bootstrap 与 Git 状态协议。只消费控制面注入的输入，
 不读取项目配置、不接收 provider token，也不管理 Podman 或 Host。
 
@@ -20,5 +22,7 @@ Agent 是独立 Go executable，与两个 installer 共用上层 Go module。HTT
 不依赖 Python runtime。默认 filesystem 合同写在入口中；socket 与 checkout helper 的可选
 覆盖用于隔离测试，不由控制面传递。
 
-通用检查由根 `Taskfile.yaml` 统一执行；Go tests 覆盖 Agent 行为，控制面 tests 通过真实
+## Validation
+
+Go tests 覆盖 Agent 行为，控制面 tests 通过真实
 executable 与 Unix socket 验证双方协议。Agent 变更还需按上层约定构建主 image。

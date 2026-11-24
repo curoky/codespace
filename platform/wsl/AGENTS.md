@@ -1,9 +1,11 @@
 # WSL Platform
 
+## Scope
+
 此目录把 Workspace filesystem 派生为可由 WSL 导入的 flat rootfs。WSL 是本地 distribution，
 不属于控制面管理的 remote Host，也不运行 OCI entrypoint。
 
-## Artifact Model
+## Contracts
 
 - `Dockerfile` 继承指定 Workspace image，叠加 WSL rootfs，并在 build 时重新编译 s6 graph。
 - `export.sh` 用临时 container 执行 `docker export | gzip`。导出结果只有 filesystem；OCI
@@ -15,7 +17,7 @@
 - `windows/` 只拥有 Windows-side keep-alive 和 `.wslconfig` sample；PowerShell task、Windows
   network/runtime policy 不进入 Linux rootfs。
 
-## Change Boundaries
+## Pitfalls
 
 - Workspace rootfs 变化自动进入下一次 WSL build；Workspace service dependency、init、环境或
   持久路径变化时，必须检查 `wsl` bundle 是否仍可独立启动。
@@ -31,4 +33,4 @@ platform/wsl/export.sh
 ```
 
 artifact 变化必须继续在 Windows 验证 import、boot、distribution keep-alive 与 SSH 登录；仅
-Docker build 成功不足以证明 flat-rootfs boot contract。脚本变化再运行 `task check`。
+Docker build 成功不足以证明 flat-rootfs boot contract。

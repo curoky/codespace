@@ -1,5 +1,7 @@
 # java-tool
 
+## Scope
+
 为 resource image 构建、Workspace 运行期与 macOS maintenance 提供单向 Java distribution
 安装。调用方提供已校验的本地 artifact、解包方式与 launcher 映射；installer
 不拥有 package catalog、下载器或 JDK 管理。

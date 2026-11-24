@@ -1,5 +1,7 @@
 # node-tool
 
+## Scope
+
 为主 image 构建、Workspace 运行期和 macOS maintenance 提供单向 npm CLI 安装。每个 package
 使用隔离的 pnpm project；依赖解析、registry 与 store 交给 pnpm，installer 不管理 Node.js、
 pnpm 或 package catalog。

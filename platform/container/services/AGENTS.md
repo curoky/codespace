@@ -1,9 +1,11 @@
 # Service Images
 
+## Scope
+
 此目录拥有由控制面按 Host singleton 管理的 daemon image。部署 placement、mount、secret、
 device、publication 和 tunnel 属于控制面配置；leaf Dockerfile 只定义 image 内 runtime。
 
-## Shared Runtime
+## Contracts
 
 - `s6/` 是 Debian Service leaf 的 shared runtime，提供固定用户 `x`、s6 init、日志与 cron
   基础。standalone-binaries 不发布 aarch64-linux 的完整 s6 stack，因此 `service-s6` 及当前
@@ -18,7 +20,7 @@ device、publication 和 tunnel 属于控制面配置；leaf Dockerfile 只定�
 - `.github/workflows/publish-services.yaml` 每次触发先发布 shared runtime，成功后按静态
   matrix 并行发布全部 Service leaf。
 
-## Leaf Contracts
+## Pitfalls
 
 - `chatbox/`：upstream version、pnpm version、renderer build 与 `defaults.patch` 是一个构建
   单元；patch 必须使用 `--fuzz=0`，避免上游变化被模糊套用。配置测试在
@@ -36,9 +38,9 @@ device、publication 和 tunnel 属于控制面配置；leaf Dockerfile 只定�
 使用 repository root 作为 context 构建每个受影响 leaf，例如：
 
 ```bash
-docker build . --file platform/container/services/<service>/Dockerfile \
+/opt/podman/bin/podman build . --file platform/container/services/<service>/Dockerfile \
   --tag codespace-service-<service>-test
 ```
 
 共享 `s6/`、Workspace 的 `install-s6.sh`、skel、日志或 cron source 变化时，构建全部 Service
-leaf。Chatbox 变化再运行 `uv run pytest tests/test_chatbox.py`；脚本变化运行 `task check:full`。
+leaf。Chatbox 变化再运行 `uv run pytest tests/test_chatbox.py`。
