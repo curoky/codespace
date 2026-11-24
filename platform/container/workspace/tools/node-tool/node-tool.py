@@ -11,7 +11,6 @@ from urllib.parse import quote
 
 import typer
 
-DEFAULT_PNPM = Path("/usr/local/bin/pnpm")
 DEFAULT_ROOT = Path.home() / ".local/opt/node/tools"
 
 app = typer.Typer(add_completion=False, no_args_is_help=True)
@@ -169,7 +168,7 @@ def install(
     pnpm: Annotated[
         Path,
         typer.Option("--pnpm", help="Path to the pnpm executable"),
-    ] = DEFAULT_PNPM,
+    ],
     root: Annotated[
         Path,
         typer.Option("--root", help="Root for isolated environments and launchers"),

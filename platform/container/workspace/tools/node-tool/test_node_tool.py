@@ -28,15 +28,36 @@ def load_node_tool() -> ModuleType:
 node_tool = load_node_tool()
 
 
-def test_defaults_to_workspace_binman_pnpm() -> None:
-    assert Path("/usr/local/bin/pnpm") == node_tool.DEFAULT_PNPM
+def test_cli_requires_explicit_pnpm(tmp_path: Path) -> None:
+    root = tmp_path / "tools"
+    result = CliRunner().invoke(
+        node_tool.app,
+        [
+            "install",
+            "prettier@3.9.9",
+            "--node",
+            str(create_fake_node(tmp_path)),
+            "--root",
+            str(root),
+        ],
+    )
+    assert result.exit_code == 2, result.output
+    assert "--pnpm" in Text.from_ansi(result.output).plain
+    assert not root.exists()
 
 
 def test_cli_requires_explicit_node(tmp_path: Path) -> None:
     root = tmp_path / "tools"
     result = CliRunner().invoke(
         node_tool.app,
-        ["install", "prettier@3.9.9", "--root", str(root)],
+        [
+            "install",
+            "prettier@3.9.9",
+            "--pnpm",
+            str(create_fake_pnpm(tmp_path)),
+            "--root",
+            str(root),
+        ],
         env={"PATH": str(create_fake_node(tmp_path) / "bin")},
     )
     assert result.exit_code == 2, result.output

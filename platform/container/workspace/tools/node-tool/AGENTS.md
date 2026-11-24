@@ -6,7 +6,8 @@ pnpm 或 package catalog。
 
 ## Contracts
 
-- 调用方显式选择 Node.js runtime，CLI 及其子进程固定使用该 runtime，不受项目环境切换影响。
+- 调用方显式选择 Node.js runtime 与 pnpm executable；CLI 及其子进程固定使用所选 runtime，
+  不受项目环境切换影响。
 - 从安装结果的 `package.json#bin` 发现命令，不维护 package-to-command 清单；launcher
   相对 tools root 定位，使安装结果可在 image stage 间搬迁，但绑定的 Node.js 路径仍须可用。
 - 默认 tools root 从当前用户的 Home 派生；构建 stage 显式指定安装根。
