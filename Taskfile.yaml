@@ -78,10 +78,10 @@ tasks:
   typecheck:
     desc: 运行 strict Mypy 与 Go vet
     cmds:
-      - uv run mypy src/codespace
+      - uv run mypy --no-incremental src/codespace
       - cd {{.WORKSPACE_IMAGE}} && go vet ./...
       - >-
-        MYPYPATH={{.ASR_SERVICE}} uv run --project {{.ASR_SERVICE}}/scheduler mypy --strict
+        MYPYPATH={{.ASR_SERVICE}} uv run --project {{.ASR_SERVICE}}/scheduler mypy --strict --no-incremental
         {{.ASR_SERVICE}}/scheduler {{.ASR_SERVICE}}/models/audio.py
         {{.ASR_SERVICE}}/models/engine.py {{.ASR_SERVICE}}/models/start.py {{.ASR_SERVICE}}/protocol.py {{.ASR_SERVICE}}/execution.py
         {{.ASR_SERVICE}}/client/asr.py {{.ASR_SERVICE}}/models/vllm.py {{.ASR_SERVICE}}/regression/run.py

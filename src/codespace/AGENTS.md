@@ -72,3 +72,4 @@ runtime primitives、Web boundary 和 maintenance 分别留在所属模块。
 定向测试位于 `tests/{workspaces,services,runtime,web,maintenance}/` 与根配置/operation/
 lifecycle tests。维护命令入口见 `Taskfile.yaml`；CLI 参数放在 Task 的 `--` 之后，
 只有显式 `--apply` 才修改远端。
+类型检查不依赖增量缓存，保证本地与干净 CI 采用相同检查范围。
