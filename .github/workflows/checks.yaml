@@ -34,6 +34,8 @@ on:
 jobs:
   check:
     runs-on: ubuntu-24.04
+    env:
+      UV_MANAGED_PYTHON: 'true'
     permissions:
       contents: read
     steps:

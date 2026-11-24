@@ -39,6 +39,8 @@
 - Snipaste `last_save_folder` 的 tilde 展开未获官方说明或原生验证，保留绝对路径；
   launchd 不展开变量，plist 路径也保留绝对值，不加 Shell wrapper。
 - CI 在 Apple Silicon 原生检查，并在工具发布成功后从空用户目录验证安装，避免下载旧产物。
+  macOS 环境与共享 home 的 push 先触发工具发布，再由成功事件触发安装验证；PR 仅做
+  contract 检查，不从 registry 安装工具。
   CI 不安装 GUI cask 或修改默认应用；第三方 cask 的信任声明放 tap 的 `trusted.casks`，
   因 Bundle 跳过 cask 时仍需应用。Bundle 的 cask list 只给短名，第三方 cask 必须声明 tap。
 

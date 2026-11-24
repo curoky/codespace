@@ -5,6 +5,11 @@ on:
     branches: [master]
     paths:
       - '.github/workflows/publish-workspace-tools.yaml'
+      - '.github/workflows/check-macos.yaml'
+      - '.agents/skills/manage-macos-environment/**'
+      - 'platform/macos/**'
+      - 'platform/container/workspace/rootfs/home/x/**'
+      - 'platform/container/workspace/Dockerfile'
       - 'platform/container/workspace/tools/**'
       - 'platform/container/workspace/go.mod'
       - 'platform/container/workspace/go.sum'

@@ -464,6 +464,27 @@ def test_conda_uses_the_current_home_for_its_installation_and_environment_helper
 def test_uv_discovers_linked_python_and_creates_a_venv(tmp_path: Path) -> None:
     version = ".".join(str(part) for part in sys.version_info[:3])
     minor = ".".join(str(part) for part in sys.version_info[:2])
+    environment = dict(os.environ)
+    environment.pop("VIRTUAL_ENV", None)
+    runtime = subprocess.run(
+        [
+            "uv",
+            "python",
+            "find",
+            "--no-project",
+            "--no-config",
+            "--managed-python",
+            "--offline",
+            "--no-python-downloads",
+            version,
+        ],
+        env=environment,
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    runtime_root = Path(runtime.stdout.strip()).parent.parent
     python_root = tmp_path / "python"
     installation = python_root / f"cpython-{version}-linux-x86_64-gnu"
     installation.mkdir(parents=True)
@@ -471,9 +492,8 @@ def test_uv_discovers_linked_python_and_creates_a_venv(tmp_path: Path) -> None:
     alias.symlink_to(installation.name)
     declarations = _CONTAINER / "workspace/rootfs/home/x/.local/opt/uv/python"
     for child in next(path for path in declarations.iterdir() if not path.is_symlink()).iterdir():
-        (installation / child.name).symlink_to(Path(sys.base_prefix) / child.name)
-    environment = {**os.environ, "UV_PYTHON_INSTALL_DIR": str(python_root)}
-    environment.pop("VIRTUAL_ENV", None)
+        (installation / child.name).symlink_to(runtime_root / child.name)
+    environment["UV_PYTHON_INSTALL_DIR"] = str(python_root)
     for requested in (minor, version):
         result = subprocess.run(
             [
@@ -791,8 +811,20 @@ def test_macos_source_validation_waits_for_successful_publish() -> None:
     assert validation["jobs"]["check"]["if"] == (
         "github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'"
     )
-    for path in publish[True]["push"]["paths"]:
-        assert path not in validation[True]["push"]["paths"]
+    assert "push" not in validation[True]
+    assert {
+        ".github/workflows/check-macos.yaml",
+        ".agents/skills/manage-macos-environment/**",
+        "platform/macos/**",
+        "platform/container/workspace/rootfs/home/x/**",
+        "platform/container/workspace/Dockerfile",
+    } <= set(publish[True]["push"]["paths"])
+
+
+def test_checks_require_managed_python() -> None:
+    workflow_path = _CONTAINER.parent.parent / ".github/workflows/checks.yaml"
+    workflow = yaml.safe_load(workflow_path.read_text())
+    assert workflow["jobs"]["check"]["env"]["UV_MANAGED_PYTHON"] == "true"
 
 
 def test_macos_java_configuration_uses_only_the_managed_jdk() -> None:

@@ -14,6 +14,8 @@
   `--inherit-java` 继承项目的 Java 环境，不能与显式 JDK 选择同时使用。
 - tools root 可搬迁，固定绑定的 JDK 路径不能随意改变。resource 只携带 CLI 安装结果，
   launcher 使用主 image 的 JDK；构建时校验用的 JDK 和临时 installer 环境不进入 payload。
+- launcher 解析 tools root 的真实路径，包括 macOS 的 `/var` 别名；JAR 参数使用解析后的
+  路径，但固定 JDK binding 保留调用方声明的路径。
 - 目标或公开命令已存在时失败，不扩展 overwrite、upgrade、rollback 或并发写入能力。
 - installer 是独立 Go executable，与 Agent、node-tool 共用上层 Go module；无运行期
   Python、uv 或编译器依赖，不提供 `init`。Bash launcher 通过 `text/template` 渲染，模板

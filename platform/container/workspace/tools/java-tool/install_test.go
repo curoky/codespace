@@ -111,7 +111,11 @@ func TestJarLaunchers(t *testing.T) {
 			info, err := os.Stat(jar)
 			require.NoError(t, err)
 			require.Equal(t, os.FileMode(0644), info.Mode().Perm())
-			cmd := exec.Command(filepath.Join(root, "bin/server"), "--stdio")
+			jar, err = filepath.EvalSymlinks(jar)
+			require.NoError(t, err)
+			linkedRoot := filepath.Join(t.TempDir(), "linked tools")
+			require.NoError(t, os.Symlink(root, linkedRoot))
+			cmd := exec.Command(filepath.Join(linkedRoot, "bin/server"), "--stdio")
 			java := filepath.Join(home, ".local/opt/java/openjdk27")
 			cmd.Env = []string{"PATH=" + filepath.Join(java, "bin") + ":/usr/bin:/bin", "JAVA_HOME=/project/jdk"}
 			result, err := cmd.CombinedOutput()

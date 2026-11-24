@@ -58,6 +58,9 @@ payload 提供可选工具，实例配置由控制面拥有。
 
 ## Validation
 
+通用 CI 使用 uv-managed Python；Resource discovery 测试从其真实 runtime 构造链接，不借用
+Homebrew 或系统 Python 的安装布局。
+
 本地构建默认发行版最终主 image，验证无 Resource 也能启动：
 
 ```bash

@@ -1,13 +1,6 @@
 name: Check macOS environment
 
 on:
-  push:
-    paths:
-      - '.github/workflows/check-macos.yaml'
-      - '.agents/skills/manage-macos-environment/**'
-      - 'platform/macos/**'
-      - 'platform/container/workspace/rootfs/home/x/**'
-      - 'platform/container/workspace/Dockerfile'
   pull_request:
     paths:
       - '.github/workflows/check-macos.yaml'
