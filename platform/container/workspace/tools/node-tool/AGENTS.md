@@ -9,12 +9,12 @@ pnpm 或 package catalog。
 - 调用方显式选择 Node.js runtime，CLI 及其子进程固定使用该 runtime，不受项目环境切换影响。
 - 从安装结果的 `package.json#bin` 发现命令，不维护 package-to-command 清单；launcher
   相对 tools root 定位，使安装结果可在 image stage 间搬迁，但绑定的 Node.js 路径仍须可用。
+- 默认 tools root 从当前用户的 Home 派生；构建 stage 显式指定安装根。
 - lifecycle scripts 必须由调用方按 package 显式授权，不默认放行。
 - 目标或公开命令已存在时失败，不扩展 overwrite、upgrade、rollback 或并发写入能力。
 - installer 使用本目录独立的 uv project，与调用方 virtualenv 隔离；仅显式 `init` 同步
-  环境，普通调用不安装依赖。`init` 的 uv executable 与 managed Python root 有 Workspace
-  默认值，非 Workspace 调用方通过参数显式覆盖。修改依赖后必须重新 `init`，已有环境不会
-  自动同步。
+  环境，普通调用不安装依赖。`init` 使用调用方 PATH 中的 uv 与原生 Python 安装目录配置。
+  修改依赖后必须重新 `init`。
 
 ## Validation
 
@@ -22,7 +22,7 @@ pnpm 或 package catalog。
 按上层约定构建完整主 image，同时覆盖预装产物与运行期 helper。开发时可先构建 CLI stage：
 
 ```bash
-podman build . --network=host \
+/opt/podman/bin/podman build . --network=host \
   --file platform/container/workspace/Dockerfile \
   --target stage_node \
   --tag codespace-node-tool-test

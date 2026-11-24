@@ -145,8 +145,9 @@ def test_app_profile_sets_tools_and_preserves_inherited_environment(tmp_path: Pa
         str(tmp_path / ".local/share/pnpm/bin"),
         str(tmp_path / ".local/opt/java/java-tool"),
         str(tmp_path / ".local/opt/java/openjdk27/bin"),
-        "/opt/node/node-tool",
-        "/opt/node/nodejs26/bin",
+        str(tmp_path / ".local/opt/node/node-tool"),
+        str(tmp_path / ".local/opt/node/tools/bin"),
+        str(tmp_path / ".local/opt/node/nodejs26/bin"),
     }.issubset(entries)
     assert environment["JAVA_HOME"] == str(tmp_path / ".local/opt/java/openjdk27")
     assert environment["CARGO_HOME"] == str(tmp_path / ".cargo")
@@ -246,21 +247,22 @@ def test_workspace_bundles_runtimes_and_keeps_java_tools_in_resource() -> None:
 
     assert '"$HOME/.local/opt/java/tools/bin"' in profile
     assert "/opt/resource/home/x/.local/opt/java/tools/bin" in profile
-    assert "/opt/node/tools/bin" in profile
-    assert "/opt/resource/opt/node" not in profile
-    for family in ("go", "node", "rust"):
+    assert '"$HOME/.local/opt/node/tools/bin"' in profile
+    assert "/opt/resource/home/x/.local/opt/node" not in profile
+    for family in ("go", "rust"):
         assert (
             f"COPY --link --chown=5230:5230 --from=stage_{family} /opt/{family} /opt/{family}"
             in workspace_dockerfile
         )
         assert not (rootfs_opt / family).is_symlink()
-    assert (
-        "COPY --link --chown=5230:5230 --from=stage_java "
-        "/home/x/.local/opt/java /home/x/.local/opt/java" in workspace_dockerfile
-    )
-    assert not (rootfs_opt / "java").exists()
+    for family in ("java", "node"):
+        assert (
+            f"COPY --link --chown=5230:5230 --from=stage_{family} "
+            f"/home/x/.local/opt/{family} /home/x/.local/opt/{family}" in workspace_dockerfile
+        )
+        assert not (rootfs_opt / family).exists()
     assert "--java /home/x/.local/opt/java/openjdk27" in resource_dockerfile
-    assert "--node /opt/node/nodejs26" in workspace_dockerfile
+    assert "--node /home/x/.local/opt/node/nodejs26" in workspace_dockerfile
     assert "--pnpm /usr/local/bin/pnpm" in workspace_dockerfile
     assert (
         "COPY --from=stage_java /home/x/.local/opt/java/tools "
@@ -270,7 +272,8 @@ def test_workspace_bundles_runtimes_and_keeps_java_tools_in_resource() -> None:
         assert f"COPY --from=stage_{family}" not in resource_dockerfile
     assert "FROM payload AS test" in resource_dockerfile
     assert "FROM test AS resource" in resource_dockerfile
-    assert settings["prettier.prettierPath"].startswith("/opt/node/tools/")
+    assert settings["prettier.prettierPath"].startswith("/home/x/.local/opt/node/tools/")
+    assert settings["typescript.npm"] == "/home/x/.local/opt/node/nodejs26/bin/npm"
     assert (
         settings["xml.server.binary.path"]
         == "/opt/resource/home/x/.local/opt/java/tools/bin/lemminx"
@@ -450,8 +453,8 @@ def test_workspace_bundles_java_and_node_installers() -> None:
     java_tool = (workspace / "tools/java-tool/java-tool").read_text()
 
     assert (
-        "COPY --chown=5230:5230 platform/container/workspace/tools/node-tool/ /opt/node/node-tool/"
-        in dockerfile
+        "COPY --chown=5230:5230 platform/container/workspace/tools/node-tool/ "
+        "/home/x/.local/opt/node/node-tool/" in dockerfile
     )
     assert (
         "COPY --chown=5230:5230 platform/container/workspace/tools/java-tool/ "
@@ -467,7 +470,7 @@ def test_workspace_bundles_java_and_node_installers() -> None:
     )
     assert "/tmp/java-tool/java-tool init" in resource_dockerfile
     assert "uv run --locked --script /tmp/java-tool/java-tool.py" not in resource_dockerfile
-    assert "/opt/node/node-tool/node-tool init" in dockerfile
+    assert "/home/x/.local/opt/node/node-tool/node-tool init" in dockerfile
     assert "/home/x/.local/opt/java/java-tool/java-tool init" in dockerfile
     for name, wrapper in (("node-tool", node_tool), ("java-tool", java_tool)):
         tool = workspace / "tools" / name
@@ -478,20 +481,17 @@ def test_workspace_bundles_java_and_node_installers() -> None:
         assert not (tool / f"{name}.py.lock").exists()
         assert 'script_dir="$(dirname "$(readlink -f "$0")")"' in wrapper
         assert f'exec "$script_dir/.venv/bin/python" "$script_dir/{name}.py" "$@"' in wrapper
-    assert "uv_executable=/usr/local/bin/uv" in node_tool
-    assert "python_install_dir=/opt/uv/python" in node_tool
-    assert (
-        '"$uv_executable" sync --project "$script_dir" --locked --no-dev --python 3.14' in node_tool
-    )
-    assert 'uv sync --project "$script_dir" --locked --no-dev --python 3.14' in java_tool
-    assert "/opt/uv/python" not in java_tool
-    assert (
-        "UV_PYTHON_INSTALL_DIR=/opt/uv/python /home/x/.local/opt/java/java-tool/java-tool init"
-        in dockerfile
-    )
+        assert 'uv sync --project "$script_dir" --locked --no-dev --python 3.14' in wrapper
+        assert "/opt/uv/python" not in wrapper
+        family = name.removesuffix("-tool")
+        assert (
+            f"UV_PYTHON_INSTALL_DIR=/opt/uv/python /home/x/.local/opt/{family}/{name}/{name} init"
+            in dockerfile
+        )
+    assert dockerfile.count("--root /home/x/.local/opt/node/tools") == 3
     assert resource_dockerfile.count("--root /home/x/.local/opt/java/tools") == 3
     assert '"$HOME/.local/opt/java/java-tool"' in profile
-    assert "/opt/node/node-tool" in profile
+    assert '"$HOME/.local/opt/node/node-tool"' in profile
     assert os.access(workspace / "tools/java-tool/java-tool", os.X_OK)
     assert os.access(workspace / "tools/node-tool/node-tool", os.X_OK)
 
@@ -516,11 +516,8 @@ def test_tool_init_accepts_native_uv_paths(tmp_path: Path, name: str) -> None:
     wrapper.chmod(0o755)
     python_root = tmp_path / "managed-python"
 
-    arguments = [str(wrapper), "init"]
-    if name == "node-tool":
-        arguments.extend(["--uv", str(fake_uv), "--python-install-dir", str(python_root)])
     subprocess.run(
-        arguments,
+        [str(wrapper), "init"],
         check=True,
         env={
             "PATH": f"{tmp_path}:/usr/bin:/bin",
@@ -556,7 +553,7 @@ def test_tool_wrapper_requires_init_and_reuses_its_environment(tmp_path: Path, n
     fake_uv.chmod(0o755)
     source = (_CONTAINER / "workspace/tools" / name / name).read_text()
     wrapper = tool / name
-    wrapper.write_text(source.replace("/usr/local/bin/uv", str(fake_uv)))
+    wrapper.write_text(source)
     wrapper.chmod(0o755)
     environment = {
         "PATH": f"{tmp_path}:/usr/bin:/bin",
@@ -607,7 +604,7 @@ def test_tool_wrapper_requires_init_and_reuses_its_environment(tmp_path: Path, n
         assert result.stdout.splitlines() == [str(tool / f"{name}.py"), argument]
     calls = (tool / "sync-calls").read_text().splitlines()
     sync_arguments = ["sync", "--project", str(tool), "--locked", "--no-dev"]
-    python_root = "/opt/uv/python" if name == "node-tool" else str(tmp_path / "caller-python")
+    python_root = str(tmp_path / "caller-python")
     assert calls == [repr((None, python_root, [*sync_arguments, "--python", "3.14"]))]
 
     result = subprocess.run(
@@ -653,7 +650,7 @@ def test_workspace_resource_image_installs_binman_manifest() -> None:
     assert "test ! -e /opt/resource/opt/uv/bin/uv" in dockerfile
     assert "test ! -e /opt/resource/usr/local/store/uv" in dockerfile
     assert "test ! -e /opt/resource/usr/local/store/pnpm" in dockerfile
-    assert "test ! -e /opt/resource/opt/node" in dockerfile
+    assert "test ! -e /opt/resource/home/x/.local/opt/node" in dockerfile
     assert "COPY --from=stage_sb /usr/local/profile /opt/resource/usr/local/profile" in dockerfile
     assert "/opt/resource/usr/local/bin/radare2 -v" in dockerfile
     assert "/opt/resource/usr/local/bin/rizin -v" in dockerfile
@@ -745,8 +742,9 @@ def test_macos_toolchains_match_workspace_versions() -> None:
     assert f'version="{prettier_version.group(1)}"' in node_tools
     assert 'tools/node-tool"' in node_tools
     assert '"$node_tool/node-tool" init' in node_tools
-    assert '--uv "$HOME/.local/bin/uv"' in node_tools
-    assert '--python-install-dir "$HOME/.local/share/uv/python"' in node_tools
+    assert 'UV_PYTHON_INSTALL_DIR="$HOME/.local/share/uv/python"' in node_tools
+    assert 'node_root="$HOME/.local/opt/node"' in node_runtime
+    assert 'node_root="$HOME/.local/opt/node"' in node_tools
     assert '"$node_tool/node-tool" install "prettier@${version}"' in node_tools
     assert '--node "$node_root/nodejs26"' in node_tools
     assert '--pnpm "$HOME/.local/bin/pnpm"' in node_tools
@@ -772,6 +770,18 @@ def test_macos_java_configuration_uses_only_the_managed_jdk() -> None:
     assert '"java.jdt.ls.java.home": "/Users/x/.local/opt/java/openjdk27"' in settings
     assert "openjdk" not in (macos / "Brewfile").read_text()
     assert "/opt/homebrew/opt/openjdk" not in settings
+
+
+def test_macos_node_configuration_uses_the_managed_runtime_and_tools() -> None:
+    macos = _CONTAINER.parent / "macos"
+    settings = (
+        macos / "rootfs/Users/x/Library/Application Support/Code/User/settings.json"
+    ).read_text()
+    assert (
+        '"prettier.prettierPath": '
+        '"/Users/x/.local/opt/node/tools/envs/prettier/node_modules/prettier"' in settings
+    )
+    assert '"typescript.npm": "/Users/x/.local/opt/node/nodejs26/bin/npm"' in settings
 
 
 def test_workspace_binman_manifests_do_not_overlap() -> None:
@@ -823,7 +833,7 @@ def test_workspace_podman_separates_image_files_from_user_data() -> None:
     assert not (workspace / "rootfs/usr/local/bin/podman").exists()
     assert not (workspace / "rootfs/usr/local/bin/podman-server").exists()
     assert "chown" not in configure
-    ownership = dockerfile.index("chown -hR 5230:5230 /home/x /opt/node /opt/uv")
+    ownership = dockerfile.index("chown -hR 5230:5230 /home/x /opt/uv")
     assert (
         dockerfile.index("COPY platform/container/workspace/rootfs/ /")
         < ownership

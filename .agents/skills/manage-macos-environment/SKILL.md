@@ -36,7 +36,7 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 增量依赖：
 
 - `uv.sh` 依赖 `binman.sh` 提供 uv。
-- `node-tools.sh` 依赖 `binman.sh` 提供 pnpm，并依赖 `node-runtime.sh` 提供 Node.js 26。
+- `node-tools.sh` 依赖 `binman.sh`、`uv.sh` 与 `node-runtime.sh`。
 - `java-tools.sh` 依赖 `java-runtime.sh` 与 `uv.sh`；不默认安装 Java CLI package。
 - `atuin-daemon.sh` 依赖 `binman.sh` 提供 Atuin。
 
@@ -72,11 +72,12 @@ launcher，再运行 `node-tools.sh` 重装；仅改变 Shell PATH 不会更新�
 test -x "$HOME/.local/bin/uv"
 test -x "$HOME/.local/bin/pnpm"
 test -x "$HOME/.local/share/uv/bin/python3.14"
-test -x "$HOME/.local/share/node/nodejs24/bin/node"
-test -x "$HOME/.local/share/node/nodejs26/bin/node"
-test -x "$HOME/.local/share/node/tools/bin/prettier"
+test -x "$HOME/.local/opt/node/nodejs24/bin/node"
+test -x "$HOME/.local/opt/node/nodejs26/bin/node"
+test -x "$HOME/.local/opt/node/tools/bin/prettier"
+"$HOME/.local/opt/node/node-tool/node-tool" --help
 test -x "$HOME/.local/share/go/go1.27.1/bin/go"
-"$HOME/.local/share/node/nodejs26/bin/node" --version
+"$HOME/.local/opt/node/nodejs26/bin/node" --version
 "$HOME/.local/share/go/go1.27.1/bin/go" version
 "$HOME/.local/opt/java/openjdk27/bin/java" -version
 "$HOME/.local/opt/java/openjdk27/bin/javac" -version

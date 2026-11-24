@@ -181,8 +181,9 @@ file_mode() {
 
   grep -Fqx '  "$HOME/.local/bin"' "$zshrc"
   grep -Fqx '  "$HOME/.local/share/uv/bin"' "$zshrc"
-  grep -Fqx '  "$HOME/.local/share/node/tools/bin"' "$zshrc"
-  grep -Fqx '  "$HOME/.local/share/node/nodejs26/bin"' "$zshrc"
+  grep -Fqx '  "$HOME/.local/opt/node/tools/bin"' "$zshrc"
+  grep -Fqx '  "$HOME/.local/opt/node/node-tool"' "$zshrc"
+  grep -Fqx '  "$HOME/.local/opt/node/nodejs26/bin"' "$zshrc"
   grep -Fqx '  "$HOME/.local/share/go/go1.27.1/bin"' "$zshrc"
   grep -Fqx '  "$HOME/.local/profile/go/bin"' "$zshrc"
   grep -Fqx 'export JAVA_HOME="$HOME/.local/opt/java/openjdk27"' "$zshrc"

@@ -5,35 +5,12 @@ set -euo pipefail
 script_dir="$(dirname "$(readlink -f "$0")")"
 if [ "${1:-}" = init ]; then
   shift
-  uv_executable=/usr/local/bin/uv
-  python_install_dir=/opt/uv/python
-  while [ "$#" -gt 0 ]; do
-    case "$1" in
-      --uv)
-        [ "$#" -ge 2 ] || {
-          printf 'error: --uv requires a path\n' >&2
-          exit 1
-        }
-        uv_executable="$2"
-        shift 2
-        ;;
-      --python-install-dir)
-        [ "$#" -ge 2 ] || {
-          printf 'error: --python-install-dir requires a path\n' >&2
-          exit 1
-        }
-        python_install_dir="$2"
-        shift 2
-        ;;
-      *)
-        printf 'usage: %s init [--uv PATH] [--python-install-dir DIR]\n' "$0" >&2
-        exit 1
-        ;;
-    esac
-  done
+  if [ "$#" -ne 0 ]; then
+    printf 'usage: %s init\n' "$0" >&2
+    exit 1
+  fi
   exec env -u VIRTUAL_ENV UV_PROJECT_ENVIRONMENT="$script_dir/.venv" \
-    UV_PYTHON_INSTALL_DIR="$python_install_dir" \
-    "$uv_executable" sync --project "$script_dir" --locked --no-dev --python 3.14
+    uv sync --project "$script_dir" --locked --no-dev --python 3.14
 fi
 if [ ! -x "$script_dir/.venv/bin/python" ]; then
   printf 'error: Python environment is not initialized; run "%s init" first\n' "$0" >&2

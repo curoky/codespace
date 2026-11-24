@@ -95,21 +95,21 @@ ADD --checksum=sha256:fd8e59d5a511510f6a298afb548f18c7d2b1be404d8b4a27d94fbe49f5
 ADD --checksum=sha256:ca70e9e349de048b9522abb3adc05b3bd6f43c5ffd3ec57916c7da292f59f022 \
   https://nodejs.org/dist/v26.10.0/node-v26.10.0-linux-x64.tar.xz \
   /tmp/node26.tar.xz
-RUN mkdir -p /opt/node/nodejs24 /opt/node/nodejs26/lib /opt/node/tools/bin \
-  && tar -xJf /tmp/node24.tar.xz --strip-components=1 -C /opt/node/nodejs24 \
-  && tar -xJf /tmp/node26.tar.xz --strip-components=1 -C /opt/node/nodejs26 \
-  && cp -L /usr/lib/x86_64-linux-gnu/libatomic.so.1 /opt/node/nodejs26/lib/ \
-  && patchelf --set-rpath '$ORIGIN/../lib' /opt/node/nodejs26/bin/node
+RUN mkdir -p /home/x/.local/opt/node/nodejs24 /home/x/.local/opt/node/nodejs26/lib /home/x/.local/opt/node/tools/bin \
+  && tar -xJf /tmp/node24.tar.xz --strip-components=1 -C /home/x/.local/opt/node/nodejs24 \
+  && tar -xJf /tmp/node26.tar.xz --strip-components=1 -C /home/x/.local/opt/node/nodejs26 \
+  && cp -L /usr/lib/x86_64-linux-gnu/libatomic.so.1 /home/x/.local/opt/node/nodejs26/lib/ \
+  && patchelf --set-rpath '$ORIGIN/../lib' /home/x/.local/opt/node/nodejs26/bin/node
 
 COPY --from=stage_sb /usr/local/store/pnpm/bin/pnpm /usr/local/bin/pnpm
 COPY platform/container/workspace/tools/node-tool/ /tmp/node-tool/
-RUN /tmp/node-tool/node-tool init \
+RUN UV_PYTHON_INSTALL_DIR=/opt/uv/python /tmp/node-tool/node-tool init \
   && /tmp/node-tool/node-tool install defuddle@0.19.4 \
-    --node /opt/node/nodejs26 --pnpm /usr/local/bin/pnpm \
+    --node /home/x/.local/opt/node/nodejs26 --pnpm /usr/local/bin/pnpm --root /home/x/.local/opt/node/tools \
   && /tmp/node-tool/node-tool install markdownlint-cli2@0.23.3 \
-    --node /opt/node/nodejs26 --pnpm /usr/local/bin/pnpm \
+    --node /home/x/.local/opt/node/nodejs26 --pnpm /usr/local/bin/pnpm --root /home/x/.local/opt/node/tools \
   && /tmp/node-tool/node-tool install prettier@3.9.9 \
-    --node /opt/node/nodejs26 --pnpm /usr/local/bin/pnpm
+    --node /home/x/.local/opt/node/nodejs26 --pnpm /usr/local/bin/pnpm --root /home/x/.local/opt/node/tools
 
 # ------------------------- NVIDIA Container Toolkit ------------------------
 FROM docker.io/debian:stable-slim AS stage_nvidia_container_toolkit
@@ -168,11 +168,10 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
 FROM docker.io/$BASE_IMAGE AS workspace
 
 COPY platform/container/workspace/rootfs/ /
-RUN mkdir -p /opt/node \
-  && chown -hR 5230:5230 /home/x /opt/node /opt/uv
+RUN chown -hR 5230:5230 /home/x /opt/uv
 
 COPY --link --from=stage_sb /usr/local /usr/local
-COPY --chown=5230:5230 platform/container/workspace/tools/node-tool/ /opt/node/node-tool/
+COPY --chown=5230:5230 platform/container/workspace/tools/node-tool/ /home/x/.local/opt/node/node-tool/
 COPY --chown=5230:5230 platform/container/workspace/tools/java-tool/ /home/x/.local/opt/java/java-tool/
 RUN --mount=type=bind,source=platform/container/workspace/scripts/configure-system.sh,target=/tmp/configure-system.sh \
   bash /tmp/configure-system.sh
@@ -183,7 +182,7 @@ COPY --link --chown=5230:5230 --from=stage_nix /home/x/.nix-channels /home/x/.ni
 COPY --link --chown=5230:5230 --from=stage_nix /home/x/.local/state/nix /home/x/.local/state/nix
 COPY --link --chown=5230:5230 --from=stage_python /opt/uv /opt/uv
 COPY --link --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
-COPY --link --chown=5230:5230 --from=stage_node /opt/node /opt/node
+COPY --link --chown=5230:5230 --from=stage_node /home/x/.local/opt/node /home/x/.local/opt/node
 COPY --link --chown=5230:5230 --from=stage_go /opt/go /opt/go
 COPY --link --chown=5230:5230 --from=stage_rust /opt/rust /opt/rust
 COPY --link --chown=5230:5230 --from=stage_java /home/x/.local/opt/java /home/x/.local/opt/java
@@ -195,7 +194,7 @@ RUN --mount=type=bind,source=platform/container/workspace/scripts/install-s6.sh,
 USER x
 COPY --chown=5230:5230 platform/container/workspace/agent/ /opt/codespace-agent/
 RUN UV_PYTHON_INSTALL_DIR=/opt/uv/python /home/x/.local/opt/java/java-tool/java-tool init \
-  && /opt/node/node-tool/node-tool init \
+  && UV_PYTHON_INSTALL_DIR=/opt/uv/python /home/x/.local/opt/node/node-tool/node-tool init \
   && UV_LINK_MODE=copy /usr/local/bin/uv sync --project /opt/codespace-agent --locked --no-dev \
     --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
   && git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-playbook \

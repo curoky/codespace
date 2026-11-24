@@ -3,9 +3,9 @@
 - 工具环境缺失时加载 `~/.zshrc`；项目工具链覆盖在加载后设置。
 - Python 环境与项目依赖使用 uv，按需用 `--python` 选择
   `~/.local/share/uv/python` 中的版本。
-- Node.js 优先使用 26；按项目需求从 `~/.local/share/node/nodejs*` 选择版本，将其 `bin`
+- Node.js 优先使用 26；按项目需求从 `~/.local/opt/node/nodejs*` 选择版本，将其 `bin`
   放到 PATH 首位。
-- Node.js 全局 CLI 位于 `~/.local/share/node/tools`，不使用全局 npm 或 pnpm 安装。
+- Node.js 全局 CLI 用 `node-tool` 安装到 `~/.local/opt/node/tools`，不使用全局 npm 或 pnpm 安装。
 - Go runtime 位于 `~/.local/share/go`，用户安装的 Go 命令位于 `~/go/bin`。
 - Java runtime 位于 `~/.local/opt/java/openjdk*`；切换时同步设置 `JAVA_HOME` 与 PATH。
   Java CLI 用 `java-tool` 安装到 `~/.local/opt/java/tools`，不使用 Homebrew 安装 JDK。

@@ -103,7 +103,7 @@ USER 5230:5230
 RUN /opt/resource/opt/llvm/llvm23.1.2/bin/clang --version \
   && test ! -e /opt/resource/opt/go \
   && test ! -e /opt/resource/opt/rust \
-  && test ! -e /opt/resource/opt/node \
+  && test ! -e /opt/resource/home/x/.local/opt/node \
   && test ! -e /opt/resource/home/x/.local/opt/java/openjdk8 \
   && test ! -e /opt/resource/home/x/.local/opt/java/openjdk27 \
   && test ! -e /opt/resource/usr/local/bin/bm \

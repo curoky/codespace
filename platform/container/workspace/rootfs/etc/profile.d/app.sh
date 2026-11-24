@@ -58,9 +58,9 @@ codespace_add_path "$JAVA_HOME/bin"
 # nodejs
 export NPM_CONFIG_CACHE="$HOME/.cache/npm"
 codespace_add_path "$HOME/.local/share/pnpm/bin"
-codespace_add_path /opt/node/node-tool
-codespace_add_path /opt/node/tools/bin
-codespace_add_path /opt/node/nodejs26/bin
+codespace_add_path "$HOME/.local/opt/node/node-tool"
+codespace_add_path "$HOME/.local/opt/node/tools/bin"
+codespace_add_path "$HOME/.local/opt/node/nodejs26/bin"
 
 # codespace
 export WORKSPACE=/workspace

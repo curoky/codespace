@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import stat
 import subprocess
 import sys
@@ -91,6 +92,32 @@ executable.chmod(0o755)
 """,
     )
     return pnpm
+
+
+@pytest.mark.parametrize("home_name", ["home/x", "client home"])
+def test_cli_default_root_uses_the_current_home(tmp_path: Path, home_name: str) -> None:
+    home = tmp_path / home_name
+    installer = tmp_path / "source/node-tool.py"
+    installer.parent.mkdir(parents=True)
+    installer.write_text(Path(node_tool.__file__).read_text())
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(installer),
+            "install",
+            "prettier@3.9.9",
+            "--node",
+            str(create_fake_node(tmp_path)),
+            "--pnpm",
+            str(create_fake_pnpm(tmp_path)),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        env={**os.environ, "HOME": str(home)},
+    )
+    assert "installed prettier@3.9.9" in result.stdout
+    assert (home / ".local/opt/node/tools/bin/prettier").is_file()
 
 
 def test_install_creates_an_isolated_node_bound_launcher(tmp_path: Path) -> None:

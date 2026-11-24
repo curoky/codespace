@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-node_root="$HOME/.local/share/node"
+node_root="$HOME/.local/opt/node"
 
 install_node() {
   local major="$1"

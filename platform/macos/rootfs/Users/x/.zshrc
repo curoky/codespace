@@ -39,9 +39,9 @@ typeset -U path PATH
 path=(
   "$HOME/.local/bin"
   "$HOME/.local/share/uv/bin"
-  "$HOME/.local/share/node/tools/bin"
-  "$HOME/.local/share/node/node-tool"
-  "$HOME/.local/share/node/nodejs26/bin"
+  "$HOME/.local/opt/node/tools/bin"
+  "$HOME/.local/opt/node/node-tool"
+  "$HOME/.local/opt/node/nodejs26/bin"
   "$HOME/go/bin"
   "$HOME/.local/share/go/go1.27.1/bin"
   "$HOME/.local/profile/go/bin"
