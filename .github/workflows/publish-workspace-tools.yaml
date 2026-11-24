@@ -1,0 +1,72 @@
+name: Publish workspace tools
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/publish-workspace-tools.yaml'
+      - 'platform/container/workspace/tools/**'
+      - 'platform/container/workspace/go.mod'
+      - 'platform/container/workspace/go.sum'
+  workflow_dispatch:
+
+concurrency:
+  group: publish-workspace-tools-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: macos-15
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        tool: [node-tool, java-tool]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: platform/container/workspace/go.mod
+          cache-dependency-path: platform/container/workspace/go.sum
+      - name: Test tools
+        working-directory: platform/container/workspace
+        run: go test -race ./tools/...
+      - name: Scan tools
+        working-directory: platform/container/workspace
+        run: go tool govulncheck ./tools/...
+      - name: Build macOS arm64 binary
+        working-directory: platform/container/workspace
+        env:
+          TOOL: ${{ matrix.tool }}
+          CGO_ENABLED: '0'
+          GOOS: darwin
+          GOARCH: arm64
+        run: |
+          test "$(uname -m)" = arm64
+          mkdir -p "$RUNNER_TEMP/package"
+          go build -mod=readonly -trimpath -o "$RUNNER_TEMP/package/$TOOL" "./tools/$TOOL"
+          "$RUNNER_TEMP/package/$TOOL" --help
+          tar -czf "$RUNNER_TEMP/package/$TOOL.tar.gz" -C "$RUNNER_TEMP/package" "$TOOL"
+      - uses: oras-project/setup-oras@v1
+        with:
+          version: 1.4.0
+      - name: Publish OCI artifact
+        working-directory: ${{ runner.temp }}/package
+        env:
+          TOOL: ${{ matrix.tool }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_USER: ${{ github.actor }}
+        run: |
+          printf '%s' "$GH_TOKEN" | oras login ghcr.io --username "$GH_USER" --password-stdin
+          reference="ghcr.io/curoky/codespace:$TOOL-darwin-arm64-${GITHUB_SHA}"
+          oras push "$reference" \
+            --artifact-type application/vnd.codespace.tool.v1 \
+            --artifact-platform darwin/arm64 \
+            --annotation org.opencontainers.image.source=https://github.com/curoky/codespace \
+            --annotation "org.opencontainers.image.revision=$GITHUB_SHA" \
+            "$TOOL.tar.gz:application/gzip"
+          oras pull "$reference" -o "$RUNNER_TEMP/download"
+          cmp "$TOOL.tar.gz" "$RUNNER_TEMP/download/$TOOL.tar.gz"
+          oras tag "$reference" "$TOOL-darwin-arm64"
