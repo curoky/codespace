@@ -54,7 +54,7 @@ jobs:
           go build -mod=readonly -trimpath -o "$RUNNER_TEMP/package/$TOOL" "./tools/$TOOL"
           "$RUNNER_TEMP/package/$TOOL" --help
           tar -czf "$RUNNER_TEMP/package/$TOOL.tar.gz" -C "$RUNNER_TEMP/package" "$TOOL"
-      - uses: oras-project/setup-oras@v1
+      - uses: oras-project/setup-oras@v2.0.4
         with:
           version: 1.4.0
       - name: Publish OCI artifact

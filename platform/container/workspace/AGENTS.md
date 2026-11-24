@@ -17,6 +17,7 @@ payload 提供可选工具，实例配置由控制面拥有。
 - macOS arm64 helper 由 `publish-workspace-tools.yaml` 原生构建并经 GHCR/ORAS 分发；
   不含 runtime、package manager 或 Shell。首次安装需已有发布产物；Linux image 从源码
   构建，不依赖 GHCR helper tag。
+  ORAS setup Action 使用内嵌 release 列表，升级 CLI 时需同时核对 Action 对目标版本和平台的支持。
 - 基础 runtime 和默认 service 不依赖 Resource；无 payload 时允许可选工具链接悬空。
   immutable 内容和 s6 graph 在构建期完成，启动时不重建。停用 definition 位于
   `rootfs/etc/s6/archive/`，恢复时移回服务图、按需加入 bundle 并重建。

@@ -779,7 +779,7 @@ def test_macos_installers_use_published_arm64_artifacts() -> None:
     assert build["env"]["GOOS"] == "darwin"
     assert build["env"]["GOARCH"] == "arm64"
     assert build["env"]["CGO_ENABLED"] == "0"
-    assert any(step.get("uses") == "oras-project/setup-oras@v1" for step in steps)
+    assert any(step.get("uses") == "oras-project/setup-oras@v2.0.4" for step in steps)
     assert not any(step.get("uses", "").startswith("docker/") for step in steps)
     publish_script = next(
         step["run"] for step in steps if step.get("name") == "Publish OCI artifact"
