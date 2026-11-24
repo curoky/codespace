@@ -38,6 +38,8 @@ Dockerfile、manifest、脚本、类型和测试为准，不在文档中复述�
 - uv 管理用户级 Python 与隔离 CLI，缓存和项目 virtualenv 独立。Resource Python 的完整
   payload 在固定挂载路径安装；主 image 通过 runtime 子目录链接提供 uv discovery，不能
   移动 virtualenv 或改写其 interpreter binding。
+- rustup 与 SDK 安装根独立于用户的 `CARGO_HOME`；安装阶段的 Cargo 根只提供工具链入口，
+  运行期 `~/.cargo` 保留用户 CLI 与缓存。
 - 依赖 `/workspace` 的 service 必须依赖 `gocryptfs-workspace`；必要 credential 从 runtime
   secret 读取，缺失时 fail-fast。添加依赖不得隐式启用可选 service；启动时的用户安装
   job 不属于 image build，编码后的 payload 不构成 secret 或信任边界。

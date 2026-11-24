@@ -94,6 +94,10 @@ jobs:
         if: github.event_name != 'pull_request'
         run: HOME="$CODESPACE_HOME" platform/macos/maintenance/go.sh
 
+      - name: Install Rust
+        if: github.event_name != 'pull_request'
+        run: HOME="$CODESPACE_HOME" platform/macos/maintenance/rust.sh
+
       - name: Install Java
         if: github.event_name != 'pull_request'
         run: HOME="$CODESPACE_HOME" platform/macos/maintenance/java-runtime.sh
@@ -176,6 +180,31 @@ jobs:
           uv tool install cowsay --python "$UV_PYTHON_BIN_DIR/python3.14"
           "$UV_TOOL_BIN_DIR/cowsay" -t codespace >/dev/null
           test -f "$UV_TOOL_DIR/cowsay/uv-receipt.toml"
+
+      - name: Verify native Rust SDK and user Cargo separation
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          export HOME="$CODESPACE_HOME"
+          export CARGO_HOME="$HOME/.cargo"
+          export RUSTUP_HOME="$HOME/.local/opt/rust/rustup"
+          export PATH="$HOME/.local/opt/rust/cargo/bin:$PATH"
+          test "$(command -v rustc)" = "$HOME/.local/opt/rust/cargo/bin/rustc"
+          test "$(rustc --print sysroot)" = "$RUSTUP_HOME/toolchains/stable-aarch64-apple-darwin"
+          rust-analyzer --version
+          work_dir="$(mktemp -d)"
+          trap 'rm -rf "$work_dir"' EXIT
+          cargo new --vcs none --name codespace_smoke "$work_dir/project"
+          cd "$work_dir/project"
+          cargo run --offline
+          cargo fmt --check
+          cargo clippy --offline -- -D warnings
+          cargo install --offline --path .
+          test -x "$CARGO_HOME/bin/codespace_smoke"
+          test ! -e "$HOME/.local/opt/rust/cargo/bin/codespace_smoke"
+          "$CARGO_HOME/bin/codespace_smoke"
+          cargo uninstall codespace_smoke
 
       - name: Verify native Node tool binding and relocation
         if: github.event_name != 'pull_request'

@@ -16,9 +16,9 @@ codespace_add_path "$HOME/.local/bin"
 
 # rust
 export CARGO_HOME="$HOME/.cargo"
-export RUSTUP_HOME=/opt/rust/rustup
+export RUSTUP_HOME="$HOME/.local/opt/rust/rustup"
 codespace_add_path "$CARGO_HOME/bin"
-codespace_add_path /opt/rust/cargo/bin
+codespace_add_path "$HOME/.local/opt/rust/cargo/bin"
 
 # python
 export UV_TOOL_DIR="$HOME/.local/opt/uv/tools"

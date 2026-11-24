@@ -74,6 +74,7 @@ file_mode() {
     java-tools \
     node-runtime \
     node-tools \
+    rust \
     uv; do
     [ -x "$MACOS_DIR/maintenance/$script.sh" ]
   done
@@ -186,6 +187,10 @@ file_mode() {
   grep -Fqx '  "$HOME/.local/opt/node/nodejs26/bin"' "$zshrc"
   grep -Fqx '  "$HOME/.local/share/go/go1.27.1/bin"' "$zshrc"
   grep -Fqx '  "$HOME/.local/profile/go/bin"' "$zshrc"
+  grep -Fqx 'export CARGO_HOME="$HOME/.cargo"' "$zshrc"
+  grep -Fqx 'export RUSTUP_HOME="$HOME/.local/opt/rust/rustup"' "$zshrc"
+  grep -Fqx '  "$CARGO_HOME/bin"' "$zshrc"
+  grep -Fqx '  "$HOME/.local/opt/rust/cargo/bin"' "$zshrc"
   grep -Fqx 'export JAVA_HOME="$HOME/.local/opt/java/openjdk27"' "$zshrc"
   grep -Fqx '  "$HOME/.local/opt/java/java-tool"' "$zshrc"
   grep -Fqx '  "$HOME/.local/opt/java/tools/bin"' "$zshrc"

@@ -143,6 +143,8 @@ def test_app_profile_sets_tools_and_preserves_inherited_environment(tmp_path: Pa
         "/usr/local/profile/clang-tools/bin",
         "/usr/local/profile/protobuf/bin",
         str(tmp_path / "go/bin"),
+        str(tmp_path / ".cargo/bin"),
+        str(tmp_path / ".local/opt/rust/cargo/bin"),
         str(tmp_path / ".local/share/pnpm/bin"),
         str(tmp_path / ".local/opt/uv/bin"),
         str(tmp_path / ".local/opt/conda/condabin"),
@@ -158,7 +160,7 @@ def test_app_profile_sets_tools_and_preserves_inherited_environment(tmp_path: Pa
     assert environment["UV_PYTHON_INSTALL_DIR"] == str(tmp_path / ".local/opt/uv/python")
     assert environment["UV_PYTHON_BIN_DIR"] == str(tmp_path / ".local/opt/uv/bin")
     assert environment["CARGO_HOME"] == str(tmp_path / ".cargo")
-    assert environment["RUSTUP_HOME"] == "/opt/rust/rustup"
+    assert environment["RUSTUP_HOME"] == str(tmp_path / ".local/opt/rust/rustup")
     assert environment["LD_LIBRARY_PATH"] == "/usr/local/cuda/lib64"
 
 
@@ -256,13 +258,9 @@ def test_workspace_bundles_runtimes_and_keeps_java_tools_in_resource() -> None:
     assert "/opt/resource/home/x/.local/opt/java/tools/bin" in profile
     assert '"$HOME/.local/opt/node/tools/bin"' in profile
     assert "/opt/resource/home/x/.local/opt/node" not in profile
-    for family in ("go", "rust"):
-        assert (
-            f"COPY --link --chown=5230:5230 --from=stage_{family} /opt/{family} /opt/{family}"
-            in workspace_dockerfile
-        )
-        assert not (rootfs_opt / family).is_symlink()
-    for family in ("java", "node"):
+    assert "COPY --link --chown=5230:5230 --from=stage_go /opt/go /opt/go" in workspace_dockerfile
+    assert not (rootfs_opt / "go").is_symlink()
+    for family in ("java", "node", "rust"):
         assert (
             f"COPY --link --chown=5230:5230 --from=stage_{family} "
             f"/home/x/.local/opt/{family} /home/x/.local/opt/{family}" in workspace_dockerfile
@@ -871,6 +869,34 @@ def test_macos_python_configuration_uses_uv_managed_paths() -> None:
         script = (macos / "maintenance" / operation).read_text()
         assert 'UV_PYTHON_INSTALL_DIR="$HOME/.local/opt/uv/python"' in script
         assert 'test -x "$HOME/.local/opt/uv/bin/python3.14"' in script
+
+
+def test_rust_toolchain_installations_are_separate_from_user_cargo_data() -> None:
+    workspace = _CONTAINER / "workspace"
+    macos = _CONTAINER.parent / "macos"
+    dockerfile = (workspace / "Dockerfile").read_text()
+    assert (
+        "ENV CARGO_HOME=/home/x/.local/opt/rust/cargo "
+        "RUSTUP_HOME=/home/x/.local/opt/rust/rustup" in dockerfile
+    )
+    assert "ENV PATH=/home/x/.local/opt/rust/cargo/bin:${PATH}" in dockerfile
+    assert (
+        "test ! -e /opt/resource/home/x/.local/opt/rust"
+        in (workspace / "resource.Dockerfile").read_text()
+    )
+    shell = (macos / "rootfs/Users/x/.zshrc").read_text()
+    assert 'export CARGO_HOME="$HOME/.cargo"' in shell
+    assert 'export RUSTUP_HOME="$HOME/.local/opt/rust/rustup"' in shell
+    assert '"$HOME/.local/opt/rust/cargo/bin"' in shell
+    for platform, host in (
+        (workspace, "x86_64-unknown-linux-gnu"),
+        (macos, "aarch64-apple-darwin"),
+    ):
+        home_source = "rootfs/home/x" if platform == workspace else "rootfs/Users/x"
+        assert (
+            f"toolchains/stable-{host}/share/zsh/site-functions"
+            in (platform / home_source / ".zshrc").read_text()
+        )
 
 
 def test_workspace_binman_manifests_do_not_overlap() -> None:

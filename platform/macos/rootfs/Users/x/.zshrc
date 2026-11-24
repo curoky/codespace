@@ -28,6 +28,8 @@ export UV_TOOL_BIN_DIR="$HOME/.local/opt/uv/bin"
 export UV_PYTHON_INSTALL_DIR="$HOME/.local/opt/uv/python"
 export UV_PYTHON_BIN_DIR="$HOME/.local/opt/uv/bin"
 export JAVA_HOME="$HOME/.local/opt/java/openjdk27"
+export CARGO_HOME="$HOME/.cargo"
+export RUSTUP_HOME="$HOME/.local/opt/rust/rustup"
 
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
@@ -45,6 +47,8 @@ path=(
   "$HOME/go/bin"
   "$HOME/.local/share/go/go1.27.1/bin"
   "$HOME/.local/profile/go/bin"
+  "$CARGO_HOME/bin"
+  "$HOME/.local/opt/rust/cargo/bin"
   "$HOME/.local/opt/java/java-tool"
   "$HOME/.local/opt/java/tools/bin"
   "$JAVA_HOME/bin"
@@ -54,6 +58,7 @@ path=(
 typeset -U fpath FPATH
 fpath=(
   "$HOME/.local/share/zsh/site-functions"
+  "$RUSTUP_HOME/toolchains/stable-aarch64-apple-darwin/share/zsh/site-functions"
   "$ZSH/custom/plugins/zsh-completions/src"
   "${fpath[@]}"
 )

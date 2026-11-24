@@ -32,8 +32,8 @@ COPY platform/container/workspace/scripts/install-conda-environment.sh /home/x/.
 
 # ----------------------------------- Rust -----------------------------------
 FROM docker.io/debian:stable-slim AS stage_rust
-ENV CARGO_HOME=/opt/rust/cargo RUSTUP_HOME=/opt/rust/rustup
-ENV PATH=/opt/rust/cargo/bin:${PATH}
+ENV CARGO_HOME=/home/x/.local/opt/rust/cargo RUSTUP_HOME=/home/x/.local/opt/rust/rustup
+ENV PATH=/home/x/.local/opt/rust/cargo/bin:${PATH}
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates curl \
   && curl https://sh.rustup.rs -sSf | bash -s -- -y --profile default --no-modify-path --default-toolchain stable \
@@ -184,7 +184,7 @@ COPY --link --chown=5230:5230 --from=stage_python /home/x/.local/opt/uv /home/x/
 COPY --link --chown=5230:5230 --from=stage_conda /home/x/.local/opt/conda /home/x/.local/opt/conda
 COPY --link --chown=5230:5230 --from=stage_node /home/x/.local/opt/node /home/x/.local/opt/node
 COPY --link --chown=5230:5230 --from=stage_go /opt/go /opt/go
-COPY --link --chown=5230:5230 --from=stage_rust /opt/rust /opt/rust
+COPY --link --chown=5230:5230 --from=stage_rust /home/x/.local/opt/rust /home/x/.local/opt/rust
 COPY --link --chown=5230:5230 --from=stage_java /home/x/.local/opt/java /home/x/.local/opt/java
 COPY --link --from=stage_nvidia_container_toolkit /opt/nvidia-container-toolkit/ /opt/nvidia/nvidia-container-toolkit/
 
