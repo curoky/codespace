@@ -83,7 +83,7 @@ tasks:
       - >-
         MYPYPATH={{.ASR_SERVICE}} uv run --project {{.ASR_SERVICE}}/scheduler mypy --strict
         {{.ASR_SERVICE}}/scheduler {{.ASR_SERVICE}}/models/audio.py
-        {{.ASR_SERVICE}}/models/engine.py {{.ASR_SERVICE}}/models/start.py {{.ASR_SERVICE}}/protocol.py
+        {{.ASR_SERVICE}}/models/engine.py {{.ASR_SERVICE}}/models/start.py {{.ASR_SERVICE}}/protocol.py {{.ASR_SERVICE}}/execution.py
         {{.ASR_SERVICE}}/client/asr.py {{.ASR_SERVICE}}/models/vllm.py {{.ASR_SERVICE}}/regression/run.py
 
   test:

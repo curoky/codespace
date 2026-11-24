@@ -1,9 +1,9 @@
-import asyncio
 import re
 from pathlib import Path
 
 import httpx2
 
+from execution import blocking
 from models.vllm import complete
 from protocol import InferenceRequest, InferenceResult, Span
 
@@ -11,7 +11,7 @@ from protocol import InferenceRequest, InferenceResult, Span
 async def infer(http: httpx2.AsyncClient, url: str, request: InferenceRequest) -> InferenceResult:
     if request.audio is None:
         raise ValueError("audio required")
-    audio = await asyncio.to_thread(Path(request.audio).read_bytes)
+    audio = await blocking(Path(request.audio).read_bytes)
     # 结构化时间和 speaker 需要额外输出预算；不能截断后当成完整文稿。
     data = {
         "model": "moss-td",

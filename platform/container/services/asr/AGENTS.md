@@ -1,133 +1,65 @@
-# ASR Maintenance
+# ASR
 
-本目录维护本地离线 ASR 的 Scheduler 与 Models 两个镜像。设计与核心诉求见
-[DESIGN.md](DESIGN.md)，语料与实测结果见 [regression/AGENTS.md](regression/AGENTS.md)。
+## Scope
 
-## Working Principles
+维护离线录音的 Scheduler 与 Models 两个独立镜像，覆盖朗读、双人混录、同步双人分轨、
+多人会议。每场景选择一套或多套 Recipe，独立输出正文、时间、speaker、evidence 和 trace；
+质量、模型组合与参数由真实音频确定，不从名称推断排名。
 
-1. 每套 Recipe 独立维护完整 pipeline，以可读性和单场景优化为先，允许重复代码。
-2. 每个模型维护独立 Python 环境、一份启动配置，通过接口或参数支持不同场景。
-3. 明确的参数、规则和映射直接写在所属代码中，一次性准备使用仓库外脚本完成。
-4. 面向本地正常使用路径，失败明确报错后人工重跑，保持运行机制简单。
-5. 实现文件是参数与行为的 source of truth，文档只维护职责、约束和验证入口。
-6. 具体方案与参数通过实测确定；依赖满足且有资源余量的工作尽可能并发。
-7. 输入适配、轨道整理和文件发布优先放在 client，server 专注规范输入上的推理流程。
+Scheduler 拥有 API、Recipe、音频操作、HTTP 容量和 trace；Models 拥有各模型环境、权重、
+serving 与静态 s6；Client 拥有文件适配、轨道整理与发布。`protocol.py` 定义数据合同，
+`execution.py` 只提供任务收敛与文件线程生命周期，不包含算法。Host/GPU/mount/secret/
+network 属于部署输入，Scheduler 不启停模型，Models 不选择 Recipe。
 
-## Ownership
+## Contracts
 
-| Path | Responsibility |
-| --- | --- |
-| `scheduler/api.py` | 规范音频请求、场景与 Recipe 选择、响应组装 |
-| `scheduler/scenarios/<scenario>/<recipe>.py` | 本方案完整流程及其算法参数 |
-| `scheduler/audio.py` | 规范音频读取、模型所需的采样转换、声道提取和裁剪 |
-| `scheduler/inference.py` | 模型 HTTP 调用与固定实例容量控制 |
-| `scheduler/tracing.py` | 阶段、模型调用和耗时记录 |
-| `scheduler/Dockerfile` | Scheduler 独立环境与镜像 |
-| `models/<model>/` | 依赖锁、权重下载、单一启动配置、推理接口和模型内部处理 |
-| `models/rootfs/` | 静态 s6 graph、按环境变量选择服务的启动入口 |
-| `models/Dockerfile` | 全部模型环境的安装、去重和镜像 |
-| `protocol.py` | 请求与结果的数据合同 |
-| `deployment/<scenario>/` | 单场景常驻模型选择、GPU placement 与 Scheduler 实例配置 |
-| `client/` | 源文件适配、轨道整理、并发提交、展示和文件发布 |
-| `regression/` | 固定音频声明、reference、manifest 并发执行、评测与实测基线 |
+- 每套 Recipe 完整拥有切窗、组合、调用顺序、并发、复听、裁定、speaker 和句读，允许重复。
+  Recipe 不互调或读取对方定稿，不要求共同 prepare/first-pass/review；大文件只拆入本方案
+  目录，不增加公共 pipeline 基类、hook、DAG DSL 或插件框架。
+- 共用代码仅限音频操作、HTTP、数据结构、trace 与 execution。算法参数直接写在所属 Recipe，
+  模型提示词、上游协议、输出解析与生成处理留在该模型 serving；Scheduler 不导入部署模块。
+- 新 Recipe 同步显式入口、场景默认列表、回归选择与 CLI 输出。省略列表执行场景全部候选，
+  结果数量由选择决定；同一模型默认行为变化须覆盖所有受影响 Recipe。
+- 请求、Recipe、轨道、窗口及模型调用只等待真实依赖或容量；固定实例额度跨请求/Recipe
+  共享，不增加 GPU 级互斥。CPU 准备与在途文件数有界，Client 准备、上传、发布可重叠。
+  同卡并发与 placement 以端到端完成时间、吞吐和显存峰值验收。
+- 通过 TaskGroup/collect 收敛子任务；失败或取消先等待所有文件使用者退出，再删除临时目录。
+  文件/推理线程通过 blocking 等待完成，不能只取消包装协程后释放文件或容量。
+- Models 包含全部模型，各自独立 .venv/lock 和单一启动配置；ASR_MODELS 只选择已编译 s6
+  服务及依赖。运行期不生成 graph、安装依赖或按请求装卸模型，uv 使用 frozen/no-sync。
+- 引擎精度、TP、上下文等固定在本模型启动配置；副本复用配置，以容器分配 GPU/地址。
+  场景差异通过显式 endpoint/参数实现，不修改引擎全局状态或透传任意引擎配置。
+- 选中模型只下载固定 revision，marker 命中复用；全部加载/预热完成再提交推理，
+  异常退出由 s6 supervision 重启。权重/cache 不入镜像，构建期安装环境并 hardlink 去重，
+  保留非 root 推理与部署 secret。
+- 每次部署一个场景的全部 Recipe 模型并集，含条件复听模型；请求期间常驻，切换配置前
+  等待当前请求结束。Scheduler 独立构建发布，重建不替换 Models 或重装模型环境。
+- Client 用 FFmpeg 转成规范 PCM WAV，保留原始时间轴和所需声道，不提前混音、删静音或
+  复制模型前处理。Scheduler/Models 用 multipart 传音频，各自管理临时文件，无共享请求目录。
+- 分轨输入须已同步，channel 0/1 固定 S01/S02，各轨独立识别且不运行 diarization，按时间/
+  轨道排序并保留 overlap。双文件/多 stream 由 Client 按显式映射和起点整理；仅选择分轨
+  场景才赋予该身份，不猜测串音、身份或修正录制漂移。
+- 模型时间相对输入，Recipe 映射回原始时间轴；local speaker 仅在本次调用有效。
+  segment 包围 token 实际区间，缺失时间保留 null 并标记，不插值伪造。
+- 结果以 scenario/recipe 标识，保留 revision、生效参数、raw evidence 与 trace。
+  标点只能改变标点/空白；改字保留正文和 warning。截断正文不算成功。
+- 正常路径是模型 ready 后提交完整文件，失败明确报错后人工重跑；不扩展持久队列、
+  自动替代模型、断点恢复或通用重试/故障恢复框架。固定准备/revision/参数不保证 GPU 逐位一致。
 
-Host、GPU、mount、secret 和网络由 Codespace 部署配置拥有。模型地址由 Scheduler 配置明确
-绑定；不在 Recipe 中写容器启停或 GPU 驱动操作。
+## Pitfalls
 
-部署策略与模型一览统一维护在 [DESIGN.md](DESIGN.md)，操作入口见
-[deployment/AGENTS.md](deployment/AGENTS.md)。逐场景选择配置，只启动该
-场景全部 Recipe 的模型并集。每个请求并发执行本场景候选；切换场景在请求外完成，不按请求
-装卸模型。GPU 数量按真实请求完成时间与实际并发选择，不为填满设备增加无关模型。
-
-## Recipe Rules
-
-- 每套方案有独立入口，完整拥有切窗、模型组合、调用顺序、并发、复听、裁定、speaker 与句读。
-- Recipe 之间不互相调用或读取对方定稿，不要求共用 prepare、first pass、review 等阶段。
-- 共用代码限于音频操作、HTTP、数据结构和 trace。场景算法留在本方案内；文件过大时拆到
-  本方案目录，不建立公共 pipeline 基类、继承 hook、DAG DSL 或插件注册系统。
-- 同一模型服务可以被多个 Recipe 调用。修改其默认推理行为时，验证所有受影响方案。
-- 新增 Recipe 时同步显式入口映射、场景默认列表、回归选择和 CLI 输出，结果数量由所选
-  Recipe 决定。省略 Recipe 列表时执行该场景登记的全部候选。
-- 模型组合、切窗和参数通过本场景真实音频测试确定，设计示例不作为固定方案清单。
-- 请求、Recipe、音轨、窗口和模型调用在依赖满足后尽可能并发，不增加无关的阶段等待。
-  并发额度跨请求和 Recipe 共享，由 Scheduler 的固定实例容量和 serving 共同控制。
-- CPU 准备和在途文件数使用固定上限，client 可重叠准备、上传与发布。静态 GPU placement
-  及同卡并发安排由实测确定，以端到端耗时和吞吐验收，不强制文件或 Recipe 顺序执行。
-
-## Model Runtime
-
-- Models 镜像包含全部模型，`ASR_MODELS` 只选择已有 s6 服务及其依赖。graph 在构建时编译，
-  运行期不生成服务定义、不安装依赖、不按请求装卸模型。
-- 每个模型保留独立 `.venv` 和锁文件。容器启动与下载使用已安装环境，不解析或更新依赖；
-  `uv run` 使用 `--frozen --no-sync`。
-- 引擎精度、TP 和上下文等参数固定在本模型启动配置。副本复用同一配置，通过容器部署指定
-  GPU 和地址，不为场景复制另一份启动脚本。
-- 场景差异通过模型明确支持的 endpoint 或参数实现，分支就近写在 serving 中，不在请求中
-  修改引擎全局配置。
-- 模型特有提示词、上游 HTTP / SSE 协议、输出解析及必要的生成处理由本模型封装。
-  Scheduler 只调用对外合同，不导入模型部署模块。
-- 只下载选中模型的固定 revision；marker 命中后复用。选中模型完成加载与预热后接受请求，
-  异常退出由 s6 supervision 重启。
-- 权重不进入镜像，环境安装与 hardlink 去重在构建时完成。保留非 root 推理身份，secret
-  使用部署注入；真实 token、机器配置、音频 cache 和模型 cache 不提交。
-- 修改模型 lock、启动参数或 placement 时，同步 `DESIGN.md` 模型一览、部署表与图片；
-  版本来自实际环境，显存注明 ready 驻留或运行峰值，不混用预算。
-- Models 目录整体复制后安装环境，不逐模型枚举依赖文件；模型代码变化也会使环境安装层
-  缓存失效。
-- Scheduler 和 Models 分别构建发布，修改 Recipe 不应触发模型环境重装或模型容器替换。
-
-## Audio And Results
-
-- Client 用 FFmpeg 将源文件转成规范 PCM WAV，保留需要的声道和原始时间轴；原始文件留在
-  client。Scheduler 接收规范音频，Recipe 负责模型所需的采样转换、声道处理与切片。
-- 输入适配和文件发布放在 client；VAD、切窗策略、模型调用和融合留在 Recipe。Scheduler
-  与模型服务通过 HTTP multipart 传音频，各自管理临时文件，推理使用结束后清理。
-- 模型时间相对本次输入音频，Recipe 映射回原始时间轴；句段区间包围所属 token 的实际
-  时间，缺失 token 时间保持 null 并标记。local speaker 的有效范围限于该次
-  调用，跨窗身份处理由本方案明确实现。
-- 双人分轨输入为已同步的双声道音频，channel 0 / 1 固定对应 `S01` / `S02`，每轨独立
-  识别，不运行 diarization。保留静音、原始时间和重叠讲话，按时间及轨道顺序合并。
-- 两个文件或多个 audio stream 由 client 按已知映射和起点自动整理成规范输入；这是日常
-  功能，不交给一次性脚本或 server。双声道文件只有显式选择分轨场景时才采用上述身份
-  约定，不推测轨道身份或自动修正录制漂移。
-- 结果按 `scenario/recipe` 标识，保留模型 revision、生效参数和原始 evidence；trace 记录
-  调用与耗时，CLI 发布 Markdown / JSON 和可视化产物。
-- 标点只允许改变标点和空白；模型改字时保留识别正文、raw 与显式 warning，不接受改写。
-- 响应完整性、合法时间范围和固定并发容量属于基本正确性要求。截断文本不算成功，缺失
-  时间不插值伪造；不扩展持久任务队列、自动替代模型或通用故障恢复框架。
+- Scheduler health 只表示 API 可用，不能代替所选模型 health；调用方必须匹配当前部署场景。
+- memory utilization 不是进程显存硬上限；ready 占用不是运行峰值或 checkpoint 大小。
+  .venv 逻辑大小含重复 hardlink，不能累加推算 image 物理占用。历史数据见
+  `deployment/measurements.json`，当前参数以 run/serving/config 为准。
 
 ## Validation
 
-文档变更运行 `task check`；行为变更运行 `task check:full`。更新工具路径时同步根
-`Taskfile.yaml`，不让检查遗漏 Scheduler、模型 serving 或启动脚本。
-Client 测试需要 PATH 中可用的 FFmpeg。
+通用检查遵循根文档，Client 测试需要 FFmpeg。Recipe 变化验证对应真实场景；serving/
+HTTP/协议变化验证两端、CLI 和全部受影响 Recipe；输入适配验证格式、轨道与时间映射。
+s6 变化验证不同模型选择只启动目标及依赖，模型支持的模式复用同一进程。
 
-| 修改范围 | 额外验证 |
-| --- | --- |
-| 单套 Recipe | 对应场景真实音频、正文 / speaker / 时间指标与耗时 |
-| 模型 serving、权重或启动参数 | 该模型实际接口及所有受影响 Recipe 的真实回归 |
-| HTTP / 数据合同 | 调度与模型两端、CLI 输出、受影响场景 |
-| Client 输入处理 | 常用文件格式、双声道 / 双文件 / 双 stream 的轨道与时间映射 |
-| s6 / 启动选择 | 两种模型选择分别启动，只启动所选服务；不同模式复用同一常驻模型 |
-| GPU placement | 所选模型同时驻留、实际并发与显存余量 |
-| Dockerfile / 依赖 / 安装 | 对应镜像构建、环境 import、无内嵌权重、去重结果 |
-
-以仓库根目录为 context 构建受影响镜像；共同合同变更验证两个镜像：
-
-```bash
-podman build --file platform/container/services/asr/scheduler/Dockerfile \
-  --tag localhost/codespace-asr-scheduler:test .
-podman build --file platform/container/services/asr/models/Dockerfile \
-  --tag localhost/codespace-asr-models:test .
-```
-
-真实 GPU 验证使用 `test-asr` skill。使用本次部署所需的空闲
-GPU，不停止其他任务；验证 Scheduler 重建后模型仍常驻，结束时清理本次测试容器。
-
-回归采用日常并发路径，按场景登记的 Recipe 列表执行，不固定音频或结果数量。记录 client
-准备、端到端完成与 server 推理耗时；定位问题时可单独运行 Recipe，不改变日常并发策略。
-双人分轨至少有一条真实独立分轨对话，固定 checksum、轨道身份和逐轨 reference；按固定
-身份评分，不通过 speaker 排列掩盖轨道交换。合成小样本只验证时间映射，不能代替真实质量回归。
-
-不手工编辑回归结果或指标，不以模拟响应宣称质量提升。更新基线时保留可复现输入、模型
-revision 和参数，未运行的方案不宣称通过。
+artifact/依赖变化构建对应 Dockerfile，检查环境 import、无权重和 hardlink 去重；协议或
+execution 变化检查两个镜像。构建 context 为仓库根，GPU 与真实音频操作使用 test-asr Skill，
+部署合同见 `deployment/AGENTS.md`，语料和评分见 `regression/AGENTS.md`。
+不停止其他任务，只清理本次验证容器；未运行的验证不得宣称通过。

@@ -5,16 +5,16 @@ description: 构建并验证本地 ASR Scheduler 与 Models 镜像、s6 模型�
 
 # Local ASR Validation
 
-从 `/workspace/codespace` 执行。先读
+从仓库根目录执行。先读
 `platform/container/services/asr/AGENTS.md` 与 `regression/AGENTS.md`。
 
 ## Build
 
 ```bash
 task check:full
-podman build --file platform/container/services/asr/models/Dockerfile \
+/opt/podman/bin/podman build --file platform/container/services/asr/models/Dockerfile \
   --tag localhost/codespace-asr-models:test .
-podman build --file platform/container/services/asr/scheduler/Dockerfile \
+/opt/podman/bin/podman build --file platform/container/services/asr/scheduler/Dockerfile \
   --tag localhost/codespace-asr-scheduler:test .
 ```
 
@@ -26,8 +26,7 @@ Models 目录整体复制后安装依赖环境；权重不入镜像。确认实�
 本机权重持久目录为 `/workspace/asr-model-data`，编译 cache 为 `/workspace/asr-cache`。
 逐场景部署的模型集合与 placement 以
 `platform/container/services/asr/deployment/<scenario>/models.env` 为准，Scheduler 使用同目录
-`scheduler.yaml`。先读 `DESIGN.md` 的场景部署策略与限制，操作见 `deployment/AGENTS.md`；
-每次只部署一个场景，不在
+`scheduler.yaml`。部署合同见 `deployment/AGENTS.md`；每次只部署一个场景，不在
 这里复制模型清单。`config.example.yaml` 展示完整模型集合，不能直接当作单场景部署输入。
 Hugging Face secret 来自 `/run/secrets/huggingface_token`，不打印 token。
 
@@ -35,8 +34,8 @@ Hugging Face secret 来自 `/run/secrets/huggingface_token`，不打印 token。
 nvidia-smi --query-gpu=index,name,memory.total,memory.used --format=csv
 mkdir -p /workspace/asr-model-data /workspace/asr-cache
 chmod 0777 /workspace/asr-model-data /workspace/asr-cache
-podman secret create --replace huggingface_token /run/secrets/huggingface_token
-podman network create asr-test-network
+/opt/podman/bin/podman secret create --replace huggingface_token /run/secrets/huggingface_token
+/opt/podman/bin/podman network create asr-test-network
 ```
 
 Models 容器指定 `--network asr-test-network`、

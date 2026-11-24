@@ -51,7 +51,7 @@ RUN export HOME=/home/x \
   && rm -rf "$HOME/.cache/uv"
 
 USER root
-COPY platform/container/services/asr/protocol.py /opt/asr/protocol.py
+COPY platform/container/services/asr/protocol.py platform/container/services/asr/execution.py /opt/asr/
 COPY platform/container/services/asr/models/rootfs/ /
 RUN for script in /opt/asr/models/*/download_model.sh; do \
     model_dir="${script%/*}"; \

@@ -8,6 +8,7 @@ from pathlib import Path
 import httpx2
 from pydantic import JsonValue
 
+from execution import blocking
 from protocol import InferenceRequest, InferenceResult
 from scheduler.config import Config, Instance
 from scheduler.tracing import Trace
@@ -59,9 +60,7 @@ class Inference:
         }.get(model, "transcribe")
         data = request.model_dump(mode="json", exclude={"audio"})
         async with self.models.acquire(model) as instance:
-            audio = (
-                await asyncio.to_thread(Path(request.audio).read_bytes) if request.audio else None
-            )
+            audio = await blocking(Path(request.audio).read_bytes) if request.audio else None
             infer_started = time.monotonic()
             response = await self.models.http.post(
                 instance.url + "/" + operation,

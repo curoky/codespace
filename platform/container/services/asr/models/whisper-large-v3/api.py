@@ -1,4 +1,3 @@
-import asyncio
 import sys
 import tempfile
 from pathlib import Path
@@ -8,6 +7,7 @@ import httpx2
 from fastapi import FastAPI, Form, UploadFile
 from inference import infer
 
+from execution import blocking
 from models.audio import evidence
 from models.engine import run
 from protocol import InferenceRequest, InferenceResult
@@ -32,7 +32,7 @@ async def transcribe(file: UploadFile, options: Annotated[str, Form()] = "{}") -
         path = Path(temporary) / "audio.wav"
         with path.open("wb") as target:
             while chunk := await file.read(1024 * 1024):
-                await asyncio.to_thread(target.write, chunk)
+                await blocking(target.write, chunk)
         request.audio = str(path)
         async with httpx2.AsyncClient(trust_env=False) as client:
             result = await infer(client, f"http://127.0.0.1:{run.engine_port}", request)

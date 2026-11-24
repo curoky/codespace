@@ -6,6 +6,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
+from execution import blocking, collect
 from protocol import InferenceRequest, Span, Token
 from scheduler.audio import Window, cut, extract_channel, union, windows
 from scheduler.config import ChunkConfig
@@ -294,194 +295,206 @@ def choose(
 async def transcribe(
     inference: Inference, audio: Path, duration: int, options: Options
 ) -> Transcript:
-    result = Transcript(recipe="conversation_tracks/firered")
+    async with asyncio.TaskGroup() as tasks:
+        result = Transcript(recipe="conversation_tracks/firered")
 
-    async def track(channel: int) -> tuple[list[Segment], list[Span], list[Span]]:
-        path = inference.work / f"channel-{channel}.wav"
-        async with inference.models.cpu:
-            await asyncio.to_thread(extract_channel, audio, path, channel)
-        detection = asyncio.create_task(
-            inference.call(
-                "firered-vad", InferenceRequest(audio=str(path)), step="vad", channel=str(channel)
-            )
-        )
-        activity = (await detection).spans
-        speakers = [span.model_copy(update={"speaker": f"S{channel + 1:02d}"}) for span in activity]
-        chunks = windows(activity, duration, ChunkConfig(target_seconds=24, padding_ms=300))
-
-        async def window(window: Window) -> list[Segment]:
-            clip = inference.work / f"clip-{channel}-{window.start_ms}-{window.end_ms}.wav"
+        async def track(channel: int) -> tuple[list[Segment], list[Span], list[Span]]:
+            path = inference.work / f"channel-{channel}.wav"
             async with inference.models.cpu:
-                await asyncio.to_thread(cut, path, clip, window.start_ms, window.end_ms)
-
-            async def recognize(model: str, source: Path, step: str) -> str:
-                response = await inference.call(
-                    model,
-                    InferenceRequest(
-                        audio=str(source),
-                        hotwords=options.hotwords,
-                        mode="conversation",
-                        language=options.language,
-                    ),
-                    step=step,
+                await blocking(extract_channel, audio, path, channel)
+            detection = tasks.create_task(
+                inference.call(
+                    "firered-vad",
+                    InferenceRequest(audio=str(path)),
+                    step="vad",
                     channel=str(channel),
                 )
-                return plain(response.text)
+            )
+            activity = (await detection).spans
+            speakers = [
+                span.model_copy(update={"speaker": f"S{channel + 1:02d}"}) for span in activity
+            ]
+            chunks = windows(activity, duration, ChunkConfig(target_seconds=24, padding_ms=300))
 
-            names = ("qwen3-asr-1.7b", "firered-llm", "sensevoice", "paraformer")
-            values = await asyncio.gather(*(recognize(model, clip, "recognize") for model in names))
-            candidates = dict(zip(names, values, strict=True))
-            original = candidates["firered-llm"]
-            reviews: dict[str, str] = {}
-            protected = len(owners(window.core_start_ms, window.core_end_ms, speakers)) > 1
-            if not protected and len({normalized(text) for text in values}) > 1:
-                expanded = Window(
-                    start_ms=max(0, window.start_ms - 2000),
-                    end_ms=min(duration, window.end_ms + 2000),
-                    core_start_ms=window.core_start_ms,
-                    core_end_ms=window.core_end_ms,
-                )
-                if expanded.end_ms - expanded.start_ms > 30000:
-                    expanded.end_ms = expanded.start_ms + 30000
-                expanded_clip = (
-                    inference.work / f"review-{channel}-{expanded.start_ms}-{expanded.end_ms}.wav"
-                )
+            async def window(window: Window) -> list[Segment]:
+                clip = inference.work / f"clip-{channel}-{window.start_ms}-{window.end_ms}.wav"
                 async with inference.models.cpu:
-                    await asyncio.to_thread(
-                        cut, path, expanded_clip, expanded.start_ms, expanded.end_ms
-                    )
+                    await blocking(cut, path, clip, window.start_ms, window.end_ms)
 
-                async def review(model: str) -> tuple[str, str]:
-                    text = await recognize(model, expanded_clip, "review")
-                    aligned = await inference.call(
-                        "qwen3-aligner",
-                        InferenceRequest(audio=str(expanded_clip), text=text),
-                        step="review.align",
+                async def recognize(model: str, source: Path, step: str) -> str:
+                    response = await inference.call(
+                        model,
+                        InferenceRequest(
+                            audio=str(source),
+                            hotwords=options.hotwords,
+                            mode="conversation",
+                            language=options.language,
+                        ),
+                        step=step,
                         channel=str(channel),
                     )
-                    tokens = align_text(
-                        text,
-                        aligned.tokens,
-                        offset=expanded.start_ms,
-                        limit=expanded.end_ms - expanded.start_ms,
-                    )
-                    return (
-                        model,
-                        "".join(
-                            token.text
-                            for token in tokens
-                            if token.start_ms is not None
-                            and token.end_ms is not None
-                            and (
-                                window.start_ms
-                                <= (token.start_ms + token.end_ms) / 2
-                                < window.end_ms
-                            )
-                        ),
-                    )
+                    return plain(response.text)
 
-                moss = asyncio.create_task(recognize("moss-audio", expanded_clip, "review"))
-                reviews = dict(
-                    await asyncio.gather(
-                        *(
-                            review(model)
-                            for model in ("qwen3-asr-1.7b", "firered-llm", "whisper-large-v3")
+                names = ("qwen3-asr-1.7b", "firered-llm", "sensevoice", "paraformer")
+                values = await collect(*(recognize(model, clip, "recognize") for model in names))
+                candidates = dict(zip(names, values, strict=True))
+                original = candidates["firered-llm"]
+                reviews: dict[str, str] = {}
+                protected = len(owners(window.core_start_ms, window.core_end_ms, speakers)) > 1
+                if not protected and len({normalized(text) for text in values}) > 1:
+                    expanded = Window(
+                        start_ms=max(0, window.start_ms - 2000),
+                        end_ms=min(duration, window.end_ms + 2000),
+                        core_start_ms=window.core_start_ms,
+                        core_end_ms=window.core_end_ms,
+                    )
+                    if expanded.end_ms - expanded.start_ms > 30000:
+                        expanded.end_ms = expanded.start_ms + 30000
+                    expanded_clip = (
+                        inference.work
+                        / f"review-{channel}-{expanded.start_ms}-{expanded.end_ms}.wav"
+                    )
+                    async with inference.models.cpu:
+                        await blocking(cut, path, expanded_clip, expanded.start_ms, expanded.end_ms)
+
+                    async def review(model: str) -> tuple[str, str]:
+                        text = await recognize(model, expanded_clip, "review")
+                        aligned = await inference.call(
+                            "qwen3-aligner",
+                            InferenceRequest(audio=str(expanded_clip), text=text),
+                            step="review.align",
+                            channel=str(channel),
+                        )
+                        tokens = align_text(
+                            text,
+                            aligned.tokens,
+                            offset=expanded.start_ms,
+                            limit=expanded.end_ms - expanded.start_ms,
+                        )
+                        return (
+                            model,
+                            "".join(
+                                token.text
+                                for token in tokens
+                                if token.start_ms is not None
+                                and token.end_ms is not None
+                                and (
+                                    window.start_ms
+                                    <= (token.start_ms + token.end_ms) / 2
+                                    < window.end_ms
+                                )
+                            ),
+                        )
+
+                    moss = tasks.create_task(recognize("moss-audio", expanded_clip, "review"))
+                    reviews = dict(
+                        await collect(
+                            *(
+                                review(model)
+                                for model in ("qwen3-asr-1.7b", "firered-llm", "whisper-large-v3")
+                            )
                         )
                     )
+                    moss_text = await moss
+                    if len({normalized(value) for value in reviews.values()}) > 1:
+                        moss_alignment = await inference.call(
+                            "qwen3-aligner",
+                            InferenceRequest(audio=str(expanded_clip), text=moss_text),
+                            step="review.align",
+                        )
+                        moss_tokens = align_text(
+                            moss_text,
+                            moss_alignment.tokens,
+                            offset=expanded.start_ms,
+                            limit=expanded.end_ms - expanded.start_ms,
+                        )
+                        reviews["moss-audio"] = "".join(
+                            token.text
+                            for token in moss_tokens
+                            if token.start_ms is not None
+                            and token.end_ms is not None
+                            and window.start_ms
+                            <= (token.start_ms + token.end_ms) / 2
+                            < window.end_ms
+                        )
+                text, decision = choose(
+                    original,
+                    "firered-llm",
+                    candidates,
+                    reviews,
+                    {
+                        "qwen3-asr-1.7b": "qwen",
+                        "firered-llm": "firered",
+                        "whisper-large-v3": "whisper",
+                        "sensevoice": "sensevoice",
+                        "paraformer": "paraformer",
+                        "moss-audio": "moss-audio",
+                    },
+                    hotwords=tuple(options.hotwords),
+                    protected=protected,
                 )
-                moss_text = await moss
-                if len({normalized(value) for value in reviews.values()}) > 1:
-                    moss_alignment = await inference.call(
-                        "qwen3-aligner",
-                        InferenceRequest(audio=str(expanded_clip), text=moss_text),
-                        step="review.align",
-                    )
-                    moss_tokens = align_text(
-                        moss_text,
-                        moss_alignment.tokens,
-                        offset=expanded.start_ms,
-                        limit=expanded.end_ms - expanded.start_ms,
-                    )
-                    reviews["moss-audio"] = "".join(
-                        token.text
-                        for token in moss_tokens
-                        if token.start_ms is not None
-                        and token.end_ms is not None
-                        and window.start_ms <= (token.start_ms + token.end_ms) / 2 < window.end_ms
-                    )
-            text, decision = choose(
-                original,
-                "firered-llm",
-                candidates,
-                reviews,
-                {
-                    "qwen3-asr-1.7b": "qwen",
-                    "firered-llm": "firered",
-                    "whisper-large-v3": "whisper",
-                    "sensevoice": "sensevoice",
-                    "paraformer": "paraformer",
-                    "moss-audio": "moss-audio",
-                },
-                hotwords=tuple(options.hotwords),
-                protected=protected,
-            )
-            if not normalized(text):
-                return []
-            source = punctuation_input(text)
-            punctuated = await inference.call(
-                "firered-punc",
-                InferenceRequest(text=source),
-                step="punctuate",
-                channel=str(channel),
-            )
-            if punctuation_content(punctuated.text) != punctuation_content(source):
-                raise ValueError(
-                    f"punctuation changed transcript content: {source!r} -> {punctuated.text!r}"
+                if not normalized(text):
+                    return []
+                source = punctuation_input(text)
+                punctuated = await inference.call(
+                    "firered-punc",
+                    InferenceRequest(text=source),
+                    step="punctuate",
+                    channel=str(channel),
                 )
-            text = punctuated.text
-            aligned = await inference.call(
-                "qwen3-aligner",
-                InferenceRequest(audio=str(clip), text=text),
-                step="align",
-                channel=str(channel),
-            )
-            tokens = align_text(
-                text, aligned.tokens, offset=window.start_ms, limit=window.end_ms - window.start_ms
-            )
-            tokens = [
-                token
-                for token in tokens
-                if token.start_ms is None
-                or token.end_ms is None
-                or window.core_start_ms <= (token.start_ms + token.end_ms) / 2 < window.core_end_ms
-            ]
-            segment = Segment(
-                channel=channel,
-                start_ms=window.core_start_ms,
-                end_ms=window.core_end_ms,
-                text="".join(token.text for token in tokens),
-                tokens=tokens,
-                candidates=candidates,
-                reviews=reviews,
-                decision=decision,
-                flags=punctuated.warnings
-                + (["alignment_failed"] if any(t.start_ms is None for t in tokens) else []),
-            )
-            parts = utterances(segment, speakers)
-            identity = f"S{channel + 1:02d}"
-            for part in parts:
-                part.speakers = [identity]
-                for token in part.tokens:
-                    token.speakers = [identity]
-                part.flags = [flag for flag in part.flags if flag != "speaker_unknown"]
-            return parts
+                if punctuation_content(punctuated.text) != punctuation_content(source):
+                    raise ValueError(
+                        f"punctuation changed transcript content: {source!r} -> {punctuated.text!r}"
+                    )
+                text = punctuated.text
+                aligned = await inference.call(
+                    "qwen3-aligner",
+                    InferenceRequest(audio=str(clip), text=text),
+                    step="align",
+                    channel=str(channel),
+                )
+                tokens = align_text(
+                    text,
+                    aligned.tokens,
+                    offset=window.start_ms,
+                    limit=window.end_ms - window.start_ms,
+                )
+                tokens = [
+                    token
+                    for token in tokens
+                    if token.start_ms is None
+                    or token.end_ms is None
+                    or window.core_start_ms
+                    <= (token.start_ms + token.end_ms) / 2
+                    < window.core_end_ms
+                ]
+                segment = Segment(
+                    channel=channel,
+                    start_ms=window.core_start_ms,
+                    end_ms=window.core_end_ms,
+                    text="".join(token.text for token in tokens),
+                    tokens=tokens,
+                    candidates=candidates,
+                    reviews=reviews,
+                    decision=decision,
+                    flags=punctuated.warnings
+                    + (["alignment_failed"] if any(t.start_ms is None for t in tokens) else []),
+                )
+                parts = utterances(segment, speakers)
+                identity = f"S{channel + 1:02d}"
+                for part in parts:
+                    part.speakers = [identity]
+                    for token in part.tokens:
+                        token.speakers = [identity]
+                    part.flags = [flag for flag in part.flags if flag != "speaker_unknown"]
+                return parts
 
-        batches = await asyncio.gather(*(window(chunk) for chunk in chunks))
-        return ([part for batch in batches for part in batch], speakers, activity)
+            batches = await collect(*(window(chunk) for chunk in chunks))
+            return ([part for batch in batches for part in batch], speakers, activity)
 
-    tracks = await asyncio.gather(*(track(channel) for channel in (0, 1)))
-    result.segments = [segment for segments, _, _ in tracks for segment in segments]
-    result.segments.sort(key=lambda segment: (segment.start_ms, segment.channel or 0))
-    result.speakers = [span for _, speakers, _ in tracks for span in speakers]
-    result.activity = union([span for _, _, activity in tracks for span in activity])
-    return result
+        tracks = await collect(*(track(channel) for channel in (0, 1)))
+        result.segments = [segment for segments, _, _ in tracks for segment in segments]
+        result.segments.sort(key=lambda segment: (segment.start_ms, segment.channel or 0))
+        result.speakers = [span for _, speakers, _ in tracks for span in speakers]
+        result.activity = union([span for _, _, activity in tracks for span in activity])
+        return result

@@ -1,4 +1,3 @@
-import asyncio
 from collections.abc import Callable
 from contextlib import AbstractAsyncContextManager
 from pathlib import Path
@@ -6,6 +5,7 @@ from pathlib import Path
 import httpx2
 from pydantic import ConfigDict, Field, JsonValue
 
+from execution import blocking
 from protocol import InferenceRequest, InferenceResult, Record
 
 type EventSourceContext = AbstractAsyncContextManager[httpx2.EventSource]
@@ -48,7 +48,7 @@ async def transcribe(
     """调用兼容 OpenAI transcription SSE 的 vLLM 模型。"""
     if request.audio is None:
         raise ValueError("audio required")
-    audio = await asyncio.to_thread(Path(request.audio).read_bytes)
+    audio = await blocking(Path(request.audio).read_bytes)
     data = {
         "model": model,
         "language": request.language,

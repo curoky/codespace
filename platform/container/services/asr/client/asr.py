@@ -5,6 +5,8 @@
 import asyncio
 import json
 import shutil
+import subprocess
+import sys
 import tempfile
 import time
 from pathlib import Path
@@ -13,6 +15,9 @@ from typing import Annotated, Literal, cast
 import httpx
 import typer
 from pydantic import BaseModel, ConfigDict, Field, JsonValue
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from execution import blocking, collect
 
 
 class ResponseRecord(BaseModel):
@@ -193,10 +198,9 @@ async def prepare(
         "wav",
         str(destination),
     ]
-    process = await asyncio.create_subprocess_exec(*command, stderr=asyncio.subprocess.PIPE)
-    _, error = await process.communicate()
+    process = await blocking(subprocess.run, command, stderr=subprocess.PIPE, check=False)
     if process.returncode:
-        raise ValueError(error.decode())
+        raise ValueError(process.stderr.decode())
 
 
 async def process(
@@ -237,7 +241,7 @@ async def process(
     with tempfile.TemporaryDirectory(prefix=".asr-", dir=destination.parent) as temporary:
         result = Path(temporary) / "result"
         result.mkdir()
-        completed = await asyncio.to_thread(write_response, payload, result)
+        completed = await blocking(write_response, payload, result)
         if destination.exists():
             shutil.rmtree(destination)
         result.rename(destination)
@@ -275,7 +279,7 @@ async def run(
                     typer.echo(f"{path}: {exc}", err=True)
                     return False
 
-        return all(await asyncio.gather(*(one(path) for path in files)))
+        return all(await collect(*(one(path) for path in files)))
 
 
 def main(

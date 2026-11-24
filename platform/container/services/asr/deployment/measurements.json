@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-14",
+  "models_image_id": "6487add67ce8",
+  "gpu": "NVIDIA H100 80GB",
+  "python": "3.12.14",
+  "units": "GiB",
+  "method": {
+    "ready_gpu": "Process memory after load and warmup, with no audio requests; includes weights, engine cache and runtime, not request peak or checkpoint size.",
+    "weights": "Serving checkpoint in the measured snapshot, excluding tokenizer, config, dictionary and CMVN.",
+    "venv": "Logical per-environment size; shared hardlinks are counted repeatedly and cannot be summed as physical image size.",
+    "placement": "One complete real recording per scenario, two requests per layout; warm cache effects cannot be separated from placement. Not an exhaustive minimum-GPU search.",
+    "raw_measurements": "Recorded outside the repository; these aggregates are historical, not a current benchmark."
+  },
+  "models": {
+    "firered-llm": {"ready_gpu_per_rank": [25.43, 25.43], "weights": 31.147, "venv": 7.568},
+    "firered-punc": {"ready_gpu_per_rank": [], "weights": 0.762, "venv": 0.838},
+    "firered-vad": {"ready_gpu_per_rank": [], "weights": 0.002, "venv": 0.838},
+    "moss-audio": {"ready_gpu_per_rank": [31.31], "weights": 16.862, "venv": 7.567},
+    "moss-td": {"ready_gpu_per_rank": [42.48], "weights": 1.692, "venv": 7.567},
+    "nemotron-diarization": {"ready_gpu_per_rank": [1.17], "weights": 0.185, "venv": 5.319},
+    "paraformer": {"ready_gpu_per_rank": [1.35], "weights": 0.820, "venv": 4.998},
+    "pyannote-community-1": {"ready_gpu_per_rank": [0.65], "weights": 0.030, "venv": 4.844},
+    "qwen3-aligner": {"ready_gpu_per_rank": [11.41], "weights": 1.709, "venv": 7.567},
+    "qwen3-asr-1.7b": {"ready_gpu_per_rank": [10.04], "weights": 4.376, "venv": 7.567},
+    "sensevoice": {"ready_gpu_per_rank": [1.45], "weights": 0.872, "venv": 4.998},
+    "vibevoice": {"ready_gpu_per_rank": [38.57], "weights": 15.517, "venv": 7.567},
+    "whisper-large-v3": {"ready_gpu_per_rank": [7.81], "weights": 2.875, "venv": 7.567}
+  },
+  "placement_comparison": {
+    "narration": {"split_gpu_median_improvement_approx_percent": 5, "decision": "Keep four-GPU layout; first request was essentially unchanged."},
+    "conversation_tracks": {"split_gpu_median_improvement_approx_percent": 21, "decision": "Distribute fusion models; quality metrics unchanged."},
+    "conversation": {"split_gpu_median_improvement_approx_percent": 33, "decision": "Separate Pyannote, VibeVoice and review load; text metrics close."},
+    "meeting": {"split_gpu_median_improvement_approx_percent": 30, "decision": "Separate VibeVoice from speaker/review load; speaker quality varied, performance benefit only."}
+  }
+}

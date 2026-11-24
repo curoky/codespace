@@ -3,7 +3,7 @@ SHELL ["/bin/bash", "-euo", "pipefail", "-c"]
 
 RUN /usr/local/bin/bm --prefix /usr/local install uv
 COPY platform/container/services/asr/scheduler/ /opt/asr/scheduler/
-COPY platform/container/services/asr/protocol.py /opt/asr/protocol.py
+COPY platform/container/services/asr/protocol.py platform/container/services/asr/execution.py /opt/asr/
 COPY platform/container/services/asr/scheduler/rootfs/ /
 RUN rm -f /etc/s6/s6-rc.d/default/contents.d/miniserve-logs \
     /etc/s6/s6-rc.d/default/contents.d/supercronic \

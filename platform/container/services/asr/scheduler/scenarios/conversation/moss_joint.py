@@ -3,6 +3,7 @@ from collections import defaultdict
 from functools import cache
 from pathlib import Path
 
+from execution import blocking, collect
 from protocol import InferenceRequest, Span
 from scheduler.audio import cut, windows
 from scheduler.config import ChunkConfig
@@ -62,85 +63,86 @@ def mapped_identity(local: list[Span], global_spans: list[Span]) -> dict[str, st
 async def transcribe(
     inference: Inference, audio: Path, duration: int, options: Options
 ) -> Transcript:
-    diarization = asyncio.create_task(
-        inference.call(
-            "pyannote-community-1",
-            InferenceRequest(audio=str(audio), num_speakers=options.num_speakers),
-            step="speaker_anchor",
-        )
-    )
-    detection = asyncio.create_task(
-        inference.call("firered-vad", InferenceRequest(audio=str(audio)), step="vad")
-    )
-    chunks = windows(
-        [Span(start_ms=0, end_ms=duration)],
-        duration,
-        ChunkConfig(target_seconds=3596, padding_ms=0),
-    )
-
-    async def window(start: int, end: int) -> list[Segment]:
-        clip = inference.work / f"joint-{start}-{end}.wav"
-        async with inference.models.cpu:
-            await asyncio.to_thread(cut, audio, clip, start, end)
-        response = await inference.call(
-            "moss-td",
-            InferenceRequest(
-                audio=str(clip),
-                hotwords=options.hotwords,
-                mode="conversation",
-                language=options.language,
-            ),
-            step="joint",
-        )
-        activity = (await detection).spans
-        if not response.spans:
-            raise ValueError("joint model returned no segments")
-        if any(span.end_ms > end - start + 100 for span in response.spans):
-            raise ValueError("joint model timestamp exceeds audio")
-        active_end = max(
-            (
-                min(span.end_ms, end)
-                for span in activity
-                if span.end_ms > start and span.start_ms < end
-            ),
-            default=start,
-        )
-        if max(span.end_ms + start for span in response.spans) < active_end - 2000:
-            raise ValueError("joint transcript does not cover active tail")
-        local = [
-            span.model_copy(
-                update={"start_ms": span.start_ms + start, "end_ms": span.end_ms + start}
+    async with asyncio.TaskGroup() as tasks:
+        diarization = tasks.create_task(
+            inference.call(
+                "pyannote-community-1",
+                InferenceRequest(audio=str(audio), num_speakers=options.num_speakers),
+                step="speaker_anchor",
             )
-            for span in response.spans
-        ]
+        )
+        detection = tasks.create_task(
+            inference.call("firered-vad", InferenceRequest(audio=str(audio)), step="vad")
+        )
+        chunks = windows(
+            [Span(start_ms=0, end_ms=duration)],
+            duration,
+            ChunkConfig(target_seconds=3596, padding_ms=0),
+        )
 
-        names: dict[str, str] = {}
-        speakers = []
-        for span in sorted((await diarization).spans, key=lambda span: span.start_ms):
-            name = names.setdefault(span.speaker or "", f"S{len(names) + 1:02d}")
-            speakers.append(span.model_copy(update={"speaker": name}))
-        mapping = mapped_identity(local, speakers)
-        parts = []
-        for span in local:
-            identity = mapping.get(span.speaker or "")
-            parts.append(
-                Segment(
-                    start_ms=span.start_ms,
-                    end_ms=span.end_ms,
-                    text=span.text,
-                    speakers=[identity] if identity else [],
-                    flags=[] if identity else ["speaker_unknown"],
+        async def window(start: int, end: int) -> list[Segment]:
+            clip = inference.work / f"joint-{start}-{end}.wav"
+            async with inference.models.cpu:
+                await blocking(cut, audio, clip, start, end)
+            response = await inference.call(
+                "moss-td",
+                InferenceRequest(
+                    audio=str(clip),
+                    hotwords=options.hotwords,
+                    mode="conversation",
+                    language=options.language,
+                ),
+                step="joint",
+            )
+            activity = (await detection).spans
+            if not response.spans:
+                raise ValueError("joint model returned no segments")
+            if any(span.end_ms > end - start + 100 for span in response.spans):
+                raise ValueError("joint model timestamp exceeds audio")
+            active_end = max(
+                (
+                    min(span.end_ms, end)
+                    for span in activity
+                    if span.end_ms > start and span.start_ms < end
+                ),
+                default=start,
+            )
+            if max(span.end_ms + start for span in response.spans) < active_end - 2000:
+                raise ValueError("joint transcript does not cover active tail")
+            local = [
+                span.model_copy(
+                    update={"start_ms": span.start_ms + start, "end_ms": span.end_ms + start}
                 )
-            )
-        return parts
+                for span in response.spans
+            ]
 
-    batches = await asyncio.gather(*(window(chunk.start_ms, chunk.end_ms) for chunk in chunks))
-    result = Transcript(recipe="conversation/moss_joint", activity=(await detection).spans)
-    result.segments = [segment for batch in batches for segment in batch]
-    result.segments.sort(key=lambda segment: segment.start_ms)
-    result.speakers = [
-        Span(start_ms=segment.start_ms, end_ms=segment.end_ms, speaker=segment.speakers[0])
-        for segment in result.segments
-        if segment.speakers
-    ]
-    return result
+            names: dict[str, str] = {}
+            speakers = []
+            for span in sorted((await diarization).spans, key=lambda span: span.start_ms):
+                name = names.setdefault(span.speaker or "", f"S{len(names) + 1:02d}")
+                speakers.append(span.model_copy(update={"speaker": name}))
+            mapping = mapped_identity(local, speakers)
+            parts = []
+            for span in local:
+                identity = mapping.get(span.speaker or "")
+                parts.append(
+                    Segment(
+                        start_ms=span.start_ms,
+                        end_ms=span.end_ms,
+                        text=span.text,
+                        speakers=[identity] if identity else [],
+                        flags=[] if identity else ["speaker_unknown"],
+                    )
+                )
+            return parts
+
+        batches = await collect(*(window(chunk.start_ms, chunk.end_ms) for chunk in chunks))
+        result = Transcript(recipe="conversation/moss_joint", activity=(await detection).spans)
+        result.segments = [segment for batch in batches for segment in batch]
+        result.segments.sort(key=lambda segment: segment.start_ms)
+        result.speakers = [
+            Span(start_ms=segment.start_ms, end_ms=segment.end_ms, speaker=segment.speakers[0])
+            for segment in result.segments
+            if segment.speakers
+        ]
+        return result

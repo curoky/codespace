@@ -1,4 +1,3 @@
-import asyncio
 import base64
 import wave
 from pathlib import Path
@@ -6,6 +5,7 @@ from pathlib import Path
 import httpx2
 from pydantic import Field, JsonValue, TypeAdapter
 
+from execution import blocking
 from models.vllm import complete
 from protocol import InferenceRequest, InferenceResult, Record, Span
 
@@ -19,8 +19,8 @@ async def infer(http: httpx2.AsyncClient, url: str, request: InferenceRequest) -
     if request.audio is None:
         raise ValueError("audio required")
     path = Path(request.audio)
-    audio = base64.b64encode(await asyncio.to_thread(path.read_bytes)).decode()
-    seconds = await asyncio.to_thread(duration, path)
+    audio = base64.b64encode(await blocking(path.read_bytes)).decode()
+    seconds = await blocking(duration, path)
     content: list[JsonValue] = [
         {"type": "audio_url", "audio_url": {"url": "data:audio/wav;base64," + audio}},
     ]

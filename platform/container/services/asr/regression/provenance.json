@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-13",
+  "images": {
+    "models": "f9536a57c774b0f010043122086ffc45f1469882c1848b4961f87f1edd3986a7",
+    "scheduler": "10106247ccb066bb990079b4438cf121466cd8432dd17dace0d3f35aae48098b"
+  },
+  "code_bind_mounts": false,
+  "recordings": 10,
+  "results": 26,
+  "client_parallel_files": 2,
+  "quality_runs": 1,
+  "audit": [
+    "All selected recipes completed; status, timing, revision, parameters and fixed two-track identities were reviewed.",
+    "Missing token times remained null; alignment, unknown-speaker and punctuation-rewrite warnings were retained.",
+    "In-flight model calls respected shared configured capacity across requests and recipes.",
+    "Joint generation was submitted before speaker-anchor completion; actual execution still depended on shared capacity."
+  ],
+  "artifact_validation": [
+    "Both images were fully built; full model selection and CPU VAD/Punc subset started through the static s6 graph.",
+    "All thirteen model services became ready; replacing Scheduler preserved Models process and start time."
+  ],
+  "limitations": "Historical baseline from one quality run, not a claim that current code is validated or GPU output is deterministic. Per-result evidence and trace retain model revisions, effective parameters and timing."
+}

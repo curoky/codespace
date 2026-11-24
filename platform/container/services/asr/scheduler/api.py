@@ -9,8 +9,9 @@ from typing import Annotated
 import typer
 import uvicorn
 from fastapi import FastAPI, Form, HTTPException, UploadFile
-from pydantic import JsonValue
+from pydantic import Json, JsonValue
 
+from execution import blocking
 from scheduler.audio import inspect
 from scheduler.config import Config, read_config
 from scheduler.inference import Inference, Models
@@ -28,8 +29,10 @@ def create_app(
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         work_dir.mkdir(parents=True, exist_ok=True)
-        yield
-        await runtime.http.aclose()
+        try:
+            yield
+        finally:
+            await runtime.http.aclose()
 
     app = FastAPI(lifespan=lifespan, docs_url=None, redoc_url=None)
 
@@ -38,8 +41,10 @@ def create_app(
         return {"status": "ready"}
 
     @app.post("/transcribe")
-    async def submit(file: UploadFile, options: Annotated[str, Form()]) -> dict[str, JsonValue]:
-        parameters = Options.model_validate_json(options)
+    async def submit(
+        file: UploadFile, options: Annotated[Json[Options], Form()]
+    ) -> dict[str, JsonValue]:
+        parameters = options
         registered = RECIPES[parameters.scenario]
         selected = parameters.recipes or list(registered)
         if len(set(selected)) != len(selected) or any(name not in registered for name in selected):
@@ -52,8 +57,8 @@ def create_app(
             started = time.monotonic()
             with source.open("wb") as target:
                 while chunk := await file.read(1024 * 1024):
-                    await asyncio.to_thread(target.write, chunk)
-            duration, channels = await asyncio.to_thread(inspect, source)
+                    await blocking(target.write, chunk)
+            duration, channels = await blocking(inspect, source)
             expected = 2 if parameters.scenario == "conversation_tracks" else 1
             if channels != expected or duration <= 0:
                 raise HTTPException(422, f"scenario expects {expected} channels with audio")
