@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+tool_root="$(dirname "$(dirname "$(readlink -f "$0")")")"
+{{if .JavaRoot -}}
+JAVA_HOME={{quote .JavaRoot}}
+PATH={{quote .JavaBin}}:"${PATH:-/usr/bin:/bin}"
+export JAVA_HOME PATH
+{{end -}}
+exec {{if .IsJar}}{{quote .JavaExecutable}} -jar {{end}}"${tool_root}"/{{quote .Target}} "$@"
