@@ -300,28 +300,20 @@ def test_workspace_keeps_required_python_and_bundles_python_tools() -> None:
         "/home/x/.local/opt/uv /home/x/.local/opt/uv" in runtime_stage
     )
     assert '"$UV_PYTHON_BIN_DIR"' in profile
+    assert "UV_PYTHON_BIN_DIR=/home/x/.local/opt/uv/bin" in runtime_stage
     assert (
-        "--python /home/x/.local/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14"
-        in dockerfile
+        "uv sync --project /opt/codespace-agent --locked --no-dev \\\n"
+        '    --python "$UV_PYTHON_BIN_DIR/python3.14"' in runtime_stage
     )
-    manifest = workspace / "config/python-tools.txt"
-    shared_tools = manifest.read_text().splitlines()
-    assert set(shared_tools) == {
+    python_tools = {
         "copyparty",
         "licenseheaders",
         "netron",
         "mitmproxy",
         "git-filter-repo",
     }
-    assert (
-        "COPY platform/container/workspace/config/python-tools.txt /tmp/python-tools.txt"
-        in dockerfile
-    )
-    assert (
-        'uv tool install "$package" --python /home/x/.local/opt/uv/bin/python3.14 || exit'
-        in dockerfile
-    )
-    assert "done < /tmp/python-tools.txt" in dockerfile
+    for tool in (*python_tools, "dool"):
+        assert f'uv tool install {tool} --python "$UV_PYTHON_BIN_DIR/python3.14"' in dockerfile
     settings = json.loads(
         (workspace / "rootfs/home/x/.vscode-server/data/Machine/settings.json").read_text()
     )
@@ -336,7 +328,7 @@ def test_workspace_keeps_required_python_and_bundles_python_tools() -> None:
         in resource_dockerfile
     )
     assert "uv tool install dool" in dockerfile
-    for tool in (*shared_tools, "dool"):
+    for tool in (*python_tools, "dool"):
         assert f"uv tool install {tool}" not in resource_dockerfile
     resource_tools = {"tensorboard": "3.12.15"}
     for tool, python in resource_tools.items():
@@ -558,6 +550,7 @@ def test_workspace_bundles_java_and_node_installers() -> None:
     )
     assert "/tmp/java-tool/java-tool init" in resource_dockerfile
     assert "uv run --locked --script /tmp/java-tool/java-tool.py" not in resource_dockerfile
+    assert "RUN export UV_PYTHON_INSTALL_DIR=/home/x/.local/opt/uv/python" in dockerfile
     assert "/home/x/.local/opt/node/node-tool/node-tool init" in dockerfile
     assert "/home/x/.local/opt/java/java-tool/java-tool init" in dockerfile
     for name, wrapper in (("node-tool", node_tool), ("java-tool", java_tool)):
@@ -571,11 +564,6 @@ def test_workspace_bundles_java_and_node_installers() -> None:
         assert f'exec "$script_dir/.venv/bin/python" "$script_dir/{name}.py" "$@"' in wrapper
         assert 'uv sync --project "$script_dir" --locked --no-dev --python 3.14' in wrapper
         assert "UV_PYTHON_INSTALL_DIR" not in wrapper
-        family = name.removesuffix("-tool")
-        assert (
-            "UV_PYTHON_INSTALL_DIR=/home/x/.local/opt/uv/python "
-            f"/home/x/.local/opt/{family}/{name}/{name} init" in dockerfile
-        )
     assert dockerfile.count("--root /home/x/.local/opt/node/tools") == 3
     assert resource_dockerfile.count("--root /home/x/.local/opt/java/tools") == 3
     assert '"$HOME/.local/opt/java/java-tool"' in profile
@@ -888,16 +876,17 @@ def test_macos_python_configuration_uses_uv_managed_paths() -> None:
         assert 'test -x "$HOME/.local/opt/uv/bin/python3.14"' in script
 
 
-def test_python_cli_ownership_is_shared_without_package_manager_duplicates() -> None:
+def test_python_cli_ownership_is_aligned_without_package_manager_duplicates() -> None:
     workspace = _CONTAINER / "workspace"
     macos = _CONTAINER.parent / "macos"
-    shared_tools = set((workspace / "config/python-tools.txt").read_text().splitlines())
+    portable_tools = {"copyparty", "licenseheaders", "netron", "mitmproxy", "git-filter-repo"}
     installer = (macos / "maintenance/python-tools.sh").read_text()
-    assert 'manifest="$macos_dir/../container/workspace/config/python-tools.txt"' in installer
-    assert (
-        '"$HOME/.local/bin/uv" tool install "$package" --python "$uv_root/bin/python3.14"'
-        in installer
-    )
+    for tool in portable_tools:
+        assert (
+            f'"$HOME/.local/bin/uv" tool install {tool} --python "$UV_PYTHON_BIN_DIR/python3.14"'
+            in installer
+        )
+    assert installer.count(" tool install ") == len(portable_tools)
     assert 'uv_root="$HOME/.local/opt/uv"' in installer
     for variable, directory in (
         ("UV_TOOL_DIR", "tools"),
@@ -909,9 +898,9 @@ def test_python_cli_ownership_is_shared_without_package_manager_duplicates() -> 
     for manifest_path in (workspace / "config/binman.yaml", macos / "binman.yaml"):
         manifest = yaml.safe_load(manifest_path.read_text())
         packages = {package for install in manifest["installs"] for package in install["packages"]}
-        assert not (shared_tools | {"dool", "tensorboard"}) & packages
+        assert not (portable_tools | {"dool", "tensorboard"}) & packages
     brewfile = (macos / "Brewfile").read_text()
-    assert not any(f'brew "{package}"' in brewfile for package in shared_tools)
+    assert not any(f'brew "{package}"' in brewfile for package in portable_tools)
 
 
 def test_go_installations_and_editor_tools_use_the_home_local_sdk() -> None:

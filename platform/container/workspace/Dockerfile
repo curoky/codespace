@@ -64,7 +64,6 @@ RUN mkdir -p /home/x/.local/opt/java/openjdk8 /home/x/.local/opt/java/openjdk27 
 # ---------------------------------- Python ----------------------------------
 FROM docker.io/debian:stable-slim AS stage_python
 COPY --from=stage_sb /usr/local/store/uv/bin/uv /usr/local/bin/uv
-COPY platform/container/workspace/config/python-tools.txt /tmp/python-tools.txt
 ENV UV_TOOL_DIR=/home/x/.local/opt/uv/tools \
   UV_TOOL_BIN_DIR=/home/x/.local/opt/uv/bin \
   UV_PYTHON_INSTALL_DIR=/home/x/.local/opt/uv/python \
@@ -72,11 +71,12 @@ ENV UV_TOOL_DIR=/home/x/.local/opt/uv/tools \
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates \
   && uv python install 3.14 \
-  && while IFS= read -r package; do \
-    uv tool install "$package" --python /home/x/.local/opt/uv/bin/python3.14 || exit; \
-  done < /tmp/python-tools.txt \
-  && uv tool install dool \
-    --python /home/x/.local/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14
+  && uv tool install copyparty --python "$UV_PYTHON_BIN_DIR/python3.14" \
+  && uv tool install licenseheaders --python "$UV_PYTHON_BIN_DIR/python3.14" \
+  && uv tool install netron --python "$UV_PYTHON_BIN_DIR/python3.14" \
+  && uv tool install mitmproxy --python "$UV_PYTHON_BIN_DIR/python3.14" \
+  && uv tool install git-filter-repo --python "$UV_PYTHON_BIN_DIR/python3.14" \
+  && uv tool install dool --python "$UV_PYTHON_BIN_DIR/python3.14"
 
 # ---------------------------------- Node.js ---------------------------------
 FROM stage_python AS stage_node
@@ -186,10 +186,12 @@ RUN --mount=type=bind,source=platform/container/workspace/scripts/install-s6.sh,
 
 USER x
 COPY --chown=5230:5230 platform/container/workspace/agent/ /opt/codespace-agent/
-RUN UV_PYTHON_INSTALL_DIR=/home/x/.local/opt/uv/python /home/x/.local/opt/java/java-tool/java-tool init \
-  && UV_PYTHON_INSTALL_DIR=/home/x/.local/opt/uv/python /home/x/.local/opt/node/node-tool/node-tool init \
+RUN export UV_PYTHON_INSTALL_DIR=/home/x/.local/opt/uv/python \
+    UV_PYTHON_BIN_DIR=/home/x/.local/opt/uv/bin \
+  && /home/x/.local/opt/java/java-tool/java-tool init \
+  && /home/x/.local/opt/node/node-tool/node-tool init \
   && UV_LINK_MODE=copy /usr/local/bin/uv sync --project /opt/codespace-agent --locked --no-dev \
-    --python /home/x/.local/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
+    --python "$UV_PYTHON_BIN_DIR/python3.14" \
   && git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-playbook \
   && HOME=/home/x bash /tmp/agent-playbook/install.sh \
   && rm -rf /tmp/agent-playbook

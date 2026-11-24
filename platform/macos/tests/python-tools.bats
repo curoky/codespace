@@ -29,12 +29,12 @@ teardown() {
   rm -rf "$TEST_ROOT"
 }
 
-@test "Python tools use the shared manifest and local opt with an explicit interpreter" {
+@test "Python tools install the declared packages under local opt with an explicit interpreter" {
   export UV_TOOL_DIR="$TEST_ROOT/other-tools" UV_TOOL_BIN_DIR="$TEST_ROOT/other-bin"
   export UV_PYTHON_INSTALL_DIR="$TEST_ROOT/other-python" UV_PYTHON_BIN_DIR="$TEST_ROOT/other-python-bin"
   run "$MACOS_DIR/maintenance/python-tools.sh"
   [ "$status" -eq 0 ]
-  cmp "$TEST_EVENTS" "$MACOS_DIR/../container/workspace/config/python-tools.txt"
+  [ "$(<"$TEST_EVENTS")" = $'copyparty\nlicenseheaders\nnetron\nmitmproxy\ngit-filter-repo' ]
 }
 
 @test "Python tools can run repeatedly without cleaning unrelated tools or user data" {

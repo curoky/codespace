@@ -17,7 +17,7 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 | Homebrew 或 Brewfile state 缺失 | `platform/macos/maintenance/homebrew.sh` |
 | standalone tools 缺失或 manifest 变化 | `platform/macos/maintenance/binman.sh` |
 | uv Python 3.14 缺失 | `platform/macos/maintenance/uv.sh` |
-| Python CLI 缺失或 manifest 变化 | `platform/macos/maintenance/python-tools.sh` |
+| Python CLI 缺失或声明变化 | `platform/macos/maintenance/python-tools.sh` |
 | Node.js 24/26 缺失或版本变化 | `platform/macos/maintenance/node-runtime.sh` |
 | Node CLI 缺失或版本变化 | `platform/macos/maintenance/node-tools.sh` |
 | Go 缺失或版本变化 | `platform/macos/maintenance/go.sh` |
@@ -33,8 +33,8 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 
 - standalone CLI：修改 `platform/macos/binman.yaml`，运行 `binman.sh`。
 - macOS formula 或 GUI application：修改 `platform/macos/Brewfile`，运行 `homebrew.sh`。
-- 可移植 Python CLI：修改 `platform/container/workspace/config/python-tools.txt`，运行
-  `python-tools.sh`。
+- 可移植 Python CLI：修改 `platform/macos/maintenance/python-tools.sh` 与 Workspace
+  `Dockerfile`，运行 `python-tools.sh`。
 - Python runtime 及其他语言的 runtime 与 CLI：修改对应 maintenance 脚本，运行该脚本。
 - home config 或 LaunchAgent：修改 rootfs source，再运行 `home-links.sh` 或对应 service 脚本。
 

@@ -1,5 +1,0 @@
-copyparty
-licenseheaders
-netron
-mitmproxy
-git-filter-repo

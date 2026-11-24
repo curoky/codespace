@@ -10,7 +10,6 @@ on:
       - 'platform/container/workspace/tools/node-tool/**'
       - 'platform/container/workspace/tools/java-tool/**'
       - 'platform/container/workspace/Dockerfile'
-      - 'platform/container/workspace/config/python-tools.txt'
   pull_request:
     paths:
       - '.github/workflows/check-macos.yaml'
@@ -20,7 +19,6 @@ on:
       - 'platform/container/workspace/tools/node-tool/**'
       - 'platform/container/workspace/tools/java-tool/**'
       - 'platform/container/workspace/Dockerfile'
-      - 'platform/container/workspace/config/python-tools.txt'
   schedule:
     - cron: '0 4 * * 0'
   workflow_dispatch:
@@ -248,7 +246,7 @@ jobs:
           from pathlib import Path
 
           root = Path.home() / ".local/opt/uv"
-          for package in Path("platform/container/workspace/config/python-tools.txt").read_text().splitlines():
+          for package in ("copyparty", "licenseheaders", "netron", "mitmproxy", "git-filter-repo"):
               environment = root / "tools" / package
               receipt = tomllib.loads((environment / "uv-receipt.toml").read_text())
               for entrypoint in receipt["tool"]["entrypoints"]:
