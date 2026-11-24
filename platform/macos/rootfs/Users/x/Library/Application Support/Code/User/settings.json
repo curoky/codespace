@@ -129,8 +129,8 @@
     "windsurf": false
   },
   "chat.viewSessions.orientation": "stacked",
-  "C_Cpp.clang_format_path": "/Users/x/.local/opt/llvm/llvm23.1.2/bin/clang-format",
-  "clang-format.executable": "/Users/x/.local/opt/llvm/llvm23.1.2/bin/clang-format",
+  "C_Cpp.clang_format_path": "/Users/x/.local/opt/llvm/llvm23/bin/clang-format",
+  "clang-format.executable": "/Users/x/.local/opt/llvm/llvm23/bin/clang-format",
   "clang-format.fallbackStyle": "Google",
   "cmake.buildDirectory": "${workspaceRoot}/_build",
   "cmake.buildToolArgs": [
@@ -244,8 +244,8 @@
   "go.alternateTools": {
     "dlv": "/Users/x/.local/profile/go/bin/dlv",
     "dlv-dap": "/Users/x/.local/profile/go/bin/dlv-dap",
-    "go": "/Users/x/.local/opt/go/go1.27.1/bin/go",
-    "gofmt": "/Users/x/.local/opt/go/go1.27.1/bin/gofmt",
+    "go": "/Users/x/.local/opt/go/go1.27/bin/go",
+    "gofmt": "/Users/x/.local/opt/go/go1.27/bin/gofmt",
     "gofumpt": "/Users/x/.local/profile/go/bin/gofumpt",
     "goimports": "/Users/x/.local/profile/go/bin/goimports",
     "golangci-lint": "/Users/x/.local/profile/go/bin/golangci-lint",
@@ -319,7 +319,7 @@
   "python.analysis.languageServerMode": "full",
   "python.analysis.typeCheckingMode": "standard",
   "prettier.prettierPath": "/Users/x/.local/opt/node/tools/envs/prettier/node_modules/prettier",
-  "python.defaultInterpreterPath": "/Users/x/.local/opt/uv/bin/python3.14",
+  "python.defaultInterpreterPath": "/Users/x/.local/opt/uv/bin/python3.15",
   "python.useEnvironmentsExtension": true,
   "pythonTestExplorer.testFramework": "pytest",
   "redhat.telemetry.enabled": false,
@@ -344,7 +344,7 @@
   // },
   // "ruby.useLanguageServer": true,
   "ruff.interpreter": [
-    "/Users/x/.local/opt/uv/bin/python3.14"
+    "/Users/x/.local/opt/uv/bin/python3.15"
   ],
   "ruff.logLevel": "info",
   "ruff.path": [

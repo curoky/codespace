@@ -36,16 +36,17 @@ ENV CARGO_HOME=/home/x/.local/opt/rust/cargo RUSTUP_HOME=/home/x/.local/opt/rust
 ENV PATH=/home/x/.local/opt/rust/cargo/bin:${PATH}
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates curl \
-  && curl https://sh.rustup.rs -sSf | bash -s -- -y --profile minimal --no-modify-path --default-toolchain stable \
+  && curl https://sh.rustup.rs -sSf | bash -s -- -y --profile minimal --no-modify-path --default-toolchain 1.100.0 \
   && rustup component add clippy rustfmt rust-src rust-analyzer llvm-tools
 
 # ------------------------------------ Go ------------------------------------
 FROM docker.io/debian:stable-slim AS stage_go
-ADD --checksum=sha256:63d339f0da5ab53635a56f2490a7984dfe12dfcff22ad749f63edaf590168445 \
-  https://go.dev/dl/go1.27.1.linux-amd64.tar.gz \
+ADD --checksum=sha256:7226736c2339719cda28fbf3a54d71aa63bcefe376e98cef00034268dab24840 \
+  https://go.dev/dl/go1.27.4.linux-amd64.tar.gz \
   /tmp/go.tar.gz
-RUN mkdir -p /home/x/.local/opt/go/go1.27.1 \
-  && tar -xzf /tmp/go.tar.gz --strip-components=1 -C /home/x/.local/opt/go/go1.27.1
+RUN mkdir -p /home/x/.local/opt/go/go1.27.4 \
+  && tar -xzf /tmp/go.tar.gz --strip-components=1 -C /home/x/.local/opt/go/go1.27.4 \
+  && ln -s go1.27.4 /home/x/.local/opt/go/go1.27
 
 # --------------------------- Workspace executables --------------------------
 FROM docker.io/golang:1.27.4 AS stage_workspace_tools
@@ -63,11 +64,11 @@ RUN go build -mod=readonly -trimpath -o /out/node-tool ./tools/node-tool \
 FROM docker.io/debian:stable-slim AS stage_java
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates
-ADD --checksum=sha256:9c70e102f527ac674ac2fe9c7d47b9a04e2d19842ba5ab8e9b33f368bbadfaea \
-  https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u504-b01/OpenJDK8U-jdk_x64_linux_hotspot_8u504b01.tar.gz \
+ADD --checksum=sha256:27eda854481d20806d918b30cdd417c6bed4fd15882e24f3595dc8ae7fb5d095 \
+  https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u514-b01/OpenJDK8U-jdk_x64_linux_hotspot_8u514b01.tar.gz \
   /tmp/openjdk8.tar.gz
-ADD --checksum=sha256:1cf69a4848ffb728b3b260dfd45206a51566ab571a02a30092271d4c580bccbc \
-  https://github.com/adoptium/temurin27-binaries/releases/download/jdk-27%2B35/OpenJDK27U-jdk_x64_linux_hotspot_27_35.tar.gz \
+ADD --checksum=sha256:005e57ee860978acfeeff1be2b30f770664fe2b941e9b803c61c76992086d107 \
+  https://github.com/adoptium/temurin27-binaries/releases/download/jdk-27.0.1.1%2B4/OpenJDK27U-jdk_x64_linux_hotspot_27.0.1.1_4.tar.gz \
   /tmp/openjdk27.tar.gz
 RUN mkdir -p /home/x/.local/opt/java/openjdk8 /home/x/.local/opt/java/openjdk27 \
   && tar -xzf /tmp/openjdk8.tar.gz --strip-components=1 -C /home/x/.local/opt/java/openjdk8 \
@@ -82,23 +83,23 @@ ENV UV_TOOL_DIR=/home/x/.local/opt/uv/tools \
   UV_PYTHON_BIN_DIR=/home/x/.local/opt/uv/bin
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates \
-  && uv python install 3.14 \
-  && uv tool install copyparty --python "$UV_PYTHON_BIN_DIR/python3.14" \
-  && uv tool install licenseheaders --python "$UV_PYTHON_BIN_DIR/python3.14" \
-  && uv tool install netron --python "$UV_PYTHON_BIN_DIR/python3.14" \
-  && uv tool install mitmproxy --python "$UV_PYTHON_BIN_DIR/python3.14" \
-  && uv tool install git-filter-repo --python "$UV_PYTHON_BIN_DIR/python3.14" \
-  && uv tool install dool --python "$UV_PYTHON_BIN_DIR/python3.14"
+  && uv python install --default 3.15.2 \
+  && uv tool install copyparty --python "$UV_PYTHON_BIN_DIR/python3.15" \
+  && uv tool install licenseheaders --python "$UV_PYTHON_BIN_DIR/python3.15" \
+  && uv tool install netron --python "$UV_PYTHON_BIN_DIR/python3.15" \
+  && uv tool install mitmproxy --python "$UV_PYTHON_BIN_DIR/python3.15" \
+  && uv tool install git-filter-repo --python "$UV_PYTHON_BIN_DIR/python3.15" \
+  && uv tool install dool --python "$UV_PYTHON_BIN_DIR/python3.15"
 
 # ---------------------------------- Node.js ---------------------------------
 FROM stage_python AS stage_node
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates libatomic1 patchelf xz-utils
-ADD --checksum=sha256:fd8e59d5a511510f6a298afb548f18c7d2b1be404d8b4a27d94fbe49f56cb2d6 \
-  https://nodejs.org/dist/v24.21.0/node-v24.21.0-linux-x64.tar.xz \
+ADD --checksum=sha256:4f2b175a6d53a5c617a80dba2676238a0688cef28c6da4eba35c7d844e66fcfb \
+  https://nodejs.org/dist/v24.22.3/node-v24.22.3-linux-x64.tar.xz \
   /tmp/node24.tar.xz
-ADD --checksum=sha256:ca70e9e349de048b9522abb3adc05b3bd6f43c5ffd3ec57916c7da292f59f022 \
-  https://nodejs.org/dist/v26.10.0/node-v26.10.0-linux-x64.tar.xz \
+ADD --checksum=sha256:5c063e46bab0fbc1c17cc445d7ff129cbdcd0471be6ed83b6ab864f8143bc864 \
+  https://nodejs.org/dist/v26.13.1/node-v26.13.1-linux-x64.tar.xz \
   /tmp/node26.tar.xz
 RUN mkdir -p /home/x/.local/opt/node/nodejs24 /home/x/.local/opt/node/nodejs26/lib /home/x/.local/opt/node/tools/bin \
   && tar -xJf /tmp/node24.tar.xz --strip-components=1 -C /home/x/.local/opt/node/nodejs24 \
@@ -160,8 +161,7 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
   # && nix-env -iA nixpkgs.go_1_26 -p /nix/var/nix/profiles/default \
   # && nix-env -iA nixpkgs.go_1_26 -p /nix/var/nix/profiles/go-1_26 \
   # && nix-env -iA nixpkgs_2505.gcc12 -p /nix/var/nix/profiles/gcc-12 \
-  && nix-env -iA nixpkgs.gcc15 -p /nix/var/nix/profiles/default \
-  # && nix-env -iA nixpkgs.gcc16 -p /nix/var/nix/profiles/gcc-16 \
+  && nix-env -iA nixpkgs.gcc16 -p /nix/var/nix/profiles/default \
   # && nix-env -iA nixpkgs.clang_21 -p /nix/var/nix/profiles/clang-21 \
   && nix-collect-garbage -d \
   && nix-store --optimise

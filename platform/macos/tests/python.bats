@@ -14,9 +14,11 @@ printf 'uv %s\ntools %s\ntool-bin %s\npython %s\npython-bin %s\ncache %s\n' \
   "$*" "$UV_TOOL_DIR" "$UV_TOOL_BIN_DIR" "$UV_PYTHON_INSTALL_DIR" \
   "$UV_PYTHON_BIN_DIR" "${UV_CACHE_DIR:-}" >>"$TEST_EVENTS"
 mkdir -p "$UV_PYTHON_INSTALL_DIR/runtime/bin" "$UV_PYTHON_BIN_DIR"
-printf '#!/usr/bin/env bash\nexit 0\n' >"$UV_PYTHON_INSTALL_DIR/runtime/bin/python3.14"
-chmod 0755 "$UV_PYTHON_INSTALL_DIR/runtime/bin/python3.14"
-ln -sf "$UV_PYTHON_INSTALL_DIR/runtime/bin/python3.14" "$UV_PYTHON_BIN_DIR/python3.14"
+printf '#!/usr/bin/env bash\nexit 0\n' >"$UV_PYTHON_INSTALL_DIR/runtime/bin/python3.15"
+chmod 0755 "$UV_PYTHON_INSTALL_DIR/runtime/bin/python3.15"
+ln -sf "$UV_PYTHON_INSTALL_DIR/runtime/bin/python3.15" "$UV_PYTHON_BIN_DIR/python3.15"
+ln -sf "$UV_PYTHON_INSTALL_DIR/runtime/bin/python3.15" "$UV_PYTHON_BIN_DIR/python"
+ln -sf "$UV_PYTHON_INSTALL_DIR/runtime/bin/python3.15" "$UV_PYTHON_BIN_DIR/python3"
 EOF
   chmod 0755 "$HOME/.local/bin/uv"
 }
@@ -34,8 +36,10 @@ teardown() {
   run "$MACOS_DIR/maintenance/uv.sh"
   [ "$status" -eq 0 ]
   local root="$HOME/.local/opt/uv"
-  [ -x "$root/bin/python3.14" ]
-  grep -Fqx 'uv python install 3.14' "$TEST_EVENTS"
+  [ -x "$root/bin/python3.15" ]
+  [ "$root/bin/python" -ef "$root/bin/python3.15" ]
+  [ "$root/bin/python3" -ef "$root/bin/python3.15" ]
+  grep -Fqx 'uv python install --default 3.15.2' "$TEST_EVENTS"
   grep -Fqx "tools $root/tools" "$TEST_EVENTS"
   grep -Fqx "tool-bin $root/bin" "$TEST_EVENTS"
   grep -Fqx "python $root/python" "$TEST_EVENTS"
@@ -52,7 +56,7 @@ teardown() {
   [ "$status" -eq 0 ]
   run "$MACOS_DIR/maintenance/uv.sh"
   [ "$status" -eq 0 ]
-  [ "$(grep -Fc 'uv python install 3.14' "$TEST_EVENTS")" = 2 ]
+  [ "$(grep -Fc 'uv python install --default 3.15.2' "$TEST_EVENTS")" = 2 ]
   [ -f "$HOME/.local/opt/uv/tools/custom/keep" ]
   [ -f "$HOME/.local/opt/custom-runtime/keep" ]
 }

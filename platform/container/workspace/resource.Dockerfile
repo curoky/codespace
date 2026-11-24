@@ -22,11 +22,12 @@ RUN /usr/local/bin/bm --prefix /usr/local install --no-link uv
 FROM docker.io/debian:stable-slim AS stage_llvm
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends xz-utils
-ADD --checksum=sha256:b5ed9675149cc837c282e9b6962c276c9fa62863d5b2f91537b60848552995b7 \
-  https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.2/LLVM-23.1.2-Linux-X64.tar.xz \
+ADD --checksum=sha256:bd4d1c434ff69ef06d19e7934c04708da677e5f2eb51f5bcf052ab91818f0094 \
+  https://github.com/llvm/llvm-project/releases/download/llvmorg-23.1.6/LLVM-23.1.6-Linux-X64.tar.xz \
   /tmp/llvm.tar.xz
-RUN mkdir -p /home/x/.local/opt/llvm/llvm23.1.2 \
-  && tar -xJf /tmp/llvm.tar.xz --strip-components=1 -C /home/x/.local/opt/llvm/llvm23.1.2
+RUN mkdir -p /home/x/.local/opt/llvm/llvm23.1.6 \
+  && tar -xJf /tmp/llvm.tar.xz --strip-components=1 -C /home/x/.local/opt/llvm/llvm23.1.6 \
+  && ln -s llvm23.1.6 /home/x/.local/opt/llvm/llvm23
 
 # ---------------------------------- Python ----------------------------------
 FROM docker.io/debian:stable-slim AS stage_python
@@ -37,9 +38,9 @@ ENV UV_TOOL_DIR=/opt/resource/home/x/.local/opt/uv/tools \
   UV_PYTHON_BIN_DIR=/opt/resource/home/x/.local/opt/uv/bin
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates \
-  && uv python install --no-bin 3.9.25 3.10.22 3.11.17 3.12.15 3.13.16 3.14 \
+  && uv python install --no-bin 3.9.25 3.10.22 3.11.18 3.12.16 3.13.18 3.14.10 3.15.2 \
   && uv tool install tensorboard \
-    --python /opt/resource/home/x/.local/opt/uv/python/cpython-3.12.15-linux-x86_64-gnu/bin/python3.12 \
+    --python /opt/resource/home/x/.local/opt/uv/python/cpython-3.12.16-linux-x86_64-gnu/bin/python3.12 \
     --with tensorboard-plugin-profile --with "setuptools==81.0.0"
 
 # ----------------------------------- Java -----------------------------------
@@ -54,8 +55,8 @@ FROM docker.io/debian:stable-slim AS stage_java
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates
 # java-tool validates the launcher runtime during installation; the JDK is not exported.
-ADD --checksum=sha256:1cf69a4848ffb728b3b260dfd45206a51566ab571a02a30092271d4c580bccbc \
-  https://github.com/adoptium/temurin27-binaries/releases/download/jdk-27%2B35/OpenJDK27U-jdk_x64_linux_hotspot_27_35.tar.gz \
+ADD --checksum=sha256:005e57ee860978acfeeff1be2b30f770664fe2b941e9b803c61c76992086d107 \
+  https://github.com/adoptium/temurin27-binaries/releases/download/jdk-27.0.1.1%2B4/OpenJDK27U-jdk_x64_linux_hotspot_27.0.1.1_4.tar.gz \
   /tmp/openjdk27.tar.gz
 RUN mkdir -p /home/x/.local/opt/java/openjdk27 \
   && tar -xzf /tmp/openjdk27.tar.gz --strip-components=1 -C /home/x/.local/opt/java/openjdk27
@@ -105,7 +106,7 @@ COPY --from=stage_python /opt/resource/home/x/.local/opt/uv /opt/resource/home/x
 # ----------------------------------- Test -----------------------------------
 FROM payload AS test
 USER 5230:5230
-RUN /opt/resource/home/x/.local/opt/llvm/llvm23.1.2/bin/clang --version \
+RUN /opt/resource/home/x/.local/opt/llvm/llvm23/bin/clang --version \
   && test ! -e /opt/resource/home/x/.local/opt/go \
   && test ! -e /opt/resource/home/x/.local/opt/rust \
   && test ! -e /opt/resource/home/x/.local/opt/node \
@@ -128,10 +129,11 @@ RUN /opt/resource/home/x/.local/opt/llvm/llvm23.1.2/bin/clang --version \
   && test ! -e /opt/resource/usr/local/store/pnpm \
   && /opt/resource/home/x/.local/opt/uv/python/cpython-3.9.25-linux-x86_64-gnu/bin/python3.9 --version \
   && /opt/resource/home/x/.local/opt/uv/python/cpython-3.10.22-linux-x86_64-gnu/bin/python3.10 --version \
-  && /opt/resource/home/x/.local/opt/uv/python/cpython-3.11.17-linux-x86_64-gnu/bin/python3.11 --version \
-  && /opt/resource/home/x/.local/opt/uv/python/cpython-3.12.15-linux-x86_64-gnu/bin/python3.12 --version \
-  && /opt/resource/home/x/.local/opt/uv/python/cpython-3.13.16-linux-x86_64-gnu/bin/python3.13 --version \
-  && /opt/resource/home/x/.local/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 --version \
+  && /opt/resource/home/x/.local/opt/uv/python/cpython-3.11.18-linux-x86_64-gnu/bin/python3.11 --version \
+  && /opt/resource/home/x/.local/opt/uv/python/cpython-3.12.16-linux-x86_64-gnu/bin/python3.12 --version \
+  && /opt/resource/home/x/.local/opt/uv/python/cpython-3.13.18-linux-x86_64-gnu/bin/python3.13 --version \
+  && /opt/resource/home/x/.local/opt/uv/python/cpython-3.14.10-linux-x86_64-gnu/bin/python3.14 --version \
+  && /opt/resource/home/x/.local/opt/uv/python/cpython-3.15.2-linux-x86_64-gnu/bin/python3.15 --version \
   && test -x /opt/resource/home/x/.local/opt/uv/bin/tensorboard
 
 # --------------------------------- Resource ---------------------------------

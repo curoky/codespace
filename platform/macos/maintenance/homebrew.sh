@@ -17,3 +17,10 @@ export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
   --file "$macos_dir/Brewfile" \
   --verbose
 /opt/homebrew/bin/brew cleanup --prune=all
+
+# Homebrew suffixes GNU GCC commands to avoid replacing Apple's compiler.
+test -x /opt/homebrew/opt/gcc/bin/gcc-16
+test -x /opt/homebrew/opt/gcc/bin/g++-16
+install -d "$HOME/.local/bin"
+ln -sfn /opt/homebrew/opt/gcc/bin/gcc-16 "$HOME/.local/bin/gcc"
+ln -sfn /opt/homebrew/opt/gcc/bin/g++-16 "$HOME/.local/bin/g++"

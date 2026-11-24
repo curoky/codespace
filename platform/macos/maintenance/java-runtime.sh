@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-version="27+35"
-expected_sha256="a59626c926f0146a286cb535fc9a46499d6c46b3d79ae72168bbf18438fe49dd"
+version="27.0.1.1+4"
+expected_sha256="bd5ff11de5e247372e8b27df700938bd02fe8fe81e24cd297e1daeb027d3151b"
 destination="$HOME/.local/opt/java/openjdk27"
 marker="$destination/.codespace-version"
 
@@ -16,7 +16,7 @@ archive="$work_dir/jdk.tar.gz"
 trap 'rm -rf "$work_dir"' EXIT
 
 curl -fsSL \
-  https://github.com/adoptium/temurin27-binaries/releases/download/jdk-27%2B35/OpenJDK27U-jdk_aarch64_mac_hotspot_27_35.tar.gz \
+  https://github.com/adoptium/temurin27-binaries/releases/download/jdk-27.0.1.1%2B4/OpenJDK27U-jdk_aarch64_mac_hotspot_27.0.1.1_4.tar.gz \
   -o "$archive"
 actual="$(shasum -a 256 "$archive" | awk '{print $1}')"
 if [[ "$actual" != "$expected_sha256" ]]; then

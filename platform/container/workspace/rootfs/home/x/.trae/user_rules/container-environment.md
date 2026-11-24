@@ -5,11 +5,13 @@ alwaysApply: true
 # Container Environment
 
 - 工具环境缺失时加载 `/etc/profile.d/app.sh`；项目工具链覆盖在加载后设置。
-- Python 环境与项目依赖使用 uv，按需用 `--python` 选择 `~/.local/opt/uv/python` 中的版本；全局 Python CLI 使用 `uv tool`，不使用全局 pip。
+- 默认语言工具链使用预装的最新稳定版，项目显式选择在加载环境后设置。
+- Python 环境与项目依赖使用 uv，默认 `python` 与 `python3` 指向受管 runtime；按需用 `--python` 选择 `~/.local/opt/uv/python` 中的版本。全局 Python CLI 使用 `uv tool`，不使用全局 pip。
 - Node.js 优先使用 26；按项目需求从 `~/.local/opt/node/nodejs*` 选择版本，将其 `bin` 放到 PATH 首位。
 - 切换 Java 时，将 `JAVA_HOME` 设为选定的 `~/.local/opt/java/openjdk*`，并将其 `bin` 放到 PATH 首位。
 - Rust 工具链由 rustup 管理，位于 `~/.local/opt/rust`；`~/.cargo` 保留用户 CLI 与缓存。
 - Go runtime 位于 `~/.local/opt/go`，用户安装的 Go 命令位于 `~/go/bin`。
 - LLVM SDK 位于 `~/.local/opt/llvm`；Workspace 需要挂载 Resource 后才能使用。
+- GNU GCC 由 Nix 提供，不使用发行版旧 compiler 作为默认工具链；CUDA/Framework 的独立 compiler 约束不随全局默认版本切换。
 - 缺少系统软件、全局 CLI 或 runtime 时，说明用途和安装方式，由用户手动安装。
 - 构建和运行开发容器使用 `/opt/podman/bin/podman`。

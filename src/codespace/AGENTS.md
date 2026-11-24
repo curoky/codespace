@@ -4,6 +4,9 @@
 state，通过 OpenSSH 管理 Linux Host 上的 rootful Podman；已部署资源只从 labels 与
 inspect 数据还原。
 
+控制面默认使用项目锁定的最新稳定 Python；`.python-version`、Python 最低要求与 lint
+baseline 保持一致，项目依赖由 uv 管理，不依赖系统 Python。
+
 ## Ownership
 
 | Path | Responsibility |

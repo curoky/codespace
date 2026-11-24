@@ -14,14 +14,14 @@ setup() {
   TEST_SHA256="$(sed -n 's/^expected_sha256="\(.*\)"$/\1/p' "$MACOS_DIR/maintenance/java-runtime.sh")"
   export HOME TMPDIR TEST_ROOT TEST_ARCHIVE TEST_EVENTS TEST_SHA256
   mkdir -p "$HOME" "$TMPDIR" "$TEST_ROOT/bin" \
-    "$TEST_ROOT/bundle/jdk-27+35/Contents/Home/bin" \
-    "$TEST_ROOT/bundle/jdk-27+35/Contents/_CodeSignature"
-  printf '#!/usr/bin/env bash\nexit 0\n' >"$TEST_ROOT/bundle/jdk-27+35/Contents/Home/bin/java"
-  cp "$TEST_ROOT/bundle/jdk-27+35/Contents/Home/bin/java" \
-    "$TEST_ROOT/bundle/jdk-27+35/Contents/Home/bin/javac"
-  chmod 0755 "$TEST_ROOT/bundle/jdk-27+35/Contents/Home/bin/"*
-  touch "$TEST_ROOT/bundle/jdk-27+35/Contents/_CodeSignature/CodeResources"
-  tar -czf "$TEST_ARCHIVE" -C "$TEST_ROOT/bundle" jdk-27+35
+    "$TEST_ROOT/bundle/jdk-27.0.1.1+4/Contents/Home/bin" \
+    "$TEST_ROOT/bundle/jdk-27.0.1.1+4/Contents/_CodeSignature"
+  printf '#!/usr/bin/env bash\nexit 0\n' >"$TEST_ROOT/bundle/jdk-27.0.1.1+4/Contents/Home/bin/java"
+  cp "$TEST_ROOT/bundle/jdk-27.0.1.1+4/Contents/Home/bin/java" \
+    "$TEST_ROOT/bundle/jdk-27.0.1.1+4/Contents/Home/bin/javac"
+  chmod 0755 "$TEST_ROOT/bundle/jdk-27.0.1.1+4/Contents/Home/bin/"*
+  touch "$TEST_ROOT/bundle/jdk-27.0.1.1+4/Contents/_CodeSignature/CodeResources"
+  tar -czf "$TEST_ARCHIVE" -C "$TEST_ROOT/bundle" jdk-27.0.1.1+4
 
   cat >"$TEST_ROOT/bin/curl" <<'EOF'
 #!/usr/bin/env bash
@@ -59,11 +59,11 @@ teardown() {
   local root="$HOME/.local/opt/java/openjdk27"
   [ -x "$root/bin/java" ]
   [ -x "$root/bin/javac" ]
-  [ "$(<"$root/.codespace-version")" = '27+35' ]
+  [ "$(<"$root/.codespace-version")" = '27.0.1.1+4' ]
   [ ! -e "$root/Contents" ]
   [ ! -e "$root/CodeResources" ]
   [ ! -e "$HOME/.local/opt/java/openjdk8" ]
-  grep -Fq 'OpenJDK27U-jdk_aarch64_mac_hotspot_27_35.tar.gz' "$TEST_EVENTS"
+  grep -Fq 'OpenJDK27U-jdk_aarch64_mac_hotspot_27.0.1.1_4.tar.gz' "$TEST_EVENTS"
   run find "$TMPDIR" -mindepth 1
   [ "$output" = '' ]
 }
@@ -104,8 +104,8 @@ teardown() {
 @test "Java rejects an incomplete archive before replacing the managed installation" {
   mkdir -p "$HOME/.local/opt/java/openjdk27"
   touch "$HOME/.local/opt/java/openjdk27/keep"
-  rm "$TEST_ROOT/bundle/jdk-27+35/Contents/Home/bin/javac"
-  tar -czf "$TEST_ARCHIVE" -C "$TEST_ROOT/bundle" jdk-27+35
+  rm "$TEST_ROOT/bundle/jdk-27.0.1.1+4/Contents/Home/bin/javac"
+  tar -czf "$TEST_ARCHIVE" -C "$TEST_ROOT/bundle" jdk-27.0.1.1+4
 
   run "$MACOS_DIR/maintenance/java-runtime.sh"
   [ "$status" -eq 1 ]

@@ -2,13 +2,13 @@
 
 # shellcheck shell=bash
 
-# 多个 shell 入口会加载此文件；只补齐缺失目录，保留调用方的优先级。
+# 首次加载让受管工具优先于系统工具；重复加载不重排调用方的 PATH。
+codespace_paths=
 codespace_add_path() {
-  case ":${PATH:-}:" in
+  case ":${PATH:-}:${codespace_paths}:" in
     *":$1:"*) ;;
-    *) PATH="${PATH:+$PATH:}$1" ;;
+    *) codespace_paths="${codespace_paths:+$codespace_paths:}$1" ;;
   esac
-  export PATH
 }
 
 # user tools
@@ -38,11 +38,11 @@ codespace_add_path /opt/resource/usr/local/bin
 
 # go
 codespace_add_path "$HOME/go/bin"
-codespace_add_path "$HOME/.local/opt/go/go1.27.1/bin"
+codespace_add_path "$HOME/.local/opt/go/go1.27/bin"
 codespace_add_path /usr/local/profile/go/bin
 
 # llvm
-codespace_add_path "$HOME/.local/opt/llvm/llvm23.1.2/bin"
+codespace_add_path "$HOME/.local/opt/llvm/llvm23/bin"
 codespace_add_path /usr/local/profile/clang-tools/bin
 
 # protobuf
@@ -86,6 +86,8 @@ export KRB5CCNAME=/opt/secret/krb5_ccache
 # tmux
 export TMUX_CONF_LOCAL="$HOME/.config/tmux/tmux.conf.local"
 
+export PATH="${codespace_paths:+$codespace_paths:}${PATH:-}"
+unset codespace_paths
 unset -f codespace_add_path
 
 # trae

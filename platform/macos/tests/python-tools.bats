@@ -8,7 +8,7 @@ setup() {
   UV_CACHE_DIR="$TEST_ROOT/cache"
   export HOME TEST_EVENTS UV_CACHE_DIR
   mkdir -p "$HOME/.local/bin" "$HOME/.local/opt/uv/bin"
-  printf '#!/usr/bin/env bash\nexit 0\n' >"$HOME/.local/opt/uv/bin/python3.14"
+  printf '#!/usr/bin/env bash\nexit 0\n' >"$HOME/.local/opt/uv/bin/python3.15"
   cat >"$HOME/.local/bin/uv" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -18,11 +18,11 @@ set -euo pipefail
 [[ "$UV_PYTHON_BIN_DIR" == "$HOME/.local/opt/uv/bin" ]]
 [[ "$UV_CACHE_DIR" == "${TEST_EVENTS%/*}/cache" ]]
 [[ "$1" == tool && "$2" == install && "$4" == --python ]]
-[[ "$5" == "$HOME/.local/opt/uv/bin/python3.14" && "$#" == 5 ]]
+[[ "$5" == "$HOME/.local/opt/uv/bin/python3.15" && "$#" == 5 ]]
 printf '%s\n' "$3" >>"$TEST_EVENTS"
 [[ "$3" != "${TEST_FAIL_PACKAGE:-}" ]] || exit 42
 EOF
-  chmod 0755 "$HOME/.local/bin/uv" "$HOME/.local/opt/uv/bin/python3.14"
+  chmod 0755 "$HOME/.local/bin/uv" "$HOME/.local/opt/uv/bin/python3.15"
 }
 
 teardown() {
@@ -58,7 +58,7 @@ teardown() {
 }
 
 @test "Python tools do not download a missing runtime" {
-  rm "$HOME/.local/opt/uv/bin/python3.14"
+  rm "$HOME/.local/opt/uv/bin/python3.15"
   run "$MACOS_DIR/maintenance/python-tools.sh"
   [ "$status" -eq 1 ]
   [ ! -e "$TEST_EVENTS" ]

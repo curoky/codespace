@@ -27,9 +27,9 @@ EOF
 if [[ ${TEST_BAD_CHECKSUM:-0} == 1 ]]; then
   printf 'invalid\n'
 elif [[ $(wc -l <"$TEST_EVENTS") -eq 1 ]]; then
-  printf '6239d4cf92d864487ec8cd3615038f7b67e7f58b77b21cd2f09ea9fbd68065fe\n'
+  printf '1d64136c8a43d648d1b3bad10797a4c995b1ca032d2bde8799de43b37f058fe5\n'
 else
-  printf 'f222f7e85cc1d5a3d84786aa86836ec3d41c4dcdf59a40e4a9d719b6b0ae28af\n'
+  printf 'af6202f5370a3a5209e85dc543758dfd9f44c8726626a236730cd603a67a8559\n'
 fi
 EOF
   chmod 0755 "$TEST_ROOT/bin/"*
@@ -88,10 +88,10 @@ EOF
   [ "$status" -eq 0 ]
   [ -x "$HOME/.local/opt/node/nodejs24/bin/node" ]
   [ -x "$HOME/.local/opt/node/nodejs26/bin/node" ]
-  [ "$(<"$HOME/.local/opt/node/nodejs24/.codespace-version")" = 24.21.0 ]
-  [ "$(<"$HOME/.local/opt/node/nodejs26/.codespace-version")" = 26.10.0 ]
-  grep -Fq 'node-v24.21.0-darwin-arm64.tar.xz' "$TEST_EVENTS"
-  grep -Fq 'node-v26.10.0-darwin-arm64.tar.xz' "$TEST_EVENTS"
+  [ "$(<"$HOME/.local/opt/node/nodejs24/.codespace-version")" = 24.22.3 ]
+  [ "$(<"$HOME/.local/opt/node/nodejs26/.codespace-version")" = 26.13.1 ]
+  grep -Fq 'node-v24.22.3-darwin-arm64.tar.xz' "$TEST_EVENTS"
+  grep -Fq 'node-v26.13.1-darwin-arm64.tar.xz' "$TEST_EVENTS"
 
   run "$MACOS_DIR/maintenance/node-runtime.sh"
   [ "$status" -eq 0 ]

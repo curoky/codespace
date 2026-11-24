@@ -33,7 +33,7 @@ fpath=(
   "$HOME/.nix-profile/share/zsh/site-functions"
   /usr/local/profile/go/share/zsh/site-functions
   /usr/local/store/radare2/share/zsh/site-functions
-  "$HOME/.local/opt/rust/rustup/toolchains/stable-x86_64-unknown-linux-gnu/share/zsh/site-functions"
+  "$HOME/.local/opt/rust/rustup/toolchains/1.100.0-x86_64-unknown-linux-gnu/share/zsh/site-functions"
   $fpath
 )
 typeset -U fpath FPATH

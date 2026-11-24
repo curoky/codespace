@@ -53,6 +53,7 @@ cask "julyx10/lap/lap"
 # cask "lyricsx" # https://github.com/ddddxxx/LyricsX
 
 brew "bash"
+brew "gcc"
 # brew "bats-core"
 # brew "python@3"
 # brew "go"

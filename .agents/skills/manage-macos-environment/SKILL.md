@@ -16,13 +16,14 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 | --- | --- |
 | Homebrew 或 Brewfile state 缺失 | `platform/macos/maintenance/homebrew.sh` |
 | standalone tools 缺失或 manifest 变化 | `platform/macos/maintenance/binman.sh` |
-| uv Python 3.14 缺失 | `platform/macos/maintenance/uv.sh` |
+| uv 默认 Python 缺失或声明变化 | `platform/macos/maintenance/uv.sh` |
 | Python CLI 缺失或声明变化 | `platform/macos/maintenance/python-tools.sh` |
 | Node.js 24/26 缺失或版本变化 | `platform/macos/maintenance/node-runtime.sh` |
 | Node CLI 缺失或版本变化 | `platform/macos/maintenance/node-tools.sh` |
 | Go 缺失或版本变化 | `platform/macos/maintenance/go.sh` |
 | Rust toolchain 缺失或需要更新 | `platform/macos/maintenance/rust.sh` |
-| LLVM SDK 缺失或版本变化 | `platform/macos/maintenance/llvm.sh` |
+| GNU GCC 或其用户命令链接缺失 | `platform/macos/maintenance/homebrew.sh` |
+| LLVM SDK 缺失或声明变化 | `platform/macos/maintenance/llvm.sh` |
 | Java 缺失或版本变化 | `platform/macos/maintenance/java-runtime.sh` |
 | java-tool 缺失或发布产物变化 | `platform/macos/maintenance/java-tools.sh` |
 | home links 或 copied config 缺失 | `platform/macos/maintenance/home-links.sh` |
@@ -36,6 +37,9 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 - 可移植 Python CLI：修改 `platform/macos/maintenance/python-tools.sh` 与 Workspace
   `Dockerfile`，运行 `python-tools.sh`。
 - Python runtime 及其他语言的 runtime 与 CLI：修改对应 maintenance 脚本，运行该脚本。
+- GNU GCC：由 `Brewfile` 声明，运行 `homebrew.sh`；其无后缀命令由该操作链接到用户 bin。
+- LLVM：使用 `llvm.sh` 中锁定的官方 macOS arm64 archive；最新 release 缺少对应 artifact
+  时保留已锁定版本，不切换安装来源。
 - home config 或 LaunchAgent：修改 rootfs source，再运行 `home-links.sh` 或对应 service 脚本。
 
 增量依赖：
@@ -80,7 +84,8 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 ```bash
 test -x "$HOME/.local/bin/uv"
 test -x "$HOME/.local/bin/pnpm"
-test -x "$HOME/.local/opt/uv/bin/python3.14"
+"$HOME/.local/opt/uv/bin/python" --version
+"$HOME/.local/opt/uv/bin/python3" --version
 "$HOME/.local/opt/uv/bin/copyparty" --help
 "$HOME/.local/opt/uv/bin/licenseheaders" --help
 "$HOME/.local/opt/uv/bin/netron" --help
@@ -92,15 +97,17 @@ test -x "$HOME/.local/opt/node/tools/bin/prettier"
 "$HOME/.local/opt/node/tools/bin/defuddle" --help
 "$HOME/.local/opt/node/tools/bin/markdownlint-cli2" --version
 "$HOME/.local/opt/node/node-tool" --help
-test -x "$HOME/.local/opt/go/go1.27.1/bin/go"
+test -x "$HOME/.local/opt/go/go1.27/bin/go"
 "$HOME/.local/opt/node/nodejs26/bin/node" --version
-"$HOME/.local/opt/go/go1.27.1/bin/go" version
+"$HOME/.local/opt/go/go1.27/bin/go" version
 CARGO_HOME="$HOME/.cargo" RUSTUP_HOME="$HOME/.local/opt/rust/rustup" \
   "$HOME/.local/opt/rust/cargo/bin/rustc" --version
 CARGO_HOME="$HOME/.cargo" RUSTUP_HOME="$HOME/.local/opt/rust/rustup" \
   "$HOME/.local/opt/rust/cargo/bin/rustup" component list --installed
-"$HOME/.local/opt/llvm/llvm23.1.2/bin/clang" --version
-"$HOME/.local/opt/llvm/llvm23.1.2/bin/clang-format" --version
+"$HOME/.local/opt/llvm/llvm23/bin/clang" --version
+"$HOME/.local/opt/llvm/llvm23/bin/clang-format" --version
+"$HOME/.local/bin/gcc" --version
+"$HOME/.local/bin/g++" --version
 "$HOME/.local/opt/java/openjdk27/bin/java" -version
 "$HOME/.local/opt/java/openjdk27/bin/javac" -version
 "$HOME/.local/opt/java/java-tool" --help

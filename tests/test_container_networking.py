@@ -93,7 +93,9 @@ def test_workspace_agents_share_codex_skills() -> None:
         assert (home / ".trae-cn/skills" / skill).readlink() == Path(target)
 
 
-def test_app_profile_sets_tools_and_preserves_inherited_environment(tmp_path: Path) -> None:
+def test_app_profile_prioritizes_managed_tools_and_preserves_inherited_environment(
+    tmp_path: Path,
+) -> None:
     profile = _CONTAINER / "workspace/rootfs/etc/profile.d/app.sh"
     inherited = {
         "LANG": "C",
@@ -134,7 +136,9 @@ def test_app_profile_sets_tools_and_preserves_inherited_environment(tmp_path: Pa
     environment = dict(item.split("=", 1) for item in result.stdout.split("\0") if item)
     assert {key: environment[key] for key in inherited} == inherited
     entries = environment["PATH"].split(":")
-    assert entries[0] == "/project/venv/bin"
+    assert entries[0] == str(tmp_path / ".local/bin")
+    assert entries.index(str(tmp_path / ".local/opt/uv/bin")) < entries.index("/usr/bin")
+    assert entries.index("/nix/var/nix/profiles/default/bin") < entries.index("/usr/bin")
     assert len(entries) == len(set(entries))
     assert {"/usr/local/sbin", "/usr/local/bin", "/usr/sbin", "/sbin"}.isdisjoint(entries)
     assert {
@@ -142,10 +146,10 @@ def test_app_profile_sets_tools_and_preserves_inherited_environment(tmp_path: Pa
         "/usr/local/profile/clang-tools/bin",
         "/usr/local/profile/protobuf/bin",
         str(tmp_path / "go/bin"),
-        str(tmp_path / ".local/opt/go/go1.27.1/bin"),
+        str(tmp_path / ".local/opt/go/go1.27/bin"),
         str(tmp_path / ".cargo/bin"),
         str(tmp_path / ".local/opt/rust/cargo/bin"),
-        str(tmp_path / ".local/opt/llvm/llvm23.1.2/bin"),
+        str(tmp_path / ".local/opt/llvm/llvm23/bin"),
         str(tmp_path / ".local/share/pnpm/bin"),
         str(tmp_path / ".local/opt/uv/bin"),
         str(tmp_path / ".local/opt/conda/condabin"),
@@ -163,6 +167,38 @@ def test_app_profile_sets_tools_and_preserves_inherited_environment(tmp_path: Pa
     assert environment["CARGO_HOME"] == str(tmp_path / ".cargo")
     assert environment["RUSTUP_HOME"] == str(tmp_path / ".local/opt/rust/rustup")
     assert environment["LD_LIBRARY_PATH"] == "/usr/local/cuda/lib64"
+
+
+def test_app_profile_reload_preserves_project_toolchain_override(tmp_path: Path) -> None:
+    profile = _CONTAINER / "workspace/rootfs/etc/profile.d/app.sh"
+    result = subprocess.run(
+        [
+            "/bin/bash",
+            "-eu",
+            "-c",
+            '. "$1"; PATH="/project/venv/bin:$PATH"; before="$PATH"; '
+            '. "$1"; test "$PATH" = "$before"',
+            "profile-test",
+            str(profile),
+        ],
+        env={"HOME": str(tmp_path), "PATH": "/usr/bin:/bin"},
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr.decode()
+
+
+def test_gcc_defaults_use_declared_native_package_managers() -> None:
+    workspace = _CONTAINER / "workspace"
+    macos = _CONTAINER.parent / "macos"
+    dockerfile = (workspace / "Dockerfile").read_text()
+    assert "nix-env -iA nixpkgs.gcc16 -p /nix/var/nix/profiles/default" in dockerfile
+    assert "nixpkgs.gcc15" not in dockerfile
+    assert 'brew "gcc"' in (macos / "Brewfile").read_text()
+    installer = (macos / "maintenance/homebrew.sh").read_text()
+    for name in ("gcc", "g++"):
+        assert f"test -x /opt/homebrew/opt/gcc/bin/{name}-16" in installer
+        assert f'ln -sfn /opt/homebrew/opt/gcc/bin/{name}-16 "$HOME/.local/bin/{name}"' in installer
 
 
 def test_workspace_hosts_blackhole_runs_as_root_without_sudo() -> None:
@@ -290,7 +326,7 @@ def test_workspace_keeps_required_python_and_bundles_python_tools() -> None:
     dockerfile = (workspace / "Dockerfile").read_text()
     resource_dockerfile = (workspace / "resource.Dockerfile").read_text()
     profile = (workspace / "rootfs/etc/profile.d/app.sh").read_text()
-    assert "uv python install 3.14" in dockerfile
+    assert "uv python install --default 3.15.2" in dockerfile
     runtime_stage = dockerfile.split("FROM docker.io/$BASE_IMAGE AS workspace\n", 1)[1]
     assert not any(line.startswith("ENV ") for line in runtime_stage.splitlines())
     assert (
@@ -308,11 +344,11 @@ def test_workspace_keeps_required_python_and_bundles_python_tools() -> None:
         "git-filter-repo",
     }
     for tool in (*python_tools, "dool"):
-        assert f'uv tool install {tool} --python "$UV_PYTHON_BIN_DIR/python3.14"' in dockerfile
+        assert f'uv tool install {tool} --python "$UV_PYTHON_BIN_DIR/python3.15"' in dockerfile
     settings = json.loads(
         (workspace / "rootfs/home/x/.vscode-server/data/Machine/settings.json").read_text()
     )
-    assert settings["python.defaultInterpreterPath"] == "/home/x/.local/opt/uv/bin/python3.14"
+    assert settings["python.defaultInterpreterPath"] == "/home/x/.local/opt/uv/bin/python3.15"
 
     python_install = re.search(r"uv python install --no-bin ([^\n]+)", resource_dockerfile)
     assert python_install is not None
@@ -325,7 +361,7 @@ def test_workspace_keeps_required_python_and_bundles_python_tools() -> None:
     assert "uv tool install dool" in dockerfile
     for tool in (*python_tools, "dool"):
         assert f"uv tool install {tool}" not in resource_dockerfile
-    resource_tools = {"tensorboard": "3.12.15"}
+    resource_tools = {"tensorboard": "3.12.16"}
     for tool, python in resource_tools.items():
         minor = ".".join(python.split(".")[:2])
         assert f"uv tool install {tool}" in resource_dockerfile
@@ -339,14 +375,14 @@ def test_workspace_keeps_required_python_and_bundles_python_tools() -> None:
     installations = {path.name: path for path in python_root.iterdir() if not path.is_symlink()}
     aliases = {path.name: path.readlink() for path in python_root.iterdir() if path.is_symlink()}
     assert set(installations) == {
-        f"cpython-{version}-linux-x86_64-gnu" for version in python_versions if version != "3.14"
+        f"cpython-{version}-linux-x86_64-gnu" for version in python_versions if version != "3.15.2"
     }
     assert aliases == {
         f"cpython-{'.'.join(version.split('.')[:2])}-linux-x86_64-gnu": Path(
             f"cpython-{version}-linux-x86_64-gnu"
         )
         for version in python_versions
-        if version != "3.14"
+        if version != "3.15.2"
     }
     for installation in installations.values():
         assert installation.is_dir() and not installation.is_symlink()
@@ -680,11 +716,14 @@ def test_macos_toolchains_match_workspace_versions() -> None:
     assert go_version is not None
     assert f'version="{go_version.group(1)}"' in go
 
-    java_version = re.search(r"releases/download/jdk-(\d+)%2B(\d+)/", dockerfile)
+    java_version = re.search(r"releases/download/jdk-(\d+(?:\.\d+)*)%2B(\d+)/", dockerfile)
     assert java_version is not None
-    major, build = java_version.groups()
-    assert f'version="{major}+{build}"' in java
-    assert f"jdk-{major}%2B{build}/OpenJDK{major}U-jdk_aarch64_mac_hotspot_{major}_{build}" in java
+    version, build = java_version.groups()
+    major = version.split(".")[0]
+    assert f'version="{version}+{build}"' in java
+    assert (
+        f"jdk-{version}%2B{build}/OpenJDK{major}U-jdk_aarch64_mac_hotspot_{version}_{build}" in java
+    )
     assert f'destination="$HOME/.local/opt/java/openjdk{major}"' in java
 
     node_packages = set(re.findall(r"node-tool install ([\w-]+@\d+\.\d+\.\d+)", dockerfile))
@@ -788,14 +827,14 @@ def test_macos_python_configuration_uses_uv_managed_paths() -> None:
     settings = (
         macos / "rootfs/Users/x/Library/Application Support/Code/User/settings.json"
     ).read_text()
-    assert '"python.defaultInterpreterPath": "/Users/x/.local/opt/uv/bin/python3.14"' in settings
+    assert '"python.defaultInterpreterPath": "/Users/x/.local/opt/uv/bin/python3.15"' in settings
     uv_script = (macos / "maintenance/uv.sh").read_text()
     assert 'uv_root="$HOME/.local/opt/uv"' in uv_script
-    assert '"$HOME/.local/bin/uv" python install 3.14' in uv_script
+    assert '"$HOME/.local/bin/uv" python install --default 3.15.2' in uv_script
     for operation in ("java-tools.sh", "node-tools.sh"):
         script = (macos / "maintenance" / operation).read_text()
         assert "UV_PYTHON_INSTALL_DIR" not in script
-        assert "python3.14" not in script
+        assert "python3.15" not in script
 
 
 def test_python_cli_ownership_is_aligned_without_package_manager_duplicates() -> None:
@@ -805,7 +844,7 @@ def test_python_cli_ownership_is_aligned_without_package_manager_duplicates() ->
     installer = (macos / "maintenance/python-tools.sh").read_text()
     for tool in portable_tools:
         assert (
-            f'"$HOME/.local/bin/uv" tool install {tool} --python "$UV_PYTHON_BIN_DIR/python3.14"'
+            f'"$HOME/.local/bin/uv" tool install {tool} --python "$UV_PYTHON_BIN_DIR/python3.15"'
             in installer
         )
     assert installer.count(" tool install ") == len(portable_tools)
@@ -837,7 +876,7 @@ def test_go_installations_and_editor_tools_use_the_home_local_sdk() -> None:
         assert alternate_tools is not None
         tools = json.loads(alternate_tools.group(1))
         for executable in ("go", "gofmt"):
-            assert tools[executable] == f"{home}/.local/opt/go/go1.27.1/bin/{executable}"
+            assert tools[executable] == f"{home}/.local/opt/go/go1.27/bin/{executable}"
         assert "go-outline" not in tools
         profile = "/usr/local/profile/go" if home == "/home/x" else f"{home}/.local/profile/go"
         assert tools["gopls"] == f"{profile}/bin/gopls"
@@ -848,7 +887,7 @@ def test_go_installations_and_editor_tools_use_the_home_local_sdk() -> None:
         'destination="$HOME/.local/opt/go/go${version}"'
         in (macos / "maintenance/go.sh").read_text()
     )
-    assert '"$HOME/.local/opt/go/go1.27.1/bin"' in (macos / "rootfs/Users/x/.zshrc").read_text()
+    assert '"$HOME/.local/opt/go/go1.27/bin"' in (macos / "rootfs/Users/x/.zshrc").read_text()
     assert (
         "test ! -e /opt/resource/home/x/.local/opt/go"
         in (workspace / "resource.Dockerfile").read_text()
@@ -883,7 +922,7 @@ def test_rust_toolchain_installations_are_separate_from_user_cargo_data() -> Non
     ):
         home_source = "rootfs/home/x" if platform == workspace else "rootfs/Users/x"
         assert (
-            f"toolchains/stable-{host}/share/zsh/site-functions"
+            f"toolchains/1.100.0-{host}/share/zsh/site-functions"
             in (platform / home_source / ".zshrc").read_text()
         )
 
@@ -953,16 +992,24 @@ def test_llvm_sdk_and_formatter_paths_match_across_platforms() -> None:
         "COPY --from=stage_llvm /home/x/.local/opt/llvm "
         "/opt/resource/home/x/.local/opt/llvm" in resource
     )
-    assert "-C /home/x/.local/opt/llvm/llvm23.1.2" in resource
+    assert "-C /home/x/.local/opt/llvm/llvm23.1.6" in resource
     assert 'version="23.1.2"' in (macos / "maintenance/llvm.sh").read_text()
-    assert 'brew "clang-format"' not in (macos / "Brewfile").read_text()
-    for settings_path, home in (
-        (workspace / "rootfs/home/x/.vscode-server/data/Machine/settings.json", "/home/x"),
-        (macos / "rootfs/Users/x/Library/Application Support/Code/User/settings.json", "/Users/x"),
+    brewfile = (macos / "Brewfile").read_text()
+    assert 'brew "llvm"' not in brewfile
+    assert 'brew "clang-format"' not in brewfile
+    for settings_path, sdk in (
+        (
+            workspace / "rootfs/home/x/.vscode-server/data/Machine/settings.json",
+            "/home/x/.local/opt/llvm/llvm23",
+        ),
+        (
+            macos / "rootfs/Users/x/Library/Application Support/Code/User/settings.json",
+            "/Users/x/.local/opt/llvm/llvm23",
+        ),
     ):
         settings = settings_path.read_text()
         for field in ("C_Cpp.clang_format_path", "clang-format.executable"):
-            assert f'"{field}": "{home}/.local/opt/llvm/llvm23.1.2/bin/clang-format"' in settings
+            assert f'"{field}": "{sdk}/bin/clang-format"' in settings
 
 
 def test_workspace_binman_manifests_do_not_overlap() -> None:

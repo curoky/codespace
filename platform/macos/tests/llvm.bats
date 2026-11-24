@@ -47,9 +47,13 @@ teardown() {
     [ -x "$root/bin/$executable" ]
   done
   [ "$(<"$root/.codespace-version")" = 23.1.2 ]
+  [ "$(readlink "$HOME/.local/opt/llvm/llvm23")" = llvm23.1.2 ]
+  [ "$HOME/.local/opt/llvm/llvm23/bin/clang" -ef "$root/bin/clang" ]
+  rm "$HOME/.local/opt/llvm/llvm23"
   run "$MACOS_DIR/maintenance/llvm.sh"
   [ "$status" -eq 0 ]
   [ "$(wc -l <"$TEST_EVENTS" | tr -d ' ')" = 1 ]
+  [ "$HOME/.local/opt/llvm/llvm23/bin/clang" -ef "$root/bin/clang" ]
   [ -f "$HOME/.local/opt/llvm/custom/keep" ]
   [ ! -e "${root}.installing" ]
   [ -z "$(find "$TMPDIR" -mindepth 1 -print -quit)" ]

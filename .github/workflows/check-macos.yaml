@@ -50,7 +50,7 @@ jobs:
           brew install bats-core shfmt
           casks="$(brew bundle list --file platform/macos/Brewfile --cask)"
           HOMEBREW_BUNDLE_CASK_SKIP="$casks" \
-            brew bundle install --file platform/macos/Brewfile --no-upgrade
+            brew bundle install --file platform/macos/Brewfile
 
       - name: Validate native contracts
         shell: bash
@@ -78,6 +78,9 @@ jobs:
           set -euo pipefail
           sudo mkdir -p "$CODESPACE_HOME"
           sudo chown "$(id -u):$(id -g)" "$CODESPACE_HOME"
+          install -d "$CODESPACE_HOME/.local/bin"
+          ln -sfn /opt/homebrew/opt/gcc/bin/gcc-16 "$CODESPACE_HOME/.local/bin/gcc"
+          ln -sfn /opt/homebrew/opt/gcc/bin/g++-16 "$CODESPACE_HOME/.local/bin/g++"
 
       - name: Install standalone tools
         if: github.event_name != 'pull_request'
@@ -127,6 +130,22 @@ jobs:
         if: github.event_name != 'pull_request'
         run: HOME="$CODESPACE_HOME" platform/macos/maintenance/atuin-daemon.sh
 
+      - name: Verify native shell defaults
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          HOME="$CODESPACE_HOME" zsh -ic '
+            [[ "$(python --version)" == "Python 3.15.2" ]] &&
+            [[ "$(python3 --version)" == "Python 3.15.2" ]] &&
+            [[ "$(node --version)" == v26.13.1 ]] &&
+            [[ "$(go env GOVERSION)" == go1.27.4 ]] &&
+            [[ "$(rustup show active-toolchain)" == 1.100.0-aarch64-apple-darwin* ]] &&
+            [[ "$(java -XshowSettings:properties -version 2>&1)" == *"java.version = 27.0.1.1"* ]] &&
+            [[ "$(gcc -dumpfullversion)" == 16.2.0 ]] &&
+            [[ "$(llvm-config --version)" == 23.1.2 ]]
+          '
+
       - name: Verify development environment
         if: github.event_name != 'pull_request'
         shell: bash
@@ -134,16 +153,16 @@ jobs:
           set -euo pipefail
           export HOME="$CODESPACE_HOME"
           export JAVA_HOME="$HOME/.local/opt/java/openjdk27"
-          export PATH="$HOME/.local/bin:$HOME/.local/opt/uv/bin:$HOME/.local/opt/node/tools/bin:$HOME/.local/opt/node:$HOME/.local/opt/node/nodejs26/bin:$HOME/.local/opt/go/go1.27.1/bin:$HOME/.local/opt/java:$HOME/.local/opt/java/tools/bin:$JAVA_HOME/bin:$PATH"
+          export PATH="$HOME/.local/bin:$HOME/.local/opt/uv/bin:$HOME/.local/opt/node/tools/bin:$HOME/.local/opt/node:$HOME/.local/opt/node/nodejs26/bin:$HOME/.local/opt/go/go1.27/bin:$HOME/.local/opt/java:$HOME/.local/opt/java/tools/bin:$JAVA_HOME/bin:$PATH"
 
           test -x "$HOME/.local/bin/uv"
           test -x "$HOME/.local/bin/pnpm"
           test -x "$HOME/.local/bin/oras"
-          test -x "$HOME/.local/opt/uv/bin/python3.14"
+          test -x "$HOME/.local/opt/uv/bin/python3.15"
           test -x "$HOME/.local/opt/node/nodejs24/bin/node"
           test -x "$HOME/.local/opt/node/nodejs26/bin/node"
           test -x "$HOME/.local/opt/node/tools/bin/prettier"
-          test -x "$HOME/.local/opt/go/go1.27.1/bin/go"
+          test -x "$HOME/.local/opt/go/go1.27/bin/go"
           test -x "$JAVA_HOME/bin/java"
           test -x "$JAVA_HOME/bin/javac"
           test ! -e "$HOME/.local/opt/java/openjdk8"
@@ -152,7 +171,9 @@ jobs:
           uv --version
           pnpm --version
           oras version
-          python3.14 --version
+          python3.15 --version
+          test "$(python --version)" = 'Python 3.15.2'
+          test "$(python3 --version)" = 'Python 3.15.2'
           node --version
           "$HOME/.local/opt/node/nodejs24/bin/node" --version
           node-tool --help
@@ -165,14 +186,16 @@ jobs:
           java-tool --help
 
           test "$(command -v uv)" = "$HOME/.local/bin/uv"
-          test "$(command -v python3.14)" = "$HOME/.local/opt/uv/bin/python3.14"
+          test "$(command -v python3.15)" = "$HOME/.local/opt/uv/bin/python3.15"
+          test "$(command -v python)" = "$HOME/.local/opt/uv/bin/python"
+          test "$(command -v python3)" = "$HOME/.local/opt/uv/bin/python3"
           test "$(command -v pnpm)" = "$HOME/.local/bin/pnpm"
           test "$(command -v node)" = "$HOME/.local/opt/node/nodejs26/bin/node"
           test "$(command -v node-tool)" = "$HOME/.local/opt/node/node-tool"
           test "$(command -v prettier)" = "$HOME/.local/opt/node/tools/bin/prettier"
           test "$(command -v defuddle)" = "$HOME/.local/opt/node/tools/bin/defuddle"
           test "$(command -v markdownlint-cli2)" = "$HOME/.local/opt/node/tools/bin/markdownlint-cli2"
-          test "$(command -v go)" = "$HOME/.local/opt/go/go1.27.1/bin/go"
+          test "$(command -v go)" = "$HOME/.local/opt/go/go1.27/bin/go"
           test "$(command -v java)" = "$JAVA_HOME/bin/java"
           test "$(command -v java-tool)" = "$HOME/.local/opt/java/java-tool"
 
@@ -187,10 +210,11 @@ jobs:
         run: |
           set -euo pipefail
           export HOME="$CODESPACE_HOME"
-          export PATH="$HOME/.local/opt/go/go1.27.1/bin:$PATH"
-          test "$(go env GOROOT)" = "$HOME/.local/opt/go/go1.27.1"
+          export PATH="$HOME/.local/opt/go/go1.27/bin:$PATH"
+          test "$(go env GOROOT)" -ef "$HOME/.local/opt/go/go1.27"
+          test "$(go env GOVERSION)" = go1.27.4
           test "$(go env GOPATH)" = "$HOME/go"
-          "$HOME/.local/opt/uv/bin/python3.14" - <<'PY'
+          "$HOME/.local/opt/uv/bin/python3.15" - <<'PY'
           import json
           import os
           import re
@@ -211,7 +235,7 @@ jobs:
           GOPROXY=off go run .
           GOPROXY=off go install .
           test "$("$HOME/go/bin/codespace-smoke")" = codespace
-          test ! -e "$HOME/.local/opt/go/go1.27.1/bin/codespace-smoke"
+          test ! -e "$HOME/.local/opt/go/go1.27/bin/codespace-smoke"
 
       - name: Verify native managed Python and isolated tools
         if: github.event_name != 'pull_request'
@@ -226,9 +250,9 @@ jobs:
           export PATH="$HOME/.local/bin:$UV_PYTHON_BIN_DIR:$PATH"
           work_dir="$(mktemp -d)"
           trap 'uv tool uninstall cowsay; rm -rf "$work_dir"' EXIT
-          uv venv --managed-python --no-python-downloads --python 3.14 "$work_dir/venv"
+          uv venv --managed-python --no-python-downloads --python 3.15.2 "$work_dir/venv"
           "$work_dir/venv/bin/python" -c 'import ssl, ctypes, sqlite3; print(ssl.OPENSSL_VERSION)'
-          uv tool install cowsay --python "$UV_PYTHON_BIN_DIR/python3.14"
+          uv tool install cowsay --python "$UV_PYTHON_BIN_DIR/python3.15"
           "$UV_TOOL_BIN_DIR/cowsay" -t codespace >/dev/null
           test -f "$UV_TOOL_DIR/cowsay/uv-receipt.toml"
 
@@ -247,7 +271,7 @@ jobs:
           git-filter-repo --version
           test ! -e "$HOME/.local/opt/uv/bin/dool"
           test ! -e "$HOME/.local/opt/uv/bin/tensorboard"
-          python3.14 - <<'PY'
+          python3.15 - <<'PY'
           import subprocess
           import tomllib
           from pathlib import Path
@@ -263,7 +287,7 @@ jobs:
               subprocess.run(
                   [str(environment / "bin/python"), "-c",
                    "import sys; from pathlib import Path; "
-                   "assert sys.version_info[:2] == (3, 14); "
+                   "assert sys.version_info[:3] == (3, 15, 2); "
                    f"assert Path(sys.base_prefix).is_relative_to({str(root / 'python')!r})"],
                   check=True,
               )
@@ -279,7 +303,8 @@ jobs:
           export RUSTUP_HOME="$HOME/.local/opt/rust/rustup"
           export PATH="$HOME/.local/opt/rust/cargo/bin:$PATH"
           test "$(command -v rustc)" = "$HOME/.local/opt/rust/cargo/bin/rustc"
-          test "$(rustc --print sysroot)" = "$RUSTUP_HOME/toolchains/stable-aarch64-apple-darwin"
+          rustc --version | grep -F 'rustc 1.100.0 '
+          test "$(rustc --print sysroot)" = "$RUSTUP_HOME/toolchains/1.100.0-aarch64-apple-darwin"
           rust-analyzer --version
           components="$(rustup component list --installed)"
           for component in cargo clippy llvm-tools rust-analyzer rust-src rust-std rustc rustfmt; do
@@ -299,14 +324,18 @@ jobs:
           "$CARGO_HOME/bin/codespace_smoke"
           cargo uninstall codespace_smoke
 
-      - name: Verify native LLVM SDK
+      - name: Verify native LLVM and GNU GCC
         if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
           export HOME="$CODESPACE_HOME"
-          export PATH="$HOME/.local/opt/llvm/llvm23.1.2/bin:$PATH"
-          test "$(llvm-config --prefix)" = "$HOME/.local/opt/llvm/llvm23.1.2"
+          export PATH="$HOME/.local/bin:$HOME/.local/opt/llvm/llvm23/bin:$PATH"
+          test "$(llvm-config --prefix)" -ef "$HOME/.local/opt/llvm/llvm23"
+          test "$(llvm-config --version)" = 23.1.2
+          test "$(gcc -dumpfullversion)" = 16.2.0
+          test "$(command -v gcc)" = "$HOME/.local/bin/gcc"
+          test "$(command -v clang)" = "$HOME/.local/opt/llvm/llvm23/bin/clang"
           clang --version
           clang-format --version
           clangd --version
@@ -315,6 +344,14 @@ jobs:
           printf 'int main(void) { return 0; }\n' >"$work_dir/main.c"
           clang -isysroot "$(xcrun --sdk macosx --show-sdk-path)" "$work_dir/main.c" -o "$work_dir/main"
           "$work_dir/main"
+          gcc "$work_dir/main.c" -o "$work_dir/main-gcc"
+          "$work_dir/main-gcc"
+          printf 'int main() { return 0; }\n' >"$work_dir/main.cpp"
+          g++ "$work_dir/main.cpp" -o "$work_dir/main-g++"
+          "$work_dir/main-g++"
+          clang++ -isysroot "$(xcrun --sdk macosx --show-sdk-path)" \
+            "$work_dir/main.cpp" -o "$work_dir/main-clang++"
+          "$work_dir/main-clang++"
           clang-format --dry-run --Werror "$work_dir/main.c"
 
       - name: Verify native Node tool binding and relocation

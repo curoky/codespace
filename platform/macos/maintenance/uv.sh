@@ -10,4 +10,4 @@ env \
   UV_TOOL_BIN_DIR="$uv_root/bin" \
   UV_PYTHON_INSTALL_DIR="$uv_root/python" \
   UV_PYTHON_BIN_DIR="$uv_root/bin" \
-  "$HOME/.local/bin/uv" python install 3.14
+  "$HOME/.local/bin/uv" python install --default 3.15.2

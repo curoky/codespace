@@ -12,6 +12,6 @@ if [[ ! -x "$CARGO_HOME/bin/rustup" ]]; then
   bash "$work_dir/rustup-init.sh" -y --no-modify-path --default-toolchain none
 fi
 
-"$CARGO_HOME/bin/rustup" toolchain install stable --profile minimal
-"$CARGO_HOME/bin/rustup" component add clippy rustfmt rust-src rust-analyzer llvm-tools --toolchain stable
-"$CARGO_HOME/bin/rustup" default stable
+"$CARGO_HOME/bin/rustup" toolchain install 1.100.0 --profile minimal
+"$CARGO_HOME/bin/rustup" component add clippy rustfmt rust-src rust-analyzer llvm-tools --toolchain 1.100.0
+"$CARGO_HOME/bin/rustup" default 1.100.0

@@ -45,11 +45,11 @@ path=(
   "$HOME/.local/opt/node"
   "$HOME/.local/opt/node/nodejs26/bin"
   "$HOME/go/bin"
-  "$HOME/.local/opt/go/go1.27.1/bin"
+  "$HOME/.local/opt/go/go1.27/bin"
   "$HOME/.local/profile/go/bin"
   "$CARGO_HOME/bin"
   "$HOME/.local/opt/rust/cargo/bin"
-  "$HOME/.local/opt/llvm/llvm23.1.2/bin"
+  "$HOME/.local/opt/llvm/llvm23/bin"
   "$HOME/.local/opt/java"
   "$HOME/.local/opt/java/tools/bin"
   "$JAVA_HOME/bin"
@@ -59,7 +59,7 @@ path=(
 typeset -U fpath FPATH
 fpath=(
   "$HOME/.local/share/zsh/site-functions"
-  "$RUSTUP_HOME/toolchains/stable-aarch64-apple-darwin/share/zsh/site-functions"
+  "$RUSTUP_HOME/toolchains/1.100.0-aarch64-apple-darwin/share/zsh/site-functions"
   "$ZSH/custom/plugins/zsh-completions/src"
   "${fpath[@]}"
 )

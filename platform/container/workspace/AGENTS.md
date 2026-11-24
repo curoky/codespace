@@ -40,12 +40,19 @@ Dockerfile、manifest、脚本、类型和测试为准，不在文档中复述�
   chown、迁移或清除已有数据。`home-init` 当前会递归调整指定 IDE 目录的归属，不得把这个
   范围扩大到 Workspace 或 Podman 数据。
 - Shell 遵循发行版原生启动规则；应用环境集中在 `rootfs/etc/profile.d/app.sh`，重复加载不
-  改变已有 PATH 优先级。开发环境通过 filesystem 提供，不依赖主运行 stage 的 OCI ENV；
+  改变已有 PATH 优先级。首次加载时受管工具优先于系统工具；项目覆盖在加载后设置。
+  默认语言工具链使用最新稳定版，archive 精确锁定并校验；Rust SDK 不使用浮动 channel。
+  GCC 由 Nix 提供，LLVM SDK 由 Resource 提供；两者不改变 CUDA/Framework 的独立兼容组合。
+  Go 与 LLVM 保留精确版本目录，分别以 minor 与 major 的相对短链接提供 Shell/editor 入口；
+  升级 patch 时更新安装声明和链接，不修改调用方路径。
+  开发环境通过 filesystem 提供，不依赖主运行 stage 的 OCI ENV；
   非登录 Bash 继承环境或显式加载 profile。项目覆盖在加载后进行，不用 wrapper 或
   `BASH_ENV` 改写启动规则。
 - 默认 Node.js runtime、node-tool 的默认 binding、内置 Node CLI 的 runtime binding 与
   editor npm 路径保持一致；修改默认版本时同步调整 profile、installer 与 editor config。
-- uv 管理用户级 Python 与隔离 CLI，缓存和项目 virtualenv 独立。Resource Python 的完整
+- uv 管理用户级 Python 与隔离 CLI，并通过原生默认选项提供 `python`、`python3`；缓存和
+  项目 virtualenv 独立。主 image 的 Python CLI 显式绑定默认 runtime，Resource 中的
+  TensorBoard 保留独立 interpreter binding。Resource Python 的完整
   payload 在固定挂载路径安装；主 image 通过 runtime 子目录链接提供 uv discovery，不能
   移动 virtualenv 或改写其 interpreter binding。
 - 可移植 Python CLI 的默认安装与 macOS 对齐；Linux-only CLI 由 Workspace 单独安装。
@@ -68,6 +75,9 @@ Dockerfile、manifest、脚本、类型和测试为准，不在文档中复述�
 
 ## Known Pitfalls
 
+- 官方 LLVM archive 不包含 Linux sysroot；C/C++ 项目使用 Clang 时需显式配置 Nix GCC
+  提供的系统 headers、启动对象与 runtime/linker 路径。不能只指定 `--gcc-install-dir`
+  或只验证 `clang --version`，也不通过 wrapper 或重复安装旧系统 compiler 隐藏此约束。
 - 系统认证依赖发行版的 setuid `su` 与静态 sudo 可校验的 SHA-512 password hash；替换
   standalone package 或调整密码初始化时，不能丢失这两个兼容条件。
 - 归档的 Ollama service 未预装 executable；恢复并启用前需先安装到 service script 指定路径。

@@ -8,6 +8,7 @@ marker="$destination/.codespace-version"
 
 if [[ -x "$destination/bin/clang" && -x "$destination/bin/clang-format" && -f "$marker" ]] &&
   [[ "$(<"$marker")" == "$version" ]]; then
+  ln -sfn "llvm${version}" "${destination%/*}/llvm${version%%.*}"
   exit 0
 fi
 
@@ -33,3 +34,4 @@ done
 printf '%s\n' "$version" >"${destination}.installing/.codespace-version"
 rm -rf "$destination"
 mv "${destination}.installing" "$destination"
+ln -sfn "llvm${version}" "${destination%/*}/llvm${version%%.*}"

@@ -8,7 +8,8 @@ home source、LaunchAgent、默认应用和控制面 SSH wiring。`.agents/skill
 
 - `Brewfile` 是完整 Homebrew state；`maintenance/homebrew.sh` 负责 Homebrew bootstrap 和
   `brew bundle --force-cleanup`，manifest 外 formula/cask 会被删除。新增或移除软件只改
-  manifest，不增加零散 brew 命令。
+  manifest，不增加零散 brew 命令。GNU GCC 归 Homebrew 管理；其无后缀 executable 由该
+  操作链接到用户 bin，不替换 Apple 系统 compiler。
 - `binman.yaml` 声明安装到 `~/.local` 的 standalone tools，与 Workspace 的 `/usr/local`
   布局对应；`maintenance/binman.sh` 在线 bootstrap binman、按 manifest 安装并建立 alias。
 - `maintenance/` 中每个脚本拥有一个可独立收敛的 host 操作。runtime 与 CLI 分别维护，
@@ -37,11 +38,17 @@ home source、LaunchAgent、默认应用和控制面 SSH wiring。`.agents/skill
 - JDK 从 Temurin archive 提取 `Contents/Home`，采用 Linux 的 runtime 根布局，不注册
   系统 JDK；Shell 与 editor 使用同一 runtime。
 - Python runtime 与隔离 CLI 由 uv 管理，使用 `UV_*_DIR` 指定用户级软件目录；缓存与项目
-  virtualenv 保持原生位置，不手工改写 uv metadata 或 interpreter binding。
+  virtualenv 保持原生位置，不手工改写 uv metadata 或 interpreter binding。默认 runtime
+  使用 uv 原生默认选项提供 `python`、`python3`；CLI 显式绑定同一 interpreter。
 - `maintenance/python-tools.sh` 的默认 Python CLI 与 Workspace 对齐，不通过 Homebrew 或
   binman 重复安装。
 - rustup 与 SDK 安装根独立于用户的 `CARGO_HOME`；安装阶段的 Cargo 根只提供工具链入口，
-  运行期 `~/.cargo` 保留用户 CLI 与缓存。
+  运行期 `~/.cargo` 保留用户 CLI 与缓存。默认语言工具链采用最新稳定版；archive 精确
+  锁定并校验，Rust SDK 不使用浮动 channel。项目覆盖在加载 Shell 环境后设置。
+- LLVM SDK 使用官方 macOS arm64 archive，安装到用户级 opt；上游最新 release 未提供
+  对应 artifact 时保留已锁定版本，不切换到 Homebrew 或自行构建作为 fallback。
+- Go 与 LLVM 保留精确版本目录，分别由 minor 与 major 的相对短链接提供 Shell/editor
+  入口；maintenance 操作在复用安装时也维护链接，不依赖额外迁移步骤。
 - home link source 默认为 `0600`；可执行 source 必须显式声明 `0755`。只有目标需要独立
   inode、权限或运行期修改时才 copy。应用配置只使用该字段原生支持的路径语法，不增加
   安装时模板替换。

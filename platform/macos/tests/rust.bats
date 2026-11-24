@@ -14,7 +14,7 @@ setup() {
 set -euo pipefail
 printf 'rustup %s\ncargo %s\nrustup-home %s\n' \
   "$*" "$CARGO_HOME" "$RUSTUP_HOME" >>"$TEST_EVENTS"
-mkdir -p "$RUSTUP_HOME/toolchains/stable"
+mkdir -p "$RUSTUP_HOME/toolchains/1.100.0"
 if [[ "$1 $2" == 'component add' && "${TEST_COMPONENT_FAILURE:-}" == 1 ]]; then
   exit 1
 fi
@@ -57,11 +57,11 @@ teardown() {
   grep -Fqx 'bootstrap -y --no-modify-path --default-toolchain none' "$TEST_EVENTS"
   grep -Fqx "cargo $HOME/.local/opt/rust/cargo" "$TEST_EVENTS"
   grep -Fqx "rustup-home $HOME/.local/opt/rust/rustup" "$TEST_EVENTS"
-  grep -Fqx 'rustup toolchain install stable --profile minimal' "$TEST_EVENTS"
-  grep -Fqx 'rustup component add clippy rustfmt rust-src rust-analyzer llvm-tools --toolchain stable' "$TEST_EVENTS"
+  grep -Fqx 'rustup toolchain install 1.100.0 --profile minimal' "$TEST_EVENTS"
+  grep -Fqx 'rustup component add clippy rustfmt rust-src rust-analyzer llvm-tools --toolchain 1.100.0' "$TEST_EVENTS"
   run grep -F rust-docs "$TEST_EVENTS"
   [ "$status" -eq 1 ]
-  grep -Fqx 'rustup default stable' "$TEST_EVENTS"
+  grep -Fqx 'rustup default 1.100.0' "$TEST_EVENTS"
   [ "$(<"$HOME/.cargo/registry/keep")" = cache ]
   [ "$(<"$HOME/.zshrc")" = 'shell config' ]
   [ ! -e "$TEST_ROOT/caller-cargo" ]
@@ -78,7 +78,7 @@ teardown() {
   run "$MACOS_DIR/maintenance/rust.sh"
   [ "$status" -eq 0 ]
   [ "$(grep -Fc 'curl -fsSL' "$TEST_EVENTS")" = 1 ]
-  [ "$(grep -Fc 'rustup toolchain install stable' "$TEST_EVENTS")" = 2 ]
+  [ "$(grep -Fc 'rustup toolchain install 1.100.0' "$TEST_EVENTS")" = 2 ]
   [ -f "$HOME/.local/opt/rust/rustup/toolchains/custom/keep" ]
   [ -f "$HOME/.local/opt/custom-runtime/keep" ]
 }
@@ -97,6 +97,6 @@ teardown() {
   export TEST_COMPONENT_FAILURE
   run "$MACOS_DIR/maintenance/rust.sh"
   [ "$status" -eq 1 ]
-  run grep -F 'rustup default stable' "$TEST_EVENTS"
+  run grep -F 'rustup default 1.100.0' "$TEST_EVENTS"
   [ "$status" -eq 1 ]
 }
