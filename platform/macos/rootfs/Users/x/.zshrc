@@ -23,10 +23,10 @@ export GOPROXY="https://goproxy.cn,direct"
 export HOMEBREW_NO_ANALYTICS=1
 export HOMEBREW_NO_AUTO_UPDATE=1
 export UV_SYSTEM_CERTS=true
-export UV_TOOL_DIR="$HOME/.local/share/uv/tools"
-export UV_TOOL_BIN_DIR="$HOME/.local/share/uv/bin"
-export UV_PYTHON_INSTALL_DIR="$HOME/.local/share/uv/python"
-export UV_PYTHON_BIN_DIR="$HOME/.local/share/uv/bin"
+export UV_TOOL_DIR="$HOME/.local/opt/uv/tools"
+export UV_TOOL_BIN_DIR="$HOME/.local/opt/uv/bin"
+export UV_PYTHON_INSTALL_DIR="$HOME/.local/opt/uv/python"
+export UV_PYTHON_BIN_DIR="$HOME/.local/opt/uv/bin"
 export JAVA_HOME="$HOME/.local/opt/java/openjdk27"
 
 eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -38,7 +38,7 @@ fi
 typeset -U path PATH
 path=(
   "$HOME/.local/bin"
-  "$HOME/.local/share/uv/bin"
+  "$HOME/.local/opt/uv/bin"
   "$HOME/.local/opt/node/tools/bin"
   "$HOME/.local/opt/node/node-tool"
   "$HOME/.local/opt/node/nodejs26/bin"

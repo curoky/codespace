@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-uv_root="$HOME/.local/share/uv"
+uv_root="$HOME/.local/opt/uv"
+test -x "$HOME/.local/bin/uv"
 install -d "$uv_root"
 
 env \

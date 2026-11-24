@@ -25,10 +25,10 @@ RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates curl \
   && curl -fsSL -o /tmp/miniconda.sh \
     "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-$(uname -m).sh" \
-  && bash /tmp/miniconda.sh -b -u -p /opt/conda \
-  && /opt/conda/bin/conda clean -afy
+  && bash /tmp/miniconda.sh -b -u -p /home/x/.local/opt/conda \
+  && /home/x/.local/opt/conda/bin/conda clean -afy
 
-COPY platform/container/workspace/scripts/install-conda-environment.sh /opt/conda/condabin/install-conda-environment
+COPY platform/container/workspace/scripts/install-conda-environment.sh /home/x/.local/opt/conda/condabin/install-conda-environment
 
 # ----------------------------------- Rust -----------------------------------
 FROM docker.io/debian:stable-slim AS stage_rust
@@ -65,25 +65,25 @@ RUN mkdir -p /home/x/.local/opt/java/openjdk8 /home/x/.local/opt/java/openjdk27 
 # ---------------------------------- Python ----------------------------------
 FROM docker.io/debian:stable-slim AS stage_python
 COPY --from=stage_sb /usr/local/store/uv/bin/uv /usr/local/bin/uv
-ENV UV_TOOL_DIR=/opt/uv/tools \
-  UV_TOOL_BIN_DIR=/opt/uv/bin \
-  UV_PYTHON_INSTALL_DIR=/opt/uv/python \
-  UV_PYTHON_BIN_DIR=/opt/uv/bin
+ENV UV_TOOL_DIR=/home/x/.local/opt/uv/tools \
+  UV_TOOL_BIN_DIR=/home/x/.local/opt/uv/bin \
+  UV_PYTHON_INSTALL_DIR=/home/x/.local/opt/uv/python \
+  UV_PYTHON_BIN_DIR=/home/x/.local/opt/uv/bin
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates \
   && uv python install 3.14 \
   && uv tool install copyparty \
-    --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
+    --python /home/x/.local/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
   && uv tool install licenseheaders \
-    --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
+    --python /home/x/.local/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
   && uv tool install netron \
-    --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
+    --python /home/x/.local/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
   && uv tool install mitmproxy \
-    --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
+    --python /home/x/.local/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
   && uv tool install dool \
-    --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
+    --python /home/x/.local/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
   && uv tool install git-filter-repo \
-    --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14
+    --python /home/x/.local/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14
 
 # ---------------------------------- Node.js ---------------------------------
 FROM stage_python AS stage_node
@@ -103,7 +103,7 @@ RUN mkdir -p /home/x/.local/opt/node/nodejs24 /home/x/.local/opt/node/nodejs26/l
 
 COPY --from=stage_sb /usr/local/store/pnpm/bin/pnpm /usr/local/bin/pnpm
 COPY platform/container/workspace/tools/node-tool/ /tmp/node-tool/
-RUN UV_PYTHON_INSTALL_DIR=/opt/uv/python /tmp/node-tool/node-tool init \
+RUN UV_PYTHON_INSTALL_DIR=/home/x/.local/opt/uv/python /tmp/node-tool/node-tool init \
   && /tmp/node-tool/node-tool install defuddle@0.19.4 \
     --node /home/x/.local/opt/node/nodejs26 --pnpm /usr/local/bin/pnpm --root /home/x/.local/opt/node/tools \
   && /tmp/node-tool/node-tool install markdownlint-cli2@0.23.3 \
@@ -168,7 +168,7 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
 FROM docker.io/$BASE_IMAGE AS workspace
 
 COPY platform/container/workspace/rootfs/ /
-RUN chown -hR 5230:5230 /home/x /opt/uv
+RUN chown -hR 5230:5230 /home/x
 
 COPY --link --from=stage_sb /usr/local /usr/local
 COPY --chown=5230:5230 platform/container/workspace/tools/node-tool/ /home/x/.local/opt/node/node-tool/
@@ -180,8 +180,8 @@ COPY --link --chown=5230:5230 --from=stage_nix /nix /nix
 COPY --link --chown=5230:5230 --from=stage_nix /home/x/.nix-defexpr /home/x/.nix-defexpr
 COPY --link --chown=5230:5230 --from=stage_nix /home/x/.nix-channels /home/x/.nix-channels
 COPY --link --chown=5230:5230 --from=stage_nix /home/x/.local/state/nix /home/x/.local/state/nix
-COPY --link --chown=5230:5230 --from=stage_python /opt/uv /opt/uv
-COPY --link --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
+COPY --link --chown=5230:5230 --from=stage_python /home/x/.local/opt/uv /home/x/.local/opt/uv
+COPY --link --chown=5230:5230 --from=stage_conda /home/x/.local/opt/conda /home/x/.local/opt/conda
 COPY --link --chown=5230:5230 --from=stage_node /home/x/.local/opt/node /home/x/.local/opt/node
 COPY --link --chown=5230:5230 --from=stage_go /opt/go /opt/go
 COPY --link --chown=5230:5230 --from=stage_rust /opt/rust /opt/rust
@@ -193,10 +193,10 @@ RUN --mount=type=bind,source=platform/container/workspace/scripts/install-s6.sh,
 
 USER x
 COPY --chown=5230:5230 platform/container/workspace/agent/ /opt/codespace-agent/
-RUN UV_PYTHON_INSTALL_DIR=/opt/uv/python /home/x/.local/opt/java/java-tool/java-tool init \
-  && UV_PYTHON_INSTALL_DIR=/opt/uv/python /home/x/.local/opt/node/node-tool/node-tool init \
+RUN UV_PYTHON_INSTALL_DIR=/home/x/.local/opt/uv/python /home/x/.local/opt/java/java-tool/java-tool init \
+  && UV_PYTHON_INSTALL_DIR=/home/x/.local/opt/uv/python /home/x/.local/opt/node/node-tool/node-tool init \
   && UV_LINK_MODE=copy /usr/local/bin/uv sync --project /opt/codespace-agent --locked --no-dev \
-    --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
+    --python /home/x/.local/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \
   && git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-playbook \
   && HOME=/home/x bash /tmp/agent-playbook/install.sh \
   && rm -rf /tmp/agent-playbook

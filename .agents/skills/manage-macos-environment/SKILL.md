@@ -71,7 +71,7 @@ launcher，再运行 `node-tools.sh` 重装；仅改变 Shell PATH 不会更新�
 ```bash
 test -x "$HOME/.local/bin/uv"
 test -x "$HOME/.local/bin/pnpm"
-test -x "$HOME/.local/share/uv/bin/python3.14"
+test -x "$HOME/.local/opt/uv/bin/python3.14"
 test -x "$HOME/.local/opt/node/nodejs24/bin/node"
 test -x "$HOME/.local/opt/node/nodejs26/bin/node"
 test -x "$HOME/.local/opt/node/tools/bin/prettier"

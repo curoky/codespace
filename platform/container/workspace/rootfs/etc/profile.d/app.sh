@@ -21,17 +21,17 @@ codespace_add_path "$CARGO_HOME/bin"
 codespace_add_path /opt/rust/cargo/bin
 
 # python
-export UV_TOOL_DIR=/opt/uv/tools
-export UV_TOOL_BIN_DIR=/opt/uv/bin
-export UV_PYTHON_INSTALL_DIR=/opt/uv/python
-export UV_PYTHON_BIN_DIR=/opt/uv/bin
+export UV_TOOL_DIR="$HOME/.local/opt/uv/tools"
+export UV_TOOL_BIN_DIR="$HOME/.local/opt/uv/bin"
+export UV_PYTHON_INSTALL_DIR="$HOME/.local/opt/uv/python"
+export UV_PYTHON_BIN_DIR="$HOME/.local/opt/uv/bin"
 codespace_add_path "$UV_TOOL_BIN_DIR"
 codespace_add_path "$UV_PYTHON_BIN_DIR"
-codespace_add_path /opt/resource/opt/uv/bin
+codespace_add_path /opt/resource/home/x/.local/opt/uv/bin
 
 # conda
 export CONDA_PLUGINS_AUTO_ACCEPT_TOS=yes
-codespace_add_path /opt/conda/condabin
+codespace_add_path "$HOME/.local/opt/conda/condabin"
 
 # resource
 codespace_add_path /opt/resource/usr/local/bin

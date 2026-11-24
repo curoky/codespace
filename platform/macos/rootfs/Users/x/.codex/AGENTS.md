@@ -2,7 +2,7 @@
 
 - 工具环境缺失时加载 `~/.zshrc`；项目工具链覆盖在加载后设置。
 - Python 环境与项目依赖使用 uv，按需用 `--python` 选择
-  `~/.local/share/uv/python` 中的版本。
+  `~/.local/opt/uv/python` 中的版本；全局 Python CLI 使用 `uv tool`，不使用全局 pip。
 - Node.js 优先使用 26；按项目需求从 `~/.local/opt/node/nodejs*` 选择版本，将其 `bin`
   放到 PATH 首位。
 - Node.js 全局 CLI 用 `node-tool` 安装到 `~/.local/opt/node/tools`，不使用全局 npm 或 pnpm 安装。

@@ -2,6 +2,7 @@
 
 # ruff: noqa: S104, S603, S607
 
+import json
 import os
 import re
 import subprocess
@@ -143,6 +144,8 @@ def test_app_profile_sets_tools_and_preserves_inherited_environment(tmp_path: Pa
         "/usr/local/profile/protobuf/bin",
         str(tmp_path / "go/bin"),
         str(tmp_path / ".local/share/pnpm/bin"),
+        str(tmp_path / ".local/opt/uv/bin"),
+        str(tmp_path / ".local/opt/conda/condabin"),
         str(tmp_path / ".local/opt/java/java-tool"),
         str(tmp_path / ".local/opt/java/openjdk27/bin"),
         str(tmp_path / ".local/opt/node/node-tool"),
@@ -150,6 +153,10 @@ def test_app_profile_sets_tools_and_preserves_inherited_environment(tmp_path: Pa
         str(tmp_path / ".local/opt/node/nodejs26/bin"),
     }.issubset(entries)
     assert environment["JAVA_HOME"] == str(tmp_path / ".local/opt/java/openjdk27")
+    assert environment["UV_TOOL_DIR"] == str(tmp_path / ".local/opt/uv/tools")
+    assert environment["UV_TOOL_BIN_DIR"] == str(tmp_path / ".local/opt/uv/bin")
+    assert environment["UV_PYTHON_INSTALL_DIR"] == str(tmp_path / ".local/opt/uv/python")
+    assert environment["UV_PYTHON_BIN_DIR"] == str(tmp_path / ".local/opt/uv/bin")
     assert environment["CARGO_HOME"] == str(tmp_path / ".cargo")
     assert environment["RUSTUP_HOME"] == "/opt/rust/rustup"
     assert environment["LD_LIBRARY_PATH"] == "/usr/local/cuda/lib64"
@@ -290,11 +297,21 @@ def test_workspace_keeps_required_python_and_bundles_python_tools() -> None:
     assert "uv python install 3.14" in dockerfile
     runtime_stage = dockerfile.split("FROM docker.io/$BASE_IMAGE AS workspace\n", 1)[1]
     assert not any(line.startswith("ENV ") for line in runtime_stage.splitlines())
-    assert "COPY --link --chown=5230:5230 --from=stage_python /opt/uv /opt/uv" in runtime_stage
+    assert (
+        "COPY --link --chown=5230:5230 --from=stage_python "
+        "/home/x/.local/opt/uv /home/x/.local/opt/uv" in runtime_stage
+    )
     assert '"$UV_PYTHON_BIN_DIR"' in profile
-    assert "--python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14" in dockerfile
+    assert (
+        "--python /home/x/.local/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14"
+        in dockerfile
+    )
     assert "uv tool install copyparty" in dockerfile
     assert "uv tool install copyparty" not in resource_dockerfile
+    settings = json.loads(
+        (workspace / "rootfs/home/x/.vscode-server/data/Machine/settings.json").read_text()
+    )
+    assert settings["python.defaultInterpreterPath"] == "/home/x/.local/opt/uv/bin/python3.14"
 
     python_install = re.search(r"uv python install --no-bin ([^\n]+)", resource_dockerfile)
     assert python_install is not None
@@ -312,12 +329,12 @@ def test_workspace_keeps_required_python_and_bundles_python_tools() -> None:
         minor = ".".join(python.split(".")[:2])
         assert f"uv tool install {tool}" in resource_dockerfile
         assert (
-            f"--python /opt/resource/opt/uv/python/cpython-{python}-linux-x86_64-gnu/"
+            f"--python /opt/resource/home/x/.local/opt/uv/python/cpython-{python}-linux-x86_64-gnu/"
             f"bin/python{minor}" in resource_dockerfile
         )
         assert f"uv tool install {tool}" not in dockerfile
-    assert "/opt/resource/opt/uv/bin" in profile
-    python_root = workspace / "rootfs/opt/uv/python"
+    assert "/opt/resource/home/x/.local/opt/uv/bin" in profile
+    python_root = workspace / "rootfs/home/x/.local/opt/uv/python"
     installations = {path.name: path for path in python_root.iterdir() if not path.is_symlink()}
     aliases = {path.name: path.readlink() for path in python_root.iterdir() if path.is_symlink()}
     assert set(installations) == {
@@ -342,8 +359,65 @@ def test_workspace_keeps_required_python_and_bundles_python_tools() -> None:
         for child in installation.iterdir():
             assert (
                 child.readlink()
-                == Path("/opt/resource/opt/uv/python") / installation.name / child.name
+                == Path("/opt/resource/home/x/.local/opt/uv/python")
+                / installation.name
+                / child.name
             )
+
+
+def test_conda_uses_the_current_home_for_its_installation_and_environment_helper(
+    tmp_path: Path,
+) -> None:
+    home = tmp_path / "client home"
+    root = home / ".local/opt/conda"
+    conda = root / "bin/conda"
+    conda.parent.mkdir(parents=True)
+    record = tmp_path / "calls"
+    conda.write_text(
+        f"#!{sys.executable}\n"
+        "import json, os, pathlib, sys\n"
+        "root = pathlib.Path(os.environ['CONDA_ROOT'])\n"
+        "with pathlib.Path(os.environ['TEST_RECORD']).open('a') as output:\n"
+        "    output.write(json.dumps([str(root), os.environ['PATH'], sys.argv[1:]]) + '\\n')\n"
+        "if sys.argv[1] == 'create':\n"
+        "    (root / 'envs/smoke/compiler_compat').mkdir(parents=True)\n"
+        "if sys.argv[1:3] == ['env', 'export']:\n"
+        "    print('name: smoke')\n"
+    )
+    conda.chmod(0o755)
+    environment_file = tmp_path / "environment.yaml"
+    environment_file.write_text("name: smoke\ndependencies:\n  - python=3.14\n")
+    subprocess.run(
+        [
+            "bash",
+            str(_CONTAINER / "workspace/scripts/install-conda-environment.sh"),
+            "-e",
+            str(environment_file),
+        ],
+        env={**os.environ, "HOME": str(home), "TEST_RECORD": str(record)},
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    calls = [json.loads(line) for line in record.read_text().splitlines()]
+    assert [call[2] for call in calls] == [
+        ["create", "-n", "smoke", "python=3.14", "-y", "--no-default-packages"],
+        ["env", "update", "-f", str(environment_file)],
+        ["env", "export", "-n", "smoke"],
+    ]
+    assert all(call[0] == str(root) and call[1].startswith(f"{root}/bin:") for call in calls)
+    assert environment_file.with_name("environment-lock.yaml").read_text() == "name: smoke\n"
+    workspace = _CONTAINER / "workspace"
+    dockerfile = (workspace / "Dockerfile").read_text()
+    assert "bash /tmp/miniconda.sh -b -u -p /home/x/.local/opt/conda" in dockerfile
+    assert (
+        "COPY --link --chown=5230:5230 --from=stage_conda "
+        "/home/x/.local/opt/conda /home/x/.local/opt/conda" in dockerfile
+    )
+    assert (
+        'source "$HOME/.local/opt/conda/etc/profile.d/conda.sh"'
+        in (workspace / "rootfs/home/x/.zshrc").read_text()
+    )
 
 
 @pytest.mark.skipif(
@@ -358,7 +432,7 @@ def test_uv_discovers_linked_python_and_creates_a_venv(tmp_path: Path) -> None:
     installation.mkdir(parents=True)
     alias = python_root / f"cpython-{minor}-linux-x86_64-gnu"
     alias.symlink_to(installation.name)
-    declarations = _CONTAINER / "workspace/rootfs/opt/uv/python"
+    declarations = _CONTAINER / "workspace/rootfs/home/x/.local/opt/uv/python"
     for child in next(path for path in declarations.iterdir() if not path.is_symlink()).iterdir():
         (installation / child.name).symlink_to(Path(sys.base_prefix) / child.name)
     environment = {**os.environ, "UV_PYTHON_INSTALL_DIR": str(python_root)}
@@ -482,11 +556,11 @@ def test_workspace_bundles_java_and_node_installers() -> None:
         assert 'script_dir="$(dirname "$(readlink -f "$0")")"' in wrapper
         assert f'exec "$script_dir/.venv/bin/python" "$script_dir/{name}.py" "$@"' in wrapper
         assert 'uv sync --project "$script_dir" --locked --no-dev --python 3.14' in wrapper
-        assert "/opt/uv/python" not in wrapper
+        assert "UV_PYTHON_INSTALL_DIR" not in wrapper
         family = name.removesuffix("-tool")
         assert (
-            f"UV_PYTHON_INSTALL_DIR=/opt/uv/python /home/x/.local/opt/{family}/{name}/{name} init"
-            in dockerfile
+            "UV_PYTHON_INSTALL_DIR=/home/x/.local/opt/uv/python "
+            f"/home/x/.local/opt/{family}/{name}/{name} init" in dockerfile
         )
     assert dockerfile.count("--root /home/x/.local/opt/node/tools") == 3
     assert resource_dockerfile.count("--root /home/x/.local/opt/java/tools") == 3
@@ -647,7 +721,7 @@ def test_workspace_resource_image_installs_binman_manifest() -> None:
     assert "test ! -e /opt/resource/usr/local/bin/bm" in dockerfile
     assert "test ! -e /opt/resource/usr/local/bin/uv" in dockerfile
     assert "test ! -e /opt/resource/usr/local/bin/pnpm" in dockerfile
-    assert "test ! -e /opt/resource/opt/uv/bin/uv" in dockerfile
+    assert "test ! -e /opt/resource/home/x/.local/opt/uv/bin/uv" in dockerfile
     assert "test ! -e /opt/resource/usr/local/store/uv" in dockerfile
     assert "test ! -e /opt/resource/usr/local/store/pnpm" in dockerfile
     assert "test ! -e /opt/resource/home/x/.local/opt/node" in dockerfile
@@ -742,7 +816,7 @@ def test_macos_toolchains_match_workspace_versions() -> None:
     assert f'version="{prettier_version.group(1)}"' in node_tools
     assert 'tools/node-tool"' in node_tools
     assert '"$node_tool/node-tool" init' in node_tools
-    assert 'UV_PYTHON_INSTALL_DIR="$HOME/.local/share/uv/python"' in node_tools
+    assert 'UV_PYTHON_INSTALL_DIR="$HOME/.local/opt/uv/python"' in node_tools
     assert 'node_root="$HOME/.local/opt/node"' in node_runtime
     assert 'node_root="$HOME/.local/opt/node"' in node_tools
     assert '"$node_tool/node-tool" install "prettier@${version}"' in node_tools
@@ -782,6 +856,21 @@ def test_macos_node_configuration_uses_the_managed_runtime_and_tools() -> None:
         '"/Users/x/.local/opt/node/tools/envs/prettier/node_modules/prettier"' in settings
     )
     assert '"typescript.npm": "/Users/x/.local/opt/node/nodejs26/bin/npm"' in settings
+
+
+def test_macos_python_configuration_uses_uv_managed_paths() -> None:
+    macos = _CONTAINER.parent / "macos"
+    settings = (
+        macos / "rootfs/Users/x/Library/Application Support/Code/User/settings.json"
+    ).read_text()
+    assert '"python.defaultInterpreterPath": "/Users/x/.local/opt/uv/bin/python3.14"' in settings
+    uv_script = (macos / "maintenance/uv.sh").read_text()
+    assert 'uv_root="$HOME/.local/opt/uv"' in uv_script
+    assert '"$HOME/.local/bin/uv" python install 3.14' in uv_script
+    for operation in ("java-tools.sh", "node-tools.sh"):
+        script = (macos / "maintenance" / operation).read_text()
+        assert 'UV_PYTHON_INSTALL_DIR="$HOME/.local/opt/uv/python"' in script
+        assert 'test -x "$HOME/.local/opt/uv/bin/python3.14"' in script
 
 
 def test_workspace_binman_manifests_do_not_overlap() -> None:
@@ -833,7 +922,7 @@ def test_workspace_podman_separates_image_files_from_user_data() -> None:
     assert not (workspace / "rootfs/usr/local/bin/podman").exists()
     assert not (workspace / "rootfs/usr/local/bin/podman-server").exists()
     assert "chown" not in configure
-    ownership = dockerfile.index("chown -hR 5230:5230 /home/x /opt/uv")
+    ownership = dockerfile.index("chown -hR 5230:5230 /home/x")
     assert (
         dockerfile.index("COPY platform/container/workspace/rootfs/ /")
         < ownership

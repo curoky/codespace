@@ -31,15 +31,15 @@ RUN mkdir -p /opt/llvm/llvm23.1.2 \
 # ---------------------------------- Python ----------------------------------
 FROM docker.io/debian:stable-slim AS stage_python
 COPY --from=stage_build_tools /usr/local/store/uv/bin/uv /usr/local/bin/uv
-ENV UV_TOOL_DIR=/opt/resource/opt/uv/tools \
-  UV_TOOL_BIN_DIR=/opt/resource/opt/uv/bin \
-  UV_PYTHON_INSTALL_DIR=/opt/resource/opt/uv/python \
-  UV_PYTHON_BIN_DIR=/opt/resource/opt/uv/bin
+ENV UV_TOOL_DIR=/opt/resource/home/x/.local/opt/uv/tools \
+  UV_TOOL_BIN_DIR=/opt/resource/home/x/.local/opt/uv/bin \
+  UV_PYTHON_INSTALL_DIR=/opt/resource/home/x/.local/opt/uv/python \
+  UV_PYTHON_BIN_DIR=/opt/resource/home/x/.local/opt/uv/bin
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates \
   && uv python install --no-bin 3.9.25 3.10.22 3.11.17 3.12.15 3.13.16 3.14 \
   && uv tool install tensorboard \
-    --python /opt/resource/opt/uv/python/cpython-3.12.15-linux-x86_64-gnu/bin/python3.12 \
+    --python /opt/resource/home/x/.local/opt/uv/python/cpython-3.12.15-linux-x86_64-gnu/bin/python3.12 \
     --with tensorboard-plugin-profile --with "setuptools==81.0.0"
 
 # ----------------------------------- Java -----------------------------------
@@ -65,7 +65,7 @@ ADD --checksum=sha256:ddac49f903da9d5bac833e5cc79395098b9c33cfd3279be5f31bd00387
 
 COPY --from=stage_build_tools /usr/local/store/uv/bin/uv /usr/local/bin/uv
 COPY platform/container/workspace/tools/java-tool/ /tmp/java-tool/
-RUN UV_PYTHON_INSTALL_DIR=/opt/uv/python /tmp/java-tool/java-tool init \
+RUN UV_PYTHON_INSTALL_DIR=/home/x/.local/opt/uv/python /tmp/java-tool/java-tool init \
   && /tmp/java-tool/java-tool \
     install maven@3.9.16 /tmp/apache-maven.tar.gz --extract \
     --executable mvn=bin/mvn --executable mvnDebug=bin/mvnDebug \
@@ -95,7 +95,7 @@ COPY --from=stage_sb /usr/local/bin /opt/resource/usr/local/bin
 COPY --from=stage_sb /usr/local/store /opt/resource/usr/local/store
 COPY --from=stage_sb /usr/local/profile /opt/resource/usr/local/profile
 COPY --from=stage_java /home/x/.local/opt/java/tools /opt/resource/home/x/.local/opt/java/tools
-COPY --from=stage_python /opt/resource/opt/uv /opt/resource/opt/uv
+COPY --from=stage_python /opt/resource/home/x/.local/opt/uv /opt/resource/home/x/.local/opt/uv
 
 # ----------------------------------- Test -----------------------------------
 FROM payload AS test
@@ -118,16 +118,16 @@ RUN /opt/resource/opt/llvm/llvm23.1.2/bin/clang --version \
   && test -x /opt/resource/home/x/.local/opt/java/tools/envs/ghidra/payload/ghidraRun \
   && test ! -e /opt/resource/usr/local/bin/uv \
   && test ! -e /opt/resource/usr/local/bin/pnpm \
-  && test ! -e /opt/resource/opt/uv/bin/uv \
+  && test ! -e /opt/resource/home/x/.local/opt/uv/bin/uv \
   && test ! -e /opt/resource/usr/local/store/uv \
   && test ! -e /opt/resource/usr/local/store/pnpm \
-  && /opt/resource/opt/uv/python/cpython-3.9.25-linux-x86_64-gnu/bin/python3.9 --version \
-  && /opt/resource/opt/uv/python/cpython-3.10.22-linux-x86_64-gnu/bin/python3.10 --version \
-  && /opt/resource/opt/uv/python/cpython-3.11.17-linux-x86_64-gnu/bin/python3.11 --version \
-  && /opt/resource/opt/uv/python/cpython-3.12.15-linux-x86_64-gnu/bin/python3.12 --version \
-  && /opt/resource/opt/uv/python/cpython-3.13.16-linux-x86_64-gnu/bin/python3.13 --version \
-  && /opt/resource/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 --version \
-  && test -x /opt/resource/opt/uv/bin/tensorboard
+  && /opt/resource/home/x/.local/opt/uv/python/cpython-3.9.25-linux-x86_64-gnu/bin/python3.9 --version \
+  && /opt/resource/home/x/.local/opt/uv/python/cpython-3.10.22-linux-x86_64-gnu/bin/python3.10 --version \
+  && /opt/resource/home/x/.local/opt/uv/python/cpython-3.11.17-linux-x86_64-gnu/bin/python3.11 --version \
+  && /opt/resource/home/x/.local/opt/uv/python/cpython-3.12.15-linux-x86_64-gnu/bin/python3.12 --version \
+  && /opt/resource/home/x/.local/opt/uv/python/cpython-3.13.16-linux-x86_64-gnu/bin/python3.13 --version \
+  && /opt/resource/home/x/.local/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 --version \
+  && test -x /opt/resource/home/x/.local/opt/uv/bin/tensorboard
 
 # --------------------------------- Resource ---------------------------------
 FROM test AS resource

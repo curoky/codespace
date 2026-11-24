@@ -8,7 +8,7 @@ java_tool="$java_root/java-tool"
 
 test -x "$java_root/openjdk27/bin/java"
 test -x "$HOME/.local/bin/uv"
-test -x "$HOME/.local/share/uv/bin/python3.14"
+test -x "$HOME/.local/opt/uv/bin/python3.14"
 
 mkdir -p "$java_tool" "$java_root/tools/bin"
 install -m 0755 \
@@ -21,5 +21,5 @@ install -m 0644 \
   "$java_tool_source/uv.lock" \
   "$java_tool/"
 
-PATH="$HOME/.local/bin:$PATH" UV_PYTHON_INSTALL_DIR="$HOME/.local/share/uv/python" \
+PATH="$HOME/.local/bin:$PATH" UV_PYTHON_INSTALL_DIR="$HOME/.local/opt/uv/python" \
   "$java_tool/java-tool" init

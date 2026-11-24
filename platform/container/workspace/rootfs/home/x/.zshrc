@@ -60,7 +60,7 @@ source "$ZSH/lib/git.zsh"
 source "$ZSH/plugins/extract/extract.plugin.zsh"
 source "$ZSH/plugins/git/git.plugin.zsh"
 
-source "/opt/conda/etc/profile.d/conda.sh"
+source "$HOME/.local/opt/conda/etc/profile.d/conda.sh"
 source "/usr/local/store/zsh-plugins/share/oh-my-zsh/custom/plugins/starship/starship.plugin.zsh"
 source "/usr/local/store/zsh-plugins/share/oh-my-zsh/custom/plugins/atuin/atuin.plugin.zsh"
 

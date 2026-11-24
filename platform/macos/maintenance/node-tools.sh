@@ -14,7 +14,7 @@ installed_version=""
 test -x "$node_root/nodejs26/bin/node"
 test -x "$HOME/.local/bin/pnpm"
 test -x "$HOME/.local/bin/uv"
-test -x "$HOME/.local/share/uv/bin/python3.14"
+test -x "$HOME/.local/opt/uv/bin/python3.14"
 
 mkdir -p "$node_tool"
 install -m 0755 \
@@ -27,7 +27,7 @@ install -m 0644 \
   "$node_tool_source/uv.lock" \
   "$node_tool/"
 
-PATH="$HOME/.local/bin:$PATH" UV_PYTHON_INSTALL_DIR="$HOME/.local/share/uv/python" \
+PATH="$HOME/.local/bin:$PATH" UV_PYTHON_INSTALL_DIR="$HOME/.local/opt/uv/python" \
   "$node_tool/node-tool" init
 
 if [[ -f "$manifest" ]]; then

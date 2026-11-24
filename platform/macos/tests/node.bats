@@ -49,7 +49,7 @@ prepare_node_archive() {
 }
 
 prepare_tool_dependencies() {
-  mkdir -p "$HOME/.local/bin" "$HOME/.local/share/uv/bin" \
+  mkdir -p "$HOME/.local/bin" "$HOME/.local/opt/uv/bin" \
     "$HOME/.local/opt/node/nodejs26/bin"
   cat >"$HOME/.local/opt/node/nodejs26/bin/node" <<'EOF'
 #!/usr/bin/env bash
@@ -80,9 +80,9 @@ chmod 0755 "$UV_PROJECT_ENVIRONMENT/bin/python"
 EOF
   TEST_INSTALLED_VERSION=3.9.9
   export TEST_INSTALLED_VERSION
-  printf '#!/usr/bin/env bash\nexit 0\n' >"$HOME/.local/share/uv/bin/python3.14"
+  printf '#!/usr/bin/env bash\nexit 0\n' >"$HOME/.local/opt/uv/bin/python3.14"
   chmod 0755 "$HOME/.local/bin/"* "$HOME/.local/opt/node/nodejs26/bin/node"
-  chmod 0755 "$HOME/.local/share/uv/bin/python3.14"
+  chmod 0755 "$HOME/.local/opt/uv/bin/python3.14"
 }
 
 @test "Node installs both runtimes into the user-local opt layout" {
@@ -130,7 +130,7 @@ EOF
   [ -x "$installer/node-tool" ]
   [ -x "$installer/.venv/bin/python" ]
   cmp "$installer/node-tool.py" "$MACOS_DIR/../container/workspace/tools/node-tool/node-tool.py"
-  grep -Fqx "python $HOME/.local/share/uv/python" "$TEST_EVENTS"
+  grep -Fqx "python $HOME/.local/opt/uv/python" "$TEST_EVENTS"
   grep -Fqx 'venv ' "$TEST_EVENTS"
   grep -Fqx "python-call $installer/node-tool.py install prettier@3.9.9 --node $HOME/.local/opt/node/nodejs26 --pnpm $HOME/.local/bin/pnpm --root $HOME/.local/opt/node/tools" "$TEST_EVENTS"
   [ ! -e "$TEST_ROOT/caller-project" ]
@@ -164,7 +164,7 @@ EOF
       node) rm "$HOME/.local/opt/node/nodejs26/bin/node" ;;
       pnpm) rm "$HOME/.local/bin/pnpm" ;;
       uv) rm "$HOME/.local/bin/uv" ;;
-      python) rm "$HOME/.local/share/uv/bin/python3.14" ;;
+      python) rm "$HOME/.local/opt/uv/bin/python3.14" ;;
     esac
     run "$MACOS_DIR/maintenance/node-tools.sh"
     [ "$status" -eq 1 ]

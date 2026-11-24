@@ -4,7 +4,7 @@ set -euo pipefail
 
 env_file=""
 lock_file=""
-conda_root="/opt/conda"
+conda_root="$HOME/.local/opt/conda"
 add_tf_env=false
 cuda_version=""
 cudnn_version=""

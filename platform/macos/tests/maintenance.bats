@@ -180,7 +180,7 @@ file_mode() {
   local zshrc="$MACOS_HOME/.zshrc"
 
   grep -Fqx '  "$HOME/.local/bin"' "$zshrc"
-  grep -Fqx '  "$HOME/.local/share/uv/bin"' "$zshrc"
+  grep -Fqx '  "$HOME/.local/opt/uv/bin"' "$zshrc"
   grep -Fqx '  "$HOME/.local/opt/node/tools/bin"' "$zshrc"
   grep -Fqx '  "$HOME/.local/opt/node/node-tool"' "$zshrc"
   grep -Fqx '  "$HOME/.local/opt/node/nodejs26/bin"' "$zshrc"

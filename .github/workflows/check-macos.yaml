@@ -117,11 +117,11 @@ jobs:
           set -euo pipefail
           export HOME="$CODESPACE_HOME"
           export JAVA_HOME="$HOME/.local/opt/java/openjdk27"
-          export PATH="$HOME/.local/bin:$HOME/.local/share/uv/bin:$HOME/.local/opt/node/tools/bin:$HOME/.local/opt/node/node-tool:$HOME/.local/opt/node/nodejs26/bin:$HOME/.local/share/go/go1.27.1/bin:$HOME/.local/opt/java/java-tool:$HOME/.local/opt/java/tools/bin:$JAVA_HOME/bin:$PATH"
+          export PATH="$HOME/.local/bin:$HOME/.local/opt/uv/bin:$HOME/.local/opt/node/tools/bin:$HOME/.local/opt/node/node-tool:$HOME/.local/opt/node/nodejs26/bin:$HOME/.local/share/go/go1.27.1/bin:$HOME/.local/opt/java/java-tool:$HOME/.local/opt/java/tools/bin:$JAVA_HOME/bin:$PATH"
 
           test -x "$HOME/.local/bin/uv"
           test -x "$HOME/.local/bin/pnpm"
-          test -x "$HOME/.local/share/uv/bin/python3.14"
+          test -x "$HOME/.local/opt/uv/bin/python3.14"
           test -x "$HOME/.local/opt/node/nodejs24/bin/node"
           test -x "$HOME/.local/opt/node/nodejs26/bin/node"
           test -x "$HOME/.local/opt/node/tools/bin/prettier"
@@ -144,6 +144,7 @@ jobs:
           java-tool --help
 
           test "$(command -v uv)" = "$HOME/.local/bin/uv"
+          test "$(command -v python3.14)" = "$HOME/.local/opt/uv/bin/python3.14"
           test "$(command -v pnpm)" = "$HOME/.local/bin/pnpm"
           test "$(command -v node)" = "$HOME/.local/opt/node/nodejs26/bin/node"
           test "$(command -v node-tool)" = "$HOME/.local/opt/node/node-tool/node-tool"
@@ -156,6 +157,25 @@ jobs:
           launchctl print "$domain/sh.atuin.daemon" >/dev/null
           atuin daemon status
           test -S "$HOME/.local/share/atuin/atuin.sock"
+
+      - name: Verify native managed Python and isolated tools
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          export HOME="$CODESPACE_HOME"
+          export UV_TOOL_DIR="$HOME/.local/opt/uv/tools"
+          export UV_TOOL_BIN_DIR="$HOME/.local/opt/uv/bin"
+          export UV_PYTHON_INSTALL_DIR="$HOME/.local/opt/uv/python"
+          export UV_PYTHON_BIN_DIR="$HOME/.local/opt/uv/bin"
+          export PATH="$HOME/.local/bin:$UV_PYTHON_BIN_DIR:$PATH"
+          work_dir="$(mktemp -d)"
+          trap 'uv tool uninstall cowsay; rm -rf "$work_dir"' EXIT
+          uv venv --managed-python --no-python-downloads --python 3.14 "$work_dir/venv"
+          "$work_dir/venv/bin/python" -c 'import ssl, ctypes, sqlite3; print(ssl.OPENSSL_VERSION)'
+          uv tool install cowsay --python "$UV_PYTHON_BIN_DIR/python3.14"
+          "$UV_TOOL_BIN_DIR/cowsay" -t codespace >/dev/null
+          test -f "$UV_TOOL_DIR/cowsay/uv-receipt.toml"
 
       - name: Verify native Node tool binding and relocation
         if: github.event_name != 'pull_request'

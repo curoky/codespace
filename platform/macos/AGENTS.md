@@ -31,6 +31,8 @@ home source、LaunchAgent、默认应用和控制面 SSH wiring。`.agents/skill
   CLI 不随 Shell PATH 切换，binding 变化时由 Skill 编排对应 package 的重装。
 - JDK 从 Temurin archive 提取 `Contents/Home`，采用 Linux 的 runtime 根布局，不注册
   系统 JDK；Shell 与 editor 使用同一 runtime。
+- Python runtime 与隔离 CLI 由 uv 管理，使用 `UV_*_DIR` 指定用户级软件目录；缓存与项目
+  virtualenv 保持原生位置，不手工改写 uv metadata 或 interpreter binding。
 - home link source 默认为 `0600`；可执行 source 必须显式声明 `0755`。只有目标需要独立
   inode、权限或运行期修改时才 copy。应用配置只使用该字段原生支持的路径语法，不增加
   安装时模板替换。

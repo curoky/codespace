@@ -115,13 +115,13 @@ teardown() {
 }
 
 @test "Java tools use their own Python environment and preserve installed packages" {
-  mkdir -p "$HOME/.local/bin" "$HOME/.local/share/uv/bin" \
+  mkdir -p "$HOME/.local/bin" "$HOME/.local/opt/uv/bin" \
     "$HOME/.local/opt/java/openjdk27/bin" "$HOME/.local/opt/java/tools/envs/custom"
   touch "$HOME/.local/opt/java/tools/envs/custom/keep"
   install -m 0755 "$TEST_ROOT/bundle/jdk-27+35/Contents/Home/bin/java" \
     "$HOME/.local/opt/java/openjdk27/bin/java"
   install -m 0755 "$TEST_ROOT/bundle/jdk-27+35/Contents/Home/bin/java" \
-    "$HOME/.local/share/uv/bin/python3.14"
+    "$HOME/.local/opt/uv/bin/python3.14"
   cat >"$HOME/.local/bin/uv" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -141,7 +141,7 @@ EOF
   [ -x "$installer/java-tool" ]
   [ -x "$installer/.venv/bin/python" ]
   cmp "$installer/java-tool.py" "$MACOS_DIR/../container/workspace/tools/java-tool/java-tool.py"
-  grep -Fqx "python $HOME/.local/share/uv/python" "$TEST_EVENTS"
+  grep -Fqx "python $HOME/.local/opt/uv/python" "$TEST_EVENTS"
   grep -Fqx 'venv ' "$TEST_EVENTS"
   [ ! -e "$TEST_ROOT/caller-project" ]
   [ -f "$HOME/.local/opt/java/tools/envs/custom/keep" ]

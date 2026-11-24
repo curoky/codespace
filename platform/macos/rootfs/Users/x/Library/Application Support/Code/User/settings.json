@@ -318,7 +318,7 @@
   "python.analysis.languageServerMode": "full",
   "python.analysis.typeCheckingMode": "standard",
   "prettier.prettierPath": "/Users/x/.local/opt/node/tools/envs/prettier/node_modules/prettier",
-  "python.defaultInterpreterPath": "/Users/x/.local/share/uv/bin/python3.14",
+  "python.defaultInterpreterPath": "/Users/x/.local/opt/uv/bin/python3.14",
   "python.useEnvironmentsExtension": true,
   "pythonTestExplorer.testFramework": "pytest",
   "redhat.telemetry.enabled": false,
@@ -343,7 +343,7 @@
   // },
   // "ruby.useLanguageServer": true,
   "ruff.interpreter": [
-    "/Users/x/.local/share/uv/bin/python3.14"
+    "/Users/x/.local/opt/uv/bin/python3.14"
   ],
   "ruff.logLevel": "info",
   "ruff.path": [
