@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import os
 import stat
 import subprocess
 import sys
@@ -119,6 +120,33 @@ def test_install_jar_creates_java_jar_launcher(tmp_path: Path) -> None:
     )
     assert commands == ("language-server",)
     assert result.stdout == f"java-home:{java_root}\nargs:-jar {installed_jar} --stdio\n"
+
+
+@pytest.mark.parametrize("home_name", ["home/x", "client home"])
+def test_cli_default_root_uses_the_current_home(tmp_path: Path, home_name: str) -> None:
+    home = tmp_path / home_name
+    installer = tmp_path / "source/java-tool.py"
+    installer.parent.mkdir(parents=True)
+    installer.write_text(Path(java_tool.__file__).read_text())
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(installer),
+            "install",
+            "language-server@1.0",
+            str(create_jar(tmp_path)),
+            "--jar",
+            "language-server=language-server.jar",
+            "--java",
+            str(create_fake_java(tmp_path)),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+        env={**os.environ, "HOME": str(home)},
+    )
+    assert "installed language-server@1.0" in result.stdout
+    assert (home / ".local/opt/java/tools/bin/language-server").is_file()
 
 
 def test_project_tool_inherits_the_callers_java_home(tmp_path: Path) -> None:

@@ -7,6 +7,8 @@
   放到 PATH 首位。
 - Node.js 全局 CLI 位于 `~/.local/share/node/tools`，不使用全局 npm 或 pnpm 安装。
 - Go runtime 位于 `~/.local/share/go`，用户安装的 Go 命令位于 `~/go/bin`。
+- Java runtime 位于 `~/.local/opt/java/openjdk*`；切换时同步设置 `JAVA_HOME` 与 PATH。
+  Java CLI 用 `java-tool` 安装到 `~/.local/opt/java/tools`，不使用 Homebrew 安装 JDK。
 - standalone tools 由 `platform/macos/binman.yaml` 声明并安装到 `~/.local`；Homebrew 软件
   由 `platform/macos/Brewfile` 声明。
 - 缺少系统软件、全局 CLI 或 runtime 时，说明用途并使用

@@ -8,6 +8,8 @@ on:
       - 'platform/macos/**'
       - 'platform/container/workspace/rootfs/home/x/**'
       - 'platform/container/workspace/tools/node-tool/**'
+      - 'platform/container/workspace/tools/java-tool/**'
+      - 'platform/container/workspace/Dockerfile'
   pull_request:
     paths:
       - '.github/workflows/check-macos.yaml'
@@ -15,6 +17,8 @@ on:
       - 'platform/macos/**'
       - 'platform/container/workspace/rootfs/home/x/**'
       - 'platform/container/workspace/tools/node-tool/**'
+      - 'platform/container/workspace/tools/java-tool/**'
+      - 'platform/container/workspace/Dockerfile'
   schedule:
     - cron: '0 4 * * 0'
   workflow_dispatch:
@@ -90,6 +94,14 @@ jobs:
         if: github.event_name != 'pull_request'
         run: HOME="$CODESPACE_HOME" platform/macos/maintenance/go.sh
 
+      - name: Install Java
+        if: github.event_name != 'pull_request'
+        run: HOME="$CODESPACE_HOME" platform/macos/maintenance/java-runtime.sh
+
+      - name: Install Java tool installer
+        if: github.event_name != 'pull_request'
+        run: HOME="$CODESPACE_HOME" platform/macos/maintenance/java-tools.sh
+
       - name: Converge home configuration
         if: github.event_name != 'pull_request'
         run: HOME="$CODESPACE_HOME" platform/macos/maintenance/home-links.sh
@@ -104,7 +116,8 @@ jobs:
         run: |
           set -euo pipefail
           export HOME="$CODESPACE_HOME"
-          export PATH="$HOME/.local/bin:$HOME/.local/share/uv/bin:$HOME/.local/share/node/tools/bin:$HOME/.local/share/node/nodejs26/bin:$HOME/.local/share/go/go1.27.1/bin:$PATH"
+          export JAVA_HOME="$HOME/.local/opt/java/openjdk27"
+          export PATH="$HOME/.local/bin:$HOME/.local/share/uv/bin:$HOME/.local/share/node/tools/bin:$HOME/.local/share/node/nodejs26/bin:$HOME/.local/share/go/go1.27.1/bin:$HOME/.local/opt/java/java-tool:$HOME/.local/opt/java/tools/bin:$JAVA_HOME/bin:$PATH"
 
           test -x "$HOME/.local/bin/uv"
           test -x "$HOME/.local/bin/pnpm"
@@ -113,6 +126,9 @@ jobs:
           test -x "$HOME/.local/share/node/nodejs26/bin/node"
           test -x "$HOME/.local/share/node/tools/bin/prettier"
           test -x "$HOME/.local/share/go/go1.27.1/bin/go"
+          test -x "$JAVA_HOME/bin/java"
+          test -x "$JAVA_HOME/bin/javac"
+          test ! -e "$HOME/.local/opt/java/openjdk8"
           test -L "$HOME/.zshrc"
 
           uv --version
@@ -122,14 +138,46 @@ jobs:
           "$HOME/.local/share/node/nodejs24/bin/node" --version
           prettier --version
           go version
+          java -version
+          javac -version
+          java-tool --help
 
           test "$(command -v uv)" = "$HOME/.local/bin/uv"
           test "$(command -v pnpm)" = "$HOME/.local/bin/pnpm"
           test "$(command -v node)" = "$HOME/.local/share/node/nodejs26/bin/node"
           test "$(command -v prettier)" = "$HOME/.local/share/node/tools/bin/prettier"
           test "$(command -v go)" = "$HOME/.local/share/go/go1.27.1/bin/go"
+          test "$(command -v java)" = "$JAVA_HOME/bin/java"
+          test "$(command -v java-tool)" = "$HOME/.local/opt/java/java-tool/java-tool"
 
           domain="gui/$(id -u)"
           launchctl print "$domain/sh.atuin.daemon" >/dev/null
           atuin daemon status
           test -S "$HOME/.local/share/atuin/atuin.sock"
+
+      - name: Verify native Java tool binding and relocation
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          export HOME="$CODESPACE_HOME"
+          export JAVA_HOME="$HOME/.local/opt/java/openjdk27"
+          export PATH="$HOME/.local/bin:$JAVA_HOME/bin:$PATH"
+          work_dir="$(mktemp -d)"
+          trap 'rm -rf "$work_dir"' EXIT
+          cat >"$work_dir/JavaToolSmoke.java" <<'JAVA'
+          public class JavaToolSmoke {
+              public static void main(String[] args) {
+                  System.out.println(System.getProperty("java.home"));
+              }
+          }
+          JAVA
+          mkdir "$work_dir/classes"
+          javac -d "$work_dir/classes" "$work_dir/JavaToolSmoke.java"
+          jar --create --file "$work_dir/smoke.jar" --main-class JavaToolSmoke \
+            -C "$work_dir/classes" .
+          "$HOME/.local/opt/java/java-tool/java-tool" install smoke@1 "$work_dir/smoke.jar" \
+            --jar smoke=smoke.jar --java "$JAVA_HOME" --root "$work_dir/tools"
+          mv "$work_dir/tools" "$work_dir/relocated"
+          test "$(JAVA_HOME=/missing PATH="$HOME/.local/bin:/usr/bin:/bin" \
+            "$work_dir/relocated/bin/smoke")" = "$JAVA_HOME"

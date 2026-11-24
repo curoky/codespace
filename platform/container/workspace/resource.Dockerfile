@@ -50,8 +50,8 @@ RUN apt-get update -y \
 ADD --checksum=sha256:1cf69a4848ffb728b3b260dfd45206a51566ab571a02a30092271d4c580bccbc \
   https://github.com/adoptium/temurin27-binaries/releases/download/jdk-27%2B35/OpenJDK27U-jdk_x64_linux_hotspot_27_35.tar.gz \
   /tmp/openjdk27.tar.gz
-RUN mkdir -p /opt/java/openjdk27 \
-  && tar -xzf /tmp/openjdk27.tar.gz --strip-components=1 -C /opt/java/openjdk27
+RUN mkdir -p /home/x/.local/opt/java/openjdk27 \
+  && tar -xzf /tmp/openjdk27.tar.gz --strip-components=1 -C /home/x/.local/opt/java/openjdk27
 
 ADD --checksum=sha256:80ffca22aed9e8b9713a232f3394fd81d7f20322df75efdb2b047dbd3e3a23bb \
   https://downloads.apache.org/maven/maven-3/3.9.16/binaries/apache-maven-3.9.16-bin.tar.gz \
@@ -65,18 +65,18 @@ ADD --checksum=sha256:ddac49f903da9d5bac833e5cc79395098b9c33cfd3279be5f31bd00387
 
 COPY --from=stage_build_tools /usr/local/store/uv/bin/uv /usr/local/bin/uv
 COPY platform/container/workspace/tools/java-tool/ /tmp/java-tool/
-RUN /tmp/java-tool/java-tool init \
+RUN UV_PYTHON_INSTALL_DIR=/opt/uv/python /tmp/java-tool/java-tool init \
   && /tmp/java-tool/java-tool \
     install maven@3.9.16 /tmp/apache-maven.tar.gz --extract \
     --executable mvn=bin/mvn --executable mvnDebug=bin/mvnDebug \
-    --executable mvnyjp=bin/mvnyjp --inherit-java \
+    --executable mvnyjp=bin/mvnyjp --inherit-java --root /home/x/.local/opt/java/tools \
   && /tmp/java-tool/java-tool \
     install lemminx@0.31.2 /tmp/lemminx.jar \
-    --jar lemminx=lemminx.jar --java /opt/java/openjdk27 \
+    --jar lemminx=lemminx.jar --java /home/x/.local/opt/java/openjdk27 --root /home/x/.local/opt/java/tools \
   && /tmp/java-tool/java-tool \
     install ghidra@12.1.4 /tmp/ghidra.zip --extract \
     --executable ghidra=ghidraRun --executable-dir ghidra-=support \
-    --java /opt/java/openjdk27
+    --java /home/x/.local/opt/java/openjdk27 --root /home/x/.local/opt/java/tools
 
 # ----------------------------------- CUDA -----------------------------------
 # CUDA 12.2 is the newest toolkit supported by the target Host's 535 driver.
@@ -94,7 +94,7 @@ COPY --from=stage_nsys /opt/nvidia/nsight-systems-cli /opt/resource/opt/nvidia/n
 COPY --from=stage_sb /usr/local/bin /opt/resource/usr/local/bin
 COPY --from=stage_sb /usr/local/store /opt/resource/usr/local/store
 COPY --from=stage_sb /usr/local/profile /opt/resource/usr/local/profile
-COPY --from=stage_java /opt/java/tools /opt/resource/opt/java/tools
+COPY --from=stage_java /home/x/.local/opt/java/tools /opt/resource/home/x/.local/opt/java/tools
 COPY --from=stage_python /opt/resource/opt/uv /opt/resource/opt/uv
 
 # ----------------------------------- Test -----------------------------------
@@ -104,8 +104,8 @@ RUN /opt/resource/opt/llvm/llvm23.1.2/bin/clang --version \
   && test ! -e /opt/resource/opt/go \
   && test ! -e /opt/resource/opt/rust \
   && test ! -e /opt/resource/opt/node \
-  && test ! -e /opt/resource/opt/java/openjdk8 \
-  && test ! -e /opt/resource/opt/java/openjdk27 \
+  && test ! -e /opt/resource/home/x/.local/opt/java/openjdk8 \
+  && test ! -e /opt/resource/home/x/.local/opt/java/openjdk27 \
   && test ! -e /opt/resource/usr/local/bin/bm \
   && /opt/resource/usr/local/bin/radare2 -v \
   && /opt/resource/usr/local/bin/rizin -v \
@@ -113,9 +113,9 @@ RUN /opt/resource/opt/llvm/llvm23.1.2/bin/clang --version \
   # && /opt/resource/usr/local/profile/nodejs/bin/node --version \
   # && /opt/resource/usr/local/profile/protobuf/bin/protoc --version \
   # && /opt/resource/usr/local/profile/python/bin/python3 --version \
-  && test -x /opt/resource/opt/java/tools/bin/mvn \
-  && test -r /opt/resource/opt/java/tools/envs/lemminx/payload/lemminx.jar \
-  && test -x /opt/resource/opt/java/tools/envs/ghidra/payload/ghidraRun \
+  && test -x /opt/resource/home/x/.local/opt/java/tools/bin/mvn \
+  && test -r /opt/resource/home/x/.local/opt/java/tools/envs/lemminx/payload/lemminx.jar \
+  && test -x /opt/resource/home/x/.local/opt/java/tools/envs/ghidra/payload/ghidraRun \
   && test ! -e /opt/resource/usr/local/bin/uv \
   && test ! -e /opt/resource/usr/local/bin/pnpm \
   && test ! -e /opt/resource/opt/uv/bin/uv \

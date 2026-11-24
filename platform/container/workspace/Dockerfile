@@ -58,9 +58,9 @@ ADD --checksum=sha256:9c70e102f527ac674ac2fe9c7d47b9a04e2d19842ba5ab8e9b33f368bb
 ADD --checksum=sha256:1cf69a4848ffb728b3b260dfd45206a51566ab571a02a30092271d4c580bccbc \
   https://github.com/adoptium/temurin27-binaries/releases/download/jdk-27%2B35/OpenJDK27U-jdk_x64_linux_hotspot_27_35.tar.gz \
   /tmp/openjdk27.tar.gz
-RUN mkdir -p /opt/java/openjdk8 /opt/java/openjdk27 \
-  && tar -xzf /tmp/openjdk8.tar.gz --strip-components=1 -C /opt/java/openjdk8 \
-  && tar -xzf /tmp/openjdk27.tar.gz --strip-components=1 -C /opt/java/openjdk27
+RUN mkdir -p /home/x/.local/opt/java/openjdk8 /home/x/.local/opt/java/openjdk27 \
+  && tar -xzf /tmp/openjdk8.tar.gz --strip-components=1 -C /home/x/.local/opt/java/openjdk8 \
+  && tar -xzf /tmp/openjdk27.tar.gz --strip-components=1 -C /home/x/.local/opt/java/openjdk27
 
 # ---------------------------------- Python ----------------------------------
 FROM docker.io/debian:stable-slim AS stage_python
@@ -168,12 +168,12 @@ RUN export NIX_CONFIG='filter-syscalls = false' \
 FROM docker.io/$BASE_IMAGE AS workspace
 
 COPY platform/container/workspace/rootfs/ /
-RUN mkdir -p /opt/java /opt/node \
-  && chown -hR 5230:5230 /home/x /opt/java /opt/node /opt/uv
+RUN mkdir -p /opt/node \
+  && chown -hR 5230:5230 /home/x /opt/node /opt/uv
 
 COPY --link --from=stage_sb /usr/local /usr/local
 COPY --chown=5230:5230 platform/container/workspace/tools/node-tool/ /opt/node/node-tool/
-COPY --chown=5230:5230 platform/container/workspace/tools/java-tool/ /opt/java/java-tool/
+COPY --chown=5230:5230 platform/container/workspace/tools/java-tool/ /home/x/.local/opt/java/java-tool/
 RUN --mount=type=bind,source=platform/container/workspace/scripts/configure-system.sh,target=/tmp/configure-system.sh \
   bash /tmp/configure-system.sh
 
@@ -186,7 +186,7 @@ COPY --link --chown=5230:5230 --from=stage_conda /opt/conda /opt/conda
 COPY --link --chown=5230:5230 --from=stage_node /opt/node /opt/node
 COPY --link --chown=5230:5230 --from=stage_go /opt/go /opt/go
 COPY --link --chown=5230:5230 --from=stage_rust /opt/rust /opt/rust
-COPY --link --chown=5230:5230 --from=stage_java /opt/java /opt/java
+COPY --link --chown=5230:5230 --from=stage_java /home/x/.local/opt/java /home/x/.local/opt/java
 COPY --link --from=stage_nvidia_container_toolkit /opt/nvidia-container-toolkit/ /opt/nvidia/nvidia-container-toolkit/
 
 RUN --mount=type=bind,source=platform/container/workspace/scripts/install-s6.sh,target=/tmp/install-s6.sh \
@@ -194,7 +194,7 @@ RUN --mount=type=bind,source=platform/container/workspace/scripts/install-s6.sh,
 
 USER x
 COPY --chown=5230:5230 platform/container/workspace/agent/ /opt/codespace-agent/
-RUN /opt/java/java-tool/java-tool init \
+RUN UV_PYTHON_INSTALL_DIR=/opt/uv/python /home/x/.local/opt/java/java-tool/java-tool init \
   && /opt/node/node-tool/node-tool init \
   && UV_LINK_MODE=copy /usr/local/bin/uv sync --project /opt/codespace-agent --locked --no-dev \
     --python /opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14 \

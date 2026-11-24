@@ -70,6 +70,8 @@ file_mode() {
     go \
     home-links \
     homebrew \
+    java-runtime \
+    java-tools \
     node-runtime \
     node-tools \
     uv; do
@@ -183,4 +185,8 @@ file_mode() {
   grep -Fqx '  "$HOME/.local/share/node/nodejs26/bin"' "$zshrc"
   grep -Fqx '  "$HOME/.local/share/go/go1.27.1/bin"' "$zshrc"
   grep -Fqx '  "$HOME/.local/profile/go/bin"' "$zshrc"
+  grep -Fqx 'export JAVA_HOME="$HOME/.local/opt/java/openjdk27"' "$zshrc"
+  grep -Fqx '  "$HOME/.local/opt/java/java-tool"' "$zshrc"
+  grep -Fqx '  "$HOME/.local/opt/java/tools/bin"' "$zshrc"
+  grep -Fqx '  "$JAVA_HOME/bin"' "$zshrc"
 }

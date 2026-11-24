@@ -11,8 +11,8 @@ home source、LaunchAgent、默认应用和控制面 SSH wiring。`.agents/skill
   manifest，不增加零散 brew 命令。
 - `binman.yaml` 声明安装到 `~/.local` 的 standalone tools，与 Workspace 的 `/usr/local`
   布局对应；`maintenance/binman.sh` 在线 bootstrap binman、按 manifest 安装并建立 alias。
-- `maintenance/` 中每个脚本拥有一个可独立收敛的 host 操作。uv、Node.js、Node CLI 和 Go
-  分别维护，脚本不 source 或调用同目录其他脚本；Node CLI 复用 Workspace `node-tool`，
+- `maintenance/` 中每个脚本拥有一个可独立收敛的 host 操作。runtime 与 CLI 分别维护，
+  脚本不 source 或调用同目录其他脚本；复用 Workspace 的 `node-tool` 与 `java-tool`，
   依赖关系只由 Skill 编排。
 - `rootfs/Users/x/` 只保存 macOS-specific source。跨 macOS/Workspace 共用的 dotfile 和 SSH
   material 由 `maintenance/home-links.sh` 链接 `platform/container/workspace/rootfs/home/x/`。
@@ -29,6 +29,8 @@ home source、LaunchAgent、默认应用和控制面 SSH wiring。`.agents/skill
   由 Skill 先运行对应依赖操作。
 - 默认 Node.js runtime、Node CLI 的 runtime binding 与 editor npm 路径保持一致；已有
   CLI 不随 Shell PATH 切换，binding 变化时由 Skill 编排对应 package 的重装。
+- JDK 从 Temurin archive 提取 `Contents/Home`，采用 Linux 的 runtime 根布局，不注册
+  系统 JDK；Shell 与 editor 使用同一 runtime。
 - home link source 默认为 `0600`；可执行 source 必须显式声明 `0755`。只有目标需要独立
   inode、权限或运行期修改时才 copy。应用配置只使用该字段原生支持的路径语法，不增加
   安装时模板替换。

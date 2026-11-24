@@ -9,8 +9,7 @@ if [ "${1:-}" = init ]; then
     exit 1
   fi
   exec env -u VIRTUAL_ENV UV_PROJECT_ENVIRONMENT="$script_dir/.venv" \
-    UV_PYTHON_INSTALL_DIR=/opt/uv/python \
-    /usr/local/bin/uv sync --project "$script_dir" --locked --no-dev --python 3.14
+    uv sync --project "$script_dir" --locked --no-dev --python 3.14
 fi
 if [ ! -x "$script_dir/.venv/bin/python" ]; then
   printf 'error: Python environment is not initialized; run "%s init" first\n' "$0" >&2

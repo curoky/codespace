@@ -14,7 +14,7 @@ from typing import Annotated, Literal
 
 import typer
 
-DEFAULT_ROOT = Path("/opt/java/tools")
+DEFAULT_ROOT = Path.home() / ".local/opt/java/tools"
 NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._+-]*$")
 
 app = typer.Typer(

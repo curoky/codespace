@@ -34,7 +34,7 @@ Host；控制面通过本机 OpenSSH 管理 Host 上的 rootful Podman。
   `AGENTS.md`。不新增 `DESIGN.md` 或 `README.md`。
 - 配置 schema、container manifest、代码、测试与 `Taskfile.yaml` 是可变实现细节的
   source of truth。行为改变时同步更新受影响的 `AGENTS.md`，不要在文档中复制易失效的
-  版本、端口或完整清单。
+  版本、端口或完整清单，只保留当前基线与约束，不记录改造计划或历史状态。
 - 注释只解释代码无法表达的约束或外部兼容性原因，不复述实现。
 - Shell 脚本统一使用 `#!/usr/bin/env bash`，不新增 `sh` 方言脚本。
 - 目录按领域组织，不增加无明确 ownership 的 `common`、`utils` 或 compatibility
@@ -45,6 +45,8 @@ Host；控制面通过本机 OpenSSH 管理 Host 上的 rootful Podman。
   tilde 展开或额外账户查询。配置字段仅在确认原生支持路径展开时修改；不支持或无法
   确认时保留原值，不增加安装时模板替换或 Shell 包装。rootfs source layout、跨 stage
   COPY 和 container mount target 等固定 filesystem 合同保留绝对路径。
+- 自管 SDK/runtime 与语言 CLI 安装到 `$HOME/.local/opt`，macOS 与 Workspace 相对布局
+  一致；应用数据与 package manager 原生布局独立。
 
 ## Validation
 

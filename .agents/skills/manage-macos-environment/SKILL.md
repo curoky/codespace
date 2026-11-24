@@ -20,6 +20,8 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 | Node.js 24/26 缺失或版本变化 | `platform/macos/maintenance/node-runtime.sh` |
 | Prettier 缺失或版本变化 | `platform/macos/maintenance/node-tools.sh` |
 | Go 缺失或版本变化 | `platform/macos/maintenance/go.sh` |
+| Java 缺失或版本变化 | `platform/macos/maintenance/java-runtime.sh` |
+| java-tool 缺失或 source 变化 | `platform/macos/maintenance/java-tools.sh` |
 | home links 或 copied config 缺失 | `platform/macos/maintenance/home-links.sh` |
 | 默认应用关联需要重置 | `platform/macos/maintenance/default-apps.sh` |
 | Atuin daemon 缺失或需要重载 | `platform/macos/maintenance/atuin-daemon.sh` |
@@ -28,13 +30,14 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 
 - standalone CLI：修改 `platform/macos/binman.yaml`，运行 `binman.sh`。
 - macOS formula 或 GUI application：修改 `platform/macos/Brewfile`，运行 `homebrew.sh`。
-- Python、Node.js、Node.js CLI 或 Go runtime：修改对应 maintenance 脚本，运行该脚本。
+- Python、Node.js、Go 或 Java runtime 与 CLI：修改对应 maintenance 脚本，运行该脚本。
 - home config 或 LaunchAgent：修改 rootfs source，再运行 `home-links.sh` 或对应 service 脚本。
 
 增量依赖：
 
 - `uv.sh` 依赖 `binman.sh` 提供 uv。
 - `node-tools.sh` 依赖 `binman.sh` 提供 pnpm，并依赖 `node-runtime.sh` 提供 Node.js 26。
+- `java-tools.sh` 依赖 `java-runtime.sh` 与 `uv.sh`；不默认安装 Java CLI package。
 - `atuin-daemon.sh` 依赖 `binman.sh` 提供 Atuin。
 
 不要用临时 `brew install`、全局 `npm install`、全局 `pnpm add` 或手工复制文件替代这些脚本。
@@ -53,9 +56,11 @@ launcher，再运行 `node-tools.sh` 重装；仅改变 Shell PATH 不会更新�
 4. `platform/macos/maintenance/node-runtime.sh`
 5. `platform/macos/maintenance/node-tools.sh`
 6. `platform/macos/maintenance/go.sh`
-7. `platform/macos/maintenance/home-links.sh`
-8. `platform/macos/maintenance/default-apps.sh`
-9. `platform/macos/maintenance/atuin-daemon.sh`
+7. `platform/macos/maintenance/java-runtime.sh`
+8. `platform/macos/maintenance/java-tools.sh`
+9. `platform/macos/maintenance/home-links.sh`
+10. `platform/macos/maintenance/default-apps.sh`
+11. `platform/macos/maintenance/atuin-daemon.sh`
 
 某一步失败时停止，不运行依赖它的后续步骤。修复后从失败的原子操作继续，不重复执行无关操作。
 
@@ -73,6 +78,9 @@ test -x "$HOME/.local/share/node/tools/bin/prettier"
 test -x "$HOME/.local/share/go/go1.27.1/bin/go"
 "$HOME/.local/share/node/nodejs26/bin/node" --version
 "$HOME/.local/share/go/go1.27.1/bin/go" version
+"$HOME/.local/opt/java/openjdk27/bin/java" -version
+"$HOME/.local/opt/java/openjdk27/bin/javac" -version
+"$HOME/.local/opt/java/java-tool/java-tool" --help
 test -L "$HOME/.zshrc"
 
 domain="gui/$(id -u)"

@@ -27,6 +27,7 @@ export UV_TOOL_DIR="$HOME/.local/share/uv/tools"
 export UV_TOOL_BIN_DIR="$HOME/.local/share/uv/bin"
 export UV_PYTHON_INSTALL_DIR="$HOME/.local/share/uv/python"
 export UV_PYTHON_BIN_DIR="$HOME/.local/share/uv/bin"
+export JAVA_HOME="$HOME/.local/opt/java/openjdk27"
 
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
@@ -44,6 +45,9 @@ path=(
   "$HOME/go/bin"
   "$HOME/.local/share/go/go1.27.1/bin"
   "$HOME/.local/profile/go/bin"
+  "$HOME/.local/opt/java/java-tool"
+  "$HOME/.local/opt/java/tools/bin"
+  "$JAVA_HOME/bin"
   "${path[@]}"
 )
 

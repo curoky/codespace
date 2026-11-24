@@ -58,12 +58,19 @@ Dockerfile、manifest、脚本、类型和测试为准，不在文档中复述�
 
 ## Validation
 
-通用检查遵循根 `AGENTS.md`。行为或 artifact 变更还需构建受影响的 image：
+通用检查遵循根 `AGENTS.md`。本地只构建默认基础发行版的最终主 image，验证不挂载 resource
+时可独立启动：
 
 ```bash
-platform/container/workspace/build.sh
-platform/container/workspace/build.sh --resource
+/opt/podman/bin/podman build . --network=host \
+  --file platform/container/workspace/Dockerfile \
+  --target workspace --tag localhost/codespace-workspace-test --pull=missing
 ```
 
-主 image 与 payload 的接口同时变化时两者都构建。共享 s6 资产变化时，按根文档索引追加
-Service 与 WSL 验证；其他被 WSL 继承的 filesystem 变化也需验证 WSL。
+Resource 本地只验证阉割版：在临时目录从正式 Dockerfile 与 manifest 裁剪无关内容，保留
+受影响工具的真实安装、payload 布局、runtime binding、权限与测试，不提交裁剪配方。
+接口变化时联动验证主 image 的挂载、链接与工具调用；完成说明明确裁剪范围。
+完整 Resource 与基础发行版矩阵由 CI 构建。
+
+共享 s6 资产变化时，按根文档索引追加 Service 与 WSL 验证；其他被 WSL 继承的 filesystem
+变化也需验证 WSL。
