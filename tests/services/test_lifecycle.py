@@ -13,7 +13,7 @@ from codespace.runtime.transport import SSHRoute
 
 
 class FakeTransport:
-    client_value = SimpleNamespace()
+    client_value = SimpleNamespace(secrets=SimpleNamespace(exists=lambda _name: True))
 
     def __init__(self) -> None:
         self.tcp_forwards: list[tuple[str, str, dict[str, object]]] = []
@@ -110,6 +110,36 @@ def test_apply_failure_is_retained(manager: ControlPlane, monkeypatch: pytest.Mo
     assert failed.kind == "service"
     assert failed.status == "failed"
     assert failed.error == "RuntimeError: Podman unavailable"
+
+
+def test_apply_checks_secrets_before_any_mutation(
+    manager: ControlPlane, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    data = manager.config.model_dump()
+    data["services"]["support"]["container"]["secrets"] = [{"source": "missing"}]
+    manager.config = Config.model_validate(data)
+    manager.transport.client_value = SimpleNamespace(  # type: ignore[attr-defined]
+        secrets=SimpleNamespace(exists=lambda _name: False)
+    )
+    events: list[str] = []
+    monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: object())
+    for name in ("pull_image", "remove_container", "create_container"):
+        monkeypatch.setattr(
+            lifecycle.container, name, lambda *_args, **_kwargs: events.append("mutation")
+        )
+    monkeypatch.setattr(
+        lifecycle.host, "prepare_directories", lambda *_args: events.append("mutation")
+    )
+    monkeypatch.setattr(
+        lifecycle.host, "remote_data_paths", lambda _route: HostDataPaths("/home/x/codespace")
+    )
+    resource = Resource("home", "support")
+    manager.queue(resource)
+
+    manager.deploy(resource)
+
+    assert events == []
+    assert "secret 'missing'" in (manager.operations.list()[0].error or "")
 
 
 def test_remove_can_purge_service_data(

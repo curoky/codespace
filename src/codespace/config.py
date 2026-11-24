@@ -256,8 +256,6 @@ class Config(FrozenModel):
             workspace=workspace,
             host=host,
             source=configured.source,
-            platform=container.platform,
-            image=container.image,
             container=container,
             open_path=configured.resolved_open_path(),
             encrypted=self.project_encrypted(project),
@@ -268,7 +266,6 @@ class Config(FrozenModel):
         return ServiceSpec(
             service=service,
             host=host,
-            image=container.image,
             container=container,
             tunnel_ports=self.service_tunnel_ports(service),
         )

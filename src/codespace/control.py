@@ -135,7 +135,7 @@ class ControlPlane:
         self.transport.close()
 
     def inventory(self) -> dict[str, HostInventory | HostFailure]:
-        with ThreadPoolExecutor(max_workers=len(self.config.hosts)) as executor:
+        with ThreadPoolExecutor() as executor:
             return dict(
                 zip(
                     self.config.hosts,
@@ -221,28 +221,34 @@ class ControlPlane:
                 client, resource.container_name, labels=resource.labels
             )
 
-        stage(f"pulling image {spec.image}")
-        container.pull_image(
-            client,
-            spec.container.image,
-            spec.container.platform,
-            spec.container.pull_policy,
-        )
         data = host.remote_data_paths(route)
         path = (
             data.workspace(spec.project, spec.workspace)
             if isinstance(spec, WorkspaceSpec)
             else data.service(spec.service)
         )
+        runtime_spec = (
+            workspace_runtime.container_spec(spec, path, forwarded)
+            if isinstance(spec, WorkspaceSpec)
+            else spec.container.resolve_data_path(path)
+        )
+        stage("checking secrets")
+        runtime_spec.require_secrets(client)
+        stage(f"pulling image {spec.image}")
+        container.pull_image(
+            client,
+            runtime_spec.image,
+            runtime_spec.platform,
+            runtime_spec.pull_policy,
+        )
         stage("preparing data root")
-        directories = [path]
-        for directory in spec.container.data_directories(path):
-            if directory not in directories:
-                directories.append(directory)
+        directories = list(dict.fromkeys([path, *runtime_spec.data_directories(path)]))
         host.prepare_directories(route, directories)
         if isinstance(spec, WorkspaceSpec):
             stage("creating container")
-            created = workspace_runtime.create_container(client, spec, path, forwarded)
+            created = container.create_container(
+                client, name=resource.container_name, spec=runtime_spec, labels=spec.labels()
+            )
             workspace_runtime.bootstrap(spec, created, self.transport, path, credentials, stage)
         else:
             stage("replacing container")
@@ -252,7 +258,7 @@ class ControlPlane:
             container.create_container(
                 client,
                 name=resource.container_name,
-                spec=spec.container.resolve_data_path(path),
+                spec=runtime_spec,
                 labels=spec.labels(),
                 random_tcp_ports=spec.tunnel_ports,
             )
@@ -279,7 +285,6 @@ class ControlPlane:
         actual = workspaces.read_workspace(running, resource.host)
         workspace_runtime.check_rebuild(actual, spec)
         credentials = self._provider_credentials(spec.source)
-
         route = self.transport.ssh_route(resource.host)
         names = self.config.hosts[resource.host].forward_environment
         forwarded: dict[str, str] = {}
@@ -287,24 +292,26 @@ class ControlPlane:
             stage("reading host environment")
             forwarded = host.read_environment(route, names)
 
-        stage(f"pulling image {spec.image}")
-        container.pull_image(
-            client,
-            spec.container.image,
-            spec.container.platform,
-            "always",
-        )
         data = host.remote_data_paths(route)
         path = data.workspace(spec.project, spec.workspace)
+        runtime_spec = workspace_runtime.container_spec(spec, path, forwarded)
+        stage("checking secrets")
+        runtime_spec.require_secrets(client)
+        stage(f"pulling image {spec.image}")
+        container.pull_image(client, runtime_spec.image, runtime_spec.platform, "always")
         stage("preparing data root")
-        host.prepare_directories(route, [path, *spec.container.data_directories(path)])
+        host.prepare_directories(
+            route, list(dict.fromkeys([path, *runtime_spec.data_directories(path)]))
+        )
 
         stage("replacing container")
         container.remove_container(running)
         self.transport.close_tcp(resource.host, actual.ssh_alias)
         ssh.remove_route(actual)
         stage("creating container")
-        created = workspace_runtime.create_container(client, spec, path, forwarded)
+        created = container.create_container(
+            client, name=resource.container_name, spec=runtime_spec, labels=spec.labels()
+        )
         workspace_runtime.bootstrap(spec, created, self.transport, path, credentials, stage)
 
     def inspect_deletion(self, resource: Resource) -> RepoGitState:
@@ -314,6 +321,14 @@ class ControlPlane:
 
     def remove(self, resource: Resource, *, purge: bool = False) -> bool:
         spec = self.config.resource_spec(resource)
+        self._queue(resource)
+        with self.operations.run(resource.host, resource.id, reraise=True):
+            return self._remove(resource, spec, purge=purge)
+
+    def _remove(
+        self, resource: Resource, spec: WorkspaceSpec | ServiceSpec, *, purge: bool
+    ) -> bool:
+        self.operations.update(resource.host, resource.id, status="running", stage="removing")
         client = self.transport.client(resource.host)
         running = container.find_container(client, resource.container_name, labels=resource.labels)
         if resource.project is None:

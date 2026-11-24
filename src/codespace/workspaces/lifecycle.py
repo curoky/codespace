@@ -120,12 +120,11 @@ def inspect_deletion(
     ).git_state()
 
 
-def create_container(
-    client: PodmanClient,
+def container_spec(
     spec: WorkspaceSpec,
     data_path: str,
     forwarded_environment: dict[str, str],
-) -> Container:
+) -> ContainerSpec:
     environment = {
         **forwarded_environment,
         **spec.container.environment,
@@ -144,7 +143,7 @@ def create_container(
         "CODESPACE_ENCRYPTED": str(spec.encrypted).lower(),
     }
 
-    runtime_spec = ContainerSpec.model_validate(
+    return ContainerSpec.model_validate(
         {
             **spec.container.resolve_data_path(data_path).model_dump(),
             "environment": environment,
@@ -157,10 +156,4 @@ def create_container(
                 ),
             ],
         }
-    )
-    return container.create_container(
-        client,
-        name=spec.container_name,
-        spec=runtime_spec,
-        labels=spec.labels(),
     )

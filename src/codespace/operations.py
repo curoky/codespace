@@ -86,7 +86,7 @@ class OperationStore:
             self._operations.pop((host, resource_id), None)
 
     @contextmanager
-    def run(self, host: str, resource_id: str) -> Generator[None]:
+    def run(self, host: str, resource_id: str, *, reraise: bool = False) -> Generator[None]:
         """Complete a queued operation or retain its failure without rollback."""
         try:
             yield
@@ -99,6 +99,8 @@ class OperationStore:
                 stage="failed",
                 error=describe_error(exc),
             )
+            if reraise:
+                raise
         else:
             self.remove(host, resource_id)
 

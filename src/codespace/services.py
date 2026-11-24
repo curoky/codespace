@@ -6,7 +6,7 @@ from podman import PodmanClient
 from podman.domain.containers import Container
 from pydantic import BaseModel, ConfigDict
 
-from codespace.resources import LABEL_IMAGE, LABEL_KIND, Resource
+from codespace.resources import LABEL_IMAGE, LABEL_KIND, HostId, Resource, ResourceId
 from codespace.runtime.container import ContainerSpec, container_status
 
 LABEL_SERVICE = "codespace.service"
@@ -17,9 +17,8 @@ class ServiceMetadata(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
 
-    service: str
-    host: str
-    image: str
+    service: ResourceId
+    host: HostId
 
     @property
     def resource(self) -> Resource:
@@ -36,6 +35,10 @@ class ServiceSpec(ServiceMetadata):
     container: ContainerSpec
     tunnel_ports: list[int]
 
+    @property
+    def image(self) -> str:
+        return self.container.image
+
     def labels(self) -> dict[str, str]:
         return {**self.resource.labels, LABEL_IMAGE: self.image}
 
@@ -43,6 +46,7 @@ class ServiceSpec(ServiceMetadata):
 class Service(ServiceMetadata):
     """One actual Service container read from Podman labels."""
 
+    image: str
     container_id: str
     status: str
 

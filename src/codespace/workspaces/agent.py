@@ -52,7 +52,8 @@ class FailedStatus(_StatusResponse):
 type AgentStatus = Annotated[
     BootstrapStatus | ProviderStatus | FailedStatus, Field(discriminator="state")
 ]
-_STATUS: TypeAdapter[AgentStatus] = TypeAdapter(AgentStatus)
+# Mypy does not yet accept this PEP 695 alias as Pydantic's TypeForm input.
+_STATUS: TypeAdapter[AgentStatus] = TypeAdapter(AgentStatus)  # type: ignore[arg-type]
 
 
 class _ErrorResponse(BaseModel):

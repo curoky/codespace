@@ -21,6 +21,25 @@ class FakeTransport:
         return None
 
 
+def test_empty_configuration_has_an_empty_inventory() -> None:
+    config = Config.model_validate(
+        {
+            "hosts": {},
+            "project_defaults": {
+                "resource_image": "resource",
+                "container": {"image": "workspace"},
+            },
+        }
+    )
+    control = ControlPlane(config, transport=FakeTransport())  # type: ignore[arg-type]
+
+    assert control.inventory() == {}
+    dashboard = build(control)
+    assert dashboard["hosts"] == []
+    assert dashboard["workspaces"] == []
+    assert dashboard["services"] == []
+
+
 def test_dashboard_isolates_host_failure(config: Config, monkeypatch: pytest.MonkeyPatch) -> None:
     control = ControlPlane(config, transport=FakeTransport())  # type: ignore[arg-type]
     monkeypatch.setattr(

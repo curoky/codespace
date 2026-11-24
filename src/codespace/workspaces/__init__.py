@@ -122,7 +122,6 @@ class WorkspaceMetadata(BaseModel):
     workspace: ResourceId
     host: HostId
     source: list[Source]
-    image: str
     open_path: WorkspacePath
     encrypted: bool
 
@@ -150,8 +149,15 @@ class WorkspaceMetadata(BaseModel):
 class WorkspaceSpec(WorkspaceMetadata):
     """Resolved Project placement and one requested Workspace identity."""
 
-    platform: ImagePlatform | None
     container: ContainerSpec
+
+    @property
+    def image(self) -> str:
+        return self.container.image
+
+    @property
+    def platform(self) -> ImagePlatform | None:
+        return self.container.platform
 
     def labels(self) -> dict[str, str]:
         return {
@@ -168,7 +174,8 @@ class WorkspaceSpec(WorkspaceMetadata):
 
     def to_workspace(self, container_id: str, image_id: str, *, status: str) -> Workspace:
         return Workspace(
-            **self.model_dump(exclude={"platform", "container"}),
+            **self.model_dump(exclude={"container"}),
+            image=self.image,
             platform=self.platform or "native",
             container_id=container_id,
             image_id=image_id,
@@ -189,6 +196,7 @@ class RepoGitState(BaseModel):
 class Workspace(WorkspaceMetadata):
     """One actual Workspace container read from Podman labels."""
 
+    image: str
     platform: PlatformSelection
     container_id: str
     image_id: str

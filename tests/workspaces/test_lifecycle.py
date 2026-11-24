@@ -36,7 +36,7 @@ _CACHE_PATHS = (
 
 class FakeTransport:
     def __init__(self) -> None:
-        self.client_value = object()
+        self.client_value = SimpleNamespace(secrets=SimpleNamespace(exists=lambda _name: True))
         self.socket_forwards: list[tuple[str, str]] = []
         self.tcp_forwards: list[tuple[str, str, dict[str, object]]] = []
         self.closed_tcp: list[tuple[str, str]] = []
@@ -168,9 +168,9 @@ def test_create_handles_source_bootstrap_and_agent_protocol_failure(
     )
     monkeypatch.setattr(lifecycle.container, "pull_image", lambda *_args: events.append("pull"))
     monkeypatch.setattr(
-        lifecycle,
+        lifecycle.container,
         "create_container",
-        lambda *_args: (
+        lambda *_args, **_kwargs: (
             events.append("create"),
             SimpleNamespace(id="container-id", attrs={"Image": "sha256:current"}),
         )[-1],
@@ -299,10 +299,10 @@ def test_rebuild_pulls_latest_image_before_replacing_container(
     )
     monkeypatch.setattr(ssh, "remove_route", lambda _workspace: events.append("remove-route"))
     monkeypatch.setattr(
-        lifecycle,
+        lifecycle.container,
         "create_container",
-        lambda _client, actual_spec, _path, forwarded: (
-            events.append(("create", actual_spec.image, forwarded)),
+        lambda _client, *, spec, **_kwargs: (
+            events.append(("create", spec.image, {"HTTP_PROXY": spec.environment["HTTP_PROXY"]})),
             created,
         )[-1],
     )
@@ -389,6 +389,62 @@ def test_provider_bootstrap_registers_key_for_every_repository(
         ),
     ]
     assert "registering deploy keys" in stages
+
+
+@pytest.mark.parametrize("rebuild", [False, True])
+@pytest.mark.parametrize("invalid", ["secret", "runtime-spec"])
+def test_preflight_failure_keeps_workspace_and_files_untouched(
+    manager: ControlPlane,
+    monkeypatch: pytest.MonkeyPatch,
+    rebuild: bool,
+    invalid: str,
+) -> None:
+    spec = manager.config.workspace_spec("scratch", "home", "debug")
+    running = SimpleNamespace(
+        id="old-container",
+        name=spec.container_name,
+        labels=spec.labels(),
+        attrs={"State": {"Status": "running"}, "Image": "sha256:current"},
+    )
+    monkeypatch.setattr(lifecycle, "list_workspaces", lambda *_args: [])
+    monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
+    monkeypatch.setattr(host_runtime, "read_environment", lambda *_args: {})
+    if invalid == "secret":
+        data = manager.config.model_dump()
+        data["projects"]["scratch"]["container"] = {"secrets": [{"source": "missing"}]}
+        manager.config = Config.model_validate(data)
+        manager.transport.client_value = SimpleNamespace(  # type: ignore[attr-defined]
+            secrets=SimpleNamespace(exists=lambda _name: False)
+        )
+        error = "secret 'missing'"
+    else:
+        data = manager.config.model_dump()
+        data["projects"]["scratch"]["container"] = {
+            "ports": [
+                {"target": inventory.WORKSPACE_SSH_PORT, "published": 2222, "host_ip": "127.0.0.1"}
+            ]
+        }
+        manager.config = Config.model_validate(data)
+        error = "is published more than once"
+    for name in ("pull_image", "remove_container", "create_container"):
+        monkeypatch.setattr(
+            lifecycle.container, name, lambda *_args, **_kwargs: pytest.fail("unexpected mutation")
+        )
+    monkeypatch.setattr(
+        host_runtime, "prepare_directories", lambda *_args: pytest.fail("unexpected data write")
+    )
+    monkeypatch.setattr(ssh, "remove_route", lambda *_args: pytest.fail("unexpected route removal"))
+    resource = Resource("home", "debug", "scratch")
+    if rebuild:
+        manager.queue_rebuild(resource)
+        manager.rebuild(resource)
+    else:
+        manager.queue(resource)
+        manager.deploy(resource)
+    assert manager.transport.closed_tcp == []  # type: ignore[attr-defined]
+    failed = manager.operations.list()[0]
+    assert failed.status == "failed"
+    assert error in (failed.error or "")
 
 
 def test_rebuild_pull_failure_keeps_existing_container(
@@ -725,7 +781,6 @@ def test_logs_reads_podman_output(
 @pytest.mark.parametrize("encrypted", [False, True])
 def test_workspace_container_uses_fixed_ssh_listener_and_configured_mounts(
     config: Config,
-    monkeypatch: pytest.MonkeyPatch,
     encrypted: bool,
 ) -> None:
     data = config.model_dump()
@@ -771,22 +826,11 @@ def test_workspace_container_uses_fixed_ssh_listener_and_configured_mounts(
     data["projects"]["codespace"]["source"][0]["args"] = ["--depth=1", "--single-branch"]
     spec = Config.model_validate(data).workspace_spec("codespace", "home", "debug")
     original_container = spec.container.model_dump()
-    captured: dict[str, object] = {}
-    monkeypatch.setattr(
-        lifecycle.container,
-        "create_container",
-        lambda *_args, **kwargs: (captured.update(kwargs), SimpleNamespace())[-1],
+    runtime_spec = lifecycle.container_spec(
+        spec, _PATHS.workspace("codespace", "debug"), {"HTTP_PROXY": "proxy"}
     )
 
-    lifecycle.create_container(
-        SimpleNamespace(),  # type: ignore[arg-type]
-        spec,
-        _PATHS.workspace("codespace", "debug"),
-        {"HTTP_PROXY": "proxy"},
-    )
-
-    assert captured["name"] == "space-codespace-debug"
-    environment = captured["spec"].environment  # type: ignore[union-attr]
+    environment = runtime_spec.environment
     assert isinstance(environment, dict)
     assert environment["CODESPACE_OPEN_PATH"] == "/workspace/codespace"
     assert environment["CODESPACE_ENCRYPTED"] == str(encrypted).lower()
@@ -806,12 +850,12 @@ def test_workspace_container_uses_fixed_ssh_listener_and_configured_mounts(
         },
     ]
     assert "ATUIN_SYNC_ADDRESS" not in environment
-    assert [secret.source for secret in captured["spec"].secrets[:2]] == [  # type: ignore[union-attr]
+    assert [secret.source for secret in runtime_spec.secrets[:2]] == [
         "atuin_credentials",
         "atuin_db_uri",
     ]
-    assert all(secret.mode == 0o400 for secret in captured["spec"].secrets[:2])  # type: ignore[union-attr]
-    assert captured["spec"].secrets[2].model_dump() == {  # type: ignore[union-attr]
+    assert all(secret.mode == 0o400 for secret in runtime_spec.secrets[:2])
+    assert runtime_spec.secrets[2].model_dump() == {
         "source": "codespace_root_password",
         "target": "/run/secrets/codespace_root_password",
         "uid": "0",
@@ -820,7 +864,7 @@ def test_workspace_container_uses_fixed_ssh_listener_and_configured_mounts(
     }
     assert "SSHD_PORT" not in environment
     assert "SSHD_BIND" not in environment
-    assert captured["spec"].ports[-1].model_dump() == {  # type: ignore[union-attr]
+    assert runtime_spec.ports[-1].model_dump() == {
         "target": 22,
         "published": spec.ssh_host_port,
         "host_ip": "127.0.0.1",
@@ -855,15 +899,12 @@ def test_workspace_container_uses_fixed_ssh_listener_and_configured_mounts(
             for relative in _CACHE_PATHS
         ),
     ]
-    assert [volume.mount() for volume in captured["spec"].volumes] == expected_mounts  # type: ignore[union-attr]
-    assert [port.target for port in captured["spec"].ports] == [22]  # type: ignore[union-attr]
+    assert [volume.mount() for volume in runtime_spec.volumes] == expected_mounts
+    assert [port.target for port in runtime_spec.ports] == [22]
     assert spec.container.model_dump() == original_container
 
 
-def test_encrypted_workspace_uses_configured_compose_secret(
-    config: Config,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+def test_encrypted_workspace_uses_configured_compose_secret(config: Config) -> None:
     data = config.model_dump()
     data["projects"]["codespace"]["encrypted"] = True
     data["projects"]["codespace"]["container"] = {
@@ -879,23 +920,9 @@ def test_encrypted_workspace_uses_configured_compose_secret(
     }
     data["secrets"]["codespace_workspace_key"] = "test-key"
     spec = Config.model_validate(data).workspace_spec("codespace", "home", "debug")
-    captured: dict[str, object] = {}
-    monkeypatch.setattr(
-        lifecycle.container,
-        "create_container",
-        lambda *_args, **kwargs: (captured.update(kwargs), SimpleNamespace())[-1],
-    )
-
-    lifecycle.create_container(
-        SimpleNamespace(),  # type: ignore[arg-type]
-        spec,
-        _PATHS.workspace("codespace", "debug"),
-        {},
-    )
-
-    runtime_spec = captured["spec"]
-    assert runtime_spec.environment["CODESPACE_ENCRYPTED"] == "true"  # type: ignore[union-attr]
-    assert json.loads(runtime_spec.environment["CODESPACE_SOURCES"]) == [  # type: ignore[union-attr]
+    runtime_spec = lifecycle.container_spec(spec, _PATHS.workspace("codespace", "debug"), {})
+    assert runtime_spec.environment["CODESPACE_ENCRYPTED"] == "true"
+    assert json.loads(runtime_spec.environment["CODESPACE_SOURCES"]) == [
         {
             "type": "github",
             "clone_url": "git@github.com:curoky/codespace.git",
@@ -903,9 +930,9 @@ def test_encrypted_workspace_uses_configured_compose_secret(
             "args": [],
         }
     ]
-    assert captured["labels"]["codespace.encrypted"] == "true"  # type: ignore[index]
-    assert spec.container.secrets == runtime_spec.secrets  # type: ignore[union-attr]
-    assert runtime_spec.secrets[0].model_dump() == {  # type: ignore[union-attr]
+    assert spec.labels()["codespace.encrypted"] == "true"
+    assert spec.container.secrets == runtime_spec.secrets
+    assert runtime_spec.secrets[0].model_dump() == {
         "source": "codespace_workspace_key",
         "target": None,
         "uid": "5230",

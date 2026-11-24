@@ -108,3 +108,33 @@ def test_missing_container_removal_keeps_domain_semantics(
     else:
         with pytest.raises(ResourceNotFound, match="not found"):
             manager.remove(resource)
+
+
+@pytest.mark.parametrize("project", [None, "scratch"])
+@pytest.mark.parametrize("status", ["queued", "running"])
+def test_remove_rejects_an_in_flight_write_before_transport(
+    manager: ControlPlane, project: str | None, status: str
+) -> None:
+    resource = Resource("home", "support", project)
+    manager.queue(resource)
+    manager.operations.update(resource.host, resource.id, status=status)  # type: ignore[arg-type]
+
+    with pytest.raises(ResourceConflict, match="already running"):
+        manager.remove(resource, purge=True)
+
+    assert manager.operations.list()[0].status == status
+
+
+def test_remove_retains_and_reraises_failure(manager: ControlPlane) -> None:
+    manager.transport = SimpleNamespace(  # type: ignore[assignment]
+        client=lambda _host: (_ for _ in ()).throw(RuntimeError("connection failed"))
+    )
+    resource = Resource("home", "support")
+
+    with pytest.raises(RuntimeError, match="connection failed"):
+        manager.remove(resource)
+
+    failed = manager.operations.list()[0]
+    assert failed.id == resource.id
+    assert failed.status == "failed"
+    assert failed.error == "RuntimeError: connection failed"

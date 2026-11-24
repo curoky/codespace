@@ -8,6 +8,26 @@ from pydantic import ValidationError
 from codespace.config import Config, load_config
 
 
+def test_specs_derive_image_and_platform_from_the_container(config: Config) -> None:
+    workspace = config.workspace_spec("scratch", "home", "debug")
+    service = config.service_spec("support", "home")
+    for spec in (workspace, service):
+        updated = spec.model_copy(
+            update={"container": spec.container.model_copy(update={"image": "replacement"})}
+        )
+        assert updated.image == "replacement"
+        assert "image" not in updated.model_dump()
+        assert updated.labels()["codespace.image"] == "replacement"
+    updated_workspace = workspace.model_copy(
+        update={"container": workspace.container.model_copy(update={"platform": "linux/amd64"})}
+    )
+    assert updated_workspace.platform == "linux/amd64"
+    assert "platform" not in updated_workspace.model_dump()
+    actual = updated_workspace.to_workspace("container", "sha256:image", status="running")
+    assert actual.image == updated_workspace.image
+    assert actual.platform == updated_workspace.platform
+
+
 def test_tunnel_ports_default_and_project_override(config: Config) -> None:
     assert config.project_tunnel_ports("codespace") == []
     data = config.model_dump()

@@ -193,6 +193,10 @@ def _unique_volumes(volumes: list[VolumeSpec]) -> list[VolumeSpec]:
     targets = [volume.target for volume in volumes]
     if len(targets) != len(set(targets)):
         raise ValueError("volume targets must be unique")
+    # podman-py addresses named volumes by source, unlike its bind-mount list.
+    sources = [volume.source for volume in volumes if volume.type == "volume"]
+    if len(sources) != len(set(sources)):
+        raise ValueError("named volume sources must be unique")
     return volumes
 
 
@@ -234,6 +238,10 @@ class ContainerSpec(BaseModel):
     devices: list[NonBlankString] = Field(default_factory=list)
     ports: ContainerPorts = Field(default_factory=list)
     shm_size: NonBlankString | None = None
+
+    def require_secrets(self, client: PodmanClient) -> None:
+        for secret in self.secrets:
+            require_secret(client, secret.source)
 
     def resolve_data_path(self, data_path: str) -> Self:
         return self.model_copy(

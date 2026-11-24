@@ -187,6 +187,23 @@ def test_container_rejects_ambiguous_volume_targets(
 
 
 @pytest.mark.parametrize("model", [ContainerLayer, ContainerSpec])
+def test_named_volume_cannot_silently_replace_another_mount(
+    model: type[ContainerLayer] | type[ContainerSpec],
+) -> None:
+    with pytest.raises(ValidationError, match="named volume sources must be unique"):
+        model.model_validate(
+            {"image": "image", "volumes": ["shared-data:/first:ro", "shared-data:/second"]}
+        )
+
+
+def test_bind_source_can_be_mounted_at_distinct_targets() -> None:
+    spec = ContainerSpec.model_validate(
+        {"image": "image", "volumes": ["/host/data:/first:ro", "/host/data:/second"]}
+    )
+    assert [volume.target for volume in spec.volumes] == ["/first", "/second"]
+
+
+@pytest.mark.parametrize("model", [ContainerLayer, ContainerSpec])
 def test_container_preserves_literal_environment_and_duplicate_options(
     model: type[ContainerLayer] | type[ContainerSpec],
 ) -> None:
