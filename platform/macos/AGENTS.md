@@ -25,10 +25,12 @@ home source、LaunchAgent、默认应用和控制面 SSH wiring。`.agents/skill
 
 - 每个脚本直接执行时完成一个操作，必须可重复运行；不要新增全量安装入口、共享 helper
   framework、bundle、发布 workflow 或脚本间隐式调用。少量重复优先于跨操作抽象。
-- 脚本可以替换它明确管理的目标，但不得扫描或清理未声明的用户路径。依赖不存在时直接失败，
-  由 Skill 先运行对应依赖操作。
+- 优先复用软件或包管理器原生的简单维护能力；否则直接重建受管安装目录，不自建复杂的
+  增量更新或局部修复策略。不得扫描或清理未声明的用户路径；依赖缺失时直接失败，由
+  Skill 先运行对应依赖操作。
 - 默认 Node.js runtime、Node CLI 的 runtime binding 与 editor npm 路径保持一致；已有
   CLI 不随 Shell PATH 切换，binding 变化时由 Skill 编排对应 package 的重装。
+- `maintenance/node-tools.sh` 的默认 Node CLI 与 Workspace 保持一致。
 - JDK 从 Temurin archive 提取 `Contents/Home`，采用 Linux 的 runtime 根布局，不注册
   系统 JDK；Shell 与 editor 使用同一 runtime。
 - Python runtime 与隔离 CLI 由 uv 管理，使用 `UV_*_DIR` 指定用户级软件目录；缓存与项目

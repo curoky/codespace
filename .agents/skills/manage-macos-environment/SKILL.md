@@ -19,7 +19,7 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 | uv Python 3.14 缺失 | `platform/macos/maintenance/uv.sh` |
 | Python CLI 缺失或 manifest 变化 | `platform/macos/maintenance/python-tools.sh` |
 | Node.js 24/26 缺失或版本变化 | `platform/macos/maintenance/node-runtime.sh` |
-| Prettier 缺失或版本变化 | `platform/macos/maintenance/node-tools.sh` |
+| Node CLI 缺失或版本变化 | `platform/macos/maintenance/node-tools.sh` |
 | Go 缺失或版本变化 | `platform/macos/maintenance/go.sh` |
 | Rust toolchain 缺失或需要更新 | `platform/macos/maintenance/rust.sh` |
 | LLVM SDK 缺失或版本变化 | `platform/macos/maintenance/llvm.sh` |
@@ -49,8 +49,8 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 不要用临时 `brew install`、全局 `npm install`、全局 `pnpm add` 或手工复制文件替代这些脚本。
 软件声明变化时先修改对应 manifest 或脚本，再运行该操作。
 
-Node CLI 的 runtime binding 变化时，先移除对应 package 的 managed environment 与公开
-launcher，再运行 `node-tools.sh` 重装；仅改变 Shell PATH 不会更新已有 launcher 的 binding。
+`node-tools.sh` 整体重建受管 helper 与 CLI 目录。Node CLI 的 runtime binding 变化时重新
+运行该操作；仅改变 Shell PATH 不会更新已有 launcher 的 binding。
 
 ## Full Install
 
@@ -89,6 +89,8 @@ test -x "$HOME/.local/opt/uv/bin/python3.14"
 test -x "$HOME/.local/opt/node/nodejs24/bin/node"
 test -x "$HOME/.local/opt/node/nodejs26/bin/node"
 test -x "$HOME/.local/opt/node/tools/bin/prettier"
+"$HOME/.local/opt/node/tools/bin/defuddle" --help
+"$HOME/.local/opt/node/tools/bin/markdownlint-cli2" --version
 "$HOME/.local/opt/node/node-tool/node-tool" --help
 test -x "$HOME/.local/opt/go/go1.27.1/bin/go"
 "$HOME/.local/opt/node/nodejs26/bin/node" --version

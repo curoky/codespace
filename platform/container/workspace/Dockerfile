@@ -36,9 +36,8 @@ ENV CARGO_HOME=/home/x/.local/opt/rust/cargo RUSTUP_HOME=/home/x/.local/opt/rust
 ENV PATH=/home/x/.local/opt/rust/cargo/bin:${PATH}
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends ca-certificates curl \
-  && curl https://sh.rustup.rs -sSf | bash -s -- -y --profile default --no-modify-path --default-toolchain stable \
-  && rustup component add rust-src rust-analyzer llvm-tools \
-  && rustup component remove rust-docs
+  && curl https://sh.rustup.rs -sSf | bash -s -- -y --profile minimal --no-modify-path --default-toolchain stable \
+  && rustup component add clippy rustfmt rust-src rust-analyzer llvm-tools
 
 # ------------------------------------ Go ------------------------------------
 FROM docker.io/debian:stable-slim AS stage_go

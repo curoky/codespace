@@ -53,9 +53,7 @@ prepare_tool_dependencies() {
     "$HOME/.local/opt/node/nodejs26/bin"
   cat >"$HOME/.local/opt/node/nodejs26/bin/node" <<'EOF'
 #!/usr/bin/env bash
-set -euo pipefail
-printf 'node %s\n' "$*" >>"$TEST_EVENTS"
-printf '%s\n' "$TEST_INSTALLED_VERSION"
+exit 0
 EOF
   cat >"$HOME/.local/bin/pnpm" <<'EOF'
 #!/usr/bin/env bash
@@ -70,16 +68,18 @@ cat >"$UV_PROJECT_ENVIRONMENT/bin/python" <<'PYTHON'
 #!/usr/bin/env bash
 set -euo pipefail
 printf 'python-call %s\n' "$*" >>"$TEST_EVENTS"
+[[ "$3" != "${TEST_FAIL_PACKAGE:-}" ]] || exit 42
+package="${3%@*}"
+version="${3##*@}"
 root="$HOME/.local/opt/node/tools"
-mkdir -p "$root/envs/prettier/node_modules/prettier" "$root/bin"
-printf '%s\n' '{"version":"3.9.9"}' >"$root/envs/prettier/node_modules/prettier/package.json"
-printf '#!/usr/bin/env bash\nprintf "3.9.9\\n"\n' >"$root/bin/prettier"
-chmod 0755 "$root/bin/prettier"
+mkdir -p "$root/envs/$package/node_modules/$package" "$root/bin"
+printf '{"name":"%s","version":"%s","bin":{"%s":"cli.js"}}\n' "$package" "$version" "$package" \
+  >"$root/envs/$package/node_modules/$package/package.json"
+printf '#!/usr/bin/env bash\nexit 0\n' >"$root/bin/$package"
+chmod 0755 "$root/bin/$package"
 PYTHON
 chmod 0755 "$UV_PROJECT_ENVIRONMENT/bin/python"
 EOF
-  TEST_INSTALLED_VERSION=3.9.9
-  export TEST_INSTALLED_VERSION
   printf '#!/usr/bin/env bash\nexit 0\n' >"$HOME/.local/opt/uv/bin/python3.14"
   chmod 0755 "$HOME/.local/bin/"* "$HOME/.local/opt/node/nodejs26/bin/node"
   chmod 0755 "$HOME/.local/opt/uv/bin/python3.14"
@@ -116,7 +116,7 @@ EOF
   [ ! -e "$HOME/.local/opt/node/nodejs26" ]
 }
 
-@test "Node tools isolate Python and install through the shared helper" {
+@test "Node tools rebuild their managed directories and install through the shared helper" {
   prepare_tool_dependencies
   VIRTUAL_ENV="$TEST_ROOT/caller-env"
   UV_PROJECT_ENVIRONMENT="$TEST_ROOT/caller-project"
@@ -132,28 +132,65 @@ EOF
   cmp "$installer/node-tool.py" "$MACOS_DIR/../container/workspace/tools/node-tool/node-tool.py"
   grep -Fqx "python $HOME/.local/opt/uv/python" "$TEST_EVENTS"
   grep -Fqx 'venv ' "$TEST_EVENTS"
-  grep -Fqx "python-call $installer/node-tool.py install prettier@3.9.9 --node $HOME/.local/opt/node/nodejs26 --pnpm $HOME/.local/bin/pnpm --root $HOME/.local/opt/node/tools" "$TEST_EVENTS"
+  for package in defuddle@0.19.4 markdownlint-cli2@0.23.3 prettier@3.9.9; do
+    grep -Fqx "python-call $installer/node-tool.py install $package --node $HOME/.local/opt/node/nodejs26 --pnpm $HOME/.local/bin/pnpm --root $HOME/.local/opt/node/tools" "$TEST_EVENTS"
+    [ -x "$HOME/.local/opt/node/tools/bin/${package%@*}" ]
+  done
   [ ! -e "$TEST_ROOT/caller-project" ]
-  [ -f "$HOME/.local/opt/node/tools/envs/custom/keep" ]
+  [ ! -e "$HOME/.local/opt/node/tools/envs/custom" ]
   [ -x "$HOME/.local/opt/node/tools/bin/prettier" ]
 
   run "$MACOS_DIR/maintenance/node-tools.sh"
   [ "$status" -eq 0 ]
-  [ "$(grep -c '^python-call ' "$TEST_EVENTS")" = 1 ]
-  [ -f "$HOME/.local/opt/node/tools/envs/custom/keep" ]
+  [ "$(grep -c '^python-call ' "$TEST_EVENTS")" = 6 ]
+  [ ! -e "$HOME/.local/opt/node/tools/envs/custom" ]
 }
 
-@test "Node tools replace only their managed package when its version changes" {
+@test "Node tools rebuild their entire installation without touching other runtimes or user caches" {
   prepare_tool_dependencies
   run "$MACOS_DIR/maintenance/node-tools.sh"
   [ "$status" -eq 0 ]
-  touch "$HOME/.local/opt/node/tools/envs/prettier/stale"
-  TEST_INSTALLED_VERSION=0.0.0
-  export TEST_INSTALLED_VERSION
+  local root="$HOME/.local/opt/node/tools"
+  for package in defuddle markdownlint-cli2 prettier; do
+    touch "$root/envs/$package/stale"
+  done
+  mkdir -p "$root/envs/custom" "$root/store" "$HOME/.cache/npm" "$HOME/.local/opt/node/node-tool"
+  touch "$root/envs/custom/keep" "$root/store/keep" "$HOME/.cache/npm/keep"
+  touch "$HOME/.local/opt/node/node-tool/stale"
 
   run "$MACOS_DIR/maintenance/node-tools.sh"
   [ "$status" -eq 0 ]
-  [ ! -e "$HOME/.local/opt/node/tools/envs/prettier/stale" ]
+  for package in defuddle markdownlint-cli2 prettier; do
+    [ ! -e "$root/envs/$package/stale" ]
+  done
+  [ ! -e "$root/envs/custom" ]
+  [ ! -e "$root/store/keep" ]
+  [ ! -e "$HOME/.local/opt/node/node-tool/stale" ]
+  [ -x "$HOME/.local/opt/node/nodejs26/bin/node" ]
+  [ -f "$HOME/.cache/npm/keep" ]
+  [ "$(grep -c '^python-call ' "$TEST_EVENTS")" = 6 ]
+}
+
+@test "Node tools replace partial installations without reading package metadata" {
+  prepare_tool_dependencies
+  run "$MACOS_DIR/maintenance/node-tools.sh"
+  [ "$status" -eq 0 ]
+  rm "$HOME/.local/opt/node/tools/envs/defuddle/node_modules/defuddle/package.json"
+  rm "$HOME/.local/opt/node/tools/bin/prettier"
+  run "$MACOS_DIR/maintenance/node-tools.sh"
+  [ "$status" -eq 0 ]
+  [ -x "$HOME/.local/opt/node/tools/bin/prettier" ]
+  [ -f "$HOME/.local/opt/node/tools/envs/defuddle/node_modules/defuddle/package.json" ]
+  [ "$(grep -c '^python-call ' "$TEST_EVENTS")" = 6 ]
+}
+
+@test "Node tools stop immediately when a package installation fails" {
+  prepare_tool_dependencies
+  export TEST_FAIL_PACKAGE=markdownlint-cli2@0.23.3
+  run "$MACOS_DIR/maintenance/node-tools.sh"
+  [ "$status" -eq 42 ]
+  [ -x "$HOME/.local/opt/node/tools/bin/defuddle" ]
+  [ ! -e "$HOME/.local/opt/node/tools/envs/prettier" ]
   [ "$(grep -c '^python-call ' "$TEST_EVENTS")" = 2 ]
 }
 

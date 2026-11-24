@@ -57,9 +57,10 @@ teardown() {
   grep -Fqx 'bootstrap -y --no-modify-path --default-toolchain none' "$TEST_EVENTS"
   grep -Fqx "cargo $HOME/.local/opt/rust/cargo" "$TEST_EVENTS"
   grep -Fqx "rustup-home $HOME/.local/opt/rust/rustup" "$TEST_EVENTS"
-  grep -Fqx 'rustup toolchain install stable --profile default' "$TEST_EVENTS"
-  grep -Fqx 'rustup component add rust-src rust-analyzer llvm-tools --toolchain stable' "$TEST_EVENTS"
-  grep -Fqx 'rustup component remove rust-docs --toolchain stable' "$TEST_EVENTS"
+  grep -Fqx 'rustup toolchain install stable --profile minimal' "$TEST_EVENTS"
+  grep -Fqx 'rustup component add clippy rustfmt rust-src rust-analyzer llvm-tools --toolchain stable' "$TEST_EVENTS"
+  run grep -F rust-docs "$TEST_EVENTS"
+  [ "$status" -eq 1 ]
   grep -Fqx 'rustup default stable' "$TEST_EVENTS"
   [ "$(<"$HOME/.cargo/registry/keep")" = cache ]
   [ "$(<"$HOME/.zshrc")" = 'shell config' ]

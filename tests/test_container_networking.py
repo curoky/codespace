@@ -825,15 +825,16 @@ def test_macos_toolchains_match_workspace_versions() -> None:
     assert f"jdk-{major}%2B{build}/OpenJDK{major}U-jdk_aarch64_mac_hotspot_{major}_{build}" in java
     assert f'destination="$HOME/.local/opt/java/openjdk{major}"' in java
 
-    prettier_version = re.search(r"node-tool install prettier@(\d+\.\d+\.\d+)", dockerfile)
-    assert prettier_version is not None
-    assert f'version="{prettier_version.group(1)}"' in node_tools
+    node_packages = set(re.findall(r"node-tool install ([\w-]+@\d+\.\d+\.\d+)", dockerfile))
+    assert node_packages == {"defuddle@0.19.4", "markdownlint-cli2@0.23.3", "prettier@3.9.9"}
+    assert set(re.findall(r"[\w-]+@\d+\.\d+\.\d+", node_tools)) == node_packages
     assert 'tools/node-tool"' in node_tools
     assert '"$node_tool/node-tool" init' in node_tools
     assert 'UV_PYTHON_INSTALL_DIR="$HOME/.local/opt/uv/python"' in node_tools
     assert 'node_root="$HOME/.local/opt/node"' in node_runtime
     assert 'node_root="$HOME/.local/opt/node"' in node_tools
-    assert '"$node_tool/node-tool" install "prettier@${version}"' in node_tools
+    for package in node_packages:
+        assert f'"$node_tool/node-tool" install {package}' in node_tools
     assert '--node "$node_root/nodejs26"' in node_tools
     assert '--pnpm "$HOME/.local/bin/pnpm"' in node_tools
     assert '--root "$tools_root"' in node_tools
@@ -926,6 +927,12 @@ def test_go_installations_and_editor_tools_use_the_home_local_sdk() -> None:
         tools = json.loads(alternate_tools.group(1))
         for executable in ("go", "gofmt"):
             assert tools[executable] == f"{home}/.local/opt/go/go1.27.1/bin/{executable}"
+        assert "go-outline" not in tools
+        profile = "/usr/local/profile/go" if home == "/home/x" else f"{home}/.local/profile/go"
+        assert tools["gopls"] == f"{profile}/bin/gopls"
+        for name, path in tools.items():
+            if name not in {"go", "gofmt"}:
+                assert path.startswith(f"{profile}/bin/")
     assert (
         'destination="$HOME/.local/opt/go/go${version}"'
         in (macos / "maintenance/go.sh").read_text()
@@ -946,6 +953,11 @@ def test_rust_toolchain_installations_are_separate_from_user_cargo_data() -> Non
         "RUSTUP_HOME=/home/x/.local/opt/rust/rustup" in dockerfile
     )
     assert "ENV PATH=/home/x/.local/opt/rust/cargo/bin:${PATH}" in dockerfile
+    for source in (dockerfile, (macos / "maintenance/rust.sh").read_text()):
+        assert "--profile minimal" in source
+        assert "component add clippy rustfmt rust-src rust-analyzer llvm-tools" in source
+        assert "--profile default" not in source
+        assert "rust-docs" not in source
     assert (
         "test ! -e /opt/resource/home/x/.local/opt/rust"
         in (workspace / "resource.Dockerfile").read_text()
@@ -963,6 +975,59 @@ def test_rust_toolchain_installations_are_separate_from_user_cargo_data() -> Non
             f"toolchains/stable-{host}/share/zsh/site-functions"
             in (platform / home_source / ".zshrc").read_text()
         )
+
+
+def test_macos_go_ci_reads_editor_settings_before_leaving_the_repository() -> None:
+    workflow = yaml.safe_load(
+        (_CONTAINER.parents[1] / ".github/workflows/check-macos.yaml").read_text()
+    )
+    script = next(
+        step["run"]
+        for step in workflow["jobs"]["check"]["steps"]
+        if step.get("name") == "Verify native Go SDK and user binary separation"
+    )
+    assert script.index("settings = Path(") < script.index('cd "$work_dir"')
+
+
+@pytest.mark.parametrize("change", [None, "missing", "extra"])
+def test_macos_rust_ci_checks_native_installed_component_output(
+    tmp_path: Path, change: str | None
+) -> None:
+    workflow = yaml.safe_load(
+        (_CONTAINER.parents[1] / ".github/workflows/check-macos.yaml").read_text()
+    )
+    script = next(
+        step["run"]
+        for step in workflow["jobs"]["check"]["steps"]
+        if step.get("name") == "Verify native Rust SDK and user Cargo separation"
+    )
+    start = script.index('components="$(rustup component list --installed)"')
+    check = script[start : script.index("work_dir=", start)]
+    components = [
+        "cargo",
+        "clippy",
+        "llvm-tools",
+        "rust-analyzer",
+        "rust-src",
+        "rust-std",
+        "rustc",
+        "rustfmt",
+    ]
+    if change == "missing":
+        components.remove("rust-src")
+    elif change == "extra":
+        components.append("rust-docs")
+    names = [name if name == "rust-src" else f"{name}-aarch64-apple-darwin" for name in components]
+    rustup = tmp_path / "rustup"
+    rustup.write_text("#!/usr/bin/env bash\nprintf '%s\\n' " + " ".join(names) + "\n")
+    rustup.chmod(0o755)
+    result = subprocess.run(
+        ["bash", "-e", "-o", "pipefail", "-c", check],
+        env={**os.environ, "PATH": f"{tmp_path}:{os.environ['PATH']}"},
+        capture_output=True,
+        check=False,
+    )
+    assert (result.returncode == 0) == (change is None)
 
 
 def test_llvm_sdk_and_formatter_paths_match_across_platforms() -> None:

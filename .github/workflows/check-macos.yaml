@@ -152,6 +152,8 @@ jobs:
           "$HOME/.local/opt/node/nodejs24/bin/node" --version
           node-tool --help
           prettier --version
+          defuddle --help >/dev/null
+          markdownlint-cli2 --version
           go version
           java -version
           javac -version
@@ -163,6 +165,8 @@ jobs:
           test "$(command -v node)" = "$HOME/.local/opt/node/nodejs26/bin/node"
           test "$(command -v node-tool)" = "$HOME/.local/opt/node/node-tool/node-tool"
           test "$(command -v prettier)" = "$HOME/.local/opt/node/tools/bin/prettier"
+          test "$(command -v defuddle)" = "$HOME/.local/opt/node/tools/bin/defuddle"
+          test "$(command -v markdownlint-cli2)" = "$HOME/.local/opt/node/tools/bin/markdownlint-cli2"
           test "$(command -v go)" = "$HOME/.local/opt/go/go1.27.1/bin/go"
           test "$(command -v java)" = "$JAVA_HOME/bin/java"
           test "$(command -v java-tool)" = "$HOME/.local/opt/java/java-tool/java-tool"
@@ -181,6 +185,17 @@ jobs:
           export PATH="$HOME/.local/opt/go/go1.27.1/bin:$PATH"
           test "$(go env GOROOT)" = "$HOME/.local/opt/go/go1.27.1"
           test "$(go env GOPATH)" = "$HOME/go"
+          "$HOME/.local/opt/uv/bin/python3.14" - <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          settings = Path("platform/macos/rootfs/Users/x/Library/Application Support/Code/User/settings.json").read_text()
+          tools = json.loads(re.search(r'"go.alternateTools":\s*({[^}]+})', settings).group(1))
+          for name, path in tools.items():
+              assert os.access(path, os.X_OK), f"missing editor tool: {name}: {path}"
+          PY
           work_dir="$(mktemp -d)"
           trap 'rm -rf "$work_dir"' EXIT
           cd "$work_dir"
@@ -261,6 +276,11 @@ jobs:
           test "$(command -v rustc)" = "$HOME/.local/opt/rust/cargo/bin/rustc"
           test "$(rustc --print sysroot)" = "$RUSTUP_HOME/toolchains/stable-aarch64-apple-darwin"
           rust-analyzer --version
+          components="$(rustup component list --installed)"
+          for component in cargo clippy llvm-tools rust-analyzer rust-src rust-std rustc rustfmt; do
+            printf '%s\n' "$components" | grep -Eq "^${component}(-[^ ]+)?$"
+          done
+          test "$(printf '%s\n' "$components" | wc -l | tr -d ' ')" = 8
           work_dir="$(mktemp -d)"
           trap 'rm -rf "$work_dir"' EXIT
           cargo new --vcs none --name codespace_smoke "$work_dir/project"
