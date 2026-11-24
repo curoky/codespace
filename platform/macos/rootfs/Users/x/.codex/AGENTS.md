@@ -6,7 +6,7 @@
 - Node.js 优先使用 26；按项目需求从 `~/.local/opt/node/nodejs*` 选择版本，将其 `bin`
   放到 PATH 首位。
 - Node.js 全局 CLI 用 `node-tool` 安装到 `~/.local/opt/node/tools`，不使用全局 npm 或 pnpm 安装。
-- Go runtime 位于 `~/.local/share/go`，用户安装的 Go 命令位于 `~/go/bin`。
+- Go runtime 位于 `~/.local/opt/go`，用户安装的 Go 命令位于 `~/go/bin`。
 - Rust 工具链由 rustup 管理，位于 `~/.local/opt/rust`；`~/.cargo` 保留用户 CLI 与缓存。
 - Java runtime 位于 `~/.local/opt/java/openjdk*`；切换时同步设置 `JAVA_HOME` 与 PATH。
   Java CLI 用 `java-tool` 安装到 `~/.local/opt/java/tools`，不使用 Homebrew 安装 JDK。

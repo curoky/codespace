@@ -38,7 +38,7 @@ codespace_add_path /opt/resource/usr/local/bin
 
 # go
 codespace_add_path "$HOME/go/bin"
-codespace_add_path /opt/go/go1.27.1/bin
+codespace_add_path "$HOME/.local/opt/go/go1.27.1/bin"
 codespace_add_path /usr/local/profile/go/bin
 
 # llvm

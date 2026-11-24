@@ -78,9 +78,9 @@ test -x "$HOME/.local/opt/node/nodejs24/bin/node"
 test -x "$HOME/.local/opt/node/nodejs26/bin/node"
 test -x "$HOME/.local/opt/node/tools/bin/prettier"
 "$HOME/.local/opt/node/node-tool/node-tool" --help
-test -x "$HOME/.local/share/go/go1.27.1/bin/go"
+test -x "$HOME/.local/opt/go/go1.27.1/bin/go"
 "$HOME/.local/opt/node/nodejs26/bin/node" --version
-"$HOME/.local/share/go/go1.27.1/bin/go" version
+"$HOME/.local/opt/go/go1.27.1/bin/go" version
 CARGO_HOME="$HOME/.cargo" RUSTUP_HOME="$HOME/.local/opt/rust/rustup" \
   "$HOME/.local/opt/rust/cargo/bin/rustc" --version
 CARGO_HOME="$HOME/.cargo" RUSTUP_HOME="$HOME/.local/opt/rust/rustup" \

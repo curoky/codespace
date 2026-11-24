@@ -9,5 +9,6 @@ alwaysApply: true
 - Node.js 优先使用 26；按项目需求从 `~/.local/opt/node/nodejs*` 选择版本，将其 `bin` 放到 PATH 首位。
 - 切换 Java 时，将 `JAVA_HOME` 设为选定的 `~/.local/opt/java/openjdk*`，并将其 `bin` 放到 PATH 首位。
 - Rust 工具链由 rustup 管理，位于 `~/.local/opt/rust`；`~/.cargo` 保留用户 CLI 与缓存。
+- Go runtime 位于 `~/.local/opt/go`，用户安装的 Go 命令位于 `~/go/bin`。
 - 缺少系统软件、全局 CLI 或 runtime 时，说明用途和安装方式，由用户手动安装。
 - 构建和运行开发容器使用 `/opt/podman/bin/podman`。

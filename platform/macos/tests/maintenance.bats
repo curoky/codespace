@@ -185,7 +185,7 @@ file_mode() {
   grep -Fqx '  "$HOME/.local/opt/node/tools/bin"' "$zshrc"
   grep -Fqx '  "$HOME/.local/opt/node/node-tool"' "$zshrc"
   grep -Fqx '  "$HOME/.local/opt/node/nodejs26/bin"' "$zshrc"
-  grep -Fqx '  "$HOME/.local/share/go/go1.27.1/bin"' "$zshrc"
+  grep -Fqx '  "$HOME/.local/opt/go/go1.27.1/bin"' "$zshrc"
   grep -Fqx '  "$HOME/.local/profile/go/bin"' "$zshrc"
   grep -Fqx 'export CARGO_HOME="$HOME/.cargo"' "$zshrc"
   grep -Fqx 'export RUSTUP_HOME="$HOME/.local/opt/rust/rustup"' "$zshrc"

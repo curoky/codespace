@@ -45,7 +45,7 @@ path=(
   "$HOME/.local/opt/node/node-tool"
   "$HOME/.local/opt/node/nodejs26/bin"
   "$HOME/go/bin"
-  "$HOME/.local/share/go/go1.27.1/bin"
+  "$HOME/.local/opt/go/go1.27.1/bin"
   "$HOME/.local/profile/go/bin"
   "$CARGO_HOME/bin"
   "$HOME/.local/opt/rust/cargo/bin"

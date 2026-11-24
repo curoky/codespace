@@ -101,7 +101,7 @@ COPY --from=stage_python /opt/resource/home/x/.local/opt/uv /opt/resource/home/x
 FROM payload AS test
 USER 5230:5230
 RUN /opt/resource/opt/llvm/llvm23.1.2/bin/clang --version \
-  && test ! -e /opt/resource/opt/go \
+  && test ! -e /opt/resource/home/x/.local/opt/go \
   && test ! -e /opt/resource/home/x/.local/opt/rust \
   && test ! -e /opt/resource/home/x/.local/opt/node \
   && test ! -e /opt/resource/home/x/.local/opt/java/openjdk8 \

@@ -26,8 +26,8 @@
   "git.path": "/usr/local/store/git/bin/git",
   "go.alternateTools": {
     "dlv": "/usr/local/profile/go/bin/dlv",
-    "go": "/opt/go/go1.27.1/bin/go",
-    "gofmt": "/opt/go/go1.27.1/bin/gofmt",
+    "go": "/home/x/.local/opt/go/go1.27.1/bin/go",
+    "gofmt": "/home/x/.local/opt/go/go1.27.1/bin/gofmt",
     "gofumpt": "/usr/local/profile/go/bin/gofumpt",
     "goimports": "/usr/local/profile/go/bin/goimports",
     "golangci-lint": "/usr/local/profile/go/bin/golangci-lint",

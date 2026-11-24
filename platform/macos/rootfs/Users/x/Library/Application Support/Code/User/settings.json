@@ -242,9 +242,9 @@
   "go.alternateTools": {
     "dlv": "/Users/x/.local/store/delve/bin/dlv",
     "dlv-dap": "/Users/x/.local/store/delve/bin/dlv-dap",
-    "go": "/Users/x/.local/share/go/go1.27.1/bin/go",
+    "go": "/Users/x/.local/opt/go/go1.27.1/bin/go",
     "go-outline": "/Users/x/.local/store/go-outline/bin/go-outline",
-    "gofmt": "/Users/x/.local/share/go/go1.27.1/bin/gofmt",
+    "gofmt": "/Users/x/.local/opt/go/go1.27.1/bin/gofmt",
     "gofumpt": "/Users/x/.local/store/gofumpt/bin/gofumpt",
     "goimports": "/Users/x/.local/store/gotools/bin/goimports",
     "golangci-lint": "/Users/x/.local/store/golangci-lint/bin/golangci-lint",

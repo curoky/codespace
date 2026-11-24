@@ -121,7 +121,7 @@ jobs:
           set -euo pipefail
           export HOME="$CODESPACE_HOME"
           export JAVA_HOME="$HOME/.local/opt/java/openjdk27"
-          export PATH="$HOME/.local/bin:$HOME/.local/opt/uv/bin:$HOME/.local/opt/node/tools/bin:$HOME/.local/opt/node/node-tool:$HOME/.local/opt/node/nodejs26/bin:$HOME/.local/share/go/go1.27.1/bin:$HOME/.local/opt/java/java-tool:$HOME/.local/opt/java/tools/bin:$JAVA_HOME/bin:$PATH"
+          export PATH="$HOME/.local/bin:$HOME/.local/opt/uv/bin:$HOME/.local/opt/node/tools/bin:$HOME/.local/opt/node/node-tool:$HOME/.local/opt/node/nodejs26/bin:$HOME/.local/opt/go/go1.27.1/bin:$HOME/.local/opt/java/java-tool:$HOME/.local/opt/java/tools/bin:$JAVA_HOME/bin:$PATH"
 
           test -x "$HOME/.local/bin/uv"
           test -x "$HOME/.local/bin/pnpm"
@@ -129,7 +129,7 @@ jobs:
           test -x "$HOME/.local/opt/node/nodejs24/bin/node"
           test -x "$HOME/.local/opt/node/nodejs26/bin/node"
           test -x "$HOME/.local/opt/node/tools/bin/prettier"
-          test -x "$HOME/.local/share/go/go1.27.1/bin/go"
+          test -x "$HOME/.local/opt/go/go1.27.1/bin/go"
           test -x "$JAVA_HOME/bin/java"
           test -x "$JAVA_HOME/bin/javac"
           test ! -e "$HOME/.local/opt/java/openjdk8"
@@ -153,7 +153,7 @@ jobs:
           test "$(command -v node)" = "$HOME/.local/opt/node/nodejs26/bin/node"
           test "$(command -v node-tool)" = "$HOME/.local/opt/node/node-tool/node-tool"
           test "$(command -v prettier)" = "$HOME/.local/opt/node/tools/bin/prettier"
-          test "$(command -v go)" = "$HOME/.local/share/go/go1.27.1/bin/go"
+          test "$(command -v go)" = "$HOME/.local/opt/go/go1.27.1/bin/go"
           test "$(command -v java)" = "$JAVA_HOME/bin/java"
           test "$(command -v java-tool)" = "$HOME/.local/opt/java/java-tool/java-tool"
 
@@ -161,6 +161,27 @@ jobs:
           launchctl print "$domain/sh.atuin.daemon" >/dev/null
           atuin daemon status
           test -S "$HOME/.local/share/atuin/atuin.sock"
+
+      - name: Verify native Go SDK and user binary separation
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          export HOME="$CODESPACE_HOME"
+          export PATH="$HOME/.local/opt/go/go1.27.1/bin:$PATH"
+          test "$(go env GOROOT)" = "$HOME/.local/opt/go/go1.27.1"
+          test "$(go env GOPATH)" = "$HOME/go"
+          work_dir="$(mktemp -d)"
+          trap 'rm -rf "$work_dir"' EXIT
+          cd "$work_dir"
+          go mod init example.com/codespace-smoke
+          printf 'package main\nimport "fmt"\nfunc main() { fmt.Println("codespace") }\n' >main.go
+          gofmt -w main.go
+          test -z "$(gofmt -l main.go)"
+          GOPROXY=off go run .
+          GOPROXY=off go install .
+          test "$("$HOME/go/bin/codespace-smoke")" = codespace
+          test ! -e "$HOME/.local/opt/go/go1.27.1/bin/codespace-smoke"
 
       - name: Verify native managed Python and isolated tools
         if: github.event_name != 'pull_request'

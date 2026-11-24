@@ -143,6 +143,7 @@ def test_app_profile_sets_tools_and_preserves_inherited_environment(tmp_path: Pa
         "/usr/local/profile/clang-tools/bin",
         "/usr/local/profile/protobuf/bin",
         str(tmp_path / "go/bin"),
+        str(tmp_path / ".local/opt/go/go1.27.1/bin"),
         str(tmp_path / ".cargo/bin"),
         str(tmp_path / ".local/opt/rust/cargo/bin"),
         str(tmp_path / ".local/share/pnpm/bin"),
@@ -258,9 +259,7 @@ def test_workspace_bundles_runtimes_and_keeps_java_tools_in_resource() -> None:
     assert "/opt/resource/home/x/.local/opt/java/tools/bin" in profile
     assert '"$HOME/.local/opt/node/tools/bin"' in profile
     assert "/opt/resource/home/x/.local/opt/node" not in profile
-    assert "COPY --link --chown=5230:5230 --from=stage_go /opt/go /opt/go" in workspace_dockerfile
-    assert not (rootfs_opt / "go").is_symlink()
-    for family in ("java", "node", "rust"):
+    for family in ("java", "node", "rust", "go"):
         assert (
             f"COPY --link --chown=5230:5230 --from=stage_{family} "
             f"/home/x/.local/opt/{family} /home/x/.local/opt/{family}" in workspace_dockerfile
@@ -869,6 +868,30 @@ def test_macos_python_configuration_uses_uv_managed_paths() -> None:
         script = (macos / "maintenance" / operation).read_text()
         assert 'UV_PYTHON_INSTALL_DIR="$HOME/.local/opt/uv/python"' in script
         assert 'test -x "$HOME/.local/opt/uv/bin/python3.14"' in script
+
+
+def test_go_installations_and_editor_tools_use_the_home_local_sdk() -> None:
+    workspace = _CONTAINER / "workspace"
+    macos = _CONTAINER.parent / "macos"
+    settings_paths = (
+        (workspace / "rootfs/home/x/.vscode-server/data/Machine/settings.json", "/home/x"),
+        (macos / "rootfs/Users/x/Library/Application Support/Code/User/settings.json", "/Users/x"),
+    )
+    for settings_path, home in settings_paths:
+        alternate_tools = re.search(r'"go.alternateTools":\s*({[^}]+})', settings_path.read_text())
+        assert alternate_tools is not None
+        tools = json.loads(alternate_tools.group(1))
+        for executable in ("go", "gofmt"):
+            assert tools[executable] == f"{home}/.local/opt/go/go1.27.1/bin/{executable}"
+    assert (
+        'destination="$HOME/.local/opt/go/go${version}"'
+        in (macos / "maintenance/go.sh").read_text()
+    )
+    assert '"$HOME/.local/opt/go/go1.27.1/bin"' in (macos / "rootfs/Users/x/.zshrc").read_text()
+    assert (
+        "test ! -e /opt/resource/home/x/.local/opt/go"
+        in (workspace / "resource.Dockerfile").read_text()
+    )
 
 
 def test_rust_toolchain_installations_are_separate_from_user_cargo_data() -> None:

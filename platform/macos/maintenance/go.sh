@@ -3,7 +3,7 @@ set -euo pipefail
 
 version="1.27.1"
 expected_sha256="ee215d57e0ec269c60cc9ceca68e6bda321ba9ee5afe24f4b0988703c2d87d12"
-destination="$HOME/.local/share/go/go${version}"
+destination="$HOME/.local/opt/go/go${version}"
 marker="$destination/.codespace-version"
 
 if [[ -x "$destination/bin/go" && -f "$marker" ]] &&

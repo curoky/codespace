@@ -45,8 +45,8 @@ FROM docker.io/debian:stable-slim AS stage_go
 ADD --checksum=sha256:63d339f0da5ab53635a56f2490a7984dfe12dfcff22ad749f63edaf590168445 \
   https://go.dev/dl/go1.27.1.linux-amd64.tar.gz \
   /tmp/go.tar.gz
-RUN mkdir -p /opt/go/go1.27.1 \
-  && tar -xzf /tmp/go.tar.gz --strip-components=1 -C /opt/go/go1.27.1
+RUN mkdir -p /home/x/.local/opt/go/go1.27.1 \
+  && tar -xzf /tmp/go.tar.gz --strip-components=1 -C /home/x/.local/opt/go/go1.27.1
 
 # ----------------------------------- Java -----------------------------------
 FROM docker.io/debian:stable-slim AS stage_java
@@ -183,7 +183,7 @@ COPY --link --chown=5230:5230 --from=stage_nix /home/x/.local/state/nix /home/x/
 COPY --link --chown=5230:5230 --from=stage_python /home/x/.local/opt/uv /home/x/.local/opt/uv
 COPY --link --chown=5230:5230 --from=stage_conda /home/x/.local/opt/conda /home/x/.local/opt/conda
 COPY --link --chown=5230:5230 --from=stage_node /home/x/.local/opt/node /home/x/.local/opt/node
-COPY --link --chown=5230:5230 --from=stage_go /opt/go /opt/go
+COPY --link --chown=5230:5230 --from=stage_go /home/x/.local/opt/go /home/x/.local/opt/go
 COPY --link --chown=5230:5230 --from=stage_rust /home/x/.local/opt/rust /home/x/.local/opt/rust
 COPY --link --chown=5230:5230 --from=stage_java /home/x/.local/opt/java /home/x/.local/opt/java
 COPY --link --from=stage_nvidia_container_toolkit /opt/nvidia-container-toolkit/ /opt/nvidia/nvidia-container-toolkit/
