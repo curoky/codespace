@@ -18,7 +18,7 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 | standalone tools 缺失或 manifest 变化 | `platform/macos/maintenance/binman.sh` |
 | uv 默认 Python 缺失或声明变化 | `platform/macos/maintenance/uv.sh` |
 | Python CLI 缺失或声明变化 | `platform/macos/maintenance/python-tools.sh` |
-| Node.js 24/26 缺失或版本变化 | `platform/macos/maintenance/node-runtime.sh` |
+| Node.js runtime 缺失或声明变化 | `platform/macos/maintenance/node-runtime.sh` |
 | Node CLI 缺失或版本变化 | `platform/macos/maintenance/node-tools.sh` |
 | Go 缺失或版本变化 | `platform/macos/maintenance/go.sh` |
 | Rust toolchain 缺失或需要更新 | `platform/macos/maintenance/rust.sh` |
@@ -79,47 +79,10 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 
 ## Verification
 
-每次操作后验证其直接产物：
+只验证本次操作和其依赖。目标版本、安装布局与 executable 以所属 manifest/maintenance
+脚本为准，不维护第二份清单：检查 marker/链接和权限，再用实际命令做 version/help smoke
+check；compiler/runtime 变化还需最小编译或执行，不能只检查版本输出。
 
-```bash
-test -x "$HOME/.local/bin/uv"
-test -x "$HOME/.local/bin/pnpm"
-"$HOME/.local/opt/uv/bin/python" --version
-"$HOME/.local/opt/uv/bin/python3" --version
-"$HOME/.local/opt/uv/bin/copyparty" --help
-"$HOME/.local/opt/uv/bin/licenseheaders" --help
-"$HOME/.local/opt/uv/bin/netron" --help
-"$HOME/.local/opt/uv/bin/mitmdump" --version
-"$HOME/.local/opt/uv/bin/git-filter-repo" --version
-test -x "$HOME/.local/opt/node/nodejs24/bin/node"
-test -x "$HOME/.local/opt/node/nodejs26/bin/node"
-test -x "$HOME/.local/opt/node/tools/bin/prettier"
-"$HOME/.local/opt/node/tools/bin/defuddle" --help
-"$HOME/.local/opt/node/tools/bin/markdownlint-cli2" --version
-"$HOME/.local/opt/node/node-tool" --help
-test -x "$HOME/.local/opt/go/go1.27/bin/go"
-"$HOME/.local/opt/node/nodejs26/bin/node" --version
-"$HOME/.local/opt/go/go1.27/bin/go" version
-CARGO_HOME="$HOME/.cargo" RUSTUP_HOME="$HOME/.local/opt/rust/rustup" \
-  "$HOME/.local/opt/rust/cargo/bin/rustc" --version
-CARGO_HOME="$HOME/.cargo" RUSTUP_HOME="$HOME/.local/opt/rust/rustup" \
-  "$HOME/.local/opt/rust/cargo/bin/rustup" component list --installed
-"$HOME/.local/opt/llvm/llvm23/bin/clang" --version
-"$HOME/.local/opt/llvm/llvm23/bin/clang-format" --version
-"$HOME/.local/bin/gcc" --version
-"$HOME/.local/bin/g++" --version
-"$HOME/.local/opt/java/openjdk27/bin/java" -version
-"$HOME/.local/opt/java/openjdk27/bin/javac" -version
-"$HOME/.local/opt/java/java-tool" --help
-test -L "$HOME/.zshrc"
-
-domain="gui/$(id -u)"
-launchctl print "$domain/sh.atuin.daemon"
-atuin daemon status
-test -S "$HOME/.local/share/atuin/atuin.sock"
-tail -n 100 /tmp/atuin.daemon.log
-```
-
-只验证本次操作和其依赖，不因 macOS-only 维护构建 Workspace 镜像。修改共享 Workspace
-source 或 container artifact 时，再按对应目录 `AGENTS.md` 验证。不要启用可选的
-`sh.atuin.server`。
+home 操作验证链接、权限与 SSH include；LaunchAgent 操作验证 launchctl、daemon status、
+socket 与日志。不要启用可选的 `sh.atuin.server`。
+隔离 HOME 和原生平台验证遵循 `platform/macos/AGENTS.md`；macOS-only 操作不构建 Workspace。

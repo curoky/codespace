@@ -13,6 +13,7 @@ setup() {
 #!/usr/bin/env bash
 set -euo pipefail
 printf 'curl %s\n' "$*" >>"$TEST_EVENTS"
+[[ ${TEST_CURL_STATUS:-0} == 0 ]] || exit "$TEST_CURL_STATUS"
 while [[ $# -gt 0 ]]; do
   if [[ $1 == -o ]]; then
     cp "$TEST_ROOT/node.tar.xz" "$2"
@@ -111,6 +112,49 @@ EOF
   [ -f "$HOME/.local/opt/node/nodejs24/keep" ]
   [ -f "$HOME/.local/opt/node/custom/keep" ]
   [ ! -e "$HOME/.local/opt/node/nodejs26" ]
+  [ -z "$(find "$TMPDIR" -mindepth 1 -print -quit)" ]
+}
+
+@test "Node download failure cleans temporary files and preserves the installation" {
+  mkdir -p "$HOME/.local/opt/node/nodejs24"
+  touch "$HOME/.local/opt/node/nodejs24/keep"
+  export TEST_CURL_STATUS=22
+
+  run "$MACOS_DIR/maintenance/node-runtime.sh"
+
+  [ "$status" -eq 22 ]
+  [ -f "$HOME/.local/opt/node/nodejs24/keep" ]
+  [ ! -e "$HOME/.local/opt/node/nodejs24.installing" ]
+  [ -z "$(find "$TMPDIR" -mindepth 1 -print -quit)" ]
+}
+
+@test "Node rejects an incomplete archive before replacing the installation" {
+  prepare_node_archive
+  rm "$TEST_ROOT/package/node/bin/node"
+  tar -cJf "$TEST_ROOT/node.tar.xz" -C "$TEST_ROOT/package" node
+  mkdir -p "$HOME/.local/opt/node/nodejs24"
+  touch "$HOME/.local/opt/node/nodejs24/keep"
+
+  run "$MACOS_DIR/maintenance/node-runtime.sh"
+
+  [ "$status" -eq 1 ]
+  [ -f "$HOME/.local/opt/node/nodejs24/keep" ]
+  [ ! -e "$HOME/.local/opt/node/nodejs24.installing" ]
+  [ ! -e "$HOME/.local/opt/node/nodejs26" ]
+  [ -z "$(find "$TMPDIR" -mindepth 1 -print -quit)" ]
+}
+
+@test "Node extraction failure cleans staging and preserves the installation" {
+  printf 'not an archive\n' >"$TEST_ROOT/node.tar.xz"
+  mkdir -p "$HOME/.local/opt/node/nodejs24"
+  touch "$HOME/.local/opt/node/nodejs24/keep"
+
+  run "$MACOS_DIR/maintenance/node-runtime.sh"
+
+  [ "$status" -ne 0 ]
+  [ -f "$HOME/.local/opt/node/nodejs24/keep" ]
+  [ ! -e "$HOME/.local/opt/node/nodejs24.installing" ]
+  [ -z "$(find "$TMPDIR" -mindepth 1 -print -quit)" ]
 }
 
 @test "Node tools rebuild their managed directories and install through the shared helper" {

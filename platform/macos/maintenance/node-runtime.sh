@@ -3,7 +3,7 @@ set -euo pipefail
 
 node_root="$HOME/.local/opt/node"
 
-install_node() {
+install_node() (
   local major="$1"
   local version="$2"
   local expected_sha256="$3"
@@ -18,13 +18,13 @@ install_node() {
   local work_dir archive actual
   work_dir="$(mktemp -d)"
   archive="$work_dir/node.tar.xz"
+  trap 'rm -rf "$work_dir" "${destination}.installing"' EXIT
 
   curl -fsSL \
     "https://nodejs.org/dist/v${version}/node-v${version}-darwin-arm64.tar.xz" \
     -o "$archive"
   actual="$(shasum -a 256 "$archive" | awk '{print $1}')"
   if [[ "$actual" != "$expected_sha256" ]]; then
-    rm -rf "$work_dir"
     printf 'error: Node.js %s checksum mismatch\n' "$version" >&2
     return 1
   fi
@@ -32,11 +32,11 @@ install_node() {
   rm -rf "${destination}.installing"
   mkdir -p "${destination}.installing"
   tar -xf "$archive" --strip-components=1 -C "${destination}.installing"
+  test -x "${destination}.installing/bin/node"
   printf '%s\n' "$version" >"${destination}.installing/.codespace-version"
   rm -rf "$destination"
   mv "${destination}.installing" "$destination"
-  rm -rf "$work_dir"
-}
+)
 
 install_node \
   24 \

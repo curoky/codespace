@@ -80,3 +80,30 @@ teardown() {
   [ ! -e "$HOME/.local/opt/go" ]
   [ -z "$(find "$TMPDIR" -mindepth 1 -print -quit)" ]
 }
+
+@test "Go rejects an incomplete archive before replacing the installation" {
+  rm "$TEST_ROOT/package/go/bin/gofmt"
+  tar -czf "$TEST_ARCHIVE" -C "$TEST_ROOT/package" go
+  mkdir -p "$HOME/.local/opt/go/go1.27.4"
+  touch "$HOME/.local/opt/go/go1.27.4/keep"
+
+  run "$MACOS_DIR/maintenance/go.sh"
+
+  [ "$status" -eq 1 ]
+  [ -f "$HOME/.local/opt/go/go1.27.4/keep" ]
+  [ ! -e "$HOME/.local/opt/go/go1.27.4.installing" ]
+  [ -z "$(find "$TMPDIR" -mindepth 1 -print -quit)" ]
+}
+
+@test "Go extraction failure cleans staging and preserves the installation" {
+  printf 'not an archive\n' >"$TEST_ARCHIVE"
+  mkdir -p "$HOME/.local/opt/go/go1.27.4"
+  touch "$HOME/.local/opt/go/go1.27.4/keep"
+
+  run "$MACOS_DIR/maintenance/go.sh"
+
+  [ "$status" -ne 0 ]
+  [ -f "$HOME/.local/opt/go/go1.27.4/keep" ]
+  [ ! -e "$HOME/.local/opt/go/go1.27.4.installing" ]
+  [ -z "$(find "$TMPDIR" -mindepth 1 -print -quit)" ]
+}
