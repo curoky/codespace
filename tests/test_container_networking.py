@@ -304,8 +304,24 @@ def test_workspace_keeps_required_python_and_bundles_python_tools() -> None:
         "--python /home/x/.local/opt/uv/python/cpython-3.14-linux-x86_64-gnu/bin/python3.14"
         in dockerfile
     )
-    assert "uv tool install copyparty" in dockerfile
-    assert "uv tool install copyparty" not in resource_dockerfile
+    manifest = workspace / "config/python-tools.txt"
+    shared_tools = manifest.read_text().splitlines()
+    assert set(shared_tools) == {
+        "copyparty",
+        "licenseheaders",
+        "netron",
+        "mitmproxy",
+        "git-filter-repo",
+    }
+    assert (
+        "COPY platform/container/workspace/config/python-tools.txt /tmp/python-tools.txt"
+        in dockerfile
+    )
+    assert (
+        'uv tool install "$package" --python /home/x/.local/opt/uv/bin/python3.14 || exit'
+        in dockerfile
+    )
+    assert "done < /tmp/python-tools.txt" in dockerfile
     settings = json.loads(
         (workspace / "rootfs/home/x/.vscode-server/data/Machine/settings.json").read_text()
     )
@@ -319,8 +335,8 @@ def test_workspace_keeps_required_python_and_bundles_python_tools() -> None:
         "COPY --from=stage_build_tools /usr/local/store/uv/bin/uv /usr/local/bin/uv"
         in resource_dockerfile
     )
-    for tool in ("licenseheaders", "netron", "mitmproxy", "dool", "git-filter-repo"):
-        assert f"uv tool install {tool}" in dockerfile
+    assert "uv tool install dool" in dockerfile
+    for tool in (*shared_tools, "dool"):
         assert f"uv tool install {tool}" not in resource_dockerfile
     resource_tools = {"tensorboard": "3.12.15"}
     for tool, python in resource_tools.items():
@@ -869,6 +885,32 @@ def test_macos_python_configuration_uses_uv_managed_paths() -> None:
         script = (macos / "maintenance" / operation).read_text()
         assert 'UV_PYTHON_INSTALL_DIR="$HOME/.local/opt/uv/python"' in script
         assert 'test -x "$HOME/.local/opt/uv/bin/python3.14"' in script
+
+
+def test_python_cli_ownership_is_shared_without_package_manager_duplicates() -> None:
+    workspace = _CONTAINER / "workspace"
+    macos = _CONTAINER.parent / "macos"
+    shared_tools = set((workspace / "config/python-tools.txt").read_text().splitlines())
+    installer = (macos / "maintenance/python-tools.sh").read_text()
+    assert 'manifest="$macos_dir/../container/workspace/config/python-tools.txt"' in installer
+    assert (
+        '"$HOME/.local/bin/uv" tool install "$package" --python "$uv_root/bin/python3.14"'
+        in installer
+    )
+    assert 'uv_root="$HOME/.local/opt/uv"' in installer
+    for variable, directory in (
+        ("UV_TOOL_DIR", "tools"),
+        ("UV_TOOL_BIN_DIR", "bin"),
+        ("UV_PYTHON_INSTALL_DIR", "python"),
+        ("UV_PYTHON_BIN_DIR", "bin"),
+    ):
+        assert f'export {variable}="$uv_root/{directory}"' in installer
+    for manifest_path in (workspace / "config/binman.yaml", macos / "binman.yaml"):
+        manifest = yaml.safe_load(manifest_path.read_text())
+        packages = {package for install in manifest["installs"] for package in install["packages"]}
+        assert not (shared_tools | {"dool", "tensorboard"}) & packages
+    brewfile = (macos / "Brewfile").read_text()
+    assert not any(f'brew "{package}"' in brewfile for package in shared_tools)
 
 
 def test_go_installations_and_editor_tools_use_the_home_local_sdk() -> None:

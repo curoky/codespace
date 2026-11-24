@@ -75,6 +75,7 @@ file_mode() {
     llvm \
     node-runtime \
     node-tools \
+    python-tools \
     rust \
     uv; do
     [ -x "$MACOS_DIR/maintenance/$script.sh" ]

@@ -45,7 +45,6 @@ installs:
     - ghostscript
     - git-absorb
     - git-extras
-    - git-filter-repo
     - git-lfs
     - glab
     - gnugrep
@@ -78,7 +77,6 @@ installs:
     # - nerd-fonts-fira-code
     # - nerd-fonts-ubuntu-mono
     - netcat
-    # - netron
     # - ninja
     # - nixcache
     - openssl

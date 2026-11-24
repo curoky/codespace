@@ -17,6 +17,7 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 | Homebrew 或 Brewfile state 缺失 | `platform/macos/maintenance/homebrew.sh` |
 | standalone tools 缺失或 manifest 变化 | `platform/macos/maintenance/binman.sh` |
 | uv Python 3.14 缺失 | `platform/macos/maintenance/uv.sh` |
+| Python CLI 缺失或 manifest 变化 | `platform/macos/maintenance/python-tools.sh` |
 | Node.js 24/26 缺失或版本变化 | `platform/macos/maintenance/node-runtime.sh` |
 | Prettier 缺失或版本变化 | `platform/macos/maintenance/node-tools.sh` |
 | Go 缺失或版本变化 | `platform/macos/maintenance/go.sh` |
@@ -32,12 +33,15 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 
 - standalone CLI：修改 `platform/macos/binman.yaml`，运行 `binman.sh`。
 - macOS formula 或 GUI application：修改 `platform/macos/Brewfile`，运行 `homebrew.sh`。
-- Python、Node.js、Go、Rust、LLVM 或 Java runtime 与 CLI：修改对应 maintenance 脚本，运行该脚本。
+- 可移植 Python CLI：修改 `platform/container/workspace/config/python-tools.txt`，运行
+  `python-tools.sh`。
+- Python runtime 及其他语言的 runtime 与 CLI：修改对应 maintenance 脚本，运行该脚本。
 - home config 或 LaunchAgent：修改 rootfs source，再运行 `home-links.sh` 或对应 service 脚本。
 
 增量依赖：
 
 - `uv.sh` 依赖 `binman.sh` 提供 uv。
+- `python-tools.sh` 依赖 `binman.sh` 与 `uv.sh`。
 - `node-tools.sh` 依赖 `binman.sh`、`uv.sh` 与 `node-runtime.sh`。
 - `java-tools.sh` 依赖 `java-runtime.sh` 与 `uv.sh`；不默认安装 Java CLI package。
 - `atuin-daemon.sh` 依赖 `binman.sh` 提供 Atuin。
@@ -55,16 +59,17 @@ launcher，再运行 `node-tools.sh` 重装；仅改变 Shell PATH 不会更新�
 1. `platform/macos/maintenance/homebrew.sh`
 2. `platform/macos/maintenance/binman.sh`
 3. `platform/macos/maintenance/uv.sh`
-4. `platform/macos/maintenance/node-runtime.sh`
-5. `platform/macos/maintenance/node-tools.sh`
-6. `platform/macos/maintenance/go.sh`
-7. `platform/macos/maintenance/rust.sh`
-8. `platform/macos/maintenance/llvm.sh`
-9. `platform/macos/maintenance/java-runtime.sh`
-10. `platform/macos/maintenance/java-tools.sh`
-11. `platform/macos/maintenance/home-links.sh`
-12. `platform/macos/maintenance/default-apps.sh`
-13. `platform/macos/maintenance/atuin-daemon.sh`
+4. `platform/macos/maintenance/python-tools.sh`
+5. `platform/macos/maintenance/node-runtime.sh`
+6. `platform/macos/maintenance/node-tools.sh`
+7. `platform/macos/maintenance/go.sh`
+8. `platform/macos/maintenance/rust.sh`
+9. `platform/macos/maintenance/llvm.sh`
+10. `platform/macos/maintenance/java-runtime.sh`
+11. `platform/macos/maintenance/java-tools.sh`
+12. `platform/macos/maintenance/home-links.sh`
+13. `platform/macos/maintenance/default-apps.sh`
+14. `platform/macos/maintenance/atuin-daemon.sh`
 
 某一步失败时停止，不运行依赖它的后续步骤。修复后从失败的原子操作继续，不重复执行无关操作。
 
@@ -76,6 +81,11 @@ launcher，再运行 `node-tools.sh` 重装；仅改变 Shell PATH 不会更新�
 test -x "$HOME/.local/bin/uv"
 test -x "$HOME/.local/bin/pnpm"
 test -x "$HOME/.local/opt/uv/bin/python3.14"
+"$HOME/.local/opt/uv/bin/copyparty" --help
+"$HOME/.local/opt/uv/bin/licenseheaders" --help
+"$HOME/.local/opt/uv/bin/netron" --help
+"$HOME/.local/opt/uv/bin/mitmdump" --version
+"$HOME/.local/opt/uv/bin/git-filter-repo" --version
 test -x "$HOME/.local/opt/node/nodejs24/bin/node"
 test -x "$HOME/.local/opt/node/nodejs26/bin/node"
 test -x "$HOME/.local/opt/node/tools/bin/prettier"
