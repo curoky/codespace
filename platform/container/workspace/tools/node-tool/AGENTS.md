@@ -2,33 +2,44 @@
 
 ## Scope
 
-为主 image 构建、Workspace 运行期和 macOS maintenance 提供单向 npm CLI 安装。每个 package
-使用隔离的 pnpm project；依赖解析、registry 与 store 交给 pnpm，installer 不管理 Node.js、
-pnpm 或 package catalog。
+为 image 构建、Workspace 与 macOS maintenance 单向安装隔离 npm CLI。pnpm 拥有依赖解析、
+registry 与 store；installer 只拥有安装布局、命令发现与 runtime binding，不管理 Node.js、
+pnpm 或 package catalog，也不提供 init、upgrade、rollback 或并发写入能力。
 
 ## Contracts
 
-- 默认绑定用户级 Node.js runtime，pnpm 从调用方 PATH 查找；runtime 覆盖只在确有需要时
-  显式传递。CLI 及其子进程固定使用安装时选定的 runtime，不受项目环境切换影响。
-- 从安装结果的 `package.json#bin` 发现命令，不维护 package-to-command 清单；launcher
-  相对 tools root 定位，使安装结果可在 image stage 间搬迁，但绑定的 Node.js 路径仍须可用。
-- 默认 tools root 从当前用户的 Home 派生；构建 stage 显式设置固定用户的 HOME。
-- lifecycle scripts 必须由调用方按 package 显式授权，不默认放行。
-- 目标或公开命令已存在时失败，不扩展 overwrite、upgrade、rollback 或并发写入能力。
-- installer 是独立 Go executable；无运行期
-  Python、uv 或编译器依赖，不提供 `init`。Bash launcher 通过 `text/template` 渲染，模板
-  由 `go:embed` 编译进 executable；路径使用 Shell quoting，不依赖外部模板文件。
+- 每个 package 使用隔离 pnpm project；命令从安装结果的 `package.json#bin` 发现，不维护
+  package-to-command 清单。launcher 相对 tools root 定位，安装结果可跨 stage 搬迁，但固定
+  Node.js binding 仍须可用，CLI 及其子进程不随项目环境切换 runtime。
+- 默认 root 从当前用户 Home 派生，构建 stage 显式设置固定用户 HOME；runtime 覆盖只在
+  确有需要时传递，pnpm 从调用方 PATH 查找。
+- lifecycle scripts 必须由调用方按 package 显式授权，不默认放行。package 或公开命令
+  已存在时失败，不覆盖；这不是可重复安装接口。
+- 独立 Go executable 无运行期 Python、uv 或 compiler 依赖；
+  [launcher template](launcher.bash.tmpl) 经 `go:embed` 编译并用 `text/template` 渲染，
+  路径使用 Shell quoting，不依赖外部模板文件。
+
+## Main Flows
+
+[installTool](install.go) 校验 Node/pnpm，在 root 内创建临时 project 并调用 pnpm，读取
+安装后的 manifest 发现命令、检查冲突，再发布 environment 和 launcher。细节与可选参数
+以 [main.go](main.go) 和 [install.go](install.go) 为准，不自行实现 registry 或依赖解析。
+
+## Runtime I/O
+
+- **Reads**：读取选定 runtime、pnpm executable、安装后 manifest 与命令目标；package
+  参数可指向本地来源，pnpm 仍遵循自身配置和环境。
+- **Writes**：默认写入 `~/.local/opt/node/tools`，`--root` 可改变目标；包括持久 store、
+  package environments 和 `bin` launcher。临时 project 位于同 root，退出时尝试清理。
+- **Network**：pnpm 按 registry 配置或 `--registry` 解析、下载 package 与依赖。授权的
+  lifecycle scripts 以调用方权限运行，其网络与文件副作用不局限于 installer root。
+- **Results & Failure**：成功输出 package/version 与命令。准备失败不覆盖已有安装，但
+  cache 可保留；environment 发布后 launcher 写入失败可能留下不完整安装，不自动回滚。
+  installer 本身不修改 Shell profile 或系统 runtime。
 
 ## Validation
 
-通用检查遵循根文档。修改 installer、依赖、预装 package、runtime binding 或 profile 后，
-按上层约定构建完整主 image，同时覆盖预装产物与运行期 helper。开发时可先构建 CLI stage：
-
-```bash
-/opt/podman/bin/podman build . --network=host \
-  --file platform/container/workspace/Dockerfile \
-  --target stage_node \
-  --tag codespace-node-tool-test
-```
-
-CLI stage 不覆盖最终 rootfs、权限与 installer 环境，不能替代完整主 image 验证。
+[install_test.go](install_test.go) 验证安装、命令冲突、binding 与搬迁。installer、依赖、
+预装 package、binding 或 profile 变化按 Workspace 约定构建完整主 image，覆盖预装产物、
+运行期 helper 与 macOS；开发可先构建 Dockerfile 的 `stage_node`，但它不覆盖最终 rootfs、
+权限和运行期 helper，不能替代完整 image 验证。

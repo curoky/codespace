@@ -2,12 +2,21 @@
 
 ## Scope
 
-主 image 提供可独立启动的交互式环境、基础 runtime、rootfs 与 s6 graph；只读 Resource
-payload 提供可选工具，实例配置由控制面拥有。
+主 image 提供不依赖 Resource 即可启动的交互式环境、基础 runtime、rootfs 与静态 s6 graph；
+只读 Resource payload 提供可选工具，实例配置由控制面拥有。构建输入与 stage 由
+[Dockerfile](Dockerfile) 拥有，不在此维护软件或版本清单。
 
-内嵌 Agent、CLI installer 与 Codex LLMBox 的合同见各自下层 `AGENTS.md`。容器 AI 规则位于
-`rootfs/home/x/.codex/AGENTS.md`，与 `.trae/user_rules/container-environment.md` 正文一致；
-专项操作位于 `.codex/skills/`，使用约定变化同步对应规则。
+## Context Index
+
+| 任务 | 先读 |
+| --- | --- |
+| bootstrap、Git 状态与控制面协议 | [Workspace Agent](agent/AGENTS.md) |
+| 隔离 CLI 安装与 runtime binding | [node-tool](tools/node-tool/AGENTS.md) 或 [java-tool](tools/java-tool/AGENTS.md) |
+| Codex OAuth、token helper 与模型目录 | [Codex LLMBox](tools/codex-llmbox/AGENTS.md) |
+| 容器 AI 环境规则 | [Codex template](rootfs/home/x/.codex/AGENTS.md)；环境正文同步 [Trae rule](rootfs/home/x/.trae/user_rules/container-environment.md) |
+
+专项操作位于 rootfs 的 `.codex/skills/`，使用约定变化同步对应规则；这些分发模板按
+全局规则或 skill 用途组织，不视为 Workspace 下的业务模块文档。
 
 ## Contracts
 
@@ -16,23 +25,18 @@ payload 提供可选工具，实例配置由控制面拥有。
   默认 binding 与 profile 一致，构建 stage 显式设置固定用户 HOME。
 - Agent 是控制面通信组件，独立于用户与构建期 CLI；各 executable 的源码和测试直接放在
   所属目录，不增加 src 层。根 Taskfile 统一管理 Go 依赖与检查，工具 Taskfile 只提供专属操作。
-- Codex LLMBox 的 rootfs 拥有明文 profile、安装脚本模板。
-  内部标识密文保存于 custom-job 的 `identifiers.sh.gpg`，密码直接从 Workspace key secret 读取。
-  custom-job 以 x 使用 Workspace key 解密并替换模板，原子发布 profile 后执行安装。
-  key 缺失、错误或密文损坏时保留已有 profile；临时明文只存私有目录，退出时清理。
-  构建期不读取 key 或解密。
 - macOS arm64 helper 由 `publish-workspace-tools.yaml` 原生构建并经 GHCR/ORAS 分发；
   不含 runtime、package manager 或 Shell。首次安装需已有发布产物；Linux image 从源码
   构建，不依赖 GHCR helper tag。
   ORAS setup Action 使用内嵌 release 列表，升级 CLI 时需同时核对 Action 对目标版本和平台的支持。
 - 基础 runtime 和默认 service 不依赖 Resource；无 payload 时允许可选工具链接悬空。
-  immutable 内容和 s6 graph 在构建期完成，启动时不重建。停用 definition 位于
-  `rootfs/etc/s6/archive/`，恢复时移回服务图、按需加入 bundle 并重建。
+  immutable 内容和 s6 graph 在构建期完成，启动时不重建。恢复
+  [archive](rootfs/etc/s6/archive/) 中的停用 definition 时移回服务图、按需加入 bundle 并重建。
 - root service 只使用 root-owned 命令路径，用户软件/cache 与系统内容分离。用户以 `x`
   运行，挂载身份与 Host 一致；s6 用户服务显式设置 HOME。
 - Workspace、加密数据与 Podman 挂载根只做初始化，不递归 chown、迁移或清理已有数据。
   home-init 的递归归属调整仅限声明的 IDE 目录，不扩大到业务或 Podman 数据。
-- Shell 保持发行版原生启动规则，环境集中在 `rootfs/etc/profile.d/app.sh`；重复加载
+- Shell 保持发行版原生启动规则，环境集中在 [app.sh](rootfs/etc/profile.d/app.sh)；重复加载
   不改变 PATH 优先级，首次加载受管工具优先。非登录 Bash 继承环境或显式加载 profile，
   不增加 wrapper、BASH_ENV 或依赖主 runtime stage 的 OCI ENV。
 - GCC 由 Nix、LLVM SDK 由 Resource 提供，不改变 Framework/CUDA 的独立兼容组合。
@@ -54,6 +58,17 @@ payload 提供可选工具，实例配置由控制面拥有。
 - 内置 rootless Podman 仅服务 Workspace 用户，不连接 Host；运行实例不共享持久 storage，
   不自动迁移 driver。保留 subordinate IDs、setuid helper、必要权限与 unlimited pids；
   内部禁用 cgroups，构建使用 chroot isolation。GPU CDI 在运行期按注入设备/driver 生成。
+
+## Main Flows
+
+构建期安装 runtime、编译 Go executable，并装配 rootfs 与 s6 graph；Resource 在固定 mount
+path 安装完整 payload，主 image 只准备 discovery 和链接。运行期 s6 初始化挂载、用户
+目录与加密数据后启动依赖服务；不补装 runtime、不迁移已有业务数据。
+
+Codex LLMBox 的 rootfs 拥有明文 profile 与安装脚本模板；内部标识保存在 custom-job 的
+`identifiers.sh.gpg`。custom-job 以 `x` 直接读取 Workspace key secret，解密并替换模板，
+原子发布 profile 后执行安装。构建期不读取 key 或解密；key 缺失、错误或密文损坏时保留
+已有 profile，临时明文只在私有目录存放，退出时清理。
 
 ## Pitfalls
 
