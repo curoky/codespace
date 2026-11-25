@@ -106,9 +106,6 @@ projects:
     source: [{type: github, repository: curoky/userscripts}]
     hosts: [cpu1]
 
-  agent-playbook:
-    source: [{type: github, repository: curoky/agent-playbook}]
-    hosts: [cpu1]
   private-repo:
     source: [{ type: git, url: "git@git.example.com:team/private-repo" }]
     hosts: [cpu1]

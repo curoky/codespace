@@ -1,0 +1,6 @@
+interface:
+  display_name: "Rewrite Git History"
+  short_description: "安全清理、合并并自然重排 Git 历史"
+  default_prompt: "Use $rewrite-git-history to audit and safely rewrite this repository's Git history without changing its final tree."
+policy:
+  allow_implicit_invocation: true

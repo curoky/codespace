@@ -20,6 +20,8 @@ stage 和装配细节，Go executable 共用本目录 module，在构建期编�
 - 基础 runtime/默认 service 不依赖 Resource，缺 payload 时可选链接允许悬空。immutable
   内容与 s6 graph 构建期完成；恢复 [archive](rootfs/etc/s6/archive/) definition 时更新
   bundle 并重建，不在启动时重建 graph。
+- 通用 AI rules/skills 随 home rootfs 分发，不在构建或启动时从外部仓库安装。共享 skills
+  在 Codex source 维护，Trae 用逐项相对链接。
 - Resource Python 在固定 mount path 安装完整 payload；主 image 只链接 runtime 供 uv
   discovery，不移动 virtualenv 或改写 binding。主 image CLI 绑定默认 interpreter，
   Resource TensorBoard 保留独立 binding。
@@ -68,6 +70,8 @@ Linux image 从源码构建，不依赖 helper tag。构建/发布入口见
 ## Validation
 
 artifact 行为变化构建 Dockerfile 的最终 `workspace` target，验证无 Resource 也能启动。
+AI 分发与正文一致性由 `platform/macos/tests/ai.bats` 检查；历史重写 helper 依赖 GNU
+`date`，在 disposable repository 中验证，不改写本仓库历史。
 Resource 可在仓库外临时配方裁剪无关工具，但保留受影响工具的真实 payload/binding/权限/
 测试；接口变化同时检查主 image 的挂载、链接与调用。discovery 测试从真实 runtime 构造
 链接，不借用 Homebrew/系统 Python 布局。完整矩阵由 CI 构建，交付说明裁剪与未验证范围；

@@ -1,0 +1,1 @@
+../../.trae/user_rules/ai-collaboration.md

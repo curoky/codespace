@@ -45,6 +45,10 @@ Linux 是唯一受管 remote Host；本机控制面通过 OpenSSH 管理 Host �
 - 自管 SDK/runtime 与语言 CLI 放在 `$HOME/.local/opt`，macOS/Workspace 相对布局一致；
   可移植 Node/Python CLI 与默认 runtime、binding、profile、editor 路径同步，Linux-only
   CLI 独立声明。Rust SDK 精确锁定，不用浮动 channel；用户数据/cache/manager 保持原生布局。
+- 通用 AI 工作手册以 Workspace home rootfs 为共享来源，macOS 按声明条目链接；平台环境
+  规则由对应平台拥有，依赖容器服务或 secret 的 skills 不跨平台分发。项目维护 skills
+  留在 `.agents/skills/`，不作为用户级工作手册安装。两端 Codex 全局规则保持完整文件，
+  通用协作正文与 Trae rule 同步，不使用模板生成。
 - 不修改无关用户、工作树或远端状态；真实 token、secret 与机器配置不得提交。
 
 ### Documentation

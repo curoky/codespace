@@ -21,6 +21,7 @@
 - AI 规则与容器保持一致结构并同步使用约定，不额外安装软件管理 Skill；LaunchAgent/
   默认应用是显式独立操作，不隐式启用可选 service。GNU GCC 用 Homebrew，用户 bin 提供
   无后缀链接，不替换 Apple compiler。
+- AI 装配只替换声明的单个 rule 或 skill；工具父目录及其它来源内容不受管。
 
 ## Runtime I/O
 
@@ -53,3 +54,5 @@ Bundle cask list 只给短名，第三方 cask 声明 tap，跳过安装时也�
 [check-macos](../../.github/workflows/check-macos.yaml)，先发布 helper 避免旧产物，CI 不装
 GUI cask/改默认应用。隔离 HOME 验证须显式设置工具 PATH 并检查 binding；macOS-only
 变化不构建 Workspace，共享输入按根索引联动，不为文档检查执行安装。
+AI 检查同时验证共享正文、引用完整性及未受管目录保留；历史重写 helper 的 smoke test
+需 GNU `date`，原生完整安装后使用 binman 提供的命令再次验证。

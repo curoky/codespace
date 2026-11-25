@@ -69,6 +69,18 @@ link_home_path "$workspace_home" ".local/bin/eza-wrapper" ".local/bin/eza-wrappe
 link_home_path "$workspace_home" ".vimrc"
 
 link_home_path "$macos_home" ".codex/AGENTS.md"
+for skill in git-commit-message project-setup refactor rewrite-git-history; do
+  link_home_path "$workspace_home" ".codex/skills/$skill"
+done
+for editor in .trae .trae-cn; do
+  for skill in project-setup refactor; do
+    link_home_path "$workspace_home" ".codex/skills/$skill" "$editor/skills/$skill"
+  done
+  for rule in ai-collaboration git-commit-message; do
+    link_home_path "$workspace_home" ".trae/user_rules/$rule.md" "$editor/user_rules/$rule.md"
+  done
+  link_home_path "$macos_home" ".trae/user_rules/macos-environment.md" "$editor/user_rules/macos-environment.md"
+done
 rm -rf "$HOME/.codex/skills/manage-software" "$HOME/.trae-cn/skills/manage-software"
 link_home_path "$macos_home" ".config/mpv/mpv.conf"
 link_home_path "$macos_home" ".snipaste/config.ini"

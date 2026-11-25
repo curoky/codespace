@@ -36,4 +36,5 @@
 ## Collaboration
 
 - 交互沟通默认用中文。写文档时中英混合，描述性主体用中文，标题、专用名词与业界通用概念保留英文，保证准确与可检索。
+- Git commit message 不得包含 `Co-authored-by` trailer。
 - 用给 AI 看的 AGENTS.md 替代给人看的 README.md，及时更新关键上下文；过大时按主题拆到同目录专题文档（如 `DESIGN.md`）并在 AGENTS.md 保留索引。

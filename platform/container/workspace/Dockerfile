@@ -214,10 +214,5 @@ COPY --link --from=stage_nvidia_container_toolkit /opt/nvidia-container-toolkit/
 RUN --mount=type=bind,source=platform/container/workspace/scripts/install-s6.sh,target=/tmp/install-s6.sh \
   bash /tmp/install-s6.sh
 
-USER x
-RUN git clone --depth=1 https://github.com/curoky/agent-playbook /tmp/agent-playbook \
-  && bash /tmp/agent-playbook/install.sh \
-  && rm -rf /tmp/agent-playbook
-
 USER root
 ENTRYPOINT ["/etc/s6/init/bin/init"]
