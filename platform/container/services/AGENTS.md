@@ -2,51 +2,29 @@
 
 ## Scope
 
-为 Host singleton Service 提供可独立运行的 daemon image。部署 placement、mount、secret、
-device、publication 和 tunnel 属于控制面配置；leaf Dockerfile 只定义 image 内 runtime，
-不拥有控制面 lifecycle。
+提供 Host singleton daemon image；placement/mount/secret/device/publication/tunnel 属于
+控制面，leaf 只拥有内部 runtime。构建先准备 shared s6，再装配 leaf 的 rootfs/静态 graph；
+发布入口见 [workflow](../../../.github/workflows/publish-services.yaml)。
 
 ## Contracts
 
-- [s6](s6/) 是 Debian Service leaf 的 shared runtime，提供固定用户 `x`、s6 init、日志与 cron
-  基础。standalone-binaries 不发布 aarch64-linux 的完整 s6 stack，因此 `service-s6` 及当前
-  consumer 只发布 linux/amd64。修改 shared runtime 后必须重新构建所有直接或间接 consumer。
-- Debian leaf 可以继承 `service-s6`。异构 base 只从 s6 stage 复制可搬运的 `/usr/local`、
-  skel 和 service definition，并在自己的 filesystem 上运行 `install-s6.sh` 编译 graph。
-- leaf 只复制自身 `rootfs/` 和 service definition，不引入 Workspace SSH、deploy key、Agent、
-  home profile 或 rootless Podman。
-- s6 用户服务显式设置用户 `x` 的 HOME；启动脚本的用户 cache 从 `$HOME` 派生。
-- `support/` 是唯一明确拥有 Host rootful Podman socket maintenance 职责的 leaf；不要把该
-  mount 或权限推广到其他 Service。
-
-## Main Flows
-
-构建先准备 shared s6 runtime，再将 leaf 的 rootfs 与 service definition 装配为静态 graph；
-启动使用已编译 graph，不把 leaf policy 加入共享 base。
-[发布 workflow](../../../.github/workflows/publish-services.yaml) 先发布 shared runtime，
-成功后按其静态 matrix 并行发布全部 leaf；consumer 与构建细节以各 Dockerfile 为准。
+- [s6](s6/) 提供固定用户 `x`、init/日志/cron；上游无完整 aarch64-linux s6 stack，当前
+  runtime/consumer 只发布 linux/amd64。Debian leaf 可继承 base，异构 leaf 只搬运
+  `/usr/local`/skel/definition 并在自身 filesystem 编译 graph。
+- leaf 不引入 Workspace SSH/deploy key/Agent/home profile/rootless Podman；专属 policy
+  留在各自 rootfs，shared base 不增加 leaf policy。用户服务显式设置 HOME/cache。
+- [support](support/) 是唯一拥有 Host rootful Podman socket maintenance 职责的 leaf，
+  不将 mount/权限推广给其他 Service。
 
 ## Pitfalls
 
-- [chatbox](chatbox/)：upstream version、pnpm version、renderer build 与 `defaults.patch` 是一个构建
-  单元；patch 必须使用 `--fuzz=0`，避免上游变化被模糊套用。配置测试在
-  [tests/test_chatbox.py](../../../tests/test_chatbox.py)。
-- [sglang](sglang/)：source revision、PyTorch、kernel、deep-gemm、CUDA toolkit 和 JIT compiler
-  必须保持同一 CUDA stack；显式删除 resolver 带入的错误 CUDA major，并保留 import/compile
-  smoke check。
-- [vllm](vllm/)：commit、distribution version、Python 与 PyTorch CUDA index 是一个 wheel
-  compatibility unit；安装后校验实际 import version。
-- [secret](secret/) 与 [support](support/)：保持 payload 最小，cron/service 行为写入各自 rootfs，不在 shared
-  base 增加 leaf-specific policy。
+- [Chatbox](chatbox/) revision/pnpm/renderer/patch 作为构建单元；patch 用 `--fuzz=0`，
+  避免上游变化被模糊套用，配置测试见 [test_chatbox.py](../../../tests/test_chatbox.py)。
+- [SGLang](sglang/) source/PyTorch/kernel/deep-gemm/toolkit/JIT 必须同一 CUDA stack，
+  删除 resolver 带入的错误 major 并保留 import/compile smoke check。
+- [vLLM](vllm/) revision/distribution/Python/PyTorch CUDA index 同步，安装后检查实际 import version。
 
 ## Validation
 
-使用 repository root 作为 context 构建每个受影响 leaf，例如：
-
-```bash
-/opt/podman/bin/podman build . --file platform/container/services/<service>/Dockerfile \
-  --tag codespace-service-<service>-test
-```
-
-共享 `s6/`、Workspace 的 `install-s6.sh`、skel、日志或 cron source 变化时，构建全部 Service
-leaf。Chatbox 变化再运行 `uv run pytest tests/test_chatbox.py`。
+image 行为变化构建受影响 leaf；共享 s6/Workspace install-s6/skel/日志/cron 变化构建全部
+直接或间接 consumer。Chatbox 变化运行对应测试，具体构建输入以 Dockerfile 为准。

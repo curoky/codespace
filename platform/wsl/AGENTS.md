@@ -2,49 +2,33 @@
 
 ## Scope
 
-将 Workspace filesystem 派生为 WSL 可导入的 flat rootfs。WSL 是本地 distribution，不是
-受管 remote Host，不运行 OCI entrypoint；Linux boot overlay 与 Windows-side wiring 分开。
+将 Workspace filesystem 派生为 WSL flat rootfs；本地 distribution 不属于受管 Host。
+[build.sh](build.sh)/[export.sh](export.sh) 装配并导出 image，Windows 显式导入后由
+`/init` 调用 [boot.sh](rootfs/opt/codespace/wsl/boot.sh) 启动 inherited s6 的 `wsl` bundle。
 
 ## Contracts
 
-- [Dockerfile](Dockerfile) 继承指定 Workspace image，叠加本目录 rootfs，并在构建时
-  重新编译 s6 graph；WSL-specific 修正留在 overlay，不给共享 source 添加 platform branch。
-- flat export 只有 filesystem，OCI entrypoint、environment、labels、volume 和 healthcheck
-  均不保留，不能用 image 启动成功证明 WSL boot 可用。
-- [wsl.conf](rootfs/etc/wsl.conf) 指定用户 `x` 和 boot helper；Microsoft `/init` 保持 PID 1，
-  helper 直接启动 inherited s6 graph 的 `wsl` bundle。该 bundle 不启用 rootless Podman，
-  不假设控制面注入 Workspace secret、mount 或 environment。
-- [windows](windows/) 只拥有 keep-alive 和 `.wslconfig` sample；PowerShell task 与 Windows
-  network/runtime policy 不进入 Linux rootfs，build/export 不自动修改 Windows 状态。
-
-## Main Flows
-
-[build.sh](build.sh) 装配 overlay image，[export.sh](export.sh) 创建临时 container，
-用 filesystem export 和 gzip 输出 rootfs；Windows 显式安装/导入后，`/init` 调用
-[boot.sh](rootfs/opt/codespace/wsl/boot.sh)，等待 s6 readiness 再启动 `wsl` bundle。
+- [Dockerfile](Dockerfile) 构建时重编 s6 graph；WSL-specific 修正留在 overlay，不加共享
+  source platform branch。export 不保留 OCI 启动 metadata，不能靠 image 运行证明 WSL boot。
+- [wsl.conf](rootfs/etc/wsl.conf) 指定用户 `x`/boot helper，Microsoft `/init` 保持 PID 1；
+  bundle 不启 rootless Podman，不假设控制面注入 secret/mount/environment。
+- [windows](windows/) policy 不进入 Linux rootfs，build/export 不自动修改 Windows 状态；
+  idle-timeout 支持缺失/失效时才显式安装 keep-alive Scheduled Task。
 
 ## Runtime I/O
 
-- **Reads**：build 读取仓库 root context、Dockerfile 与 overlay；export 读取指定 image
-  filesystem。所需 base/registry 由 Dockerfile 和 image 参数确定，不上传用户业务文件。
-- **Writes**：build 写本地 image；export 直接覆盖指定输出文件，默认是当前目录的
-  `codespace.wsl`。退出时尝试移除临时 container；失败可能保留部分 gzip 输出，不恢复旧文件。
-- **Linux Changes**：boot 在 distribution 内以 root 应用声明的 sysctl，写 `/run/s6` 的
-  environment、通知管道与 service state，再启动 s6；不在 Windows Host 应用 Linux 配置。
-- **Windows Changes**：[setup-keepalive.ps1](windows/setup-keepalive.ps1) 是需要 elevated
-  PowerShell 的显式操作：创建或替换指定 distribution 的 Scheduled Task，并立即启动，
-  以 SYSTEM 发起 root `sleep infinity` 会话。脚本不自动应用 `.wslconfig` sample。
-- **Results & Failure**：成功 export 只代表 rootfs 文件已生成，不代表 WSL 已导入或运行。
-  keep-alive 注册与启动不是事务，启动失败后 task 可保留，移除需显式 unregister。
-
-## Pitfalls
-
-Workspace filesystem 变化进入下一次 WSL build；service dependency、init、环境或持久路径
-变化须检查 `wsl` bundle 是否仍独立可用。仅当 idle-timeout 支持缺失/失效时显式安装
-Scheduled Task，不将该操作当作 build/export 的自动补救。
+- **Reads**：export 读取指定 image filesystem；image/registry 由参数与 Dockerfile 确定。
+- **Writes**：export 直接覆盖输出文件，默认当前目录 `codespace.wsl`；退出尝试移除临时
+  container，失败可能保留部分 gzip 文件，不恢复旧输出。
+- **Linux Changes**：boot 在 distribution 内以 root 应用 sysctl，写 `/run/s6` environment/
+  通知管道/service state，等待 s6 readiness 后启 bundle，不改 Windows Host Linux 配置。
+- **Windows Changes**：[keep-alive](windows/setup-keepalive.ps1) 需 elevated PowerShell，
+  创建/替换并启动指定 distribution 的 Scheduled Task，以 SYSTEM 发起 root sleep 会话；
+  不自动应用 `.wslconfig` sample。
+- **Results & Failure**：export 成功不代表已导入/运行；task 注册后启动失败可保留 task，
+  移除须显式 unregister，操作无自动回滚。
 
 ## Validation
 
-构建与导出入口见 build/export scripts；它们使用 Docker-compatible CLI，在容器环境
-按根约定使用 `/opt/podman/bin/podman` 执行相应构建/导出。artifact 行为变化还需在 Windows
-验证 import、boot、keep-alive 与 SSH 登录，单独构建不能覆盖 flat-rootfs boot 合同。
+Workspace service/init/环境/持久路径变化检查 bundle 独立性；artifact 变化构建/export 后
+在 Windows 验证 import、boot、keep-alive 与 SSH，通用检查或单独 build 不能替代。

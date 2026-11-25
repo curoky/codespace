@@ -2,96 +2,73 @@
 
 ## Scope
 
-主 image 提供不依赖 Resource 即可启动的交互式环境、基础 runtime、rootfs 与静态 s6 graph；
-只读 Resource payload 提供可选工具，实例配置由控制面拥有。构建输入与 stage 由
-[Dockerfile](Dockerfile) 拥有，不在此维护软件或版本清单。
+主 image 提供不依赖 Resource 即可启动的交互式环境、runtime/rootfs 与静态 s6 graph；
+只读 Resource 提供可选工具，实例配置由控制面拥有。[Dockerfile](Dockerfile) 拥有构建
+stage 和装配细节，Go executable 共用本目录 module，在构建期编译，运行期不安装依赖。
 
 ## Context Index
 
 | 任务 | 先读 |
 | --- | --- |
-| bootstrap、Git 状态与控制面协议 | [Workspace Agent](agent/AGENTS.md) |
-| 隔离 CLI 安装与 runtime binding | [node-tool](tools/node-tool/AGENTS.md) 或 [java-tool](tools/java-tool/AGENTS.md) |
-| Codex OAuth、token helper 与模型目录 | [Codex LLMBox](tools/codex-llmbox/AGENTS.md) |
-| 容器 AI 环境规则 | [Codex template](rootfs/home/x/.codex/AGENTS.md)；环境正文同步 [Trae rule](rootfs/home/x/.trae/user_rules/container-environment.md) |
-
-专项操作位于 rootfs 的 `.codex/skills/`，使用约定变化同步对应规则；这些分发模板按
-全局规则或 skill 用途组织，不视为 Workspace 下的业务模块文档。
+| bootstrap/Git 状态/协议 | [Workspace Agent](agent/AGENTS.md) |
+| CLI 安装/binding | [node-tool](tools/node-tool/AGENTS.md)、[java-tool](tools/java-tool/AGENTS.md) |
+| OAuth/token helper/模型目录 | [Codex LLMBox](tools/codex-llmbox/AGENTS.md) |
+| 分发的 AI 规则 | [Codex template](rootfs/home/x/.codex/AGENTS.md)；环境正文同步 [Trae rule](rootfs/home/x/.trae/user_rules/container-environment.md)，按全局规则用途组织 |
 
 ## Contracts
 
-- Agent 与 tools 下的 CLI 是独立 Go executable，共用本目录 module 与构建 stage。构建期编译，
-  运行期不安装依赖或编译。installer 直接位于用户 Node/Java 根，与 runtime/tools 并列；
-  默认 binding 与 profile 一致，构建 stage 显式设置固定用户 HOME。
-- Agent 是控制面通信组件，独立于用户与构建期 CLI；各 executable 的源码和测试直接放在
-  所属目录，不增加 src 层。根 Taskfile 统一管理 Go 依赖与检查，工具 Taskfile 只提供专属操作。
-- macOS arm64 helper 由 `publish-workspace-tools.yaml` 原生构建并经 GHCR/ORAS 分发；
-  不含 runtime、package manager 或 Shell。首次安装需已有发布产物；Linux image 从源码
-  构建，不依赖 GHCR helper tag。
-  ORAS setup Action 使用内嵌 release 列表，升级 CLI 时需同时核对 Action 对目标版本和平台的支持。
-- 基础 runtime 和默认 service 不依赖 Resource；无 payload 时允许可选工具链接悬空。
-  immutable 内容和 s6 graph 在构建期完成，启动时不重建。恢复
-  [archive](rootfs/etc/s6/archive/) 中的停用 definition 时移回服务图、按需加入 bundle 并重建。
-- root service 只使用 root-owned 命令路径，用户软件/cache 与系统内容分离。用户以 `x`
-  运行，挂载身份与 Host 一致；s6 用户服务显式设置 HOME。
-- Workspace、加密数据与 Podman 挂载根只做初始化，不递归 chown、迁移或清理已有数据。
-  home-init 的递归归属调整仅限声明的 IDE 目录，不扩大到业务或 Podman 数据。
-- Shell 保持发行版原生启动规则，环境集中在 [app.sh](rootfs/etc/profile.d/app.sh)；重复加载
-  不改变 PATH 优先级，首次加载受管工具优先。非登录 Bash 继承环境或显式加载 profile，
+- 基础 runtime/默认 service 不依赖 Resource，缺 payload 时可选链接允许悬空。immutable
+  内容与 s6 graph 构建期完成；恢复 [archive](rootfs/etc/s6/archive/) definition 时更新
+  bundle 并重建，不在启动时重建 graph。
+- Resource Python 在固定 mount path 安装完整 payload；主 image 只链接 runtime 供 uv
+  discovery，不移动 virtualenv 或改写 binding。主 image CLI 绑定默认 interpreter，
+  Resource TensorBoard 保留独立 binding。
+- 构建期调用 Node/Java installer 前显式设置 `HOME=/home/x`，确保安装目录与固定 runtime
+  binding 对应运行用户；installer 位于 Node/Java 根，不混入 payload runtime。
+- root service 只用 root-owned 命令路径；用户 `x` 的挂载身份与 Host 一致，s6 用户服务
+  显式设置 HOME。用户软件/cache 与系统内容分离。
+- Workspace、加密数据与 Podman 挂载根只初始化，不递归 chown、迁移或清理已有数据；
+  home-init 的递归归属调整仅限声明的 IDE 目录。
+- Shell 保持原生启动规则，环境集中于 [app.sh](rootfs/etc/profile.d/app.sh)；首次加载
+  受管工具优先，重复加载不改变 PATH 优先级。非登录 Bash 继承环境或显式加载 profile，
   不增加 wrapper、BASH_ENV 或依赖主 runtime stage 的 OCI ENV。
-- GCC 由 Nix、LLVM SDK 由 Resource 提供，不改变 Framework/CUDA 的独立兼容组合。
-  Go/LLVM 精确版本目录使用 minor/major 相对链接，升级 patch 不改变调用方入口。
-- 默认 Node runtime、installer binding、内置 CLI binding 与 editor npm 路径同时更新。
-  可移植 Node/Python CLI 与 macOS 对齐，Linux-only CLI 独立声明。
-- uv 管理 Python runtime 和隔离 CLI，主 image CLI 绑定默认 interpreter，Resource
-  TensorBoard 保留独立 binding。Resource Python 在固定 mount path 安装完整 payload，
-  主 image 只链接 runtime 供 uv discovery，不移动 virtualenv 或改写 interpreter binding。
-- rustup/SDK 根独立于用户 CARGO_HOME；运行期 `~/.cargo` 保留用户 CLI 与 cache。
-  archive 精确锁定并校验，Rust SDK 不使用浮动 channel。
+- GCC 由 Nix、LLVM 由 Resource 提供，不改变 Framework/CUDA 兼容组合；Go/LLVM 精确
+  目录用 minor/major 相对链接保持入口稳定。rustup/SDK 与运行期 CARGO_HOME 分离，
+  `~/.cargo` 保留用户 CLI/cache。
 - 依赖 `/workspace` 的 service 必须依赖 gocryptfs-workspace；credential 从 runtime secret
-  读取，缺失时失败。添加依赖不隐式启用可选服务；用户启动安装 job 不属于 image build。
-  service 默认监听 loopback。
-- 每个 image 保有自身 package metadata，不跨 manager 重复安装。binman launcher/store/
-  profile 是完整 payload，调用稳定入口，不硬编码 content-addressed store 内部路径。
-- Conda ToS 使用 rootfs 系统 metadata 供 root/x 共用，只接受声明版本；条款更新后显式
-  重新接受并同步 rootfs，不自动接受未来条款。
-- 内置 rootless Podman 仅服务 Workspace 用户，不连接 Host；运行实例不共享持久 storage，
-  不自动迁移 driver。保留 subordinate IDs、setuid helper、必要权限与 unlimited pids；
-  内部禁用 cgroups，构建使用 chroot isolation。GPU CDI 在运行期按注入设备/driver 生成。
+  读取，缺失直接失败。添加依赖不隐式启用可选服务，service 默认监听 loopback。
+- package metadata 留在所属 image/manager，不重复安装；binman launcher/store/profile
+  作为完整 payload，调用稳定入口，不硬编码 content-addressed store 内部路径。
+- Conda ToS 用系统 metadata 供 root/x 共用；条款变化显式接受并同步 rootfs，不自动接受
+  未来版本。
+- 内置 rootless Podman 只服务 Workspace 用户，不连接 Host、不共享持久 storage 或迁移
+  driver。保留 subordinate IDs/setuid helper/必要权限/unlimited pids；内部禁用 cgroups，
+  构建用 chroot isolation，GPU CDI 按运行期注入设备/driver 生成。
 
 ## Main Flows
 
-构建期安装 runtime、编译 Go executable，并装配 rootfs 与 s6 graph；Resource 在固定 mount
-path 安装完整 payload，主 image 只准备 discovery 和链接。运行期 s6 初始化挂载、用户
-目录与加密数据后启动依赖服务；不补装 runtime、不迁移已有业务数据。
+构建装配 rootfs/runtime/executable/graph，启动初始化用户与挂载后运行依赖服务。
+[custom-job](rootfs/etc/s6/s6-rc.d/custom-job/run.sh) 以 `x` 从 Workspace key secret 解密
+内部标识，替换 rootfs 模板并原子发布 profile 后安装；构建期不读 key。解密失败保留已有
+profile，临时明文只在私有目录存放并退出清理，用户启动安装 job 不属于 image build。
 
-Codex LLMBox 的 rootfs 拥有明文 profile 与安装脚本模板；内部标识保存在 custom-job 的
-`identifiers.sh.gpg`。custom-job 以 `x` 直接读取 Workspace key secret，解密并替换模板，
-原子发布 profile 后执行安装。构建期不读取 key 或解密；key 缺失、错误或密文损坏时保留
-已有 profile，临时明文只在私有目录存放，退出时清理。
+macOS helper 从本仓库 GHCR/ORAS 获取，首次安装需先发布，不含 runtime/manager/Shell；
+Linux image 从源码构建，不依赖 helper tag。构建/发布入口见
+[publish-workspace-tools](../../../.github/workflows/publish-workspace-tools.yaml)。
 
 ## Pitfalls
 
-- 官方 Linux LLVM archive 不含 sysroot；Clang 项目须显式配置 Nix GCC 的系统 headers、
-  启动对象及 runtime/linker。仅 `--gcc-install-dir` 或 `clang --version` 不足以证明可用，
-  不通过 wrapper 或重复安装系统 compiler 隐藏此约束。
-- 系统认证需要发行版 setuid su 与静态 sudo 可校验的 SHA-512 password hash；替换
-  standalone package 或密码初始化不能丢失这两个条件。
-- 归档 Ollama service 未预装 executable，恢复前先安装到其脚本指定路径。
+- Linux LLVM archive 不含 sysroot；Clang 项目须显式配置 Nix GCC headers、启动对象与
+  runtime/linker，不能用 `clang --version` 或单个 `--gcc-install-dir` 证明可用，也不加 wrapper
+  或重复 compiler 隐藏限制。
+- 系统认证依赖发行版 setuid su 与静态 sudo 可校验的 SHA-512 hash，软件替换/密码初始化
+  不能丢失这两个条件。归档 Ollama 未预装 executable，恢复前按定义安装。
+- ORAS setup Action 使用内嵌 release 列表；升级 CLI 同时核对 Action 的版本/平台支持。
 
 ## Validation
 
-通用 CI 使用 uv-managed Python；Resource discovery 测试从其真实 runtime 构造链接，不借用
-Homebrew 或系统 Python 的安装布局。
-
-本地构建默认发行版最终主 image，验证无 Resource 也能启动：
-
-```bash
-/opt/podman/bin/podman build . --network=host \
-  --file platform/container/workspace/Dockerfile \
-  --target workspace --tag localhost/codespace-workspace-test --pull=missing
-```
-
-Resource 在仓库外临时配方中裁剪无关工具，保留受影响工具的真实安装、payload、binding、
-权限与测试；接口变化同时验证主 image 的挂载、链接和调用，交付说明裁剪范围。
-完整 Resource 与发行版矩阵由 CI 构建。继承的 filesystem/s6 变化按根索引追加 Service/WSL 验证。
+artifact 行为变化构建 Dockerfile 的最终 `workspace` target，验证无 Resource 也能启动。
+Resource 可在仓库外临时配方裁剪无关工具，但保留受影响工具的真实 payload/binding/权限/
+测试；接口变化同时检查主 image 的挂载、链接与调用。discovery 测试从真实 runtime 构造
+链接，不借用 Homebrew/系统 Python 布局。完整矩阵由 CI 构建，交付说明裁剪与未验证范围；
+共享 filesystem/s6 变化按根索引联动 Service/WSL。
