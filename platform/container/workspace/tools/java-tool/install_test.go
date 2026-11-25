@@ -256,6 +256,8 @@ func TestLibrariesPreserveOrderWithoutCacheDependency(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, []byte([]string{"app", "dependency"}[index]), data)
 		require.NoError(t, os.Remove(file))
+		path, err = filepath.EvalSymlinks(path)
+		require.NoError(t, err)
 		classpath = append(classpath, path)
 	}
 	cmd := exec.Command(filepath.Join(relocated, "bin/app"), "two words", "it's quoted")
