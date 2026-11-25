@@ -5,7 +5,7 @@
 主 image 提供可独立启动的交互式环境、基础 runtime、rootfs 与 s6 graph；只读 Resource
 payload 提供可选工具，实例配置由控制面拥有。
 
-内嵌 Agent 与 CLI installer 的合同见各自下层 `AGENTS.md`。容器 AI 规则位于
+内嵌 Agent、CLI installer 与 Codex provider 的合同见各自下层 `AGENTS.md`。容器 AI 规则位于
 `rootfs/home/x/.codex/AGENTS.md`，与 `.trae/user_rules/container-environment.md` 正文一致；
 专项操作位于 `.codex/skills/`，使用约定变化同步对应规则。
 
@@ -14,6 +14,8 @@ payload 提供可选工具，实例配置由控制面拥有。
 - Agent、node-tool、java-tool 是独立 Go executable，共用本目录 module。构建期编译，
   运行期不安装依赖或编译。installer 直接位于用户 Node/Java 根，与 runtime/tools 并列；
   默认 binding 与 profile 一致，构建 stage 显式设置固定用户 HOME。
+- Codex provider 使用独立 Go module/stage，镜像只安装二进制；
+  接入凭据在运行期提供，构建时不登录或生成用户 profile。
 - macOS arm64 helper 由 `publish-workspace-tools.yaml` 原生构建并经 GHCR/ORAS 分发；
   不含 runtime、package manager 或 Shell。首次安装需已有发布产物；Linux image 从源码
   构建，不依赖 GHCR helper tag。

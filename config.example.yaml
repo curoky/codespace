@@ -55,6 +55,10 @@ project_defaults:
       - {source: github_token_public_read, uid: '5230', gid: '5230', mode: 0400}
       - {source: github_token_all_read, uid: '5230', gid: '5230', mode: 0400}
       - {source: github_token_all_action_rw, uid: '5230', gid: '5230', mode: 0400}
+      - {source: codespace_llmbox_oauth_issuer, uid: '5230', gid: '5230', mode: 0400}
+      - {source: codespace_llmbox_oauth_client_id, uid: '5230', gid: '5230', mode: 0400}
+      - {source: codespace_llmbox_base_url, uid: '5230', gid: '5230', mode: 0400}
+      - {source: codespace_llmbox_source, uid: '5230', gid: '5230', mode: 0400}
     cap_add: [NET_RAW, SYS_ADMIN]
     security_opt: [label=disable, seccomp=unconfined, apparmor=unconfined]
     pids_limit: -1
@@ -226,3 +230,8 @@ secrets:
   atuin_credentials: masked
 
   huggingface_token: masked
+
+  codespace_llmbox_oauth_issuer: https://identity.example.com
+  codespace_llmbox_oauth_client_id: example-public-client
+  codespace_llmbox_base_url: https://models.example.com/
+  codespace_llmbox_source: example
