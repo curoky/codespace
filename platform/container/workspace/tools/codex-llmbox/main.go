@@ -15,7 +15,7 @@ import (
 func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	var outputJSON bool
 	app := &cobra.Command{
-		Use: "codex-llmbox-provider", Short: "Connect native Codex to an OAuth Responses provider",
+		Use: "codex-llmbox", Short: "Connect native Codex to LLMBox",
 		SilenceErrors: true, SilenceUsage: true,
 		CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
 	}

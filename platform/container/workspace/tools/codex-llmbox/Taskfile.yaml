@@ -1,0 +1,22 @@
+version: '3'
+
+tasks:
+  default:
+    desc: 列出 Codex LLMBox 任务
+    cmds: [task --list]
+    silent: true
+
+  build:
+    desc: 构建 Codex LLMBox 二进制
+    cmds:
+      - go build -mod=readonly -trimpath -o bin/codex-llmbox .
+
+  login:
+    desc: OAuth Device Flow 登录
+    cmds:
+      - bin/codex-llmbox login {{.CLI_ARGS}}
+
+  models:
+    desc: 查询 native catalog
+    cmds:
+      - bin/codex-llmbox models {{.CLI_ARGS}}

@@ -5,7 +5,7 @@
 主 image 提供可独立启动的交互式环境、基础 runtime、rootfs 与 s6 graph；只读 Resource
 payload 提供可选工具，实例配置由控制面拥有。
 
-内嵌 Agent、CLI installer 与 Codex provider 的合同见各自下层 `AGENTS.md`。容器 AI 规则位于
+内嵌 Agent、CLI installer 与 Codex LLMBox 的合同见各自下层 `AGENTS.md`。容器 AI 规则位于
 `rootfs/home/x/.codex/AGENTS.md`，与 `.trae/user_rules/container-environment.md` 正文一致；
 专项操作位于 `.codex/skills/`，使用约定变化同步对应规则。
 
@@ -16,7 +16,7 @@ payload 提供可选工具，实例配置由控制面拥有。
   默认 binding 与 profile 一致，构建 stage 显式设置固定用户 HOME。
 - Agent 是控制面通信组件，独立于用户与构建期 CLI；各 executable 的源码和测试直接放在
   所属目录，不增加 src 层。根 Taskfile 统一管理 Go 依赖与检查，工具 Taskfile 只提供专属操作。
-- Codex provider 的 rootfs 拥有明文 profile、安装脚本模板。
+- Codex LLMBox 的 rootfs 拥有明文 profile、安装脚本模板。
   内部标识密文保存于 custom-job 的 `identifiers.sh.gpg`，密码直接从 Workspace key secret 读取。
   custom-job 以 x 使用 Workspace key 解密并替换模板，原子发布 profile 后执行安装。
   key 缺失、错误或密文损坏时保留已有 profile；临时明文只存私有目录，退出时清理。

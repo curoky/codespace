@@ -30,7 +30,7 @@ platform/container/services/asr/regression
 **/node_modules
 
 # Build outputs & packages
-/platform/container/workspace/tools/codex-llmbox-provider/bin
+/platform/container/workspace/tools/codex-llmbox/bin
 *.deb
 *.tar
 *.wsl

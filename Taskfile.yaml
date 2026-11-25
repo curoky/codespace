@@ -2,8 +2,8 @@ version: '3'
 
 includes:
   codex:
-    taskfile: platform/container/workspace/tools/codex-llmbox-provider/Taskfile.yaml
-    dir: platform/container/workspace/tools/codex-llmbox-provider
+    taskfile: platform/container/workspace/tools/codex-llmbox/Taskfile.yaml
+    dir: platform/container/workspace/tools/codex-llmbox
 
 vars:
   WORKSPACE_IMAGE: platform/container/workspace

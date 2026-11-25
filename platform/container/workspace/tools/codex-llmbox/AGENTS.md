@@ -1,9 +1,9 @@
-# Codex LLMBox Provider
+# Codex LLMBox
 
 ## Scope
 
 原生 Codex 的 OAuth Responses 接入工具，各操作一个文件。
-Taskfile 提供构建、登录与模型查询入口，Workspace 镜像提供 `codex-llmbox-provider` 命令。
+Taskfile 提供构建、登录与模型查询入口，Workspace 镜像提供 `codex-llmbox` 命令。
 main.go 只接线 CLI；各操作的输入处理与输出位于所属文件。
 
 ## Contracts
@@ -20,7 +20,7 @@ main.go 只接线 CLI；各操作的输入处理与输出位于所属文件。
   profile 通过镜像内固定命令入口调用 `token`；登录与 Codex token helper 使用相同的 HOME。
   Codex 自己读取模型目录；独立 app-server 使用自身配置。
 
-custom-job 完成解密后，容器内执行 `codex-llmbox-provider login`，之后使用 `codex -p llmbox`。
+custom-job 完成解密后，容器内执行 `codex-llmbox login`，之后使用 `codex -p llmbox`。
 
 ## Runtime I/O
 
@@ -40,8 +40,8 @@ custom-job 完成解密后，容器内执行 `codex-llmbox-provider login`，之
 | `~/.codex/.llmbox.auth.json*` | `login` 在同目录创建 `0600` 临时文件，发布时 rename，正常返回时清理 |
 
 镜像构建期安装二进制到
-`/home/x/.local/opt/stage_codex_llmbox_provider/bin/codex-llmbox-provider`，
-并创建 `/home/x/.local/bin/codex-llmbox-provider` 链接；这些不是运行期写入。
+`/home/x/.local/opt/stage_codex_llmbox/bin/codex-llmbox`，
+并创建 `/home/x/.local/bin/codex-llmbox` 链接；这些不是运行期写入。
 二进制不访问 Codex 的主 `config.toml`、凭据或模型缓存，不保存模型目录。
 `token` 不读取 profile。`_llmbox` 是本工具的扩展 key，Codex 默认忽略；
 不要使用 `--strict-config`，它会拒绝这个扩展 key。

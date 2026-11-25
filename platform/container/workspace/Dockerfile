@@ -57,10 +57,10 @@ RUN go mod download
 COPY platform/container/workspace/agent/ ./agent/
 COPY platform/container/workspace/tools/node-tool/ ./tools/node-tool/
 COPY platform/container/workspace/tools/java-tool/ ./tools/java-tool/
-COPY platform/container/workspace/tools/codex-llmbox-provider/ ./tools/codex-llmbox-provider/
+COPY platform/container/workspace/tools/codex-llmbox/ ./tools/codex-llmbox/
 RUN go build -mod=readonly -trimpath -o /out/node-tool ./tools/node-tool \
   && go build -mod=readonly -trimpath -o /out/java-tool ./tools/java-tool \
-  && go build -mod=readonly -trimpath -o /out/codex-llmbox-provider ./tools/codex-llmbox-provider \
+  && go build -mod=readonly -trimpath -o /out/codex-llmbox ./tools/codex-llmbox \
   && go build -mod=readonly -trimpath -o /out/workspace-agent ./agent
 
 # ----------------------------------- Java -----------------------------------
@@ -208,7 +208,7 @@ COPY --link --chown=5230:5230 --from=stage_node /home/x/.local/opt/node /home/x/
 COPY --link --chown=5230:5230 --from=stage_go /home/x/.local/opt/go /home/x/.local/opt/go
 COPY --link --chown=5230:5230 --from=stage_rust /home/x/.local/opt/rust /home/x/.local/opt/rust
 COPY --link --chown=5230:5230 --from=stage_java /home/x/.local/opt/java /home/x/.local/opt/java
-COPY --link --chown=5230:5230 --from=stage_workspace_tools /out/codex-llmbox-provider /home/x/.local/opt/stage_codex_llmbox_provider/bin/codex-llmbox-provider
+COPY --link --chown=5230:5230 --from=stage_workspace_tools /out/codex-llmbox /home/x/.local/opt/stage_codex_llmbox/bin/codex-llmbox
 COPY --link --from=stage_nvidia_container_toolkit /opt/nvidia-container-toolkit/ /opt/nvidia/nvidia-container-toolkit/
 
 RUN --mount=type=bind,source=platform/container/workspace/scripts/install-s6.sh,target=/tmp/install-s6.sh \
