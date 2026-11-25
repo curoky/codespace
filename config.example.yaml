@@ -82,6 +82,9 @@ projects:
       - {type: github, repository: curoky/codespace}
     hosts: [cpu1, h100, cpu2]
     encrypted: false
+    container:
+      volumes:
+        - ${RESOURCE_DATA}/workspace:/workspace
 
   learn-ml:
     source: [{type: github, repository: curoky/learn-ml}]
@@ -91,6 +94,9 @@ projects:
     source: [{type: github, repository: curoky/standalone-binaries}]
     hosts: [cpu1, h100]
     encrypted: false
+    container:
+      volumes:
+        - ${RESOURCE_DATA}/workspace:/workspace
 
   automation:
     source: [{type: github, repository: curoky/automation}]
