@@ -1,13 +1,9 @@
 #:schema https://developers.openai.com/codex/config-schema.json
 
-model = "gpt-6-sol"
-model_provider = "openai"
-# model_provider = "traexbridge"
+model = "gpt-6.1-sol"
 model_reasoning_effort = "high"
 approval_policy = "never"
 default_permissions = ":danger-full-access"
-web_search = "live"
-check_for_update_on_startup = false
 
 [analytics]
 enabled = false
@@ -15,20 +11,16 @@ enabled = false
 [feedback]
 enabled = false
 
-[history]
-persistence = "save-all"
+# [otel]
+# exporter = "none"
+# trace_exporter = "none"
+# metrics_exporter = "none"
 
-[otel]
-exporter = "none"
-trace_exporter = "none"
-metrics_exporter = "none"
+[tui]
+screen_reader_detection_done = true
 
-[model_providers.traexbridge]
-name = "traexbridge"
-base_url = "http://codespace-service-secret:8081/v1"
-
-[projects."/workspace"]
-trust_level = "trusted"
+[tui.model_availability_nux]
+"gpt-6.1-sol" = 1
 
 [projects."/workspace/codespace"]
 trust_level = "trusted"
