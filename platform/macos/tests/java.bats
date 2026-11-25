@@ -32,7 +32,11 @@ if [[ ${TEST_CURL_STATUS:-0} != 0 ]]; then
 fi
 while [[ $# -gt 0 ]]; do
   if [[ $1 == -o ]]; then
-    cp "$TEST_ARCHIVE" "$2"
+    if [[ "$2" == */cs.gz ]]; then
+      cp "$TEST_CS_ARCHIVE" "$2"
+    else
+      cp "$TEST_ARCHIVE" "$2"
+    fi
     exit 0
   fi
   shift
@@ -41,7 +45,11 @@ exit 1
 EOF
   cat >"$TEST_ROOT/bin/shasum" <<'EOF'
 #!/usr/bin/env bash
-printf '%s  %s\n' "$TEST_SHA256" "$3"
+if [[ "$3" == */cs.gz ]]; then
+  printf '%s  %s\n' "$TEST_CS_SHA256" "$3"
+else
+  printf '%s  %s\n' "$TEST_SHA256" "$3"
+fi
 EOF
   chmod 0755 "$TEST_ROOT/bin/"*
   PATH="$TEST_ROOT/bin:$PATH"
@@ -115,6 +123,10 @@ teardown() {
 }
 
 prepare_java_tool() {
+  TEST_CS_ARCHIVE="$TEST_ROOT/cs.gz"
+  TEST_CS_SHA256="$(sed -n 's/^cs_sha256="\(.*\)"$/\1/p' "$MACOS_DIR/maintenance/java-tools.sh")"
+  export TEST_CS_ARCHIVE TEST_CS_SHA256
+  printf '#!/usr/bin/env bash\nexit 0\n' | gzip >"$TEST_CS_ARCHIVE"
   mkdir -p "$HOME/.local/bin"
   cat >"$HOME/.local/bin/oras" <<'EOF'
 #!/usr/bin/env bash
@@ -142,6 +154,7 @@ EOF
   [ "$status" -eq 0 ]
   local installer="$HOME/.local/opt/java/java-tool"
   [ -x "$installer" ]
+  [ -x "$HOME/.local/opt/java/cs" ]
   [ ! -e "$installer/.venv" ]
   grep -Fq 'oras pull ghcr.io/curoky/codespace:java-tool-darwin-arm64' "$TEST_EVENTS"
   [ ! -e "$HOME/.local/opt/go" ]
@@ -155,6 +168,22 @@ EOF
   run "$MACOS_DIR/maintenance/java-tools.sh"
   [ "$status" -eq 0 ]
   [ -f "$HOME/.local/opt/java/tools/envs/custom/keep" ]
+}
+
+@test "Coursier checksum failure preserves the existing helper and installed packages" {
+  prepare_java_tool
+  mkdir -p "$HOME/.local/opt/java/tools/envs/custom"
+  printf 'existing helper\n' >"$HOME/.local/opt/java/java-tool"
+  touch "$HOME/.local/opt/java/tools/envs/custom/keep"
+  TEST_CS_SHA256=invalid
+  export TEST_CS_SHA256
+  run "$MACOS_DIR/maintenance/java-tools.sh"
+  [ "$status" -eq 1 ]
+  [[ "$output" == *'Coursier checksum mismatch'* ]]
+  [ "$(<"$HOME/.local/opt/java/java-tool")" = 'existing helper' ]
+  [ -f "$HOME/.local/opt/java/tools/envs/custom/keep" ]
+  run find "$TMPDIR" -mindepth 1
+  [ "$output" = '' ]
 }
 
 @test "Java tools fail before changing installations when ORAS is missing" {

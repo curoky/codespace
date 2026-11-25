@@ -3,7 +3,15 @@ set -euo pipefail
 tool_root="$(dirname "$(dirname "$(readlink -f "$0")")")"
 {{if .JavaRoot -}}
 JAVA_HOME={{quote .JavaRoot}}
-PATH={{quote .JavaBin}}:"${PATH:-/usr/bin:/bin}"
+PATH="${JAVA_HOME}/bin":"${PATH:-/usr/bin:/bin}"
 export JAVA_HOME PATH
 {{end -}}
-exec {{if .IsJar}}{{quote .JavaExecutable}} -jar {{end}}"${tool_root}"/{{quote .Target}} "$@"
+{{if .MainClass -}}
+classpath=
+{{range .ClassPath -}}
+classpath="${classpath:+${classpath}:}${tool_root}"/{{quote .}}
+{{end -}}
+exec {{if .JavaRoot}}"${JAVA_HOME}/bin/java"{{else}}java{{end}} -cp "$classpath" {{quote .MainClass}} "$@"
+{{else -}}
+exec "${tool_root}"/{{quote .Target}} "$@"
+{{end -}}

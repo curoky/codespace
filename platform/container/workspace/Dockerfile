@@ -74,6 +74,24 @@ RUN mkdir -p /home/x/.local/opt/java/openjdk8 /home/x/.local/opt/java/openjdk27 
   && tar -xzf /tmp/openjdk8.tar.gz --strip-components=1 -C /home/x/.local/opt/java/openjdk8 \
   && tar -xzf /tmp/openjdk27.tar.gz --strip-components=1 -C /home/x/.local/opt/java/openjdk27
 
+ADD --checksum=sha256:52005a6a0783dee2fd324aea1cc7cc29e6239a700f2eea94f9dd685d072e3491 \
+  https://github.com/coursier/coursier/releases/download/v2.1.27/cs-x86_64-pc-linux-static.gz \
+  /tmp/cs.gz
+RUN gzip -dc /tmp/cs.gz > /home/x/.local/opt/java/cs \
+  && chmod 0755 /home/x/.local/opt/java/cs
+
+ENV HOME=/home/x PATH=/home/x/.local/opt/java:${PATH}
+COPY --from=stage_workspace_tools /out/java-tool /home/x/.local/opt/java/java-tool
+RUN java-tool \
+    install maven@3.9.16 org.apache.maven:apache-maven:3.9.16 \
+    --extract --type zip --classifier bin \
+    --executable mvn=bin/mvn --executable mvnDebug=bin/mvnDebug \
+    --executable mvnyjp=bin/mvnyjp --inherit-java \
+  && java-tool \
+    install lemminx@0.31.2 org.eclipse.lemminx:org.eclipse.lemminx:0.31.2 \
+    --repository https://repo.eclipse.org/content/repositories/lemminx-releases/ \
+    --main lemminx=org.eclipse.lemminx.XMLServerLauncher
+
 # ---------------------------------- Python ----------------------------------
 FROM docker.io/debian:stable-slim AS stage_python
 COPY --from=stage_sb /usr/local/store/uv/bin/uv /usr/local/bin/uv
@@ -173,7 +191,6 @@ COPY platform/container/workspace/rootfs/ /
 RUN chown -hR 5230:5230 /home/x
 
 COPY --link --from=stage_sb /usr/local /usr/local
-COPY --chown=5230:5230 --from=stage_workspace_tools /out/java-tool /home/x/.local/opt/java/java-tool
 COPY --chown=5230:5230 --from=stage_workspace_tools /out/workspace-agent /opt/codespace-agent/workspace-agent
 RUN --mount=type=bind,source=platform/container/workspace/scripts/configure-system.sh,target=/tmp/configure-system.sh \
   bash /tmp/configure-system.sh

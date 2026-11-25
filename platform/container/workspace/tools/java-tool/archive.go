@@ -20,34 +20,12 @@ func validateRelativePath(value string) error {
 	return nil
 }
 
-func preparePayload(ctx context.Context, source, payload string, extract bool) (err error) {
+func extractArchive(ctx context.Context, source, payload string) (err error) {
 	input, err := os.Open(source)
 	if err != nil {
 		return err
 	}
 	defer func() { err = errors.Join(err, input.Close()) }()
-	info, err := input.Stat()
-	if err != nil {
-		return err
-	}
-	if !info.Mode().IsRegular() {
-		return fmt.Errorf("source is not a file: %s", source)
-	}
-	if !extract {
-		if err := os.Mkdir(payload, 0755); err != nil {
-			return err
-		}
-		output, err := os.OpenFile(filepath.Join(payload, filepath.Base(source)), os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0644)
-		if err != nil {
-			return err
-		}
-		_, copyErr := io.Copy(output, input)
-		return errors.Join(copyErr, output.Close())
-	}
-	return extractArchive(ctx, input, payload)
-}
-
-func extractArchive(ctx context.Context, input *os.File, payload string) (err error) {
 	format, stream, err := archives.Identify(ctx, "", input)
 	if err != nil {
 		return fmt.Errorf("identify archive: %w", err)
@@ -62,10 +40,7 @@ func extractArchive(ctx context.Context, input *os.File, payload string) (err er
 	default:
 		return fmt.Errorf("source is not a ZIP or TAR archive")
 	}
-	unpacked := filepath.Join(filepath.Dir(payload), "unpacked")
-	if err := os.Mkdir(unpacked, 0755); err != nil {
-		return err
-	}
+	unpacked := filepath.Dir(payload)
 	root, err := os.OpenRoot(unpacked)
 	if err != nil {
 		return err
@@ -84,6 +59,9 @@ func extractArchive(ctx context.Context, input *os.File, payload string) (err er
 	}
 	if len(entries) != 1 || !entries[0].IsDir() {
 		return fmt.Errorf("archive must contain one top-level directory")
+	}
+	if entries[0].Name() == filepath.Base(payload) {
+		return nil
 	}
 	return os.Rename(filepath.Join(unpacked, entries[0].Name()), payload)
 }

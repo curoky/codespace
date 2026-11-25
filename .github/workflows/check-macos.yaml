@@ -375,7 +375,7 @@ jobs:
           set -euo pipefail
           export HOME="$CODESPACE_HOME"
           export JAVA_HOME="$HOME/.local/opt/java/openjdk27"
-          export PATH="$HOME/.local/bin:$JAVA_HOME/bin:$PATH"
+          export PATH="$HOME/.local/opt/java:$HOME/.local/bin:$JAVA_HOME/bin:$PATH"
           work_dir="$(mktemp -d)"
           trap 'rm -rf "$work_dir"' EXIT
           cat >"$work_dir/JavaToolSmoke.java" <<'JAVA'
@@ -389,8 +389,17 @@ jobs:
           javac -d "$work_dir/classes" "$work_dir/JavaToolSmoke.java"
           jar --create --file "$work_dir/smoke.jar" --main-class JavaToolSmoke \
             -C "$work_dir/classes" .
-          "$HOME/.local/opt/java/java-tool" install smoke@1 "$work_dir/smoke.jar" \
-            --jar smoke=smoke.jar --root "$work_dir/tools"
+          mkdir -p "$work_dir/repository/smoke/app/1"
+          mv "$work_dir/smoke.jar" "$work_dir/repository/smoke/app/1/app-1.jar"
+          cat >"$work_dir/repository/smoke/app/1/app-1.pom" <<'POM'
+          <project>
+            <modelVersion>4.0.0</modelVersion>
+            <groupId>smoke</groupId><artifactId>app</artifactId><version>1</version>
+          </project>
+          POM
+          "$HOME/.local/opt/java/java-tool" install smoke@1 smoke:app:1 \
+            --repository "file://$work_dir/repository" --main smoke=JavaToolSmoke \
+            --root "$work_dir/tools"
           mv "$work_dir/tools" "$work_dir/relocated"
           test "$(JAVA_HOME=/missing PATH="$HOME/.local/bin:/usr/bin:/bin" \
             "$work_dir/relocated/bin/smoke")" = "$JAVA_HOME"

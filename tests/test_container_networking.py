@@ -271,7 +271,7 @@ def test_workspace_image_packages_are_root_owned_and_user_installs_use_local() -
     assert "bm download" not in dockerfile
 
 
-def test_workspace_bundles_runtimes_and_keeps_java_tools_in_resource() -> None:
+def test_workspace_bundles_runtimes_and_keeps_optional_java_tools_in_resource() -> None:
     workspace = _CONTAINER / "workspace"
     workspace_dockerfile = (workspace / "Dockerfile").read_text()
     resource_dockerfile = (workspace / "resource.Dockerfile").read_text()
@@ -313,10 +313,7 @@ def test_workspace_bundles_runtimes_and_keeps_java_tools_in_resource() -> None:
     assert "FROM test AS resource" in resource_dockerfile
     assert settings["prettier.prettierPath"].startswith("/home/x/.local/opt/node/tools/")
     assert settings["typescript.npm"] == "/home/x/.local/opt/node/nodejs26/bin/npm"
-    assert (
-        settings["xml.server.binary.path"]
-        == "/opt/resource/home/x/.local/opt/java/tools/bin/lemminx"
-    )
+    assert settings["xml.server.binary.path"] == "/home/x/.local/opt/java/tools/bin/lemminx"
     assert settings["java.jdt.ls.java.home"] == "/home/x/.local/opt/java/openjdk27"
     assert actual_links == expected_links
 

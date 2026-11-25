@@ -17,7 +17,7 @@ func command(home string) *cobra.Command {
 		CompletionOptions: cobra.CompletionOptions{DisableDefaultCmd: true},
 	}
 	install := &cobra.Command{
-		Use: "install NAME@VERSION SOURCE", Short: "Install one distribution from a local artifact",
+		Use: "install NAME@VERSION SOURCE", Short: "Install a Maven dependency or a distribution URL",
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if options.inheritJava {
@@ -36,8 +36,12 @@ func command(home string) *cobra.Command {
 	install.MarkFlagsMutuallyExclusive("java", "inherit-java")
 	install.Flags().StringVar(&options.root, "root", filepath.Join(home, ".local/opt/java/tools"), "Distributions and launchers root")
 	install.Flags().BoolVar(&options.extract, "extract", false, "Extract a ZIP or TAR archive")
+	install.Flags().StringArrayVar(&options.repositories, "repository", nil, "Additional Maven repository (repeatable)")
+	install.Flags().StringVar(&options.artifactType, "type", "", "Artifact type to fetch")
+	install.Flags().StringVar(&options.classifier, "classifier", "", "Artifact classifier to fetch")
+	install.Flags().StringVar(&options.checksum, "checksum", "", "Expected sha256:HASH for a single artifact (required for URLs)")
 	install.Flags().StringArrayVar(&options.executables, "executable", nil, "COMMAND=RELATIVE_PATH (repeatable)")
-	install.Flags().StringArrayVar(&options.jars, "jar", nil, "COMMAND=RELATIVE_JAR_PATH (repeatable)")
+	install.Flags().StringArrayVar(&options.mainClasses, "main", nil, "COMMAND=MAIN_CLASS (repeatable)")
 	install.Flags().StringArrayVar(&options.executableDirs, "executable-dir", nil, "PREFIX=RELATIVE_DIRECTORY (repeatable)")
 	app.AddCommand(install)
 	return app

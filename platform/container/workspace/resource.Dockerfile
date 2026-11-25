@@ -61,27 +61,19 @@ ADD --checksum=sha256:005e57ee860978acfeeff1be2b30f770664fe2b941e9b803c61c769920
 RUN mkdir -p /home/x/.local/opt/java/openjdk27 \
   && tar -xzf /tmp/openjdk27.tar.gz --strip-components=1 -C /home/x/.local/opt/java/openjdk27
 
-ADD --checksum=sha256:80ffca22aed9e8b9713a232f3394fd81d7f20322df75efdb2b047dbd3e3a23bb \
-  https://downloads.apache.org/maven/maven-3/3.9.16/binaries/apache-maven-3.9.16-bin.tar.gz \
-  /tmp/apache-maven.tar.gz
-ADD --checksum=sha256:f4fde164e785c635e5f86361dbf4b993bfe2c5f83fdb52891d058b7dfc9bcfc8 \
-  https://download.eclipse.org/lemminx/releases/0.31.2/org.eclipse.lemminx-uber.jar \
-  /tmp/lemminx.jar
-ADD --checksum=sha256:ddac49f903da9d5bac833e5cc79395098b9c33cfd3279be5f31bd00387d2d4db \
-  https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_12.1.4_build/ghidra_12.1.4_PUBLIC_20260921.zip \
-  /tmp/ghidra.zip
+ADD --checksum=sha256:52005a6a0783dee2fd324aea1cc7cc29e6239a700f2eea94f9dd685d072e3491 \
+  https://github.com/coursier/coursier/releases/download/v2.1.27/cs-x86_64-pc-linux-static.gz \
+  /tmp/cs.gz
+RUN gzip -dc /tmp/cs.gz > /usr/local/bin/cs \
+  && chmod 0755 /usr/local/bin/cs
 
 ENV HOME=/home/x
 COPY --from=stage_java_tool /out/java-tool /usr/local/bin/java-tool
 RUN java-tool \
-    install maven@3.9.16 /tmp/apache-maven.tar.gz --extract \
-    --executable mvn=bin/mvn --executable mvnDebug=bin/mvnDebug \
-    --executable mvnyjp=bin/mvnyjp --inherit-java \
-  && java-tool \
-    install lemminx@0.31.2 /tmp/lemminx.jar \
-    --jar lemminx=lemminx.jar \
-  && java-tool \
-    install ghidra@12.1.4 /tmp/ghidra.zip --extract \
+    install ghidra@12.1.4 \
+    https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_12.1.4_build/ghidra_12.1.4_PUBLIC_20260921.zip \
+    --checksum sha256:ddac49f903da9d5bac833e5cc79395098b9c33cfd3279be5f31bd00387d2d4db \
+    --extract --type zip \
     --executable ghidra=ghidraRun --executable-dir ghidra-=support
 
 # ----------------------------------- CUDA -----------------------------------
@@ -119,8 +111,6 @@ RUN /opt/resource/home/x/.local/opt/llvm/llvm23/bin/clang --version \
   # && /opt/resource/usr/local/profile/nodejs/bin/node --version \
   # && /opt/resource/usr/local/profile/protobuf/bin/protoc --version \
   # && /opt/resource/usr/local/profile/python/bin/python3 --version \
-  && test -x /opt/resource/home/x/.local/opt/java/tools/bin/mvn \
-  && test -r /opt/resource/home/x/.local/opt/java/tools/envs/lemminx/payload/lemminx.jar \
   && test -x /opt/resource/home/x/.local/opt/java/tools/envs/ghidra/payload/ghidraRun \
   && test ! -e /opt/resource/usr/local/bin/uv \
   && test ! -e /opt/resource/usr/local/bin/pnpm \

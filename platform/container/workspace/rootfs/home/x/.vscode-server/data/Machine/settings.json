@@ -84,6 +84,6 @@
   },
   "typescript.npm": "/home/x/.local/opt/node/nodejs26/bin/npm",
   "xml.java.home": "/home/x/.local/opt/java/openjdk27",
-  "xml.server.binary.path": "/opt/resource/home/x/.local/opt/java/tools/bin/lemminx",
+  "xml.server.binary.path": "/home/x/.local/opt/java/tools/bin/lemminx",
   "xml.server.vmargs": "-Xmx5G"
 }
