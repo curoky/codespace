@@ -1,6 +1,14 @@
 model = "gpt-6.1-sol"
 model_reasoning_effort = "high"
 model_provider = "llmbox"
+approval_policy = "never"
+default_permissions = ":danger-full-access"
+
+[analytics]
+enabled = false
+
+[feedback]
+enabled = false
 
 [model_providers.llmbox]
 name = "LLMBox"
