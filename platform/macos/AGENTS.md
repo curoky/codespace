@@ -50,3 +50,5 @@
 验证。plist 变化运行 `plutil -lint`，Swift setup 变化执行对应 script。
 macOS-only 变化不构建 Workspace；共享 source/artifact 变化按根索引联动。
 原生安装验证入口是 `.github/workflows/check-macos.yaml` 与维护 Skill。
+GitHub Actions step 的环境独立；切换 HOME 后须显式把该用户的安装期依赖加入 PATH，
+launcher 验证再通过项目 runtime 的 PATH 检查固定 binding。

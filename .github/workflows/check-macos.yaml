@@ -353,6 +353,7 @@ jobs:
         run: |
           set -euo pipefail
           export HOME="$CODESPACE_HOME"
+          export PATH="$HOME/.local/bin:$PATH"
           work_dir="$(mktemp -d)"
           trap 'rm -rf "$work_dir"' EXIT
           mkdir "$work_dir/package"
