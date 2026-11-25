@@ -3,7 +3,7 @@
 model = "gpt-6-sol"
 model_provider = "openai"
 # model_provider = "traexbridge"
-model_reasoning_effort = "medium"
+model_reasoning_effort = "high"
 approval_policy = "never"
 default_permissions = ":danger-full-access"
 web_search = "live"
