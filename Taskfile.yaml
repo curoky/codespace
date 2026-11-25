@@ -97,7 +97,6 @@ tasks:
       - task: test:python
       - task: test:shell
       - task: test:go
-      - task: codex:test
 
   test:python:
     internal: true
@@ -122,6 +121,7 @@ tasks:
     cmds:
       - uv lock --check
       - cd {{.WORKSPACE_IMAGE}} && go mod tidy -diff
+      - cd {{.WORKSPACE_IMAGE}} && go mod verify
       - uv lock --project {{.ASR_SERVICE}}/scheduler --check
       - >-
         for model in {{.ASR_SERVICE}}/models/*/pyproject.toml; do
@@ -135,7 +135,6 @@ tasks:
       - task: lint
       - task: typecheck
       - task: lock:check
-      - task: codex:check
 
   security:go:
     desc: 扫描 Go executable 漏洞
@@ -148,7 +147,6 @@ tasks:
       - task: check
       - task: test
       - task: security:go
-      - task: codex:audit
       - task: codex:build
 
   secrets:sync:

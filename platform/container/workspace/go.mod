@@ -6,9 +6,12 @@ toolchain go1.27.4
 
 require (
 	al.essio.dev/pkg/shellescape v1.6.1
+	github.com/google/renameio/v2 v2.0.2
 	github.com/mholt/archives v0.1.5
+	github.com/pelletier/go-toml/v2 v2.4.3
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.12.1
+	golang.org/x/oauth2 v0.38.0
 )
 
 require (
@@ -163,7 +166,6 @@ require (
 	github.com/nunnatsa/ginkgolinter v0.24.0 // indirect
 	github.com/nwaples/rardecode/v2 v2.2.0 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
-	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
 	github.com/prometheus/client_golang v1.12.1 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect

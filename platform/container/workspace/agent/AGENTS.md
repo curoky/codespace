@@ -18,7 +18,7 @@
   container 用户 UID 与 Host 登录用户 UID 相同。
 - 协议变化同步控制面 client `src/codespace/workspaces/agent.py` 与双方 lifecycle tests。
 
-Agent 是独立 Go executable，与两个 installer 共用上层 Go module。HTTP server 使用标准库，
+Agent 是独立 Go executable。HTTP server 使用标准库，
 不依赖 Python runtime。默认 filesystem 合同写在入口中；socket 与 checkout helper 的可选
 覆盖用于隔离测试，不由控制面传递。
 

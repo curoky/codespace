@@ -15,7 +15,7 @@ pnpm 或 package catalog。
 - 默认 tools root 从当前用户的 Home 派生；构建 stage 显式设置固定用户的 HOME。
 - lifecycle scripts 必须由调用方按 package 显式授权，不默认放行。
 - 目标或公开命令已存在时失败，不扩展 overwrite、upgrade、rollback 或并发写入能力。
-- installer 是独立 Go executable，与 Agent、java-tool 共用上层 Go module；无运行期
+- installer 是独立 Go executable；无运行期
   Python、uv 或编译器依赖，不提供 `init`。Bash launcher 通过 `text/template` 渲染，模板
   由 `go:embed` 编译进 executable；路径使用 Shell quoting，不依赖外部模板文件。
 

@@ -2,8 +2,8 @@
 
 ## Scope
 
-原生 Codex 的 OAuth Responses 接入工具；独立 Go module，src 平铺，各操作一个文件。
-Taskfile 是开发入口，Workspace 镜像提供 `codex-llmbox-provider` 命令。
+原生 Codex 的 OAuth Responses 接入工具，各操作一个文件。
+Taskfile 提供构建、登录与模型查询入口，Workspace 镜像提供 `codex-llmbox-provider` 命令。
 main.go 只接线 CLI；各操作的输入处理与输出位于所属文件。
 
 ## Contracts
@@ -60,5 +60,5 @@ custom-job 完成解密后，容器内执行 `codex-llmbox-provider login`，之
 
 ## Validation
 
-运行 `task check:full`；HTTP/TLS fixture 验证协议与文件合同，不代表真实服务授权或模型权限。
+运行仓库根目录的 `task check:full`；HTTP/TLS fixture 验证协议与文件合同，不代表真实服务授权或模型权限。
 镜像改动另按 Workspace 文档构建并验证 custom-job 模板替换、失败保留、原生 Codex profile 与 token helper。

@@ -6,14 +6,10 @@ tasks:
     cmds: [task --list]
     silent: true
 
-  deps:
-    desc: 下载锁定依赖
-    cmds: [go mod download]
-
   build:
-    desc: 构建独立 provider 二进制
+    desc: 构建 provider 二进制
     cmds:
-      - go build -mod=readonly -trimpath -o bin/codex-llmbox-provider ./src
+      - go build -mod=readonly -trimpath -o bin/codex-llmbox-provider .
 
   login:
     desc: OAuth Device Flow 登录
@@ -24,33 +20,3 @@ tasks:
     desc: 查询 native catalog
     cmds:
       - bin/codex-llmbox-provider models {{.CLI_ARGS}}
-
-  format:
-    desc: 格式化 Go 源码
-    cmds:
-      - go tool goimports -w src
-
-  check:
-    desc: 检查格式、lint、vet 与依赖一致性
-    cmds:
-      - test -z "$(go tool goimports -l src)"
-      - go tool golangci-lint run --no-config --allow-serial-runners
-      - go vet ./...
-      - go mod tidy -diff
-      - go mod verify
-
-  test:
-    desc: 检查协议、文件权限和 CLI 行为
-    cmds: [go test -race -cover ./...]
-
-  audit:
-    desc: 扫描 executable 漏洞
-    cmds: [go tool govulncheck ./...]
-
-  check:full:
-    desc: 运行全部检查并构建二进制
-    cmds:
-      - task: check
-      - task: test
-      - task: build
-      - task: audit

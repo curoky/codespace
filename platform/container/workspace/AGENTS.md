@@ -11,10 +11,12 @@ payload 提供可选工具，实例配置由控制面拥有。
 
 ## Contracts
 
-- Agent、node-tool、java-tool 是独立 Go executable，共用本目录 module。构建期编译，
+- Agent 与 tools 下的 CLI 是独立 Go executable，共用本目录 module 与构建 stage。构建期编译，
   运行期不安装依赖或编译。installer 直接位于用户 Node/Java 根，与 runtime/tools 并列；
   默认 binding 与 profile 一致，构建 stage 显式设置固定用户 HOME。
-- Codex provider 使用独立 Go module/stage；rootfs 拥有明文 profile、安装脚本模板。
+- Agent 是控制面通信组件，独立于用户与构建期 CLI；各 executable 的源码和测试直接放在
+  所属目录，不增加 src 层。根 Taskfile 统一管理 Go 依赖与检查，工具 Taskfile 只提供专属操作。
+- Codex provider 的 rootfs 拥有明文 profile、安装脚本模板。
   内部标识密文保存于 custom-job 的 `identifiers.sh.gpg`，密码直接从 Workspace key secret 读取。
   custom-job 以 x 使用 Workspace key 解密并替换模板，原子发布 profile 后执行安装。
   key 缺失、错误或密文损坏时保留已有 profile；临时明文只存私有目录，退出时清理。
