@@ -27,7 +27,7 @@ Host；控制面通过本机 OpenSSH 管理 Host 上的 rootful Podman。
 | Framework image | `platform/container/frameworks/AGENTS.md` | 对应 combo 的 Dockerfile 与 build script |
 | macOS 环境、dotfiles 或 client SSH | `platform/macos/AGENTS.md` | 共享 home 变化同时读 Workspace 文档 |
 | WSL build、boot 或 Windows wiring | `platform/wsl/AGENTS.md` | 继承的 filesystem/s6 变化同时读 Workspace 文档 |
-| Codex LLMBox provider | `platform/container/workspace/tools/codex-llmbox-provider/AGENTS.md` | 独立 Go provider；Podman secret 提供接入配置 |
+| Codex LLMBox provider | `platform/container/workspace/tools/codex-llmbox-provider/AGENTS.md` | 独立 Go provider；rootfs 提供配置模板 |
 
 ## Processing Contracts
 

@@ -75,9 +75,9 @@ func login(ctx context.Context, config connection, directory string, output io.W
 		ctx = context.WithValue(ctx, oauth2.HTTPClient, client)
 	}
 	oauth := oauth2.Config{
-		ClientID: config.ClientID, Scopes: []string{"read", "ciam.device.read"},
+		ClientID: config.OAuth.ClientID, Scopes: []string{"read", "ciam.device.read"},
 		Endpoint: oauth2.Endpoint{
-			DeviceAuthURL: config.Issuer + "/oauth2/device/code", TokenURL: config.Issuer + "/oauth2/access_token",
+			DeviceAuthURL: config.OAuth.Issuer + "/oauth2/device/code", TokenURL: config.OAuth.Issuer + "/oauth2/access_token",
 			AuthStyle: oauth2.AuthStyleInParams,
 		},
 	}

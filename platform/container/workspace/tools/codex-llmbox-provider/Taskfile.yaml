@@ -20,11 +20,6 @@ tasks:
     cmds:
       - bin/codex-llmbox-provider login {{.CLI_ARGS}}
 
-  configure:
-    desc: 生成原生 Codex profile
-    cmds:
-      - bin/codex-llmbox-provider configure {{.CLI_ARGS}}
-
   models:
     desc: 查询 native catalog
     cmds:

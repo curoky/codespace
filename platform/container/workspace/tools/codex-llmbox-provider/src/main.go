@@ -13,7 +13,7 @@ import (
 )
 
 func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
-	var write, outputJSON, fromEnv bool
+	var outputJSON bool
 	app := &cobra.Command{
 		Use: "codex-llmbox-provider", Short: "Connect native Codex to an OAuth Responses provider",
 		SilenceErrors: true, SilenceUsage: true,
@@ -22,7 +22,6 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	app.SetArgs(args)
 	app.SetOut(stdout)
 	app.SetErr(stderr)
-	app.PersistentFlags().BoolVar(&fromEnv, "env", false, "Read connection settings from environment variables instead of /run/secrets")
 	execute := func(cmd *cobra.Command, _ []string) error {
 		home, err := os.UserHomeDir()
 		if err != nil {
@@ -37,38 +36,26 @@ func run(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 			_, err = fmt.Fprintln(cmd.OutOrStdout(), token)
 			return err
 		}
-		config, err := loadConnection("/run/secrets", fromEnv)
+		config, err := loadConnection(codexDir)
 		if err != nil {
 			return err
 		}
-		switch cmd.Name() {
-		case "login":
+		if cmd.Name() == "login" {
 			return login(cmd.Context(), config, codexDir, cmd.ErrOrStderr())
-		case "configure":
-			output := cmd.OutOrStdout()
-			if write {
-				output = cmd.ErrOrStderr()
-			}
-			return configure(config, write, output)
-		case "models":
-			token, err := readToken(codexDir)
-			if err != nil {
-				return err
-			}
-			items, err := fetchModels(cmd.Context(), config, token)
-			if err != nil {
-				return err
-			}
-			return writeModels(cmd.OutOrStdout(), items, outputJSON)
 		}
-		return nil
+		token, err := readToken(codexDir)
+		if err != nil {
+			return err
+		}
+		items, err := fetchModels(cmd.Context(), config, token)
+		if err != nil {
+			return err
+		}
+		return writeModels(cmd.OutOrStdout(), items, outputJSON)
 	}
-	for _, name := range []string{"login", "token", "configure", "models"} {
+	for _, name := range []string{"login", "token", "models"} {
 		child := &cobra.Command{Use: name, Args: cobra.NoArgs, RunE: execute}
-		switch name {
-		case "configure":
-			child.Flags().BoolVar(&write, "write", false, "Create profile without overwriting different content")
-		case "models":
+		if name == "models" {
 			child.Flags().BoolVar(&outputJSON, "json", false, "Output JSON")
 		}
 		app.AddCommand(child)

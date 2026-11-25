@@ -18,11 +18,11 @@ type model struct {
 }
 
 func fetchModels(ctx context.Context, config connection, token string) ([]model, error) {
-	request, err := http.NewRequestWithContext(ctx, http.MethodGet, config.BaseURL+"models", nil)
+	request, err := http.NewRequestWithContext(ctx, http.MethodGet, config.Providers.LLMBox.CatalogURL, nil)
 	if err != nil {
 		return nil, errors.New("invalid model catalog URL")
 	}
-	request.Header.Set("X-Source", config.Source)
+	request.Header.Set("X-Source", config.Providers.LLMBox.Headers.Source)
 	request.Header.Set("Authorization", "Bearer "+token)
 	request.Header.Set("Accept", "application/json")
 	client := &http.Client{

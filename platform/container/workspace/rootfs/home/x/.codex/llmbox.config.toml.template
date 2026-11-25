@@ -1,0 +1,24 @@
+model = "gpt-6.1-sol"
+model_reasoning_effort = "high"
+model_provider = "llmbox"
+
+[model_providers.llmbox]
+name = "LLMBox"
+base_url = "https://llmbox-global.@MODEL_DOMAIN@.net/"
+model_catalog_url = "https://llmbox-global.@MODEL_DOMAIN@.net/models"
+wire_api = "responses"
+requires_openai_auth = false
+supports_websockets = false
+
+[model_providers.llmbox.http_headers]
+X-Source = "@LLMBOX_SOURCE@"
+
+[model_providers.llmbox.auth]
+command = "/home/x/.local/bin/codex-llmbox-provider"
+args = ["token"]
+timeout_ms = 5000
+refresh_interval_ms = 300000
+
+[_llmbox]
+issuer = "https://sso.@OAUTH_DOMAIN@.com"
+client_id = "@OAUTH_CLIENT_ID@"

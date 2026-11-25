@@ -14,8 +14,11 @@ payload 提供可选工具，实例配置由控制面拥有。
 - Agent、node-tool、java-tool 是独立 Go executable，共用本目录 module。构建期编译，
   运行期不安装依赖或编译。installer 直接位于用户 Node/Java 根，与 runtime/tools 并列；
   默认 binding 与 profile 一致，构建 stage 显式设置固定用户 HOME。
-- Codex provider 使用独立 Go module/stage，镜像只安装二进制；
-  接入凭据在运行期提供，构建时不登录或生成用户 profile。
+- Codex provider 使用独立 Go module/stage；rootfs 拥有明文 profile、安装脚本模板。
+  内部标识密文保存于 custom-job 的 `identifiers.sh.gpg`，密码直接从 Workspace key secret 读取。
+  custom-job 以 x 使用 Workspace key 解密并替换模板，原子发布 profile 后执行安装。
+  key 缺失、错误或密文损坏时保留已有 profile；临时明文只存私有目录，退出时清理。
+  构建期不读取 key 或解密。
 - macOS arm64 helper 由 `publish-workspace-tools.yaml` 原生构建并经 GHCR/ORAS 分发；
   不含 runtime、package manager 或 Shell。首次安装需已有发布产物；Linux image 从源码
   构建，不依赖 GHCR helper tag。
@@ -40,8 +43,8 @@ payload 提供可选工具，实例配置由控制面拥有。
 - rustup/SDK 根独立于用户 CARGO_HOME；运行期 `~/.cargo` 保留用户 CLI 与 cache。
   archive 精确锁定并校验，Rust SDK 不使用浮动 channel。
 - 依赖 `/workspace` 的 service 必须依赖 gocryptfs-workspace；credential 从 runtime secret
-  读取，缺失时失败。添加依赖不隐式启用可选服务；用户启动安装 job 不属于 image build，
-  编码 payload 不是 secret 或信任边界。service 默认监听 loopback。
+  读取，缺失时失败。添加依赖不隐式启用可选服务；用户启动安装 job 不属于 image build。
+  service 默认监听 loopback。
 - 每个 image 保有自身 package metadata，不跨 manager 重复安装。binman launcher/store/
   profile 是完整 payload，调用稳定入口，不硬编码 content-addressed store 内部路径。
 - Conda ToS 使用 rootfs 系统 metadata 供 root/x 共用，只接受声明版本；条款更新后显式

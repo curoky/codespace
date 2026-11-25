@@ -11,7 +11,7 @@ import (
 
 func TestCatalogUsesBearerAndSource(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/models" || r.Header.Get("Authorization") != "Bearer fixture-token" || r.Header.Get("X-Source") != "fixture-source" || r.Header.Get("Accept") != "application/json" {
+		if r.URL.Path != "/native-catalog" || r.Header.Get("Authorization") != "Bearer fixture-token" || r.Header.Get("X-Source") != "fixture-source" || r.Header.Get("Accept") != "application/json" {
 			t.Error("Missing request headers")
 		}
 		if _, err := io.WriteString(w, `{"models":[{"slug":"fixture-model","display_name":"Fixture Model","visibility":"list","base_instructions":"not-in-output"}]}`); err != nil {
@@ -20,8 +20,8 @@ func TestCatalogUsesBearerAndSource(t *testing.T) {
 	}))
 	defer server.Close()
 	config := exampleConnection(t)
-	config.BaseURL = server.URL + "/"
-	config.Source = "fixture-source"
+	config.Providers.LLMBox.CatalogURL = server.URL + "/native-catalog"
+	config.Providers.LLMBox.Headers.Source = "fixture-source"
 	items, err := fetchModels(context.Background(), config, "fixture-token")
 	if err != nil || len(items) != 1 || items[0] != (model{"fixture-model", "Fixture Model", "list"}) {
 		t.Fatalf("Unexpected catalog: %+v, %v", items, err)
@@ -44,7 +44,7 @@ func TestCatalogRejectsHTTPAndJSONErrors(t *testing.T) {
 			}
 		}))
 		config := exampleConnection(t)
-		config.BaseURL = server.URL + "/"
+		config.Providers.LLMBox.CatalogURL = server.URL + "/models"
 		_, err := fetchModels(context.Background(), config, "fixture-token")
 		server.Close()
 		if err == nil || strings.Contains(err.Error(), "private") {
@@ -61,7 +61,7 @@ func TestCatalogDoesNotForwardCredentialToRedirects(t *testing.T) {
 	}))
 	defer server.Close()
 	config := exampleConnection(t)
-	config.BaseURL = server.URL + "/"
+	config.Providers.LLMBox.CatalogURL = server.URL + "/models"
 	if _, err := fetchModels(context.Background(), config, "fixture-token"); err == nil {
 		t.Fatal("Redirect accepted")
 	}

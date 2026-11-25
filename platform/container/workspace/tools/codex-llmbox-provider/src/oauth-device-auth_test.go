@@ -110,9 +110,9 @@ func TestDeviceFlowUsesPublicClientAndPreservesCredentialsOnFailure(t *testing.T
 				}
 			}))
 			defer server.Close()
-			values := exampleSecrets(t)
-			values["oauth_issuer"] = server.URL
-			config, err := loadConnection(writeSecretFiles(t, values), false)
+			values := exampleSettings()
+			values["issuer"] = server.URL
+			config, err := loadConnection(writeConnectionFile(t, values))
 			if err != nil {
 				t.Fatal(err)
 			}
