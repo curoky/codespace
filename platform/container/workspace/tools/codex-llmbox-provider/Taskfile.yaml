@@ -34,7 +34,7 @@ tasks:
     desc: 检查格式、lint、vet 与依赖一致性
     cmds:
       - test -z "$(go tool goimports -l src)"
-      - go tool golangci-lint run --no-config
+      - go tool golangci-lint run --no-config --allow-serial-runners
       - go vet ./...
       - go mod tidy -diff
       - go mod verify

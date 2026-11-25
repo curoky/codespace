@@ -59,6 +59,8 @@ Host；控制面通过本机 OpenSSH 管理 Host 上的 rootful Podman。
 
 ## Validation
 
+- 各 Go module 的 golangci-lint 共用系统临时目录中的进程锁；并行检查必须等待锁后串行
+  执行，避免耗时超过工具默认的锁等待窗口而失败。
 - 小风险改动只做直接相关的必要检查，不要求完整测试或 artifact 构建。
 - 文档或非行为变更运行 `task check`；行为变更运行 `task check:full`。用户明确排除某模块
   验证时，执行其余检查并报告范围，不运行包含被排除模块的聚合任务。

@@ -68,7 +68,7 @@ tasks:
     desc: 运行 Ruff、Go lint 与 ShellCheck
     cmds:
       - uv run ruff check src tests {{.ASR_SERVICE}}
-      - cd {{.WORKSPACE_IMAGE}} && go tool golangci-lint run
+      - cd {{.WORKSPACE_IMAGE}} && go tool golangci-lint run --allow-serial-runners
       - >-
         git ls-files -z --cached --others --exclude-standard -- '*.sh' '*.bats' |
         xargs -0 -P 6 -n 1 sh -c 'test ! -f "$1" || shellcheck -x "$1"' sh
