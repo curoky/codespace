@@ -156,9 +156,9 @@ EOF
   run bash "$BATS_TEST_TMPDIR/custom-job.sh"
   [ "$status" -eq 0 ]
   [ "$(<"$HOME/installed")" = installed ]
-  run rg -q '@[A-Z_]+@' "$HOME/.codex/llmbox.config.toml"
+  run grep -Eq '@[A-Z_]+@' "$HOME/.codex/llmbox.config.toml"
   [ "$status" -eq 1 ]
-  rg -q 'client_id = "fixture-client"' "$HOME/.codex/llmbox.config.toml"
+  grep -Fq 'client_id = "fixture-client"' "$HOME/.codex/llmbox.config.toml"
   [ "$(stat -c %a "$HOME/.codex/llmbox.config.toml")" = 600 ]
   [ -z "$(find "$HOME/.codex" -name '.custom-job.*' -print -quit)" ]
 
