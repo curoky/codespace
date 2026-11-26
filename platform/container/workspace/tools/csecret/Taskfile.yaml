@@ -1,0 +1,12 @@
+version: '3'
+
+tasks:
+  default:
+    desc: 列出 csecret 任务
+    cmds: [task --list]
+    silent: true
+
+  test:
+    desc: 验证 Bash secret CLI
+    cmds:
+      - bats csecret.bats

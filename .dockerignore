@@ -10,6 +10,12 @@
 /platform/container/workspace/rootfs/home/x/.ssh/workspace_login_key_ed25519.pub
 /platform/macos/rootfs/Users/x/.ssh/codespace/workspace_login_key_ed25519
 
+# Only encrypted csecret data belongs in images.
+/platform/container/workspace/tools/csecret/secrets.json*
+/platform/container/workspace/tools/csecret/.*secrets.json*
+/platform/container/workspace/tools/csecret/#secrets.json#
+!/platform/container/workspace/tools/csecret/secrets.json.gpg
+
 # Python virtualenvs & caches (regenerated in-image; ~170M of build context)
 .venv
 **/.venv

@@ -3,19 +3,30 @@
 redirfd -w 1 /var/log/s6.atuin-login.log
 fdmove -c 2 1
 
-if { test -s /run/secrets/atuin_credentials }
-backtick -i -n ATUIN_USERNAME { /usr/bin/cut -s -d / -f 1 /run/secrets/atuin_credentials }
+s6-setuidgid x
+s6-env HOME=/home/x
+backtick -i -n ATUIN_USERNAME
+{
+  pipeline { /home/x/.local/bin/csecret get atuin_credentials }
+  /usr/bin/cut -s -d / -f 1
+}
 importas -u ATUIN_USERNAME ATUIN_USERNAME
-backtick -i -n ATUIN_PASSWORD { /usr/bin/cut -s -d / -f 2 /run/secrets/atuin_credentials }
+backtick -i -n ATUIN_PASSWORD
+{
+  pipeline { /home/x/.local/bin/csecret get atuin_credentials }
+  /usr/bin/cut -s -d / -f 2
+}
 importas -u ATUIN_PASSWORD ATUIN_PASSWORD
-backtick -i -n ATUIN_KEY { /usr/bin/cut -s -d / -f 3- /run/secrets/atuin_credentials }
+backtick -i -n ATUIN_KEY
+{
+  pipeline { /home/x/.local/bin/csecret get atuin_credentials }
+  /usr/bin/cut -s -d / -f 3-
+}
 importas -u ATUIN_KEY ATUIN_KEY
 if { test -n ${ATUIN_USERNAME} }
 if { test -n ${ATUIN_PASSWORD} }
 if { test -n ${ATUIN_KEY} }
 
-s6-setuidgid x
-s6-env HOME=/home/x
 if
 {
   /usr/local/store/atuin/bin/atuin login

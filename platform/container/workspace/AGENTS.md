@@ -13,6 +13,7 @@ stage 和装配细节，Go executable 共用本目录 module，在构建期编�
 | bootstrap/Git 状态/协议 | [Workspace Agent](agent/AGENTS.md) |
 | CLI 安装/binding | [node-tool](tools/node-tool/AGENTS.md)、[java-tool](tools/java-tool/AGENTS.md) |
 | OAuth/token helper/模型目录 | [Codex LLMBox](tools/codex-llmbox/AGENTS.md) |
+| 个人 secret CLI/加密文件 | [Csecret](tools/csecret/AGENTS.md) |
 | 分发的 AI 规则 | [Codex template](rootfs/home/x/.codex/AGENTS.md)；环境正文同步 [Trae rule](rootfs/home/x/.trae/user_rules/container-environment.md)，按全局规则用途组织 |
 
 ## Contracts
@@ -50,9 +51,12 @@ stage 和装配细节，Go executable 共用本目录 module，在构建期编�
 ## Main Flows
 
 构建装配 rootfs/runtime/executable/graph，启动初始化用户与挂载后运行依赖服务。
-[custom-job](rootfs/etc/s6/s6-rc.d/custom-job/run.sh) 以 `x` 从 Workspace key secret 解密
-内部标识，替换 rootfs 模板并原子发布 profile 后安装；构建期不读 key。解密失败保留已有
-profile，临时明文只在私有目录存放并退出清理，用户启动安装 job 不属于 image build。
+[custom-job](rootfs/etc/s6/s6-rc.d/custom-job/run.sh) 以 `x` 通过 `csecret get` 读取内部标识
+和下载 URL，替换 LLMBox 模板并原子发布 profile 后安装；构建期只装配密文，不读 key。
+读取失败保留已有 profile，临时 profile 只在私有目录存放并退出清理；安装只在服务启动时
+执行，用户启动安装 job 不属于 image build。
+
+GitHub/Atuin 登录任务以 `x` 通过 `csecret get` 读取凭据，不依赖各自的 Podman secret。
 
 macOS helper 从本仓库 GHCR/ORAS 获取，首次安装需先发布，不含 runtime/manager/Shell；
 Linux image 从源码构建，不依赖 helper tag。构建/发布入口见

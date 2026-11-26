@@ -1,1 +1,0 @@
-curl -fsSL https://code.@INSTALL_DOMAIN@.org/api/tos-proxy/download/traex_install.sh | sh

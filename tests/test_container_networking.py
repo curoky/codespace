@@ -63,7 +63,8 @@ def test_workspace_atuin_uses_official_sync_service_with_secret_login() -> None:
     assert not (services / "default/contents.d/atuin-server").exists()
     assert (services / "atuin-daemon/dependencies.d/atuin-login").exists()
     assert not (services / "atuin-login/dependencies.d/atuin-server").exists()
-    assert login.count("/run/secrets/atuin_credentials") == 4
+    assert login.count("/home/x/.local/bin/csecret get atuin_credentials") == 3
+    assert "/run/secrets/atuin_credentials" not in login
     assert "/usr/bin/cut -s -d / -f 1" in login
     assert "/usr/bin/cut -s -d / -f 2" in login
     assert "/usr/bin/cut -s -d / -f 3-" in login
@@ -77,11 +78,13 @@ def test_workspace_gh_login_defaults_to_public_read_token() -> None:
     login = (workspace / "rootfs/etc/s6/s6-rc.d/gh-login/up").read_text()
     github_skill = (workspace / "rootfs/home/x/.codex/skills/debug-github/SKILL.md").read_text()
 
-    public_token = "/run/secrets/github_token_public_read"
-    actions_token = "/run/secrets/github_token_all_action_rw"
-    assert login.count(public_token) == 2
+    public_token = "github_token_public_read"
+    actions_token = "github_token_all_action_rw"
+    assert f"pipeline {{ /home/x/.local/bin/csecret get {public_token} }}" in login
+    assert "/run/secrets/" not in login
     assert actions_token not in login
-    assert f'GH_TOKEN="$(cat {actions_token})"' in github_skill
+    assert f'token="$(csecret get {actions_token})"' in github_skill
+    assert 'GH_TOKEN="$token" gh run view --log-failed' in github_skill
 
 
 def test_workspace_agents_share_codex_skills() -> None:

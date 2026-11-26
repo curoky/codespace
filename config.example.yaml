@@ -49,12 +49,6 @@ project_defaults:
     secrets:
       - {source: codespace_root_password, uid: '0', gid: '0', mode: 0400}
       - {source: codespace_workspace_key, uid: '5230', gid: '5230', mode: 0400}
-      - {source: huggingface_token, uid: '5230', gid: '5230', mode: 0400}
-      - {source: atuin_credentials, uid: '5230', gid: '5230', mode: 0400}
-      - {source: github_action_token, uid: '5230', gid: '5230', mode: 0400}
-      - {source: github_token_public_read, uid: '5230', gid: '5230', mode: 0400}
-      - {source: github_token_all_read, uid: '5230', gid: '5230', mode: 0400}
-      - {source: github_token_all_action_rw, uid: '5230', gid: '5230', mode: 0400}
     cap_add: [NET_RAW, SYS_ADMIN]
     security_opt: [label=disable, seccomp=unconfined, apparmor=unconfined]
     pids_limit: -1
@@ -167,8 +161,6 @@ services:
       volumes:
         - ${RESOURCE_DATA}/models:/model-data
         - ${RESOURCE_DATA}/cache:/home/x/.cache
-      secrets:
-        - {source: huggingface_token, uid: '5230', gid: '5230', mode: 0400}
       restart: unless-stopped
 
   vllm:
@@ -184,8 +176,6 @@ services:
       devices: [nvidia.com/gpu=all]
       volumes:
         - ${RESOURCE_DATA}:/home/x/.cache/huggingface
-      secrets:
-        - {source: huggingface_token, uid: '5230', gid: '5230', mode: 0400}
       restart: unless-stopped
 
   sglang:
@@ -201,8 +191,6 @@ services:
       devices: [nvidia.com/gpu=all]
       volumes:
         - ${RESOURCE_DATA}:/home/x/.cache/huggingface
-      secrets:
-        - {source: huggingface_token, uid: '5230', gid: '5230', mode: 0400}
       restart: unless-stopped
 
   chatbox:
@@ -220,12 +208,5 @@ tokens:
   gitlab: masked
 
 secrets:
-  github_token_public_read: masked
-  github_token_all_read: masked
-  github_token_all_action_rw: masked
-
   codespace_root_password: '123'
   codespace_workspace_key: masked
-  atuin_credentials: masked
-
-  huggingface_token: masked

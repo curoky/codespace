@@ -1,6 +1,9 @@
 version: '3'
 
 includes:
+  csecret:
+    taskfile: platform/container/workspace/tools/csecret/Taskfile.yaml
+    dir: platform/container/workspace/tools/csecret
   codex:
     taskfile: platform/container/workspace/tools/codex-llmbox/Taskfile.yaml
     dir: platform/container/workspace/tools/codex-llmbox
@@ -148,6 +151,7 @@ tasks:
       - task: test
       - task: security:go
       - task: codex:build
+      - task: csecret:test
 
   secrets:sync:
     desc: 同步 Podman secrets，默认 dry-run

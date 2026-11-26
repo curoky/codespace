@@ -139,15 +139,30 @@ def test_example_gpu_service_sets_huggingface_environment_at_startup(service: st
         container = config.resolved_service_container(service, host)
         assert container.environment == {}
         assert "/home/x/.cache/huggingface" in {volume.target for volume in container.volumes}
-        assert any(
-            secret.source == "huggingface_token"
-            and secret.uid == "5230"
-            and secret.gid == "5230"
-            and secret.mode == 0o400
-            for secret in container.secrets
-        )
+        assert container.secrets == []
     assert 'export HF_HOME="$HOME/.cache/huggingface"' in script
     assert "export HF_TOKEN_PATH=/run/secrets/huggingface_token" in script
+
+
+def test_example_config_does_not_declare_or_mount_csecret_values() -> None:
+    config = load_config(Path("config.example.yaml"))
+    keys = {
+        "github_token_public_read",
+        "github_token_all_read",
+        "github_token_all_action_rw",
+        "atuin_credentials",
+        "huggingface_token",
+        "github_action_token",
+    }
+    assert keys.isdisjoint(config.secrets)
+    for project_id, project in config.projects.items():
+        for host in project.hosts:
+            container = config.resolved_project_container(project_id, host)
+            assert keys.isdisjoint(secret.source for secret in container.secrets)
+    for service_id, service in config.services.items():
+        for host in service.hosts:
+            container = config.resolved_service_container(service_id, host)
+            assert keys.isdisjoint(secret.source for secret in container.secrets)
 
 
 def test_load_config_rejects_non_mapping(tmp_path: Path) -> None:

@@ -2,10 +2,9 @@
 
 redirfd -w 1 /var/log/s6.gh-login.log
 fdmove -c 2 1
-if { test -s /run/secrets/github_token_public_read }
 s6-setuidgid x
 s6-env HOME=/home/x
-redirfd -r 0 /run/secrets/github_token_public_read
+pipeline { /home/x/.local/bin/csecret get github_token_public_read }
 /usr/local/store/gh/bin/gh auth login
   --hostname github.com
   --git-protocol ssh

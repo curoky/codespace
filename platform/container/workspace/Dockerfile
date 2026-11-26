@@ -209,6 +209,10 @@ COPY --link --chown=5230:5230 --from=stage_go /home/x/.local/opt/go /home/x/.loc
 COPY --link --chown=5230:5230 --from=stage_rust /home/x/.local/opt/rust /home/x/.local/opt/rust
 COPY --link --chown=5230:5230 --from=stage_java /home/x/.local/opt/java /home/x/.local/opt/java
 COPY --link --chown=5230:5230 --from=stage_workspace_tools /out/codex-llmbox /home/x/.local/opt/stage_codex_llmbox/bin/codex-llmbox
+COPY --link --chown=5230:5230 \
+  platform/container/workspace/tools/csecret/csecret.sh \
+  platform/container/workspace/tools/csecret/secrets.json.gpg \
+  /home/x/.local/opt/csecret/
 COPY --link --from=stage_nvidia_container_toolkit /opt/nvidia-container-toolkit/ /opt/nvidia/nvidia-container-toolkit/
 
 RUN --mount=type=bind,source=platform/container/workspace/scripts/install-s6.sh,target=/tmp/install-s6.sh \
