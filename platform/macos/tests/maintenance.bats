@@ -193,7 +193,6 @@ file_mode() {
   grep -Fqx 'export RUSTUP_HOME="$HOME/.local/opt/rust/rustup"' "$zshrc"
   grep -Fqx '  "$CARGO_HOME/bin"' "$zshrc"
   grep -Fqx '  "$HOME/.local/opt/rust/cargo/bin"' "$zshrc"
-  grep -Fqx '  "$HOME/.local/opt/llvm/llvm23/bin"' "$zshrc"
   grep -Fqx 'export JAVA_HOME="$HOME/.local/opt/java/openjdk27"' "$zshrc"
   grep -Fqx '  "$HOME/.local/opt/java"' "$zshrc"
   grep -Fqx '  "$HOME/.local/opt/java/tools/bin"' "$zshrc"

@@ -14,13 +14,15 @@
   用 manager 原生能力或重建受管目录。PATH 切换不改变 CLI binding，变更后重装对应 CLI。
 - Node/Java helper 从 GHCR/ORAS 获取，不要求本地 compiler/容器；Java helper 不安装
   distribution，也不要求预装 JDK。Temurin 提取 `Contents/Home`，不注册系统 JDK；
-  Go/LLVM 保留精确版本与稳定相对链接，uv metadata/cache/virtualenv 保持原生布局。
+  Go 保留精确版本与稳定相对链接，uv metadata/cache/virtualenv 保持原生布局。
 - [home-links](maintenance/home-links.sh) 将 [macOS source](rootfs/Users/x/) 与共享
   Workspace source 装配到 Home；source 文件默认 `0600`、可执行内容 `0755`，仅需独立
   inode/权限/运行期修改时 copy。静态 SSH material 来自声明，动态 route 属于控制面。
 - AI 规则与容器保持一致结构并同步使用约定，不额外安装软件管理 Skill；LaunchAgent/
   默认应用是显式独立操作，不隐式启用可选 service。GNU GCC 用 Homebrew，用户 bin 提供
   无后缀链接，不替换 Apple compiler。
+- 默认使用 Xcode 提供的 Apple Clang 与 SDK；LLVM 仅按用户明确要求安装，保留精确版本
+  与稳定相对链接，由项目选择 PATH，默认 Shell/编辑器配置不绑定该 SDK。
 - AI 装配只替换声明的单个 rule 或 skill；工具父目录及其它来源内容不受管。
 
 ## Runtime I/O

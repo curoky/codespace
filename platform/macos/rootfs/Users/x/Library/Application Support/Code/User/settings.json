@@ -39,9 +39,6 @@
   "[html]": {
     // "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "[java]": {
-    "editor.defaultFormatter": "xaver.clang-format"
-  },
   "[javascript]": {
     "editor.defaultFormatter": "vscode.typescript-language-features"
     // "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -61,9 +58,6 @@
       "strings": "on"
     },
     "editor.wordWrap": "on"
-  },
-  "[proto3]": {
-    "editor.defaultFormatter": "xaver.clang-format"
   },
   "[python]": {
     // "editor.codeActionsOnSave": {
@@ -129,8 +123,6 @@
     "windsurf": false
   },
   "chat.viewSessions.orientation": "stacked",
-  "C_Cpp.clang_format_path": "/Users/x/.local/opt/llvm/llvm23/bin/clang-format",
-  "clang-format.executable": "/Users/x/.local/opt/llvm/llvm23/bin/clang-format",
   "clang-format.fallbackStyle": "Google",
   "cmake.buildDirectory": "${workspaceRoot}/_build",
   "cmake.buildToolArgs": [

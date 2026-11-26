@@ -103,10 +103,6 @@ jobs:
         if: github.event_name != 'pull_request'
         run: HOME="$CODESPACE_HOME" platform/macos/maintenance/rust.sh
 
-      - name: Install LLVM
-        if: github.event_name != 'pull_request'
-        run: HOME="$CODESPACE_HOME" platform/macos/maintenance/llvm.sh
-
       - name: Install Java
         if: github.event_name != 'pull_request'
         run: HOME="$CODESPACE_HOME" platform/macos/maintenance/java-runtime.sh
@@ -145,7 +141,7 @@ jobs:
             [[ "$(rustup show active-toolchain)" == 1.100.0-aarch64-apple-darwin* ]] &&
             [[ "$(java -XshowSettings:properties -version 2>&1)" == *"java.version = 27.0.1.1"* ]] &&
             [[ "$(gcc -dumpfullversion)" == 16.2.0 ]] &&
-            [[ "$(llvm-config --version)" == 23.1.2 ]]
+            [[ "$(command -v clang)" == /usr/bin/clang ]]
           '
 
       - name: Verify development environment
@@ -326,21 +322,17 @@ jobs:
           "$CARGO_HOME/bin/codespace_smoke"
           cargo uninstall codespace_smoke
 
-      - name: Verify native LLVM and GNU GCC
+      - name: Verify native Apple Clang and GNU GCC
         if: github.event_name != 'pull_request'
         shell: bash
         run: |
           set -euo pipefail
           export HOME="$CODESPACE_HOME"
-          export PATH="$HOME/.local/bin:$HOME/.local/opt/llvm/llvm23/bin:$PATH"
-          test "$(llvm-config --prefix)" -ef "$HOME/.local/opt/llvm/llvm23"
-          test "$(llvm-config --version)" = 23.1.2
+          export PATH="$HOME/.local/bin:/usr/bin:$PATH"
           test "$(gcc -dumpfullversion)" = 16.2.0
           test "$(command -v gcc)" = "$HOME/.local/bin/gcc"
-          test "$(command -v clang)" = "$HOME/.local/opt/llvm/llvm23/bin/clang"
+          test "$(command -v clang)" = /usr/bin/clang
           clang --version
-          clang-format --version
-          clangd --version
           work_dir="$(mktemp -d)"
           trap 'rm -rf "$work_dir"' EXIT
           printf 'int main(void) { return 0; }\n' >"$work_dir/main.c"
@@ -354,7 +346,6 @@ jobs:
           clang++ -isysroot "$(xcrun --sdk macosx --show-sdk-path)" \
             "$work_dir/main.cpp" -o "$work_dir/main-clang++"
           "$work_dir/main-clang++"
-          clang-format --dry-run --Werror "$work_dir/main.c"
 
       - name: Verify native Node tool binding and relocation
         if: github.event_name != 'pull_request'

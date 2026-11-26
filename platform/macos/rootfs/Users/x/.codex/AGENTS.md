@@ -11,9 +11,10 @@
   放到 PATH 首位。
 - Node.js 全局 CLI 用 `node-tool` 安装到 `~/.local/opt/node/tools`，不使用全局 npm 或 pnpm 安装。
 - Go runtime 位于 `~/.local/opt/go`，用户安装的 Go 命令位于 `~/go/bin`。
-- LLVM SDK 位于 `~/.local/opt/llvm`，使用官方 macOS arm64 archive；最新 release 缺少
-  对应 artifact 时保留已锁定版本。GNU GCC 由 Homebrew 管理，用户 bin 中的 `gcc`、`g++`
-  链接到 GNU GCC。Apple SDK 与系统工具仍由 Xcode 提供，不替换系统 compiler。
+- macOS 默认使用 Xcode 提供的 Apple Clang、SDK 与系统工具，不安装 LLVM SDK。
+  用户明确要求 LLVM 时使用官方 macOS arm64 archive，安装到 `~/.local/opt/llvm` 并按项目
+  选择 PATH；最新 release 缺少对应 artifact 时保留已锁定版本。GNU GCC 由 Homebrew 管理，
+  用户 bin 中的 `gcc`、`g++` 链接到 GNU GCC，不替换系统 compiler。
 - Rust 工具链由 rustup 管理，位于 `~/.local/opt/rust`；`~/.cargo` 保留用户 CLI 与缓存。
 - Java runtime 位于 `~/.local/opt/java/openjdk*`；切换时同步设置 `JAVA_HOME` 与 PATH。
   Java CLI 用 `java-tool` 安装到 `~/.local/opt/java/tools`，不使用 Homebrew 安装 JDK。

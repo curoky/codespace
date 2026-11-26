@@ -23,7 +23,7 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 | Go 缺失或版本变化 | `platform/macos/maintenance/go.sh` |
 | Rust toolchain 缺失或需要更新 | `platform/macos/maintenance/rust.sh` |
 | GNU GCC 或其用户命令链接缺失 | `platform/macos/maintenance/homebrew.sh` |
-| LLVM SDK 缺失或声明变化 | `platform/macos/maintenance/llvm.sh` |
+| 用户明确要求安装或更新 LLVM SDK | `platform/macos/maintenance/llvm.sh` |
 | Java 缺失或版本变化 | `platform/macos/maintenance/java-runtime.sh` |
 | java-tool 缺失或发布产物变化 | `platform/macos/maintenance/java-tools.sh` |
 | home links 或 copied config 缺失 | `platform/macos/maintenance/home-links.sh` |
@@ -38,8 +38,9 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
   `Dockerfile`，运行 `python-tools.sh`。
 - Python runtime 及其他语言的 runtime 与 CLI：修改对应 maintenance 脚本，运行该脚本。
 - GNU GCC：由 `Brewfile` 声明，运行 `homebrew.sh`；其无后缀命令由该操作链接到用户 bin。
-- LLVM：使用 `llvm.sh` 中锁定的官方 macOS arm64 archive；最新 release 缺少对应 artifact
-  时保留已锁定版本，不切换安装来源。
+- LLVM：默认不安装，使用 Xcode 提供的 Apple Clang。用户明确要求时使用 `llvm.sh` 中
+  锁定的官方 macOS arm64 archive，按项目选择 PATH；最新 release 缺少对应 artifact 时
+  保留已锁定版本，不切换安装来源。
 - home config 或 LaunchAgent：修改 rootfs source，再运行 `home-links.sh` 或对应 service 脚本。
 
 增量依赖：
@@ -58,7 +59,8 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 
 ## Full Install
 
-用户明确要求首次安装、全量安装或完整收敛时，无条件按以下顺序运行全部操作：
+用户明确要求首次安装、全量安装或完整收敛时，无条件按以下顺序运行默认操作；
+LLVM 仍需单独明确请求：
 
 1. `platform/macos/maintenance/homebrew.sh`
 2. `platform/macos/maintenance/binman.sh`
@@ -68,12 +70,11 @@ description: 增量或全量安装并持续维护本项目的 macOS 开发环境
 6. `platform/macos/maintenance/node-tools.sh`
 7. `platform/macos/maintenance/go.sh`
 8. `platform/macos/maintenance/rust.sh`
-9. `platform/macos/maintenance/llvm.sh`
-10. `platform/macos/maintenance/java-runtime.sh`
-11. `platform/macos/maintenance/java-tools.sh`
-12. `platform/macos/maintenance/home-links.sh`
-13. `platform/macos/maintenance/default-apps.sh`
-14. `platform/macos/maintenance/atuin-daemon.sh`
+9. `platform/macos/maintenance/java-runtime.sh`
+10. `platform/macos/maintenance/java-tools.sh`
+11. `platform/macos/maintenance/home-links.sh`
+12. `platform/macos/maintenance/default-apps.sh`
+13. `platform/macos/maintenance/atuin-daemon.sh`
 
 某一步失败时停止，不运行依赖它的后续步骤。修复后从失败的原子操作继续，不重复执行无关操作。
 
