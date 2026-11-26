@@ -421,6 +421,15 @@ def test_conda_uses_the_current_home_for_its_installation_and_environment_helper
     conda.chmod(0o755)
     environment_file = tmp_path / "environment.yaml"
     environment_file.write_text("name: smoke\ndependencies:\n  - python=3.14\n")
+    # GNU getopt belongs to the Linux image, not the native macOS test environment.
+    getopt = tmp_path / "getopt"
+    getopt.write_text(
+        f"#!{sys.executable}\n"
+        "import shlex, sys\n"
+        "arguments = sys.argv[sys.argv.index('--') + 1:]\n"
+        "print(shlex.join([*arguments, '--']))\n"
+    )
+    getopt.chmod(0o755)
     subprocess.run(
         [
             "bash",
@@ -428,7 +437,12 @@ def test_conda_uses_the_current_home_for_its_installation_and_environment_helper
             "-e",
             str(environment_file),
         ],
-        env={**os.environ, "HOME": str(home), "TEST_RECORD": str(record)},
+        env={
+            **os.environ,
+            "HOME": str(home),
+            "PATH": f"{tmp_path}:{os.environ['PATH']}",
+            "TEST_RECORD": str(record),
+        },
         check=True,
         capture_output=True,
         text=True,
@@ -1009,7 +1023,7 @@ def test_macos_rust_ci_checks_native_installed_component_output(
     assert (result.returncode == 0) == (change is None)
 
 
-def test_llvm_sdk_and_formatter_paths_match_across_platforms() -> None:
+def test_llvm_sdk_and_formatter_paths_follow_each_platform_contract() -> None:
     workspace = _CONTAINER / "workspace"
     macos = _CONTAINER.parent / "macos"
     link = workspace / "rootfs/home/x/.local/opt/llvm"
@@ -1026,19 +1040,15 @@ def test_llvm_sdk_and_formatter_paths_match_across_platforms() -> None:
     brewfile = (macos / "Brewfile").read_text()
     assert 'brew "llvm"' not in brewfile
     assert 'brew "clang-format"' not in brewfile
-    for settings_path, sdk in (
-        (
-            workspace / "rootfs/home/x/.vscode-server/data/Machine/settings.json",
-            "/home/x/.local/opt/llvm/llvm23",
-        ),
-        (
-            macos / "rootfs/Users/x/Library/Application Support/Code/User/settings.json",
-            "/Users/x/.local/opt/llvm/llvm23",
-        ),
-    ):
-        settings = settings_path.read_text()
-        for field in ("C_Cpp.clang_format_path", "clang-format.executable"):
-            assert f'"{field}": "{sdk}/bin/clang-format"' in settings
+    workspace_settings = (
+        workspace / "rootfs/home/x/.vscode-server/data/Machine/settings.json"
+    ).read_text()
+    macos_settings = (
+        macos / "rootfs/Users/x/Library/Application Support/Code/User/settings.json"
+    ).read_text()
+    for field in ("C_Cpp.clang_format_path", "clang-format.executable"):
+        assert f'"{field}": "/home/x/.local/opt/llvm/llvm23/bin/clang-format"' in workspace_settings
+        assert f'"{field}"' not in macos_settings
 
 
 def test_workspace_binman_manifests_do_not_overlap() -> None:
