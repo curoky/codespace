@@ -78,7 +78,7 @@ projects:
     encrypted: false
     container:
       ports:
-        - {target: 8010, published: 8010, host_ip: 0.0.0.0}
+        - {target: 8030, published: 8030, host_ip: 0.0.0.0}
       volumes:
         - ${RESOURCE_DATA}/workspace:/workspace
 

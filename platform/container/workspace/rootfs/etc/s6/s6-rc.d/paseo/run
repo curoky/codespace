@@ -4,7 +4,7 @@ redirfd -w 1 /var/log/s6.paseo.log
 fdmove -c 2 1
 
 s6-notifyoncheck -d -n 0 -w 200 -t 2000 -T 60000
-  -c "curl -fsS http://127.0.0.1:8010/api/health"
+  -c "curl -fsS http://127.0.0.1:8030/api/health"
 s6-setuidgid x
 s6-env HOME=/home/x
 cd /workspace

@@ -2,7 +2,7 @@
   "$schema": "https://paseo.sh/schemas/paseo.config.v1.json",
   "version": 1,
   "daemon": {
-    "listen": "0.0.0.0:8010",
+    "listen": "0.0.0.0:8030",
     "relay": {
       "enabled": false
     }

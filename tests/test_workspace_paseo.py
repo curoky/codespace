@@ -35,7 +35,7 @@ def test_paseo_daemon_starts_by_default_and_waits_for_llmbox() -> None:
     services = _SERVICE.parent
 
     assert config["version"] == 1
-    assert config["daemon"]["listen"] == "0.0.0.0:8010"
+    assert config["daemon"]["listen"] == "0.0.0.0:8030"
     assert config["daemon"]["relay"]["enabled"] is False
     assert config["features"]["dictation"]["enabled"] is False
     assert config["features"]["voiceMode"]["enabled"] is False
@@ -52,7 +52,7 @@ def test_paseo_daemon_starts_by_default_and_waits_for_llmbox() -> None:
     assert (_SERVICE / "type").read_text().strip() == "longrun"
     assert os.access(_SERVICE / "run", os.X_OK)
     assert "s6-setuidgid x\ns6-env HOME=/home/x\ncd /workspace" in run
-    assert "127.0.0.1:8010/api/health" in run
+    assert "127.0.0.1:8030/api/health" in run
     assert run.index("s6-notifyoncheck") < run.index("s6-setuidgid")
     assert (_SERVICE / "notification-fd").read_text().strip() == "3"
     assert int((_SERVICE / "timeout-up").read_text()) > 60000
