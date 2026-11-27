@@ -5,17 +5,13 @@ description: 使用 csecret get KEY 读取个人凭据；用户明确要求维�
 
 # Use Secrets
 
-- 日常只用 `csecret get KEY`，stdout 是原始 value，不追加换行。CLI 从脚本旁的
-  `secrets.json.gpg` 读取，复用 `/run/secrets/codespace_workspace_key` 解密；缺失时停止
-  依赖操作，不自行生成 key。不读取维护明文、不输出或复述真实凭据。
-
-  ```bash
-  token="$(csecret get github_token_all_action_rw)" && GH_TOKEN="$token" gh run view --log-failed
-  auth="$(csecret get llmbox.auth.json)" && printf '%s' "$auth" > "$HOME/.codex/llmbox.auth.json"
-  ```
-
-- 仅用户明确要求维护 secret 时，在仓库的 `platform/container/workspace/tools/csecret/`
-  运行 `./csecret.sh decrypt`，编辑 `secrets.json`，再运行 `./csecret.sh encrypt`。
-  数据是平铺 JSON 对象，value 按字符串保存；LLMBox 凭据保存完整 JSON 字符串。
-- 维护明文已 ignore，只提交 `secrets.json.gpg`，不提交 key。CLI 不自动操作 Git、更新
-  安装副本或续期 token；仓库密文更新后需重建 image 或显式更新安装副本。
+- 日常只用 `csecret get KEY`，输出原始 value，不追加换行。CLI 读取脚本旁的
+  `secrets.json.gpg`，用 `/run/secrets/codespace_workspace_key` 解密；缺失时停止，
+  不生成 key。不读取维护明文，不展示真实凭据。
+- 仅用户明确要求维护时，在仓库的 `platform/container/workspace/tools/csecret/`
+  执行 `./csecret.sh decrypt`，编辑 `secrets.json`，再执行 `./csecret.sh encrypt`。
+  数据为平铺字符串对象；只提交密文，不提交明文或 key。
+- 仓库密文更新后，需重建 image 或显式同步安装副本。
+- LLMBox 从 `~/.codex/llmbox.auth.json` 提取 `llmbox_access_token` 和
+  `llmbox_expires_at`（UTC RFC3339），一起更新，不存完整 JSON，不把凭据放进命令参数。
+  `custom-job` 每次启动从安装密文组装 auth；重新 login 后须回存并同步，否则重启恢复旧凭据。

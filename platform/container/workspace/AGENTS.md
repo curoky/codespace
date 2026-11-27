@@ -51,12 +51,9 @@ stage 和装配细节，Go executable 共用本目录 module，在构建期编�
 ## Main Flows
 
 构建装配 rootfs/runtime/executable/graph，启动初始化用户与挂载后运行依赖服务。
-[custom-job](rootfs/etc/s6/s6-rc.d/custom-job/run.sh) 以 `x` 通过 `csecret get` 读取内部标识
-和下载 URL，替换 LLMBox 模板并原子发布 profile 后安装；构建期只装配密文，不读 key。
-读取失败保留已有 profile，临时 profile 只在私有目录存放并退出清理；安装只在服务启动时
-执行，用户启动安装 job 不属于 image build。
-
-GitHub/Atuin 登录任务以 `x` 通过 `csecret get` 读取凭据，不依赖各自的 Podman secret。
+[custom-job](rootfs/etc/s6/s6-rc.d/custom-job/run.sh) 以 `x` 从 csecret 读取初始化输入，
+发布 LLMBox profile/auth 后执行安装；准备失败保留已有文件。GitHub/Atuin 登录同样
+通过 csecret 获取凭据。构建期只装配密文，不读 key；安装任务只在服务启动时执行。
 
 macOS helper 从本仓库 GHCR/ORAS 获取，首次安装需先发布，不含 runtime/manager/Shell；
 Linux image 从源码构建，不依赖 helper tag。构建/发布入口见
@@ -64,6 +61,8 @@ Linux image 从源码构建，不依赖 helper tag。构建/发布入口见
 
 ## Pitfalls
 
+- LLMBox 启动初始化以安装密文为准，会覆盖本地 auth；重新 login 后须显式回存并同步
+  密文，否则下次启动恢复旧凭据。维护入口见 [use-secrets](rootfs/home/x/.codex/skills/use-secrets/SKILL.md)。
 - Linux LLVM archive 不含 sysroot；Clang 项目须显式配置 Nix GCC headers、启动对象与
   runtime/linker，不能用 `clang --version` 或单个 `--gcc-install-dir` 证明可用，也不加 wrapper
   或重复 compiler 隐藏限制。
