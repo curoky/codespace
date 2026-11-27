@@ -1,0 +1,31 @@
+{
+  "$schema": "https://paseo.sh/schemas/paseo.config.v1.json",
+  "version": 1,
+  "daemon": {
+    "listen": "0.0.0.0:8010",
+    "relay": {
+      "enabled": false
+    }
+  },
+  "agents": {
+    "providers": {
+      "codex": {
+        "label": "Codex LLMBox",
+        "env": {
+          "CODEX_HOME": "/home/x/.codex-paseo"
+        }
+      }
+    }
+  },
+  "features": {
+    "dictation": {
+      "enabled": false
+    },
+    "voiceMode": {
+      "enabled": false
+    },
+    "webUi": {
+      "enabled": true
+    }
+  }
+}

@@ -77,6 +77,8 @@ projects:
     hosts: [cpu1, h100, cpu2]
     encrypted: false
     container:
+      ports:
+        - {target: 8010, published: 8010, host_ip: 0.0.0.0}
       volumes:
         - ${RESOURCE_DATA}/workspace:/workspace
 

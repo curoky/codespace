@@ -59,8 +59,16 @@ macOS helper 从本仓库 GHCR/ORAS 获取，首次安装需先发布，不含 r
 Linux image 从源码构建，不依赖 helper tag。构建/发布入口见
 [publish-workspace-tools](../../../.github/workflows/publish-workspace-tools.yaml)。
 
+[Paseo](rootfs/home/x/.paseo/config.json) 由[可选 s6 service](rootfs/etc/s6/s6-rc.d/paseo/)
+从 csecret 读取 `paseo_password` 提供 daemon/Web UI，显式启动用 `sudo s6-rc -up change paseo`。
+Dictation/Voice Mode 默认关闭，避免自动下载本地模型；以后在 Paseo 设置中按需开启。
+手机直连 Host IP 的 publication 见[配置示例](../../../config.example.yaml)；仅限可信 LAN/VPN，
+公网须额外配置 HTTPS 与防火墙，不通过 SSH tunnel。其他服务仍默认监听 loopback。
+
 ## Pitfalls
 
+- Codex app-server 不接受 `-p`；Paseo 使用独立 `CODEX_HOME` 链接 LLMBox profile 与
+  rules/skills，不继承 base config 或共享历史。`HOME` 不变，helper 复用原凭据。
 - LLMBox 启动初始化以安装密文为准，会覆盖本地 auth；重新 login 后须显式回存并同步
   密文，否则下次启动恢复旧凭据。维护入口见 [use-secrets](rootfs/home/x/.codex/skills/use-secrets/SKILL.md)。
 - Linux LLVM archive 不含 sysroot；Clang 项目须显式配置 Nix GCC headers、启动对象与
@@ -73,6 +81,8 @@ Linux image 从源码构建，不依赖 helper tag。构建/发布入口见
 ## Validation
 
 artifact 行为变化构建 Dockerfile 的最终 `workspace` target，验证无 Resource 也能启动。
+Paseo 变化运行 [tests](../../../tests/test_workspace_paseo.py)，追加主 image 的原生模块、
+daemon/Web UI、s6 readiness 与 Codex 验证；fixture 不证明真实 LLMBox 模型权限。
 AI 分发与正文一致性由 `platform/macos/tests/ai.bats` 检查；历史重写 helper 依赖 GNU
 `date`，在 disposable repository 中验证，不改写本仓库历史。
 Resource 可在仓库外临时配方裁剪无关工具，但保留受影响工具的真实 payload/binding/权限/

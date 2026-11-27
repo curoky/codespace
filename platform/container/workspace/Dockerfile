@@ -133,7 +133,9 @@ ENV HOME=/home/x PATH=/home/x/.local/opt/node:${PATH}
 COPY --from=stage_workspace_tools /out/node-tool /home/x/.local/opt/node/node-tool
 RUN node-tool install defuddle@0.19.4 \
   && node-tool install markdownlint-cli2@0.23.3 \
-  && node-tool install prettier@3.9.9
+  && node-tool install prettier@3.9.9 \
+  && node-tool install @getpaseo/cli@0.17.6 \
+    --allow-build node-pty --allow-build esbuild --allow-build msgpackr-extract
 
 # ------------------------- NVIDIA Container Toolkit ------------------------
 FROM docker.io/debian:stable-slim AS stage_nvidia_container_toolkit

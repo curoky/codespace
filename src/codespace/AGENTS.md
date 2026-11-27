@@ -23,8 +23,9 @@ model/route/error mapping/lifespan/dashboard projection。
   error。运行中 image ID 只与 Host 本地 image 比较，不查 registry 或增加 Web cache；
   后台 image 拉取由 support Service 负责。
 - provider private key 只留在 Workspace，控制面只接收 public key；token 留在 macOS
-  配置/内存。publication 只绑定 Host loopback，tunnel 只开放 allowlist port；缺 secret
-  直接失败，不降级明文。Host rootful Podman socket 只授予明确的 maintenance owner。
+  配置/内存。Workspace SSH publication 只绑定 Host loopback，其他 publication 按显式 IP
+  配置；非 loopback 入口须有认证与网络边界，tunnel 只开放 allowlist port。缺 secret 直接
+  失败，不降级明文。Host rootful Podman socket 只授予明确的 maintenance owner。
 - [runtime/container.py](runtime/container.py) 是字段到 podman-py kwargs 的唯一映射。
   绝对路径与 `${RESOURCE_DATA}` source 为 bind，其余为 named volume；placeholder 不得
   逃逸 data root，named source 不可重复以免 SDK 映射丢项，bind 可挂不同 target。

@@ -328,7 +328,7 @@ def test_duplicate_port_target_is_rejected(
         )
 
 
-@pytest.mark.parametrize("host_ip", ["127.0.0.1", "::1"])
+@pytest.mark.parametrize("host_ip", ["127.0.0.1", "::1", "0.0.0.0", "::", "10.88.0.1", "fd00::1"])  # noqa: S104 - explicit publication
 def test_create_container_translates_canonical_options(
     monkeypatch: pytest.MonkeyPatch, host_ip: str
 ) -> None:
@@ -407,16 +407,20 @@ def test_create_container_translates_canonical_options(
         "",
         "localhost",
         "host.containers.internal",
-        "0.0.0.0",  # noqa: S104 - rejected insecure input
-        "10.88.0.1",
         "10.88.0.1/16",
         "999.1.1.1",
         1234,
     ],
 )
-def test_port_host_ip_requires_a_loopback_address(host_ip: object) -> None:
+def test_port_host_ip_requires_an_ip_address(host_ip: object) -> None:
     with pytest.raises(ValidationError):
         PortSpec.model_validate({"target": 80, "published": 8080, "host_ip": host_ip})
+
+
+def test_port_host_ip_normalizes_ipv6() -> None:
+    port = PortSpec(target=80, published=8080, host_ip="fd00:0:0:0:0:0:0:1")
+
+    assert port.host_ip == "fd00::1"
 
 
 def test_create_container_uses_configured_network(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -463,18 +467,19 @@ def test_create_container_publishes_additional_tcp_ports_on_random_loopback_port
     }
 
 
-def test_published_tcp_endpoint_reads_loopback_binding() -> None:
+@pytest.mark.parametrize("host_ip", ["127.0.0.1", "0.0.0.0", "10.88.0.1", "fd00::1"])  # noqa: S104 - inspect metadata
+def test_published_tcp_endpoint_reads_configured_binding(host_ip: str) -> None:
     running = Container(
         attrs={
             "NetworkSettings": {
                 "Ports": {
-                    "8008/tcp": [{"HostIp": "127.0.0.1", "HostPort": "42345"}],
+                    "8008/tcp": [{"HostIp": host_ip, "HostPort": "42345"}],
                 }
             }
         }
     )
 
-    assert container.published_tcp_endpoint(running, 8008) == ("127.0.0.1", 42345)
+    assert container.published_tcp_endpoint(running, 8008) == (host_ip, 42345)
     assert container.published_tcp_endpoint(running, 8080) is None
 
 
