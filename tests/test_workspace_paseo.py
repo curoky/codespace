@@ -30,7 +30,7 @@ def test_paseo_uses_native_llmbox_configuration_without_copying_credentials() ->
         assert (codex_home / name).readlink() == Path("../.codex") / target
 
 
-def test_paseo_daemon_is_optional_direct_access_and_waits_for_llmbox() -> None:
+def test_paseo_daemon_starts_by_default_and_waits_for_llmbox() -> None:
     config = json.loads((_HOME / ".paseo/config.json").read_text())
     services = _SERVICE.parent
 
@@ -40,7 +40,10 @@ def test_paseo_daemon_is_optional_direct_access_and_waits_for_llmbox() -> None:
     assert config["features"]["dictation"]["enabled"] is False
     assert config["features"]["voiceMode"]["enabled"] is False
     assert config["features"]["webUi"]["enabled"] is True
-    assert not (services / "default/contents.d/paseo").exists()
+    assert (services / "default/contents.d/paseo").is_file()
+    wsl_bundle = _WORKSPACE.parents[1] / "wsl/rootfs/etc/s6/s6-rc.d/wsl/contents.d"
+    assert not (wsl_bundle / "paseo").exists()
+    assert not (wsl_bundle / "default").exists()
     assert {path.name for path in (_SERVICE / "dependencies.d").iterdir()} == {
         "custom-job",
         "gocryptfs-workspace",

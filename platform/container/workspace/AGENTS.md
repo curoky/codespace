@@ -59,8 +59,8 @@ macOS helper 从本仓库 GHCR/ORAS 获取，首次安装需先发布，不含 r
 Linux image 从源码构建，不依赖 helper tag。构建/发布入口见
 [publish-workspace-tools](../../../.github/workflows/publish-workspace-tools.yaml)。
 
-[Paseo](rootfs/home/x/.paseo/config.json) 由[可选 s6 service](rootfs/etc/s6/s6-rc.d/paseo/)
-从 csecret 读取 `paseo_password` 提供 daemon/Web UI，显式启动用 `sudo s6-rc -up change paseo`。
+[Paseo](rootfs/home/x/.paseo/config.json) 由[默认 s6 service](rootfs/etc/s6/s6-rc.d/paseo/)
+在 LLMBox 初始化与 Workspace 挂载就绪后启动，从 csecret 读取 `paseo_password` 提供 daemon/Web UI。
 Dictation/Voice Mode 默认关闭，避免自动下载本地模型；以后在 Paseo 设置中按需开启。
 手机直连 Host IP 的 publication 见[配置示例](../../../config.example.yaml)；仅限可信 LAN/VPN，
 公网须额外配置 HTTPS 与防火墙，不通过 SSH tunnel。其他服务仍默认监听 loopback。
