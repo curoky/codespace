@@ -150,6 +150,7 @@ def test_example_gpu_service_sets_huggingface_environment_at_startup(service: st
 def test_example_config_does_not_declare_or_mount_csecret_values() -> None:
     config = load_config(Path("config.example.yaml"))
     keys = {
+        "codespace_root_password",
         "github_token_public_read",
         "github_token_all_read",
         "github_token_all_action_rw",
@@ -493,6 +494,7 @@ def test_unknown_host_reference_is_rejected(config: Config) -> None:
 def test_encrypted_project_requires_syncable_key(config: Config) -> None:
     data = config.model_dump()
     data["projects"]["codespace"]["encrypted"] = True
+    data["secrets"].pop("codespace_workspace_key")
 
     with pytest.raises(ValidationError, match="codespace_workspace_key"):
         Config.model_validate(data)

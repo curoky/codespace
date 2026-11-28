@@ -230,6 +230,9 @@ def test_workspace_root_password_tools_support_system_authentication() -> None:
     sudoers = (_CONTAINER / "workspace/rootfs/etc/sudoers").read_text()
 
     assert "rm -f /usr/local/bin/su /usr/local/sbin/su" in configure
+    assert "/usr/local/bin/s6-setuidgid x /usr/local/bin/s6-env HOME=/home/x" in password_init
+    assert "/home/x/.local/bin/csecret get codespace_root_password" in password_init
+    assert "/run/secrets/codespace_root_password" not in password_init
     assert "/usr/sbin/chpasswd --crypt-method SHA512" in password_init
     assert "x ALL=(ALL:ALL) ALL" in sudoers
 

@@ -75,7 +75,9 @@ Dictation/Voice Mode 默认关闭，避免自动下载本地模型；以后在 P
   runtime/linker，不能用 `clang --version` 或单个 `--gcc-install-dir` 证明可用，也不加 wrapper
   或重复 compiler 隐藏限制。
 - 系统认证依赖发行版 setuid su 与静态 sudo 可校验的 SHA-512 hash，软件替换/密码初始化
-  不能丢失这两个条件。归档 Ollama 未预装 executable，恢复前按定义安装。
+  不能丢失这两个条件。root-password 以 `x` 从 csecret 读取 `codespace_root_password`，
+  再由 root 调用 chpasswd；只接受非空单行密码，不挂载独立的 Podman password secret。
+  WSL 显式跳过初始化。归档 Ollama 未预装 executable，恢复前按定义安装。
 - ORAS setup Action 使用内嵌 release 列表；升级 CLI 同时核对 Action 的版本/平台支持。
 
 ## Validation

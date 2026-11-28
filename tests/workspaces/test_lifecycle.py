@@ -822,8 +822,8 @@ def test_workspace_container_uses_fixed_ssh_listener_and_configured_mounts(
         {"source": "atuin_credentials", "mode": 0o400},
         {"source": "atuin_db_uri", "mode": 0o400},
         {
-            "source": "codespace_root_password",
-            "target": "/run/secrets/codespace_root_password",
+            "source": "api_token",
+            "target": "/run/secrets/api_token",
             "uid": "0",
             "gid": "0",
             "mode": 0o400,
@@ -881,8 +881,8 @@ def test_workspace_container_uses_fixed_ssh_listener_and_configured_mounts(
     ]
     assert all(secret.mode == 0o400 for secret in runtime_spec.secrets[:2])
     assert runtime_spec.secrets[2].model_dump() == {
-        "source": "codespace_root_password",
-        "target": "/run/secrets/codespace_root_password",
+        "source": "api_token",
+        "target": "/run/secrets/api_token",
         "uid": "0",
         "gid": "0",
         "mode": 0o400,

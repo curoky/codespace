@@ -47,7 +47,6 @@ project_defaults:
     environment:
       PATH: /opt/bm/bin:/opt/bm/profile/s6/bin:/opt/bm/profile/s6/libexec:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     secrets:
-      - {source: codespace_root_password, uid: '0', gid: '0', mode: 0400}
       - {source: codespace_workspace_key, uid: '5230', gid: '5230', mode: 0400}
     cap_add: [NET_RAW, SYS_ADMIN]
     security_opt: [label=disable, seccomp=unconfined, apparmor=unconfined]
@@ -219,5 +218,4 @@ services:
       restart: unless-stopped
 
 secrets:
-  codespace_root_password: '123'
   codespace_workspace_key: masked

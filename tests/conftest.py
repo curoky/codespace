@@ -61,10 +61,9 @@ def config(monkeypatch: pytest.MonkeyPatch) -> Config:
                     "ulimits": {"memlock": {"soft": -1, "hard": -1}},
                     "secrets": [
                         {
-                            "source": "codespace_root_password",
-                            "target": "/run/secrets/codespace_root_password",
-                            "uid": "0",
-                            "gid": "0",
+                            "source": "codespace_workspace_key",
+                            "uid": "5230",
+                            "gid": "5230",
                             "mode": 0o400,
                         }
                     ],
@@ -141,6 +140,6 @@ def config(monkeypatch: pytest.MonkeyPatch) -> Config:
                     },
                 },
             },
-            "secrets": {"codespace_root_password": "test-password"},
+            "secrets": {"codespace_workspace_key": "test-key"},
         }
     )
