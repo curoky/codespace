@@ -6,6 +6,7 @@ import pytest
 from pydantic import ValidationError
 
 from codespace.config import Config, load_config
+from codespace.runtime.container import SecretSpec
 
 
 def test_specs_derive_image_and_platform_from_the_container(config: Config) -> None:
@@ -139,7 +140,9 @@ def test_example_gpu_service_sets_huggingface_environment_at_startup(service: st
         container = config.resolved_service_container(service, host)
         assert container.environment == {}
         assert "/home/x/.cache/huggingface" in {volume.target for volume in container.volumes}
-        assert container.secrets == []
+        assert container.secrets == [
+            SecretSpec(source="huggingface_token", uid="5230", gid="5230", mode=0o400)
+        ]
     assert 'export HF_HOME="$HOME/.cache/huggingface"' in script
     assert "export HF_TOKEN_PATH=/run/secrets/huggingface_token" in script
 
@@ -150,11 +153,12 @@ def test_example_config_does_not_declare_or_mount_csecret_values() -> None:
         "github_token_public_read",
         "github_token_all_read",
         "github_token_all_action_rw",
+        "codespace_github_token",
+        "codespace_gitlab_token",
         "atuin_credentials",
-        "huggingface_token",
         "github_action_token",
     }
-    assert keys.isdisjoint(config.secrets)
+    assert (keys | {"huggingface_token"}).isdisjoint(config.secrets)
     for project_id, project in config.projects.items():
         for host in project.hosts:
             container = config.resolved_project_container(project_id, host)
