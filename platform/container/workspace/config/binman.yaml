@@ -164,6 +164,7 @@ installs:
     - xxd
     - xz
     - yazi
+    - yq
     - zellij
     - zip
     - zsh

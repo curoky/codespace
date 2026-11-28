@@ -118,6 +118,7 @@ installs:
     # - xxd
     - xz
     - yazi
+    - yq
     - zip
     # - zsh
     - zsh-plugins
