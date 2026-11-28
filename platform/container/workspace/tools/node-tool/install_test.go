@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -79,7 +78,7 @@ func TestInstallBindingAndRelocation(t *testing.T) {
 			output, err := invoke(t, home, "install", name+"@1.0.0")
 			require.NoError(t, err)
 			require.Equal(t, "installed "+name+"@1.0.0: sample\n", output)
-			info, err := os.Stat(filepath.Join(root, "envs", url.QueryEscape(name)))
+			info, err := os.Stat(filepath.Join(root, "envs", name))
 			require.NoError(t, err)
 			require.Equal(t, os.FileMode(0755), info.Mode().Perm())
 			relocated := filepath.Join(t.TempDir(), "relocated tools")
@@ -91,6 +90,24 @@ func TestInstallBindingAndRelocation(t *testing.T) {
 			require.Equal(t, "bound-node:--from-tool two words it's quoted --version\n", string(result))
 		})
 	}
+}
+
+func TestScopedPackagesShareNamespace(t *testing.T) {
+	root := filepath.Join(t.TempDir(), "tools")
+	for _, name := range []string{"@example/first", "@example/second"} {
+		home := setupPackage(t, name, "cli.js")
+		_, err := invoke(t, home, "install", name, "--root", root)
+		require.NoError(t, err)
+		require.FileExists(t, filepath.Join(root, "envs", name, "package.json"))
+		cmd := exec.Command(filepath.Join(root, "bin", filepath.Base(name)), "--version")
+		result, err := cmd.CombinedOutput()
+		require.NoError(t, err, "%s", result)
+		require.Equal(t, "bound-node:--from-tool --version\n", string(result))
+	}
+	entries, err := os.ReadDir(filepath.Join(root, "envs"))
+	require.NoError(t, err)
+	require.Len(t, entries, 1)
+	require.Equal(t, "@example", entries[0].Name())
 }
 
 func TestPnpmInputsAndMultipleBins(t *testing.T) {
@@ -120,19 +137,24 @@ func TestExplicitRuntimePreservesSymlinkBinding(t *testing.T) {
 }
 
 func TestRejectExistingPackageAndLauncher(t *testing.T) {
-	for _, existing := range []string{"envs/sample", "bin/sample"} {
-		t.Run(existing, func(t *testing.T) {
-			home := setupPackage(t, "sample", "cli.js")
+	for _, test := range []struct{ name, existing string }{
+		{"sample", "envs/sample"},
+		{"sample", "bin/sample"},
+		{"@example/sample", "envs/@example/sample"},
+		{"@example/sample", "bin/sample"},
+	} {
+		t.Run(test.name+"/"+test.existing, func(t *testing.T) {
+			home := setupPackage(t, test.name, "cli.js")
 			root := filepath.Join(home, ".local/opt/node/tools")
-			path := filepath.Join(root, existing)
+			path := filepath.Join(root, test.existing)
 			executable(t, path, "original")
-			_, err := invoke(t, home, "install", "sample")
+			_, err := invoke(t, home, "install", test.name)
 			require.Error(t, err)
 			contents, err := os.ReadFile(path)
 			require.NoError(t, err)
 			require.Equal(t, "original", string(contents))
-			if existing == "bin/sample" {
-				require.NoFileExists(t, filepath.Join(root, "envs/sample/package.json"))
+			if test.existing == "bin/sample" {
+				require.NoFileExists(t, filepath.Join(root, "envs", test.name, "package.json"))
 			}
 			entries, err := os.ReadDir(root)
 			require.NoError(t, err)

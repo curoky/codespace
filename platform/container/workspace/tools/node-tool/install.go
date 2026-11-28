@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -90,9 +89,7 @@ func installTool(ctx context.Context, requested string, options installOptions) 
 }
 
 func exposeTool(root, temporary, node string, tool installedTool) error {
-	// Keep the pnpm project portable, including scoped package names.
-	encodedName := url.QueryEscape(tool.name)
-	environment := filepath.Join(root, "envs", encodedName)
+	environment := filepath.Join(root, "envs", tool.name)
 	if _, err := os.Lstat(environment); !errors.Is(err, os.ErrNotExist) {
 		return fmt.Errorf("%s is already installed", tool.name)
 	}
@@ -121,7 +118,7 @@ func exposeTool(root, temporary, node string, tool installedTool) error {
 		return err
 	}
 	for _, bin := range tool.bins {
-		target := filepath.Join("envs", encodedName, "node_modules/.bin", bin)
+		target := filepath.Join("envs", tool.name, "node_modules/.bin", bin)
 		var content strings.Builder
 		if err := launcherTemplate.Execute(&content, struct{ NodeBin, Executable string }{filepath.Dir(node), target}); err != nil {
 			return err

@@ -8,9 +8,10 @@ installer 只拥有安装布局、命令发现与 binding。入口与实现见
 
 ## Contracts
 
-- package 使用隔离 pnpm project，命令从安装结果的 `package.json#bin` 发现。launcher
-  相对 tools root 定位，payload 可搬迁，但固定 Node.js binding 必须仍可用；CLI 与子进程
-  不随项目环境切换 runtime。
+- package 使用隔离 pnpm project，environment 按原始包名位于 `envs/<package>`，
+  scoped package 保留 `@scope/name` 层级，不编码目录名。命令从安装结果的 `package.json#bin`
+  发现。launcher 相对 tools root 定位，payload 可搬迁，但固定 Node.js binding 必须仍可用；
+  CLI 与子进程不随项目环境切换 runtime。
 - pnpm 从调用方 PATH 查找；lifecycle scripts 按 package 显式授权，不默认放行。
 - package 或公开命令存在时失败，不支持 overwrite/upgrade/rollback/并发写入。
   executable 自包含，不依赖外部模板、Python/uv 或运行期 compiler；路径须 Shell quoting。
