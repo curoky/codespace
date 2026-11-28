@@ -30,9 +30,7 @@ from codespace.services import ServiceSpec
 from codespace.workspaces import (
     WORKSPACE_KEY_SECRET,
     WORKSPACE_MOUNT,
-    GitProvider,
     Source,
-    TokenString,
     WorkspacePath,
     WorkspaceSpec,
     workspace_path,
@@ -163,11 +161,6 @@ class ServiceConfig(FrozenModel):
     container: ContainerLayer = Field(default_factory=ContainerLayer)
 
 
-class TokensConfig(FrozenModel):
-    github: TokenString | None = Field(default=None, repr=False)
-    gitlab: TokenString | None = Field(default=None, repr=False)
-
-
 class Config(FrozenModel):
     """Complete immutable Codespace configuration."""
 
@@ -175,7 +168,6 @@ class Config(FrozenModel):
     project_defaults: ProjectDefaults
     projects: dict[ResourceId, ProjectConfig] = Field(default_factory=dict)
     services: dict[ResourceId, ServiceConfig] = Field(default_factory=dict)
-    tokens: TokensConfig = Field(default_factory=TokensConfig, repr=False)
     secrets: dict[NonBlankString, NonBlankString] = Field(default_factory=dict, repr=False)
 
     @model_validator(mode="after")
@@ -287,14 +279,6 @@ class Config(FrozenModel):
         if resource.project is not None:
             return self.workspace_spec(resource.project, resource.host, resource.name)
         return self.service_spec(resource.name, resource.host)
-
-    def seed_tokens(self) -> dict[GitProvider, str]:
-        tokens: dict[GitProvider, str] = {}
-        if self.tokens.github is not None:
-            tokens["github"] = self.tokens.github
-        if self.tokens.gitlab is not None:
-            tokens["gitlab"] = self.tokens.gitlab
-        return tokens
 
 
 def load_config(path: Path = CONFIG_PATH) -> Config:

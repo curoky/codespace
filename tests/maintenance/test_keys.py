@@ -53,8 +53,13 @@ class FakePodmanClient:
 
 
 @pytest.fixture(autouse=True)
-def _transport(install_transport: TransportInstaller) -> None:
+def _transport(install_transport: TransportInstaller, monkeypatch: pytest.MonkeyPatch) -> None:
     install_transport(keys, FakePodmanClient)
+    monkeypatch.setattr(
+        keys,
+        "load_tokens",
+        lambda: {"github": "test-token", "gitlab": "test-token"},
+    )
 
 
 @pytest.mark.parametrize("apply", [False, True])
@@ -64,9 +69,7 @@ def test_prune_deletes_only_planned_unused_keys(
     install_transport: TransportInstaller,
     apply: bool,
 ) -> None:
-    data = config.model_dump()
-    data["tokens"] = {"github": "test-token"}
-    configured = Config.model_validate(data)
+    configured = config
     active = configured.workspace_spec("codespace", "home", "live").to_workspace(
         "container-id", "sha256:current", status="running"
     )
@@ -117,9 +120,7 @@ def test_prune_fails_before_listing_keys_when_host_scan_fails(
     monkeypatch: pytest.MonkeyPatch,
     apply: bool,
 ) -> None:
-    data = config.model_dump()
-    data["tokens"] = {"github": "test-token"}
-    configured = Config.model_validate(data)
+    configured = config
     listed = False
     deleted: list[int] = []
 
@@ -151,9 +152,7 @@ def test_prune_does_not_delete_when_repository_scan_fails(
     config: Config,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    configured = Config.model_validate(
-        {**config.model_dump(), "tokens": {"github": "test-token", "gitlab": "test-token"}}
-    )
+    configured = config
     deleted: list[int] = []
 
     def list_keys(provider: str, _token: str, _repo: str) -> list[DeployKey]:
@@ -174,27 +173,33 @@ def test_prune_does_not_delete_when_repository_scan_fails(
     assert stream.getvalue() == ""
 
 
-def test_prune_warns_and_skips_repository_without_token(
+@pytest.mark.parametrize("apply", [False, True])
+def test_prune_fails_before_transport_or_provider_access_when_credentials_fail(
     config: Config,
     monkeypatch: pytest.MonkeyPatch,
+    apply: bool,
 ) -> None:
-    configured = Config.model_validate({**config.model_dump(), "tokens": {}})
-    listed = False
+    def fail_credentials() -> dict[str, str]:
+        raise RuntimeError("credential load failed")
 
-    def list_keys(*_args: object) -> list[DeployKey]:
-        nonlocal listed
-        listed = True
-        return []
+    def unexpected_access(*_args: object, **_kwargs: object) -> None:
+        pytest.fail("credential failure must precede transport and provider access")
 
-    monkeypatch.setattr(keys, "load_config", lambda _path: configured)
-    monkeypatch.setattr(keys, "_active_workspace_ids", lambda _client, _host: set())
-    monkeypatch.setattr(keys, "list_deploy_keys", list_keys)
+    monkeypatch.setattr(keys, "load_config", lambda _path: config)
+    monkeypatch.setattr(keys, "load_tokens", fail_credentials)
+    for name in (
+        "PodmanTransport",
+        "_active_workspace_ids",
+        "list_deploy_keys",
+        "delete_deploy_keys",
+    ):
+        monkeypatch.setattr(keys, name, unexpected_access)
     stream = StringIO()
 
-    keys.prune(apply=False, console=Console(file=stream, width=120))
+    with pytest.raises(RuntimeError, match="credential load failed"):
+        keys.prune(apply=apply, console=Console(file=stream, width=120))
 
-    assert listed is False
-    assert "token is not configured" in stream.getvalue()
+    assert stream.getvalue() == ""
 
 
 def test_prune_scans_hosts_concurrently(

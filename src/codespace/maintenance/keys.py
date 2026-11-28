@@ -18,6 +18,7 @@ from rich.table import Column, Table
 
 from codespace import workspaces as inventory
 from codespace.config import CONFIG_PATH, load_config
+from codespace.credentials import load_tokens
 from codespace.resources import RESOURCE_ID_RE
 from codespace.runtime.transport import PodmanTransport
 from codespace.workspaces import GitProvider, ProviderSource
@@ -63,13 +64,8 @@ def prune(
             repository = (source.type, source.repository)
             repositories[repository].extend((host, project_id) for host in project.hosts)
 
-    tokens = config.seed_tokens()
-    listable = sorted(repository for repository in repositories if repository[0] in tokens)
-    warnings = [
-        f"{provider}:{repository}: token is not configured"
-        for provider, repository in sorted(repositories)
-        if provider not in tokens
-    ]
+    tokens = load_tokens()
+    ordered_repositories = sorted(repositories)
     hosts = sorted(config.hosts)
     with (
         closing(PodmanTransport(hosts, client_timeout=_CLIENT_TIMEOUT)) as transport,
@@ -84,11 +80,11 @@ def prune(
     with ThreadPoolExecutor() as executor:
         listed = executor.map(
             list_deploy_keys,
-            [repository[0] for repository in listable],
-            [tokens[repository[0]] for repository in listable],
-            [repository[1] for repository in listable],
+            [repository[0] for repository in ordered_repositories],
+            [tokens[repository[0]] for repository in ordered_repositories],
+            [repository[1] for repository in ordered_repositories],
         )
-        keys = dict(zip(listable, listed, strict=True))
+        keys = dict(zip(ordered_repositories, listed, strict=True))
 
     rows: list[tuple[Repository, DeployKey, Usage]] = []
     for repository, deploy_keys in keys.items():
@@ -102,8 +98,6 @@ def prune(
     for repository, key, usage in rows:
         table.add_row(f"{repository[0]}:{repository[1]}", key.title, usage)
     target.print(table)
-    for warning in warnings:
-        target.print(f"[yellow]Warning:[/yellow] {warning}")
     unused = [(repository, key.id) for repository, key, usage in rows if usage == "no"]
     if not apply:
         target.print(f"Dry run: {len(unused)} unused key(s); pass --apply to delete.")

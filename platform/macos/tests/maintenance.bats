@@ -143,6 +143,10 @@ file_mode() {
 
   [ "$(file_mode "$HOME/.ssh/codespace")" = 700 ]
   [ "$(file_mode "$WORKSPACE_HOME/.local/bin/eza-wrapper")" = 755 ]
+  [ ! -e "$HOME/.local/bin/csecret" ]
+  [ ! -L "$HOME/.local/bin/csecret" ]
+  [ ! -e "$HOME/.local/opt/csecret" ]
+  [ ! -e "$HOME/.config/csecret/key" ]
 }
 
 @test "editor links converge independently" {

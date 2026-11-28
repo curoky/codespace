@@ -12,7 +12,7 @@ from fastapi import Path as ApiPath
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from codespace.config import CONFIG_PATH, Config, load_config
@@ -20,7 +20,7 @@ from codespace.control import ControlPlane
 from codespace.operations import Operation, describe_error
 from codespace.resources import HostId, Resource, ResourceConflict, ResourceId, ResourceNotFound
 from codespace.web import dashboard as dashboard_view
-from codespace.workspaces import GitProvider, RepoGitState, TokenString
+from codespace.workspaces import RepoGitState
 
 STATIC_DIR = Path(__file__).parent / "static"
 router = APIRouter()
@@ -33,12 +33,6 @@ class CreateWorkspaceRequest(BaseModel):
 
     host: HostId
     workspace: ResourceId
-
-
-class UpdateTokenRequest(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-
-    token: TokenString = Field(repr=False)
 
 
 class DeleteWorkspaceQuery(BaseModel):
@@ -54,17 +48,6 @@ def _control(request: Request) -> ControlPlane:
 @router.get("/api/dashboard")
 def dashboard(request: Request) -> dict[str, object]:
     return dashboard_view.build(_control(request))
-
-
-@router.put("/api/providers/{provider}/token")
-def update_token(
-    provider: GitProvider,
-    payload: UpdateTokenRequest,
-    request: Request,
-) -> dict[GitProvider, bool]:
-    control = _control(request)
-    control.set_token(provider, payload.token)
-    return control.token_status()
 
 
 @router.post("/api/projects/{project}/workspaces", status_code=202)

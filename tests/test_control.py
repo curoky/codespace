@@ -21,7 +21,10 @@ class FakeTransport:
         return None
 
 
-def test_empty_configuration_has_an_empty_inventory() -> None:
+def test_empty_configuration_has_an_empty_inventory(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        control_module, "load_tokens", lambda: {"github": "test-token", "gitlab": "test-token"}
+    )
     config = Config.model_validate(
         {
             "hosts": {},

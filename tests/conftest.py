@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 
+from codespace import control as control_module
 from codespace.config import Config
 
 
@@ -35,7 +36,10 @@ def workspace_binaries(tmp_path_factory: pytest.TempPathFactory) -> dict[str, Pa
 
 
 @pytest.fixture
-def config() -> Config:
+def config(monkeypatch: pytest.MonkeyPatch) -> Config:
+    monkeypatch.setattr(
+        control_module, "load_tokens", lambda: {"github": "test-token", "gitlab": "test-token"}
+    )
     return Config.model_validate(
         {
             "hosts": {

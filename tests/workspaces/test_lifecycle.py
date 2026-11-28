@@ -9,6 +9,7 @@ from typing import Literal
 
 import pytest
 
+from codespace import control as control_module
 from codespace import workspaces as inventory
 from codespace.config import Config
 from codespace.control import ControlPlane
@@ -16,7 +17,15 @@ from codespace.resources import Resource, ResourceConflict, ResourceNotFound
 from codespace.runtime import host as host_runtime
 from codespace.runtime.host import HostDataPaths
 from codespace.runtime.transport import SSHRoute
-from codespace.workspaces import ProviderSource, RepoGitState, agent, lifecycle, provider, ssh
+from codespace.workspaces import (
+    GitProvider,
+    ProviderSource,
+    RepoGitState,
+    agent,
+    lifecycle,
+    provider,
+    ssh,
+)
 from codespace.workspaces.agent import WorkspaceAgentClient
 
 _PATHS = HostDataPaths("/home/x/codespace")
@@ -87,9 +96,10 @@ def manager(config: Config, monkeypatch: pytest.MonkeyPatch) -> ControlPlane:
     monkeypatch.setattr(host_runtime, "remote_data_paths", lambda _route: _PATHS)
     monkeypatch.setattr(ssh, "write_route", lambda _workspace: None)
     monkeypatch.setattr(ssh, "remove_route", lambda _workspace: None)
+    monkeypatch.setattr(
+        control_module, "load_tokens", lambda: {"github": "token", "gitlab": "token"}
+    )
     control = ControlPlane(config, transport=FakeTransport())  # type: ignore[arg-type]
-    control.set_token("github", "token")
-    control.set_token("gitlab", "token")
     return control
 
 
@@ -723,20 +733,35 @@ def test_delete_resolves_all_provider_tokens_before_revoking_keys(
         labels=spec.labels(),
         attrs={"State": {"Status": "running"}, "Image": "sha256:current"},
     )
-    mutations: list[str] = []
-    manager._tokens.pop("gitlab")
+    events: list[str] = []
+    original_token = manager._token
+
+    def resolve(provider_name: GitProvider) -> str:
+        events.append(f"resolve:{provider_name}")
+        return original_token(provider_name)
+
+    monkeypatch.setattr(manager, "_token", resolve)
     monkeypatch.setattr(lifecycle.container, "find_container", lambda *_args, **_kwargs: running)
-    monkeypatch.setattr(provider, "revoke", lambda *_args: mutations.append("revoke"))
+    monkeypatch.setattr(
+        provider,
+        "revoke",
+        lambda provider_name, *_args: events.append(f"revoke:{provider_name}"),
+    )
     monkeypatch.setattr(
         lifecycle.container,
         "remove_container",
-        lambda _container: mutations.append("container"),
+        lambda _container: events.append("container"),
     )
 
-    with pytest.raises(ResourceConflict, match="gitlab token is not set"):
-        manager.remove(Resource("home", "debug", "codespace"))
+    manager.remove(Resource("home", "debug", "codespace"))
 
-    assert mutations == []
+    assert events == [
+        "resolve:github",
+        "resolve:gitlab",
+        "revoke:github",
+        "revoke:gitlab",
+        "container",
+    ]
 
 
 def test_stopped_workspace_requires_explicit_delete_without_inspection(

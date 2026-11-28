@@ -516,11 +516,9 @@ def test_project_inherits_default_encryption(config: Config) -> None:
     assert overridden.workspace_spec("codespace", "home", "default").encrypted is False
 
 
-def test_tokens_are_seeded_without_leaking_from_repr(config: Config) -> None:
+def test_config_does_not_accept_token_configuration(config: Config) -> None:
     data = config.model_dump()
-    data["tokens"] = {"github": "ghp_example"}
+    data["tokens"] = {"github": "codespace_github_token"}
 
-    parsed = Config.model_validate(data)
-
-    assert parsed.seed_tokens() == {"github": "ghp_example"}
-    assert "ghp_example" not in repr(parsed)
+    with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
+        Config.model_validate(data)

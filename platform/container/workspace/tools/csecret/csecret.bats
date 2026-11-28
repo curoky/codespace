@@ -1,5 +1,9 @@
 #!/usr/bin/env bats
 
+setup_file() {
+  bats_require_minimum_version 1.5.0
+}
+
 setup() {
   TOOL="$BATS_TEST_TMPDIR/tool"
   SCRIPT="$TOOL/csecret.sh"
@@ -7,19 +11,37 @@ setup() {
   CSECRET_TEST_KEY="$BATS_TEST_TMPDIR/passphrase"
   REAL_GPG="$(command -v gpg)"
   export HOME CSECRET_TEST_KEY REAL_GPG
+  CSECRET_TEST_KEY_PATH="$BATS_TEST_TMPDIR/key-path"
+  export CSECRET_TEST_KEY_PATH
   mkdir -p "$TOOL" "$HOME" "$BATS_TEST_TMPDIR/bin"
   cp "$BATS_TEST_DIRNAME/csecret.sh" "$SCRIPT"
   printf fixture-passphrase >"$CSECRET_TEST_KEY"
 
-  # Redirect only the fixed key path; cryptography still uses real GPG.
+  mkdir -p "$HOME/.config/codespace" "$HOME/workspace/codespace"
+  ln -s "$(cd "$BATS_TEST_DIRNAME/../../../../.." && pwd -P)/.venv" \
+    "$HOME/workspace/codespace/.venv"
+  printf 'secrets:\n  codespace_workspace_key: fixture-passphrase\n' \
+    >"$HOME/.config/codespace/config.yaml"
+
+  cat >"$BATS_TEST_TMPDIR/bin/uname" <<'EOF'
+#!/bin/sh
+printf 'Darwin\n'
+EOF
+  # Redirect the Linux mount only; macOS reads real YAML and GPG stays real.
+  cat >"$BATS_TEST_TMPDIR/bin/cat" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ $# == 1 && $1 == /run/secrets/codespace_workspace_key ]]; then
+  printf '%s' "$1" >"$CSECRET_TEST_KEY_PATH"
+  exec /bin/cat "$CSECRET_TEST_KEY"
+fi
+exec /bin/cat "$@"
+EOF
   cat >"$BATS_TEST_TMPDIR/bin/gpg" <<'EOF'
 #!/usr/bin/env bash
 set -euo pipefail
 args=()
 for arg do
-  if [[ $arg == /run/secrets/codespace_workspace_key ]]; then
-    arg="$CSECRET_TEST_KEY"
-  fi
   if [[ $arg == --symmetric && ${TEST_FAIL_ENCRYPT:-0} == 1 ]]; then
     exit 42
   fi
@@ -27,7 +49,7 @@ for arg do
 done
 exec "$REAL_GPG" "${args[@]}"
 EOF
-  chmod 0755 "$BATS_TEST_TMPDIR/bin/gpg"
+  chmod 0755 "$BATS_TEST_TMPDIR/bin/"*
   export PATH="$BATS_TEST_TMPDIR/bin:$PATH"
 
   cat >"$TOOL/secrets.json" <<'EOF'
@@ -66,12 +88,12 @@ prepare_custom_job() {
 
 @test "encrypt and decrypt roundtrip with private files and no stdout" {
   cp "$TOOL/secrets.json" "$BATS_TEST_TMPDIR/expected"
-  run "$SCRIPT" encrypt
+  run --separate-stderr "$SCRIPT" encrypt
   [ "$status" -eq 0 ]
   [ -z "$output" ]
   [ "$(stat -c %a "$TOOL/secrets.json.gpg")" = 600 ]
   unlink "$TOOL/secrets.json"
-  run "$SCRIPT" decrypt
+  run --separate-stderr "$SCRIPT" decrypt
   [ "$status" -eq 0 ]
   [ -z "$output" ]
   cmp "$BATS_TEST_TMPDIR/expected" "$TOOL/secrets.json"
@@ -100,9 +122,69 @@ prepare_custom_job() {
   mkdir -p "$HOME/.local/bin"
   ln -s "$SCRIPT" "$HOME/.local/bin/csecret"
   cd "$HOME"
-  run "$HOME/.local/bin/csecret" get token
+  run --separate-stderr "$HOME/.local/bin/csecret" get token
   [ "$status" -eq 0 ]
   [ "$output" = fixture-token ]
+}
+
+@test "macOS reads Codespace YAML and Linux reads the mounted key" {
+  for platform in Darwin Linux; do
+    printf '#!/bin/sh\nprintf "%s\\n"\n' "$platform" >"$BATS_TEST_TMPDIR/bin/uname"
+    chmod 0755 "$BATS_TEST_TMPDIR/bin/uname"
+    "$SCRIPT" encrypt
+    if [[ $platform == Linux ]]; then
+      [ "$(<"$CSECRET_TEST_KEY_PATH")" = /run/secrets/codespace_workspace_key ]
+    fi
+    run --separate-stderr "$SCRIPT" get token
+    [ "$status" -eq 0 ]
+    [ "$output" = fixture-token ]
+  done
+}
+
+@test "macOS parses quoted YAML keys and aliases" {
+  printf 'fixture: # with spaces' >"$CSECRET_TEST_KEY"
+  printf '#!/bin/sh\nprintf "Linux\\n"\n' >"$BATS_TEST_TMPDIR/bin/uname"
+  "$SCRIPT" encrypt
+  cat >"$HOME/.config/codespace/config.yaml" <<'EOF'
+workspace_key: &workspace_key "fixture: # with spaces"
+secrets:
+  codespace_workspace_key: *workspace_key
+EOF
+  printf '#!/bin/sh\nprintf "Darwin\\n"\n' >"$BATS_TEST_TMPDIR/bin/uname"
+  run --separate-stderr "$SCRIPT" get token
+  [ "$status" -eq 0 ]
+  [ "$output" = fixture-token ]
+}
+
+@test "missing or invalid macOS key config preserves both files and exposes no values" {
+  "$SCRIPT" encrypt
+  cp "$TOOL/secrets.json.gpg" "$BATS_TEST_TMPDIR/previous.gpg"
+  cp "$TOOL/secrets.json" "$BATS_TEST_TMPDIR/previous.json"
+  for data in '{}' 'secrets: null' 'secrets: {}' \
+    'secrets: {codespace_workspace_key: null}' \
+    'secrets: {codespace_workspace_key: 123}' \
+    'secrets: {codespace_workspace_key: ""}' \
+    'secrets: {codespace_workspace_key: "  "}' \
+    'secrets: {codespace_workspace_key: [private-fixture, '; do
+    printf '%s\n' "$data" >"$HOME/.config/codespace/config.yaml"
+    for command in encrypt decrypt; do
+      run --separate-stderr "$SCRIPT" "$command"
+      [ "$status" -ne 0 ]
+      [ -z "$output" ]
+      [[ "$stderr" == *'cannot read codespace_workspace_key from Codespace config'* ]]
+      [[ "$stderr" != *'private-fixture'* ]]
+      cmp "$BATS_TEST_TMPDIR/previous.gpg" "$TOOL/secrets.json.gpg"
+      cmp "$BATS_TEST_TMPDIR/previous.json" "$TOOL/secrets.json"
+    done
+  done
+  unlink "$HOME/.config/codespace/config.yaml"
+  mkdir -p "$HOME/.config/csecret"
+  printf fixture-passphrase >"$HOME/.config/csecret/key"
+  run --separate-stderr "$SCRIPT" get token
+  [ "$status" -ne 0 ]
+  [ -z "$output" ]
+  [[ "$stderr" == *'cannot read codespace_workspace_key from Codespace config'* ]]
+  [ -z "$(find "$TOOL" -name 'secrets.json.*' ! -name 'secrets.json.gpg' -print -quit)" ]
 }
 
 @test "failed encryption or decryption preserves existing targets" {
@@ -113,6 +195,8 @@ prepare_custom_job() {
   [ "$status" -eq 42 ]
   cmp "$BATS_TEST_TMPDIR/previous.gpg" "$TOOL/secrets.json.gpg"
   printf wrong-passphrase >"$CSECRET_TEST_KEY"
+  printf 'secrets:\n  codespace_workspace_key: wrong-passphrase\n' \
+    >"$HOME/.config/codespace/config.yaml"
   cp "$TOOL/secrets.json" "$BATS_TEST_TMPDIR/previous.json"
   run "$SCRIPT" decrypt
   [ "$status" -ne 0 ]
@@ -130,7 +214,7 @@ prepare_custom_job() {
     cmp "$BATS_TEST_TMPDIR/previous.gpg" "$TOOL/secrets.json.gpg"
     [ -z "$(find "$TOOL" -name 'secrets.json.gpg.*' -print -quit)" ]
   done
-  run "$SCRIPT" get token
+  run --separate-stderr "$SCRIPT" get token
   [ "$status" -eq 0 ]
   [ "$output" = fixture-token ]
 }
@@ -149,6 +233,7 @@ prepare_custom_job() {
 
 @test "help needs no key and old commands are rejected" {
   unlink "$CSECRET_TEST_KEY"
+  unlink "$HOME/.config/codespace/config.yaml"
   run "$SCRIPT" --help
   [ "$status" -eq 0 ]
   [ "$output" = 'Usage: csecret {get KEY|encrypt|decrypt}' ]
@@ -165,7 +250,7 @@ prepare_custom_job() {
 
 @test "custom-job publishes profile and credential fields privately through csecret" {
   prepare_custom_job
-  run bash "$BATS_TEST_TMPDIR/custom-job.sh"
+  run --separate-stderr bash "$BATS_TEST_TMPDIR/custom-job.sh"
   [ "$status" -eq 0 ]
   [ -z "$output" ]
   [ "$(<"$HOME/installed")" = installed ]

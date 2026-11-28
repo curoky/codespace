@@ -11,7 +11,6 @@ const servicesElement = document.querySelector("#services");
 const servicesSummaryElement = document.querySelector("#services-summary");
 const pollStatusElement = document.querySelector("#poll-status");
 const workspaceDialog = document.querySelector("#workspace-dialog");
-const tokensDialog = document.querySelector("#tokens-dialog");
 const deleteDialog = document.querySelector("#delete-dialog");
 const logsDialog = document.querySelector("#logs-dialog");
 const imageDialog = document.querySelector("#image-dialog");
@@ -23,9 +22,7 @@ const logsStatusElement = document.querySelector("#logs-status");
 const logsOutputElement = document.querySelector("#logs-output");
 
 document.querySelector("#refresh-button").addEventListener("click", () => refresh());
-document.querySelector("#tokens-button").addEventListener("click", () => tokensDialog.showModal());
 document.querySelector("#workspace-form").addEventListener("submit", createWorkspace);
-document.querySelector("#tokens-form").addEventListener("submit", saveTokens);
 document.querySelector("#logs-refresh").addEventListener("click", loadLogs);
 deleteConfirmButton.addEventListener("click", confirmDelete);
 deleteDialog.addEventListener("close", () => {
@@ -99,8 +96,9 @@ function render(dashboard) {
   renderHosts(dashboard.hosts);
   renderProjects(dashboard);
   renderServices(dashboard);
-  const savedTokens = Object.values(dashboard.tokens).filter(Boolean).length;
-  document.querySelector("#tokens-button").textContent = `Tokens ${savedTokens}/2`;
+  document.querySelector("#tokens-status").textContent = Object.entries(dashboard.tokens)
+    .map(([provider, loaded]) => `${provider === "github" ? "GitHub" : "GitLab"} ${loaded ? "loaded" : "not configured"}`)
+    .join(" · ");
   const busy = dashboard.operations.some((operation) =>
     ["queued", "running"].includes(operation.status),
   );
@@ -670,35 +668,6 @@ async function loadLogs() {
     if (pendingLogs !== request || !logsDialog.open) return;
     logsStatusElement.className = "delete-warning";
     logsStatusElement.textContent = error.message;
-  }
-}
-
-async function saveTokens(event) {
-  event.preventDefault();
-  const supplied = [
-    ["github", document.querySelector("#github-token").value],
-    ["gitlab", document.querySelector("#gitlab-token").value],
-  ].filter(([, token]) => token.trim());
-  if (!supplied.length) {
-    notify("Enter at least one token.");
-    return;
-  }
-  try {
-    await Promise.all(
-      supplied.map(([provider, token]) =>
-        api(`/api/providers/${provider}/token`, {
-          method: "PUT",
-          body: JSON.stringify({ token }),
-        }),
-      ),
-    );
-    document.querySelector("#github-token").value = "";
-    document.querySelector("#gitlab-token").value = "";
-    tokensDialog.close();
-    notify("Token status updated.");
-    await refresh();
-  } catch (error) {
-    notify(error.message);
   }
 }
 

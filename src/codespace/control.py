@@ -5,7 +5,6 @@ from __future__ import annotations
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from threading import Lock
 from typing import Literal
 
 from loguru import logger
@@ -14,6 +13,7 @@ from podman.domain.containers import Container
 
 from codespace import services, workspaces
 from codespace.config import Config
+from codespace.credentials import load_tokens
 from codespace.operations import Operation, OperationStore, describe_error
 from codespace.resources import Resource, ResourceConflict, ResourceNotFound
 from codespace.runtime import container, host
@@ -69,26 +69,16 @@ class ControlPlane:
         *,
         transport: PodmanTransport | None = None,
     ) -> None:
+        self._tokens = load_tokens()
         self.config = config
         self.transport = transport or PodmanTransport(config.hosts)
         self.operations = OperationStore()
-        self._tokens = config.seed_tokens()
-        self._token_lock = Lock()
-
-    def set_token(self, provider: GitProvider, token: str) -> None:
-        with self._token_lock:
-            self._tokens[provider] = token
 
     def _token(self, provider: GitProvider) -> str:
-        with self._token_lock:
-            token = self._tokens.get(provider)
-        if token is None:
-            raise ResourceConflict(f"{provider} token is not set")
-        return token
+        return self._tokens[provider]
 
     def token_status(self) -> dict[GitProvider, bool]:
-        with self._token_lock:
-            return {"github": "github" in self._tokens, "gitlab": "gitlab" in self._tokens}
+        return {"github": "github" in self._tokens, "gitlab": "gitlab" in self._tokens}
 
     def _provider_credentials(
         self, sources: list[workspaces.Source]

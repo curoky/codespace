@@ -16,7 +16,7 @@
             <span id="hosts-summary" class="section-note"></span>
           </div>
           <div class="header-actions">
-            <button id="tokens-button" class="secondary">Tokens</button>
+            <span id="tokens-status" class="section-note" role="status"></span>
             <button id="refresh-button" class="secondary">Refresh</button>
           </div>
         </header>
@@ -80,38 +80,6 @@
         <div class="dialog-actions">
           <button type="button" class="secondary" data-close="workspace-dialog">Cancel</button>
           <button type="submit">Create</button>
-        </div>
-      </form>
-    </dialog>
-
-    <dialog id="tokens-dialog">
-      <form id="tokens-form">
-        <div class="dialog-heading">
-          <div>
-            <p class="eyebrow">Process memory only</p>
-            <h2>Provider tokens</h2>
-          </div>
-          <button
-            type="button"
-            class="icon secondary"
-            aria-label="Close"
-            data-close="tokens-dialog"
-          >
-            ×
-          </button>
-        </div>
-        <label>
-          GitHub token
-          <input id="github-token" type="password" autocomplete="off" />
-        </label>
-        <label>
-          GitLab token
-          <input id="gitlab-token" type="password" autocomplete="off" />
-        </label>
-        <p class="muted">Tokens are never returned by the API or written to disk.</p>
-        <div class="dialog-actions">
-          <button type="button" class="secondary" data-close="tokens-dialog">Cancel</button>
-          <button type="submit">Save supplied tokens</button>
         </div>
       </form>
     </dialog>

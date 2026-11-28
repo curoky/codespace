@@ -30,10 +30,6 @@ class FakeControl:
         self.tunnels_opened: list[tuple[Resource, int]] = []
         self.state = RepoGitState(unpushed=False, uncommitted=False, detail=[])
 
-    def set_token(self, provider: str, token: str) -> None:
-        assert token
-        self.tokens[provider] = True
-
     def token_status(self) -> dict[str, bool]:
         return dict(self.tokens)
 
@@ -167,19 +163,22 @@ def test_dashboard_workspace_exposes_container_encryption(
     assert not {"repository", "git_url", "checkout_path"} & project.keys()
 
 
-def test_dashboard_and_token_endpoint_never_return_token(
+def test_dashboard_reports_token_status_and_rejects_token_writes(
     app_client: tuple[TestClient, FakeControl],
 ) -> None:
     client, _control = app_client
 
-    projects = client.get("/api/dashboard").json()["projects"]
+    _control.tokens["github"] = True
+    dashboard = client.get("/api/dashboard").json()
+    projects = dashboard["projects"]
     assert {project["id"] for project in projects} == set(_control.config.projects)
+    assert dashboard["tokens"] == {"github": True, "gitlab": False}
     response = client.put(
         "/api/providers/github/token",
         json={"token": "secret-token"},
     )
 
-    assert response.json() == {"github": True, "gitlab": False}
+    assert response.status_code == 404
     assert "secret-token" not in response.text
 
 
@@ -279,7 +278,6 @@ def test_only_final_api_routes_exist(app_client: tuple[TestClient, FakeControl])
 
     assert routes == {
         ("GET", "/api/dashboard"),
-        ("PUT", "/api/providers/{provider}/token"),
         ("POST", "/api/projects/{project}/workspaces"),
         ("GET", "/api/projects/{project}/hosts/{host}/workspaces/{workspace}/logs"),
         ("POST", "/api/projects/{project}/hosts/{host}/workspaces/{workspace}/rebuild"),

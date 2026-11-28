@@ -26,6 +26,8 @@
 - 默认使用 Xcode 提供的 Apple Clang 与 SDK；LLVM 仅按用户明确要求安装，保留精确版本
   与稳定相对链接，由项目选择 PATH，默认 Shell/编辑器配置不绑定该 SDK。
 - AI 装配只替换声明的单个 rule 或 skill；工具父目录及其它来源内容不受管。
+- [csecret](../container/workspace/tools/csecret/AGENTS.md) 直接使用仓库来源；
+  GPG/jq 由 binman 声明，YAML 解析复用控制面依赖。
 
 ## Runtime I/O
 
@@ -51,11 +53,9 @@
 LLVM 最新官方 release 缺 arm64 artifact 时保留锁定版本，不换来源/自行构建；Snipaste
 `last_save_folder` 缺原生 tilde 支持证明，launchd 不展开变量，均保留绝对路径，不加 wrapper。
 Bundle cask list 只给短名，第三方 cask 声明 tap，跳过安装时也须应用 tap 的 `trusted.casks`。
-binman 的 macOS GnuPG 最小产物未初始化 locale，静态 libiconv 又引用构建期 Nix 字符集
-数据路径，启动时报告 UTF-8 到 US-ASCII 转换不可用。csecret 内容保持原始字节，
-但静默输出测试会失败，非 ASCII 文件名元数据可能错误编码。当前接受该上游限制，保留
-binman ownership；`--display-charset utf-8` 只修正后续文本处理，不能消除启动警告。
-修复由上游 artifact 拥有，更新后重跑 `task csecret:test`，不在应用中过滤 stderr。
+binman macOS GnuPG 的 locale/libiconv 构建缺陷导致 UTF-8/US-ASCII 启动警告，
+可能错误编码非 ASCII 文件名；secret 原始字节不变。由上游 artifact 修复，应用不
+过滤 stderr；更新后重跑 `task csecret:test`。
 
 ## Validation
 

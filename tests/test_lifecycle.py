@@ -4,6 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from codespace import control as control_module
 from codespace.config import Config
 from codespace.control import ControlPlane
 from codespace.resources import Resource, ResourceConflict, ResourceNotFound
@@ -11,9 +12,11 @@ from codespace.runtime import container
 
 
 @pytest.fixture
-def manager(config: Config) -> ControlPlane:
+def manager(config: Config, monkeypatch: pytest.MonkeyPatch) -> ControlPlane:
+    monkeypatch.setattr(
+        control_module, "load_tokens", lambda: {"github": "token", "gitlab": "token"}
+    )
     control = ControlPlane(config, transport=SimpleNamespace())  # type: ignore[arg-type]
-    control.set_token("github", "token")
     return control
 
 
@@ -83,17 +86,24 @@ def test_unknown_placement_fails_before_transport(
     assert manager.operations.list() == []
 
 
-def test_only_provider_workspace_requires_a_token(manager: ControlPlane) -> None:
-    def missing(_provider: str) -> str:
-        raise ResourceConflict("token is not set")
+def test_only_provider_workspace_resolves_credentials(
+    manager: ControlPlane, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    resolved: list[str] = []
 
-    manager._token = missing
+    def resolve(provider: str) -> str:
+        resolved.append(provider)
+        return "token"
+
+    monkeypatch.setattr(manager, "_token", resolve)
     manager.queue(Resource("home", "support"))
     manager.queue(Resource("home", "debug", "scratch"))
     manager.queue(Resource("home", "debug", "personal"))
-    with pytest.raises(ResourceConflict, match="token is not set"):
-        manager.queue(Resource("home", "debug", "codespace"))
-    assert len(manager.operations.list()) == 3
+    assert resolved == []
+
+    manager.queue(Resource("home", "debug", "codespace"))
+    assert resolved == ["github"]
+    assert len(manager.operations.list()) == 4
 
 
 @pytest.mark.parametrize("project", [None, "scratch"])

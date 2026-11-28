@@ -22,8 +22,10 @@ model/route/error mapping/lifespan/dashboard projection。
 - inventory 支持空 Host 集合并隔离 per-Host failure：建连失败为 offline，读取失败为
   error。运行中 image ID 只与 Host 本地 image 比较，不查 registry 或增加 Web cache；
   后台 image 拉取由 support Service 负责。
-- provider private key 只留在 Workspace，控制面只接收 public key；token 留在 macOS
-  配置/内存。Workspace SSH publication 只绑定 Host loopback，其他 publication 按显式 IP
+- provider private key 只留在 Workspace，控制面只接收 public key。provider token 由
+  [credentials.py](credentials.py) 从 csecret 读取，只留在 macOS 内存，读取失败直接停止；
+  Web 只显示加载状态，更新 token 后重启控制面。Workspace SSH publication 只绑定
+  Host loopback，其他 publication 按显式 IP
   配置；非 loopback 入口须有认证与网络边界，tunnel 只开放 allowlist port。缺 secret 直接
   失败，不降级明文。Host rootful Podman socket 只授予明确的 maintenance owner。
 - [runtime/container.py](runtime/container.py) 是字段到 podman-py kwargs 的唯一映射。
@@ -49,12 +51,13 @@ remove 允许尚未部署；Workspace remove 要求实际容器存在。
 [maintenance](maintenance/) 默认 dry-run，plan/apply 共用 decision code；全部 Host
 discovery 成功并输出完整计划后，显式 `--apply` 才改业务资源。初次 SSH 握手串行以避免
 共享 GSSAPI ProxyJump 认证冲突，其余工作可并发；任一 inventory 失败使命令失败。
-prune 只处理能证明受管且不再 active 的对象，缺 token 时 warning/跳过，不视为对象不存在。
+prune 只处理能证明受管且不再 active 的对象。
 
 ## Runtime I/O
 
-- **Reads**：只读 `~/.config/codespace/config.yaml`，复用系统 OpenSSH authentication、
-  proxy chain/host-key verification；远端读取 inventory/logs、声明的 environment 与 Git 状态。
+- **Reads**：读取 `~/.config/codespace/config.yaml` 与 csecret，复用系统 OpenSSH
+  authentication、proxy chain/host-key verification；远端读取 inventory/logs、声明的
+  environment 与 Git 状态。凭据不进入错误信息。
 - **Local Writes**：[SSH route](workspaces/ssh.py) 原子写入 `~/.ssh/codespace/workspaces/`；
   inventory 也会刷新，删除时移除对应项。[后台启动脚本](../../scripts/run-control-plane.sh)
   同步项目依赖、停止已有 Codespace server、替换日志/PID；启动失败保留日志并清理 PID。

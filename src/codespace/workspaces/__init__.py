@@ -56,7 +56,6 @@ def workspace_path(value: str) -> str:
 
 type RepositoryPath = Annotated[str, Field(pattern=REPOSITORY_RE.pattern)]
 type GitUrl = Annotated[str, Field(pattern=GIT_URL_RE.pattern)]
-type TokenString = Annotated[str, Field(pattern=re.compile(r"\S"))]
 type WorkspacePath = Annotated[str, AfterValidator(workspace_path)]
 
 
