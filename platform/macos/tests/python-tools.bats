@@ -18,7 +18,7 @@ set -euo pipefail
 [[ "$UV_PYTHON_BIN_DIR" == "$HOME/.local/opt/uv/bin" ]]
 [[ "$UV_CACHE_DIR" == "${TEST_EVENTS%/*}/cache" ]]
 [[ "$1" == tool && "$2" == install && "$4" == --python ]]
-[[ "$5" == "$HOME/.local/opt/uv/bin/python3.15" && "$#" == 5 ]]
+[[ "$5" == "$HOME/.local/opt/uv/bin/python3.15" && "$6" == --upgrade && "$#" == 6 ]]
 printf '%s\n' "$3" >>"$TEST_EVENTS"
 [[ "$3" != "${TEST_FAIL_PACKAGE:-}" ]] || exit 42
 EOF
@@ -29,7 +29,7 @@ teardown() {
   rm -rf "$TEST_ROOT"
 }
 
-@test "Python tools install the declared packages under local opt with an explicit interpreter" {
+@test "Python tools upgrade the declared packages under local opt with an explicit interpreter" {
   export UV_TOOL_DIR="$TEST_ROOT/other-tools" UV_TOOL_BIN_DIR="$TEST_ROOT/other-bin"
   export UV_PYTHON_INSTALL_DIR="$TEST_ROOT/other-python" UV_PYTHON_BIN_DIR="$TEST_ROOT/other-python-bin"
   run "$MACOS_DIR/maintenance/python-tools.sh"

@@ -50,7 +50,7 @@ installs:
     - gnugrep
     # - gnumake
     - gnupatch
-    # - gnupg
+    - gnupg
     - gnused
     - gnutar
     # - gost
@@ -96,7 +96,7 @@ installs:
     - rsync
     - ruff
     # - scc
-    # - shellcheck
+    - shellcheck
     - shfmt
     - smartmontools
     # - sops

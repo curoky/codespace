@@ -3,8 +3,8 @@
 ## Scope
 
 维护当前用户的软件、runtime/CLI、home source、LaunchAgent、默认应用与 client SSH。
-[维护 Skill](../../.agents/skills/manage-macos-environment/SKILL.md) 根据 actual state 选择
-独立脚本，不使用统一 installer，不创建 Podman machine 或构建 Workspace image。
+[维护 Skill](../../.agents/skills/manage-macos-environment/SKILL.md) 根据 actual state
+选择独立脚本，不使用统一 installer，不创建 Podman machine 或构建 Workspace image。
 
 ## Contracts
 
@@ -12,6 +12,8 @@
   或扫描未声明路径，依赖缺失直接失败；顺序由维护 Skill 拥有。
 - [Brewfile](Brewfile)/[binman.yaml](binman.yaml) 拥有软件声明；runtime/CLI 独立维护，
   用 manager 原生能力或重建受管目录。PATH 切换不改变 CLI binding，变更后重装对应 CLI。
+- [Python tools](maintenance/python-tools.sh) 每次执行都通过 uv 检查声明包及其依赖的更新，
+  保持显式 Python binding，不升级未声明的用户工具。
 - Node/Java helper 从 GHCR/ORAS 获取，不要求本地 compiler/容器；Java helper 不安装
   distribution，也不要求预装 JDK。Temurin 提取 `Contents/Home`，不注册系统 JDK；
   Go 保留精确版本与稳定相对链接，uv metadata/cache/virtualenv 保持原生布局。
@@ -36,8 +38,9 @@
 - **Network**：Homebrew/binman 从声明上游下载；bootstrap 用 GitHub raw source，SDK 用
   GitHub Releases/nodejs.org/go.dev/sh.rustup.rs，helper 用 ghcr.io/curoky/codespace，
   Python/Node CLI 用原生 PyPI/npm registry；完整目标以声明为准，不上传业务文件。
-- **System Changes**：[Homebrew](maintenance/homebrew.sh) force-cleanup 删除 manifest 外
-  formula/cask/cache，bootstrap/应用安装可能需系统授权；[Atuin](maintenance/atuin-daemon.sh)
+- **System Changes**：[Homebrew](maintenance/homebrew.sh) force-cleanup 删除
+  manifest 外 formula/cask/cache，bootstrap/应用安装可能需系统授权；
+  [Atuin](maintenance/atuin-daemon.sh)
   替换用户 LaunchAgent 并 reload，[默认应用](scripts/set-default-apps.swift) 修改用户关联。
 - **Results & Failure**：无整套事务/自动 rollback；archive 准备失败保留旧安装，发布或
   manager/home 配置失败可留下部分新状态。临时清理由对应脚本拥有，下载/link 成功不代表
@@ -48,6 +51,11 @@
 LLVM 最新官方 release 缺 arm64 artifact 时保留锁定版本，不换来源/自行构建；Snipaste
 `last_save_folder` 缺原生 tilde 支持证明，launchd 不展开变量，均保留绝对路径，不加 wrapper。
 Bundle cask list 只给短名，第三方 cask 声明 tap，跳过安装时也须应用 tap 的 `trusted.casks`。
+binman 的 macOS GnuPG 最小产物未初始化 locale，静态 libiconv 又引用构建期 Nix 字符集
+数据路径，启动时报告 UTF-8 到 US-ASCII 转换不可用。csecret 内容保持原始字节，
+但静默输出测试会失败，非 ASCII 文件名元数据可能错误编码。当前接受该上游限制，保留
+binman ownership；`--display-charset utf-8` 只修正后续文本处理，不能消除启动警告。
+修复由上游 artifact 拥有，更新后重跑 `task csecret:test`，不在应用中过滤 stderr。
 
 ## Validation
 
