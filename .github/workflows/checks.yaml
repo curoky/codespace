@@ -55,7 +55,7 @@ jobs:
         run: |
           set -euo pipefail
           eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-          brew install bats-core ffmpeg go-task shellcheck shfmt
+          brew install bats-core ffmpeg go-task shellcheck shfmt yq
           echo "${HOMEBREW_PREFIX}/bin" >>"${GITHUB_PATH}"
 
       - name: Sync locked dependencies

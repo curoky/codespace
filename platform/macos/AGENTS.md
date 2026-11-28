@@ -27,7 +27,7 @@
   与稳定相对链接，由项目选择 PATH，默认 Shell/编辑器配置不绑定该 SDK。
 - AI 装配只替换声明的单个 rule 或 skill；工具父目录及其它来源内容不受管。
 - [csecret](../container/workspace/tools/csecret/AGENTS.md) 直接使用仓库来源；
-  GPG/jq 由 binman 声明，YAML 解析复用控制面依赖。
+  GPG/jq/yq 由 binman 声明。
 
 ## Runtime I/O
 

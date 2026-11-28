@@ -9,4 +9,4 @@ tasks:
   test:
     desc: 验证 Bash secret CLI
     cmds:
-      - uv run bats csecret.bats
+      - bats csecret.bats

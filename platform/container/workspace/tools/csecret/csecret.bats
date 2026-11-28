@@ -17,9 +17,7 @@ setup() {
   cp "$BATS_TEST_DIRNAME/csecret.sh" "$SCRIPT"
   printf fixture-passphrase >"$CSECRET_TEST_KEY"
 
-  mkdir -p "$HOME/.config/codespace" "$HOME/workspace/codespace"
-  ln -s "$(cd "$BATS_TEST_DIRNAME/../../../../.." && pwd -P)/.venv" \
-    "$HOME/workspace/codespace/.venv"
+  mkdir -p "$HOME/.config/codespace"
   printf 'secrets:\n  codespace_workspace_key: fixture-passphrase\n' \
     >"$HOME/.config/codespace/config.yaml"
 
@@ -163,9 +161,14 @@ EOF
   for data in '{}' 'secrets: null' 'secrets: {}' \
     'secrets: {codespace_workspace_key: null}' \
     'secrets: {codespace_workspace_key: 123}' \
+    'secrets: {codespace_workspace_key: true}' \
+    'secrets: {codespace_workspace_key: {nested: private-fixture}}' \
+    'secrets: {codespace_workspace_key: [private-fixture]}' \
     'secrets: {codespace_workspace_key: ""}' \
     'secrets: {codespace_workspace_key: "  "}' \
-    'secrets: {codespace_workspace_key: [private-fixture, '; do
+    'secrets: {codespace_workspace_key: "\u00a0\u2003"}' \
+    'secrets: {codespace_workspace_key: [private-fixture, ' \
+    $'secrets: {codespace_workspace_key: fixture-passphrase}\n---\n{}'; do
     printf '%s\n' "$data" >"$HOME/.config/codespace/config.yaml"
     for command in encrypt decrypt; do
       run --separate-stderr "$SCRIPT" "$command"
@@ -185,6 +188,28 @@ EOF
   [ -z "$output" ]
   [[ "$stderr" == *'cannot read codespace_workspace_key from Codespace config'* ]]
   [ -z "$(find "$TOOL" -name 'secrets.json.*' ! -name 'secrets.json.gpg' -print -quit)" ]
+}
+
+@test "macOS explicit keys override YAML merges regardless of field order" {
+  "$SCRIPT" encrypt
+  for data in '
+defaults: &defaults
+  codespace_workspace_key: inherited-fixture
+secrets:
+  codespace_workspace_key: fixture-passphrase
+  <<: *defaults
+' '
+defaults: &defaults
+  codespace_workspace_key: inherited-fixture
+secrets:
+  <<: *defaults
+  codespace_workspace_key: fixture-passphrase
+'; do
+    printf '%s\n' "$data" >"$HOME/.config/codespace/config.yaml"
+    run --separate-stderr "$SCRIPT" get token
+    [ "$status" -eq 0 ]
+    [ "$output" = fixture-token ]
+  done
 }
 
 @test "failed encryption or decryption preserves existing targets" {

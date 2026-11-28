@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Personal encrypted JSON store; Bash 3.2+, gpg, jq; macOS uses Codespace's PyYAML.
+# Personal encrypted JSON store; Bash 3.2+, gpg, jq; macOS also requires yq.
 
 check_arguments() {
   local usage='Usage: csecret {get KEY|encrypt|decrypt}'
@@ -26,22 +26,13 @@ read_passphrase() {
       cat /run/secrets/codespace_workspace_key
       ;;
     Darwin)
-      "$HOME/workspace/codespace/.venv/bin/python" - "$HOME/.config/codespace/config.yaml" <<'PY'
-import sys
-from pathlib import Path
-
-import yaml
-
-try:
-    config = yaml.safe_load(Path(sys.argv[1]).read_text())
-    key = config["secrets"]["codespace_workspace_key"]
-    if not isinstance(key, str) or not key.strip():
-        raise ValueError
-except (OSError, yaml.YAMLError, KeyError, TypeError, ValueError):
-    sys.exit("error: cannot read codespace_workspace_key from Codespace config")
-
-sys.stdout.write(key)
-PY
+      if ! yq eval-all --yaml-fix-merge-anchor-to-spec -e -r '
+        [.] | select(length == 1) | .[0].secrets.codespace_workspace_key |
+          explode(.) | select(tag == "!!str") | select(trim != "")
+      ' "$HOME/.config/codespace/config.yaml" 2>/dev/null; then
+        printf 'error: cannot read codespace_workspace_key from Codespace config\n' >&2
+        return 1
+      fi
       ;;
     *)
       printf 'error: unsupported csecret platform\n' >&2
@@ -81,13 +72,7 @@ main() (
   fi
   check_arguments "$@"
 
-  local directory passphrase gpg_home='' temporary='' tool
-  for tool in gpg jq; do
-    command -v "$tool" >/dev/null || {
-      printf 'error: %s is required\n' "$tool" >&2
-      exit 1
-    }
-  done
+  local directory passphrase gpg_home='' temporary=''
   directory="$(dirname -- "$(readlink -f -- "${BASH_SOURCE[0]}")")"
   passphrase="$(read_passphrase)"
   trap 'cleanup' EXIT
